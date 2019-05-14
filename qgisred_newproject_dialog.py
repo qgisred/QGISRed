@@ -200,148 +200,112 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
 
     def createComplementaryList(self):
         list = ""
-        if self.cbIsolatedValves.isChecked() and not self.isLayerOpened("IssolatedValves"):
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        if self.cbIsolatedValves.isChecked() and not utils.isLayerOpened("IssolatedValves"):
             list = list + "issolatedvalve" + ";"
-        if self.cbCeckValves.isChecked() and not self.isLayerOpened("CheckValves"):
+        if self.cbCeckValves.isChecked() and not utils.isLayerOpened("CheckValves"):
             list = list + "checkvalve"+ ";"
-        if self.cbHydrants.isChecked() and not self.isLayerOpened("Hydrants"):
+        if self.cbHydrants.isChecked() and not utils.isLayerOpened("Hydrants"):
             list = list + "hydrant"+ ";"
-        if self.cbPurgeValves.isChecked() and not self.isLayerOpened("PurgeValves"):
+        if self.cbPurgeValves.isChecked() and not utils.isLayerOpened("PurgeValves"):
             list = list + "purgevalve"+ ";"
-        if self.cbAirReleases.isChecked() and not self.isLayerOpened("AirReleases"):
+        if self.cbAirReleases.isChecked() and not utils.isLayerOpened("AirReleases"):
             list = list + "airrelease"+ ";"
-        if self.cbConnections.isChecked() and not self.isLayerOpened("Connections"):
+        if self.cbConnections.isChecked() and not utils.isLayerOpened("Connections"):
             list = list + "connection"+ ";"
-        if self.cbManometers.isChecked() and not self.isLayerOpened("Manometers"):
+        if self.cbManometers.isChecked() and not utils.isLayerOpened("Manometers"):
             list = list + "manometer"+ ";"
-        if self.cbFlowmeters.isChecked() and not self.isLayerOpened("Flowmeters"):
+        if self.cbFlowmeters.isChecked() and not utils.isLayerOpened("Flowmeters"):
             list = list + "flowmeter"+ ";"
-        if self.cbCountmeters.isChecked() and not self.isLayerOpened("Countmeters"):
+        if self.cbCountmeters.isChecked() and not utils.isLayerOpened("Countmeters"):
             list = list + "countmeter"+ ";"
-        if self.cbLevelmeters.isChecked() and not self.isLayerOpened("Levelmeters"):
+        if self.cbLevelmeters.isChecked() and not utils.isLayerOpened("Levelmeters"):
             list = list + "levelmeter"+ ";"
         return list
 
     def removeComplementaryLayers(self):
+        list = []
         if not self.cbIsolatedValves.isChecked():
-            self.removeLayer("IssolatedValves")
+            list.append("IssolatedValves")
         if not self.cbCeckValves.isChecked():
-            self.removeLayer("CheckValves")
+            list.append("CheckValves")
         if not self.cbHydrants.isChecked():
-            self.removeLayer("Hydrants")
+            list.append("Hydrants")
         if not self.cbPurgeValves.isChecked():
-            self.removeLayer("PurgeValves")
+            list.append("PurgeValves")
         if not self.cbAirReleases.isChecked():
-            self.removeLayer("AirReleases")
+            list.append("AirReleases")
         if not self.cbConnections.isChecked():
-            self.removeLayer("Connections")
+            list.append("Connections")
         if not self.cbManometers.isChecked():
-            self.removeLayer("Manometers")
+            list.append("Manometers")
         if not self.cbFlowmeters.isChecked():
-            self.removeLayer("Flowmeters")
+            list.append("Flowmeters")
         if not self.cbCountmeters.isChecked():
-            self.removeLayer("Countmeters")
+            list.append("Countmeters")
         if not self.cbLevelmeters.isChecked():
-            self.removeLayer("Levelmeters")
-        return list
-
-    def removeLayer(self, id):
-        try: #QGis 3.x
-            layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
-        except: #QGis 2.x
-            layers = self.iface.legendInterface().layers()
-        for layer in layers:
-            if str(layer.dataProvider().dataSourceUri().split("|")[0])== os.path.join(self.ProjectDirectory, self.NetworkName + "_" + id + ".shp"):
-                try: #QGis 3.x
-                    QgsProject.instance().removeMapLayers([layer.id()])
-                except: #QGis 2.x
-                    QgsMapLayerRegistry.instance().removeMapLayers([layer.id()])
+            list.append("Levelmeters")
+        
+        QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface).removeLayers(list)
 
     def openElementsLayers(self, group, new):
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         if new:
-            self.openLayer(group, "Curves", "csv")
-            self.openLayer(group, "Controls", "csv")
-            self.openLayer(group, "Patterns", "csv")
-            self.openLayer(group, "Rules", "csv")
-            self.openLayer(group, "Options", "csv")
-            self.openLayer(group, "PropertyValues", "csv")
-        
+            files = ["Curves", "Controls", "Patterns", "Rules", "Options", "PropertyValues"]
+            for file in files:
+                utils.openLayer(self.CRS, group, file, ext=".csv")
+
         if self.cbPipes.isChecked():
-            if not self.isLayerOpened("Pipes"):
-                self.openLayer(group,"Pipes", style="pipes", type="line")
+            if not utils.isLayerOpened("Pipes"):
+                utils.openLayer(self.CRS, group,"Pipes")
         if self.cbValves.isChecked():
-            if not self.isLayerOpened("Valves"):
-                self.openLayer(group,"Valves", style="valves", type="line")
+            if not utils.isLayerOpened("Valves"):
+                utils.openLayer(self.CRS, group,"Valves")
         if self.cbPumps.isChecked():
-            if not self.isLayerOpened("Pumps"):
-                self.openLayer(group,"Pumps", style="pumps", type="line")
+            if not utils.isLayerOpened("Pumps"):
+                utils.openLayer(self.CRS, group,"Pumps")
         if self.cbJunctions.isChecked():
-            if not self.isLayerOpened("Junctions"):
-                self.openLayer(group,"Junctions", style="junctions")
+            if not utils.isLayerOpened("Junctions"):
+                utils.openLayer(self.CRS, group,"Junctions")
         if self.cbTanks.isChecked():
-            if not self.isLayerOpened("Tanks"):
-                self.openLayer(group,"Tanks", style="tanks")
+            if not utils.isLayerOpened("Tanks"):
+                utils.openLayer(self.CRS, group,"Tanks")
         if self.cbReservoirs.isChecked():
-            if not self.isLayerOpened("Reservoirs"):
-                self.openLayer(group,"Reservoirs", style="reservoirs")
-        
-        self.iface.mapCanvas().refresh()
+            if not utils.isLayerOpened("Reservoirs"):
+                utils.openLayer(self.CRS, group,"Reservoirs")
 
     def openComplementaryLayers(self, group):
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         if self.cbIsolatedValves.isChecked():
-            if not self.isLayerOpened("IssolatedValves"):
-                self.openLayer(group,"IssolatedValves")
+            if not utils.isLayerOpened("IssolatedValves"):
+                utils.openLayer(self.CRS, group,"IssolatedValves")
         if self.cbCeckValves.isChecked():
-            if not self.isLayerOpened("CheckValves"):
-                self.openLayer(group,"CheckValves")
+            if not utils.isLayerOpened("CheckValves"):
+                utils.openLayer(self.CRS, group,"CheckValves")
         if self.cbHydrants.isChecked():
-            if not self.isLayerOpened("Hydrants"):
-                self.openLayer(group,"Hydrants")
+            if not utils.isLayerOpened("Hydrants"):
+                utils.openLayer(self.CRS, group,"Hydrants")
         if self.cbPurgeValves.isChecked():
-            if not self.isLayerOpened("PurgeValves"):
-                self.openLayer(group,"PurgeValves")
+            if not utils.isLayerOpened("PurgeValves"):
+                utils.openLayer(self.CRS, group,"PurgeValves")
         if self.cbAirReleases.isChecked():
-            if not self.isLayerOpened("AirReleases"):
-                self.openLayer(group,"AirReleases")
+            if not utils.isLayerOpened("AirReleases"):
+                utils.openLayer(self.CRS, group,"AirReleases")
         if self.cbConnections.isChecked():
-            if not self.isLayerOpened("Connections"):
-                self.openLayer(group,"Connections")
+            if not utils.isLayerOpened("Connections"):
+                utils.openLayer(self.CRS, group,"Connections")
         if self.cbManometers.isChecked():
-            if not self.isLayerOpened("Manometers"):
-                self.openLayer(group,"Manometers")
+            if not utils.isLayerOpened("Manometers"):
+                utils.openLayer(self.CRS, group,"Manometers")
         if self.cbFlowmeters.isChecked():
-            if not self.isLayerOpened("Flowmeters"):
-                self.openLayer(group,"Flowmeters")
+            if not utils.isLayerOpened("Flowmeters"):
+                utils.openLayer(self.CRS, group,"Flowmeters")
         if self.cbCountmeters.isChecked():
-            if not self.isLayerOpened("Countmeters"):
-                self.openLayer(group,"Countmeters")
+            if not utils.isLayerOpened("Countmeters"):
+                utils.openLayer(self.CRS, group,"Countmeters")
         if self.cbLevelmeters.isChecked():
-            if not self.isLayerOpened("Levelmeters"):
-                self.openLayer(group,"Levelmeters")
-
-    def isLayerOpened(self, name):
-        try: #QGis 3.x
-            layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
-        except: #QGis 2.x
-            layers = self.iface.legendInterface().layers()
-        for layer in layers:
-            if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/","\\")== os.path.join(self.ProjectDirectory.replace("/","\\"), self.NetworkName + "_" + name + ".shp"):
-                return True
-        return False
-
-    def openLayer(self, group, name, ext="shp", style="", type="point"):
-        layerName = self.NetworkName + "_" + name
-        if os.path.exists(os.path.join(self.ProjectDirectory, layerName + "." + ext)):
-            vlayer = QgsVectorLayer(os.path.join(self.ProjectDirectory, layerName + "." + ext), name, "ogr")
-            if not ext == "csv":
-                vlayer.setCrs(self.CRS)
-                if not style=="":
-                    QGISRedUtils().setStyle(vlayer, style, type)
-            try: #QGis 3.x
-                QgsProject.instance().addMapLayer(vlayer, group is None)
-            except: #QGis 2.x
-                QgsMapLayerRegistry.instance().addMapLayer(vlayer, group is None)
-            group.insertChildNode(0, QgsLayerTreeLayer(vlayer))
+            if not utils.isLayerOpened("Levelmeters"):
+                utils.openLayer(self.CRS, group,"Levelmeters")
 
     def createProject(self):
         isValid = self.validationsCreateProject()
@@ -375,7 +339,6 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             else:
                 self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
             
-            os.startfile(self.ProjectDirectory)
             self.close()
             self.ProcessDone = True
 
@@ -411,6 +374,5 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         else:
             self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
         
-        os.startfile(self.ProjectDirectory)
         self.close()
         self.ProcessDone = True

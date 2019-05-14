@@ -26,8 +26,8 @@ from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer, QgsLayerTre
 
 try: #QGis 3.x
     from PyQt5.QtGui import QIcon
-    from PyQt5.QtWidgets import QAction, QMessageBox
-    from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
+    from PyQt5.QtWidgets import QAction, QMessageBox, QApplication
+    from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
     #Import resources
     from . import resources3x
     # Import the code for the dialog
@@ -38,8 +38,8 @@ try: #QGis 3.x
     from .qgisred_about_dialog import QGISRedAboutDialog
     from .qgisred_utils import QGISRedUtils
 except: #QGis 2.x
-    from PyQt4.QtGui import QAction, QMessageBox, QIcon
-    from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
+    from PyQt4.QtGui import QAction, QMessageBox, QIcon, QApplication
+    from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
     from qgis.core import QgsMapLayerRegistry
     #Import resources
     import resources2x
@@ -70,6 +70,7 @@ class QGISRed:
     ProjectDirectory = ""
     NetworkName = ""
     ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs"]
+    ownFiles = ["Curves", "Controls", "Patterns", "Rules", "Options", "PropertyValues"]
     TemporalFolder = "Temporal folder"
 
     def __init__(self, iface):
@@ -224,7 +225,7 @@ class QGISRed:
         self.add_action(
             icon_path,
             text=self.tr(u'Import to SHPs'),
-            callback=self.runImportInp,
+            callback=self.runImport,
             parent=self.iface.mainWindow())
 
         icon_path = ':/plugins/QGISRed/iconValidate.png' 
@@ -234,7 +235,7 @@ class QGISRed:
             callback=self.runValidateModel,
             parent=self.iface.mainWindow())
 
-        icon_path = ':/plugins/QGISRed/iconValidate.png' 
+        icon_path = ':/plugins/QGISRed/iconCommit.png' 
         self.add_action(
             icon_path,
             text=self.tr(u'Commit'),
@@ -325,16 +326,6 @@ class QGISRed:
             if not parent is None:
                 if parent.parent().name() == groupName:
                     QGISRedUtils().writeFile(file, layer.dataProvider().dataSourceUri().split("|")[0] + '\n')
-        # for child in reversed(group.children()):
-            # if isinstance(child, QgsLayerTreeGroup):
-                # file.write("[" + child.name() + "]\n")
-                # self.writeLayersOfGroups(child, file)
-            # if isinstance(child, QgsLayerTreeLayer):
-                # self.iface.messageBar().pushMessage("Warning", "entra", level=1, duration=10)
-                # file.write(child.layer().dataProvider().dataSourceUri().split("|")[0] + '\n')
-            # elif isinstance(child, QgsLayerTreeNode):
-                # self.iface.messageBar().pushMessage("Warning", child.name(), level=1, duration=10)
-                # file.write(child.layer().dataProvider().dataSourceUri().split("|")[0] + '\n')
 
     def defineCurrentProject(self):
         self.NetworkName ="Network"
@@ -433,7 +424,7 @@ class QGISRed:
             self.NetworkName = dlg.NetworkName
             self.createGqpFile()
 
-    def runImportInp(self):
+    def runImport(self):
         """Run method that performs all the real work"""
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
@@ -478,7 +469,53 @@ class QGISRed:
             self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
 
     def runCommit(self):
-        pass
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            self.iface.messageBar().pushMessage("Warning", "No valid project is opened", level=1, duration=10)
+            return
+        if self.isLayerOnEdition():
+            return
+        
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        #Remove layers
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.removeLayers(self.ownMainLayers)
+        utils.removeLayers(self.ownFiles, ".csv")
+        
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.CommitModel.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.CommitModel.restype = c_char_p
+        elements = "Junctions;Pipes;Tanks;Reservoirs;Valves;Pumps;"
+        b = mydll.CommitModel(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), elements.encode('utf-8'))
+        try: #QGis 3.x
+            b= "".join(map(chr, b)) #bytes to string
+        except:  #QGis 2.x
+            b=b
+        
+        #Group
+        dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Inputs")
+        if dataGroup is None:
+            root = QgsProject.instance().layerTreeRoot()
+            dataGroup = root.addGroup(self.NetworkName + " Inputs")
+        
+        #Open layers
+        try: #QGis 3.x
+            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
+        except: #QGis 2.x
+            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        if crs.srsid()==0:
+            crs = QgsCoordinateReferenceSystem()
+            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
+        utils.openElementsLayers(dataGroup, crs, self.ownMainLayers, self.ownFiles)
+        QApplication.restoreOverrideCursor()
+        
+        if b=="True":
+            self.iface.messageBar().pushMessage("Information", "Successful commit", level=3, duration=10)
+        elif b=="False":
+            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=10)
+        else:
+            self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
 
     def runExportInp(self):
         """Run method that performs all the real work"""

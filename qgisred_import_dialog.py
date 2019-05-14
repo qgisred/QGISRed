@@ -56,7 +56,6 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
     gplFile = ""
     TemporalFolder = "Temporal folder"
     ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs"]
-    mainLayerTypes = ["line", "line", "line", "point", "point", "point"]
     ownFiles = ["Curves", "Controls", "Patterns", "Rules", "Options", "PropertyValues"]
     def __init__(self, parent=None):
         """Constructor."""
@@ -128,6 +127,46 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 self.CRS.createFromId(crsId, QgsCoordinateReferenceSystem.InternalCrsId)
                 self.tbCRS.setText(self.CRS.description())
 
+    def validationsCreateProject(self):
+        self.NetworkName = self.tbNetworkName.text()
+        if len(self.NetworkName)==0:
+            self.iface.messageBar().pushMessage("Validations", "The network's name is not valid", level=1)
+            return False
+        self.ProjectDirectory = self.tbProjectDirectory.text()
+        if len(self.ProjectDirectory)==0 or self.ProjectDirectory==self.TemporalFolder:
+            self.ProjectDirectory=tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names())
+        else:
+            if not os.path.exists(self.ProjectDirectory):
+                self.iface.messageBar().pushMessage("Validations", "The project directory does not exist", level=1)
+                return False
+        return True
+
+    def createProject(self):
+        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.CreateProject.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.CreateProject.restype = c_char_p
+        b = mydll.CreateProject(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), "".encode('utf-8'))
+        try: #QGis 3.x
+            b= "".join(map(chr, b)) #bytes to string
+        except:  #QGis 2.x
+            b=b
+        
+        if not b=="True":
+            if b=="False":
+                self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=10)
+            else:
+                self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
+            self.close()
+            return False
+        
+        file = open(self.gplFile, "a+")
+        QGISRedUtils().writeFile(file, self.NetworkName + ";" + self.ProjectDirectory + '\n')
+        file.close()
+        return True
+
+#INP SECTION
     def selectINP(self):
         qfd = QFileDialog()
         path = ""
@@ -141,6 +180,60 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             self.tbInpFile.setText(str(f))
             self.tbInpFile.setCursorPosition(0)
 
+    def importInpProject(self):
+        isValid = self.validationsCreateProject()
+        if isValid==True:
+            #Validations INP
+            self.InpFile = self.tbInpFile.text()
+            if len(self.InpFile)==0:
+                self.iface.messageBar().pushMessage("Validations", "INP file is not valid", level=1)
+                return
+            else:
+                if not os.path.exists(self.InpFile):
+                    self.iface.messageBar().pushMessage("Validations", "INP file does not exist", level=1)
+                    return
+            
+            #Process
+            if self.NewProject:
+                if not self.createProject():
+                    return
+            #Remove layers
+            utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+            utils.removeLayers(self.ownMainLayers)
+            utils.removeLayers(self.ownFiles, ".csv")
+            
+            #Method
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+            mydll = WinDLL("GISRed.QGisPlugins.dll")
+            mydll.ImportFromInp.argtypes = (c_char_p, c_char_p, c_char_p)
+            mydll.ImportFromInp.restype = c_char_p
+            b = mydll.ImportFromInp(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.InpFile.encode('utf-8'))
+            try: #QGis 3.x
+                b= "".join(map(chr, b)) #bytes to string
+            except:  #QGis 2.x
+                b=b
+            
+            #Group
+            dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Inputs")
+            if dataGroup is None:
+                root = QgsProject.instance().layerTreeRoot()
+                dataGroup = root.addGroup(self.NetworkName + " Inputs")
+            #Open layers
+            utils.openElementsLayers(dataGroup, self.CRS, self.ownMainLayers, self.ownFiles)
+            QApplication.restoreOverrideCursor()
+
+            if b=="True":
+                self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=10)
+            elif b=="False":
+                self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=10)
+            else:
+                self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
+
+            self.close()
+            self.ProcessDone = True
+
+#SHPS SECTION
     def selectSHPDirectory(self):
         selected_directory = QFileDialog.getExistingDirectory()
         if selected_directory == "":
@@ -382,136 +475,6 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.selectComboBoxItem(self.cbJunction_BaseDem, ["basedem"])
         self.selectComboBoxItem(self.cbJunction_Tag, ["tag"])
         self.selectComboBoxItem(self.cbJunction_Descr, ["descrip", "descr", "description"])
-
-    def removeLayers(self):
-        for layerName in self.ownMainLayers:
-            self.removeLayer(layerName)
-        for fileName in self.ownFiles:
-            self.removeLayer(fileName, ".csv")
-
-    def removeLayer(self, id, ext=".shp"):
-        try: #QGis 3.x
-            layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
-        except: #QGis 2.x
-            layers = self.iface.legendInterface().layers()
-        for layer in layers:
-            if str(layer.dataProvider().dataSourceUri().split("|")[0])== os.path.join(self.ProjectDirectory, self.NetworkName + "_" + id + ext):
-                try: #QGis 3.x
-                    QgsProject.instance().removeMapLayers([layer.id()])
-                except: #QGis 2.x
-                    QgsMapLayerRegistry.instance().removeMapLayers([layer.id()])
-
-    def openElementsLayers(self, group):
-        for fileName in self.ownFiles:
-            self.openLayer(group, fileName, ".csv")
-        for i in range(0,len(self.ownMainLayers)):
-            self.openLayer(group, self.ownMainLayers[i], type=self.mainLayerTypes[i])
-        if group is not None:
-            for treeLayer in group.findLayers():
-                treeLayer.layer().setCrs(self.CRS)
-
-    def openLayer(self, group, name, ext=".shp", type="point"):
-        layerName = self.NetworkName + "_" + name
-        if os.path.exists(self.ProjectDirectory + "\\" + layerName + ext):
-            vlayer = QgsVectorLayer(self.ProjectDirectory + "\\" + layerName + ext, name, "ogr")
-            if not ext == ".csv":
-                vlayer.setCrs(self.CRS)
-                QGISRedUtils().setStyle(vlayer, name.lower(), type)
-            try: #QGis 3.x
-                QgsProject.instance().addMapLayer(vlayer, group is None)
-            except: #QGis 2.x
-                QgsMapLayerRegistry.instance().addMapLayer(vlayer, group is None)
-            if group is not None:
-                group.insertChildNode(0, QgsLayerTreeLayer(vlayer))
-
-    def validationsCreateProject(self):
-        self.NetworkName = self.tbNetworkName.text()
-        if len(self.NetworkName)==0:
-            self.iface.messageBar().pushMessage("Validations", "The network's name is not valid", level=1)
-            return False
-        self.ProjectDirectory = self.tbProjectDirectory.text()
-        if len(self.ProjectDirectory)==0 or self.ProjectDirectory==self.TemporalFolder:
-            self.ProjectDirectory=tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names())
-        else:
-            if not os.path.exists(self.ProjectDirectory):
-                self.iface.messageBar().pushMessage("Validations", "The project directory does not exist", level=1)
-                return False
-        return True
-
-    def importInpProject(self):
-        isValid = self.validationsCreateProject()
-        if isValid==True:
-            #Validations INP
-            self.InpFile = self.tbInpFile.text()
-            if len(self.InpFile)==0:
-                self.iface.messageBar().pushMessage("Validations", "INP file is not valid", level=1)
-                return
-            else:
-                if not os.path.exists(self.InpFile):
-                    self.iface.messageBar().pushMessage("Validations", "INP file does not exist", level=1)
-                    return
-            
-            #Process
-            if self.NewProject:
-                if not self.createProject():
-                    return
-            
-            self.removeLayers()
-            #Method
-            QApplication.setOverrideCursor(Qt.WaitCursor)
-            os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
-            mydll = WinDLL("GISRed.QGisPlugins.dll")
-            mydll.ImportFromInp.argtypes = (c_char_p, c_char_p, c_char_p)
-            mydll.ImportFromInp.restype = c_char_p
-            b = mydll.ImportFromInp(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.InpFile.encode('utf-8'))
-            try: #QGis 3.x
-                b= "".join(map(chr, b)) #bytes to string
-            except:  #QGis 2.x
-                b=b
-            
-            #Group
-            dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Inputs")
-            if dataGroup is None:
-                root = QgsProject.instance().layerTreeRoot()
-                dataGroup = root.addGroup(self.NetworkName + " Inputs")
-            #Open layers
-            self.openElementsLayers(dataGroup)
-            QApplication.restoreOverrideCursor()
-
-            if b=="True":
-                self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=10)
-            elif b=="False":
-                self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=10)
-            else:
-                self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
-            os.startfile(self.ProjectDirectory)
-            self.close()
-            self.ProcessDone = True
-
-    def createProject(self):
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
-
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.CreateProject.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.CreateProject.restype = c_char_p
-        b = mydll.CreateProject(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), "".encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
-        
-        if not b=="True":
-            if b=="False":
-                self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=10)
-            else:
-                self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
-            self.close()
-            return False
-        
-        file = open(self.gplFile, "a+")
-        QGISRedUtils().writeFile(file, self.NetworkName + ";" + self.ProjectDirectory + '\n')
-        file.close()
-        return True
 
     def createShpsNames(self):
         shpFolder = self.tbShpDirectory.text()
@@ -764,7 +727,11 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             if self.NewProject:
                 if not self.createProject():
                     return
-            self.removeLayers()
+            #Remove layers
+            utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+            utils.removeLayers(self.ownMainLayers)
+            utils.removeLayers(self.ownFiles, ".csv")
+            
             shapes = self.createShpsNames()
             #Method
             os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
@@ -783,7 +750,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 root = QgsProject.instance().layerTreeRoot()
                 dataGroup = root.addGroup(self.NetworkName + " Inputs")
             #Open layers
-            self.openElementsLayers(dataGroup)
+            utils.openElementsLayers(dataGroup, self.CRS, self.ownMainLayers, self.ownFiles)
             QApplication.restoreOverrideCursor()
 
             if b=="True":
@@ -792,6 +759,6 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=10)
             else:
                 self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
-            os.startfile(self.ProjectDirectory)
+
             self.close()
             self.ProcessDone = True
