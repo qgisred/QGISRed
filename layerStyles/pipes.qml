@@ -25,9 +25,6 @@
     <edittype widgetv2type="TextEdit" name="WallCoeff">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="LinkType">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
-    </edittype>
     <edittype widgetv2type="TextEdit" name="Tag">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
@@ -210,7 +207,8 @@
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerTransparency>0</layerTransparency>
-  <displayfield>Descrip</displayfield>
+  <displayfield>[Pipe]&lt;br>
+Id: [% "Id" %]</displayfield>
   <label>0</label>
   <labelattributes>
     <label fieldname="" text="Etiqueta"/>
@@ -235,6 +233,7 @@
   <SingleCategoryDiagramRenderer diagramType="Histogram" sizeLegend="0" attributeLegend="1">
     <DiagramCategory penColor="#000000" labelPlacementMethod="XHeight" penWidth="0" diagramOrientation="Up" sizeScale="0,0,0,0,0,0" minimumSize="0" barWidth="5" penAlpha="255" maxScaleDenominator="1e+08" backgroundColor="#ffffff" transparency="0" width="15" scaleDependency="Area" backgroundAlpha="255" angleOffset="1440" scaleBasedVisibility="0" enabled="0" height="15" lineSizeScale="0,0,0,0,0,0" sizeType="MM" lineSizeType="MM" minScaleDenominator="inf">
       <fontProperties description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
+      <attribute field="" color="#000000" label=""/>
     </DiagramCategory>
     <symbol alpha="1" clip_to_extent="1" type="marker" name="sizeSymbol">
       <layer pass="0" class="SimpleMarker" locked="0">
@@ -270,10 +269,9 @@
     <alias field="IniStatus" index="5" name=""/>
     <alias field="BulkCoeff" index="6" name=""/>
     <alias field="WallCoeff" index="7" name=""/>
-    <alias field="LinkType" index="8" name=""/>
-    <alias field="Tag" index="9" name=""/>
-    <alias field="Descrip" index="10" name=""/>
-    <alias field="Sector" index="11" name=""/>
+    <alias field="Tag" index="8" name=""/>
+    <alias field="Descrip" index="9" name=""/>
+    <alias field="Sector" index="10" name=""/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
@@ -288,7 +286,6 @@
       <column width="-1" hidden="0" type="field" name="IniStatus"/>
       <column width="-1" hidden="0" type="field" name="BulkCoeff"/>
       <column width="-1" hidden="0" type="field" name="WallCoeff"/>
-      <column width="-1" hidden="0" type="field" name="LinkType"/>
       <column width="-1" hidden="0" type="field" name="Tag"/>
       <column width="-1" hidden="0" type="field" name="Descrip"/>
       <column width="-1" hidden="0" type="field" name="Sector"/>
@@ -332,7 +329,6 @@ def my_form_open(dialog, layer, feature):
     <default field="IniStatus" expression=""/>
     <default field="BulkCoeff" expression=""/>
     <default field="WallCoeff" expression=""/>
-    <default field="LinkType" expression=""/>
     <default field="Tag" expression=""/>
     <default field="Descrip" expression=""/>
     <default field="Sector" expression=""/>

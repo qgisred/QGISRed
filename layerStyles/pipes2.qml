@@ -4,28 +4,28 @@
     <edittype widgetv2type="TextEdit" name="Id">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="IdHFCurve">
+    <edittype widgetv2type="TextEdit" name="Length">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="Power">
+    <edittype widgetv2type="TextEdit" name="Diameter">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="Speed">
+    <edittype widgetv2type="TextEdit" name="RoughCoeff">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="IdSpeedPat">
+    <edittype widgetv2type="TextEdit" name="LossCoeff">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
     <edittype widgetv2type="TextEdit" name="IniStatus">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="IdEffiCur">
+    <edittype widgetv2type="TextEdit" name="BulkCoeff">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="EnergyPric">
+    <edittype widgetv2type="TextEdit" name="WallCoeff">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="IdPricePat">
+    <edittype widgetv2type="TextEdit" name="LinkType">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
     <edittype widgetv2type="TextEdit" name="Tag">
@@ -48,10 +48,10 @@
           <prop k="customdash_unit" v="MM"/>
           <prop k="draw_inside_polygon" v="0"/>
           <prop k="joinstyle" v="bevel"/>
-          <prop k="line_color" v="0,0,0,255"/>
+          <prop k="line_color" v="15,18,145,255"/>
           <prop k="line_style" v="solid"/>
           <prop k="line_width" v="1.5"/>
-          <prop k="line_width_unit" v="MM"/>
+          <prop k="line_width_unit" v="Pixel"/>
           <prop k="offset" v="0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
           <prop k="offset_unit" v="MM"/>
@@ -210,8 +210,7 @@
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerTransparency>0</layerTransparency>
-  <displayfield>[Pump]&lt;br>
-Id: [% "Id" %]</displayfield>
+  <displayfield>Descrip</displayfield>
   <label>0</label>
   <labelattributes>
     <label fieldname="" text="Etiqueta"/>
@@ -264,14 +263,14 @@ Id: [% "Id" %]</displayfield>
   <annotationform></annotationform>
   <aliases>
     <alias field="Id" index="0" name=""/>
-    <alias field="IdHFCurve" index="1" name=""/>
-    <alias field="Power" index="2" name=""/>
-    <alias field="Speed" index="3" name=""/>
-    <alias field="IdSpeedPat" index="4" name=""/>
+    <alias field="Length" index="1" name=""/>
+    <alias field="Diameter" index="2" name=""/>
+    <alias field="RoughCoeff" index="3" name=""/>
+    <alias field="LossCoeff" index="4" name=""/>
     <alias field="IniStatus" index="5" name=""/>
-    <alias field="IdEffiCur" index="6" name=""/>
-    <alias field="EnergyPric" index="7" name=""/>
-    <alias field="IdPricePat" index="8" name=""/>
+    <alias field="BulkCoeff" index="6" name=""/>
+    <alias field="WallCoeff" index="7" name=""/>
+    <alias field="LinkType" index="8" name=""/>
     <alias field="Tag" index="9" name=""/>
     <alias field="Descrip" index="10" name=""/>
     <alias field="Sector" index="11" name=""/>
@@ -279,17 +278,17 @@ Id: [% "Id" %]</displayfield>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <attributeactions default="-1"/>
-  <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="218955776">
+  <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0">
     <columns>
       <column width="-1" hidden="0" type="field" name="Id"/>
-      <column width="-1" hidden="0" type="field" name="IdHFCurve"/>
-      <column width="-1" hidden="0" type="field" name="Power"/>
-      <column width="-1" hidden="0" type="field" name="Speed"/>
-      <column width="-1" hidden="0" type="field" name="IdSpeedPat"/>
+      <column width="-1" hidden="0" type="field" name="Length"/>
+      <column width="-1" hidden="0" type="field" name="Diameter"/>
+      <column width="-1" hidden="0" type="field" name="RoughCoeff"/>
+      <column width="-1" hidden="0" type="field" name="LossCoeff"/>
       <column width="-1" hidden="0" type="field" name="IniStatus"/>
-      <column width="-1" hidden="0" type="field" name="IdEffiCur"/>
-      <column width="-1" hidden="0" type="field" name="EnergyPric"/>
-      <column width="-1" hidden="0" type="field" name="IdPricePat"/>
+      <column width="-1" hidden="0" type="field" name="BulkCoeff"/>
+      <column width="-1" hidden="0" type="field" name="WallCoeff"/>
+      <column width="-1" hidden="0" type="field" name="LinkType"/>
       <column width="-1" hidden="0" type="field" name="Tag"/>
       <column width="-1" hidden="0" type="field" name="Descrip"/>
       <column width="-1" hidden="0" type="field" name="Sector"/>
@@ -326,18 +325,18 @@ def my_form_open(dialog, layer, feature):
   </conditionalstyles>
   <defaults>
     <default field="Id" expression=""/>
-    <default field="IdHFCurve" expression=""/>
-    <default field="Power" expression=""/>
-    <default field="Speed" expression=""/>
-    <default field="IdSpeedPat" expression=""/>
+    <default field="Length" expression=""/>
+    <default field="Diameter" expression=""/>
+    <default field="RoughCoeff" expression=""/>
+    <default field="LossCoeff" expression=""/>
     <default field="IniStatus" expression=""/>
-    <default field="IdEffiCur" expression=""/>
-    <default field="EnergyPric" expression=""/>
-    <default field="IdPricePat" expression=""/>
+    <default field="BulkCoeff" expression=""/>
+    <default field="WallCoeff" expression=""/>
+    <default field="LinkType" expression=""/>
     <default field="Tag" expression=""/>
     <default field="Descrip" expression=""/>
     <default field="Sector" expression=""/>
   </defaults>
-  <previewExpression>COALESCE( "Descrip", '&lt;NULL>' )</previewExpression>
+  <previewExpression></previewExpression>
   <layerGeometryType>1</layerGeometryType>
 </qgis>

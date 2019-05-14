@@ -1,31 +1,16 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis version="2.18.26" simplifyAlgorithm="0" minimumScale="0" maximumScale="1e+08" simplifyDrawingHints="1" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" readOnly="0" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
+<qgis version="2.18.26" simplifyAlgorithm="0" minimumScale="0" maximumScale="1e+08" simplifyDrawingHints="0" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" readOnly="0" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
   <edittypes>
     <edittype widgetv2type="TextEdit" name="Id">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="IdHFCurve">
+    <edittype widgetv2type="TextEdit" name="TotalHead">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="Power">
+    <edittype widgetv2type="TextEdit" name="IdHeadPatt">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="Speed">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="IdSpeedPat">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="IniStatus">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="IdEffiCur">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="EnergyPric">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="IdPricePat">
+    <edittype widgetv2type="TextEdit" name="IniQuality">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
     <edittype widgetv2type="TextEdit" name="Tag">
@@ -40,23 +25,26 @@
   </edittypes>
   <renderer-v2 forceraster="0" symbollevels="0" type="singleSymbol" enableorderby="0">
     <symbols>
-      <symbol alpha="1" clip_to_extent="1" type="line" name="0">
-        <layer pass="0" class="SimpleLine" locked="0">
-          <prop k="capstyle" v="square"/>
-          <prop k="customdash" v="5;2"/>
-          <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="customdash_unit" v="MM"/>
-          <prop k="draw_inside_polygon" v="0"/>
+      <symbol alpha="1" clip_to_extent="1" type="marker" name="0">
+        <layer pass="0" class="SimpleMarker" locked="0">
+          <prop k="angle" v="180"/>
+          <prop k="color" v="165,165,165,255"/>
+          <prop k="horizontal_anchor_point" v="1"/>
           <prop k="joinstyle" v="bevel"/>
-          <prop k="line_color" v="0,0,0,255"/>
-          <prop k="line_style" v="solid"/>
-          <prop k="line_width" v="1.5"/>
-          <prop k="line_width_unit" v="MM"/>
-          <prop k="offset" v="0"/>
+          <prop k="name" v="triangle"/>
+          <prop k="offset" v="0,0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
           <prop k="offset_unit" v="MM"/>
-          <prop k="use_custom_dash" v="0"/>
-          <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="outline_color" v="0,0,0,255"/>
+          <prop k="outline_style" v="solid"/>
+          <prop k="outline_width" v="0"/>
+          <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="outline_width_unit" v="MM"/>
+          <prop k="scale_method" v="diameter"/>
+          <prop k="size" v="2.5"/>
+          <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="size_unit" v="MM"/>
+          <prop k="vertical_anchor_point" v="1"/>
         </layer>
       </symbol>
     </symbols>
@@ -119,7 +107,7 @@
     <property key="labeling/maxNumLabels" value="2000"/>
     <property key="labeling/mergeLines" value="false"/>
     <property key="labeling/minFeatureSize" value="0"/>
-    <property key="labeling/multilineAlign" value="4294967295"/>
+    <property key="labeling/multilineAlign" value="3"/>
     <property key="labeling/multilineHeight" value="1"/>
     <property key="labeling/namedStyle" value="Normal"/>
     <property key="labeling/obstacle" value="true"/>
@@ -127,7 +115,7 @@
     <property key="labeling/obstacleType" value="0"/>
     <property key="labeling/offsetType" value="0"/>
     <property key="labeling/placeDirectionSymbol" value="0"/>
-    <property key="labeling/placement" value="2"/>
+    <property key="labeling/placement" value="6"/>
     <property key="labeling/placementFlags" value="10"/>
     <property key="labeling/plussign" value="false"/>
     <property key="labeling/predefinedPositionOrder" value="TR,TL,BR,BL,R,L,TSR,BSR"/>
@@ -210,8 +198,7 @@
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerTransparency>0</layerTransparency>
-  <displayfield>[Pump]&lt;br>
-Id: [% "Id" %]</displayfield>
+  <displayfield>Descrip</displayfield>
   <label>0</label>
   <labelattributes>
     <label fieldname="" text="Etiqueta"/>
@@ -260,36 +247,26 @@ Id: [% "Id" %]</displayfield>
       </layer>
     </symbol>
   </SingleCategoryDiagramRenderer>
-  <DiagramLayerSettings yPosColumn="-1" showColumn="-1" linePlacementFlags="10" placement="2" dist="0" xPosColumn="-1" priority="0" obstacle="0" zIndex="0" showAll="1"/>
+  <DiagramLayerSettings yPosColumn="-1" showColumn="-1" linePlacementFlags="10" placement="0" dist="0" xPosColumn="-1" priority="0" obstacle="0" zIndex="0" showAll="1"/>
   <annotationform></annotationform>
   <aliases>
     <alias field="Id" index="0" name=""/>
-    <alias field="IdHFCurve" index="1" name=""/>
-    <alias field="Power" index="2" name=""/>
-    <alias field="Speed" index="3" name=""/>
-    <alias field="IdSpeedPat" index="4" name=""/>
-    <alias field="IniStatus" index="5" name=""/>
-    <alias field="IdEffiCur" index="6" name=""/>
-    <alias field="EnergyPric" index="7" name=""/>
-    <alias field="IdPricePat" index="8" name=""/>
-    <alias field="Tag" index="9" name=""/>
-    <alias field="Descrip" index="10" name=""/>
-    <alias field="Sector" index="11" name=""/>
+    <alias field="TotalHead" index="1" name=""/>
+    <alias field="IdHeadPatt" index="2" name=""/>
+    <alias field="IniQuality" index="3" name=""/>
+    <alias field="Tag" index="4" name=""/>
+    <alias field="Descrip" index="5" name=""/>
+    <alias field="Sector" index="6" name=""/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <attributeactions default="-1"/>
-  <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="218955776">
+  <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0">
     <columns>
       <column width="-1" hidden="0" type="field" name="Id"/>
-      <column width="-1" hidden="0" type="field" name="IdHFCurve"/>
-      <column width="-1" hidden="0" type="field" name="Power"/>
-      <column width="-1" hidden="0" type="field" name="Speed"/>
-      <column width="-1" hidden="0" type="field" name="IdSpeedPat"/>
-      <column width="-1" hidden="0" type="field" name="IniStatus"/>
-      <column width="-1" hidden="0" type="field" name="IdEffiCur"/>
-      <column width="-1" hidden="0" type="field" name="EnergyPric"/>
-      <column width="-1" hidden="0" type="field" name="IdPricePat"/>
+      <column width="-1" hidden="0" type="field" name="TotalHead"/>
+      <column width="-1" hidden="0" type="field" name="IdHeadPatt"/>
+      <column width="-1" hidden="0" type="field" name="IniQuality"/>
       <column width="-1" hidden="0" type="field" name="Tag"/>
       <column width="-1" hidden="0" type="field" name="Descrip"/>
       <column width="-1" hidden="0" type="field" name="Sector"/>
@@ -326,18 +303,13 @@ def my_form_open(dialog, layer, feature):
   </conditionalstyles>
   <defaults>
     <default field="Id" expression=""/>
-    <default field="IdHFCurve" expression=""/>
-    <default field="Power" expression=""/>
-    <default field="Speed" expression=""/>
-    <default field="IdSpeedPat" expression=""/>
-    <default field="IniStatus" expression=""/>
-    <default field="IdEffiCur" expression=""/>
-    <default field="EnergyPric" expression=""/>
-    <default field="IdPricePat" expression=""/>
+    <default field="TotalHead" expression=""/>
+    <default field="IdHeadPatt" expression=""/>
+    <default field="IniQuality" expression=""/>
     <default field="Tag" expression=""/>
     <default field="Descrip" expression=""/>
     <default field="Sector" expression=""/>
   </defaults>
-  <previewExpression>COALESCE( "Descrip", '&lt;NULL>' )</previewExpression>
-  <layerGeometryType>1</layerGeometryType>
+  <previewExpression></previewExpression>
+  <layerGeometryType>0</layerGeometryType>
 </qgis>

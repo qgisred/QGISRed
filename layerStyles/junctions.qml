@@ -212,7 +212,8 @@
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerTransparency>0</layerTransparency>
-  <displayfield>Id</displayfield>
+  <displayfield>[Junction]&lt;br>
+Id: [% "Id" %]</displayfield>
   <label>0</label>
   <labelattributes>
     <label fieldname="" text="Etiqueta"/>

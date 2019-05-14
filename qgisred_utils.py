@@ -74,6 +74,11 @@ class QGISRedUtils:
         if name=="":
             return
         stylePath = os.path.join(os.path.dirname(__file__), "layerStyles")
+        
+        qmlPath= os.path.join(stylePath, name + ".qml")
+        if os.path.exists(qmlPath):
+            ret = layer.loadNamedStyle(qmlPath)
+        
         svgPath= os.path.join(stylePath, name + ".svg")
         if os.path.exists(svgPath):
             render = None
@@ -112,5 +117,3 @@ class QGISRedUtils:
                 layer.setRenderer(renderer)
             except: #QGis 2.x
                 layer.setRendererV2(renderer)
-        else:
-            ret = layer.loadNamedStyle(os.path.join(stylePath, name + ".qml"))

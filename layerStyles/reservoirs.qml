@@ -27,11 +27,11 @@
     <symbols>
       <symbol alpha="1" clip_to_extent="1" type="marker" name="0">
         <layer pass="0" class="SimpleMarker" locked="0">
-          <prop k="angle" v="180"/>
-          <prop k="color" v="165,165,165,255"/>
+          <prop k="angle" v="0"/>
+          <prop k="color" v="166,206,227,255"/>
           <prop k="horizontal_anchor_point" v="1"/>
           <prop k="joinstyle" v="bevel"/>
-          <prop k="name" v="triangle"/>
+          <prop k="name" v="circle"/>
           <prop k="offset" v="0,0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
           <prop k="offset_unit" v="MM"/>
@@ -40,8 +40,8 @@
           <prop k="outline_width" v="0"/>
           <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
           <prop k="outline_width_unit" v="MM"/>
-          <prop k="scale_method" v="diameter"/>
-          <prop k="size" v="2.5"/>
+          <prop k="scale_method" v="area"/>
+          <prop k="size" v="2"/>
           <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
           <prop k="size_unit" v="MM"/>
           <prop k="vertical_anchor_point" v="1"/>
@@ -198,7 +198,8 @@
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerTransparency>0</layerTransparency>
-  <displayfield>Descrip</displayfield>
+  <displayfield>[Reservoir]&lt;br>
+Id: [% "Id" %]</displayfield>
   <label>0</label>
   <labelattributes>
     <label fieldname="" text="Etiqueta"/>
@@ -310,6 +311,6 @@ def my_form_open(dialog, layer, feature):
     <default field="Descrip" expression=""/>
     <default field="Sector" expression=""/>
   </defaults>
-  <previewExpression></previewExpression>
+  <previewExpression>COALESCE( "Descrip", '&lt;NULL>' )</previewExpression>
   <layerGeometryType>0</layerGeometryType>
 </qgis>
