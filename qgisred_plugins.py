@@ -31,11 +31,10 @@ try: #QGis 3.x
     #Import resources
     from . import resources3x
     # Import the code for the dialog
-    from .qgisred_projectmanager_dialog import QGISRedProjectManagerDialog
-    from .qgisred_newproject_dialog import QGISRedNewProjectDialog
-    from .qgisred_import_dialog import QGISRedImportDialog
-    from .qgisred_exportinp_dialog import QGISRedExportInpDialog
-    from .qgisred_about_dialog import QGISRedAboutDialog
+    from .ui.qgisred_projectmanager_dialog import QGISRedProjectManagerDialog
+    from .ui.qgisred_newproject_dialog import QGISRedNewProjectDialog
+    from .ui.qgisred_import_dialog import QGISRedImportDialog
+    from .ui.qgisred_about_dialog import QGISRedAboutDialog
     from .qgisred_utils import QGISRedUtils
 except: #QGis 2.x
     from PyQt4.QtGui import QAction, QMessageBox, QIcon, QApplication
@@ -44,11 +43,10 @@ except: #QGis 2.x
     #Import resources
     import resources2x
     # Import the code for the dialog
-    from qgisred_projectmanager_dialog import QGISRedProjectManagerDialog
-    from qgisred_newproject_dialog import QGISRedNewProjectDialog
-    from qgisred_import_dialog import QGISRedImportDialog
-    from qgisred_exportinp_dialog import QGISRedExportInpDialog
-    from qgisred_about_dialog import QGISRedAboutDialog
+    from ui.qgisred_projectmanager_dialog import QGISRedProjectManagerDialog
+    from ui.qgisred_newproject_dialog import QGISRedNewProjectDialog
+    from ui.qgisred_import_dialog import QGISRedImportDialog
+    from ui.qgisred_about_dialog import QGISRedAboutDialog
     from qgisred_utils import QGISRedUtils
 
 # Others imports
@@ -200,63 +198,63 @@ class QGISRed:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = ':/plugins/QGISRed/iconProjectManager.png'
+        icon_path = ':/plugins/QGISRed/images/iconProjectManager.png'
         self.add_action(
             icon_path,
             text=self.tr(u'QGISRed project manager'),
             callback=self.runProjectManager,
             parent=self.iface.mainWindow())
 
-        icon_path = ':/plugins/QGISRed/iconSaveProject.png'
+        icon_path = ':/plugins/QGISRed/images/iconSaveProject.png'
         self.add_action(
             icon_path,
             text=self.tr(u'Save QGISRed project'),
             callback=self.runSaveProject,
             parent=self.iface.mainWindow())
 
-        icon_path = ':/plugins/QGISRed/iconCreateProject.png'
+        icon_path = ':/plugins/QGISRed/images/iconCreateProject.png'
         self.add_action(
             icon_path,
             text=self.tr(u'Create/Edit QGISRed project'),
             callback=self.runNewProject,
             parent=self.iface.mainWindow())
         
-        icon_path = ':/plugins/QGISRed/iconImport.png' 
+        icon_path = ':/plugins/QGISRed/images/iconImport.png' 
         self.add_action(
             icon_path,
             text=self.tr(u'Import to SHPs'),
             callback=self.runImport,
             parent=self.iface.mainWindow())
 
-        icon_path = ':/plugins/QGISRed/iconValidate.png' 
+        icon_path = ':/plugins/QGISRed/images/iconValidate.png' 
         self.add_action(
             icon_path,
             text=self.tr(u'Validate Model'),
             callback=self.runValidateModel,
             parent=self.iface.mainWindow())
 
-        icon_path = ':/plugins/QGISRed/iconCommit.png' 
+        icon_path = ':/plugins/QGISRed/images/iconCommit.png' 
         self.add_action(
             icon_path,
             text=self.tr(u'Commit'),
             callback=self.runCommit,
             parent=self.iface.mainWindow())
 
-        icon_path = ':/plugins/QGISRed/iconShpToInp.png' 
+        icon_path = ':/plugins/QGISRed/images/iconShpToInp.png' 
         self.add_action(
             icon_path,
             text=self.tr(u'Export model to INP'),
             callback=self.runExportInp,
             parent=self.iface.mainWindow())
 
-        icon_path = ':/plugins/QGISRed/iconRunModel.png' 
+        icon_path = ':/plugins/QGISRed/images/iconRunModel.png' 
         self.add_action(
             icon_path,
             text=self.tr(u'Run model && show results'),
             callback=self.runModel,
             parent=self.iface.mainWindow())
 
-        icon_path = ':/plugins/QGISRed/iconAbout.png' 
+        icon_path = ':/plugins/QGISRed/images/iconAbout.png' 
         self.add_action(
             icon_path,
             text=self.tr(u'About...'),

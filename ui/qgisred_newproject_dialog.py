@@ -30,13 +30,13 @@ try: #QGis 3.x
     from PyQt5.QtGui import QIcon
     from PyQt5.QtWidgets import QAction, QMessageBox, QTableWidgetItem, QFileDialog, QDialog
     from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QFileInfo
-    from .qgisred_utils import QGISRedUtils
+    from ..qgisred_utils import QGISRedUtils
 except: #QGis 2.x
     from qgis.gui import QgsGenericProjectionSelector
     from PyQt4.QtGui import QAction, QMessageBox, QIcon, QTableWidgetItem, QFileDialog, QDialog
     from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QFileInfo
     from qgis.core import QgsMapLayerRegistry
-    from qgisred_utils import QGISRedUtils
+    from ..qgisred_utils import QGISRedUtils
 
 import os
 from ctypes import*
@@ -66,7 +66,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         self.btSelectDirectory.clicked.connect(self.selectDirectory)
         self.btSelectCRS.clicked.connect(self.selectCRS)
         #Variables:
-        self.gplFile = os.path.dirname(__file__) + "\\qgisredprojectlist.gpl"
+        self.gplFile = os.path.join(os.path.dirname(os.path.dirname(__file__)) , "qgisredprojectlist.gpl")
         
     def config(self, ifac, direct, netw):
         self.iface=ifac
@@ -310,7 +310,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
     def createProject(self):
         isValid = self.validationsCreateProject()
         if isValid==True:
-            os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+            os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
             complElements = self.createComplementaryList()
 
             mydll = WinDLL("GISRed.QGisPlugins.dll")
@@ -343,7 +343,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             self.ProcessDone = True
 
     def editProject(self):
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
         self.removeComplementaryLayers()
         complElements = self.createComplementaryList()
         elements = self.createElementsList()

@@ -34,7 +34,7 @@ try: #QGis 3.x
     from .qgisred_newproject_dialog import QGISRedNewProjectDialog
     from .qgisred_importproject_dialog import QGISRedImportProjectDialog
     from .qgisred_cloneproject_dialog import QGISRedCloneProjectDialog
-    from .qgisred_utils import QGISRedUtils
+    from ..qgisred_utils import QGISRedUtils
 except: #QGis 2.x
     from qgis.gui import QgsGenericProjectionSelector
     from PyQt4.QtGui import QAction, QMessageBox, QIcon, QTableWidgetItem, QFileDialog, QDialog
@@ -44,7 +44,7 @@ except: #QGis 2.x
     from qgisred_newproject_dialog import QGISRedNewProjectDialog
     from qgisred_importproject_dialog import QGISRedImportProjectDialog
     from qgisred_cloneproject_dialog import QGISRedCloneProjectDialog
-    from qgisred_utils import QGISRedUtils
+    from ..qgisred_utils import QGISRedUtils
 
 import os
 import datetime
@@ -82,7 +82,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         self.btClone.clicked.connect(self.cloneProject)
         self.btGo2Folder.clicked.connect(self.openFolder)
         #Variables:
-        self.gplFile = os.path.dirname(__file__) + "\\qgisredprojectlist.gpl"
+        self.gplFile = os.path.join(os.path.dirname(os.path.dirname(__file__)) , "qgisredprojectlist.gpl")
         #Columns:
         self.twProjectList.setColumnCount(4)
         item = QTableWidgetItem("Network's Name")
@@ -302,12 +302,9 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                                         group.insertChildNode(0, QgsLayerTreeLayer(vlayer))
                                     if not vlayer is None:
                                         if ".shp" in layerPath:
-                                            type = "point"
-                                            if "Valves" in layerPath or "Pumps" in layerPath:
-                                                type= "line"
                                             names = (os.path.splitext(os.path.basename(layerPath))[0]).split("_")
-                                            style = names[len(names)-1]
-                                            QGISRedUtils().setStyle(vlayer, style, type)
+                                            nameLayer = names[len(names)-1]
+                                            QGISRedUtils().setStyle(vlayer, nameLayer)
                     else:
                         self.iface.messageBar().pushMessage("Warning", "File not found", level=1)
                     break

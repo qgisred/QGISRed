@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>:/plugins/QGISRed/iconAbout.png</normaloff>:/plugins/QGISRed/iconAbout.png</iconset>
+    <normaloff>:/plugins/QGISRed/images/iconAbout.png</normaloff>:/plugins/QGISRed/images/iconAbout.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0">
@@ -99,7 +99,7 @@
             <string/>
            </property>
            <property name="pixmap">
-            <pixmap>:/plugins/QGISRed/aboutRedhisp.png</pixmap>
+            <pixmap>:/plugins/QGISRed/images/aboutRedhisp.png</pixmap>
            </property>
            <property name="scaledContents">
             <bool>false</bool>
@@ -124,7 +124,7 @@
             <string/>
            </property>
            <property name="pixmap">
-            <pixmap>:/plugins/QGISRed/aboutIIAMA.png</pixmap>
+            <pixmap>:/plugins/QGISRed/images/aboutIIAMA.png</pixmap>
            </property>
            <property name="scaledContents">
             <bool>false</bool>
@@ -149,7 +149,7 @@
             <string/>
            </property>
            <property name="pixmap">
-            <pixmap>:/plugins/QGISRed/aboutUPV.png</pixmap>
+            <pixmap>:/plugins/QGISRed/images/aboutUPV.png</pixmap>
            </property>
            <property name="scaledContents">
             <bool>false</bool>

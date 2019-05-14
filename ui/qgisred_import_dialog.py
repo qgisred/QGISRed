@@ -30,13 +30,13 @@ try: #QGis 3.x
     from PyQt5.QtGui import QIcon
     from PyQt5.QtWidgets import QAction, QMessageBox, QTableWidgetItem, QFileDialog, QDialog, QApplication
     from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QFileInfo, Qt
-    from .qgisred_utils import QGISRedUtils
+    from ..qgisred_utils import QGISRedUtils
 except: #QGis 2.x
     from qgis.gui import QgsGenericProjectionSelector
     from PyQt4.QtGui import QAction, QMessageBox, QIcon, QTableWidgetItem, QFileDialog, QDialog, QApplication
     from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QFileInfo, Qt
     from qgis.core import QgsMapLayerRegistry
-    from qgisred_utils import QGISRedUtils
+    from ..qgisred_utils import QGISRedUtils
 
 import os
 from ctypes import*
@@ -66,7 +66,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
-        self.gplFile = os.path.dirname(__file__) + "\\qgisredprojectlist.gpl"
+        self.gplFile = os.path.join(os.path.dirname(os.path.dirname(__file__)) , "qgisredprojectlist.gpl")
         #INP
         self.btImportInp.clicked.connect(self.importInpProject)
         self.btSelectDirectory.clicked.connect(self.selectDirectory)
@@ -142,7 +142,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         return True
 
     def createProject(self):
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
 
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.CreateProject.argtypes = (c_char_p, c_char_p, c_char_p)
@@ -204,7 +204,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             
             #Method
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+            os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
             mydll = WinDLL("GISRed.QGisPlugins.dll")
             mydll.ImportFromInp.argtypes = (c_char_p, c_char_p, c_char_p)
             mydll.ImportFromInp.restype = c_char_p
@@ -734,7 +734,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             
             shapes = self.createShpsNames()
             #Method
-            os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+            os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
             mydll = WinDLL("GISRed.QGisPlugins.dll")
             mydll.ImportFromShps.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
             mydll.ImportFromShps.restype = c_char_p
