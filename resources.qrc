@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/plugins/QGISRed" >
+        <file>iconProjectManager.png</file>
+        <file>iconSaveProject.png</file>
+        <file>iconCreateProject.png</file>
+        <file>iconImport.png</file>
+        <file>iconValidate.png</file>
+        <file>iconShpToInp.png</file>
+        <file>iconRunModel.png</file>
+        <file>iconAbout.png</file>
+        <file>aboutRedhisp.png</file>
+        <file>aboutIIAMA.png</file>
+        <file>aboutUPV.png</file>
+    </qresource>
+</RCC>
