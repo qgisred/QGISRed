@@ -64,7 +64,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
     ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs"]
     #Create complementary layers
     layerExtensions = [".shp", ".dbf", ".shx", ".prj", ".qpj"]
-    ownFiles = ["Curves.csv", "Controls.csv", "Patterns.csv", "Rules.csv", "Options.csv", "PropertyValues.csv", "TitleAndNotes.txt" ]
+    ownFiles = ["Curves.csv", "Controls.csv", "Patterns.csv", "Rules.csv", "Options.csv", "DefaultValues.csv", "TitleAndNotes.txt" ]
     
     def __init__(self, parent=None):
         """Constructor."""

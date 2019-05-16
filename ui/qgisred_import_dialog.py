@@ -56,7 +56,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
     gplFile = ""
     TemporalFolder = "Temporal folder"
     ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs"]
-    ownFiles = ["Curves", "Controls", "Patterns", "Rules", "Options", "PropertyValues"]
+    ownFiles = ["Curves", "Controls", "Patterns", "Rules", "Options", "DefaultValues"]
     def __init__(self, parent=None):
         """Constructor."""
         super(QGISRedImportDialog, self).__init__(parent)

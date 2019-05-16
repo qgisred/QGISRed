@@ -68,7 +68,7 @@ class QGISRed:
     ProjectDirectory = ""
     NetworkName = ""
     ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs"]
-    ownFiles = ["Curves", "Controls", "Patterns", "Rules", "Options", "PropertyValues"]
+    ownFiles = ["Curves", "Controls", "Patterns", "Rules", "Options", "DefaultValues"]
     TemporalFolder = "Temporal folder"
 
     def __init__(self, iface):
@@ -449,6 +449,7 @@ class QGISRed:
         if self.isLayerOnEdition():
             return
         
+        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.ValidateModel.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.ValidateModel.restype = c_char_p
@@ -481,6 +482,7 @@ class QGISRed:
         utils.removeLayers(self.ownMainLayers)
         utils.removeLayers(self.ownFiles, ".csv")
         
+        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.CommitModel.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CommitModel.restype = c_char_p

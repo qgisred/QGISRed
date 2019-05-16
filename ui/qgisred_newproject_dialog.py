@@ -251,7 +251,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
     def openElementsLayers(self, group, new):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         if new:
-            files = ["Curves", "Controls", "Patterns", "Rules", "Options", "PropertyValues"]
+            files = ["Curves", "Controls", "Patterns", "Rules", "Options", "DefaultValues"]
             for file in files:
                 utils.openLayer(self.CRS, group, file, ext=".csv")
 
