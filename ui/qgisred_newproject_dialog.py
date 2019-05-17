@@ -28,13 +28,13 @@ from qgis.PyQt import QtGui, uic
 try: #QGis 3.x
     from qgis.gui import QgsProjectionSelectionDialog  as QgsGenericProjectionSelector 
     from PyQt5.QtGui import QIcon
-    from PyQt5.QtWidgets import QAction, QMessageBox, QTableWidgetItem, QFileDialog, QDialog
-    from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QFileInfo
+    from PyQt5.QtWidgets import QAction, QMessageBox, QTableWidgetItem, QFileDialog, QDialog, QApplication
+    from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QFileInfo, Qt
     from ..qgisred_utils import QGISRedUtils
 except: #QGis 2.x
     from qgis.gui import QgsGenericProjectionSelector
-    from PyQt4.QtGui import QAction, QMessageBox, QIcon, QTableWidgetItem, QFileDialog, QDialog
-    from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QFileInfo
+    from PyQt4.QtGui import QAction, QMessageBox, QIcon, QTableWidgetItem, QFileDialog, QDialog, QApplication
+    from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QFileInfo, Qt
     from qgis.core import QgsMapLayerRegistry
     from ..qgisred_utils import QGISRedUtils
 
@@ -310,6 +310,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
     def createProject(self):
         isValid = self.validationsCreateProject()
         if isValid==True:
+            QApplication.setOverrideCursor(Qt.WaitCursor)
             os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
             complElements = self.createComplementaryList()
 
@@ -329,6 +330,8 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             self.openElementsLayers(group, True)
             self.openComplementaryLayers(group)
             
+            QApplication.restoreOverrideCursor()
+            
             if b=="True":
                 self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=10)
                 file = open(self.gplFile, "a+")
@@ -343,6 +346,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             self.ProcessDone = True
 
     def editProject(self):
+        QApplication.setOverrideCursor(Qt.WaitCursor)
         os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
         self.removeComplementaryLayers()
         complElements = self.createComplementaryList()
@@ -366,6 +370,8 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
                 treeLayer.layer().setCrs(self.CRS)
         self.openElementsLayers(dataGroup, False)
         self.openComplementaryLayers(dataGroup)
+        
+        QApplication.restoreOverrideCursor()
         
         if b=="True":
             self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=10)

@@ -28,6 +28,7 @@ try: #QGis 3.x
     from PyQt5.QtGui import QIcon
     from PyQt5.QtWidgets import QAction, QMessageBox, QApplication
     from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
+    from qgis.core import Qgis
     #Import resources
     from . import resources3x
     # Import the code for the dialog
@@ -39,7 +40,7 @@ try: #QGis 3.x
 except: #QGis 2.x
     from PyQt4.QtGui import QAction, QMessageBox, QIcon, QApplication
     from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
-    from qgis.core import QgsMapLayerRegistry
+    from qgis.core import QgsMapLayerRegistry, QGis as Qgis
     #Import resources
     import resources2x
     # Import the code for the dialog
@@ -55,6 +56,8 @@ import os.path
 import datetime
 from time import strftime
 from ctypes import*
+import time
+import tempfile
 
 #MessageBar Levels
 # Info 0
@@ -381,6 +384,12 @@ class QGISRed:
                 return True
         return False
 
+    def deleteLayers(self):
+        #Remove layers
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.removeLayers(self.ownMainLayers)
+        utils.removeLayers(self.ownFiles, ".csv")
+
     def runProjectManager(self):
         """Run method that performs all the real work"""
         self.defineCurrentProject()
@@ -448,7 +457,9 @@ class QGISRed:
             return
         if self.isLayerOnEdition():
             return
-        
+
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
         os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.ValidateModel.argtypes = (c_char_p, c_char_p, c_char_p)
@@ -459,6 +470,7 @@ class QGISRed:
             b= "".join(map(chr, b)) #bytes to string
         except:  #QGis 2.x
             b=b
+        QApplication.restoreOverrideCursor()
         
         if b=="True":
             self.iface.messageBar().pushMessage("Information", "Topology is valid", level=3, duration=10)
@@ -477,11 +489,22 @@ class QGISRed:
         
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        #Remove layers
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        utils.removeLayers(self.ownMainLayers)
-        utils.removeLayers(self.ownFiles, ".csv")
-        
+        if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
+            self.deleteLayers()
+            self.runCommitProcess(True)
+        else:
+            projectFile = QgsProject.instance().fileName()
+            tempFile = os.path.join(tempfile._get_default_tempdir(), next(tempfile._get_candidate_names()))
+            ret = QgsProject.instance().write(tempFile)
+            QgsProject.instance().clear()
+            self.runCommitProcess()
+            QgsProject.instance().read(tempFile)
+            QgsProject.instance().setFileName(projectFile)
+            #ver cómo hacer para que luego deje guardar si no había proyecto
+            QgsProject.instance().writePath(projectFile)
+        QApplication.restoreOverrideCursor()
+
+    def runCommitProcess(self, version2=False):
         os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.CommitModel.argtypes = (c_char_p, c_char_p, c_char_p)
@@ -494,10 +517,11 @@ class QGISRed:
             b=b
         
         #Group
-        dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Inputs")
-        if dataGroup is None:
-            root = QgsProject.instance().layerTreeRoot()
-            dataGroup = root.addGroup(self.NetworkName + " Inputs")
+        if version2:
+            dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Inputs")
+            if dataGroup is None:
+                root = QgsProject.instance().layerTreeRoot()
+                dataGroup = root.addGroup(self.NetworkName + " Inputs")
         
         #Open layers
         try: #QGis 3.x
@@ -507,8 +531,10 @@ class QGISRed:
         if crs.srsid()==0:
             crs = QgsCoordinateReferenceSystem()
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
-        utils.openElementsLayers(dataGroup, crs, self.ownMainLayers, self.ownFiles)
-        QApplication.restoreOverrideCursor()
+        if version2:
+            utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+            utils.openElementsLayers(dataGroup, crs, self.ownMainLayers, self.ownFiles)
+        
         
         if b=="True":
             self.iface.messageBar().pushMessage("Information", "Successful commit", level=3, duration=10)

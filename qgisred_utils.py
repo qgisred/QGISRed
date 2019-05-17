@@ -54,15 +54,18 @@ class QGISRedUtils:
 
     def removeLayer(self, name, ext=".shp"):
         try: #QGis 3.x
+            # QgsProject.instance().clear()
+            # return
             layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
         except: #QGis 2.x
             layers = self.iface.legendInterface().layers()
         for layer in layers:
             if str(layer.dataProvider().dataSourceUri().split("|")[0])== os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ext):
                 try: #QGis 3.x
-                    QgsProject.instance().removeMapLayers([layer.id()])
+                    QgsProject.instance().removeMapLayer(layer)
                 except: #QGis 2.x
                     QgsMapLayerRegistry.instance().removeMapLayers([layer.id()])
+        self.iface.mapCanvas().refresh()
 
     def writeFile(self, file, string):
         try: #QGis 2.x !!!!!!

@@ -211,10 +211,50 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                     return False
         return True
 
+    def loadGplFile(self, projectDirectory, networkName):
+        gqpFilename = os.path.join(projectDirectory, networkName + ".gqp")
+        if os.path.exists(gqpFilename):
+            f = open(gqpFilename, "r")
+            lines = f.readlines()
+            qgsFile = lines[2]
+            if ".qgs" in qgsFile or ".qgz" in qgsFile:
+                finfo = QFileInfo(qgsFile)
+                try: #QGis 3.x
+                    QgsProject.instance().read(finfo.filePath())
+                except: #QGis 2.x
+                    QgsProject.instance().read(finfo)
+            else:
+                group = None
+                for i in range(2, len(lines)):
+                    if "[" in lines[i]:
+                        dataGroup = str(lines[i].strip("[").strip("\r\n").strip("]"))
+                        root = QgsProject.instance().layerTreeRoot()
+                        group = root.addGroup(dataGroup)
+                    else:
+                        layerPath= lines[i].strip("\r\n")
+                        vlayer = None
+                        layerName = os.path.splitext(os.path.basename(layerPath))[0].replace(networkName + "_", "")
+                        if group is None:
+                            vlayer = self.iface.addVectorLayer(layerPath, layerName, "ogr")
+                        else:
+                            vlayer = QgsVectorLayer(layerPath, layerName, "ogr")
+                            try: #QGis 3.x
+                                QgsProject.instance().addMapLayer(vlayer, False)
+                            except: #QGis 2.x
+                                QgsMapLayerRegistry.instance().addMapLayer(vlayer, False)
+                            group.insertChildNode(0, QgsLayerTreeLayer(vlayer))
+                        if not vlayer is None:
+                            if ".shp" in layerPath:
+                                names = (os.path.splitext(os.path.basename(layerPath))[0]).split("_")
+                                nameLayer = names[len(names)-1]
+                                QGISRedUtils().setStyle(vlayer, nameLayer)
+        else:
+            self.iface.messageBar().pushMessage("Warning", "File not found", level=1)
+
     def createProject(self):
         valid = self.isOpenedProject()
         if valid:
-            dlg = GISRedNewProjectDialog()
+            dlg = QGISRedNewProjectDialog()
             dlg.config(self.iface, "Temporal folder", "Network")
             # Run the dialog event loop
             self.close()
@@ -247,7 +287,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             self.fillTable()
 
     def importProject(self):
-        dlg = GISRedImportProjectDialog()
+        dlg = QGISRedImportProjectDialog()
         # Run the dialog event loop
         dlg.exec_()
         result = dlg.ProcessDone
@@ -268,47 +308,12 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             if valid:
                 for row in selectionModel.selectedRows():
                     rowIndex = row.row()
-                    network = str(self.twProjectList.item(rowIndex, 0).text())
-                    gqpFilename = os.path.join(str(self.twProjectList.item(rowIndex, 3).text()), network + ".gqp")
-                    if os.path.exists(gqpFilename):
-                        f = open(gqpFilename, "r")
-                        lines = f.readlines()
-                        qgsFile = lines[2]
-                        if ".qgs" in qgsFile or ".qgz" in qgsFile:
-                            finfo = QFileInfo(qgsFile)
-                            try: #QGis 3.x
-                                QgsProject.instance().read(finfo.filePath())
-                            except: #QGis 2.x
-                                QgsProject.instance().read(finfo)
-                        else:
-                            group = None
-                            for i in range(2, len(lines)):
-                                if "[" in lines[i]:
-                                    dataGroup = str(lines[i].strip("[").strip("\r\n").strip("]"))
-                                    root = QgsProject.instance().layerTreeRoot()
-                                    group = root.addGroup(dataGroup)
-                                else:
-                                    layerPath= lines[i].strip("\r\n")
-                                    vlayer = None
-                                    layerName = os.path.splitext(os.path.basename(layerPath))[0].replace(network + "_", "")
-                                    if group is None:
-                                        vlayer = self.iface.addVectorLayer(layerPath, layerName, "ogr")
-                                    else:
-                                        vlayer = QgsVectorLayer(layerPath, layerName, "ogr")
-                                        try: #QGis 3.x
-                                            QgsProject.instance().addMapLayer(vlayer, False)
-                                        except: #QGis 2.x
-                                            QgsMapLayerRegistry.instance().addMapLayer(vlayer, False)
-                                        group.insertChildNode(0, QgsLayerTreeLayer(vlayer))
-                                    if not vlayer is None:
-                                        if ".shp" in layerPath:
-                                            names = (os.path.splitext(os.path.basename(layerPath))[0]).split("_")
-                                            nameLayer = names[len(names)-1]
-                                            QGISRedUtils().setStyle(vlayer, nameLayer)
-                    else:
-                        self.iface.messageBar().pushMessage("Warning", "File not found", level=1)
+                    self.NetworkName = str(self.twProjectList.item(rowIndex, 0).text())
+                    self.ProjectDirectory = str(self.twProjectList.item(rowIndex, 3).text())
+                    self.loadGplFile(self.ProjectDirectory, self.NetworkName)
                     break
                 self.close()
+                self.ProcessDone = True
         else:
             self.iface.messageBar().pushMessage("Warning", "You need to select a valid project to open it.", level=1)
 
