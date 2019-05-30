@@ -31,7 +31,7 @@ tags=epanet gisred net pipes pumps tanks
 
 homepage=http://www.redhisp.upv.es
 category=Plugins
-icon=iconCreateProject.png
+icon=images/iconCreateProject.png
 # experimental flag
 experimental=True
 

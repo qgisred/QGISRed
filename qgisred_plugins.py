@@ -36,6 +36,7 @@ try: #QGis 3.x
     from .ui.qgisred_newproject_dialog import QGISRedNewProjectDialog
     from .ui.qgisred_import_dialog import QGISRedImportDialog
     from .ui.qgisred_about_dialog import QGISRedAboutDialog
+    from .ui.qgisred_results_dock import QGISRedResultsDock
     from .qgisred_utils import QGISRedUtils
 except: #QGis 2.x
     from PyQt4.QtGui import QAction, QMessageBox, QIcon, QApplication
@@ -48,6 +49,7 @@ except: #QGis 2.x
     from ui.qgisred_newproject_dialog import QGISRedNewProjectDialog
     from ui.qgisred_import_dialog import QGISRedImportDialog
     from ui.qgisred_about_dialog import QGISRedAboutDialog
+    from ui.qgisred_results_dock import QGISRedResultsDock
     from qgisred_utils import QGISRedUtils
 
 # Others imports
@@ -67,6 +69,7 @@ import tempfile
 
 class QGISRed:
     """QGIS Plugin Implementation."""
+    ResultDockwidget = None
     #Project variables
     ProjectDirectory = ""
     NetworkName = ""
@@ -273,6 +276,7 @@ class QGISRed:
         currentDirectory = os.path.join(os.path.dirname(__file__), "dlls")
         plataformDirectory = os.path.join(currentDirectory, folder)
         copyfile(os.path.join(plataformDirectory, "shapelib.dll"), os.path.join(currentDirectory, "shapelib.dll"))
+        copyfile(os.path.join(plataformDirectory, "epanet2.dll"), os.path.join(currentDirectory, "epanet2.dll"))
         copyfile(os.path.join(plataformDirectory, "GISRed.QGisPlugins.dll"), os.path.join(currentDirectory, "GISRed.QGisPlugins.dll"))
 
     def unload(self):
@@ -573,7 +577,19 @@ class QGISRed:
             self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
 
     def runModel(self):
-        pass
+        """Run method that performs all the real work"""
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            self.iface.messageBar().pushMessage("Warning", "No valid project is opened", level=1, duration=10)
+            return
+        if self.isLayerOnEdition():
+            return
+        
+        if self.ResultDockwidget is None:
+            self.ResultDockwidget = QGISRedResultsDock(self.iface)
+            self.iface.addDockWidget(Qt.RightDockWidgetArea, self.ResultDockwidget)
+        self.ResultDockwidget.config(self.ProjectDirectory, self.NetworkName)
+        self.ResultDockwidget.show()
 
     def runAbout(self):
         # show the dialog
