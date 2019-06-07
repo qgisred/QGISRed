@@ -27,6 +27,7 @@ from qgis.PyQt import QtGui, uic
 
 try: #QGis 3.x
     from qgis.gui import QgsProjectionSelectionDialog  as QgsGenericProjectionSelector 
+    from qgis.core import Qgis, QgsTask, QgsApplication
     from PyQt5.QtGui import QIcon
     from PyQt5.QtWidgets import QAction, QMessageBox, QTableWidgetItem, QFileDialog, QDialog, QApplication
     from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QFileInfo, Qt
@@ -35,7 +36,7 @@ except: #QGis 2.x
     from qgis.gui import QgsGenericProjectionSelector
     from PyQt4.QtGui import QAction, QMessageBox, QIcon, QTableWidgetItem, QFileDialog, QDialog, QApplication
     from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QFileInfo, Qt
-    from qgis.core import QgsMapLayerRegistry
+    from qgis.core import QgsMapLayerRegistry, QGis as Qgis
     from ..qgisred_utils import QGISRedUtils
 
 import os
@@ -223,7 +224,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             list = list + "levelmeter"+ ";"
         return list
 
-    def removeComplementaryLayers(self):
+    def removeComplementaryLayers(self, task, wait_time):
         list = []
         if not self.cbIsolatedValves.isChecked():
             list.append("IssolatedValves")
@@ -247,6 +248,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             list.append("Levelmeters")
         
         QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface).removeLayers(list)
+        raise Exception('')
 
     def openElementsLayers(self, group, new):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
@@ -346,9 +348,23 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             self.ProcessDone = True
 
     def editProject(self):
+        #Process
+        if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
+            try:
+                self.removeComplementaryLayers(None,0)
+            except:
+                pass
+            self.editProjectProcess()
+        else:  #QGis 3.x
+            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+            task1 = QgsTask.fromFunction(u'Remove layers', self.removeComplementaryLayers, on_finished=self.editProjectProcess, wait_time=0)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
+
+    def editProjectProcess(self, exception=None, result=None):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
-        self.removeComplementaryLayers()
+        
         complElements = self.createComplementaryList()
         elements = self.createElementsList()
         

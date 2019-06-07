@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   version="1.0"
+   width="154mm"
+   height="154mm"
+   id="svg9">
+  <metadata
+     id="metadata13">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs3">
+    <pattern
+       id="EMFhbasepattern"
+       patternUnits="userSpaceOnUse"
+       width="6"
+       height="6"
+       x="0"
+       y="0" />
+  </defs>
+  <path
+     stroke-width="param(outline-width) 0"
+     stroke-opacity="param(outline-opacity)"
+     stroke="param(outline) #FFF"
+     fill-opacity="param(fill-opacity)"
+     fill="param(fill) #1496be"
+     d="M 517.83616,198.98875 436.55677,197.46876 294.87782,202.74872 76.559433,198.98875 180.55866,303.22798 289.91785,409.86719 391.9971,308.58794 Z"
+     id="path5" />
+  <path
+     stroke-width="param(outline-width) 0"
+     stroke-opacity="param(outline-opacity)"
+     stroke="param(outline) #FFF"
+     fill-opacity="param(fill-opacity)"
+     fill="param(fill) #000"
+     d="m 542.31598,152.1091 c -5.19996,0 -10.15992,1.99998 -13.91989,5.67996 l -34.63975,32.55976 H 86.159362 L 51.439619,157.78906 C 47.599647,153.94909 42.319687,151.9491 36.959726,152.1091 19.039859,152.66909 10.79992,174.74893 24.079822,186.82884 L 274.07797,422.3471 c 3.51997,4.47996 8.87993,7.27994 14.63989,7.59994 0.08,0 0.16,0 0.24,0 0.4,0 0.79999,0 1.27999,0 6.07996,0 11.75991,-2.79998 15.51989,-7.51994 L 555.83588,186.82884 c 13.4399,-12.31991 4.71997,-34.71974 -13.5199,-34.71974 z m -437.83675,55.51959 h 370.95725 l -185.51863,174.7187 z m 231.11828,26.0798 -91.35932,0.24 c -5.51996,0 -9.99993,4.47997 -9.91993,9.99993 0,5.59996 4.47997,9.99992 9.99993,9.99992 l 91.27932,-0.23999 c 5.59996,0.08 10.15993,-4.39997 10.15993,-9.99993 0,-5.59996 -4.55997,-10.07993 -10.15993,-9.99993 z"
+     id="path7" />
+</svg>

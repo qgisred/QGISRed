@@ -22,13 +22,13 @@
 """
 
 from qgis.gui import QgsMessageBar
-from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer, QgsLayerTreeGroup, QgsLayerTreeNode
+from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer, QgsLayerTreeGroup, QgsLayerTreeNode, QgsProjectBadLayerHandler
 
 try: #QGis 3.x
     from PyQt5.QtGui import QIcon
-    from PyQt5.QtWidgets import QAction, QMessageBox, QApplication
+    from PyQt5.QtWidgets import QAction, QMessageBox, QApplication, QMenu
     from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
-    from qgis.core import Qgis
+    from qgis.core import Qgis, QgsTask, QgsApplication
     #Import resources
     from . import resources3x
     # Import the code for the dialog
@@ -39,7 +39,7 @@ try: #QGis 3.x
     from .ui.qgisred_results_dock import QGISRedResultsDock
     from .qgisred_utils import QGISRedUtils
 except: #QGis 2.x
-    from PyQt4.QtGui import QAction, QMessageBox, QIcon, QApplication
+    from PyQt4.QtGui import QAction, QMessageBox, QIcon, QApplication, QMenu
     from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
     from qgis.core import QgsMapLayerRegistry, QGis as Qgis
     #Import resources
@@ -60,6 +60,8 @@ from time import strftime
 from ctypes import*
 import time
 import tempfile
+
+import threading
 
 #MessageBar Levels
 # Info 0
@@ -106,10 +108,15 @@ class QGISRed:
 
         # Declare instance attributes
         self.actions = []
-        self.menu = self.tr(u'&QGISRed')
-        # TODO: We are going to let the user set this up in a future iteration
+        #self.menu = self.tr(u'&QGISRed') 
+        #Toolbar
         self.toolbar = self.iface.addToolBar(u'QGISRed')
         self.toolbar.setObjectName(u'QGISRed')
+        #Menu
+        self.qgisredmenu = QMenu("&QGISRed", self.iface.mainWindow().menuBar())
+        actions = self.iface.mainWindow().menuBar().actions()
+        lastAction = actions[-1]
+        self.iface.mainWindow().menuBar().insertMenu(lastAction, self.qgisredmenu )
 
     def tr(self, message):
         """Get the translation for a string using Qt translation API.
@@ -130,6 +137,7 @@ class QGISRed:
         icon_path,
         text,
         callback,
+        menubar,
         enabled_flag=True,
         add_to_menu=True,
         add_to_toolbar=True,
@@ -193,9 +201,8 @@ class QGISRed:
             self.toolbar.addAction(action)
 
         if add_to_menu:
-            self.iface.addPluginToMenu(
-                self.menu,
-                action)
+            #self.iface.addPluginToMenu(self.menu,action)
+            menubar.addAction(action)
 
         self.actions.append(action)
 
@@ -207,22 +214,25 @@ class QGISRed:
         icon_path = ':/plugins/QGISRed/images/iconProjectManager.png'
         self.add_action(
             icon_path,
-            text=self.tr(u'QGISRed project manager'),
+            text=self.tr(u'Project manager'),
             callback=self.runProjectManager,
+            menubar=self.qgisredmenu,
             parent=self.iface.mainWindow())
 
         icon_path = ':/plugins/QGISRed/images/iconSaveProject.png'
         self.add_action(
             icon_path,
-            text=self.tr(u'Save QGISRed project'),
+            text=self.tr(u'Save project'),
             callback=self.runSaveProject,
+            menubar=self.qgisredmenu,
             parent=self.iface.mainWindow())
 
         icon_path = ':/plugins/QGISRed/images/iconCreateProject.png'
         self.add_action(
             icon_path,
-            text=self.tr(u'Create/Edit QGISRed project'),
+            text=self.tr(u'Create/Edit project'),
             callback=self.runNewProject,
+            menubar=self.qgisredmenu,
             parent=self.iface.mainWindow())
         
         icon_path = ':/plugins/QGISRed/images/iconImport.png' 
@@ -230,6 +240,7 @@ class QGISRed:
             icon_path,
             text=self.tr(u'Import to SHPs'),
             callback=self.runImport,
+            menubar=self.qgisredmenu,
             parent=self.iface.mainWindow())
 
         icon_path = ':/plugins/QGISRed/images/iconValidate.png' 
@@ -237,6 +248,7 @@ class QGISRed:
             icon_path,
             text=self.tr(u'Validate Model'),
             callback=self.runValidateModel,
+            menubar=self.qgisredmenu,
             parent=self.iface.mainWindow())
 
         icon_path = ':/plugins/QGISRed/images/iconCommit.png' 
@@ -244,6 +256,7 @@ class QGISRed:
             icon_path,
             text=self.tr(u'Commit'),
             callback=self.runCommit,
+            menubar=self.qgisredmenu,
             parent=self.iface.mainWindow())
 
         icon_path = ':/plugins/QGISRed/images/iconShpToInp.png' 
@@ -251,6 +264,7 @@ class QGISRed:
             icon_path,
             text=self.tr(u'Export model to INP'),
             callback=self.runExportInp,
+            menubar=self.qgisredmenu,
             parent=self.iface.mainWindow())
 
         icon_path = ':/plugins/QGISRed/images/iconRunModel.png' 
@@ -258,13 +272,19 @@ class QGISRed:
             icon_path,
             text=self.tr(u'Run model && show results'),
             callback=self.runModel,
+            menubar=self.qgisredmenu,
             parent=self.iface.mainWindow())
+
+
+        #self.gisredmenuTools = self.qgisredmenu.addMenu('Sub-menu')
+        #self.gisredmenuTools.setIcon(QIcon(icoFolder + 'img1.png'))
 
         icon_path = ':/plugins/QGISRed/images/iconAbout.png' 
         self.add_action(
             icon_path,
             text=self.tr(u'About...'),
             callback=self.runAbout,
+            menubar=self.qgisredmenu,
             parent=self.iface.mainWindow())
         
         from shutil import copyfile
@@ -275,19 +295,28 @@ class QGISRed:
             folder = "x86"
         currentDirectory = os.path.join(os.path.dirname(__file__), "dlls")
         plataformDirectory = os.path.join(currentDirectory, folder)
-        copyfile(os.path.join(plataformDirectory, "shapelib.dll"), os.path.join(currentDirectory, "shapelib.dll"))
-        copyfile(os.path.join(plataformDirectory, "epanet2.dll"), os.path.join(currentDirectory, "epanet2.dll"))
-        copyfile(os.path.join(plataformDirectory, "GISRed.QGisPlugins.dll"), os.path.join(currentDirectory, "GISRed.QGisPlugins.dll"))
+        try:
+            copyfile(os.path.join(plataformDirectory, "shapelib.dll"), os.path.join(currentDirectory, "shapelib.dll"))
+            copyfile(os.path.join(plataformDirectory, "epanet2.dll"), os.path.join(currentDirectory, "epanet2.dll"))
+            copyfile(os.path.join(plataformDirectory, "GISRed.QGisPlugins.dll"), os.path.join(currentDirectory, "GISRed.QGisPlugins.dll"))
+        except:
+            pass
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:
-            self.iface.removePluginMenu(
-                self.tr(u'&QGISRed'),
-                action)
+            #self.iface.removePluginMenu(self.tr(u'&QGISRed'), action)
             self.iface.removeToolBarIcon(action)
         # remove the toolbar
         del self.toolbar
+        
+        if self.qgisredmenu:
+            self.qgisredmenu.menuAction().setVisible(False)
+        # if self.qgisredmenuTools:
+            # self.qgisredmenuTools.menuAction().setVisible(False)
+        if self.ResultDockwidget is not None:
+            self.ResultDockwidget.close()
+
 
     def createGqpFile(self):
         gqp = os.path.join(self.ProjectDirectory, self.NetworkName + ".gqp")
@@ -388,12 +417,6 @@ class QGISRed:
                 return True
         return False
 
-    def deleteLayers(self):
-        #Remove layers
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        utils.removeLayers(self.ownMainLayers)
-        utils.removeLayers(self.ownFiles, ".csv")
-
     def runProjectManager(self):
         """Run method that performs all the real work"""
         self.defineCurrentProject()
@@ -483,6 +506,12 @@ class QGISRed:
         else:
             self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
 
+    def removeLayers(self, task, wait_time):
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.removeLayers(self.ownMainLayers)
+        utils.removeLayers(self.ownFiles, ".csv")
+        raise Exception('')
+
     def runCommit(self):
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
@@ -492,23 +521,20 @@ class QGISRed:
             return
         
         #Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
         if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-            self.deleteLayers()
-            self.runCommitProcess(True)
-        else:
-            projectFile = QgsProject.instance().fileName()
-            tempFile = os.path.join(tempfile._get_default_tempdir(), next(tempfile._get_candidate_names()))
-            ret = QgsProject.instance().write(tempFile)
-            QgsProject.instance().clear()
+            try:
+                self.removeLayers(None,0)
+            except:
+                pass
             self.runCommitProcess()
-            QgsProject.instance().read(tempFile)
-            QgsProject.instance().setFileName(projectFile)
-            #ver cómo hacer para que luego deje guardar si no había proyecto
-            QgsProject.instance().writePath(projectFile)
-        QApplication.restoreOverrideCursor()
+        else:  #QGis 3.x
+            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+            task1 = QgsTask.fromFunction(u'Remove layers', self.removeLayers, on_finished=self.runCommitProcess, wait_time=0)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
 
-    def runCommitProcess(self, version2=False):
+    def runCommitProcess(self, exception=None, result=None):
+        QApplication.setOverrideCursor(Qt.WaitCursor)
         os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.CommitModel.argtypes = (c_char_p, c_char_p, c_char_p)
@@ -521,12 +547,12 @@ class QGISRed:
             b=b
         
         #Group
-        if version2:
-            dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Inputs")
-            if dataGroup is None:
-                root = QgsProject.instance().layerTreeRoot()
-                dataGroup = root.addGroup(self.NetworkName + " Inputs")
-        
+        #if version2:
+        dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Inputs")
+        if dataGroup is None:
+            root = QgsProject.instance().layerTreeRoot()
+            dataGroup = root.addGroup(self.NetworkName + " Inputs")
+
         #Open layers
         try: #QGis 3.x
             crs = self.iface.mapCanvas().mapSettings().destinationCrs()
@@ -535,11 +561,12 @@ class QGISRed:
         if crs.srsid()==0:
             crs = QgsCoordinateReferenceSystem()
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
-        if version2:
-            utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-            utils.openElementsLayers(dataGroup, crs, self.ownMainLayers, self.ownFiles)
+        #if version2:
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.openElementsLayers(dataGroup, crs, self.ownMainLayers, self.ownFiles)
         
-        
+        QApplication.restoreOverrideCursor()
+
         if b=="True":
             self.iface.messageBar().pushMessage("Information", "Successful commit", level=3, duration=10)
         elif b=="False":

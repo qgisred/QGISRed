@@ -27,12 +27,14 @@ from qgis.PyQt import QtGui, uic
 
 try: #QGis 3.x
     from qgis.gui import QgsProjectionSelectionDialog  as QgsGenericProjectionSelector 
+    from qgis.core import Qgis, QgsTask, QgsApplication
     from PyQt5.QtGui import QIcon
     from PyQt5.QtWidgets import QAction, QMessageBox, QTableWidgetItem, QFileDialog, QDialog, QApplication
     from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QFileInfo, Qt
     from ..qgisred_utils import QGISRedUtils
 except: #QGis 2.x
     from qgis.gui import QgsGenericProjectionSelector
+    from qgis.core import QGis as Qgis
     from PyQt4.QtGui import QAction, QMessageBox, QIcon, QTableWidgetItem, QFileDialog, QDialog, QApplication
     from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QFileInfo, Qt
     from qgis.core import QgsMapLayerRegistry
@@ -166,6 +168,13 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         file.close()
         return True
 
+    def removeLayers(self, task, wait_time):
+        #Remove layers
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.removeLayers(self.ownMainLayers)
+        utils.removeLayers(self.ownFiles, ".csv")
+        raise Exception('')
+
 #INP SECTION
     def selectINP(self):
         qfd = QFileDialog()
@@ -197,41 +206,51 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             if self.NewProject:
                 if not self.createProject():
                     return
-            #Remove layers
-            utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-            utils.removeLayers(self.ownMainLayers)
-            utils.removeLayers(self.ownFiles, ".csv")
             
-            #Method
-            QApplication.setOverrideCursor(Qt.WaitCursor)
-            os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
-            mydll = WinDLL("GISRed.QGisPlugins.dll")
-            mydll.ImportFromInp.argtypes = (c_char_p, c_char_p, c_char_p)
-            mydll.ImportFromInp.restype = c_char_p
-            b = mydll.ImportFromInp(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.InpFile.encode('utf-8'))
-            try: #QGis 3.x
-                b= "".join(map(chr, b)) #bytes to string
-            except:  #QGis 2.x
-                b=b
-            
-            #Group
-            dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Inputs")
-            if dataGroup is None:
-                root = QgsProject.instance().layerTreeRoot()
-                dataGroup = root.addGroup(self.NetworkName + " Inputs")
-            #Open layers
-            utils.openElementsLayers(dataGroup, self.CRS, self.ownMainLayers, self.ownFiles)
-            QApplication.restoreOverrideCursor()
+            if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
+                try:
+                    self.removeLayers(None,0)
+                except:
+                    pass
+                self.importInpProjectProcess()
+            else:  #QGis 3.x
+                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                task1 = QgsTask.fromFunction(u'Remove layers', self.removeLayers, on_finished=self.importInpProjectProcess, wait_time=0)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
 
-            if b=="True":
-                self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=10)
-            elif b=="False":
-                self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=10)
-            else:
-                self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
+    def importInpProjectProcess(self, exception=None, result=None):
+        #Method
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.ImportFromInp.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.ImportFromInp.restype = c_char_p
+        b = mydll.ImportFromInp(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.InpFile.encode('utf-8'))
+        try: #QGis 3.x
+            b= "".join(map(chr, b)) #bytes to string
+        except:  #QGis 2.x
+            b=b
+        
+        #Group
+        dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Inputs")
+        if dataGroup is None:
+            root = QgsProject.instance().layerTreeRoot()
+            dataGroup = root.addGroup(self.NetworkName + " Inputs")
+        #Open layers
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.openElementsLayers(dataGroup, self.CRS, self.ownMainLayers, self.ownFiles)
+        QApplication.restoreOverrideCursor()
 
-            self.close()
-            self.ProcessDone = True
+        if b=="True":
+            self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=10)
+        elif b=="False":
+            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=10)
+        else:
+            self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
+
+        self.close()
+        self.ProcessDone = True
 
 #SHPS SECTION
     def selectSHPDirectory(self):
@@ -723,42 +742,53 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 return
             
             #Process
-            QApplication.setOverrideCursor(Qt.WaitCursor)
+            
             if self.NewProject:
                 if not self.createProject():
                     return
-            #Remove layers
-            utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-            utils.removeLayers(self.ownMainLayers)
-            utils.removeLayers(self.ownFiles, ".csv")
             
-            shapes = self.createShpsNames()
-            #Method
-            os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
-            mydll = WinDLL("GISRed.QGisPlugins.dll")
-            mydll.ImportFromShps.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
-            mydll.ImportFromShps.restype = c_char_p
-            b = mydll.ImportFromShps(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), shapes.encode('utf-8'), fields.encode('utf-8'))
-            try: #QGis 3.x
-                b= "".join(map(chr, b)) #bytes to string
-            except:  #QGis 2.x
-                b=b
-            
-            #Group
-            dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Inputs")
-            if dataGroup is None:
-                root = QgsProject.instance().layerTreeRoot()
-                dataGroup = root.addGroup(self.NetworkName + " Inputs")
-            #Open layers
-            utils.openElementsLayers(dataGroup, self.CRS, self.ownMainLayers, self.ownFiles)
-            QApplication.restoreOverrideCursor()
+            if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
+                try:
+                    self.removeLayers(None,0)
+                except:
+                    pass
+                self.importShpProjectProcess()
+            else:  #QGis 3.x
+                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                task1 = QgsTask.fromFunction(u'Remove layers', self.removeLayers, on_finished=self.importShpProjectProcess, wait_time=0)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
 
-            if b=="True":
-                self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=10)
-            elif b=="False":
-                self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=10)
-            else:
-                self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
+    def importShpProjectProcess(self, exception=None, result=None):
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        shapes = self.createShpsNames()
+        #Method
+        os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.ImportFromShps.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.ImportFromShps.restype = c_char_p
+        b = mydll.ImportFromShps(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), shapes.encode('utf-8'), fields.encode('utf-8'))
+        try: #QGis 3.x
+            b= "".join(map(chr, b)) #bytes to string
+        except:  #QGis 2.x
+            b=b
+        
+        #Group
+        dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Inputs")
+        if dataGroup is None:
+            root = QgsProject.instance().layerTreeRoot()
+            dataGroup = root.addGroup(self.NetworkName + " Inputs")
+        #Open layers
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.openElementsLayers(dataGroup, self.CRS, self.ownMainLayers, self.ownFiles)
+        QApplication.restoreOverrideCursor()
 
-            self.close()
-            self.ProcessDone = True
+        if b=="True":
+            self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=10)
+        elif b=="False":
+            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=10)
+        else:
+            self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
+
+        self.close()
+        self.ProcessDone = True
