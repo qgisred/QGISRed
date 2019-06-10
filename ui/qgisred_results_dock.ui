@@ -213,14 +213,14 @@
              <property name="font">
               <font>
                <family>Calibri</family>
-               <pointsize>22</pointsize>
+               <pointsize>18</pointsize>
                <weight>9</weight>
                <italic>false</italic>
                <bold>false</bold>
               </font>
              </property>
              <property name="styleSheet">
-              <string notr="true">font: 75 22pt &quot;Calibri&quot;;</string>
+              <string notr="true">font: 75 18pt &quot;Calibri&quot;;</string>
              </property>
              <property name="text">
               <string>00h 00m 00s</string>
@@ -318,7 +318,7 @@
                  <item>
                   <widget class="QCheckBox" name="cbQualityLink">
                    <property name="enabled">
-                    <bool>false</bool>
+                    <bool>true</bool>
                    </property>
                    <property name="font">
                     <font>
@@ -392,7 +392,7 @@
                  <item>
                   <widget class="QCheckBox" name="cbQualityNode">
                    <property name="enabled">
-                    <bool>false</bool>
+                    <bool>true</bool>
                    </property>
                    <property name="font">
                     <font>

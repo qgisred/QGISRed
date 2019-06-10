@@ -255,7 +255,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         if new:
             files = ["Curves", "Controls", "Patterns", "Rules", "Options", "DefaultValues"]
             for file in files:
-                utils.openLayer(self.CRS, group, file, ext=".csv")
+                utils.openLayer(self.CRS, group, file, ext=".dbf")
 
         if self.cbPipes.isChecked():
             if not utils.isLayerOpened("Pipes"):

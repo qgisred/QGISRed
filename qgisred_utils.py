@@ -33,7 +33,7 @@ class QGISRedUtils:
     def openElementsLayers(self, group, crs, ownMainLayers, ownFiles):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName)
         for fileName in ownFiles:
-            utils.openLayer(crs, group, fileName, ".csv")
+            utils.openLayer(crs, group, fileName, ".dbf")
         for fileName in ownMainLayers:
             utils.openLayer(crs, group, fileName)
 
@@ -41,7 +41,7 @@ class QGISRedUtils:
         layerName = self.NetworkName + "_" + name
         if os.path.exists(os.path.join(self.ProjectDirectory, layerName + ext)):
             vlayer = QgsVectorLayer(os.path.join(self.ProjectDirectory, layerName + ext), name, "ogr")
-            if not ext == ".csv":
+            if not ext == ".dbf":
                 vlayer.setCrs(crs)
                 if results:
                     self.setResultStyle(vlayer)

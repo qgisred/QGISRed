@@ -304,6 +304,11 @@ class QGISRed:
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
+        if self.ResultDockwidget is not None:
+            self.ResultDockwidget.close()
+            self.iface.removeDockWidget(self.ResultDockwidget)
+            self.ResultDockwidget = None
+        
         for action in self.actions:
             #self.iface.removePluginMenu(self.tr(u'&QGISRed'), action)
             self.iface.removeToolBarIcon(action)
@@ -314,9 +319,6 @@ class QGISRed:
             self.qgisredmenu.menuAction().setVisible(False)
         # if self.qgisredmenuTools:
             # self.qgisredmenuTools.menuAction().setVisible(False)
-        if self.ResultDockwidget is not None:
-            self.ResultDockwidget.close()
-
 
     def createGqpFile(self):
         gqp = os.path.join(self.ProjectDirectory, self.NetworkName + ".gqp")
@@ -509,7 +511,7 @@ class QGISRed:
     def removeLayers(self, task, wait_time):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayers(self.ownMainLayers)
-        utils.removeLayers(self.ownFiles, ".csv")
+        utils.removeLayers(self.ownFiles, ".dbf")
         raise Exception('')
 
     def runCommit(self):

@@ -64,7 +64,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
     ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs"]
     #Create complementary layers
     layerExtensions = [".shp", ".dbf", ".shx", ".prj", ".qpj"]
-    ownFiles = ["Curves.csv", "Controls.csv", "Patterns.csv", "Rules.csv", "Options.csv", "DefaultValues.csv", "TitleAndNotes.txt" ]
+    ownFiles = ["Curves.dbf", "Controls.dbf", "Patterns.dbf", "Rules.dbf", "Options.dbf", "DefaultValues.dbf", "TitleAndNotes.txt" ]
     
     def __init__(self, parent=None):
         """Constructor."""
@@ -169,7 +169,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         QGISRedUtils().writeFile(f, "[" + net + " Inputs]\n")
         dirList = os.listdir(folder)
         for fileName in self.ownFiles:
-            if ".csv" in fileName:
+            if ".dbf" in fileName:
                 if net + "_" + fileName in dirList:
                     QGISRedUtils().writeFile(f, os.path.join(folder, net + "_" + fileName) + '\n')
         for layerName in self.ownMainLayers:

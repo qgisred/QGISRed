@@ -110,13 +110,13 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             self.ProjectDirectory = selected_directory
             self.NetworkName = self.tbNetworkName.text()
         
-        dirList = os.listdir(self.ProjectDirectory)
-        self.NewProject = True
-        for name in self.ownMainLayers:
-            if self.NetworkName + "_" + name + ".shp" in dirList:
-                self.NewProject = False
-                break
-        
+            dirList = os.listdir(self.ProjectDirectory)
+            self.NewProject = True
+            for name in self.ownMainLayers:
+                if self.NetworkName + "_" + name + ".shp" in dirList:
+                    self.NewProject = False
+                    break
+
     def selectCRS(self):
         projSelector = QgsGenericProjectionSelector()
         if projSelector.exec_():
@@ -172,7 +172,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         #Remove layers
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayers(self.ownMainLayers)
-        utils.removeLayers(self.ownFiles, ".csv")
+        utils.removeLayers(self.ownFiles, ".dbf")
         raise Exception('')
 
 #INP SECTION

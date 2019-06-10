@@ -59,11 +59,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs"]
     Results= {}
     Variables=""
-    TimeIndex = ""
-    Time = ""
     Computing=False
     Scenario=""
     TimeLabels=[]
+    LabelsToOpRe=[]
 
     def __init__(self, iface):
         """Constructor."""
@@ -76,18 +75,15 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
         self.btCompute.clicked.connect(self.compute)
-        #self.btShow.clicked.connect(self.showResults)
-        #self.rbVariables.toggled.connect(self.radioButtonsChanged)
-        #self.rbTimes.toggled.connect(self.radioButtonsChanged)
         self.hsTimes.valueChanged.connect(self.timeChanged)
-        #self.cbLinks.currentIndexChanged.connect(self.linksChanged)
-        #self.cbNodes.currentIndexChanged.connect(self.nodesChanged)
-        self.cbFlow.clicked.connect(self.resultClicked)
-        self.cbVelocity.clicked.connect(self.resultClicked)
-        self.cbHeadLoss.clicked.connect(self.resultClicked)
-        self.cbPressure.clicked.connect(self.resultClicked)
-        self.cbHead.clicked.connect(self.resultClicked)
-        self.cbDemand.clicked.connect(self.resultClicked)
+        self.cbFlow.stateChanged.connect(self.flowClicked)
+        self.cbVelocity.stateChanged.connect(self.velocityClicked)
+        self.cbHeadLoss.stateChanged.connect(self.headLossClicked)
+        self.cbPressure.stateChanged.connect(self.pressureClicked)
+        self.cbHead.stateChanged.connect(self.headClicked)
+        self.cbDemand.stateChanged.connect(self.demandClicked)
+        self.cbQualityLink.stateChanged.connect(self.qualityLinkClicked)
+        self.cbQualityNode.stateChanged.connect(self.qualityNodeClicked)
 
     def config(self, direct, netw):
         #self.ProcessDone = False
@@ -99,10 +95,13 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.tbNetworkName.setText(netw)
         self.tbProjectDirectory.setText(direct)
         self.tbProjectDirectory.setCursorPosition(0)
-
-    # def radioButtonsChanged(self, enabled):
-        # self.gbVariables.setEnabled(self.rbVariables.isChecked())
-        # self.gbTimes.setEnabled(self.rbTimes.isChecked())
+        self.restoreElementsCb()
+        self.setLayersNames()
+        if len(self.LabelsToOpRe)==0:
+            self.Computing =True
+            self.cbFlow.setChecked(True)
+            self.cbPressure.setChecked(True)
+            self.Computing =False
 
     def isCurrentProject(self):
         currentNetwork =""
@@ -136,72 +135,67 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.close()
         return False
 
-    def openResults(self):
-        list = self.setLayersNames()
+    def openLayerResults(self):
         resultPath= os.path.join(self.ProjectDirectory, "Results")
         utils = QGISRedUtils(resultPath, self.NetworkName +"_" + self.Scenario, self.iface)
         group = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName +" " + self.Scenario + " Results")
         if group is None:
             root = QgsProject.instance().layerTreeRoot()
             group = root.insertGroup(0,self.NetworkName +" " + self.Scenario + " Results")
-        for file in list:
+        for file in self.LabelsToOpRe:
             utils.openLayer(self.CRS, group, file, results=True)
 
     def removeResults(self, task, wait_time):
-        list = self.setLayersNames(allVariables=True)
         resultPath= os.path.join(self.ProjectDirectory, "Results")
         utils = QGISRedUtils(resultPath, self.NetworkName +"_" + self.Scenario, self.iface)
-        utils.removeLayers(list)
+        utils.removeLayers(self.LabelsToOpRe)
         raise Exception('')
 
     def setVariablesTimes(self):
         self.Variables=""
-        self.TimeIndex=""
-        #if self.rbVariables.isChecked():
         if self.cbFlow.isChecked():
             self.Variables=self.Variables + "Flow_Link;"
         if self.cbVelocity.isChecked():
             self.Variables=self.Variables + "Velocity_Link;"
         if self.cbHeadLoss.isChecked():
             self.Variables=self.Variables + "HeadLoss_Link;"
+        if self.cbQualityLink.isChecked():
+            self.Variables=self.Variables + "Quality_Link;"
         if self.cbPressure.isChecked():
             self.Variables=self.Variables + "Pressure_Node;"
         if self.cbHead.isChecked():
             self.Variables=self.Variables + "Head_Node;"
         if self.cbDemand.isChecked():
             self.Variables=self.Variables + "Demand_Node;"
+        if self.cbQualityNode.isChecked():
+            self.Variables=self.Variables + "Quality_Node;"
         if self.Variables=="":
             self.iface.messageBar().pushMessage("Validations", "No variable results selected", level=1)
             return False
-        # else:
-            # #ver el indice del combobox
-            # self.TimeIndex = str(self.cbTimes.currentIndex())
-            # if self.TimeIndex=="" or self.TimeIndex == "-1":
-                # self.iface.messageBar().pushMessage("Validations", "No time results selected", level=1)
-                # return False
-            # self.Time = self.cbTimes.currentText()
         return True
 
-    def setLayersNames(self, variables =True, times = True, allVariables=False):
-        list = []
-        
-        #if self.rbVariables.isChecked() and variables:
-        if self.cbFlow.isChecked() or allVariables:
-            list.append("Link_" + "Flow")
-        if self.cbVelocity.isChecked() or allVariables:
-            list.append("Link_" + "Velocity")
-        if self.cbHeadLoss.isChecked() or allVariables:
-            list.append("Link_" + "HeadLoss")
-        if self.cbPressure.isChecked() or allVariables:
-            list.append("Node_" + "Pressure")
-        if self.cbHead.isChecked() or allVariables:
-            list.append("Node_" + "Head")
-        if self.cbDemand.isChecked() or allVariables:
-            list.append("Node_" + "Demand")
-        # elif self.rbTimes.isChecked() and times:
-            # list.append("Link_" + self.cbTimes.currentText())
-            # list.append("Node_" + self.cbTimes.currentText())
-        return list
+    def setLayersNames(self, all=False):
+        self.LabelsToOpRe = []
+        if self.cbFlow.isChecked() or all:
+            self.LabelsToOpRe.append("Link_" + "Flow")
+        if self.cbVelocity.isChecked() or all:
+            self.LabelsToOpRe.append("Link_" + "Velocity")
+        if self.cbHeadLoss.isChecked() or all:
+            self.LabelsToOpRe.append("Link_" + "HeadLoss")
+        if self.cbQualityLink.isChecked() or all:
+            self.LabelsToOpRe.append("Link_" + "Quaility")
+        if self.cbPressure.isChecked() or all:
+            self.LabelsToOpRe.append("Node_" + "Pressure")
+        if self.cbHead.isChecked() or all:
+            self.LabelsToOpRe.append("Node_" + "Head")
+        if self.cbDemand.isChecked() or all:
+            self.LabelsToOpRe.append("Node_" + "Demand")
+        if self.cbQualityNode.isChecked() or all:
+            self.LabelsToOpRe.append("Node_" + "Quaility")
+
+    def insert(self, source_str, insert_str, pos):
+        return source_str[:pos]+insert_str+source_str[pos:]
+
 
     def compute(self):
         if not self.isCurrentProject():
@@ -225,7 +219,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         except:  #QGis 2.x
             b=b
         QApplication.restoreOverrideCursor()
-
+        
         if b=="False":
             self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=10)
         elif b.startswith("Message"):
@@ -235,22 +229,26 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.Results[self.Scenario]= list[0]
             del list[0]
             self.TimeLabels =[]
-            for item in list:
-                self.TimeLabels.append(self.insert(self.insert(item, " ", 6), " ", 3))
+            if len(list)==1:
+                self.TimeLabels.append("Permanent")
+            else:
+                for item in list:
+                    self.TimeLabels.append(self.insert(self.insert(item, " ", 6), " ", 3))
             #self.TimeLabels=list
             #self.cbTimes.clear()
             #self.cbTimes.addItems(list)
             self.Computing=True
-            self.hsTimes.setMaximum(len(list)-1)
+            if len(list)==1:
+                self.hsTimes.setEnabled(False)
+            else:
+                self.hsTimes.setEnabled(True)
+                self.hsTimes.setMaximum(len(list)-1)
             self.hsTimes.setValue(0)
-            self.lbTime.setText(list[0])
+            self.lbTime.setText(self.TimeLabels[0])
             self.Computing = False
-            self.showResults()
+            self.openAllResults()
 
-    def insert(self, source_str, insert_str, pos):
-        return source_str[:pos]+insert_str+source_str[pos:]
-
-    def showResults(self):
+    def openAllResults(self):
         if not self.isCurrentProject():
             return
 
@@ -263,33 +261,35 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if not self.setVariablesTimes():
             return
 
+        self.setLayersNames(True)
         if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
             try:
                 self.removeResults(None,0)
             except:
                 pass
-            self.showResultsProcess()
+            self.openAllResultsProcess()
         else:  #QGis 3.x
             #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-            task1 = QgsTask.fromFunction(u'Remove layers', self.removeResults, on_finished=self.showResultsProcess, wait_time=0)
+            task1 = QgsTask.fromFunction(u'Remove layers', self.removeResults, on_finished=self.openAllResultsProcess, wait_time=0)
             task1.run()
             QgsApplication.taskManager().addTask(task1)
 
-    def showResultsProcess(self, exception=None, result=None):
+    def openAllResultsProcess(self, exception=None, result=None):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
         resultPath = self.Results.get(self.Secnario)
+        self.setLayersNames()
 
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.CreateResults.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CreateResults.restype = c_char_p
-        b = mydll.CreateResults(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Secnario.encode('utf-8'), resultPath.encode('utf-8'), self.Variables.encode('utf-8'), self.TimeIndex.encode('utf-8'), self.Time.encode('utf-8'))
+        b = mydll.CreateResults(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Secnario.encode('utf-8'), resultPath.encode('utf-8'), self.Variables.encode('utf-8'), "".encode('utf-8'), "".encode('utf-8'))
         try: #QGis 3.x
             b= "".join(map(chr, b)) #bytes to string
         except:  #QGis 2.x
             b=b
 
-        self.openResults()
+        self.openLayerResults()
         value = self.hsTimes.value()
         self.paintIntervalTimeResults(value, True)
         #self.paintDifferenteVariableResults(True, self.cbLinks.currentText(),True, self.cbNodes.currentText())
@@ -302,6 +302,211 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         else:
             self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
 
+    def flowClicked(self):
+        if self.Computing:
+            return
+        checked = self.cbFlow.isChecked()
+        if not self.validationsOpenResult():
+            return
+        self.Computing=True
+        self.cbFlow.setChecked(checked)
+        self.Computing=False
+        self.LabelsToOpRe.append("Link_Flow")
+        self.Variables="Flow_Link"
+        self.openResult(self.cbFlow.isChecked())
+
+    def velocityClicked(self):
+        if self.Computing:
+            return
+        checked = self.cbVelocity.isChecked()
+        if not self.validationsOpenResult():
+            return
+        self.Computing=True
+        self.cbVelocity.setChecked(checked)
+        self.Computing=False
+        self.LabelsToOpRe.append("Link_Velocity")
+        self.Variables="Velocity_Link"
+        self.openResult(self.cbVelocity.isChecked())
+
+    def headLossClicked(self):
+        if self.Computing:
+            return
+        checked = self.cbHeadLoss.isChecked()
+        if not self.validationsOpenResult():
+            return
+        self.Computing=True
+        self.cbHeadLoss.setChecked(checked)
+        self.Computing=False
+        self.LabelsToOpRe.append("Link_HeadLoss")
+        self.Variables="HeadLoss_Link"
+        self.openResult(self.cbHeadLoss.isChecked())
+
+    def qualityLinkClicked(self):
+        if self.Computing:
+            return
+        checked = self.cbQualityLink.isChecked()
+        if not self.validationsOpenResult():
+            return
+        self.Computing=True
+        self.cbQualityLink.setChecked(checked)
+        self.Computing=False
+        self.LabelsToOpRe.append("Link_Quality")
+        self.Variables="Quality_Link"
+        self.openResult(self.cbQualityLink.isChecked())
+
+    def pressureClicked(self):
+        if self.Computing:
+            return
+        checked = self.cbPressure.isChecked()
+        if not self.validationsOpenResult():
+            return
+        self.Computing=True
+        self.cbPressure.setChecked(checked)
+        self.Computing=False
+        self.LabelsToOpRe.append("Node_Pressure")
+        self.Variables="Pressure_Node"
+        self.openResult(self.cbPressure.isChecked())
+
+    def headClicked(self):
+        if self.Computing:
+            return
+        checked = self.cbHead.isChecked()
+        if not self.validationsOpenResult():
+            return
+        self.Computing=True
+        self.cbHead.setChecked(checked)
+        self.Computing=False
+        self.LabelsToOpRe.append("Node_Head")
+        self.Variables="Head_Node"
+        self.openResult(self.cbHead.isChecked())
+
+    def demandClicked(self):
+        if self.Computing:
+            return
+        checked = self.cbDemand.isChecked()
+        if not self.validationsOpenResult():
+            return
+        self.Computing=True
+        self.cbDemand.setChecked(checked)
+        self.Computing=False
+        self.LabelsToOpRe.append("Node_Demand")
+        self.Variables="Demand_Node"
+        self.openResult(self.cbDemand.isChecked())
+
+    def qualityNodeClicked(self):
+        if self.Computing:
+            return
+        checked = self.cbQualityNode.isChecked()
+        if not self.validationsOpenResult():
+            return
+        self.Computing=True
+        self.cbQualityNode.setChecked(checked)
+        self.Computing=False
+        self.LabelsToOpRe.append("Node_Quality")
+        self.Variables="Quality_Node"
+        self.openResult(self.cbQualityNode.isChecked())
+
+    def validationsOpenResult(self):
+        if not self.isCurrentProject():
+            return False
+        
+        self.Secnario = self.tbScenario.text()
+        resultPath = self.Results.get(self.Secnario)
+        if resultPath is None:
+            self.iface.messageBar().pushMessage("Warning", "No scenario results are available", level=1, duration=10)
+            return
+        
+        self.restoreElementsCb()
+        self.LabelsToOpRe=[]
+        return True
+
+    def restoreElementsCb(self):
+        self.Secnario = self.tbScenario.text()
+        
+        resultPath= os.path.join(self.ProjectDirectory, "Results")
+        self.setLayersNames(True)
+        try: #QGis 3.x
+            layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+        except: #QGis 2.x
+            layers = self.iface.legendInterface().layers()
+
+        self.Computing=True
+        self.cbFlow.setChecked(False)
+        self.cbVelocity.setChecked(False)
+        self.cbHeadLoss.setChecked(False)
+        self.cbPressure.setChecked(False)
+        self.cbHead.setChecked(False)
+        self.cbDemand.setChecked(False)
+        self.cbQualityLink.setChecked(False)
+        self.cbQualityNode.setChecked(False)
+        for nameLayer in self.LabelsToOpRe:
+            for layer in layers:
+                if str(layer.dataProvider().dataSourceUri().split("|")[0])== os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp"):
+                    if nameLayer == "Link_Flow":
+                        self.cbFlow.setChecked(True)
+                    if nameLayer == "Link_Velocity":
+                        self.cbVelocity.setChecked(True)
+                    if nameLayer == "Link_HeadLoss":
+                        self.cbHeadLoss.setChecked(True)
+                    if nameLayer == "Link_Quaility":
+                        self.cbQualityLink.setChecked(True)
+                    if nameLayer == "Node_Pressure":
+                        self.cbPressure.setChecked(True)
+                    if nameLayer == "Node_Head":
+                        self.cbHead.setChecked(True)
+                    if nameLayer == "Node_Demand":
+                        self.cbDemand.setChecked(True)
+                    if nameLayer == "Node_Quaility":
+                        self.cbQualityNode.setChecked(True)
+        self.Computing=False
+
+    def openResult(self, open):
+        if not open:
+            try:
+                self.removeResults(None,0)
+            except:
+                pass
+        else:
+            if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
+                try:
+                    self.removeResults(None,0)
+                except:
+                    pass
+                self.openResultProcess()
+            else:  #QGis 3.x
+                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                task1 = QgsTask.fromFunction(u'Remove layers', self.removeResults, on_finished=self.openResultProcess, wait_time=0)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
+
+    def openResultProcess(self, exception=None, result=None):
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
+        resultPath = self.Results.get(self.Secnario)
+
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.CreateResults.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.CreateResults.restype = c_char_p
+        b = mydll.CreateResults(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Secnario.encode('utf-8'), resultPath.encode('utf-8'), self.Variables.encode('utf-8'), "".encode('utf-8'), "".encode('utf-8'))
+        try: #QGis 3.x
+            b= "".join(map(chr, b)) #bytes to string
+        except:  #QGis 2.x
+            b=b
+
+        self.openLayerResults()
+        value = self.hsTimes.value()
+        self.paintIntervalTimeResults(value, True)
+        #self.paintDifferenteVariableResults(True, self.cbLinks.currentText(),True, self.cbNodes.currentText())
+        QApplication.restoreOverrideCursor()
+        
+        if b=="True":
+            pass# self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=10)
+        elif b=="False":
+            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=10)
+        else:
+            self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
+
+
     def timeChanged(self):
         if self.Computing:
             return
@@ -312,16 +517,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             return
         
         value = self.hsTimes.value()
+        self.setLayersNames()
         self.paintIntervalTimeResults(value)
-
-    def resultClicked(self):
-        self.showResults()
-
-    # def linksChanged(self):
-        # self.paintDifferenteVariableResults(True, self.cbLinks.currentText(),False, self.cbNodes.currentText())
-
-    # def nodesChanged(self):
-        # self.paintDifferenteVariableResults(False, self.cbLinks.currentText(),True, self.cbNodes.currentText())
 
     def paintIntervalTimeResults(self, columnNumber, setRender = False):
         if not self.isCurrentProject():
@@ -330,43 +527,20 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.Scenario = self.tbScenario.text()
         resultPath= os.path.join(self.ProjectDirectory, "Results")
         
-        list = self.setLayersNames(True,False)
+        #self.setLayersNames()
         try: #QGis 3.x
             layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
         except: #QGis 2.x
             layers = self.iface.legendInterface().layers()
         
-        for nameLayer in list:
+        self.lbTime.setText(self.TimeLabels[columnNumber])
+        for nameLayer in self.LabelsToOpRe:
             for layer in layers:
                 if str(layer.dataProvider().dataSourceUri().split("|")[0])== os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp"):
                     field_names = [field.name() for field in layer.fields()]
                     field = field_names[columnNumber+2]
                     self.setGraduadedPalette(layer, field, setRender)
                     layer.setName(nameLayer + " " + self.TimeLabels[columnNumber])
-                    self.lbTime.setText(self.TimeLabels[columnNumber])
-
-    # def paintDifferenteVariableResults(self, link, linkName, node, nodeName):
-        # if not self.isCurrentProject():
-            # return
-
-        # self.Scenario = self.tbScenario.text()
-        # resultPath= os.path.join(self.ProjectDirectory, "Results")
-        
-        # list = self.setLayersNames(False,True)
-        # try: #QGis 3.x
-            # layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
-        # except: #QGis 2.x
-            # layers = self.iface.legendInterface().layers()
-        
-        # for nameLayer in list:
-            # for layer in layers:
-                # if str(layer.dataProvider().dataSourceUri().split("|")[0])== os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp"):
-                    # if ("Link" in nameLayer and link) or ("Node" in nameLayer and node):
-                        # field= linkName
-                        # if ("Node" in nameLayer and node):
-                            # field=nodeName
-                        # self.setGraduadedPalette(layer, field)
-                        # layer.setName(nameLayer + " " + field)
 
     def setGraduadedPalette(self, layer, field, setRender):
         try: # QGis 3
@@ -396,3 +570,36 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         except: #QGis 2.x
             layer.setRendererV2(renderer)
         layer.triggerRepaint()
+
+    # def radioButtonsChanged(self, enabled):
+        # self.gbVariables.setEnabled(self.rbVariables.isChecked())
+        # self.gbTimes.setEnabled(self.rbTimes.isChecked())
+
+    # def linksChanged(self):
+        # self.paintDifferenteVariableResults(True, self.cbLinks.currentText(),False, self.cbNodes.currentText())
+
+    # def nodesChanged(self):
+        # self.paintDifferenteVariableResults(False, self.cbLinks.currentText(),True, self.cbNodes.currentText())
+
+    # def paintDifferenteVariableResults(self, link, linkName, node, nodeName):
+        # if not self.isCurrentProject():
+            # return
+
+        # self.Scenario = self.tbScenario.text()
+        # resultPath= os.path.join(self.ProjectDirectory, "Results")
+        
+        # list = self.setLayersNames(False,True)
+        # try: #QGis 3.x
+            # layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+        # except: #QGis 2.x
+            # layers = self.iface.legendInterface().layers()
+        
+        # for nameLayer in list:
+            # for layer in layers:
+                # if str(layer.dataProvider().dataSourceUri().split("|")[0])== os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp"):
+                    # if ("Link" in nameLayer and link) or ("Node" in nameLayer and node):
+                        # field= linkName
+                        # if ("Node" in nameLayer and node):
+                            # field=nodeName
+                        # self.setGraduadedPalette(layer, field)
+                        # layer.setName(nameLayer + " " + field)
