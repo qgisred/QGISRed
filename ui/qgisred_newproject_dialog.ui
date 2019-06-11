@@ -305,6 +305,9 @@
             <layout class="QVBoxLayout" name="verticalLayout_2">
              <item>
               <widget class="QCheckBox" name="cbIsolatedValves">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="text">
                 <string>Issolated Valves</string>
                </property>
@@ -315,6 +318,9 @@
              </item>
              <item>
               <widget class="QCheckBox" name="cbCeckValves">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="text">
                 <string>Check Valves</string>
                </property>
@@ -325,6 +331,9 @@
              </item>
              <item>
               <widget class="QCheckBox" name="cbHydrants">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="text">
                 <string>Hydrants</string>
                </property>
@@ -335,6 +344,9 @@
              </item>
              <item>
               <widget class="QCheckBox" name="cbPurgeValves">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="text">
                 <string>Purge Valves</string>
                </property>
@@ -345,6 +357,9 @@
              </item>
              <item>
               <widget class="QCheckBox" name="cbAirReleases">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="text">
                 <string>Air Releases</string>
                </property>
@@ -359,6 +374,9 @@
             <layout class="QVBoxLayout" name="verticalLayout_3">
              <item>
               <widget class="QCheckBox" name="cbConnections">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="text">
                 <string>Connections</string>
                </property>
@@ -369,6 +387,9 @@
              </item>
              <item>
               <widget class="QCheckBox" name="cbManometers">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="text">
                 <string>Manometers</string>
                </property>
@@ -379,6 +400,9 @@
              </item>
              <item>
               <widget class="QCheckBox" name="cbFlowmeters">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="text">
                 <string>Flowmeters</string>
                </property>
@@ -389,6 +413,9 @@
              </item>
              <item>
               <widget class="QCheckBox" name="cbCountmeters">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="text">
                 <string>Countmeters</string>
                </property>
@@ -399,6 +426,9 @@
              </item>
              <item>
               <widget class="QCheckBox" name="cbLevelmeters">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="text">
                 <string>Levelmeters</string>
                </property>
@@ -410,6 +440,16 @@
             </layout>
            </item>
           </layout>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_6">
+           <property name="text">
+            <string>Available in the following version</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
          </item>
          <item>
           <spacer name="verticalSpacer">
