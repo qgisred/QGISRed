@@ -1,44 +1,19 @@
 # -*- coding: utf-8 -*-
-"""
-/***************************************************************************
- QGISRedProjectManagerDialog
-                                 A QGIS plugin
- Some util tools for GISRed
-                             -------------------
-        begin                : 2019-03-26
-        git sha              : $Format:%H$
-        copyright            : (C) 2019 by REDHISP (UPV)
-        email                : fmartine@hma.upv.es
- ***************************************************************************/
-
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
-"""
-
 from qgis.gui import QgsMessageBar
-from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer, QgsLayerTreeGroup, QgsCoordinateReferenceSystem
+from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer
 from qgis.PyQt import QtGui, uic
 
 try: #QGis 3.x
-    from qgis.gui import QgsProjectionSelectionTreeWidget
-    from PyQt5.QtGui import QIcon
-    from PyQt5.QtWidgets import QAction, QMessageBox, QTableWidgetItem, QFileDialog, QDialog
-    from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QFileInfo
+    from PyQt5.QtWidgets import QMessageBox, QTableWidgetItem, QDialog
+    from PyQt5.QtCore import QFileInfo
     # Import the code for the dialog
     from .qgisred_newproject_dialog import QGISRedNewProjectDialog
     from .qgisred_importproject_dialog import QGISRedImportProjectDialog
     from .qgisred_cloneproject_dialog import QGISRedCloneProjectDialog
     from ..qgisred_utils import QGISRedUtils
 except: #QGis 2.x
-    from qgis.gui import QgsGenericProjectionSelector
-    from PyQt4.QtGui import QAction, QMessageBox, QIcon, QTableWidgetItem, QFileDialog, QDialog
-    from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QFileInfo
+    from PyQt4.QtGui import QMessageBox, QTableWidgetItem, QDialog
+    from PyQt4.QtCore import QFileInfo
     from qgis.core import QgsMapLayerRegistry
     # Import the code for the dialog
     from qgisred_newproject_dialog import QGISRedNewProjectDialog
@@ -51,29 +26,22 @@ import datetime
 from time import strftime
 from shutil import copyfile
 
-
-
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_projectmanager_dialog.ui'))
 
 class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
+    #Common variables
     iface = None
     NetworkName = ""
     ProjectDirectory = ""
     ProcessDone= False
     gplFile=""
     ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs"]
-    #Create complementary layers
     layerExtensions = [".shp", ".dbf", ".shx", ".prj", ".qpj"]
-    ownFiles = ["Curves.dbf", "Controls.dbf", "Patterns.dbf", "Rules.dbf", "Options.dbf", "DefaultValues.dbf", "TitleAndNotes.txt" ]
+    ownFiles = ["DefaultValues.dbf", "Options.dbf", "Rules.dbf", "Controls.dbf", "Curves.dbf", "Patterns.dbf", "TitleAndNotes.txt" ]
     
     def __init__(self, parent=None):
         """Constructor."""
         super(QGISRedProjectManagerDialog, self).__init__(parent)
-        # Set up the user interface from Designer.
-        # After setupUI you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
         self.btCreate.clicked.connect(self.createProject)
         self.btDelete.clicked.connect(self.deleteProject)
@@ -82,7 +50,12 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         self.btClone.clicked.connect(self.cloneProject)
         self.btGo2Folder.clicked.connect(self.openFolder)
         #Variables:
-        self.gplFile = os.path.join(os.path.dirname(os.path.dirname(__file__)) , "qgisredprojectlist.gpl")
+        gplFolder = os.path.join(os.popen('echo %appdata%').read().strip(), "QGISRed")
+        try: #create directory if does not exist
+            os.stat(gplFolder)
+        except:
+            os.mkdir(gplFolder) 
+        self.gplFile = os.path.join(gplFolder, "qgisredprojectlist.gpl")
         #Columns:
         self.twProjectList.setColumnCount(4)
         item = QTableWidgetItem("Network's Name")
@@ -101,7 +74,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         self.ProcessDone = False
         self.NetworkName = netw
         self.ProjectDirectory = direct
-
+        
         for row in range(0,self.twProjectList.rowCount()):
             if self.ProjectDirectory.replace("/","\\") == str(self.twProjectList.item(row,3).text()) and self.NetworkName == str(self.twProjectList.item(row,0).text()):
                 self.twProjectList.setCurrentCell(row, 1)
@@ -189,11 +162,11 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         qgsFilename =QgsProject.instance().fileName()
         if not qgsFilename=="":
             if QgsProject.instance().isDirty():
-                #Guardar y continuar
+                #Save and continue
                 self.iface.messageBar().pushMessage("Warning", "The project has changes. Please save them before continuing.", level=1)
                 return False
             else:
-                #Cerrar proyecto y continuar?
+                #Close project and continue?
                 reply = QMessageBox.question(self.iface.mainWindow(), 'Opened project', 'Do you want to close the current project and continue?', QMessageBox.Yes, QMessageBox.No)
                 if reply == QMessageBox.Yes:
                     QgsProject.instance().clear()
@@ -202,7 +175,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                     return False
         else:
             if len(self.iface.mapCanvas().layers())>0:
-                #Cerrar archivos y continuar?
+                #Close files and continue?
                 reply = QMessageBox.question(self.iface.mainWindow(), 'Opened layers', 'Do you want to close the current layers and continue?', QMessageBox.Yes, QMessageBox.No)
                 if reply == QMessageBox.Yes:
                     QgsProject.instance().clear()
@@ -260,7 +233,6 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             self.close()
             dlg.exec_()
             result = dlg.ProcessDone
-            # See if OK was pressed
             if result:
                 self.ProjectDirectory = dlg.ProjectDirectory
                 self.NetworkName = dlg.NetworkName
@@ -291,7 +263,6 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         # Run the dialog event loop
         dlg.exec_()
         result = dlg.ProcessDone
-        # See if OK was pressed
         if result:
             path=""
             name=""
@@ -323,11 +294,10 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             for row in selectionModel.selectedRows():
                 mainName= str(self.twProjectList.item(row.row(), 0).text())
                 mainFolder = str(self.twProjectList.item(row.row(), 3).text())
-                dlg = GISRedCloneProjectDialog()
+                dlg = QGISRedCloneProjectDialog()
                 # Run the dialog event loop
                 dlg.exec_()
                 result = dlg.ProcessDone
-                # See if OK was pressed
                 if result:
                     if mainName == dlg.NetworkName:
                         self.iface.messageBar().pushMessage("Warning", "Selected project has the same Network's Name. Plase, set another name.", level=1)

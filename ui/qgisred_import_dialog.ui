@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>QGISRed: Import INP</string>
+   <string>QGISRed: Import</string>
   </property>
   <property name="windowIcon">
    <iconset>

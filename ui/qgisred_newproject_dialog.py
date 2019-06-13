@@ -1,42 +1,19 @@
 # -*- coding: utf-8 -*-
-"""
-/***************************************************************************
- QGISRedNewProjectDialog
-                                 A QGIS plugin
- Some util tools for GISRed
-                             -------------------
-        begin                : 2019-03-26
-        git sha              : $Format:%H$
-        copyright            : (C) 2019 by REDHISP (UPV)
-        email                : fmartine@hma.upv.es
- ***************************************************************************/
-
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
-"""
-
 from qgis.gui import QgsMessageBar
-from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer, QgsLayerTreeGroup, QgsCoordinateReferenceSystem
+from qgis.core import QgsVectorLayer, QgsProject, QgsCoordinateReferenceSystem
 from qgis.PyQt import QtGui, uic
 
 try: #QGis 3.x
     from qgis.gui import QgsProjectionSelectionDialog  as QgsGenericProjectionSelector 
     from qgis.core import Qgis, QgsTask, QgsApplication
-    from PyQt5.QtGui import QIcon
-    from PyQt5.QtWidgets import QAction, QMessageBox, QTableWidgetItem, QFileDialog, QDialog, QApplication
-    from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QFileInfo, Qt
+    from PyQt5.QtWidgets import QFileDialog, QDialog, QApplication
+    from PyQt5.QtCore import Qt
     from ..qgisred_utils import QGISRedUtils
 except: #QGis 2.x
     from qgis.gui import QgsGenericProjectionSelector
-    from PyQt4.QtGui import QAction, QMessageBox, QIcon, QTableWidgetItem, QFileDialog, QDialog, QApplication
-    from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QFileInfo, Qt
-    from qgis.core import QgsMapLayerRegistry, QGis as Qgis
+    from PyQt4.QtGui import QFileDialog, QDialog, QApplication
+    from PyQt4.QtCore import Qt
+    from qgis.core import QGis as Qgis
     from ..qgisred_utils import QGISRedUtils
 
 import os
@@ -46,6 +23,7 @@ import tempfile
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_newproject_dialog.ui'))
 
 class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
+    #Common variables
     iface = None
     NetworkName = ""
     ProjectDirectory = ""
@@ -56,19 +34,19 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
     def __init__(self, parent=None):
         """Constructor."""
         super(QGISRedNewProjectDialog, self).__init__(parent)
-        # Set up the user interface from Designer.
-        # After setupUI you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
         self.btCreateProject.clicked.connect(self.createProject)
         self.btEditProject.clicked.connect(self.editProject)
         self.btSelectDirectory.clicked.connect(self.selectDirectory)
         self.btSelectCRS.clicked.connect(self.selectCRS)
         #Variables:
-        self.gplFile = os.path.join(os.path.dirname(os.path.dirname(__file__)) , "qgisredprojectlist.gpl")
-        
+        gplFolder = os.path.join(os.popen('echo %appdata%').read().strip(), "QGISRed")
+        try: #create directory if does not exist
+            os.stat(gplFolder)
+        except:
+            os.mkdir(gplFolder) 
+        self.gplFile = os.path.join(gplFolder, "qgisredprojectlist.gpl")
+
     def config(self, ifac, direct, netw):
         self.iface=ifac
         try: #QGis 3.x
@@ -92,7 +70,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         self.tbNetworkName.setReadOnly(not newProject)
         if not newProject:
             self.setProperties()
-        
+
     def setProperties(self):
         if self.btCreateProject.isVisible():
             self.setDefaultElements()
@@ -110,7 +88,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             self.cbReservoirs.setEnabled(not self.NetworkName + "_Reservoirs.shp" in dirList)
             self.cbValves.setEnabled(not self.NetworkName + "_Valves.shp" in dirList)
             self.cbPumps.setEnabled(not self.NetworkName + "_Pumps.shp" in dirList)
-            #resto
+            #others (future versions)
             self.cbIsolatedValves.setChecked(self.NetworkName + "_IssolatedValves.shp" in dirList)
             self.cbCeckValves.setChecked(self.NetworkName + "_CheckValves.shp" in dirList)
             self.cbHydrants.setChecked(self.NetworkName + "_Hydrants.shp" in dirList)
@@ -140,7 +118,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         self.cbFlowmeters.setChecked(False)
         self.cbCountmeters.setChecked(False)
         self.cbLevelmeters.setChecked(False)
-    
+
     def selectDirectory(self):
         selected_directory = QFileDialog.getExistingDirectory()
         if not selected_directory == "":
@@ -149,7 +127,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             self.ProjectDirectory = selected_directory
             self.NetworkName = self.tbNetworkName.text()
             self.setProperties()
-        
+
     def selectCRS(self):
         projSelector = QgsGenericProjectionSelector()
         if projSelector.exec_():
@@ -161,27 +139,6 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
                 self.CRS = QgsCoordinateReferenceSystem()
                 self.CRS.createFromId(crsId, QgsCoordinateReferenceSystem.InternalCrsId)
                 self.tbCRS.setText(self.CRS.description())
-
-    def validationsCreateProject(self):
-        self.NetworkName = self.tbNetworkName.text()
-        if len(self.NetworkName)==0:
-            self.iface.messageBar().pushMessage("Validations", "The network's name is not valid", level=1)
-            return False
-        self.ProjectDirectory = self.tbProjectDirectory.text()
-        if len(self.ProjectDirectory)==0 or self.ProjectDirectory==self.TemporalFolder:
-            self.ProjectDirectory=tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names())
-        else:
-            if not os.path.exists(self.ProjectDirectory):
-                self.iface.messageBar().pushMessage("Validations", "The project directory does not exist", level=1)
-                return False
-            else:
-                dirList = os.listdir(self.ProjectDirectory)
-                layers = ["Pipes", "Junctions", "Tanks", "Reservoirs", "Valves", "Pumps", "IssolatedValves", "CheckValves" ,"Hydrants", "PurgeValves", "AirReleases", "Connections", "Manometers", "Flowmeters", "Countmeters", "Levelmeters"]
-                for layer in layers:
-                    if self.NetworkName + "_" + layer + ".shp" in dirList:
-                        self.iface.messageBar().pushMessage("Validations", "The project directory has some file to selected network's name", level=1)
-                        return False
-        return True
 
     def createElementsList(self):
         list =""
@@ -253,7 +210,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
     def openElementsLayers(self, group, new):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         if new:
-            files = ["Curves", "Controls", "Patterns", "Rules", "Options", "DefaultValues"]
+            files = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns"]
             for file in files:
                 utils.openLayer(self.CRS, group, file, ext=".dbf")
 
@@ -309,9 +266,32 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             if not utils.isLayerOpened("Levelmeters"):
                 utils.openLayer(self.CRS, group,"Levelmeters")
 
+    def validationsCreateProject(self):
+        self.NetworkName = self.tbNetworkName.text()
+        if len(self.NetworkName)==0:
+            self.iface.messageBar().pushMessage("Validations", "The network's name is not valid", level=1)
+            return False
+        self.ProjectDirectory = self.tbProjectDirectory.text()
+        if len(self.ProjectDirectory)==0 or self.ProjectDirectory==self.TemporalFolder:
+            self.ProjectDirectory=tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names())
+        else:
+            if not os.path.exists(self.ProjectDirectory):
+                self.iface.messageBar().pushMessage("Validations", "The project directory does not exist", level=1)
+                return False
+            else:
+                dirList = os.listdir(self.ProjectDirectory)
+                layers = ["Pipes", "Junctions", "Tanks", "Reservoirs", "Valves", "Pumps", "IssolatedValves", "CheckValves" ,"Hydrants", "PurgeValves", "AirReleases", "Connections", "Manometers", "Flowmeters", "Countmeters", "Levelmeters"]
+                for layer in layers:
+                    if self.NetworkName + "_" + layer + ".shp" in dirList:
+                        self.iface.messageBar().pushMessage("Validations", "The project directory has some file to selected network's name", level=1)
+                        return False
+        return True
+
     def createProject(self):
+        #Validations
         isValid = self.validationsCreateProject()
         if isValid==True:
+            #Process
             QApplication.setOverrideCursor(Qt.WaitCursor)
             os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
             complElements = self.createComplementaryList()
@@ -324,16 +304,17 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
                 b= "".join(map(chr, b)) #bytes to string
             except:  #QGis 2.x
                 b=b
-            self.iface.mapCanvas().setDestinationCrs(self.CRS)
             
+            #Open layers
+            self.iface.mapCanvas().setDestinationCrs(self.CRS)
             root = QgsProject.instance().layerTreeRoot()
             group = root.addGroup(self.NetworkName + " Inputs")
-
             self.openElementsLayers(group, True)
             self.openComplementaryLayers(group)
             
             QApplication.restoreOverrideCursor()
             
+            #Message
             if b=="True":
                 self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=10)
                 file = open(self.gplFile, "a+")
@@ -362,6 +343,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             QgsApplication.taskManager().addTask(task1)
 
     def editProjectProcess(self, exception=None, result=None):
+        #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
         
@@ -376,7 +358,8 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             b= "".join(map(chr, b)) #bytes to string
         except:  #QGis 2.x
             b=b
-
+        
+        #Open layers
         dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName +" Inputs")
         if dataGroup is None:
             root = QgsProject.instance().layerTreeRoot()
@@ -389,6 +372,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         
         QApplication.restoreOverrideCursor()
         
+        #Message
         if b=="True":
             self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=10)
         elif b=="False":

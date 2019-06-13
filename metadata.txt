@@ -10,15 +10,15 @@
 name=QGISRed
 qgisMinimumVersion=2.0
 qgisMaximumVersion=3.99
-description=Some util tools for developing water nets (pipes, valves, pumps, jucntions, etc.)
+description=Tool for helping the hydraulic engineer in the task of modelling a water distribution network and in the decision-making process.
 version=0.1
 author=REDHISP (UPV)
 email=fmartine@hma.upv.es
 
-about=
+about=This tool is designed as a plugin to the free software QGis. However, QGISRed uses the source code of the GISRed software, an application designed as a desktop tool for the Windows operating system. The QGISRed plugin is developed with the objective of being able to take advantage of all the tools that a GIS environment can provide in a native way. For example, geo-processing tools, use of satellite images, style management, etc. 1) Create or edit a QGISRed project. It allows to create the vectorial layers (SHPs) of the basic elements that the EPANET software works with. If the user removes any of these SHPs, it is possible to recreate them. 2) Manage QGISRed projects. It is possible to open, create, import, clone or delete projects. 3) Data import from INP (EPANET) or SHPs files. In the first format you can import complete models developed with the popular EPANET software. Using SHPs you can create or complete a model specifying for each type of main element, the SHP from which you want to import information and which fields contain certain information needed for the model. 4) Validation of the model, informing if there has been any error or warning when processing the information contained in the SHPs. 5) Save the project with QGis and link it to the QGISRed project to open it later as the user had left it. 6) Export to EPANET INP file, with the option to open this software once the file is generated. 7) Simulation with the EPANET Toolkit to show the hydraulic and quality results.
 
-tracker=
-repository=
+tracker=https://github.com/neslerel/QGISRed/issues
+repository=https://github.com/neslerel/QGISRed
 # End of mandatory metadata
 
 # Recommended items:
@@ -27,13 +27,13 @@ repository=
 # changelog=
 
 # Tags are comma separated with spaces allowed
-tags=epanet gisred net pipes pumps tanks
+tags=epanet, gisred, net, pipes, pumps, tanks
 
 homepage=http://www.redhisp.upv.es
 category=Plugins
 icon=images/iconCreateProject.png
 # experimental flag
-experimental=True
+experimental=False
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False

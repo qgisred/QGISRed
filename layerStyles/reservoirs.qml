@@ -304,9 +304,9 @@ def my_form_open(dialog, layer, feature):
   </conditionalstyles>
   <defaults>
     <default field="Id" expression=""/>
-    <default field="TotalHead" expression=""/>
+    <default field="TotalHead" expression="0"/>
     <default field="IdHeadPatt" expression=""/>
-    <default field="IniQuality" expression=""/>
+    <default field="IniQuality" expression="0"/>
     <default field="Tag" expression=""/>
     <default field="Descrip" expression=""/>
     <default field="Sector" expression=""/>

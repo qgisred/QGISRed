@@ -1,43 +1,19 @@
 # -*- coding: utf-8 -*-
-"""
-/***************************************************************************
- QGISRedImportDialog
-                                 A QGIS plugin
- Some util tools for GISRed
-                             -------------------
-        begin                : 2019-03-26
-        git sha              : $Format:%H$
-        copyright            : (C) 2019 by REDHISP (UPV)
-        email                : fmartine@hma.upv.es
- ***************************************************************************/
-
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
-"""
-
 from qgis.gui import QgsMessageBar
-from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer, QgsLayerTreeGroup, QgsCoordinateReferenceSystem
+from qgis.core import QgsVectorLayer, QgsProject, QgsCoordinateReferenceSystem
 from qgis.PyQt import QtGui, uic
 
 try: #QGis 3.x
     from qgis.gui import QgsProjectionSelectionDialog  as QgsGenericProjectionSelector 
     from qgis.core import Qgis, QgsTask, QgsApplication
-    from PyQt5.QtGui import QIcon
-    from PyQt5.QtWidgets import QAction, QMessageBox, QTableWidgetItem, QFileDialog, QDialog, QApplication
-    from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QFileInfo, Qt
+    from PyQt5.QtWidgets import QFileDialog, QDialog, QApplication
+    from PyQt5.QtCore import Qt
     from ..qgisred_utils import QGISRedUtils
 except: #QGis 2.x
     from qgis.gui import QgsGenericProjectionSelector
     from qgis.core import QGis as Qgis
-    from PyQt4.QtGui import QAction, QMessageBox, QIcon, QTableWidgetItem, QFileDialog, QDialog, QApplication
-    from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QFileInfo, Qt
-    from qgis.core import QgsMapLayerRegistry
+    from PyQt4.QtGui import QFileDialog, QDialog, QApplication
+    from PyQt4.QtCore import Qt
     from ..qgisred_utils import QGISRedUtils
 
 import os
@@ -46,8 +22,8 @@ import tempfile
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_import_dialog.ui'))
 
-
 class QGISRedImportDialog(QDialog, FORM_CLASS):
+    #Common variables
     iface = None
     NewProject = True
     NetworkName = ""
@@ -58,17 +34,17 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
     gplFile = ""
     TemporalFolder = "Temporal folder"
     ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs"]
-    ownFiles = ["Curves", "Controls", "Patterns", "Rules", "Options", "DefaultValues"]
+    ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns"]
     def __init__(self, parent=None):
         """Constructor."""
         super(QGISRedImportDialog, self).__init__(parent)
-        # Set up the user interface from Designer.
-        # After setupUI you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
-        self.gplFile = os.path.join(os.path.dirname(os.path.dirname(__file__)) , "qgisredprojectlist.gpl")
+        gplFolder = os.path.join(os.popen('echo %appdata%').read().strip(), "QGISRed")
+        try: #create directory if does not exist
+            os.stat(gplFolder)
+        except:
+            os.mkdir(gplFolder) 
+        self.gplFile = os.path.join(gplFolder, "qgisredprojectlist.gpl")
         #INP
         self.btImportInp.clicked.connect(self.importInpProject)
         self.btSelectDirectory.clicked.connect(self.selectDirectory)
@@ -144,8 +120,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         return True
 
     def createProject(self):
+        #Process
         os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
-
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.CreateProject.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CreateProject.restype = c_char_p
@@ -155,6 +131,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         except:  #QGis 2.x
             b=b
         
+        #Message
         if not b=="True":
             if b=="False":
                 self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=10)
@@ -163,6 +140,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             self.close()
             return False
         
+        #Write .gql file
         file = open(self.gplFile, "a+")
         QGISRedUtils().writeFile(file, self.NetworkName + ";" + self.ProjectDirectory + '\n')
         file.close()
@@ -175,7 +153,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         utils.removeLayers(self.ownFiles, ".dbf")
         raise Exception('')
 
-#INP SECTION
+    """INP SECTION"""
     def selectINP(self):
         qfd = QFileDialog()
         path = ""
@@ -190,6 +168,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             self.tbInpFile.setCursorPosition(0)
 
     def importInpProject(self):
+        #Common validations
         isValid = self.validationsCreateProject()
         if isValid==True:
             #Validations INP
@@ -220,7 +199,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 QgsApplication.taskManager().addTask(task1)
 
     def importInpProjectProcess(self, exception=None, result=None):
-        #Method
+        #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
         mydll = WinDLL("GISRed.QGisPlugins.dll")
@@ -232,27 +211,27 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         except:  #QGis 2.x
             b=b
         
-        #Group
+        #Open layers
         dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Inputs")
         if dataGroup is None:
             root = QgsProject.instance().layerTreeRoot()
             dataGroup = root.addGroup(self.NetworkName + " Inputs")
-        #Open layers
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.openElementsLayers(dataGroup, self.CRS, self.ownMainLayers, self.ownFiles)
         QApplication.restoreOverrideCursor()
-
+        
+        #Message
         if b=="True":
             self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=10)
         elif b=="False":
             self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=10)
         else:
             self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
-
+        
         self.close()
         self.ProcessDone = True
 
-#SHPS SECTION
+    """SHPS SECTION"""
     def selectSHPDirectory(self):
         selected_directory = QFileDialog.getExistingDirectory()
         if selected_directory == "":
@@ -318,7 +297,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbPipe_Tag.addItems(field_names)
         self.cbPipe_Descr.addItems(field_names)
         
-        self.selectComboBoxItem(self.cbPipe_Id, ["id"]) #["one", "two", "THREE"]
+        self.selectComboBoxItem(self.cbPipe_Id, ["id"])
         self.selectComboBoxItem(self.cbPipe_Length, ["length"])
         self.selectComboBoxItem(self.cbPipe_Diameter, ["diameter", "diam"])
         self.selectComboBoxItem(self.cbPipe_LossCoef, ["losscoeff"])
@@ -730,6 +709,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         return fields
 
     def importShpProject(self):
+        #Common validations
         isValid = self.validationsCreateProject()
         if isValid==True:
             #Validations SHP's
@@ -742,7 +722,6 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 return
             
             #Process
-            
             if self.NewProject:
                 if not self.createProject():
                     return
@@ -760,9 +739,10 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 QgsApplication.taskManager().addTask(task1)
 
     def importShpProjectProcess(self, exception=None, result=None):
+        #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         shapes = self.createShpsNames()
-        #Method
+        fields = self.createShpFields()
         os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.ImportFromShps.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
@@ -773,22 +753,22 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         except:  #QGis 2.x
             b=b
         
-        #Group
+        #Open layers
         dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Inputs")
         if dataGroup is None:
             root = QgsProject.instance().layerTreeRoot()
             dataGroup = root.addGroup(self.NetworkName + " Inputs")
-        #Open layers
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.openElementsLayers(dataGroup, self.CRS, self.ownMainLayers, self.ownFiles)
         QApplication.restoreOverrideCursor()
-
+        
+        #Message
         if b=="True":
             self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=10)
         elif b=="False":
             self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=10)
         else:
             self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
-
+        
         self.close()
         self.ProcessDone = True

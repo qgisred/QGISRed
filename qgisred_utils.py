@@ -1,20 +1,21 @@
+# -*- coding: utf-8 -*-
 from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer
 
 try: #QGis 3.x
-    from qgis.core import QgsSvgMarkerSymbolLayer, QgsSymbol, QgsSingleSymbolRenderer, QgsLineSymbol
-    from qgis.core import QgsSimpleLineSymbolLayer, QgsMarkerSymbol, QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayer
-    from qgis.core import Qgis
+    from qgis.core import QgsSvgMarkerSymbolLayer, QgsSymbol, QgsSingleSymbolRenderer
+    from qgis.core import QgsLineSymbol, QgsSimpleLineSymbolLayer
+    from qgis.core import Qgis, QgsMarkerSymbol, QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayer
 except: #QGis 2.x
-    from qgis.core import QgsSvgMarkerSymbolLayerV2 as QgsSvgMarkerSymbolLayer, QgsSymbolV2 as QgsSymbol, QgsSingleSymbolRendererV2 as QgsSingleSymbolRenderer, QgsLineSymbolV2 as QgsLineSymbol
-    from qgis.core import QgsSimpleLineSymbolLayerV2 as QgsSimpleLineSymbolLayer, QgsMarkerSymbolV2 as QgsMarkerSymbol, QgsMarkerLineSymbolLayerV2 as QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayerV2 as QgsSimpleMarkerSymbolLayer
-    from qgis.core import QgsMapLayerRegistry
-    from qgis.core import QgsMapLayerRegistry, QGis as Qgis
+    from qgis.core import QgsSvgMarkerSymbolLayerV2 as QgsSvgMarkerSymbolLayer, QgsSymbolV2 as QgsSymbol 
+    from qgis.core import QgsSingleSymbolRendererV2 as QgsSingleSymbolRenderer, QgsLineSymbolV2 as QgsLineSymbol
+    from qgis.core import QgsSimpleLineSymbolLayerV2 as QgsSimpleLineSymbolLayer, QgsMarkerSymbolV2 as QgsMarkerSymbol 
+    from qgis.core import QgsMarkerLineSymbolLayerV2 as QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayerV2 as QgsSimpleMarkerSymbolLayer
+    from qgis.core import QgsMapLayerRegistry, QgsMapLayerRegistry, QGis as Qgis
 
+# Others imports
 import os
-import gc
 
 class QGISRedUtils:
-
     def __init__(self, directory="", networkName="", iface=None):
         self.iface = iface
         self.ProjectDirectory = directory
@@ -159,58 +160,3 @@ class QGISRedUtils:
             f.write(contents)
             f.close()
             ret = layer.loadNamedStyle(qmlPath)
-        
-        # try: # QGis 3
-            # symbol = layer.renderer().symbol() 
-        # except: # QGis 2
-            # symbol = layer.rendererV2().symbols()[0] 
-        # if layer.geometryType()==0: #Point
-            # #Reservoir:
-            # svgPath= os.path.join(stylePath, "reservoirs.svg")
-            # svg_style = dict()
-            # svg_style['name'] = svgPath
-            # svg_style['size'] = str(7)
-            # svg_style['size_dd_expression'] = "if(""Type"" ='RESERVOIR', 7,0)"
-            # symbol_layer = QgsSvgMarkerSymbolLayer.create(svg_style)
-            # #symbol = layer.rendererV2().symbols()[0] 
-            # symbol.changeSymbolLayer(1, symbol_layer) #1=reservoir
-            # #Tank:
-            # svgPath= os.path.join(stylePath, "tanks.svg")
-            # svg_style = dict()
-            # svg_style['name'] = svgPath
-            # svg_style['size'] = str(7)
-            # svg_style['size_dd_expression'] = "if(""Type"" ='TANK', 7,0)"
-            # symbol_layer = QgsSvgMarkerSymbolLayer.create(svg_style)
-            # #symbol = layer.rendererV2().symbols()[0] 
-            # symbol.changeSymbolLayer(0, symbol_layer) #0=Tank
-        # else: #Line
-            # #Pump
-            # svgPath= os.path.join(stylePath, "pumps.svg")
-            # marker = QgsMarkerSymbol.createSimple({})
-            # marker.deleteSymbolLayer(0)
-            # svg_props = dict()
-            # svg_props['name'] = svgPath
-            # svg_props['size'] = str(6)
-            # svg_props['size_dd_expression'] = "if(""Type"" ='PUMP', 6,0)"
-            # markerSymbol = QgsSvgMarkerSymbolLayer.create(svg_props)
-            # marker.appendSymbolLayer(markerSymbol)
-            # finalMarker = QgsMarkerLineSymbolLayer()
-            # finalMarker.setSubSymbol(marker)
-            # finalMarker.setPlacement(QgsMarkerLineSymbolLayer.CentralPoint)
-            # symbol.appendSymbolLayer(finalMarker)
-            # #Valve
-            # svgPath= os.path.join(stylePath, "valves.svg")
-            # marker = QgsMarkerSymbol.createSimple({})
-            # marker.deleteSymbolLayer(0)
-            # svg_props = dict()
-            # svg_props['name'] = svgPath
-            # svg_props['size'] = str(6)
-            # svg_props['size_dd_expression'] = "if(""Type"" ='VALVE', 6,0)"
-            # markerSymbol = QgsSvgMarkerSymbolLayer.create(svg_props)
-            # marker.appendSymbolLayer(markerSymbol)
-            # finalMarker = QgsMarkerLineSymbolLayer()
-            # finalMarker.setSubSymbol(marker)
-            # finalMarker.setPlacement(QgsMarkerLineSymbolLayer.CentralPoint)
-            # symbol.appendSymbolLayer(finalMarker)
-        # layer.triggerRepaint()
-

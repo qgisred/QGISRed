@@ -1,59 +1,22 @@
 # -*- coding: utf-8 -*-
-"""
-/***************************************************************************
- QGISRedCloneProjectDialog
-                                 A QGIS plugin
- Some util tools for GISRed
-                             -------------------
-        begin                : 2019-03-26
-        git sha              : $Format:%H$
-        copyright            : (C) 2019 by REDHISP (UPV)
-        email                : fmartine@hma.upv.es
- ***************************************************************************/
-
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
-"""
-
-from qgis.gui import QgsMessageBar
-from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer, QgsLayerTreeGroup, QgsCoordinateReferenceSystem
 from qgis.PyQt import QtGui, uic
-
 try: #QGis 3.x
-    from qgis.gui import QgsProjectionSelectionTreeWidget
-    from PyQt5.QtGui import QIcon
-    from PyQt5.QtWidgets import QAction, QMessageBox, QTableWidgetItem, QFileDialog, QDialog
-    from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QFileInfo
+    from PyQt5.QtWidgets import QFileDialog, QDialog
 except: #QGis 2.x
-    from qgis.gui import QgsGenericProjectionSelector
-    from PyQt4.QtGui import QAction, QMessageBox, QIcon, QTableWidgetItem, QFileDialog, QDialog
-    from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QFileInfo
-    from qgis.core import QgsMapLayerRegistry
+    from PyQt4.QtGui import QFileDialog, QDialog
 
 import os
-from ctypes import*
-import tempfile
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_cloneproject_dialog.ui'))
 
 class QGISRedCloneProjectDialog(QDialog, FORM_CLASS):
+    #Common variables
     NetworkName = ""
     ProjectDirectory = ""
     ProcessDone=False
     def __init__(self, parent=None):
         """Constructor."""
         super(QGISRedCloneProjectDialog, self).__init__(parent)
-        # Set up the user interface from Designer.
-        # After setupUI you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
         self.btSelectDirectory.clicked.connect(self.selectDirectory)
         self.btAccept.clicked.connect(self.accept)

@@ -3,7 +3,8 @@
 /***************************************************************************
  QGISRed
                                  A QGIS plugin
- Some util tools for GISRed
+ Tool for helping the hydraulic engineer in the task of modelling a water 
+ distribution network and in the decision-making process
                               -------------------
         begin                : 2019-03-26
         git sha              : $Format:%H$
@@ -22,8 +23,8 @@
 """
 
 from qgis.gui import QgsMessageBar
-from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer, QgsLayerTreeGroup, QgsLayerTreeNode, QgsProjectBadLayerHandler
-
+from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer 
+from qgis.core import QgsLayerTreeGroup, QgsLayerTreeNode
 try: #QGis 3.x
     from PyQt5.QtGui import QIcon
     from PyQt5.QtWidgets import QAction, QMessageBox, QApplication, QMenu
@@ -54,14 +55,10 @@ except: #QGis 2.x
 
 # Others imports
 import os
-import os.path
 import datetime
-from time import strftime
-from ctypes import*
 import time
 import tempfile
-
-import threading
+from ctypes import*
 
 #MessageBar Levels
 # Info 0
@@ -71,12 +68,12 @@ import threading
 
 class QGISRed:
     """QGIS Plugin Implementation."""
+    #Common variables
     ResultDockwidget = None
-    #Project variables
     ProjectDirectory = ""
     NetworkName = ""
     ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs"]
-    ownFiles = ["Curves", "Controls", "Patterns", "Rules", "Options", "DefaultValues"]
+    ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns"]
     TemporalFolder = "Temporal folder"
 
     def __init__(self, iface):
@@ -93,10 +90,7 @@ class QGISRed:
         self.plugin_dir = os.path.dirname(__file__)
         # initialize locale
         locale = QSettings().value('locale/userLocale')[0:2]
-        locale_path = os.path.join(
-            self.plugin_dir,
-            'i18n',
-            'qgisred_{}.qm'.format(locale))
+        locale_path = os.path.join(self.plugin_dir, 'i18n', 'qgisred_{}.qm'.format(locale))
 
         if os.path.exists(locale_path):
             self.translator = QTranslator()
@@ -105,10 +99,8 @@ class QGISRed:
             if qVersion() > '4.3.3':
                 QCoreApplication.installTranslator(self.translator)
 
-
         # Declare instance attributes
         self.actions = []
-        #self.menu = self.tr(u'&QGISRed') 
         #Toolbar
         self.toolbar = self.iface.addToolBar(u'QGISRed')
         self.toolbar.setObjectName(u'QGISRed')
@@ -155,6 +147,9 @@ class QGISRed:
 
         :param callback: Function to be called when the action is triggered.
         :type callback: function
+
+        :param menubar: Menu where the action should be added
+        :type menubar: QMenu
 
         :param enabled_flag: A flag indicating if the action should be enabled
             by default. Defaults to True.
@@ -210,20 +205,12 @@ class QGISRed:
 
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
-
+        #Create buttons/actions
         icon_path = ':/plugins/QGISRed/images/iconProjectManager.png'
         self.add_action(
             icon_path,
             text=self.tr(u'Project manager'),
             callback=self.runProjectManager,
-            menubar=self.qgisredmenu,
-            parent=self.iface.mainWindow())
-
-        icon_path = ':/plugins/QGISRed/images/iconSaveProject.png'
-        self.add_action(
-            icon_path,
-            text=self.tr(u'Save project'),
-            callback=self.runSaveProject,
             menubar=self.qgisredmenu,
             parent=self.iface.mainWindow())
 
@@ -259,6 +246,14 @@ class QGISRed:
             menubar=self.qgisredmenu,
             parent=self.iface.mainWindow())
 
+        icon_path = ':/plugins/QGISRed/images/iconSaveProject.png'
+        self.add_action(
+            icon_path,
+            text=self.tr(u'Save project'),
+            callback=self.runSaveProject,
+            menubar=self.qgisredmenu,
+            parent=self.iface.mainWindow())
+
         icon_path = ':/plugins/QGISRed/images/iconShpToInp.png' 
         self.add_action(
             icon_path,
@@ -275,7 +270,7 @@ class QGISRed:
             menubar=self.qgisredmenu,
             parent=self.iface.mainWindow())
 
-
+        #Tests for submenus
         #self.gisredmenuTools = self.qgisredmenu.addMenu('Sub-menu')
         #self.gisredmenuTools.setIcon(QIcon(icoFolder + 'img1.png'))
 
@@ -287,6 +282,7 @@ class QGISRed:
             menubar=self.qgisredmenu,
             parent=self.iface.mainWindow())
         
+        #Copy necessary files regarding os architecture
         from shutil import copyfile
         import platform
         if "64bit" in str(platform.architecture()):
@@ -317,10 +313,12 @@ class QGISRed:
         
         if self.qgisredmenu:
             self.qgisredmenu.menuAction().setVisible(False)
-        # if self.qgisredmenuTools:
+        # if self.qgisredmenuTools: #tests
             # self.qgisredmenuTools.menuAction().setVisible(False)
+        pass
 
     def createGqpFile(self):
+        """Write a .gqp file with datetimes and opened files (or QGis project)"""
         gqp = os.path.join(self.ProjectDirectory, self.NetworkName + ".gqp")
         creationDate=""
         if os.path.exists(gqp):
@@ -356,6 +354,7 @@ class QGISRed:
         f.close()
 
     def writeLayersOfGroups(self, groupName, file, layers):
+        """Write the layer path in a file"""
         root = QgsProject.instance().layerTreeRoot()
         for layer in reversed(layers):
             parent = root.findLayer(layer.id())
@@ -364,6 +363,7 @@ class QGISRed:
                     QGISRedUtils().writeFile(file, layer.dataProvider().dataSourceUri().split("|")[0] + '\n')
 
     def defineCurrentProject(self):
+        """Identifying the QGISRed current project"""
         self.NetworkName ="Network"
         self.ProjectDirectory = self.TemporalFolder
         try: #QGis 3.x
@@ -391,10 +391,10 @@ class QGISRed:
         qgsFilename =QgsProject.instance().fileName()
         if not qgsFilename=="":
             if QgsProject.instance().isDirty():
-                #Guardar y continuar
+                #Save and continue
                 self.iface.messageBar().pushMessage("Warning", "The project has changes. Please save them before continuing.", level=1)
             else:
-                #Cerrar proyecto y continuar?
+                #Close the project and continue?
                 reply = QMessageBox.question(self.iface.mainWindow(), 'Opened project', 'Do you want to close the current project and continue?', QMessageBox.Yes, QMessageBox.No)
                 if reply == QMessageBox.Yes:
                     QgsProject.instance().clear()
@@ -403,7 +403,7 @@ class QGISRed:
                     return False
         else:
             if len(self.iface.mapCanvas().layers())>0:
-                #Cerrar archivos y continuar?
+                #Close files and continue?
                 reply = QMessageBox.question(self.iface.mainWindow(), 'Opened layers', 'Do you want to close the current layers and continue?', QMessageBox.Yes, QMessageBox.No)
                 if reply == QMessageBox.Yes:
                     QgsProject.instance().clear()
@@ -419,8 +419,13 @@ class QGISRed:
                 return True
         return False
 
+    def removeLayers(self, task, wait_time):
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.removeLayers(self.ownMainLayers)
+        utils.removeLayers(self.ownFiles, ".dbf")
+        raise Exception('') #Avoiding errors with v3.x with shps and dbfs in use after deleting (use of QTasks)
+
     def runProjectManager(self):
-        """Run method that performs all the real work"""
         self.defineCurrentProject()
         # show the dialog
         dlg = QGISRedProjectManagerDialog()
@@ -428,22 +433,13 @@ class QGISRed:
 
         # Run the dialog event loop
         dlg.exec_()
-        # See if OK was pressed
         result = dlg.ProcessDone
         if result:
             self.NetworkName = dlg.NetworkName
             self.ProjectDirectory = dlg.ProjectDirectory
             self.createGqpFile()
 
-    def runSaveProject(self):
-        self.defineCurrentProject()
-        if self.ProjectDirectory == self.TemporalFolder:
-            self.iface.messageBar().pushMessage("Warning", "No valid project is opened", level=1, duration=10)
-        else:
-            self.createGqpFile()
-
     def runNewProject(self):
-        """Run method that performs all the real work"""
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
             if not self.isOpenedProject():
@@ -454,14 +450,12 @@ class QGISRed:
         # Run the dialog event loop
         dlg.exec_()
         result = dlg.ProcessDone
-        # See if OK was pressed
         if result:
             self.ProjectDirectory = dlg.ProjectDirectory
             self.NetworkName = dlg.NetworkName
             self.createGqpFile()
 
     def runImport(self):
-        """Run method that performs all the real work"""
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
             if not self.isOpenedProject():
@@ -473,20 +467,20 @@ class QGISRed:
         # Run the dialog event loop
         dlg.exec_()
         result = dlg.ProcessDone
-        # See if OK was pressed
         if result:
             self.ProjectDirectory = dlg.ProjectDirectory
             self.NetworkName = dlg.NetworkName
             self.createGqpFile()
 
     def runValidateModel(self):
+        #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
             self.iface.messageBar().pushMessage("Warning", "No valid project is opened", level=1, duration=10)
             return
         if self.isLayerOnEdition():
             return
-
+        
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
@@ -501,6 +495,7 @@ class QGISRed:
             b=b
         QApplication.restoreOverrideCursor()
         
+        #Messages
         if b=="True":
             self.iface.messageBar().pushMessage("Information", "Topology is valid", level=3, duration=10)
         elif b=="False":
@@ -508,13 +503,15 @@ class QGISRed:
         else:
             self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
 
-    def removeLayers(self, task, wait_time):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        utils.removeLayers(self.ownMainLayers)
-        utils.removeLayers(self.ownFiles, ".dbf")
-        raise Exception('')
+    def runSaveProject(self):
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            self.iface.messageBar().pushMessage("Warning", "No valid project is opened", level=1, duration=10)
+        else:
+            self.createGqpFile()
 
     def runCommit(self):
+        #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
             self.iface.messageBar().pushMessage("Warning", "No valid project is opened", level=1, duration=10)
@@ -536,6 +533,7 @@ class QGISRed:
             QgsApplication.taskManager().addTask(task1)
 
     def runCommitProcess(self, exception=None, result=None):
+        #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
         mydll = WinDLL("GISRed.QGisPlugins.dll")
@@ -549,13 +547,12 @@ class QGISRed:
             b=b
         
         #Group
-        #if version2:
         dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Inputs")
         if dataGroup is None:
             root = QgsProject.instance().layerTreeRoot()
             dataGroup = root.addGroup(self.NetworkName + " Inputs")
-
-        #Open layers
+        
+        #CRS
         try: #QGis 3.x
             crs = self.iface.mapCanvas().mapSettings().destinationCrs()
         except: #QGis 2.x
@@ -563,12 +560,13 @@ class QGISRed:
         if crs.srsid()==0:
             crs = QgsCoordinateReferenceSystem()
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
-        #if version2:
+        #Open layers
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.openElementsLayers(dataGroup, crs, self.ownMainLayers, self.ownFiles)
         
         QApplication.restoreOverrideCursor()
-
+        
+        #Message
         if b=="True":
             self.iface.messageBar().pushMessage("Information", "Successful commit", level=3, duration=10)
         elif b=="False":
@@ -577,7 +575,7 @@ class QGISRed:
             self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
 
     def runExportInp(self):
-        """Run method that performs all the real work"""
+        #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
             self.iface.messageBar().pushMessage("Warning", "No valid project is opened", level=1, duration=10)
@@ -598,6 +596,7 @@ class QGISRed:
         except:  #QGis 2.x
             b=b
         
+        #Message
         if b=="True":
             self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=10)
         elif b=="False":
@@ -606,14 +605,14 @@ class QGISRed:
             self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
 
     def runModel(self):
-        """Run method that performs all the real work"""
+        #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
             self.iface.messageBar().pushMessage("Warning", "No valid project is opened", level=1, duration=10)
             return
         if self.isLayerOnEdition():
             return
-        
+        #Open dock
         if self.ResultDockwidget is None:
             self.ResultDockwidget = QGISRedResultsDock(self.iface)
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.ResultDockwidget)
