@@ -225,9 +225,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     field = field_names[columnNumber+2]
                     self.setGraduadedPalette(layer, field, setRender)
                     layer.setName(nameLayer + " " + self.TimeLabels[columnNumber])
-                    try: #QGis 3.x
-                        layer.setDisplayExpression('T' + str(columnNumber))
-                    except:
+                    if str(Qgis.QGIS_VERSION).startswith('3'): #QGis 3.x
+                        layer.setMapTipTemplate("<br>[% \"T" + str(columnNumber) + "\" %]")
+                    else:
                         layer.setDisplayField('T' + str(columnNumber))
 
     def setGraduadedPalette(self, layer, field, setRender):
