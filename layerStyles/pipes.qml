@@ -326,7 +326,7 @@ def my_form_open(dialog, layer, feature):
     <default field="Diameter" expression="200"/>
     <default field="RoughCoeff" expression="0.01"/>
     <default field="LossCoeff" expression="0"/>
-    <default field="IniStatus" expression="OPEN"/>
+    <default field="IniStatus" expression="'OPEN'"/>
     <default field="BulkCoeff" expression="0"/>
     <default field="WallCoeff" expression="0"/>
     <default field="Tag" expression=""/>

@@ -330,7 +330,7 @@ def my_form_open(dialog, layer, feature):
     <default field="Power" expression="50"/>
     <default field="Speed" expression="0"/>
     <default field="IdSpeedPat" expression=""/>
-    <default field="IniStatus" expression="OPEN"/>
+    <default field="IniStatus" expression="'OPEN'"/>
     <default field="IdEffiCur" expression=""/>
     <default field="EnergyPric" expression="0"/>
     <default field="IdPricePat" expression=""/>

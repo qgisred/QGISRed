@@ -27,7 +27,7 @@ class QGISRedUtils:
         except: #QGis 2.x
             layers = self.iface.legendInterface().layers()
         for layer in layers:
-            if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/","\\")== os.path.join(self.ProjectDirectory.replace("/","\\"), self.NetworkName + "_" + layerName + ".shp"):
+            if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/","\\")== os.path.join(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp").replace("/","\\"):
                 return True
         return False
 
@@ -66,7 +66,7 @@ class QGISRedUtils:
         except: #QGis 2.x
             layers = self.iface.legendInterface().layers()
         for layer in layers:
-            if str(layer.dataProvider().dataSourceUri().split("|")[0])== os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ext):
+            if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/","\\")== os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ext).replace("/","\\"):
                 try: #QGis 3.x
                     QgsProject.instance().removeMapLayer(layer.id())
                 except: #QGis 2.x

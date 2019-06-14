@@ -220,7 +220,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         for nameLayer in self.LabelsToOpRe:
             print(nameLayer)
             for layer in layers:
-                if str(layer.dataProvider().dataSourceUri().split("|")[0])== os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp"):
+                if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/","\\")== os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp").replace("/","\\"):
                     field_names = [field.name() for field in layer.fields()]
                     field = field_names[columnNumber+2]
                     self.setGraduadedPalette(layer, field, setRender)

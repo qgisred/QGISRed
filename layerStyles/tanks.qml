@@ -344,14 +344,14 @@ def my_form_open(dialog, layer, feature):
   </conditionalstyles>
   <defaults>
     <default field="Id" expression=""/>
-    <default field="Elevation" expression=""/>
+    <default field="Elevation" expression="0"/>
     <default field="IniLevel" expression="0"/>
     <default field="MinLevel" expression="0"/>
     <default field="MaxLevel" expression="4"/>
     <default field="Diameter" expression="20"/>
     <default field="MinVolume" expression="0"/>
     <default field="IdVolCurve" expression=""/>
-    <default field="MixingMod" expression="NONE"/>
+    <default field="MixingMod" expression="'NONE'"/>
     <default field="MixingFrac" expression="0"/>
     <default field="ReactCoef" expression="0"/>
     <default field="IniQuality" expression="0"/>
