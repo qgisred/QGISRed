@@ -57,11 +57,14 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.cbDemand.clicked.connect(self.demandClicked)
         self.cbQualityLink.clicked.connect(self.qualityLinkClicked)
         self.cbQualityNode.clicked.connect(self.qualityNodeClicked)
+        self.cbFlowDirections.clicked.connect(self.flowDirectionsClicked)
 
     def config(self, direct, netw):
         if not (self.NetworkName == netw and self.ProjectDirectory == direct):
             self.Results={}
             self.tbScenario.setText("Base")
+            self.lbTime.setVisible(False)
+            self.hsTimes.setVisible(False)
         self.NetworkName = netw
         self.ProjectDirectory = direct
         self.tbNetworkName.setText(netw)
@@ -244,7 +247,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if version ==2:
             for sym in symbol:
                 if sym.type()==1: #line
-                    if "Flow" in layer.name():
+                    if "Flow" in layer.name() and self.cbFlowDirections.isChecked():
                         ss = sym.symbolLayer(3) #arrow positive flow
                         ss.subSymbol().setDataDefinedSize(QgsDataDefined("if(Type='PIPE', if(" + field + ">0,4,0),0)"))
                         ss = sym.symbolLayer(4) #arrow negative flow
@@ -258,10 +261,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     sym.symbolLayer(2).setDataDefinedProperty("size", QgsDataDefined("if(Type ='RESERVOIR' or Type='TANK', 0,2)"))
             symbol = symbol[0]
         else: #QGis 3
+            print(self.cbFlowDirections.isChecked())
             if setRender:
                 prop = QgsProperty()
                 if symbol.type()==1: #line
-                    if "Flow" in layer.name():
+                    if "Flow" in layer.name() and self.cbFlowDirections.isChecked():
                         ss = symbol.symbolLayer(3) #arrow positive flow
                         prop.setExpressionString("if(Type='PIPE', if(" + field + ">0,4,0),0)")
                         ss.subSymbol().setDataDefinedSize(prop)
@@ -286,7 +290,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 for sym in symbol:
                     if sym.type()==1: #line
                         prop = QgsProperty()
-                        if "Flow" in layer.name():
+                        if "Flow" in layer.name() and self.cbFlowDirections.isChecked():
                             ss = sym.symbolLayer(3) #arrow positive flow
                             prop.setExpressionString("if(Type='PIPE', if(" + field + ">0,4,0),0)")
                             ss.subSymbol().setDataDefinedSize(prop)
@@ -394,6 +398,17 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.Variables="Quality_Node"
         self.openResult(self.cbQualityNode.isChecked())
 
+    def flowDirectionsClicked(self):
+        if self.cbFlow.isChecked():
+            checked = self.cbFlow.isChecked()
+            if not self.validationsOpenResult():
+                return
+            self.cbFlow.setChecked(checked)
+            self.LabelsToOpRe.append("Link_Flow")
+            self.Variables="Flow_Link"
+            value = self.hsTimes.value()
+            self.paintIntervalTimeResults(value, False)
+
     def timeChanged(self):
         if self.Computing:
             return
@@ -450,12 +465,14 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 for item in list:
                     self.TimeLabels.append(self.insert(self.insert(item, " ", 6), " ", 3))
             self.Computing=True
+            
             if len(list)==1:
-                self.hsTimes.setEnabled(False)
+                self.hsTimes.setVisible(False)
             else:
-                self.hsTimes.setEnabled(True)
+                self.hsTimes.setVisible(True)
                 self.hsTimes.setMaximum(len(list)-1)
             self.hsTimes.setValue(0)
+            self.lbTime.setVisible(True)
             self.lbTime.setText(self.TimeLabels[0])
             self.Computing = False
             #Open results
