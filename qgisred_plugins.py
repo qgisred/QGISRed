@@ -130,6 +130,7 @@ class QGISRed:
         text,
         callback,
         menubar,
+        toolbar,
         enabled_flag=True,
         add_to_menu=True,
         add_to_toolbar=True,
@@ -193,7 +194,7 @@ class QGISRed:
             action.setWhatsThis(whats_this)
 
         if add_to_toolbar:
-            self.toolbar.addAction(action)
+            toolbar.addAction(action)
 
         if add_to_menu:
             #self.iface.addPluginToMenu(self.menu,action)
@@ -212,14 +213,16 @@ class QGISRed:
             text=self.tr(u'Project manager'),
             callback=self.runProjectManager,
             menubar=self.qgisredmenu,
+            toolbar=self.toolbar,
             parent=self.iface.mainWindow())
-
+        
         icon_path = ':/plugins/QGISRed/images/iconCreateProject.png'
         self.add_action(
             icon_path,
             text=self.tr(u'Create/Edit project'),
             callback=self.runNewProject,
             menubar=self.qgisredmenu,
+            toolbar=self.toolbar,
             parent=self.iface.mainWindow())
         
         icon_path = ':/plugins/QGISRed/images/iconImport.png' 
@@ -228,58 +231,97 @@ class QGISRed:
             text=self.tr(u'Import to SHPs'),
             callback=self.runImport,
             menubar=self.qgisredmenu,
+            toolbar=self.toolbar,
             parent=self.iface.mainWindow())
-
+        
         icon_path = ':/plugins/QGISRed/images/iconValidate.png' 
         self.add_action(
             icon_path,
             text=self.tr(u'Validate Model'),
             callback=self.runValidateModel,
             menubar=self.qgisredmenu,
+            toolbar=self.toolbar,
             parent=self.iface.mainWindow())
-
+        
         icon_path = ':/plugins/QGISRed/images/iconCommit.png' 
         self.add_action(
             icon_path,
             text=self.tr(u'Commit'),
             callback=self.runCommit,
             menubar=self.qgisredmenu,
+            toolbar=self.toolbar,
             parent=self.iface.mainWindow())
-
+        
         icon_path = ':/plugins/QGISRed/images/iconSaveProject.png'
         self.add_action(
             icon_path,
             text=self.tr(u'Save project'),
             callback=self.runSaveProject,
             menubar=self.qgisredmenu,
+            toolbar=self.toolbar,
             parent=self.iface.mainWindow())
-
+        
+        icon_path = ':/plugins/QGISRed/images/iconTools.png' 
+        self.add_action(
+            icon_path,
+            text=self.tr(u'Tools'),
+            callback=self.runToolbar,
+            menubar=None,
+            add_to_menu=False,
+            toolbar=self.toolbar,
+            parent=self.iface.mainWindow())
+        
+        #Toolbar
+        self.toolbarTools = self.iface.addToolBar(u'QGISRed Tools')
+        self.toolbarTools.setObjectName(u'QGISRed Tools')
+        self.toolbarTools.setVisible(False)
+        
+        self.qgisredmenuTools = self.qgisredmenu.addMenu(self.tr('Tools'))
+        self.qgisredmenuTools.setIcon(QIcon(':/plugins/QGISRed/images/iconTools.png'))
+        icon_path = ':/plugins/QGISRed/images/iconDuplicate.png' 
+        self.add_action(
+            icon_path,
+            text=self.tr(u'Check overlapping elements'),
+            callback=self.runCheckCoordinates,
+            menubar=self.qgisredmenuTools,
+            toolbar=self.toolbarTools,
+            parent=self.iface.mainWindow())
+        
+        icon_path = ':/plugins/QGISRed/images/iconVertices.png' 
+        self.add_action(
+            icon_path,
+            text=self.tr(u'Simplify link vertices'),
+            callback=self.runSimplifyVertices,
+            menubar=self.qgisredmenuTools,
+            toolbar=self.toolbarTools,
+            parent=self.iface.mainWindow())
+        
+        
         icon_path = ':/plugins/QGISRed/images/iconShpToInp.png' 
         self.add_action(
             icon_path,
             text=self.tr(u'Export model to INP'),
             callback=self.runExportInp,
             menubar=self.qgisredmenu,
+            toolbar=self.toolbar,
             parent=self.iface.mainWindow())
-
+        
         icon_path = ':/plugins/QGISRed/images/iconRunModel.png' 
         self.add_action(
             icon_path,
             text=self.tr(u'Run model && show results'),
             callback=self.runModel,
             menubar=self.qgisredmenu,
+            toolbar=self.toolbar,
             parent=self.iface.mainWindow())
-
-        #Tests for submenus
-        #self.gisredmenuTools = self.qgisredmenu.addMenu('Sub-menu')
-        #self.gisredmenuTools.setIcon(QIcon(icoFolder + 'img1.png'))
-
+        
         icon_path = ':/plugins/QGISRed/images/iconAbout.png' 
         self.add_action(
             icon_path,
             text=self.tr(u'About...'),
             callback=self.runAbout,
             menubar=self.qgisredmenu,
+            toolbar=self.toolbar,
             parent=self.iface.mainWindow())
         
         #Copy necessary files regarding os architecture
@@ -295,6 +337,9 @@ class QGISRed:
             copyfile(os.path.join(plataformDirectory, "shapelib.dll"), os.path.join(currentDirectory, "shapelib.dll"))
             copyfile(os.path.join(plataformDirectory, "epanet2.dll"), os.path.join(currentDirectory, "epanet2.dll"))
             copyfile(os.path.join(plataformDirectory, "GISRed.QGisPlugins.dll"), os.path.join(currentDirectory, "GISRed.QGisPlugins.dll"))
+            if folder == "x64":
+                copyfile(os.path.join(plataformDirectory, "ucrtbased.dll"), os.path.join(currentDirectory, "ucrtbased.dll"))
+                copyfile(os.path.join(plataformDirectory, "vcruntime140d.dll"), os.path.join(currentDirectory, "vcruntime140d.dll"))
         except:
             pass
 
@@ -310,12 +355,12 @@ class QGISRed:
             self.iface.removeToolBarIcon(action)
         # remove the toolbar
         del self.toolbar
+        del self.toolbarTools
         
+        if self.qgisredmenuTools:
+            self.qgisredmenuTools.menuAction().setVisible(False)
         if self.qgisredmenu:
             self.qgisredmenu.menuAction().setVisible(False)
-        # if self.qgisredmenuTools: #tests
-            # self.qgisredmenuTools.menuAction().setVisible(False)
-        pass
 
     def createGqpFile(self):
         """Write a .gqp file with datetimes and opened files (or QGis project)"""
@@ -392,10 +437,10 @@ class QGISRed:
         if not qgsFilename=="":
             if QgsProject.instance().isDirty():
                 #Save and continue
-                self.iface.messageBar().pushMessage("Warning", "The project has changes. Please save them before continuing.", level=1)
+                self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("The project has changes. Please save them before continuing."), level=1)
             else:
                 #Close the project and continue?
-                reply = QMessageBox.question(self.iface.mainWindow(), 'Opened project', 'Do you want to close the current project and continue?', QMessageBox.Yes, QMessageBox.No)
+                reply = QMessageBox.question(self.iface.mainWindow(), self.tr('Opened project'), self.tr('Do you want to close the current project and continue?'), QMessageBox.Yes, QMessageBox.No)
                 if reply == QMessageBox.Yes:
                     QgsProject.instance().clear()
                     return True
@@ -404,7 +449,7 @@ class QGISRed:
         else:
             if len(self.iface.mapCanvas().layers())>0:
                 #Close files and continue?
-                reply = QMessageBox.question(self.iface.mainWindow(), 'Opened layers', 'Do you want to close the current layers and continue?', QMessageBox.Yes, QMessageBox.No)
+                reply = QMessageBox.question(self.iface.mainWindow(), self.tr('Opened layers'), self.tr('Do you want to close the current layers and continue?'), QMessageBox.Yes, QMessageBox.No)
                 if reply == QMessageBox.Yes:
                     QgsProject.instance().clear()
                     return True
@@ -415,7 +460,7 @@ class QGISRed:
     def isLayerOnEdition(self):
         for layer in self.iface.mapCanvas().layers():
             if layer.isEditable():
-                self.iface.messageBar().pushMessage("Warning", "Some layer is in Edit Mode. Plase, commit it before continuing.", level=1)
+                self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some layer is in Edit Mode. Plase, commit it before continuing."), level=1)
                 return True
         return False
 
@@ -476,7 +521,7 @@ class QGISRed:
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
-            self.iface.messageBar().pushMessage("Warning", "No valid project is opened", level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=10)
             return
         if self.isLayerOnEdition():
             return
@@ -485,10 +530,9 @@ class QGISRed:
         QApplication.setOverrideCursor(Qt.WaitCursor)
         os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.ValidateModel.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.ValidateModel.argtypes = (c_char_p, c_char_p)
         mydll.ValidateModel.restype = c_char_p
-        elements = "Junctions;Pipes;Tanks;Reservoirs;Valves;Pumps;"
-        b = mydll.ValidateModel(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), elements.encode('utf-8'))
+        b = mydll.ValidateModel(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
         try: #QGis 3.x
             b= "".join(map(chr, b)) #bytes to string
         except:  #QGis 2.x
@@ -497,24 +541,17 @@ class QGISRed:
         
         #Messages
         if b=="True":
-            self.iface.messageBar().pushMessage("Information", "Topology is valid", level=3, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Topology is valid"), level=3, duration=10)
         elif b=="False":
-            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=10)
         else:
-            self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
-
-    def runSaveProject(self):
-        self.defineCurrentProject()
-        if self.ProjectDirectory == self.TemporalFolder:
-            self.iface.messageBar().pushMessage("Warning", "No valid project is opened", level=1, duration=10)
-        else:
-            self.createGqpFile()
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=10)
 
     def runCommit(self):
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
-            self.iface.messageBar().pushMessage("Warning", "No valid project is opened", level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=10)
             return
         if self.isLayerOnEdition():
             return
@@ -528,7 +565,7 @@ class QGISRed:
             self.runCommitProcess()
         else:  #QGis 3.x
             #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-            task1 = QgsTask.fromFunction(u'Remove layers', self.removeLayers, on_finished=self.runCommitProcess, wait_time=0)
+            task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeLayers, on_finished=self.runCommitProcess, wait_time=0)
             task1.run()
             QgsApplication.taskManager().addTask(task1)
 
@@ -537,10 +574,9 @@ class QGISRed:
         QApplication.setOverrideCursor(Qt.WaitCursor)
         os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.CommitModel.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.CommitModel.argtypes = (c_char_p, c_char_p)
         mydll.CommitModel.restype = c_char_p
-        elements = "Junctions;Pipes;Tanks;Reservoirs;Valves;Pumps;"
-        b = mydll.CommitModel(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), elements.encode('utf-8'))
+        b = mydll.CommitModel(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
         try: #QGis 3.x
             b= "".join(map(chr, b)) #bytes to string
         except:  #QGis 2.x
@@ -568,17 +604,24 @@ class QGISRed:
         
         #Message
         if b=="True":
-            self.iface.messageBar().pushMessage("Information", "Successful commit", level=3, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Successful commit"), level=3, duration=10)
         elif b=="False":
-            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=10)
         else:
-            self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=10)
+
+    def runSaveProject(self):
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=10)
+        else:
+            self.createGqpFile()
 
     def runExportInp(self):
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
-            self.iface.messageBar().pushMessage("Warning", "No valid project is opened", level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=10)
             return
         if self.isLayerOnEdition():
             return
@@ -598,17 +641,17 @@ class QGISRed:
         
         #Message
         if b=="True":
-            self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Process successfully completed"), level=3, duration=10)
         elif b=="False":
-            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=10)
         elif not b=="Canceled":
-            self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=10)
 
     def runModel(self):
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
-            self.iface.messageBar().pushMessage("Warning", "No valid project is opened", level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=10)
             return
         if self.isLayerOnEdition():
             return
@@ -623,3 +666,140 @@ class QGISRed:
         # show the dialog
         dlg = QGISRedAboutDialog()
         dlg.exec_()
+
+    """Tools"""
+    def runToolbar(self):
+        # show the dialog
+        self.toolbarTools.setVisible(not self.toolbarTools.isVisible())
+
+    def runCheckCoordinates(self):
+        #Validations
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=10)
+            return
+        if self.isLayerOnEdition():
+            return
+        
+        #Question
+        self.reply = QMessageBox.question(self.iface.mainWindow(), self.tr('Check overlapping elements'), 'Do you want commit the changes?', QMessageBox.Yes, QMessageBox.No)
+        
+        #Process
+        if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
+            try:
+                self.removeLayers(None,0)
+            except:
+                pass
+            self.runCheckCoordinatesProcess()
+        else:  #QGis 3.x
+            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+            task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeLayers, on_finished=self.runCheckCoordinatesProcess, wait_time=0)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
+
+    def runCheckCoordinatesProcess(self, exception=None, result=None):
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.CheckCoordinates.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.CheckCoordinates.restype = c_char_p
+        commit = "false"
+        if self.reply == QMessageBox.Yes:
+            commit = "true"
+        b = mydll.CheckCoordinates(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), commit.encode('utf-8'))
+        try: #QGis 3.x
+            b= "".join(map(chr, b)) #bytes to string
+        except:  #QGis 2.x
+            b=b
+        
+        #Group
+        dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Inputs")
+        if dataGroup is None:
+            root = QgsProject.instance().layerTreeRoot()
+            dataGroup = root.addGroup(self.NetworkName + " Inputs")
+        
+        #CRS
+        try: #QGis 3.x
+            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
+        except: #QGis 2.x
+            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        if crs.srsid()==0:
+            crs = QgsCoordinateReferenceSystem()
+            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
+        #Open layers
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.openElementsLayers(dataGroup, crs, self.ownMainLayers, self.ownFiles)
+        
+        QApplication.restoreOverrideCursor()
+        
+        #Message
+        if b=="True":
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("No overlapping elements found"), level=3, duration=10)
+        elif b=="False":
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=10)
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=10)
+
+    def runSimplifyVertices(self):
+        #Validations
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=10)
+            return
+        if self.isLayerOnEdition():
+            return
+        
+        #Process
+        if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
+            try:
+                self.removeLayers(None,0)
+            except:
+                pass
+            self.runSimplifyVerticesProcess()
+        else:  #QGis 3.x
+            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+            task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeLayers, on_finished=self.runSimplifyVerticesProcess, wait_time=0)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
+
+    def runSimplifyVerticesProcess(self, exception=None, result=None):
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.DeleteAlignedVertices.argtypes = (c_char_p, c_char_p)
+        mydll.DeleteAlignedVertices.restype = c_char_p
+        b = mydll.DeleteAlignedVertices(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
+        try: #QGis 3.x
+            b= "".join(map(chr, b)) #bytes to string
+        except:  #QGis 2.x
+            b=b
+        
+        #Group
+        dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Inputs")
+        if dataGroup is None:
+            root = QgsProject.instance().layerTreeRoot()
+            dataGroup = root.addGroup(self.NetworkName + " Inputs")
+        
+        #CRS
+        try: #QGis 3.x
+            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
+        except: #QGis 2.x
+            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        if crs.srsid()==0:
+            crs = QgsCoordinateReferenceSystem()
+            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
+        #Open layers
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.openElementsLayers(dataGroup, crs, self.ownMainLayers, self.ownFiles)
+        
+        QApplication.restoreOverrideCursor()
+        
+        #Message
+        if b=="True":
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Simplify link vertices completed"), level=3, duration=10)
+        elif b=="False":
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=10)
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=10)

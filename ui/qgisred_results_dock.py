@@ -7,7 +7,7 @@ try: #QGis 3.x
     from qgis.core import Qgis, QgsTask, QgsApplication
     from PyQt5.QtWidgets import QDockWidget, QApplication
     from PyQt5.QtCore import Qt
-    from qgis.core import QgsSvgMarkerSymbolLayer, QgsSymbol, QgsSingleSymbolRenderer, QgsLineSymbol
+    from qgis.core import QgsSvgMarkerSymbolLayer, QgsSymbol, QgsSingleSymbolRenderer, QgsLineSymbol, QgsProperty, QgsRenderContext
     from qgis.core import QgsSimpleLineSymbolLayer, QgsMarkerSymbol, QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayer
     from qgis.core import QgsGraduatedSymbolRenderer, QgsGradientColorRamp as QgsVectorGradientColorRamp
     from ..qgisred_utils import QGISRedUtils
@@ -19,7 +19,7 @@ except: #QGis 2.x
     from qgis.core import QgsSingleSymbolRendererV2 as QgsSingleSymbolRenderer, QgsLineSymbolV2 as QgsLineSymbol
     from qgis.core import QgsSimpleLineSymbolLayerV2 as QgsSimpleLineSymbolLayer, QgsMarkerSymbolV2 as QgsMarkerSymbol
     from qgis.core import QgsMarkerLineSymbolLayerV2 as QgsMarkerLineSymbolLayer 
-    from qgis.core import QgsSimpleMarkerSymbolLayerV2 as QgsSimpleMarkerSymbolLayer
+    from qgis.core import QgsSimpleMarkerSymbolLayerV2 as QgsSimpleMarkerSymbolLayer, QgsDataDefined
     from qgis.core import QgsGraduatedSymbolRendererV2 as QgsGraduatedSymbolRenderer, QgsVectorGradientColorRampV2 as QgsVectorGradientColorRamp
     from ..qgisred_utils import QGISRedUtils
 
@@ -218,7 +218,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         
         self.lbTime.setText(self.TimeLabels[columnNumber])
         for nameLayer in self.LabelsToOpRe:
-            print(nameLayer)
             for layer in layers:
                 if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/","\\")== os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp").replace("/","\\"):
                     field_names = [field.name() for field in layer.fields()]
@@ -232,14 +231,77 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
     def setGraduadedPalette(self, layer, field, setRender):
         try: # QGis 3
+            version = 3
             renderer = layer.renderer()
             symbol = renderer.symbol() #SimpleSymbol
         except: # QGis 2
             try: # QGis 3
-                symbol = renderer.sourceSymbol() #GraduatedSymbol
+                symbol = renderer.symbols(QgsRenderContext()) #sourceSymbol() #GraduatedSymbol
             except:
+                version = 2
                 renderer = layer.rendererV2()
-                symbol = renderer.symbols()[0] 
+                symbol = renderer.symbols()
+        if version ==2:
+            for sym in symbol:
+                if sym.type()==1: #line
+                    if "Flow" in layer.name():
+                        ss = sym.symbolLayer(3) #arrow positive flow
+                        ss.subSymbol().setDataDefinedSize(QgsDataDefined("if(Type='PIPE', if(" + field + ">0,4,0),0)"))
+                        ss = sym.symbolLayer(4) #arrow negative flow
+                        ss.subSymbol().setDataDefinedSize(QgsDataDefined("if(Type='PIPE', if(" + field + "<0,4,0),0)"))
+                    else:
+                        sym.symbolLayer(3).subSymbol().setDataDefinedSize(QgsDataDefined('0'))
+                        sym.symbolLayer(4).subSymbol().setDataDefinedSize(QgsDataDefined('0'))
+                else: #point
+                    sym.symbolLayer(0).setDataDefinedProperty("size", QgsDataDefined("if(Type ='TANK', 7,0)"))
+                    sym.symbolLayer(1).setDataDefinedProperty("size", QgsDataDefined("if(Type ='RESERVOIR', 7,0)"))
+                    sym.symbolLayer(2).setDataDefinedProperty("size", QgsDataDefined("if(Type ='RESERVOIR' or Type='TANK', 0,2)"))
+            symbol = symbol[0]
+        else: #QGis 3
+            if setRender:
+                prop = QgsProperty()
+                if symbol.type()==1: #line
+                    if "Flow" in layer.name():
+                        ss = symbol.symbolLayer(3) #arrow positive flow
+                        prop.setExpressionString("if(Type='PIPE', if(" + field + ">0,4,0),0)")
+                        ss.subSymbol().setDataDefinedSize(prop)
+                        ss = symbol.symbolLayer(4) #arrow negative flow
+                        prop.setExpressionString("if(Type='PIPE', if(" + field + "<0,4,0),0)")
+                        ss.subSymbol().setDataDefinedSize(prop)
+                    else:
+                        prop.setExpressionString("0")
+                        symbol.symbolLayer(3).subSymbol().setDataDefinedSize(prop)
+                        symbol.symbolLayer(4).subSymbol().setDataDefinedSize(prop)
+                else: #point
+                    prop.setExpressionString("if(Type ='TANK', 7,0)")
+                    symbol.symbolLayer(0).setDataDefinedProperty(0, prop) #0 = PropertySize
+                    symbol.symbolLayer(0).setDataDefinedProperty(9, prop) #0 = PropertyWidth
+                    prop.setExpressionString("if(Type ='RESERVOIR', 7,0)")
+                    symbol.symbolLayer(1).setDataDefinedProperty(0, prop)
+                    symbol.symbolLayer(1).setDataDefinedProperty(9, prop)
+                    prop.setExpressionString("if(Type ='RESERVOIR' or Type='TANK', 0,2)")
+                    symbol.symbolLayer(2).setDataDefinedProperty(0, prop)
+                    symbol.symbolLayer(2).setDataDefinedProperty(9, prop)
+            else:
+                for sym in symbol:
+                    if sym.type()==1: #line
+                        prop = QgsProperty()
+                        if "Flow" in layer.name():
+                            ss = sym.symbolLayer(3) #arrow positive flow
+                            prop.setExpressionString("if(Type='PIPE', if(" + field + ">0,4,0),0)")
+                            ss.subSymbol().setDataDefinedSize(prop)
+                            ss = sym.symbolLayer(4) #arrow negative flow
+                            prop.setExpressionString("if(Type='PIPE', if(" + field + "<0,4,0),0)")
+                            ss.subSymbol().setDataDefinedSize(prop)
+                        else:
+                            prop.setExpressionString("0")
+                            sym.symbolLayer(3).subSymbol().setDataDefinedSize(prop)
+                            sym.symbolLayer(4).subSymbol().setDataDefinedSize(prop)
+                    else: #point
+                        pass
+        
+        if "Flow" in layer.name():
+            field = "abs(" + field + ")"
         if setRender:
             mode= QgsGraduatedSymbolRenderer.EqualInterval #Quantile
             classes = 5
@@ -362,9 +424,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         elements = "Junctions;Pipes;Tanks;Reservoirs;Valves;Pumps;"
         
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.Compute.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.Compute.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.Compute.restype = c_char_p
-        b = mydll.Compute(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Scenario.encode('utf-8'), elements.encode('utf-8'))
+        b = mydll.Compute(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Scenario.encode('utf-8'))
         try: #QGis 3.x
             b= "".join(map(chr, b)) #bytes to string
         except:  #QGis 2.x
@@ -459,9 +521,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         #Open layers
         self.openLayerResults(self.Secnario)
         value = self.hsTimes.value()
-        print("Inicio")
         self.paintIntervalTimeResults(value, True)
-        print("Fin")
         QApplication.restoreOverrideCursor()
         
         #Message

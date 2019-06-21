@@ -164,7 +164,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         
         if not f=="":
             self.InpFile = f
-            self.tbInpFile.setText(str(f))
+            self.tbInpFile.setText(f)
             self.tbInpFile.setCursorPosition(0)
 
     def importInpProject(self):

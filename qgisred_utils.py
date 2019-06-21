@@ -131,12 +131,8 @@ class QGISRedUtils:
     def setResultStyle(self, layer):
         stylePath = os.path.join(os.path.dirname(__file__), "layerStyles")
         
-        v=""
-        if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-            v="2"
-        
         if layer.geometryType()==0: #Point
-            qmlBasePath= os.path.join(stylePath, "nodeResults" + v +"Base.qml")
+            qmlBasePath= os.path.join(stylePath, "nodeResultsBase.qml")
         else:
             qmlBasePath= os.path.join(stylePath, "linkResultsBase.qml")
         if os.path.exists(qmlBasePath):
@@ -155,6 +151,8 @@ class QGISRedUtils:
                 contents = contents.replace("pumps.svg", svgPath)
                 svgPath= os.path.join(stylePath, "valves.svg")
                 contents = contents.replace("valves.svg", svgPath)
+                svgPath= os.path.join(stylePath, "arrow.svg")
+                contents = contents.replace("arrow.svg", svgPath)
                 qmlPath= os.path.join(stylePath, "linkResults.qml")
             f=open(qmlPath, "w+")
             f.write(contents)

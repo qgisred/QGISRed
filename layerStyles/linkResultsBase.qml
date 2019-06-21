@@ -1,5 +1,88 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
 <qgis version="2.18.26" simplifyAlgorithm="0" minimumScale="0" maximumScale="1e+08" simplifyDrawingHints="1" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" readOnly="0" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
+  <edittypes>
+    <edittype widgetv2type="TextEdit" name="Id">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="Type">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="T0">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="T1">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="T2">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="T3">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="T4">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="T5">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="T6">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="T7">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="T8">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="T9">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="T10">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="T11">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="T12">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="T13">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="T14">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="T15">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="T16">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="T17">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="T18">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="T19">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="T20">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="T21">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="T22">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="T23">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="T24">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+  </edittypes>
   <renderer-v2 forceraster="0" symbollevels="0" type="singleSymbol" enableorderby="0">
     <symbols>
       <symbol alpha="1" clip_to_extent="1" type="line" name="0">
@@ -93,6 +176,80 @@
           <prop k="offset_unit" v="MM"/>
           <prop k="use_custom_dash" v="0"/>
           <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
+        </layer>
+        <layer pass="0" class="MarkerLine" locked="0">
+          <prop k="interval" v="3"/>
+          <prop k="interval_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="interval_unit" v="MM"/>
+          <prop k="offset" v="0"/>
+          <prop k="offset_along_line" v="0"/>
+          <prop k="offset_along_line_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_along_line_unit" v="MM"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="placement" v="centralpoint"/>
+          <prop k="rotate" v="1"/>
+          <symbol alpha="1" clip_to_extent="1" type="marker" name="@0@3">
+            <layer pass="0" class="SvgMarker" locked="0">
+              <prop k="angle" v="0"/>
+              <prop k="color" v="0,0,0,255"/>
+              <prop k="horizontal_anchor_point" v="1"/>
+              <prop k="name" v="arrow.svg"/>
+              <prop k="offset" v="0,0"/>
+              <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="offset_unit" v="MM"/>
+              <prop k="outline_color" v="255,255,255,255"/>
+              <prop k="outline_width" v="0"/>
+              <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="outline_width_unit" v="MM"/>
+              <prop k="scale_method" v="diameter"/>
+              <prop k="size" v="0"/>
+              <prop k="size_dd_active" v="0"/>
+              <prop k="size_dd_expression" v=""/>
+              <prop k="size_dd_field" v=""/>
+              <prop k="size_dd_useexpr" v="0"/>
+              <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="size_unit" v="MM"/>
+              <prop k="vertical_anchor_point" v="1"/>
+            </layer>
+          </symbol>
+        </layer>
+        <layer pass="0" class="MarkerLine" locked="0">
+          <prop k="interval" v="3"/>
+          <prop k="interval_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="interval_unit" v="MM"/>
+          <prop k="offset" v="0"/>
+          <prop k="offset_along_line" v="0"/>
+          <prop k="offset_along_line_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_along_line_unit" v="MM"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="placement" v="centralpoint"/>
+          <prop k="rotate" v="1"/>
+          <symbol alpha="1" clip_to_extent="1" type="marker" name="@0@3">
+            <layer pass="0" class="SvgMarker" locked="0">
+              <prop k="angle" v="180"/>
+              <prop k="color" v="0,0,0,255"/>
+              <prop k="horizontal_anchor_point" v="1"/>
+              <prop k="name" v="arrow.svg"/>
+              <prop k="offset" v="0,0"/>
+              <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="offset_unit" v="MM"/>
+              <prop k="outline_color" v="255,255,255,255"/>
+              <prop k="outline_width" v="0"/>
+              <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="outline_width_unit" v="MM"/>
+              <prop k="scale_method" v="diameter"/>
+              <prop k="size" v="0"/>
+              <prop k="size_dd_active" v="0"/>
+              <prop k="size_dd_expression" v=""/>
+              <prop k="size_dd_field" v=""/>
+              <prop k="size_dd_useexpr" v="0"/>
+              <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="size_unit" v="MM"/>
+              <prop k="vertical_anchor_point" v="1"/>
+            </layer>
+          </symbol>
         </layer>
       </symbol>
     </symbols>
@@ -271,6 +428,7 @@
   <SingleCategoryDiagramRenderer diagramType="Histogram" sizeLegend="0" attributeLegend="1">
     <DiagramCategory penColor="#000000" labelPlacementMethod="XHeight" penWidth="0" diagramOrientation="Up" sizeScale="0,0,0,0,0,0" minimumSize="0" barWidth="5" penAlpha="255" maxScaleDenominator="1e+08" backgroundColor="#ffffff" transparency="0" width="15" scaleDependency="Area" backgroundAlpha="255" angleOffset="1440" scaleBasedVisibility="0" enabled="0" height="15" lineSizeScale="0,0,0,0,0,0" sizeType="MM" lineSizeType="MM" minScaleDenominator="inf">
       <fontProperties description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
+      <attribute field="" color="#000000" label=""/>
     </DiagramCategory>
     <symbol alpha="1" clip_to_extent="1" type="marker" name="sizeSymbol">
       <layer pass="0" class="SimpleMarker" locked="0">
@@ -297,9 +455,70 @@
   </SingleCategoryDiagramRenderer>
   <DiagramLayerSettings yPosColumn="-1" showColumn="-1" linePlacementFlags="10" placement="2" dist="0" xPosColumn="-1" priority="0" obstacle="0" zIndex="0" showAll="1"/>
   <annotationform></annotationform>
+  <aliases>
+    <alias field="Id" index="0" name=""/>
+    <alias field="Type" index="1" name=""/>
+    <alias field="T0" index="2" name=""/>
+    <alias field="T1" index="3" name=""/>
+    <alias field="T2" index="4" name=""/>
+    <alias field="T3" index="5" name=""/>
+    <alias field="T4" index="6" name=""/>
+    <alias field="T5" index="7" name=""/>
+    <alias field="T6" index="8" name=""/>
+    <alias field="T7" index="9" name=""/>
+    <alias field="T8" index="10" name=""/>
+    <alias field="T9" index="11" name=""/>
+    <alias field="T10" index="12" name=""/>
+    <alias field="T11" index="13" name=""/>
+    <alias field="T12" index="14" name=""/>
+    <alias field="T13" index="15" name=""/>
+    <alias field="T14" index="16" name=""/>
+    <alias field="T15" index="17" name=""/>
+    <alias field="T16" index="18" name=""/>
+    <alias field="T17" index="19" name=""/>
+    <alias field="T18" index="20" name=""/>
+    <alias field="T19" index="21" name=""/>
+    <alias field="T20" index="22" name=""/>
+    <alias field="T21" index="23" name=""/>
+    <alias field="T22" index="24" name=""/>
+    <alias field="T23" index="25" name=""/>
+    <alias field="T24" index="26" name=""/>
+  </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <attributeactions default="-1"/>
+  <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0">
+    <columns>
+      <column width="-1" hidden="0" type="field" name="Id"/>
+      <column width="-1" hidden="0" type="field" name="Type"/>
+      <column width="-1" hidden="0" type="field" name="T0"/>
+      <column width="-1" hidden="0" type="field" name="T1"/>
+      <column width="-1" hidden="0" type="field" name="T2"/>
+      <column width="-1" hidden="0" type="field" name="T3"/>
+      <column width="-1" hidden="0" type="field" name="T4"/>
+      <column width="-1" hidden="0" type="field" name="T5"/>
+      <column width="-1" hidden="0" type="field" name="T6"/>
+      <column width="-1" hidden="0" type="field" name="T7"/>
+      <column width="-1" hidden="0" type="field" name="T8"/>
+      <column width="-1" hidden="0" type="field" name="T9"/>
+      <column width="-1" hidden="0" type="field" name="T10"/>
+      <column width="-1" hidden="0" type="field" name="T11"/>
+      <column width="-1" hidden="0" type="field" name="T12"/>
+      <column width="-1" hidden="0" type="field" name="T13"/>
+      <column width="-1" hidden="0" type="field" name="T14"/>
+      <column width="-1" hidden="0" type="field" name="T15"/>
+      <column width="-1" hidden="0" type="field" name="T16"/>
+      <column width="-1" hidden="0" type="field" name="T17"/>
+      <column width="-1" hidden="0" type="field" name="T18"/>
+      <column width="-1" hidden="0" type="field" name="T19"/>
+      <column width="-1" hidden="0" type="field" name="T20"/>
+      <column width="-1" hidden="0" type="field" name="T21"/>
+      <column width="-1" hidden="0" type="field" name="T22"/>
+      <column width="-1" hidden="0" type="field" name="T23"/>
+      <column width="-1" hidden="0" type="field" name="T24"/>
+      <column width="-1" hidden="1" type="actions"/>
+    </columns>
+  </attributetableconfig>
   <editform></editform>
   <editforminit/>
   <editforminitcodesource>0</editforminitcodesource>
@@ -328,6 +547,35 @@ def my_form_open(dialog, layer, feature):
     <rowstyles/>
     <fieldstyles/>
   </conditionalstyles>
+  <defaults>
+    <default field="Id" expression=""/>
+    <default field="Type" expression=""/>
+    <default field="T0" expression=""/>
+    <default field="T1" expression=""/>
+    <default field="T2" expression=""/>
+    <default field="T3" expression=""/>
+    <default field="T4" expression=""/>
+    <default field="T5" expression=""/>
+    <default field="T6" expression=""/>
+    <default field="T7" expression=""/>
+    <default field="T8" expression=""/>
+    <default field="T9" expression=""/>
+    <default field="T10" expression=""/>
+    <default field="T11" expression=""/>
+    <default field="T12" expression=""/>
+    <default field="T13" expression=""/>
+    <default field="T14" expression=""/>
+    <default field="T15" expression=""/>
+    <default field="T16" expression=""/>
+    <default field="T17" expression=""/>
+    <default field="T18" expression=""/>
+    <default field="T19" expression=""/>
+    <default field="T20" expression=""/>
+    <default field="T21" expression=""/>
+    <default field="T22" expression=""/>
+    <default field="T23" expression=""/>
+    <default field="T24" expression=""/>
+  </defaults>
   <previewExpression>COALESCE( "Id", '&lt;NULL>' )</previewExpression>
   <layerGeometryType>1</layerGeometryType>
 </qgis>

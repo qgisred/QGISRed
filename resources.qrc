@@ -13,5 +13,8 @@
         <file>images/aboutIIAMA.png</file>
         <file>images/aboutUPV.png</file>
         <file>images/iconFlash.png</file>
+        <file>images/iconTools.png</file>
+        <file>images/iconDuplicate.png</file>
+        <file>images/iconVertices.png</file>
     </qresource>
 </RCC>
