@@ -517,6 +517,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 fields = fields + name
             fields = fields + ";" 
             fields = fields + ";"#RougCoeff
+            fields = fields + ";"#Material
+            fields = fields + ";"#InstalDate
             name = self.cbPipe_LossCoef.currentText()
             if not name == "None":
                 fields = fields + name
@@ -565,7 +567,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             if not name == "None":
                 fields = fields + name
             fields = fields + ";"
-            fields = fields + ";" #Sector
+            #fields = fields + ";" #Sector
             name = self.cbValve_Orient.currentText()
             if not name == "None":
                 fields = fields + name
@@ -602,7 +604,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             if not name == "None":
                 fields = fields + name
             fields = fields + ";"
-            fields = fields + ";" #Sector
+            #fields = fields + ";" #Sector
             name = self.cbPump_Orient.currentText()
             if not name == "None":
                 fields = fields + name

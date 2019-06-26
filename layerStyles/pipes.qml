@@ -13,6 +13,12 @@
     <edittype widgetv2type="TextEdit" name="RoughCoeff">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
+    <edittype widgetv2type="TextEdit" name="Material">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="InstalDate">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
     <edittype widgetv2type="TextEdit" name="LossCoeff">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
@@ -29,9 +35,6 @@
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
     <edittype widgetv2type="TextEdit" name="Descrip">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="Sector">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
   </edittypes>
@@ -265,13 +268,14 @@ Id: [% "Id" %]</displayfield>
     <alias field="Length" index="1" name=""/>
     <alias field="Diameter" index="2" name=""/>
     <alias field="RoughCoeff" index="3" name=""/>
-    <alias field="LossCoeff" index="4" name=""/>
-    <alias field="IniStatus" index="5" name=""/>
-    <alias field="BulkCoeff" index="6" name=""/>
-    <alias field="WallCoeff" index="7" name=""/>
-    <alias field="Tag" index="8" name=""/>
-    <alias field="Descrip" index="9" name=""/>
-    <alias field="Sector" index="10" name=""/>
+    <alias field="Material" index="4" name=""/>
+    <alias field="InstalDate" index="5" name=""/>
+    <alias field="LossCoeff" index="6" name=""/>
+    <alias field="IniStatus" index="7" name=""/>
+    <alias field="BulkCoeff" index="8" name=""/>
+    <alias field="WallCoeff" index="9" name=""/>
+    <alias field="Tag" index="10" name=""/>
+    <alias field="Descrip" index="11" name=""/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
@@ -282,13 +286,14 @@ Id: [% "Id" %]</displayfield>
       <column width="-1" hidden="0" type="field" name="Length"/>
       <column width="-1" hidden="0" type="field" name="Diameter"/>
       <column width="-1" hidden="0" type="field" name="RoughCoeff"/>
+      <column width="-1" hidden="0" type="field" name="Material"/>
+      <column width="-1" hidden="0" type="field" name="InstalDate"/>
       <column width="-1" hidden="0" type="field" name="LossCoeff"/>
       <column width="-1" hidden="0" type="field" name="IniStatus"/>
       <column width="-1" hidden="0" type="field" name="BulkCoeff"/>
       <column width="-1" hidden="0" type="field" name="WallCoeff"/>
       <column width="-1" hidden="0" type="field" name="Tag"/>
       <column width="-1" hidden="0" type="field" name="Descrip"/>
-      <column width="-1" hidden="0" type="field" name="Sector"/>
       <column width="-1" hidden="1" type="actions"/>
     </columns>
   </attributetableconfig>
@@ -325,6 +330,8 @@ def my_form_open(dialog, layer, feature):
     <default field="Length" expression="0"/>
     <default field="Diameter" expression="200"/>
     <default field="RoughCoeff" expression="0.01"/>
+    <default field="Material" expression="UNDETERMINED"/>
+    <default field="InstalDate" expression=""/>
     <default field="LossCoeff" expression="0"/>
     <default field="IniStatus" expression="'OPEN'"/>
     <default field="BulkCoeff" expression="0"/>

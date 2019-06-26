@@ -43,9 +43,6 @@
     <edittype widgetv2type="TextEdit" name="Descrip">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="Sector">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
-    </edittype>
   </edittypes>
   <renderer-v2 forceraster="0" symbollevels="0" type="singleSymbol" enableorderby="0">
     <symbols>
@@ -289,7 +286,6 @@ Id: [% "Id" %]</displayfield>
     <alias field="IniQuality" index="11" name=""/>
     <alias field="Tag" index="12" name=""/>
     <alias field="Descrip" index="13" name=""/>
-    <alias field="Sector" index="14" name=""/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
@@ -310,7 +306,6 @@ Id: [% "Id" %]</displayfield>
       <column width="-1" hidden="0" type="field" name="IniQuality"/>
       <column width="-1" hidden="0" type="field" name="Tag"/>
       <column width="-1" hidden="0" type="field" name="Descrip"/>
-      <column width="-1" hidden="0" type="field" name="Sector"/>
       <column width="-1" hidden="1" type="actions"/>
     </columns>
   </attributetableconfig>
@@ -357,7 +352,6 @@ def my_form_open(dialog, layer, feature):
     <default field="IniQuality" expression="0"/>
     <default field="Tag" expression=""/>
     <default field="Descrip" expression=""/>
-    <default field="Sector" expression=""/>
   </defaults>
   <previewExpression>COALESCE( "Descrip", '&lt;NULL>' )</previewExpression>
   <layerGeometryType>0</layerGeometryType>

@@ -34,9 +34,6 @@
     <edittype widgetv2type="TextEdit" name="Descrip">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="Sector">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
-    </edittype>
   </edittypes>
   <renderer-v2 forceraster="0" symbollevels="0" type="singleSymbol" enableorderby="0">
     <symbols>
@@ -274,7 +271,6 @@ Id: [% "Id" %]</displayfield>
     <alias field="IdPricePat" index="8" name=""/>
     <alias field="Tag" index="9" name=""/>
     <alias field="Descrip" index="10" name=""/>
-    <alias field="Sector" index="11" name=""/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
@@ -292,7 +288,6 @@ Id: [% "Id" %]</displayfield>
       <column width="-1" hidden="0" type="field" name="IdPricePat"/>
       <column width="-1" hidden="0" type="field" name="Tag"/>
       <column width="-1" hidden="0" type="field" name="Descrip"/>
-      <column width="-1" hidden="0" type="field" name="Sector"/>
       <column width="-1" hidden="1" type="actions"/>
     </columns>
   </attributetableconfig>

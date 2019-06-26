@@ -13,7 +13,7 @@ try: #QGis 3.x
     from ..qgisred_utils import QGISRedUtils
 except: #QGis 2.x
     from qgis.core import QGis as Qgis
-    from PyQt4.QtGui import QDockWidget, QApplication
+    from PyQt4.QtGui import QDockWidget, QApplication, qApp
     from PyQt4.QtCore import Qt
     from qgis.core import QgsSvgMarkerSymbolLayerV2 as QgsSvgMarkerSymbolLayer, QgsSymbolV2 as QgsSymbol
     from qgis.core import QgsSingleSymbolRendererV2 as QgsSingleSymbolRenderer, QgsLineSymbolV2 as QgsLineSymbol
@@ -25,6 +25,7 @@ except: #QGis 2.x
 
 import os
 from ctypes import*
+from time import sleep
 import tempfile
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_results_dock.ui'))
@@ -48,6 +49,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.iface = iface
         self.setupUi(self)
         self.btCompute.clicked.connect(self.compute)
+        self.btPlay.clicked.connect(self.play)
         self.hsTimes.valueChanged.connect(self.timeChanged)
         self.cbFlow.clicked.connect(self.flowClicked)
         self.cbVelocity.clicked.connect(self.velocityClicked)
@@ -65,6 +67,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.tbScenario.setText("Base")
             self.lbTime.setVisible(False)
             self.hsTimes.setVisible(False)
+            self.btPlay.setVisible(False)
         self.NetworkName = netw
         self.ProjectDirectory = direct
         self.tbNetworkName.setText(netw)
@@ -249,9 +252,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 if sym.type()==1: #line
                     if "Flow" in layer.name() and self.cbFlowDirections.isChecked():
                         ss = sym.symbolLayer(3) #arrow positive flow
-                        ss.subSymbol().setDataDefinedSize(QgsDataDefined("if(Type='PIPE', if(" + field + ">0,4,0),0)"))
+                        ss.subSymbol().setDataDefinedSize(QgsDataDefined("if(Type='PIPE', if(" + field + ">0,3,0),0)"))
                         ss = sym.symbolLayer(4) #arrow negative flow
-                        ss.subSymbol().setDataDefinedSize(QgsDataDefined("if(Type='PIPE', if(" + field + "<0,4,0),0)"))
+                        ss.subSymbol().setDataDefinedSize(QgsDataDefined("if(Type='PIPE', if(" + field + "<0,3,0),0)"))
                     else:
                         sym.symbolLayer(3).subSymbol().setDataDefinedSize(QgsDataDefined('0'))
                         sym.symbolLayer(4).subSymbol().setDataDefinedSize(QgsDataDefined('0'))
@@ -267,10 +270,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 if symbol.type()==1: #line
                     if "Flow" in layer.name() and self.cbFlowDirections.isChecked():
                         ss = symbol.symbolLayer(3) #arrow positive flow
-                        prop.setExpressionString("if(Type='PIPE', if(" + field + ">0,4,0),0)")
+                        prop.setExpressionString("if(Type='PIPE', if(" + field + ">0,3,0),0)")
                         ss.subSymbol().setDataDefinedSize(prop)
                         ss = symbol.symbolLayer(4) #arrow negative flow
-                        prop.setExpressionString("if(Type='PIPE', if(" + field + "<0,4,0),0)")
+                        prop.setExpressionString("if(Type='PIPE', if(" + field + "<0,3,0),0)")
                         ss.subSymbol().setDataDefinedSize(prop)
                     else:
                         prop.setExpressionString("0")
@@ -292,10 +295,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                         prop = QgsProperty()
                         if "Flow" in layer.name() and self.cbFlowDirections.isChecked():
                             ss = sym.symbolLayer(3) #arrow positive flow
-                            prop.setExpressionString("if(Type='PIPE', if(" + field + ">0,4,0),0)")
+                            prop.setExpressionString("if(Type='PIPE', if(" + field + ">0,3,0),0)")
                             ss.subSymbol().setDataDefinedSize(prop)
                             ss = sym.symbolLayer(4) #arrow negative flow
-                            prop.setExpressionString("if(Type='PIPE', if(" + field + "<0,4,0),0)")
+                            prop.setExpressionString("if(Type='PIPE', if(" + field + "<0,3,0),0)")
                             ss.subSymbol().setDataDefinedSize(prop)
                         else:
                             prop.setExpressionString("0")
@@ -422,6 +425,28 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.setLayersNames()
         self.paintIntervalTimeResults(value)
 
+    def play(self):
+        self.btPlay.setEnabled(False)
+        if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
+            i=0
+            for label in self.TimeLabels:
+                self.hsTimes.setValue(i)
+                qApp.processEvents()
+                sleep(0.5)
+                i=i+1
+        else:  #QGis 3.x
+            for label in self.TimeLabels:
+                task1 = QgsTask.fromFunction(u'Visualizate', self.playTask, wait_time=0)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
+        
+        self.btPlay.setEnabled(True)
+
+    def playTask(self, task, wait_time):
+        self.hsTimes.setValue(self.hsTimes.value() + 1)
+        sleep(1)
+
+
     """Main methods"""
     def compute(self):
         #Validations
@@ -468,8 +493,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             
             if len(list)==1:
                 self.hsTimes.setVisible(False)
+                self.btPlay.setVisible(False)
             else:
                 self.hsTimes.setVisible(True)
+                #self.btPlay.setVisible(True)
                 self.hsTimes.setMaximum(len(list)-1)
             self.hsTimes.setValue(0)
             self.lbTime.setVisible(True)

@@ -16,5 +16,12 @@
         <file>images/iconTools.png</file>
         <file>images/iconDuplicate.png</file>
         <file>images/iconVertices.png</file>
+        <file>images/iconTconnections.png</file>
+        <file>images/iconLength.png</file>
+        <file>images/iconDiameters.png</file>
+        <file>images/iconMaterial.png</file>
+        <file>images/iconDate.png</file>
+        <file>images/iconRoughness.png</file>
+        <file>images/iconJoin.png</file>
     </qresource>
 </RCC>
