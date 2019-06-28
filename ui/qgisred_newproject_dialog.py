@@ -237,34 +237,34 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         if self.cbIsolatedValves.isChecked():
             if not utils.isLayerOpened("IssolatedValves"):
-                utils.openLayer(self.CRS, group,"IssolatedValves")
+                utils.openLayer(self.CRS, group,"IssolatedValves", toEnd=True)
         if self.cbCeckValves.isChecked():
             if not utils.isLayerOpened("CheckValves"):
-                utils.openLayer(self.CRS, group,"CheckValves")
+                utils.openLayer(self.CRS, group,"CheckValves", toEnd=True)
         if self.cbHydrants.isChecked():
             if not utils.isLayerOpened("Hydrants"):
-                utils.openLayer(self.CRS, group,"Hydrants")
+                utils.openLayer(self.CRS, group,"Hydrants", toEnd=True)
         if self.cbPurgeValves.isChecked():
             if not utils.isLayerOpened("PurgeValves"):
-                utils.openLayer(self.CRS, group,"PurgeValves")
+                utils.openLayer(self.CRS, group,"PurgeValves", toEnd=True)
         if self.cbAirReleases.isChecked():
             if not utils.isLayerOpened("AirReleases"):
-                utils.openLayer(self.CRS, group,"AirReleases")
+                utils.openLayer(self.CRS, group,"AirReleases", toEnd=True)
         if self.cbConnections.isChecked():
             if not utils.isLayerOpened("Connections"):
-                utils.openLayer(self.CRS, group,"Connections")
+                utils.openLayer(self.CRS, group,"Connections", toEnd=True)
         if self.cbManometers.isChecked():
             if not utils.isLayerOpened("Manometers"):
-                utils.openLayer(self.CRS, group,"Manometers")
+                utils.openLayer(self.CRS, group,"Manometers", toEnd=True)
         if self.cbFlowmeters.isChecked():
             if not utils.isLayerOpened("Flowmeters"):
-                utils.openLayer(self.CRS, group,"Flowmeters")
+                utils.openLayer(self.CRS, group,"Flowmeters", toEnd=True)
         if self.cbCountmeters.isChecked():
             if not utils.isLayerOpened("Countmeters"):
-                utils.openLayer(self.CRS, group,"Countmeters")
+                utils.openLayer(self.CRS, group,"Countmeters", toEnd=True)
         if self.cbLevelmeters.isChecked():
             if not utils.isLayerOpened("Levelmeters"):
-                utils.openLayer(self.CRS, group,"Levelmeters")
+                utils.openLayer(self.CRS, group,"Levelmeters", toEnd=True)
 
     def validationsCreateProject(self):
         self.NetworkName = self.tbNetworkName.text()
@@ -309,21 +309,22 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             self.iface.mapCanvas().setDestinationCrs(self.CRS)
             root = QgsProject.instance().layerTreeRoot()
             group = root.addGroup(self.NetworkName + " Inputs")
-            self.openElementsLayers(group, True)
             self.openComplementaryLayers(group)
+            self.openElementsLayers(group, True)
+            
             
             QApplication.restoreOverrideCursor()
             
             #Message
             if b=="True":
-                self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=10)
+                self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=5)
                 file = open(self.gplFile, "a+")
                 QGISRedUtils().writeFile(file, self.NetworkName + ";" + self.ProjectDirectory + '\n')
                 file.close()
             elif b=="False":
-                self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=10)
+                self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
             else:
-                self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
+                self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
             
             self.close()
             self.ProcessDone = True
@@ -374,11 +375,11 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         
         #Message
         if b=="True":
-            self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=10)
+            self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=5)
         elif b=="False":
-            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=10)
+            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
         else:
-            self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
+            self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
         
         self.close()
         self.ProcessDone = True

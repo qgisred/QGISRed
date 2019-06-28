@@ -134,9 +134,9 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         #Message
         if not b=="True":
             if b=="False":
-                self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=10)
+                self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
             else:
-                self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
+                self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
             self.close()
             return False
         
@@ -222,11 +222,11 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         
         #Message
         if b=="True":
-            self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=10)
+            self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=5)
         elif b=="False":
-            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=10)
+            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
         else:
-            self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
+            self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
         
         self.close()
         self.ProcessDone = True
@@ -766,11 +766,11 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         
         #Message
         if b=="True":
-            self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=10)
+            self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=5)
         elif b=="False":
-            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=10)
+            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
         else:
-            self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
+            self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
         
         self.close()
         self.ProcessDone = True

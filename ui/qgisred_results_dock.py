@@ -103,11 +103,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     if self.NetworkName == currentNetwork and self.ProjectDirectory == currentDirectory:
                         return True
                     else:
-                        self.iface.messageBar().pushMessage("Warning", "The current project has been changed. Please, try again.", level=1, duration=10)
+                        self.iface.messageBar().pushMessage("Warning", "The current project has been changed. Please, try again.", level=1, duration=5)
                         self.close()
                         return False
 
-        self.iface.messageBar().pushMessage("Warning", "The current project has been changed. Please, try again.", level=1, duration=10)
+        self.iface.messageBar().pushMessage("Warning", "The current project has been changed. Please, try again.", level=1, duration=5)
         self.close()
         return False
 
@@ -418,7 +418,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.Secnario = self.tbScenario.text()
         resultPath = self.Results.get(self.Secnario)
         if resultPath is None:
-            self.iface.messageBar().pushMessage("Warning", "No scenario results are available", level=1, duration=10)
+            self.iface.messageBar().pushMessage("Warning", "No scenario results are available", level=1, duration=5)
             return
         
         value = self.hsTimes.value()
@@ -475,9 +475,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         
         #Message
         if b=="False":
-            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=10)
+            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
         elif b.startswith("Message"):
-            self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
+            self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
         else:
             #Binary result file and Time label list
             list = b.split(';')
@@ -511,7 +511,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.Secnario = self.tbScenario.text()
         resultPath = self.Results.get(self.Secnario)
         if resultPath is None:
-            self.iface.messageBar().pushMessage("Warning", "No scenario results are available", level=1, duration=10)
+            self.iface.messageBar().pushMessage("Warning", "No scenario results are available", level=1, duration=5)
             return
         
         self.restoreElementsCb()
@@ -526,7 +526,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.Secnario = self.tbScenario.text()
         resultPath = self.Results.get(self.Secnario)
         if resultPath is None:
-            self.iface.messageBar().pushMessage("Warning", "No scenario results are available", level=1, duration=10)
+            self.iface.messageBar().pushMessage("Warning", "No scenario results are available", level=1, duration=5)
             return
 
         if not self.setVariablesTimes():
@@ -570,11 +570,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         
         #Message
         if b=="True":
-            pass# self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=10)
+            pass# self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=5)
         elif b=="False":
-            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=10)
+            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
         else:
-            self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
+            self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
 
     def openResult(self, open):
         if not open:
@@ -617,8 +617,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         
         #Message
         if b=="True":
-            pass# self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=10)
+            pass# self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=5)
         elif b=="False":
-            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=10)
+            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
         else:
-            self.iface.messageBar().pushMessage("Error", b, level=2, duration=10)
+            self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)

@@ -38,7 +38,7 @@ class QGISRedUtils:
         for fileName in ownMainLayers:
             utils.openLayer(crs, group, fileName)
 
-    def openLayer(self, crs, group, name, ext=".shp", results=False):
+    def openLayer(self, crs, group, name, ext=".shp", results=False, toEnd=False):
         layerName = self.NetworkName + "_" + name
         if os.path.exists(os.path.join(self.ProjectDirectory, layerName + ext)):
             vlayer = QgsVectorLayer(os.path.join(self.ProjectDirectory, layerName + ext), name, "ogr")
@@ -53,7 +53,10 @@ class QGISRedUtils:
             except: #QGis 2.x
                 QgsMapLayerRegistry.instance().addMapLayer(vlayer, group is None)
             if group is not None:
-                group.insertChildNode(0, QgsLayerTreeLayer(vlayer))
+                if toEnd:
+                    group.addChildNode(QgsLayerTreeLayer(vlayer))
+                else:
+                    group.insertChildNode(0, QgsLayerTreeLayer(vlayer))
             del vlayer
 
     def removeLayers(self, layers, ext=".shp"):

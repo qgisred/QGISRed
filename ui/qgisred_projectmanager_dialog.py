@@ -157,13 +157,13 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             layers = self.iface.legendInterface().layers()
         for layer in layers:
             if layer.isEditable():
-                self.iface.messageBar().pushMessage("Warning", "Some layer is in Edit Mode. Plase, commit it before continuing.", level=1)
+                self.iface.messageBar().pushMessage("Warning", "Some layer is in Edit Mode. Plase, commit it before continuing.", level=1, duration=5)
                 return False
         qgsFilename =QgsProject.instance().fileName()
         if not qgsFilename=="":
             if QgsProject.instance().isDirty():
                 #Save and continue
-                self.iface.messageBar().pushMessage("Warning", "The project has changes. Please save them before continuing.", level=1)
+                self.iface.messageBar().pushMessage("Warning", "The project has changes. Please save them before continuing.", level=1, duration=5)
                 return False
             else:
                 #Close project and continue?
@@ -205,6 +205,8 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                         group = root.addGroup(dataGroup)
                     else:
                         layerPath= lines[i].strip("\r\n")
+                        if not os.path.exists(layerPath):
+                            continue
                         vlayer = None
                         layerName = os.path.splitext(os.path.basename(layerPath))[0].replace(networkName + "_", "")
                         if group is None:
@@ -222,7 +224,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                                 nameLayer = names[len(names)-1]
                                 QGISRedUtils().setStyle(vlayer, nameLayer)
         else:
-            self.iface.messageBar().pushMessage("Warning", "File not found", level=1)
+            self.iface.messageBar().pushMessage("Warning", "File not found", level=1, duration=5)
 
     def createProject(self):
         valid = self.isOpenedProject()
@@ -243,7 +245,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         if selectionModel.hasSelection():
             for row in selectionModel.selectedRows():
                 if self.ProjectDirectory.replace("/","\\") == str(self.twProjectList.item(row.row(),3).text()) and self.NetworkName == str(self.twProjectList.item(row.row(),0).text()):
-                    self.iface.messageBar().pushMessage("Warning", "Current project can not be deleted.", level=1)
+                    self.iface.messageBar().pushMessage("Warning", "Current project can not be deleted.", level=1, duration=5)
                     return
                 if os.path.exists(self.gplFile):
                     f = open(self.gplFile, "r")
@@ -286,7 +288,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 self.close()
                 self.ProcessDone = True
         else:
-            self.iface.messageBar().pushMessage("Warning", "You need to select a valid project to open it.", level=1)
+            self.iface.messageBar().pushMessage("Warning", "You need to select a valid project to open it.", level=1, duration=5)
 
     def cloneProject(self):
         selectionModel = self.twProjectList.selectionModel()
@@ -300,7 +302,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 result = dlg.ProcessDone
                 if result:
                     if mainName == dlg.NetworkName:
-                        self.iface.messageBar().pushMessage("Warning", "Selected project has the same Network's Name. Plase, set another name.", level=1)
+                        self.iface.messageBar().pushMessage("Warning", "Selected project has the same Network's Name. Plase, set another name.", level=1, duration=5)
                     else:
                         for layerName in self.ownMainLayers:
                             layerPath = os.path.join(mainFolder, mainName + "_" + layerName)
@@ -316,7 +318,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                         self.addProjectToTable("", dlg.ProjectDirectory, dlg.NetworkName)
                 break
         else:
-            self.iface.messageBar().pushMessage("Warning", "There is no a selected project to clone.", level=1)
+            self.iface.messageBar().pushMessage("Warning", "There is no a selected project to clone.", level=1, duration=5)
 
     def openFolder(self):
         selectionModel = self.twProjectList.selectionModel()

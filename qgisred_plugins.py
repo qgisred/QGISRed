@@ -27,7 +27,7 @@ from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer
 from qgis.core import QgsLayerTreeGroup, QgsLayerTreeNode
 try: #QGis 3.x
     from PyQt5.QtGui import QIcon
-    from PyQt5.QtWidgets import QAction, QMessageBox, QApplication, QMenu
+    from PyQt5.QtWidgets import QAction, QMessageBox, QApplication, QMenu, QFileDialog
     from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
     from qgis.core import Qgis, QgsTask, QgsApplication
     #Import resources
@@ -39,9 +39,10 @@ try: #QGis 3.x
     from .ui.qgisred_about_dialog import QGISRedAboutDialog
     from .ui.qgisred_results_dock import QGISRedResultsDock
     from .ui.qgisred_toolLength_dialog import QGISRedLengthToolDialog
+    from .ui.qgisred_toolConnectivity_dialog import QGISRedConnectivityToolDialog
     from .qgisred_utils import QGISRedUtils
 except: #QGis 2.x
-    from PyQt4.QtGui import QAction, QMessageBox, QIcon, QApplication, QMenu
+    from PyQt4.QtGui import QAction, QMessageBox, QIcon, QApplication, QMenu, QFileDialog
     from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
     from qgis.core import QgsMapLayerRegistry, QGis as Qgis
     #Import resources
@@ -53,6 +54,7 @@ except: #QGis 2.x
     from ui.qgisred_about_dialog import QGISRedAboutDialog
     from ui.qgisred_results_dock import QGISRedResultsDock
     from ui.qgisred_toolLength_dialog import QGISRedLengthToolDialog
+    from ui.qgisred_toolConnectivity_dialog import QGISRedConnectivityToolDialog
     from qgisred_utils import QGISRedUtils
 
 # Others imports
@@ -61,6 +63,7 @@ import datetime
 import time
 import tempfile
 from ctypes import*
+
 
 #MessageBar Levels
 # Info 0
@@ -280,8 +283,9 @@ class QGISRed:
         #Tools Menu
         self.qgisredmenuTools = self.qgisredmenu.addMenu(self.tr('Tools'))
         self.qgisredmenuTools.setIcon(QIcon(':/plugins/QGISRed/images/iconTools.png'))
-        #Tracing Submenu
-        self.qgisredmenuPathTools = self.qgisredmenuTools.addMenu(self.tr('Tracing'))
+        #Layaout Submenu
+        self.qgisredmenuPathTools = self.qgisredmenuTools.addMenu(self.tr('Layout'))
+        self.qgisredmenuPathTools.setIcon(QIcon(':/plugins/QGISRed/images/iconVertices.png'))
         icon_path = ':/plugins/QGISRed/images/iconDuplicate.png' 
         self.add_action(
             icon_path,
@@ -318,8 +322,18 @@ class QGISRed:
             toolbar=self.toolbarTools,
             parent=self.iface.mainWindow())
         
+        icon_path = ':/plugins/QGISRed/images/iconConnectivity.png' 
+        self.add_action(
+            icon_path,
+            text=self.tr(u'Check connectivity'),
+            callback=self.runCheckConnectivity,
+            menubar=self.qgisredmenuPathTools,
+            toolbar=self.toolbarTools,
+            parent=self.iface.mainWindow())
+        
         #Properties Submenu
         self.qgisredmenuPropertiesTools = self.qgisredmenuTools.addMenu(self.tr('Properties'))
+        self.qgisredmenuPropertiesTools.setIcon(QIcon(':/plugins/QGISRed/images/iconDiameters.png'))
         icon_path = ':/plugins/QGISRed/images/iconLength.png' 
         self.add_action(
             icon_path,
@@ -362,6 +376,75 @@ class QGISRed:
             text=self.tr(u'Set Roughness coefficient (from Material and Date)'),
             callback=self.runSetRoughness,
             menubar=self.qgisredmenuPropertiesTools,
+            toolbar=self.toolbarTools,
+            parent=self.iface.mainWindow())
+        
+        icon_path = ':/plugins/QGISRed/images/iconStatus.png' 
+        self.add_action(
+            icon_path,
+            text=self.tr(u'Set pipe\'s initial status from issolated valves'),
+            callback=self.runSetPipeStatus,
+            menubar=self.qgisredmenuPropertiesTools,
+            toolbar=self.toolbarTools,
+            parent=self.iface.mainWindow())
+        
+        icon_path = ':/plugins/QGISRed/images/iconInterpolate.png' 
+        self.add_action(
+            icon_path,
+            text=self.tr(u'Interpolate elevation from .asc files'),
+            callback=self.runElevationInterpolation,
+            menubar=self.qgisredmenuPropertiesTools,
+            toolbar=self.toolbarTools,
+            parent=self.iface.mainWindow())
+        
+        #Components Submenu
+        self.qgisredmenuComponentsTools = self.qgisredmenuTools.addMenu(self.tr('Components'))
+        self.qgisredmenuComponentsTools.setIcon(QIcon(':/plugins/QGISRed/images/iconConnections.png'))
+        icon_path = ':/plugins/QGISRed/images/iconConnections.png' 
+        self.add_action(
+            icon_path,
+            text=self.tr(u'Add connections to the model'),
+            callback=self.runAddConnections,
+            menubar=self.qgisredmenuComponentsTools,
+            toolbar=self.toolbarTools,
+            parent=self.iface.mainWindow())
+        
+        icon_path = ':/plugins/QGISRed/images/iconHydrants.png' 
+        self.add_action(
+            icon_path,
+            text=self.tr(u'Add hydrants to the model'),
+            callback=self.runAddHydrants,
+            menubar=self.qgisredmenuComponentsTools,
+            toolbar=self.toolbarTools,
+            parent=self.iface.mainWindow())
+        
+        icon_path = ':/plugins/QGISRed/images/iconPurges.png' 
+        self.add_action(
+            icon_path,
+            text=self.tr(u'Add purge valves to the model'),
+            callback=self.runAddPurgeValves,
+            menubar=self.qgisredmenuComponentsTools,
+            toolbar=self.toolbarTools,
+            parent=self.iface.mainWindow())
+        
+        #Components Submenu
+        self.qgisredmenuSectorsTools = self.qgisredmenuTools.addMenu(self.tr('Sectorization'))
+        self.qgisredmenuSectorsTools.setIcon(QIcon(':/plugins/QGISRed/images/iconDemandSector.png'))
+        icon_path = ':/plugins/QGISRed/images/iconHydraulic.png' 
+        self.add_action(
+            icon_path,
+            text=self.tr(u'Obtain hydraulic sectors'),
+            callback=self.runHydraulicSectors,
+            menubar=self.qgisredmenuSectorsTools,
+            toolbar=self.toolbarTools,
+            parent=self.iface.mainWindow())
+        
+        icon_path = ':/plugins/QGISRed/images/iconDemandSector.png' 
+        self.add_action(
+            icon_path,
+            text=self.tr(u'Obtain demand sectors'),
+            callback=self.runDemandSectors,
+            menubar=self.qgisredmenuSectorsTools,
             toolbar=self.toolbarTools,
             parent=self.iface.mainWindow())
         
@@ -411,6 +494,8 @@ class QGISRed:
                 copyfile(os.path.join(plataformDirectory, "vcruntime140d.dll"), os.path.join(currentDirectory, "vcruntime140d.dll"))
         except:
             pass
+        
+        QgsProject.instance().projectSaved.connect(self.runSaveProject)
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -426,6 +511,10 @@ class QGISRed:
         del self.toolbar
         del self.toolbarTools
         
+        if self.qgisredmenuSectorsTools:
+            self.qgisredmenuSectorsTools.menuAction().setVisible(False)
+        if self.qgisredmenuComponentsTools:
+            self.qgisredmenuComponentsTools.menuAction().setVisible(False)
         if self.qgisredmenuPropertiesTools:
             self.qgisredmenuPropertiesTools.menuAction().setVisible(False)
         if self.qgisredmenuPathTools:
@@ -511,6 +600,7 @@ class QGISRed:
             if QgsProject.instance().isDirty():
                 #Save and continue
                 self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("The project has changes. Please save them before continuing."), level=1)
+                return False
             else:
                 #Close the project and continue?
                 reply = QMessageBox.question(self.iface.mainWindow(), self.tr('Opened project'), self.tr('Do you want to close the current project and continue?'), QMessageBox.Yes, QMessageBox.No)
@@ -543,6 +633,40 @@ class QGISRed:
         utils.removeLayers(self.ownFiles, ".dbf")
         raise Exception('') #Avoiding errors with v3.x with shps and dbfs in use after deleting (use of QTasks)
 
+    def removeLayersConnectivity(self, task, wait_time):
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.removeLayers(self.ownMainLayers)
+        utils.removeLayers(self.ownFiles, ".dbf")
+        
+        utils.removeLayer("Links_Connectivity")
+        
+        dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Connectivity")
+        if not dataGroup is None:
+            root = QgsProject.instance().layerTreeRoot()
+            root.removeChildNode(dataGroup)
+        raise Exception('') #Avoiding errors with v3.x with shps and dbfs in use after deleting (use of QTasks)
+
+    def removeHydraulicSectors(self, task, wait_time):
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.removeLayers(["Links_" + self.Sectors, "Nodes_" + self.Sectors])
+        
+        name = self.NetworkName + " Hydraulic Sectors"
+        if "Demand" in self.Sectors:
+            name = self.NetworkName + " Demand Sectors"
+        dataGroup = QgsProject.instance().layerTreeRoot().findGroup(name)
+        if not dataGroup is None:
+            root = QgsProject.instance().layerTreeRoot()
+            root.removeChildNode(dataGroup)
+        raise Exception('') #Avoiding errors with v3.x with shps and dbfs in use after deleting (use of QTasks)
+
+    def removeComplementaryLayers(self, task, wait_time):
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.removeLayers(self.ownMainLayers)
+        utils.removeLayers(self.ownFiles, ".dbf")
+        
+        utils.removeLayers(self.complementaryLayers)
+        raise Exception('') #Avoiding errors with v3.x with shps and dbfs in use after deleting (use of QTasks)
+
     def runProjectManager(self):
         self.defineCurrentProject()
         # show the dialog
@@ -562,6 +686,9 @@ class QGISRed:
         if self.ProjectDirectory == self.TemporalFolder:
             if not self.isOpenedProject():
                 return
+        else:
+            if self.isLayerOnEdition():
+                return
         # show the dialog
         dlg = QGISRedNewProjectDialog()
         dlg.config(self.iface, self.ProjectDirectory, self.NetworkName)
@@ -577,6 +704,9 @@ class QGISRed:
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
             if not self.isOpenedProject():
+                return
+        else:
+            if self.isLayerOnEdition():
                 return
         # show the dialog
         dlg = QGISRedImportDialog()
@@ -594,7 +724,7 @@ class QGISRed:
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
             return
         if self.isLayerOnEdition():
             return
@@ -614,17 +744,17 @@ class QGISRed:
         
         #Messages
         if b=="True":
-            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Input data is valid"), level=3, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Input data is valid"), level=3, duration=5)
         elif b=="False":
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in data validation"), level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in data validation"), level=1, duration=5)
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runCommit(self):
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
             return
         if self.isLayerOnEdition():
             return
@@ -677,24 +807,22 @@ class QGISRed:
         
         #Message
         if b=="True":
-            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Successful commit"), level=3, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Successful commit"), level=3, duration=5)
         elif b=="False":
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the commit process"), level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the commit process"), level=1, duration=5)
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runSaveProject(self):
         self.defineCurrentProject()
-        if self.ProjectDirectory == self.TemporalFolder:
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=10)
-        else:
+        if not self.ProjectDirectory == self.TemporalFolder:
             self.createGqpFile()
 
     def runExportInp(self):
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
             return
         if self.isLayerOnEdition():
             return
@@ -714,17 +842,17 @@ class QGISRed:
         
         #Message
         if b=="True":
-            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Process successfully completed"), level=3, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Process successfully completed"), level=3, duration=5)
         elif b=="False":
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
         elif not b=="Canceled":
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runModel(self):
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
             return
         if self.isLayerOnEdition():
             return
@@ -749,7 +877,7 @@ class QGISRed:
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
             return
         if self.isLayerOnEdition():
             return
@@ -808,17 +936,17 @@ class QGISRed:
         
         #Message
         if b=="True":
-            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("No overlapping elements found"), level=3, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("No overlapping elements found"), level=3, duration=5)
         elif b=="False":
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runSimplifyVertices(self):
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
             return
         if self.isLayerOnEdition():
             return
@@ -871,17 +999,17 @@ class QGISRed:
         
         #Message
         if b=="True":
-            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Simplify link vertices completed"), level=3, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Simplify link vertices completed"), level=3, duration=5)
         elif b=="False":
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runCreateTConncetions(self):
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
             return
         if self.isLayerOnEdition():
             return
@@ -934,17 +1062,17 @@ class QGISRed:
         
         #Message
         if b=="True":
-            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("No T Connections created"), level=3, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("No T Connections created"), level=3, duration=5)
         elif b=="False":
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some connection have been created"), level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some connection have been created"), level=1, duration=5)
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runCheckLengths(self):
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
             return
         if self.isLayerOnEdition():
             return
@@ -1007,17 +1135,17 @@ class QGISRed:
         
         #Message
         if b=="True":
-            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("No lengths out of tolerance"), level=3, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("No lengths out of tolerance"), level=3, duration=5)
         elif b=="False":
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some length differences are bigger than tolerance"), level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some length differences are bigger than tolerance"), level=1, duration=5)
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runCheckDiameters(self):
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
             return
         if self.isLayerOnEdition():
             return
@@ -1037,17 +1165,17 @@ class QGISRed:
         
         #Message
         if b=="True":
-            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("No issues on diameter checking"), level=3, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("No issues on diameter checking"), level=3, duration=5)
         elif b=="False":
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some diameters have unexpected values"), level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some diameters have unexpected values"), level=1, duration=5)
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runCheckMaterials(self):
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
             return
         if self.isLayerOnEdition():
             return
@@ -1067,17 +1195,17 @@ class QGISRed:
         
         #Message
         if b=="True":
-            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("No issues on materials checking"), level=3, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("No issues on materials checking"), level=3, duration=5)
         elif b=="False":
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some materials have unexpected values"), level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some materials have unexpected values"), level=1, duration=5)
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runCheckInstallationDates(self):
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
             return
         if self.isLayerOnEdition():
             return
@@ -1097,17 +1225,17 @@ class QGISRed:
         
         #Message
         if b=="True":
-            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("No issues on installation dates checking"), level=3, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("No issues on installation dates checking"), level=3, duration=5)
         elif b=="False":
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some installation dates have unexpected values"), level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some installation dates have unexpected values"), level=1, duration=5)
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runSetRoughness(self):
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
             return
         if self.isLayerOnEdition():
             return
@@ -1160,17 +1288,17 @@ class QGISRed:
         
         #Message
         if b=="True":
-            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("No issues occurred in the roughness coefficient estimation"), level=3, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("No issues occurred in the roughness coefficient estimation"), level=3, duration=5)
         elif b=="False":
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the roughness coefficient estimation"), level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the roughness coefficient estimation"), level=1, duration=5)
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runJoinPipes(self):
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
             return
         if self.isLayerOnEdition():
             return
@@ -1223,8 +1351,584 @@ class QGISRed:
         
         #Message
         if b=="True":
-            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("No issues occurred joining pipes"), level=3, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("No issues occurred joining pipes"), level=3, duration=5)
         elif b=="False":
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred joining pipes"), level=1, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred joining pipes"), level=1, duration=5)
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=10)
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+
+    def runCheckConnectivity(self):
+        #Validations
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
+            return
+        if self.isLayerOnEdition():
+            return
+        
+        dlg = QGISRedConnectivityToolDialog()
+        # Run the dialog event loop
+        dlg.exec_()
+        result = dlg.ProcessDone
+        if result:
+            self.ConnectivityDialog = dlg
+            #Process
+            if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
+                try:
+                    self.removeLayersConnectivity(None,0)
+                except:
+                    pass
+                self.runCheckConnectivityProcess()
+            else:  #QGis 3.x
+                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeLayersConnectivity, on_finished=self.runCheckConnectivityProcess, wait_time=0)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
+
+    def runCheckConnectivityProcess(self, exception=None, result=None):
+        lines = self.ConnectivityDialog.Lines
+        if not self.ConnectivityDialog.Remove:
+            lines = "0"
+        if self.ConnectivityDialog.Export:
+            export = "true"
+        else:
+            export = "false"
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.CheckConnectivity.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.CheckConnectivity.restype = c_char_p
+        b = mydll.CheckConnectivity(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), export.encode('utf-8'), lines.encode('utf-8'))
+        try: #QGis 3.x
+            b= "".join(map(chr, b)) #bytes to string
+        except:  #QGis 2.x
+            b=b
+        
+        #Group
+        dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Inputs")
+        if dataGroup is None:
+            root = QgsProject.instance().layerTreeRoot()
+            dataGroup = root.addGroup(self.NetworkName + " Inputs")
+        
+        #CRS
+        try: #QGis 3.x
+            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
+        except: #QGis 2.x
+            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        if crs.srsid()==0:
+            crs = QgsCoordinateReferenceSystem()
+            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
+        #Open layers
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.openElementsLayers(dataGroup, crs, self.ownMainLayers, self.ownFiles)
+        
+        if self.ConnectivityDialog.Export:
+            if os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_Links_Connectivity.shp")):
+                #Group
+                dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Connectivity")
+                if dataGroup is None:
+                    root = QgsProject.instance().layerTreeRoot()
+                    dataGroup = root.insertGroup(0,self.NetworkName + " Connectivity")
+                
+                utils.openLayer(crs, dataGroup, "Links_Connectivity")
+        
+        QApplication.restoreOverrideCursor()
+        
+        #Message
+        if b=="True":
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("No connectivity analisys done"), level=3, duration=5) #never is going to be true
+        elif b=="False":
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some messages are available after connectivity analisys"), level=1, duration=5)
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+
+    def runSetPipeStatus(self):
+        #Validations
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
+            return
+        if self.isLayerOnEdition():
+            return
+        
+        if not os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_IssolatedValves.shp")):
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Does not exist Issolated Valves SHP file"), level=1, duration=5)
+            return
+        
+        #Process
+        self.complementaryLayers = ["IssolatedValves"]
+        if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
+            try:
+                self.removeComplementaryLayers(None,0)
+            except:
+                pass
+            self.runSetPipeStatusProcess()
+        else:  #QGis 3.x
+            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+            task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeComplementaryLayers, on_finished=self.runSetPipeStatusProcess, wait_time=0)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
+
+    def runSetPipeStatusProcess(self, exception=None, result=None):
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.SetInitialStatusPipes.argtypes = (c_char_p, c_char_p)
+        mydll.SetInitialStatusPipes.restype = c_char_p
+        b = mydll.SetInitialStatusPipes(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
+        try: #QGis 3.x
+            b= "".join(map(chr, b)) #bytes to string
+        except:  #QGis 2.x
+            b=b
+        
+        #Group
+        dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Inputs")
+        if dataGroup is None:
+            root = QgsProject.instance().layerTreeRoot()
+            dataGroup = root.addGroup(self.NetworkName + " Inputs")
+        
+        #CRS
+        try: #QGis 3.x
+            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
+        except: #QGis 2.x
+            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        if crs.srsid()==0:
+            crs = QgsCoordinateReferenceSystem()
+            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
+        #Open layers
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.openElementsLayers(dataGroup, crs, self.complementaryLayers, [])
+        utils.openElementsLayers(dataGroup, crs, self.ownMainLayers, self.ownFiles)
+        
+        QApplication.restoreOverrideCursor()
+        
+        #Message
+        if b=="True":
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Does not exist issolated valves to assign pipe\'s initial status"), level=3, duration=5) #never is going to be true
+        elif b=="False":
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some messages are available after initial status setting"), level=1, duration=5)
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+
+    def runAddConnections(self):
+        #Validations
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
+            return
+        if self.isLayerOnEdition():
+            return
+        
+        if not os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_Connections.shp")):
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Does not exist Connections SHP file"), level=1, duration=5)
+            return
+        
+        #Question
+        self.reply = QMessageBox.question(self.iface.mainWindow(), self.tr('Add connections to the model'), 'Do you want to include connections as pipes (Yes) or only as nodes (No)?', QMessageBox.Yes, QMessageBox.No, QMessageBox.Cancel)
+        if self.reply == QMessageBox.Cancel:
+            return
+        #Process
+        self.complementaryLayers = ["Connections"]
+        if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
+            try:
+                self.removeComplementaryLayers(None,0)
+            except:
+                pass
+            self.runAddConnectionsProcess()
+        else:  #QGis 3.x
+            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+            task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeComplementaryLayers, on_finished=self.runAddConnectionsProcess, wait_time=0)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
+
+    def runAddConnectionsProcess(self, exception=None, result=None):
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        
+        asNode = "true"
+        if self.reply == QMessageBox.Yes: #Pipes
+            asNode = "false"
+        
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.AddConnections.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.AddConnections.restype = c_char_p
+        b = mydll.AddConnections(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), asNode.encode('utf-8'))
+        try: #QGis 3.x
+            b= "".join(map(chr, b)) #bytes to string
+        except:  #QGis 2.x
+            b=b
+        
+        #Group
+        dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Inputs")
+        if dataGroup is None:
+            root = QgsProject.instance().layerTreeRoot()
+            dataGroup = root.addGroup(self.NetworkName + " Inputs")
+        
+        #CRS
+        try: #QGis 3.x
+            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
+        except: #QGis 2.x
+            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        if crs.srsid()==0:
+            crs = QgsCoordinateReferenceSystem()
+            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
+        #Open layers
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.openElementsLayers(dataGroup, crs, self.complementaryLayers, [])
+        utils.openElementsLayers(dataGroup, crs, self.ownMainLayers, self.ownFiles)
+        
+        QApplication.restoreOverrideCursor()
+        
+        #Message
+        if b=="True":
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Does not exist connections to include in the model"), level=3, duration=5) #never is going to be true
+        elif b=="False":
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some messages are available after adding connections"), level=1, duration=5)
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+
+    def runAddHydrants(self):
+        #Validations
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
+            return
+        if self.isLayerOnEdition():
+            return
+        
+        if not os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_Hydrants.shp")):
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Does not exist Hydrants SHP file"), level=1, duration=5)
+            return
+        
+        #Process
+        self.complementaryLayers = ["Hydrants"]
+        if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
+            try:
+                self.removeComplementaryLayers(None,0)
+            except:
+                pass
+            self.runAddHydrantsProcess()
+        else:  #QGis 3.x
+            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+            task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeComplementaryLayers, on_finished=self.runAddHydrantsProcess, wait_time=0)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
+
+    def runAddHydrantsProcess(self, exception=None, result=None):
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.AddHydrants.argtypes = (c_char_p, c_char_p)
+        mydll.AddHydrants.restype = c_char_p
+        b = mydll.AddHydrants(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
+        try: #QGis 3.x
+            b= "".join(map(chr, b)) #bytes to string
+        except:  #QGis 2.x
+            b=b
+        
+        #Group
+        dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Inputs")
+        if dataGroup is None:
+            root = QgsProject.instance().layerTreeRoot()
+            dataGroup = root.addGroup(self.NetworkName + " Inputs")
+        
+        #CRS
+        try: #QGis 3.x
+            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
+        except: #QGis 2.x
+            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        if crs.srsid()==0:
+            crs = QgsCoordinateReferenceSystem()
+            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
+        #Open layers
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.openElementsLayers(dataGroup, crs, self.complementaryLayers, [])
+        utils.openElementsLayers(dataGroup, crs, self.ownMainLayers, self.ownFiles)
+        
+        QApplication.restoreOverrideCursor()
+        
+        #Message
+        if b=="True":
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Does not exist hydrants to include in the model"), level=3, duration=5) #never is going to be true
+        elif b=="False":
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some messages are available after adding hyddrants"), level=1, duration=5)
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+
+    def runAddPurgeValves(self):
+        #Validations
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
+            return
+        if self.isLayerOnEdition():
+            return
+        
+        if not os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_PurgeValves.shp")):
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Does not exist Purge Valves SHP file"), level=1, duration=5)
+            return
+        
+        #Process
+        self.complementaryLayers = ["PurgeValves"]
+        if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
+            try:
+                self.removeComplementaryLayers(None,0)
+            except:
+                pass
+            self.runAddPurgeValvesProcess()
+        else:  #QGis 3.x
+            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+            task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeComplementaryLayers, on_finished=self.runAddPurgeValvesProcess, wait_time=0)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
+
+    def runAddPurgeValvesProcess(self, exception=None, result=None):
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.AddPurgeValves.argtypes = (c_char_p, c_char_p)
+        mydll.AddPurgeValves.restype = c_char_p
+        b = mydll.AddPurgeValves(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
+        try: #QGis 3.x
+            b= "".join(map(chr, b)) #bytes to string
+        except:  #QGis 2.x
+            b=b
+        
+        #Group
+        dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Inputs")
+        if dataGroup is None:
+            root = QgsProject.instance().layerTreeRoot()
+            dataGroup = root.addGroup(self.NetworkName + " Inputs")
+        
+        #CRS
+        try: #QGis 3.x
+            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
+        except: #QGis 2.x
+            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        if crs.srsid()==0:
+            crs = QgsCoordinateReferenceSystem()
+            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
+        #Open layers
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.openElementsLayers(dataGroup, crs, self.complementaryLayers, [])
+        utils.openElementsLayers(dataGroup, crs, self.ownMainLayers, self.ownFiles)
+        
+        QApplication.restoreOverrideCursor()
+        
+        #Message
+        if b=="True":
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Does not exist purge valves to include in the model"), level=3, duration=5) #never is going to be true
+        elif b=="False":
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some messages are available after adding purge valves"), level=1, duration=5)
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+
+    def runElevationInterpolation(self):
+        #Validations
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
+            return
+        if self.isLayerOnEdition():
+            return
+        
+        self.ElecationFiles = ""
+        qfd = QFileDialog()
+        path = ""
+        filter = "asc(*.asc)"
+        f = QFileDialog.getOpenFileNames(qfd, "Select ASC file", path, filter)
+        if len(f)>0:
+            for fil in f:
+                self.ElecationFiles = self.ElecationFiles + fil + ";"
+            
+            #Process
+            if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
+                try:
+                    self.removeLayers(None,0)
+                except:
+                    pass
+                self.runElevationInterpolationProcess()
+            else:  #QGis 3.x
+                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeLayers, on_finished=self.runElevationInterpolationProcess, wait_time=0)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
+
+    def runElevationInterpolationProcess(self, exception=None, result=None):
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.ElevationInterpolation.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.ElevationInterpolation.restype = c_char_p
+        b = mydll.ElevationInterpolation(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.ElecationFiles.encode('utf-8'))
+        try: #QGis 3.x
+            b= "".join(map(chr, b)) #bytes to string
+        except:  #QGis 2.x
+            b=b
+        
+        #Group
+        dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Inputs")
+        if dataGroup is None:
+            root = QgsProject.instance().layerTreeRoot()
+            dataGroup = root.addGroup(self.NetworkName + " Inputs")
+        
+        #CRS
+        try: #QGis 3.x
+            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
+        except: #QGis 2.x
+            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        if crs.srsid()==0:
+            crs = QgsCoordinateReferenceSystem()
+            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
+        #Open layers
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.openElementsLayers(dataGroup, crs, self.ownMainLayers, self.ownFiles)
+        
+        QApplication.restoreOverrideCursor()
+        
+        #Message
+        if b=="True":
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Process successfully completed"), level=3, duration=5)
+        elif b=="False":
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some messages are available after elevation interpolation"), level=1, duration=5)
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+
+    def runHydraulicSectors(self):
+        #Validations
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
+            return
+        if self.isLayerOnEdition():
+            return
+        
+        self.Sectors= "HydraulicSectors"
+        #Process
+        if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
+            try:
+                self.removeHydraulicSectors(None,0)
+            except:
+                pass
+            self.runHydraulicSectorsProcess()
+        else:  #QGis 3.x
+            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+            task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeHydraulicSectors, on_finished=self.runHydraulicSectorsProcess, wait_time=0)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
+
+    def runHydraulicSectorsProcess(self, exception=None, result=None):
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.HydarulicSectors.argtypes = (c_char_p, c_char_p)
+        mydll.HydarulicSectors.restype = c_char_p
+        b = mydll.HydarulicSectors(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
+        try: #QGis 3.x
+            b= "".join(map(chr, b)) #bytes to string
+        except:  #QGis 2.x
+            b=b
+        
+        #CRS
+        try: #QGis 3.x
+            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
+        except: #QGis 2.x
+            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        if crs.srsid()==0:
+            crs = QgsCoordinateReferenceSystem()
+            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
+        #Open layers
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        if os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_Links_" + self.Sectors + ".shp")):
+            #Group
+            dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Hydraulic Sectors")
+            if dataGroup is None:
+                root = QgsProject.instance().layerTreeRoot()
+                dataGroup = root.insertGroup(0,self.NetworkName + " Hydraulic Sectors")
+            
+            utils.openLayer(crs, dataGroup, "Nodes_" + self.Sectors)
+            utils.openLayer(crs, dataGroup, "Links_" + self.Sectors)
+        
+        QApplication.restoreOverrideCursor()
+        
+        #Message
+        if b=="True":
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("No hydraulic sectors analisys done"), level=3, duration=5) #never is going to be true
+        elif b=="False":
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some messages are available after hydraulic sectors analisys"), level=1, duration=5)
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+
+    def runDemandSectors(self):
+        return
+        #Validations
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
+            return
+        if self.isLayerOnEdition():
+            return
+        
+        self.Sectors= "DemandSectors"
+        #Process
+        if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
+            try:
+                self.removeHydraulicSectors(None,0)
+            except:
+                pass
+            self.runDemandSectorsProcess()
+        else:  #QGis 3.x
+            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+            task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeHydraulicSectors, on_finished=self.runDemandSectorsProcess, wait_time=0)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
+
+    def runDemandSectorsProcess(self, exception=None, result=None):
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.HydarulicSectors.argtypes = (c_char_p, c_char_p)
+        mydll.HydarulicSectors.restype = c_char_p
+        b = mydll.HydarulicSectors(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
+        try: #QGis 3.x
+            b= "".join(map(chr, b)) #bytes to string
+        except:  #QGis 2.x
+            b=b
+        
+        #CRS
+        try: #QGis 3.x
+            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
+        except: #QGis 2.x
+            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        if crs.srsid()==0:
+            crs = QgsCoordinateReferenceSystem()
+            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
+        #Open layers
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        if os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_Links_" + self.Sectors + ".shp")):
+            #Group
+            dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Demand Sectors")
+            if dataGroup is None:
+                root = QgsProject.instance().layerTreeRoot()
+                dataGroup = root.insertGroup(0,self.NetworkName + " Demand Sectors")
+            
+            utils.openLayer(crs, dataGroup, "Nodes_" + self.Sectors)
+            utils.openLayer(crs, dataGroup, "Links_" + self.Sectors)
+        
+        QApplication.restoreOverrideCursor()
+        
+        #Message
+        if b=="True":
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("No demand sectors analisys done"), level=3, duration=5) #never is going to be true
+        elif b=="False":
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some messages are available after demand sectors analisys"), level=1, duration=5)
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)

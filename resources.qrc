@@ -23,5 +23,13 @@
         <file>images/iconDate.png</file>
         <file>images/iconRoughness.png</file>
         <file>images/iconJoin.png</file>
+        <file>images/iconConnectivity.png</file>
+        <file>images/iconStatus.png</file>
+        <file>images/iconConnections.png</file>
+        <file>images/iconHydrants.png</file>
+        <file>images/iconPurges.png</file>
+        <file>images/iconInterpolate.png</file>
+        <file>images/iconHydraulic.png</file>
+        <file>images/iconDemandSector.png</file>
     </qresource>
 </RCC>
