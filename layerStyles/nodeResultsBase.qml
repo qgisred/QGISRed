@@ -16,9 +16,8 @@
           <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
           <prop k="outline_width_unit" v="MM"/>
           <prop k="scale_method" v="diameter"/>
-          <prop k="size" v="7"/>
+          <prop k="size" v="0"/>
           <prop k="size_dd_active" v="1"/>
-          <prop k="size_dd_expression" v="if(&quot;Type&quot; ='TANK', 7,0)"/>
           <prop k="size_dd_field" v=""/>
           <prop k="size_dd_useexpr" v="1"/>
           <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
@@ -38,9 +37,8 @@
           <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
           <prop k="outline_width_unit" v="MM"/>
           <prop k="scale_method" v="diameter"/>
-          <prop k="size" v="7"/>
+          <prop k="size" v="0"/>
           <prop k="size_dd_active" v="1"/>
-          <prop k="size_dd_expression" v="if(&quot;Type&quot; ='RESERVOIR', 7,0)"/>
           <prop k="size_dd_field" v=""/>
           <prop k="size_dd_useexpr" v="1"/>
           <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>

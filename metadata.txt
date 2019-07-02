@@ -11,7 +11,7 @@ name=QGISRed
 qgisMinimumVersion=2.0
 qgisMaximumVersion=3.99
 description=Tool for helping the hydraulic engineer in the task of modelling a water distribution network and in the decision-making process.
-version=0.2
+version=0.2.5
 author=REDHISP (UPV)
 email=fmartine@hma.upv.es
 

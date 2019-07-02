@@ -7,7 +7,7 @@
           <prop k="angle" v="0"/>
           <prop k="color" v="0,0,0,255"/>
           <prop k="horizontal_anchor_point" v="1"/>
-          <prop k="name" v="C:/Users/aguil/.qgis2/python/plugins\QGISRed\layerStyles\tanksResults.svg"/>
+          <prop k="name" v="C:/Users/aguil/AppData/Roaming/QGIS/QGIS3\profiles\default/python/plugins\QGISRed\layerStyles\tanksResults.svg"/>
           <prop k="offset" v="0,0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
           <prop k="offset_unit" v="MM"/>
@@ -16,9 +16,8 @@
           <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
           <prop k="outline_width_unit" v="MM"/>
           <prop k="scale_method" v="diameter"/>
-          <prop k="size" v="7"/>
+          <prop k="size" v="0"/>
           <prop k="size_dd_active" v="1"/>
-          <prop k="size_dd_expression" v="if(&quot;Type&quot; ='TANK', 7,0)"/>
           <prop k="size_dd_field" v=""/>
           <prop k="size_dd_useexpr" v="1"/>
           <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
@@ -29,7 +28,7 @@
           <prop k="angle" v="0"/>
           <prop k="color" v="0,0,0,255"/>
           <prop k="horizontal_anchor_point" v="1"/>
-          <prop k="name" v="C:/Users/aguil/.qgis2/python/plugins\QGISRed\layerStyles\reservoirsResults.svg"/>
+          <prop k="name" v="C:/Users/aguil/AppData/Roaming/QGIS/QGIS3\profiles\default/python/plugins\QGISRed\layerStyles\reservoirsResults.svg"/>
           <prop k="offset" v="0,0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
           <prop k="offset_unit" v="MM"/>
@@ -38,9 +37,8 @@
           <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
           <prop k="outline_width_unit" v="MM"/>
           <prop k="scale_method" v="diameter"/>
-          <prop k="size" v="7"/>
+          <prop k="size" v="0"/>
           <prop k="size_dd_active" v="1"/>
-          <prop k="size_dd_expression" v="if(&quot;Type&quot; ='RESERVOIR', 7,0)"/>
           <prop k="size_dd_field" v=""/>
           <prop k="size_dd_useexpr" v="1"/>
           <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>

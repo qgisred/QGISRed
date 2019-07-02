@@ -5,12 +5,16 @@ try: #QGis 3.x
     from qgis.core import QgsSvgMarkerSymbolLayer, QgsSymbol, QgsSingleSymbolRenderer
     from qgis.core import QgsLineSymbol, QgsSimpleLineSymbolLayer
     from qgis.core import Qgis, QgsMarkerSymbol, QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayer
+    from qgis.core import QgsRendererCategory, QgsSimpleFillSymbolLayer, QgsCategorizedSymbolRenderer
+    from PyQt5.QtGui import QColor
 except: #QGis 2.x
     from qgis.core import QgsSvgMarkerSymbolLayerV2 as QgsSvgMarkerSymbolLayer, QgsSymbolV2 as QgsSymbol 
     from qgis.core import QgsSingleSymbolRendererV2 as QgsSingleSymbolRenderer, QgsLineSymbolV2 as QgsLineSymbol
     from qgis.core import QgsSimpleLineSymbolLayerV2 as QgsSimpleLineSymbolLayer, QgsMarkerSymbolV2 as QgsMarkerSymbol 
     from qgis.core import QgsMarkerLineSymbolLayerV2 as QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayerV2 as QgsSimpleMarkerSymbolLayer
+    from qgis.core import QgsRendererCategoryV2 as QgsRendererCategory, QgsSimpleFillSymbolLayerV2 as QgsSimpleFillSymbolLayer, QgsCategorizedSymbolRendererV2 as QgsCategorizedSymbolRenderer
     from qgis.core import QgsMapLayerRegistry, QgsMapLayerRegistry, QGis as Qgis
+    from PyQt4.QtGui import QColor
 
 # Others imports
 import os
@@ -38,7 +42,7 @@ class QGISRedUtils:
         for fileName in ownMainLayers:
             utils.openLayer(crs, group, fileName)
 
-    def openLayer(self, crs, group, name, ext=".shp", results=False, toEnd=False):
+    def openLayer(self, crs, group, name, ext=".shp", results=False, toEnd=False, sectors=False):
         layerName = self.NetworkName + "_" + name
         if os.path.exists(os.path.join(self.ProjectDirectory, layerName + ext)):
             vlayer = QgsVectorLayer(os.path.join(self.ProjectDirectory, layerName + ext), name, "ogr")
@@ -46,6 +50,8 @@ class QGISRedUtils:
                 vlayer.setCrs(crs)
                 if results:
                     self.setResultStyle(vlayer)
+                elif sectors:
+                    self.setSectorsStyle(vlayer)
                 else:
                     self.setStyle(vlayer, name.lower())
             try: #QGis 3.x
@@ -161,3 +167,66 @@ class QGISRedUtils:
             f.write(contents)
             f.close()
             ret = layer.loadNamedStyle(qmlPath)
+
+    def setSectorsStyle(self, layer):
+        from random import randrange
+
+        # get unique values 
+        field = 'Class'
+        print(field)
+        try: #Qgis 3.x
+            fni = layer.fields().indexFromName(field)
+        except: #Qgis 2.x
+            fni = layer.fieldNameIndex(field)
+
+        print(fni)
+        if fni==-1: #Hydraulic sectors
+            field = 'SubNet'
+            try: #Qgis 3.x
+                fni = layer.fields().indexFromName(field)
+            except: #Qgis 2.x
+                fni = layer.fieldNameIndex(field)
+        
+        unique_values = layer.dataProvider().uniqueValues(fni)
+
+        # define categories
+        categories = []
+        for unique_value in unique_values:
+            # initialize the default symbol for this geometry type
+            symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+
+            # configure a symbol layer
+            symbol_layer = None
+            if layer.geometryType()==0: #Point
+                layer_style =  dict()
+                layer_style['color'] = '%d, %d, %d' % (randrange(0,256), randrange(0,256), randrange(0,256))
+                layer_style['size'] = str(2)
+                symbol_layer = QgsSimpleMarkerSymbolLayer.create(layer_style)
+            else:
+                symbol = QgsLineSymbol().createSimple({})
+                symbol.deleteSymbolLayer(0)
+                # Line
+                lineSymbol = QgsSimpleLineSymbolLayer()
+                lineSymbol.setWidthUnit(2) #Pixels
+                lineSymbol.setWidth(1.5)
+                lineSymbol.setColor(QColor(randrange(0,256), randrange(0,256), randrange(0,256)))
+                symbol.appendSymbolLayer(lineSymbol)
+
+            # replace default symbol layer with the configured one
+            if symbol_layer is not None:
+                symbol.changeSymbolLayer(0, symbol_layer)
+
+            # create renderer object
+            category = QgsRendererCategory(unique_value, symbol, str(unique_value))
+            # entry for the list of category items
+            categories.append(category)
+
+        # create renderer object
+        renderer = QgsCategorizedSymbolRenderer(field, categories)
+
+        # assign the created renderer to the layer
+        if renderer is not None:
+            try: #QGis 3.x
+                layer.setRenderer(renderer)
+            except: #QGis 2.x
+                layer.setRendererV2(renderer)

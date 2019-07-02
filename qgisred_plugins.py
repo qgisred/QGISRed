@@ -1853,8 +1853,8 @@ class QGISRed:
                 root = QgsProject.instance().layerTreeRoot()
                 dataGroup = root.insertGroup(0,self.NetworkName + " Hydraulic Sectors")
             
-            utils.openLayer(crs, dataGroup, "Nodes_" + self.Sectors)
-            utils.openLayer(crs, dataGroup, "Links_" + self.Sectors)
+            utils.openLayer(crs, dataGroup, "Nodes_" + self.Sectors, sectors=True)
+            utils.openLayer(crs, dataGroup, "Links_" + self.Sectors, sectors=True)
         
         QApplication.restoreOverrideCursor()
         
@@ -1867,7 +1867,6 @@ class QGISRed:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runDemandSectors(self):
-        return
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
@@ -1895,9 +1894,9 @@ class QGISRed:
         QApplication.setOverrideCursor(Qt.WaitCursor)
         os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.HydarulicSectors.argtypes = (c_char_p, c_char_p)
-        mydll.HydarulicSectors.restype = c_char_p
-        b = mydll.HydarulicSectors(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
+        mydll.DemandSectors.argtypes = (c_char_p, c_char_p)
+        mydll.DemandSectors.restype = c_char_p
+        b = mydll.DemandSectors(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
         try: #QGis 3.x
             b= "".join(map(chr, b)) #bytes to string
         except:  #QGis 2.x
@@ -1920,8 +1919,8 @@ class QGISRed:
                 root = QgsProject.instance().layerTreeRoot()
                 dataGroup = root.insertGroup(0,self.NetworkName + " Demand Sectors")
             
-            utils.openLayer(crs, dataGroup, "Nodes_" + self.Sectors)
-            utils.openLayer(crs, dataGroup, "Links_" + self.Sectors)
+            utils.openLayer(crs, dataGroup, "Nodes_" + self.Sectors, sectors=True)
+            utils.openLayer(crs, dataGroup, "Links_" + self.Sectors, sectors=True)
         
         QApplication.restoreOverrideCursor()
         

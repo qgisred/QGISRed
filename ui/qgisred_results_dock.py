@@ -264,7 +264,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     sym.symbolLayer(2).setDataDefinedProperty("size", QgsDataDefined("if(Type ='RESERVOIR' or Type='TANK', 0,2)"))
             symbol = symbol[0]
         else: #QGis 3
-            print(self.cbFlowDirections.isChecked())
             if setRender:
                 prop = QgsProperty()
                 if symbol.type()==1: #line

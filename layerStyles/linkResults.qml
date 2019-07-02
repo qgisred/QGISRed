@@ -103,7 +103,7 @@
               <prop k="angle" v="0"/>
               <prop k="color" v="0,0,0,255"/>
               <prop k="horizontal_anchor_point" v="1"/>
-              <prop k="name" v="C:/Users/aguil/.qgis2/python/plugins\QGISRed\layerStyles\pumps.svg"/>
+              <prop k="name" v="C:/Users/aguil/AppData/Roaming/QGIS/QGIS3\profiles\default/python/plugins\QGISRed\layerStyles\pumps.svg"/>
               <prop k="offset" v="0,0"/>
               <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
               <prop k="offset_unit" v="MM"/>
@@ -140,7 +140,7 @@
               <prop k="angle" v="0"/>
               <prop k="color" v="0,0,0,255"/>
               <prop k="horizontal_anchor_point" v="1"/>
-              <prop k="name" v="C:/Users/aguil/.qgis2/python/plugins\QGISRed\layerStyles\valves.svg"/>
+              <prop k="name" v="C:/Users/aguil/AppData/Roaming/QGIS/QGIS3\profiles\default/python/plugins\QGISRed\layerStyles\valves.svg"/>
               <prop k="offset" v="0,0"/>
               <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
               <prop k="offset_unit" v="MM"/>
@@ -194,7 +194,7 @@
               <prop k="angle" v="0"/>
               <prop k="color" v="0,0,0,255"/>
               <prop k="horizontal_anchor_point" v="1"/>
-              <prop k="name" v="C:/Users/aguil/.qgis2/python/plugins\QGISRed\layerStyles\arrow.svg"/>
+              <prop k="name" v="C:/Users/aguil/AppData/Roaming/QGIS/QGIS3\profiles\default/python/plugins\QGISRed\layerStyles\arrow.svg"/>
               <prop k="offset" v="0,0"/>
               <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
               <prop k="offset_unit" v="MM"/>
@@ -231,7 +231,7 @@
               <prop k="angle" v="180"/>
               <prop k="color" v="0,0,0,255"/>
               <prop k="horizontal_anchor_point" v="1"/>
-              <prop k="name" v="C:/Users/aguil/.qgis2/python/plugins\QGISRed\layerStyles\arrow.svg"/>
+              <prop k="name" v="C:/Users/aguil/AppData/Roaming/QGIS/QGIS3\profiles\default/python/plugins\QGISRed\layerStyles\arrow.svg"/>
               <prop k="offset" v="0,0"/>
               <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
               <prop k="offset_unit" v="MM"/>
