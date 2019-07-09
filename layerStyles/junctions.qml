@@ -318,11 +318,11 @@ def my_form_open(dialog, layer, feature):
   </conditionalstyles>
   <defaults>
     <default field="Id" expression=""/>
-    <default field="Elevation" expression="0"/>
-    <default field="BaseDem" expression="0"/>
+    <default field="Elevation" expression=""/>
+    <default field="BaseDem" expression=""/>
     <default field="IdPattDem" expression=""/>
-    <default field="EmittCoef" expression="0"/>
-    <default field="IniQuality" expression="0"/>
+    <default field="EmittCoef" expression=""/>
+    <default field="IniQuality" expression=""/>
     <default field="Tag" expression=""/>
     <default field="Descrip" expression=""/>
     <default field="Sector" expression=""/>

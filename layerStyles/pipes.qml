@@ -327,15 +327,15 @@ def my_form_open(dialog, layer, feature):
   </conditionalstyles>
   <defaults>
     <default field="Id" expression=""/>
-    <default field="Length" expression="0"/>
-    <default field="Diameter" expression="200"/>
-    <default field="RoughCoeff" expression="0.01"/>
-    <default field="Material" expression="UNDETERMINED"/>
+    <default field="Length" expression=""/>
+    <default field="Diameter" expression=""/>
+    <default field="RoughCoeff" expression=""/>
+    <default field="Material" expression=""/>
     <default field="InstalDate" expression=""/>
-    <default field="LossCoeff" expression="0"/>
-    <default field="IniStatus" expression="'OPEN'"/>
-    <default field="BulkCoeff" expression="0"/>
-    <default field="WallCoeff" expression="0"/>
+    <default field="LossCoeff" expression=""/>
+    <default field="IniStatus" expression=""/>
+    <default field="BulkCoeff" expression=""/>
+    <default field="WallCoeff" expression=""/>
     <default field="Tag" expression=""/>
     <default field="Descrip" expression=""/>
     <default field="Sector" expression=""/>
