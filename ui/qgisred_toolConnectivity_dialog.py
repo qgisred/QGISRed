@@ -23,18 +23,14 @@ class QGISRedConnectivityToolDialog(QDialog, FORM_CLASS):
         self.tbLines.setText(self.Lines)
 
     def accept(self):
-        self.Remove = self.cbRemove.isChecked()
-        if self.Remove:
-            self.Lines = self.tbLines.text()
-            if self.Lines=="":
-                self.lbMessage.setText("Not valid number for lines")
-                return
-            try:
-                a = float(self.Lines)
-            except:
-                self.lbMessage.setText("Not numeric number of lines")
-                return
-        self.Export = self.cbExport.isChecked()
-
+        self.Lines = self.tbLines.text()
+        if self.Lines=="":
+            self.lbMessage.setText("Not valid number for lines")
+            return
+        try:
+            a = float(self.Lines)
+        except:
+            self.lbMessage.setText("Not numeric number of lines")
+            return
         self.ProcessDone = True
         self.close()

@@ -36,13 +36,16 @@ class QGISRedUtils:
         return False
 
     def openElementsLayers(self, group, crs, ownMainLayers, ownFiles):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName)
         for fileName in ownFiles:
-            utils.openLayer(crs, group, fileName, ".dbf")
+            self.openLayer(crs, group, fileName, ".dbf")
         for fileName in ownMainLayers:
-            utils.openLayer(crs, group, fileName)
+            self.openLayer(crs, group, fileName)
 
-    def openLayer(self, crs, group, name, ext=".shp", results=False, toEnd=False, sectors=False):
+    def openIssuesLayers(self, group, crs, layers):
+        for fileName in layers:
+            self.openLayer(crs, group, fileName, issues=True)
+
+    def openLayer(self, crs, group, name, ext=".shp", results=False, toEnd=False, sectors=False, issues=False):
         layerName = self.NetworkName + "_" + name
         if os.path.exists(os.path.join(self.ProjectDirectory, layerName + ext)):
             vlayer = QgsVectorLayer(os.path.join(self.ProjectDirectory, layerName + ext), name, "ogr")
@@ -52,6 +55,8 @@ class QGISRedUtils:
                     self.setResultStyle(vlayer)
                 elif sectors:
                     self.setSectorsStyle(vlayer)
+                elif issues:
+                    pass
                 else:
                     self.setStyle(vlayer, name.lower())
             try: #QGis 3.x

@@ -68,6 +68,8 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         self.twProjectList.setHorizontalHeaderItem(3,item)
         #Rows:
         self.fillTable()
+        self.twProjectList.cellDoubleClicked.connect(self.openProject)
+        #self.twProjectList.customContextMenuRequested.connect(self.openFolder)
 
     def config(self, ifac, direct, netw):
         self.iface=ifac
@@ -200,9 +202,10 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 group = None
                 for i in range(2, len(lines)):
                     if "[" in lines[i]:
-                        dataGroup = str(lines[i].strip("[").strip("\r\n").strip("]"))
+                        groupName = str(lines[i].strip("[").strip("\r\n").strip("]")).replace(networkName + " ", "")
                         root = QgsProject.instance().layerTreeRoot()
-                        group = root.addGroup(dataGroup)
+                        netGroup = root.addGroup(networkName)
+                        group= netGroup.addGroup(groupName)
                     else:
                         layerPath= lines[i].strip("\r\n")
                         if not os.path.exists(layerPath):

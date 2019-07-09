@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>342</width>
-    <height>142</height>
+    <height>125</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -84,15 +84,7 @@
       </layout>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_2">
-       <item>
-        <widget class="QCheckBox" name="cbModify">
-         <property name="text">
-          <string>Modify values by geometric length</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
+      <layout class="QHBoxLayout" name="horizontalLayout_2"/>
      </item>
      <item>
       <widget class="QLabel" name="lbMessage">

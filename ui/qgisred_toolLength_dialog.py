@@ -12,7 +12,6 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_
 class QGISRedLengthToolDialog(QDialog, FORM_CLASS):
     #Common variables
     Tolerance = "10"
-    Modify = False
     ProcessDone=False
     def __init__(self, parent=None):
         """Constructor."""
@@ -31,7 +30,6 @@ class QGISRedLengthToolDialog(QDialog, FORM_CLASS):
         except:
             self.lbMessage.setText("Not numeric Tolerance")
             return
-        self.Modify = self.cbModify.isChecked()
 
         self.ProcessDone = True
         self.close()

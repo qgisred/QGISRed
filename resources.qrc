@@ -7,6 +7,7 @@
         <file>images/iconValidate.png</file>
         <file>images/iconCommit.png</file>
         <file>images/iconShpToInp.png</file>
+        <file>images/iconExport.png</file>
         <file>images/iconRunModel.png</file>
         <file>images/iconAbout.png</file>
         <file>images/aboutRedhisp.png</file>
@@ -14,15 +15,22 @@
         <file>images/aboutUPV.png</file>
         <file>images/iconFlash.png</file>
         <file>images/iconTools.png</file>
-        <file>images/iconDuplicate.png</file>
-        <file>images/iconVertices.png</file>
-        <file>images/iconTconnections.png</file>
-        <file>images/iconLength.png</file>
+        <file>images/iconOverloadM.png</file>
+        <file>images/iconOverloadC.png</file>
+        <file>images/iconVerticesM.png</file>
+        <file>images/iconVerticesC.png</file>
+        <file>images/iconTconnectionsM.png</file>
+        <file>images/iconTconnectionsC.png</file>
+        <file>images/iconJoinM.png</file>
+        <file>images/iconJoinC.png</file>
+        <file>images/iconConnectivityM.png</file>
+        <file>images/iconConnectivityC.png</file>
+        <file>images/iconLengthM.png</file>
+        <file>images/iconLengthC.png</file>
         <file>images/iconDiameters.png</file>
         <file>images/iconMaterial.png</file>
         <file>images/iconDate.png</file>
         <file>images/iconRoughness.png</file>
-        <file>images/iconJoin.png</file>
         <file>images/iconConnectivity.png</file>
         <file>images/iconStatus.png</file>
         <file>images/iconConnections.png</file>
@@ -31,5 +39,8 @@
         <file>images/iconInterpolate.png</file>
         <file>images/iconHydraulic.png</file>
         <file>images/iconDemandSector.png</file>
+        <file>images/iconResults.png</file>
+        <file>images/iconSave.png</file>
+        <file>images/iconDelete.png</file>
     </qresource>
 </RCC>

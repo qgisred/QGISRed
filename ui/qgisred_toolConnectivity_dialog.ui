@@ -33,7 +33,7 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="QCheckBox" name="cbRemove">
+        <widget class="QLabel" name="label">
          <property name="text">
           <string>Remove subzones with less than</string>
          </property>
@@ -84,15 +84,7 @@
       </layout>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_2">
-       <item>
-        <widget class="QCheckBox" name="cbExport">
-         <property name="text">
-          <string>Export subzones as SHP (without the main zone)</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
+      <layout class="QHBoxLayout" name="horizontalLayout_2"/>
      </item>
      <item>
       <widget class="QLabel" name="lbMessage">

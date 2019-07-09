@@ -27,6 +27,7 @@ import os
 from ctypes import*
 from time import sleep
 import tempfile
+from shutil import copyfile
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_results_dock.ui'))
 
@@ -37,10 +38,12 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     NetworkName = ""
     ProjectDirectory = ""
     ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs"]
-    Results= {}
+    LabelResults= {}
+    IndexTime= {}
+    Comments= {}
+    Renders={}
     Variables=""
     Computing=False
-    Scenario=""
     TimeLabels=[]
     LabelsToOpRe=[]
     def __init__(self, iface):
@@ -48,8 +51,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         super(QGISRedResultsDock, self).__init__(iface.mainWindow())
         self.iface = iface
         self.setupUi(self)
-        self.btCompute.clicked.connect(self.compute)
-        self.btPlay.clicked.connect(self.play)
+        #self.btCompute.clicked.connect(self.compute)
+        #self.btPlay.clicked.connect(self.play)
         self.hsTimes.valueChanged.connect(self.timeChanged)
         self.cbFlow.clicked.connect(self.flowClicked)
         self.cbVelocity.clicked.connect(self.velocityClicked)
@@ -60,24 +63,70 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.cbQualityLink.clicked.connect(self.qualityLinkClicked)
         self.cbQualityNode.clicked.connect(self.qualityNodeClicked)
         self.cbFlowDirections.clicked.connect(self.flowDirectionsClicked)
+        self.btSaveScenario.clicked.connect(self.saveScenario)
+        self.cbScenarios.currentIndexChanged.connect(self.scenarioChanged)
+        self.btDeleteScenario.clicked.connect(self.deleteScenario)
 
-    def config(self, direct, netw):
+    def config(self, direct, netw, labels):
+        self.Computing=True
         if not (self.NetworkName == netw and self.ProjectDirectory == direct):
-            self.Results={}
-            self.tbScenario.setText("Base")
-            self.lbTime.setVisible(False)
-            self.hsTimes.setVisible(False)
-            self.btPlay.setVisible(False)
+            self.LabelResults={}
+            self.IndexTime= {}
+            self.cbScenarios.clear()
+            self.cbScenarios.addItem("Base")
+            self.NetworkName = netw
+            self.ProjectDirectory = direct
+            self.readSavedScenarios()
+        
+        #CRS
+        try: #QGis 3.x
+            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
+        except: #QGis 2.x
+            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        if crs.srsid()==0:
+            crs = QgsCoordinateReferenceSystem()
+            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
+        self.CRS=crs
+        
         self.NetworkName = netw
         self.ProjectDirectory = direct
-        self.tbNetworkName.setText(netw)
-        self.tbProjectDirectory.setText(direct)
-        self.tbProjectDirectory.setCursorPosition(0)
+        self.cbScenarios.setCurrentIndex(0)
+        self.btDeleteScenario.setEnabled(False)
+        
         self.restoreElementsCb()
         self.setLayersNames()
         if len(self.LabelsToOpRe)==0:
             self.cbFlow.setChecked(True)
             self.cbPressure.setChecked(True)
+        
+        list = labels.split(';')
+        self.TimeLabels =[]
+        if len(list)==1:
+            self.TimeLabels.append("Permanent")
+        else:
+            for item in list:
+                self.TimeLabels.append(self.insert(self.insert(item, " ", 6), " ", 3))
+        self.LabelResults["Base"]= self.TimeLabels
+        self.Comments["Base"]= "Last results computed"
+        self.lbComments.setText(self.Comments["Base"])
+        self.writeScenario("Base", self.TimeLabels, self.Comments["Base"])
+        
+        if len(list)==1:
+            self.hsTimes.setVisible(False)
+            #self.btPlay.setVisible(False)
+        else:
+            self.hsTimes.setVisible(True)
+            #self.btPlay.setVisible(True)
+            self.hsTimes.setMaximum(len(list)-1)
+        self.IndexTime["Base"]=0
+        self.hsTimes.setValue(0)
+        self.lbTime.setVisible(True)
+        self.lbTime.setText(self.TimeLabels[0])
+        self.Computing = False
+        #Open results
+        self.Scenario = "Base"
+        self.saveCurrentRender(True)
+        self.openAllResults()
 
     def isCurrentProject(self):
         currentNetwork =""
@@ -113,11 +162,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
     def openLayerResults(self, scenario):
         resultPath= os.path.join(self.ProjectDirectory, "Results")
-        utils = QGISRedUtils(resultPath, self.NetworkName +"_" + scenario, self.iface)
-        group = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName +" " + scenario + " Results")
+        utils = QGISRedUtils(resultPath, self.NetworkName + "_" + scenario, self.iface)
+        resultGroup = self.getResultGroup()
+        group = resultGroup.findGroup(scenario)
         if group is None:
-            root = QgsProject.instance().layerTreeRoot()
-            group = root.insertGroup(0,self.NetworkName +" " + scenario + " Results")
+            group = resultGroup.addGroup(scenario)
         for file in self.LabelsToOpRe:
             utils.openLayer(self.CRS, group, file, results=True)
 
@@ -126,6 +175,16 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         utils = QGISRedUtils(resultPath, self.NetworkName +"_" + self.Scenario, self.iface)
         utils.removeLayers(self.LabelsToOpRe)
         raise Exception('')
+
+    def getResultGroup(self):
+        resultGroup = QgsProject.instance().layerTreeRoot().findGroup("Results")
+        if resultGroup is None:
+            netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
+            if netGroup is None:
+                root = QgsProject.instance().layerTreeRoot()
+                netGroup = root.addGroup(self.NetworkName)
+            resultGroup = netGroup.insertGroup(0,"Results")
+        return resultGroup
 
     def setVariablesTimes(self):
         self.Variables=""
@@ -173,8 +232,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         return source_str[:pos]+insert_str+source_str[pos:]
 
     def restoreElementsCb(self):
-        self.Secnario = self.tbScenario.text()
-        
+        self.Scenario = self.cbScenarios.currentText()
         resultPath= os.path.join(self.ProjectDirectory, "Results")
         self.setLayersNames(True)
         try: #QGis 3.x
@@ -210,11 +268,35 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     if nameLayer == "Node_Quaility":
                         self.cbQualityNode.setChecked(True)
 
+    def saveCurrentRender(self, all=False):
+        try: #QGis 3.x
+            layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+            version=3
+        except: #QGis 2.x
+            layers = self.iface.legendInterface().layers()
+            version=2
+        
+        resultPath= os.path.join(self.ProjectDirectory, "Results")
+        if all:
+            self.setLayersNames(True)
+        dictSce = self.Renders.get(self.Scenario)
+        if dictSce is None:
+            dictSce ={}
+        for nameLayer in self.LabelsToOpRe:
+            for layer in layers:
+                pathLayer = str(layer.dataProvider().dataSourceUri().split("|")[0])
+                if pathLayer== os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp"):
+                    if version == 3:
+                        dictSce[pathLayer]=layer.renderer()
+                    else:
+                        dictSce[pathLayer]=layer.rendererV2()
+        self.Renders[self.Scenario]=dictSce
+
     def paintIntervalTimeResults(self, columnNumber, setRender = False):
         if not self.isCurrentProject():
             return
         
-        self.Scenario = self.tbScenario.text()
+        self.Scenario = self.cbScenarios.currentText()
         resultPath= os.path.join(self.ProjectDirectory, "Results")
         
         try: #QGis 3.x
@@ -309,15 +391,45 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if "Flow" in layer.name():
             field = "abs(" + field + ")"
         if setRender:
-            mode= QgsGraduatedSymbolRenderer.EqualInterval #Quantile
-            classes = 5
-            colorRamp = QgsVectorGradientColorRamp.create({'color1':'0,0,255,255', 'color2':'255,0,0,255','stops':'0.25;0,255,255,255:0.50;0,255,0,255:0.75;255,255,0,255'})
-            self.iface.setActiveLayer(layer)
-            renderer = QgsGraduatedSymbolRenderer.createRenderer( layer, field, classes, mode, symbol, colorRamp )
-            myFormat = renderer.labelFormat()
-            myFormat.setPrecision(2)
-            myFormat.setTrimTrailingZeroes(True)
-            renderer.setLabelFormat(myFormat, True)
+            hasRender = False
+            dictRend = self.Renders.get(self.Scenario)
+            if dictRend is None:
+                dictRend = self.Renders.get("Base")
+                if dictRend is not None:
+                    renderer = dictRend.get(str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("_" + self.Scenario + "_","_Base_"))
+                    if renderer is not None:
+                        hasRender= True
+            else:
+                renderer = dictRend.get(str(layer.dataProvider().dataSourceUri().split("|")[0]))
+                if renderer is not None:
+                    hasRender=True
+                else:
+                    dictRend = self.Renders.get("Base")
+                    if dictRend is not None:
+                        renderer = dictRend.get(str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("_" + self.Scenario + "_","_Base_"))
+                        if renderer is not None:
+                            hasRender= True
+            if hasRender:
+                # if renderer.type() == 'graduatedSymbol':
+                    # print("entra")
+                    # renderer = QgsGraduatedSymbolRenderer.createRender(layer, field,)
+                    # print(renderer.type())
+                    # return
+                    # renderer.setClassAttribute(field)
+                    # print(renderer.type())
+                # else:
+                hasRender=False
+
+            if not hasRender:
+                mode= QgsGraduatedSymbolRenderer.EqualInterval #Quantile
+                classes = 5
+                colorRamp = QgsVectorGradientColorRamp.create({'color1':'0,0,255,255', 'color2':'255,0,0,255','stops':'0.25;0,255,255,255:0.50;0,255,0,255:0.75;255,255,0,255'})
+                self.iface.setActiveLayer(layer)
+                renderer = QgsGraduatedSymbolRenderer.createRenderer( layer, field, classes, mode, symbol, colorRamp )
+                myFormat = renderer.labelFormat()
+                myFormat.setPrecision(2)
+                myFormat.setTrimTrailingZeroes(True)
+                renderer.setLabelFormat(myFormat, True)
         else:
             renderer.setClassAttribute(field)
 
@@ -327,6 +439,50 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             layer.setRendererV2(renderer)
         layer.triggerRepaint()
 
+    def writeScenario(self, scenario, labels, comments):
+        filePath = os.path.join(os.path.join(self.ProjectDirectory, "Results"), self.NetworkName + "_" + scenario + ".sce")
+        f = open(filePath, "w+")
+        QGISRedUtils().writeFile(f, "[TimeLabels]"+ '\n')
+        lab =""
+        for label in labels:
+            lab= lab + label + ";"
+        lab = lab.strip(';')
+        QGISRedUtils().writeFile(f, lab + '\n')
+        QGISRedUtils().writeFile(f, "[Comments]"+ '\n')
+        QGISRedUtils().writeFile(f, comments + '\n')
+        f.close()
+
+    def readSavedScenarios(self):
+        resultPath = os.path.join(self.ProjectDirectory, "Results")
+        if not os.path.exists(resultPath):
+            return
+        files = os.listdir(resultPath)
+        for file in files: #only names
+            if ".sce" in file and not "_Base" in file:
+                f= open(os.path.join(resultPath,file), "r")
+                nameSc = file.replace(self.NetworkName + "_", "").replace(".sce", "")
+                isLabel=False
+                isComments = False
+                comments=""
+                for line in f:
+                    if "[TimeLabels]" in line:
+                        isLabel = True
+                        continue
+                    if "[Comments]" in line:
+                        isComments = True
+                        continue
+                    if isLabel:
+                        self.LabelResults[nameSc] = line.strip("\r\n").split(';')
+                        isLabel=False
+                    if isComments:
+                        comments = comments + line.strip() + "\n"
+                
+                comments = comments.strip("\n").strip().strip("\n")
+                self.IndexTime[nameSc]=0
+                self.Comments[nameSc] = comments
+                self.cbScenarios.addItem(nameSc)
+                f.close()
+
     """Clicked events"""
     def flowClicked(self):
         checked = self.cbFlow.isChecked()
@@ -335,6 +491,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.cbFlow.setChecked(checked)
         self.LabelsToOpRe.append("Link_Flow")
         self.Variables="Flow_Link"
+        if not checked: #currentyl is open
+            self.saveCurrentRender()
         self.openResult(self.cbFlow.isChecked())
 
     def velocityClicked(self):
@@ -344,6 +502,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.cbVelocity.setChecked(checked)
         self.LabelsToOpRe.append("Link_Velocity")
         self.Variables="Velocity_Link"
+        if not checked: #currentyl is open
+            self.saveCurrentRender()
         self.openResult(self.cbVelocity.isChecked())
 
     def headLossClicked(self):
@@ -353,6 +513,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.cbHeadLoss.setChecked(checked)
         self.LabelsToOpRe.append("Link_HeadLoss")
         self.Variables="HeadLoss_Link"
+        if not checked: #currentyl is open
+            self.saveCurrentRender()
         self.openResult(self.cbHeadLoss.isChecked())
 
     def qualityLinkClicked(self):
@@ -362,6 +524,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.cbQualityLink.setChecked(checked)
         self.LabelsToOpRe.append("Link_Quality")
         self.Variables="Quality_Link"
+        if not checked: #currentyl is open
+            self.saveCurrentRender()
         self.openResult(self.cbQualityLink.isChecked())
 
     def pressureClicked(self):
@@ -371,6 +535,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.cbPressure.setChecked(checked)
         self.LabelsToOpRe.append("Node_Pressure")
         self.Variables="Pressure_Node"
+        if not checked: #currentyl is open
+            self.saveCurrentRender()
         self.openResult(self.cbPressure.isChecked())
 
     def headClicked(self):
@@ -380,6 +546,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.cbHead.setChecked(checked)
         self.LabelsToOpRe.append("Node_Head")
         self.Variables="Head_Node"
+        if not checked: #currentyl is open
+            self.saveCurrentRender()
         self.openResult(self.cbHead.isChecked())
 
     def demandClicked(self):
@@ -389,6 +557,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.cbDemand.setChecked(checked)
         self.LabelsToOpRe.append("Node_Demand")
         self.Variables="Demand_Node"
+        if not checked: #currentyl is open
+            self.saveCurrentRender()
         self.openResult(self.cbDemand.isChecked())
 
     def qualityNodeClicked(self):
@@ -398,6 +568,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.cbQualityNode.setChecked(checked)
         self.LabelsToOpRe.append("Node_Quality")
         self.Variables="Quality_Node"
+        if not checked: #currentyl is open
+            self.saveCurrentRender()
         self.openResult(self.cbQualityNode.isChecked())
 
     def flowDirectionsClicked(self):
@@ -414,13 +586,14 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     def timeChanged(self):
         if self.Computing:
             return
-        self.Secnario = self.tbScenario.text()
-        resultPath = self.Results.get(self.Secnario)
+        self.Scenario = self.cbScenarios.currentText()
+        resultPath = os.path.join(os.path.join(self.ProjectDirectory, "Results"),self.NetworkName + "_" + self.Scenario)
         if resultPath is None:
             self.iface.messageBar().pushMessage("Warning", "No scenario results are available", level=1, duration=5)
             return
         
         value = self.hsTimes.value()
+        self.IndexTime[self.cbScenarios.currentText()]=value
         self.setLayersNames()
         self.paintIntervalTimeResults(value)
 
@@ -445,70 +618,41 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.hsTimes.setValue(self.hsTimes.value() + 1)
         sleep(1)
 
-
-    """Main methods"""
-    def compute(self):
-        #Validations
-        if not self.isCurrentProject():
+    def scenarioChanged(self):
+        if self.Computing:
             return
         
-        self.Scenario = self.tbScenario.text()
-        if len(self.Scenario)==0:
-            self.iface.messageBar().pushMessage("Validations", "The scenario name is not valid", level=1)
-            return False
-        
-        #Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
-        elements = "Junctions;Pipes;Tanks;Reservoirs;Valves;Pumps;"
-        
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.Compute.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.Compute.restype = c_char_p
-        b = mydll.Compute(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Scenario.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
-        QApplication.restoreOverrideCursor()
-        
-        #Message
-        if b=="False":
-            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
-        elif b.startswith("Message"):
-            self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
+        currentScenario= self.cbScenarios.currentText()
+        self.TimeLabels =self.LabelResults[currentScenario]
+        self.Computing = True
+        if len(self.TimeLabels)==1:
+            self.hsTimes.setVisible(False)
         else:
-            #Binary result file and Time label list
-            list = b.split(';')
-            self.Results[self.Scenario]= list[0]
-            del list[0]
-            self.TimeLabels =[]
-            if len(list)==1:
-                self.TimeLabels.append("Permanent")
-            else:
-                for item in list:
-                    self.TimeLabels.append(self.insert(self.insert(item, " ", 6), " ", 3))
-            self.Computing=True
-            
-            if len(list)==1:
-                self.hsTimes.setVisible(False)
-                self.btPlay.setVisible(False)
-            else:
-                self.hsTimes.setVisible(True)
-                #self.btPlay.setVisible(True)
-                self.hsTimes.setMaximum(len(list)-1)
-            self.hsTimes.setValue(0)
-            self.lbTime.setVisible(True)
-            self.lbTime.setText(self.TimeLabels[0])
-            self.Computing = False
-            #Open results
+            self.hsTimes.setVisible(True)
+            self.hsTimes.setMaximum(len(self.TimeLabels)-1)
+            if self.IndexTime.get(currentScenario) is not None:
+                self.hsTimes.setValue(self.IndexTime[currentScenario])
+        self.lbTime.setText(self.TimeLabels[self.IndexTime[currentScenario]])
+        self.lbComments.setText(self.Comments[currentScenario])
+        self.Computing=False
+        
+        self.btDeleteScenario.setEnabled(not currentScenario== "Base")
+        
+        self.Scenario= currentScenario
+        self.restoreElementsCb()
+        self.setLayersNames()
+        if len(self.LabelsToOpRe)==0:
+            self.cbFlow.setChecked(True)
+            self.cbPressure.setChecked(True)
+            self.IndexTime[currentScenario]=self.hsTimes.value()
             self.openAllResults()
 
+    """Main methods"""
     def validationsOpenResult(self):
         if not self.isCurrentProject():
             return False
-        self.Secnario = self.tbScenario.text()
-        resultPath = self.Results.get(self.Secnario)
+        self.Scenario = self.cbScenarios.currentText()
+        resultPath = os.path.join(os.path.join(self.ProjectDirectory, "Results"),self.NetworkName + "_" + self.Scenario)
         if resultPath is None:
             self.iface.messageBar().pushMessage("Warning", "No scenario results are available", level=1, duration=5)
             return
@@ -518,12 +662,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         return True
 
     def openAllResults(self):
-        #Validations
-        if not self.isCurrentProject():
-            return
-
-        self.Secnario = self.tbScenario.text()
-        resultPath = self.Results.get(self.Secnario)
+        resultPath = os.path.join(os.path.join(self.ProjectDirectory, "Results"),self.NetworkName + "_" + self.Scenario)
         if resultPath is None:
             self.iface.messageBar().pushMessage("Warning", "No scenario results are available", level=1, duration=5)
             return
@@ -549,20 +688,19 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
-        resultPath = self.Results.get(self.Secnario)
         self.setLayersNames()
         
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.CreateResults.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.CreateResults.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CreateResults.restype = c_char_p
-        b = mydll.CreateResults(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Secnario.encode('utf-8'), resultPath.encode('utf-8'), self.Variables.encode('utf-8'), "".encode('utf-8'), "".encode('utf-8'))
+        b = mydll.CreateResults(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Scenario.encode('utf-8'), self.Variables.encode('utf-8'), "".encode('utf-8'), "".encode('utf-8'))
         try: #QGis 3.x
             b= "".join(map(chr, b)) #bytes to string
         except:  #QGis 2.x
             b=b
         
         #Open layers
-        self.openLayerResults(self.Secnario)
+        self.openLayerResults(self.Scenario)
         value = self.hsTimes.value()
         self.paintIntervalTimeResults(value, True)
         QApplication.restoreOverrideCursor()
@@ -598,18 +736,17 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
-        resultPath = self.Results.get(self.Secnario)
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.CreateResults.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.CreateResults.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CreateResults.restype = c_char_p
-        b = mydll.CreateResults(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Secnario.encode('utf-8'), resultPath.encode('utf-8'), self.Variables.encode('utf-8'), "".encode('utf-8'), "".encode('utf-8'))
+        b = mydll.CreateResults(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Scenario.encode('utf-8'), self.Variables.encode('utf-8'), "".encode('utf-8'), "".encode('utf-8'))
         try: #QGis 3.x
             b= "".join(map(chr, b)) #bytes to string
         except:  #QGis 2.x
             b=b
         
         #Open layers
-        self.openLayerResults(self.Secnario)
+        self.openLayerResults(self.Scenario)
         value = self.hsTimes.value()
         self.paintIntervalTimeResults(value, True)
         QApplication.restoreOverrideCursor()
@@ -621,3 +758,80 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
         else:
             self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
+
+    def saveScenario(self):
+        if not self.isCurrentProject():
+            return False
+        #Validations
+        isBaseScenario = self.cbScenarios.currentText() == "Base"
+        if not isBaseScenario:
+            self.iface.messageBar().pushMessage("Warning", "Only 'Base' scenario could be saved", level=1, duration=5)
+            return
+        newScenario = self.tbScenarioName.text().strip()
+        if newScenario=="":
+            self.iface.messageBar().pushMessage("Warning", "Scenario name is not valid", level=1, duration=5)
+            return
+        for i in range(self.cbScenarios.count()):
+            if self.cbScenarios.itemText(i).lower()==newScenario.lower():
+                self.iface.messageBar().pushMessage("Warning", "Scenario name is already used", level=1, duration=5)
+                return
+        
+        #Save options
+        resultPath = os.path.join(self.ProjectDirectory, "Results")
+        try:
+            copyfile(os.path.join(resultPath,self.NetworkName + "_Base"), os.path.join(resultPath,self.NetworkName + "_" + newScenario))
+            files = os.listdir(resultPath)
+            for file in files: #only names
+                if self.NetworkName + "_Base_Link." in file or self.NetworkName + "_Base_Node." in file:
+                    newName= file.replace("_Base_", "_" + newScenario + "_")
+                    copyfile(os.path.join(resultPath,file), os.path.join(resultPath,newName))
+            
+            self.LabelResults[newScenario] = self.TimeLabels
+            self.IndexTime[newScenario]=self.hsTimes.value()
+            self.Comments[newScenario] = self.tbComments.toPlainText().strip().strip("\n")
+            self.writeScenario(newScenario, self.TimeLabels, self.Comments[newScenario])
+        except:
+            self.iface.messageBar().pushMessage("Error", "Scenario could not be saved", level=2, duration=5)
+            return
+        self.Scenario="Base"
+        self.saveCurrentRender(True)
+        
+        self.cbScenarios.addItem(newScenario)
+        self.cbScenarios.setCurrentIndex(self.cbScenarios.count()-1)
+
+    def deleteScenario(self):
+        self.Scenario = self.cbScenarios.currentText()
+        
+        #Process
+        self.setLayersNames(True)
+        if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
+            try:
+                self.removeResults(None,0)
+            except:
+                pass
+            self.deleteScenarioProcess()
+        else:  #QGis 3.x
+            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+            task1 = QgsTask.fromFunction(u'Remove layers', self.removeResults, on_finished=self.deleteScenarioProcess, wait_time=0)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
+
+    def deleteScenarioProcess(self, exception=None, result=None):
+        #Delete Group
+        resultGroup = self.getResultGroup()
+        dataGroup = resultGroup.findGroup(self.Scenario)
+        if dataGroup is not None:
+            resultGroup.removeChildNode(dataGroup)
+        #Delete files
+        resultPath = os.path.join(self.ProjectDirectory, "Results")
+        files = os.listdir(resultPath)
+        for file in files: #only names
+            if self.NetworkName + "_" + self.Scenario in file:
+                try:
+                    os.remove(os.path.join(resultPath, file))
+                except:
+                    pass
+        
+        #Delete from combobox
+        self.cbScenarios.removeItem(self.cbScenarios.currentIndex())
+        self.cbScenarios.setCurrentIndex(self.cbScenarios.count()-1)
