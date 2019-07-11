@@ -251,24 +251,23 @@ class QGISRed:
             # parent=self.iface.mainWindow())
         
         """Toolbar and submenus"""
-        #Toolbar
-        self.toolbarTools = self.iface.addToolBar(u'QGISRed Tools')
-        self.toolbarTools.setObjectName(u'QGISRed Tools')
-        self.toolbarTools.setVisible(False)
         #Tools Menu
         self.qgisredmenuTools = self.qgisredmenu.addMenu(self.tr('Tools'))
         self.qgisredmenuTools.setIcon(QIcon(':/plugins/QGISRed/images/iconTools.png'))
         """Layaout Submenu"""
         self.qgisredmenuPathTools = self.qgisredmenuTools.addMenu(self.tr('Layout'))
         self.qgisredmenuPathTools.setIcon(QIcon(':/plugins/QGISRed/images/iconVerticesM.png'))
-        
+        #Toolbar
+        self.toolbarLayout = self.iface.addToolBar(self.tr(u'QGISRed Layout Tools'))
+        self.toolbarLayout.setObjectName(self.tr(u'QGISRed Layout Tools'))
+        self.toolbarLayout.setVisible(False)
         icon_path = ':/plugins/QGISRed/images/iconOverloadM.png' 
         dropButton = self.add_action(
             icon_path,
             text=self.tr(u'Check overlapping elements'),
             callback=self.runCheckCoordinatesM,
             menubar=self.qgisredmenuPathTools,
-            toolbar=self.toolbarTools,
+            toolbar=self.toolbarLayout,
             createDrop = True,
             add_to_toolbar =False,
             parent=self.iface.mainWindow())
@@ -278,7 +277,7 @@ class QGISRed:
             text=self.tr(u'Remove overlapping elements'),
             callback=self.runCheckCoordinatesC,
             menubar=self.qgisredmenuPathTools,
-            toolbar=self.toolbarTools,
+            toolbar=self.toolbarLayout,
             actionBase = dropButton,
             add_to_toolbar =False,
             parent=self.iface.mainWindow())
@@ -289,7 +288,7 @@ class QGISRed:
             text=self.tr(u'Check for simplifying link vertices'),
             callback=self.runSimplifyVerticesM,
             menubar=self.qgisredmenuPathTools,
-            toolbar=self.toolbarTools,
+            toolbar=self.toolbarLayout,
             createDrop = True,
             add_to_toolbar =False,
             parent=self.iface.mainWindow())
@@ -299,7 +298,7 @@ class QGISRed:
             text=self.tr(u'Simplify link vertices'),
             callback=self.runSimplifyVerticesC,
             menubar=self.qgisredmenuPathTools,
-            toolbar=self.toolbarTools,
+            toolbar=self.toolbarLayout,
             actionBase = dropButton,
             add_to_toolbar =False,
             parent=self.iface.mainWindow())
@@ -310,7 +309,7 @@ class QGISRed:
             text=self.tr(u'Check T Connections'),
             callback=self.runCheckTConncetionsM,
             menubar=self.qgisredmenuPathTools,
-            toolbar=self.toolbarTools,
+            toolbar=self.toolbarLayout,
             createDrop = True,
             add_to_toolbar =False,
             parent=self.iface.mainWindow())
@@ -320,7 +319,7 @@ class QGISRed:
             text=self.tr(u'Create T Connections'),
             callback=self.runCheckTConncetionsC,
             menubar=self.qgisredmenuPathTools,
-            toolbar=self.toolbarTools,
+            toolbar=self.toolbarLayout,
             actionBase = dropButton,
             add_to_toolbar =False,
             parent=self.iface.mainWindow())
@@ -331,7 +330,7 @@ class QGISRed:
             text=self.tr(u'Check for joining consecutive pipes (diameter, material and year)'),
             callback=self.runCheckJoinPipesM,
             menubar=self.qgisredmenuPathTools,
-            toolbar=self.toolbarTools,
+            toolbar=self.toolbarLayout,
             createDrop = True,
             add_to_toolbar =False,
             parent=self.iface.mainWindow())
@@ -341,7 +340,7 @@ class QGISRed:
             text=self.tr(u'Join consecutive pipes (diameter, material and year)'),
             callback=self.runCheckJoinPipesC,
             menubar=self.qgisredmenuPathTools,
-            toolbar=self.toolbarTools,
+            toolbar=self.toolbarLayout,
             actionBase = dropButton,
             add_to_toolbar =False,
             parent=self.iface.mainWindow())
@@ -352,7 +351,7 @@ class QGISRed:
             text=self.tr(u'Check connectivity'),
             callback=self.runCheckConnectivityM,
             menubar=self.qgisredmenuPathTools,
-            toolbar=self.toolbarTools,
+            toolbar=self.toolbarLayout,
             createDrop = True,
             add_to_toolbar =False,
             parent=self.iface.mainWindow())
@@ -362,7 +361,7 @@ class QGISRed:
             text=self.tr(u'Delete issolated subzones'),
             callback=self.runCheckConnectivityC,
             menubar=self.qgisredmenuPathTools,
-            toolbar=self.toolbarTools,
+            toolbar=self.toolbarLayout,
             actionBase = dropButton,
             add_to_toolbar =False,
             parent=self.iface.mainWindow())
@@ -370,13 +369,16 @@ class QGISRed:
         """Properties Submenu"""
         self.qgisredmenuPropertiesTools = self.qgisredmenuTools.addMenu(self.tr('Properties'))
         self.qgisredmenuPropertiesTools.setIcon(QIcon(':/plugins/QGISRed/images/iconDiameters.png'))
+        self.toolbarProperties = self.iface.addToolBar(self.tr(u'QGISRed Properties Tools'))
+        self.toolbarProperties.setObjectName(self.tr(u'QGISRed Properties Tools'))
+        self.toolbarProperties.setVisible(False)
         icon_path = ':/plugins/QGISRed/images/iconLengthM.png' 
         dropButton = self.add_action(
             icon_path,
             text=self.tr(u'Check pipe lengths'),
             callback=self.runCheckLengthsM,
             menubar=self.qgisredmenuPropertiesTools,
-            toolbar=self.toolbarTools,
+            toolbar=self.toolbarProperties,
             createDrop = True,
             add_to_toolbar =False,
             parent=self.iface.mainWindow())
@@ -386,7 +388,7 @@ class QGISRed:
             text=self.tr(u'Change pipe lengths'),
             callback=self.runCheckLengthsC,
             menubar=self.qgisredmenuPropertiesTools,
-            toolbar=self.toolbarTools,
+            toolbar=self.toolbarProperties,
             actionBase = dropButton,
             add_to_toolbar =False,
             parent=self.iface.mainWindow())
@@ -397,7 +399,7 @@ class QGISRed:
             text=self.tr(u'Check diameters'),
             callback=self.runCheckDiameters,
             menubar=self.qgisredmenuPropertiesTools,
-            toolbar=self.toolbarTools,
+            toolbar=self.toolbarProperties,
             parent=self.iface.mainWindow())
         
         icon_path = ':/plugins/QGISRed/images/iconMaterial.png' 
@@ -406,7 +408,7 @@ class QGISRed:
             text=self.tr(u'Check pipe materials'),
             callback=self.runCheckMaterials,
             menubar=self.qgisredmenuPropertiesTools,
-            toolbar=self.toolbarTools,
+            toolbar=self.toolbarProperties,
             parent=self.iface.mainWindow())
         
         icon_path = ':/plugins/QGISRed/images/iconDate.png' 
@@ -415,7 +417,7 @@ class QGISRed:
             text=self.tr(u'Check pipe installation dates'),
             callback=self.runCheckInstallationDates,
             menubar=self.qgisredmenuPropertiesTools,
-            toolbar=self.toolbarTools,
+            toolbar=self.toolbarProperties,
             parent=self.iface.mainWindow())
         
         icon_path = ':/plugins/QGISRed/images/iconRoughness.png' 
@@ -424,7 +426,7 @@ class QGISRed:
             text=self.tr(u'Set Roughness coefficient (from Material and Date)'),
             callback=self.runSetRoughness,
             menubar=self.qgisredmenuPropertiesTools,
-            toolbar=self.toolbarTools,
+            toolbar=self.toolbarProperties,
             parent=self.iface.mainWindow())
         
         icon_path = ':/plugins/QGISRed/images/iconInterpolate.png' 
@@ -433,7 +435,7 @@ class QGISRed:
             text=self.tr(u'Interpolate elevation from .asc files'),
             callback=self.runElevationInterpolation,
             menubar=self.qgisredmenuPropertiesTools,
-            toolbar=self.toolbarTools,
+            toolbar=self.toolbarProperties,
             parent=self.iface.mainWindow())
         
         icon_path = ':/plugins/QGISRed/images/iconStatus.png' 
@@ -442,19 +444,22 @@ class QGISRed:
             text=self.tr(u'Set pipe\'s initial status from issolated valves'),
             callback=self.runSetPipeStatus,
             menubar=self.qgisredmenuPropertiesTools,
-            toolbar=self.toolbarTools,
+            toolbar=self.toolbarProperties,
             parent=self.iface.mainWindow())
         
-        #Components Submenu
+        """Components Submenu"""
         self.qgisredmenuComponentsTools = self.qgisredmenuTools.addMenu(self.tr('Components'))
         self.qgisredmenuComponentsTools.setIcon(QIcon(':/plugins/QGISRed/images/iconConnections.png'))
+        self.toolbarComponents = self.iface.addToolBar(self.tr(u'QGISRed Components Tools'))
+        self.toolbarComponents.setObjectName(self.tr(u'QGISRed Components Tools'))
+        self.toolbarComponents.setVisible(False)
         icon_path = ':/plugins/QGISRed/images/iconConnections.png' 
         self.add_action(
             icon_path,
             text=self.tr(u'Add connections to the model'),
             callback=self.runAddConnections,
             menubar=self.qgisredmenuComponentsTools,
-            toolbar=self.toolbarTools,
+            toolbar=self.toolbarComponents,
             parent=self.iface.mainWindow())
         
         icon_path = ':/plugins/QGISRed/images/iconHydrants.png' 
@@ -463,7 +468,7 @@ class QGISRed:
             text=self.tr(u'Add hydrants to the model'),
             callback=self.runAddHydrants,
             menubar=self.qgisredmenuComponentsTools,
-            toolbar=self.toolbarTools,
+            toolbar=self.toolbarComponents,
             parent=self.iface.mainWindow())
         
         icon_path = ':/plugins/QGISRed/images/iconPurges.png' 
@@ -472,19 +477,22 @@ class QGISRed:
             text=self.tr(u'Add purge valves to the model'),
             callback=self.runAddPurgeValves,
             menubar=self.qgisredmenuComponentsTools,
-            toolbar=self.toolbarTools,
+            toolbar=self.toolbarComponents,
             parent=self.iface.mainWindow())
         
-        #Components Submenu
+        """Sectorization Submenu"""
         self.qgisredmenuSectorsTools = self.qgisredmenuTools.addMenu(self.tr('Sectorization'))
         self.qgisredmenuSectorsTools.setIcon(QIcon(':/plugins/QGISRed/images/iconDemandSector.png'))
+        self.toolbarSectorization = self.iface.addToolBar(self.tr(u'QGISRed Sectorization Tools'))
+        self.toolbarSectorization.setObjectName(self.tr(u'QGISRed Sectorization Tools'))
+        self.toolbarSectorization.setVisible(False)
         icon_path = ':/plugins/QGISRed/images/iconHydraulic.png' 
         self.add_action(
             icon_path,
             text=self.tr(u'Obtain hydraulic sectors'),
             callback=self.runHydraulicSectors,
             menubar=self.qgisredmenuSectorsTools,
-            toolbar=self.toolbarTools,
+            toolbar=self.toolbarSectorization,
             parent=self.iface.mainWindow())
         
         icon_path = ':/plugins/QGISRed/images/iconDemandSector.png' 
@@ -493,7 +501,7 @@ class QGISRed:
             text=self.tr(u'Obtain demand sectors'),
             callback=self.runDemandSectors,
             menubar=self.qgisredmenuSectorsTools,
-            toolbar=self.toolbarTools,
+            toolbar=self.toolbarSectorization,
             parent=self.iface.mainWindow())
         
         #Export
@@ -544,13 +552,59 @@ class QGISRed:
         
         #Tools
         icon_path = ':/plugins/QGISRed/images/iconTools.png' 
-        self.add_action(
+        dropButton = self.add_action(
             icon_path,
-            text=self.tr(u'Tools'),
-            callback=self.runToolbar,
+            text=self.tr(u'All Toolbars'),
+            callback=self.runToolbars,
             menubar=None,
             add_to_menu=False,
             toolbar=self.toolbar,
+            createDrop = True,
+            add_to_toolbar =False,
+            parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconToolsLayout.png' 
+        self.add_action(
+            icon_path,
+            text=self.tr(u'Layout Toolbar'),
+            callback=self.runLayoutToolbar,
+            menubar=None,
+            add_to_menu=False,
+            toolbar=self.toolbar,
+            actionBase = dropButton,
+            add_to_toolbar =False,
+            parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconToolsProperties.png' 
+        self.add_action(
+            icon_path,
+            text=self.tr(u'Properties Toolbar'),
+            callback=self.runPropertiesToolbar,
+            menubar=None,
+            add_to_menu=False,
+            toolbar=self.toolbar,
+            actionBase = dropButton,
+            add_to_toolbar =False,
+            parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconToolsComponents.png' 
+        self.add_action(
+            icon_path,
+            text=self.tr(u'Components Toolbar'),
+            callback=self.runComponentsToolbar,
+            menubar=None,
+            add_to_menu=False,
+            toolbar=self.toolbar,
+            actionBase = dropButton,
+            add_to_toolbar =False,
+            parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconToolsSectorization.png' 
+        self.add_action(
+            icon_path,
+            text=self.tr(u'Sectorization Toolbar'),
+            callback=self.runSectorizationToolbar,
+            menubar=None,
+            add_to_menu=False,
+            toolbar=self.toolbar,
+            actionBase = dropButton,
+            add_to_toolbar =False,
             parent=self.iface.mainWindow())
         
         #About
@@ -606,7 +660,10 @@ class QGISRed:
             self.iface.removeToolBarIcon(action)
         # remove the toolbar
         del self.toolbar
-        del self.toolbarTools
+        del self.toolbarLayout
+        del self.toolbarProperties
+        del self.toolbarComponents
+        del self.toolbarSectorization
         
         if self.qgisredmenuSectorsTools:
             self.qgisredmenuSectorsTools.menuAction().setVisible(False)
@@ -1082,9 +1139,23 @@ class QGISRed:
         dlg.exec_()
 
     """Tools"""
-    def runToolbar(self):
-        # show the dialog
-        self.toolbarTools.setVisible(not self.toolbarTools.isVisible())
+    def runToolbars(self):
+        self.toolbarLayout.setVisible(True)
+        self.toolbarProperties.setVisible(True)
+        self.toolbarComponents.setVisible(True)
+        self.toolbarSectorization.setVisible(True)
+    
+    def runLayoutToolbar(self):
+        self.toolbarLayout.setVisible(not self.toolbarLayout.isVisible())
+
+    def runPropertiesToolbar(self):
+        self.toolbarProperties.setVisible(not self.toolbarProperties.isVisible())
+
+    def runComponentsToolbar(self):
+        self.toolbarComponents.setVisible(not self.toolbarComponents.isVisible())
+
+    def runSectorizationToolbar(self):
+        self.toolbarSectorization.setVisible(not self.toolbarSectorization.isVisible())
 
     """Layaout"""
     def runCheckCoordinatesM(self):

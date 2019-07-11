@@ -15,6 +15,10 @@
         <file>images/aboutUPV.png</file>
         <file>images/iconFlash.png</file>
         <file>images/iconTools.png</file>
+        <file>images/iconToolsLayout.png</file>
+        <file>images/iconToolsProperties.png</file>
+        <file>images/iconToolsComponents.png</file>
+        <file>images/iconToolsSectorization.png</file>
         <file>images/iconOverloadM.png</file>
         <file>images/iconOverloadC.png</file>
         <file>images/iconVerticesM.png</file>
