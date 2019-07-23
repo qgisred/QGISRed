@@ -62,6 +62,9 @@ import os
 import datetime
 import time
 import tempfile
+import platform
+import base64
+import shutil
 from ctypes import*
 
 
@@ -91,6 +94,12 @@ class QGISRed:
         """
         # Save reference to the QGIS interface
         self.iface = iface
+        self.KeyTemp = str(base64.b64encode(os.urandom(16)))
+        
+        if not platform.system()=="Windows":
+            self.iface.messageBar().pushMessage(self.tr("Error"), self.tr("QGISRed only works in Windows"), level=2, duration=5)
+            return
+        
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
         # initialize locale
@@ -190,6 +199,8 @@ class QGISRed:
         return action
 
     def initGui(self):
+        if not platform.system()=="Windows":
+            return
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
         """Main buttons"""
         icon_path = ':/plugins/QGISRed/images/iconProjectManager.png'
@@ -619,7 +630,6 @@ class QGISRed:
         
         #Copy necessary files regarding os architecture
         from shutil import copyfile
-        import platform
         if "64bit" in str(platform.architecture()):
             folder = "x64"
         else:
@@ -650,6 +660,10 @@ class QGISRed:
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
+        dirpath = os.path.join(tempfile._get_default_tempdir(), "qgisred" + self.KeyTemp)
+        if os.path.exists(dirpath) and os.path.isdir(dirpath):
+            shutil.rmtree(dirpath)
+        
         if self.ResultDockwidget is not None:
             self.ResultDockwidget.close()
             self.iface.removeDockWidget(self.ResultDockwidget)
@@ -874,6 +888,11 @@ class QGISRed:
                 if len(queryGroup.findLayers())==0:
                     netGroup.removeChildNode(queryGroup)
 
+    def createBackup(self):
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.saveBackup(self.KeyTemp)
+
+    """Main methods"""
     def runProjectManager(self):
         self.defineCurrentProject()
         # show the dialog
@@ -1003,6 +1022,10 @@ class QGISRed:
                     QgsApplication.taskManager().addTask(task1)
 
     def runCheckDataProcess(self, exception=None, result=None):
+        #Backup
+        # if self.Process == "commit":
+            # self.createBackup()
+        
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))

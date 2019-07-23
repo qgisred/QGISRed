@@ -123,9 +123,9 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         #Process
         os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.CreateProject.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.CreateProject.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CreateProject.restype = c_char_p
-        b = mydll.CreateProject(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), "".encode('utf-8'))
+        b = mydll.CreateProject(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), "".encode('utf-8'), "".encode('utf-8'), "".encode('utf-8'))
         try: #QGis 3.x
             b= "".join(map(chr, b)) #bytes to string
         except:  #QGis 2.x
@@ -152,6 +152,16 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         utils.removeLayers(self.ownMainLayers)
         utils.removeLayers(self.ownFiles, ".dbf")
         raise Exception('')
+
+    def getInputGroup(self):
+        inputGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
+        if inputGroup is None:
+            netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
+            if netGroup is None:
+                root = QgsProject.instance().layerTreeRoot()
+                netGroup = root.addGroup(self.NetworkName)
+            inputGroup = netGroup.addGroup("Inputs")
+        return inputGroup
 
     """INP SECTION"""
     def selectINP(self):
@@ -212,12 +222,9 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             b=b
         
         #Open layers
-        dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Inputs")
-        if dataGroup is None:
-            root = QgsProject.instance().layerTreeRoot()
-            dataGroup = root.addGroup(self.NetworkName + " Inputs")
+        inputGroup = self.getInputGroup()
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        utils.openElementsLayers(dataGroup, self.CRS, self.ownMainLayers, self.ownFiles)
+        utils.openElementsLayers(inputGroup, self.CRS, self.ownMainLayers, self.ownFiles)
         QApplication.restoreOverrideCursor()
         
         #Message
@@ -756,12 +763,9 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             b=b
         
         #Open layers
-        dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName + " Inputs")
-        if dataGroup is None:
-            root = QgsProject.instance().layerTreeRoot()
-            dataGroup = root.addGroup(self.NetworkName + " Inputs")
+        inputGroup = self.getInputGroup()
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        utils.openElementsLayers(dataGroup, self.CRS, self.ownMainLayers, self.ownFiles)
+        utils.openElementsLayers(inputGroup, self.CRS, self.ownMainLayers, self.ownFiles)
         QApplication.restoreOverrideCursor()
         
         #Message

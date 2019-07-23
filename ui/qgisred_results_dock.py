@@ -7,13 +7,14 @@ try: #QGis 3.x
     from qgis.core import Qgis, QgsTask, QgsApplication
     from PyQt5.QtWidgets import QDockWidget, QApplication
     from PyQt5.QtCore import Qt
+    from PyQt5.QtGui import QColor
     from qgis.core import QgsSvgMarkerSymbolLayer, QgsSymbol, QgsSingleSymbolRenderer, QgsLineSymbol, QgsProperty, QgsRenderContext
     from qgis.core import QgsSimpleLineSymbolLayer, QgsMarkerSymbol, QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayer
-    from qgis.core import QgsGraduatedSymbolRenderer, QgsGradientColorRamp as QgsVectorGradientColorRamp
+    from qgis.core import QgsGraduatedSymbolRenderer, QgsGradientColorRamp as QgsVectorGradientColorRamp, QgsRendererRange
     from ..qgisred_utils import QGISRedUtils
 except: #QGis 2.x
     from qgis.core import QGis as Qgis
-    from PyQt4.QtGui import QDockWidget, QApplication, qApp
+    from PyQt4.QtGui import QDockWidget, QApplication, qApp, QColor
     from PyQt4.QtCore import Qt
     from qgis.core import QgsSvgMarkerSymbolLayerV2 as QgsSvgMarkerSymbolLayer, QgsSymbolV2 as QgsSymbol
     from qgis.core import QgsSingleSymbolRendererV2 as QgsSingleSymbolRenderer, QgsLineSymbolV2 as QgsLineSymbol
@@ -21,6 +22,7 @@ except: #QGis 2.x
     from qgis.core import QgsMarkerLineSymbolLayerV2 as QgsMarkerLineSymbolLayer 
     from qgis.core import QgsSimpleMarkerSymbolLayerV2 as QgsSimpleMarkerSymbolLayer, QgsDataDefined
     from qgis.core import QgsGraduatedSymbolRendererV2 as QgsGraduatedSymbolRenderer, QgsVectorGradientColorRampV2 as QgsVectorGradientColorRamp
+    from qgis.core import QgsRendererRangeV2 as QgsRendererRange
     from ..qgisred_utils import QGISRedUtils
 
 import os
@@ -287,9 +289,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 pathLayer = str(layer.dataProvider().dataSourceUri().split("|")[0])
                 if pathLayer== os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp"):
                     if version == 3:
-                        dictSce[pathLayer]=layer.renderer()
+                        renderer= layer.renderer()
                     else:
-                        dictSce[pathLayer]=layer.rendererV2()
+                        renderer= layer.rendererV2()
+                    if renderer.type() == 'graduatedSymbol':
+                        dictSce[pathLayer]= renderer.ranges()
         self.Renders[self.Scenario]=dictSce
 
     def paintIntervalTimeResults(self, columnNumber, setRender = False):
@@ -310,14 +314,14 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/","\\")== os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp").replace("/","\\"):
                     field_names = [field.name() for field in layer.fields()]
                     field = field_names[columnNumber+2]
-                    self.setGraduadedPalette(layer, field, setRender)
+                    self.setGraduadedPalette(layer, field, setRender, nameLayer)
                     layer.setName(nameLayer + " " + self.TimeLabels[columnNumber])
                     if str(Qgis.QGIS_VERSION).startswith('3'): #QGis 3.x
                         layer.setMapTipTemplate("<br>[% \"T" + str(columnNumber) + "\" %]")
                     else:
                         layer.setDisplayField('T' + str(columnNumber))
 
-    def setGraduadedPalette(self, layer, field, setRender):
+    def setGraduadedPalette(self, layer, field, setRender, nameLayer):
         try: # QGis 3
             version = 3
             renderer = layer.renderer()
@@ -396,40 +400,94 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             if dictRend is None:
                 dictRend = self.Renders.get("Base")
                 if dictRend is not None:
-                    renderer = dictRend.get(str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("_" + self.Scenario + "_","_Base_"))
-                    if renderer is not None:
+                    ranges = dictRend.get(str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("_" + self.Scenario + "_","_Base_"))
+                    if ranges is not None:
                         hasRender= True
             else:
-                renderer = dictRend.get(str(layer.dataProvider().dataSourceUri().split("|")[0]))
-                if renderer is not None:
+                ranges = dictRend.get(str(layer.dataProvider().dataSourceUri().split("|")[0]))
+                if ranges is not None:
                     hasRender=True
                 else:
                     dictRend = self.Renders.get("Base")
                     if dictRend is not None:
-                        renderer = dictRend.get(str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("_" + self.Scenario + "_","_Base_"))
-                        if renderer is not None:
+                        ranges = dictRend.get(str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("_" + self.Scenario + "_","_Base_"))
+                        if ranges is not None:
                             hasRender= True
             if hasRender:
-                # if renderer.type() == 'graduatedSymbol':
-                    # print("entra")
-                    # renderer = QgsGraduatedSymbolRenderer.createRender(layer, field,)
-                    # print(renderer.type())
-                    # return
-                    # renderer.setClassAttribute(field)
-                    # print(renderer.type())
-                # else:
-                hasRender=False
-
-            if not hasRender:
-                mode= QgsGraduatedSymbolRenderer.EqualInterval #Quantile
-                classes = 5
-                colorRamp = QgsVectorGradientColorRamp.create({'color1':'0,0,255,255', 'color2':'255,0,0,255','stops':'0.25;0,255,255,255:0.50;0,255,0,255:0.75;255,255,0,255'})
-                self.iface.setActiveLayer(layer)
-                renderer = QgsGraduatedSymbolRenderer.createRenderer( layer, field, classes, mode, symbol, colorRamp )
-                myFormat = renderer.labelFormat()
-                myFormat.setPrecision(2)
-                myFormat.setTrimTrailingZeroes(True)
-                renderer.setLabelFormat(myFormat, True)
+                renderer = QgsGraduatedSymbolRenderer(field, ranges)
+            else:
+                simb1 = symbol.clone()
+                simb2 = symbol.clone()
+                simb3 = symbol.clone()
+                simb4 = symbol.clone()
+                simb5 = symbol.clone()
+                simb1.setColor(QColor(0,0,255))
+                simb2.setColor(QColor(0,255,255))
+                simb3.setColor(QColor(0,255,0))
+                simb4.setColor(QColor(255,255,0))
+                simb5.setColor(QColor(165,0,0))
+                ranges = []
+                if "Pressure" in nameLayer:
+                    ranges.append(QgsRendererRange(-10000, 20, simb1, "<20"))
+                    ranges.append(QgsRendererRange(20, 30, simb2, "20-30"))
+                    ranges.append(QgsRendererRange(30, 40, simb3, "30-40"))
+                    ranges.append(QgsRendererRange(40, 50, simb4, "40-50"))
+                    ranges.append(QgsRendererRange(50, 10000, simb5, ">50"))
+                elif "Node_Head" in nameLayer:
+                    ranges.append(QgsRendererRange(-10000, 20, simb1, "<20"))
+                    ranges.append(QgsRendererRange(20, 40, simb2, "20-40"))
+                    ranges.append(QgsRendererRange(40, 60, simb3, "40-60"))
+                    ranges.append(QgsRendererRange(60, 80, simb4, "60-80"))
+                    ranges.append(QgsRendererRange(80, 10000, simb5, ">80"))
+                elif "Demand" in nameLayer:
+                    ranges.append(QgsRendererRange(-10000, 5, simb1, "<5"))
+                    ranges.append(QgsRendererRange(5, 10, simb2, "5-10"))
+                    ranges.append(QgsRendererRange(10, 20, simb3, "10-20"))
+                    ranges.append(QgsRendererRange(20, 40, simb4, "20-40"))
+                    ranges.append(QgsRendererRange(40, 10000, simb5, ">40"))
+                elif "Node_Quality" in nameLayer:
+                    ranges.append(QgsRendererRange(-10000, 0.25, simb1, "<0.25"))
+                    ranges.append(QgsRendererRange(0.25, 0.5, simb2, "0.25-0.5"))
+                    ranges.append(QgsRendererRange(0.5, 0.75, simb3, "0.5-0.75"))
+                    ranges.append(QgsRendererRange(0.75, 1, simb4, "0.75-1"))
+                    ranges.append(QgsRendererRange(1, 10000, simb5, ">1"))
+                elif "Flow" in nameLayer:
+                    ranges.append(QgsRendererRange(-10000, 10, simb1, "<10"))
+                    ranges.append(QgsRendererRange(10,20, simb2, "10-20"))
+                    ranges.append(QgsRendererRange(20, 50, simb3, "20-50"))
+                    ranges.append(QgsRendererRange(50, 100, simb4, "50-100"))
+                    ranges.append(QgsRendererRange(100, 10000, simb5, ">100"))
+                elif "Velocity" in nameLayer:
+                    ranges.append(QgsRendererRange(-10000, 0.1, simb1, "<0.1"))
+                    ranges.append(QgsRendererRange(0.1, 0.5, simb2, "0.1-0.5"))
+                    ranges.append(QgsRendererRange(0.5, 1, simb3, "0.5-1"))
+                    ranges.append(QgsRendererRange(1, 2, simb4, "1-2"))
+                    ranges.append(QgsRendererRange(2, 10000, simb5, ">2"))
+                elif "HeadLoss" in nameLayer:
+                    ranges.append(QgsRendererRange(-10000, 0.1, simb1, "<0.1"))
+                    ranges.append(QgsRendererRange(0.1, 0.5, simb2, "0.1-0.5"))
+                    ranges.append(QgsRendererRange(0.5, 1, simb3, "0.5-1"))
+                    ranges.append(QgsRendererRange(1, 5, simb4, "1-5"))
+                    ranges.append(QgsRendererRange(5, 10000, simb5, ">5"))
+                elif "Link_Quality" in nameLayer:
+                    ranges.append(QgsRendererRange(-10000, 0.25, simb1, "<0.25"))
+                    ranges.append(QgsRendererRange(0.25, 0.5, simb2, "0.25-0.5"))
+                    ranges.append(QgsRendererRange(0.5, 0.75, simb3, "0.5-0.75"))
+                    ranges.append(QgsRendererRange(0.75, 1, simb4, "0.75-1"))
+                    ranges.append(QgsRendererRange(1, 10000, simb5, ">1"))
+                else:
+                    mode= QgsGraduatedSymbolRenderer.EqualInterval #Quantile
+                    classes = 5
+                    colorRamp = QgsVectorGradientColorRamp.create({'color1':'0,0,255,255', 'color2':'255,0,0,255','stops':'0.25;0,255,255,255:0.50;0,255,0,255:0.75;255,255,0,255'})
+                    self.iface.setActiveLayer(layer)
+                    renderer = QgsGraduatedSymbolRenderer.createRenderer( layer, field, classes, mode, symbol, colorRamp )
+                    myFormat = renderer.labelFormat()
+                    myFormat.setPrecision(2)
+                    myFormat.setTrimTrailingZeroes(True)
+                    renderer.setLabelFormat(myFormat, True)
+                
+                if len(ranges)>0:
+                    renderer = QgsGraduatedSymbolRenderer(field, ranges)
         else:
             renderer.setClassAttribute(field)
 

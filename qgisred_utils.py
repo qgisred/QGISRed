@@ -18,6 +18,9 @@ except: #QGis 2.x
 
 # Others imports
 import os
+import tempfile
+from zipfile import ZipFile 
+import datetime
 
 class QGISRedUtils:
     def __init__(self, directory="", networkName="", iface=None):
@@ -235,3 +238,30 @@ class QGISRedUtils:
                 layer.setRenderer(renderer)
             except: #QGis 2.x
                 layer.setRendererV2(renderer)
+
+    def getFilePaths(self):
+        # initializing empty file paths list 
+        file_paths = [] 
+        # crawling through directory and subdirectories 
+        for root, directories, files in os.walk(self.ProjectDirectory): 
+            for filename in files: 
+                if self.NetworkName in filename:
+                    # join the two strings in order to form the full filepath. 
+                    filepath = os.path.join(root, filename) 
+                    file_paths.append(filepath.replace("/","\\")) 
+        # returning all file paths 
+        return file_paths 
+
+    def saveBackup(self, key):
+        file_paths = self.getFilePaths()
+        dirpath = os.path.join(tempfile._get_default_tempdir(), "qgisred" + key)
+        if not os.path.exists(dirpath):
+            try:
+                os.mkdir(dirpath)
+            except:
+                pass
+        
+        with ZipFile(os.path.join(dirpath, os.path.basename(self.ProjectDirectory) + "-" + self.NetworkName + datetime.datetime.now().strftime('%Y%m%d%H%M%S') + ".zip"),'w') as zip:
+            # writing each file one by one 
+            for file in file_paths:
+                zip.write(file, file.replace(self.ProjectDirectory.replace("/","\\"), ""))

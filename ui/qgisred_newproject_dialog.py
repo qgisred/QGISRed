@@ -70,6 +70,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         self.tbNetworkName.setReadOnly(not newProject)
         if not newProject:
             self.setProperties()
+            self.readTitleAndNotes()
 
     def setProperties(self):
         if self.btCreateProject.isVisible():
@@ -119,6 +120,29 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         self.cbCountmeters.setChecked(False)
         self.cbLevelmeters.setChecked(False)
 
+    def readTitleAndNotes(self):
+        filePath = os.path.join(self.ProjectDirectory, self.NetworkName + "_TitleAndNotes.txt")
+        print (filePath)
+        if os.path.exists(filePath):
+            f = open(filePath, "r")
+            notes=False
+            notesTxt=""
+            for line in f:
+                if "<Title>" in line:
+                    self.tbScenarioName.setText(line.replace("<Title>","").replace("</Title>","").strip())
+                if "<Notes>" in line:
+                    notes=True
+                    notesTxt = line.replace("<Notes>","").replace("</Notes>","").strip()
+                    if "</Notes>" in line:
+                        self.tbNotes.setText(notesTxt)
+                        return
+                elif "</Notes>" in line:
+                    notesTxt = notesTxt + '\n' + line.replace("</Notes>","").strip()
+                    self.tbNotes.setText(notesTxt)
+                    return
+                elif notes:
+                    notesTxt = notesTxt + '\n' + line.strip()
+
     def selectDirectory(self):
         selected_directory = QFileDialog.getExistingDirectory()
         if not selected_directory == "":
@@ -139,6 +163,16 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
                 self.CRS = QgsCoordinateReferenceSystem()
                 self.CRS.createFromId(crsId, QgsCoordinateReferenceSystem.InternalCrsId)
                 self.tbCRS.setText(self.CRS.description())
+
+    def getInputGroup(self):
+        inputGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
+        if inputGroup is None:
+            netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
+            if netGroup is None:
+                root = QgsProject.instance().layerTreeRoot()
+                netGroup = root.addGroup(self.NetworkName)
+            inputGroup = netGroup.addGroup("Inputs")
+        return inputGroup
 
     def createElementsList(self):
         list =""
@@ -285,21 +319,28 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
                     if self.NetworkName + "_" + layer + ".shp" in dirList:
                         self.iface.messageBar().pushMessage("Validations", "The project directory has some file to selected network's name", level=1)
                         return False
+        
+        if len(self.tbScenarioName.text())==0:
+            self.iface.messageBar().pushMessage("Validations", "The scenario's name is not valid", level=1)
+            return False
         return True
 
     def createProject(self):
         #Validations
         isValid = self.validationsCreateProject()
         if isValid==True:
+            scnName = self.tbScenarioName.text()
+            notes = self.tbNotes.toPlainText().strip().strip("\n")
+            
             #Process
             QApplication.setOverrideCursor(Qt.WaitCursor)
             os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
             complElements = self.createComplementaryList()
 
             mydll = WinDLL("GISRed.QGisPlugins.dll")
-            mydll.CreateProject.argtypes = (c_char_p, c_char_p, c_char_p)
+            mydll.CreateProject.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
             mydll.CreateProject.restype = c_char_p
-            b = mydll.CreateProject(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), complElements.encode('utf-8'))
+            b = mydll.CreateProject(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), complElements.encode('utf-8'), scnName.encode('utf-8'), notes.encode('utf-8'))
             try: #QGis 3.x
                 b= "".join(map(chr, b)) #bytes to string
             except:  #QGis 2.x
@@ -307,10 +348,9 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             
             #Open layers
             self.iface.mapCanvas().setDestinationCrs(self.CRS)
-            root = QgsProject.instance().layerTreeRoot()
-            group = root.addGroup(self.NetworkName + " Inputs")
-            self.openComplementaryLayers(group)
-            self.openElementsLayers(group, True)
+            inputGroup = self.getInputGroup()
+            self.openComplementaryLayers(inputGroup)
+            self.openElementsLayers(inputGroup, True)
             
             
             QApplication.restoreOverrideCursor()
@@ -350,26 +390,25 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         
         complElements = self.createComplementaryList()
         elements = self.createElementsList()
+        scnName = self.tbScenarioName.text()
+        notes = self.tbNotes.toPlainText().strip().strip("\n")
         
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.EditProject.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.EditProject.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.EditProject.restype = c_char_p
-        b = mydll.EditProject(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), elements.encode('utf-8'), complElements.encode('utf-8'))
+        b = mydll.EditProject(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), elements.encode('utf-8'), complElements.encode('utf-8'), scnName.encode('utf-8'), notes.encode('utf-8'))
         try: #QGis 3.x
             b= "".join(map(chr, b)) #bytes to string
         except:  #QGis 2.x
             b=b
         
         #Open layers
-        dataGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName +" Inputs")
-        if dataGroup is None:
-            root = QgsProject.instance().layerTreeRoot()
-            dataGroup = root.addGroup(self.NetworkName + " Inputs")
-        if dataGroup is not None:
-            for treeLayer in dataGroup.findLayers():
+        inputGroup = self.getInputGroup()
+        if inputGroup is not None:
+            for treeLayer in inputGroup.findLayers():
                 treeLayer.layer().setCrs(self.CRS)
-        self.openElementsLayers(dataGroup, False)
-        self.openComplementaryLayers(dataGroup)
+        self.openElementsLayers(inputGroup, False)
+        self.openComplementaryLayers(inputGroup)
         
         QApplication.restoreOverrideCursor()
         
