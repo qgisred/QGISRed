@@ -20,6 +20,7 @@ class QGISRedAboutDialog(QDialog, FORM_CLASS):
         self.labelIiama.mousePressEvent = self.linkIiama
         self.labelUpv.mousePressEvent = self.linkUpv
         self.lbManual.mousePressEvent = self.userManual
+        self.lbManual_es.mousePressEvent = self.userManualEs
 
     def linkRedhisp(self, event):
         webbrowser.open('http://www.redhisp.upv.es')
@@ -32,5 +33,9 @@ class QGISRedAboutDialog(QDialog, FORM_CLASS):
         os.startfile(filename)
 
     def userManual(self, event):
-        pdf = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'usermanual.pdf')
+        pdf = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'usermanual_en.pdf')
+        webbrowser.open(pdf)
+
+    def userManualEs(self, event):
+        pdf = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'usermanual_es.pdf')
         webbrowser.open(pdf)

@@ -122,9 +122,8 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
 
     def readTitleAndNotes(self):
         filePath = os.path.join(self.ProjectDirectory, self.NetworkName + "_TitleAndNotes.txt")
-        print (filePath)
         if os.path.exists(filePath):
-            f = open(filePath, "r")
+            f = open(filePath, "r", encoding="latin-1")
             notes=False
             notesTxt=""
             for line in f:

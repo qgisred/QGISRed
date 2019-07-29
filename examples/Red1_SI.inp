@@ -1,0 +1,183 @@
+[TITLE]
+EPANET. Red Ejemplo 1 (Unidades SI)
+Se trata de un ejemplo sencillo para mostrar el decaimiento del cloro.
+Incluye coeficientes de reacción en el medio y en las paredes. 
+Todas las unidades están expresadas en el Sistema Internacional
+Incorpora además una válvula de regulación
+
+[JUNCTIONS]
+;ID Nudo         	Cota        	Demanda     	Curva de Modulac.
+ 10              	217         	0           	                	;
+ 11              	217         	10          	                	;
+ 12              	214         	10          	                	;
+ 13              	212         	6           	                	;
+ 21              	214         	10          	                	;
+ 22              	212         	13          	                	;
+ 23              	210         	10          	                	;
+ 31              	214         	6           	                	;
+ 32              	217         	6           	                	;
+ 14              	217         	0           	                	;
+
+[RESERVOIRS]
+;ID Nudo         	Altura      	Curva modulac.
+ 9               	245         	                	;
+
+[TANKS]
+;ID Nudo         	Cota        	NivelIni    	NivelMín    	NivelMáx    	Diámetro    	VolMín      	CurvCubic
+ 2               	260         	36          	30          	45          	15.5        	0           	                	;
+
+[PIPES]
+;ID Línea        	Nudo1           	Nudo2             	Longitud    	Diámetro    	Rugosidad   	PérdMen     	Estado
+ 10              	10              	11              	3212        	450         	1           	0           	Open  	;
+ 11              	14              	12              	1610        	350         	1           	0           	Open  	;
+ 12              	12              	13              	1610        	250         	1           	0           	Open  	;
+ 21              	21              	22              	1610        	250         	1           	0           	Open  	;
+ 22              	22              	23              	1610        	300         	1           	0           	Open  	;
+ 31              	31              	32              	1610        	150         	1           	0           	Open  	;
+ 110             	2               	12              	60          	450         	1           	0           	Open  	;
+ 111             	11              	21              	1610        	250         	1           	0           	Open  	;
+ 112             	12              	22              	1610        	300         	1           	0           	Open  	;
+ 113             	13              	23              	1610        	200         	1           	0           	Open  	;
+ 121             	21              	31              	1610        	200         	1           	0           	Open  	;
+ 122             	22              	32              	1610        	150         	1           	0           	Open  	;
+
+[PUMPS]
+;ID línea        	NudoAsp         	NudoImp         	Parámetros
+ 9               	9               	10              	HEAD 1	;
+
+[VALVES]
+;ID línea        	NudoAgArr       	NudoAgAbj       	Diámetro    	Tipo	Consigna    	PérdMen     
+ 1               	11              	14              	350         	TCV 	0           	0           	;
+
+[TAGS]
+
+[DEMANDS]
+;ID Nudo         	Demanda Base	Curva Modulación 	Tipo Demanda
+
+[STATUS]
+;ID línea       	Estado/Consigna
+
+[PATTERNS]
+;ID Curva        	Multiplicadores
+;Curva de Modulación de la Demanda
+ 1               	1.0         	1.2         	1.4         	1.6         	1.4         	1.2         
+ 1               	1.0         	0.8         	0.6         	0.4         	0.6         	0.8         
+
+[CURVES]
+;ID Curva        	Valor X     	Valor Y
+;PUMP:   Curva Característica de la Bomba 9
+ 1               	100         	75          
+
+[CONTROLS]
+ LINK 9 OPEN IF NODE 2 BELOW 34
+ LINK 9 CLOSED IF NODE 2 ABOVE 43
+
+[RULES]
+
+[ENERGY]
+ Global Efficiency  	75
+ Global Price       	0.0
+ Demand Charge      	0.0
+
+[EMITTERS]
+;ID Nudo_Caud    	Coeficiente
+
+[QUALITY]
+;ID Nudo         	Calidad Inicial
+ 10              	0.5
+ 11              	0.5
+ 12              	0.5
+ 13              	0.5
+ 21              	0.5
+ 22              	0.5
+ 23              	0.5
+ 31              	0.5
+ 32              	0.5
+ 14              	0.5
+ 9               	1.0
+ 2               	1.0
+
+[SOURCES]
+;ID Nudo         	Tipo        	Calidad     	Curva Modul
+
+[REACTIONS]
+;Tipo     	Tub/Depós       	Coeficiente
+
+
+[REACTIONS]
+ Order Bulk            	1
+ Order Tank            	1
+ Order Wall            	1
+ Global Bulk           	-.5
+ Global Wall           	-0.305
+ Limiting Potential    	0.0
+ Roughness Correlation 	0.0
+
+[MIXING]
+;ID Depósito     	Modelo       	Fracción Mezcla
+
+[TIMES]
+ Duration           	24:00 
+ Hydraulic Timestep 	1:00 
+ Quality Timestep   	0:05 
+ Pattern Timestep   	2:00 
+ Pattern Start      	0:00 
+ Report Timestep    	1:00 
+ Report Start       	0:00 
+ Start ClockTime    	12 am
+ Statistic          	None
+
+[REPORT]
+ Status             	Yes
+ Summary            	No
+ Page               	0
+
+[OPTIONS]
+ Units              	LPS
+ Headloss           	D-W
+ Specific Gravity   	1.0
+ Viscosity          	1.0
+ Trials             	40
+ Accuracy           	0.001
+ CHECKFREQ          	2
+ MAXCHECK           	10
+ DAMPLIMIT          	0
+ Unbalanced         	Continue 10
+ Pattern            	1
+ Demand Multiplier  	1.0
+ Emitter Exponent   	0.5
+ Quality            	Cloro mg/l
+ Diffusivity        	1.0
+ Tolerance          	0.01
+
+[COORDINATES]
+;ID Nudo         	Coord X          	Coord Y
+ 10              	20              	70              
+ 11              	30              	70              
+ 12              	50              	70              
+ 13              	70              	70              
+ 21              	30              	40              
+ 22              	50              	40              
+ 23              	70              	40              
+ 31              	30              	10              
+ 32              	50              	10              
+ 14              	36.1223021582734	69.9424460431655
+ 9               	10              	70              
+ 2               	50              	90              
+
+[VERTICES]
+;ID Línea        	Coord X          	Coord Y
+
+[LABELS]
+;Coord X        	Coord Y         	Rótulo y Nudo Anclaje
+ 1.78947368421053	73.9752321981424	"Fuente Suministro"	                
+ 12.6873064041138	68.1176470588235	"Bomba"	                
+ 41.2941176470588	91.6842105263158	"Depósito"	                
+
+[BACKDROP]
+ DIMENSIONS     	7               	6               	73              	94              
+ UNITS          	None
+ FILE           	
+ OFFSET         	0               	0               
+
+[END]

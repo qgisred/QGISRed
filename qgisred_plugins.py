@@ -1908,11 +1908,6 @@ class QGISRed:
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
-
-
-
-
-
     def runCheckDiameters(self):
         #Validations
         self.defineCurrentProject()
@@ -2143,43 +2138,91 @@ class QGISRed:
             return
         
         #Question
-        self.reply = QMessageBox.question(self.iface.mainWindow(), self.tr('Add connections to the model'), 'Do you want to include connections as pipes (Yes) or only as nodes (No)?', QMessageBox.Yes, QMessageBox.No, QMessageBox.Cancel)
+        self.reply = QMessageBox.question(self.iface.mainWindow(), self.tr('Add connections to the model'), self.tr('Do you want to include connections as pipes (Yes) or only as nodes (No)?'), QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel))
         if self.reply == QMessageBox.Cancel:
             return
-        #Process
-        self.complementaryLayers = ["Connections"]
-        if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-            try:
-                self.removeComplementaryLayers(None,0)
-            except:
-                pass
-            self.runAddConnectionsProcess()
-        else:  #QGis 3.x
-            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-            task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeComplementaryLayers, on_finished=self.runAddConnectionsProcess, wait_time=0)
-            task1.run()
-            QgsApplication.taskManager().addTask(task1)
-
-    def runAddConnectionsProcess(self, exception=None, result=None):
-        #Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
-        
+            
         asNode = "true"
         if self.reply == QMessageBox.Yes: #Pipes
             asNode = "false"
+        #Process
+        self.complementaryLayers = ["Connections"]
         
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.AddConnections.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.AddConnections.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.AddConnections.restype = c_char_p
-        b = mydll.AddConnections(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), asNode.encode('utf-8'))
+        step = "step2"
+        # if toCommit:
+            # step = "step2"
+        b = mydll.AddConnections(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), asNode.encode('utf-8'), step.encode('utf-8'))
         try: #QGis 3.x
             b= "".join(map(chr, b)) #bytes to string
         except:  #QGis 2.x
             b=b
+        QApplication.restoreOverrideCursor()
         
-        #Group
-        inputGroup = self.getInputGroup()
+        #Message
+        runAgain=False
+        if b=="True":
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("No Connections to include in the model"), level=3, duration=5)
+        elif b=="False":
+            pass #self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
+        elif b=="shps":
+            runAgain=True
+        elif b=="commit":
+            runAgain=True
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+        
+        # if not toCommit: #open shps of issues
+            # if runAgain:
+                # #Process
+                # self.Process=b
+                # if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
+                    # try:
+                        # self.removeIssuesLayers(None,0)
+                    # except:
+                        # pass
+                    # self.runAddConnectionsProcess()
+                # else:  #QGis 3.x
+                    # #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                    # task1 = QgsTask.fromFunction("", self.removeIssuesLayers, on_finished=self.runAddConnectionsProcess)
+                    # task1.run()
+                    # QgsApplication.taskManager().addTask(task1)
+        # else:
+        if runAgain:
+            #Process
+            self.Process=b
+            if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
+                try:
+                    self.removeComplementaryLayers(None,0)
+                except:
+                    pass
+                self.runAddConnectionsProcess()
+            else:  #QGis 3.x
+                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                task1 = QgsTask.fromFunction("", self.removeComplementaryLayers, on_finished=self.runAddConnectionsProcess)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
+
+    def runAddConnectionsProcess(self, exception=None, result=None):
+        asNode = "true"
+        if self.reply == QMessageBox.Yes: #Pipes
+            asNode = "false"
+        
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.AddConnections.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.AddConnections.restype = c_char_p
+        b = mydll.AddConnections(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), asNode.encode('utf-8'), self.Process.encode('utf-8'))
+        try: #QGis 3.x
+            b= "".join(map(chr, b)) #bytes to string
+        except:  #QGis 2.x
+            b=b
         
         #CRS
         try: #QGis 3.x
@@ -2191,16 +2234,23 @@ class QGISRed:
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
         #Open layers
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        utils.openElementsLayers(inputGroup, crs, self.complementaryLayers, [])
-        utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
-        
+        if self.Process == "commit":
+            inputGroup = self.getInputGroup()
+            utils.openElementsLayers(inputGroup, crs, self.complementaryLayers, [])
+            utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
+        else:
+            issuesGroup = self.getIssuesGroup()
+            utils.openIssuesLayers(issuesGroup, crs, self.issuesLayers)
         QApplication.restoreOverrideCursor()
         
         #Message
         if b=="True":
-            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Does not exist connections to include in the model"), level=3, duration=5) #never is going to be true
+            if self.Process == "commit":
+                self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Connections included in the model"), level=3, duration=5)
+            else:
+                self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("SHPs of issues created"), level=3, duration=5)
         elif b=="False":
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some messages are available after adding connections"), level=1, duration=5)
+            pass #self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
@@ -2219,33 +2269,78 @@ class QGISRed:
         
         #Process
         self.complementaryLayers = ["Hydrants"]
-        if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-            try:
-                self.removeComplementaryLayers(None,0)
-            except:
-                pass
-            self.runAddHydrantsProcess()
-        else:  #QGis 3.x
-            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-            task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeComplementaryLayers, on_finished=self.runAddHydrantsProcess, wait_time=0)
-            task1.run()
-            QgsApplication.taskManager().addTask(task1)
+        
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.AddHydrants.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.AddHydrants.restype = c_char_p
+        step = "step2"
+        # if toCommit:
+            # step = "step2"
+        b = mydll.AddHydrants(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), step.encode('utf-8'))
+        try: #QGis 3.x
+            b= "".join(map(chr, b)) #bytes to string
+        except:  #QGis 2.x
+            b=b
+        QApplication.restoreOverrideCursor()
+        
+        #Message
+        runAgain=False
+        if b=="True":
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("No Hydrants to include in the model"), level=3, duration=5)
+        elif b=="False":
+            pass #self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
+        elif b=="shps":
+            runAgain=True
+        elif b=="commit":
+            runAgain=True
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+        
+        # if not toCommit: #open shps of issues
+            # if runAgain:
+                # #Process
+                # self.Process=b
+                # if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
+                    # try:
+                        # self.removeIssuesLayers(None,0)
+                    # except:
+                        # pass
+                    # self.runAddHydrantsProcess()
+                # else:  #QGis 3.x
+                    # #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                    # task1 = QgsTask.fromFunction("", self.removeIssuesLayers, on_finished=self.runAddHydrantsProcess)
+                    # task1.run()
+                    # QgsApplication.taskManager().addTask(task1)
+        # else:
+        if runAgain:
+            #Process
+            self.Process=b
+            if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
+                try:
+                    self.removeComplementaryLayers(None,0)
+                except:
+                    pass
+                self.runAddHydrantsProcess()
+            else:  #QGis 3.x
+                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                task1 = QgsTask.fromFunction("", self.removeComplementaryLayers, on_finished=self.runAddHydrantsProcess)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
 
     def runAddHydrantsProcess(self, exception=None, result=None):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.AddHydrants.argtypes = (c_char_p, c_char_p)
+        mydll.AddHydrants.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.AddHydrants.restype = c_char_p
-        b = mydll.AddHydrants(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
+        b = mydll.AddHydrants(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Process.encode('utf-8'))
         try: #QGis 3.x
             b= "".join(map(chr, b)) #bytes to string
         except:  #QGis 2.x
             b=b
-        
-        #Group
-        inputGroup = self.getInputGroup()
         
         #CRS
         try: #QGis 3.x
@@ -2257,16 +2352,23 @@ class QGISRed:
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
         #Open layers
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        utils.openElementsLayers(inputGroup, crs, self.complementaryLayers, [])
-        utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
-        
+        if self.Process == "commit":
+            inputGroup = self.getInputGroup()
+            utils.openElementsLayers(inputGroup, crs, self.complementaryLayers, [])
+            utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
+        else:
+            issuesGroup = self.getIssuesGroup()
+            utils.openIssuesLayers(issuesGroup, crs, self.issuesLayers)
         QApplication.restoreOverrideCursor()
         
         #Message
         if b=="True":
-            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Does not exist hydrants to include in the model"), level=3, duration=5) #never is going to be true
+            if self.Process == "commit":
+                self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Hydrants included in the model"), level=3, duration=5)
+            else:
+                self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("SHPs of issues created"), level=3, duration=5)
         elif b=="False":
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some messages are available after adding hyddrants"), level=1, duration=5)
+            pass #self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
@@ -2285,33 +2387,78 @@ class QGISRed:
         
         #Process
         self.complementaryLayers = ["PurgeValves"]
-        if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-            try:
-                self.removeComplementaryLayers(None,0)
-            except:
-                pass
-            self.runAddPurgeValvesProcess()
-        else:  #QGis 3.x
-            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-            task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeComplementaryLayers, on_finished=self.runAddPurgeValvesProcess, wait_time=0)
-            task1.run()
-            QgsApplication.taskManager().addTask(task1)
+        
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.AddPurgeValves.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.AddPurgeValves.restype = c_char_p
+        step = "step2"
+        # if toCommit:
+            # step = "step2"
+        b = mydll.AddPurgeValves(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), step.encode('utf-8'))
+        try: #QGis 3.x
+            b= "".join(map(chr, b)) #bytes to string
+        except:  #QGis 2.x
+            b=b
+        QApplication.restoreOverrideCursor()
+        
+        #Message
+        runAgain=False
+        if b=="True":
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("No Purge Valves to include in the model"), level=3, duration=5)
+        elif b=="False":
+            pass #self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
+        elif b=="shps":
+            runAgain=True
+        elif b=="commit":
+            runAgain=True
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+        
+        # if not toCommit: #open shps of issues
+            # if runAgain:
+                # #Process
+                # self.Process=b
+                # if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
+                    # try:
+                        # self.removeIssuesLayers(None,0)
+                    # except:
+                        # pass
+                    # self.runAddPurgeValvesProcess()
+                # else:  #QGis 3.x
+                    # #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                    # task1 = QgsTask.fromFunction("", self.removeIssuesLayers, on_finished=self.runAddPurgeValvesProcess)
+                    # task1.run()
+                    # QgsApplication.taskManager().addTask(task1)
+        # else:
+        if runAgain:
+            #Process
+            self.Process=b
+            if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
+                try:
+                    self.removeComplementaryLayers(None,0)
+                except:
+                    pass
+                self.runAddPurgeValvesProcess()
+            else:  #QGis 3.x
+                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                task1 = QgsTask.fromFunction("", self.removeComplementaryLayers, on_finished=self.runAddPurgeValvesProcess)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
 
     def runAddPurgeValvesProcess(self, exception=None, result=None):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.AddPurgeValves.argtypes = (c_char_p, c_char_p)
+        mydll.AddPurgeValves.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.AddPurgeValves.restype = c_char_p
-        b = mydll.AddPurgeValves(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
+        b = mydll.AddPurgeValves(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Process.encode('utf-8'))
         try: #QGis 3.x
             b= "".join(map(chr, b)) #bytes to string
         except:  #QGis 2.x
             b=b
-        
-        #Group
-        inputGroup = self.getInputGroup()
         
         #CRS
         try: #QGis 3.x
@@ -2323,16 +2470,23 @@ class QGISRed:
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
         #Open layers
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        utils.openElementsLayers(inputGroup, crs, self.complementaryLayers, [])
-        utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
-        
+        if self.Process == "commit":
+            inputGroup = self.getInputGroup()
+            utils.openElementsLayers(inputGroup, crs, self.complementaryLayers, [])
+            utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
+        else:
+            issuesGroup = self.getIssuesGroup()
+            utils.openIssuesLayers(issuesGroup, crs, self.issuesLayers)
         QApplication.restoreOverrideCursor()
         
         #Message
         if b=="True":
-            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Does not exist purge valves to include in the model"), level=3, duration=5) #never is going to be true
+            if self.Process == "commit":
+                self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Purge Valves included in the model"), level=3, duration=5)
+            else:
+                self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("SHPs of issues created"), level=3, duration=5)
         elif b=="False":
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some messages are available after adding purge valves"), level=1, duration=5)
+            pass #self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
