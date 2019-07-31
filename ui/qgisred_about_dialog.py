@@ -29,8 +29,7 @@ class QGISRedAboutDialog(QDialog, FORM_CLASS):
         webbrowser.open('http://www.iiama.upv.es')
 
     def linkUpv(self, event):
-    
-        os.startfile(filename)
+        webbrowser.open('http://www.upv.es')
 
     def userManual(self, event):
         pdf = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'usermanual_en.pdf')
