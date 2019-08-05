@@ -30,7 +30,7 @@ repository=https://github.com/neslerel/QGISRed
 # Tags are comma separated with spaces allowed
 tags=epanet, gisred, net, pipes, pumps, tanks
 
-homepage=http://www.redhisp.upv.es
+homepage=
 category=Plugins
 icon=images/iconCreateProject.png
 # experimental flag
