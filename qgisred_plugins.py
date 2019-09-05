@@ -25,6 +25,7 @@
 from qgis.gui import QgsMessageBar
 from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer 
 from qgis.core import QgsLayerTreeGroup, QgsLayerTreeNode
+from win32api import GetFileVersionInfo, LOWORD, HIWORD
 try: #QGis 3.x
     from PyQt5.QtGui import QIcon
     from PyQt5.QtWidgets import QAction, QMessageBox, QApplication, QMenu, QFileDialog, QToolButton
@@ -83,6 +84,7 @@ class QGISRed:
     ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs"]
     ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns"]
     TemporalFolder = "Temporal folder"
+    DependenciesVersion ="1.0.0.0"
 
     def __init__(self, iface):
         """Constructor.
@@ -629,34 +631,36 @@ class QGISRed:
             parent=self.iface.mainWindow())
         
         #Copy necessary files regarding os architecture
-        from shutil import copyfile
-        if "64bit" in str(platform.architecture()):
-            folder = "x64"
-        else:
-            folder = "x86"
-        currentDirectory = os.path.join(os.path.dirname(__file__), "dlls")
-        plataformDirectory = os.path.join(currentDirectory, folder)
-        try:
-            copyfile(os.path.join(plataformDirectory, "shapelib.dll"), os.path.join(currentDirectory, "shapelib.dll"))
-            copyfile(os.path.join(plataformDirectory, "epanet2.dll"), os.path.join(currentDirectory, "epanet2.dll"))
-            copyfile(os.path.join(plataformDirectory, "GISRed.QGisPlugins.dll"), os.path.join(currentDirectory, "GISRed.QGisPlugins.dll"))
-            if folder == "x64":
-                copyfile(os.path.join(plataformDirectory, "ucrtbased.dll"), os.path.join(currentDirectory, "ucrtbased.dll"))
-                copyfile(os.path.join(plataformDirectory, "vcruntime140d.dll"), os.path.join(currentDirectory, "vcruntime140d.dll"))
-            languages = ["en", "es"]
-            for lang in languages:
-                lagFolderPlataform = os.path.join(plataformDirectory, lang)
-                lagFolder = os.path.join(currentDirectory, lang)
-                files = os.listdir(lagFolderPlataform)
-                for file in files: #only names
-                    copyfile(os.path.join(lagFolderPlataform, file), os.path.join(lagFolder, file))
-        except:
-            pass
+        # from shutil import copyfile
+        # if "64bit" in str(platform.architecture()):
+            # folder = "x64"
+        # else:
+            # folder = "x86"
+        # currentDirectory = os.path.join(os.path.dirname(__file__), "dlls")
+        # plataformDirectory = os.path.join(currentDirectory, folder)
+        # try:
+            # copyfile(os.path.join(plataformDirectory, "shapelib.dll"), os.path.join(currentDirectory, "shapelib.dll"))
+            # copyfile(os.path.join(plataformDirectory, "epanet2.dll"), os.path.join(currentDirectory, "epanet2.dll"))
+            # copyfile(os.path.join(plataformDirectory, "GISRed.QGisPlugins.dll"), os.path.join(currentDirectory, "GISRed.QGisPlugins.dll"))
+            # if folder == "x64":
+                # copyfile(os.path.join(plataformDirectory, "ucrtbased.dll"), os.path.join(currentDirectory, "ucrtbased.dll"))
+                # copyfile(os.path.join(plataformDirectory, "vcruntime140d.dll"), os.path.join(currentDirectory, "vcruntime140d.dll"))
+            # languages = ["en", "es"]
+            # for lang in languages:
+                # lagFolderPlataform = os.path.join(plataformDirectory, lang)
+                # lagFolder = os.path.join(currentDirectory, lang)
+                # files = os.listdir(lagFolderPlataform)
+                # for file in files: #only names
+                    # copyfile(os.path.join(lagFolderPlataform, file), os.path.join(lagFolder, file))
+        # except:
+            # pass
         
         QgsProject.instance().projectSaved.connect(self.runSaveProject)
         self.issuesLayers = []
         for name in self.ownMainLayers:
             self.issuesLayers.append(name + "_Issues")
+        
+        self.checkDependencies()
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -892,8 +896,36 @@ class QGISRed:
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.saveBackup(self.KeyTemp)
 
+    def checkDependencies(self):
+        valid = False
+        gisredDir= QGISRedUtils().getGISRedFolder()
+        if os.path.isdir(gisredDir):
+            try:
+                info = GetFileVersionInfo (os.path.join(gisredDir,"GISRed.QGisPlugins.dll"), "\\")
+                ms = info['FileVersionMS']
+                ls = info['FileVersionLS']
+                currentVersion = str(HIWORD(ms)) + "." + str(LOWORD(ms)) + "." + str(HIWORD(ls)) + "." + str(LOWORD(ls))
+            except:
+                currentVersion = "0.0.0.0"
+            if currentVersion == self.DependenciesVersion:
+                valid = True
+        if not valid:
+            locale = QSettings().value("locale/userLocale")
+            if "es" in locale:
+                lang = "es-ES"
+            else:
+                lang = "en-US"
+            if "64bit" in str(platform.architecture()):
+                plat = 'x64'
+            else:
+                plat = 'x86'
+            link = '\"http://www.redhisp.webs.upv.es/files/QGISRed/' + self.DependenciesVersion + '/Installation_' + plat + '_' + lang + '.zip\"'
+            QMessageBox.question(self.iface.mainWindow(), self.tr('QGISRed Dependencies'), self.tr('QGISRed plugin only runs in Windows OS and needs some dependencies (' + self.DependenciesVersion + '). You can download them from this <a href=' + link + '>Link</a>. Please, unzip the file and install the unzipped file manually.'), QMessageBox.StandardButtons(QMessageBox.Ok))
+        return valid
+
     """Main methods"""
     def runProjectManager(self):
+        if not self.checkDependencies(): return
         self.defineCurrentProject()
         # show the dialog
         dlg = QGISRedProjectManagerDialog()
@@ -908,6 +940,7 @@ class QGISRed:
             self.createGqpFile()
 
     def runNewProject(self):
+        if not self.checkDependencies(): return
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
             if not self.isOpenedProject():
@@ -927,6 +960,7 @@ class QGISRed:
             self.createGqpFile()
 
     def runImport(self):
+        if not self.checkDependencies(): return
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
             if not self.isOpenedProject():
@@ -953,6 +987,7 @@ class QGISRed:
         self.runCheckData(True)
 
     def runCheckData(self, toCommit=False):
+        if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
@@ -963,7 +998,8 @@ class QGISRed:
         
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
+        #os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.CheckData.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CheckData.restype = c_char_p
@@ -1028,7 +1064,7 @@ class QGISRed:
         
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.CheckData.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CheckData.restype = c_char_p
@@ -1073,6 +1109,7 @@ class QGISRed:
             self.createGqpFile()
 
     def runExportInp(self):
+        if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
@@ -1084,7 +1121,7 @@ class QGISRed:
         #Process
         elements = "Junctions;Pipes;Tanks;Reservoirs;Valves;Pumps;"
         
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.ExportToInp.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.ExportToInp.restype = c_char_p
@@ -1103,6 +1140,7 @@ class QGISRed:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runModel(self):
+        if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
@@ -1113,7 +1151,7 @@ class QGISRed:
         
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.Compute.argtypes = (c_char_p, c_char_p)
         mydll.Compute.restype = c_char_p
@@ -1142,6 +1180,7 @@ class QGISRed:
             self.ResultDockwidget.close()
 
     def runShowResults(self):
+        if not self.checkDependencies(): return
         #Open dock
         if self.ResultDockwidget is None:
             self.runModel()
@@ -1188,6 +1227,7 @@ class QGISRed:
         self.runCheckCoordinates(True)
 
     def runCheckCoordinates(self, toCommit = False):
+        if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
@@ -1198,7 +1238,7 @@ class QGISRed:
         
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.CheckCoordinates.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CheckCoordinates.restype = c_char_p
@@ -1259,7 +1299,7 @@ class QGISRed:
     def runCheckCoordinatesProcess(self, exception=None, result=None):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.CheckCoordinates.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CheckCoordinates.restype = c_char_p
@@ -1305,6 +1345,7 @@ class QGISRed:
         self.runSimplifyVertices(True)
 
     def runSimplifyVertices(self, toCommit=False):
+        if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
@@ -1315,7 +1356,7 @@ class QGISRed:
         
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.ChechkAlignedVertices.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.ChechkAlignedVertices.restype = c_char_p
@@ -1376,7 +1417,7 @@ class QGISRed:
     def runSimplifyVerticesProcess(self, exception=None, result=None):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.ChechkAlignedVertices.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.ChechkAlignedVertices.restype = c_char_p
@@ -1422,6 +1463,7 @@ class QGISRed:
         self.runCheckTConncetions(True)
 
     def runCheckTConncetions(self, toCommit=False):
+        if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
@@ -1432,7 +1474,7 @@ class QGISRed:
         
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.CheckTConnections.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CheckTConnections.restype = c_char_p
@@ -1493,7 +1535,7 @@ class QGISRed:
     def runCreateTConncetionsProcess(self, exception=None, result=None):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.CheckTConnections.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CheckTConnections.restype = c_char_p
@@ -1539,6 +1581,7 @@ class QGISRed:
         self.runCheckJoinPipes(True)
 
     def runCheckJoinPipes(self, toCommit=False):
+        if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
@@ -1549,7 +1592,7 @@ class QGISRed:
         
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.CheckJoinPipes.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CheckJoinPipes.restype = c_char_p
@@ -1610,7 +1653,7 @@ class QGISRed:
     def runCheckJoinPipesProcess(self, exception=None, result=None):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.CheckJoinPipes.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CheckJoinPipes.restype = c_char_p
@@ -1656,6 +1699,7 @@ class QGISRed:
         self.runCheckConnectivity(True)
 
     def runCheckConnectivity(self, toCommit=False):
+        if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
@@ -1677,7 +1721,7 @@ class QGISRed:
         
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.CheckConnectivity.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CheckConnectivity.restype = c_char_p
@@ -1738,7 +1782,7 @@ class QGISRed:
     def runCheckConnectivityProcess(self, exception=None, result=None):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.CheckConnectivity.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CheckConnectivity.restype = c_char_p
@@ -1792,6 +1836,7 @@ class QGISRed:
         self.runCheckLengths(True)
 
     def runCheckLengths(self, toCommit=False):
+        if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
@@ -1808,7 +1853,7 @@ class QGISRed:
             self.Tolerance = dlg.Tolerance
             #Process
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+            QGISRedUtils().setCurrentDirectory()
             mydll = WinDLL("GISRed.QGisPlugins.dll")
             mydll.CheckLengths.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
             mydll.CheckLengths.restype = c_char_p
@@ -1869,7 +1914,7 @@ class QGISRed:
     def runCheckLengthsProcess(self, exception=None, result=None):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.CheckLengths.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CheckLengths.restype = c_char_p
@@ -1909,6 +1954,7 @@ class QGISRed:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runCheckDiameters(self):
+        if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
@@ -1919,7 +1965,7 @@ class QGISRed:
         
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.CheckDiameters.argtypes = (c_char_p, c_char_p)
         mydll.CheckDiameters.restype = c_char_p
@@ -1939,6 +1985,7 @@ class QGISRed:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runCheckMaterials(self):
+        if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
@@ -1949,7 +1996,7 @@ class QGISRed:
         
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.CheckMaterials.argtypes = (c_char_p, c_char_p)
         mydll.CheckMaterials.restype = c_char_p
@@ -1969,6 +2016,7 @@ class QGISRed:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runCheckInstallationDates(self):
+        if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
@@ -1979,7 +2027,7 @@ class QGISRed:
         
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.CheckInstallationDates.argtypes = (c_char_p, c_char_p)
         mydll.CheckInstallationDates.restype = c_char_p
@@ -1999,6 +2047,7 @@ class QGISRed:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runSetRoughness(self):
+        if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
@@ -2023,7 +2072,7 @@ class QGISRed:
     def runSetRoughnessProcess(self, exception=None, result=None):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.SetRoughness.argtypes = (c_char_p, c_char_p)
         mydll.SetRoughness.restype = c_char_p
@@ -2059,6 +2108,7 @@ class QGISRed:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runSetPipeStatus(self):
+        if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
@@ -2088,7 +2138,7 @@ class QGISRed:
     def runSetPipeStatusProcess(self, exception=None, result=None):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.SetInitialStatusPipes.argtypes = (c_char_p, c_char_p)
         mydll.SetInitialStatusPipes.restype = c_char_p
@@ -2125,6 +2175,7 @@ class QGISRed:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runAddConnections(self):
+        if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
@@ -2149,7 +2200,7 @@ class QGISRed:
         self.complementaryLayers = ["Connections"]
         
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.AddConnections.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.AddConnections.restype = c_char_p
@@ -2214,7 +2265,7 @@ class QGISRed:
         
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.AddConnections.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.AddConnections.restype = c_char_p
@@ -2255,6 +2306,7 @@ class QGISRed:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runAddHydrants(self):
+        if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
@@ -2271,7 +2323,7 @@ class QGISRed:
         self.complementaryLayers = ["Hydrants"]
         
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.AddHydrants.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.AddHydrants.restype = c_char_p
@@ -2332,7 +2384,7 @@ class QGISRed:
     def runAddHydrantsProcess(self, exception=None, result=None):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.AddHydrants.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.AddHydrants.restype = c_char_p
@@ -2373,6 +2425,7 @@ class QGISRed:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runAddPurgeValves(self):
+        if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
@@ -2389,7 +2442,7 @@ class QGISRed:
         self.complementaryLayers = ["PurgeValves"]
         
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.AddPurgeValves.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.AddPurgeValves.restype = c_char_p
@@ -2450,7 +2503,7 @@ class QGISRed:
     def runAddPurgeValvesProcess(self, exception=None, result=None):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.AddPurgeValves.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.AddPurgeValves.restype = c_char_p
@@ -2491,6 +2544,7 @@ class QGISRed:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runElevationInterpolation(self):
+        if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
@@ -2524,7 +2578,7 @@ class QGISRed:
     def runElevationInterpolationProcess(self, exception=None, result=None):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.ElevationInterpolation.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.ElevationInterpolation.restype = c_char_p
@@ -2560,6 +2614,7 @@ class QGISRed:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runHydraulicSectors(self):
+        if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
@@ -2585,7 +2640,7 @@ class QGISRed:
     def runHydraulicSectorsProcess(self, exception=None, result=None):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.HydarulicSectors.argtypes = (c_char_p, c_char_p)
         mydll.HydarulicSectors.restype = c_char_p
@@ -2626,6 +2681,7 @@ class QGISRed:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runDemandSectors(self):
+        if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
@@ -2651,7 +2707,7 @@ class QGISRed:
     def runDemandSectorsProcess(self, exception=None, result=None):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(__file__), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.DemandSectors.argtypes = (c_char_p, c_char_p)
         mydll.DemandSectors.restype = c_char_p

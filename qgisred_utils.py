@@ -19,6 +19,7 @@ except: #QGis 2.x
 # Others imports
 import os
 import tempfile
+import platform
 from zipfile import ZipFile 
 import datetime
 
@@ -238,6 +239,19 @@ class QGISRedUtils:
                 layer.setRenderer(renderer)
             except: #QGis 2.x
                 layer.setRendererV2(renderer)
+
+    def getGISRedFolder(self):
+        if "64bit" in str(platform.architecture()):
+            folder = os.environ["ProgramFiles"]
+        else:
+            try:
+                folder = os.environ["ProgramFiles(x86)"]
+            except:
+                folder = os.environ["ProgramFiles"]
+        return os.path.join(folder, "GISRed")
+
+    def setCurrentDirectory(self):
+        os.chdir(self.getGISRedFolder())
 
     def getFilePaths(self):
         # initializing empty file paths list 

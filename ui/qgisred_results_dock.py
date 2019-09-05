@@ -745,7 +745,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     def openAllResultsProcess(self, exception=None, result=None):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
+        #os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
         self.setLayersNames()
         
         mydll = WinDLL("GISRed.QGisPlugins.dll")
@@ -793,7 +794,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     def openResultProcess(self, exception=None, result=None):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.CreateResults.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CreateResults.restype = c_char_p

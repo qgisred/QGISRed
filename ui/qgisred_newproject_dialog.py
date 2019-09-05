@@ -333,7 +333,8 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             
             #Process
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
+            QGISRedUtils().setCurrentDirectory()
+            #os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
             complElements = self.createComplementaryList()
 
             mydll = WinDLL("GISRed.QGisPlugins.dll")
@@ -385,7 +386,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
     def editProjectProcess(self, exception=None, result=None):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         
         complElements = self.createComplementaryList()
         elements = self.createElementsList()

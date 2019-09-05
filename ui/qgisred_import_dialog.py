@@ -121,7 +121,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
 
     def createProject(self):
         #Process
-        os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.CreateProject.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CreateProject.restype = c_char_p
@@ -211,7 +211,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
     def importInpProjectProcess(self, exception=None, result=None):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
+        #os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.ImportFromInp.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.ImportFromInp.restype = c_char_p
@@ -752,7 +753,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         shapes = self.createShpsNames()
         fields = self.createShpFields()
-        os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
+        QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.ImportFromShps.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.ImportFromShps.restype = c_char_p
