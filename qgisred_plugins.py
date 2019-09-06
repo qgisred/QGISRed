@@ -84,7 +84,7 @@ class QGISRed:
     ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs"]
     ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns"]
     TemporalFolder = "Temporal folder"
-    DependenciesVersion ="1.0.0.0"
+    DependenciesVersion ="1.0.6.0"
 
     def __init__(self, iface):
         """Constructor.
