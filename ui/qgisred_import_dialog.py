@@ -3,18 +3,11 @@ from qgis.gui import QgsMessageBar
 from qgis.core import QgsVectorLayer, QgsProject, QgsCoordinateReferenceSystem
 from qgis.PyQt import QtGui, uic
 
-try: #QGis 3.x
-    from qgis.gui import QgsProjectionSelectionDialog  as QgsGenericProjectionSelector 
-    from qgis.core import Qgis, QgsTask, QgsApplication
-    from PyQt5.QtWidgets import QFileDialog, QDialog, QApplication
-    from PyQt5.QtCore import Qt
-    from ..qgisred_utils import QGISRedUtils
-except: #QGis 2.x
-    from qgis.gui import QgsGenericProjectionSelector
-    from qgis.core import QGis as Qgis
-    from PyQt4.QtGui import QFileDialog, QDialog, QApplication
-    from PyQt4.QtCore import Qt
-    from ..qgisred_utils import QGISRedUtils
+from qgis.gui import QgsGenericProjectionSelector
+from qgis.core import QGis as Qgis
+from PyQt4.QtGui import QFileDialog, QDialog, QApplication
+from PyQt4.QtCore import Qt
+from ..qgisred_utils import QGISRedUtils
 
 import os
 from ctypes import*
@@ -62,10 +55,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
 
     def config(self, ifac, direct, netw):
         self.iface=ifac
-        try: #QGis 3.x
-            self.CRS = self.iface.mapCanvas().mapSettings().destinationCrs()
-        except: #QGis 2.x
-            self.CRS = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        self.CRS = self.iface.mapCanvas().mapRenderer().destinationCrs()
         self.tbCRS.setText(self.CRS.description())
         self.ProcessDone = False
         self.NetworkName = netw
@@ -96,10 +86,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
     def selectCRS(self):
         projSelector = QgsGenericProjectionSelector()
         if projSelector.exec_():
-            try: #QGis 3.x
-                crsId = projSelector.crs().srsid()
-            except: #QGis 2.x
-                crsId = projSelector.selectedCrsId()
+            crsId = projSelector.selectedCrsId()
             if not crsId==0:
                 self.CRS = QgsCoordinateReferenceSystem()
                 self.CRS.createFromId(crsId, QgsCoordinateReferenceSystem.InternalCrsId)
@@ -126,10 +113,6 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         mydll.CreateProject.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CreateProject.restype = c_char_p
         b = mydll.CreateProject(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), "".encode('utf-8'), "".encode('utf-8'), "".encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
         
         #Message
         if not b=="True":
@@ -146,12 +129,11 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         file.close()
         return True
 
-    def removeLayers(self, task, wait_time):
+    def removeLayers(self):
         #Remove layers
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayers(self.ownMainLayers)
         utils.removeLayers(self.ownFiles, ".dbf")
-        raise Exception('')
 
     def getInputGroup(self):
         inputGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
@@ -169,8 +151,6 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         path = ""
         filter = "inp(*.inp)"
         f = QFileDialog.getOpenFileName(qfd, "Select INP file", path, filter)
-        if isinstance(f, tuple): #QGis 3.x
-            f = f[0]
         
         if not f=="":
             self.InpFile = f
@@ -196,19 +176,10 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 if not self.createProject():
                     return
             
-            if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-                try:
-                    self.removeLayers(None,0)
-                except:
-                    pass
-                self.importInpProjectProcess()
-            else:  #QGis 3.x
-                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-                task1 = QgsTask.fromFunction(u'Remove layers', self.removeLayers, on_finished=self.importInpProjectProcess, wait_time=0)
-                task1.run()
-                QgsApplication.taskManager().addTask(task1)
+            self.removeLayers()
+            self.importInpProjectProcess()
 
-    def importInpProjectProcess(self, exception=None, result=None):
+    def importInpProjectProcess(self):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
@@ -217,10 +188,6 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         mydll.ImportFromInp.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.ImportFromInp.restype = c_char_p
         b = mydll.ImportFromInp(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.InpFile.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
         
         #Open layers
         inputGroup = self.getInputGroup()
@@ -736,19 +703,10 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 if not self.createProject():
                     return
             
-            if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-                try:
-                    self.removeLayers(None,0)
-                except:
-                    pass
-                self.importShpProjectProcess()
-            else:  #QGis 3.x
-                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-                task1 = QgsTask.fromFunction(u'Remove layers', self.removeLayers, on_finished=self.importShpProjectProcess, wait_time=0)
-                task1.run()
-                QgsApplication.taskManager().addTask(task1)
+            self.removeLayers()
+            self.importShpProjectProcess()
 
-    def importShpProjectProcess(self, exception=None, result=None):
+    def importShpProjectProcess(self):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         shapes = self.createShpsNames()
@@ -758,10 +716,6 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         mydll.ImportFromShps.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.ImportFromShps.restype = c_char_p
         b = mydll.ImportFromShps(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), shapes.encode('utf-8'), fields.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
         
         #Open layers
         inputGroup = self.getInputGroup()

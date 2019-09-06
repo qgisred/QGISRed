@@ -3,18 +3,11 @@ from qgis.gui import QgsMessageBar
 from qgis.core import QgsVectorLayer, QgsProject, QgsCoordinateReferenceSystem
 from qgis.PyQt import QtGui, uic
 
-try: #QGis 3.x
-    from qgis.gui import QgsProjectionSelectionDialog  as QgsGenericProjectionSelector 
-    from qgis.core import Qgis, QgsTask, QgsApplication
-    from PyQt5.QtWidgets import QFileDialog, QDialog, QApplication
-    from PyQt5.QtCore import Qt
-    from ..qgisred_utils import QGISRedUtils
-except: #QGis 2.x
-    from qgis.gui import QgsGenericProjectionSelector
-    from PyQt4.QtGui import QFileDialog, QDialog, QApplication
-    from PyQt4.QtCore import Qt
-    from qgis.core import QGis as Qgis
-    from ..qgisred_utils import QGISRedUtils
+from qgis.gui import QgsGenericProjectionSelector
+from PyQt4.QtGui import QFileDialog, QDialog, QApplication
+from PyQt4.QtCore import Qt
+from qgis.core import QGis as Qgis
+from ..qgisred_utils import QGISRedUtils
 
 import os
 from ctypes import*
@@ -49,10 +42,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
 
     def config(self, ifac, direct, netw):
         self.iface=ifac
-        try: #QGis 3.x
-            self.CRS = self.iface.mapCanvas().mapSettings().destinationCrs()
-        except: #QGis 2.x
-            self.CRS = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        self.CRS = self.iface.mapCanvas().mapRenderer().destinationCrs()
         if self.CRS.srsid()==0:
             self.CRS = QgsCoordinateReferenceSystem()
             self.CRS.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
@@ -123,7 +113,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
     def readTitleAndNotes(self):
         filePath = os.path.join(self.ProjectDirectory, self.NetworkName + "_TitleAndNotes.txt")
         if os.path.exists(filePath):
-            f = open(filePath, "r", encoding="latin-1")
+            f = open(filePath, "r")
             notes=False
             notesTxt=""
             for line in f:
@@ -154,10 +144,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
     def selectCRS(self):
         projSelector = QgsGenericProjectionSelector()
         if projSelector.exec_():
-            try: #QGis 3.x
-                crsId = projSelector.crs().srsid()
-            except: #QGis 2.x
-                crsId = projSelector.selectedCrsId()
+            crsId = projSelector.selectedCrsId()
             if not crsId==0:
                 self.CRS = QgsCoordinateReferenceSystem()
                 self.CRS.createFromId(crsId, QgsCoordinateReferenceSystem.InternalCrsId)
@@ -214,7 +201,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             list = list + "levelmeter"+ ";"
         return list
 
-    def removeComplementaryLayers(self, task, wait_time):
+    def removeComplementaryLayers(self):
         list = []
         if not self.cbIsolatedValves.isChecked():
             list.append("IssolatedValves")
@@ -238,7 +225,6 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             list.append("Levelmeters")
         
         QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface).removeLayers(list)
-        raise Exception('')
 
     def openElementsLayers(self, group, new):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
@@ -341,17 +327,12 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             mydll.CreateProject.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
             mydll.CreateProject.restype = c_char_p
             b = mydll.CreateProject(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), complElements.encode('utf-8'), scnName.encode('utf-8'), notes.encode('utf-8'))
-            try: #QGis 3.x
-                b= "".join(map(chr, b)) #bytes to string
-            except:  #QGis 2.x
-                b=b
             
             #Open layers
             self.iface.mapCanvas().setDestinationCrs(self.CRS)
             inputGroup = self.getInputGroup()
             self.openComplementaryLayers(inputGroup)
             self.openElementsLayers(inputGroup, True)
-            
             
             QApplication.restoreOverrideCursor()
             
@@ -371,19 +352,10 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
 
     def editProject(self):
         #Process
-        if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-            try:
-                self.removeComplementaryLayers(None,0)
-            except:
-                pass
-            self.editProjectProcess()
-        else:  #QGis 3.x
-            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-            task1 = QgsTask.fromFunction(u'Remove layers', self.removeComplementaryLayers, on_finished=self.editProjectProcess, wait_time=0)
-            task1.run()
-            QgsApplication.taskManager().addTask(task1)
+        self.removeComplementaryLayers()
+        self.editProjectProcess()
 
-    def editProjectProcess(self, exception=None, result=None):
+    def editProjectProcess(self):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
@@ -397,10 +369,6 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         mydll.EditProject.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.EditProject.restype = c_char_p
         b = mydll.EditProject(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), elements.encode('utf-8'), complElements.encode('utf-8'), scnName.encode('utf-8'), notes.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
         
         #Open layers
         inputGroup = self.getInputGroup()

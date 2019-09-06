@@ -3,27 +3,18 @@ from qgis.gui import QgsMessageBar
 from qgis.core import QgsVectorLayer, QgsProject
 from qgis.PyQt import QtGui, uic
 
-try: #QGis 3.x
-    from qgis.core import Qgis, QgsTask, QgsApplication
-    from PyQt5.QtWidgets import QDockWidget, QApplication
-    from PyQt5.QtCore import Qt
-    from PyQt5.QtGui import QColor
-    from qgis.core import QgsSvgMarkerSymbolLayer, QgsSymbol, QgsSingleSymbolRenderer, QgsLineSymbol, QgsProperty, QgsRenderContext
-    from qgis.core import QgsSimpleLineSymbolLayer, QgsMarkerSymbol, QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayer
-    from qgis.core import QgsGraduatedSymbolRenderer, QgsGradientColorRamp as QgsVectorGradientColorRamp, QgsRendererRange
-    from ..qgisred_utils import QGISRedUtils
-except: #QGis 2.x
-    from qgis.core import QGis as Qgis
-    from PyQt4.QtGui import QDockWidget, QApplication, qApp, QColor
-    from PyQt4.QtCore import Qt
-    from qgis.core import QgsSvgMarkerSymbolLayerV2 as QgsSvgMarkerSymbolLayer, QgsSymbolV2 as QgsSymbol
-    from qgis.core import QgsSingleSymbolRendererV2 as QgsSingleSymbolRenderer, QgsLineSymbolV2 as QgsLineSymbol
-    from qgis.core import QgsSimpleLineSymbolLayerV2 as QgsSimpleLineSymbolLayer, QgsMarkerSymbolV2 as QgsMarkerSymbol
-    from qgis.core import QgsMarkerLineSymbolLayerV2 as QgsMarkerLineSymbolLayer 
-    from qgis.core import QgsSimpleMarkerSymbolLayerV2 as QgsSimpleMarkerSymbolLayer, QgsDataDefined
-    from qgis.core import QgsGraduatedSymbolRendererV2 as QgsGraduatedSymbolRenderer, QgsVectorGradientColorRampV2 as QgsVectorGradientColorRamp
-    from qgis.core import QgsRendererRangeV2 as QgsRendererRange
-    from ..qgisred_utils import QGISRedUtils
+
+from qgis.core import QGis as Qgis
+from PyQt4.QtGui import QDockWidget, QApplication, qApp, QColor
+from PyQt4.QtCore import Qt
+from qgis.core import QgsSvgMarkerSymbolLayerV2 as QgsSvgMarkerSymbolLayer, QgsSymbolV2 as QgsSymbol
+from qgis.core import QgsSingleSymbolRendererV2 as QgsSingleSymbolRenderer, QgsLineSymbolV2 as QgsLineSymbol
+from qgis.core import QgsSimpleLineSymbolLayerV2 as QgsSimpleLineSymbolLayer, QgsMarkerSymbolV2 as QgsMarkerSymbol
+from qgis.core import QgsMarkerLineSymbolLayerV2 as QgsMarkerLineSymbolLayer 
+from qgis.core import QgsSimpleMarkerSymbolLayerV2 as QgsSimpleMarkerSymbolLayer, QgsDataDefined
+from qgis.core import QgsGraduatedSymbolRendererV2 as QgsGraduatedSymbolRenderer, QgsVectorGradientColorRampV2 as QgsVectorGradientColorRamp
+from qgis.core import QgsRendererRangeV2 as QgsRendererRange
+from ..qgisred_utils import QGISRedUtils
 
 import os
 from ctypes import*
@@ -81,10 +72,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.readSavedScenarios()
         
         #CRS
-        try: #QGis 3.x
-            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        except: #QGis 2.x
-            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
         if crs.srsid()==0:
             crs = QgsCoordinateReferenceSystem()
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
@@ -133,10 +121,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     def isCurrentProject(self):
         currentNetwork =""
         currentDirectory = ""
-        try: #QGis 3.x
-            layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
-        except: #QGis 2.x
-            layers = self.iface.legendInterface().layers()
+        layers = self.iface.legendInterface().layers()
         for layer in layers:
             layerUri= layer.dataProvider().dataSourceUri().split("|")[0]
             self.CRS = layer.crs()
@@ -172,11 +157,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         for file in self.LabelsToOpRe:
             utils.openLayer(self.CRS, group, file, results=True)
 
-    def removeResults(self, task, wait_time):
+    def removeResults(self):
         resultPath= os.path.join(self.ProjectDirectory, "Results")
         utils = QGISRedUtils(resultPath, self.NetworkName +"_" + self.Scenario, self.iface)
         utils.removeLayers(self.LabelsToOpRe)
-        raise Exception('')
 
     def getResultGroup(self):
         resultGroup = QgsProject.instance().layerTreeRoot().findGroup("Results")
@@ -237,10 +221,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.Scenario = self.cbScenarios.currentText()
         resultPath= os.path.join(self.ProjectDirectory, "Results")
         self.setLayersNames(True)
-        try: #QGis 3.x
-            layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
-        except: #QGis 2.x
-            layers = self.iface.legendInterface().layers()
+        layers = self.iface.legendInterface().layers()
 
         self.cbFlow.setChecked(False)
         self.cbVelocity.setChecked(False)
@@ -271,12 +252,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                         self.cbQualityNode.setChecked(True)
 
     def saveCurrentRender(self, all=False):
-        try: #QGis 3.x
-            layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
-            version=3
-        except: #QGis 2.x
-            layers = self.iface.legendInterface().layers()
-            version=2
+        layers = self.iface.legendInterface().layers()
         
         resultPath= os.path.join(self.ProjectDirectory, "Results")
         if all:
@@ -288,10 +264,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             for layer in layers:
                 pathLayer = str(layer.dataProvider().dataSourceUri().split("|")[0])
                 if pathLayer== os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp"):
-                    if version == 3:
-                        renderer= layer.renderer()
-                    else:
-                        renderer= layer.rendererV2()
+                    renderer= layer.rendererV2()
                     if renderer.type() == 'graduatedSymbol':
                         dictSce[pathLayer]= renderer.ranges()
         self.Renders[self.Scenario]=dictSce
@@ -303,10 +276,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.Scenario = self.cbScenarios.currentText()
         resultPath= os.path.join(self.ProjectDirectory, "Results")
         
-        try: #QGis 3.x
-            layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
-        except: #QGis 2.x
-            layers = self.iface.legendInterface().layers()
+        layers = self.iface.legendInterface().layers()
         
         self.lbTime.setText(self.TimeLabels[columnNumber])
         for nameLayer in self.LabelsToOpRe:
@@ -316,81 +286,26 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     field = field_names[columnNumber+2]
                     self.setGraduadedPalette(layer, field, setRender, nameLayer)
                     layer.setName(nameLayer + " " + self.TimeLabels[columnNumber])
-                    if str(Qgis.QGIS_VERSION).startswith('3'): #QGis 3.x
-                        layer.setMapTipTemplate("<br>[% \"T" + str(columnNumber) + "\" %]")
-                    else:
-                        layer.setDisplayField('T' + str(columnNumber))
+                    layer.setDisplayField('T' + str(columnNumber))
 
     def setGraduadedPalette(self, layer, field, setRender, nameLayer):
-        try: # QGis 3
-            version = 3
-            renderer = layer.renderer()
-            symbol = renderer.symbol() #SimpleSymbol
-        except: # QGis 2
-            try: # QGis 3
-                symbol = renderer.symbols(QgsRenderContext()) #sourceSymbol() #GraduatedSymbol
-            except:
-                version = 2
-                renderer = layer.rendererV2()
-                symbol = renderer.symbols()
-        if version ==2:
-            for sym in symbol:
-                if sym.type()==1: #line
-                    if "Flow" in layer.name() and self.cbFlowDirections.isChecked():
-                        ss = sym.symbolLayer(3) #arrow positive flow
-                        ss.subSymbol().setDataDefinedSize(QgsDataDefined("if(Type='PIPE', if(" + field + ">0,3,0),0)"))
-                        ss = sym.symbolLayer(4) #arrow negative flow
-                        ss.subSymbol().setDataDefinedSize(QgsDataDefined("if(Type='PIPE', if(" + field + "<0,3,0),0)"))
-                    else:
-                        sym.symbolLayer(3).subSymbol().setDataDefinedSize(QgsDataDefined('0'))
-                        sym.symbolLayer(4).subSymbol().setDataDefinedSize(QgsDataDefined('0'))
-                else: #point
-                    sym.symbolLayer(0).setDataDefinedProperty("size", QgsDataDefined("if(Type ='TANK', 7,0)"))
-                    sym.symbolLayer(1).setDataDefinedProperty("size", QgsDataDefined("if(Type ='RESERVOIR', 7,0)"))
-                    sym.symbolLayer(2).setDataDefinedProperty("size", QgsDataDefined("if(Type ='RESERVOIR' or Type='TANK', 0,2)"))
-            symbol = symbol[0]
-        else: #QGis 3
-            if setRender:
-                prop = QgsProperty()
-                if symbol.type()==1: #line
-                    if "Flow" in layer.name() and self.cbFlowDirections.isChecked():
-                        ss = symbol.symbolLayer(3) #arrow positive flow
-                        prop.setExpressionString("if(Type='PIPE', if(" + field + ">0,3,0),0)")
-                        ss.subSymbol().setDataDefinedSize(prop)
-                        ss = symbol.symbolLayer(4) #arrow negative flow
-                        prop.setExpressionString("if(Type='PIPE', if(" + field + "<0,3,0),0)")
-                        ss.subSymbol().setDataDefinedSize(prop)
-                    else:
-                        prop.setExpressionString("0")
-                        symbol.symbolLayer(3).subSymbol().setDataDefinedSize(prop)
-                        symbol.symbolLayer(4).subSymbol().setDataDefinedSize(prop)
-                else: #point
-                    prop.setExpressionString("if(Type ='TANK', 7,0)")
-                    symbol.symbolLayer(0).setDataDefinedProperty(0, prop) #0 = PropertySize
-                    symbol.symbolLayer(0).setDataDefinedProperty(9, prop) #0 = PropertyWidth
-                    prop.setExpressionString("if(Type ='RESERVOIR', 7,0)")
-                    symbol.symbolLayer(1).setDataDefinedProperty(0, prop)
-                    symbol.symbolLayer(1).setDataDefinedProperty(9, prop)
-                    prop.setExpressionString("if(Type ='RESERVOIR' or Type='TANK', 0,2)")
-                    symbol.symbolLayer(2).setDataDefinedProperty(0, prop)
-                    symbol.symbolLayer(2).setDataDefinedProperty(9, prop)
-            else:
-                for sym in symbol:
-                    if sym.type()==1: #line
-                        prop = QgsProperty()
-                        if "Flow" in layer.name() and self.cbFlowDirections.isChecked():
-                            ss = sym.symbolLayer(3) #arrow positive flow
-                            prop.setExpressionString("if(Type='PIPE', if(" + field + ">0,3,0),0)")
-                            ss.subSymbol().setDataDefinedSize(prop)
-                            ss = sym.symbolLayer(4) #arrow negative flow
-                            prop.setExpressionString("if(Type='PIPE', if(" + field + "<0,3,0),0)")
-                            ss.subSymbol().setDataDefinedSize(prop)
-                        else:
-                            prop.setExpressionString("0")
-                            sym.symbolLayer(3).subSymbol().setDataDefinedSize(prop)
-                            sym.symbolLayer(4).subSymbol().setDataDefinedSize(prop)
-                    else: #point
-                        pass
+        renderer = layer.rendererV2()
+        symbol = renderer.symbols()
+        for sym in symbol:
+            if sym.type()==1: #line
+                if "Flow" in layer.name() and self.cbFlowDirections.isChecked():
+                    ss = sym.symbolLayer(3) #arrow positive flow
+                    ss.subSymbol().setDataDefinedSize(QgsDataDefined("if(Type='PIPE', if(" + field + ">0,3,0),0)"))
+                    ss = sym.symbolLayer(4) #arrow negative flow
+                    ss.subSymbol().setDataDefinedSize(QgsDataDefined("if(Type='PIPE', if(" + field + "<0,3,0),0)"))
+                else:
+                    sym.symbolLayer(3).subSymbol().setDataDefinedSize(QgsDataDefined('0'))
+                    sym.symbolLayer(4).subSymbol().setDataDefinedSize(QgsDataDefined('0'))
+            else: #point
+                sym.symbolLayer(0).setDataDefinedProperty("size", QgsDataDefined("if(Type ='TANK', 7,0)"))
+                sym.symbolLayer(1).setDataDefinedProperty("size", QgsDataDefined("if(Type ='RESERVOIR', 7,0)"))
+                sym.symbolLayer(2).setDataDefinedProperty("size", QgsDataDefined("if(Type ='RESERVOIR' or Type='TANK', 0,2)"))
+        symbol = symbol[0]
         
         if "Flow" in layer.name():
             field = "abs(" + field + ")"
@@ -491,10 +406,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         else:
             renderer.setClassAttribute(field)
 
-        try: #QGis 3.x
-            layer.setRenderer(renderer)
-        except: #QGis 2.x
-            layer.setRendererV2(renderer)
+        layer.setRendererV2(renderer)
         layer.triggerRepaint()
 
     def writeScenario(self, scenario, labels, comments):
@@ -657,22 +569,16 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
     def play(self):
         self.btPlay.setEnabled(False)
-        if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-            i=0
-            for label in self.TimeLabels:
-                self.hsTimes.setValue(i)
-                qApp.processEvents()
-                sleep(0.5)
-                i=i+1
-        else:  #QGis 3.x
-            for label in self.TimeLabels:
-                task1 = QgsTask.fromFunction(u'Visualizate', self.playTask, wait_time=0)
-                task1.run()
-                QgsApplication.taskManager().addTask(task1)
+        i=0
+        for label in self.TimeLabels:
+            self.hsTimes.setValue(i)
+            qApp.processEvents()
+            sleep(0.5)
+            i=i+1
         
         self.btPlay.setEnabled(True)
 
-    def playTask(self, task, wait_time):
+    def playTask(self):
         self.hsTimes.setValue(self.hsTimes.value() + 1)
         sleep(1)
 
@@ -730,19 +636,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         
         #Process
         self.setLayersNames(True)
-        if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-            try:
-                self.removeResults(None,0)
-            except:
-                pass
-            self.openAllResultsProcess()
-        else:  #QGis 3.x
-            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-            task1 = QgsTask.fromFunction(u'Remove layers', self.removeResults, on_finished=self.openAllResultsProcess, wait_time=0)
-            task1.run()
-            QgsApplication.taskManager().addTask(task1)
+        self.removeResults()
+        self.openAllResultsProcess()
 
-    def openAllResultsProcess(self, exception=None, result=None):
+    def openAllResultsProcess(self):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
@@ -753,10 +650,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         mydll.CreateResults.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CreateResults.restype = c_char_p
         b = mydll.CreateResults(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Scenario.encode('utf-8'), self.Variables.encode('utf-8'), "".encode('utf-8'), "".encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
         
         #Open layers
         self.openLayerResults(self.Scenario)
@@ -774,24 +667,12 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
     def openResult(self, open):
         if not open:
-            try:
-                self.removeResults(None,0)
-            except:
-                pass
+            self.removeResults()
         else:
-            if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-                try:
-                    self.removeResults(None,0)
-                except:
-                    pass
-                self.openResultProcess()
-            else:  #QGis 3.x
-                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-                task1 = QgsTask.fromFunction(u'Remove layers', self.removeResults, on_finished=self.openResultProcess, wait_time=0)
-                task1.run()
-                QgsApplication.taskManager().addTask(task1)
+            self.removeResults()
+            self.openResultProcess()
 
-    def openResultProcess(self, exception=None, result=None):
+    def openResultProcess(self):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
@@ -799,10 +680,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         mydll.CreateResults.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CreateResults.restype = c_char_p
         b = mydll.CreateResults(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Scenario.encode('utf-8'), self.Variables.encode('utf-8'), "".encode('utf-8'), "".encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+
         
         #Open layers
         self.openLayerResults(self.Scenario)
@@ -863,19 +741,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         
         #Process
         self.setLayersNames(True)
-        if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-            try:
-                self.removeResults(None,0)
-            except:
-                pass
-            self.deleteScenarioProcess()
-        else:  #QGis 3.x
-            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-            task1 = QgsTask.fromFunction(u'Remove layers', self.removeResults, on_finished=self.deleteScenarioProcess, wait_time=0)
-            task1.run()
-            QgsApplication.taskManager().addTask(task1)
+        self.removeResults()
+        self.deleteScenarioProcess()
 
-    def deleteScenarioProcess(self, exception=None, result=None):
+    def deleteScenarioProcess(self):
         #Delete Group
         resultGroup = self.getResultGroup()
         dataGroup = resultGroup.findGroup(self.Scenario)

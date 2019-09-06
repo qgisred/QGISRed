@@ -1,20 +1,13 @@
 # -*- coding: utf-8 -*-
 from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer
 
-try: #QGis 3.x
-    from qgis.core import QgsSvgMarkerSymbolLayer, QgsSymbol, QgsSingleSymbolRenderer
-    from qgis.core import QgsLineSymbol, QgsSimpleLineSymbolLayer
-    from qgis.core import Qgis, QgsMarkerSymbol, QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayer
-    from qgis.core import QgsRendererCategory, QgsSimpleFillSymbolLayer, QgsCategorizedSymbolRenderer
-    from PyQt5.QtGui import QColor
-except: #QGis 2.x
-    from qgis.core import QgsSvgMarkerSymbolLayerV2 as QgsSvgMarkerSymbolLayer, QgsSymbolV2 as QgsSymbol 
-    from qgis.core import QgsSingleSymbolRendererV2 as QgsSingleSymbolRenderer, QgsLineSymbolV2 as QgsLineSymbol
-    from qgis.core import QgsSimpleLineSymbolLayerV2 as QgsSimpleLineSymbolLayer, QgsMarkerSymbolV2 as QgsMarkerSymbol 
-    from qgis.core import QgsMarkerLineSymbolLayerV2 as QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayerV2 as QgsSimpleMarkerSymbolLayer
-    from qgis.core import QgsRendererCategoryV2 as QgsRendererCategory, QgsSimpleFillSymbolLayerV2 as QgsSimpleFillSymbolLayer, QgsCategorizedSymbolRendererV2 as QgsCategorizedSymbolRenderer
-    from qgis.core import QgsMapLayerRegistry, QgsMapLayerRegistry, QGis as Qgis
-    from PyQt4.QtGui import QColor
+from qgis.core import QgsSvgMarkerSymbolLayerV2 as QgsSvgMarkerSymbolLayer, QgsSymbolV2 as QgsSymbol 
+from qgis.core import QgsSingleSymbolRendererV2 as QgsSingleSymbolRenderer, QgsLineSymbolV2 as QgsLineSymbol
+from qgis.core import QgsSimpleLineSymbolLayerV2 as QgsSimpleLineSymbolLayer, QgsMarkerSymbolV2 as QgsMarkerSymbol 
+from qgis.core import QgsMarkerLineSymbolLayerV2 as QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayerV2 as QgsSimpleMarkerSymbolLayer
+from qgis.core import QgsRendererCategoryV2 as QgsRendererCategory, QgsSimpleFillSymbolLayerV2 as QgsSimpleFillSymbolLayer, QgsCategorizedSymbolRendererV2 as QgsCategorizedSymbolRenderer
+from qgis.core import QgsMapLayerRegistry, QgsMapLayerRegistry, QGis as Qgis
+from PyQt4.QtGui import QColor
 
 # Others imports
 import os
@@ -30,10 +23,7 @@ class QGISRedUtils:
         self.NetworkName = networkName
 
     def isLayerOpened(self, layerName):
-        try: #QGis 3.x
-            layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
-        except: #QGis 2.x
-            layers = self.iface.legendInterface().layers()
+        layers = self.iface.legendInterface().layers()
         for layer in layers:
             if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/","\\")== os.path.join(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp").replace("/","\\"):
                 return True
@@ -63,10 +53,7 @@ class QGISRedUtils:
                     pass
                 else:
                     self.setStyle(vlayer, name.lower())
-            try: #QGis 3.x
-                QgsProject.instance().addMapLayer(vlayer, group is None)
-            except: #QGis 2.x
-                QgsMapLayerRegistry.instance().addMapLayer(vlayer, group is None)
+            QgsMapLayerRegistry.instance().addMapLayer(vlayer, group is None)
             if group is not None:
                 if toEnd:
                     group.addChildNode(QgsLayerTreeLayer(vlayer))
@@ -79,24 +66,15 @@ class QGISRedUtils:
             self.removeLayer(layerName, ext)
 
     def removeLayer(self, name, ext=".shp"):
-        try: #QGis 3.x
-            layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
-        except: #QGis 2.x
-            layers = self.iface.legendInterface().layers()
+        layers = self.iface.legendInterface().layers()
         for layer in layers:
             if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/","\\")== os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ext).replace("/","\\"):
-                try: #QGis 3.x
-                    QgsProject.instance().removeMapLayer(layer.id())
-                except: #QGis 2.x
-                    QgsMapLayerRegistry.instance().removeMapLayers([layer.id()])
+                QgsMapLayerRegistry.instance().removeMapLayers([layer.id()])
         self.iface.mapCanvas().refresh()
         del layers
 
     def writeFile(self, file, string):
-        try: #QGis 2.x !!!!!!
-            file.write(string.encode('utf-8'))
-        except:
-            file.write(string)
+        file.write(string.encode('utf-8'))
 
     def setStyle(self, layer, name):
         if name=="":
@@ -141,10 +119,7 @@ class QGISRedUtils:
                 symbol.appendSymbolLayer(finalMarker)
                 renderer = QgsSingleSymbolRenderer(symbol)
             
-            try: #QGis 3.x
-                layer.setRenderer(renderer)
-            except: #QGis 2.x
-                layer.setRendererV2(renderer)
+            layer.setRendererV2(renderer)
 
     def setResultStyle(self, layer):
         stylePath = os.path.join(os.path.dirname(__file__), "layerStyles")
@@ -179,25 +154,17 @@ class QGISRedUtils:
 
     def setSectorsStyle(self, layer):
         from random import randrange
-
+        
         # get unique values 
         field = 'Class'
-        print(field)
-        try: #Qgis 3.x
-            fni = layer.fields().indexFromName(field)
-        except: #Qgis 2.x
-            fni = layer.fieldNameIndex(field)
-
-        print(fni)
+        fni = layer.fieldNameIndex(field)
+        
         if fni==-1: #Hydraulic sectors
             field = 'SubNet'
-            try: #Qgis 3.x
-                fni = layer.fields().indexFromName(field)
-            except: #Qgis 2.x
-                fni = layer.fieldNameIndex(field)
+            fni = layer.fieldNameIndex(field)
         
         unique_values = layer.dataProvider().uniqueValues(fni)
-
+        
         # define categories
         categories = []
         for unique_value in unique_values:
@@ -229,16 +196,13 @@ class QGISRedUtils:
             category = QgsRendererCategory(unique_value, symbol, str(unique_value))
             # entry for the list of category items
             categories.append(category)
-
+        
         # create renderer object
         renderer = QgsCategorizedSymbolRenderer(field, categories)
-
+        
         # assign the created renderer to the layer
         if renderer is not None:
-            try: #QGis 3.x
-                layer.setRenderer(renderer)
-            except: #QGis 2.x
-                layer.setRendererV2(renderer)
+            layer.setRendererV2(renderer)
 
     def getGISRedFolder(self):
         if "64bit" in str(platform.architecture()):
