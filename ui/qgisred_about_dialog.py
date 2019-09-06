@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
 from qgis.PyQt import QtGui, uic
-try: #QGis 3.x
-    from PyQt5.QtWidgets import QDialog
-except: #QGis 2.x
-    from PyQt4.QtGui import QDialog
-
+from PyQt5.QtWidgets import QDialog
 import os
 import webbrowser
 

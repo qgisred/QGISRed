@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
 from qgis.PyQt import QtGui, uic
-try: #QGis 3.x
-    from PyQt5.QtWidgets import QFileDialog, QDialog
-except: #QGis 2.x
-    from PyQt4.QtGui import QFileDialog, QDialog
-
+from PyQt5.QtWidgets import QFileDialog, QDialog
 import os
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_importproject_dialog.ui'))
@@ -39,8 +35,7 @@ class QGISRedImportProjectDialog(QDialog, FORM_CLASS):
         path = ""
         filter = "gqp(*.gqp)"
         f = QFileDialog.getOpenFileName(qfd, "Select GQP file", path, filter)
-        if isinstance(f, tuple): #QGis 3.x
-            f = f[0]
+        f = f[0]
         if not f=="":
             self.tbFile.setText(f)
             self.tbFile.setCursorPosition(0)

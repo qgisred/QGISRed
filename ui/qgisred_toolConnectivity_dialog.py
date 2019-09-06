@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
 from qgis.PyQt import QtGui, uic
-try: #QGis 3.x
-    from PyQt5.QtWidgets import QFileDialog, QDialog
-except: #QGis 2.x
-    from PyQt4.QtGui import QFileDialog, QDialog
-
+from PyQt5.QtWidgets import QFileDialog, QDialog
 import os
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_toolConnectivity_dialog.ui'))

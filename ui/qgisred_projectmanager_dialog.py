@@ -2,25 +2,13 @@
 from qgis.gui import QgsMessageBar
 from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer
 from qgis.PyQt import QtGui, uic
-
-try: #QGis 3.x
-    from PyQt5.QtWidgets import QMessageBox, QTableWidgetItem, QDialog
-    from PyQt5.QtCore import QFileInfo
-    # Import the code for the dialog
-    from .qgisred_newproject_dialog import QGISRedNewProjectDialog
-    from .qgisred_importproject_dialog import QGISRedImportProjectDialog
-    from .qgisred_cloneproject_dialog import QGISRedCloneProjectDialog
-    from ..qgisred_utils import QGISRedUtils
-except: #QGis 2.x
-    from PyQt4.QtGui import QMessageBox, QTableWidgetItem, QDialog
-    from PyQt4.QtCore import QFileInfo
-    from qgis.core import QgsMapLayerRegistry
-    # Import the code for the dialog
-    from qgisred_newproject_dialog import QGISRedNewProjectDialog
-    from qgisred_importproject_dialog import QGISRedImportProjectDialog
-    from qgisred_cloneproject_dialog import QGISRedCloneProjectDialog
-    from ..qgisred_utils import QGISRedUtils
-
+from PyQt5.QtWidgets import QMessageBox, QTableWidgetItem, QDialog
+from PyQt5.QtCore import QFileInfo
+# Import the code for the dialog
+from .qgisred_newproject_dialog import QGISRedNewProjectDialog
+from .qgisred_importproject_dialog import QGISRedImportProjectDialog
+from .qgisred_cloneproject_dialog import QGISRedCloneProjectDialog
+from ..qgisred_utils import QGISRedUtils
 import os
 import datetime
 from time import strftime
@@ -153,10 +141,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         f.close()
 
     def isOpenedProject(self):
-        try: #QGis 3.x
-            layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
-        except: #QGis 2.x
-            layers = self.iface.legendInterface().layers()
+        layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
         for layer in layers:
             if layer.isEditable():
                 self.iface.messageBar().pushMessage("Warning", "Some layer is in Edit Mode. Plase, commit it before continuing.", level=1, duration=5)
@@ -194,10 +179,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             qgsFile = lines[2]
             if ".qgs" in qgsFile or ".qgz" in qgsFile:
                 finfo = QFileInfo(qgsFile)
-                try: #QGis 3.x
-                    QgsProject.instance().read(finfo.filePath())
-                except: #QGis 2.x
-                    QgsProject.instance().read(finfo)
+                QgsProject.instance().read(finfo.filePath())
             else:
                 group = None
                 for i in range(2, len(lines)):
@@ -216,10 +198,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                             vlayer = self.iface.addVectorLayer(layerPath, layerName, "ogr")
                         else:
                             vlayer = QgsVectorLayer(layerPath, layerName, "ogr")
-                            try: #QGis 3.x
-                                QgsProject.instance().addMapLayer(vlayer, False)
-                            except: #QGis 2.x
-                                QgsMapLayerRegistry.instance().addMapLayer(vlayer, False)
+                            QgsProject.instance().addMapLayer(vlayer, False)
                             group.insertChildNode(0, QgsLayerTreeLayer(vlayer))
                         if not vlayer is None:
                             if ".shp" in layerPath:

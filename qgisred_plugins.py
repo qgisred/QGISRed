@@ -26,38 +26,21 @@ from qgis.gui import QgsMessageBar
 from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer 
 from qgis.core import QgsLayerTreeGroup, QgsLayerTreeNode
 from win32api import GetFileVersionInfo, LOWORD, HIWORD
-try: #QGis 3.x
-    from PyQt5.QtGui import QIcon
-    from PyQt5.QtWidgets import QAction, QMessageBox, QApplication, QMenu, QFileDialog, QToolButton
-    from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
-    from qgis.core import Qgis, QgsTask, QgsApplication
-    #Import resources
-    from . import resources3x
-    # Import the code for the dialog
-    from .ui.qgisred_projectmanager_dialog import QGISRedProjectManagerDialog
-    from .ui.qgisred_newproject_dialog import QGISRedNewProjectDialog
-    from .ui.qgisred_import_dialog import QGISRedImportDialog
-    from .ui.qgisred_about_dialog import QGISRedAboutDialog
-    from .ui.qgisred_results_dock import QGISRedResultsDock
-    from .ui.qgisred_toolLength_dialog import QGISRedLengthToolDialog
-    from .ui.qgisred_toolConnectivity_dialog import QGISRedConnectivityToolDialog
-    from .qgisred_utils import QGISRedUtils
-except: #QGis 2.x
-    from PyQt4.QtGui import QAction, QMessageBox, QIcon, QApplication, QMenu, QFileDialog, QToolButton
-    from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
-    from qgis.core import QgsMapLayerRegistry, QGis as Qgis
-    #Import resources
-    import resources2x
-    # Import the code for the dialog
-    from ui.qgisred_projectmanager_dialog import QGISRedProjectManagerDialog
-    from ui.qgisred_newproject_dialog import QGISRedNewProjectDialog
-    from ui.qgisred_import_dialog import QGISRedImportDialog
-    from ui.qgisred_about_dialog import QGISRedAboutDialog
-    from ui.qgisred_results_dock import QGISRedResultsDock
-    from ui.qgisred_toolLength_dialog import QGISRedLengthToolDialog
-    from ui.qgisred_toolConnectivity_dialog import QGISRedConnectivityToolDialog
-    from qgisred_utils import QGISRedUtils
-
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QAction, QMessageBox, QApplication, QMenu, QFileDialog, QToolButton
+from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
+from qgis.core import Qgis, QgsTask, QgsApplication
+#Import resources
+from . import resources3x
+# Import the code for the dialog
+from .ui.qgisred_projectmanager_dialog import QGISRedProjectManagerDialog
+from .ui.qgisred_newproject_dialog import QGISRedNewProjectDialog
+from .ui.qgisred_import_dialog import QGISRedImportDialog
+from .ui.qgisred_about_dialog import QGISRedAboutDialog
+from .ui.qgisred_results_dock import QGISRedResultsDock
+from .ui.qgisred_toolLength_dialog import QGISRedLengthToolDialog
+from .ui.qgisred_toolConnectivity_dialog import QGISRedConnectivityToolDialog
+from .qgisred_utils import QGISRedUtils
 # Others imports
 import os
 import datetime
@@ -630,31 +613,6 @@ class QGISRed:
             toolbar=self.toolbar,
             parent=self.iface.mainWindow())
         
-        #Copy necessary files regarding os architecture
-        # from shutil import copyfile
-        # if "64bit" in str(platform.architecture()):
-            # folder = "x64"
-        # else:
-            # folder = "x86"
-        # currentDirectory = os.path.join(os.path.dirname(__file__), "dlls")
-        # plataformDirectory = os.path.join(currentDirectory, folder)
-        # try:
-            # copyfile(os.path.join(plataformDirectory, "shapelib.dll"), os.path.join(currentDirectory, "shapelib.dll"))
-            # copyfile(os.path.join(plataformDirectory, "epanet2.dll"), os.path.join(currentDirectory, "epanet2.dll"))
-            # copyfile(os.path.join(plataformDirectory, "GISRed.QGisPlugins.dll"), os.path.join(currentDirectory, "GISRed.QGisPlugins.dll"))
-            # if folder == "x64":
-                # copyfile(os.path.join(plataformDirectory, "ucrtbased.dll"), os.path.join(currentDirectory, "ucrtbased.dll"))
-                # copyfile(os.path.join(plataformDirectory, "vcruntime140d.dll"), os.path.join(currentDirectory, "vcruntime140d.dll"))
-            # languages = ["en", "es"]
-            # for lang in languages:
-                # lagFolderPlataform = os.path.join(plataformDirectory, lang)
-                # lagFolder = os.path.join(currentDirectory, lang)
-                # files = os.listdir(lagFolderPlataform)
-                # for file in files: #only names
-                    # copyfile(os.path.join(lagFolderPlataform, file), os.path.join(lagFolder, file))
-        # except:
-            # pass
-        
         QgsProject.instance().projectSaved.connect(self.runSaveProject)
         self.issuesLayers = []
         for name in self.ownMainLayers:
@@ -716,10 +674,7 @@ class QGISRed:
         if not qgsFilename=="":
             QGISRedUtils().writeFile(f, qgsFilename)
         else:
-            try: #QGis 3.x
-                layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
-            except: #QGis 2.x
-                layers = self.iface.legendInterface().layers()
+            layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
             #Inputs
             groupName = "Inputs"
             dataGroup = QgsProject.instance().layerTreeRoot().findGroup(groupName)
@@ -745,10 +700,7 @@ class QGISRed:
         """Identifying the QGISRed current project"""
         self.NetworkName ="Network"
         self.ProjectDirectory = self.TemporalFolder
-        try: #QGis 3.x
-            layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
-        except: #QGis 2.x
-            layers = self.iface.legendInterface().layers()
+        layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
         for layer in layers:
             layerUri= layer.dataProvider().dataSourceUri().split("|")[0]
             for layerName in self.ownMainLayers:
@@ -815,10 +767,6 @@ class QGISRed:
         utils.removeLayers(self.issuesLayers)
         utils.removeLayer("Links_Connectivity")
         self.removeEmptyQuerySubGroup("Connectivity")
-        # connGroup = QgsProject.instance().layerTreeRoot().findGroup("Connectivity")
-        # if connGroup is not None:
-            # parent = self.getQueryGroup()
-            # parent.removeChildNode(connGroup)
         raise Exception('') #Avoiding errors with v3.x with shps and dbfs in use after deleting (use of QTasks)
 
     def removeHydraulicSectors(self, task, wait_time=0):
@@ -930,7 +878,7 @@ class QGISRed:
         # show the dialog
         dlg = QGISRedProjectManagerDialog()
         dlg.config(self.iface, self.ProjectDirectory, self.NetworkName)
-
+        
         # Run the dialog event loop
         dlg.exec_()
         result = dlg.ProcessDone
@@ -1007,10 +955,7 @@ class QGISRed:
         if toCommit:
             step = "step2"
         b = mydll.CheckData(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), step.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
         #Message
@@ -1030,32 +975,18 @@ class QGISRed:
             if runAgain:
                 #Process
                 self.Process=b
-                if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-                    try:
-                        self.removeIssuesLayers(None,0)
-                    except:
-                        pass
-                    self.runCheckDataProcess()
-                else:  #QGis 3.x
-                    #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-                    task1 = QgsTask.fromFunction("", self.removeIssuesLayers, on_finished=self.runCheckDataProcess)
-                    task1.run()
-                    QgsApplication.taskManager().addTask(task1)
+                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                task1 = QgsTask.fromFunction("", self.removeIssuesLayers, on_finished=self.runCheckDataProcess)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
         else:
             if runAgain:
                 #Process
                 self.Process=b
-                if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-                    try:
-                        self.removeLayers(None,0)
-                    except:
-                        pass
-                    self.runCheckDataProcess()
-                else:  #QGis 3.x
-                    #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-                    task1 = QgsTask.fromFunction("", self.removeLayers, on_finished=self.runCheckDataProcess)
-                    task1.run()
-                    QgsApplication.taskManager().addTask(task1)
+                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                task1 = QgsTask.fromFunction("", self.removeLayers, on_finished=self.runCheckDataProcess)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
 
     def runCheckDataProcess(self, exception=None, result=None):
         #Backup
@@ -1069,16 +1000,10 @@ class QGISRed:
         mydll.CheckData.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CheckData.restype = c_char_p
         b = mydll.CheckData(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Process.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         
          #CRS
-        try: #QGis 3.x
-            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        except: #QGis 2.x
-            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
         if crs.srsid()==0:
             crs = QgsCoordinateReferenceSystem()
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
@@ -1126,10 +1051,7 @@ class QGISRed:
         mydll.ExportToInp.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.ExportToInp.restype = c_char_p
         b = mydll.ExportToInp(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), elements.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         
         #Message
         if b=="True":
@@ -1156,10 +1078,7 @@ class QGISRed:
         mydll.Compute.argtypes = (c_char_p, c_char_p)
         mydll.Compute.restype = c_char_p
         b = mydll.Compute(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
         #Message
@@ -1246,10 +1165,7 @@ class QGISRed:
         if toCommit:
             step = "step2"
         b = mydll.CheckCoordinates(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), step.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
         #Message
@@ -1269,32 +1185,18 @@ class QGISRed:
             if runAgain:
                 #Process
                 self.Process=b
-                if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-                    try:
-                        self.removeIssuesLayers(None,0)
-                    except:
-                        pass
-                    self.runCheckCoordinatesProcess()
-                else:  #QGis 3.x
-                    #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-                    task1 = QgsTask.fromFunction("", self.removeIssuesLayers, on_finished=self.runCheckCoordinatesProcess)
-                    task1.run()
-                    QgsApplication.taskManager().addTask(task1)
+                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                task1 = QgsTask.fromFunction("", self.removeIssuesLayers, on_finished=self.runCheckCoordinatesProcess)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
         else:
             if runAgain:
                 #Process
                 self.Process=b
-                if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-                    try:
-                        self.removeLayers(None,0)
-                    except:
-                        pass
-                    self.runCheckCoordinatesProcess()
-                else:  #QGis 3.x
-                    #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-                    task1 = QgsTask.fromFunction("", self.removeLayers, on_finished=self.runCheckCoordinatesProcess)
-                    task1.run()
-                    QgsApplication.taskManager().addTask(task1)
+                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                task1 = QgsTask.fromFunction("", self.removeLayers, on_finished=self.runCheckCoordinatesProcess)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
 
     def runCheckCoordinatesProcess(self, exception=None, result=None):
         #Process
@@ -1304,16 +1206,10 @@ class QGISRed:
         mydll.CheckCoordinates.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CheckCoordinates.restype = c_char_p
         b = mydll.CheckCoordinates(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Process.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         
         #CRS
-        try: #QGis 3.x
-            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        except: #QGis 2.x
-            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
         if crs.srsid()==0:
             crs = QgsCoordinateReferenceSystem()
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
@@ -1364,10 +1260,7 @@ class QGISRed:
         if toCommit:
             step = "step2"
         b = mydll.ChechkAlignedVertices(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), step.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
         #Message
@@ -1387,32 +1280,18 @@ class QGISRed:
             if runAgain:
                 #Process
                 self.Process=b
-                if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-                    try:
-                        self.removeIssuesLayers(None,0)
-                    except:
-                        pass
-                    self.runSimplifyVerticesProcess()
-                else:  #QGis 3.x
-                    #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-                    task1 = QgsTask.fromFunction("", self.removeIssuesLayers, on_finished=self.runSimplifyVerticesProcess)
-                    task1.run()
-                    QgsApplication.taskManager().addTask(task1)
+                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                task1 = QgsTask.fromFunction("", self.removeIssuesLayers, on_finished=self.runSimplifyVerticesProcess)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
         else:
             if runAgain:
                 #Process
                 self.Process=b
-                if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-                    try:
-                        self.removeLayers(None,0)
-                    except:
-                        pass
-                    self.runSimplifyVerticesProcess()
-                else:  #QGis 3.x
-                    #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-                    task1 = QgsTask.fromFunction("", self.removeLayers, on_finished=self.runSimplifyVerticesProcess)
-                    task1.run()
-                    QgsApplication.taskManager().addTask(task1)
+                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                task1 = QgsTask.fromFunction("", self.removeLayers, on_finished=self.runSimplifyVerticesProcess)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
 
     def runSimplifyVerticesProcess(self, exception=None, result=None):
         #Process
@@ -1422,16 +1301,10 @@ class QGISRed:
         mydll.ChechkAlignedVertices.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.ChechkAlignedVertices.restype = c_char_p
         b = mydll.ChechkAlignedVertices(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Process.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         
         #CRS
-        try: #QGis 3.x
-            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        except: #QGis 2.x
-            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
         if crs.srsid()==0:
             crs = QgsCoordinateReferenceSystem()
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
@@ -1482,10 +1355,7 @@ class QGISRed:
         if toCommit:
             step = "step2"
         b = mydll.CheckTConnections(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), step.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
         #Message
@@ -1505,32 +1375,18 @@ class QGISRed:
             if runAgain:
                 #Process
                 self.Process=b
-                if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-                    try:
-                        self.removeIssuesLayers(None,0)
-                    except:
-                        pass
-                    self.runCreateTConncetionsProcess()
-                else:  #QGis 3.x
-                    #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-                    task1 = QgsTask.fromFunction("", self.removeIssuesLayers, on_finished=self.runCreateTConncetionsProcess)
-                    task1.run()
-                    QgsApplication.taskManager().addTask(task1)
+                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                task1 = QgsTask.fromFunction("", self.removeIssuesLayers, on_finished=self.runCreateTConncetionsProcess)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
         else:
             if runAgain:
                 #Process
                 self.Process=b
-                if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-                    try:
-                        self.removeLayers(None,0)
-                    except:
-                        pass
-                    self.runCreateTConncetionsProcess()
-                else:  #QGis 3.x
-                    #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-                    task1 = QgsTask.fromFunction("", self.removeLayers, on_finished=self.runCreateTConncetionsProcess)
-                    task1.run()
-                    QgsApplication.taskManager().addTask(task1)
+                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                task1 = QgsTask.fromFunction("", self.removeLayers, on_finished=self.runCreateTConncetionsProcess)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
 
     def runCreateTConncetionsProcess(self, exception=None, result=None):
         #Process
@@ -1540,16 +1396,10 @@ class QGISRed:
         mydll.CheckTConnections.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CheckTConnections.restype = c_char_p
         b = mydll.CheckTConnections(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Process.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         
         #CRS
-        try: #QGis 3.x
-            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        except: #QGis 2.x
-            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
         if crs.srsid()==0:
             crs = QgsCoordinateReferenceSystem()
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
@@ -1600,10 +1450,7 @@ class QGISRed:
         if toCommit:
             step = "step2"
         b = mydll.CheckJoinPipes(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), step.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
         #Message
@@ -1623,32 +1470,18 @@ class QGISRed:
             if runAgain:
                 #Process
                 self.Process=b
-                if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-                    try:
-                        self.removeIssuesLayers(None,0)
-                    except:
-                        pass
-                    self.runCheckJoinPipesProcess()
-                else:  #QGis 3.x
-                    #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-                    task1 = QgsTask.fromFunction("", self.removeIssuesLayers, on_finished=self.runCheckJoinPipesProcess)
-                    task1.run()
-                    QgsApplication.taskManager().addTask(task1)
+                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                task1 = QgsTask.fromFunction("", self.removeIssuesLayers, on_finished=self.runCheckJoinPipesProcess)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
         else:
             if runAgain:
                 #Process
                 self.Process=b
-                if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-                    try:
-                        self.removeLayers(None,0)
-                    except:
-                        pass
-                    self.runCheckJoinPipesProcess()
-                else:  #QGis 3.x
-                    #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-                    task1 = QgsTask.fromFunction("", self.removeLayers, on_finished=self.runCheckJoinPipesProcess)
-                    task1.run()
-                    QgsApplication.taskManager().addTask(task1)
+                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                task1 = QgsTask.fromFunction("", self.removeLayers, on_finished=self.runCheckJoinPipesProcess)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
 
     def runCheckJoinPipesProcess(self, exception=None, result=None):
         #Process
@@ -1658,16 +1491,10 @@ class QGISRed:
         mydll.CheckJoinPipes.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CheckJoinPipes.restype = c_char_p
         b = mydll.CheckJoinPipes(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Process.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         
         #CRS
-        try: #QGis 3.x
-            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        except: #QGis 2.x
-            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
         if crs.srsid()==0:
             crs = QgsCoordinateReferenceSystem()
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
@@ -1729,10 +1556,7 @@ class QGISRed:
         if toCommit:
             step = "step2"
         b = mydll.CheckConnectivity(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), "0".encode('utf-8'), step.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
         #Message
@@ -1747,37 +1571,23 @@ class QGISRed:
             runAgain=True
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
-        print(b)
+        
         if not toCommit: #open shps of issues
             if runAgain:
                 #Process
                 self.Process=b
-                if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-                    try:
-                        self.removeLayersConnectivity(None,0)
-                    except:
-                        pass
-                    self.runCheckConnectivityProcess()
-                else:  #QGis 3.x
-                    #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-                    task1 = QgsTask.fromFunction("", self.removeLayersConnectivity, on_finished=self.runCheckConnectivityProcess)
-                    task1.run()
-                    QgsApplication.taskManager().addTask(task1)
+                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                task1 = QgsTask.fromFunction("", self.removeLayersConnectivity, on_finished=self.runCheckConnectivityProcess)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
         else:
             if runAgain:
                 #Process
                 self.Process=b
-                if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-                    try:
-                        self.removeLayers(None,0)
-                    except:
-                        pass
-                    self.runCheckConnectivityProcess()
-                else:  #QGis 3.x
-                    #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-                    task1 = QgsTask.fromFunction("", self.removeLayers, on_finished=self.runCheckConnectivityProcess)
-                    task1.run()
-                    QgsApplication.taskManager().addTask(task1)
+                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                task1 = QgsTask.fromFunction("", self.removeLayers, on_finished=self.runCheckConnectivityProcess)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
 
     def runCheckConnectivityProcess(self, exception=None, result=None):
         #Process
@@ -1787,16 +1597,10 @@ class QGISRed:
         mydll.CheckConnectivity.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CheckConnectivity.restype = c_char_p
         b = mydll.CheckConnectivity(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.LinesToDelete.encode('utf-8'), self.Process.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         
         #CRS
-        try: #QGis 3.x
-            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        except: #QGis 2.x
-            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
         if crs.srsid()==0:
             crs = QgsCoordinateReferenceSystem()
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
@@ -1861,10 +1665,8 @@ class QGISRed:
             if toCommit:
                 step = "step2"
             b = mydll.CheckLengths(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Tolerance.encode('utf-8'), step.encode('utf-8'))
-            try: #QGis 3.x
-                b= "".join(map(chr, b)) #bytes to string
-            except:  #QGis 2.x
-                b=b
+            b= "".join(map(chr, b)) #bytes to string
+            
             QApplication.restoreOverrideCursor()
             
             #Message
@@ -1879,37 +1681,23 @@ class QGISRed:
                 runAgain=True
             else:
                 self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
-            print(b)
+            
             if not toCommit: #open shps of issues
                 if runAgain:
                     #Process
                     self.Process=b
-                    if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-                        try:
-                            self.removeIssuesLayers(None,0)
-                        except:
-                            pass
-                        self.runCheckLengthsProcess()
-                    else:  #QGis 3.x
-                        #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-                        task1 = QgsTask.fromFunction("", self.removeIssuesLayers, on_finished=self.runCheckLengthsProcess)
-                        task1.run()
-                        QgsApplication.taskManager().addTask(task1)
+                    #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                    task1 = QgsTask.fromFunction("", self.removeIssuesLayers, on_finished=self.runCheckLengthsProcess)
+                    task1.run()
+                    QgsApplication.taskManager().addTask(task1)
             else:
                 if runAgain:
                     #Process
                     self.Process=b
-                    if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-                        try:
-                            self.removeLayers(None,0)
-                        except:
-                            pass
-                        self.runCheckLengthsProcess()
-                    else:  #QGis 3.x
-                        #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-                        task1 = QgsTask.fromFunction("", self.removeLayers, on_finished=self.runCheckLengthsProcess)
-                        task1.run()
-                        QgsApplication.taskManager().addTask(task1)
+                    #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                    task1 = QgsTask.fromFunction("", self.removeLayers, on_finished=self.runCheckLengthsProcess)
+                    task1.run()
+                    QgsApplication.taskManager().addTask(task1)
 
     def runCheckLengthsProcess(self, exception=None, result=None):
         #Process
@@ -1919,16 +1707,10 @@ class QGISRed:
         mydll.CheckLengths.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CheckLengths.restype = c_char_p
         b = mydll.CheckLengths(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Tolerance.encode('utf-8'), self.Process.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         
         #CRS
-        try: #QGis 3.x
-            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        except: #QGis 2.x
-            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
         if crs.srsid()==0:
             crs = QgsCoordinateReferenceSystem()
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
@@ -1970,10 +1752,7 @@ class QGISRed:
         mydll.CheckDiameters.argtypes = (c_char_p, c_char_p)
         mydll.CheckDiameters.restype = c_char_p
         b = mydll.CheckDiameters(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
         #Message
@@ -2001,10 +1780,7 @@ class QGISRed:
         mydll.CheckMaterials.argtypes = (c_char_p, c_char_p)
         mydll.CheckMaterials.restype = c_char_p
         b = mydll.CheckMaterials(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
         #Message
@@ -2032,10 +1808,7 @@ class QGISRed:
         mydll.CheckInstallationDates.argtypes = (c_char_p, c_char_p)
         mydll.CheckInstallationDates.restype = c_char_p
         b = mydll.CheckInstallationDates(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
         #Message
@@ -2057,17 +1830,10 @@ class QGISRed:
             return
         
         #Process
-        if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-            try:
-                self.removeLayers(None,0)
-            except:
-                pass
-            self.runSetRoughnessProcess()
-        else:  #QGis 3.x
-            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-            task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeLayers, on_finished=self.runSetRoughnessProcess, wait_time=0)
-            task1.run()
-            QgsApplication.taskManager().addTask(task1)
+        #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+        task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeLayers, on_finished=self.runSetRoughnessProcess, wait_time=0)
+        task1.run()
+        QgsApplication.taskManager().addTask(task1)
 
     def runSetRoughnessProcess(self, exception=None, result=None):
         #Process
@@ -2077,19 +1843,13 @@ class QGISRed:
         mydll.SetRoughness.argtypes = (c_char_p, c_char_p)
         mydll.SetRoughness.restype = c_char_p
         b = mydll.SetRoughness(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         
         #Group
         inputGroup = self.getInputGroup()
         
         #CRS
-        try: #QGis 3.x
-            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        except: #QGis 2.x
-            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
         if crs.srsid()==0:
             crs = QgsCoordinateReferenceSystem()
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
@@ -2123,17 +1883,10 @@ class QGISRed:
         
         #Process
         self.complementaryLayers = ["IssolatedValves"]
-        if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-            try:
-                self.removeComplementaryLayers(None,0)
-            except:
-                pass
-            self.runSetPipeStatusProcess()
-        else:  #QGis 3.x
-            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-            task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeComplementaryLayers, on_finished=self.runSetPipeStatusProcess, wait_time=0)
-            task1.run()
-            QgsApplication.taskManager().addTask(task1)
+        #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+        task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeComplementaryLayers, on_finished=self.runSetPipeStatusProcess, wait_time=0)
+        task1.run()
+        QgsApplication.taskManager().addTask(task1)
 
     def runSetPipeStatusProcess(self, exception=None, result=None):
         #Process
@@ -2143,19 +1896,13 @@ class QGISRed:
         mydll.SetInitialStatusPipes.argtypes = (c_char_p, c_char_p)
         mydll.SetInitialStatusPipes.restype = c_char_p
         b = mydll.SetInitialStatusPipes(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         
         #Group
         inputGroup = self.getInputGroup()
         
         #CRS
-        try: #QGis 3.x
-            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        except: #QGis 2.x
-            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
         if crs.srsid()==0:
             crs = QgsCoordinateReferenceSystem()
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
@@ -2208,10 +1955,7 @@ class QGISRed:
         # if toCommit:
             # step = "step2"
         b = mydll.AddConnections(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), asNode.encode('utf-8'), step.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
         #Message
@@ -2229,34 +1973,14 @@ class QGISRed:
         
         # if not toCommit: #open shps of issues
             # if runAgain:
-                # #Process
-                # self.Process=b
-                # if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-                    # try:
-                        # self.removeIssuesLayers(None,0)
-                    # except:
-                        # pass
-                    # self.runAddConnectionsProcess()
-                # else:  #QGis 3.x
-                    # #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-                    # task1 = QgsTask.fromFunction("", self.removeIssuesLayers, on_finished=self.runAddConnectionsProcess)
-                    # task1.run()
-                    # QgsApplication.taskManager().addTask(task1)
         # else:
         if runAgain:
             #Process
             self.Process=b
-            if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-                try:
-                    self.removeComplementaryLayers(None,0)
-                except:
-                    pass
-                self.runAddConnectionsProcess()
-            else:  #QGis 3.x
-                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-                task1 = QgsTask.fromFunction("", self.removeComplementaryLayers, on_finished=self.runAddConnectionsProcess)
-                task1.run()
-                QgsApplication.taskManager().addTask(task1)
+            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+            task1 = QgsTask.fromFunction("", self.removeComplementaryLayers, on_finished=self.runAddConnectionsProcess)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
 
     def runAddConnectionsProcess(self, exception=None, result=None):
         asNode = "true"
@@ -2270,16 +1994,10 @@ class QGISRed:
         mydll.AddConnections.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.AddConnections.restype = c_char_p
         b = mydll.AddConnections(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), asNode.encode('utf-8'), self.Process.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         
         #CRS
-        try: #QGis 3.x
-            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        except: #QGis 2.x
-            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
         if crs.srsid()==0:
             crs = QgsCoordinateReferenceSystem()
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
@@ -2331,10 +2049,7 @@ class QGISRed:
         # if toCommit:
             # step = "step2"
         b = mydll.AddHydrants(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), step.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
         #Message
@@ -2352,34 +2067,14 @@ class QGISRed:
         
         # if not toCommit: #open shps of issues
             # if runAgain:
-                # #Process
-                # self.Process=b
-                # if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-                    # try:
-                        # self.removeIssuesLayers(None,0)
-                    # except:
-                        # pass
-                    # self.runAddHydrantsProcess()
-                # else:  #QGis 3.x
-                    # #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-                    # task1 = QgsTask.fromFunction("", self.removeIssuesLayers, on_finished=self.runAddHydrantsProcess)
-                    # task1.run()
-                    # QgsApplication.taskManager().addTask(task1)
         # else:
         if runAgain:
             #Process
             self.Process=b
-            if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-                try:
-                    self.removeComplementaryLayers(None,0)
-                except:
-                    pass
-                self.runAddHydrantsProcess()
-            else:  #QGis 3.x
-                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-                task1 = QgsTask.fromFunction("", self.removeComplementaryLayers, on_finished=self.runAddHydrantsProcess)
-                task1.run()
-                QgsApplication.taskManager().addTask(task1)
+            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+            task1 = QgsTask.fromFunction("", self.removeComplementaryLayers, on_finished=self.runAddHydrantsProcess)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
 
     def runAddHydrantsProcess(self, exception=None, result=None):
         #Process
@@ -2389,16 +2084,10 @@ class QGISRed:
         mydll.AddHydrants.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.AddHydrants.restype = c_char_p
         b = mydll.AddHydrants(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Process.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         
         #CRS
-        try: #QGis 3.x
-            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        except: #QGis 2.x
-            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
         if crs.srsid()==0:
             crs = QgsCoordinateReferenceSystem()
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
@@ -2450,10 +2139,7 @@ class QGISRed:
         # if toCommit:
             # step = "step2"
         b = mydll.AddPurgeValves(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), step.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
         #Message
@@ -2471,34 +2157,14 @@ class QGISRed:
         
         # if not toCommit: #open shps of issues
             # if runAgain:
-                # #Process
-                # self.Process=b
-                # if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-                    # try:
-                        # self.removeIssuesLayers(None,0)
-                    # except:
-                        # pass
-                    # self.runAddPurgeValvesProcess()
-                # else:  #QGis 3.x
-                    # #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-                    # task1 = QgsTask.fromFunction("", self.removeIssuesLayers, on_finished=self.runAddPurgeValvesProcess)
-                    # task1.run()
-                    # QgsApplication.taskManager().addTask(task1)
         # else:
         if runAgain:
             #Process
             self.Process=b
-            if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-                try:
-                    self.removeComplementaryLayers(None,0)
-                except:
-                    pass
-                self.runAddPurgeValvesProcess()
-            else:  #QGis 3.x
-                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-                task1 = QgsTask.fromFunction("", self.removeComplementaryLayers, on_finished=self.runAddPurgeValvesProcess)
-                task1.run()
-                QgsApplication.taskManager().addTask(task1)
+            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+            task1 = QgsTask.fromFunction("", self.removeComplementaryLayers, on_finished=self.runAddPurgeValvesProcess)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
 
     def runAddPurgeValvesProcess(self, exception=None, result=None):
         #Process
@@ -2508,16 +2174,10 @@ class QGISRed:
         mydll.AddPurgeValves.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.AddPurgeValves.restype = c_char_p
         b = mydll.AddPurgeValves(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Process.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         
         #CRS
-        try: #QGis 3.x
-            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        except: #QGis 2.x
-            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
         if crs.srsid()==0:
             crs = QgsCoordinateReferenceSystem()
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
@@ -2563,17 +2223,10 @@ class QGISRed:
                 self.ElecationFiles = self.ElecationFiles + fil + ";"
             
             #Process
-            if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-                try:
-                    self.removeLayers(None,0)
-                except:
-                    pass
-                self.runElevationInterpolationProcess()
-            else:  #QGis 3.x
-                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-                task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeLayers, on_finished=self.runElevationInterpolationProcess, wait_time=0)
-                task1.run()
-                QgsApplication.taskManager().addTask(task1)
+            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+            task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeLayers, on_finished=self.runElevationInterpolationProcess, wait_time=0)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
 
     def runElevationInterpolationProcess(self, exception=None, result=None):
         #Process
@@ -2583,19 +2236,13 @@ class QGISRed:
         mydll.ElevationInterpolation.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.ElevationInterpolation.restype = c_char_p
         b = mydll.ElevationInterpolation(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.ElecationFiles.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         
         #Group
         inputGroup = self.getInputGroup()
         
         #CRS
-        try: #QGis 3.x
-            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        except: #QGis 2.x
-            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
         if crs.srsid()==0:
             crs = QgsCoordinateReferenceSystem()
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
@@ -2625,17 +2272,10 @@ class QGISRed:
         
         self.Sectors= "HydraulicSectors"
         #Process
-        if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-            try:
-                self.removeHydraulicSectors(None,0)
-            except:
-                pass
-            self.runHydraulicSectorsProcess()
-        else:  #QGis 3.x
-            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-            task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeHydraulicSectors, on_finished=self.runHydraulicSectorsProcess, wait_time=0)
-            task1.run()
-            QgsApplication.taskManager().addTask(task1)
+        #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+        task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeHydraulicSectors, on_finished=self.runHydraulicSectorsProcess, wait_time=0)
+        task1.run()
+        QgsApplication.taskManager().addTask(task1)
 
     def runHydraulicSectorsProcess(self, exception=None, result=None):
         #Process
@@ -2645,16 +2285,10 @@ class QGISRed:
         mydll.HydarulicSectors.argtypes = (c_char_p, c_char_p)
         mydll.HydarulicSectors.restype = c_char_p
         b = mydll.HydarulicSectors(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         
         #CRS
-        try: #QGis 3.x
-            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        except: #QGis 2.x
-            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
         if crs.srsid()==0:
             crs = QgsCoordinateReferenceSystem()
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
@@ -2692,17 +2326,10 @@ class QGISRed:
         
         self.Sectors= "DemandSectors"
         #Process
-        if str(Qgis.QGIS_VERSION).startswith('2'): #QGis 2.x
-            try:
-                self.removeHydraulicSectors(None,0)
-            except:
-                pass
-            self.runDemandSectorsProcess()
-        else:  #QGis 3.x
-            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-            task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeHydraulicSectors, on_finished=self.runDemandSectorsProcess, wait_time=0)
-            task1.run()
-            QgsApplication.taskManager().addTask(task1)
+        #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+        task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeHydraulicSectors, on_finished=self.runDemandSectorsProcess, wait_time=0)
+        task1.run()
+        QgsApplication.taskManager().addTask(task1)
 
     def runDemandSectorsProcess(self, exception=None, result=None):
         #Process
@@ -2712,16 +2339,10 @@ class QGISRed:
         mydll.DemandSectors.argtypes = (c_char_p, c_char_p)
         mydll.DemandSectors.restype = c_char_p
         b = mydll.DemandSectors(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
-        try: #QGis 3.x
-            b= "".join(map(chr, b)) #bytes to string
-        except:  #QGis 2.x
-            b=b
+        b= "".join(map(chr, b)) #bytes to string
         
         #CRS
-        try: #QGis 3.x
-            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        except: #QGis 2.x
-            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
         if crs.srsid()==0:
             crs = QgsCoordinateReferenceSystem()
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
