@@ -15,6 +15,7 @@
         <file>images/aboutUPV.png</file>
         <file>images/iconFlash.png</file>
         <file>images/iconTools.png</file>
+        <file>images/iconToolsData.png</file>
         <file>images/iconToolsLayout.png</file>
         <file>images/iconToolsProperties.png</file>
         <file>images/iconToolsComponents.png</file>
@@ -46,5 +47,11 @@
         <file>images/iconResults.png</file>
         <file>images/iconSave.png</file>
         <file>images/iconDelete.png</file>
+        <file>images/iconData.png</file>
+        <file>images/iconSummary.png</file>
+        <file>images/iconMoveElements.png</file>
+        <file>images/iconRules.png</file>
+        <file>images/iconLinePlot.png</file>
+        <file>images/iconOptions.png</file>
     </qresource>
 </RCC>

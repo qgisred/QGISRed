@@ -12,3 +12,4 @@
 /ui/__pycache__/qgisred_results_dock.cpython-37.pyc
 /ui/__pycache__/qgisred_toolConnectivity_dialog.cpython-37.pyc
 /ui/__pycache__/qgisred_toolLength_dialog.cpython-37.pyc
+/__pycache__/*.pyc

@@ -17,6 +17,15 @@ class QGISRedAboutDialog(QDialog, FORM_CLASS):
         self.labelUpv.mousePressEvent = self.linkUpv
         self.lbManual.mousePressEvent = self.userManual
         self.lbManual_es.mousePressEvent = self.userManualEs
+        #version
+        metadata = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'metadata.txt')
+        if os.path.exists(metadata):
+            f= open(metadata, "r")
+            lines = f.readlines()
+            for line in lines:
+                if "version=" in line:
+                    self.versionLabel.setText("QGis Plugin v." + line.replace("version=",""))
+                    return
 
     def linkRedhisp(self, event):
         webbrowser.open('http://www.redhisp.upv.es')

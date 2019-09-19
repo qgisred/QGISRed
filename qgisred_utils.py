@@ -30,6 +30,7 @@ class QGISRedUtils:
             self.openLayer(crs, group, fileName, ".dbf")
         for fileName in ownMainLayers:
             self.openLayer(crs, group, fileName)
+        self.orderLayers(group)
 
     def openIssuesLayers(self, group, crs, layers):
         for fileName in layers:
@@ -68,6 +69,18 @@ class QGISRedUtils:
                 QgsProject.instance().removeMapLayer(layer.id())
         self.iface.mapCanvas().refresh()
         del layers
+
+    def orderLayers(self, group):
+        mylayersNames = ["Reservoirs.shp", "Tanks.shp", "Junctions.shp", "Pumps.shp", "Valves.shp", "Pipes.shp", "Patterns.dbf", "Curves.dbf", "Controls.dbf", "Rules.dbf", "Options.dbf", "DefaultValues.dbf"]
+        for layerName in mylayersNames:
+            layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+            for layer in layers:
+                if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/","\\")== os.path.join(self.ProjectDirectory, self.NetworkName + "_" + layerName).replace("/","\\"):
+                    _layer = layer.clone()
+                    QgsProject.instance().addMapLayer(_layer, group is None)
+                    if group is not None:
+                        group.addChildNode(QgsLayerTreeLayer(_layer))
+                        QgsProject.instance().removeMapLayer(layer.id())
 
     def writeFile(self, file, string):
         file.write(string)
