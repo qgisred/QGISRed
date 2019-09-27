@@ -12,7 +12,7 @@ qgisMinimumVersion=3.0
 qgisMaximumVersion=3.99
 description=Tool for helping the hydraulic engineer in the task of modelling a water distribution network and in the decision-making process.
 version=0.6
-author=REDHISP (UPV)
+author=REDHISP (IIAMA - UPV)
 email=fmartine@hma.upv.es
 
 about=<p><b>Requeriments</b>  .Net Framework 4.5 - Windows OS.</p><p align="justify">This tool is designed as a plugin to the free software QGis. However, QGISRed uses the source code of the GISRed software, an application designed as a desktop tool for the Windows operating system. The QGISRed plugin is developed with the objective of being able to take advantage of all the tools that a GIS environment can provide in a native way. For example, geo-processing tools, use of satellite images, style management, etc.</p><p>QGISRed allows:

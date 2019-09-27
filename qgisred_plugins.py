@@ -258,12 +258,8 @@ class QGISRed:
             # toolbar=self.toolbar,
             # parent=self.iface.mainWindow())
         
-        """Toolbar and submenus"""
-        #Tools Menu
-        self.qgisredmenuTools = self.qgisredmenu.addMenu(self.tr('Tools'))
-        self.qgisredmenuTools.setIcon(QIcon(':/plugins/QGISRed/images/iconTools.png'))
-        """Data Submenu"""
-        self.qgisredmenuDataTools = self.qgisredmenuTools.addMenu(self.tr('Data'))
+        """Data Submenu ans toolbar"""
+        self.qgisredmenuDataTools = self.qgisredmenu.addMenu(self.tr('Data'))
         self.qgisredmenuDataTools.setIcon(QIcon(':/plugins/QGISRed/images/iconData.png'))
         #Toolbar
         self.toolbarData = self.iface.addToolBar(self.tr(u'QGISRed Data Tools'))
@@ -293,6 +289,11 @@ class QGISRed:
             menubar=self.qgisredmenuDataTools,
             toolbar=self.toolbarData,
             parent=self.iface.mainWindow())
+        
+        """Toolbar and submenus"""
+        #Tools Menu
+        self.qgisredmenuTools = self.qgisredmenu.addMenu(self.tr('Tools'))
+        self.qgisredmenuTools.setIcon(QIcon(':/plugins/QGISRed/images/iconTools.png'))
         """Layaout Submenu"""
         self.qgisredmenuPathTools = self.qgisredmenuTools.addMenu(self.tr('Layout'))
         self.qgisredmenuPathTools.setIcon(QIcon(':/plugins/QGISRed/images/iconVerticesM.png'))
@@ -300,15 +301,15 @@ class QGISRed:
         self.toolbarLayout = self.iface.addToolBar(self.tr(u'QGISRed Layout Tools'))
         self.toolbarLayout.setObjectName(self.tr(u'QGISRed Layout Tools'))
         self.toolbarLayout.setVisible(False)
-        icon_path = ':/plugins/QGISRed/images/iconMoveElements.png' 
-        self.moveElementsButton = self.add_action(
-            icon_path,
-            text=self.tr(u'Move node elements'),
-            callback=self.runMoveElements,
-            menubar=self.qgisredmenuPathTools,
-            toolbar=self.toolbarLayout,
-            checable=True,
-            parent=self.iface.mainWindow())
+        # icon_path = ':/plugins/QGISRed/images/iconMoveElements.png' 
+        # self.moveElementsButton = self.add_action(
+            # icon_path,
+            # text=self.tr(u'Move node elements'),
+            # callback=self.runMoveElements,
+            # menubar=self.qgisredmenuPathTools,
+            # toolbar=self.toolbarLayout,
+            # checable=True,
+            # parent=self.iface.mainWindow())
         
         icon_path = ':/plugins/QGISRed/images/iconOverloadM.png' 
         dropButton = self.add_action(
@@ -553,6 +554,17 @@ class QGISRed:
             toolbar=self.toolbarSectorization,
             parent=self.iface.mainWindow())
         
+        #Data
+        icon_path = ':/plugins/QGISRed/images/iconData.png' 
+        self.add_action(
+            icon_path,
+            text=self.tr(u'Data Toolbar'),
+            callback=self.runDataToolbar,
+            menubar=None,
+            add_to_menu=False,
+            toolbar=self.toolbar,
+            parent=self.iface.mainWindow())
+        
         #Tools
         icon_path = ':/plugins/QGISRed/images/iconTools.png' 
         dropButton = self.add_action(
@@ -563,17 +575,6 @@ class QGISRed:
             add_to_menu=False,
             toolbar=self.toolbar,
             createDrop = True,
-            add_to_toolbar =False,
-            parent=self.iface.mainWindow())
-        icon_path = ':/plugins/QGISRed/images/iconToolsData.png' 
-        self.add_action(
-            icon_path,
-            text=self.tr(u'Data Toolbar'),
-            callback=self.runDataToolbar,
-            menubar=None,
-            add_to_menu=False,
-            toolbar=self.toolbar,
-            actionBase = dropButton,
             add_to_toolbar =False,
             parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconToolsLayout.png' 
@@ -1202,14 +1203,10 @@ class QGISRed:
 
     """Tools"""
     def runToolbars(self):
-        self.toolbarData.setVisible(True)
         self.toolbarLayout.setVisible(True)
         self.toolbarProperties.setVisible(True)
         self.toolbarComponents.setVisible(True)
         self.toolbarSectorization.setVisible(True)
-
-    def runDataToolbar(self):
-        self.toolbarData.setVisible(not self.toolbarData.isVisible())
 
     def runLayoutToolbar(self):
         self.toolbarLayout.setVisible(not self.toolbarLayout.isVisible())
@@ -1224,6 +1221,9 @@ class QGISRed:
         self.toolbarSectorization.setVisible(not self.toolbarSectorization.isVisible())
 
     """Data"""
+    def runDataToolbar(self):
+        self.toolbarData.setVisible(not self.toolbarData.isVisible())
+
     def runAbstract(self):
         if not self.checkDependencies(): return
         #Validations
@@ -1324,19 +1324,38 @@ class QGISRed:
         if self.isLayerOnEdition():
             return
         
-        #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-        task1 = QgsTask.fromFunction("Dismiss this message", self.removeDBFs, on_finished=self.runControlsProcess, dbfs=["Controls", "Rules"])
-        task1.run()
-        QgsApplication.taskManager().addTask(task1)
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QGISRedUtils().setCurrentDirectory()
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.EditControls.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.EditControls.restype = c_char_p
+        b = mydll.EditControls(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'))
+        b= "".join(map(chr, b)) #bytes to string
+        
+        QApplication.restoreOverrideCursor()
+        
+        #Message
+        if b=="True":
+            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+            task1 = QgsTask.fromFunction('Dismiss this message', self.removeLayers, on_finished=self.runControlsProcess)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
+        elif b=="False":
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
+        elif b=="Cancel":
+            pass
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runControlsProcess(self, exception=None, result=None):
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.EditControls.argtypes = (c_char_p, c_char_p)
-        mydll.EditControls.restype = c_char_p
-        b = mydll.EditControls(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
+        mydll.ReplaceTemporalLayers.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.ReplaceTemporalLayers.restype = c_char_p
+        b = mydll.ReplaceTemporalLayers(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         
         #CRS
@@ -1347,7 +1366,7 @@ class QGISRed:
         #Open layers
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         inputGroup = self.getInputGroup()
-        utils.openElementsLayers(inputGroup, crs, [], ["Controls", "Rules"])
+        utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
         
         QApplication.restoreOverrideCursor()
         
