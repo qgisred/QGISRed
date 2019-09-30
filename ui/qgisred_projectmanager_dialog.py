@@ -4,6 +4,7 @@ from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer
 from qgis.PyQt import QtGui, uic
 from PyQt5.QtWidgets import QMessageBox, QTableWidgetItem, QDialog
 from PyQt5.QtCore import QFileInfo
+from qgis.core import QgsTask, QgsApplication
 # Import the code for the dialog
 from .qgisred_newproject_dialog import QGISRedNewProjectDialog
 from .qgisred_importproject_dialog import QGISRedImportProjectDialog
@@ -156,7 +157,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 #Close project and continue?
                 reply = QMessageBox.question(self.iface.mainWindow(), 'Opened project', 'Do you want to close the current project and continue?', QMessageBox.Yes, QMessageBox.No)
                 if reply == QMessageBox.Yes:
-                    QgsProject.instance().clear()
+                    #QgsProject.instance().clear()
                     return True
                 else:
                     return False
@@ -165,11 +166,15 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 #Close files and continue?
                 reply = QMessageBox.question(self.iface.mainWindow(), 'Opened layers', 'Do you want to close the current layers and continue?', QMessageBox.Yes, QMessageBox.No)
                 if reply == QMessageBox.Yes:
-                    QgsProject.instance().clear()
+                    #QgsProject.instance().clear()
                     return True
                 else:
                     return False
         return True
+
+    def clearQGisProject(self,task):
+        QgsProject.instance().clear()
+        raise Exception('')
 
     def loadGplFile(self, projectDirectory, networkName):
         gqpFilename = os.path.join(projectDirectory, networkName + ".gqp")
@@ -211,16 +216,21 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
     def createProject(self):
         valid = self.isOpenedProject()
         if valid:
-            dlg = QGISRedNewProjectDialog()
-            dlg.config(self.iface, "Temporal folder", "Network")
-            # Run the dialog event loop
-            self.close()
-            dlg.exec_()
-            result = dlg.ProcessDone
-            if result:
-                self.ProjectDirectory = dlg.ProjectDirectory
-                self.NetworkName = dlg.NetworkName
-                self.ProcessDone = True
+            task1 = QgsTask.fromFunction('Dismiss this message', self.clearQGisProject, on_finished=self.createProjectProcess)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
+
+    def createProjectProcess(self, exception=None, result=None):
+        dlg = QGISRedNewProjectDialog()
+        dlg.config(self.iface, "Temporal folder", "Network")
+        # Run the dialog event loop
+        self.close()
+        dlg.exec_()
+        result = dlg.ProcessDone
+        if result:
+            self.ProjectDirectory = dlg.ProjectDirectory
+            self.NetworkName = dlg.NetworkName
+            self.ProcessDone = True
 
     def deleteProject(self):
         selectionModel = self.twProjectList.selectionModel()
@@ -261,16 +271,22 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         if selectionModel.hasSelection():
             valid = self.isOpenedProject()
             if valid:
-                for row in selectionModel.selectedRows():
-                    rowIndex = row.row()
-                    self.NetworkName = str(self.twProjectList.item(rowIndex, 0).text())
-                    self.ProjectDirectory = str(self.twProjectList.item(rowIndex, 3).text())
-                    self.loadGplFile(self.ProjectDirectory, self.NetworkName)
-                    break
-                self.close()
-                self.ProcessDone = True
+                task1 = QgsTask.fromFunction('Dismiss this message', self.clearQGisProject, on_finished=self.openProjectProcess)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
         else:
             self.iface.messageBar().pushMessage("Warning", "You need to select a valid project to open it.", level=1, duration=5)
+
+    def openProjectProcess(self, exception=None, result=None):
+        selectionModel = self.twProjectList.selectionModel()
+        for row in selectionModel.selectedRows():
+            rowIndex = row.row()
+            self.NetworkName = str(self.twProjectList.item(rowIndex, 0).text())
+            self.ProjectDirectory = str(self.twProjectList.item(rowIndex, 3).text())
+            self.loadGplFile(self.ProjectDirectory, self.NetworkName)
+            break
+        self.close()
+        self.ProcessDone = True
 
     def cloneProject(self):
         selectionModel = self.twProjectList.selectionModel()
