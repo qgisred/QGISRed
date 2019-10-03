@@ -1,8 +1,4 @@
-# This file contains metadata for your plugin. Since 
-# version 2.0 of QGIS this is the proper way to supply 
-# information about a plugin. The old method of 
-# embedding metadata in __init__.py will 
-# is no longer supported since version 2.0.
+# This file contains metadata for your plugin.
 
 # This file should be included when you package your plugin.# Mandatory items:
 
@@ -10,25 +6,34 @@
 name=QGISRed
 qgisMinimumVersion=3.0
 qgisMaximumVersion=3.99
-description=Tool for helping the hydraulic engineer in the task of modelling a water distribution network and in the decision-making process.
-version=0.6
-author=REDHISP (IIAMA - UPV)
+description=Free and professional tool to build and run advanced hydraulic models of water distribution networks.
+version=0.7
+author=Project Leader: REDHISP Group (IIAMA- UPV). Developer: WaterPi
 email=fmartine@hma.upv.es
 
-about=<p><b>Requeriments</b>  .Net Framework 4.5 - Windows OS.</p><p align="justify">This tool is designed as a plugin to the free software QGis. However, QGISRed uses the source code of the GISRed software, an application designed as a desktop tool for the Windows operating system. The QGISRed plugin is developed with the objective of being able to take advantage of all the tools that a GIS environment can provide in a native way. For example, geo-processing tools, use of satellite images, style management, etc.</p><p>QGISRed allows:
- <ol><li>Manage QGISRed projects. It is possible to open, create, import, clone or delete projects.</li><li>Create or edit a QGISRed project. It allows to create the vectorial layers (SHPs) of the basic elements that the EPANET software works with. If the user removes any of these SHPs, it is possible to recreate them.</li><li>Import data from INP (EPANET) or SHPs files. In the first format you can import complete models developed with the popular EPANET software. Using SHPs you can create or complete a model specifying for each type of main element, the SHP from which you want to import information and which fields contain certain information needed for the model.</li><li>Validation of the model, informing if there has been any error or warning when processing the information contained in the SHPs.</li><li>Export to EPANET INP file, with the option to open this software once the file is generated.</li><li>Simulation with the EPANET Toolkit to show the hydraulic and quality results.</li><ol></p>
+about=<p align="justify">QGISRed is a free QGIS plugin developed to make easier the task of building hydraulic models of water distribution networks. The plugin takes full advantage of working under a GIS environment for georeferencing all network elements, use geographic backgrounds, editing the graphical and alphanumerical data, using geoprocessing tools, visualizing data by layers, customizing the symbology, etc.</p><p align="justify">QGISRed has powerful tools to detect any kind of errors the user may make when editing information with QGIS tools before launching the model simulation.</p><p>Furthermore, QGISRed incorporates numerous tools to make it easier for the user to build the model and analyse the results without having to use QGIS's own tools. The most highlighted tools are: </p><li>Scenario manager for easy project loading and storage</li><li>Creating a new empty Scenario automatically</li><li>Import/export EPANET INP files and external shapefiles</li><li>Automatic creation of topological relations between elements, freeing the user from it</li><li>Tools to debug the network layout and verify its connectivity</li><li>Default property assignment when creating new elements</li><li>Automatic interpolation of nodes elevation</li><li>Automatic estimation of pipe roughness</li><li>Verification of the integrity of all declared properties and options</li><li>Declaration and handling of auxiliary elements such as isolation valves, service connections, hydrants, purge valves, flowmeters, sensors, etc.</li><li>Optional integration of some of the auxiliary elements to be part of the model</li><li>Automatic identification of hydraulic and demand sectors</li><li>Connection to EPANET toolkit for carrying out simulations</li><li>Simulation and visualization of the results in tables, color maps and numeric labels</li><li>Automatic declaration of legends and symbology, revisable from QGIS</li><li>Browsing results over time</li><p>To improve processing time, QGISRed uses binary libraries developed in .net, which configure the core of the GISRed application.</p><p>For more information the plugin manual, both in <a href="https://redhisp.webs.upv.es/files/QGISRed/manuals/QGISRed_0.7_usermanual_en.pdf">English</a> and <a href="https://redhisp.webs.upv.es/files/QGISRed/manuals/QGISRed_0.7_usermanual_es.pdf">Spanish</a>, can be consulted.</p><p><b>Requeriments</b>  .Net Framework 4.5 - Windows OS.</p><p><form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top"><input type="hidden" name="cmd" value="_s-xclick" /><input type="hidden" name="hosted_button_id" value="25M4ZMR52H8ZN" /><input type="image" src="https://www.paypalobjects.com/en_US/ES/i/btn/btn_donateCC_LG.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" /><img alt="" border="0" src="https://www.paypal.com/en_ES/i/scr/pixel.gif" width="1" height="1" /></form></p>
 
 tracker=https://github.com/neslerel/QGISRed/issues
 repository=https://github.com/neslerel/QGISRed
+
+
 # End of mandatory metadata
 
 # Recommended items:
 
+hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-# changelog=
+changelog=version 0.7:
+      * New window with the summary of the most relevant data of the project
+      * Pattern editor, with classification by type, visualization of associated elements, and alternative editing by real values or multipliers
+      * Curve editor, with classification by type and automatic adjustment of pump curves declared by one or three points
+      * Editor of Simple Controls, with line and node selector, syntax options selector, and comment editing
+      * Editor of Rules, with line and node selector, syntax options selector, and a manager of combined conditions and actions.
+      * Some improvements over the features already released in previous versions.
+
 
 # Tags are comma separated with spaces allowed
-tags=epanet, gisred, net, pipes, pumps, tanks
+tags=Hydraulic model, Water Distribution Networks, EPANET, GISRed, Detailed Model, Digital Twins
 
 homepage=
 category=Plugins
@@ -38,4 +43,14 @@ experimental=False
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
-#plugin_dependencies=.Net Framework==4.5,GISRed
+
+# Since QGIS 3.8, a comma separated list of plugins to be installed
+# (or upgraded) can be specified.
+# Check the documentation for more information.
+# plugin_dependencies=.Net Framework==4.5,GISRed
+
+Category of the plugin: Raster, Vector, Database or Web
+# category=
+
+# If the plugin can run on QGIS Server.
+server=False

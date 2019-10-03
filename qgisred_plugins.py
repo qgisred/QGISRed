@@ -67,7 +67,7 @@ class QGISRed:
     ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs"]
     ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns"]
     TemporalFolder = "Temporal folder"
-    DependenciesVersion ="1.0.6.1"
+    DependenciesVersion ="1.0.7.0"
 
     def __init__(self, iface):
         """Constructor.
@@ -268,7 +268,7 @@ class QGISRed:
         icon_path = ':/plugins/QGISRed/images/iconSummary.png' 
         self.add_action(
             icon_path,
-            text=self.tr(u'Abstract'),
+            text=self.tr(u'Summary'),
             callback=self.runAbstract,
             menubar=self.qgisredmenuDataTools,
             toolbar=self.toolbarData,
@@ -867,6 +867,19 @@ class QGISRed:
         utils.removeLayers(self.complementaryLayers)
         raise Exception('') #Avoiding errors with v3.x with shps and dbfs in use after deleting (use of QTasks)
 
+    def openElementLayers(self, task):
+        if not self.opendedLayers:
+            self.opendedLayers=True
+            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
+            if crs.srsid()==0:
+                crs = QgsCoordinateReferenceSystem()
+                crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
+            #Open layers
+            utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+            inputGroup = self.getInputGroup()
+            utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
+            raise Exception('')
+
     def getInputGroup(self):
         inputGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
         if inputGroup is None:
@@ -952,6 +965,12 @@ class QGISRed:
         cursor = QCursor()
         cursor.setShape(shape)
         self.iface.mapCanvas().setCursor(cursor)
+        
+    def setExtent(self, exception=None, result=None):
+        if self.extent is not None:
+            self.iface.mapCanvas().setExtent(self.extent)
+            self.iface.mapCanvas().refresh()
+            self.extent = None
 
     """Main methods"""
     def runProjectManager(self):
@@ -1065,6 +1084,7 @@ class QGISRed:
             if runAgain:
                 #Process
                 self.Process=b
+                self.extent = self.iface.mapCanvas().extent()
                 #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
                 task1 = QgsTask.fromFunction("", self.removeLayers, on_finished=self.runCheckDataProcess)
                 task1.run()
@@ -1084,19 +1104,22 @@ class QGISRed:
         b = mydll.CheckData(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Process.encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         
-         #CRS
-        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        if crs.srsid()==0:
-            crs = QgsCoordinateReferenceSystem()
-            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
-        #Open layers
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         if self.Process == "commit":
-            inputGroup = self.getInputGroup()
-            utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
+            self.opendedLayers=False
+            task1 = QgsTask.fromFunction('Dismiss this message', self.openElementLayers, on_finished=self.setExtent)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
         else:
+            #CRS
+            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
+            if crs.srsid()==0:
+                crs = QgsCoordinateReferenceSystem()
+                crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
+            #Open layers
+            utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
             issuesGroup = self.getIssuesGroup()
             utils.openIssuesLayers(issuesGroup, crs, self.issuesLayers)
+        
         QApplication.restoreOverrideCursor()
         
         #Message
@@ -1273,6 +1296,7 @@ class QGISRed:
         
         #Message
         if b=="True":
+            self.extent = self.iface.mapCanvas().extent()
             #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
             task1 = QgsTask.fromFunction('Dismiss this message', self.removeLayers, on_finished=self.runPatternsCurvesProcess)
             task1.run()
@@ -1294,15 +1318,10 @@ class QGISRed:
         b = mydll.ReplaceTemporalLayers(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         
-        #CRS
-        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        if crs.srsid()==0:
-            crs = QgsCoordinateReferenceSystem()
-            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
-        #Open layers
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        inputGroup = self.getInputGroup()
-        utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
+        self.opendedLayers=False
+        task1 = QgsTask.fromFunction('Dismiss this message', self.openElementLayers, on_finished=self.setExtent)
+        task1.run()
+        QgsApplication.taskManager().addTask(task1)
         
         QApplication.restoreOverrideCursor()
         
@@ -1337,6 +1356,7 @@ class QGISRed:
         
         #Message
         if b=="True":
+            self.extent = self.iface.mapCanvas().extent()
             #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
             task1 = QgsTask.fromFunction('Dismiss this message', self.removeLayers, on_finished=self.runControlsProcess)
             task1.run()
@@ -1358,15 +1378,10 @@ class QGISRed:
         b = mydll.ReplaceTemporalLayers(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         
-        #CRS
-        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        if crs.srsid()==0:
-            crs = QgsCoordinateReferenceSystem()
-            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
-        #Open layers
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        inputGroup = self.getInputGroup()
-        utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
+        self.opendedLayers=False
+        task1 = QgsTask.fromFunction('Dismiss this message', self.openElementLayers, on_finished=self.setExtent)
+        task1.run()
+        QgsApplication.taskManager().addTask(task1)
         
         QApplication.restoreOverrideCursor()
         
@@ -1449,6 +1464,7 @@ class QGISRed:
             if runAgain:
                 #Process
                 self.Process=b
+                self.extent = self.iface.mapCanvas().extent()
                 #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
                 task1 = QgsTask.fromFunction("", self.removeLayers, on_finished=self.runCheckCoordinatesProcess)
                 task1.run()
@@ -1464,19 +1480,23 @@ class QGISRed:
         b = mydll.CheckCoordinates(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Process.encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         
-        #CRS
-        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        if crs.srsid()==0:
-            crs = QgsCoordinateReferenceSystem()
-            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
-        #Open layers
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+
         if self.Process == "commit":
-            inputGroup = self.getInputGroup()
-            utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
+            self.opendedLayers=False
+            task1 = QgsTask.fromFunction('Dismiss this message', self.openElementLayers, on_finished=self.setExtent)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
         else:
+            #CRS
+            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
+            if crs.srsid()==0:
+                crs = QgsCoordinateReferenceSystem()
+                crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
+            #Open layers
+            utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
             issuesGroup = self.getIssuesGroup()
             utils.openIssuesLayers(issuesGroup, crs, self.issuesLayers)
+        
         QApplication.restoreOverrideCursor()
         
         #Message
@@ -1544,6 +1564,7 @@ class QGISRed:
             if runAgain:
                 #Process
                 self.Process=b
+                self.extent = self.iface.mapCanvas().extent()
                 #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
                 task1 = QgsTask.fromFunction("", self.removeLayers, on_finished=self.runSimplifyVerticesProcess)
                 task1.run()
@@ -1559,19 +1580,22 @@ class QGISRed:
         b = mydll.ChechkAlignedVertices(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Process.encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         
-        #CRS
-        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        if crs.srsid()==0:
-            crs = QgsCoordinateReferenceSystem()
-            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
-        #Open layers
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         if self.Process == "commit":
-            inputGroup = self.getInputGroup()
-            utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
+            self.opendedLayers=False
+            task1 = QgsTask.fromFunction('Dismiss this message', self.openElementLayers, on_finished=self.setExtent)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
         else:
+            #CRS
+            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
+            if crs.srsid()==0:
+                crs = QgsCoordinateReferenceSystem()
+                crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
+            #Open layers
+            utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
             issuesGroup = self.getIssuesGroup()
             utils.openIssuesLayers(issuesGroup, crs, self.issuesLayers)
+        
         QApplication.restoreOverrideCursor()
         
         #Message
@@ -1639,6 +1663,7 @@ class QGISRed:
             if runAgain:
                 #Process
                 self.Process=b
+                self.extent = self.iface.mapCanvas().extent()
                 #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
                 task1 = QgsTask.fromFunction("", self.removeLayers, on_finished=self.runCreateTConncetionsProcess)
                 task1.run()
@@ -1662,8 +1687,10 @@ class QGISRed:
         #Open layers
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         if self.Process == "commit":
-            inputGroup = self.getInputGroup()
-            utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
+            self.opendedLayers=False
+            task1 = QgsTask.fromFunction('Dismiss this message', self.openElementLayers, on_finished=self.setExtent)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
         else:
             issuesGroup = self.getIssuesGroup()
             utils.openIssuesLayers(issuesGroup, crs, self.issuesLayers)
@@ -1734,6 +1761,7 @@ class QGISRed:
             if runAgain:
                 #Process
                 self.Process=b
+                self.extent = self.iface.mapCanvas().extent()
                 #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
                 task1 = QgsTask.fromFunction("", self.removeLayers, on_finished=self.runCheckJoinPipesProcess)
                 task1.run()
@@ -1757,8 +1785,10 @@ class QGISRed:
         #Open layers
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         if self.Process == "commit":
-            inputGroup = self.getInputGroup()
-            utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
+            self.opendedLayers=False
+            task1 = QgsTask.fromFunction('Dismiss this message', self.openElementLayers, on_finished=self.setExtent)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
         else:
             issuesGroup = self.getIssuesGroup()
             utils.openIssuesLayers(issuesGroup, crs, self.issuesLayers)
@@ -1840,6 +1870,7 @@ class QGISRed:
             if runAgain:
                 #Process
                 self.Process=b
+                self.extent = self.iface.mapCanvas().extent()
                 #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
                 task1 = QgsTask.fromFunction("", self.removeLayers, on_finished=self.runCheckConnectivityProcess)
                 task1.run()
@@ -1863,8 +1894,10 @@ class QGISRed:
         #Open layers
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         if self.Process == "commit":
-            inputGroup = self.getInputGroup()
-            utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
+            self.opendedLayers=False
+            task1 = QgsTask.fromFunction('Dismiss this message', self.openElementLayers, on_finished=self.setExtent)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
         else:
             issuesGroup = self.getIssuesGroup()
             utils.openIssuesLayers(issuesGroup, crs, self.issuesLayers)
@@ -1950,6 +1983,7 @@ class QGISRed:
                 if runAgain:
                     #Process
                     self.Process=b
+                    self.extent = self.iface.mapCanvas().extent()
                     #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
                     task1 = QgsTask.fromFunction("", self.removeLayers, on_finished=self.runCheckLengthsProcess)
                     task1.run()
@@ -1973,8 +2007,10 @@ class QGISRed:
         #Open layers
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         if self.Process == "commit":
-            inputGroup = self.getInputGroup()
-            utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
+            self.opendedLayers=False
+            task1 = QgsTask.fromFunction('Dismiss this message', self.openElementLayers, on_finished=self.setExtent)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
         else:
             issuesGroup = self.getIssuesGroup()
             utils.openIssuesLayers(issuesGroup, crs, self.issuesLayers)
@@ -2086,6 +2122,7 @@ class QGISRed:
             return
         
         #Process
+        self.extent = self.iface.mapCanvas().extent()
         #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
         task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeLayers, on_finished=self.runSetRoughnessProcess, wait_time=0)
         task1.run()
@@ -2101,17 +2138,10 @@ class QGISRed:
         b = mydll.SetRoughness(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         
-        #Group
-        inputGroup = self.getInputGroup()
-        
-        #CRS
-        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        if crs.srsid()==0:
-            crs = QgsCoordinateReferenceSystem()
-            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
-        #Open layers
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
+        self.opendedLayers=False
+        task1 = QgsTask.fromFunction('Dismiss this message', self.openElementLayers, on_finished=self.setExtent)
+        task1.run()
+        QgsApplication.taskManager().addTask(task1)
         
         QApplication.restoreOverrideCursor()
         
@@ -2139,6 +2169,7 @@ class QGISRed:
         
         #Process
         self.complementaryLayers = ["IssolatedValves"]
+        self.extent = self.iface.mapCanvas().extent()
         #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
         task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeComplementaryLayers, on_finished=self.runSetPipeStatusProcess, wait_time=0)
         task1.run()
@@ -2154,18 +2185,10 @@ class QGISRed:
         b = mydll.SetInitialStatusPipes(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         
-        #Group
-        inputGroup = self.getInputGroup()
-        
-        #CRS
-        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        if crs.srsid()==0:
-            crs = QgsCoordinateReferenceSystem()
-            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
-        #Open layers
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        utils.openElementsLayers(inputGroup, crs, self.complementaryLayers, [])
-        utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
+        self.opendedLayers=False
+        task1 = QgsTask.fromFunction('Dismiss this message', self.openElementLayers, on_finished=self.setExtent)
+        task1.run()
+        QgsApplication.taskManager().addTask(task1)
         
         QApplication.restoreOverrideCursor()
         
@@ -2233,6 +2256,7 @@ class QGISRed:
         if runAgain:
             #Process
             self.Process=b
+            self.extent = self.iface.mapCanvas().extent()
             #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
             task1 = QgsTask.fromFunction("", self.removeComplementaryLayers, on_finished=self.runAddConnectionsProcess)
             task1.run()
@@ -2262,7 +2286,10 @@ class QGISRed:
         if self.Process == "commit":
             inputGroup = self.getInputGroup()
             utils.openElementsLayers(inputGroup, crs, self.complementaryLayers, [])
-            utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
+            self.opendedLayers=False
+            task1 = QgsTask.fromFunction('Dismiss this message', self.openElementLayers, on_finished=self.setExtent)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
         else:
             issuesGroup = self.getIssuesGroup()
             utils.openIssuesLayers(issuesGroup, crs, self.issuesLayers)
@@ -2327,6 +2354,7 @@ class QGISRed:
         if runAgain:
             #Process
             self.Process=b
+            self.extent = self.iface.mapCanvas().extent()
             #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
             task1 = QgsTask.fromFunction("", self.removeComplementaryLayers, on_finished=self.runAddHydrantsProcess)
             task1.run()
@@ -2352,7 +2380,10 @@ class QGISRed:
         if self.Process == "commit":
             inputGroup = self.getInputGroup()
             utils.openElementsLayers(inputGroup, crs, self.complementaryLayers, [])
-            utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
+            self.opendedLayers=False
+            task1 = QgsTask.fromFunction('Dismiss this message', self.openElementLayers, on_finished=self.setExtent)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
         else:
             issuesGroup = self.getIssuesGroup()
             utils.openIssuesLayers(issuesGroup, crs, self.issuesLayers)
@@ -2417,6 +2448,7 @@ class QGISRed:
         if runAgain:
             #Process
             self.Process=b
+            self.extent = self.iface.mapCanvas().extent()
             #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
             task1 = QgsTask.fromFunction("", self.removeComplementaryLayers, on_finished=self.runAddPurgeValvesProcess)
             task1.run()
@@ -2442,7 +2474,10 @@ class QGISRed:
         if self.Process == "commit":
             inputGroup = self.getInputGroup()
             utils.openElementsLayers(inputGroup, crs, self.complementaryLayers, [])
-            utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
+            self.opendedLayers=False
+            task1 = QgsTask.fromFunction('Dismiss this message', self.openElementLayers, on_finished=self.setExtent)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
         else:
             issuesGroup = self.getIssuesGroup()
             utils.openIssuesLayers(issuesGroup, crs, self.issuesLayers)
@@ -2479,6 +2514,7 @@ class QGISRed:
                 self.ElecationFiles = self.ElecationFiles + fil + ";"
             
             #Process
+            self.extent = self.iface.mapCanvas().extent()
             #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
             task1 = QgsTask.fromFunction(self.tr(u'Remove layers'), self.removeLayers, on_finished=self.runElevationInterpolationProcess, wait_time=0)
             task1.run()
@@ -2494,17 +2530,10 @@ class QGISRed:
         b = mydll.ElevationInterpolation(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.ElecationFiles.encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         
-        #Group
-        inputGroup = self.getInputGroup()
-        
-        #CRS
-        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        if crs.srsid()==0:
-            crs = QgsCoordinateReferenceSystem()
-            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
-        #Open layers
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
+        self.opendedLayers=False
+        task1 = QgsTask.fromFunction('Dismiss this message', self.openElementLayers, on_finished=self.setExtent)
+        task1.run()
+        QgsApplication.taskManager().addTask(task1)
         
         QApplication.restoreOverrideCursor()
         

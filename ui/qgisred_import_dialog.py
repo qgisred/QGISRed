@@ -177,7 +177,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                     return
             
             #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-            task1 = QgsTask.fromFunction(u'Remove layers', self.removeLayers, on_finished=self.importInpProjectProcess, wait_time=0)
+            task1 = QgsTask.fromFunction(u'Dismiss this message', self.removeLayers, on_finished=self.importInpProjectProcess, wait_time=0)
             task1.run()
             QgsApplication.taskManager().addTask(task1)
 
@@ -707,7 +707,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                     return
             
             #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-            task1 = QgsTask.fromFunction(u'Remove layers', self.removeLayers, on_finished=self.importShpProjectProcess, wait_time=0)
+            task1 = QgsTask.fromFunction(u'Dismiss this message', self.removeLayers, on_finished=self.importShpProjectProcess, wait_time=0)
             task1.run()
             QgsApplication.taskManager().addTask(task1)
 
