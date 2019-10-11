@@ -71,7 +71,7 @@ class QGISRedUtils:
         del layers
 
     def orderLayers(self, group):
-        mylayersNames = ["Reservoirs.shp", "Tanks.shp", "Junctions.shp", "Pumps.shp", "Valves.shp", "Pipes.shp", "Patterns.dbf", "Curves.dbf", "Controls.dbf", "Rules.dbf", "Options.dbf", "DefaultValues.dbf"]
+        mylayersNames = ["Reservoirs.shp", "Tanks.shp", "Sources.shp", "Demands.shp", "Junctions.shp", "Pumps.shp", "Valves.shp", "Pipes.shp", "Patterns.dbf", "Curves.dbf", "Controls.dbf", "Rules.dbf", "Options.dbf", "DefaultValues.dbf"]
         for layerName in mylayersNames:
             layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
             for layer in layers:
@@ -101,6 +101,8 @@ class QGISRedUtils:
                 svg_style = dict()
                 svg_style['name'] = svgPath
                 svg_style['size'] = str(7)
+                if name=="demands":
+                    svg_style['fill'] = '#9a1313'
                 symbol_layer = QgsSvgMarkerSymbolLayer.create(svg_style)
                 symbol = QgsSymbol.defaultSymbol(layer.geometryType())
                 symbol.changeSymbolLayer(0, symbol_layer)
@@ -214,14 +216,15 @@ class QGISRedUtils:
             layer.setRenderer(renderer)
 
     def getGISRedFolder(self):
-        if "64bit" in str(platform.architecture()):
-            folder = os.environ["ProgramFiles"]
-        else:
-            try:
-                folder = os.environ["ProgramFiles(x86)"]
-            except:
-                folder = os.environ["ProgramFiles"]
-        return os.path.join(folder, "GISRed")
+        # if "64bit" in str(platform.architecture()):
+            # folder = os.environ["ProgramFiles"]
+        # else:
+            # try:
+                # folder = os.environ["ProgramFiles(x86)"]
+            # except:
+                # folder = os.environ["ProgramFiles"]
+        # return os.path.join(folder, "GISRed")
+        return os.path.join(os.path.join(os.popen('echo %appdata%').read().strip(), "QGISRed"),"dlls")
 
     def setCurrentDirectory(self):
         os.chdir(self.getGISRedFolder())

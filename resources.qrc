@@ -53,5 +53,9 @@
         <file>images/iconRules.png</file>
         <file>images/iconLinePlot.png</file>
         <file>images/iconOptions.png</file>
+        <file>images/iconEditProperties.png</file>
+        <file>images/iconAddValve.png</file>
+        <file>images/iconAddPump.png</file>
+        <file>images/iconSplitPipe.png</file>
     </qresource>
 </RCC>

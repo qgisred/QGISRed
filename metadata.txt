@@ -7,7 +7,7 @@ name=QGISRed
 qgisMinimumVersion=3.0
 qgisMaximumVersion=3.99
 description=Free and professional tool to build and run advanced hydraulic models of water distribution networks.
-version=0.7
+version=0.7.1
 author=Project Leader: REDHISP Group (IIAMA- UPV). Developer: WaterPi
 email=fmartine@hma.upv.es
 

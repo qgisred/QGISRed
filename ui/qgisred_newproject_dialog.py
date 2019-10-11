@@ -78,6 +78,8 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             self.cbValves.setEnabled(not self.NetworkName + "_Valves.shp" in dirList)
             self.cbPumps.setEnabled(not self.NetworkName + "_Pumps.shp" in dirList)
             #others (future versions)
+            self.cbDemands.setChecked(self.NetworkName + "_Demands.shp" in dirList)
+            self.cbSources.setChecked(self.NetworkName + "_Sources.shp" in dirList)
             self.cbIsolatedValves.setChecked(self.NetworkName + "_IssolatedValves.shp" in dirList)
             self.cbCeckValves.setChecked(self.NetworkName + "_CheckValves.shp" in dirList)
             self.cbHydrants.setChecked(self.NetworkName + "_Hydrants.shp" in dirList)
@@ -96,6 +98,9 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         self.cbReservoirs.setChecked(True)
         self.cbValves.setChecked(True)
         self.cbPumps.setChecked(True)
+        
+        self.cbDemands.setChecked(False)
+        self.cbSources.setChecked(False)
         
         self.cbIsolatedValves.setChecked(False)
         self.cbCeckValves.setChecked(False)
@@ -177,6 +182,11 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
     def createComplementaryList(self):
         list = ""
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        if self.cbDemands.isChecked() and not utils.isLayerOpened("Demands"):
+            list = list + "demand" + ";"
+        if self.cbSources.isChecked() and not utils.isLayerOpened("Sources"):
+            list = list + "source" + ";"
+        
         if self.cbIsolatedValves.isChecked() and not utils.isLayerOpened("IssolatedValves"):
             list = list + "issolatedvalve" + ";"
         if self.cbCeckValves.isChecked() and not utils.isLayerOpened("CheckValves"):
@@ -201,6 +211,11 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
 
     def removeComplementaryLayers(self, task, wait_time):
         list = []
+        if not self.cbDemands.isChecked():
+            list.append("Demands")
+        if not self.cbSources.isChecked():
+            list.append("Sources")
+        
         if not self.cbIsolatedValves.isChecked():
             list.append("IssolatedValves")
         if not self.cbCeckValves.isChecked():
@@ -231,7 +246,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             files = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns"]
             for file in files:
                 utils.openLayer(self.CRS, group, file, ext=".dbf")
-
+        
         if self.cbPipes.isChecked():
             if not utils.isLayerOpened("Pipes"):
                 utils.openLayer(self.CRS, group,"Pipes")
@@ -253,6 +268,13 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
 
     def openComplementaryLayers(self, group):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        if self.cbDemands.isChecked():
+            if not utils.isLayerOpened("Demands"):
+                utils.openLayer(self.CRS, group,"Demands", toEnd=True)
+        if self.cbSources.isChecked():
+            if not utils.isLayerOpened("Sources"):
+                utils.openLayer(self.CRS, group,"Sources", toEnd=True)
+        
         if self.cbIsolatedValves.isChecked():
             if not utils.isLayerOpened("IssolatedValves"):
                 utils.openLayer(self.CRS, group,"IssolatedValves", toEnd=True)
@@ -333,7 +355,8 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             inputGroup = self.getInputGroup()
             self.openComplementaryLayers(inputGroup)
             self.openElementsLayers(inputGroup, True)
-            
+            utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+            utils.orderLayers(inputGroup)
             QApplication.restoreOverrideCursor()
             
             #Message
@@ -380,6 +403,8 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
                 treeLayer.layer().setCrs(self.CRS)
         self.openElementsLayers(inputGroup, False)
         self.openComplementaryLayers(inputGroup)
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.orderLayers(inputGroup)
         
         QApplication.restoreOverrideCursor()
         

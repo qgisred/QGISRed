@@ -24,7 +24,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
     ProjectDirectory = ""
     ProcessDone= False
     gplFile=""
-    ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs"]
+    ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs", "Demands", "Sources"]
     layerExtensions = [".shp", ".dbf", ".shx", ".prj", ".qpj"]
     ownFiles = ["DefaultValues.dbf", "Options.dbf", "Rules.dbf", "Controls.dbf", "Curves.dbf", "Patterns.dbf", "TitleAndNotes.txt" ]
     
@@ -209,7 +209,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                             if ".shp" in layerPath:
                                 names = (os.path.splitext(os.path.basename(layerPath))[0]).split("_")
                                 nameLayer = names[len(names)-1]
-                                QGISRedUtils().setStyle(vlayer, nameLayer)
+                                QGISRedUtils().setStyle(vlayer, nameLayer.lower())
         else:
             self.iface.messageBar().pushMessage("Warning", "File not found", level=1, duration=5)
 

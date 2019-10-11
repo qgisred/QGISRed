@@ -24,7 +24,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
     ProcessDone= False
     gplFile = ""
     TemporalFolder = "Temporal folder"
-    ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs"]
+    ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs", "Demands", "Sources"]
     ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns"]
     def __init__(self, parent=None):
         """Constructor."""
@@ -145,6 +145,19 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             inputGroup = netGroup.addGroup("Inputs")
         return inputGroup
 
+    def openElementLayers(self, task):
+        if not self.opendedLayers:
+            self.opendedLayers=True
+            #Open layers
+            utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+            inputGroup = self.getInputGroup()
+            utils.openElementsLayers(inputGroup, self.CRS, self.ownMainLayers, self.ownFiles)
+            raise Exception('')
+
+    def setZoomExtent(self, exception=None, result=None):
+        self.iface.mapCanvas().zoomToFullExtent()
+        self.iface.mapCanvas().refresh()
+
     """INP SECTION"""
     def selectINP(self):
         qfd = QFileDialog()
@@ -193,9 +206,11 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         b= "".join(map(chr, b)) #bytes to string
         
         #Open layers
-        inputGroup = self.getInputGroup()
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        utils.openElementsLayers(inputGroup, self.CRS, self.ownMainLayers, self.ownFiles)
+        self.opendedLayers=False
+        task1 = QgsTask.fromFunction('Dismiss this message', self.openElementLayers, on_finished=self.setZoomExtent)
+        task1.run()
+        QgsApplication.taskManager().addTask(task1)
+        
         QApplication.restoreOverrideCursor()
         
         #Message
@@ -724,9 +739,11 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         b= "".join(map(chr, b)) #bytes to string
         
         #Open layers
-        inputGroup = self.getInputGroup()
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        utils.openElementsLayers(inputGroup, self.CRS, self.ownMainLayers, self.ownFiles)
+        self.opendedLayers=False
+        task1 = QgsTask.fromFunction('Dismiss this message', self.openElementLayers, on_finished=self.setZoomExtent)
+        task1.run()
+        QgsApplication.taskManager().addTask(task1)
+        
         QApplication.restoreOverrideCursor()
         
         #Message

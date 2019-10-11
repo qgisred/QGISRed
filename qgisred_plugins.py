@@ -22,7 +22,7 @@
  ***************************************************************************/
 """
 
-from qgis.gui import QgsMessageBar
+from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint
 from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer 
 from qgis.core import QgsLayerTreeGroup, QgsLayerTreeNode
 from win32api import GetFileVersionInfo, LOWORD, HIWORD
@@ -64,10 +64,10 @@ class QGISRed:
     ResultDockwidget = None
     ProjectDirectory = ""
     NetworkName = ""
-    ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs"]
+    ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs", "Demands", "Sources"]
     ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns"]
     TemporalFolder = "Temporal folder"
-    DependenciesVersion ="1.0.7.0"
+    DependenciesVersion ="1.0.7.1"
 
     def __init__(self, iface):
         """Constructor.
@@ -289,6 +289,15 @@ class QGISRed:
             menubar=self.qgisredmenuDataTools,
             toolbar=self.toolbarData,
             parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconEditProperties.png' 
+        self.editElementButton = self.add_action(
+            icon_path,
+            text=self.tr(u'Edit Element Properties'),
+            callback=self.runSelectPointProperties,
+            menubar=self.qgisredmenuDataTools,
+            toolbar=self.toolbarData,
+            checable=True,
+            parent=self.iface.mainWindow())
         
         """Toolbar and submenus"""
         #Tools Menu
@@ -301,16 +310,42 @@ class QGISRed:
         self.toolbarLayout = self.iface.addToolBar(self.tr(u'QGISRed Layout Tools'))
         self.toolbarLayout.setObjectName(self.tr(u'QGISRed Layout Tools'))
         self.toolbarLayout.setVisible(False)
-        # icon_path = ':/plugins/QGISRed/images/iconMoveElements.png' 
-        # self.moveElementsButton = self.add_action(
-            # icon_path,
-            # text=self.tr(u'Move node elements'),
-            # callback=self.runMoveElements,
-            # menubar=self.qgisredmenuPathTools,
-            # toolbar=self.toolbarLayout,
-            # checable=True,
-            # parent=self.iface.mainWindow())
-        
+        icon_path = ':/plugins/QGISRed/images/iconMoveElements.png' 
+        self.moveElementsButton = self.add_action(
+            icon_path,
+            text=self.tr(u'Move node elements'),
+            callback=self.runMoveElements,
+            menubar=self.qgisredmenuPathTools,
+            toolbar=self.toolbarLayout,
+            checable=True,
+            parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconAddValve.png' 
+        self.insertValveButton = self.add_action(
+            icon_path,
+            text=self.tr(u'Insert Valve in Pipe'),
+            callback=self.runSelectValvePoint,
+            menubar=self.qgisredmenuPathTools,
+            toolbar=self.toolbarLayout,
+            checable=True,
+            parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconAddPump.png' 
+        self.insertPumpButton = self.add_action(
+            icon_path,
+            text=self.tr(u'Insert Pump in Pipe'),
+            callback=self.runSelectPumpPoint,
+            menubar=self.qgisredmenuPathTools,
+            toolbar=self.toolbarLayout,
+            checable=True,
+            parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconSplitPipe.png' 
+        self.splitPipeButton = self.add_action(
+            icon_path,
+            text=self.tr(u'Split Pipe'),
+            callback=self.runSelectSplitPoint,
+            menubar=self.qgisredmenuPathTools,
+            toolbar=self.toolbarLayout,
+            checable=True,
+            parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconOverloadM.png' 
         dropButton = self.add_action(
             icon_path,
@@ -683,6 +718,20 @@ class QGISRed:
         for name in self.ownMainLayers:
             self.issuesLayers.append(name + "_Issues")
         
+        self.pointElementTool = QgsMapToolEmitPoint(self.iface.mapCanvas())
+        self.pointElementTool.canvasClicked.connect(self.runProperties)
+        self.pointElementTool.deactivated.connect(self.runUnselectPointProperties)
+        self.pointValveTool = QgsMapToolEmitPoint(self.iface.mapCanvas())
+        self.pointValveTool.canvasClicked.connect(self.runInsertValve)
+        self.pointValveTool.deactivated.connect(self.runUnselectValvePoint)
+        self.pointPumpTool = QgsMapToolEmitPoint(self.iface.mapCanvas())
+        self.pointPumpTool.canvasClicked.connect(self.runInsertPump)
+        self.pointPumpTool.deactivated.connect(self.runUnselectPumpPoint)
+        self.pointSplitTool = QgsMapToolEmitPoint(self.iface.mapCanvas())
+        self.pointSplitTool.canvasClicked.connect(self.runSplitPipe)
+        self.pointSplitTool.deactivated.connect(self.runUnselectSplitPoint)
+        
+        
         self.checkDependencies()
         self.tempFolder = os.path.join(os.path.join(os.popen('echo %appdata%').read().strip(), "QGISRed"),"TempFiles")
         try: #create directory if does not exist
@@ -878,6 +927,7 @@ class QGISRed:
             utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
             inputGroup = self.getInputGroup()
             utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
+            self.createGqpFile()
             raise Exception('')
 
     def getInputGroup(self):
@@ -957,8 +1007,18 @@ class QGISRed:
                 plat = 'x64'
             else:
                 plat = 'x86'
-            link = '\"http://www.redhisp.webs.upv.es/files/QGISRed/' + self.DependenciesVersion + '/Installation_' + plat + '_' + lang + '.zip\"'
-            QMessageBox.question(self.iface.mainWindow(), self.tr('QGISRed Dependencies'), self.tr('QGISRed plugin only runs in Windows OS and needs some dependencies (' + self.DependenciesVersion + '). You can download them from this <a href=' + link + '>Link</a>. Please, unzip the file and install the unzipped file manually.'), QMessageBox.StandardButtons(QMessageBox.Ok))
+            link = '\"http://www.redhisp.webs.upv.es/files/QGISRed/' + self.DependenciesVersion + '/Installation_' + plat + '_' + lang + '.msi\"'
+            request = QMessageBox.question(self.iface.mainWindow(), self.tr('QGISRed Dependencies'), self.tr('QGISRed plugin only runs in Windows OS and needs some dependencies (' + self.DependenciesVersion + '). Do you want to download and authomatically install them?'), QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No))
+            if request == QMessageBox.Yes:
+                import urllib.request
+                localFile= tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names()) + ".msi"
+                try:
+                    urllib.request.urlretrieve(link.strip('\'"'), localFile)
+                    os.system(localFile)
+                    os.remove(localFile)
+                except:
+                    pass
+                valid = self.checkDependencies()
         return valid
 
     def setCursor(self, shape):
@@ -1226,10 +1286,11 @@ class QGISRed:
 
     """Tools"""
     def runToolbars(self):
-        self.toolbarLayout.setVisible(True)
-        self.toolbarProperties.setVisible(True)
-        self.toolbarComponents.setVisible(True)
-        self.toolbarSectorization.setVisible(True)
+        vis = self.toolbarLayout.isVisible() or self.toolbarProperties.isVisible() or self.toolbarComponents.isVisible() or self.toolbarSectorization.isVisible()
+        self.toolbarLayout.setVisible(not vis)
+        self.toolbarProperties.setVisible(not vis)
+        self.toolbarComponents.setVisible(not vis)
+        self.toolbarSectorization.setVisible(not vis)
 
     def runLayoutToolbar(self):
         self.toolbarLayout.setVisible(not self.toolbarLayout.isVisible())
@@ -1393,10 +1454,88 @@ class QGISRed:
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
+    def runSelectPointProperties(self):
+        #Take account the mouse click on QGis:
+        if self.iface.mapCanvas().mapTool() is self.pointElementTool:
+            self.iface.mapCanvas().unsetMapTool(self.pointElementTool)
+            self.runUnselectPointProperties()
+        else:
+            self.pointElementTool.setCursor(Qt.WhatsThisCursor)
+            self.iface.mapCanvas().setMapTool(self.pointElementTool)
+            self.editElementButton.setChecked(True)
+
+    def runUnselectPointProperties(self):
+        self.editElementButton.setChecked(False)
+
+    def runProperties(self, point, button):
+        if not self.checkDependencies(): return
+        #Validations
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
+            return
+        if self.isLayerOnEdition():
+            return
+        
+        
+        self.x = str(point.x())
+        self.y = str(point.y())
+        print(self.x)
+        print(self.y)
+        
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QGISRedUtils().setCurrentDirectory()
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.EditElements.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.EditElements.restype = c_char_p
+        b = mydll.EditElements(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'), self.x.encode('utf-8'), self.y.encode('utf-8'))
+        b= "".join(map(chr, b)) #bytes to string
+        
+        QApplication.restoreOverrideCursor()
+        
+        #Message
+        if b=="True":
+            self.extent = self.iface.mapCanvas().extent()
+            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+            task1 = QgsTask.fromFunction('Dismiss this message', self.removeLayers, on_finished=self.runPropertiesProcess)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
+        elif b=="False":
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
+        elif b=="Cancel":
+            pass
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+
+    def runPropertiesProcess(self, exception=None, result=None):
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QGISRedUtils().setCurrentDirectory()
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.ReplaceTemporalLayers.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.ReplaceTemporalLayers.restype = c_char_p
+        b = mydll.ReplaceTemporalLayers(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'))
+        b= "".join(map(chr, b)) #bytes to string
+        
+        self.opendedLayers=False
+        task1 = QgsTask.fromFunction('Dismiss this message', self.openElementLayers, on_finished=self.setExtent)
+        task1.run()
+        QgsApplication.taskManager().addTask(task1)
+        
+        QApplication.restoreOverrideCursor()
+        
+        #Message
+        if b=="True":
+            pass #self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Process successfully completed"), level=3, duration=5)
+        elif b=="False":
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+
 
     """Layaout"""
     def runMoveElements(self):
-        return
         #Validations
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
@@ -1409,6 +1548,299 @@ class QGISRed:
             self.moveNodesTool = QGISRedMoveNodesTool(self.moveElementsButton, self.iface, self.ProjectDirectory, self.NetworkName)
             self.iface.mapCanvas().setMapTool(self.moveNodesTool)
             self.setCursor(Qt.CrossCursor)
+
+    def runSelectValvePoint(self):
+        #Take account the mouse click on QGis:
+        if self.iface.mapCanvas().mapTool() is self.pointValveTool:
+            self.iface.mapCanvas().unsetMapTool(self.pointValveTool)
+            self.runUnselectValvePoint()
+        else:
+            self.iface.mapCanvas().setMapTool(self.pointValveTool)
+            self.insertValveButton.setChecked(True)
+
+    def runUnselectValvePoint(self):
+        self.insertValveButton.setChecked(False)
+
+    def runInsertValve(self, point, button):
+        if not self.checkDependencies(): return
+        #Validations
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
+            return
+        if self.isLayerOnEdition():
+            return
+        
+        self.x = str(point.x())
+        self.y = str(point.y())
+        
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QGISRedUtils().setCurrentDirectory()
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.InsertValve.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.InsertValve.restype = c_char_p
+        step = "step2"
+        # if toCommit:
+            # step = "step2"
+        b = mydll.InsertValve(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), step.encode('utf-8'), self.x.encode('utf-8'), self.y.encode('utf-8'))
+        b= "".join(map(chr, b)) #bytes to string
+        QApplication.restoreOverrideCursor()
+        
+        #Message
+        runAgain=False
+        if b=="True":
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Valve not over any pipe"), level=1, duration=5)
+        elif b=="False":
+            pass #self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
+        elif b=="shps":
+            runAgain=True
+        elif b=="commit":
+            runAgain=True
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+        
+        #self.iface.mapCanvas().unsetMapTool(self.pointValveTool)
+        
+        # if not toCommit: #open shps of issues
+            # if runAgain:
+                # #Process
+                # self.Process=b
+                # #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                # task1 = QgsTask.fromFunction("", self.removeIssuesLayers, on_finished=self.runCheckCoordinatesProcess)
+                # task1.run()
+                # QgsApplication.taskManager().addTask(task1)
+        # else:
+        if runAgain:
+            #Process
+            self.Process=b
+            self.extent = self.iface.mapCanvas().extent()
+            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+            task1 = QgsTask.fromFunction("", self.removeLayers, on_finished=self.runInsertValveProcess)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
+
+    def runInsertValveProcess(self, exception=None, result=None):
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QGISRedUtils().setCurrentDirectory()
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.InsertValve.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.InsertValve.restype = c_char_p
+        b = mydll.InsertValve(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Process.encode('utf-8'), self.x.encode('utf-8'), self.y.encode('utf-8'))
+        b= "".join(map(chr, b)) #bytes to string
+        
+        
+        if self.Process == "commit":
+            self.opendedLayers=False
+            task1 = QgsTask.fromFunction('Dismiss this message', self.openElementLayers, on_finished=self.setExtent)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
+        
+        QApplication.restoreOverrideCursor()
+        
+        #Message
+        if b=="True":
+            if self.Process == "commit":
+                self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Valve inserted in pipe"), level=3, duration=5)
+        elif b=="False":
+            pass #self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+
+    def runSelectPumpPoint(self):
+        #Take account the mouse click on QGis:
+        if self.iface.mapCanvas().mapTool() is self.pointPumpTool:
+            self.iface.mapCanvas().unsetMapTool(self.pointPumpTool)
+            self.runUnselectPumpPoint()
+        else:
+            self.iface.mapCanvas().setMapTool(self.pointPumpTool)
+            self.insertPumpButton.setChecked(True)
+
+    def runUnselectPumpPoint(self):
+        self.insertPumpButton.setChecked(False)
+
+    def runInsertPump(self, point, button):
+        if not self.checkDependencies(): return
+        #Validations
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
+            return
+        if self.isLayerOnEdition():
+            return
+        
+        self.x = str(point.x())
+        self.y = str(point.y())
+        
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QGISRedUtils().setCurrentDirectory()
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.InsertPump.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.InsertPump.restype = c_char_p
+        step = "step2"
+        # if toCommit:
+            # step = "step2"
+        b = mydll.InsertPump(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), step.encode('utf-8'), self.x.encode('utf-8'), self.y.encode('utf-8'))
+        b= "".join(map(chr, b)) #bytes to string
+        QApplication.restoreOverrideCursor()
+        
+        #Message
+        runAgain=False
+        if b=="True":
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Pump not over any pipe"), level=1, duration=5)
+        elif b=="False":
+            pass #self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
+        elif b=="shps":
+            runAgain=True
+        elif b=="commit":
+            runAgain=True
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+        
+        # if not toCommit: #open shps of issues
+            # if runAgain:
+                # #Process
+                # self.Process=b
+                # #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                # task1 = QgsTask.fromFunction("", self.removeIssuesLayers, on_finished=self.runCheckCoordinatesProcess)
+                # task1.run()
+                # QgsApplication.taskManager().addTask(task1)
+        # else:
+        if runAgain:
+            #Process
+            self.Process=b
+            self.extent = self.iface.mapCanvas().extent()
+            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+            task1 = QgsTask.fromFunction("", self.removeLayers, on_finished=self.runInsertPumpProcess)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
+
+    def runInsertPumpProcess(self, exception=None, result=None):
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QGISRedUtils().setCurrentDirectory()
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.InsertPump.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.InsertPump.restype = c_char_p
+        b = mydll.InsertPump(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Process.encode('utf-8'), self.x.encode('utf-8'), self.y.encode('utf-8'))
+        b= "".join(map(chr, b)) #bytes to string
+        
+        
+        if self.Process == "commit":
+            self.opendedLayers=False
+            task1 = QgsTask.fromFunction('Dismiss this message', self.openElementLayers, on_finished=self.setExtent)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
+        
+        QApplication.restoreOverrideCursor()
+        
+        #Message
+        if b=="True":
+            if self.Process == "commit":
+                self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Pump inserted in pipe"), level=3, duration=5)
+        elif b=="False":
+            pass #self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+
+    def runSelectSplitPoint(self):
+        #Take account the mouse click on QGis:
+        if self.iface.mapCanvas().mapTool() is self.pointSplitTool:
+            self.iface.mapCanvas().unsetMapTool(self.pointSplitTool)
+            self.runUnselectSplitPoint()
+        else:
+            self.iface.mapCanvas().setMapTool(self.pointSplitTool)
+            self.splitPipeButton.setChecked(True)
+
+    def runUnselectSplitPoint(self):
+        self.splitPipeButton.setChecked(False)
+
+    def runSplitPipe(self, point, button):
+        if not self.checkDependencies(): return
+        #Validations
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
+            return
+        if self.isLayerOnEdition():
+            return
+        
+        self.x = str(point.x())
+        self.y = str(point.y())
+        
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QGISRedUtils().setCurrentDirectory()
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.SplitPipe.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.SplitPipe.restype = c_char_p
+        step = "step2"
+        # if toCommit:
+            # step = "step2"
+        b = mydll.SplitPipe(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), step.encode('utf-8'), self.x.encode('utf-8'), self.y.encode('utf-8'))
+        b= "".join(map(chr, b)) #bytes to string
+        QApplication.restoreOverrideCursor()
+        
+        #Message
+        runAgain=False
+        if b=="True":
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Point not over any pipe"), level=1, duration=5)
+        elif b=="False":
+            pass #self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
+        elif b=="shps":
+            runAgain=True
+        elif b=="commit":
+            runAgain=True
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+        
+        # if not toCommit: #open shps of issues
+            # if runAgain:
+                # #Process
+                # self.Process=b
+                # #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                # task1 = QgsTask.fromFunction("", self.removeIssuesLayers, on_finished=self.runCheckCoordinatesProcess)
+                # task1.run()
+                # QgsApplication.taskManager().addTask(task1)
+        # else:
+        if runAgain:
+            #Process
+            self.Process=b
+            self.extent = self.iface.mapCanvas().extent()
+            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+            task1 = QgsTask.fromFunction("", self.removeLayers, on_finished=self.runSplitPipeProcess)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
+
+    def runSplitPipeProcess(self, exception=None, result=None):
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QGISRedUtils().setCurrentDirectory()
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.SplitPipe.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.SplitPipe.restype = c_char_p
+        b = mydll.SplitPipe(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Process.encode('utf-8'), self.x.encode('utf-8'), self.y.encode('utf-8'))
+        b= "".join(map(chr, b)) #bytes to string
+        
+        
+        if self.Process == "commit":
+            self.opendedLayers=False
+            task1 = QgsTask.fromFunction('Dismiss this message', self.openElementLayers, on_finished=self.setExtent)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
+        
+        QApplication.restoreOverrideCursor()
+        
+        #Message
+        if b=="True":
+            if self.Process == "commit":
+                self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Pipe splitted"), level=3, duration=5)
+        elif b=="False":
+            pass #self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runCheckCoordinatesM(self):
         self.runCheckCoordinates()
