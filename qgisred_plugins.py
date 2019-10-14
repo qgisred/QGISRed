@@ -187,6 +187,16 @@ class QGISRed:
     def initGui(self):
         if not platform.system()=="Windows":
             return
+        #Message for new versions
+        updatePath = os.path.join(os.path.dirname(__file__), "updateVersions.txt")
+        if not os.path.exists(updatePath):
+            text = "New versions of QGISRed plugin are available for QGis 3.x. These new versions include many new features that might be of interest to you."
+            request = QMessageBox.question(self.iface.mainWindow(), self.tr('QGISRed versions'), self.tr(text+ ' Do you want to remember this message in the future?'), QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No))
+            if request == QMessageBox.No:
+                 f = open(updatePath, "w+")
+                 f.write(text)
+                 f.close()
+        
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
         """Main buttons"""
         icon_path = ':/plugins/QGISRed/images/iconProjectManager.png'
