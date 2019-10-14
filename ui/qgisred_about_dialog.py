@@ -17,6 +17,7 @@ class QGISRedAboutDialog(QDialog, FORM_CLASS):
         self.labelUpv.mousePressEvent = self.linkUpv
         self.lbManual.mousePressEvent = self.userManual
         self.lbManual_es.mousePressEvent = self.userManualEs
+        self.lbIssues.mousePressEvent = self.issuesRepository
         #version
         metadata = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'metadata.txt')
         if os.path.exists(metadata):
@@ -24,7 +25,7 @@ class QGISRedAboutDialog(QDialog, FORM_CLASS):
             lines = f.readlines()
             for line in lines:
                 if "version=" in line:
-                    self.versionLabel.setText("QGis Plugin v." + line.replace("version=",""))
+                    self.versionLabel.setText("v." + line.replace("version=",""))
                     return
 
     def linkRedhisp(self, event):
@@ -43,3 +44,6 @@ class QGISRedAboutDialog(QDialog, FORM_CLASS):
     def userManualEs(self, event):
         pdf = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'usermanual_es.pdf')
         webbrowser.open(pdf)
+
+    def issuesRepository(self, event):
+        webbrowser.open('https://github.com/neslerel/QGISRed/issues')

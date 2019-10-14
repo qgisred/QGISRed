@@ -57,5 +57,6 @@
         <file>images/iconAddValve.png</file>
         <file>images/iconAddPump.png</file>
         <file>images/iconSplitPipe.png</file>
+        <file>images/iconDeleteValvePump.png</file>
     </qresource>
 </RCC>
