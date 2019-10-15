@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from qgis.gui import QgsMessageBar
-from qgis.core import QgsVectorLayer, QgsProject
+from qgis.core import QgsVectorLayer, QgsProject, QgsCoordinateReferenceSystem
 from qgis.PyQt import QtGui, uic
 from qgis.core import Qgis, QgsTask, QgsApplication
 from PyQt5.QtWidgets import QDockWidget, QApplication
@@ -150,6 +150,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if group is None:
             group = resultGroup.addGroup(scenario)
         for file in self.LabelsToOpRe:
+            print(file)
             utils.openLayer(self.CRS, group, file, results=True)
 
     def removeResults(self, task, wait_time):
@@ -157,6 +158,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         utils = QGISRedUtils(resultPath, self.NetworkName +"_" + self.Scenario, self.iface)
         utils.removeLayers(self.LabelsToOpRe)
         raise Exception('')
+
     def getResultGroup(self):
         resultGroup = QgsProject.instance().layerTreeRoot().findGroup("Results")
         if resultGroup is None:
@@ -277,6 +279,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         for nameLayer in self.LabelsToOpRe:
             for layer in layers:
                 if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/","\\")== os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp").replace("/","\\"):
+                    print(nameLayer)
                     field_names = [field.name() for field in layer.fields()]
                     field = field_names[columnNumber+2]
                     self.setGraduadedPalette(layer, field, setRender, nameLayer)

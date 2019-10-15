@@ -33,7 +33,7 @@
           <prop k="angle" v="0"/>
           <prop k="color" v="0,0,0,255"/>
           <prop k="color_dd_active" v="1"/>
-          <prop k="color_dd_expression" v="if( abs(&quot;BaseDem&quot;)&lt;1E-9, color_rgb(0,0,0),color_rgb(200,25,25))"/>
+          <prop k="color_dd_expression" v="if( abs(&quot;BaseDem&quot;)&lt;1E-9, color_rgb(21,21,21),color_rgb(200,25,25))"/>
           <prop k="color_dd_field" v=""/>
           <prop k="color_dd_useexpr" v="1"/>
           <prop k="horizontal_anchor_point" v="1"/>
@@ -42,17 +42,13 @@
           <prop k="offset" v="0,0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
           <prop k="offset_unit" v="MM"/>
-          <prop k="outline_color" v="0,0,0,255"/>
+          <prop k="outline_color" v="21,21,21,255"/>
           <prop k="outline_style" v="solid"/>
-          <prop k="outline_width" v="0"/>
+          <prop k="outline_width" v="0.5"/>
           <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="outline_width_unit" v="MM"/>
+          <prop k="outline_width_unit" v="Pixel"/>
           <prop k="scale_method" v="diameter"/>
-          <prop k="size" v="1"/>
-          <prop k="size_dd_active" v="1"/>
-          <prop k="size_dd_expression" v="if( &quot;BaseDem&quot;&lt;>0, 2,1)"/>
-          <prop k="size_dd_field" v=""/>
-          <prop k="size_dd_useexpr" v="1"/>
+          <prop k="size" v="1.2"/>
           <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
           <prop k="size_unit" v="MM"/>
           <prop k="vertical_anchor_point" v="1"/>

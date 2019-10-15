@@ -23,7 +23,7 @@
 """
 
 from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint
-from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer 
+from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer, QgsCoordinateReferenceSystem
 from qgis.core import QgsLayerTreeGroup, QgsLayerTreeNode
 from win32api import GetFileVersionInfo, LOWORD, HIWORD
 from PyQt5.QtGui import QIcon, QCursor
@@ -1044,6 +1044,23 @@ class QGISRed:
             self.iface.mapCanvas().refresh()
             self.extent = None
 
+    def getTolerance(self):
+        #DPI
+        LOGPIXELSX = 88
+        user32 = windll.user32
+        user32.SetProcessDPIAware()
+        dc = user32.GetDC(0)
+        pix_per_inch = windll.gdi32.GetDeviceCaps(dc, LOGPIXELSX)
+        user32.ReleaseDC(0, dc)
+        
+        #CanvasPixels
+        unitsPerPixel = self.iface.mapCanvas().getCoordinateTransform().mapUnitsPerPixel() # x WidthPixels --> m/px * px = metros
+        #25.4 mm == inch
+        un = 25.4/pix_per_inch # x WidthPixels -- > mm/px x px = mm
+        #1mm * unitsPerPixel / un -->tolerance
+        tolerance = 1 * unitsPerPixel/un
+        return tolerance
+
     """Main methods"""
     def runProjectManager(self):
         if not self.checkDependencies(): return
@@ -1492,16 +1509,15 @@ class QGISRed:
         
         self.x = str(point.x())
         self.y = str(point.y())
-        print(self.x)
-        print(self.y)
+        self.tolerance = str(self.getTolerance())
         
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.EditElements.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.EditElements.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.EditElements.restype = c_char_p
-        b = mydll.EditElements(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'), self.x.encode('utf-8'), self.y.encode('utf-8'))
+        b = mydll.EditElements(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'), self.x.encode('utf-8'), self.y.encode('utf-8'), self.tolerance.encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         
         QApplication.restoreOverrideCursor()
@@ -1585,17 +1601,18 @@ class QGISRed:
         
         self.x = str(point.x())
         self.y = str(point.y())
+        self.tolerance = str(self.getTolerance())
         
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.InsertValve.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.InsertValve.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.InsertValve.restype = c_char_p
         step = "step2"
         # if toCommit:
             # step = "step2"
-        b = mydll.InsertValve(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), step.encode('utf-8'), self.x.encode('utf-8'), self.y.encode('utf-8'))
+        b = mydll.InsertValve(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), step.encode('utf-8'), self.x.encode('utf-8'), self.y.encode('utf-8'), self.tolerance.encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
@@ -1637,9 +1654,9 @@ class QGISRed:
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.InsertValve.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.InsertValve.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.InsertValve.restype = c_char_p
-        b = mydll.InsertValve(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Process.encode('utf-8'), self.x.encode('utf-8'), self.y.encode('utf-8'))
+        b = mydll.InsertValve(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Process.encode('utf-8'), self.x.encode('utf-8'), self.y.encode('utf-8'), self.tolerance.encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         
         
@@ -1684,17 +1701,18 @@ class QGISRed:
         
         self.x = str(point.x())
         self.y = str(point.y())
+        self.tolerance = str(self.getTolerance())
         
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.InsertPump.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.InsertPump.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.InsertPump.restype = c_char_p
         step = "step2"
         # if toCommit:
             # step = "step2"
-        b = mydll.InsertPump(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), step.encode('utf-8'), self.x.encode('utf-8'), self.y.encode('utf-8'))
+        b = mydll.InsertPump(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), step.encode('utf-8'), self.x.encode('utf-8'), self.y.encode('utf-8'), self.tolerance.encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
@@ -1734,9 +1752,9 @@ class QGISRed:
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.InsertPump.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.InsertPump.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.InsertPump.restype = c_char_p
-        b = mydll.InsertPump(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Process.encode('utf-8'), self.x.encode('utf-8'), self.y.encode('utf-8'))
+        b = mydll.InsertPump(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Process.encode('utf-8'), self.x.encode('utf-8'), self.y.encode('utf-8'), self.tolerance.encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         
         
@@ -1781,17 +1799,18 @@ class QGISRed:
         
         self.x = str(point.x())
         self.y = str(point.y())
+        self.tolerance = str(self.getTolerance())
         
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.RemoveValvePump.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.RemoveValvePump.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.RemoveValvePump.restype = c_char_p
         step = "step2"
         # if toCommit:
             # step = "step2"
-        b = mydll.RemoveValvePump(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), step.encode('utf-8'), self.x.encode('utf-8'), self.y.encode('utf-8'))
+        b = mydll.RemoveValvePump(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), step.encode('utf-8'), self.x.encode('utf-8'), self.y.encode('utf-8'), self.tolerance.encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
@@ -1831,9 +1850,9 @@ class QGISRed:
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.RemoveValvePump.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.RemoveValvePump.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.RemoveValvePump.restype = c_char_p
-        b = mydll.RemoveValvePump(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Process.encode('utf-8'), self.x.encode('utf-8'), self.y.encode('utf-8'))
+        b = mydll.RemoveValvePump(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Process.encode('utf-8'), self.x.encode('utf-8'), self.y.encode('utf-8'), self.tolerance.encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         
         
@@ -1878,17 +1897,18 @@ class QGISRed:
         
         self.x = str(point.x())
         self.y = str(point.y())
+        self.tolerance = str(self.getTolerance())
         
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.SplitPipe.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.SplitPipe.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.SplitPipe.restype = c_char_p
         step = "step2"
         # if toCommit:
             # step = "step2"
-        b = mydll.SplitPipe(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), step.encode('utf-8'), self.x.encode('utf-8'), self.y.encode('utf-8'))
+        b = mydll.SplitPipe(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), step.encode('utf-8'), self.x.encode('utf-8'), self.y.encode('utf-8'), self.tolerance.encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
@@ -1928,9 +1948,9 @@ class QGISRed:
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.SplitPipe.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.SplitPipe.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.SplitPipe.restype = c_char_p
-        b = mydll.SplitPipe(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Process.encode('utf-8'), self.x.encode('utf-8'), self.y.encode('utf-8'))
+        b = mydll.SplitPipe(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Process.encode('utf-8'), self.x.encode('utf-8'), self.y.encode('utf-8'), self.tolerance.encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         
         
