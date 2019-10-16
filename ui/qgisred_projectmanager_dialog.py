@@ -9,7 +9,7 @@ from qgis.core import QgsTask, QgsApplication
 from .qgisred_newproject_dialog import QGISRedNewProjectDialog
 from .qgisred_importproject_dialog import QGISRedImportProjectDialog
 from .qgisred_cloneproject_dialog import QGISRedCloneProjectDialog
-from ..qgisred_utils import QGISRedUtils
+from ..tools.qgisred_utils import QGISRedUtils
 import os
 import datetime
 from time import strftime

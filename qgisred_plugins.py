@@ -29,7 +29,7 @@ from win32api import GetFileVersionInfo, LOWORD, HIWORD
 from PyQt5.QtGui import QIcon, QCursor
 from PyQt5.QtWidgets import QAction, QMessageBox, QApplication, QMenu, QFileDialog, QToolButton
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
-from qgis.core import Qgis, QgsTask, QgsApplication
+from qgis.core import Qgis, QgsTask, QgsApplication, QgsFeatureRequest, QgsExpression
 #Import resources
 from . import resources3x
 # Import the code for the dialog
@@ -40,8 +40,8 @@ from .ui.qgisred_about_dialog import QGISRedAboutDialog
 from .ui.qgisred_results_dock import QGISRedResultsDock
 from .ui.qgisred_toolLength_dialog import QGISRedLengthToolDialog
 from .ui.qgisred_toolConnectivity_dialog import QGISRedConnectivityToolDialog
-from .qgisred_utils import QGISRedUtils
-from .qgisred_movenodes import QGISRedMoveNodesTool
+from .tools.qgisred_utils import QGISRedUtils
+from .tools.qgisred_movenodes import QGISRedMoveNodesTool
 # Others imports
 import os
 import datetime
@@ -603,6 +603,8 @@ class QGISRed:
             inputGroup = self.getInputGroup()
             utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
             self.createGqpFile()
+            
+            self.setSelectedFeaturesById()
             raise Exception('')
 
     def getInputGroup(self):
@@ -725,9 +727,9 @@ class QGISRed:
         return tolerance
 
     def getSelectedFeaturesIds(self):
-        linkIds = []
-        nodeIds = []
-        
+        linkIdsList = []
+        nodeIdsList = []
+        self.selectedFids = {}
         
         layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
         mylayersNames = self.ownMainLayers
@@ -736,23 +738,37 @@ class QGISRed:
                 if layerName == "Sources" or layerName=="Demands":
                     continue
                 if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/","\\")== os.path.join(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp").replace("/","\\"):
+                    fids = []
                     for feature in layer.getSelectedFeatures():
+                        fids.append(feature.id())
                         if layer.geometryType()==0:
-                            nodeIds.append(str(feature['Id']))
+                            nodeIdsList.append(str(feature['Id']))
                         else:
-                            linkIds.append(str(feature['Id']))
+                            linkIdsList.append(str(feature['Id']))
+                    self.selectedFids[layerName] = fids
         
-        if 'NULL' in nodeIds or 'NULL' in linkIds:
+        if 'NULL' in nodeIdsList or 'NULL' in linkIdsList:
             self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some Ids are not defined. Commit before and try again."), level=1, duration=5)
             return False
         #Generate concatenate string for links and nodes
         self.linkIds = ""
-        for id in linkIds:
+        for id in linkIdsList:
             self.linkIds = self.linkIds + id + ';'
         self.nodeIds = ""
-        for id in nodeIds:
+        for id in nodeIdsList:
             self.nodeIds = self.nodeIds + id + ';'
         return True
+
+    def setSelectedFeaturesById(self):
+        layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+        mylayersNames = self.ownMainLayers
+        for layer in layers:
+            for layerName in mylayersNames:
+                if layerName == "Sources" or layerName=="Demands":
+                    continue
+                if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/","\\")== os.path.join(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp").replace("/","\\"):
+                    if (layerName in self.selectedFids):
+                        layer.selectByIds(self.selectedFids[layerName])
 
     """Main methods"""
     """Toolbars"""

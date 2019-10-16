@@ -6,7 +6,7 @@ from qgis.gui import QgsProjectionSelectionDialog  as QgsGenericProjectionSelect
 from qgis.core import Qgis, QgsTask, QgsApplication
 from PyQt5.QtWidgets import QFileDialog, QDialog, QApplication
 from PyQt5.QtCore import Qt
-from ..qgisred_utils import QGISRedUtils
+from ..tools.qgisred_utils import QGISRedUtils
 import os
 from ctypes import*
 import tempfile

@@ -9,7 +9,7 @@ from PyQt5.QtGui import QColor
 from qgis.core import QgsSvgMarkerSymbolLayer, QgsSymbol, QgsSingleSymbolRenderer, QgsLineSymbol, QgsProperty, QgsRenderContext
 from qgis.core import QgsSimpleLineSymbolLayer, QgsMarkerSymbol, QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayer
 from qgis.core import QgsGraduatedSymbolRenderer, QgsGradientColorRamp as QgsVectorGradientColorRamp, QgsRendererRange
-from ..qgisred_utils import QGISRedUtils
+from ..tools.qgisred_utils import QGISRedUtils
 import os
 from ctypes import*
 from time import sleep

@@ -88,12 +88,18 @@ class QGISRedUtils:
     def setStyle(self, layer, name):
         if name=="":
             return
-        stylePath = os.path.join(os.path.dirname(__file__), "layerStyles")
+        stylePath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "layerStyles")
         
-        qmlPath= os.path.join(stylePath, name + ".qml")
+        #user style
+        qmlPath= os.path.join(stylePath, name + "_user.qml")
         if os.path.exists(qmlPath):
             ret = layer.loadNamedStyle(qmlPath)
+            return
         
+        #default style
+        qmlPath= os.path.join(stylePath, name + ".qml.bak")
+        if os.path.exists(qmlPath):
+            ret = layer.loadNamedStyle(qmlPath)
         svgPath= os.path.join(stylePath, name + ".svg")
         if os.path.exists(svgPath):
             render = None
@@ -135,14 +141,14 @@ class QGISRedUtils:
             layer.setRenderer(renderer)
 
     def setResultStyle(self, layer):
-        stylePath = os.path.join(os.path.dirname(__file__), "layerStyles")
+        stylePath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "layerStyles")
         
+        #default style
         if layer.geometryType()==0: #Point
-            qmlBasePath= os.path.join(stylePath, "nodeResultsBase.qml")
+            qmlBasePath= os.path.join(stylePath, "nodeResults.qml.bak")
         else:
-            qmlBasePath= os.path.join(stylePath, "linkResultsBase.qml")
+            qmlBasePath= os.path.join(stylePath, "linkResults.qml.bak")
         if os.path.exists(qmlBasePath):
-            print(qmlBasePath)
             f=open(qmlBasePath, "r")
             contents =f.read()
             f.close()
@@ -165,6 +171,7 @@ class QGISRedUtils:
             f.write(contents)
             f.close()
             ret = layer.loadNamedStyle(qmlPath)
+            os.remove(qmlPath)
 
     def setSectorsStyle(self, layer):
         from random import randrange
