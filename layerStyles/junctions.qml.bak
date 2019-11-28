@@ -33,7 +33,6 @@
           <prop k="angle" v="0"/>
           <prop k="color" v="0,0,0,255"/>
           <prop k="color_dd_active" v="1"/>
-          <prop k="color_dd_expression" v="if( abs(&quot;BaseDem&quot;)&lt;1E-9, color_rgb(21,21,21),color_rgb(200,25,25))"/>
           <prop k="color_dd_field" v=""/>
           <prop k="color_dd_useexpr" v="1"/>
           <prop k="horizontal_anchor_point" v="1"/>
@@ -205,8 +204,7 @@
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerTransparency>0</layerTransparency>
-  <displayfield>[Junction]&lt;br>
-Id: [% "Id" %]</displayfield>
+  <displayfield>[Junction] [% "Id" %]</displayfield>
   <label>0</label>
   <labelattributes>
     <label fieldname="" text="Etiqueta"/>

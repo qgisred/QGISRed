@@ -81,7 +81,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             self.cbDemands.setChecked(self.NetworkName + "_Demands.shp" in dirList)
             self.cbSources.setChecked(self.NetworkName + "_Sources.shp" in dirList)
             self.cbIsolatedValves.setChecked(self.NetworkName + "_IssolatedValves.shp" in dirList)
-            self.cbCeckValves.setChecked(self.NetworkName + "_CheckValves.shp" in dirList)
+            # self.cbCeckValves.setChecked(self.NetworkName + "_CheckValves.shp" in dirList)
             self.cbHydrants.setChecked(self.NetworkName + "_Hydrants.shp" in dirList)
             self.cbPurgeValves.setChecked(self.NetworkName + "_PurgeValves.shp" in dirList)
             self.cbAirReleases.setChecked(self.NetworkName + "_AirReleases.shp" in dirList)
@@ -103,7 +103,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         self.cbSources.setChecked(False)
         
         self.cbIsolatedValves.setChecked(False)
-        self.cbCeckValves.setChecked(False)
+        # self.cbCeckValves.setChecked(False)
         self.cbHydrants.setChecked(False)
         self.cbPurgeValves.setChecked(False)
         self.cbAirReleases.setChecked(False)
@@ -189,8 +189,8 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         
         if self.cbIsolatedValves.isChecked() and not utils.isLayerOpened("IssolatedValves"):
             list = list + "issolatedvalve" + ";"
-        if self.cbCeckValves.isChecked() and not utils.isLayerOpened("CheckValves"):
-            list = list + "checkvalve"+ ";"
+        # if self.cbCeckValves.isChecked() and not utils.isLayerOpened("CheckValves"):
+            # list = list + "checkvalve"+ ";"
         if self.cbHydrants.isChecked() and not utils.isLayerOpened("Hydrants"):
             list = list + "hydrant"+ ";"
         if self.cbPurgeValves.isChecked() and not utils.isLayerOpened("PurgeValves"):
@@ -218,8 +218,8 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         
         if not self.cbIsolatedValves.isChecked():
             list.append("IssolatedValves")
-        if not self.cbCeckValves.isChecked():
-            list.append("CheckValves")
+        # if not self.cbCeckValves.isChecked():
+            # list.append("CheckValves")
         if not self.cbHydrants.isChecked():
             list.append("Hydrants")
         if not self.cbPurgeValves.isChecked():
@@ -242,10 +242,10 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
 
     def openElementsLayers(self, group, new):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        if new:
-            files = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns"]
-            for file in files:
-                utils.openLayer(self.CRS, group, file, ext=".dbf")
+        # if new:
+            # files = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns"]
+            # for file in files:
+                # utils.openLayer(self.CRS, group, file, ext=".dbf")
         
         if self.cbPipes.isChecked():
             if not utils.isLayerOpened("Pipes"):
@@ -278,9 +278,9 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         if self.cbIsolatedValves.isChecked():
             if not utils.isLayerOpened("IssolatedValves"):
                 utils.openLayer(self.CRS, group,"IssolatedValves", toEnd=True)
-        if self.cbCeckValves.isChecked():
-            if not utils.isLayerOpened("CheckValves"):
-                utils.openLayer(self.CRS, group,"CheckValves", toEnd=True)
+        # if self.cbCeckValves.isChecked():
+            # if not utils.isLayerOpened("CheckValves"):
+                # utils.openLayer(self.CRS, group,"CheckValves", toEnd=True)
         if self.cbHydrants.isChecked():
             if not utils.isLayerOpened("Hydrants"):
                 utils.openLayer(self.CRS, group,"Hydrants", toEnd=True)
@@ -320,7 +320,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
                 return False
             else:
                 dirList = os.listdir(self.ProjectDirectory)
-                layers = ["Pipes", "Junctions", "Tanks", "Reservoirs", "Valves", "Pumps", "IssolatedValves", "CheckValves" ,"Hydrants", "PurgeValves", "AirReleases", "Connections", "Manometers", "Flowmeters", "Countmeters", "Levelmeters"]
+                layers = ["Pipes", "Junctions", "Tanks", "Reservoirs", "Valves", "Pumps", "IssolatedValves" ,"Hydrants", "PurgeValves", "AirReleases", "Connections", "Manometers", "Flowmeters", "Countmeters", "Levelmeters"]
                 for layer in layers:
                     if self.NetworkName + "_" + layer + ".shp" in dirList:
                         self.iface.messageBar().pushMessage("Validations", "The project directory has some file to selected network's name", level=1)

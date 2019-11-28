@@ -55,5 +55,8 @@
         <file>images/iconDeleteValvePump.png</file>
         <file>images/iconVerifications.png</file>
         <file>images/iconCloseProject.png</file>
+        <file>images/iconEdit.png</file>
+        <file>images/iconDefaultValues.png</file>
+        <file>images/iconEditOptions.png</file>
     </qresource>
 </RCC>

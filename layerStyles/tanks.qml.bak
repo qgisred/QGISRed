@@ -219,8 +219,7 @@
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerTransparency>0</layerTransparency>
-  <displayfield>[Tank]&lt;br>
-Id: [% "Id" %]</displayfield>
+  <displayfield>[Tank] [% "Id" %]</displayfield>
   <label>0</label>
   <labelattributes>
     <label fieldname="" text="Etiqueta"/>

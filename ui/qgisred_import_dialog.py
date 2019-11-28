@@ -4,7 +4,7 @@ from qgis.core import QgsVectorLayer, QgsProject, QgsCoordinateReferenceSystem
 from qgis.PyQt import QtGui, uic
 from qgis.gui import QgsProjectionSelectionDialog  as QgsGenericProjectionSelector 
 from qgis.core import Qgis, QgsTask, QgsApplication
-from PyQt5.QtWidgets import QFileDialog, QDialog, QApplication
+from PyQt5.QtWidgets import QFileDialog, QDialog, QApplication, QMessageBox
 from PyQt5.QtCore import Qt
 from ..tools.qgisred_utils import QGISRedUtils
 import os
@@ -187,6 +187,10 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             #Process
             if self.NewProject:
                 if not self.createProject():
+                    return
+            else:
+                request = QMessageBox.question(self.iface.mainWindow(), self.tr('QGISRed'), self.tr('Import INP file will be delete all previous data in the current project. Do you want to continue?'), QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No))
+                if request == QMessageBox.No:
                     return
             
             #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use

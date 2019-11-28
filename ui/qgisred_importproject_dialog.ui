@@ -7,11 +7,11 @@
     <x>0</x>
     <y>0</y>
     <width>369</width>
-    <height>206</height>
+    <height>132</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>QGISRed: Import project</string>
+   <string>QGISRed: Load project</string>
   </property>
   <property name="windowIcon">
    <iconset>
@@ -20,65 +20,6 @@
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
     <layout class="QVBoxLayout" name="verticalLayout">
-     <item>
-      <widget class="QRadioButton" name="rbFile">
-       <property name="text">
-        <string>From GQP file</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <item>
-        <spacer name="horizontalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>10</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="tbFile"/>
-       </item>
-       <item>
-        <widget class="QPushButton" name="btSelectFile">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>30</width>
-           <height>30</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>...</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <widget class="QRadioButton" name="rbNameFolder">
-       <property name="text">
-        <string>From Network's Name and Folder</string>
-       </property>
-      </widget>
-     </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_2">
        <item>

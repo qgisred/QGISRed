@@ -78,7 +78,7 @@
          <item>
           <widget class="QLabel" name="label">
            <property name="text">
-            <string>QGISRed is a free QGIS plugin developed to make easier the task of building hydraulic models of water distribution networks. The plugin takes full advantage of working under a GIS environment for georeferencing all network elements, use geographic backgrounds, editing the graphical and alphanumerical data, using geoprocessing tools, visualizing data by layers, customizing the symbology, etc.</string>
+            <string>QGISRed is a freeware QGIS plugin developed to assist in building hydraulic models of water distribution networks. The plugin works seamlessly with QGIS which enables the user to georeference all network elements, use geographic background layers, edit graphical and alphanumerical data, use geoprocessing tools, visualize data by layers, customize the symbology, etc.</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignJustify|Qt::AlignVCenter</set>

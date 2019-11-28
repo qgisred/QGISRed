@@ -421,12 +421,12 @@
               <item>
                <layout class="QVBoxLayout" name="verticalLayout_2">
                 <item>
-                 <widget class="QCheckBox" name="cbIsolatedValves">
+                 <widget class="QCheckBox" name="cbConnections">
                   <property name="enabled">
                    <bool>true</bool>
                   </property>
                   <property name="text">
-                   <string>Issolated Valves</string>
+                   <string>Connections</string>
                   </property>
                   <property name="checkable">
                    <bool>true</bool>
@@ -434,12 +434,12 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QCheckBox" name="cbCeckValves">
+                 <widget class="QCheckBox" name="cbIsolatedValves">
                   <property name="enabled">
                    <bool>true</bool>
                   </property>
                   <property name="text">
-                   <string>Check Valves</string>
+                   <string>Issolated Valves</string>
                   </property>
                   <property name="checkable">
                    <bool>true</bool>
@@ -489,19 +489,6 @@
               </item>
               <item>
                <layout class="QVBoxLayout" name="verticalLayout_3">
-                <item>
-                 <widget class="QCheckBox" name="cbConnections">
-                  <property name="enabled">
-                   <bool>true</bool>
-                  </property>
-                  <property name="text">
-                   <string>Connections</string>
-                  </property>
-                  <property name="checkable">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
                 <item>
                  <widget class="QCheckBox" name="cbManometers">
                   <property name="enabled">
@@ -553,6 +540,22 @@
                    <bool>true</bool>
                   </property>
                  </widget>
+                </item>
+                <item>
+                 <spacer name="verticalSpacer_5">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeType">
+                   <enum>QSizePolicy::Fixed</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>17</height>
+                   </size>
+                  </property>
+                 </spacer>
                 </item>
                </layout>
               </item>

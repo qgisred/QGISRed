@@ -1,13 +1,14 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QCursor, QColor
 from qgis.core import QgsPointXY, QgsPoint, QgsFeatureRequest, QgsFeature, QgsGeometry, QgsProject, QgsTolerance, QgsVector, QgsVertexId, QgsPointLocator,\
-    QgsSnappingUtils, QgsVectorLayerEditUtils #QgsSnapper
+    QgsSnappingUtils, QgsVectorLayerEditUtils, QgsSnappingConfig #QgsSnapper
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMessageBar, QgsMapCanvasSnappingUtils
 
 import os
 
 class QGISRedMoveNodesTool(QgsMapTool):
     ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs", "Demands", "Sources"]
+    myNodeLayers = ["Junctions", "Tanks", "Reservoirs", "Demands", "Sources"]
     def __init__(self, button, iface, projectDirectory, netwName):
         QgsMapTool.__init__(self, iface.mapCanvas())
         self.iface = iface
@@ -56,6 +57,13 @@ class QGISRedMoveNodesTool(QgsMapTool):
         #Snapping
         self.snapper = QgsMapCanvasSnappingUtils(self.iface.mapCanvas())
         self.snapper.setMapSettings(self.iface.mapCanvas().mapSettings())
+        config = QgsSnappingConfig(QgsProject.instance())
+        config.setType(1) #Vertex
+        config.setMode(2) #All layers
+        config.setTolerance(2)
+        config.setUnits(2) #Pixels
+        config.setEnabled(True)
+        self.snapper.setConfig(config)
 
     def deactivate(self):
         self.toolbarButton.setChecked(False)
@@ -89,9 +97,14 @@ class QGISRedMoveNodesTool(QgsMapTool):
                             if self.areOverlapedPoints(nodeGeometry, featureGeometry):
                                 adjacentFeatures.append(feature)
                         elif layer.geometryType()==1:
-                            for part in featureGeometry.get(): #only one part
-                                first_vertex = part[0]
-                                last_vertex = part[-1]
+                            if featureGeometry.isMultipart():
+                                for part in featureGeometry.get(): #only one part
+                                    first_vertex = part[0]
+                                    last_vertex = part[-1]
+                            else:
+                                first_vertex = featureGeometry.get()[0]
+                                last_vertex = featureGeometry.get()[-1]
+                            
                             if self.areOverlapedPoints(nodeGeometry, QgsGeometry.fromPointXY(QgsPointXY(first_vertex.x(),first_vertex.y()))) or\
                                 self.areOverlapedPoints(nodeGeometry, QgsGeometry.fromPointXY(QgsPointXY(last_vertex.x(),last_vertex.y()))):
                                 adjacentFeatures.append(feature)
@@ -165,9 +178,8 @@ class QGISRedMoveNodesTool(QgsMapTool):
             
             foundNode = False
             layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
-            myNodeLayers = ["Junctions", "Tanks", "Reservoirs", "Demands", "Sources"]
             for layer in layers:
-                for name in myNodeLayers:
+                for name in self.myNodeLayers:
                     if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/","\\")== os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp").replace("/","\\"):
                         locatedPoint = self.snapper.locatorForLayer(layer)
                         match = locatedPoint.nearestVertex(self.objectSnapped.point(), 1)
@@ -183,7 +195,6 @@ class QGISRedMoveNodesTool(QgsMapTool):
             
             self.selectedNodeFeature = QgsFeature(node[0])
             self.adjacentFeatures = self.findAdjacentElements(self.selectedNodeFeature.geometry())
-            
             self.createRubberBand([self.objectSnapped.point(), self.objectSnapped.point()])
 
     def canvasMoveEvent(self, event):
@@ -192,10 +203,19 @@ class QGISRedMoveNodesTool(QgsMapTool):
         if not self.mouseClicked:
             match = self.snapper.snapToMap(self.mousePoint)
             if match.isValid():
-                self.objectSnapped = match
-                vertex = match.point()
-                self.vertexMarker.setCenter(QgsPointXY(vertex.x(), vertex.y()))
-                self.vertexMarker.show()
+                isNodeLayer = False
+                for name in self.myNodeLayers:
+                    if str(match.layer().dataProvider().dataSourceUri().split("|")[0]).replace("/","\\")== os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp").replace("/","\\"):
+                        isNodeLayer = True
+                if isNodeLayer:
+                    self.objectSnapped = match
+                    vertex = match.point()
+                    self.vertexMarker.setCenter(QgsPointXY(vertex.x(), vertex.y()))
+                    self.vertexMarker.show()
+                else:
+                    self.objectSnapped = None
+                    self.selectedNodeFeature = None
+                    self.vertexMarker.hide()
             else:
                 self.objectSnapped = None
                 self.selectedNodeFeature = None
@@ -225,14 +245,21 @@ class QGISRedMoveNodesTool(QgsMapTool):
                             else:
                                 nodeGeometry = self.selectedNodeFeature.geometry()
                                 featureGeometry= feature.geometry()
-                                for part in featureGeometry.get(): #only one part
-                                    firstVertex = part[0]
-                                    vertices = len(part)
+                                
+                                if featureGeometry.isMultipart():
+                                    for part in featureGeometry.get(): #only one part
+                                        firstVertex = part[0]
+                                        vertices = len(part)
+                                else:
+                                    firstVertex = featureGeometry.get()[0]
+                                    vertices = 2
                                 if self.areOverlapedPoints(nodeGeometry, QgsGeometry.fromPointXY(QgsPointXY(firstVertex.x(),firstVertex.y()))):
                                     index=0
                                 else:
                                     index=vertices-1
                                 self.moveVertexLink(adjLayer,feature,mousePoint, index)
+                self.objectSnapped = None
+                self.selectedNodeFeature= None
                 self.iface.mapCanvas().refresh()
             
             # Remove vertex marker and rubber band

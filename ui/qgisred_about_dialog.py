@@ -29,13 +29,13 @@ class QGISRedAboutDialog(QDialog, FORM_CLASS):
                     return
 
     def linkRedhisp(self, event):
-        webbrowser.open('http://www.redhisp.upv.es')
+        webbrowser.open('https://www.iiama.upv.es/iiama/en/research/research-groups/hydraulic-networks-and-pressurised-systems.html')
 
     def linkIiama(self, event):
-        webbrowser.open('http://www.iiama.upv.es')
+        webbrowser.open('https://www.iiama.upv.es/iiama/en/')
 
     def linkUpv(self, event):
-        webbrowser.open('http://www.upv.es')
+        webbrowser.open('http://www.upv.es/index-en.html')
 
     def userManual(self, event):
         pdf = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'usermanual_en.pdf')

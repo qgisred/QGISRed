@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer
 from qgis.core import QgsSvgMarkerSymbolLayer, QgsSymbol, QgsSingleSymbolRenderer
-from qgis.core import QgsLineSymbol, QgsSimpleLineSymbolLayer
+from qgis.core import QgsLineSymbol, QgsSimpleLineSymbolLayer, QgsProperty
 from qgis.core import Qgis, QgsMarkerSymbol, QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayer
 from qgis.core import QgsRendererCategory, QgsSimpleFillSymbolLayer, QgsCategorizedSymbolRenderer
 from PyQt5.QtGui import QColor
@@ -26,8 +26,8 @@ class QGISRedUtils:
         return False
 
     def openElementsLayers(self, group, crs, ownMainLayers, ownFiles):
-        for fileName in ownFiles:
-            self.openLayer(crs, group, fileName, ".dbf")
+        # for fileName in ownFiles:
+            # self.openLayer(crs, group, fileName, ".dbf")
         for fileName in ownMainLayers:
             self.openLayer(crs, group, fileName)
         self.orderLayers(group)
@@ -57,6 +57,8 @@ class QGISRedUtils:
                 else:
                     group.insertChildNode(0, QgsLayerTreeLayer(vlayer))
             del vlayer
+            if results:
+                self.orderResultLayers(group)
 
     def removeLayers(self, layers, ext=".shp"):
         for layerName in layers:
@@ -81,6 +83,16 @@ class QGISRedUtils:
                     if group is not None:
                         group.addChildNode(QgsLayerTreeLayer(_layer))
                         QgsProject.instance().removeMapLayer(layer.id())
+
+    def orderResultLayers(self, group):
+        layers = [tree_layer.layer() for tree_layer in group.findLayers()]
+        for layer in layers:
+            if not layer.geometryType()==0: #Point
+                _layer = layer.clone()
+                QgsProject.instance().addMapLayer(_layer, group is None)
+                if group is not None:
+                    group.addChildNode(QgsLayerTreeLayer(_layer))
+                    QgsProject.instance().removeMapLayer(layer.id())
 
     def writeFile(self, file, string):
         file.write(string)
@@ -120,6 +132,8 @@ class QGISRedUtils:
                 lineSymbol = QgsSimpleLineSymbolLayer()
                 lineSymbol.setWidthUnit(2) #Pixels
                 lineSymbol.setWidth(1.5)
+                if name=="pipes":
+                    lineSymbol.setColor(QColor("#0f1291"))
                 symbol.appendSymbolLayer(lineSymbol)
                 # Symbol
                 marker = QgsMarkerSymbol.createSimple({})
@@ -136,6 +150,11 @@ class QGISRedUtils:
                 finalMarker.setSubSymbol(marker)
                 finalMarker.setPlacement(QgsMarkerLineSymbolLayer.CentralPoint)
                 symbol.appendSymbolLayer(finalMarker)
+                if name=="pipes":
+                    prop = QgsProperty()
+                    prop.setExpressionString("if(IniStatus is NULL, 0,if(IniStatus !='CV', 0,5))")
+                    symbol.symbolLayer(1).setDataDefinedProperty(0, prop) #0 = PropertySize
+                    symbol.symbolLayer(1).setDataDefinedProperty(9, prop) #9 = PropertyWidth
                 renderer = QgsSingleSymbolRenderer(symbol)
             
             layer.setRenderer(renderer)

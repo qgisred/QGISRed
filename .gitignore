@@ -14,3 +14,4 @@
 /ui/__pycache__/qgisred_toolLength_dialog.cpython-37.pyc
 /__pycache__/*.pyc
 /tools/__pycache__/*.pyc
+/layerStyles/*.qml

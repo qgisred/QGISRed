@@ -16,11 +16,11 @@ class QGISRedImportProjectDialog(QDialog, FORM_CLASS):
         """Constructor."""
         super(QGISRedImportProjectDialog, self).__init__(parent)
         self.setupUi(self)
-        self.btSelectFile.clicked.connect(self.selectFile)
+        #self.btSelectFile.clicked.connect(self.selectFile)
         self.btSelectDirectory.clicked.connect(self.selectDirectory)
         self.btAccept.clicked.connect(self.accept)
-        self.rbFile.clicked.connect(self.rbSelected)
-        self.rbNameFolder.clicked.connect(self.rbSelected)
+        #self.rbFile.clicked.connect(self.rbSelected)
+        #self.rbNameFolder.clicked.connect(self.rbSelected)
         self.rbSelected()
 
     def selectDirectory(self):
@@ -30,40 +30,40 @@ class QGISRedImportProjectDialog(QDialog, FORM_CLASS):
             self.tbProjectDirectory.setCursorPosition(0)
             self.ProjectDirectory = selected_directory
 
-    def selectFile(self):
-        qfd = QFileDialog()
-        path = ""
-        filter = "gqp(*.gqp)"
-        f = QFileDialog.getOpenFileName(qfd, "Select GQP file", path, filter)
-        f = f[0]
-        if not f=="":
-            self.tbFile.setText(f)
-            self.tbFile.setCursorPosition(0)
-            self.File = f
+    # def selectFile(self):
+        # qfd = QFileDialog()
+        # path = ""
+        # filter = "gqp(*.gqp)"
+        # f = QFileDialog.getOpenFileName(qfd, "Select GQP file", path, filter)
+        # f = f[0]
+        # if not f=="":
+            # self.tbFile.setText(f)
+            # self.tbFile.setCursorPosition(0)
+            # self.File = f
 
     def rbSelected(self):
-        self.tbFile.setEnabled(self.rbFile.isChecked())
-        self.btSelectFile.setEnabled(self.rbFile.isChecked())
-        self.tbNetworkName.setEnabled(not self.rbFile.isChecked())
-        self.tbProjectDirectory.setEnabled(not self.rbFile.isChecked())
-        self.btSelectDirectory.setEnabled(not self.rbFile.isChecked())
+        #self.tbFile.setEnabled(self.rbFile.isChecked())
+        #self.btSelectFile.setEnabled(self.rbFile.isChecked())
+        self.tbNetworkName.setEnabled(True) #not self.rbFile.isChecked()
+        self.tbProjectDirectory.setEnabled(True)
+        self.btSelectDirectory.setEnabled(True)
 
     def accept(self):
         valid = True
-        if self.rbFile.isChecked():
-            if self.File=="":
-                self.lbMessage.setText("GQP file not valid")
-                valid = False
-        else:
-            self.NetworkName = self.tbNetworkName.text()
-            if self.NetworkName=="":
-                self.lbMessage.setText("Not valid Network's Name")
-                valid=False
-            if self.ProjectDirectory=="":
-                self.lbMessage.setText("Not valid Project Directory")
-                valid=False
+        # if self.rbFile.isChecked():
+            # if self.File=="":
+                # self.lbMessage.setText("GQP file not valid")
+                # valid = False
+        # else:
+        self.NetworkName = self.tbNetworkName.text()
+        if self.NetworkName=="":
+            self.lbMessage.setText("Not valid Network's Name")
+            valid=False
+        if self.ProjectDirectory=="":
+            self.lbMessage.setText("Not valid Project Directory")
+            valid=False
         
         if valid:
-            self.IsFile = self.rbFile.isChecked()
+            #self.IsFile = self.rbFile.isChecked()
             self.ProcessDone = True
             self.close()

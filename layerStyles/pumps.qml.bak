@@ -207,8 +207,7 @@
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerTransparency>0</layerTransparency>
-  <displayfield>[Pump]&lt;br>
-Id: [% "Id" %]</displayfield>
+  <displayfield>[Pump] [% "Id" %]</displayfield>
   <label>0</label>
   <labelattributes>
     <label fieldname="" text="Etiqueta"/>

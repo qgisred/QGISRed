@@ -7,6 +7,7 @@ from PyQt5.QtCore import QFileInfo
 from qgis.core import QgsTask, QgsApplication
 # Import the code for the dialog
 from .qgisred_newproject_dialog import QGISRedNewProjectDialog
+from .qgisred_import_dialog import QGISRedImportDialog
 from .qgisred_importproject_dialog import QGISRedImportProjectDialog
 from .qgisred_cloneproject_dialog import QGISRedCloneProjectDialog
 from ..tools.qgisred_utils import QGISRedUtils
@@ -33,10 +34,12 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         super(QGISRedProjectManagerDialog, self).__init__(parent)
         self.setupUi(self)
         self.btCreate.clicked.connect(self.createProject)
-        self.btDelete.clicked.connect(self.deleteProject)
-        self.btImport.clicked.connect(self.importProject)
+        self.btImport.clicked.connect(self.importData)
         self.btOpen.clicked.connect(self.openProject)
         self.btClone.clicked.connect(self.cloneProject)
+        
+        self.btLoad.clicked.connect(self.importProject)
+        self.btUnLoad.clicked.connect(self.deleteProject)
         self.btGo2Folder.clicked.connect(self.openFolder)
         #Variables:
         gplFolder = os.path.join(os.popen('echo %appdata%').read().strip(), "QGISRed")
@@ -132,10 +135,10 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         f.write(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + "\n")
         QGISRedUtils().writeFile(f, "[" + net + " Inputs]\n")
         dirList = os.listdir(folder)
-        for fileName in self.ownFiles:
-            if ".dbf" in fileName:
-                if net + "_" + fileName in dirList:
-                    QGISRedUtils().writeFile(f, os.path.join(folder, net + "_" + fileName) + '\n')
+        # for fileName in self.ownFiles:
+            # if ".dbf" in fileName:
+                # if net + "_" + fileName in dirList:
+                    # QGISRedUtils().writeFile(f, os.path.join(folder, net + "_" + fileName) + '\n')
         for layerName in self.ownMainLayers:
             if net + "_" + layerName + ".shp" in dirList:
                 QGISRedUtils().writeFile(f, os.path.join(folder, net + "_" + layerName + ".shp") + '\n')
@@ -232,6 +235,18 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             self.NetworkName = dlg.NetworkName
             self.ProcessDone = True
 
+    def importData(self):
+        dlg = QGISRedImportDialog()
+        dlg.config(self.iface, self.ProjectDirectory, self.NetworkName)
+        # Run the dialog event loop
+        self.close()
+        dlg.exec_()
+        result = dlg.ProcessDone
+        if result:
+            self.ProjectDirectory = dlg.ProjectDirectory
+            self.NetworkName = dlg.NetworkName
+            self.ProcessDone = True
+
     def deleteProject(self):
         selectionModel = self.twProjectList.selectionModel()
         if selectionModel.hasSelection():
@@ -261,10 +276,10 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             path=""
             name=""
             valid = True
-            if dlg.IsFile:
-                self.addProjectToTable(dlg.File, "", "")
-            else:
-                self.addProjectToTable("", dlg.ProjectDirectory, dlg.NetworkName)
+            # if dlg.IsFile:
+                # self.addProjectToTable(dlg.File, "", "")
+            # else:
+            self.addProjectToTable("", dlg.ProjectDirectory, dlg.NetworkName)
 
     def openProject(self):
         selectionModel = self.twProjectList.selectionModel()
