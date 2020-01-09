@@ -1527,9 +1527,9 @@ class QGISRed:
         
         #Message
         if b=="True":
-            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("No issues occurred in the roughness coefficient estimation"), level=3, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("No issues occurred deleting elements"), level=3, duration=5) #Never occurs
         elif b=="False":
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the roughness coefficient estimation"), level=1, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Delete elements process finished"), level=1, duration=5)
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
