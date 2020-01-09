@@ -58,5 +58,7 @@
         <file>images/iconEdit.png</file>
         <file>images/iconDefaultValues.png</file>
         <file>images/iconEditOptions.png</file>
+        <file>images/iconSelection.png</file>
+        <file>images/iconDeleteElements.png</file>
     </qresource>
 </RCC>

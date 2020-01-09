@@ -73,7 +73,7 @@ class QGISRedUtils:
         del layers
 
     def orderLayers(self, group):
-        mylayersNames = ["Reservoirs.shp", "Tanks.shp", "Sources.shp", "Demands.shp", "Junctions.shp", "Pumps.shp", "Valves.shp", "Pipes.shp", "Patterns.dbf", "Curves.dbf", "Controls.dbf", "Rules.dbf", "Options.dbf", "DefaultValues.dbf"]
+        mylayersNames = ["Sources.shp", "Reservoirs.shp", "Tanks.shp", "Pumps.shp", "Valves.shp", "Demands.shp", "Junctions.shp", "Pipes.shp", "Patterns.dbf", "Curves.dbf", "Controls.dbf", "Rules.dbf", "Options.dbf", "DefaultValues.dbf"]
         for layerName in mylayersNames:
             layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
             for layer in layers:

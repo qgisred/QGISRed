@@ -42,6 +42,7 @@ from .ui.qgisred_toolLength_dialog import QGISRedLengthToolDialog
 from .ui.qgisred_toolConnectivity_dialog import QGISRedConnectivityToolDialog
 from .tools.qgisred_utils import QGISRedUtils
 from .tools.qgisred_movenodes import QGISRedMoveNodesTool
+from .tools.qgisred_multilayerSelection import QGISRedUtilsMultiLayerSelection
 # Others imports
 import os
 import datetime
@@ -67,7 +68,7 @@ class QGISRed:
     ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs", "Demands", "Sources"]
     ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns"]
     TemporalFolder = "Temporal folder"
-    DependenciesVersion ="1.0.8.0"
+    DependenciesVersion ="1.0.8.1"
 
     def __init__(self, iface):
         """Constructor.
@@ -229,8 +230,11 @@ class QGISRed:
         self.add_action(icon_path, text=self.tr(u'Summary'), callback=self.runSummary, menubar=self.projectMenu, toolbar=self.projectToolbar,
             actionBase = projectDropButton, add_to_toolbar =True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconFlash.png'
-        self.add_action(icon_path, text=self.tr(u'Run Model'), callback=self.runModel, menubar=self.projectMenu, toolbar=self.projectToolbar,
-            actionBase = projectDropButton, add_to_toolbar =True, parent=self.iface.mainWindow())
+        dropButton = self.add_action(icon_path, text=self.tr(u'Run Model'), callback=self.runModel, menubar=self.projectMenu, toolbar=self.projectToolbar,
+            actionBase = projectDropButton, createDrop= True, add_to_toolbar =False, parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconResults.png'
+        self.add_action(icon_path, text=self.tr(u'Show Results Browser'), callback=self.runShowResultsDock, menubar=self.projectMenu, toolbar=self.projectToolbar,
+            actionBase = dropButton, add_to_toolbar =False, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconShpToInp.png'
         self.add_action(icon_path, text=self.tr(u'Export to INP'), callback=self.runExportInp, menubar=self.projectMenu, toolbar=self.projectToolbar,
             actionBase = projectDropButton, add_to_toolbar =True, parent=self.iface.mainWindow())
@@ -247,6 +251,9 @@ class QGISRed:
         icon_path = ':/plugins/QGISRed/images/iconEdit.png'
         editDropButton = self.add_action(icon_path, text=self.tr(u'Edition'), callback=self.runEditionToolbar, menubar=self.editionMenu, add_to_menu=False,
             toolbar=self.toolbar, createDrop = True, addActionToDrop = False, add_to_toolbar =False, parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconSelection.png'
+        self.selectElementsButton = self.add_action(icon_path, text=self.tr(u'Select multiple elements'), callback=self.runSelectElements, menubar=self.editionMenu, toolbar=self.editionToolbar,
+            actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconMoveElements.png'
         self.moveElementsButton = self.add_action(icon_path, text=self.tr(u'Move node elements'), callback=self.runMoveElements, menubar=self.editionMenu, toolbar=self.editionToolbar,
             actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
@@ -262,6 +269,9 @@ class QGISRed:
         icon_path = ':/plugins/QGISRed/images/iconSplitPipe.png'
         self.splitPipeButton = self.add_action(icon_path, text=self.tr(u'Split Pipe'), callback=self.runSelectSplitPoint, menubar=self.editionMenu, toolbar=self.editionToolbar,
             actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconDeleteElements.png'
+        self.add_action(icon_path, text=self.tr(u'Delete selected elements'), callback=self.runDeleteElements, menubar=self.editionMenu, toolbar=self.editionToolbar,
+            actionBase = editDropButton, add_to_toolbar =True, parent=self.iface.mainWindow())
         self.editionToolbar.addSeparator()
         icon_path = ':/plugins/QGISRed/images/iconEdit.png'
         self.editElementButton = self.add_action(icon_path, text=self.tr(u'Edit Element Properties'), callback=self.runSelectPointProperties, menubar=self.editionMenu, toolbar=self.editionToolbar,
@@ -623,14 +633,12 @@ class QGISRed:
     def activeInputGroup(self):
         if self.ResultDockwidget is None:
             return
-        if self.ResultDockwidget.isVisible():
-            return
         group = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
         if group is not None:
-            group.setItemVisibilityChecked(True)
+            group.setItemVisibilityChecked(not self.ResultDockwidget.isVisible())
         group = QgsProject.instance().layerTreeRoot().findGroup("Results")
         if group is not None:
-            group.setItemVisibilityChecked(False)
+            group.setItemVisibilityChecked(self.ResultDockwidget.isVisible())
 
     def getInputGroup(self):
         inputGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
@@ -1076,6 +1084,18 @@ class QGISRed:
         if self.ResultDockwidget is not None: #If some error, close the dock
             self.ResultDockwidget.close()
 
+    def runShowResultsDock(self):
+        if not self.checkDependencies(): return
+        #Validations
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
+            return
+        if self.ResultDockwidget is None:
+            self.runModel()
+        else:
+            self.ResultDockwidget.show()
+
     def runShowResults(self):
         if not self.checkDependencies(): return
         #Open dock
@@ -1442,6 +1462,13 @@ class QGISRed:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     """Layaout"""
+    def runSelectElements(self):
+        if type(self.iface.mapCanvas().mapTool()) is QGISRedUtilsMultiLayerSelection:
+            self.iface.mapCanvas().unsetMapTool(self.selectElementsTool)
+        else:
+            self.selectElementsTool = QGISRedUtilsMultiLayerSelection(self.iface.mapCanvas(), self.selectElementsButton)
+            self.iface.mapCanvas().setMapTool(self.selectElementsTool)
+
     def runMoveElements(self):
         #Validations
         self.defineCurrentProject()
@@ -1455,6 +1482,56 @@ class QGISRed:
             self.moveNodesTool = QGISRedMoveNodesTool(self.moveElementsButton, self.iface, self.ProjectDirectory, self.NetworkName)
             self.iface.mapCanvas().setMapTool(self.moveNodesTool)
             self.setCursor(Qt.CrossCursor)
+
+    def runDeleteElements(self):
+        if not self.checkDependencies(): return
+        #Validations
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
+            return
+        
+        if not self.getSelectedFeaturesIds():
+            return
+        if self.nodeIds=="" and self.linkIds == "":
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No elements selected to delete."), level=1, duration=5)
+            return
+        
+        if self.isLayerOnEdition():
+            return
+        
+        #Process
+        self.extent = self.iface.mapCanvas().extent()
+        #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+        task1 = QgsTask.fromFunction(self.tr(u'Dismiss this message'), self.removeLayers, on_finished=self.runDeleteElementsProcess)
+        task1.run()
+        QgsApplication.taskManager().addTask(task1)
+
+    def runDeleteElementsProcess(self, exception=None, result=None):
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QGISRedUtils().setCurrentDirectory()
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.RemoveElements.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.RemoveElements.restype = c_char_p
+        b = mydll.RemoveElements(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.nodeIds.encode('utf-8'), self.linkIds.encode('utf-8'))
+        b= "".join(map(chr, b)) #bytes to string
+        
+        self.opendedLayers=False
+        self.selectedFids ={}
+        task1 = QgsTask.fromFunction('Dismiss this message', self.openElementLayers, on_finished=self.setExtent)
+        task1.run()
+        QgsApplication.taskManager().addTask(task1)
+        
+        QApplication.restoreOverrideCursor()
+        
+        #Message
+        if b=="True":
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("No issues occurred in the roughness coefficient estimation"), level=3, duration=5)
+        elif b=="False":
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the roughness coefficient estimation"), level=1, duration=5)
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runSelectValvePoint(self):
         #Take account the mouse click on QGis:
