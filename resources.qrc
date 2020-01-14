@@ -60,5 +60,7 @@
         <file>images/iconEditOptions.png</file>
         <file>images/iconSelection.png</file>
         <file>images/iconDeleteElements.png</file>
+        <file>images/iconAddTank.png</file>
+        <file>images/iconAddReservoir.png</file>
     </qresource>
 </RCC>

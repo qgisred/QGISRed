@@ -203,19 +203,23 @@ class QGISRedMoveNodesTool(QgsMapTool):
         if not self.mouseClicked:
             match = self.snapper.snapToMap(self.mousePoint)
             if match.isValid():
-                isNodeLayer = False
-                for name in self.myNodeLayers:
-                    if str(match.layer().dataProvider().dataSourceUri().split("|")[0]).replace("/","\\")== os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp").replace("/","\\"):
-                        isNodeLayer = True
-                if isNodeLayer:
-                    self.objectSnapped = match
-                    vertex = match.point()
-                    self.vertexMarker.setCenter(QgsPointXY(vertex.x(), vertex.y()))
-                    self.vertexMarker.show()
-                else:
-                    self.objectSnapped = None
-                    self.selectedNodeFeature = None
-                    self.vertexMarker.hide()
+                self.objectSnapped = match
+                vertex = match.point()
+                self.vertexMarker.setCenter(QgsPointXY(vertex.x(), vertex.y()))
+                self.vertexMarker.show()
+                # isNodeLayer = False
+                # for name in self.myNodeLayers:
+                    # if str(match.layer().dataProvider().dataSourceUri().split("|")[0]).replace("/","\\")== os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp").replace("/","\\"):
+                        # isNodeLayer = True
+                # if isNodeLayer:
+                    # self.objectSnapped = match
+                    # vertex = match.point()
+                    # self.vertexMarker.setCenter(QgsPointXY(vertex.x(), vertex.y()))
+                    # self.vertexMarker.show()
+                # else:
+                    # self.objectSnapped = None
+                    # self.selectedNodeFeature = None
+                    # self.vertexMarker.hide()
             else:
                 self.objectSnapped = None
                 self.selectedNodeFeature = None
