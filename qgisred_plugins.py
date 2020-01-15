@@ -1488,6 +1488,8 @@ class QGISRed:
         if type(self.iface.mapCanvas().mapTool()) is QGISRedMoveNodesTool:
             self.iface.mapCanvas().unsetMapTool(self.moveNodesTool)
         else:
+            if self.isLayerOnEdition():
+                return
             self.moveNodesTool = QGISRedMoveNodesTool(self.moveElementsButton, self.iface, self.ProjectDirectory, self.NetworkName)
             self.iface.mapCanvas().setMapTool(self.moveNodesTool)
             self.setCursor(Qt.CrossCursor)

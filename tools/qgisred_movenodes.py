@@ -72,7 +72,9 @@ class QGISRedMoveNodesTool(QgsMapTool):
         for layer in layers:
             for name in self.ownMainLayers:
                 if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/","\\")== os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp").replace("/","\\"):
-                    if not layer.isModified():
+                    if layer.isModified():
+                        layer.commitChanges()
+                    else:
                         layer.rollBack()
 
     def isZoomTool(self):
