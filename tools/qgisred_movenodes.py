@@ -128,7 +128,7 @@ class QGISRedMoveNodesTool(QgsMapTool):
             myPoints = []
             for p in points:
                 myPoints.append(QgsPoint(p.x(),p.y()))
-        self.rubberBand = QgsRubberBand(self.canvas(), False)
+        self.rubberBand = QgsRubberBand(self.iface.mapCanvas(), False)
         self.rubberBand.setToGeometry(QgsGeometry.fromPolyline(myPoints), None)
         self.rubberBand.setColor(QColor(55, 198, 5))
         self.rubberBand.setWidth(1)

@@ -43,6 +43,8 @@ from .ui.qgisred_toolConnectivity_dialog import QGISRedConnectivityToolDialog
 from .tools.qgisred_utils import QGISRedUtils
 from .tools.qgisred_movenodes import QGISRedMoveNodesTool
 from .tools.qgisred_multilayerSelection import QGISRedUtilsMultiLayerSelection
+from .tools.qgisred_createPipe import QGISRedCreatePipeTool
+
 # Others imports
 import os
 import datetime
@@ -251,11 +253,8 @@ class QGISRed:
         icon_path = ':/plugins/QGISRed/images/iconEdit.png'
         editDropButton = self.add_action(icon_path, text=self.tr(u'Edition'), callback=self.runEditionToolbar, menubar=self.editionMenu, add_to_menu=False,
             toolbar=self.toolbar, createDrop = True, addActionToDrop = False, add_to_toolbar =False, parent=self.iface.mainWindow())
-        icon_path = ':/plugins/QGISRed/images/iconSelection.png'
-        self.selectElementsButton = self.add_action(icon_path, text=self.tr(u'Select multiple elements'), callback=self.runSelectElements, menubar=self.editionMenu, toolbar=self.editionToolbar,
-            actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
-        icon_path = ':/plugins/QGISRed/images/iconMoveElements.png'
-        self.moveElementsButton = self.add_action(icon_path, text=self.tr(u'Move node elements'), callback=self.runMoveElements, menubar=self.editionMenu, toolbar=self.editionToolbar,
+        icon_path = ':/plugins/QGISRed/images/iconAddPipe.png'
+        self.addPipeButton = self.add_action(icon_path, text=self.tr(u'Add Pipe'), callback=self.runPaintPipe, menubar=self.editionMenu, toolbar=self.editionToolbar,
             actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconAddTank.png'
         self.addTankButton = self.add_action(icon_path, text=self.tr(u'Add Tank'), callback=self.runSelectTankPoint, menubar=self.editionMenu, toolbar=self.editionToolbar,
@@ -269,11 +268,18 @@ class QGISRed:
         icon_path = ':/plugins/QGISRed/images/iconAddPump.png'
         self.insertPumpButton = self.add_action(icon_path, text=self.tr(u'Insert Pump in Pipe'), callback=self.runSelectPumpPoint, menubar=self.editionMenu, toolbar=self.editionToolbar,
             actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
+        self.editionToolbar.addSeparator()
+        icon_path = ':/plugins/QGISRed/images/iconSelection.png'
+        self.selectElementsButton = self.add_action(icon_path, text=self.tr(u'Select multiple elements'), callback=self.runSelectElements, menubar=self.editionMenu, toolbar=self.editionToolbar,
+            actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconMoveElements.png'
+        self.moveElementsButton = self.add_action(icon_path, text=self.tr(u'Move node elements'), callback=self.runMoveElements, menubar=self.editionMenu, toolbar=self.editionToolbar,
+            actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconSplitPipe.png'
         self.splitPipeButton = self.add_action(icon_path, text=self.tr(u'Split Pipe'), callback=self.runSelectSplitPoint, menubar=self.editionMenu, toolbar=self.editionToolbar,
             actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconDeleteElements.png'
-        self.removeElementsButton = self.add_action(icon_path, text=self.tr(u'Delete selected elements'), callback=self.runDeleteElements, menubar=self.editionMenu, toolbar=self.editionToolbar,
+        self.removeElementsButton = self.add_action(icon_path, text=self.tr(u'Delete elements'), callback=self.runDeleteElements, menubar=self.editionMenu, toolbar=self.editionToolbar,
             actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
         self.editionToolbar.addSeparator()
         icon_path = ':/plugins/QGISRed/images/iconEdit.png'
@@ -1677,6 +1683,104 @@ class QGISRed:
         if b=="True":
             if self.Process == "commit":
                 self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Element removed"), level=3, duration=5)
+        elif b=="False":
+            pass #self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+
+    def runPaintPipe(self):
+        #Validations
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
+            return
+        
+        if type(self.iface.mapCanvas().mapTool()) is QGISRedCreatePipeTool:
+            self.createPipeTool.deactivated.disconnect(self.runCreatePipe)
+            self.iface.mapCanvas().unsetMapTool(self.createPipeTool)
+        else:
+            if self.isLayerOnEdition():
+                self.addPipeButton.setChecked(False)
+                return
+            self.createPipeTool = QGISRedCreatePipeTool(self.addPipeButton, self.iface, self.ProjectDirectory, self.NetworkName)
+            self.createPipeTool.deactivated.connect(self.runCreatePipe)
+            self.iface.mapCanvas().setMapTool(self.createPipeTool)
+
+    def runCreatePipe(self):
+        if self.createPipeTool.createdPipe:
+            self.createPipeTool.createdPipe = False
+            self.pipePoint =""
+            for p in self.createPipeTool.mousePoints:
+                self.pipePoint = self.pipePoint + str(p.x()) + ":" + str(p.y()) + ";"
+            #C#Process:
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            QGISRedUtils().setCurrentDirectory()
+            mydll = WinDLL("GISRed.QGisPlugins.dll")
+            mydll.AddPipe.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+            mydll.AddPipe.restype = c_char_p
+            step = "step2"
+            # if toCommit:
+                # step = "step2"
+            b = mydll.AddPipe(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), step.encode('utf-8'), self.pipePoint.encode('utf-8'))
+            b= "".join(map(chr, b)) #bytes to string
+            QApplication.restoreOverrideCursor()
+            
+            #Message
+            runAgain=False
+            if b=="True":
+                self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Pipe added"), level=1, duration=5)
+            elif b=="False":
+                pass #self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
+            elif b=="shps":
+                runAgain=True
+            elif b=="commit":
+                runAgain=True
+            else:
+                self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+            
+            #self.iface.mapCanvas().unsetMapTool(self.pointValveTool)
+            
+            # if not toCommit: #open shps of issues
+                # if runAgain:
+                    # #Process
+                    # self.Process=b
+                    # #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                    # task1 = QgsTask.fromFunction("", self.removeIssuesLayers, on_finished=self.runCheckCoordinatesProcess)
+                    # task1.run()
+                    # QgsApplication.taskManager().addTask(task1)
+            # else:
+            if runAgain:
+                #Process
+                self.Process=b
+                self.extent = self.iface.mapCanvas().extent()
+                #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+                task1 = QgsTask.fromFunction("", self.removeLayers, on_finished=self.runCreatePipeProcess)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
+
+    def runCreatePipeProcess(self, exception=None, result=None):
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QGISRedUtils().setCurrentDirectory()
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.AddPipe.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.AddPipe.restype = c_char_p
+        b = mydll.AddPipe(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.Process.encode('utf-8'), self.pipePoint.encode('utf-8'))
+        b= "".join(map(chr, b)) #bytes to string
+        
+        
+        if self.Process == "commit":
+            self.opendedLayers=False
+            task1 = QgsTask.fromFunction('Dismiss this message', self.openElementLayers, on_finished=self.setExtent)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
+        
+        QApplication.restoreOverrideCursor()
+        
+        #Message
+        if b=="True":
+            if self.Process == "commit":
+                self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Pipe added"), level=3, duration=5)
         elif b=="False":
             pass #self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
         else:
