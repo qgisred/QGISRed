@@ -159,7 +159,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
             if netGroup is None:
                 root = QgsProject.instance().layerTreeRoot()
-                netGroup = root.addGroup(self.NetworkName)
+                netGroup = root.insertGroup(0,self.NetworkName)
             inputGroup = netGroup.addGroup("Inputs")
         return inputGroup
 

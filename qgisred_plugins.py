@@ -41,9 +41,10 @@ from .ui.qgisred_results_dock import QGISRedResultsDock
 from .ui.qgisred_toolLength_dialog import QGISRedLengthToolDialog
 from .ui.qgisred_toolConnectivity_dialog import QGISRedConnectivityToolDialog
 from .tools.qgisred_utils import QGISRedUtils
-from .tools.qgisred_movenodes import QGISRedMoveNodesTool
+from .tools.qgisred_moveNodes import QGISRedMoveNodesTool
 from .tools.qgisred_multilayerSelection import QGISRedUtilsMultiLayerSelection
 from .tools.qgisred_createPipe import QGISRedCreatePipeTool
+from .tools.qgisred_moveVertexs import QGISRedMoveVertexsTool
 
 # Others imports
 import os
@@ -275,6 +276,10 @@ class QGISRed:
         icon_path = ':/plugins/QGISRed/images/iconMoveElements.png'
         self.moveElementsButton = self.add_action(icon_path, text=self.tr(u'Move node elements'), callback=self.runMoveElements, menubar=self.editionMenu, toolbar=self.editionToolbar,
             actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconMoveVertexs.png'
+        self.moveVertexsButton = self.add_action(icon_path, text=self.tr(u'Move link vertexes'), callback=self.runEditVertexs, menubar=self.editionMenu, toolbar=self.editionToolbar,
+            actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
+        
         icon_path = ':/plugins/QGISRed/images/iconSplitPipe.png'
         self.splitPipeButton = self.add_action(icon_path, text=self.tr(u'Split Pipe'), callback=self.runSelectSplitPoint, menubar=self.editionMenu, toolbar=self.editionToolbar,
             actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
@@ -559,15 +564,15 @@ class QGISRed:
                     return True
                 else:
                     return False
-        else:
-            if len(self.iface.mapCanvas().layers())>0:
-                #Close files and continue?
-                reply = QMessageBox.question(self.iface.mainWindow(), self.tr('Opened layers'), self.tr('Do you want to close the current layers and continue?'), QMessageBox.Yes, QMessageBox.No)
-                if reply == QMessageBox.Yes:
-                    QgsProject.instance().clear()
-                    return True
-                else:
-                    return False
+        # else:
+            # if len(self.iface.mapCanvas().layers())>0:
+                # #Close files and continue?
+                # reply = QMessageBox.question(self.iface.mainWindow(), self.tr('Opened layers'), self.tr('Do you want to close the current layers and continue?'), QMessageBox.Yes, QMessageBox.No)
+                # if reply == QMessageBox.Yes:
+                    # QgsProject.instance().clear()
+                    # return True
+                # else:
+                    # return False
         return True
 
     def isLayerOnEdition(self):
@@ -661,7 +666,13 @@ class QGISRed:
             netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
             if netGroup is None:
                 root = QgsProject.instance().layerTreeRoot()
-                netGroup = root.addGroup(self.NetworkName)
+                # layers = QgsProject.instance().layerTreeRoot().findLayers()
+                # print(layers)
+                netGroup = root.insertGroup(0,self.NetworkName)
+                # for ly in layers:
+                    # ly2 = ly.clone()
+                    # root.addChildNode(ly2)
+                    # root.removeChildNode(ly)
             inputGroup = netGroup.addGroup("Inputs")
         return inputGroup
 
@@ -1498,6 +1509,24 @@ class QGISRed:
                 return
             self.moveNodesTool = QGISRedMoveNodesTool(self.moveElementsButton, self.iface, self.ProjectDirectory, self.NetworkName)
             self.iface.mapCanvas().setMapTool(self.moveNodesTool)
+            self.setCursor(Qt.CrossCursor)
+
+    def runEditVertexs(self):
+        #Validations
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
+            self.moveVertexsButton.setChecked(False)
+            return
+        
+        if type(self.iface.mapCanvas().mapTool()) is QGISRedMoveVertexsTool:
+            self.iface.mapCanvas().unsetMapTool(self.moveVertexsTool)
+        else:
+            if self.isLayerOnEdition():
+                self.moveVertexsButton.setChecked(False)
+                return
+            self.moveVertexsTool = QGISRedMoveVertexsTool(self.moveVertexsButton, self.iface, self.ProjectDirectory, self.NetworkName)
+            self.iface.mapCanvas().setMapTool(self.moveVertexsTool)
             self.setCursor(Qt.CrossCursor)
 
     def runDeleteElements(self):
