@@ -441,6 +441,8 @@ class QGISRed:
         self.hasToOpenConnectivityLayers = False
         self.hasToOpenIssuesLayers=False
         self.hasToOpenSectorLayers=False
+        
+        self.zoomToFullExtent = False
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -828,10 +830,15 @@ class QGISRed:
         self.iface.mapCanvas().setCursor(cursor)
 
     def setExtent(self, exception=None, result=None):
-        if self.extent is not None:
-            self.iface.mapCanvas().setExtent(self.extent)
+        if self.zoomToFullExtent:
+            self.iface.mapCanvas().zoomToFullExtent()
             self.iface.mapCanvas().refresh()
-            self.extent = None
+            self.zoomToFullExtent = False
+        else:
+            if self.extent is not None:
+                self.iface.mapCanvas().setExtent(self.extent)
+                self.iface.mapCanvas().refresh()
+                self.extent = None
 
     def getTolerance(self):
         #DPI
@@ -1034,7 +1041,7 @@ class QGISRed:
                 return
         # show the dialog
         dlg = QGISRedImportDialog()
-        dlg.config(self.iface, self.ProjectDirectory, self.NetworkName)
+        dlg.config(self.iface, self.ProjectDirectory, self.NetworkName, self)
 
         # Run the dialog event loop
         dlg.exec_()

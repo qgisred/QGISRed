@@ -51,7 +51,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbJunctionLayer.currentIndexChanged.connect(self.junctionLayerChanged)
         self.btImportShps.clicked.connect(self.importShpProject)
 
-    def config(self, ifac, direct, netw):
+    def config(self, ifac, direct, netw, parent):
+        self.parent = parent
         self.iface=ifac
         self.CRS = self.iface.mapCanvas().mapSettings().destinationCrs()
         self.tbCRS.setText(self.CRS.description())
@@ -193,40 +194,21 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 if request == QMessageBox.No:
                     return
             
-            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-            task1 = QgsTask.fromFunction(u'Dismiss this message', self.removeLayers, on_finished=self.importInpProjectProcess, wait_time=0)
-            task1.run()
-            QgsApplication.taskManager().addTask(task1)
-
-    def importInpProjectProcess(self, exception=None, result=None):
-        #Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        #os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.ImportFromInp.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.ImportFromInp.restype = c_char_p
-        b = mydll.ImportFromInp(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.InpFile.encode('utf-8'))
-        b= "".join(map(chr, b)) #bytes to string
-        
-        #Open layers
-        self.opendedLayers=False
-        task1 = QgsTask.fromFunction('Dismiss this message', self.openElementLayers, on_finished=self.setZoomExtent)
-        task1.run()
-        QgsApplication.taskManager().addTask(task1)
-        
-        QApplication.restoreOverrideCursor()
-        
-        #Message
-        if b=="True":
-            self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=5)
-        elif b=="False":
-            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
-        else:
-            self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
-        
-        self.close()
-        self.ProcessDone = True
+            self.parent.zoomToFullExtent = True
+            self.close()
+            self.ProcessDone = True
+            #Process
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            QGISRedUtils().setCurrentDirectory()
+            #os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
+            mydll = WinDLL("GISRed.QGisPlugins.dll")
+            mydll.ImportFromInp.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+            mydll.ImportFromInp.restype = c_char_p
+            b = mydll.ImportFromInp(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.parent.tempFolder.encode('utf-8'), self.InpFile.encode('utf-8'))
+            b= "".join(map(chr, b)) #bytes to string
+            QApplication.restoreOverrideCursor()
+            
+            self.parent.processCsharpResult(b, "")
 
     """SHPS SECTION"""
     def selectSHPDirectory(self):
@@ -725,38 +707,19 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 if not self.createProject():
                     return
             
-            #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-            task1 = QgsTask.fromFunction(u'Dismiss this message', self.removeLayers, on_finished=self.importShpProjectProcess, wait_time=0)
-            task1.run()
-            QgsApplication.taskManager().addTask(task1)
-
-    def importShpProjectProcess(self, exception=None, result=None):
-        #Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        shapes = self.createShpsNames()
-        fields = self.createShpFields()
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.ImportFromShps.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
-        mydll.ImportFromShps.restype = c_char_p
-        b = mydll.ImportFromShps(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), shapes.encode('utf-8'), fields.encode('utf-8'))
-        b= "".join(map(chr, b)) #bytes to string
-        
-        #Open layers
-        self.opendedLayers=False
-        task1 = QgsTask.fromFunction('Dismiss this message', self.openElementLayers, on_finished=self.setZoomExtent)
-        task1.run()
-        QgsApplication.taskManager().addTask(task1)
-        
-        QApplication.restoreOverrideCursor()
-        
-        #Message
-        if b=="True":
-            self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=5)
-        elif b=="False":
-            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
-        else:
-            self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
-        
-        self.close()
-        self.ProcessDone = True
+            self.parent.zoomToFullExtent = True
+            self.close()
+            self.ProcessDone = True
+            #Process
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            shapes = self.createShpsNames()
+            fields = self.createShpFields()
+            QGISRedUtils().setCurrentDirectory()
+            mydll = WinDLL("GISRed.QGisPlugins.dll")
+            mydll.ImportFromShps.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+            mydll.ImportFromShps.restype = c_char_p
+            b = mydll.ImportFromShps(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.parent.tempFolder.encode('utf-8'), shapes.encode('utf-8'), fields.encode('utf-8'))
+            b= "".join(map(chr, b)) #bytes to string
+            QApplication.restoreOverrideCursor()
+            
+            self.parent.processCsharpResult(b, "")
