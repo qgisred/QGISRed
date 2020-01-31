@@ -64,5 +64,6 @@
         <file>images/iconAddReservoir.png</file>
         <file>images/iconAddPipe.png</file>
         <file>images/iconMoveVertexs.png</file>
+        <file>images/iconReverseLink.png</file>
     </qresource>
 </RCC>

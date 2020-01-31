@@ -280,7 +280,9 @@ class QGISRed:
         icon_path = ':/plugins/QGISRed/images/iconMoveVertexs.png'
         self.moveVertexsButton = self.add_action(icon_path, text=self.tr(u'Move link vertexes'), callback=self.runEditVertexs, menubar=self.editionMenu, toolbar=self.editionToolbar,
             actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
-        
+        icon_path = ':/plugins/QGISRed/images/iconReverseLink.png'
+        self.reverseLinkButton = self.add_action(icon_path, text=self.tr(u'Reverse link'), callback=self.canReverseLink, menubar=self.editionMenu, toolbar=self.editionToolbar,
+            actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconSplitPipe.png'
         self.splitPipeButton = self.add_action(icon_path, text=self.tr(u'Split Pipe'), callback=self.runSelectSplitPoint, menubar=self.editionMenu, toolbar=self.editionToolbar,
             actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
@@ -422,6 +424,9 @@ class QGISRed:
         self.pointSplitTool = QgsMapToolEmitPoint(self.iface.mapCanvas())
         self.pointSplitTool.canvasClicked.connect(self.runSplitPipe)
         self.pointSplitTool.deactivated.connect(self.runUnselectSplitPoint)
+        self.pointReverseLinkTool = QgsMapToolEmitPoint(self.iface.mapCanvas())
+        self.pointReverseLinkTool.canvasClicked.connect(self.runReverseLink)
+        self.pointReverseLinkTool.deactivated.connect(self.runUnselectReverseLinkPoint)
         
         #QGISRed dependencies
         self.checkDependencies()
@@ -1463,6 +1468,64 @@ class QGISRed:
             self.iface.mapCanvas().setMapTool(self.moveVertexsTool)
             self.setCursor(Qt.CrossCursor)
 
+    def canReverseLink(self):
+        if not self.checkDependencies(): return
+        #Validations
+        self.defineCurrentProject()
+        if not self.isValidProject(): 
+            self.runUnselectReverseLinkPoint()
+            return
+        
+        if not self.getSelectedFeaturesIds():
+            self.runUnselectReverseLinkPoint()
+            return
+        if self.linkIds == "":
+            self.runSelectReverseLinkPoint()
+            return
+        self.runUnselectReverseLinkPoint()
+        
+        if self.isLayerOnEdition(): return
+        
+        self.runReverseLink(None, None)
+
+    def runSelectReverseLinkPoint(self):
+        #Take account the mouse click on QGis:
+        if self.iface.mapCanvas().mapTool() is self.pointReverseLinkTool:
+            self.iface.mapCanvas().unsetMapTool(self.pointReverseLinkTool)
+            self.runUnselectReverseLinkPoint()
+        else:
+            self.iface.mapCanvas().setMapTool(self.pointReverseLinkTool)
+            self.reverseLinkButton.setChecked(True)
+
+    def runUnselectReverseLinkPoint(self):
+        self.reverseLinkButton.setChecked(False)
+
+    def runReverseLink(self, point, button):
+        if not self.checkDependencies(): return
+        #Validations
+        self.defineCurrentProject()
+        if not self.isValidProject(): return
+        if self.isLayerOnEdition(): return
+        
+        pointText=""
+        tolerance="0"
+        if point is not None:
+            pointText = str(point.x()) + ":" + str(point.y())
+            tolerance = str(self.getTolerance())
+        
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QGISRedUtils().setCurrentDirectory()
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.ReverseLink.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.ReverseLink.restype = c_char_p
+        b = mydll.ReverseLink(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'), pointText.encode('utf-8'), tolerance.encode('utf-8'), self.linkIds.encode('utf-8'))
+        b= "".join(map(chr, b)) #bytes to string
+        QApplication.restoreOverrideCursor()
+        
+        #self.selectedFids = {}
+        self.processCsharpResult(b, "")
+
     def runSelectSplitPoint(self):
         #Take account the mouse click on QGis:
         if self.iface.mapCanvas().mapTool() is self.pointSplitTool:
@@ -1501,9 +1564,12 @@ class QGISRed:
         if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
-        if not self.isValidProject(): return
+        if not self.isValidProject(): 
+            self.runUnselectDeleteElementPoint()
+            return
         
         if not self.getSelectedFeaturesIds():
+            self.runUnselectDeleteElementPoint()
             return
         if self.nodeIds=="" and self.linkIds == "":
             self.runSelectDeleteElementPoint()
