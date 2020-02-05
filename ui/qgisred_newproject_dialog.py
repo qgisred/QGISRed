@@ -52,6 +52,13 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         self.tbProjectDirectory.setText(direct)
         self.tbProjectDirectory.setCursorPosition(0)
         newProject = self.ProjectDirectory==self.TemporalFolder
+        if newProject:
+            self.setWindowTitle("QGISRed: Create Project")
+            self.resize(462,100)
+        else:
+            self.setWindowTitle("QGISRed: Edit Project")
+        self.gbInfo.setVisible(not newProject)
+        self.gbElements.setVisible(not newProject)
         self.btSelectDirectory.setVisible(newProject)
         self.btCreateProject.setVisible(newProject)
         self.btEditProject.setVisible(not newProject)

@@ -7,11 +7,12 @@ from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMessageBar, 
 import os
 
 class QGISRedCreatePipeTool(QgsMapTool):
-    def __init__(self, button, iface, projectDirectory, netwName):
+    def __init__(self, button, iface, projectDirectory, netwName, parent):
         QgsMapTool.__init__(self, iface.mapCanvas())
         self.iface = iface
         self.ProjectDirectory = projectDirectory
         self.NetworkName = netwName
+        self.parent= parent
         self.setAction(button)
         
         self.startMarker = QgsVertexMarker(self.iface.mapCanvas())
@@ -29,13 +30,10 @@ class QGISRedCreatePipeTool(QgsMapTool):
         self.endMarker.hide()
         
         self.snapper = None
-        self.mousePoints = []
-        self.firstClicked = False
-        self.createdPipe = False
-        self.objectSnapped = None
-        
         self.rubberBand1 = None
         self.rubberBand2 = None
+        self.resetProperties()
+
 
     def activate(self):
         QgsMapTool.activate(self)
@@ -52,13 +50,7 @@ class QGISRedCreatePipeTool(QgsMapTool):
         self.snapper.setConfig(config)
 
     def deactivate(self):
-        #self.toolbarButton.setChecked(False)
-        if self.rubberBand1 is not None:
-            self.iface.mapCanvas().scene().removeItem(self.rubberBand1)
-        if self.rubberBand2 is not None:
-            self.iface.mapCanvas().scene().removeItem(self.rubberBand2)
-        self.startMarker.hide()
-        self.endMarker.hide()
+        self.resetProperties()
         QgsMapTool.deactivate(self)
 
     def isZoomTool(self):
@@ -69,6 +61,22 @@ class QGISRedCreatePipeTool(QgsMapTool):
 
     def isEditTool(self):
         return True
+
+    def resetProperties(self):
+        #self.toolbarButton.setChecked(False)
+        if self.rubberBand1 is not None:
+            self.iface.mapCanvas().scene().removeItem(self.rubberBand1)
+        if self.rubberBand2 is not None:
+            self.iface.mapCanvas().scene().removeItem(self.rubberBand2)
+        self.startMarker.hide()
+        self.endMarker.hide()
+        
+        self.mousePoints = []
+        self.firstClicked = False
+        self.objectSnapped = None
+        
+        self.rubberBand1 = None
+        self.rubberBand2 = None
 
     def createRubberBand(self, points):
         myPoints1 = []
@@ -111,13 +119,14 @@ class QGISRedCreatePipeTool(QgsMapTool):
             self.mousePoints.remove(self.mousePoints[-1])
             if self.firstClicked:
                 if (len(self.mousePoints)==2 and self.mousePoints[0]== self.mousePoints[1]):
-                    self.createdPipe = False
+                    createdPipe = False
                 elif len(self.mousePoints)<2:
-                    self.createdPipe = False
+                    createdPipe = False
                 else:
-                    self.createdPipe = True
-            self.iface.mapCanvas().unsetMapTool(self)
-            self.deactivate()
+                    createdPipe = True
+            if createdPipe:
+                self.parent.runCreatePipe(self.mousePoints)
+            self.resetProperties()
 
     def canvasMoveEvent(self, event):
         # Mouse not clicked

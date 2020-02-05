@@ -200,7 +200,7 @@ class QGISRed:
         self.add_action(icon_path, text=self.tr(u'Project manager'), callback=self.runProjectManager, menubar=self.fileMenu, toolbar=self.fileToolbar,
             actionBase = fileDropButton, add_to_toolbar =True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconCreateProject.png'
-        self.add_action(icon_path, text=self.tr(u'Create project'), callback=self.runNewProject, menubar=self.fileMenu, toolbar=self.fileToolbar,
+        self.add_action(icon_path, text=self.tr(u'Create project'), callback=self.runCanCreateProject, menubar=self.fileMenu, toolbar=self.fileToolbar,
             actionBase = fileDropButton, add_to_toolbar =True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconImport.png'
         self.add_action(icon_path, text=self.tr(u'Import data'), callback=self.runImport, menubar=self.fileMenu, toolbar=self.fileToolbar,
@@ -212,17 +212,17 @@ class QGISRed:
         #Project
         #    #Menu
         self.projectMenu = self.qgisredmenu.addMenu(self.tr('Project'))
-        self.projectMenu.setIcon(QIcon(':/plugins/QGISRed/images/iconCreateProject.png'))
+        self.projectMenu.setIcon(QIcon(':/plugins/QGISRed/images/iconEditProject.png'))
         #    #Toolbar
         self.projectToolbar = self.iface.addToolBar(self.tr(u'QGISRed Project'))
         self.projectToolbar.setObjectName(self.tr(u'QGISRed Project'))
         self.projectToolbar.setVisible(False)
         #    #Buttons
-        icon_path = ':/plugins/QGISRed/images/iconCreateProject.png'
+        icon_path = ':/plugins/QGISRed/images/iconEditProject.png'
         projectDropButton = self.add_action(icon_path, text=self.tr(u'Project'), callback=self.runProjectToolbar, menubar=self.projectMenu, add_to_menu=False,
             toolbar=self.toolbar, createDrop = True, addActionToDrop = False, add_to_toolbar =False, parent=self.iface.mainWindow())
-        icon_path = ':/plugins/QGISRed/images/iconCreateProject.png'
-        self.add_action(icon_path, text=self.tr(u'Edit project'), callback=self.runNewProject, menubar=self.projectMenu, toolbar=self.projectToolbar,
+        icon_path = ':/plugins/QGISRed/images/iconEditProject.png'
+        self.add_action(icon_path, text=self.tr(u'Edit project'), callback=self.runEditProject, menubar=self.projectMenu, toolbar=self.projectToolbar,
             actionBase = projectDropButton, add_to_toolbar =True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconEditOptions.png'
         self.add_action(icon_path, text=self.tr(u'Options'), callback=self.runEditOptions, menubar=self.projectMenu, toolbar=self.projectToolbar,
@@ -278,7 +278,7 @@ class QGISRed:
         self.moveElementsButton = self.add_action(icon_path, text=self.tr(u'Move node elements'), callback=self.runMoveElements, menubar=self.editionMenu, toolbar=self.editionToolbar,
             actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconMoveVertexs.png'
-        self.moveVertexsButton = self.add_action(icon_path, text=self.tr(u'Move link vertexes'), callback=self.runEditVertexs, menubar=self.editionMenu, toolbar=self.editionToolbar,
+        self.moveVertexsButton = self.add_action(icon_path, text=self.tr(u'Edit link vertexes'), callback=self.runEditVertexs, menubar=self.editionMenu, toolbar=self.editionToolbar,
             actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconReverseLink.png'
         self.reverseLinkButton = self.add_action(icon_path, text=self.tr(u'Reverse link'), callback=self.canReverseLink, menubar=self.editionMenu, toolbar=self.editionToolbar,
@@ -541,7 +541,7 @@ class QGISRed:
                     self.NetworkName = name
                     return
 
-    def isOpenedProject(self):
+    def isOpenedProjectOld(self):
         if self.isLayerOnEdition():
             return False
         qgsFilename =QgsProject.instance().fileName()
@@ -568,6 +568,41 @@ class QGISRed:
                 # else:
                     # return False
         return True
+
+    def isOpenedProject(self):
+        layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+        for layer in layers:
+            if layer.isEditable():
+                self.iface.messageBar().pushMessage("Warning", "Some layer is in Edit Mode. Plase, commit it before continuing.", level=1, duration=5)
+                return False
+        qgsFilename =QgsProject.instance().fileName()
+        if not qgsFilename=="":
+            if QgsProject.instance().isDirty():
+                #Save and continue
+                self.iface.messageBar().pushMessage("Warning", "The project has changes. Please save them before continuing.", level=1, duration=5)
+                return False
+            else:
+                #Close project and continue?
+                reply = QMessageBox.question(self.iface.mainWindow(), 'Opened project', 'Do you want to close the current project and continue?', QMessageBox.Yes, QMessageBox.No)
+                if reply == QMessageBox.Yes:
+                    #QgsProject.instance().clear()
+                    return True
+                else:
+                    return False
+        else:
+            if len(self.iface.mapCanvas().layers())>0:
+                #Close files and continue?
+                reply = QMessageBox.question(self.iface.mainWindow(), 'Opened layers', 'Do you want to close the current layers and continue?', QMessageBox.Yes, QMessageBox.No)
+                if reply == QMessageBox.Yes:
+                    #QgsProject.instance().clear()
+                    return True
+                else:
+                    return False
+        return True
+
+    def clearQGisProject(self,task):
+        QgsProject.instance().clear()
+        raise Exception('')
 
     def isValidProject(self):
         if self.ProjectDirectory == self.TemporalFolder:
@@ -1000,7 +1035,7 @@ class QGISRed:
         self.defineCurrentProject()
         # show the dialog
         dlg = QGISRedProjectManagerDialog()
-        dlg.config(self.iface, self.ProjectDirectory, self.NetworkName)
+        dlg.config(self.iface, self.ProjectDirectory, self.NetworkName, self)
         
         # Run the dialog event loop
         dlg.exec_()
@@ -1010,15 +1045,18 @@ class QGISRed:
             self.ProjectDirectory = dlg.ProjectDirectory
             self.createGqpFile()
 
-    def runNewProject(self):
+    def runCanCreateProject(self):
+        if not self.checkDependencies(): return
+        
+        valid = self.isOpenedProject()
+        if valid:
+            task1 = QgsTask.fromFunction('', self.clearQGisProject, on_finished=self.runCreateProject)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
+
+    def runCreateProject(self, exception=None, result=None):
         if not self.checkDependencies(): return
         self.defineCurrentProject()
-        if self.ProjectDirectory == self.TemporalFolder:
-            if not self.isOpenedProject():
-                return
-        else:
-            if self.isLayerOnEdition():
-                return
         # show the dialog
         dlg = QGISRedNewProjectDialog()
         dlg.config(self.iface, self.ProjectDirectory, self.NetworkName)
@@ -1055,6 +1093,23 @@ class QGISRed:
         self.iface.newProject(True)
 
     """Project"""
+    def runEditProject(self):
+        if not self.checkDependencies(): return
+        #Validations
+        self.defineCurrentProject()
+        if not self.isValidProject(): return
+        if self.isLayerOnEdition(): return
+        # show the dialog
+        dlg = QGISRedNewProjectDialog()
+        dlg.config(self.iface, self.ProjectDirectory, self.NetworkName)
+        # Run the dialog event loop
+        dlg.exec_()
+        result = dlg.ProcessDone
+        if result:
+            self.ProjectDirectory = dlg.ProjectDirectory
+            self.NetworkName = dlg.NetworkName
+            self.createGqpFile()
+
     def runSaveProject(self):
         self.defineCurrentProject()
         if not self.ProjectDirectory == self.TemporalFolder:
@@ -1269,33 +1324,31 @@ class QGISRed:
             return
         
         if type(self.iface.mapCanvas().mapTool()) is QGISRedCreatePipeTool:
-            self.createPipeTool.deactivated.disconnect(self.runCreatePipe)
+            #self.createPipeTool.deactivated.disconnect(self.runCreatePipe)
             self.iface.mapCanvas().unsetMapTool(self.createPipeTool)
         else:
             if self.isLayerOnEdition():
                 self.addPipeButton.setChecked(False)
                 return
-            self.createPipeTool = QGISRedCreatePipeTool(self.addPipeButton, self.iface, self.ProjectDirectory, self.NetworkName)
-            self.createPipeTool.deactivated.connect(self.runCreatePipe)
+            self.createPipeTool = QGISRedCreatePipeTool(self.addPipeButton, self.iface, self.ProjectDirectory, self.NetworkName, self)
+            #self.createPipeTool.deactivated.connect(self.runCreatePipe)
             self.iface.mapCanvas().setMapTool(self.createPipeTool)
 
-    def runCreatePipe(self):
-        if self.createPipeTool.createdPipe:
-            self.createPipeTool.createdPipe = False
-            self.pipePoint =""
-            for p in self.createPipeTool.mousePoints:
-                self.pipePoint = self.pipePoint + str(p.x()) + ":" + str(p.y()) + ";"
-            #C#Process:
-            QApplication.setOverrideCursor(Qt.WaitCursor)
-            QGISRedUtils().setCurrentDirectory()
-            mydll = WinDLL("GISRed.QGisPlugins.dll")
-            mydll.AddPipe.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
-            mydll.AddPipe.restype = c_char_p
-            b = mydll.AddPipe(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'), self.pipePoint.encode('utf-8'))
-            b= "".join(map(chr, b)) #bytes to string
-            QApplication.restoreOverrideCursor()
-            
-            self.processCsharpResult(b, "Pipe added")
+    def runCreatePipe(self, points):
+        self.pipePoint =""
+        for p in points:
+            self.pipePoint = self.pipePoint + str(p.x()) + ":" + str(p.y()) + ";"
+        #C#Process:
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QGISRedUtils().setCurrentDirectory()
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.AddPipe.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.AddPipe.restype = c_char_p
+        b = mydll.AddPipe(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'), self.pipePoint.encode('utf-8'))
+        b= "".join(map(chr, b)) #bytes to string
+        QApplication.restoreOverrideCursor()
+        
+        self.processCsharpResult(b, "Pipe added")
 
     def runSelectTankPoint(self):
         #Take account the mouse click on QGis:
@@ -1448,6 +1501,9 @@ class QGISRed:
             self.moveElementsButton.setChecked(False)
             return
         
+        if type(self.iface.mapCanvas().mapTool()) is QGISRedMoveVertexsTool:
+            self.iface.mapCanvas().unsetMapTool(self.moveVertexsTool)
+        
         if type(self.iface.mapCanvas().mapTool()) is QGISRedMoveNodesTool:
             self.iface.mapCanvas().unsetMapTool(self.moveNodesTool)
         else:
@@ -1464,6 +1520,9 @@ class QGISRed:
         if not self.isValidProject():
             self.moveVertexsButton.setChecked(False)
             return
+        
+        if type(self.iface.mapCanvas().mapTool()) is QGISRedMoveNodesTool:
+            self.iface.mapCanvas().unsetMapTool(self.moveNodesTool)
         
         if type(self.iface.mapCanvas().mapTool()) is QGISRedMoveVertexsTool:
             self.iface.mapCanvas().unsetMapTool(self.moveVertexsTool)

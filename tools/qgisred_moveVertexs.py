@@ -55,7 +55,7 @@ class QGISRedMoveVertexsTool(QgsMapTool):
         self.snapper = QgsMapCanvasSnappingUtils(self.iface.mapCanvas())
         self.snapper.setMapSettings(self.iface.mapCanvas().mapSettings())
         config = QgsSnappingConfig(QgsProject.instance())
-        config.setType(1) #Vertex
+        config.setType(2) #Vertex
         config.setMode(2) #All layers
         config.setTolerance(2)
         config.setUnits(2) #Pixels
@@ -90,6 +90,21 @@ class QGISRedMoveVertexsTool(QgsMapTool):
         else:
             return False
 
+    def isInPath(self, point1, point2, myPoint):
+        width = point2.x() - point1.x()
+        height = point2.y() - point1.y()
+        widthM = myPoint.x() - point1.x()
+        heightM = myPoint.y() - point1.y()
+        if abs(width) >= abs(height):
+            yEst = widthM * height / width + point1.y()
+            if abs(yEst - myPoint.y()) < 1E-9:
+                return True
+        else:
+            xEst = heightM * width / height + point1.x()
+            if abs(xEst - myPoint.x()) < 1E-9:
+                return True
+        return False
+
     def createRubberBand(self, points):
         myPoints = points
         if isinstance(points[0], QgsPointXY):
@@ -119,6 +134,37 @@ class QGISRedMoveVertexsTool(QgsMapTool):
                 raise e
             layer.endEditCommand()
 
+    def deleteVertexLink(self, layer, feature, vertexIndex):
+        if layer.isEditable():
+            layer.beginEditCommand("Update link geometry")
+            try:
+                edit_utils = QgsVectorLayerEditUtils(layer)
+                edit_utils.deleteVertex(feature.id(), vertexIndex)
+            except Exception as e:
+                layer.destroyEditCommand()
+                raise e
+            layer.endEditCommand()
+
+    def insertVertexLink(self, layer, feature, newPoint):
+        if layer.isEditable():
+            layer.beginEditCommand("Update link geometry")
+            vertex = -1
+            if layer.geometryType()==1: #Line
+                featureGeometry= self.selectedFeature.geometry()
+                if featureGeometry.isMultipart():
+                    parts = featureGeometry.get()
+                    for part in parts: #only one part
+                        for i in range(len(part)-1):
+                            if self.isInPath(QgsPointXY(part[i].x(),part[i].y()), QgsPointXY(part[i+1].x(),part[i+1].y()), newPoint):
+                                vertex=i+1
+            try:
+                edit_utils = QgsVectorLayerEditUtils(layer)
+                edit_utils.insertVertex(newPoint.x(), newPoint.y(), feature.id(), vertex)
+            except Exception as e:
+                layer.destroyEditCommand()
+                raise e
+            layer.endEditCommand()
+
     def canvasPressEvent(self, event):
         if self.objectSnapped is None:
             self.clickedPoint = None
@@ -129,11 +175,10 @@ class QGISRedMoveVertexsTool(QgsMapTool):
             self.clickedPoint = None
         
         if event.button() == Qt.LeftButton:
-            self.mouseClicked = True
             self.clickedPoint = self.objectSnapped.point()
-            
-            if self.selectedFeature is None: 
+            if self.vertexIndex==-1: 
                 return
+            self.mouseClicked = True
             self.createRubberBand([self.objectSnapped.point(), self.objectSnapped.point()])
 
     def canvasMoveEvent(self, event):
@@ -148,6 +193,9 @@ class QGISRedMoveVertexsTool(QgsMapTool):
                     if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/","\\")== os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp").replace("/","\\"):
                         valid = True
                 if valid:
+                    self.objectSnapped = matchSnapper
+                    self.selectedLayer = layer
+                    
                     vertex = matchSnapper.point()
                     featureId = matchSnapper.featureId()
                     request = QgsFeatureRequest().setFilterFid(featureId)
@@ -174,14 +222,9 @@ class QGISRedMoveVertexsTool(QgsMapTool):
                                         self.vertexIndex=i
                                         break
                     if middleNode:
-                        self.objectSnapped = matchSnapper
-                        self.selectedLayer = layer
                         self.vertexMarker.setCenter(QgsPointXY(vertex.x(), vertex.y()))
                         self.vertexMarker.show()
                     else:
-                        self.objectSnapped = None
-                        self.selectedFeature = None
-                        self.selectedLayer = None
                         self.vertexMarker.hide()
                 else:
                     self.objectSnapped = None
@@ -203,19 +246,23 @@ class QGISRedMoveVertexsTool(QgsMapTool):
 
     def canvasReleaseEvent(self, event):
         mousePoint = self.toMapCoordinates(event.pos())
-        if not self.mouseClicked:
-            return
-        
-        if event.button() == 1:
-            self.mouseClicked = False
+        if self.mouseClicked:
+            if event.button() == 1:
+                self.mouseClicked = False
+                if self.objectSnapped is not None:
+                    self.moveVertexLink(self.selectedLayer,self.selectedFeature,mousePoint, self.vertexIndex)
+        elif event.button() == 2:
             if self.objectSnapped is not None:
-                self.moveVertexLink(self.selectedLayer,self.selectedFeature,mousePoint, self.vertexIndex)
-                self.objectSnapped = None
-                self.selectedFeature= None
-                self.selectedLayer = None
-                self.vertexIndex=-1
-                self.iface.mapCanvas().refresh()
-            # Remove vertex marker and rubber band
-            self.vertexMarker.hide()
-            self.iface.mapCanvas().scene().removeItem(self.rubberBand)
-            self.newVertexMarker.hide()
+                self.deleteVertexLink(self.selectedLayer,self.selectedFeature, self.vertexIndex)
+        elif event.button() == 1:
+            if self.objectSnapped is not None:
+                self.insertVertexLink(self.selectedLayer,self.selectedFeature, self.objectSnapped.point())
+        self.objectSnapped = None
+        self.selectedFeature= None
+        self.selectedLayer = None
+        self.vertexIndex=-1
+        self.iface.mapCanvas().refresh()
+        # Remove vertex marker and rubber band
+        self.vertexMarker.hide()
+        self.iface.mapCanvas().scene().removeItem(self.rubberBand)
+        self.newVertexMarker.hide()

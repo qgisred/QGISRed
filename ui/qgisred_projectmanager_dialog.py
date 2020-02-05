@@ -63,7 +63,8 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         self.twProjectList.cellDoubleClicked.connect(self.openProject)
         #self.twProjectList.customContextMenuRequested.connect(self.openFolder)
 
-    def config(self, ifac, direct, netw):
+    def config(self, ifac, direct, netw, parent):
+        self.parent = parent
         self.iface=ifac
         self.ProcessDone = False
         self.NetworkName = netw
@@ -144,37 +145,6 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 QGISRedUtils().writeFile(f, os.path.join(folder, net + "_" + layerName + ".shp") + '\n')
         f.close()
 
-    def isOpenedProject(self):
-        layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
-        for layer in layers:
-            if layer.isEditable():
-                self.iface.messageBar().pushMessage("Warning", "Some layer is in Edit Mode. Plase, commit it before continuing.", level=1, duration=5)
-                return False
-        qgsFilename =QgsProject.instance().fileName()
-        if not qgsFilename=="":
-            if QgsProject.instance().isDirty():
-                #Save and continue
-                self.iface.messageBar().pushMessage("Warning", "The project has changes. Please save them before continuing.", level=1, duration=5)
-                return False
-            else:
-                #Close project and continue?
-                reply = QMessageBox.question(self.iface.mainWindow(), 'Opened project', 'Do you want to close the current project and continue?', QMessageBox.Yes, QMessageBox.No)
-                if reply == QMessageBox.Yes:
-                    #QgsProject.instance().clear()
-                    return True
-                else:
-                    return False
-        else:
-            if len(self.iface.mapCanvas().layers())>0:
-                #Close files and continue?
-                reply = QMessageBox.question(self.iface.mainWindow(), 'Opened layers', 'Do you want to close the current layers and continue?', QMessageBox.Yes, QMessageBox.No)
-                if reply == QMessageBox.Yes:
-                    #QgsProject.instance().clear()
-                    return True
-                else:
-                    return False
-        return True
-
     def clearQGisProject(self,task):
         QgsProject.instance().clear()
         raise Exception('')
@@ -217,7 +187,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             self.iface.messageBar().pushMessage("Warning", "File not found", level=1, duration=5)
 
     def createProject(self):
-        valid = self.isOpenedProject()
+        valid = self.parent.isOpenedProject()
         if valid:
             task1 = QgsTask.fromFunction('Dismiss this message', self.clearQGisProject, on_finished=self.createProjectProcess)
             task1.run()
@@ -237,7 +207,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
 
     def importData(self):
         dlg = QGISRedImportDialog()
-        dlg.config(self.iface, self.ProjectDirectory, self.NetworkName)
+        dlg.config(self.iface, self.ProjectDirectory, self.NetworkName, self.parent)
         # Run the dialog event loop
         self.close()
         dlg.exec_()
@@ -284,7 +254,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
     def openProject(self):
         selectionModel = self.twProjectList.selectionModel()
         if selectionModel.hasSelection():
-            valid = self.isOpenedProject()
+            valid = self.parent.isOpenedProject()
             if valid:
                 task1 = QgsTask.fromFunction('Dismiss this message', self.clearQGisProject, on_finished=self.openProjectProcess)
                 task1.run()

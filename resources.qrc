@@ -65,5 +65,6 @@
         <file>images/iconAddPipe.png</file>
         <file>images/iconMoveVertexs.png</file>
         <file>images/iconReverseLink.png</file>
+        <file>images/iconEditProject.png</file>
     </qresource>
 </RCC>
