@@ -2,17 +2,24 @@ from qgis.gui import *
 from qgis.core import *
 from PyQt5.Qt import *
 
+import processing
+
 class QGISRedUtilsMultiLayerSelection(QgsMapTool):
 
-    def __init__(self, canvas, action):
+    def __init__(self, iface, canvas, action):
         QgsMapTool.__init__(self, canvas)
         self.canvas = canvas
+        self.iface = iface
         self.setAction(action)
         self.myRubberBand = QgsRubberBand(self.canvas, 3) #3= Polygon
         mFillColor = QColor( 255, 0, 0, 100);
         self.myRubberBand.setColor(mFillColor)
         self.myRubberBand.setWidth(2)
         self.myRubberBand.setLineStyle(2)
+        
+        self.rubberBand1 = None
+        self.rubberBand2 = None
+        
         self.reset()
     
     def reset(self):
@@ -20,25 +27,98 @@ class QGISRedUtilsMultiLayerSelection(QgsMapTool):
         self.finalPoint = None
         self.isSelecting = False
         self.myRubberBand.reset(3) #3= Polygon
-    
+        
+        if self.rubberBand1 is not None:
+            self.iface.mapCanvas().scene().removeItem(self.rubberBand1)
+        if self.rubberBand2 is not None:
+            self.iface.mapCanvas().scene().removeItem(self.rubberBand2)
+        
+        self.mousePoints = []
+        self.rubberBand1 = None
+        self.rubberBand2 = None
+
+    def createRubberBand(self, points):
+        myPoints1 = []
+        for p in points:
+            myPoints1.append(QgsPoint(p.x(),p.y()))
+        myPoints1.remove(myPoints1[-1])
+        myPoints1.append(myPoints1[0])
+        if self.rubberBand1 is not None:
+            self.iface.mapCanvas().scene().removeItem(self.rubberBand1)
+        self.rubberBand1 = QgsRubberBand(self.iface.mapCanvas(), False)
+        self.rubberBand1.setToGeometry(QgsGeometry.fromPolyline(myPoints1), None)
+        self.rubberBand1.setColor(QColor(240, 40, 40))
+        self.rubberBand1.setWidth(1)
+        self.rubberBand1.setLineStyle(Qt.SolidLine)
+        
+        myPoints2 = []
+        myPoints2.append(QgsPoint(points[-2].x(),points[-2].y()))
+        myPoints2.append(QgsPoint(points[-1].x(),points[-1].y()))
+        myPoints2.append(QgsPoint(points[0].x(),points[0].y()))
+        if self.rubberBand2 is not None:
+            self.iface.mapCanvas().scene().removeItem(self.rubberBand2)
+        self.rubberBand2 = QgsRubberBand(self.iface.mapCanvas(), False)
+        self.rubberBand2.setToGeometry(QgsGeometry.fromPolyline(myPoints2), None)
+        self.rubberBand2.setColor(QColor(240, 40, 40))
+        self.rubberBand2.setWidth(1)
+        self.rubberBand2.setLineStyle(Qt.DashLine)
+
     def canvasPressEvent(self, e):
-        if e.button() == Qt.RightButton:
+        if e.button() == Qt.RightButton and len(self.mousePoints)>0:
+            poligon =  QgsVectorLayer('Polygon', 'poly' , "memory")
+            pr = poligon.dataProvider() 
+            poly = QgsFeature()
+            if len(self.mousePoints)>3:
+                self.mousePoints.remove(self.mousePoints[-1])
+            poly.setGeometry(QgsGeometry.fromPolygonXY([self.mousePoints]))
+            pr.addFeatures([poly])
+            
+            layers = self.canvas.layers()
+            try:
+                for layer in layers:
+                    if layer.type() == QgsMapLayer.RasterLayer:
+                        continue
+                    #lRect = self.canvas.mapSettings().mapToLayerCoordinates(layer, rect)
+                    modifiers = QApplication.keyboardModifiers()
+                    if modifiers == QtCore.Qt.ShiftModifier:
+                        processing.run('qgis:selectbylocation',{'INPUT': layer, 'PREDICATE': [0], 'INTERSECT': poligon, 'METHOD': 3}) #Remove
+                    elif modifiers == QtCore.Qt.ControlModifier:
+                        processing.run('qgis:selectbylocation',{'INPUT': layer, 'PREDICATE': [0], 'INTERSECT': poligon, 'METHOD': 1}) #Add
+                    else:
+                        processing.run('qgis:selectbylocation',{'INPUT': layer, 'PREDICATE': [0], 'INTERSECT': poligon, 'METHOD': 0}) #Set
+            except:
+                self.iface.messageBar().pushMessage("Warning", "Polygon not valid for selecting elements", level=1, duration=5)
+            self.reset()
+            poligon=None
+            return
+        elif e.button() == Qt.RightButton:
             self.canvas.unsetMapTool(self)
             self.deactivate()
             return
-        self.initialPoint = self.toMapCoordinates(e.pos())
-        self.finalPoint = self.initialPoint
-        self.isSelecting = True
-        self.showRectangle(self.initialPoint, self.finalPoint)
+        #Rectangle
+        if len(self.mousePoints)==0:
+            self.initialPoint = self.toMapCoordinates(e.pos())
+            self.finalPoint = self.initialPoint
+            self.isSelecting = True
+            self.showRectangle(self.initialPoint, self.finalPoint)
+        #Poliline
+        point = self.toMapCoordinates(e.pos())
+        self.mousePoints.append(point)
+        if len(self.mousePoints)==1:
+            self.mousePoints.append(point)
     
     def canvasReleaseEvent(self, e):
         self.isSelecting = False
         rect = self.getRectangle()
-        layers = self.canvas.layers()
-        for layer in layers:
-            if layer.type() == QgsMapLayer.RasterLayer:
-                continue
-            if rect is not None:
+        if rect is None:
+            if len(self.mousePoints)>0:
+                self.createRubberBand(self.mousePoints)
+        else:
+            self.mousePoints = []
+            layers = self.canvas.layers()
+            for layer in layers:
+                if layer.type() == QgsMapLayer.RasterLayer:
+                    continue
                 lRect = self.canvas.mapSettings().mapToLayerCoordinates(layer, rect)
                 modifiers = QApplication.keyboardModifiers()
                 if modifiers == QtCore.Qt.ShiftModifier:
@@ -47,13 +127,16 @@ class QGISRedUtilsMultiLayerSelection(QgsMapTool):
                     layer.selectByRect(lRect, 1) #Add
                 else:
                     layer.selectByRect(lRect, 0) #Set
-        self.myRubberBand.hide()
+            self.myRubberBand.hide()
     
     def canvasMoveEvent(self, e):
-        if not self.isSelecting:
-            return
-        self.finalPoint = self.toMapCoordinates(e.pos())
-        self.showRectangle(self.initialPoint, self.finalPoint)
+        point = self.toMapCoordinates(e.pos())
+        if self.isSelecting:
+            self.finalPoint = point
+            self.showRectangle(self.initialPoint, self.finalPoint)
+        elif len(self.mousePoints)>0:
+            self.mousePoints[-1] = point
+            self.createRubberBand(self.mousePoints)
     
     def showRectangle(self, initialPoint, finalPoint):
         self.myRubberBand.reset(3)
@@ -79,6 +162,7 @@ class QGISRedUtilsMultiLayerSelection(QgsMapTool):
         return QgsRectangle(self.initialPoint, self.finalPoint)
     
     def deactivate(self):
+        self.reset()
         self.myRubberBand.hide()
         QgsMapTool.deactivate(self)
         

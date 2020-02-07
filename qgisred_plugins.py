@@ -200,7 +200,7 @@ class QGISRed:
         self.add_action(icon_path, text=self.tr(u'Project manager'), callback=self.runProjectManager, menubar=self.fileMenu, toolbar=self.fileToolbar,
             actionBase = fileDropButton, add_to_toolbar =True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconCreateProject.png'
-        self.add_action(icon_path, text=self.tr(u'Create project'), callback=self.runCanCreateProject, menubar=self.fileMenu, toolbar=self.fileToolbar,
+        self.add_action(icon_path, text=self.tr(u'Create project'), callback=self.runCreateProject, menubar=self.fileMenu, toolbar=self.fileToolbar,
             actionBase = fileDropButton, add_to_toolbar =True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconImport.png'
         self.add_action(icon_path, text=self.tr(u'Import data'), callback=self.runImport, menubar=self.fileMenu, toolbar=self.fileToolbar,
@@ -1058,15 +1058,20 @@ class QGISRed:
         if not self.checkDependencies(): return
         self.defineCurrentProject()
         # show the dialog
-        dlg = QGISRedNewProjectDialog()
-        dlg.config(self.iface, self.ProjectDirectory, self.NetworkName)
-        # Run the dialog event loop
-        dlg.exec_()
-        result = dlg.ProcessDone
-        if result:
-            self.ProjectDirectory = dlg.ProjectDirectory
-            self.NetworkName = dlg.NetworkName
-            self.createGqpFile()
+        
+        valid = self.isOpenedProject()
+        if valid:
+            QgsProject.instance().clear()
+            self.defineCurrentProject()
+            dlg = QGISRedNewProjectDialog()
+            dlg.config(self.iface, self.ProjectDirectory, self.NetworkName)
+            # Run the dialog event loop
+            dlg.exec_()
+            result = dlg.ProcessDone
+            if result:
+                self.ProjectDirectory = dlg.ProjectDirectory
+                self.NetworkName = dlg.NetworkName
+                self.createGqpFile()
 
     def runImport(self):
         if not self.checkDependencies(): return
@@ -1491,7 +1496,7 @@ class QGISRed:
         if type(self.iface.mapCanvas().mapTool()) is QGISRedUtilsMultiLayerSelection:
             self.iface.mapCanvas().unsetMapTool(self.selectElementsTool)
         else:
-            self.selectElementsTool = QGISRedUtilsMultiLayerSelection(self.iface.mapCanvas(), self.selectElementsButton)
+            self.selectElementsTool = QGISRedUtilsMultiLayerSelection(self.iface, self.iface.mapCanvas(), self.selectElementsButton)
             self.iface.mapCanvas().setMapTool(self.selectElementsTool)
 
     def runMoveElements(self):
