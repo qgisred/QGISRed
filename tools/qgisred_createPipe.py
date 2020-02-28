@@ -16,14 +16,14 @@ class QGISRedCreatePipeTool(QgsMapTool):
         self.setAction(button)
         
         self.startMarker = QgsVertexMarker(self.iface.mapCanvas())
-        self.startMarker.setColor(QColor(178, 51, 255))
+        self.startMarker.setColor(QColor(255, 87, 51))
         self.startMarker.setIconSize(15)
         self.startMarker.setIconType(QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
         self.startMarker.setPenWidth(3)
         self.startMarker.hide()
         
         self.endMarker = QgsVertexMarker(self.iface.mapCanvas())
-        self.endMarker.setColor(QColor(178, 51, 255))
+        self.endMarker.setColor(QColor(255, 87, 51))
         self.endMarker.setIconSize(15)
         self.endMarker.setIconType(QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
         self.endMarker.setPenWidth(3)

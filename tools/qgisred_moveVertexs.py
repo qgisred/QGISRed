@@ -58,7 +58,7 @@ class QGISRedMoveVertexsTool(QgsMapTool):
         config.setType(2) #Vertex
         config.setMode(2) #All layers
         config.setTolerance(2)
-        config.setUnits(2) #Pixels
+        config.setUnits(1) #Pixels
         config.setEnabled(True)
         self.snapper.setConfig(config)
 

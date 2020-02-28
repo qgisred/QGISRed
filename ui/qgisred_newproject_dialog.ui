@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>462</width>
+    <width>488</width>
     <height>575</height>
    </rect>
   </property>
@@ -426,7 +426,7 @@
                    <bool>true</bool>
                   </property>
                   <property name="text">
-                   <string>Connections</string>
+                   <string>Service Connections</string>
                   </property>
                   <property name="checkable">
                    <bool>true</bool>
@@ -439,7 +439,7 @@
                    <bool>true</bool>
                   </property>
                   <property name="text">
-                   <string>Issolated Valves</string>
+                   <string>Isolation Valves</string>
                   </property>
                   <property name="checkable">
                    <bool>true</bool>
@@ -465,7 +465,7 @@
                    <bool>true</bool>
                   </property>
                   <property name="text">
-                   <string>Purge Valves</string>
+                   <string>Washout Valves</string>
                   </property>
                   <property name="checkable">
                    <bool>true</bool>
@@ -478,7 +478,7 @@
                    <bool>true</bool>
                   </property>
                   <property name="text">
-                   <string>Air Releases</string>
+                   <string>AirRelease Valves</string>
                   </property>
                   <property name="checkable">
                    <bool>true</bool>
@@ -521,7 +521,7 @@
                    <bool>true</bool>
                   </property>
                   <property name="text">
-                   <string>Countmeters</string>
+                   <string>Countermeters</string>
                   </property>
                   <property name="checkable">
                    <bool>true</bool>
@@ -534,7 +534,7 @@
                    <bool>true</bool>
                   </property>
                   <property name="text">
-                   <string>Levelmeters</string>
+                   <string>Level Sensors</string>
                   </property>
                   <property name="checkable">
                    <bool>true</bool>

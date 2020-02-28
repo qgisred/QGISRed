@@ -45,6 +45,7 @@ from .tools.qgisred_moveNodes import QGISRedMoveNodesTool
 from .tools.qgisred_multilayerSelection import QGISRedUtilsMultiLayerSelection
 from .tools.qgisred_createPipe import QGISRedCreatePipeTool
 from .tools.qgisred_moveVertexs import QGISRedMoveVertexsTool
+from .tools.qgisred_selectPoint import QGISRedSelectPointTool
 
 # Others imports
 import os
@@ -72,7 +73,7 @@ class QGISRed:
     ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns"]
     complementaryLayers = []
     TemporalFolder = "Temporal folder"
-    DependenciesVersion ="1.0.8.2"
+    DependenciesVersion ="1.0.8.3"
 
     def __init__(self, iface):
         """Constructor.
@@ -286,6 +287,15 @@ class QGISRed:
         icon_path = ':/plugins/QGISRed/images/iconSplitPipe.png'
         self.splitPipeButton = self.add_action(icon_path, text=self.tr(u'Split Pipe'), callback=self.runSelectSplitPoint, menubar=self.editionMenu, toolbar=self.editionToolbar,
             actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconMergeSplitJunction.png'
+        self.mergeSplitJunctionButton = self.add_action(icon_path, text=self.tr(u'Merge/Split junctions'), callback=self.runSelectPointToMergeSplit, menubar=self.editionMenu, toolbar=self.editionToolbar,
+            actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconCreateRevTconn.png'
+        self.createReverseTconButton = self.add_action(icon_path, text=self.tr(u'Create/Reverse T connections'), callback=self.runSelectPointToTconnections, menubar=self.editionMenu, toolbar=self.editionToolbar,
+            actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconMoveValvePump.png'
+        self.moveValvePumpButton = self.add_action(icon_path, text=self.tr(u'Move Valve/Pump to another pipe'), callback=self.runSelectValvePumpPoints, menubar=self.editionMenu, toolbar=self.editionToolbar,
+            actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconDeleteElements.png'
         self.removeElementsButton = self.add_action(icon_path, text=self.tr(u'Delete elements'), callback=self.canDeleteElements, menubar=self.editionMenu, toolbar=self.editionToolbar,
             actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
@@ -371,22 +381,27 @@ class QGISRed:
         self.add_action(icon_path, text=self.tr(u'Interpolate elevation from .asc files'), callback=self.runElevationInterpolation, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
             actionBase = toolDropButton, add_to_toolbar =True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconStatus.png'
-        self.add_action(icon_path, text=self.tr(u'Set pipe\'s initial status from issolated valves'), callback=self.runSetPipeStatus, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
+        self.add_action(icon_path, text=self.tr(u'Set pipe\'s initial status from isolation valves'), callback=self.runSetPipeStatus, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
             actionBase = toolDropButton, add_to_toolbar =True, parent=self.iface.mainWindow())
         self.toolsToolbar.addSeparator()
         icon_path = ':/plugins/QGISRed/images/iconConnections.png'
-        self.add_action(icon_path, text=self.tr(u'Add connections to the model'), callback=self.runAddConnections, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
+        self.add_action(icon_path, text=self.tr(u'Add service connections to the model'), callback=self.runAddConnections, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
             actionBase = toolDropButton, add_to_toolbar =True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconHydrants.png'
         self.add_action(icon_path, text=self.tr(u'Add hydrants to the model'), callback=self.runAddHydrants, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
             actionBase = toolDropButton, add_to_toolbar =True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconPurges.png'
-        self.add_action(icon_path, text=self.tr(u'Add purge valves to the model'), callback=self.runAddPurgeValves, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
+        self.add_action(icon_path, text=self.tr(u'Add washout valves to the model'), callback=self.runAddPurgeValves, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
             actionBase = toolDropButton, add_to_toolbar =True, parent=self.iface.mainWindow())
         self.toolsToolbar.addSeparator()
         icon_path = ':/plugins/QGISRed/images/iconDemandSector.png'
         self.add_action(icon_path, text=self.tr(u'Obtain demand sectors'), callback=self.runDemandSectors, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
             actionBase = toolDropButton, add_to_toolbar =True, parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconDemandSector.png'
+        
+        #TODO: Add new experimental toolbar
+        # self.add_action(icon_path, text=self.tr(u'Obtain Tree'), callback=self.runTree, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
+            # actionBase = toolDropButton, add_to_toolbar =True, parent=self.iface.mainWindow())
         
         #About
         icon_path = ':/plugins/QGISRed/images/iconAbout.png'
@@ -403,30 +418,17 @@ class QGISRed:
             self.issuesLayers.append(name + "_Issues")
         
         #MapTools
-        self.pointElementTool = QgsMapToolEmitPoint(self.iface.mapCanvas())
-        self.pointElementTool.canvasClicked.connect(self.runProperties)
-        self.pointElementTool.deactivated.connect(self.runUnselectPointProperties)
-        self.pointValveTool = QgsMapToolEmitPoint(self.iface.mapCanvas())
-        self.pointValveTool.canvasClicked.connect(self.runInsertValve)
-        self.pointValveTool.deactivated.connect(self.runUnselectValvePoint)
-        self.pointPumpTool = QgsMapToolEmitPoint(self.iface.mapCanvas())
-        self.pointPumpTool.canvasClicked.connect(self.runInsertPump)
-        self.pointPumpTool.deactivated.connect(self.runUnselectPumpPoint)
-        self.pointTankTool = QgsMapToolEmitPoint(self.iface.mapCanvas())
-        self.pointTankTool.canvasClicked.connect(self.runAddTank)
-        self.pointTankTool.deactivated.connect(self.runUnselectTankPoint)
-        self.pointReservoirTool = QgsMapToolEmitPoint(self.iface.mapCanvas())
-        self.pointReservoirTool.canvasClicked.connect(self.runAddReservoir)
-        self.pointReservoirTool.deactivated.connect(self.runUnselectReservoirPoint)
-        self.pointDeleteElementTool = QgsMapToolEmitPoint(self.iface.mapCanvas())
-        self.pointDeleteElementTool.canvasClicked.connect(self.runDeleteElement)
-        self.pointDeleteElementTool.deactivated.connect(self.runUnselectDeleteElementPoint)
-        self.pointSplitTool = QgsMapToolEmitPoint(self.iface.mapCanvas())
-        self.pointSplitTool.canvasClicked.connect(self.runSplitPipe)
-        self.pointSplitTool.deactivated.connect(self.runUnselectSplitPoint)
-        self.pointReverseLinkTool = QgsMapToolEmitPoint(self.iface.mapCanvas())
-        self.pointReverseLinkTool.canvasClicked.connect(self.runReverseLink)
-        self.pointReverseLinkTool.deactivated.connect(self.runUnselectReverseLinkPoint)
+        self.pointElementTool = None
+        self.pointValveTool = None
+        self.pointPumpTool = None
+        self.pointTankTool = None
+        self.pointReservoirTool = None
+        self.pointDeleteElementTool = None
+        self.pointSplitTool = None
+        self.pointReverseLinkTool = None
+        self.moveValvePumpTool = None
+        self.mergeSplitPointTool = None
+        self.createReverseTconnTool = None
         
         #QGISRed dependencies
         self.checkDependencies()
@@ -1357,17 +1359,19 @@ class QGISRed:
 
     def runSelectTankPoint(self):
         #Take account the mouse click on QGis:
+        if self.pointTankTool is None:
+            self.pointTankTool = QGISRedSelectPointTool(self.addTankButton, self, self.runAddTank)
+            self.iface.mapCanvas().setMapTool(self.pointTankTool)
+            return
+        
         if self.iface.mapCanvas().mapTool() is self.pointTankTool:
             self.iface.mapCanvas().unsetMapTool(self.pointTankTool)
-            self.runUnselectTankPoint()
+            self.addTankButton.setChecked(False)
         else:
+            self.pointTankTool = QGISRedSelectPointTool(self.addTankButton, self, self.runAddTank)
             self.iface.mapCanvas().setMapTool(self.pointTankTool)
-            self.addTankButton.setChecked(True)
 
-    def runUnselectTankPoint(self):
-        self.addTankButton.setChecked(False)
-
-    def runAddTank(self, point, button):
+    def runAddTank(self, point):
         if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
@@ -1383,7 +1387,7 @@ class QGISRed:
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.AddTank.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.AddTank.restype = c_char_p
-        b = mydll.AddTank(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'), tolerance.encode('utf-8'))
+        b = mydll.AddTank(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'), "0.01".encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
@@ -1391,17 +1395,19 @@ class QGISRed:
 
     def runSelectReservoirPoint(self):
         #Take account the mouse click on QGis:
+        if self.pointReservoirTool is None:
+            self.pointReservoirTool = QGISRedSelectPointTool(self.addReservoirButton, self, self.runAddReservoir)
+            self.iface.mapCanvas().setMapTool(self.pointReservoirTool)
+            return
+        
         if self.iface.mapCanvas().mapTool() is self.pointReservoirTool:
             self.iface.mapCanvas().unsetMapTool(self.pointReservoirTool)
-            self.runUnselectReservoirPoint()
+            self.addReservoirButton.setChecked(False)
         else:
+            self.pointReservoirTool = QGISRedSelectPointTool(self.addReservoirButton, self, self.runAddReservoir)
             self.iface.mapCanvas().setMapTool(self.pointReservoirTool)
-            self.addReservoirButton.setChecked(True)
 
-    def runUnselectReservoirPoint(self):
-        self.addReservoirButton.setChecked(False)
-
-    def runAddReservoir(self, point, button):
+    def runAddReservoir(self, point):
         if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
@@ -1417,7 +1423,7 @@ class QGISRed:
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.AddReservoir.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.AddReservoir.restype = c_char_p
-        b = mydll.AddReservoir(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'), tolerance.encode('utf-8'))
+        b = mydll.AddReservoir(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'), "0.01".encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
@@ -1425,17 +1431,19 @@ class QGISRed:
 
     def runSelectValvePoint(self):
         #Take account the mouse click on QGis:
+        if self.pointValveTool is None:
+            self.pointValveTool = QGISRedSelectPointTool(self.insertValveButton, self, self.runInsertValve, 2)
+            self.iface.mapCanvas().setMapTool(self.pointValveTool)
+            return
+        
         if self.iface.mapCanvas().mapTool() is self.pointValveTool:
             self.iface.mapCanvas().unsetMapTool(self.pointValveTool)
-            self.runUnselectValvePoint()
+            self.insertValveButton.setChecked(False)
         else:
+            self.pointValveTool = QGISRedSelectPointTool(self.insertValveButton, self, self.runInsertValve, 2)
             self.iface.mapCanvas().setMapTool(self.pointValveTool)
-            self.insertValveButton.setChecked(True)
 
-    def runUnselectValvePoint(self):
-        self.insertValveButton.setChecked(False)
-
-    def runInsertValve(self, point, button):
+    def runInsertValve(self, point):
         if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
@@ -1452,7 +1460,7 @@ class QGISRed:
         mydll.InsertValve.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.InsertValve.restype = c_char_p
         
-        b = mydll.InsertValve(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'), tolerance.encode('utf-8'))
+        b = mydll.InsertValve(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'), "0.01".encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
@@ -1460,17 +1468,19 @@ class QGISRed:
 
     def runSelectPumpPoint(self):
         #Take account the mouse click on QGis:
+        if self.pointPumpTool is None:
+            self.pointPumpTool = QGISRedSelectPointTool(self.insertPumpButton, self, self.runInsertPump, 2)
+            self.iface.mapCanvas().setMapTool(self.pointPumpTool)
+            return
+        
         if self.iface.mapCanvas().mapTool() is self.pointPumpTool:
             self.iface.mapCanvas().unsetMapTool(self.pointPumpTool)
-            self.runUnselectPumpPoint()
+            self.insertPumpButton.setChecked(False)
         else:
+            self.pointPumpTool = QGISRedSelectPointTool(self.insertPumpButton, self, self.runInsertPump, 2)
             self.iface.mapCanvas().setMapTool(self.pointPumpTool)
-            self.insertPumpButton.setChecked(True)
 
-    def runUnselectPumpPoint(self):
-        self.insertPumpButton.setChecked(False)
-
-    def runInsertPump(self, point, button):
+    def runInsertPump(self, point):
         if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
@@ -1486,7 +1496,7 @@ class QGISRed:
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.InsertPump.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.InsertPump.restype = c_char_p
-        b = mydll.InsertPump(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'), tolerance.encode('utf-8'))
+        b = mydll.InsertPump(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'), "0.01".encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
@@ -1561,17 +1571,19 @@ class QGISRed:
 
     def runSelectReverseLinkPoint(self):
         #Take account the mouse click on QGis:
+        if self.pointReverseLinkTool is None:
+            self.pointReverseLinkTool = QGISRedSelectPointTool(self.reverseLinkButton, self, self.runReverseLink, 2)
+            self.iface.mapCanvas().setMapTool(self.pointReverseLinkTool)
+            return
+        
         if self.iface.mapCanvas().mapTool() is self.pointReverseLinkTool:
             self.iface.mapCanvas().unsetMapTool(self.pointReverseLinkTool)
-            self.runUnselectReverseLinkPoint()
+            self.reverseLinkButton.setChecked(False)
         else:
+            self.pointReverseLinkTool = QGISRedSelectPointTool(self.reverseLinkButton, self, self.runReverseLink, 2)
             self.iface.mapCanvas().setMapTool(self.pointReverseLinkTool)
-            self.reverseLinkButton.setChecked(True)
 
-    def runUnselectReverseLinkPoint(self):
-        self.reverseLinkButton.setChecked(False)
-
-    def runReverseLink(self, point, button):
+    def runReverseLink(self, point):
         if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
@@ -1599,17 +1611,19 @@ class QGISRed:
 
     def runSelectSplitPoint(self):
         #Take account the mouse click on QGis:
+        if self.pointSplitTool is None:
+            self.pointSplitTool = QGISRedSelectPointTool(self.splitPipeButton, self, self.runSplitPipe, 2)
+            self.iface.mapCanvas().setMapTool(self.pointSplitTool)
+            return
+        
         if self.iface.mapCanvas().mapTool() is self.pointSplitTool:
             self.iface.mapCanvas().unsetMapTool(self.pointSplitTool)
-            self.runUnselectSplitPoint()
+            self.splitPipeButton.setChecked(False)
         else:
+            self.pointSplitTool = QGISRedSelectPointTool(self.splitPipeButton, self, self.runSplitPipe, 2)
             self.iface.mapCanvas().setMapTool(self.pointSplitTool)
-            self.splitPipeButton.setChecked(True)
 
-    def runUnselectSplitPoint(self):
-        self.splitPipeButton.setChecked(False)
-
-    def runSplitPipe(self, point, button):
+    def runSplitPipe(self, point):
         if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
@@ -1625,7 +1639,126 @@ class QGISRed:
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.SplitPipe.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.SplitPipe.restype = c_char_p
-        b = mydll.SplitPipe(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'), tolerance.encode('utf-8'))
+        b = mydll.SplitPipe(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'), "0.01".encode('utf-8'))
+        b= "".join(map(chr, b)) #bytes to string
+        QApplication.restoreOverrideCursor()
+        
+        self.processCsharpResult(b, "")
+
+    def runSelectPointToMergeSplit(self):
+        #Take account the mouse click on QGis:
+        if self.mergeSplitPointTool is None:
+            self.mergeSplitPointTool = QGISRedSelectPointTool(self.mergeSplitJunctionButton, self, self.runMergeSplitPoints, 3)
+            self.iface.mapCanvas().setMapTool(self.mergeSplitPointTool)
+            return
+        
+        if self.iface.mapCanvas().mapTool() is self.mergeSplitPointTool:
+            self.iface.mapCanvas().unsetMapTool(self.mergeSplitPointTool)
+            self.mergeSplitJunctionButton.setChecked(False)
+        else:
+            self.mergeSplitPointTool = QGISRedSelectPointTool(self.mergeSplitJunctionButton, self, self.runMergeSplitPoints, 3)
+            self.iface.mapCanvas().setMapTool(self.mergeSplitPointTool)
+
+    def runMergeSplitPoints(self, point1, point2):
+        if not self.checkDependencies(): return
+        #Validations
+        self.defineCurrentProject()
+        if not self.isValidProject(): return
+        if self.isLayerOnEdition(): return
+        
+        point1 = str(point1.x()) + ":" + str(point1.y())
+        if point2 is None:
+            point2 = ""
+        else:
+            point2 = str(point2.x()) + ":" + str(point2.y())
+        #tolerance = str(self.getTolerance())
+        print(point1)
+        print(point2)
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QGISRedUtils().setCurrentDirectory()
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.SplitMergeJunction.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.SplitMergeJunction.restype = c_char_p
+        b = mydll.SplitMergeJunction(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'), point1.encode('utf-8'), point2.encode('utf-8'))
+        b= "".join(map(chr, b)) #bytes to string
+        QApplication.restoreOverrideCursor()
+        
+        self.processCsharpResult(b, "")
+
+    def runSelectPointToTconnections(self):
+        #Take account the mouse click on QGis:
+        if self.createReverseTconnTool is None:
+            self.createReverseTconnTool = QGISRedSelectPointTool(self.createReverseTconButton, self, self.runCreateRemoveTconnections, 5)
+            self.iface.mapCanvas().setMapTool(self.createReverseTconnTool)
+            return
+        
+        if self.iface.mapCanvas().mapTool() is self.createReverseTconnTool:
+            self.iface.mapCanvas().unsetMapTool(self.createReverseTconnTool)
+            self.createReverseTconButton.setChecked(False)
+        else:
+            self.createReverseTconnTool = QGISRedSelectPointTool(self.createReverseTconButton, self, self.runCreateRemoveTconnections, 5)
+            self.iface.mapCanvas().setMapTool(self.createReverseTconnTool)
+
+    def runCreateRemoveTconnections(self, point1, point2):
+        if not self.checkDependencies(): return
+        #Validations
+        self.defineCurrentProject()
+        if not self.isValidProject(): return
+        if self.isLayerOnEdition(): return
+        
+        point1 = str(point1.x()) + ":" + str(point1.y())
+        if point2 is None:
+            point2 = ""
+        else:
+            point2 = str(point2.x()) + ":" + str(point2.y())
+        #tolerance = str(self.getTolerance())
+        print(point1)
+        print(point2)
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QGISRedUtils().setCurrentDirectory()
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.CreateReverseTConnection.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.CreateReverseTConnection.restype = c_char_p
+        b = mydll.CreateReverseTConnection(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'), point1.encode('utf-8'), point2.encode('utf-8'))
+        b= "".join(map(chr, b)) #bytes to string
+        QApplication.restoreOverrideCursor()
+        
+        self.processCsharpResult(b, "")
+
+    def runSelectValvePumpPoints(self):
+        #Take account the mouse click on QGis:
+        if self.moveValvePumpTool is None:
+            self.moveValvePumpTool = QGISRedSelectPointTool(self.moveValvePumpButton, self, self.runMoveValvePump, 4)
+            self.iface.mapCanvas().setMapTool(self.moveValvePumpTool)
+            return
+        
+        if self.iface.mapCanvas().mapTool() is self.moveValvePumpTool:
+            self.iface.mapCanvas().unsetMapTool(self.moveValvePumpTool)
+            self.moveValvePumpButton.setChecked(False)
+        else:
+            self.moveValvePumpTool = QGISRedSelectPointTool(self.moveValvePumpButton, self, self.runMoveValvePump, 4)
+            self.iface.mapCanvas().setMapTool(self.moveValvePumpTool)
+
+    def runMoveValvePump(self, point1, point2):
+        if not self.checkDependencies(): return
+        #Validations
+        self.defineCurrentProject()
+        if not self.isValidProject(): return
+        if self.isLayerOnEdition(): return
+        
+        point1 = str(point1.x()) + ":" + str(point1.y())
+        point2 = str(point2.x()) + ":" + str(point2.y())
+        #tolerance = str(self.getTolerance())
+        
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QGISRedUtils().setCurrentDirectory()
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.MoveValvePump.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.MoveValvePump.restype = c_char_p
+        b = mydll.MoveValvePump(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'), point1.encode('utf-8'), point2.encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
@@ -1636,34 +1769,36 @@ class QGISRed:
         #Validations
         self.defineCurrentProject()
         if not self.isValidProject(): 
-            self.runUnselectDeleteElementPoint()
+            self.removeElementsButton.setChecked(False)
             return
         
         if not self.getSelectedFeaturesIds():
-            self.runUnselectDeleteElementPoint()
+            self.removeElementsButton.setChecked(False)
             return
         if self.nodeIds=="" and self.linkIds == "":
             self.runSelectDeleteElementPoint()
             return
-        self.runUnselectDeleteElementPoint()
+        self.removeElementsButton.setChecked(False)
         
         if self.isLayerOnEdition(): return
         
-        self.runDeleteElement(None, None)
+        self.runDeleteElement(None)
 
     def runSelectDeleteElementPoint(self):
         #Take account the mouse click on QGis:
+        if self.pointDeleteElementTool is None:
+            self.pointDeleteElementTool = QGISRedSelectPointTool(self.removeElementsButton, self, self.runDeleteElement, 2)
+            self.iface.mapCanvas().setMapTool(self.pointDeleteElementTool)
+            return
+        
         if self.iface.mapCanvas().mapTool() is self.pointDeleteElementTool:
             self.iface.mapCanvas().unsetMapTool(self.pointDeleteElementTool)
-            self.runUnselectDeleteElementPoint()
+            self.removeElementsButton.setChecked(False)
         else:
+            self.pointDeleteElementTool = QGISRedSelectPointTool(self.removeElementsButton, self, self.runDeleteElement, 2)
             self.iface.mapCanvas().setMapTool(self.pointDeleteElementTool)
-            self.removeElementsButton.setChecked(True)
 
-    def runUnselectDeleteElementPoint(self):
-        self.removeElementsButton.setChecked(False)
-
-    def runDeleteElement(self, point, button):
+    def runDeleteElement(self, point):
         if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
@@ -1691,18 +1826,21 @@ class QGISRed:
 
     def runSelectPointProperties(self):
         #Take account the mouse click on QGis:
-        if self.iface.mapCanvas().mapTool() is self.pointElementTool:
-            self.iface.mapCanvas().unsetMapTool(self.pointElementTool)
-            self.runUnselectPointProperties()
-        else:
+        if self.pointElementTool is None:
+            self.pointElementTool = QGISRedSelectPointTool(self.editElementButton, self, self.runProperties, 2)
             self.pointElementTool.setCursor(Qt.WhatsThisCursor)
             self.iface.mapCanvas().setMapTool(self.pointElementTool)
-            self.editElementButton.setChecked(True)
+            return
+        
+        if self.iface.mapCanvas().mapTool() is self.pointElementTool:
+            self.iface.mapCanvas().unsetMapTool(self.pointElementTool)
+            self.editElementButton.setChecked(False)
+        else:
+            self.pointElementTool = QGISRedSelectPointTool(self.editElementButton, self, self.runProperties, 2)
+            self.pointElementTool.setCursor(Qt.WhatsThisCursor)
+            self.iface.mapCanvas().setMapTool(self.pointElementTool)
 
-    def runUnselectPointProperties(self):
-        self.editElementButton.setChecked(False)
-
-    def runProperties(self, point, button):
+    def runProperties(self, point):
         if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
@@ -2125,12 +2263,12 @@ class QGISRed:
         if not self.isValidProject(): return
         if self.isLayerOnEdition(): return
         
-        if not os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_IssolatedValves.shp")):
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Does not exist Issolated Valves SHP file"), level=1, duration=5)
+        if not os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_IsolationValves.shp")):
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Does not exist Isolation Valves SHP file"), level=1, duration=5)
             return
         
         #Process
-        self.complementaryLayers = ["IssolatedValves"]
+        self.complementaryLayers = ["IsolationValves"]
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
@@ -2140,7 +2278,7 @@ class QGISRed:
         b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
-        self.processCsharpResult(b, "Any issolated valve change status of pipes")
+        self.processCsharpResult(b, "Any isolation valve change status of pipes")
 
     def runAddConnections(self):
         if not self.checkDependencies(): return
@@ -2149,12 +2287,12 @@ class QGISRed:
         if not self.isValidProject(): return
         if self.isLayerOnEdition(): return
         
-        if not os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_Connections.shp")):
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Does not exist Connections SHP file"), level=1, duration=5)
+        if not os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_ServiceConnections.shp")):
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Does not exist ServiceConnections SHP file"), level=1, duration=5)
             return
         
         #Question
-        self.reply = QMessageBox.question(self.iface.mainWindow(), self.tr('Add connections to the model'), self.tr('Do you want to include connections as pipes (Yes) or only as nodes (No)?'), QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel))
+        self.reply = QMessageBox.question(self.iface.mainWindow(), self.tr('Add  service connections to the model'), self.tr('Do you want to include service connections as pipes (Yes) or only as nodes (No)?'), QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel))
         if self.reply == QMessageBox.Cancel:
             return
             
@@ -2162,7 +2300,7 @@ class QGISRed:
         if self.reply == QMessageBox.Yes: #Pipes
             asNode = "false"
         #Process
-        self.complementaryLayers = ["Connections"]
+        self.complementaryLayers = ["ServiceConnections"]
         
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
@@ -2173,7 +2311,7 @@ class QGISRed:
         b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
-        self.processCsharpResult(b, "No Connections to include in the model")
+        self.processCsharpResult(b, "No Service Connections to include in the model")
 
     def runAddHydrants(self):
         if not self.checkDependencies(): return
@@ -2207,12 +2345,12 @@ class QGISRed:
         if not self.isValidProject(): return
         if self.isLayerOnEdition(): return
         
-        if not os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_PurgeValves.shp")):
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Does not exist Purge Valves SHP file"), level=1, duration=5)
+        if not os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_WashoutValves.shp")):
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Does not exist Washout Valves SHP file"), level=1, duration=5)
             return
         
         #Process
-        self.complementaryLayers = ["PurgeValves"]
+        self.complementaryLayers = ["WashoutValves"]
         
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
@@ -2223,7 +2361,7 @@ class QGISRed:
         b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
-        self.processCsharpResult(b, "No Purge Valves to include in the model")
+        self.processCsharpResult(b, "No Washout Valves to include in the model")
 
     def runDemandSectors(self):
         if not self.checkDependencies(): return
@@ -2240,6 +2378,44 @@ class QGISRed:
         mydll.DemandSectors.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.DemandSectors.restype = c_char_p
         b = mydll.DemandSectors(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'))
+        b= "".join(map(chr, b)) #bytes to string
+        QApplication.restoreOverrideCursor()
+        
+        #Action
+        self.hasToOpenNewLayers = False
+        self.hasToOpenIssuesLayers = False
+        self.hasToOpenSectorLayers = False
+        if b=="False":
+            pass
+        elif b=="shps":
+            self.hasToOpenSectorLayers = True
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+        
+        if self.hasToOpenSectorLayers:
+            task1 = QgsTask.fromFunction("", self.removeSectorLayers, on_finished=self.runOpenTemporaryFiles)
+        else:
+            #Not to run task
+            return
+        self.extent = self.iface.mapCanvas().extent()
+        task1.run()
+        QgsApplication.taskManager().addTask(task1)
+
+    def runTree(self):
+        if not self.checkDependencies(): return
+        #Validations
+        self.defineCurrentProject()
+        if not self.isValidProject(): return
+        if self.isLayerOnEdition(): return
+        
+        self.Sectors= "DemandSectors"
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QGISRedUtils().setCurrentDirectory()
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.Tree.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.Tree.restype = c_char_p
+        b = mydll.Tree(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         

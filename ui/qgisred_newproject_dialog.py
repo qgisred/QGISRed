@@ -87,16 +87,16 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             #others (future versions)
             self.cbDemands.setChecked(self.NetworkName + "_Demands.shp" in dirList)
             self.cbSources.setChecked(self.NetworkName + "_Sources.shp" in dirList)
-            self.cbIsolatedValves.setChecked(self.NetworkName + "_IssolatedValves.shp" in dirList)
+            self.cbIsolatedValves.setChecked(self.NetworkName + "_IsolationValves.shp" in dirList)
             # self.cbCeckValves.setChecked(self.NetworkName + "_CheckValves.shp" in dirList)
             self.cbHydrants.setChecked(self.NetworkName + "_Hydrants.shp" in dirList)
-            self.cbPurgeValves.setChecked(self.NetworkName + "_PurgeValves.shp" in dirList)
-            self.cbAirReleases.setChecked(self.NetworkName + "_AirReleases.shp" in dirList)
-            self.cbConnections.setChecked(self.NetworkName + "_Connections.shp" in dirList)
+            self.cbPurgeValves.setChecked(self.NetworkName + "_WashoutValves.shp" in dirList)
+            self.cbAirReleases.setChecked(self.NetworkName + "_AirReleaseValves.shp" in dirList)
+            self.cbConnections.setChecked(self.NetworkName + "_ServiceConnections.shp" in dirList)
             self.cbManometers.setChecked(self.NetworkName + "_Manometers.shp" in dirList)
             self.cbFlowmeters.setChecked(self.NetworkName + "_Flowmeters.shp" in dirList)
-            self.cbCountmeters.setChecked(self.NetworkName + "_Countmeters.shp" in dirList)
-            self.cbLevelmeters.setChecked(self.NetworkName + "_Levelmeters.shp" in dirList)
+            self.cbCountmeters.setChecked(self.NetworkName + "_Countermeters.shp" in dirList)
+            self.cbLevelmeters.setChecked(self.NetworkName + "_LevelSensors.shp" in dirList)
 
     def setDefaultElements(self):
         self.cbPipes.setChecked(True)
@@ -194,26 +194,26 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         if self.cbSources.isChecked() and not utils.isLayerOpened("Sources"):
             list = list + "source" + ";"
         
-        if self.cbIsolatedValves.isChecked() and not utils.isLayerOpened("IssolatedValves"):
-            list = list + "issolatedvalve" + ";"
+        if self.cbIsolatedValves.isChecked() and not utils.isLayerOpened("IsolationValves"):
+            list = list + "isolationdvalve" + ";"
         # if self.cbCeckValves.isChecked() and not utils.isLayerOpened("CheckValves"):
             # list = list + "checkvalve"+ ";"
         if self.cbHydrants.isChecked() and not utils.isLayerOpened("Hydrants"):
             list = list + "hydrant"+ ";"
-        if self.cbPurgeValves.isChecked() and not utils.isLayerOpened("PurgeValves"):
-            list = list + "purgevalve"+ ";"
-        if self.cbAirReleases.isChecked() and not utils.isLayerOpened("AirReleases"):
-            list = list + "airrelease"+ ";"
-        if self.cbConnections.isChecked() and not utils.isLayerOpened("Connections"):
-            list = list + "connection"+ ";"
+        if self.cbPurgeValves.isChecked() and not utils.isLayerOpened("WashoutValves"):
+            list = list + "washoutvalve"+ ";"
+        if self.cbAirReleases.isChecked() and not utils.isLayerOpened("AirReleaseValves"):
+            list = list + "airreleasevalve"+ ";"
+        if self.cbConnections.isChecked() and not utils.isLayerOpened("ServiceConnections"):
+            list = list + "serviceconnection"+ ";"
         if self.cbManometers.isChecked() and not utils.isLayerOpened("Manometers"):
             list = list + "manometer"+ ";"
         if self.cbFlowmeters.isChecked() and not utils.isLayerOpened("Flowmeters"):
             list = list + "flowmeter"+ ";"
-        if self.cbCountmeters.isChecked() and not utils.isLayerOpened("Countmeters"):
-            list = list + "countmeter"+ ";"
-        if self.cbLevelmeters.isChecked() and not utils.isLayerOpened("Levelmeters"):
-            list = list + "levelmeter"+ ";"
+        if self.cbCountmeters.isChecked() and not utils.isLayerOpened("Countermeters"):
+            list = list + "countermeter"+ ";"
+        if self.cbLevelmeters.isChecked() and not utils.isLayerOpened("LevelSensors"):
+            list = list + "levelsensor"+ ";"
         return list
 
     def removeComplementaryLayers(self, task, wait_time):
@@ -224,25 +224,25 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             list.append("Sources")
         
         if not self.cbIsolatedValves.isChecked():
-            list.append("IssolatedValves")
+            list.append("IsolationValves")
         # if not self.cbCeckValves.isChecked():
             # list.append("CheckValves")
         if not self.cbHydrants.isChecked():
             list.append("Hydrants")
         if not self.cbPurgeValves.isChecked():
-            list.append("PurgeValves")
+            list.append("WashoutValves")
         if not self.cbAirReleases.isChecked():
-            list.append("AirReleases")
+            list.append("AirReleaseValves")
         if not self.cbConnections.isChecked():
-            list.append("Connections")
+            list.append("ServiceConnections")
         if not self.cbManometers.isChecked():
             list.append("Manometers")
         if not self.cbFlowmeters.isChecked():
             list.append("Flowmeters")
         if not self.cbCountmeters.isChecked():
-            list.append("Countmeters")
+            list.append("Countermeters")
         if not self.cbLevelmeters.isChecked():
-            list.append("Levelmeters")
+            list.append("LevelSensors")
         
         QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface).removeLayers(list)
         raise Exception('')
@@ -283,8 +283,8 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
                 utils.openLayer(self.CRS, group,"Sources", toEnd=True)
         
         if self.cbIsolatedValves.isChecked():
-            if not utils.isLayerOpened("IssolatedValves"):
-                utils.openLayer(self.CRS, group,"IssolatedValves", toEnd=True)
+            if not utils.isLayerOpened("IsolationValves"):
+                utils.openLayer(self.CRS, group,"IsolationValves", toEnd=True)
         # if self.cbCeckValves.isChecked():
             # if not utils.isLayerOpened("CheckValves"):
                 # utils.openLayer(self.CRS, group,"CheckValves", toEnd=True)
@@ -292,14 +292,14 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             if not utils.isLayerOpened("Hydrants"):
                 utils.openLayer(self.CRS, group,"Hydrants", toEnd=True)
         if self.cbPurgeValves.isChecked():
-            if not utils.isLayerOpened("PurgeValves"):
-                utils.openLayer(self.CRS, group,"PurgeValves", toEnd=True)
+            if not utils.isLayerOpened("WashoutValves"):
+                utils.openLayer(self.CRS, group,"WashoutValves", toEnd=True)
         if self.cbAirReleases.isChecked():
-            if not utils.isLayerOpened("AirReleases"):
-                utils.openLayer(self.CRS, group,"AirReleases", toEnd=True)
+            if not utils.isLayerOpened("AirReleaseValves"):
+                utils.openLayer(self.CRS, group,"AirReleaseValves", toEnd=True)
         if self.cbConnections.isChecked():
-            if not utils.isLayerOpened("Connections"):
-                utils.openLayer(self.CRS, group,"Connections", toEnd=True)
+            if not utils.isLayerOpened("ServiceConnections"):
+                utils.openLayer(self.CRS, group,"ServiceConnections", toEnd=True)
         if self.cbManometers.isChecked():
             if not utils.isLayerOpened("Manometers"):
                 utils.openLayer(self.CRS, group,"Manometers", toEnd=True)
@@ -307,11 +307,11 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             if not utils.isLayerOpened("Flowmeters"):
                 utils.openLayer(self.CRS, group,"Flowmeters", toEnd=True)
         if self.cbCountmeters.isChecked():
-            if not utils.isLayerOpened("Countmeters"):
-                utils.openLayer(self.CRS, group,"Countmeters", toEnd=True)
+            if not utils.isLayerOpened("Countermeters"):
+                utils.openLayer(self.CRS, group,"Countermeters", toEnd=True)
         if self.cbLevelmeters.isChecked():
-            if not utils.isLayerOpened("Levelmeters"):
-                utils.openLayer(self.CRS, group,"Levelmeters", toEnd=True)
+            if not utils.isLayerOpened("LevelSensors"):
+                utils.openLayer(self.CRS, group,"LevelSensors", toEnd=True)
 
     def validationsCreateProject(self):
         self.NetworkName = self.tbNetworkName.text()
@@ -327,7 +327,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
                 return False
             else:
                 dirList = os.listdir(self.ProjectDirectory)
-                layers = ["Pipes", "Junctions", "Tanks", "Reservoirs", "Valves", "Pumps", "IssolatedValves" ,"Hydrants", "PurgeValves", "AirReleases", "Connections", "Manometers", "Flowmeters", "Countmeters", "Levelmeters"]
+                layers = ["Pipes", "Junctions", "Tanks", "Reservoirs", "Valves", "Pumps", "IsolationValves" ,"Hydrants", "WashoutValves", "AirReleaseValves", "ServiceConnections", "Manometers", "Flowmeters", "Countermeters", "LevelSensors"]
                 for layer in layers:
                     if self.NetworkName + "_" + layer + ".shp" in dirList:
                         self.iface.messageBar().pushMessage("Validations", "The project directory has some file to selected network's name", level=1)

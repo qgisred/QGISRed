@@ -7,7 +7,7 @@ name=QGISRed
 qgisMinimumVersion=3.0
 qgisMaximumVersion=3.99
 description=Free professional software to build and simulate advanced water distribution network models.
-version=0.8
+version=0.8.3
 author=Project Leader: REDHISP Group (IIAMA- UPV). Developer: WaterPi
 email=fmartine@hma.upv.es
 
@@ -43,7 +43,7 @@ tags=Hydraulic model, Water Distribution Networks, EPANET, GISRed, Detailed Mode
 
 homepage=
 category=Plugins
-icon=images/iconCreateProject.png
+icon=images/qgisred.png
 # experimental flag
 experimental=False
 

@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/plugins/QGISRed" >
+        <file>images/iconQGISRed.png</file>
         <file>images/iconProjectManager.png</file>
         <file>images/iconSaveProject.png</file>
         <file>images/iconCreateProject.png</file>
@@ -66,5 +67,8 @@
         <file>images/iconMoveVertexs.png</file>
         <file>images/iconReverseLink.png</file>
         <file>images/iconEditProject.png</file>
+        <file>images/iconMoveValvePump.png</file>
+        <file>images/iconMergeSplitJunction.png</file>
+        <file>images/iconCreateRevTconn.png</file>
     </qresource>
 </RCC>
