@@ -285,13 +285,16 @@ class QGISRed:
         self.reverseLinkButton = self.add_action(icon_path, text=self.tr(u'Reverse link'), callback=self.canReverseLink, menubar=self.editionMenu, toolbar=self.editionToolbar,
             actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconSplitPipe.png'
-        self.splitPipeButton = self.add_action(icon_path, text=self.tr(u'Split Pipe'), callback=self.runSelectSplitPoint, menubar=self.editionMenu, toolbar=self.editionToolbar,
+        self.splitPipeButton = self.add_action(icon_path, text=self.tr(u'Split/Join Pipe/s'), callback=self.runSelectSplitPoint, menubar=self.editionMenu, toolbar=self.editionToolbar,
             actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconMergeSplitJunction.png'
         self.mergeSplitJunctionButton = self.add_action(icon_path, text=self.tr(u'Merge/Split junctions'), callback=self.runSelectPointToMergeSplit, menubar=self.editionMenu, toolbar=self.editionToolbar,
             actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconCreateRevTconn.png'
         self.createReverseTconButton = self.add_action(icon_path, text=self.tr(u'Create/Reverse T connections'), callback=self.runSelectPointToTconnections, menubar=self.editionMenu, toolbar=self.editionToolbar,
+            actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconCreateRevCrossings.png'
+        self.createReverseCrossButton = self.add_action(icon_path, text=self.tr(u'Create/Reverse Crossings'), callback=self.runSelectPointToCrossings, menubar=self.editionMenu, toolbar=self.editionToolbar,
             actionBase = editDropButton, add_to_toolbar =True, checable=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconMoveValvePump.png'
         self.moveValvePumpButton = self.add_action(icon_path, text=self.tr(u'Move Valve/Pump to another pipe'), callback=self.runSelectValvePumpPoints, menubar=self.editionMenu, toolbar=self.editionToolbar,
@@ -397,11 +400,23 @@ class QGISRed:
         icon_path = ':/plugins/QGISRed/images/iconDemandSector.png'
         self.add_action(icon_path, text=self.tr(u'Obtain demand sectors'), callback=self.runDemandSectors, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
             actionBase = toolDropButton, add_to_toolbar =True, parent=self.iface.mainWindow())
-        icon_path = ':/plugins/QGISRed/images/iconDemandSector.png'
+        icon_path = ':/plugins/QGISRed/images/iconTree.png'
         
-        #TODO: Add new experimental toolbar
-        # self.add_action(icon_path, text=self.tr(u'Obtain Tree'), callback=self.runTree, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
-            # actionBase = toolDropButton, add_to_toolbar =True, parent=self.iface.mainWindow())
+        # #Experimental
+        # #    #Menu
+        # self.experimentalMenu = self.qgisredmenu.addMenu(self.tr('Experimenta'))
+        # self.experimentalMenu.setIcon(QIcon(':/plugins/QGISRed/images/iconTree.png'))
+        # #    #Toolbar
+        # self.experimentalToolbar = self.iface.addToolBar(self.tr(u'QGISRed Experimental'))
+        # self.experimentalToolbar.setObjectName(self.tr(u'QGISRed Experimental'))
+        # self.experimentalToolbar.setVisible(False)
+        # #    #Buttons
+        # icon_path = ':/plugins/QGISRed/images/iconTree.png'
+        # expDropButton = self.add_action(icon_path, text=self.tr(u'Experimental'), callback=self.runExperimentalToolbar, menubar=self.experimentalMenu, add_to_menu=False,
+            # toolbar=self.toolbar, createDrop = True, addActionToDrop = False, add_to_toolbar =False, parent=self.iface.mainWindow())
+        # icon_path = ':/plugins/QGISRed/images/iconTree.png'
+        # self.add_action(icon_path, text=self.tr(u'Obtain Tree'), callback=self.runTree, menubar=self.experimentalMenu, toolbar=self.experimentalToolbar,
+            # actionBase = expDropButton, add_to_toolbar =True, parent=self.iface.mainWindow())
         
         #About
         icon_path = ':/plugins/QGISRed/images/iconAbout.png'
@@ -429,6 +444,7 @@ class QGISRed:
         self.moveValvePumpTool = None
         self.mergeSplitPointTool = None
         self.createReverseTconnTool = None
+        self.createReverseCrossTool = None
         
         #QGISRed dependencies
         self.checkDependencies()
@@ -682,13 +698,7 @@ class QGISRed:
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayers(["Links_" + self.Sectors, "Nodes_" + self.Sectors])
         
-        name = self.NetworkName + " Hydraulic Sectors"
-        if "Demand" in self.Sectors:
-            name = self.NetworkName + " Demand Sectors"
-        dataGroup = QgsProject.instance().layerTreeRoot().findGroup(name)
-        if not dataGroup is None:
-            root = QgsProject.instance().layerTreeRoot()
-            root.removeChildNode(dataGroup)
+        self.removeEmptyQuerySubGroup("Sectors")
         raise Exception('') #Avoiding errors with v3.x with shps and dbfs in use after deleting (use of QTasks)
 
     """Open Layers"""
@@ -744,10 +754,10 @@ class QGISRed:
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         if os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_Links_" + self.Sectors + ".shp")):
             #Group
-            hydrGroup = QgsProject.instance().layerTreeRoot().findGroup("Hydraulic Sectors")
+            hydrGroup = QgsProject.instance().layerTreeRoot().findGroup("Sectors")
             if hydrGroup is None:
                 queryGroup = self.getQueryGroup()
-                hydrGroup = queryGroup.insertGroup(0,"Hydraulic Sectors")
+                hydrGroup = queryGroup.insertGroup(0,"Sectors")
             
             utils.openLayer(crs, hydrGroup, "Nodes_" + self.Sectors, sectors=True)
             utils.openLayer(crs, hydrGroup, "Links_" + self.Sectors, sectors=True)
@@ -954,6 +964,9 @@ class QGISRed:
 
     def runToolsToolbar(self):
         self.toolsToolbar.setVisible(not self.toolsToolbar.isVisible())
+
+    def runExperimentalToolbar(self):
+        self.experimentalToolbar.setVisible(not self.experimentalToolbar.isVisible())
 
     """Common"""
     def runOpenTemporaryFiles(self, exception=None, result=None):
@@ -1637,9 +1650,9 @@ class QGISRed:
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.SplitPipe.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.SplitPipe.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.SplitPipe.restype = c_char_p
-        b = mydll.SplitPipe(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'), "0.01".encode('utf-8'))
+        b = mydll.SplitPipe(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
@@ -1712,9 +1725,6 @@ class QGISRed:
             point2 = ""
         else:
             point2 = str(point2.x()) + ":" + str(point2.y())
-        #tolerance = str(self.getTolerance())
-        print(point1)
-        print(point2)
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
@@ -1722,6 +1732,41 @@ class QGISRed:
         mydll.CreateReverseTConnection.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CreateReverseTConnection.restype = c_char_p
         b = mydll.CreateReverseTConnection(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'), point1.encode('utf-8'), point2.encode('utf-8'))
+        b= "".join(map(chr, b)) #bytes to string
+        QApplication.restoreOverrideCursor()
+        
+        self.processCsharpResult(b, "")
+
+    def runSelectPointToCrossings(self):
+        #Take account the mouse click on QGis:
+        if self.createReverseCrossTool is None:
+            self.createReverseCrossTool = QGISRedSelectPointTool(self.createReverseCrossButton, self, self.runCreateRemoveCrossings,2)
+            self.iface.mapCanvas().setMapTool(self.createReverseCrossTool)
+            return
+        
+        if self.iface.mapCanvas().mapTool() is self.createReverseCrossTool:
+            self.iface.mapCanvas().unsetMapTool(self.createReverseCrossTool)
+            self.createReverseCrossButton.setChecked(False)
+        else:
+            self.createReverseCrossTool = QGISRedSelectPointTool(self.createReverseCrossButton, self, self.runCreateRemoveCrossings,2)
+            self.iface.mapCanvas().setMapTool(self.createReverseCrossTool)
+
+    def runCreateRemoveCrossings(self, point1):
+        if not self.checkDependencies(): return
+        #Validations
+        self.defineCurrentProject()
+        if not self.isValidProject(): return
+        if self.isLayerOnEdition(): return
+        
+        point1 = str(point1.x()) + ":" + str(point1.y())
+        tolerance = str(self.getTolerance())
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QGISRedUtils().setCurrentDirectory()
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.CreateReverseCrossings.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.CreateReverseCrossings.restype = c_char_p
+        b = mydll.CreateReverseCrossings(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'), point1.encode('utf-8'), tolerance.encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
@@ -2401,6 +2446,7 @@ class QGISRed:
         task1.run()
         QgsApplication.taskManager().addTask(task1)
 
+    """Experimental"""
     def runTree(self):
         if not self.checkDependencies(): return
         #Validations
@@ -2408,7 +2454,7 @@ class QGISRed:
         if not self.isValidProject(): return
         if self.isLayerOnEdition(): return
         
-        self.Sectors= "DemandSectors"
+        self.Sectors= "Tree"
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
@@ -2420,21 +2466,56 @@ class QGISRed:
         QApplication.restoreOverrideCursor()
         
         #Action
-        self.hasToOpenNewLayers = False
-        self.hasToOpenIssuesLayers = False
-        self.hasToOpenSectorLayers = False
         if b=="False":
-            pass
+            return
         elif b=="shps":
-            self.hasToOpenSectorLayers = True
+            task1 = QgsTask.fromFunction("", self.removeTreeLayers, on_finished=self.runTreeProcess)
+            task1.run()
+            QgsApplication.taskManager().addTask(task1)
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+
+    def runTreeProcess(self, exception=None, result=None):
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QGISRedUtils().setCurrentDirectory()
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.ReplaceTemporalLayers.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.ReplaceTemporalLayers.restype = c_char_p
+        b = mydll.ReplaceTemporalLayers(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'))
+        b= "".join(map(chr, b)) #bytes to string
+        QApplication.restoreOverrideCursor()
         
-        if self.hasToOpenSectorLayers:
-            task1 = QgsTask.fromFunction("", self.removeSectorLayers, on_finished=self.runOpenTemporaryFiles)
+        self.openTreeLayers()
+        
+        #Message
+        if b=="True":
+            pass
         else:
-            #Not to run task
-            return
-        self.extent = self.iface.mapCanvas().extent()
-        task1.run()
-        QgsApplication.taskManager().addTask(task1)
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+
+    def openTreeLayers(self):
+        #CRS
+        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
+        if crs.srsid()==0:
+            crs = QgsCoordinateReferenceSystem()
+            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
+        #Open layers
+        treeGroup = self.getTreeGroup()
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.openLayer(crs, treeGroup, "Links_Tree", tree=True)
+        utils.openLayer(crs, treeGroup, "Nodes_Tree")
+
+    def getTreeGroup(self):
+        treeGroup = QgsProject.instance().layerTreeRoot().findGroup("Tree")
+        if treeGroup is None:
+            queryGroup = self.getQueryGroup()
+            treeGroup = queryGroup.insertGroup(0,"Tree")
+        return treeGroup
+
+    def removeTreeLayers(self, task):
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.removeLayers(["Links_" + self.Sectors, "Nodes_" + self.Sectors])
+        
+        self.removeEmptyQuerySubGroup("Tree")
+        raise Exception('') #Avoiding errors with v3.x with shps and dbfs in use after deleting (use of QTasks)

@@ -70,5 +70,7 @@
         <file>images/iconMoveValvePump.png</file>
         <file>images/iconMergeSplitJunction.png</file>
         <file>images/iconCreateRevTconn.png</file>
+        <file>images/iconCreateRevCrossings.png</file>
+        <file>images/iconTree.png</file>
     </qresource>
 </RCC>

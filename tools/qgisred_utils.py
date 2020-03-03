@@ -36,7 +36,7 @@ class QGISRedUtils:
         for fileName in layers:
             self.openLayer(crs, group, fileName, issues=True)
 
-    def openLayer(self, crs, group, name, ext=".shp", results=False, toEnd=False, sectors=False, issues=False):
+    def openLayer(self, crs, group, name, ext=".shp", results=False, toEnd=False, sectors=False, issues=False, tree=False):
         layerName = self.NetworkName + "_" + name
         if os.path.exists(os.path.join(self.ProjectDirectory, layerName + ext)):
             vlayer = QgsVectorLayer(os.path.join(self.ProjectDirectory, layerName + ext), name, "ogr")
@@ -46,6 +46,8 @@ class QGISRedUtils:
                     self.setResultStyle(vlayer)
                 elif sectors:
                     self.setSectorsStyle(vlayer)
+                elif tree:
+                    self.setTreeStyle(vlayer)
                 elif issues:
                     pass
                 else:
@@ -284,3 +286,52 @@ class QGISRedUtils:
             # writing each file one by one 
             for file in file_paths:
                 zip.write(file, file.replace(self.ProjectDirectory.replace("/","\\"), ""))
+
+    def setTreeStyle(self, layer):
+        from random import randrange
+        
+        # get unique values 
+        field = 'Type'
+        fni = layer.fields().indexFromName(field)
+        unique_values = layer.dataProvider().uniqueValues(fni)
+        
+        # define categories
+        categories = []
+        for unique_value in unique_values:
+            # initialize the default symbol for this geometry type
+            symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+            
+            # configure a symbol layer
+            symbol_layer = None
+            if layer.geometryType()==0: #Point
+                layer_style =  dict()
+                layer_style['color'] = '%d, %d, %d' % (randrange(0,256), randrange(0,256), randrange(0,256))
+                layer_style['size'] = str(2)
+                symbol_layer = QgsSimpleMarkerSymbolLayer.create(layer_style)
+            else:
+                symbol = QgsLineSymbol().createSimple({})
+                symbol.deleteSymbolLayer(0)
+                # Line
+                lineSymbol = QgsSimpleLineSymbolLayer()
+                lineSymbol.setWidthUnit(2) #Pixels
+                lineSymbol.setWidth(1.5)
+                lineSymbol.setColor(QColor(178, 47, 60))
+                if "Branch" in unique_value:
+                    lineSymbol.setColor(QColor(22, 139, 251))
+                symbol.appendSymbolLayer(lineSymbol)
+            
+            # replace default symbol layer with the configured one
+            if symbol_layer is not None:
+                symbol.changeSymbolLayer(0, symbol_layer)
+            
+            # create renderer object
+            category = QgsRendererCategory(unique_value, symbol, str(unique_value))
+            # entry for the list of category items
+            categories.append(category)
+        
+        # create renderer object
+        renderer = QgsCategorizedSymbolRenderer(field, categories)
+        
+        # assign the created renderer to the layer
+        if renderer is not None:
+            layer.setRenderer(renderer)
