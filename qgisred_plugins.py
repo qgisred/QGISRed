@@ -73,7 +73,7 @@ class QGISRed:
     ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns"]
     complementaryLayers = []
     TemporalFolder = "Temporal folder"
-    DependenciesVersion ="1.0.8.3"
+    DependenciesVersion ="1.0.9.0"
 
     def __init__(self, iface):
         """Constructor.
@@ -2505,6 +2505,9 @@ class QGISRed:
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.openLayer(crs, treeGroup, "Links_Tree", tree=True)
         utils.openLayer(crs, treeGroup, "Nodes_Tree")
+        group = self.getInputGroup()
+        if group is not None:
+            group.setItemVisibilityChecked(False)
 
     def getTreeGroup(self):
         treeGroup = QgsProject.instance().layerTreeRoot().findGroup("Tree")

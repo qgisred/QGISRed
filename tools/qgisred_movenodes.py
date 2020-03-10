@@ -60,7 +60,7 @@ class QGISRedMoveNodesTool(QgsMapTool):
         config = QgsSnappingConfig(QgsProject.instance())
         config.setType(1) #Vertex
         config.setMode(2) #All layers
-        config.setTolerance(2)
+        config.setTolerance(1)
         config.setUnits(2) #Pixels
         config.setEnabled(True)
         self.snapper.setConfig(config)

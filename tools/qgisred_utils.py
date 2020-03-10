@@ -291,7 +291,7 @@ class QGISRedUtils:
         from random import randrange
         
         # get unique values 
-        field = 'Type'
+        field = 'ArcType'
         fni = layer.fields().indexFromName(field)
         unique_values = layer.dataProvider().uniqueValues(fni)
         
@@ -314,10 +314,13 @@ class QGISRedUtils:
                 # Line
                 lineSymbol = QgsSimpleLineSymbolLayer()
                 lineSymbol.setWidthUnit(2) #Pixels
-                lineSymbol.setWidth(1.5)
+                lineSymbol.setWidth(3)
                 lineSymbol.setColor(QColor(178, 47, 60))
                 if "Branch" in unique_value:
                     lineSymbol.setColor(QColor(22, 139, 251))
+                else:
+                    lineSymbol.setPenStyle(3)
+                    lineSymbol.setWidth(1.5)
                 symbol.appendSymbolLayer(lineSymbol)
             
             # replace default symbol layer with the configured one
