@@ -15,6 +15,7 @@ import os
 import datetime
 from time import strftime
 from shutil import copyfile
+from xml.etree import ElementTree
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_projectmanager_dialog.ui'))
 
@@ -25,7 +26,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
     ProjectDirectory = ""
     ProcessDone= False
     gplFile=""
-    ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs", "Demands", "Sources"]
+    ownMainLayers = ["Pipes", "Junctions", "Demands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
     layerExtensions = [".shp", ".dbf", ".shx", ".prj", ".qpj"]
     ownFiles = ["DefaultValues.dbf", "Options.dbf", "Rules.dbf", "Controls.dbf", "Curves.dbf", "Patterns.dbf", "TitleAndNotes.txt" ]
     
@@ -38,11 +39,11 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         self.btOpen.clicked.connect(self.openProject)
         self.btClone.clicked.connect(self.cloneProject)
         
-        self.btLoad.clicked.connect(self.importProject)
-        self.btUnLoad.clicked.connect(self.deleteProject)
+        self.btLoad.clicked.connect(self.loadProject)
+        self.btUnLoad.clicked.connect(self.unloadProject)
         self.btGo2Folder.clicked.connect(self.openFolder)
         #Variables:
-        gplFolder = os.path.join(os.popen('echo %appdata%').read().strip(), "QGISRed")
+        gplFolder = os.path.join(os.getenv('APPDATA'), "QGISRed")
         try: #create directory if does not exist
             os.stat(gplFolder)
         except:
@@ -60,8 +61,8 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         self.twProjectList.setHorizontalHeaderItem(3,item)
         #Rows:
         self.fillTable()
-        self.twProjectList.cellDoubleClicked.connect(self.openProject)
         #self.twProjectList.customContextMenuRequested.connect(self.openFolder)
+        self.twProjectList.cellDoubleClicked.connect(self.openProject)
 
     def config(self, ifac, direct, netw, parent):
         self.parent = parent
@@ -94,97 +95,171 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             values = x.split(";")
             if len(values) == 2:
                 values[1] = values[1].rstrip("\r\n")
-                pp = os.path.realpath(os.path.join(values[1], values[0] + ".gqp"))
+                
+                dateLast = None
+                dateCreate = None
+                
+                pp = os.path.realpath(os.path.join(values[1], values[0] + "_Metadata.txt"))
                 if os.path.exists(pp):
                     validLines.append(x)
-                    f2= open (pp, "r")
-                    lines = f2.readlines()
-                    if len(lines)>= 2:
-                        rowPosition = self.twProjectList.rowCount()
-                        self.twProjectList.insertRow(rowPosition)
-                        self.twProjectList.setItem(rowPosition , 0, QTableWidgetItem(values[0]))
-                        self.twProjectList.setItem(rowPosition , 1, QTableWidgetItem(lines[1]))
-                        self.twProjectList.setItem(rowPosition , 2, QTableWidgetItem(lines[0]))
-                        self.twProjectList.setItem(rowPosition , 3, QTableWidgetItem(values[1]))
+                    data=""
+                    with open(pp, 'r', encoding="latin-1") as content_file:
+                        data = content_file.read()
+                    #Parse data as XML
+                    root = ElementTree.fromstring(data)
+                    #Get data from nodes
+                    for dl in root.iter('DateModification'):
+                        dateLast = dl.text
+                    for dc in root.iter('DateCreation'):
+                        dateCreate = dc.text
+                else:
+                    pp = os.path.realpath(os.path.join(values[1], values[0] + ".gqp")) #old file
+                    if os.path.exists(pp):
+                        validLines.append(x)
+                        f2= open (pp, "r")
+                        lines = f2.readlines()
+                        if len(lines)>= 2:
+                            dateLast = lines[1]
+                            dateCreate = lines[0]
+                
+                if dateLast is not None and dateCreate is not None:
+                    rowPosition = self.twProjectList.rowCount()
+                    self.twProjectList.insertRow(rowPosition)
+                    self.twProjectList.setItem(rowPosition , 0, QTableWidgetItem(values[0]))
+                    self.twProjectList.setItem(rowPosition , 1, QTableWidgetItem(dateLast))
+                    self.twProjectList.setItem(rowPosition , 2, QTableWidgetItem(dateCreate))
+                    self.twProjectList.setItem(rowPosition , 3, QTableWidgetItem(values[1]))
         f.close()
         f = open(self.gplFile, "w")
         for x in validLines:
             QGISRedUtils().writeFile(f, x)
         f.close()
 
-    def addProjectToTable(self, file, folder, net):
-        valid = True
-        if not file=="":
-            folder= os.path.dirname(file)
-            net = os.path.splitext(os.path.basename(file))[0]
-        else:
-            valid=False
-            dirList = os.listdir(folder)
-            for layerName in self.ownMainLayers:
-                valid = valid or net + "_" + layerName + ".shp" in dirList
-            if valid:
-                self.createGqpFile(net,folder)
-        if valid:
+    def addProjectToTable(self, folder, net):
+        dirList = os.listdir(folder)
+        if net + "_Pipes.shp" in dirList:
+            self.updateMetadata(net,folder)
             file = open(self.gplFile, "a+")
             QGISRedUtils().writeFile(file, net + ";" + folder.replace("/","\\") + "\n")
             file.close()
             self.fillTable()
+        else:
+            self.iface.messageBar().pushMessage("Warning", "'" + net + "' project is not found in selected folder", level=1, duration=5)
 
-    def createGqpFile(self, net, folder):
-        f = open(os.path.join(folder, net + ".gqp"), "w+")
-        f.write(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + "\n")
-        f.write(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + "\n")
-        QGISRedUtils().writeFile(f, "[" + net + " Inputs]\n")
+    def updateMetadata(self, net, folder):
+        filePath = os.path.join(folder, net + "_Metadata.txt")
+        isInMetadata=False
+        with open(filePath, 'r', encoding="latin-1") as content_file:
+            isInMetadata = "<Inputs>" in content_file.read()
+        if isInMetadata:
+            return #If there is info in metadata file we don't update it
         dirList = os.listdir(folder)
-        # for fileName in self.ownFiles:
-            # if ".dbf" in fileName:
-                # if net + "_" + fileName in dirList:
-                    # QGISRedUtils().writeFile(f, os.path.join(folder, net + "_" + fileName) + '\n')
+        layersNames=""
         for layerName in self.ownMainLayers:
             if net + "_" + layerName + ".shp" in dirList:
-                QGISRedUtils().writeFile(f, os.path.join(folder, net + "_" + layerName + ".shp") + '\n')
-        f.close()
+                layersNames = layersNames + layerName + ";"
+        if not layersNames=="":
+            layersNames = "[Inputs]" + layersNames.strip(";")
+        self.parent.updateMetadata(layersNames, folder, net)
 
     def clearQGisProject(self,task):
         QgsProject.instance().clear()
         raise Exception('')
 
-    def loadGplFile(self, projectDirectory, networkName):
-        gqpFilename = os.path.join(projectDirectory, networkName + ".gqp")
-        if os.path.exists(gqpFilename):
-            f = open(gqpFilename, "r")
-            lines = f.readlines()
-            qgsFile = lines[2]
-            if ".qgs" in qgsFile or ".qgz" in qgsFile:
-                finfo = QFileInfo(qgsFile)
-                QgsProject.instance().read(finfo.filePath())
-            else:
-                group = None
-                for i in range(2, len(lines)):
-                    if "[" in lines[i]:
-                        groupName = str(lines[i].strip("[").strip("\r\n").strip("]")).replace(networkName + " ", "")
-                        root = QgsProject.instance().layerTreeRoot()
-                        netGroup = root.addGroup(networkName)
-                        group= netGroup.addGroup(groupName)
-                    else:
-                        layerPath= lines[i].strip("\r\n")
+    def openProjectInQgis(self, projectDirectory, networkName):
+        metadataFile = os.path.join(projectDirectory, networkName + "_Metadata.txt")
+        if os.path.exists(metadataFile):
+            #Read data as text plain to include the encoding
+            data=""
+            with open(metadataFile, 'r', encoding="latin-1") as content_file:
+                data = content_file.read()
+            #Parse data as XML
+            root = ElementTree.fromstring(data)
+            #Get data from nodes
+            for qgs in root.findall('./ThirdParty/QGISRed/QGisProject'):
+                if ".qgs" in qgs.text or ".qgz" in qgs.text:
+                    finfo = QFileInfo(qgs.text)
+                    QgsProject.instance().read(finfo.filePath())
+                    return
+            for groups in root.findall('./ThirdParty/QGISRed/Groups'):
+                for group in groups:
+                    groupName = group.tag
+                    root = QgsProject.instance().layerTreeRoot()
+                    netGroup = root.addGroup(networkName)
+                    treeGroup= netGroup.addGroup(groupName)
+                    for lay in group.iter('Layer'):
+                        layerName= lay.text
+                        layerPath = os.path.join(projectDirectory, networkName + "_" + layerName + ".shp")
                         if not os.path.exists(layerPath):
                             continue
-                        vlayer = None
-                        layerName = os.path.splitext(os.path.basename(layerPath))[0].replace(networkName + "_", "")
-                        if group is None:
+                        if treeGroup is None:
                             vlayer = self.iface.addVectorLayer(layerPath, layerName, "ogr")
                         else:
                             vlayer = QgsVectorLayer(layerPath, layerName, "ogr")
                             QgsProject.instance().addMapLayer(vlayer, False)
-                            group.insertChildNode(0, QgsLayerTreeLayer(vlayer))
-                        if not vlayer is None:
+                            treeGroup.insertChildNode(0, QgsLayerTreeLayer(vlayer))
+                        if vlayer is not None:
                             if ".shp" in layerPath:
-                                names = (os.path.splitext(os.path.basename(layerPath))[0]).split("_")
-                                nameLayer = names[len(names)-1]
-                                QGISRedUtils().setStyle(vlayer, nameLayer.lower())
+                                QGISRedUtils().setStyle(vlayer, layerName.lower())
+        else: #old file
+            gqpFilename = os.path.join(projectDirectory, networkName + ".gqp")
+            if os.path.exists(gqpFilename):
+                f = open(gqpFilename, "r")
+                lines = f.readlines()
+                qgsFile = lines[2]
+                if ".qgs" in qgsFile or ".qgz" in qgsFile:
+                    finfo = QFileInfo(qgsFile)
+                    QgsProject.instance().read(finfo.filePath())
+                else:
+                    group = None
+                    for i in range(2, len(lines)):
+                        if "[" in lines[i]:
+                            groupName = str(lines[i].strip("[").strip("\r\n").strip("]")).replace(networkName + " ", "")
+                            root = QgsProject.instance().layerTreeRoot()
+                            netGroup = root.addGroup(networkName)
+                            group= netGroup.addGroup(groupName)
+                        else:
+                            layerPath= lines[i].strip("\r\n")
+                            if not os.path.exists(layerPath):
+                                continue
+                            vlayer = None
+                            layerName = os.path.splitext(os.path.basename(layerPath))[0].replace(networkName + "_", "")
+                            if group is None:
+                                vlayer = self.iface.addVectorLayer(layerPath, layerName, "ogr")
+                            else:
+                                vlayer = QgsVectorLayer(layerPath, layerName, "ogr")
+                                QgsProject.instance().addMapLayer(vlayer, False)
+                                group.insertChildNode(0, QgsLayerTreeLayer(vlayer))
+                            if not vlayer is None:
+                                if ".shp" in layerPath:
+                                    names = (os.path.splitext(os.path.basename(layerPath))[0]).split("_")
+                                    nameLayer = names[len(names)-1]
+                                    QGISRedUtils().setStyle(vlayer, nameLayer.lower())
+            else:
+                self.iface.messageBar().pushMessage("Warning", "File not found", level=1, duration=5)
+
+    """MainMethods"""
+    def openProject(self):
+        selectionModel = self.twProjectList.selectionModel()
+        if selectionModel.hasSelection():
+            valid = self.parent.isOpenedProject()
+            if valid:
+                task1 = QgsTask.fromFunction('Dismiss this message', self.clearQGisProject, on_finished=self.openProjectProcess)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
         else:
-            self.iface.messageBar().pushMessage("Warning", "File not found", level=1, duration=5)
+            self.iface.messageBar().pushMessage("Warning", "You need to select a valid project to open it.", level=1, duration=5)
+
+    def openProjectProcess(self, exception=None, result=None):
+        selectionModel = self.twProjectList.selectionModel()
+        for row in selectionModel.selectedRows():
+            rowIndex = row.row()
+            self.NetworkName = str(self.twProjectList.item(rowIndex, 0).text())
+            self.ProjectDirectory = str(self.twProjectList.item(rowIndex, 3).text())
+            self.openProjectInQgis(self.ProjectDirectory, self.NetworkName)
+            break
+        self.close()
+        self.ProcessDone = True
 
     def createProject(self):
         valid = self.parent.isOpenedProject()
@@ -217,62 +292,6 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             self.NetworkName = dlg.NetworkName
             self.ProcessDone = True
 
-    def deleteProject(self):
-        selectionModel = self.twProjectList.selectionModel()
-        if selectionModel.hasSelection():
-            for row in selectionModel.selectedRows():
-                if self.ProjectDirectory.replace("/","\\") == str(self.twProjectList.item(row.row(),3).text()) and self.NetworkName == str(self.twProjectList.item(row.row(),0).text()):
-                    self.iface.messageBar().pushMessage("Warning", "Current project can not be deleted.", level=1, duration=5)
-                    return
-                if os.path.exists(self.gplFile):
-                    f = open(self.gplFile, "r")
-                    lines = f.readlines()
-                    f.close()
-                    f = open(self.gplFile, "w")
-                    i=0
-                    for line in lines:
-                        if not i==row.row():
-                            QGISRedUtils().writeFile(f, line)
-                        i=i+1
-                    f.close()
-            self.fillTable()
-
-    def importProject(self):
-        dlg = QGISRedImportProjectDialog()
-        # Run the dialog event loop
-        dlg.exec_()
-        result = dlg.ProcessDone
-        if result:
-            path=""
-            name=""
-            valid = True
-            # if dlg.IsFile:
-                # self.addProjectToTable(dlg.File, "", "")
-            # else:
-            self.addProjectToTable("", dlg.ProjectDirectory, dlg.NetworkName)
-
-    def openProject(self):
-        selectionModel = self.twProjectList.selectionModel()
-        if selectionModel.hasSelection():
-            valid = self.parent.isOpenedProject()
-            if valid:
-                task1 = QgsTask.fromFunction('Dismiss this message', self.clearQGisProject, on_finished=self.openProjectProcess)
-                task1.run()
-                QgsApplication.taskManager().addTask(task1)
-        else:
-            self.iface.messageBar().pushMessage("Warning", "You need to select a valid project to open it.", level=1, duration=5)
-
-    def openProjectProcess(self, exception=None, result=None):
-        selectionModel = self.twProjectList.selectionModel()
-        for row in selectionModel.selectedRows():
-            rowIndex = row.row()
-            self.NetworkName = str(self.twProjectList.item(rowIndex, 0).text())
-            self.ProjectDirectory = str(self.twProjectList.item(rowIndex, 3).text())
-            self.loadGplFile(self.ProjectDirectory, self.NetworkName)
-            break
-        self.close()
-        self.ProcessDone = True
-
     def cloneProject(self):
         selectionModel = self.twProjectList.selectionModel()
         if selectionModel.hasSelection():
@@ -298,10 +317,38 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                             if os.path.exists(filePath):
                                     copyfile(filePath, os.path.join(dlg.ProjectDirectory, dlg.NetworkName + "_" + fileName))
 
-                        self.addProjectToTable("", dlg.ProjectDirectory, dlg.NetworkName)
+                        self.addProjectToTable(dlg.ProjectDirectory, dlg.NetworkName)
                 break
         else:
             self.iface.messageBar().pushMessage("Warning", "There is no a selected project to clone.", level=1, duration=5)
+
+    def loadProject(self):
+        dlg = QGISRedImportProjectDialog()
+        # Run the dialog event loop
+        dlg.exec_()
+        result = dlg.ProcessDone
+        if result:
+            self.addProjectToTable(dlg.ProjectDirectory, dlg.NetworkName)
+
+    def unloadProject(self):
+        selectionModel = self.twProjectList.selectionModel()
+        if selectionModel.hasSelection():
+            for row in selectionModel.selectedRows():
+                if self.ProjectDirectory.replace("/","\\") == str(self.twProjectList.item(row.row(),3).text()) and self.NetworkName == str(self.twProjectList.item(row.row(),0).text()):
+                    self.iface.messageBar().pushMessage("Warning", "Current project can not be unloaded.", level=1, duration=5)
+                    return
+                if os.path.exists(self.gplFile):
+                    f = open(self.gplFile, "r")
+                    lines = f.readlines()
+                    f.close()
+                    f = open(self.gplFile, "w")
+                    i=0
+                    for line in lines:
+                        if not i==row.row():
+                            QGISRedUtils().writeFile(f, line)
+                        i=i+1
+                    f.close()
+            self.fillTable()
 
     def openFolder(self):
         selectionModel = self.twProjectList.selectionModel()

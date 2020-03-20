@@ -10,6 +10,7 @@ from ..tools.qgisred_utils import QGISRedUtils
 import os
 from ctypes import*
 import tempfile
+from xml.etree import ElementTree
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_newproject_dialog.ui'))
 
@@ -31,7 +32,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         self.btSelectDirectory.clicked.connect(self.selectDirectory)
         self.btSelectCRS.clicked.connect(self.selectCRS)
         #Variables:
-        gplFolder = os.path.join(os.popen('echo %appdata%').read().strip(), "QGISRed")
+        gplFolder = os.path.join(os.getenv('APPDATA'), "QGISRed")
         try: #create directory if does not exist
             os.stat(gplFolder)
         except:
@@ -121,26 +122,42 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         self.cbLevelmeters.setChecked(False)
 
     def readTitleAndNotes(self):
-        filePath = os.path.join(self.ProjectDirectory, self.NetworkName + "_TitleAndNotes.txt")
+        filePath = os.path.join(self.ProjectDirectory, self.NetworkName + "_Metadata.txt")
+        if not os.path.exists(filePath): #old versions
+            filePath = os.path.join(self.ProjectDirectory, self.NetworkName + "_TitleAndNotes.txt")
+        
         if os.path.exists(filePath):
-            f = open(filePath, "r", encoding="latin-1")
-            notes=False
-            notesTxt=""
-            for line in f:
-                if "<Title>" in line:
-                    self.tbScenarioName.setText(line.replace("<Title>","").replace("</Title>","").strip())
-                if "<Notes>" in line:
-                    notes=True
-                    notesTxt = line.replace("<Notes>","").replace("</Notes>","").strip()
-                    if "</Notes>" in line:
-                        self.tbNotes.setText(notesTxt)
-                        return
-                elif "</Notes>" in line:
-                    notesTxt = notesTxt + '\n' + line.replace("</Notes>","").strip()
-                    self.tbNotes.setText(notesTxt)
-                    return
-                elif notes:
-                    notesTxt = notesTxt + '\n' + line.strip()
+            #Read data as text plain to include the encoding
+            data=""
+            with open(filePath, 'r', encoding="latin-1") as content_file:
+                data = content_file.read()
+            #Parse data as XML
+            root = ElementTree.fromstring(data)
+            #Get data from nodes
+            for title in root.iter('Title'):
+                self.tbScenarioName.setText(title.text)
+            for notes in root.iter('Notes'):
+                self.tbNotes.setText(notes.text)
+            
+            # f = open(filePath, "r", encoding="latin-1")
+            # notes=False
+            # notesTxt=""
+            # for line in f:
+                # if "<Title>" in line:
+                    # self.tbScenarioName.setText(line.replace("<Title>","").replace("</Title>","").strip())
+                # if "<Notes>" in line:
+                    # notes=True
+                    # notesTxt = line.replace("<Notes>","").replace("</Notes>","").strip()
+                    # if "</Notes>" in line:
+                        # self.tbNotes.setText(notesTxt)
+                        # return
+                # elif "</Notes>" in line:
+                    # notesTxt = notesTxt + '\n' + line.replace("</Notes>","").strip()
+                    # self.tbNotes.setText(notesTxt)
+                    # return
+                # elif notes:
+                    # notesTxt = notesTxt + '\n' + line.strip()
+        pass
 
     def selectDirectory(self):
         selected_directory = QFileDialog.getExistingDirectory()
@@ -161,6 +178,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
                 self.tbCRS.setText(self.CRS.description())
 
     def getInputGroup(self):
+        #Same method in qgisred_plugin
         inputGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
         if inputGroup is None:
             netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)

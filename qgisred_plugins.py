@@ -69,7 +69,7 @@ class QGISRed:
     ResultDockwidget = None
     ProjectDirectory = ""
     NetworkName = ""
-    ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs", "Demands", "Sources"]
+    ownMainLayers = ["Pipes", "Junctions", "Demands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
     ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns"]
     complementaryLayers = []
     TemporalFolder = "Temporal folder"
@@ -201,7 +201,7 @@ class QGISRed:
         self.add_action(icon_path, text=self.tr(u'Project manager'), callback=self.runProjectManager, menubar=self.fileMenu, toolbar=self.fileToolbar,
             actionBase = fileDropButton, add_to_toolbar =True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconCreateProject.png'
-        self.add_action(icon_path, text=self.tr(u'Create project'), callback=self.runCreateProject, menubar=self.fileMenu, toolbar=self.fileToolbar,
+        self.add_action(icon_path, text=self.tr(u'Create project'), callback=self.runCanCreateProject, menubar=self.fileMenu, toolbar=self.fileToolbar,
             actionBase = fileDropButton, add_to_toolbar =True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconImport.png'
         self.add_action(icon_path, text=self.tr(u'Import data'), callback=self.runImport, menubar=self.fileMenu, toolbar=self.fileToolbar,
@@ -450,7 +450,7 @@ class QGISRed:
         self.checkDependencies()
         
         #SHPs temporal folder
-        self.tempFolder = os.path.join(os.path.join(os.popen('echo %appdata%').read().strip(), "QGISRed"),"TempFiles")
+        self.tempFolder = tempfile._get_default_tempdir() + "\\QGISRed_" + next(tempfile._get_candidate_names())
         try: #create directory if does not exist
             os.stat(self.tempFolder)
         except:
@@ -464,9 +464,12 @@ class QGISRed:
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
-        dirpath = os.path.join(tempfile._get_default_tempdir(), "qgisred" + self.KeyTemp)
-        if os.path.exists(dirpath) and os.path.isdir(dirpath):
-            shutil.rmtree(dirpath)
+        # dirpath = os.path.join(tempfile._get_default_tempdir(), "qgisred" + self.KeyTemp)
+        # if os.path.exists(dirpath) and os.path.isdir(dirpath):
+            # shutil.rmtree(dirpath)
+        if os.path.exists(self.tempFolder) and os.path.isdir(self.tempFolder):
+            shutil.rmtree(self.tempFolder)
+        
         
         if self.ResultDockwidget is not None:
             self.ResultDockwidget.close()
@@ -497,47 +500,51 @@ class QGISRed:
         if self.qgisredmenu:
             self.qgisredmenu.menuAction().setVisible(False)
 
-    def createGqpFile(self):
-        """Write a .gqp file with datetimes and opened files (or QGis project)"""
-        gqp = os.path.join(self.ProjectDirectory, self.NetworkName + ".gqp")
-        creationDate=""
-        if os.path.exists(gqp):
-            f= open(gqp, "r")
-            lines = f.readlines()
-            if len(lines)>=1:
-                creationDate = lines[0].strip("\r\n")
-            f.close()
-        f = open(gqp, "w+")
-        if creationDate=="":
-            creationDate = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        f.write(creationDate + '\n')
-        f.write(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + "\n")
+    def updateMetadata(self, layersNames="", project="", net=""):
+        if not self.checkDependencies(): return
         
-        qgsFilename =QgsProject.instance().fileName()
-        if not qgsFilename=="":
-            QGISRedUtils().writeFile(f, qgsFilename)
-        else:
-            layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
-            #Inputs
-            groupName = "Inputs"
-            dataGroup = QgsProject.instance().layerTreeRoot().findGroup(groupName)
-            if dataGroup is None:
-                f.write("[NoGroup]\n")
-                for layer in reversed(layers):
-                    QGISRedUtils().writeFile(f, layer.dataProvider().dataSourceUri().split("|")[0] + '\n')
+        #Validations
+        if project=="" and net=="": #Comes from ProjectManager
+            self.defineCurrentProject()
+            if not self.isValidProject(): return
+            project = self.ProjectDirectory
+            net = self.NetworkName
+        
+        if layersNames=="":
+            qgsFilename =QgsProject.instance().fileName()
+            if not qgsFilename=="":
+                layersNames = qgsFilename
             else:
-                QGISRedUtils().writeFile(f, "[Inputs]\n")
-                self.writeLayersOfGroups(groupName, f, layers)
-        f.close()
+                layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+                #Inputs
+                groupName = "Inputs"
+                dataGroup = QgsProject.instance().layerTreeRoot().findGroup(groupName)
+                if dataGroup is not None:
+                    layersNames = layersNames + "[Inputs]"
+                    layersNames = layersNames + self.writeLayersOfGroups(groupName, layers)
+                    layersNames = layersNames.strip(";")
+        
+        #Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QGISRedUtils().setCurrentDirectory()
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.UpdateMetadata.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.UpdateMetadata.restype = c_char_p
+        b = mydll.UpdateMetadata(project.encode('utf-8'), net.encode('utf-8'), layersNames.encode('utf-8'))
+        b= "".join(map(chr, b)) #bytes to string
+        
+        QApplication.restoreOverrideCursor()
 
-    def writeLayersOfGroups(self, groupName, file, layers):
-        """Write the layer path in a file"""
+    def writeLayersOfGroups(self, groupName, layers):
         root = QgsProject.instance().layerTreeRoot()
+        paths=""
         for layer in reversed(layers):
             parent = root.findLayer(layer.id())
             if not parent is None:
                 if parent.parent().name() == groupName:
-                    QGISRedUtils().writeFile(file, layer.dataProvider().dataSourceUri().split("|")[0] + '\n')
+                    rutaLayer= layer.dataProvider().dataSourceUri().split("|")[0]
+                    paths = paths + os.path.splitext(os.path.basename(rutaLayer))[0].replace(self.NetworkName+"_","") + ';'
+        return paths
 
     def defineCurrentProject(self):
         """Identifying the QGISRed current project"""
@@ -714,7 +721,7 @@ class QGISRed:
             inputGroup = self.getInputGroup()
             utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
             utils.openElementsLayers(inputGroup, crs, self.complementaryLayers, [])
-            self.createGqpFile()
+            self.updateMetadata()
             
             self.setSelectedFeaturesById()
             raise Exception('')
@@ -774,18 +781,13 @@ class QGISRed:
             group.setItemVisibilityChecked(self.ResultDockwidget.isVisible())
 
     def getInputGroup(self):
+        #Same method in qgisred_newproject_dialog
         inputGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
         if inputGroup is None:
             netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
             if netGroup is None:
                 root = QgsProject.instance().layerTreeRoot()
-                # layers = QgsProject.instance().layerTreeRoot().findLayers()
-                # print(layers)
                 netGroup = root.insertGroup(0,self.NetworkName)
-                # for ly in layers:
-                    # ly2 = ly.clone()
-                    # root.addChildNode(ly2)
-                    # root.removeChildNode(ly)
             inputGroup = netGroup.addGroup("Inputs")
         return inputGroup
 
@@ -1058,43 +1060,42 @@ class QGISRed:
         if result:
             self.NetworkName = dlg.NetworkName
             self.ProjectDirectory = dlg.ProjectDirectory
-            self.createGqpFile()
+            #self.updateMetadata()
+            pass
 
     def runCanCreateProject(self):
         if not self.checkDependencies(): return
         
-        valid = self.isOpenedProject()
-        if valid:
-            task1 = QgsTask.fromFunction('', self.clearQGisProject, on_finished=self.runCreateProject)
-            task1.run()
-            QgsApplication.taskManager().addTask(task1)
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            self.runCreateProject()
+        else:
+            valid = self.isOpenedProject()
+            if valid:
+                task1 = QgsTask.fromFunction('', self.clearQGisProject, on_finished=self.runCreateProject)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
 
     def runCreateProject(self, exception=None, result=None):
         if not self.checkDependencies(): return
-        self.defineCurrentProject()
-        # show the dialog
         
-        valid = self.isOpenedProject()
-        if valid:
+        if not self.ProjectDirectory == self.TemporalFolder:
             QgsProject.instance().clear()
             self.defineCurrentProject()
-            dlg = QGISRedNewProjectDialog()
-            dlg.config(self.iface, self.ProjectDirectory, self.NetworkName)
-            # Run the dialog event loop
-            dlg.exec_()
-            result = dlg.ProcessDone
-            if result:
-                self.ProjectDirectory = dlg.ProjectDirectory
-                self.NetworkName = dlg.NetworkName
-                self.createGqpFile()
+        dlg = QGISRedNewProjectDialog()
+        dlg.config(self.iface, self.ProjectDirectory, self.NetworkName)
+        # Run the dialog event loop
+        dlg.exec_()
+        result = dlg.ProcessDone
+        if result:
+            self.ProjectDirectory = dlg.ProjectDirectory
+            self.NetworkName = dlg.NetworkName
+            self.updateMetadata()
 
     def runImport(self):
         if not self.checkDependencies(): return
         self.defineCurrentProject()
-        if self.ProjectDirectory == self.TemporalFolder:
-            if not self.isOpenedProject():
-                return
-        else:
+        if not self.ProjectDirectory == self.TemporalFolder:
             if self.isLayerOnEdition():
                 return
         # show the dialog
@@ -1107,7 +1108,7 @@ class QGISRed:
         if result:
             self.ProjectDirectory = dlg.ProjectDirectory
             self.NetworkName = dlg.NetworkName
-            self.createGqpFile()
+            self.updateMetadata()
 
     def runCloseProject(self):
         self.iface.newProject(True)
@@ -1128,12 +1129,12 @@ class QGISRed:
         if result:
             self.ProjectDirectory = dlg.ProjectDirectory
             self.NetworkName = dlg.NetworkName
-            self.createGqpFile()
+            self.updateMetadata()
 
     def runSaveProject(self):
         self.defineCurrentProject()
         if not self.ProjectDirectory == self.TemporalFolder:
-            self.createGqpFile()
+            self.updateMetadata()
 
     def runClearedProject(self):
         if self.ResultDockwidget is not None:
@@ -1956,6 +1957,7 @@ class QGISRed:
         if self.isLayerOnEdition(): return
         
         #Process
+        print(self.tempFolder)
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")

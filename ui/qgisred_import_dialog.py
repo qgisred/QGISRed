@@ -623,6 +623,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             if not name == "None":
                 fields = fields + name
             fields = fields + ";"
+            fields = fields + ";" #InitialQuality
             name = self.cbTank_Tag.currentText()
             if not name == "None":
                 fields = fields + name
