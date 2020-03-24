@@ -3,13 +3,16 @@ from qgis.PyQt import QtGui, uic
 from PyQt5.QtWidgets import QFileDialog, QDialog
 import os
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_cloneproject_dialog.ui'))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(
+    os.path.dirname(__file__), 'qgisred_cloneproject_dialog.ui'))
+
 
 class QGISRedCloneProjectDialog(QDialog, FORM_CLASS):
-    #Common variables
+    # Common variables
     NetworkName = ""
     ProjectDirectory = ""
-    ProcessDone=False
+    ProcessDone = False
+
     def __init__(self, parent=None):
         """Constructor."""
         super(QGISRedCloneProjectDialog, self).__init__(parent)
@@ -26,15 +29,16 @@ class QGISRedCloneProjectDialog(QDialog, FORM_CLASS):
 
     def accept(self):
         self.NetworkName = self.tbNetworkName.text()
-        if self.NetworkName=="":
+        if self.NetworkName == "":
             self.lbMessage.setText("Not valid New Network's Name")
             return
-        if self.ProjectDirectory=="":
+        if self.ProjectDirectory == "":
             self.lbMessage.setText("Not valid Project Directory")
             return
-        
-        if os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + ".gqp" )):
-            self.lbMessage.setText("There is already a project with this name in this folder.")
+
+        if os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + ".gqp")):
+            self.lbMessage.setText(
+                "There is already a project with this name in this folder.")
             return
 
         self.ProcessDone = True

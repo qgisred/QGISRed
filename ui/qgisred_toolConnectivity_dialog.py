@@ -3,14 +3,17 @@ from qgis.PyQt import QtGui, uic
 from PyQt5.QtWidgets import QFileDialog, QDialog
 import os
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_toolConnectivity_dialog.ui'))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(
+    os.path.dirname(__file__), 'qgisred_toolConnectivity_dialog.ui'))
+
 
 class QGISRedConnectivityToolDialog(QDialog, FORM_CLASS):
-    #Common variables
+    # Common variables
     Lines = "5"
     Remove = False
     Export = False
-    ProcessDone=False
+    ProcessDone = False
+
     def __init__(self, parent=None):
         """Constructor."""
         super(QGISRedConnectivityToolDialog, self).__init__(parent)
@@ -20,7 +23,7 @@ class QGISRedConnectivityToolDialog(QDialog, FORM_CLASS):
 
     def accept(self):
         self.Lines = self.tbLines.text()
-        if self.Lines=="":
+        if self.Lines == "":
             self.lbMessage.setText("Not valid number for lines")
             return
         try:

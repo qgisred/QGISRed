@@ -2,7 +2,7 @@
 from qgis.gui import QgsMessageBar
 from qgis.core import QgsVectorLayer, QgsProject, QgsCoordinateReferenceSystem
 from qgis.PyQt import QtGui, uic
-from qgis.gui import QgsProjectionSelectionDialog  as QgsGenericProjectionSelector 
+from qgis.gui import QgsProjectionSelectionDialog as QgsGenericProjectionSelector
 from qgis.core import Qgis, QgsTask, QgsApplication
 from PyQt5.QtWidgets import QFileDialog, QDialog, QApplication
 from PyQt5.QtCore import Qt
@@ -12,17 +12,20 @@ from ctypes import*
 import tempfile
 from xml.etree import ElementTree
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_newproject_dialog.ui'))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(
+    os.path.dirname(__file__), 'qgisred_newproject_dialog.ui'))
+
 
 class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
-    #Common variables
+    # Common variables
     iface = None
     NetworkName = ""
     ProjectDirectory = ""
-    CRS= None
-    ProcessDone= False
-    gplFile=""
+    CRS = None
+    ProcessDone = False
+    gplFile = ""
     TemporalFolder = "Temporal folder"
+
     def __init__(self, parent=None):
         """Constructor."""
         super(QGISRedNewProjectDialog, self).__init__(parent)
@@ -31,20 +34,21 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         self.btEditProject.clicked.connect(self.editProject)
         self.btSelectDirectory.clicked.connect(self.selectDirectory)
         self.btSelectCRS.clicked.connect(self.selectCRS)
-        #Variables:
+        # Variables:
         gplFolder = os.path.join(os.getenv('APPDATA'), "QGISRed")
-        try: #create directory if does not exist
+        try:  # create directory if does not exist
             os.stat(gplFolder)
         except:
-            os.mkdir(gplFolder) 
+            os.mkdir(gplFolder)
         self.gplFile = os.path.join(gplFolder, "qgisredprojectlist.gpl")
 
     def config(self, ifac, direct, netw):
-        self.iface=ifac
+        self.iface = ifac
         self.CRS = self.iface.mapCanvas().mapSettings().destinationCrs()
-        if self.CRS.srsid()==0:
+        if self.CRS.srsid() == 0:
             self.CRS = QgsCoordinateReferenceSystem()
-            self.CRS.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
+            self.CRS.createFromId(
+                3452, QgsCoordinateReferenceSystem.InternalCrsId)
         self.tbCRS.setText(self.CRS.description())
         self.ProcessDone = False
         self.NetworkName = netw
@@ -52,10 +56,10 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         self.tbNetworkName.setText(netw)
         self.tbProjectDirectory.setText(direct)
         self.tbProjectDirectory.setCursorPosition(0)
-        newProject = self.ProjectDirectory==self.TemporalFolder
+        newProject = self.ProjectDirectory == self.TemporalFolder
         if newProject:
             self.setWindowTitle("QGISRed: Create Project")
-            self.resize(462,100)
+            self.resize(462, 100)
         else:
             self.setWindowTitle("QGISRed: Edit Project")
         self.gbInfo.setVisible(not newProject)
@@ -74,30 +78,50 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         else:
             dirList = os.listdir(self.ProjectDirectory)
             self.cbPipes.setChecked(self.NetworkName + "_Pipes.shp" in dirList)
-            self.cbJunctions.setChecked(self.NetworkName + "_Junctions.shp" in dirList)
+            self.cbJunctions.setChecked(
+                self.NetworkName + "_Junctions.shp" in dirList)
             self.cbTanks.setChecked(self.NetworkName + "_Tanks.shp" in dirList)
-            self.cbReservoirs.setChecked(self.NetworkName + "_Reservoirs.shp" in dirList)
-            self.cbValves.setChecked(self.NetworkName + "_Valves.shp" in dirList)
+            self.cbReservoirs.setChecked(
+                self.NetworkName + "_Reservoirs.shp" in dirList)
+            self.cbValves.setChecked(
+                self.NetworkName + "_Valves.shp" in dirList)
             self.cbPumps.setChecked(self.NetworkName + "_Pumps.shp" in dirList)
-            self.cbPipes.setEnabled(not self.NetworkName + "_Pipes.shp" in dirList)
-            self.cbJunctions.setEnabled(not self.NetworkName + "_Junctions.shp" in dirList)
-            self.cbTanks.setEnabled(not self.NetworkName + "_Tanks.shp" in dirList)
-            self.cbReservoirs.setEnabled(not self.NetworkName + "_Reservoirs.shp" in dirList)
-            self.cbValves.setEnabled(not self.NetworkName + "_Valves.shp" in dirList)
-            self.cbPumps.setEnabled(not self.NetworkName + "_Pumps.shp" in dirList)
-            #others (future versions)
-            self.cbDemands.setChecked(self.NetworkName + "_Demands.shp" in dirList)
-            self.cbSources.setChecked(self.NetworkName + "_Sources.shp" in dirList)
-            self.cbIsolatedValves.setChecked(self.NetworkName + "_IsolationValves.shp" in dirList)
+            self.cbPipes.setEnabled(
+                not self.NetworkName + "_Pipes.shp" in dirList)
+            self.cbJunctions.setEnabled(
+                not self.NetworkName + "_Junctions.shp" in dirList)
+            self.cbTanks.setEnabled(
+                not self.NetworkName + "_Tanks.shp" in dirList)
+            self.cbReservoirs.setEnabled(
+                not self.NetworkName + "_Reservoirs.shp" in dirList)
+            self.cbValves.setEnabled(
+                not self.NetworkName + "_Valves.shp" in dirList)
+            self.cbPumps.setEnabled(
+                not self.NetworkName + "_Pumps.shp" in dirList)
+            # others (future versions)
+            self.cbDemands.setChecked(
+                self.NetworkName + "_Demands.shp" in dirList)
+            self.cbSources.setChecked(
+                self.NetworkName + "_Sources.shp" in dirList)
+            self.cbIsolatedValves.setChecked(
+                self.NetworkName + "_IsolationValves.shp" in dirList)
             # self.cbCeckValves.setChecked(self.NetworkName + "_CheckValves.shp" in dirList)
-            self.cbHydrants.setChecked(self.NetworkName + "_Hydrants.shp" in dirList)
-            self.cbPurgeValves.setChecked(self.NetworkName + "_WashoutValves.shp" in dirList)
-            self.cbAirReleases.setChecked(self.NetworkName + "_AirReleaseValves.shp" in dirList)
-            self.cbConnections.setChecked(self.NetworkName + "_ServiceConnections.shp" in dirList)
-            self.cbManometers.setChecked(self.NetworkName + "_Manometers.shp" in dirList)
-            self.cbFlowmeters.setChecked(self.NetworkName + "_Flowmeters.shp" in dirList)
-            self.cbCountmeters.setChecked(self.NetworkName + "_Countermeters.shp" in dirList)
-            self.cbLevelmeters.setChecked(self.NetworkName + "_LevelSensors.shp" in dirList)
+            self.cbHydrants.setChecked(
+                self.NetworkName + "_Hydrants.shp" in dirList)
+            self.cbPurgeValves.setChecked(
+                self.NetworkName + "_WashoutValves.shp" in dirList)
+            self.cbAirReleases.setChecked(
+                self.NetworkName + "_AirReleaseValves.shp" in dirList)
+            self.cbConnections.setChecked(
+                self.NetworkName + "_ServiceConnections.shp" in dirList)
+            self.cbManometers.setChecked(
+                self.NetworkName + "_Manometers.shp" in dirList)
+            self.cbFlowmeters.setChecked(
+                self.NetworkName + "_Flowmeters.shp" in dirList)
+            self.cbCountmeters.setChecked(
+                self.NetworkName + "_Countermeters.shp" in dirList)
+            self.cbLevelmeters.setChecked(
+                self.NetworkName + "_LevelSensors.shp" in dirList)
 
     def setDefaultElements(self):
         self.cbPipes.setChecked(True)
@@ -106,10 +130,10 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         self.cbReservoirs.setChecked(True)
         self.cbValves.setChecked(True)
         self.cbPumps.setChecked(True)
-        
+
         self.cbDemands.setChecked(False)
         self.cbSources.setChecked(False)
-        
+
         self.cbIsolatedValves.setChecked(False)
         # self.cbCeckValves.setChecked(False)
         self.cbHydrants.setChecked(False)
@@ -122,41 +146,43 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         self.cbLevelmeters.setChecked(False)
 
     def readTitleAndNotes(self):
-        filePath = os.path.join(self.ProjectDirectory, self.NetworkName + "_Metadata.txt")
-        if not os.path.exists(filePath): #old versions
-            filePath = os.path.join(self.ProjectDirectory, self.NetworkName + "_TitleAndNotes.txt")
-        
+        filePath = os.path.join(self.ProjectDirectory,
+                                self.NetworkName + "_Metadata.txt")
+        if not os.path.exists(filePath):  # old versions
+            filePath = os.path.join(
+                self.ProjectDirectory, self.NetworkName + "_TitleAndNotes.txt")
+
         if os.path.exists(filePath):
-            #Read data as text plain to include the encoding
-            data=""
+            # Read data as text plain to include the encoding
+            data = ""
             with open(filePath, 'r', encoding="latin-1") as content_file:
                 data = content_file.read()
-            #Parse data as XML
+            # Parse data as XML
             root = ElementTree.fromstring(data)
-            #Get data from nodes
+            # Get data from nodes
             for title in root.iter('Title'):
                 self.tbScenarioName.setText(title.text)
             for notes in root.iter('Notes'):
                 self.tbNotes.setText(notes.text)
-            
+
             # f = open(filePath, "r", encoding="latin-1")
             # notes=False
             # notesTxt=""
             # for line in f:
                 # if "<Title>" in line:
-                    # self.tbScenarioName.setText(line.replace("<Title>","").replace("</Title>","").strip())
+                # self.tbScenarioName.setText(line.replace("<Title>","").replace("</Title>","").strip())
                 # if "<Notes>" in line:
-                    # notes=True
-                    # notesTxt = line.replace("<Notes>","").replace("</Notes>","").strip()
-                    # if "</Notes>" in line:
-                        # self.tbNotes.setText(notesTxt)
-                        # return
+                # notes=True
+                # notesTxt = line.replace("<Notes>","").replace("</Notes>","").strip()
+                # if "</Notes>" in line:
+                # self.tbNotes.setText(notesTxt)
+                # return
                 # elif "</Notes>" in line:
-                    # notesTxt = notesTxt + '\n' + line.replace("</Notes>","").strip()
-                    # self.tbNotes.setText(notesTxt)
-                    # return
+                # notesTxt = notesTxt + '\n' + line.replace("</Notes>","").strip()
+                # self.tbNotes.setText(notesTxt)
+                # return
                 # elif notes:
-                    # notesTxt = notesTxt + '\n' + line.strip()
+                # notesTxt = notesTxt + '\n' + line.strip()
         pass
 
     def selectDirectory(self):
@@ -172,24 +198,25 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
         projSelector = QgsGenericProjectionSelector()
         if projSelector.exec_():
             crsId = projSelector.crs().srsid()
-            if not crsId==0:
+            if not crsId == 0:
                 self.CRS = QgsCoordinateReferenceSystem()
-                self.CRS.createFromId(crsId, QgsCoordinateReferenceSystem.InternalCrsId)
+                self.CRS.createFromId(
+                    crsId, QgsCoordinateReferenceSystem.InternalCrsId)
                 self.tbCRS.setText(self.CRS.description())
 
     def getInputGroup(self):
-        #Same method in qgisred_plugin
+        # Same method in qgisred_plugin
         inputGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
         if inputGroup is None:
             netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
             if netGroup is None:
                 root = QgsProject.instance().layerTreeRoot()
-                netGroup = root.insertGroup(0,self.NetworkName)
+                netGroup = root.insertGroup(0, self.NetworkName)
             inputGroup = netGroup.addGroup("Inputs")
         return inputGroup
 
     def createElementsList(self):
-        list =""
+        list = ""
         if self.cbPipes.isEnabled() and self.cbPipes.isChecked():
             list = list + "pipe" + ";"
         if self.cbJunctions.isEnabled() and self.cbJunctions.isChecked():
@@ -206,32 +233,33 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
 
     def createComplementaryList(self):
         list = ""
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedUtils(self.ProjectDirectory,
+                             self.NetworkName, self.iface)
         if self.cbDemands.isChecked() and not utils.isLayerOpened("Demands"):
             list = list + "demand" + ";"
         if self.cbSources.isChecked() and not utils.isLayerOpened("Sources"):
             list = list + "source" + ";"
-        
+
         if self.cbIsolatedValves.isChecked() and not utils.isLayerOpened("IsolationValves"):
             list = list + "isolationdvalve" + ";"
         # if self.cbCeckValves.isChecked() and not utils.isLayerOpened("CheckValves"):
             # list = list + "checkvalve"+ ";"
         if self.cbHydrants.isChecked() and not utils.isLayerOpened("Hydrants"):
-            list = list + "hydrant"+ ";"
+            list = list + "hydrant" + ";"
         if self.cbPurgeValves.isChecked() and not utils.isLayerOpened("WashoutValves"):
-            list = list + "washoutvalve"+ ";"
+            list = list + "washoutvalve" + ";"
         if self.cbAirReleases.isChecked() and not utils.isLayerOpened("AirReleaseValves"):
-            list = list + "airreleasevalve"+ ";"
+            list = list + "airreleasevalve" + ";"
         if self.cbConnections.isChecked() and not utils.isLayerOpened("ServiceConnections"):
-            list = list + "serviceconnection"+ ";"
+            list = list + "serviceconnection" + ";"
         if self.cbManometers.isChecked() and not utils.isLayerOpened("Manometers"):
-            list = list + "manometer"+ ";"
+            list = list + "manometer" + ";"
         if self.cbFlowmeters.isChecked() and not utils.isLayerOpened("Flowmeters"):
-            list = list + "flowmeter"+ ";"
+            list = list + "flowmeter" + ";"
         if self.cbCountmeters.isChecked() and not utils.isLayerOpened("Countermeters"):
-            list = list + "countermeter"+ ";"
+            list = list + "countermeter" + ";"
         if self.cbLevelmeters.isChecked() and not utils.isLayerOpened("LevelSensors"):
-            list = list + "levelsensor"+ ";"
+            list = list + "levelsensor" + ";"
         return list
 
     def removeComplementaryLayers(self, task, wait_time):
@@ -240,7 +268,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             list.append("Demands")
         if not self.cbSources.isChecked():
             list.append("Sources")
-        
+
         if not self.cbIsolatedValves.isChecked():
             list.append("IsolationValves")
         # if not self.cbCeckValves.isChecked():
@@ -261,185 +289,207 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
             list.append("Countermeters")
         if not self.cbLevelmeters.isChecked():
             list.append("LevelSensors")
-        
-        QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface).removeLayers(list)
+
+        QGISRedUtils(self.ProjectDirectory, self.NetworkName,
+                     self.iface).removeLayers(list)
         raise Exception('')
 
     def openElementsLayers(self, group, new):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedUtils(self.ProjectDirectory,
+                             self.NetworkName, self.iface)
         # if new:
-            # files = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns"]
-            # for file in files:
-                # utils.openLayer(self.CRS, group, file, ext=".dbf")
-        
+        # files = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns"]
+        # for file in files:
+        # utils.openLayer(self.CRS, group, file, ext=".dbf")
+
         if self.cbPipes.isChecked():
             if not utils.isLayerOpened("Pipes"):
-                utils.openLayer(self.CRS, group,"Pipes")
+                utils.openLayer(self.CRS, group, "Pipes")
         if self.cbValves.isChecked():
             if not utils.isLayerOpened("Valves"):
-                utils.openLayer(self.CRS, group,"Valves")
+                utils.openLayer(self.CRS, group, "Valves")
         if self.cbPumps.isChecked():
             if not utils.isLayerOpened("Pumps"):
-                utils.openLayer(self.CRS, group,"Pumps")
+                utils.openLayer(self.CRS, group, "Pumps")
         if self.cbJunctions.isChecked():
             if not utils.isLayerOpened("Junctions"):
-                utils.openLayer(self.CRS, group,"Junctions")
+                utils.openLayer(self.CRS, group, "Junctions")
         if self.cbTanks.isChecked():
             if not utils.isLayerOpened("Tanks"):
-                utils.openLayer(self.CRS, group,"Tanks")
+                utils.openLayer(self.CRS, group, "Tanks")
         if self.cbReservoirs.isChecked():
             if not utils.isLayerOpened("Reservoirs"):
-                utils.openLayer(self.CRS, group,"Reservoirs")
+                utils.openLayer(self.CRS, group, "Reservoirs")
 
     def openComplementaryLayers(self, group):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedUtils(self.ProjectDirectory,
+                             self.NetworkName, self.iface)
         if self.cbDemands.isChecked():
             if not utils.isLayerOpened("Demands"):
-                utils.openLayer(self.CRS, group,"Demands", toEnd=True)
+                utils.openLayer(self.CRS, group, "Demands", toEnd=True)
         if self.cbSources.isChecked():
             if not utils.isLayerOpened("Sources"):
-                utils.openLayer(self.CRS, group,"Sources", toEnd=True)
-        
+                utils.openLayer(self.CRS, group, "Sources", toEnd=True)
+
         if self.cbIsolatedValves.isChecked():
             if not utils.isLayerOpened("IsolationValves"):
-                utils.openLayer(self.CRS, group,"IsolationValves", toEnd=True)
+                utils.openLayer(self.CRS, group, "IsolationValves", toEnd=True)
         # if self.cbCeckValves.isChecked():
             # if not utils.isLayerOpened("CheckValves"):
                 # utils.openLayer(self.CRS, group,"CheckValves", toEnd=True)
         if self.cbHydrants.isChecked():
             if not utils.isLayerOpened("Hydrants"):
-                utils.openLayer(self.CRS, group,"Hydrants", toEnd=True)
+                utils.openLayer(self.CRS, group, "Hydrants", toEnd=True)
         if self.cbPurgeValves.isChecked():
             if not utils.isLayerOpened("WashoutValves"):
-                utils.openLayer(self.CRS, group,"WashoutValves", toEnd=True)
+                utils.openLayer(self.CRS, group, "WashoutValves", toEnd=True)
         if self.cbAirReleases.isChecked():
             if not utils.isLayerOpened("AirReleaseValves"):
-                utils.openLayer(self.CRS, group,"AirReleaseValves", toEnd=True)
+                utils.openLayer(self.CRS, group,
+                                "AirReleaseValves", toEnd=True)
         if self.cbConnections.isChecked():
             if not utils.isLayerOpened("ServiceConnections"):
-                utils.openLayer(self.CRS, group,"ServiceConnections", toEnd=True)
+                utils.openLayer(self.CRS, group,
+                                "ServiceConnections", toEnd=True)
         if self.cbManometers.isChecked():
             if not utils.isLayerOpened("Manometers"):
-                utils.openLayer(self.CRS, group,"Manometers", toEnd=True)
+                utils.openLayer(self.CRS, group, "Manometers", toEnd=True)
         if self.cbFlowmeters.isChecked():
             if not utils.isLayerOpened("Flowmeters"):
-                utils.openLayer(self.CRS, group,"Flowmeters", toEnd=True)
+                utils.openLayer(self.CRS, group, "Flowmeters", toEnd=True)
         if self.cbCountmeters.isChecked():
             if not utils.isLayerOpened("Countermeters"):
-                utils.openLayer(self.CRS, group,"Countermeters", toEnd=True)
+                utils.openLayer(self.CRS, group, "Countermeters", toEnd=True)
         if self.cbLevelmeters.isChecked():
             if not utils.isLayerOpened("LevelSensors"):
-                utils.openLayer(self.CRS, group,"LevelSensors", toEnd=True)
+                utils.openLayer(self.CRS, group, "LevelSensors", toEnd=True)
 
     def validationsCreateProject(self):
         self.NetworkName = self.tbNetworkName.text()
-        if len(self.NetworkName)==0:
-            self.iface.messageBar().pushMessage("Validations", "The network's name is not valid", level=1)
+        if len(self.NetworkName) == 0:
+            self.iface.messageBar().pushMessage(
+                "Validations", "The network's name is not valid", level=1)
             return False
         self.ProjectDirectory = self.tbProjectDirectory.text()
-        if len(self.ProjectDirectory)==0 or self.ProjectDirectory==self.TemporalFolder:
-            self.ProjectDirectory=tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names())
+        if len(self.ProjectDirectory) == 0 or self.ProjectDirectory == self.TemporalFolder:
+            self.ProjectDirectory = tempfile._get_default_tempdir(
+            ) + "\\" + next(tempfile._get_candidate_names())
         else:
             if not os.path.exists(self.ProjectDirectory):
-                self.iface.messageBar().pushMessage("Validations", "The project directory does not exist", level=1)
+                self.iface.messageBar().pushMessage(
+                    "Validations", "The project directory does not exist", level=1)
                 return False
             else:
                 dirList = os.listdir(self.ProjectDirectory)
-                layers = ["Pipes", "Junctions", "Tanks", "Reservoirs", "Valves", "Pumps", "IsolationValves" ,"Hydrants", "WashoutValves", "AirReleaseValves", "ServiceConnections", "Manometers", "Flowmeters", "Countermeters", "LevelSensors"]
+                layers = ["Pipes", "Junctions", "Tanks", "Reservoirs", "Valves", "Pumps", "IsolationValves", "Hydrants",
+                          "WashoutValves", "AirReleaseValves", "ServiceConnections", "Manometers", "Flowmeters", "Countermeters", "LevelSensors"]
                 for layer in layers:
                     if self.NetworkName + "_" + layer + ".shp" in dirList:
-                        self.iface.messageBar().pushMessage("Validations", "The project directory has some file to selected network's name", level=1)
+                        self.iface.messageBar().pushMessage("Validations",
+                                                            "The project directory has some file to selected network's name", level=1)
                         return False
-        
-        if len(self.tbScenarioName.text())==0:
-            self.iface.messageBar().pushMessage("Validations", "The scenario's name is not valid", level=1)
+
+        if len(self.tbScenarioName.text()) == 0:
+            self.iface.messageBar().pushMessage(
+                "Validations", "The scenario's name is not valid", level=1)
             return False
         return True
 
     def createProject(self):
-        #Validations
+        # Validations
         isValid = self.validationsCreateProject()
-        if isValid==True:
+        if isValid == True:
             scnName = self.tbScenarioName.text()
             notes = self.tbNotes.toPlainText().strip().strip("\n")
-            
-            #Process
+
+            # Process
             QApplication.setOverrideCursor(Qt.WaitCursor)
             QGISRedUtils().setCurrentDirectory()
             #os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
             complElements = self.createComplementaryList()
 
             mydll = WinDLL("GISRed.QGisPlugins.dll")
-            mydll.CreateProject.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+            mydll.CreateProject.argtypes = (
+                c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
             mydll.CreateProject.restype = c_char_p
-            b = mydll.CreateProject(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), complElements.encode('utf-8'), scnName.encode('utf-8'), notes.encode('utf-8'))
-            b= "".join(map(chr, b)) #bytes to string
-            
-            #Open layers
+            b = mydll.CreateProject(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
+                'utf-8'), complElements.encode('utf-8'), scnName.encode('utf-8'), notes.encode('utf-8'))
+            b = "".join(map(chr, b))  # bytes to string
+
+            # Open layers
             self.iface.mapCanvas().setDestinationCrs(self.CRS)
             inputGroup = self.getInputGroup()
             self.openComplementaryLayers(inputGroup)
             self.openElementsLayers(inputGroup, True)
-            utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+            utils = QGISRedUtils(self.ProjectDirectory,
+                                 self.NetworkName, self.iface)
             utils.orderLayers(inputGroup)
             QApplication.restoreOverrideCursor()
-            
-            #Message
-            if b=="True":
-                self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=5)
+
+            # Message
+            if b == "True":
+                self.iface.messageBar().pushMessage(
+                    "Information", "Process successfully completed", level=3, duration=5)
                 file = open(self.gplFile, "a+")
                 QGISRedUtils().writeFile(file, self.NetworkName + ";" + self.ProjectDirectory + '\n')
                 file.close()
-            elif b=="False":
-                self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
+            elif b == "False":
+                self.iface.messageBar().pushMessage(
+                    "Warning", "Some issues occurred in the process", level=1, duration=5)
             else:
                 self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
-            
+
             self.close()
             self.ProcessDone = True
 
     def editProject(self):
-        #Process
-        #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-        task1 = QgsTask.fromFunction(u'Remove layers', self.removeComplementaryLayers, on_finished=self.editProjectProcess, wait_time=0)
+        # Process
+        # Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
+        task1 = QgsTask.fromFunction(
+            u'Remove layers', self.removeComplementaryLayers, on_finished=self.editProjectProcess, wait_time=0)
         task1.run()
         QgsApplication.taskManager().addTask(task1)
 
     def editProjectProcess(self, exception=None, result=None):
-        #Process
+        # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
-        
+
         complElements = self.createComplementaryList()
         elements = self.createElementsList()
         scnName = self.tbScenarioName.text()
         notes = self.tbNotes.toPlainText().strip().strip("\n")
-        
+
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.EditProject.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.EditProject.argtypes = (
+            c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.EditProject.restype = c_char_p
-        b = mydll.EditProject(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), elements.encode('utf-8'), complElements.encode('utf-8'), scnName.encode('utf-8'), notes.encode('utf-8'))
-        b= "".join(map(chr, b)) #bytes to string
-        
-        #Open layers
+        b = mydll.EditProject(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), elements.encode(
+            'utf-8'), complElements.encode('utf-8'), scnName.encode('utf-8'), notes.encode('utf-8'))
+        b = "".join(map(chr, b))  # bytes to string
+
+        # Open layers
         inputGroup = self.getInputGroup()
         if inputGroup is not None:
             for treeLayer in inputGroup.findLayers():
                 treeLayer.layer().setCrs(self.CRS)
         self.openElementsLayers(inputGroup, False)
         self.openComplementaryLayers(inputGroup)
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedUtils(self.ProjectDirectory,
+                             self.NetworkName, self.iface)
         utils.orderLayers(inputGroup)
-        
+
         QApplication.restoreOverrideCursor()
-        
-        #Message
-        if b=="True":
-            self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=5)
-        elif b=="False":
-            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
+
+        # Message
+        if b == "True":
+            self.iface.messageBar().pushMessage(
+                "Information", "Process successfully completed", level=3, duration=5)
+        elif b == "False":
+            self.iface.messageBar().pushMessage(
+                "Warning", "Some issues occurred in the process", level=1, duration=5)
         else:
             self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
-        
+
         self.close()
         self.ProcessDone = True

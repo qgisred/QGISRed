@@ -3,12 +3,15 @@ from qgis.PyQt import QtGui, uic
 from PyQt5.QtWidgets import QFileDialog, QDialog
 import os
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_toolLength_dialog.ui'))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(
+    os.path.dirname(__file__), 'qgisred_toolLength_dialog.ui'))
+
 
 class QGISRedLengthToolDialog(QDialog, FORM_CLASS):
-    #Common variables
+    # Common variables
     Tolerance = "10"
-    ProcessDone=False
+    ProcessDone = False
+
     def __init__(self, parent=None):
         """Constructor."""
         super(QGISRedLengthToolDialog, self).__init__(parent)
@@ -18,7 +21,7 @@ class QGISRedLengthToolDialog(QDialog, FORM_CLASS):
 
     def accept(self):
         self.Tolerance = self.tbTolerance.text()
-        if self.Tolerance=="":
+        if self.Tolerance == "":
             self.lbMessage.setText("Not valid Tolerance")
             return
         try:
