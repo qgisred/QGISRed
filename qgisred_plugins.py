@@ -55,6 +55,7 @@ import tempfile
 import platform
 import base64
 import shutil
+import urllib.request
 from ctypes import*
 
 # MessageBar Levels
@@ -462,6 +463,8 @@ class QGISRed:
 
         # QGISRed dependencies
         self.checkDependencies()
+        # QGISRed updates
+        self.checkForUpdates()
 
         # SHPs temporal folder
         self.tempFolder = tempfile._get_default_tempdir() + "\\QGISRed_" + \
@@ -925,7 +928,6 @@ class QGISRed:
             request = QMessageBox.question(self.iface.mainWindow(), self.tr('QGISRed Dependencies'), self.tr('QGISRed plugin only runs in Windows OS and needs some dependencies (' +
                                                                                                              self.DependenciesVersion + '). Do you want to download and authomatically install them?'), QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No))
             if request == QMessageBox.Yes:
-                import urllib.request
                 localFile = tempfile._get_default_tempdir(
                 ) + "\\" + next(tempfile._get_candidate_names()) + ".msi"
                 try:
@@ -1017,6 +1019,42 @@ class QGISRed:
                 if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\") == os.path.join(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp").replace("/", "\\"):
                     if (layerName in self.selectedFids):
                         layer.selectByIds(self.selectedFids[layerName])
+
+    def checkForUpdates(self):
+        link = '\"http://www.redhisp.webs.upv.es/files/QGISRed/versions.txt\"'
+        import urllib.request
+        tempLocalFile = tempfile._get_default_tempdir(
+        ) + "\\" + next(tempfile._get_candidate_names()) + ".txt"
+        try:
+            # Read online file
+            urllib.request.urlretrieve(link.strip('\'"'), tempLocalFile)
+            f = open(tempLocalFile, "r")
+            contents = f.read()
+            f.close()
+            if(int(contents.replace(".", "")) > int(self.DependenciesVersion.replace(".", ""))):
+                # Read local file with versions that user don't want to remember
+                fileVersions = os.path.join(os.path.join(
+                    os.getenv('APPDATA'), "QGISRed"), "updateVersions.dat")
+                oldVersions = ""
+                if os.path.exists(fileVersions):
+                    f = open(fileVersions, "r")
+                    oldVersions = f.read()
+                    f.close()
+                # Review if in local file is the current online version
+                if not contents in oldVersions:
+                    response = QMessageBox.question(self.iface.mainWindow(), self.tr('QGISRed Updates'),
+                                                    self.tr("QGISRed plugin has a new version (" + contents +
+                                                            "). You can upgrade it from the QGis plugin manager." +
+                                                            "Do you want to remember it again?"),
+                                                    QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No))
+                    # If user don't want to remember a local file is written with this version
+                    if response == QMessageBox.No:
+                        f = open(fileVersions, "w+")
+                        f.write(contents + '\n')
+                        f.close()
+            os.remove(tempLocalFile)
+        except:
+            pass
 
     """Main methods"""
     """Toolbars"""
