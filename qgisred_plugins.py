@@ -413,10 +413,10 @@ class QGISRed:
         # #    #Buttons
         # icon_path = ':/plugins/QGISRed/images/iconTree.png'
         # expDropButton = self.add_action(icon_path, text=self.tr(u'Experimental'), callback=self.runExperimentalToolbar, menubar=self.experimentalMenu, add_to_menu=False,
-            # toolbar=self.toolbar, createDrop = True, addActionToDrop = False, add_to_toolbar =False, parent=self.iface.mainWindow())
+        #     toolbar=self.toolbar, createDrop = True, addActionToDrop = False, add_to_toolbar =False, parent=self.iface.mainWindow())
         # icon_path = ':/plugins/QGISRed/images/iconTree.png'
         # self.add_action(icon_path, text=self.tr(u'Obtain Tree'), callback=self.runTree, menubar=self.experimentalMenu, toolbar=self.experimentalToolbar,
-            # actionBase = expDropButton, add_to_toolbar =True, parent=self.iface.mainWindow())
+        #     actionBase = expDropButton, add_to_toolbar =True, parent=self.iface.mainWindow())
         
         #About
         icon_path = ':/plugins/QGISRed/images/iconAbout.png'
@@ -445,6 +445,7 @@ class QGISRed:
         self.mergeSplitPointTool = None
         self.createReverseTconnTool = None
         self.createReverseCrossTool = None
+        self.selectTreePointTool = None
         
         #QGISRed dependencies
         self.checkDependencies()
@@ -1090,7 +1091,7 @@ class QGISRed:
         if result:
             self.ProjectDirectory = dlg.ProjectDirectory
             self.NetworkName = dlg.NetworkName
-            self.updateMetadata()
+            #self.updateMetadata()
 
     def runImport(self):
         if not self.checkDependencies(): return
@@ -1108,7 +1109,7 @@ class QGISRed:
         if result:
             self.ProjectDirectory = dlg.ProjectDirectory
             self.NetworkName = dlg.NetworkName
-            self.updateMetadata()
+            #self.updateMetadata(self.ProjectDirectory, self.NetworkName)
 
     def runCloseProject(self):
         self.iface.newProject(True)
@@ -1129,7 +1130,7 @@ class QGISRed:
         if result:
             self.ProjectDirectory = dlg.ProjectDirectory
             self.NetworkName = dlg.NetworkName
-            self.updateMetadata()
+            #self.updateMetadata()
 
     def runSaveProject(self):
         self.defineCurrentProject()
@@ -2449,28 +2450,37 @@ class QGISRed:
         QgsApplication.taskManager().addTask(task1)
 
     """Experimental"""
-    def runTree(self):
+    def runTree(self, point):
         if not self.checkDependencies(): return
         #Validations
         self.defineCurrentProject()
         if not self.isValidProject(): return
         if self.isLayerOnEdition(): return
         
-        self.Sectors= "Tree"
+        point1=""
+        if not point==False:
+            point1 = str(point.x()) + ":" + str(point.y())
+        
+        if self.iface.mapCanvas().mapTool() is self.selectTreePointTool:
+            self.iface.mapCanvas().unsetMapTool(self.selectTreePointTool)
+        
         #Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.Tree.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.Tree.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.Tree.restype = c_char_p
-        b = mydll.Tree(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'))
+        b = mydll.Tree(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'), point1.encode('utf-8'))
         b= "".join(map(chr, b)) #bytes to string
         QApplication.restoreOverrideCursor()
         
         #Action
-        if b=="False":
+        if b=="False" or b=="Cancelled":
             return
-        elif b=="shps":
+        elif b=="Select":
+            self.selectPointToTree()
+        elif "shps" in b:
+            self.treeName = b.split('^')[1]
             task1 = QgsTask.fromFunction("", self.removeTreeLayers, on_finished=self.runTreeProcess)
             task1.run()
             QgsApplication.taskManager().addTask(task1)
@@ -2496,6 +2506,13 @@ class QGISRed:
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
+    def selectPointToTree(self):
+        if self.iface.mapCanvas().mapTool() is self.selectTreePointTool:
+            self.iface.mapCanvas().unsetMapTool(self.selectTreePointTool)
+        else:
+            self.selectTreePointTool = QGISRedSelectPointTool(None, self, self.runTree, 1)
+            self.iface.mapCanvas().setMapTool(self.selectTreePointTool)
+
     def openTreeLayers(self):
         #CRS
         crs = self.iface.mapCanvas().mapSettings().destinationCrs()
@@ -2505,8 +2522,8 @@ class QGISRed:
         #Open layers
         treeGroup = self.getTreeGroup()
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        utils.openLayer(crs, treeGroup, "Links_Tree", tree=True)
-        utils.openLayer(crs, treeGroup, "Nodes_Tree")
+        utils.openLayer(crs, treeGroup, "Links_Tree", tree=True) #Use self.treeName
+        utils.openLayer(crs, treeGroup, "Nodes_Tree") #Use self.treeName
         group = self.getInputGroup()
         if group is not None:
             group.setItemVisibilityChecked(False)
@@ -2520,7 +2537,7 @@ class QGISRed:
 
     def removeTreeLayers(self, task):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        utils.removeLayers(["Links_" + self.Sectors, "Nodes_" + self.Sectors])
+        utils.removeLayers(["Links_Tree", "Nodes_Tree"])
         
         self.removeEmptyQuerySubGroup("Tree")
         raise Exception('') #Avoiding errors with v3.x with shps and dbfs in use after deleting (use of QTasks)
