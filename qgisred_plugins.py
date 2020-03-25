@@ -1565,17 +1565,15 @@ class QGISRed:
             return
 
         point = str(point.x()) + ":" + str(point.y())
-        tolerance = str(self.getTolerance())
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.AddTank.argtypes = (
-            c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.AddTank.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.AddTank.restype = c_char_p
         b = mydll.AddTank(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-            'utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'), "0.01".encode('utf-8'))
+            'utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'))
         b = "".join(map(chr, b))  # bytes to string
         QApplication.restoreOverrideCursor()
 
@@ -1608,17 +1606,15 @@ class QGISRed:
             return
 
         point = str(point.x()) + ":" + str(point.y())
-        tolerance = str(self.getTolerance())
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.AddReservoir.argtypes = (
-            c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.AddReservoir.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.AddReservoir.restype = c_char_p
         b = mydll.AddReservoir(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-            'utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'), "0.01".encode('utf-8'))
+            'utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'))
         b = "".join(map(chr, b))  # bytes to string
         QApplication.restoreOverrideCursor()
 
@@ -1651,18 +1647,16 @@ class QGISRed:
             return
 
         point = str(point.x()) + ":" + str(point.y())
-        tolerance = str(self.getTolerance())
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.InsertValve.argtypes = (
-            c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.InsertValve.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.InsertValve.restype = c_char_p
 
         b = mydll.InsertValve(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-            'utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'), "0.01".encode('utf-8'))
+            'utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'))
         b = "".join(map(chr, b))  # bytes to string
         QApplication.restoreOverrideCursor()
 
@@ -1695,17 +1689,15 @@ class QGISRed:
             return
 
         point = str(point.x()) + ":" + str(point.y())
-        tolerance = str(self.getTolerance())
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.InsertPump.argtypes = (
-            c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.InsertPump.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.InsertPump.restype = c_char_p
         b = mydll.InsertPump(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-            'utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'), "0.01".encode('utf-8'))
+            'utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'))
         b = "".join(map(chr, b))  # bytes to string
         QApplication.restoreOverrideCursor()
 
@@ -1810,20 +1802,18 @@ class QGISRed:
             return
 
         pointText = ""
-        tolerance = "0"
         if point is not None:
             pointText = str(point.x()) + ":" + str(point.y())
-            tolerance = str(self.getTolerance())
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.ReverseLink.argtypes = (
-            c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+            c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.ReverseLink.restype = c_char_p
         b = mydll.ReverseLink(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode(
-            'utf-8'), pointText.encode('utf-8'), tolerance.encode('utf-8'), self.linkIds.encode('utf-8'))
+            'utf-8'), pointText.encode('utf-8'), self.linkIds.encode('utf-8'))
         b = "".join(map(chr, b))  # bytes to string
         QApplication.restoreOverrideCursor()
 
@@ -1857,7 +1847,6 @@ class QGISRed:
             return
 
         point = str(point.x()) + ":" + str(point.y())
-        tolerance = str(self.getTolerance())
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
@@ -1903,9 +1892,7 @@ class QGISRed:
             point2 = ""
         else:
             point2 = str(point2.x()) + ":" + str(point2.y())
-        #tolerance = str(self.getTolerance())
-        print(point1)
-        print(point2)
+
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
@@ -1992,6 +1979,7 @@ class QGISRed:
             return
 
         point1 = str(point1.x()) + ":" + str(point1.y())
+        # Important, no snapping in crossings
         tolerance = str(self.getTolerance())
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
@@ -2035,7 +2023,6 @@ class QGISRed:
 
         point1 = str(point1.x()) + ":" + str(point1.y())
         point2 = str(point2.x()) + ":" + str(point2.y())
-        #tolerance = str(self.getTolerance())
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
@@ -2100,20 +2087,18 @@ class QGISRed:
             return
 
         pointText = ""
-        tolerance = "0"
         if point is not None:
             pointText = str(point.x()) + ":" + str(point.y())
-            tolerance = str(self.getTolerance())
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.RemoveElements.argtypes = (
-            c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+            c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.RemoveElements.restype = c_char_p
         b = mydll.RemoveElements(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode(
-            'utf-8'), pointText.encode('utf-8'), tolerance.encode('utf-8'), self.nodeIds.encode('utf-8'), self.linkIds.encode('utf-8'))
+            'utf-8'), pointText.encode('utf-8'), self.nodeIds.encode('utf-8'), self.linkIds.encode('utf-8'))
         b = "".join(map(chr, b))  # bytes to string
         QApplication.restoreOverrideCursor()
 
@@ -2149,17 +2134,15 @@ class QGISRed:
             return
 
         point = str(point.x()) + ":" + str(point.y())
-        tolerance = str(self.getTolerance())
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.EditElements.argtypes = (
-            c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.EditElements.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.EditElements.restype = c_char_p
         b = mydll.EditElements(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-            'utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'), tolerance.encode('utf-8'))
+            'utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'))
         b = "".join(map(chr, b))  # bytes to string
         QApplication.restoreOverrideCursor()
 
