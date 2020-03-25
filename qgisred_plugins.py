@@ -1767,21 +1767,21 @@ class QGISRed:
         # Validations
         self.defineCurrentProject()
         if not self.isValidProject():
-            self.runUnselectReverseLinkPoint()
+            self.reverseLinkButton.setChecked(False)
             return
 
         if not self.getSelectedFeaturesIds():
-            self.runUnselectReverseLinkPoint()
+            self.reverseLinkButton.setChecked(False)
             return
         if self.linkIds == "":
             self.runSelectReverseLinkPoint()
             return
-        self.runUnselectReverseLinkPoint()
+        self.reverseLinkButton.setChecked(False)
 
         if self.isLayerOnEdition():
             return
 
-        self.runReverseLink(None, None)
+        self.runReverseLink(None)
 
     def runSelectReverseLinkPoint(self):
         # Take account the mouse click on QGis:
