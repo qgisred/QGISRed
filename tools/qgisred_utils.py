@@ -149,7 +149,10 @@ class QGISRedUtils:
                 marker.deleteSymbolLayer(0)
                 svg_props = dict()
                 svg_props['name'] = svgPath
-                svg_props['size'] = str(5)
+                size = 5
+                if name == "pipes":
+                    size =0
+                svg_props['size'] = str(size)
                 svg_props['offset'] = '-0.5,-0.5'
                 svg_props['offset_unit'] = 'Pixel'
                 markerSymbol = QgsSvgMarkerSymbolLayer.create(svg_props)
@@ -163,8 +166,6 @@ class QGISRedUtils:
                     prop = QgsProperty()
                     prop.setExpressionString(
                         "if(IniStatus is NULL, 0,if(IniStatus !='CV', 0,5))")
-                    symbol.symbolLayer(1).setDataDefinedProperty(
-                        0, prop)  # 0 = PropertySize
                     symbol.symbolLayer(1).setDataDefinedProperty(
                         9, prop)  # 9 = PropertyWidth
                 renderer = QgsSingleSymbolRenderer(symbol)
