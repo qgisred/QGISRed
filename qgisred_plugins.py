@@ -22,17 +22,17 @@
  ***************************************************************************/
 """
 
+# Import QGis
 from qgis.gui import QgsMessageBar, QgsMapToolEmitPoint
 from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer, QgsCoordinateReferenceSystem
 from qgis.core import QgsLayerTreeGroup, QgsLayerTreeNode
-from win32api import GetFileVersionInfo, LOWORD, HIWORD
 from PyQt5.QtGui import QIcon, QCursor
 from PyQt5.QtWidgets import QAction, QMessageBox, QApplication, QMenu, QFileDialog, QToolButton
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
 from qgis.core import Qgis, QgsTask, QgsApplication, QgsFeatureRequest, QgsExpression
 # Import resources
 from . import resources3x
-# Import the code for the dialog
+# Import other plugin code
 from .ui.qgisred_projectmanager_dialog import QGISRedProjectManagerDialog
 from .ui.qgisred_newproject_dialog import QGISRedNewProjectDialog
 from .ui.qgisred_import_dialog import QGISRedImportDialog
@@ -46,8 +46,8 @@ from .tools.qgisred_multilayerSelection import QGISRedUtilsMultiLayerSelection
 from .tools.qgisred_createPipe import QGISRedCreatePipeTool
 from .tools.qgisred_moveVertexs import QGISRedMoveVertexsTool
 from .tools.qgisred_selectPoint import QGISRedSelectPointTool
-
 # Others imports
+from win32api import GetFileVersionInfo, LOWORD, HIWORD  # version of dll
 import os
 import datetime
 import time
@@ -56,17 +56,13 @@ import platform
 import base64
 import shutil
 import urllib.request
-from ctypes import*
+from ctypes import c_char_p, WinDLL, windll
 
-# MessageBar Levels
-# Info 0
-# Warning 1
-# Critical 2
-# Success 3
+# MessageBar Levels: Info 0, Warning 1, Critical 2, Success 3
 
 
 class QGISRed:
-    """QGIS Plugin Implementation."""
+    """QGISRed Plugin Implementation."""
     # Common variables
     ResultDockwidget = None
     ProjectDirectory = ""
@@ -186,12 +182,7 @@ class QGISRed:
             return dropButton
         return action
 
-    def initGui(self):
-        if not platform.system() == "Windows":
-            return
-        """Create the menu entries and toolbar icons inside the QGIS GUI."""
-        """Main buttons"""
-        # File
+    def addFileMenu(self):
         #    #Menu
         self.fileMenu = self.qgisredmenu.addMenu(self.tr('File'))
         self.fileMenu.setIcon(QIcon(':/plugins/QGISRed/images/iconData.png'))
@@ -216,7 +207,7 @@ class QGISRed:
         self.add_action(icon_path, text=self.tr(u'Close project'), callback=self.runCloseProject, menubar=self.fileMenu, toolbar=self.fileToolbar,
                         actionBase=fileDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
 
-        # Project
+    def addProjectMenu(self):
         #    #Menu
         self.projectMenu = self.qgisredmenu.addMenu(self.tr('Project'))
         self.projectMenu.setIcon(
@@ -252,7 +243,7 @@ class QGISRed:
         self.add_action(icon_path, text=self.tr(u'Export to INP'), callback=self.runExportInp, menubar=self.projectMenu, toolbar=self.projectToolbar,
                         actionBase=projectDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
 
-        # Edit
+    def addEditMenu(self):
         #    #Menu
         self.editionMenu = self.qgisredmenu.addMenu(self.tr('Edition'))
         self.editionMenu.setIcon(
@@ -323,7 +314,7 @@ class QGISRed:
         self.add_action(icon_path, text=self.tr(u'Edit Controls'), callback=self.runControls, menubar=self.editionMenu, toolbar=self.editionToolbar,
                         actionBase=editDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
 
-        # Verifications
+    def addVerificationsMenu(self):
         #    #Menu
         self.verificationsMenu = self.qgisredmenu.addMenu(
             self.tr('Verifications'))
@@ -378,7 +369,7 @@ class QGISRed:
         self.add_action(icon_path, text=self.tr(u'Obtain hydraulic sectors'), callback=self.runHydraulicSectors, menubar=self.verificationsMenu, toolbar=self.verificationsToolbar,
                         actionBase=verificationsDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
 
-        # Tools
+    def addToolsMenu(self):
         #    #Menu
         self.toolsMenu = self.qgisredmenu.addMenu(self.tr('Tools'))
         self.toolsMenu.setIcon(QIcon(':/plugins/QGISRed/images/iconTools.png'))
@@ -413,53 +404,45 @@ class QGISRed:
         icon_path = ':/plugins/QGISRed/images/iconDemandSector.png'
         self.add_action(icon_path, text=self.tr(u'Obtain demand sectors'), callback=self.runDemandSectors, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
                         actionBase=toolDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
+
+    def addExperimentalMenu(self):
+        #    #Menu
+        self.experimentalMenu = self.qgisredmenu.addMenu(self.tr('Experimenta'))
+        self.experimentalMenu.setIcon(QIcon(':/plugins/QGISRed/images/iconTree.png'))
+        #    #Toolbar
+        self.experimentalToolbar = self.iface.addToolBar(self.tr(u'QGISRed Experimental'))
+        self.experimentalToolbar.setObjectName(self.tr(u'QGISRed Experimental'))
+        self.experimentalToolbar.setVisible(False)
+        #    #Buttons
         icon_path = ':/plugins/QGISRed/images/iconTree.png'
+        expDropButton = self.add_action(icon_path, text=self.tr(u'Experimental'), callback=self.runExperimentalToolbar, menubar=self.experimentalMenu, add_to_menu=False,
+            toolbar=self.toolbar, createDrop = True, addActionToDrop = False, add_to_toolbar =False, parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconTree.png'
+        self.add_action(icon_path, text=self.tr(u'Obtain Tree'), callback=self.runTree, menubar=self.experimentalMenu, toolbar=self.experimentalToolbar,
+            actionBase = expDropButton, add_to_toolbar =True, parent=self.iface.mainWindow())
 
-        # #Experimental
-        # #    #Menu
-        # self.experimentalMenu = self.qgisredmenu.addMenu(self.tr('Experimenta'))
-        # self.experimentalMenu.setIcon(QIcon(':/plugins/QGISRed/images/iconTree.png'))
-        # #    #Toolbar
-        # self.experimentalToolbar = self.iface.addToolBar(self.tr(u'QGISRed Experimental'))
-        # self.experimentalToolbar.setObjectName(self.tr(u'QGISRed Experimental'))
-        # self.experimentalToolbar.setVisible(False)
-        # #    #Buttons
-        # icon_path = ':/plugins/QGISRed/images/iconTree.png'
-        # expDropButton = self.add_action(icon_path, text=self.tr(u'Experimental'), callback=self.runExperimentalToolbar, menubar=self.experimentalMenu, add_to_menu=False,
-        #     toolbar=self.toolbar, createDrop = True, addActionToDrop = False, add_to_toolbar =False, parent=self.iface.mainWindow())
-        # icon_path = ':/plugins/QGISRed/images/iconTree.png'
-        # self.add_action(icon_path, text=self.tr(u'Obtain Tree'), callback=self.runTree, menubar=self.experimentalMenu, toolbar=self.experimentalToolbar,
-        #     actionBase = expDropButton, add_to_toolbar =True, parent=self.iface.mainWindow())
-
+    def initGui(self):
+        if not platform.system() == "Windows":
+            return
+        
+        """Create the menu entries and toolbar icons inside the QGIS GUI."""
+        self.addFileMenu()
+        self.addProjectMenu()
+        self.addEditMenu()
+        self.addVerificationsMenu()
+        self.addToolsMenu()
+        #self.addExperimentalMenu()
         # About
         icon_path = ':/plugins/QGISRed/images/iconAbout.png'
         self.add_action(icon_path, text=self.tr(u'About...'), callback=self.runAbout,
                         menubar=self.qgisredmenu, toolbar=self.toolbar, parent=self.iface.mainWindow())
 
-        """Other options"""
-        # Saving QGis project
+        # Connecting QGis Events
         QgsProject.instance().projectSaved.connect(self.runSaveProject)
         QgsProject.instance().cleared.connect(self.runClearedProject)
 
-        # Issue layers
-        self.issuesLayers = []
-        for name in self.ownMainLayers:
-            self.issuesLayers.append(name + "_Issues")
-
         # MapTools
-        self.pointElementTool = None
-        self.pointValveTool = None
-        self.pointPumpTool = None
-        self.pointTankTool = None
-        self.pointReservoirTool = None
-        self.pointDeleteElementTool = None
-        self.pointSplitTool = None
-        self.pointReverseLinkTool = None
-        self.moveValvePumpTool = None
-        self.mergeSplitPointTool = None
-        self.createReverseTconnTool = None
-        self.createReverseCrossTool = None
-        self.selectTreePointTool = None
+        self.myMapTools = {}
 
         # QGISRed dependencies
         self.checkDependencies()
@@ -474,6 +457,11 @@ class QGISRed:
         except:
             os.mkdir(self.tempFolder)
 
+        # Issue layers
+        self.issuesLayers = []
+        for name in self.ownMainLayers:
+            self.issuesLayers.append(name + "_Issues")
+        # Open layers options
         self.hasToOpenConnectivityLayers = False
         self.hasToOpenIssuesLayers = False
         self.hasToOpenSectorLayers = False
@@ -1508,17 +1496,16 @@ class QGISRed:
             self.addPipeButton.setChecked(False)
             return
 
-        if type(self.iface.mapCanvas().mapTool()) is QGISRedCreatePipeTool:
-            # self.createPipeTool.deactivated.disconnect(self.runCreatePipe)
-            self.iface.mapCanvas().unsetMapTool(self.createPipeTool)
+        tool = "createPipe"
+        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
         else:
             if self.isLayerOnEdition():
                 self.addPipeButton.setChecked(False)
                 return
-            self.createPipeTool = QGISRedCreatePipeTool(
+            self.myMapTools[tool] = QGISRedCreatePipeTool(
                 self.addPipeButton, self.iface, self.ProjectDirectory, self.NetworkName, self)
-            # self.createPipeTool.deactivated.connect(self.runCreatePipe)
-            self.iface.mapCanvas().setMapTool(self.createPipeTool)
+            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runCreatePipe(self, points):
         self.pipePoint = ""
@@ -1539,20 +1526,14 @@ class QGISRed:
         self.processCsharpResult(b, "Pipe added")
 
     def runSelectTankPoint(self):
-        # Take account the mouse click on QGis:
-        if self.pointTankTool is None:
-            self.pointTankTool = QGISRedSelectPointTool(
-                self.addTankButton, self, self.runAddTank)
-            self.iface.mapCanvas().setMapTool(self.pointTankTool)
-            return
-
-        if self.iface.mapCanvas().mapTool() is self.pointTankTool:
-            self.iface.mapCanvas().unsetMapTool(self.pointTankTool)
+        tool = "pointTank"
+        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.addTankButton.setChecked(False)
         else:
-            self.pointTankTool = QGISRedSelectPointTool(
+            self.myMapTools[tool] = QGISRedSelectPointTool(
                 self.addTankButton, self, self.runAddTank)
-            self.iface.mapCanvas().setMapTool(self.pointTankTool)
+            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runAddTank(self, point):
         if not self.checkDependencies():
@@ -1580,20 +1561,14 @@ class QGISRed:
         self.processCsharpResult(b, "")
 
     def runSelectReservoirPoint(self):
-        # Take account the mouse click on QGis:
-        if self.pointReservoirTool is None:
-            self.pointReservoirTool = QGISRedSelectPointTool(
-                self.addReservoirButton, self, self.runAddReservoir)
-            self.iface.mapCanvas().setMapTool(self.pointReservoirTool)
-            return
-
-        if self.iface.mapCanvas().mapTool() is self.pointReservoirTool:
-            self.iface.mapCanvas().unsetMapTool(self.pointReservoirTool)
+        tool = "pointReservoir"
+        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.addReservoirButton.setChecked(False)
         else:
-            self.pointReservoirTool = QGISRedSelectPointTool(
+            self.myMapTools[tool] = QGISRedSelectPointTool(
                 self.addReservoirButton, self, self.runAddReservoir)
-            self.iface.mapCanvas().setMapTool(self.pointReservoirTool)
+            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runAddReservoir(self, point):
         if not self.checkDependencies():
@@ -1621,20 +1596,14 @@ class QGISRed:
         self.processCsharpResult(b, "")
 
     def runSelectValvePoint(self):
-        # Take account the mouse click on QGis:
-        if self.pointValveTool is None:
-            self.pointValveTool = QGISRedSelectPointTool(
-                self.insertValveButton, self, self.runInsertValve, 2)
-            self.iface.mapCanvas().setMapTool(self.pointValveTool)
-            return
-
-        if self.iface.mapCanvas().mapTool() is self.pointValveTool:
-            self.iface.mapCanvas().unsetMapTool(self.pointValveTool)
+        tool = "pointValve"
+        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.insertValveButton.setChecked(False)
         else:
-            self.pointValveTool = QGISRedSelectPointTool(
+            self.myMapTools[tool] = QGISRedSelectPointTool(
                 self.insertValveButton, self, self.runInsertValve, 2)
-            self.iface.mapCanvas().setMapTool(self.pointValveTool)
+            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runInsertValve(self, point):
         if not self.checkDependencies():
@@ -1663,20 +1632,14 @@ class QGISRed:
         self.processCsharpResult(b, "")
 
     def runSelectPumpPoint(self):
-        # Take account the mouse click on QGis:
-        if self.pointPumpTool is None:
-            self.pointPumpTool = QGISRedSelectPointTool(
-                self.insertPumpButton, self, self.runInsertPump, 2)
-            self.iface.mapCanvas().setMapTool(self.pointPumpTool)
-            return
-
-        if self.iface.mapCanvas().mapTool() is self.pointPumpTool:
-            self.iface.mapCanvas().unsetMapTool(self.pointPumpTool)
+        tool = "pointPump"
+        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.insertPumpButton.setChecked(False)
         else:
-            self.pointPumpTool = QGISRedSelectPointTool(
+            self.myMapTools[tool] = QGISRedSelectPointTool(
                 self.insertPumpButton, self, self.runInsertPump, 2)
-            self.iface.mapCanvas().setMapTool(self.pointPumpTool)
+            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runInsertPump(self, point):
         if not self.checkDependencies():
@@ -1704,12 +1667,13 @@ class QGISRed:
         self.processCsharpResult(b, "")
 
     def runSelectElements(self):
-        if type(self.iface.mapCanvas().mapTool()) is QGISRedUtilsMultiLayerSelection:
-            self.iface.mapCanvas().unsetMapTool(self.selectElementsTool)
+        tool = "selectElements"
+        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
         else:
-            self.selectElementsTool = QGISRedUtilsMultiLayerSelection(
+            self.myMapTools[tool] = QGISRedUtilsMultiLayerSelection(
                 self.iface, self.iface.mapCanvas(), self.selectElementsButton)
-            self.iface.mapCanvas().setMapTool(self.selectElementsTool)
+            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runMoveElements(self):
         # Validations
@@ -1718,18 +1682,20 @@ class QGISRed:
             self.moveElementsButton.setChecked(False)
             return
 
-        if type(self.iface.mapCanvas().mapTool()) is QGISRedMoveVertexsTool:
-            self.iface.mapCanvas().unsetMapTool(self.moveVertexsTool)
+        oldTool = "moveVertexs"
+        if oldTool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[oldTool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[oldTool])
 
-        if type(self.iface.mapCanvas().mapTool()) is QGISRedMoveNodesTool:
-            self.iface.mapCanvas().unsetMapTool(self.moveNodesTool)
+        tool = "moveNodes"
+        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
         else:
             if self.isLayerOnEdition():
                 self.moveElementsButton.setChecked(False)
                 return
-            self.moveNodesTool = QGISRedMoveNodesTool(
+            self.myMapTools[tool] = QGISRedMoveNodesTool(
                 self.moveElementsButton, self.iface, self.ProjectDirectory, self.NetworkName)
-            self.iface.mapCanvas().setMapTool(self.moveNodesTool)
+            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
             self.setCursor(Qt.CrossCursor)
 
     def runEditVertexs(self):
@@ -1739,18 +1705,20 @@ class QGISRed:
             self.moveVertexsButton.setChecked(False)
             return
 
-        if type(self.iface.mapCanvas().mapTool()) is QGISRedMoveNodesTool:
-            self.iface.mapCanvas().unsetMapTool(self.moveNodesTool)
+        oldTool = "moveNodes"
+        if oldTool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[oldTool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[oldTool])
 
-        if type(self.iface.mapCanvas().mapTool()) is QGISRedMoveVertexsTool:
-            self.iface.mapCanvas().unsetMapTool(self.moveVertexsTool)
+        tool = "moveVertexs"
+        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
         else:
             if self.isLayerOnEdition():
                 self.moveVertexsButton.setChecked(False)
                 return
-            self.moveVertexsTool = QGISRedMoveVertexsTool(
+            self.myMapTools[tool] = QGISRedMoveVertexsTool(
                 self.moveVertexsButton, self.iface, self.ProjectDirectory, self.NetworkName)
-            self.iface.mapCanvas().setMapTool(self.moveVertexsTool)
+            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
             self.setCursor(Qt.CrossCursor)
 
     def canReverseLink(self):
@@ -1776,20 +1744,14 @@ class QGISRed:
         self.runReverseLink(None)
 
     def runSelectReverseLinkPoint(self):
-        # Take account the mouse click on QGis:
-        if self.pointReverseLinkTool is None:
-            self.pointReverseLinkTool = QGISRedSelectPointTool(
-                self.reverseLinkButton, self, self.runReverseLink, 2)
-            self.iface.mapCanvas().setMapTool(self.pointReverseLinkTool)
-            return
-
-        if self.iface.mapCanvas().mapTool() is self.pointReverseLinkTool:
-            self.iface.mapCanvas().unsetMapTool(self.pointReverseLinkTool)
+        tool = "pointReverseLink"
+        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.reverseLinkButton.setChecked(False)
         else:
-            self.pointReverseLinkTool = QGISRedSelectPointTool(
+            self.myMapTools[tool] = QGISRedSelectPointTool(
                 self.reverseLinkButton, self, self.runReverseLink, 2)
-            self.iface.mapCanvas().setMapTool(self.pointReverseLinkTool)
+            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runReverseLink(self, point):
         if not self.checkDependencies():
@@ -1821,20 +1783,14 @@ class QGISRed:
         self.processCsharpResult(b, "")
 
     def runSelectSplitPoint(self):
-        # Take account the mouse click on QGis:
-        if self.pointSplitTool is None:
-            self.pointSplitTool = QGISRedSelectPointTool(
-                self.splitPipeButton, self, self.runSplitPipe, 2)
-            self.iface.mapCanvas().setMapTool(self.pointSplitTool)
-            return
-
-        if self.iface.mapCanvas().mapTool() is self.pointSplitTool:
-            self.iface.mapCanvas().unsetMapTool(self.pointSplitTool)
+        tool = "pointSplit"
+        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.splitPipeButton.setChecked(False)
         else:
-            self.pointSplitTool = QGISRedSelectPointTool(
+            self.myMapTools[tool] = QGISRedSelectPointTool(
                 self.splitPipeButton, self, self.runSplitPipe, 2)
-            self.iface.mapCanvas().setMapTool(self.pointSplitTool)
+            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runSplitPipe(self, point):
         if not self.checkDependencies():
@@ -1862,20 +1818,14 @@ class QGISRed:
         self.processCsharpResult(b, "")
 
     def runSelectPointToMergeSplit(self):
-        # Take account the mouse click on QGis:
-        if self.mergeSplitPointTool is None:
-            self.mergeSplitPointTool = QGISRedSelectPointTool(
-                self.mergeSplitJunctionButton, self, self.runMergeSplitPoints, 3)
-            self.iface.mapCanvas().setMapTool(self.mergeSplitPointTool)
-            return
-
-        if self.iface.mapCanvas().mapTool() is self.mergeSplitPointTool:
-            self.iface.mapCanvas().unsetMapTool(self.mergeSplitPointTool)
+        tool = "mergeSplitPoint"
+        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.mergeSplitJunctionButton.setChecked(False)
         else:
-            self.mergeSplitPointTool = QGISRedSelectPointTool(
+            self.myMapTools[tool] = QGISRedSelectPointTool(
                 self.mergeSplitJunctionButton, self, self.runMergeSplitPoints, 3)
-            self.iface.mapCanvas().setMapTool(self.mergeSplitPointTool)
+            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runMergeSplitPoints(self, point1, point2):
         if not self.checkDependencies():
@@ -1908,20 +1858,14 @@ class QGISRed:
         self.processCsharpResult(b, "")
 
     def runSelectPointToTconnections(self):
-        # Take account the mouse click on QGis:
-        if self.createReverseTconnTool is None:
-            self.createReverseTconnTool = QGISRedSelectPointTool(
-                self.createReverseTconButton, self, self.runCreateRemoveTconnections, 5)
-            self.iface.mapCanvas().setMapTool(self.createReverseTconnTool)
-            return
-
-        if self.iface.mapCanvas().mapTool() is self.createReverseTconnTool:
-            self.iface.mapCanvas().unsetMapTool(self.createReverseTconnTool)
+        tool = "createReverseTconn"
+        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.createReverseTconButton.setChecked(False)
         else:
-            self.createReverseTconnTool = QGISRedSelectPointTool(
+            self.myMapTools[tool] = QGISRedSelectPointTool(
                 self.createReverseTconButton, self, self.runCreateRemoveTconnections, 5)
-            self.iface.mapCanvas().setMapTool(self.createReverseTconnTool)
+            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runCreateRemoveTconnections(self, point1, point2):
         if not self.checkDependencies():
@@ -1953,20 +1897,14 @@ class QGISRed:
         self.processCsharpResult(b, "")
 
     def runSelectPointToCrossings(self):
-        # Take account the mouse click on QGis:
-        if self.createReverseCrossTool is None:
-            self.createReverseCrossTool = QGISRedSelectPointTool(
-                self.createReverseCrossButton, self, self.runCreateRemoveCrossings, 2)
-            self.iface.mapCanvas().setMapTool(self.createReverseCrossTool)
-            return
-
-        if self.iface.mapCanvas().mapTool() is self.createReverseCrossTool:
-            self.iface.mapCanvas().unsetMapTool(self.createReverseCrossTool)
+        tool = "createReverseCross"
+        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.createReverseCrossButton.setChecked(False)
         else:
-            self.createReverseCrossTool = QGISRedSelectPointTool(
+            self.myMapTools[tool] = QGISRedSelectPointTool(
                 self.createReverseCrossButton, self, self.runCreateRemoveCrossings, 2)
-            self.iface.mapCanvas().setMapTool(self.createReverseCrossTool)
+            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runCreateRemoveCrossings(self, point1):
         if not self.checkDependencies():
@@ -1981,6 +1919,7 @@ class QGISRed:
         point1 = str(point1.x()) + ":" + str(point1.y())
         # Important, no snapping in crossings
         tolerance = str(self.getTolerance())
+
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
@@ -1996,20 +1935,14 @@ class QGISRed:
         self.processCsharpResult(b, "")
 
     def runSelectValvePumpPoints(self):
-        # Take account the mouse click on QGis:
-        if self.moveValvePumpTool is None:
-            self.moveValvePumpTool = QGISRedSelectPointTool(
-                self.moveValvePumpButton, self, self.runMoveValvePump, 4)
-            self.iface.mapCanvas().setMapTool(self.moveValvePumpTool)
-            return
-
-        if self.iface.mapCanvas().mapTool() is self.moveValvePumpTool:
-            self.iface.mapCanvas().unsetMapTool(self.moveValvePumpTool)
+        tool = "moveValvePump"
+        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.moveValvePumpButton.setChecked(False)
         else:
-            self.moveValvePumpTool = QGISRedSelectPointTool(
+            self.myMapTools[tool] = QGISRedSelectPointTool(
                 self.moveValvePumpButton, self, self.runMoveValvePump, 4)
-            self.iface.mapCanvas().setMapTool(self.moveValvePumpTool)
+            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runMoveValvePump(self, point1, point2):
         if not self.checkDependencies():
@@ -2061,20 +1994,14 @@ class QGISRed:
         self.runDeleteElement(None)
 
     def runSelectDeleteElementPoint(self):
-        # Take account the mouse click on QGis:
-        if self.pointDeleteElementTool is None:
-            self.pointDeleteElementTool = QGISRedSelectPointTool(
-                self.removeElementsButton, self, self.runDeleteElement, 2)
-            self.iface.mapCanvas().setMapTool(self.pointDeleteElementTool)
-            return
-
-        if self.iface.mapCanvas().mapTool() is self.pointDeleteElementTool:
-            self.iface.mapCanvas().unsetMapTool(self.pointDeleteElementTool)
+        tool = "pointDeleteElement"
+        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.removeElementsButton.setChecked(False)
         else:
-            self.pointDeleteElementTool = QGISRedSelectPointTool(
+            self.myMapTools[tool] = QGISRedSelectPointTool(
                 self.removeElementsButton, self, self.runDeleteElement, 2)
-            self.iface.mapCanvas().setMapTool(self.pointDeleteElementTool)
+            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runDeleteElement(self, point):
         if not self.checkDependencies():
@@ -2106,22 +2033,15 @@ class QGISRed:
         self.processCsharpResult(b, "")
 
     def runSelectPointProperties(self):
-        # Take account the mouse click on QGis:
-        if self.pointElementTool is None:
-            self.pointElementTool = QGISRedSelectPointTool(
-                self.editElementButton, self, self.runProperties, 2)
-            self.pointElementTool.setCursor(Qt.WhatsThisCursor)
-            self.iface.mapCanvas().setMapTool(self.pointElementTool)
-            return
-
-        if self.iface.mapCanvas().mapTool() is self.pointElementTool:
-            self.iface.mapCanvas().unsetMapTool(self.pointElementTool)
+        tool= "pointElement"
+        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.editElementButton.setChecked(False)
         else:
-            self.pointElementTool = QGISRedSelectPointTool(
+            self.myMapTools[tool] = QGISRedSelectPointTool(
                 self.editElementButton, self, self.runProperties, 2)
-            self.pointElementTool.setCursor(Qt.WhatsThisCursor)
-            self.iface.mapCanvas().setMapTool(self.pointElementTool)
+            self.myMapTools[tool].setCursor(Qt.WhatsThisCursor)
+            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runProperties(self, point):
         if not self.checkDependencies():
