@@ -1,19 +1,15 @@
 # -*- coding: utf-8 -*-
-from qgis.gui import QgsMessageBar
-from qgis.core import QgsVectorLayer, QgsProject, QgsCoordinateReferenceSystem
-from qgis.PyQt import QtGui, uic
-from qgis.core import Qgis, QgsTask, QgsApplication
 from PyQt5.QtWidgets import QDockWidget, QApplication
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
-from qgis.core import QgsSvgMarkerSymbolLayer, QgsSymbol, QgsSingleSymbolRenderer, QgsLineSymbol, QgsProperty, QgsRenderContext, QgsPalLayerSettings, QgsVectorLayerSimpleLabeling
-from qgis.core import QgsSimpleLineSymbolLayer, QgsMarkerSymbol, QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayer
-from qgis.core import QgsGraduatedSymbolRenderer, QgsGradientColorRamp as QgsVectorGradientColorRamp, QgsRendererRange
+from qgis.PyQt import uic
+from qgis.core import QgsProject, QgsCoordinateReferenceSystem
+from qgis.core import QgsTask, QgsApplication, QgsPalLayerSettings, QgsVectorLayerSimpleLabeling
+from qgis.core import QgsProperty, QgsRenderContext, QgsRendererRange
+from qgis.core import QgsGraduatedSymbolRenderer, QgsGradientColorRamp as QgsVectorGradientColorRamp
 from ..tools.qgisred_utils import QGISRedUtils
 import os
-from ctypes import*
-from time import sleep
-import tempfile
+from ctypes import c_char_p, WinDLL
 from shutil import copyfile
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_results_dock.ui'))
@@ -74,7 +70,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         # Project info
         self.NetworkName = netw
         self.ProjectDirectory = direct
-        
+
         # Create list with results layers opened
         self.Scenario = "Base"
         self.setLayersNames(True)
@@ -82,12 +78,13 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         openedLayers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
         self.resultsLayersPreviouslyOpened = []
         for nameLayer in self.LabelsToOpRe:
-            resultLayerPath=os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp").replace("/", "\\")
+            resultLayerPath = os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp")
+            resultLayerPath = resultLayerPath.replace("/", "\\")
             for layer in openedLayers:
                 openedLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\")
                 if openedLayerPath == resultLayerPath:
                     self.resultsLayersPreviouslyOpened.append(nameLayer)
-        
+
         # Save render previous remove layers
         self.LabelsToOpRe = self.resultsLayersPreviouslyOpened
         self.saveCurrentRender()
@@ -95,10 +92,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         # Remove results layers previous to simulate
         task1 = QgsTask.fromFunction("", self.removeResults, on_finished=self.simulationProcess)
         task1.run()
-        QgsApplication.taskManager().addTask(task1)    
+        QgsApplication.taskManager().addTask(task1)
 
     def simulationProcess(self, exception=None, result=None):
-         # Process
+        # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
@@ -121,15 +118,15 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             return
         else:
             self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
-        
+
         # If some error, close the dock
         self.close()
 
     def openBaseResults(self, labels):
-         # Scenario
+        # Scenario
         self.cbScenarios.setCurrentIndex(0)
         self.btDeleteScenario.setEnabled(False)
-        
+
         # Select comboboxes item
         if len(self.LabelsToOpRe) == 0:
             self.cbLinks.setCurrentIndex(1)
@@ -138,7 +135,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         else:
             for nameLayer in self.LabelsToOpRe:
                 self.setSelectedItemInLinkNodeComboboxes(nameLayer)
-        
+
         # Time labels
         mylist = labels.split(';')
         self.TimeLabels = []
@@ -158,7 +155,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         # Comments
         self.Comments["Base"] = "Last results computed"
         self.lbComments.setText(self.Comments["Base"])
-        
+
         # Write Scenario
         self.writeScenario("Base", self.TimeLabels, self.Comments["Base"])
 
@@ -173,18 +170,18 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.btLessTime.setVisible(True)
             self.btMoreTime.setVisible(True)
             self.cbTimes.setVisible(True)
-        
+
         self.Computing = False
-        
+
         # Open results
         self.openAllResults()
 
     def isCurrentProject(self):
         currentNetwork = ""
         currentDirectory = ""
-        layers = [tree_layer.layer()
-                  for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+        message = "The current project has been changed. Please, try again."
 
+        layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
         for layer in layers:
             layerUri = layer.dataProvider().dataSourceUri().split("|")[0]
             self.CRS = layer.crs()
@@ -203,20 +200,17 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     if self.NetworkName == currentNetwork and self.ProjectDirectory == currentDirectory:
                         return True
                     else:
-                        self.iface.messageBar().pushMessage("Warning",
-                                                            "The current project has been changed. Please, try again.", level=1, duration=5)
+                        self.iface.messageBar().pushMessage("Warning", message, level=1, duration=5)
                         self.close()
                         return False
 
-        self.iface.messageBar().pushMessage("Warning",
-                                            "The current project has been changed. Please, try again.", level=1, duration=5)
+        self.iface.messageBar().pushMessage("Warning", message, level=1, duration=5)
         self.close()
         return False
 
     def openLayerResults(self, scenario):
         resultPath = os.path.join(self.ProjectDirectory, "Results")
-        utils = QGISRedUtils(resultPath, self.NetworkName +
-                             "_" + scenario, self.iface)
+        utils = QGISRedUtils(resultPath, self.NetworkName + "_" + scenario, self.iface)
         resultGroup = self.getResultGroup()
         group = resultGroup.findGroup(scenario)
         if group is None:
@@ -292,8 +286,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.Variables = self.Variables + "Quality_Node;"
 
         if self.Variables == "":
-            self.iface.messageBar().pushMessage(
-                "Validations", "No variable results selected", level=1)
+            self.iface.messageBar().pushMessage("Validations", "No variable results selected", level=1)
             return False
         return True
 
@@ -325,10 +318,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
     def setNodesLayersNames(self):
         self.LabelsToOpRe = []
-        self.LabelsToOpRe.append("Node_" + "Pressure")
-        self.LabelsToOpRe.append("Node_" + "Head")
-        self.LabelsToOpRe.append("Node_" + "Demand")
-        self.LabelsToOpRe.append("Node_" + "Quaility")
+        self.LabelsToOpRe.append("Node_Pressure")
+        self.LabelsToOpRe.append("Node_Head")
+        self.LabelsToOpRe.append("Node_Demand")
+        self.LabelsToOpRe.append("Node_Quaility")
 
     def insert(self, source_str, insert_str, pos):
         return source_str[:pos]+insert_str+source_str[pos:]
@@ -345,7 +338,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.cbFlowDirections.setVisible(False)
 
         for nameLayer in self.LabelsToOpRe:
-            layerResult = os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp").replace("/", "\\")
+            layerResult = os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp")
+            layerResult = layerResult.replace("/", "\\")
             for layer in layers:
                 openLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\")
                 if openLayerPath == layerResult:
@@ -354,12 +348,13 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
     def saveCurrentRender(self):
         openedLayers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
-        resultPath = os.path.join(self.ProjectDirectory, "Results")   
+        resultPath = os.path.join(self.ProjectDirectory, "Results")
         dictSce = self.Renders.get(self.Scenario)
         if dictSce is None:
             dictSce = {}
         for nameLayer in self.LabelsToOpRe:
-            resultLayerPath = os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp").replace("/", "\\")
+            resultLayerPath = os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp")
+            resultLayerPath = resultLayerPath.replace("/", "\\")
             for layer in openedLayers:
                 openedLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\")
                 if openedLayerPath == resultLayerPath:
@@ -376,24 +371,27 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.Scenario = self.cbScenarios.currentText()
         resultPath = os.path.join(self.ProjectDirectory, "Results")
 
-        layers = [tree_layer.layer()
-                  for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+        layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
 
         self.lbTime.setText(self.TimeLabels[columnNumber])
         for nameLayer in self.LabelsToOpRe:
+            resultLayerPath = os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp")
+            resultLayerPath = resultLayerPath.replace("/", "\\")
             for layer in layers:
-                if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\") == os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp").replace("/", "\\"):
+                openedLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\")
+                if openedLayerPath == resultLayerPath:
                     field_names = [field.name() for field in layer.fields()]
                     field = field_names[columnNumber+2]
                     self.setGraduadedPalette(layer, field, setRender, nameLayer)
-                    #layer.setName(nameLayer + " " + self.TimeLabels[columnNumber])
                     layer.setName(nameLayer.replace("_", " "))
-                    layer.setMapTipTemplate(nameLayer.replace("Link_", "").replace(
-                        "Node_", "") + ": [% \"T" + str(columnNumber) + "\" %]")
+                    name = nameLayer.replace("Link_", "").replace("Node_", "") + ": [% \"T" + str(columnNumber) + "\" %]"
+                    layer.setMapTipTemplate(name)
                     self.setLayerLabels(layer, "T" + str(columnNumber))
 
     def setLayerLabels(self, layer, fieldName):
-        if (layer.geometryType() == 0 and self.cbNodeLabels.isChecked()) or (layer.geometryType() != 0 and self.cbLinkLabels.isChecked()):
+        firstCondition = layer.geometryType() == 0 and self.cbNodeLabels.isChecked()
+        secondCondition = layer.geometryType() != 0 and self.cbLinkLabels.isChecked()
+        if firstCondition or secondCondition:
             pal_layer = QgsPalLayerSettings()
             pal_layer.fieldName = fieldName
             pal_layer.enabled = True
@@ -404,10 +402,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             layer.triggerRepaint()
 
     def setGraduadedPalette(self, layer, field, setRender, nameLayer):
+        # TODO: Review method
         try:  # QGis 3
             renderer = layer.renderer()
             symbol = renderer.symbol()  # SimpleSymbol
-        except:
+        except Exception:
             # sourceSymbol() #GraduatedSymbol
             symbol = renderer.symbols(QgsRenderContext())
 
@@ -555,8 +554,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 else:
                     mode = QgsGraduatedSymbolRenderer.EqualInterval  # Quantile
                     classes = 5
-                    colorRamp = QgsVectorGradientColorRamp.create(
-                        {'color1': '0,0,255,255', 'color2': '255,0,0,255', 'stops': '0.25;0,255,255,255:0.50;0,255,0,255:0.75;255,255,0,255'})
+                    ramp = {'color1': '0,0,255,255', 'color2': '255,0,0,255',
+                            'stops': '0.25;0,255,255,255:0.50;0,255,0,255:0.75;255,255,0,255'}
+                    colorRamp = QgsVectorGradientColorRamp.create(ramp)
                     self.iface.setActiveLayer(layer)
                     renderer = QgsGraduatedSymbolRenderer.createRenderer(
                         layer, field, classes, mode, symbol, colorRamp)
@@ -574,8 +574,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         layer.triggerRepaint()
 
     def writeScenario(self, scenario, labels, comments):
-        filePath = os.path.join(os.path.join(
-            self.ProjectDirectory, "Results"), self.NetworkName + "_" + scenario + ".sce")
+        filePath = os.path.join(os.path.join(self.ProjectDirectory, "Results"), self.NetworkName + "_" + scenario + ".sce")
         f = open(filePath, "w+")
         QGISRedUtils().writeFile(f, "[TimeLabels]" + '\n')
         lab = ""
@@ -593,7 +592,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             return
         files = os.listdir(resultPath)
         for file in files:  # only names
-            if ".sce" in file and not "_Base" in file:
+            if ".sce" in file and "_Base" not in file:
                 f = open(os.path.join(resultPath, file), "r")
                 nameSc = file.replace(
                     self.NetworkName + "_", "").replace(".sce", "")
@@ -608,8 +607,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                         isComments = True
                         continue
                     if isLabel:
-                        self.LabelResults[nameSc] = line.strip(
-                            "\r\n").split(';')
+                        self.LabelResults[nameSc] = line.strip("\r\n").split(';')
                         isLabel = False
                     if isComments:
                         comments = comments + line.strip() + "\n"
@@ -679,8 +677,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         layers = [tree_layer.layer()
                   for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
         for nameLayer in self.LabelsToOpRe:
+            resultLayerPath = os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp")
+            resultLayerPath = resultLayerPath.replace("/", "\\")
             for layer in layers:
-                if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\") == os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp").replace("/", "\\"):
+                openedLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\")
+                if openedLayerPath == resultLayerPath:
                     if self.cbNodeLabels.isChecked():
                         self.setLayerLabels(
                             layer, "T" + str(self.cbTimes.currentIndex()))
@@ -694,8 +695,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         layers = [tree_layer.layer()
                   for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
         for nameLayer in self.LabelsToOpRe:
+            resultLayerPath = os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp")
+            resultLayerPath = resultLayerPath.replace("/", "\\")
             for layer in layers:
-                if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\") == os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp").replace("/", "\\"):
+                openedLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\")
+                if openedLayerPath == resultLayerPath:
                     if self.cbLinkLabels.isChecked():
                         self.setLayerLabels(
                             layer, "T" + str(self.cbTimes.currentIndex()))
@@ -731,7 +735,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if self.Computing:
             return
         self.Scenario = self.cbScenarios.currentText()
-        #resultPath = os.path.join(os.path.join(self.ProjectDirectory, "Results"), self.NetworkName + "_" + self.Scenario)
+        # resultPath = os.path.join(os.path.join(self.ProjectDirectory, "Results"), self.NetworkName + "_" + self.Scenario)
         # if resultPath is None:
         #     self.iface.messageBar().pushMessage("Warning", "No scenario results are available", level=1, duration=5)
         #     return
@@ -789,11 +793,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if not self.isCurrentProject():
             return False
         self.Scenario = self.cbScenarios.currentText()
-        resultPath = os.path.join(os.path.join(
-            self.ProjectDirectory, "Results"), self.NetworkName + "_" + self.Scenario)
+        resultPath = os.path.join(os.path.join(self.ProjectDirectory, "Results"), self.NetworkName + "_" + self.Scenario)
         if resultPath is None:
-            self.iface.messageBar().pushMessage(
-                "Warning", "No scenario results are available", level=1, duration=5)
+            self.iface.messageBar().pushMessage("Warning", "No scenario results are available", level=1, duration=5)
             return False
 
         if restore:
@@ -802,11 +804,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         return True
 
     def openAllResults(self):
-        resultPath = os.path.join(os.path.join(
-            self.ProjectDirectory, "Results"), self.NetworkName + "_" + self.Scenario)
+        resultPath = os.path.join(os.path.join(self.ProjectDirectory, "Results"), self.NetworkName + "_" + self.Scenario)
         if resultPath is None:
-            self.iface.messageBar().pushMessage(
-                "Warning", "No scenario results are available", level=1, duration=5)
+            self.iface.messageBar().pushMessage("Warning", "No scenario results are available", level=1, duration=5)
             return
 
         if not self.setVariablesTimes():
@@ -814,9 +814,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         # Process
         self.setLayersNames(True)
-        # Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-        task1 = QgsTask.fromFunction(
-            u'Dismiss this message', self.removeResults, on_finished=self.openAllResultsProcess)
+        # Task is necessary because after remove layers, DBF files are in use. With the task,
+        # the remove process finishs and filer are not in use
+        task1 = QgsTask.fromFunction("", self.removeResults, on_finished=self.openAllResultsProcess)
         task1.run()
         QgsApplication.taskManager().addTask(task1)
 
@@ -825,8 +825,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         found = True
         for file in self.LabelsToOpRe:
-            f = os.path.join(self.ProjectDirectory, "Results",
-                             self.NetworkName + "_" + self.Scenario + "_" + file + ".shp")
+            f = os.path.join(self.ProjectDirectory, "Results", self.NetworkName + "_" + self.Scenario + "_" + file + ".shp")
             if not os.path.exists(f):
                 found = False
         if not found:
@@ -834,8 +833,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             QApplication.setOverrideCursor(Qt.WaitCursor)
             QGISRedUtils().setCurrentDirectory()
             mydll = WinDLL("GISRed.QGisPlugins.dll")
-            mydll.CreateResults.argtypes = (
-                c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+            mydll.CreateResults.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
             mydll.CreateResults.restype = c_char_p
             b = mydll.CreateResults(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
                 'utf-8'), self.Scenario.encode('utf-8'), self.Variables.encode('utf-8'), "".encode('utf-8'), "".encode('utf-8'))
@@ -855,24 +853,17 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if b == "True":
             pass  # self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=5)
         elif b == "False":
-            self.iface.messageBar().pushMessage(
-                "Warning", "Some issues occurred in the process", level=1, duration=5)
+            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
         else:
             self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
 
     def openResult(self):
         self.openResultProcess()
-        # #Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-        # task1 = QgsTask.fromFunction(u'Dismiss this message', self.removeResults, on_finished=self.openResultProcess)
-        # task1.run()
-        # QgsApplication.taskManager().addTask(task1)
-        pass
 
     def openResultProcess(self, exception=None, result=None):
         found = True
         for file in self.LabelsToOpRe:
-            f = os.path.join(self.ProjectDirectory, "Results",
-                             self.NetworkName + "_" + self.Scenario + "_" + file + ".shp")
+            f = os.path.join(self.ProjectDirectory, "Results", self.NetworkName + "_" + self.Scenario + "_" + file + ".shp")
             if not os.path.exists(f):
                 found = False
         if not found:
@@ -880,8 +871,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             QApplication.setOverrideCursor(Qt.WaitCursor)
             QGISRedUtils().setCurrentDirectory()
             mydll = WinDLL("GISRed.QGisPlugins.dll")
-            mydll.CreateResults.argtypes = (
-                c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+            mydll.CreateResults.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
             mydll.CreateResults.restype = c_char_p
             b = mydll.CreateResults(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
                 'utf-8'), self.Scenario.encode('utf-8'), self.Variables.encode('utf-8'), "".encode('utf-8'), "".encode('utf-8'))
@@ -899,8 +889,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if b == "True":
             pass  # self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=5)
         elif b == "False":
-            self.iface.messageBar().pushMessage(
-                "Warning", "Some issues occurred in the process", level=1, duration=5)
+            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
         else:
             self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
 
@@ -910,18 +899,15 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         # Validations
         isBaseScenario = self.cbScenarios.currentText() == "Base"
         if not isBaseScenario:
-            self.iface.messageBar().pushMessage(
-                "Warning", "Only 'Base' scenario could be saved", level=1, duration=5)
+            self.iface.messageBar().pushMessage("Warning", "Only 'Base' scenario could be saved", level=1, duration=5)
             return
         newScenario = self.tbScenarioName.text().strip()
         if newScenario == "":
-            self.iface.messageBar().pushMessage(
-                "Warning", "Scenario name is not valid", level=1, duration=5)
+            self.iface.messageBar().pushMessage("Warning", "Scenario name is not valid", level=1, duration=5)
             return
         for i in range(self.cbScenarios.count()):
             if self.cbScenarios.itemText(i).lower() == newScenario.lower():
-                self.iface.messageBar().pushMessage(
-                    "Warning", "Scenario name is already used", level=1, duration=5)
+                self.iface.messageBar().pushMessage("Warning", "Scenario name is already used", level=1, duration=5)
                 return
 
         # Save options
@@ -939,10 +925,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.LabelResults[newScenario] = self.TimeLabels
             self.IndexTime[newScenario] = self.cbTimes.currentIndex()
             self.Comments[newScenario] = self.tbComments.toPlainText().strip().strip("\n")
-            self.writeScenario(newScenario, self.TimeLabels,self.Comments[newScenario])
-        except:
-            self.iface.messageBar().pushMessage(
-                "Error", "Scenario could not be saved", level=2, duration=5)
+            self.writeScenario(newScenario, self.TimeLabels, self.Comments[newScenario])
+        except Exception:
+            self.iface.messageBar().pushMessage("Error", "Scenario could not be saved", level=2, duration=5)
             return
         self.Scenario = "Base"
         self.saveCurrentRender()
@@ -956,9 +941,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         # Process
         self.setLayersNames(True)
-        # Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and filer are not in use
-        task1 = QgsTask.fromFunction(
-            u'Dismiss this message', self.removeResults, on_finished=self.deleteScenarioProcess, wait_time=0)
+        # Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and
+        # filer are not in use
+        task1 = QgsTask.fromFunction("", self.removeResults, on_finished=self.deleteScenarioProcess, wait_time=0)
         task1.run()
         QgsApplication.taskManager().addTask(task1)
 
@@ -975,7 +960,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             if self.NetworkName + "_" + self.Scenario in file:
                 try:
                     os.remove(os.path.join(resultPath, file))
-                except:
+                except Exception:
                     pass
 
         # Delete from combobox
