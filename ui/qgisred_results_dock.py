@@ -16,8 +16,7 @@ from time import sleep
 import tempfile
 from shutil import copyfile
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'qgisred_results_dock.ui'))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_results_dock.ui'))
 
 
 class QGISRedResultsDock(QDockWidget, FORM_CLASS):
@@ -25,8 +24,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     iface = None
     NetworkName = ""
     ProjectDirectory = ""
-    ownMainLayers = ["Pipes", "Valves", "Pumps",
-                     "Junctions", "Tanks", "Reservoirs"]
+    ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs"]
     LabelResults = {}
     IndexTime = {}
     Comments = {}
@@ -55,8 +53,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.cbScenarios.currentIndexChanged.connect(self.scenarioChanged)
         self.btDeleteScenario.clicked.connect(self.deleteScenario)
 
-    def config(self, direct, netw, labels, baseLayers):
+    def simulate(self, direct, netw):
         self.Computing = True
+        # If there is a new project, reset options
         if not (self.NetworkName == netw and self.ProjectDirectory == direct):
             self.LabelResults = {}
             self.IndexTime = {}
@@ -72,74 +71,112 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             crs = QgsCoordinateReferenceSystem()
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
         self.CRS = crs
-
+        # Project info
         self.NetworkName = netw
         self.ProjectDirectory = direct
+        
+        # Create list with results layers opened
+        self.Scenario = "Base"
+        self.setLayersNames(True)
+        resultPath = os.path.join(self.ProjectDirectory, "Results")
+        openedLayers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+        self.resultsLayersPreviouslyOpened = []
+        for nameLayer in self.LabelsToOpRe:
+            resultLayerPath=os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp").replace("/", "\\")
+            for layer in openedLayers:
+                openedLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\")
+                if openedLayerPath == resultLayerPath:
+                    self.resultsLayersPreviouslyOpened.append(nameLayer)
+        
+        # Save render previous remove layers
+        self.LabelsToOpRe = self.resultsLayersPreviouslyOpened
+        self.saveCurrentRender()
+
+        # Remove results layers previous to simulate
+        task1 = QgsTask.fromFunction("", self.removeResults, on_finished=self.simulationProcess)
+        task1.run()
+        QgsApplication.taskManager().addTask(task1)    
+
+    def simulationProcess(self, exception=None, result=None):
+         # Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QGISRedUtils().setCurrentDirectory()
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.Compute.argtypes = (c_char_p, c_char_p)
+        mydll.Compute.restype = c_char_p
+        b = mydll.Compute(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
+        b = "".join(map(chr, b))  # bytes to string
+        QApplication.restoreOverrideCursor()
+
+        # Message
+        if b == "False":
+            self.iface.messageBar().pushMessage("Warning", self.tr("Some issues occurred in the process"), level=1, duration=5)
+        elif b.startswith("[TimeLabels]"):
+            self.openBaseResults(b.replace("[TimeLabels]", ""))
+            self.show()
+            # Input group
+            group = self.getInputGroup()
+            if group is not None:
+                group.setItemVisibilityChecked(False)
+            return
+        else:
+            self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
+        
+        # If some error, close the dock
+        self.close()
+
+    def openBaseResults(self, labels):
+         # Scenario
         self.cbScenarios.setCurrentIndex(0)
         self.btDeleteScenario.setEnabled(False)
-
-        self.LabelsToOpRe = baseLayers
+        
+        # Select comboboxes item
         if len(self.LabelsToOpRe) == 0:
             self.cbLinks.setCurrentIndex(1)
             self.cbFlowDirections.setVisible(True)
             self.cbNodes.setCurrentIndex(1)
         else:
             for nameLayer in self.LabelsToOpRe:
-                if nameLayer == "Link_Flow":
-                    self.cbLinks.setCurrentIndex(1)
-                    self.cbFlowDirections.setVisible(True)
-                if nameLayer == "Link_Velocity":
-                    self.cbLinks.setCurrentIndex(2)
-                if nameLayer == "Link_HeadLoss":
-                    self.cbLinks.setCurrentIndex(3)
-                if nameLayer == "Link_Quaility":
-                    self.cbLinks.setCurrentIndex(4)
-                if nameLayer == "Node_Pressure":
-                    self.cbNodes.setCurrentIndex(1)
-                if nameLayer == "Node_Head":
-                    self.cbNodes.setCurrentIndex(2)
-                if nameLayer == "Node_Demand":
-                    self.cbNodes.setCurrentIndex(3)
-                if nameLayer == "Node_Quaility":
-                    self.cbNodes.setCurrentIndex(4)
-
-        list = labels.split(';')
+                self.setSelectedItemInLinkNodeComboboxes(nameLayer)
+        
+        # Time labels
+        mylist = labels.split(';')
         self.TimeLabels = []
         self.cbTimes.clear()
-        if len(list) == 1:
+        if len(mylist) == 1:
             self.TimeLabels.append("Permanent")
             self.cbTimes.addItem("Permanent")
         else:
-            for item in list:
-                self.TimeLabels.append(self.insert(
-                    self.insert(item, " ", 6), " ", 3))
-                self.cbTimes.addItem(self.insert(
-                    self.insert(item, " ", 6), " ", 3))
+            for item in mylist:
+                self.TimeLabels.append(self.insert(self.insert(item, " ", 6), " ", 3))
+                self.cbTimes.addItem(self.insert(self.insert(item, " ", 6), " ", 3))
         self.LabelResults["Base"] = self.TimeLabels
+        self.IndexTime["Base"] = 0
+        self.cbTimes.setCurrentIndex(0)
+        self.lbTime.setText(self.TimeLabels[0])
+
+        # Comments
         self.Comments["Base"] = "Last results computed"
         self.lbComments.setText(self.Comments["Base"])
+        
+        # Write Scenario
         self.writeScenario("Base", self.TimeLabels, self.Comments["Base"])
 
-        if len(list) == 1:
+        # Configure Visibilities
+        if len(mylist) == 1:
             self.lbLabel5.setVisible(False)
             self.btLessTime.setVisible(False)
             self.btMoreTime.setVisible(False)
             self.cbTimes.setVisible(False)
-            # self.btPlay.setVisible(False)
         else:
             self.lbLabel5.setVisible(True)
             self.btLessTime.setVisible(True)
             self.btMoreTime.setVisible(True)
             self.cbTimes.setVisible(True)
-            # self.btPlay.setVisible(True)
-        self.IndexTime["Base"] = 0
-        self.cbTimes.setCurrentIndex(0)
-        # self.lbTime.setVisible(True)
-        self.lbTime.setText(self.TimeLabels[0])
+        
         self.Computing = False
+        
         # Open results
-        self.Scenario = "Base"
-        self.saveCurrentRender(True)
         self.openAllResults()
 
     def isCurrentProject(self):
@@ -189,11 +226,21 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
     def removeResults(self, task):
         resultPath = os.path.join(self.ProjectDirectory, "Results")
-        utils = QGISRedUtils(resultPath, self.NetworkName +
-                             "_" + self.Scenario, self.iface)
+        utils = QGISRedUtils(resultPath, self.NetworkName + "_" + self.Scenario, self.iface)
         utils.removeLayers(self.LabelsToOpRe)
         if task is not None:
             raise Exception('')
+
+    def getInputGroup(self):
+        # Same method in qgisred_newproject_dialog and qgisred_plugins
+        inputGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
+        if inputGroup is None:
+            netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
+            if netGroup is None:
+                root = QgsProject.instance().layerTreeRoot()
+                netGroup = root.insertGroup(0, self.NetworkName)
+            inputGroup = netGroup.addGroup("Inputs")
+        return inputGroup
 
     def getResultGroup(self):
         resultGroup = QgsProject.instance().layerTreeRoot().findGroup("Results")
@@ -205,6 +252,25 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             resultGroup = netGroup.insertGroup(0, "Results")
         resultGroup.setItemVisibilityChecked(True)
         return resultGroup
+
+    def setSelectedItemInLinkNodeComboboxes(self, nameLayer):
+        if nameLayer == "Link_Flow":
+            self.cbLinks.setCurrentIndex(1)
+            self.cbFlowDirections.setVisible(True)
+        if nameLayer == "Link_Velocity":
+            self.cbLinks.setCurrentIndex(2)
+        if nameLayer == "Link_HeadLoss":
+            self.cbLinks.setCurrentIndex(3)
+        if nameLayer == "Link_Quaility":
+            self.cbLinks.setCurrentIndex(4)
+        if nameLayer == "Node_Pressure":
+            self.cbNodes.setCurrentIndex(1)
+        if nameLayer == "Node_Head":
+            self.cbNodes.setCurrentIndex(2)
+        if nameLayer == "Node_Demand":
+            self.cbNodes.setCurrentIndex(3)
+        if nameLayer == "Node_Quaility":
+            self.cbNodes.setCurrentIndex(4)
 
     def setVariablesTimes(self):
         self.Variables = ""
@@ -231,32 +297,31 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             return False
         return True
 
-    def setLayersNames(self, all=False):
+    def setLayersNames(self, allLayers=False):
         self.LabelsToOpRe = []
-        if self.cbLinks.currentIndex() == 1 or all:
-            self.LabelsToOpRe.append("Link_" + "Flow")
-        if self.cbLinks.currentIndex() == 2 or all:
-            self.LabelsToOpRe.append("Link_" + "Velocity")
-        if self.cbLinks.currentIndex() == 3 or all:
-            self.LabelsToOpRe.append("Link_" + "HeadLoss")
-        if self.cbLinks.currentIndex() == 4 or all:
-            self.LabelsToOpRe.append("Link_" + "Quaility")
-        if self.cbNodes.currentIndex() == 1 or all:
-            self.LabelsToOpRe.append("Node_" + "Pressure")
-        if self.cbNodes.currentIndex() == 2 or all:
-            self.LabelsToOpRe.append("Node_" + "Head")
-        if self.cbNodes.currentIndex() == 3 or all:
-            self.LabelsToOpRe.append("Node_" + "Demand")
-        if self.cbNodes.currentIndex() == 4 or all:
-            self.LabelsToOpRe.append("Node_" + "Quaility")
-        return self.LabelsToOpRe
+        if self.cbLinks.currentIndex() == 1 or allLayers:
+            self.LabelsToOpRe.append("Link_Flow")
+        if self.cbLinks.currentIndex() == 2 or allLayers:
+            self.LabelsToOpRe.append("Link_Velocity")
+        if self.cbLinks.currentIndex() == 3 or allLayers:
+            self.LabelsToOpRe.append("Link_HeadLoss")
+        if self.cbLinks.currentIndex() == 4 or allLayers:
+            self.LabelsToOpRe.append("Link_Quaility")
+        if self.cbNodes.currentIndex() == 1 or allLayers:
+            self.LabelsToOpRe.append("Node_Pressure")
+        if self.cbNodes.currentIndex() == 2 or allLayers:
+            self.LabelsToOpRe.append("Node_Head")
+        if self.cbNodes.currentIndex() == 3 or allLayers:
+            self.LabelsToOpRe.append("Node_Demand")
+        if self.cbNodes.currentIndex() == 4 or allLayers:
+            self.LabelsToOpRe.append("Node_Quaility")
 
     def setLinksLayersNames(self):
         self.LabelsToOpRe = []
-        self.LabelsToOpRe.append("Link_" + "Flow")
-        self.LabelsToOpRe.append("Link_" + "Velocity")
-        self.LabelsToOpRe.append("Link_" + "HeadLoss")
-        self.LabelsToOpRe.append("Link_" + "Quaility")
+        self.LabelsToOpRe.append("Link_Flow")
+        self.LabelsToOpRe.append("Link_Velocity")
+        self.LabelsToOpRe.append("Link_HeadLoss")
+        self.LabelsToOpRe.append("Link_Quaility")
 
     def setNodesLayersNames(self):
         self.LabelsToOpRe = []
@@ -272,8 +337,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.Scenario = self.cbScenarios.currentText()
         resultPath = os.path.join(self.ProjectDirectory, "Results")
         self.setLayersNames(True)
-        layers = [tree_layer.layer()
-                  for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+        layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
 
         self.Computing = True
         self.cbLinks.setCurrentIndex(0)
@@ -281,47 +345,28 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.cbFlowDirections.setVisible(False)
 
         for nameLayer in self.LabelsToOpRe:
+            layerResult = os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp").replace("/", "\\")
             for layer in layers:
-                if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\") == os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp").replace("/", "\\"):
-                    if nameLayer == "Link_Flow":
-                        self.cbLinks.setCurrentIndex(1)
-                        self.cbFlowDirections.setVisible(True)
-                    if nameLayer == "Link_Velocity":
-                        self.cbLinks.setCurrentIndex(2)
-                    if nameLayer == "Link_HeadLoss":
-                        self.cbLinks.setCurrentIndex(3)
-                    if nameLayer == "Link_Quaility":
-                        self.cbLinks.setCurrentIndex(4)
-                    if nameLayer == "Node_Pressure":
-                        self.cbNodes.setCurrentIndex(1)
-                    if nameLayer == "Node_Head":
-                        self.cbNodes.setCurrentIndex(2)
-                    if nameLayer == "Node_Demand":
-                        self.cbNodes.setCurrentIndex(3)
-                    if nameLayer == "Node_Quaility":
-                        self.cbNodes.setCurrentIndex(4)
+                openLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\")
+                if openLayerPath == layerResult:
+                    self.setSelectedItemInLinkNodeComboboxes(nameLayer)
         self.Computing = False
 
-    def saveCurrentRender(self, all=False):
-        layers = [tree_layer.layer()
-                  for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
-
-        resultPath = os.path.join(self.ProjectDirectory, "Results")
-        if all:
-            self.setLayersNames(True)
+    def saveCurrentRender(self):
+        openedLayers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+        resultPath = os.path.join(self.ProjectDirectory, "Results")   
         dictSce = self.Renders.get(self.Scenario)
         if dictSce is None:
             dictSce = {}
         for nameLayer in self.LabelsToOpRe:
-            for layer in layers:
-                pathLayer = str(
-                    layer.dataProvider().dataSourceUri().split("|")[0])
-                if pathLayer == os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp"):
-                    if dictSce.get(pathLayer) is not None:
-                        continue
+            resultLayerPath = os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp").replace("/", "\\")
+            for layer in openedLayers:
+                openedLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\")
+                if openedLayerPath == resultLayerPath:
                     renderer = layer.renderer()
                     if renderer.type() == 'graduatedSymbol':
-                        dictSce[pathLayer] = renderer.ranges()
+                        # Guarda por ruta, se pierde al cerrar QGis
+                        dictSce[openedLayerPath] = renderer.ranges()
         self.Renders[self.Scenario] = dictSce
 
     def paintIntervalTimeResults(self, columnNumber, setRender=False):
@@ -340,8 +385,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\") == os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp").replace("/", "\\"):
                     field_names = [field.name() for field in layer.fields()]
                     field = field_names[columnNumber+2]
-                    self.setGraduadedPalette(
-                        layer, field, setRender, nameLayer)
+                    self.setGraduadedPalette(layer, field, setRender, nameLayer)
                     #layer.setName(nameLayer + " " + self.TimeLabels[columnNumber])
                     layer.setName(nameLayer.replace("_", " "))
                     layer.setMapTipTemplate(nameLayer.replace("Link_", "").replace(
@@ -596,12 +640,12 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             result = "Quality"
 
         self.setLinksLayersNames()
+        self.saveCurrentRender()
         self.removeResults(None)
         self.LabelsToOpRe = []
         if not self.cbLinks.currentIndex() == 0:
             self.LabelsToOpRe.append("Link_" + result)
             self.Variables = result + "_Link"
-            self.saveCurrentRender()
             self.openResult()
 
     def nodesChanged(self):
@@ -609,7 +653,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             return
         if not self.validationsOpenResult():
             return
-        result = self.cbNodes.currentText()
         result = ""
         if self.cbNodes.currentIndex() == 1:
             result = "Pressure"
@@ -621,6 +664,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             result = "Quality"
 
         self.setNodesLayersNames()
+        self.saveCurrentRender()
         self.removeResults(None)
         self.LabelsToOpRe = []
         if not self.cbNodes.currentIndex() == 0:
@@ -687,31 +731,15 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if self.Computing:
             return
         self.Scenario = self.cbScenarios.currentText()
-        resultPath = os.path.join(os.path.join(
-            self.ProjectDirectory, "Results"), self.NetworkName + "_" + self.Scenario)
-        if resultPath is None:
-            self.iface.messageBar().pushMessage(
-                "Warning", "No scenario results are available", level=1, duration=5)
-            return
+        #resultPath = os.path.join(os.path.join(self.ProjectDirectory, "Results"), self.NetworkName + "_" + self.Scenario)
+        # if resultPath is None:
+        #     self.iface.messageBar().pushMessage("Warning", "No scenario results are available", level=1, duration=5)
+        #     return
 
         value = self.cbTimes.currentIndex()
         self.IndexTime[self.cbScenarios.currentText()] = value
         self.setLayersNames()
         self.paintIntervalTimeResults(value)
-
-    def play(self):
-        self.btPlay.setEnabled(False)
-        for label in self.TimeLabels:
-            task1 = QgsTask.fromFunction(
-                u'Visualizate', self.playTask, wait_time=0)
-            task1.run()
-            QgsApplication.taskManager().addTask(task1)
-
-        self.btPlay.setEnabled(True)
-
-    def playTask(self, task, wait_time):
-        #self.hsTimes.setValue(self.hsTimes.value() + 1)
-        sleep(1)
 
     def scenarioChanged(self):
         if self.Computing:
@@ -910,16 +938,14 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
             self.LabelResults[newScenario] = self.TimeLabels
             self.IndexTime[newScenario] = self.cbTimes.currentIndex()
-            self.Comments[newScenario] = self.tbComments.toPlainText(
-            ).strip().strip("\n")
-            self.writeScenario(newScenario, self.TimeLabels,
-                               self.Comments[newScenario])
+            self.Comments[newScenario] = self.tbComments.toPlainText().strip().strip("\n")
+            self.writeScenario(newScenario, self.TimeLabels,self.Comments[newScenario])
         except:
             self.iface.messageBar().pushMessage(
                 "Error", "Scenario could not be saved", level=2, duration=5)
             return
         self.Scenario = "Base"
-        self.saveCurrentRender(True)
+        self.saveCurrentRender()
 
         self.cbScenarios.addItem(newScenario)
         self.cbScenarios.setCurrentIndex(self.cbScenarios.count()-1)

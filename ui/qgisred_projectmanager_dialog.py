@@ -158,10 +158,11 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                                                 "' project is not found in selected folder", level=1, duration=5)
 
     def updateMetadata(self, net, folder):
-        filePath = os.path.join(folder, net + "_Metadata.txt")
+        filePath = os.path.join(folder.replace("/", "\\"), net + "_Metadata.txt")
         isInMetadata = False
-        with open(filePath, 'r', encoding="latin-1") as content_file:
-            isInMetadata = "<Inputs>" in content_file.read()
+        if os.path.exists(filePath):
+            with open(filePath, 'r', encoding="latin-1") as content_file:
+                isInMetadata = "<Inputs>" in content_file.read()
         if isInMetadata:
             return  # If there is info in metadata file we don't update it
         dirList = os.listdir(folder)

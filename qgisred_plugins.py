@@ -407,31 +407,35 @@ class QGISRed:
 
     def addExperimentalMenu(self):
         #    #Menu
-        self.experimentalMenu = self.qgisredmenu.addMenu(self.tr('Experimenta'))
-        self.experimentalMenu.setIcon(QIcon(':/plugins/QGISRed/images/iconTree.png'))
+        self.experimentalMenu = self.qgisredmenu.addMenu(
+            self.tr('Experimental'))
+        self.experimentalMenu.setIcon(
+            QIcon(':/plugins/QGISRed/images/iconTree.png'))
         #    #Toolbar
-        self.experimentalToolbar = self.iface.addToolBar(self.tr(u'QGISRed Experimental'))
-        self.experimentalToolbar.setObjectName(self.tr(u'QGISRed Experimental'))
+        self.experimentalToolbar = self.iface.addToolBar(
+            self.tr(u'QGISRed Experimental'))
+        self.experimentalToolbar.setObjectName(
+            self.tr(u'QGISRed Experimental'))
         self.experimentalToolbar.setVisible(False)
         #    #Buttons
         icon_path = ':/plugins/QGISRed/images/iconTree.png'
         expDropButton = self.add_action(icon_path, text=self.tr(u'Experimental'), callback=self.runExperimentalToolbar, menubar=self.experimentalMenu, add_to_menu=False,
-            toolbar=self.toolbar, createDrop = True, addActionToDrop = False, add_to_toolbar =False, parent=self.iface.mainWindow())
+                                        toolbar=self.toolbar, createDrop=True, addActionToDrop=False, add_to_toolbar=False, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconTree.png'
         self.add_action(icon_path, text=self.tr(u'Obtain Tree'), callback=self.runTree, menubar=self.experimentalMenu, toolbar=self.experimentalToolbar,
-            actionBase = expDropButton, add_to_toolbar =True, parent=self.iface.mainWindow())
+                        actionBase=expDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
 
     def initGui(self):
         if not platform.system() == "Windows":
             return
-        
+
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
         self.addFileMenu()
         self.addProjectMenu()
         self.addEditMenu()
         self.addVerificationsMenu()
         self.addToolsMenu()
-        #self.addExperimentalMenu()
+        # self.addExperimentalMenu()
         # About
         icon_path = ':/plugins/QGISRed/images/iconAbout.png'
         self.add_action(icon_path, text=self.tr(u'About...'), callback=self.runAbout,
@@ -688,13 +692,6 @@ class QGISRed:
         # task.finished(True)
         raise Exception('')
 
-    def removeResultsLayers(self, task):
-        resultsDirct = os.path.join(self.ProjectDirectory, "Results")
-        utils = QGISRedUtils(
-            resultsDirct, self.NetworkName + "_Base", self.iface)
-        utils.removeLayers(self.resultsLayersToRemove)
-        raise Exception('')
-
     def removeIssuesLayers(self, task):
         utils = QGISRedUtils(self.ProjectDirectory,
                              self.NetworkName, self.iface)
@@ -829,7 +826,7 @@ class QGISRed:
             group.setItemVisibilityChecked(self.ResultDockwidget.isVisible())
 
     def getInputGroup(self):
-        # Same method in qgisred_newproject_dialog
+        # Same method in qgisred_newproject_dialog and qgisred_results_dock
         inputGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
         if inputGroup is None:
             netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
@@ -1370,65 +1367,12 @@ class QGISRed:
         if self.isLayerOnEdition():
             return
 
-        self.resultsLayersToRemove = []
-        myLayers = []
-        myLayers.append("Link_" + "Flow")
-        myLayers.append("Link_" + "Velocity")
-        myLayers.append("Link_" + "HeadLoss")
-        myLayers.append("Link_" + "Quaility")
-        myLayers.append("Node_" + "Pressure")
-        myLayers.append("Node_" + "Head")
-        myLayers.append("Node_" + "Demand")
-        myLayers.append("Node_" + "Quaility")
-        resultPath = os.path.join(self.ProjectDirectory, "Results")
-        layers = [tree_layer.layer()
-                  for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
-        for nameLayer in myLayers:
-            for layer in layers:
-                if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\") == os.path.join(resultPath, self.NetworkName + "_Base_" + nameLayer + ".shp").replace("/", "\\"):
-                    self.resultsLayersToRemove.append(nameLayer)
-
-        task1 = QgsTask.fromFunction(
-            "", self.removeResultsLayers, on_finished=self.runModelProcess)
-        task1.run()
-        QgsApplication.taskManager().addTask(task1)
-
-    def runModelProcess(self, exception=None, result=None):
-        # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.Compute.argtypes = (c_char_p, c_char_p)
-        mydll.Compute.restype = c_char_p
-        b = mydll.Compute(self.ProjectDirectory.encode(
-            'utf-8'), self.NetworkName.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
-        QApplication.restoreOverrideCursor()
-
-        # Message
-        if b == "False":
-            self.iface.messageBar().pushMessage(
-                "Warning", "Some issues occurred in the process", level=1, duration=5)
-        elif b.startswith("[TimeLabels]"):
-            # Open dock
-            if self.ResultDockwidget is None:
-                self.ResultDockwidget = QGISRedResultsDock(self.iface)
-                self.iface.addDockWidget(
-                    Qt.RightDockWidgetArea, self.ResultDockwidget)
-                self.ResultDockwidget.visibilityChanged.connect(
-                    self.activeInputGroup)
-            self.ResultDockwidget.config(self.ProjectDirectory, self.NetworkName, b.replace(
-                "[TimeLabels]", ""), self.resultsLayersToRemove)
-            self.ResultDockwidget.show()
-            group = self.getInputGroup()
-            if group is not None:
-                group.setItemVisibilityChecked(False)
-            return
-        else:
-            self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
-
-        if self.ResultDockwidget is not None:  # If some error, close the dock
-            self.ResultDockwidget.close()
+        # Results Dock
+        if self.ResultDockwidget is None:
+            self.ResultDockwidget = QGISRedResultsDock(self.iface)
+            self.iface.addDockWidget(Qt.RightDockWidgetArea, self.ResultDockwidget)
+            self.ResultDockwidget.visibilityChanged.connect(self.activeInputGroup)
+        self.ResultDockwidget.simulate(self.ProjectDirectory, self.NetworkName)
 
     def runShowResultsDock(self):
         if not self.checkDependencies():
@@ -1440,22 +1384,6 @@ class QGISRed:
         if self.ResultDockwidget is None:
             self.runModel()
         else:
-            self.ResultDockwidget.show()
-
-    def runShowResults(self):
-        if not self.checkDependencies():
-            return
-        # Open dock
-        if self.ResultDockwidget is None:
-            self.runModel()
-        else:
-            # Validations
-            self.defineCurrentProject()
-            if not self.isValidProject():
-                return
-            if not (self.NetworkName == self.ResultDockwidget.NetworkName and self.ProjectDirectory == self.ResultDockwidget.ProjectDirectory):
-                self.runModel()
-                return
             self.ResultDockwidget.show()
 
     def runExportInp(self):
@@ -2033,7 +1961,7 @@ class QGISRed:
         self.processCsharpResult(b, "")
 
     def runSelectPointProperties(self):
-        tool= "pointElement"
+        tool = "pointElement"
         if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.editElementButton.setChecked(False)

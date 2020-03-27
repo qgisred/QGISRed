@@ -151,7 +151,7 @@ class QGISRedUtils:
                 svg_props['name'] = svgPath
                 size = 5
                 if name == "pipes":
-                    size =0
+                    size = 0
                 svg_props['size'] = str(size)
                 svg_props['offset'] = '-0.5,-0.5'
                 svg_props['offset_unit'] = 'Pixel'
@@ -203,7 +203,8 @@ class QGISRedUtils:
             f = open(qmlPath, "w+")
             f.write(contents)
             f.close()
-            ret = layer.loadNamedStyle(qmlPath)
+            # ret = layer.loadNamedStyle(qmlPath)
+            layer.loadNamedStyle(qmlPath)
             os.remove(qmlPath)
 
     def setSectorsStyle(self, layer):
@@ -262,15 +263,7 @@ class QGISRedUtils:
             layer.setRenderer(renderer)
 
     def getGISRedFolder(self):
-        # if "64bit" in str(platform.architecture()):
-        # folder = os.environ["ProgramFiles"]
-        # else:
-        # try:
-        # folder = os.environ["ProgramFiles(x86)"]
-        # except:
-        # folder = os.environ["ProgramFiles"]
-        # return os.path.join(folder, "GISRed")
-        return os.path.join(os.path.join(os.popen('echo %appdata%').read().strip(), "QGISRed"), "dlls")
+        return os.path.join(os.path.join(os.getenv('APPDATA'), "QGISRed"), "dlls")
 
     def setCurrentDirectory(self):
         os.chdir(self.getGISRedFolder())
@@ -279,7 +272,7 @@ class QGISRedUtils:
         # initializing empty file paths list
         file_paths = []
         # crawling through directory and subdirectories
-        for root, directories, files in os.walk(self.ProjectDirectory):
+        for root, _, files in os.walk(self.ProjectDirectory):
             for filename in files:
                 if self.NetworkName in filename:
                     # join the two strings in order to form the full filepath.
