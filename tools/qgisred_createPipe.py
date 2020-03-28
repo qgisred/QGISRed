@@ -1,10 +1,7 @@
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QCursor, QColor
-from qgis.core import QgsPointXY, QgsPoint, QgsFeatureRequest, QgsFeature, QgsGeometry, QgsProject, QgsTolerance, QgsVector, QgsVertexId, QgsPointLocator,\
-    QgsSnappingUtils, QgsVectorLayerEditUtils, QgsSnappingConfig  # QgsSnapper
-from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMessageBar, QgsMapCanvasSnappingUtils
-
-import os
+from PyQt5.QtGui import QColor
+from qgis.core import QgsPointXY, QgsPoint, QgsGeometry, QgsProject, QgsSnappingConfig
+from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSnappingUtils
 
 
 class QGISRedCreatePipeTool(QgsMapTool):

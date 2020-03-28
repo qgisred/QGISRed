@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-from qgis.PyQt import QtGui, uic
-from PyQt5.QtWidgets import QFileDialog, QDialog
+from PyQt5.QtWidgets import QDialog
+from qgis.PyQt import uic
 import os
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'qgisred_toolConnectivity_dialog.ui'))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_toolConnectivity_dialog.ui'))
 
 
 class QGISRedConnectivityToolDialog(QDialog, FORM_CLASS):
@@ -27,8 +26,8 @@ class QGISRedConnectivityToolDialog(QDialog, FORM_CLASS):
             self.lbMessage.setText("Not valid number for lines")
             return
         try:
-            a = float(self.Lines)
-        except:
+            _ = float(self.Lines)
+        except Exception:
             self.lbMessage.setText("Not numeric number of lines")
             return
         self.ProcessDone = True

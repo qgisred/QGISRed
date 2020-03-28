@@ -1,7 +1,8 @@
-from qgis.gui import *
-from qgis.core import *
-from PyQt5.Qt import *
-
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor
+from PyQt5.QtWidgets import QApplication
+from qgis.core import QgsPointXY, QgsPoint, QgsGeometry, QgsFeature, QgsRectangle, QgsVectorLayer, QgsMapLayer
+from qgis.gui import QgsMapTool, QgsRubberBand
 import processing
 
 
@@ -81,18 +82,18 @@ class QGISRedUtilsMultiLayerSelection(QgsMapTool):
                 for layer in layers:
                     if layer.type() == QgsMapLayer.RasterLayer:
                         continue
-                    #lRect = self.canvas.mapSettings().mapToLayerCoordinates(layer, rect)
+                    # lRect = self.canvas.mapSettings().mapToLayerCoordinates(layer, rect)
                     modifiers = QApplication.keyboardModifiers()
-                    if modifiers == QtCore.Qt.ShiftModifier:
+                    if modifiers == Qt.ShiftModifier:
                         processing.run('qgis:selectbylocation', {'INPUT': layer, 'PREDICATE': [
                                        0], 'INTERSECT': poligon, 'METHOD': 3})  # Remove
-                    elif modifiers == QtCore.Qt.ControlModifier:
+                    elif modifiers == Qt.ControlModifier:
                         processing.run('qgis:selectbylocation', {'INPUT': layer, 'PREDICATE': [
                                        0], 'INTERSECT': poligon, 'METHOD': 1})  # Add
                     else:
                         processing.run('qgis:selectbylocation', {'INPUT': layer, 'PREDICATE': [
                                        0], 'INTERSECT': poligon, 'METHOD': 0})  # Set
-            except:
+            except Exception:
                 self.iface.messageBar().pushMessage(
                     "Warning", "Polygon not valid for selecting elements", level=1, duration=5)
             self.reset()
@@ -128,9 +129,9 @@ class QGISRedUtilsMultiLayerSelection(QgsMapTool):
                     continue
                 lRect = self.canvas.mapSettings().mapToLayerCoordinates(layer, rect)
                 modifiers = QApplication.keyboardModifiers()
-                if modifiers == QtCore.Qt.ShiftModifier:
+                if modifiers == Qt.ShiftModifier:
                     layer.selectByRect(lRect, 3)  # Remove
-                elif modifiers == QtCore.Qt.ControlModifier:
+                elif modifiers == Qt.ControlModifier:
                     layer.selectByRect(lRect, 1)  # Add
                 else:
                     layer.selectByRect(lRect, 0)  # Set

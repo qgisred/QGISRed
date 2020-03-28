@@ -1,18 +1,15 @@
 # -*- coding: utf-8 -*-
-from qgis.gui import QgsMessageBar
-from qgis.core import QgsVectorLayer, QgsProject, QgsCoordinateReferenceSystem
-from qgis.PyQt import QtGui, uic
-from qgis.gui import QgsProjectionSelectionDialog as QgsGenericProjectionSelector
-from qgis.core import Qgis, QgsTask, QgsApplication
 from PyQt5.QtWidgets import QFileDialog, QDialog, QApplication, QMessageBox
 from PyQt5.QtCore import Qt
+from qgis.core import QgsVectorLayer, QgsProject, QgsCoordinateReferenceSystem
+from qgis.PyQt import uic
+from qgis.gui import QgsProjectionSelectionDialog as QgsGenericProjectionSelector
 from ..tools.qgisred_utils import QGISRedUtils
 import os
-from ctypes import*
+from ctypes import c_char_p, WinDLL
 import tempfile
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'qgisred_import_dialog.ui'))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_import_dialog.ui'))
 
 
 class QGISRedImportDialog(QDialog, FORM_CLASS):
@@ -26,10 +23,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
     ProcessDone = False
     gplFile = ""
     TemporalFolder = "Temporal folder"
-    ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions",
-                     "Tanks", "Reservoirs", "Demands", "Sources"]
-    ownFiles = ["DefaultValues", "Options",
-                "Rules", "Controls", "Curves", "Patterns"]
+    ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs", "Demands", "Sources"]
+    ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns"]
 
     def __init__(self, parent=None):
         """Constructor."""
@@ -39,7 +34,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             os.popen('echo %appdata%').read().strip(), "QGISRed")
         try:  # create directory if does not exist
             os.stat(gplFolder)
-        except:
+        except Exception:
             os.mkdir(gplFolder)
         self.gplFile = os.path.join(gplFolder, "qgisredprojectlist.gpl")
         # INP
@@ -103,17 +98,14 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
     def validationsCreateProject(self):
         self.NetworkName = self.tbNetworkName.text()
         if len(self.NetworkName) == 0:
-            self.iface.messageBar().pushMessage(
-                "Validations", "The network's name is not valid", level=1)
+            self.iface.messageBar().pushMessage("Validations", "The network's name is not valid", level=1)
             return False
         self.ProjectDirectory = self.tbProjectDirectory.text()
         if len(self.ProjectDirectory) == 0 or self.ProjectDirectory == self.TemporalFolder:
-            self.ProjectDirectory = tempfile._get_default_tempdir(
-            ) + "\\" + next(tempfile._get_candidate_names())
+            self.ProjectDirectory = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names())
         else:
             if not os.path.exists(self.ProjectDirectory):
-                self.iface.messageBar().pushMessage(
-                    "Validations", "The project directory does not exist", level=1)
+                self.iface.messageBar().pushMessage("Validations", "The project directory does not exist", level=1)
                 return False
         return True
 
@@ -121,8 +113,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         # Process
         QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.CreateProject.argtypes = (
-            c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.CreateProject.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CreateProject.restype = c_char_p
         b = mydll.CreateProject(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
             'utf-8'), "".encode('utf-8'), "".encode('utf-8'), "".encode('utf-8'))
@@ -131,8 +122,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         # Message
         if not b == "True":
             if b == "False":
-                self.iface.messageBar().pushMessage(
-                    "Warning", "Some issues occurred in the process", level=1, duration=5)
+                self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
             else:
                 self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
             self.close()
@@ -146,8 +136,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
 
     def removeLayers(self, task, wait_time):
         # Remove layers
-        utils = QGISRedUtils(self.ProjectDirectory,
-                             self.NetworkName, self.iface)
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayers(self.ownMainLayers)
         utils.removeLayers(self.ownFiles, ".dbf")
         raise Exception('')
@@ -166,11 +155,9 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         if not self.opendedLayers:
             self.opendedLayers = True
             # Open layers
-            utils = QGISRedUtils(self.ProjectDirectory,
-                                 self.NetworkName, self.iface)
+            utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
             inputGroup = self.getInputGroup()
-            utils.openElementsLayers(
-                inputGroup, self.CRS, self.ownMainLayers, self.ownFiles)
+            utils.openElementsLayers(inputGroup, self.CRS, self.ownMainLayers, self.ownFiles)
             raise Exception('')
 
     def setZoomExtent(self, exception=None, result=None):
@@ -193,17 +180,15 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
     def importInpProject(self):
         # Common validations
         isValid = self.validationsCreateProject()
-        if isValid == True:
+        if isValid is True:
             # Validations INP
             self.InpFile = self.tbInpFile.text()
             if len(self.InpFile) == 0:
-                self.iface.messageBar().pushMessage(
-                    "Validations", "INP file is not valid", level=1)
+                self.iface.messageBar().pushMessage("Validations", "INP file is not valid", level=1)
                 return
             else:
                 if not os.path.exists(self.InpFile):
-                    self.iface.messageBar().pushMessage(
-                        "Validations", "INP file does not exist", level=1)
+                    self.iface.messageBar().pushMessage("Validations", "INP file does not exist", level=1)
                     return
 
             # Process
@@ -212,7 +197,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                     return
             else:
                 request = QMessageBox.question(self.iface.mainWindow(), self.tr('QGISRed'), self.tr(
-                    'Import INP file will be delete all previous data in the current project. Do you want to continue?'), QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No))
+                    'Import INP file will be delete all previous data in the current project. Do you want to continue?'),
+                    QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No))
                 if request == QMessageBox.No:
                     return
 
@@ -222,10 +208,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             # Process
             QApplication.setOverrideCursor(Qt.WaitCursor)
             QGISRedUtils().setCurrentDirectory()
-            #os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dlls"))
             mydll = WinDLL("GISRed.QGisPlugins.dll")
-            mydll.ImportFromInp.argtypes = (
-                c_char_p, c_char_p, c_char_p, c_char_p)
+            mydll.ImportFromInp.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
             mydll.ImportFromInp.restype = c_char_p
             b = mydll.ImportFromInp(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
                 'utf-8'), self.parent.tempFolder.encode('utf-8'), self.InpFile.encode('utf-8'))
@@ -379,8 +363,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.selectComboBoxItem(self.cbPump_InitStat, ["inistatus"])
         self.selectComboBoxItem(self.cbPump_Orient, ["orientatio"])
         self.selectComboBoxItem(self.cbPump_Tag, ["tag"])
-        self.selectComboBoxItem(
-            self.cbPump_Descr, ["descrip", "descr", "description"])
+        self.selectComboBoxItem(self.cbPump_Descr, ["descrip", "descr", "description"])
 
     def tankLayerChanged(self):
         newItem = self.cbTankLayer.currentText()
@@ -420,8 +403,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.selectComboBoxItem(self.cbTank_Diameter, ["diameter", "diam"])
         self.selectComboBoxItem(self.cbTank_ReactCoeff, ["reactcoef"])
         self.selectComboBoxItem(self.cbTank_Tag, ["tag"])
-        self.selectComboBoxItem(
-            self.cbTank_Descr, ["descrip", "descr", "description"])
+        self.selectComboBoxItem(self.cbTank_Descr, ["descrip", "descr", "description"])
 
     def reservoirLayerChanged(self):
         newItem = self.cbReservoirLayer.currentText()
@@ -449,8 +431,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.selectComboBoxItem(self.cbReservoir_Id, ["id"])
         self.selectComboBoxItem(self.cbReservoir_TotHead, ["totalhead"])
         self.selectComboBoxItem(self.cbReservoir_Tag, ["tag"])
-        self.selectComboBoxItem(self.cbReservoir_Descr, [
-                                "descrip", "descr", "description"])
+        self.selectComboBoxItem(self.cbReservoir_Descr, ["descrip", "descr", "description"])
 
     def junctionLayerChanged(self):
         newItem = self.cbJunctionLayer.currentText()
@@ -481,8 +462,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.selectComboBoxItem(self.cbJunction_Elevation, ["elevation"])
         self.selectComboBoxItem(self.cbJunction_BaseDem, ["basedem"])
         self.selectComboBoxItem(self.cbJunction_Tag, ["tag"])
-        self.selectComboBoxItem(self.cbJunction_Descr, [
-                                "descrip", "descr", "description"])
+        self.selectComboBoxItem(self.cbJunction_Descr, ["descrip", "descr", "description"])
 
     def createShpsNames(self):
         shpFolder = self.tbShpDirectory.text()
@@ -490,28 +470,22 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
 
         name = self.cbPipeLayer.currentText()
         if not name == "None":
-            shpNames = shpNames + "[PIPES]" + \
-                os.path.join(shpFolder, name) + ","
+            shpNames = shpNames + "[PIPES]" + os.path.join(shpFolder, name) + ","
         name = self.cbValveLayer.currentText()
         if not name == "None":
-            shpNames = shpNames + "[VALVES]" + \
-                os.path.join(shpFolder, name) + ","
+            shpNames = shpNames + "[VALVES]" + os.path.join(shpFolder, name) + ","
         name = self.cbPumpLayer.currentText()
         if not name == "None":
-            shpNames = shpNames + "[PUMPS]" + \
-                os.path.join(shpFolder, name) + ","
+            shpNames = shpNames + "[PUMPS]" + os.path.join(shpFolder, name) + ","
         name = self.cbTankLayer.currentText()
         if not name == "None":
-            shpNames = shpNames + "[TANKS]" + \
-                os.path.join(shpFolder, name) + ","
+            shpNames = shpNames + "[TANKS]" + os.path.join(shpFolder, name) + ","
         name = self.cbReservoirLayer.currentText()
         if not name == "None":
-            shpNames = shpNames + "[RESERVOIRS]" + \
-                os.path.join(shpFolder, name) + ","
+            shpNames = shpNames + "[RESERVOIRS]" + os.path.join(shpFolder, name) + ","
         name = self.cbJunctionLayer.currentText()
         if not name == "None":
-            shpNames = shpNames + "[JUNCTIONS]" + \
-                os.path.join(shpFolder, name) + ","
+            shpNames = shpNames + "[JUNCTIONS]" + os.path.join(shpFolder, name) + ","
         return shpNames
 
     def createShpFields(self):
@@ -730,16 +704,14 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
     def importShpProject(self):
         # Common validations
         isValid = self.validationsCreateProject()
-        if isValid == True:
+        if isValid is True:
             # Validations SHP's
             if not os.path.exists(self.tbShpDirectory.text()):
-                self.iface.messageBar().pushMessage(
-                    "Validations", "The SHPs folder is not valid or does not exist", level=1)
+                self.iface.messageBar().pushMessage("Validations", "The SHPs folder is not valid or does not exist", level=1)
                 return
             fields = self.createShpFields()
             if fields == "":
-                self.iface.messageBar().pushMessage(
-                    "Validations", "Any SHP selected for importing", level=1)
+                self.iface.messageBar().pushMessage("Validations", "Any SHP selected for importing", level=1)
                 return
 
             # Process
@@ -756,8 +728,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             fields = self.createShpFields()
             QGISRedUtils().setCurrentDirectory()
             mydll = WinDLL("GISRed.QGisPlugins.dll")
-            mydll.ImportFromShps.argtypes = (
-                c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+            mydll.ImportFromShps.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
             mydll.ImportFromShps.restype = c_char_p
             b = mydll.ImportFromShps(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
                 'utf-8'), self.parent.tempFolder.encode('utf-8'), shapes.encode('utf-8'), fields.encode('utf-8'))

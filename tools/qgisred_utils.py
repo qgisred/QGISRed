@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
+from PyQt5.QtGui import QColor
 from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer
 from qgis.core import QgsSvgMarkerSymbolLayer, QgsSymbol, QgsSingleSymbolRenderer
 from qgis.core import QgsLineSymbol, QgsSimpleLineSymbolLayer, QgsProperty
-from qgis.core import Qgis, QgsMarkerSymbol, QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayer
-from qgis.core import QgsRendererCategory, QgsSimpleFillSymbolLayer, QgsCategorizedSymbolRenderer
-from PyQt5.QtGui import QColor
+from qgis.core import QgsMarkerSymbol, QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayer
+from qgis.core import QgsRendererCategory, QgsCategorizedSymbolRenderer
 # Others imports
 import os
 import tempfile
-import platform
 from zipfile import ZipFile
 import datetime
 
@@ -20,10 +19,11 @@ class QGISRedUtils:
         self.NetworkName = networkName
 
     def isLayerOpened(self, layerName):
-        layers = [tree_layer.layer()
-                  for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+        layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+        layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp").replace("/", "\\")
         for layer in layers:
-            if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\") == os.path.join(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp").replace("/", "\\"):
+            openedLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\")
+            if openedLayerPath == layerPath:
                 return True
         return False
 
@@ -70,30 +70,33 @@ class QGISRedUtils:
             self.removeLayer(layerName, ext)
 
     def removeLayer(self, name, ext=".shp"):
-        layers = [tree_layer.layer()
-                  for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+        layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+        layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ext).replace("/", "\\")
         for layer in layers:
-            if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\") == os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ext).replace("/", "\\"):
+            openedLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\")
+            if openedLayerPath == layerPath:
                 QgsProject.instance().removeMapLayer(layer.id())
         self.iface.mapCanvas().refresh()
         del layers
 
     def orderLayers(self, group):
         mylayersNames = ["Sources.shp", "Reservoirs.shp", "Tanks.shp", "Pumps.shp", "Valves.shp", "Demands.shp", "Junctions.shp",
-                         "Pipes.shp", "Patterns.dbf", "Curves.dbf", "Controls.dbf", "Rules.dbf", "Options.dbf", "DefaultValues.dbf"]
+                         "Pipes.shp", "Patterns.dbf", "Curves.dbf", "Controls.dbf",
+                         "Rules.dbf", "Options.dbf", "DefaultValues.dbf"]
         for layerName in mylayersNames:
-            layers = [tree_layer.layer() for tree_layer in QgsProject.instance(
-            ).layerTreeRoot().findLayers()]
+            layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + layerName).replace("/", "\\")
+            layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
             for layer in layers:
-                if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\") == os.path.join(self.ProjectDirectory, self.NetworkName + "_" + layerName).replace("/", "\\"):
-                    _layer = layer.clone()
-                    QgsProject.instance().addMapLayer(_layer, group is None)
+                openedLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\")
+                if openedLayerPath == layerPath:
+                    layerCloned = layer.clone()
+                    QgsProject.instance().addMapLayer(layerCloned, group is None)
                     if group is not None:
-                        group.addChildNode(QgsLayerTreeLayer(_layer))
+                        group.addChildNode(QgsLayerTreeLayer(layerCloned))
                         QgsProject.instance().removeMapLayer(layer.id())
 
     def orderResultLayers(self, group):
-        layers = [tree_layer.layer() for tree_layer in group.findLayers()]
+        layers = [tree_layer.layer() for tree_layer in group.findLayers()]  # Only in group
         for layer in layers:
             if not layer.geometryType() == 0:  # Point
                 _layer = layer.clone()
@@ -114,16 +117,15 @@ class QGISRedUtils:
         # user style
         qmlPath = os.path.join(stylePath, name + "_user.qml")
         if os.path.exists(qmlPath):
-            ret = layer.loadNamedStyle(qmlPath)
+            layer.loadNamedStyle(qmlPath)
             return
 
         # default style
         qmlPath = os.path.join(stylePath, name + ".qml.bak")
         if os.path.exists(qmlPath):
-            ret = layer.loadNamedStyle(qmlPath)
+            layer.loadNamedStyle(qmlPath)
         svgPath = os.path.join(stylePath, name + ".svg")
         if os.path.exists(svgPath):
-            render = None
             if layer.geometryType() == 0:  # Point
                 svg_style = dict()
                 svg_style['name'] = svgPath
@@ -164,10 +166,8 @@ class QGISRedUtils:
                 symbol.appendSymbolLayer(finalMarker)
                 if name == "pipes":
                     prop = QgsProperty()
-                    prop.setExpressionString(
-                        "if(IniStatus is NULL, 0,if(IniStatus !='CV', 0,5))")
-                    symbol.symbolLayer(1).setDataDefinedProperty(
-                        9, prop)  # 9 = PropertyWidth
+                    prop.setExpressionString("if(IniStatus is NULL, 0,if(IniStatus !='CV', 0,5))")
+                    symbol.symbolLayer(1).setDataDefinedProperty(9, prop)  # 9 = PropertyWidth
                 renderer = QgsSingleSymbolRenderer(symbol)
 
             layer.setRenderer(renderer)
@@ -230,8 +230,7 @@ class QGISRedUtils:
             symbol_layer = None
             if layer.geometryType() == 0:  # Point
                 layer_style = dict()
-                layer_style['color'] = '%d, %d, %d' % (
-                    randrange(0, 256), randrange(0, 256), randrange(0, 256))
+                layer_style['color'] = '%d, %d, %d' % (randrange(0, 256), randrange(0, 256), randrange(0, 256))
                 layer_style['size'] = str(2)
                 symbol_layer = QgsSimpleMarkerSymbolLayer.create(layer_style)
             else:
@@ -241,8 +240,7 @@ class QGISRedUtils:
                 lineSymbol = QgsSimpleLineSymbolLayer()
                 lineSymbol.setWidthUnit(2)  # Pixels
                 lineSymbol.setWidth(1.5)
-                lineSymbol.setColor(
-                    QColor(randrange(0, 256), randrange(0, 256), randrange(0, 256)))
+                lineSymbol.setColor(QColor(randrange(0, 256), randrange(0, 256), randrange(0, 256)))
                 symbol.appendSymbolLayer(lineSymbol)
 
             # replace default symbol layer with the configured one
@@ -288,10 +286,13 @@ class QGISRedUtils:
         if not os.path.exists(dirpath):
             try:
                 os.mkdir(dirpath)
-            except:
+            except Exception:
                 pass
 
-        with ZipFile(os.path.join(dirpath, os.path.basename(self.ProjectDirectory) + "-" + self.NetworkName + datetime.datetime.now().strftime('%Y%m%d%H%M%S') + ".zip"), 'w') as zip:
+        projectName = os.path.basename(self.ProjectDirectory)
+        timeString = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+        zipPath = os.path.join(dirpath, projectName + "-" + self.NetworkName + timeString + ".zip")
+        with ZipFile(zipPath, 'w') as zip:
             # writing each file one by one
             for file in file_paths:
                 zip.write(file, file.replace(
@@ -315,8 +316,7 @@ class QGISRedUtils:
             symbol_layer = None
             if layer.geometryType() == 0:  # Point
                 layer_style = dict()
-                layer_style['color'] = '%d, %d, %d' % (
-                    randrange(0, 256), randrange(0, 256), randrange(0, 256))
+                layer_style['color'] = '%d, %d, %d' % (randrange(0, 256), randrange(0, 256), randrange(0, 256))
                 layer_style['size'] = str(2)
                 symbol_layer = QgsSimpleMarkerSymbolLayer.create(layer_style)
             else:
@@ -339,8 +339,7 @@ class QGISRedUtils:
                 symbol.changeSymbolLayer(0, symbol_layer)
 
             # create renderer object
-            category = QgsRendererCategory(
-                unique_value, symbol, str(unique_value))
+            category = QgsRendererCategory(unique_value, symbol, str(unique_value))
             # entry for the list of category items
             categories.append(category)
 

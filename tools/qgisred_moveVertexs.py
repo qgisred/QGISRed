@@ -1,9 +1,8 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QCursor, QColor
-from qgis.core import QgsPointXY, QgsPoint, QgsFeatureRequest, QgsFeature, QgsGeometry, QgsProject, QgsTolerance, QgsVector, QgsVertexId, QgsPointLocator,\
-    QgsSnappingUtils, QgsVectorLayerEditUtils, QgsSnappingConfig  # QgsSnapper
-from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMessageBar, QgsMapCanvasSnappingUtils
-
+from qgis.core import QgsPointXY, QgsPoint, QgsFeatureRequest, QgsFeature, QgsGeometry, QgsProject, QgsVector
+from qgis.core import QgsVectorLayerEditUtils, QgsSnappingConfig
+from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSnappingUtils
 import os
 
 
@@ -48,11 +47,12 @@ class QGISRedMoveVertexsTool(QgsMapTool):
 
         myLayers = []
         # Editing
-        layers = [tree_layer.layer()
-                  for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+        layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
         for layer in layers:
+            openedLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\")
             for name in self.ownMainLayers:
-                if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\") == os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp").replace("/", "\\"):
+                layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp").replace("/", "\\")
+                if openedLayerPath == layerPath:
                     myLayers.append(layer)
                     if not layer.isEditable():
                         layer.startEditing()
@@ -70,11 +70,12 @@ class QGISRedMoveVertexsTool(QgsMapTool):
     def deactivate(self):
         self.toolbarButton.setChecked(False)
         # End Editing
-        layers = [tree_layer.layer()
-                  for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+        layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
         for layer in layers:
+            openedLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\")
             for name in self.ownMainLayers:
-                if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\") == os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp").replace("/", "\\"):
+                layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp").replace("/", "\\")
+                if openedLayerPath == layerPath:
                     if layer.isModified():
                         layer.commitChanges()
                     else:
@@ -127,10 +128,10 @@ class QGISRedMoveVertexsTool(QgsMapTool):
         self.newVertexMarker.show()
 
     def updateRubberBand(self):
-        self.rubberBand.movePoint(1, QgsPointXY(self.clickedPoint.x(
-        ) + self.newPositionVector.x(), self.clickedPoint.y() + self.newPositionVector.y()))
-        self.newVertexMarker.setCenter(QgsPointXY(self.clickedPoint.x(
-        ) + self.newPositionVector.x(), self.clickedPoint.y() + self.newPositionVector.y()))
+        self.rubberBand.movePoint(1, QgsPointXY(self.clickedPoint.x() +
+                                                self.newPositionVector.x(), self.clickedPoint.y() + self.newPositionVector.y()))
+        self.newVertexMarker.setCenter(QgsPointXY(self.clickedPoint.x() +
+                                                  self.newPositionVector.x(), self.clickedPoint.y() + self.newPositionVector.y()))
 
     def moveVertexLink(self, layer, feature, newPosition, vertexIndex):
         if layer.isEditable():
@@ -165,7 +166,8 @@ class QGISRedMoveVertexsTool(QgsMapTool):
                     parts = featureGeometry.get()
                     for part in parts:  # only one part
                         for i in range(len(part)-1):
-                            if self.isInPath(QgsPointXY(part[i].x(), part[i].y()), QgsPointXY(part[i+1].x(), part[i+1].y()), newPoint):
+                            if self.isInPath(QgsPointXY(part[i].x(), part[i].y()),
+                                             QgsPointXY(part[i+1].x(), part[i+1].y()), newPoint):
                                 vertex = i+1
             try:
                 edit_utils = QgsVectorLayerEditUtils(layer)
@@ -201,8 +203,10 @@ class QGISRedMoveVertexsTool(QgsMapTool):
             if matchSnapper.isValid():
                 valid = False
                 layer = matchSnapper.layer()
+                snapLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\")
                 for name in self.ownMainLayers:
-                    if str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\") == os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp").replace("/", "\\"):
+                    layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp").replace("/", "\\")
+                    if snapLayerPath == layerPath:
                         valid = True
                 if valid:
                     self.objectSnapped = matchSnapper
@@ -230,7 +234,8 @@ class QGISRedMoveVertexsTool(QgsMapTool):
                                         continue
                                     matchedPoint = QgsPointXY(
                                         vertex.x(), vertex.y())
-                                    if self.areOverlapedPoints(QgsGeometry.fromPointXY(matchedPoint), QgsGeometry.fromPointXY(QgsPointXY(v.x(), v.y()))):
+                                    if self.areOverlapedPoints(QgsGeometry.fromPointXY(matchedPoint),
+                                                               QgsGeometry.fromPointXY(QgsPointXY(v.x(), v.y()))):
                                         middleNode = True
                                         self.vertexIndex = i
                                         break

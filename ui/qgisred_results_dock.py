@@ -7,7 +7,9 @@ from qgis.core import QgsProject, QgsCoordinateReferenceSystem
 from qgis.core import QgsTask, QgsApplication, QgsPalLayerSettings, QgsVectorLayerSimpleLabeling
 from qgis.core import QgsProperty, QgsRenderContext, QgsRendererRange
 from qgis.core import QgsGraduatedSymbolRenderer, QgsGradientColorRamp as QgsVectorGradientColorRamp
+
 from ..tools.qgisred_utils import QGISRedUtils
+
 import os
 from ctypes import c_char_p, WinDLL
 from shutil import copyfile

@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-from qgis.PyQt import QtGui, uic
 from PyQt5.QtWidgets import QFileDialog, QDialog
+from qgis.PyQt import uic
 import os
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'qgisred_cloneproject_dialog.ui'))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_cloneproject_dialog.ui'))
 
 
 class QGISRedCloneProjectDialog(QDialog, FORM_CLASS):
@@ -37,8 +36,7 @@ class QGISRedCloneProjectDialog(QDialog, FORM_CLASS):
             return
 
         if os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + ".gqp")):
-            self.lbMessage.setText(
-                "There is already a project with this name in this folder.")
+            self.lbMessage.setText("There is already a project with this name in this folder.")
             return
 
         self.ProcessDone = True

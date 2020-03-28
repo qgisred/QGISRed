@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-from qgis.PyQt import QtGui, uic
-from PyQt5.QtWidgets import QFileDialog, QDialog
+from PyQt5.QtWidgets import QDialog
+from qgis.PyQt import uic
 import os
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'qgisred_toolLength_dialog.ui'))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_toolLength_dialog.ui'))
 
 
 class QGISRedLengthToolDialog(QDialog, FORM_CLASS):
@@ -25,8 +24,8 @@ class QGISRedLengthToolDialog(QDialog, FORM_CLASS):
             self.lbMessage.setText("Not valid Tolerance")
             return
         try:
-            a = float(self.Tolerance)
-        except:
+            _ = float(self.Tolerance)
+        except Exception:
             self.lbMessage.setText("Not numeric Tolerance")
             return
 
