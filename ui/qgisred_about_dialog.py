@@ -20,15 +20,13 @@ class QGISRedAboutDialog(QDialog, FORM_CLASS):
         self.lbManual_es.mousePressEvent = self.userManualEs
         self.lbIssues.mousePressEvent = self.issuesRepository
         # version
-        metadata = os.path.join(os.path.dirname(
-            os.path.dirname(__file__)), 'metadata.txt')
+        metadata = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'metadata.txt')
         if os.path.exists(metadata):
             f = open(metadata, "r")
             lines = f.readlines()
             for line in lines:
                 if "version=" in line:
-                    self.versionLabel.setText(
-                        "v." + line.replace("version=", ""))
+                    self.versionLabel.setText("v." + line.replace("version=", ""))
                     return
 
     def linkRedhisp(self, event):

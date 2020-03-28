@@ -5,7 +5,7 @@ from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer
 from qgis.PyQt import uic
 from qgis.core import QgsTask, QgsApplication
 # Import the code for the dialog
-from .qgisred_newproject_dialog import QGISRedNewProjectDialog
+from .qgisred_editcreateproject_dialog import QGISRedEditCreateProjectDialog
 from .qgisred_import_dialog import QGISRedImportDialog
 from .qgisred_importproject_dialog import QGISRedImportProjectDialog
 from .qgisred_cloneproject_dialog import QGISRedCloneProjectDialog
@@ -63,6 +63,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         self.fillTable()
         self.twProjectList.cellDoubleClicked.connect(self.openProject)
 
+    """Methods"""
     def config(self, ifac, direct, netw, parent):
         self.parent = parent
         self.iface = ifac
@@ -71,7 +72,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         self.ProjectDirectory = direct
 
         for row in range(0, self.twProjectList.rowCount()):
-            isSameProject = self.ProjectDirectory.replace("/", "\\") == str(self.twProjectList.item(row, 3).text())
+            isSameProject = self.getUniformedPath(self.ProjectDirectory) == str(self.twProjectList.item(row, 3).text())
             isSameNet = self.NetworkName == str(self.twProjectList.item(row, 0).text())
             if isSameProject and isSameNet:
                 self.twProjectList.setCurrentCell(row, 1)
@@ -137,11 +138,12 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         f.close()
 
     def addProjectToTable(self, folder, net):
+        folder = self.getUniformedPath(folder)
         dirList = os.listdir(folder)
         if net + "_Pipes.shp" in dirList:
             self.updateMetadata(net, folder)
             file = open(self.gplFile, "a+")
-            QGISRedUtils().writeFile(file, net + ";" + folder.replace("/", "\\") + "\n")
+            QGISRedUtils().writeFile(file, net + ";" + folder + "\n")
             file.close()
             self.fillTable()
         else:
@@ -149,7 +151,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             self.iface.messageBar().pushMessage("Warning", message, level=1, duration=5)
 
     def updateMetadata(self, net, folder):
-        filePath = os.path.join(folder.replace("/", "\\"), net + "_Metadata.txt")
+        filePath = os.path.join(folder, net + "_Metadata.txt")
         isInMetadata = False
         if os.path.exists(filePath):
             with open(filePath, 'r', encoding="latin-1") as content_file:
@@ -246,8 +248,19 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             else:
                 self.iface.messageBar().pushMessage("Warning", "File not found", level=1, duration=5)
 
-    """MainMethods"""
+    def getUniformedPath(self, path):
+        return QGISRedUtils().getUniformedPath(path)
 
+    def getLayerPath(self, layer):
+        return QGISRedUtils().getLayerPath(layer)
+
+    def generatePath(self, folder, fileName):
+        return QGISRedUtils().generatePath(folder, fileName)
+
+    def getLayers(self):
+        return QGISRedUtils().getLayers()
+
+    """MainMethods"""
     def openProject(self):
         selectionModel = self.twProjectList.selectionModel()
         if selectionModel.hasSelection():
@@ -278,7 +291,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             QgsApplication.taskManager().addTask(task1)
 
     def createProjectProcess(self, exception=None, result=None):
-        dlg = QGISRedNewProjectDialog()
+        dlg = QGISRedEditCreateProjectDialog()
         dlg.config(self.iface, "Temporal folder", "Network")
         # Run the dialog event loop
         self.close()
@@ -345,7 +358,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         selectionModel = self.twProjectList.selectionModel()
         if selectionModel.hasSelection():
             for row in selectionModel.selectedRows():
-                isSameProject = self.ProjectDirectory.replace("/", "\\") == str(self.twProjectList.item(row.row(), 3).text())
+                isSameProject = self.getUniformedPath(self.ProjectDirectory) == str(self.twProjectList.item(row.row(), 3).text())
                 isSameNet = self.NetworkName == str(self.twProjectList.item(row.row(), 0).text())
                 if isSameProject and isSameNet:
                     self.iface.messageBar().pushMessage("Warning", "Current project can not be unloaded.", level=1, duration=5)

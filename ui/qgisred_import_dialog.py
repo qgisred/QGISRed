@@ -30,8 +30,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         """Constructor."""
         super(QGISRedImportDialog, self).__init__(parent)
         self.setupUi(self)
-        gplFolder = os.path.join(
-            os.popen('echo %appdata%').read().strip(), "QGISRed")
+        gplFolder = os.path.join(os.getenv('APPDATA'), "QGISRed")
         try:  # create directory if does not exist
             os.stat(gplFolder)
         except Exception:
@@ -48,10 +47,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbValveLayer.currentIndexChanged.connect(self.valveLayerChanged)
         self.cbPumpLayer.currentIndexChanged.connect(self.pumpLayerChanged)
         self.cbTankLayer.currentIndexChanged.connect(self.tankLayerChanged)
-        self.cbReservoirLayer.currentIndexChanged.connect(
-            self.reservoirLayerChanged)
-        self.cbJunctionLayer.currentIndexChanged.connect(
-            self.junctionLayerChanged)
+        self.cbReservoirLayer.currentIndexChanged.connect(self.reservoirLayerChanged)
+        self.cbJunctionLayer.currentIndexChanged.connect(self.junctionLayerChanged)
         self.btImportShps.clicked.connect(self.importShpProject)
 
     def config(self, ifac, direct, netw, parent):
@@ -154,7 +151,6 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
     def openElementLayers(self, task):
         if not self.opendedLayers:
             self.opendedLayers = True
-            # Open layers
             utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
             inputGroup = self.getInputGroup()
             utils.openElementsLayers(inputGroup, self.CRS, self.ownMainLayers, self.ownFiles)
@@ -196,9 +192,9 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 if not self.createProject():
                     return
             else:
-                request = QMessageBox.question(self.iface.mainWindow(), self.tr('QGISRed'), self.tr(
-                    'Import INP file will be delete all previous data in the current project. Do you want to continue?'),
-                    QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No))
+                question = 'Import INP file will be delete all previous data in the current project. Do you want to continue?'
+                request = QMessageBox.question(self.iface.mainWindow(), self.tr('QGISRed'), self.tr(question),
+                                               QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No))
                 if request == QMessageBox.No:
                     return
 
@@ -290,8 +286,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.selectComboBoxItem(self.cbPipe_Diameter, ["diameter", "diam"])
         self.selectComboBoxItem(self.cbPipe_LossCoef, ["losscoeff"])
         self.selectComboBoxItem(self.cbPipe_Tag, ["tag"])
-        self.selectComboBoxItem(
-            self.cbPipe_Descr, ["descrip", "descr", "description"])
+        self.selectComboBoxItem(self.cbPipe_Descr, ["descrip", "descr", "description"])
 
     def valveLayerChanged(self):
         newItem = self.cbValveLayer.currentText()
@@ -328,8 +323,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.selectComboBoxItem(self.cbValve_InitStat, ["inistatus"])
         self.selectComboBoxItem(self.cbValve_Orient, ["orientatio"])
         self.selectComboBoxItem(self.cbValve_Tag, ["tag"])
-        self.selectComboBoxItem(self.cbValve_Descr, [
-                                "descrip", "descr", "description"])
+        self.selectComboBoxItem(self.cbValve_Descr, ["descrip", "descr", "description"])
 
     def pumpLayerChanged(self):
         newItem = self.cbPumpLayer.currentText()

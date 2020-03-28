@@ -8,8 +8,9 @@ from qgis.core import QgsRendererCategory, QgsCategorizedSymbolRenderer
 # Others imports
 import os
 import tempfile
-from zipfile import ZipFile
 import datetime
+from zipfile import ZipFile
+from random import randrange
 
 
 class QGISRedUtils:
@@ -18,18 +19,21 @@ class QGISRedUtils:
         self.ProjectDirectory = directory
         self.NetworkName = networkName
 
+    """Layers"""
+    def getLayers(self):
+        return [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+
+    """Open Layers"""
     def isLayerOpened(self, layerName):
-        layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
-        layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp").replace("/", "\\")
+        layers = self.getLayers()
+        layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp")
         for layer in layers:
-            openedLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\")
+            openedLayerPath = self.getLayerPath(layer)
             if openedLayerPath == layerPath:
                 return True
         return False
 
     def openElementsLayers(self, group, crs, ownMainLayers, ownFiles):
-        # for fileName in ownFiles:
-        # self.openLayer(crs, group, fileName, ".dbf")
         for fileName in ownMainLayers:
             self.openLayer(crs, group, fileName)
         self.orderLayers(group)
@@ -65,29 +69,31 @@ class QGISRedUtils:
             if results:
                 self.orderResultLayers(group)
 
+    """Remove Layers"""
     def removeLayers(self, layers, ext=".shp"):
         for layerName in layers:
             self.removeLayer(layerName, ext)
 
     def removeLayer(self, name, ext=".shp"):
-        layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
-        layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ext).replace("/", "\\")
+        layers = self.getLayers()
+        layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + name + ext)
         for layer in layers:
-            openedLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\")
+            openedLayerPath = self.getLayerPath(layer)
             if openedLayerPath == layerPath:
                 QgsProject.instance().removeMapLayer(layer.id())
         self.iface.mapCanvas().refresh()
         del layers
 
+    """Order Layers"""
     def orderLayers(self, group):
         mylayersNames = ["Sources.shp", "Reservoirs.shp", "Tanks.shp", "Pumps.shp", "Valves.shp", "Demands.shp", "Junctions.shp",
                          "Pipes.shp", "Patterns.dbf", "Curves.dbf", "Controls.dbf",
                          "Rules.dbf", "Options.dbf", "DefaultValues.dbf"]
         for layerName in mylayersNames:
-            layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + layerName).replace("/", "\\")
-            layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+            layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + layerName)
+            layers = self.getLayers()
             for layer in layers:
-                openedLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\")
+                openedLayerPath = self.getLayerPath(layer)
                 if openedLayerPath == layerPath:
                     layerCloned = layer.clone()
                     QgsProject.instance().addMapLayer(layerCloned, group is None)
@@ -99,20 +105,27 @@ class QGISRedUtils:
         layers = [tree_layer.layer() for tree_layer in group.findLayers()]  # Only in group
         for layer in layers:
             if not layer.geometryType() == 0:  # Point
-                _layer = layer.clone()
-                QgsProject.instance().addMapLayer(_layer, group is None)
+                clonedLayer = layer.clone()
+                QgsProject.instance().addMapLayer(clonedLayer, group is None)
                 if group is not None:
-                    group.addChildNode(QgsLayerTreeLayer(_layer))
+                    group.addChildNode(QgsLayerTreeLayer(clonedLayer))
                     QgsProject.instance().removeMapLayer(layer.id())
 
-    def writeFile(self, file, string):
-        file.write(string)
+    """Paths"""
+    def getUniformedPath(self, path):
+        return path.replace("/", "\\")
 
+    def getLayerPath(self, layer):
+        return self.getUniformedPath(str(layer.dataProvider().dataSourceUri().split("|")[0]))
+
+    def generatePath(self, folder, fileName):
+        return self.getUniformedPath(os.path.join(folder, fileName))
+
+    """Styles"""
     def setStyle(self, layer, name):
         if name == "":
             return
-        stylePath = os.path.join(os.path.dirname(
-            os.path.dirname(__file__)), "layerStyles")
+        stylePath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "layerStyles")
 
         # user style
         qmlPath = os.path.join(stylePath, name + "_user.qml")
@@ -173,8 +186,7 @@ class QGISRedUtils:
             layer.setRenderer(renderer)
 
     def setResultStyle(self, layer):
-        stylePath = os.path.join(os.path.dirname(
-            os.path.dirname(__file__)), "layerStyles")
+        stylePath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "layerStyles")
 
         # default style
         if layer.geometryType() == 0:  # Point
@@ -208,8 +220,6 @@ class QGISRedUtils:
             os.remove(qmlPath)
 
     def setSectorsStyle(self, layer):
-        from random import randrange
-
         # get unique values
         field = 'Class'
         fni = layer.fields().indexFromName(field)
@@ -248,8 +258,7 @@ class QGISRedUtils:
                 symbol.changeSymbolLayer(0, symbol_layer)
 
             # create renderer object
-            category = QgsRendererCategory(
-                unique_value, symbol, str(unique_value))
+            category = QgsRendererCategory(unique_value, symbol, str(unique_value))
             # entry for the list of category items
             categories.append(category)
 
@@ -260,47 +269,7 @@ class QGISRedUtils:
         if renderer is not None:
             layer.setRenderer(renderer)
 
-    def getGISRedFolder(self):
-        return os.path.join(os.path.join(os.getenv('APPDATA'), "QGISRed"), "dlls")
-
-    def setCurrentDirectory(self):
-        os.chdir(self.getGISRedFolder())
-
-    def getFilePaths(self):
-        # initializing empty file paths list
-        file_paths = []
-        # crawling through directory and subdirectories
-        for root, _, files in os.walk(self.ProjectDirectory):
-            for filename in files:
-                if self.NetworkName in filename:
-                    # join the two strings in order to form the full filepath.
-                    filepath = os.path.join(root, filename)
-                    file_paths.append(filepath.replace("/", "\\"))
-        # returning all file paths
-        return file_paths
-
-    def saveBackup(self, key):
-        file_paths = self.getFilePaths()
-        dirpath = os.path.join(
-            tempfile._get_default_tempdir(), "qgisred" + key)
-        if not os.path.exists(dirpath):
-            try:
-                os.mkdir(dirpath)
-            except Exception:
-                pass
-
-        projectName = os.path.basename(self.ProjectDirectory)
-        timeString = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-        zipPath = os.path.join(dirpath, projectName + "-" + self.NetworkName + timeString + ".zip")
-        with ZipFile(zipPath, 'w') as zip:
-            # writing each file one by one
-            for file in file_paths:
-                zip.write(file, file.replace(
-                    self.ProjectDirectory.replace("/", "\\"), ""))
-
     def setTreeStyle(self, layer):
-        from random import randrange
-
         # get unique values
         field = 'ArcType'
         fni = layer.fields().indexFromName(field)
@@ -349,3 +318,43 @@ class QGISRedUtils:
         # assign the created renderer to the layer
         if renderer is not None:
             layer.setRenderer(renderer)
+
+    """Others"""
+    def getGISRedFolder(self):
+        return os.path.join(os.path.join(os.getenv('APPDATA'), "QGISRed"), "dlls")
+
+    def setCurrentDirectory(self):
+        os.chdir(self.getGISRedFolder())
+
+    def getFilePaths(self):
+        # initializing empty file paths list
+        file_paths = []
+        # crawling through directory and subdirectories
+        for root, _, files in os.walk(self.ProjectDirectory):
+            for filename in files:
+                if self.NetworkName in filename:
+                    # join the two strings in order to form the full filepath.
+                    filepath = os.path.join(root, filename)
+                    file_paths.append(self.getUniformedPath(filepath))
+        # returning all file paths
+        return file_paths
+
+    def saveBackup(self, key):
+        file_paths = self.getFilePaths()
+        dirpath = os.path.join(tempfile._get_default_tempdir(), "qgisred" + key)
+        if not os.path.exists(dirpath):
+            try:
+                os.mkdir(dirpath)
+            except Exception:
+                pass
+
+        projectName = os.path.basename(self.ProjectDirectory)
+        timeString = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+        zipPath = os.path.join(dirpath, projectName + "-" + self.NetworkName + timeString + ".zip")
+        with ZipFile(zipPath, 'w') as zip:
+            # writing each file one by one
+            for file in file_paths:
+                zip.write(file, file.replace(self.getUniformedPath(self.ProjectDirectory), ""))
+
+    def writeFile(self, file, string):
+        file.write(string)

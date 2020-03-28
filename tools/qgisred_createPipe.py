@@ -61,6 +61,7 @@ class QGISRedCreatePipeTool(QgsMapTool):
     def isEditTool(self):
         return True
 
+    """Methods"""
     def resetProperties(self):
         # self.toolbarButton.setChecked(False)
         if self.rubberBand1 is not None:
@@ -103,6 +104,7 @@ class QGISRedCreatePipeTool(QgsMapTool):
         self.rubberBand2.setWidth(1)
         self.rubberBand2.setLineStyle(Qt.DashLine)
 
+    """Events"""
     def canvasPressEvent(self, event):
         if event.button() == Qt.LeftButton:
             if not self.firstClicked:

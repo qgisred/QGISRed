@@ -51,18 +51,6 @@ class QGISRedSelectPointTool(QgsMapTool):
             type = 2
         self.configSnapper(type)
 
-    def configSnapper(self, type):
-        # Snapping
-        self.snapper = QgsMapCanvasSnappingUtils(self.iface.mapCanvas())
-        self.snapper.setMapSettings(self.iface.mapCanvas().mapSettings())
-        config = QgsSnappingConfig(QgsProject.instance())
-        config.setType(type)  # 1: Vertex; 2:Segment
-        config.setMode(2)  # All layers
-        config.setTolerance(10)
-        config.setUnits(1)  # Pixels
-        config.setEnabled(True)
-        self.snapper.setConfig(config)
-
     def deactivate(self):
         self.resetProperties()
         QgsMapTool.deactivate(self)
@@ -76,17 +64,30 @@ class QGISRedSelectPointTool(QgsMapTool):
     def isEditTool(self):
         return True
 
+    """Methods"""
+    def configSnapper(self, type):
+        # Snapping
+        self.snapper = QgsMapCanvasSnappingUtils(self.iface.mapCanvas())
+        self.snapper.setMapSettings(self.iface.mapCanvas().mapSettings())
+        config = QgsSnappingConfig(QgsProject.instance())
+        config.setType(type)  # 1: Vertex; 2:Segment
+        config.setMode(2)  # All layers
+        config.setTolerance(10)
+        config.setUnits(1)  # Pixels
+        config.setEnabled(True)
+        self.snapper.setConfig(config)
+
     def resetProperties(self):
         self.firstPoint = None
         self.startMarker.hide()
         self.endMarker.hide()
         self.objectSnapped = None
 
+    """Events"""
     def canvasReleaseEvent(self, event):
         if event.button() == Qt.LeftButton:
             if self.objectSnapped is None:
-                self.iface.messageBar().pushMessage(
-                    "Warning", "A not valid point was selected", level=1, duration=5)
+                self.iface.messageBar().pushMessage("Warning", "A not valid point was selected", level=1, duration=5)
                 return
             if self.type == 3 or self.type == 4 or self.type == 5:
                 if self.firstPoint is None:
@@ -109,8 +110,7 @@ class QGISRedSelectPointTool(QgsMapTool):
         if event.button() == Qt.RightButton:
             if self.type == 3 or self.type == 5:
                 if self.objectSnapped is None:
-                    self.iface.messageBar().pushMessage(
-                        "Warning", "A not valid point was selected", level=1, duration=5)
+                    self.iface.messageBar().pushMessage("Warning", "A not valid point was selected", level=1, duration=5)
                     return
                 else:
                     point = self.objectSnapped.point()
@@ -128,12 +128,10 @@ class QGISRedSelectPointTool(QgsMapTool):
         if match.isValid():
             self.objectSnapped = match
             if self.firstPoint is None:
-                self.startMarker.setCenter(QgsPointXY(
-                    match.point().x(), match.point().y()))
+                self.startMarker.setCenter(QgsPointXY(match.point().x(), match.point().y()))
                 self.startMarker.show()
             else:
-                self.endMarker.setCenter(QgsPointXY(
-                    match.point().x(), match.point().y()))
+                self.endMarker.setCenter(QgsPointXY(match.point().x(), match.point().y()))
                 self.endMarker.show()
         else:
             self.startMarker.hide()

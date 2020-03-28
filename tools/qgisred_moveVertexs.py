@@ -3,7 +3,7 @@ from PyQt5.QtGui import QCursor, QColor
 from qgis.core import QgsPointXY, QgsPoint, QgsFeatureRequest, QgsFeature, QgsGeometry, QgsProject, QgsVector
 from qgis.core import QgsVectorLayerEditUtils, QgsSnappingConfig
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSnappingUtils
-import os
+from ..tools.qgisred_utils import QGISRedUtils
 
 
 class QGISRedMoveVertexsTool(QgsMapTool):
@@ -20,8 +20,7 @@ class QGISRedMoveVertexsTool(QgsMapTool):
         self.vertexMarker = QgsVertexMarker(self.iface.mapCanvas())
         self.vertexMarker.setColor(QColor(255, 87, 51))
         self.vertexMarker.setIconSize(15)
-        self.vertexMarker.setIconType(
-            QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
+        self.vertexMarker.setIconType(QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
         self.vertexMarker.setPenWidth(3)
         self.vertexMarker.hide()
 
@@ -35,8 +34,7 @@ class QGISRedMoveVertexsTool(QgsMapTool):
         self.newVertexMarker = QgsVertexMarker(self.iface.mapCanvas())
         self.newVertexMarker.setColor(QColor(55, 198, 5))
         self.newVertexMarker.setIconSize(15)
-        self.newVertexMarker.setIconType(
-            QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
+        self.newVertexMarker.setIconType(QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
         self.newVertexMarker.setPenWidth(3)
         self.newVertexMarker.hide()
 
@@ -47,11 +45,11 @@ class QGISRedMoveVertexsTool(QgsMapTool):
 
         myLayers = []
         # Editing
-        layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+        layers = self.getLayers()
         for layer in layers:
-            openedLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\")
+            openedLayerPath = self.getLayerPath(layer)
             for name in self.ownMainLayers:
-                layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp").replace("/", "\\")
+                layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp")
                 if openedLayerPath == layerPath:
                     myLayers.append(layer)
                     if not layer.isEditable():
@@ -70,11 +68,11 @@ class QGISRedMoveVertexsTool(QgsMapTool):
     def deactivate(self):
         self.toolbarButton.setChecked(False)
         # End Editing
-        layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+        layers = self.getLayers()
         for layer in layers:
-            openedLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\")
+            openedLayerPath = self.getLayerPath(layer)
             for name in self.ownMainLayers:
-                layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp").replace("/", "\\")
+                layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp")
                 if openedLayerPath == layerPath:
                     if layer.isModified():
                         layer.commitChanges()
@@ -89,6 +87,19 @@ class QGISRedMoveVertexsTool(QgsMapTool):
 
     def isEditTool(self):
         return True
+
+    """Methods"""
+    def getUniformedPath(self, path):
+        return QGISRedUtils().getUniformedPath(path)
+
+    def getLayerPath(self, layer):
+        return QGISRedUtils().getLayerPath(layer)
+
+    def generatePath(self, folder, fileName):
+        return QGISRedUtils().generatePath(folder, fileName)
+
+    def getLayers(self):
+        return QGISRedUtils().getLayers()
 
     def areOverlapedPoints(self, point1, point2):
         tolerance = 0.1
@@ -128,18 +139,17 @@ class QGISRedMoveVertexsTool(QgsMapTool):
         self.newVertexMarker.show()
 
     def updateRubberBand(self):
-        self.rubberBand.movePoint(1, QgsPointXY(self.clickedPoint.x() +
-                                                self.newPositionVector.x(), self.clickedPoint.y() + self.newPositionVector.y()))
-        self.newVertexMarker.setCenter(QgsPointXY(self.clickedPoint.x() +
-                                                  self.newPositionVector.x(), self.clickedPoint.y() + self.newPositionVector.y()))
+        newX = self.clickedPoint.x() + self.newPositionVector.x()
+        newY = self.clickedPoint.y() + self.newPositionVector.y()
+        self.rubberBand.movePoint(1, QgsPointXY(newX, newY))
+        self.newVertexMarker.setCenter(QgsPointXY(newX, newY))
 
     def moveVertexLink(self, layer, feature, newPosition, vertexIndex):
         if layer.isEditable():
             layer.beginEditCommand("Update link geometry")
             try:
                 edit_utils = QgsVectorLayerEditUtils(layer)
-                edit_utils.moveVertex(
-                    newPosition.x(), newPosition.y(), feature.id(), vertexIndex)
+                edit_utils.moveVertex(newPosition.x(), newPosition.y(), feature.id(), vertexIndex)
             except Exception as e:
                 layer.destroyEditCommand()
                 raise e
@@ -178,6 +188,7 @@ class QGISRedMoveVertexsTool(QgsMapTool):
                 raise e
             layer.endEditCommand()
 
+    """Events"""
     def canvasPressEvent(self, event):
         if self.objectSnapped is None:
             self.clickedPoint = None
@@ -203,9 +214,9 @@ class QGISRedMoveVertexsTool(QgsMapTool):
             if matchSnapper.isValid():
                 valid = False
                 layer = matchSnapper.layer()
-                snapLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\")
+                snapLayerPath = self.getLayerPath(layer)
                 for name in self.ownMainLayers:
-                    layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp").replace("/", "\\")
+                    layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp")
                     if snapLayerPath == layerPath:
                         valid = True
                 if valid:
@@ -232,8 +243,7 @@ class QGISRedMoveVertexsTool(QgsMapTool):
                                     i = i+1
                                     if i == 0 or i == len(part)-1:
                                         continue
-                                    matchedPoint = QgsPointXY(
-                                        vertex.x(), vertex.y())
+                                    matchedPoint = QgsPointXY(vertex.x(), vertex.y())
                                     if self.areOverlapedPoints(QgsGeometry.fromPointXY(matchedPoint),
                                                                QgsGeometry.fromPointXY(QgsPointXY(v.x(), v.y()))):
                                         middleNode = True
@@ -260,8 +270,7 @@ class QGISRedMoveVertexsTool(QgsMapTool):
             # # Update rubber band
             if self.objectSnapped is not None and self.rubberBand is not None:
                 snappedPoint = self.objectSnapped.point()
-                self.newPositionVector = QgsVector(
-                    mousePoint.x() - snappedPoint.x(), mousePoint.y() - snappedPoint.y())
+                self.newPositionVector = QgsVector(mousePoint.x() - snappedPoint.x(), mousePoint.y() - snappedPoint.y())
                 self.updateRubberBand()
 
     def canvasReleaseEvent(self, event):
@@ -270,16 +279,13 @@ class QGISRedMoveVertexsTool(QgsMapTool):
             if event.button() == 1:
                 self.mouseClicked = False
                 if self.objectSnapped is not None:
-                    self.moveVertexLink(
-                        self.selectedLayer, self.selectedFeature, mousePoint, self.vertexIndex)
+                    self.moveVertexLink(self.selectedLayer, self.selectedFeature, mousePoint, self.vertexIndex)
         elif event.button() == 2:
             if self.objectSnapped is not None:
-                self.deleteVertexLink(self.selectedLayer,
-                                      self.selectedFeature, self.vertexIndex)
+                self.deleteVertexLink(self.selectedLayer, self.selectedFeature, self.vertexIndex)
         elif event.button() == 1:
             if self.objectSnapped is not None:
-                self.insertVertexLink(
-                    self.selectedLayer, self.selectedFeature, self.objectSnapped.point())
+                self.insertVertexLink(self.selectedLayer, self.selectedFeature, self.objectSnapped.point())
         self.objectSnapped = None
         self.selectedFeature = None
         self.selectedLayer = None

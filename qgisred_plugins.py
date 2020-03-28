@@ -32,7 +32,7 @@ from qgis.core import QgsTask, QgsApplication
 from . import resources3x
 # Import other plugin code
 from .ui.qgisred_projectmanager_dialog import QGISRedProjectManagerDialog
-from .ui.qgisred_newproject_dialog import QGISRedNewProjectDialog
+from .ui.qgisred_editcreateproject_dialog import QGISRedEditCreateProjectDialog
 from .ui.qgisred_import_dialog import QGISRedImportDialog
 from .ui.qgisred_about_dialog import QGISRedAboutDialog
 from .ui.qgisred_results_dock import QGISRedResultsDock
@@ -40,7 +40,7 @@ from .ui.qgisred_toolLength_dialog import QGISRedLengthToolDialog
 from .ui.qgisred_toolConnectivity_dialog import QGISRedConnectivityToolDialog
 from .tools.qgisred_utils import QGISRedUtils
 from .tools.qgisred_moveNodes import QGISRedMoveNodesTool
-from .tools.qgisred_multilayerSelection import QGISRedUtilsMultiLayerSelection
+from .tools.qgisred_multilayerSelection import QGISRedMultiLayerSelection
 from .tools.qgisred_createPipe import QGISRedCreatePipeTool
 from .tools.qgisred_moveVertexs import QGISRedMoveVertexsTool
 from .tools.qgisred_selectPoint import QGISRedSelectPointTool
@@ -68,6 +68,7 @@ class QGISRed:
     TemporalFolder = "Temporal folder"
     DependenciesVersion = "1.0.9.0"
 
+    """Basic"""
     def __init__(self, iface):
         """Constructor.
         :param iface: An interface instance that will be passed to this class
@@ -124,7 +125,7 @@ class QGISRed:
                    enabled_flag=True, add_to_menu=True, add_to_toolbar=True,
                    status_tip=None, whats_this=None, parent=None):
         # Create the dialog (after translation) and keep reference
-        self.dlg = QGISRedNewProjectDialog()
+        self.dlg = QGISRedEditCreateProjectDialog()
 
         icon = QIcon(icon_path)
         action = QAction(icon, text, parent)
@@ -584,62 +585,90 @@ class QGISRed:
         if self.qgisredmenu:
             self.qgisredmenu.menuAction().setVisible(False)
 
-    def updateMetadata(self, layersNames="", project="", net=""):
-        if not self.checkDependencies():
-            return
-
-        # Validations
-        if project == "" and net == "":  # Comes from ProjectManager
-            self.defineCurrentProject()
-            if not self.isValidProject():
-                return
-            project = self.ProjectDirectory
-            net = self.NetworkName
-
-        if layersNames == "":
-            qgsFilename = QgsProject.instance().fileName()
-            if not qgsFilename == "":
-                layersNames = qgsFilename
+    def checkDependencies(self):
+        valid = False
+        gisredDir = QGISRedUtils().getGISRedFolder()
+        if os.path.isdir(gisredDir):
+            try:
+                info = GetFileVersionInfo(os.path.join(gisredDir, "GISRed.QGisPlugins.dll"), "\\")
+                ms = info['FileVersionMS']
+                ls = info['FileVersionLS']
+                currentVersion = str(HIWORD(ms)) + "." + str(LOWORD(ms)) + "." + str(HIWORD(ls)) + "." + str(LOWORD(ls))
+            except Exception:
+                currentVersion = "0.0.0.0"
+            if currentVersion == self.DependenciesVersion:
+                valid = True
+        if not valid:
+            locale = QSettings().value("locale/userLocale")
+            if "es" in locale:
+                lang = "es-ES"
             else:
-                layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
-                # Inputs
-                groupName = "Inputs"
-                dataGroup = QgsProject.instance().layerTreeRoot().findGroup(groupName)
-                if dataGroup is not None:
-                    layersNames = layersNames + "[Inputs]"
-                    layersNames = layersNames + \
-                        self.writeLayersOfGroups(groupName, layers)
-                    layersNames = layersNames.strip(";")
+                lang = "en-US"
+            if "64bit" in str(platform.architecture()):
+                plat = 'x64'
+            else:
+                plat = 'x86'
+            link = '\"http://www.redhisp.webs.upv.es/files/QGISRed/' + \
+                self.DependenciesVersion + '/Installation_' + plat + '_' + lang + '.msi\"'
+            request = QMessageBox.question(self.iface.mainWindow(), self.tr('QGISRed Dependencies'),
+                                           self.tr('QGISRed plugin only runs in Windows OS and needs some dependencies (' +
+                                           self.DependenciesVersion +
+                                           '). Do you want to download and authomatically install them?'),
+                                           QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No))
+            if request == QMessageBox.Yes:
+                localFile = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names()) + ".msi"
+                try:
+                    urllib.request.urlretrieve(link.strip('\'"'), localFile)
+                    os.system(localFile)
+                    os.remove(localFile)
+                except Exception:
+                    pass
+                valid = self.checkDependencies()
+        return valid
 
-        # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
-        mydll.UpdateMetadata.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.UpdateMetadata.restype = c_char_p
-        b = mydll.UpdateMetadata(project.encode('utf-8'), net.encode('utf-8'), layersNames.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+    def checkForUpdates(self):
+        link = '\"http://www.redhisp.webs.upv.es/files/QGISRed/versions.txt\"'
+        import urllib.request
+        tempLocalFile = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names()) + ".txt"
+        try:
+            # Read online file
+            urllib.request.urlretrieve(link.strip('\'"'), tempLocalFile)
+            f = open(tempLocalFile, "r")
+            contents = f.read()
+            f.close()
+            if(int(contents.replace(".", "")) > int(self.DependenciesVersion.replace(".", ""))):
+                # Read local file with versions that user don't want to remember
+                fileVersions = os.path.join(os.path.join(
+                    os.getenv('APPDATA'), "QGISRed"), "updateVersions.dat")
+                oldVersions = ""
+                if os.path.exists(fileVersions):
+                    f = open(fileVersions, "r")
+                    oldVersions = f.read()
+                    f.close()
+                # Review if in local file is the current online version
+                if contents not in oldVersions:
+                    response = QMessageBox.question(self.iface.mainWindow(), self.tr('QGISRed Updates'),
+                                                    self.tr("QGISRed plugin has a new version (" + contents +
+                                                            "). You can upgrade it from the QGis plugin manager." +
+                                                            "Do you want to remember it again?"),
+                                                    QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No))
+                    # If user don't want to remember a local file is written with this version
+                    if response == QMessageBox.No:
+                        f = open(fileVersions, "w+")
+                        f.write(contents + '\n')
+                        f.close()
+            os.remove(tempLocalFile)
+        except Exception:
+            pass
 
-        QApplication.restoreOverrideCursor()
-
-    def writeLayersOfGroups(self, groupName, layers):
-        root = QgsProject.instance().layerTreeRoot()
-        paths = ""
-        for layer in reversed(layers):
-            parent = root.findLayer(layer.id())
-            if parent is not None:
-                if parent.parent().name() == groupName:
-                    rutaLayer = layer.dataProvider().dataSourceUri().split("|")[0]
-                    paths = paths + os.path.splitext(os.path.basename(rutaLayer))[0].replace(self.NetworkName+"_", "") + ';'
-        return paths
-
+    """Project"""
     def defineCurrentProject(self):
         """Identifying the QGISRed current project"""
         self.NetworkName = "Network"
         self.ProjectDirectory = self.TemporalFolder
-        layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+        layers = self.getLayers()
         for layer in layers:
-            layerUri = layer.dataProvider().dataSourceUri().split("|")[0]
+            layerUri = self.getLayerPath(layer)
             for layerName in self.ownMainLayers:
                 if "_" + layerName in layerUri:
                     self.ProjectDirectory = os.path.dirname(layerUri)
@@ -686,7 +715,7 @@ class QGISRed:
         return True
 
     def isOpenedProject(self):
-        layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+        layers = self.getLayers()
         for layer in layers:
             if layer.isEditable():
                 self.iface.messageBar().pushMessage("Warning",
@@ -735,20 +764,16 @@ class QGISRed:
         return True
 
     def isLayerOnEdition(self):
-        layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+        layers = self.getLayers()
         for layer in layers:
             if layer.isEditable():
                 self.iface.messageBar().pushMessage(self.tr("Warning"),
-                                                    self.tr("Some layer is in Edit Mode. Please, commit it before continuing."), 
+                                                    self.tr("Some layer is in Edit Mode. Please, commit it before continuing."),
                                                     level=1)
                 return True
         return False
 
-    def doNothing(self, task):
-        raise Exception('')
-
     """Remove Layers"""
-
     def removeLayers(self, task):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayers(self.ownMainLayers)
@@ -802,7 +827,6 @@ class QGISRed:
         raise Exception('')
 
     """Open Layers"""
-
     def openElementLayers(self, task):
         if not self.opendedLayers:
             self.opendedLayers = True
@@ -864,7 +888,6 @@ class QGISRed:
             utils.openLayer(crs, hydrGroup, "Links_" + self.Sectors, sectors=True)
 
     """Groups"""
-
     def activeInputGroup(self):
         if self.ResultDockwidget is None:
             return
@@ -928,51 +951,58 @@ class QGISRed:
                     netGroup.removeChildNode(queryGroup)
 
     """Others"""
+    def updateMetadata(self, layersNames="", project="", net=""):
+        if not self.checkDependencies():
+            return
+
+        # Validations
+        if project == "" and net == "":  # Comes from ProjectManager
+            self.defineCurrentProject()
+            if not self.isValidProject():
+                return
+            project = self.ProjectDirectory
+            net = self.NetworkName
+
+        if layersNames == "":
+            qgsFilename = QgsProject.instance().fileName()
+            if not qgsFilename == "":
+                layersNames = qgsFilename
+            else:
+                layers = self.getLayers()
+                # Inputs
+                groupName = "Inputs"
+                dataGroup = QgsProject.instance().layerTreeRoot().findGroup(groupName)
+                if dataGroup is not None:
+                    layersNames = layersNames + "[Inputs]"
+                    layersNames = layersNames + \
+                        self.writeLayersOfGroups(groupName, layers)
+                    layersNames = layersNames.strip(";")
+
+        # Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QGISRedUtils().setCurrentDirectory()
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.UpdateMetadata.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.UpdateMetadata.restype = c_char_p
+        b = mydll.UpdateMetadata(project.encode('utf-8'), net.encode('utf-8'), layersNames.encode('utf-8'))
+        b = "".join(map(chr, b))  # bytes to string
+
+        QApplication.restoreOverrideCursor()
+
+    def writeLayersOfGroups(self, groupName, layers):
+        root = QgsProject.instance().layerTreeRoot()
+        paths = ""
+        for layer in reversed(layers):
+            parent = root.findLayer(layer.id())
+            if parent is not None:
+                if parent.parent().name() == groupName:
+                    rutaLayer = self.getLayerPath(layer)
+                    paths = paths + os.path.splitext(os.path.basename(rutaLayer))[0].replace(self.NetworkName+"_", "") + ';'
+        return paths
 
     def createBackup(self):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.saveBackup(self.KeyTemp)
-
-    def checkDependencies(self):
-        valid = False
-        gisredDir = QGISRedUtils().getGISRedFolder()
-        if os.path.isdir(gisredDir):
-            try:
-                info = GetFileVersionInfo(os.path.join(gisredDir, "GISRed.QGisPlugins.dll"), "\\")
-                ms = info['FileVersionMS']
-                ls = info['FileVersionLS']
-                currentVersion = str(HIWORD(ms)) + "." + str(LOWORD(ms)) + "." + str(HIWORD(ls)) + "." + str(LOWORD(ls))
-            except Exception:
-                currentVersion = "0.0.0.0"
-            if currentVersion == self.DependenciesVersion:
-                valid = True
-        if not valid:
-            locale = QSettings().value("locale/userLocale")
-            if "es" in locale:
-                lang = "es-ES"
-            else:
-                lang = "en-US"
-            if "64bit" in str(platform.architecture()):
-                plat = 'x64'
-            else:
-                plat = 'x86'
-            link = '\"http://www.redhisp.webs.upv.es/files/QGISRed/' + \
-                self.DependenciesVersion + '/Installation_' + plat + '_' + lang + '.msi\"'
-            request = QMessageBox.question(self.iface.mainWindow(), self.tr('QGISRed Dependencies'),
-                                           self.tr('QGISRed plugin only runs in Windows OS and needs some dependencies (' +
-                                           self.DependenciesVersion +
-                                           '). Do you want to download and authomatically install them?'),
-                                           QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No))
-            if request == QMessageBox.Yes:
-                localFile = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names()) + ".msi"
-                try:
-                    urllib.request.urlretrieve(link.strip('\'"'), localFile)
-                    os.system(localFile)
-                    os.remove(localFile)
-                except Exception:
-                    pass
-                valid = self.checkDependencies()
-        return valid
 
     def setCursor(self, shape):
         cursor = QCursor()
@@ -1007,21 +1037,31 @@ class QGISRed:
         tolerance = 1 * unitsPerPixel/un
         return tolerance
 
+    def getUniformedPath(self, path):
+        return QGISRedUtils().getUniformedPath(path)
+
+    def getLayerPath(self, layer):
+        return QGISRedUtils().getLayerPath(layer)
+
+    def generatePath(self, folder, fileName):
+        return QGISRedUtils().generatePath(folder, fileName)
+
+    def getLayers(self):
+        return QGISRedUtils().getLayers()
+
     def getSelectedFeaturesIds(self):
         linkIdsList = []
         nodeIdsList = []
         self.selectedFids = {}
 
-        layers = [tree_layer.layer()
-                  for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+        layers = self.getLayers()
         mylayersNames = self.ownMainLayers
         for layer in layers:
-            openedLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\")
             for layerName in mylayersNames:
-                layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp").replace("/", "\\")
+                layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp")
                 if layerName == "Sources" or layerName == "Demands":
                     continue
-                if openedLayerPath == layerPath:
+                if self.getLayerPath(layer) == layerPath:
                     fids = []
                     for feature in layer.getSelectedFeatures():
                         fids.append(feature.id())
@@ -1046,56 +1086,23 @@ class QGISRed:
         return True
 
     def setSelectedFeaturesById(self):
-        layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+        layers = self.getLayers()
         mylayersNames = self.ownMainLayers
         for layer in layers:
-            openedLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\")
+            openedLayerPath = self.getLayerPath(layer)
             for layerName in mylayersNames:
-                layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp").replace("/", "\\")
+                layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp")
                 if layerName == "Sources" or layerName == "Demands":
                     continue
                 if openedLayerPath == layerPath:
                     if (layerName in self.selectedFids):
                         layer.selectByIds(self.selectedFids[layerName])
 
-    def checkForUpdates(self):
-        link = '\"http://www.redhisp.webs.upv.es/files/QGISRed/versions.txt\"'
-        import urllib.request
-        tempLocalFile = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names()) + ".txt"
-        try:
-            # Read online file
-            urllib.request.urlretrieve(link.strip('\'"'), tempLocalFile)
-            f = open(tempLocalFile, "r")
-            contents = f.read()
-            f.close()
-            if(int(contents.replace(".", "")) > int(self.DependenciesVersion.replace(".", ""))):
-                # Read local file with versions that user don't want to remember
-                fileVersions = os.path.join(os.path.join(
-                    os.getenv('APPDATA'), "QGISRed"), "updateVersions.dat")
-                oldVersions = ""
-                if os.path.exists(fileVersions):
-                    f = open(fileVersions, "r")
-                    oldVersions = f.read()
-                    f.close()
-                # Review if in local file is the current online version
-                if contents not in oldVersions:
-                    response = QMessageBox.question(self.iface.mainWindow(), self.tr('QGISRed Updates'),
-                                                    self.tr("QGISRed plugin has a new version (" + contents +
-                                                            "). You can upgrade it from the QGis plugin manager." +
-                                                            "Do you want to remember it again?"),
-                                                    QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No))
-                    # If user don't want to remember a local file is written with this version
-                    if response == QMessageBox.No:
-                        f = open(fileVersions, "w+")
-                        f.write(contents + '\n')
-                        f.close()
-            os.remove(tempLocalFile)
-        except Exception:
-            pass
+    def doNothing(self, task):
+        raise Exception('')
 
     """Main methods"""
     """Toolbars"""
-
     def runFileToolbar(self):
         self.fileToolbar.setVisible(not self.fileToolbar.isVisible())
 
@@ -1116,7 +1123,6 @@ class QGISRed:
         self.experimentalToolbar.setVisible(not self.experimentalToolbar.isVisible())
 
     """Common"""
-
     def runOpenTemporaryFiles(self, exception=None, result=None):
         if self.hasToOpenIssuesLayers:
             self.removeIssuesLayersFiles()
@@ -1199,7 +1205,6 @@ class QGISRed:
         dlg.exec_()
 
     """File"""
-
     def runProjectManager(self):
         if not self.checkDependencies():
             return
@@ -1239,7 +1244,7 @@ class QGISRed:
         if not self.ProjectDirectory == self.TemporalFolder:
             QgsProject.instance().clear()
             self.defineCurrentProject()
-        dlg = QGISRedNewProjectDialog()
+        dlg = QGISRedEditCreateProjectDialog()
         dlg.config(self.iface, self.ProjectDirectory, self.NetworkName)
         # Run the dialog event loop
         dlg.exec_()
@@ -1272,7 +1277,6 @@ class QGISRed:
         self.iface.newProject(True)
 
     """Project"""
-
     def runEditProject(self):
         if not self.checkDependencies():
             return
@@ -1283,7 +1287,7 @@ class QGISRed:
         if self.isLayerOnEdition():
             return
         # show the dialog
-        dlg = QGISRedNewProjectDialog()
+        dlg = QGISRedEditCreateProjectDialog()
         dlg.config(self.iface, self.ProjectDirectory, self.NetworkName)
         # Run the dialog event loop
         dlg.exec_()
@@ -1469,7 +1473,6 @@ class QGISRed:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     """Edition"""
-
     def runPaintPipe(self):
         # Validations
         self.defineCurrentProject()
@@ -1652,8 +1655,7 @@ class QGISRed:
         if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
         else:
-            self.myMapTools[tool] = QGISRedUtilsMultiLayerSelection(
-                self.iface, self.iface.mapCanvas(), self.selectElementsButton)
+            self.myMapTools[tool] = QGISRedMultiLayerSelection(self.iface, self.iface.mapCanvas(), self.selectElementsButton)
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runMoveElements(self):
@@ -2098,7 +2100,6 @@ class QGISRed:
         self.processCsharpResult(b, "")
 
     """Verifications"""
-
     def runCommit(self):
         if not self.checkDependencies():
             return
@@ -2460,7 +2461,6 @@ class QGISRed:
         QgsApplication.taskManager().addTask(task1)
 
     """Tools"""
-
     def runSetRoughness(self):
         if not self.checkDependencies():
             return
@@ -2700,7 +2700,6 @@ class QGISRed:
         QgsApplication.taskManager().addTask(task1)
 
     """Experimental"""
-
     def runTree(self, point):
         if not self.checkDependencies():
             return

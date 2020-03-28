@@ -3,7 +3,7 @@ from PyQt5.QtGui import QCursor, QColor
 from qgis.core import QgsPointXY, QgsPoint, QgsFeatureRequest, QgsFeature, QgsGeometry, QgsProject, QgsVector
 from qgis.core import QgsVectorLayerEditUtils, QgsSnappingConfig
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSnappingUtils
-import os
+from ..tools.qgisred_utils import QGISRedUtils
 
 
 class QGISRedMoveNodesTool(QgsMapTool):
@@ -21,8 +21,7 @@ class QGISRedMoveNodesTool(QgsMapTool):
         self.vertexMarker = QgsVertexMarker(self.iface.mapCanvas())
         self.vertexMarker.setColor(QColor(255, 87, 51))
         self.vertexMarker.setIconSize(15)
-        self.vertexMarker.setIconType(
-            QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
+        self.vertexMarker.setIconType(QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
         self.vertexMarker.setPenWidth(3)
         self.vertexMarker.hide()
         self.mousePoint = None
@@ -38,8 +37,7 @@ class QGISRedMoveNodesTool(QgsMapTool):
         self.newVertexMarker = QgsVertexMarker(self.iface.mapCanvas())
         self.newVertexMarker.setColor(QColor(55, 198, 5))
         self.newVertexMarker.setIconSize(15)
-        self.newVertexMarker.setIconType(
-            QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
+        self.newVertexMarker.setIconType(QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
         self.newVertexMarker.setPenWidth(3)
         self.newVertexMarker.hide()
 
@@ -50,11 +48,11 @@ class QGISRedMoveNodesTool(QgsMapTool):
 
         myLayers = []
         # Editing
-        layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+        layers = self.getLayers()
         for layer in layers:
-            openedLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\")
+            openedLayerPath = self.getLayerPath(layer)
             for name in self.ownMainLayers:
-                layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp").replace("/", "\\")
+                layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp")
                 if openedLayerPath == layerPath:
                     myLayers.append(layer)
                     if not layer.isEditable():
@@ -73,11 +71,11 @@ class QGISRedMoveNodesTool(QgsMapTool):
     def deactivate(self):
         self.toolbarButton.setChecked(False)
         # End Editing
-        layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+        layers = self.getLayers()
         for layer in layers:
-            openedLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\")
+            openedLayerPath = self.getLayerPath(layer)
             for name in self.ownMainLayers:
-                layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp").replace("/", "\\")
+                layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp")
                 if openedLayerPath == layerPath:
                     if layer.isModified():
                         layer.commitChanges()
@@ -93,14 +91,26 @@ class QGISRedMoveNodesTool(QgsMapTool):
     def isEditTool(self):
         return True
 
+    """Methods"""
+    def getUniformedPath(self, path):
+        return QGISRedUtils().getUniformedPath(path)
+
+    def getLayerPath(self, layer):
+        return QGISRedUtils().getLayerPath(layer)
+
+    def generatePath(self, folder, fileName):
+        return QGISRedUtils().generatePath(folder, fileName)
+
+    def getLayers(self):
+        return QGISRedUtils().getLayers()
+
     def findAdjacentElements(self, nodeGeometry):
         adjacentElements = {}
-        layers = [tree_layer.layer()
-                  for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+        layers = self.getLayers()
         for layer in layers:
-            openedLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\")
+            openedLayerPath = self.getLayerPath(layer)
             for name in self.ownMainLayers:
-                layePath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp").replace("/", "\\")
+                layePath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp")
                 if openedLayerPath == layePath:
                     adjacentFeatures = []
                     for feature in layer.getFeatures():
@@ -117,9 +127,10 @@ class QGISRedMoveNodesTool(QgsMapTool):
                                 first_vertex = featureGeometry.get()[0]
                                 last_vertex = featureGeometry.get()[-1]
 
-                            if self.areOverlapedPoints(nodeGeometry, QgsGeometry.fromPointXY(
-                                    QgsPointXY(first_vertex.x(), first_vertex.y()))) or self.areOverlapedPoints(
-                                    nodeGeometry, QgsGeometry.fromPointXY(QgsPointXY(last_vertex.x(), last_vertex.y()))):
+                            firsVertex = QgsGeometry.fromPointXY(QgsPointXY(first_vertex.x(), first_vertex.y()))
+                            lastVertex = QgsGeometry.fromPointXY(QgsPointXY(last_vertex.x(), last_vertex.y()))
+                            if self.areOverlapedPoints(nodeGeometry, firsVertex) or\
+                                    self.areOverlapedPoints(nodeGeometry, lastVertex):
                                 adjacentFeatures.append(feature)
                     if len(adjacentFeatures) > 0:
                         adjacentElements[layer] = adjacentFeatures
@@ -144,17 +155,14 @@ class QGISRedMoveNodesTool(QgsMapTool):
         self.rubberBand.setColor(QColor(55, 198, 5))
         self.rubberBand.setWidth(1)
         self.rubberBand.setLineStyle(Qt.DashLine)
-        self.newVertexMarker.setCenter(
-            QgsPointXY(points[0].x(), points[0].y()))
+        self.newVertexMarker.setCenter(QgsPointXY(points[0].x(), points[0].y()))
         self.newVertexMarker.show()
 
     def updateRubberBand(self):
-        self.rubberBand.movePoint(1, QgsPointXY(self.clickedPoint.x() +
-                                                self.newPositionVector.x(), self.clickedPoint.y()
-                                                + self.newPositionVector.y()))
-        self.newVertexMarker.setCenter(QgsPointXY(self.clickedPoint.x() +
-                                                  self.newPositionVector.x(), self.clickedPoint.y() +
-                                                  self.newPositionVector.y()))
+        newX = self.clickedPoint.x() + self.newPositionVector.x()
+        newY = self.clickedPoint.y() + self.newPositionVector.y()
+        self.rubberBand.movePoint(1, QgsPointXY(newX, newY))
+        self.newVertexMarker.setCenter(QgsPointXY(newX, newY))
 
     def moveNodePoint(self, layer, nodeFeature, newPosition):
         if layer.isEditable():
@@ -180,6 +188,7 @@ class QGISRedMoveNodesTool(QgsMapTool):
                 raise e
             layer.endEditCommand()
 
+    """Events"""
     def canvasPressEvent(self, event):
         if self.objectSnapped is None:
             self.clickedPoint = None
@@ -197,11 +206,11 @@ class QGISRedMoveNodesTool(QgsMapTool):
             self.adjacentFeatures = None
 
             foundNode = False
-            layers = [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+            layers = self.getLayers()
             for layer in layers:
-                openedLayerPath = str(layer.dataProvider().dataSourceUri().split("|")[0]).replace("/", "\\") 
+                openedLayerPath = self.getLayerPath(layer)
                 for name in self.myNodeLayers:
-                    layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp").replace("/", "\\")
+                    layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp")
                     if openedLayerPath == layerPath:
                         locatedPoint = self.snapper.locatorForLayer(layer)
                         match = locatedPoint.nearestVertex(
@@ -230,31 +239,16 @@ class QGISRedMoveNodesTool(QgsMapTool):
                 vertex = match.point()
                 self.vertexMarker.setCenter(QgsPointXY(vertex.x(), vertex.y()))
                 self.vertexMarker.show()
-                # isNodeLayer = False
-                # for name in self.myNodeLayers:
-                # if str(match.layer().dataProvider().dataSourceUri().split("|")[0]).replace("/","\\")== 
-                # os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp").replace("/","\\"):
-                # isNodeLayer = True
-                # if isNodeLayer:
-                # self.objectSnapped = match
-                # vertex = match.point()
-                # self.vertexMarker.setCenter(QgsPointXY(vertex.x(), vertex.y()))
-                # self.vertexMarker.show()
-                # else:
-                # self.objectSnapped = None
-                # self.selectedNodeFeature = None
-                # self.vertexMarker.hide()
             else:
                 self.objectSnapped = None
                 self.selectedNodeFeature = None
                 self.vertexMarker.hide()
         # Mouse clicked
         else:
-            # # Update rubber band
+            # Update rubber band
             if self.objectSnapped is not None and self.rubberBand is not None:
                 snappedPoint = self.objectSnapped.point()
-                self.newPositionVector = QgsVector(
-                    self.mousePoint.x() - snappedPoint.x(), self.mousePoint.y() - snappedPoint.y())
+                self.newPositionVector = QgsVector(self.mousePoint.x() - snappedPoint.x(), self.mousePoint.y() - snappedPoint.y())
                 self.updateRubberBand()
 
     def canvasReleaseEvent(self, event):
@@ -270,8 +264,7 @@ class QGISRedMoveNodesTool(QgsMapTool):
                     for adjLayer in self.adjacentFeatures:
                         for feature in self.adjacentFeatures[adjLayer]:
                             if adjLayer.geometryType() == 0:  # Point
-                                self.moveNodePoint(
-                                    adjLayer, feature, mousePoint)
+                                self.moveNodePoint(adjLayer, feature, mousePoint)
                             else:
                                 nodeGeometry = self.selectedNodeFeature.geometry()
                                 featureGeometry = feature.geometry()
@@ -283,8 +276,8 @@ class QGISRedMoveNodesTool(QgsMapTool):
                                 else:
                                     firstVertex = featureGeometry.get()[0]
                                     vertices = 2
-                                if self.areOverlapedPoints(nodeGeometry, QgsGeometry.fromPointXY
-                                                           (QgsPointXY(firstVertex.x(), firstVertex.y()))):
+                                firstPoint = QgsGeometry.fromPointXY(QgsPointXY(firstVertex.x(), firstVertex.y()))
+                                if self.areOverlapedPoints(nodeGeometry, firstPoint):
                                     index = 0
                                 else:
                                     index = vertices-1

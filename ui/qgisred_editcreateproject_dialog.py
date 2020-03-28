@@ -13,10 +13,10 @@ import tempfile
 from ctypes import c_char_p, WinDLL
 from xml.etree import ElementTree
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_newproject_dialog.ui'))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_editcreateproject_dialog.ui'))
 
 
-class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
+class QGISRedEditCreateProjectDialog(QDialog, FORM_CLASS):
     # Common variables
     iface = None
     NetworkName = ""
@@ -28,7 +28,7 @@ class QGISRedNewProjectDialog(QDialog, FORM_CLASS):
 
     def __init__(self, parent=None):
         """Constructor."""
-        super(QGISRedNewProjectDialog, self).__init__(parent)
+        super(QGISRedEditCreateProjectDialog, self).__init__(parent)
         self.setupUi(self)
         self.btCreateProject.clicked.connect(self.createProject)
         self.btEditProject.clicked.connect(self.editProject)

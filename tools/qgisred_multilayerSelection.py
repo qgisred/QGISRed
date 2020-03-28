@@ -6,7 +6,7 @@ from qgis.gui import QgsMapTool, QgsRubberBand
 import processing
 
 
-class QGISRedUtilsMultiLayerSelection(QgsMapTool):
+class QGISRedMultiLayerSelection(QgsMapTool):
 
     def __init__(self, iface, canvas, action):
         QgsMapTool.__init__(self, canvas)
@@ -24,6 +24,15 @@ class QGISRedUtilsMultiLayerSelection(QgsMapTool):
 
         self.reset()
 
+    def deactivate(self):
+        self.reset()
+        self.myRubberBand.hide()
+        QgsMapTool.deactivate(self)
+
+    def activate(self):
+        QgsMapTool.activate(self)
+
+    """Methods"""
     def reset(self):
         self.initialPoint = None
         self.finalPoint = None
@@ -48,8 +57,7 @@ class QGISRedUtilsMultiLayerSelection(QgsMapTool):
         if self.rubberBand1 is not None:
             self.iface.mapCanvas().scene().removeItem(self.rubberBand1)
         self.rubberBand1 = QgsRubberBand(self.iface.mapCanvas(), False)
-        self.rubberBand1.setToGeometry(
-            QgsGeometry.fromPolyline(myPoints1), None)
+        self.rubberBand1.setToGeometry(QgsGeometry.fromPolyline(myPoints1), None)
         self.rubberBand1.setColor(QColor(240, 40, 40))
         self.rubberBand1.setWidth(1)
         self.rubberBand1.setLineStyle(Qt.SolidLine)
@@ -61,12 +69,35 @@ class QGISRedUtilsMultiLayerSelection(QgsMapTool):
         if self.rubberBand2 is not None:
             self.iface.mapCanvas().scene().removeItem(self.rubberBand2)
         self.rubberBand2 = QgsRubberBand(self.iface.mapCanvas(), False)
-        self.rubberBand2.setToGeometry(
-            QgsGeometry.fromPolyline(myPoints2), None)
+        self.rubberBand2.setToGeometry(QgsGeometry.fromPolyline(myPoints2), None)
         self.rubberBand2.setColor(QColor(240, 40, 40))
         self.rubberBand2.setWidth(1)
         self.rubberBand2.setLineStyle(Qt.DashLine)
 
+    def showRectangle(self, initialPoint, finalPoint):
+        self.myRubberBand.reset(3)
+        if initialPoint.x() == finalPoint.x() or initialPoint.y() == finalPoint.y():
+            return
+        point1 = QgsPointXY(initialPoint.x(), initialPoint.y())
+        point2 = QgsPointXY(initialPoint.x(), finalPoint.y())
+        point3 = QgsPointXY(finalPoint.x(), finalPoint.y())
+        point4 = QgsPointXY(finalPoint.x(), initialPoint.y())
+
+        self.myRubberBand.addPoint(point1, False)
+        self.myRubberBand.addPoint(point2, False)
+        self.myRubberBand.addPoint(point3, False)
+        self.myRubberBand.addPoint(point4, False)
+        self.myRubberBand.closePoints()
+        self.myRubberBand.show()
+
+    def getRectangle(self):
+        if self.initialPoint is None or self.finalPoint is None:
+            return None
+        elif self.initialPoint.x() == self.finalPoint.x() or self.initialPoint.y() == self.finalPoint.y():
+            return None
+        return QgsRectangle(self.initialPoint, self.finalPoint)
+
+    """Events"""
     def canvasPressEvent(self, e):
         if e.button() == Qt.RightButton and len(self.mousePoints) > 0:
             poligon = QgsVectorLayer('Polygon', 'poly', "memory")
@@ -82,20 +113,18 @@ class QGISRedUtilsMultiLayerSelection(QgsMapTool):
                 for layer in layers:
                     if layer.type() == QgsMapLayer.RasterLayer:
                         continue
-                    # lRect = self.canvas.mapSettings().mapToLayerCoordinates(layer, rect)
                     modifiers = QApplication.keyboardModifiers()
                     if modifiers == Qt.ShiftModifier:
-                        processing.run('qgis:selectbylocation', {'INPUT': layer, 'PREDICATE': [
-                                       0], 'INTERSECT': poligon, 'METHOD': 3})  # Remove
+                        processing.run('qgis:selectbylocation',
+                                       {'INPUT': layer, 'PREDICATE': [0], 'INTERSECT': poligon, 'METHOD': 3})  # Remove
                     elif modifiers == Qt.ControlModifier:
-                        processing.run('qgis:selectbylocation', {'INPUT': layer, 'PREDICATE': [
-                                       0], 'INTERSECT': poligon, 'METHOD': 1})  # Add
+                        processing.run('qgis:selectbylocation',
+                                       {'INPUT': layer, 'PREDICATE': [0], 'INTERSECT': poligon, 'METHOD': 1})  # Add
                     else:
-                        processing.run('qgis:selectbylocation', {'INPUT': layer, 'PREDICATE': [
-                                       0], 'INTERSECT': poligon, 'METHOD': 0})  # Set
+                        processing.run('qgis:selectbylocation',
+                                       {'INPUT': layer, 'PREDICATE': [0], 'INTERSECT': poligon, 'METHOD': 0})  # Set
             except Exception:
-                self.iface.messageBar().pushMessage(
-                    "Warning", "Polygon not valid for selecting elements", level=1, duration=5)
+                self.iface.messageBar().pushMessage("Warning", "Polygon not valid for selecting elements", level=1, duration=5)
             self.reset()
             poligon = None
             return
@@ -145,34 +174,3 @@ class QGISRedUtilsMultiLayerSelection(QgsMapTool):
         elif len(self.mousePoints) > 0:
             self.mousePoints[-1] = point
             self.createRubberBand(self.mousePoints)
-
-    def showRectangle(self, initialPoint, finalPoint):
-        self.myRubberBand.reset(3)
-        if initialPoint.x() == finalPoint.x() or initialPoint.y() == finalPoint.y():
-            return
-        point1 = QgsPointXY(initialPoint.x(), initialPoint.y())
-        point2 = QgsPointXY(initialPoint.x(), finalPoint.y())
-        point3 = QgsPointXY(finalPoint.x(), finalPoint.y())
-        point4 = QgsPointXY(finalPoint.x(), initialPoint.y())
-
-        self.myRubberBand.addPoint(point1, False)
-        self.myRubberBand.addPoint(point2, False)
-        self.myRubberBand.addPoint(point3, False)
-        self.myRubberBand.addPoint(point4, False)
-        self.myRubberBand.closePoints()
-        self.myRubberBand.show()
-
-    def getRectangle(self):
-        if self.initialPoint is None or self.finalPoint is None:
-            return None
-        elif self.initialPoint.x() == self.finalPoint.x() or self.initialPoint.y() == self.finalPoint.y():
-            return None
-        return QgsRectangle(self.initialPoint, self.finalPoint)
-
-    def deactivate(self):
-        self.reset()
-        self.myRubberBand.hide()
-        QgsMapTool.deactivate(self)
-
-    def activate(self):
-        QgsMapTool.activate(self)
