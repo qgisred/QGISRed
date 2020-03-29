@@ -289,64 +289,126 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             layer.setLabelsEnabled(True)
             layer.triggerRepaint()
 
-    def setGraduadedPalette(self, layer, field, setRender, nameLayer):
-        # TODO: Review method
-        try:  # QGis 3
-            renderer = layer.renderer()
-            symbol = renderer.symbol()  # SimpleSymbol
-        except Exception:
-            # sourceSymbol() #GraduatedSymbol
-            symbol = renderer.symbols(QgsRenderContext())
+    def getColorClasses(self, symbol, nameLayer):
+        # Five classes as deafult
+        simb1 = symbol.clone()
+        simb2 = symbol.clone()
+        simb3 = symbol.clone()
+        simb4 = symbol.clone()
+        simb5 = symbol.clone()
+        simb1.setColor(QColor(0, 0, 255))
+        simb2.setColor(QColor(0, 255, 255))
+        simb3.setColor(QColor(0, 255, 0))
+        simb4.setColor(QColor(255, 255, 0))
+        simb5.setColor(QColor(165, 0, 0))
+        ranges = []
+        if "Pressure" in nameLayer:
+            ranges.append(QgsRendererRange(-10000, 20, simb1, "<20"))
+            ranges.append(QgsRendererRange(20, 30, simb2, "20-30"))
+            ranges.append(QgsRendererRange(30, 40, simb3, "30-40"))
+            ranges.append(QgsRendererRange(40, 50, simb4, "40-50"))
+            ranges.append(QgsRendererRange(50, 10000, simb5, ">50"))
+        elif "Node_Head" in nameLayer:
+            ranges.append(QgsRendererRange(-10000, 20, simb1, "<20"))
+            ranges.append(QgsRendererRange(20, 40, simb2, "20-40"))
+            ranges.append(QgsRendererRange(40, 60, simb3, "40-60"))
+            ranges.append(QgsRendererRange(60, 80, simb4, "60-80"))
+            ranges.append(QgsRendererRange(80, 10000, simb5, ">80"))
+        elif "Demand" in nameLayer:
+            ranges.append(QgsRendererRange(-10000, 5, simb1, "<5"))
+            ranges.append(QgsRendererRange(5, 10, simb2, "5-10"))
+            ranges.append(QgsRendererRange(10, 20, simb3, "10-20"))
+            ranges.append(QgsRendererRange(20, 40, simb4, "20-40"))
+            ranges.append(QgsRendererRange(40, 10000, simb5, ">40"))
+        elif "Node_Quality" in nameLayer:
+            ranges.append(
+                QgsRendererRange(-10000, 0.25, simb1, "<0.25"))
+            ranges.append(QgsRendererRange(0.25, 0.5, simb2, "0.25-0.5"))
+            ranges.append(QgsRendererRange(0.5, 0.75, simb3, "0.5-0.75"))
+            ranges.append(QgsRendererRange(0.75, 1, simb4, "0.75-1"))
+            ranges.append(QgsRendererRange(1, 10000, simb5, ">1"))
+        elif "Flow" in nameLayer:
+            ranges.append(QgsRendererRange(-10000, 10, simb1, "<10"))
+            ranges.append(QgsRendererRange(10, 20, simb2, "10-20"))
+            ranges.append(QgsRendererRange(20, 50, simb3, "20-50"))
+            ranges.append(QgsRendererRange(50, 100, simb4, "50-100"))
+            ranges.append(QgsRendererRange(100, 10000, simb5, ">100"))
+        elif "Velocity" in nameLayer:
+            ranges.append(QgsRendererRange(-10000, 0.1, simb1, "<0.1"))
+            ranges.append(QgsRendererRange(0.1, 0.5, simb2, "0.1-0.5"))
+            ranges.append(QgsRendererRange(0.5, 1, simb3, "0.5-1"))
+            ranges.append(QgsRendererRange(1, 2, simb4, "1-2"))
+            ranges.append(QgsRendererRange(2, 10000, simb5, ">2"))
+        elif "HeadLoss" in nameLayer:
+            ranges.append(QgsRendererRange(-10000, 0.1, simb1, "<0.1"))
+            ranges.append(QgsRendererRange(0.1, 0.5, simb2, "0.1-0.5"))
+            ranges.append(QgsRendererRange(0.5, 1, simb3, "0.5-1"))
+            ranges.append(QgsRendererRange(1, 5, simb4, "1-5"))
+            ranges.append(QgsRendererRange(5, 10000, simb5, ">5"))
+        elif "Link_Quality" in nameLayer:
+            ranges.append(QgsRendererRange(-10000, 0.25, simb1, "<0.25"))
+            ranges.append(QgsRendererRange(0.25, 0.5, simb2, "0.25-0.5"))
+            ranges.append(QgsRendererRange(0.5, 0.75, simb3, "0.5-0.75"))
+            ranges.append(QgsRendererRange(0.75, 1, simb4, "0.75-1"))
+            ranges.append(QgsRendererRange(1, 10000, simb5, ">1"))
 
-        if setRender:
-            prop = QgsProperty()
-            if symbol.type() == 1:  # line
-                if "Flow" in layer.name() and self.cbFlowDirections.isChecked():
-                    ss = symbol.symbolLayer(3)  # arrow positive flow
-                    prop.setExpressionString("if(Type='PIPE', if(" + field + ">0,3,0),0)")
-                    ss.subSymbol().setDataDefinedSize(prop)
-                    ss = symbol.symbolLayer(4)  # arrow negative flow
-                    prop.setExpressionString("if(Type='PIPE', if(" + field + "<0,3,0),0)")
-                    ss.subSymbol().setDataDefinedSize(prop)
-                else:
-                    prop.setExpressionString("0")
-                    symbol.symbolLayer(3).subSymbol().setDataDefinedSize(prop)
-                    symbol.symbolLayer(4).subSymbol().setDataDefinedSize(prop)
-            else:  # point
-                prop.setExpressionString("if(Type ='TANK', 7,0)")
-                symbol.symbolLayer(0).setDataDefinedProperty(0, prop)  # 0 = PropertySize
-                symbol.symbolLayer(0).setDataDefinedProperty(9, prop)  # 0 = PropertyWidth
-                prop.setExpressionString("if(Type ='RESERVOIR', 7,0)")
-                symbol.symbolLayer(1).setDataDefinedProperty(0, prop)
-                symbol.symbolLayer(1).setDataDefinedProperty(9, prop)
-                prop.setExpressionString("if(Type ='RESERVOIR' or Type='TANK', 0,2)")
-                symbol.symbolLayer(2).setDataDefinedProperty(0, prop)
-                symbol.symbolLayer(2).setDataDefinedProperty(9, prop)
+        return ranges
+
+    def setArrowsVisibility(self, symbol, layer, prop, field):
+        if "Flow" in layer.name() and self.cbFlowDirections.isChecked():
+            # Show arrows in pipes
+            ss = symbol.symbolLayer(3)  # arrow positive flow
+            prop.setExpressionString("if(Type='PIPE', if(" + field + ">0,3,0),0)")
+            ss.subSymbol().setDataDefinedSize(prop)
+            ss = symbol.symbolLayer(4)  # arrow negative flow
+            prop.setExpressionString("if(Type='PIPE', if(" + field + "<0,3,0),0)")
+            ss.subSymbol().setDataDefinedSize(prop)
         else:
-            for sym in symbol:
-                if sym.type() == 1:  # line
-                    prop = QgsProperty()
-                    if "Flow" in layer.name() and self.cbFlowDirections.isChecked():
-                        ss = sym.symbolLayer(3)  # arrow positive flow
-                        prop.setExpressionString("if(Type='PIPE', if(" + field + ">0,3,0),0)")
-                        ss.subSymbol().setDataDefinedSize(prop)
-                        ss = sym.symbolLayer(4)  # arrow negative flow
-                        prop.setExpressionString("if(Type='PIPE', if(" + field + "<0,3,0),0)")
-                        ss.subSymbol().setDataDefinedSize(prop)
-                    else:
-                        prop.setExpressionString("0")
-                        sym.symbolLayer(3).subSymbol().setDataDefinedSize(prop)
-                        sym.symbolLayer(4).subSymbol().setDataDefinedSize(prop)
-                else:  # point
-                    pass
+            # Hide arrows
+            prop.setExpressionString("0")
+            symbol.symbolLayer(3).subSymbol().setDataDefinedSize(prop)
+            symbol.symbolLayer(4).subSymbol().setDataDefinedSize(prop)
+
+    def setNodesVisibility(self, prop, symbol):
+        prop.setExpressionString("if(Type ='TANK', 7,0)")
+        symbol.symbolLayer(0).setDataDefinedProperty(0, prop)  # 0 = PropertySize
+        symbol.symbolLayer(0).setDataDefinedProperty(9, prop)  # 0 = PropertyWidth
+        prop.setExpressionString("if(Type ='RESERVOIR', 7,0)")
+        symbol.symbolLayer(1).setDataDefinedProperty(0, prop)
+        symbol.symbolLayer(1).setDataDefinedProperty(9, prop)
+        prop.setExpressionString("if(Type ='RESERVOIR' or Type='TANK', 0,2)")
+        symbol.symbolLayer(2).setDataDefinedProperty(0, prop)
+        symbol.symbolLayer(2).setDataDefinedProperty(9, prop)
+
+    def setGraduadedPalette(self, layer, field, setRender, nameLayer):
+        renderer = layer.renderer()
+        prop = QgsProperty()
+        # Set arrows and node icon visibility (only when layer is opened)
+        # Links icon visibility are assigned when style is applied in Utils
+        if setRender:  # Just opened a layer
+            # SimpleSymbol (first time)
+            symbol = renderer.symbol()
+            if symbol.type() == 1:  # line
+                self.setArrowsVisibility(symbol, layer, prop, field)
+            else:  # point
+                self.setNodesVisibility(prop, symbol)
+        else:
+            # GraduatedSymbol (other times)
+            symbols = renderer.symbols(QgsRenderContext())
+            for symbol in symbols:
+                if symbol.type() == 1:  # line
+                    self.setArrowsVisibility(symbol, layer, prop, field)
 
         if "Flow" in layer.name():
             field = "abs(" + field + ")"
-        if setRender:
+
+        # Set graduated colors
+        if setRender:  # Just opened a layer
+            # Has previous render saved?
             hasRender = False
             dictRend = self.Renders.get(self.Scenario)
             if dictRend is None:
-                dictRend = self.Renders.get("Base")
+                dictRend = self.Renders.get("Base")  # default
                 if dictRend is not None:
                     ranges = dictRend.get(self.getLayerPath(layer).replace("_" + self.Scenario + "_", "_Base_"))
                     if ranges is not None:
@@ -356,75 +418,19 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 if ranges is not None:
                     hasRender = True
                 else:
-                    dictRend = self.Renders.get("Base")
+                    dictRend = self.Renders.get("Base")  # default
                     if dictRend is not None:
                         ranges = dictRend.get(self.getLayerPath(layer).replace("_" + self.Scenario + "_", "_Base_"))
                         if ranges is not None:
                             hasRender = True
+
+            # Apply render
             if hasRender:
                 renderer = QgsGraduatedSymbolRenderer(field, ranges)
             else:
-                simb1 = symbol.clone()
-                simb2 = symbol.clone()
-                simb3 = symbol.clone()
-                simb4 = symbol.clone()
-                simb5 = symbol.clone()
-                simb1.setColor(QColor(0, 0, 255))
-                simb2.setColor(QColor(0, 255, 255))
-                simb3.setColor(QColor(0, 255, 0))
-                simb4.setColor(QColor(255, 255, 0))
-                simb5.setColor(QColor(165, 0, 0))
-                ranges = []
-                if "Pressure" in nameLayer:
-                    ranges.append(QgsRendererRange(-10000, 20, simb1, "<20"))
-                    ranges.append(QgsRendererRange(20, 30, simb2, "20-30"))
-                    ranges.append(QgsRendererRange(30, 40, simb3, "30-40"))
-                    ranges.append(QgsRendererRange(40, 50, simb4, "40-50"))
-                    ranges.append(QgsRendererRange(50, 10000, simb5, ">50"))
-                elif "Node_Head" in nameLayer:
-                    ranges.append(QgsRendererRange(-10000, 20, simb1, "<20"))
-                    ranges.append(QgsRendererRange(20, 40, simb2, "20-40"))
-                    ranges.append(QgsRendererRange(40, 60, simb3, "40-60"))
-                    ranges.append(QgsRendererRange(60, 80, simb4, "60-80"))
-                    ranges.append(QgsRendererRange(80, 10000, simb5, ">80"))
-                elif "Demand" in nameLayer:
-                    ranges.append(QgsRendererRange(-10000, 5, simb1, "<5"))
-                    ranges.append(QgsRendererRange(5, 10, simb2, "5-10"))
-                    ranges.append(QgsRendererRange(10, 20, simb3, "10-20"))
-                    ranges.append(QgsRendererRange(20, 40, simb4, "20-40"))
-                    ranges.append(QgsRendererRange(40, 10000, simb5, ">40"))
-                elif "Node_Quality" in nameLayer:
-                    ranges.append(
-                        QgsRendererRange(-10000, 0.25, simb1, "<0.25"))
-                    ranges.append(QgsRendererRange(0.25, 0.5, simb2, "0.25-0.5"))
-                    ranges.append(QgsRendererRange(0.5, 0.75, simb3, "0.5-0.75"))
-                    ranges.append(QgsRendererRange(0.75, 1, simb4, "0.75-1"))
-                    ranges.append(QgsRendererRange(1, 10000, simb5, ">1"))
-                elif "Flow" in nameLayer:
-                    ranges.append(QgsRendererRange(-10000, 10, simb1, "<10"))
-                    ranges.append(QgsRendererRange(10, 20, simb2, "10-20"))
-                    ranges.append(QgsRendererRange(20, 50, simb3, "20-50"))
-                    ranges.append(QgsRendererRange(50, 100, simb4, "50-100"))
-                    ranges.append(QgsRendererRange(100, 10000, simb5, ">100"))
-                elif "Velocity" in nameLayer:
-                    ranges.append(QgsRendererRange(-10000, 0.1, simb1, "<0.1"))
-                    ranges.append(QgsRendererRange(0.1, 0.5, simb2, "0.1-0.5"))
-                    ranges.append(QgsRendererRange(0.5, 1, simb3, "0.5-1"))
-                    ranges.append(QgsRendererRange(1, 2, simb4, "1-2"))
-                    ranges.append(QgsRendererRange(2, 10000, simb5, ">2"))
-                elif "HeadLoss" in nameLayer:
-                    ranges.append(QgsRendererRange(-10000, 0.1, simb1, "<0.1"))
-                    ranges.append(QgsRendererRange(0.1, 0.5, simb2, "0.1-0.5"))
-                    ranges.append(QgsRendererRange(0.5, 1, simb3, "0.5-1"))
-                    ranges.append(QgsRendererRange(1, 5, simb4, "1-5"))
-                    ranges.append(QgsRendererRange(5, 10000, simb5, ">5"))
-                elif "Link_Quality" in nameLayer:
-                    ranges.append(
-                        QgsRendererRange(-10000, 0.25, simb1, "<0.25"))
-                    ranges.append(QgsRendererRange(0.25, 0.5, simb2, "0.25-0.5"))
-                    ranges.append(QgsRendererRange(0.5, 0.75, simb3, "0.5-0.75"))
-                    ranges.append(QgsRendererRange(0.75, 1, simb4, "0.75-1"))
-                    ranges.append(QgsRendererRange(1, 10000, simb5, ">1"))
+                ranges = self.getColorClasses(symbol, nameLayer)
+                if len(ranges) > 0:
+                    renderer = QgsGraduatedSymbolRenderer(field, ranges)
                 else:
                     mode = QgsGraduatedSymbolRenderer.EqualInterval  # Quantile
                     classes = 5
@@ -437,9 +443,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     myFormat.setPrecision(2)
                     myFormat.setTrimTrailingZeroes(True)
                     renderer.setLabelFormat(myFormat, True)
-
-                if len(ranges) > 0:
-                    renderer = QgsGraduatedSymbolRenderer(field, ranges)
         else:
             renderer.setClassAttribute(field)
 
@@ -609,7 +612,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         value = self.cbTimes.currentIndex()
         self.IndexTime[self.cbScenarios.currentText()] = value
         self.setLayersNames()
-        self.paintIntervalTimeResults(value)
+        self.paintIntervalTimeResults(value, False)
 
     def scenarioChanged(self):
         if self.Computing:
@@ -824,10 +827,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             QApplication.setOverrideCursor(Qt.WaitCursor)
             QGISRedUtils().setCurrentDirectory()
             mydll = WinDLL("GISRed.QGisPlugins.dll")
-            mydll.CreateResults.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+            mydll.CreateResults.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
             mydll.CreateResults.restype = c_char_p
             b = mydll.CreateResults(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-                'utf-8'), self.Scenario.encode('utf-8'), self.Variables.encode('utf-8'), "".encode('utf-8'), "".encode('utf-8'))
+                'utf-8'), self.Scenario.encode('utf-8'), self.Variables.encode('utf-8'))
             b = "".join(map(chr, b))  # bytes to string
         else:
             b = "True"
@@ -859,10 +862,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             QApplication.setOverrideCursor(Qt.WaitCursor)
             QGISRedUtils().setCurrentDirectory()
             mydll = WinDLL("GISRed.QGisPlugins.dll")
-            mydll.CreateResults.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+            mydll.CreateResults.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
             mydll.CreateResults.restype = c_char_p
             b = mydll.CreateResults(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-                'utf-8'), self.Scenario.encode('utf-8'), self.Variables.encode('utf-8'), "".encode('utf-8'), "".encode('utf-8'))
+                'utf-8'), self.Scenario.encode('utf-8'), self.Variables.encode('utf-8'))
             b = "".join(map(chr, b))  # bytes to string
         else:
             b = "True"
