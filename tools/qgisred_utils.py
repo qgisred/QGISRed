@@ -42,7 +42,7 @@ class QGISRedUtils:
         for fileName in layers:
             self.openLayer(crs, group, fileName, issues=True)
 
-    def openLayer(self, crs, group, name, ext=".shp", results=False, toEnd=False, sectors=False, issues=False, tree=False):
+    def openLayer(self, crs, group, name, ext=".shp", results=False, toEnd=False, sectors=False, issues=False):
         layerName = self.NetworkName + "_" + name
         if os.path.exists(os.path.join(self.ProjectDirectory, layerName + ext)):
             vlayer = QgsVectorLayer(os.path.join(
@@ -53,8 +53,6 @@ class QGISRedUtils:
                     self.setResultStyle(vlayer)
                 elif sectors:
                     self.setSectorsStyle(vlayer)
-                elif tree:
-                    self.setTreeStyle(vlayer)
                 elif issues:
                     pass
                 else:
@@ -68,6 +66,18 @@ class QGISRedUtils:
             del vlayer
             if results:
                 self.orderResultLayers(group)
+
+    def openTreeLayer(self, crs, group, name, treeName, link=False):
+        layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + "_Tree_" + treeName + ".shp")
+        if os.path.exists(layerPath):
+            vlayer = QgsVectorLayer(layerPath, name, "ogr")
+            vlayer.setCrs(crs)
+            if link:
+                self.setTreeStyle(vlayer)
+            QgsProject.instance().addMapLayer(vlayer, group is None)
+            if group is not None:
+                group.insertChildNode(0, QgsLayerTreeLayer(vlayer))
+            del vlayer
 
     """Remove Layers"""
     def removeLayers(self, layers, ext=".shp"):

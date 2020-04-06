@@ -51,6 +51,7 @@ import tempfile
 import platform
 import base64
 import shutil
+import webbrowser
 import urllib.request
 from ctypes import c_char_p, WinDLL, windll
 # MessageBar Levels: Info 0, Warning 1, Critical 2, Success 3
@@ -628,7 +629,6 @@ class QGISRed:
 
     def checkForUpdates(self):
         link = '\"http://www.redhisp.webs.upv.es/files/QGISRed/versions.txt\"'
-        import urllib.request
         tempLocalFile = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names()) + ".txt"
         try:
             # Read online file
@@ -638,8 +638,7 @@ class QGISRed:
             f.close()
             if(int(contents.replace(".", "")) > int(self.DependenciesVersion.replace(".", ""))):
                 # Read local file with versions that user don't want to remember
-                fileVersions = os.path.join(os.path.join(
-                    os.getenv('APPDATA'), "QGISRed"), "updateVersions.dat")
+                fileVersions = os.path.join(os.path.join(os.getenv('APPDATA'), "QGISRed"), "updateVersions.dat")
                 oldVersions = ""
                 if os.path.exists(fileVersions):
                     f = open(fileVersions, "r")
@@ -652,6 +651,7 @@ class QGISRed:
                                                             "). You can upgrade it from the QGis plugin manager." +
                                                             "Do you want to remember it again?"),
                                                     QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No))
+                    webbrowser.open('https://tr.im/qgisredplugin')
                     # If user don't want to remember a local file is written with this version
                     if response == QMessageBox.No:
                         f = open(fileVersions, "w+")
@@ -2714,8 +2714,9 @@ class QGISRed:
         if point is not False:
             point1 = str(point.x()) + ":" + str(point.y())
 
-        if self.iface.mapCanvas().mapTool() is self.selectTreePointTool:
-            self.iface.mapCanvas().unsetMapTool(self.selectTreePointTool)
+        tool = "treeNode"
+        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
@@ -2735,8 +2736,7 @@ class QGISRed:
             self.selectPointToTree()
         elif "shps" in b:
             self.treeName = b.split('^')[1]
-            task1 = QgsTask.fromFunction(
-                "", self.removeTreeLayers, on_finished=self.runTreeProcess)
+            task1 = QgsTask.fromFunction("", self.removeTreeLayers, on_finished=self.runTreeProcess)
             task1.run()
             QgsApplication.taskManager().addTask(task1)
         else:
@@ -2744,12 +2744,17 @@ class QGISRed:
 
     def runTreeProcess(self, exception=None, result=None):
         # Process
+        treeFolder = os.path.join(self.ProjectDirectory, "Trees")
+        try:  # create directory if does not exist
+            os.stat(treeFolder)
+        except Exception:
+            os.mkdir(treeFolder)
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QGISRedUtils().setCurrentDirectory()
         mydll = WinDLL("GISRed.QGisPlugins.dll")
         mydll.ReplaceTemporalLayers.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.ReplaceTemporalLayers.restype = c_char_p
-        b = mydll.ReplaceTemporalLayers(self.ProjectDirectory.encode(
+        b = mydll.ReplaceTemporalLayers(treeFolder.encode(
             'utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'))
         b = "".join(map(chr, b))  # bytes to string
         QApplication.restoreOverrideCursor()
@@ -2763,12 +2768,12 @@ class QGISRed:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def selectPointToTree(self):
-        if self.iface.mapCanvas().mapTool() is self.selectTreePointTool:
-            self.iface.mapCanvas().unsetMapTool(self.selectTreePointTool)
+        tool = "treeNode"
+        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
         else:
-            self.selectTreePointTool = QGISRedSelectPointTool(
-                None, self, self.runTree, 1)
-            self.iface.mapCanvas().setMapTool(self.selectTreePointTool)
+            self.myMapTools[tool] = QGISRedSelectPointTool(None, self, self.runTree, 1)
+            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def openTreeLayers(self):
         # CRS
@@ -2778,27 +2783,24 @@ class QGISRed:
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
         # Open layers
         treeGroup = self.getTreeGroup()
-        utils = QGISRedUtils(self.ProjectDirectory,
-                             self.NetworkName, self.iface)
-        utils.openLayer(crs, treeGroup, "Links_Tree",
-                        tree=True)  # Use self.treeName
-        utils.openLayer(crs, treeGroup, "Nodes_Tree")  # Use self.treeName
+        treeFolder = os.path.join(self.ProjectDirectory, "Trees")
+        utils = QGISRedUtils(treeFolder, self.NetworkName, self.iface)
+        utils.openTreeLayer(crs, treeGroup, "Links", self.treeName, link=True)
+        utils.openTreeLayer(crs, treeGroup, "Nodes", self.treeName)
         group = self.getInputGroup()
         if group is not None:
             group.setItemVisibilityChecked(False)
 
     def getTreeGroup(self):
-        treeGroup = QgsProject.instance().layerTreeRoot().findGroup("Tree")
+        treeGroup = QgsProject.instance().layerTreeRoot().findGroup("Tree: " + self.treeName)
         if treeGroup is None:
             queryGroup = self.getQueryGroup()
-            treeGroup = queryGroup.insertGroup(0, "Tree")
+            treeGroup = queryGroup.insertGroup(0, "Tree: " + self.treeName)
         return treeGroup
 
     def removeTreeLayers(self, task):
-        utils = QGISRedUtils(self.ProjectDirectory,
-                             self.NetworkName, self.iface)
-        utils.removeLayers(["Links_Tree", "Nodes_Tree"])
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.removeLayers(["Links_Tree_" + self.treeName, "Nodes_Tree_" + self.treeName])
 
         self.removeEmptyQuerySubGroup("Tree")
-        # Avoiding errors with v3.x with shps and dbfs in use after deleting (use of QTasks)
         raise Exception('')
