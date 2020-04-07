@@ -32,6 +32,7 @@ from qgis.core import QgsTask, QgsApplication
 from . import resources3x
 # Import other plugin code
 from .ui.qgisred_projectmanager_dialog import QGISRedProjectManagerDialog
+from .ui.qgisred_createproject_dialog import QGISRedCreateProjectDialog
 from .ui.qgisred_editcreateproject_dialog import QGISRedEditCreateProjectDialog
 from .ui.qgisred_import_dialog import QGISRedImportDialog
 from .ui.qgisred_about_dialog import QGISRedAboutDialog
@@ -827,8 +828,12 @@ class QGISRed:
         raise Exception('')
 
     """Open Layers"""
-    def openElementLayers(self, task):
+    def openElementLayers(self, task, net="", folder=""):
         if not self.opendedLayers:
+            if not net == "" and not folder == "":
+                self.NetworkName = net
+                self.ProjectDirectory = folder
+
             self.opendedLayers = True
             crs = self.iface.mapCanvas().mapSettings().destinationCrs()
             if crs.srsid() == 0:
@@ -842,7 +847,8 @@ class QGISRed:
             self.updateMetadata()
 
             self.setSelectedFeaturesById()
-            raise Exception('')
+            if task is not None:
+                raise Exception('')
 
     def openIssuesLayers(self):
         # CRS
@@ -1232,8 +1238,7 @@ class QGISRed:
         else:
             valid = self.isOpenedProject()
             if valid:
-                task1 = QgsTask.fromFunction(
-                    '', self.clearQGisProject, on_finished=self.runCreateProject)
+                task1 = QgsTask.fromFunction('', self.clearQGisProject, on_finished=self.runCreateProject)
                 task1.run()
                 QgsApplication.taskManager().addTask(task1)
 
@@ -1244,15 +1249,13 @@ class QGISRed:
         if not self.ProjectDirectory == self.TemporalFolder:
             QgsProject.instance().clear()
             self.defineCurrentProject()
-        dlg = QGISRedEditCreateProjectDialog()
-        dlg.config(self.iface, self.ProjectDirectory, self.NetworkName)
-        # Run the dialog event loop
+
+        self.opendedLayers = False
+        self.complementaryLayers = []
+        self.selectedFids = {}
+        dlg = QGISRedCreateProjectDialog()
+        dlg.config(self.iface, self.ProjectDirectory, self.NetworkName, self)
         dlg.exec_()
-        result = dlg.ProcessDone
-        if result:
-            self.ProjectDirectory = dlg.ProjectDirectory
-            self.NetworkName = dlg.NetworkName
-            # self.updateMetadata()
 
     def runImport(self):
         if not self.checkDependencies():
