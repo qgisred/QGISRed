@@ -33,7 +33,7 @@ from . import resources3x
 # Import other plugin code
 from .ui.qgisred_projectmanager_dialog import QGISRedProjectManagerDialog
 from .ui.qgisred_createproject_dialog import QGISRedCreateProjectDialog
-from .ui.qgisred_editcreateproject_dialog import QGISRedEditCreateProjectDialog
+from .ui.qgisred_layermanagement_dialog import QGISRedLayerManagementDialog
 from .ui.qgisred_import_dialog import QGISRedImportDialog
 from .ui.qgisred_about_dialog import QGISRedAboutDialog
 from .ui.qgisred_results_dock import QGISRedResultsDock
@@ -127,7 +127,7 @@ class QGISRed:
                    enabled_flag=True, add_to_menu=True, add_to_toolbar=True,
                    status_tip=None, whats_this=None, parent=None):
         # Create the dialog (after translation) and keep reference
-        self.dlg = QGISRedEditCreateProjectDialog()
+        self.dlg = QGISRedCreateProjectDialog()
 
         icon = QIcon(icon_path)
         action = QAction(icon, text, parent)
@@ -775,12 +775,13 @@ class QGISRed:
         return False
 
     """Remove Layers"""
-    def removeLayers(self, task):
+    def removeLayers(self, task=None):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayers(self.ownMainLayers)
         utils.removeLayers(self.ownFiles, ".dbf")
         utils.removeLayers(self.complementaryLayers)
-        raise Exception('')
+        if task is not None:
+            raise Exception('')
 
     def removeDBFs(self, task, dbfs):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
@@ -828,6 +829,45 @@ class QGISRed:
         raise Exception('')
 
     """Open Layers"""
+    def openRemoveSpecificLayers(self, layers, crs):
+        self.complementaryLayers = ["IsolationValves", "Hydrants",
+                                    "WashoutValves", "AirReleaseValves", "ServiceConnections",
+                                    "Manometers", "Flowmeters", "Countermeters", "LevelSensors"]
+        self.extent = self.iface.mapCanvas().extent()
+        self.removeLayers()
+        self.complementaryLayers = []
+        self.specificLayers = layers
+        print(layers)
+        self.specificCrs = crs
+        self.opendedLayers = False
+        task1 = QgsTask.fromFunction('', self.openSpecificLayers, on_finished=self.setExtent)
+        task1.run()
+        QgsApplication.taskManager().addTask(task1)
+        self.openNewLayers = False
+
+    def openSpecificLayers(self, task):
+        if not self.opendedLayers:
+            self.opendedLayers = True
+            # Open layers
+            utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+            inputGroup = self.getInputGroup()
+            utils.openElementsLayers(inputGroup, self.specificCrs, self.specificLayers)
+            self.updateMetadata()
+
+            if task is not None:
+                raise Exception('')
+
+    def openElementLayer(self, nameLayer):
+        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
+        if crs.srsid() == 0:
+            crs = QgsCoordinateReferenceSystem()
+            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
+        # Open layers
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        inputGroup = self.getInputGroup()
+        utils.openElementsLayers(inputGroup, crs, [nameLayer])
+        self.updateMetadata()
+
     def openElementLayers(self, task, net="", folder=""):
         if not self.opendedLayers:
             if not net == "" and not folder == "":
@@ -842,8 +882,8 @@ class QGISRed:
             # Open layers
             utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
             inputGroup = self.getInputGroup()
-            utils.openElementsLayers(inputGroup, crs, self.ownMainLayers, self.ownFiles)
-            utils.openElementsLayers(inputGroup, crs, self.complementaryLayers, [])
+            utils.openElementsLayers(inputGroup, crs, self.ownMainLayers)
+            utils.openElementsLayers(inputGroup, crs, self.complementaryLayers)
             self.updateMetadata()
 
             self.setSelectedFeaturesById()
@@ -1219,14 +1259,17 @@ class QGISRed:
         dlg = QGISRedProjectManagerDialog()
         dlg.config(self.iface, self.ProjectDirectory, self.NetworkName, self)
 
+        # if we need to create project
+        self.opendedLayers = False
+        self.complementaryLayers = []
+        self.selectedFids = {}
+
         # Run the dialog event loop
         dlg.exec_()
         result = dlg.ProcessDone
         if result:
             self.NetworkName = dlg.NetworkName
             self.ProjectDirectory = dlg.ProjectDirectory
-            # self.updateMetadata()
-            pass
 
     def runCanCreateProject(self):
         if not self.checkDependencies():
@@ -1290,15 +1333,10 @@ class QGISRed:
         if self.isLayerOnEdition():
             return
         # show the dialog
-        dlg = QGISRedEditCreateProjectDialog()
-        dlg.config(self.iface, self.ProjectDirectory, self.NetworkName)
+        dlg = QGISRedLayerManagementDialog()
+        dlg.config(self.iface, self.ProjectDirectory, self.NetworkName, self)
         # Run the dialog event loop
         dlg.exec_()
-        result = dlg.ProcessDone
-        if result:
-            self.ProjectDirectory = dlg.ProjectDirectory
-            self.NetworkName = dlg.NetworkName
-            # self.updateMetadata()
 
     def runSaveProject(self):
         self.defineCurrentProject()

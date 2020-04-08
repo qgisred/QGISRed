@@ -33,7 +33,7 @@ class QGISRedUtils:
                 return True
         return False
 
-    def openElementsLayers(self, group, crs, ownMainLayers, ownFiles):
+    def openElementsLayers(self, group, crs, ownMainLayers):
         for fileName in ownMainLayers:
             self.openLayer(crs, group, fileName)
         self.orderLayers(group)
@@ -43,10 +43,12 @@ class QGISRedUtils:
             self.openLayer(crs, group, fileName, issues=True)
 
     def openLayer(self, crs, group, name, ext=".shp", results=False, toEnd=False, sectors=False, issues=False):
+        showName = name
+        name = name.replace(' ', '')
         layerName = self.NetworkName + "_" + name
         if os.path.exists(os.path.join(self.ProjectDirectory, layerName + ext)):
             vlayer = QgsVectorLayer(os.path.join(
-                self.ProjectDirectory, layerName + ext), name, "ogr")
+                self.ProjectDirectory, layerName + ext), showName, "ogr")
             if not ext == ".dbf":
                 vlayer.setCrs(crs)
                 if results:

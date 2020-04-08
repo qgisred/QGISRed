@@ -5,7 +5,7 @@ from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer
 from qgis.PyQt import uic
 from qgis.core import QgsTask, QgsApplication
 # Import the code for the dialog
-from .qgisred_editcreateproject_dialog import QGISRedEditCreateProjectDialog
+from .qgisred_createproject_dialog import QGISRedCreateProjectDialog
 from .qgisred_import_dialog import QGISRedImportDialog
 from .qgisred_importproject_dialog import QGISRedImportProjectDialog
 from .qgisred_cloneproject_dialog import QGISRedCloneProjectDialog
@@ -291,8 +291,8 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             QgsApplication.taskManager().addTask(task1)
 
     def createProjectProcess(self, exception=None, result=None):
-        dlg = QGISRedEditCreateProjectDialog()
-        dlg.config(self.iface, "Temporal folder", "Network")
+        dlg = QGISRedCreateProjectDialog()
+        dlg.config(self.iface, "Temporal folder", "Network", self.parent)
         # Run the dialog event loop
         self.close()
         dlg.exec_()
