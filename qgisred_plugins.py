@@ -23,7 +23,7 @@
 """
 
 # Import QGis
-from qgis.core import QgsProject, QgsCoordinateReferenceSystem
+from qgis.core import QgsProject
 from PyQt5.QtGui import QIcon, QCursor
 from PyQt5.QtWidgets import QAction, QMessageBox, QApplication, QMenu, QFileDialog, QToolButton
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
@@ -667,21 +667,14 @@ class QGISRed:
         """Identifying the QGISRed current project"""
         self.NetworkName = "Network"
         self.ProjectDirectory = self.TemporalFolder
+        layerName = "Pipes"
         layers = self.getLayers()
         for layer in layers:
             layerUri = self.getLayerPath(layer)
-            for layerName in self.ownMainLayers:
-                if "_" + layerName in layerUri:
-                    self.ProjectDirectory = os.path.dirname(layerUri)
-                    vectName = os.path.splitext(os.path.basename(layerUri))[0].split("_")
-                    name = ""
-                    for part in vectName:
-                        if part in self.ownMainLayers:
-                            break
-                        name = name + part + "_"
-                    name = name.strip("_")
-                    self.NetworkName = name
-                    return
+            if "_" + layerName in layerUri:
+                self.ProjectDirectory = os.path.dirname(layerUri)
+                fileNameWithoutExt = os.path.splitext(os.path.basename(layerUri))[0]
+                self.NetworkName = fileNameWithoutExt.replace("_" + layerName, "")
 
     def isOpenedProjectOld(self):
         if self.isLayerOnEdition():
@@ -829,43 +822,45 @@ class QGISRed:
         raise Exception('')
 
     """Open Layers"""
-    def openRemoveSpecificLayers(self, layers, crs):
+    def openRemoveSpecificLayers(self, layers, epsg):
         self.complementaryLayers = ["IsolationValves", "Hydrants",
                                     "WashoutValves", "AirReleaseValves", "ServiceConnections",
                                     "Manometers", "Flowmeters", "Countermeters", "LevelSensors"]
         self.extent = self.iface.mapCanvas().extent()
-        self.removeLayers()
-        self.complementaryLayers = []
+        self.specificEpsg = epsg
         self.specificLayers = layers
-        print(layers)
-        self.specificCrs = crs
-        self.opendedLayers = False
-        task1 = QgsTask.fromFunction('', self.openSpecificLayers, on_finished=self.setExtent)
+        task1 = QgsTask.fromFunction('', self.removeLayers, on_finished=self.openSpecificLayers)
         task1.run()
         QgsApplication.taskManager().addTask(task1)
-        self.openNewLayers = False
 
-    def openSpecificLayers(self, task):
+    def openSpecificLayers(self, exception=None, result=None):
+        self.complementaryLayers = []
+        if self.specificEpsg is not None:
+            print(self.specificEpsg)
+            self.runChangeCrs()
+
+        self.opendedLayers = False
+        task1 = QgsTask.fromFunction('', self.openSpecificLayersProcess, on_finished=self.setExtent)
+        task1.run()
+        QgsApplication.taskManager().addTask(task1)
+
+    def openSpecificLayersProcess(self, task):
         if not self.opendedLayers:
             self.opendedLayers = True
             # Open layers
             utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
             inputGroup = self.getInputGroup()
-            utils.openElementsLayers(inputGroup, self.specificCrs, self.specificLayers)
+            utils.openElementsLayers(inputGroup, self.specificLayers)
             self.updateMetadata()
 
             if task is not None:
                 raise Exception('')
 
     def openElementLayer(self, nameLayer):
-        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        if crs.srsid() == 0:
-            crs = QgsCoordinateReferenceSystem()
-            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
         # Open layers
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         inputGroup = self.getInputGroup()
-        utils.openElementsLayers(inputGroup, crs, [nameLayer])
+        utils.openElementsLayers(inputGroup, [nameLayer])
         self.updateMetadata()
 
     def openElementLayers(self, task, net="", folder=""):
@@ -875,15 +870,11 @@ class QGISRed:
                 self.ProjectDirectory = folder
 
             self.opendedLayers = True
-            crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-            if crs.srsid() == 0:
-                crs = QgsCoordinateReferenceSystem()
-                crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
             # Open layers
             utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
             inputGroup = self.getInputGroup()
-            utils.openElementsLayers(inputGroup, crs, self.ownMainLayers)
-            utils.openElementsLayers(inputGroup, crs, self.complementaryLayers)
+            utils.openElementsLayers(inputGroup, self.ownMainLayers)
+            utils.openElementsLayers(inputGroup, self.complementaryLayers)
             self.updateMetadata()
 
             self.setSelectedFeaturesById()
@@ -891,36 +882,21 @@ class QGISRed:
                 raise Exception('')
 
     def openIssuesLayers(self):
-        # CRS
-        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        if crs.srsid() == 0:
-            crs = QgsCoordinateReferenceSystem()
-            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
         # Open layers
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         issuesGroup = self.getIssuesGroup()
-        utils.openIssuesLayers(issuesGroup, crs, self.issuesLayers)
+        utils.openIssuesLayers(issuesGroup, self.issuesLayers)
 
     def openConnectivityLayer(self):
-        # CRS
-        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        if crs.srsid() == 0:
-            crs = QgsCoordinateReferenceSystem()
-            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
         # Group
         connGroup = QgsProject.instance().layerTreeRoot().findGroup("Connectivity")
         if connGroup is None:
             queryGroup = self.getQueryGroup()
             connGroup = queryGroup.insertGroup(0, "Connectivity")
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        utils.openLayer(crs, connGroup, "Links_Connectivity")
+        utils.openLayer(connGroup, "Links_Connectivity")
 
     def openSectorLayers(self):
-        # CRS
-        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        if crs.srsid() == 0:
-            crs = QgsCoordinateReferenceSystem()
-            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
         # Open layers
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         if os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_Links_" + self.Sectors + ".shp")):
@@ -930,8 +906,8 @@ class QGISRed:
                 queryGroup = self.getQueryGroup()
                 hydrGroup = queryGroup.insertGroup(0, "Sectors")
 
-            utils.openLayer(crs, hydrGroup, "Nodes_" + self.Sectors, sectors=True)
-            utils.openLayer(crs, hydrGroup, "Links_" + self.Sectors, sectors=True)
+            utils.openLayer(hydrGroup, "Nodes_" + self.Sectors, sectors=True)
+            utils.openLayer(hydrGroup, "Links_" + self.Sectors, sectors=True)
 
     """Groups"""
     def activeInputGroup(self):
@@ -1321,6 +1297,25 @@ class QGISRed:
 
     def runCloseProject(self):
         self.iface.newProject(True)
+
+    def runChangeCrs(self):
+        # Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QGISRedUtils().setCurrentDirectory()
+        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll.ChangeCrs.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.ChangeCrs.restype = c_char_p
+        b = mydll.ChangeCrs(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'),
+                            self.specificEpsg.encode('utf-8'))
+        b = "".join(map(chr, b))  # bytes to string
+        QApplication.restoreOverrideCursor()
+        
+        if b == "True":
+            pass
+        elif b == "False":
+            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
+        else:
+            self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
 
     """Project"""
     def runEditProject(self):
@@ -2817,17 +2812,12 @@ class QGISRed:
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def openTreeLayers(self):
-        # CRS
-        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        if crs.srsid() == 0:
-            crs = QgsCoordinateReferenceSystem()
-            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
         # Open layers
         treeGroup = self.getTreeGroup()
         treeFolder = os.path.join(self.ProjectDirectory, "Trees")
         utils = QGISRedUtils(treeFolder, self.NetworkName, self.iface)
-        utils.openTreeLayer(crs, treeGroup, "Links", self.treeName, link=True)
-        utils.openTreeLayer(crs, treeGroup, "Nodes", self.treeName)
+        utils.openTreeLayer(treeGroup, "Links", self.treeName, link=True)
+        utils.openTreeLayer(treeGroup, "Nodes", self.treeName)
         group = self.getInputGroup()
         if group is not None:
             group.setItemVisibilityChecked(False)

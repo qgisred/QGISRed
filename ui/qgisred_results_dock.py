@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QDockWidget, QApplication
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 from qgis.PyQt import uic
-from qgis.core import QgsProject, QgsCoordinateReferenceSystem
+from qgis.core import QgsProject
 from qgis.core import QgsTask, QgsApplication, QgsPalLayerSettings, QgsVectorLayerSimpleLabeling
 from qgis.core import QgsProperty, QgsRenderContext, QgsRendererRange
 from qgis.core import QgsGraduatedSymbolRenderer, QgsGradientColorRamp as QgsVectorGradientColorRamp
@@ -58,26 +58,19 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         message = "The current project has been changed. Please, try again."
 
         layers = self.getLayers()
+        layerName = "Pipes"
         for layer in layers:
             layerUri = self.getLayerPath(layer)
-            self.CRS = layer.crs()
-            for layerName in self.ownMainLayers:
-                if "_" + layerName in layerUri:
-                    currentDirectory = os.path.dirname(layerUri)
-                    vectName = os.path.splitext(os.path.basename(layerUri))[0].split("_")
-                    name = ""
-                    for part in vectName:
-                        if part in self.ownMainLayers:
-                            break
-                        name = name + part + "_"
-                    name = name.strip("_")
-                    currentNetwork = name
-                    if self.NetworkName == currentNetwork and self.ProjectDirectory == currentDirectory:
-                        return True
-                    else:
-                        self.iface.messageBar().pushMessage("Warning", message, level=1, duration=5)
-                        self.close()
-                        return False
+            if "_" + layerName in layerUri:
+                currentDirectory = os.path.dirname(layerUri)
+                fileNameWithoutExt = os.path.splitext(os.path.basename(layerUri))[0]
+                currentNetwork = fileNameWithoutExt.replace("_" + layerName, "")
+                if self.NetworkName == currentNetwork and self.ProjectDirectory == currentDirectory:
+                    return True
+                else:
+                    self.iface.messageBar().pushMessage("Warning", message, level=1, duration=5)
+                    self.close()
+                    return False
 
         self.iface.messageBar().pushMessage("Warning", message, level=1, duration=5)
         self.close()
@@ -107,7 +100,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if group is None:
             group = resultGroup.addGroup(scenario)
         for file in self.LabelsToOpRe:
-            utils.openLayer(self.CRS, group, file, results=True)
+            utils.openLayer(group, file, results=True)
 
     def removeResults(self, task):
         resultPath = os.path.join(self.ProjectDirectory, "Results")
@@ -683,12 +676,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.ProjectDirectory = direct
             self.readSavedScenarios()
 
-        # CRS
-        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        if crs.srsid() == 0:
-            crs = QgsCoordinateReferenceSystem()
-            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
-        self.CRS = crs
         # Project info
         self.NetworkName = netw
         self.ProjectDirectory = direct

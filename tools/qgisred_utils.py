@@ -4,7 +4,7 @@ from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer
 from qgis.core import QgsSvgMarkerSymbolLayer, QgsSymbol, QgsSingleSymbolRenderer
 from qgis.core import QgsLineSymbol, QgsSimpleLineSymbolLayer, QgsProperty
 from qgis.core import QgsMarkerSymbol, QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayer
-from qgis.core import QgsRendererCategory, QgsCategorizedSymbolRenderer
+from qgis.core import QgsRendererCategory, QgsCategorizedSymbolRenderer, QgsCoordinateReferenceSystem
 # Others imports
 import os
 import tempfile
@@ -23,6 +23,17 @@ class QGISRedUtils:
     def getLayers(self):
         return [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
 
+    def getProjectCrs(self):
+        layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_Pipes.shp")
+        for layer in self.getLayers():
+            if layerPath == self.getLayerPath(layer):
+                return layer.crs()
+        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
+        if crs.srsid() == 0:
+            crs = QgsCoordinateReferenceSystem()
+            crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
+        return crs
+
     """Open Layers"""
     def isLayerOpened(self, layerName):
         layers = self.getLayers()
@@ -33,16 +44,16 @@ class QGISRedUtils:
                 return True
         return False
 
-    def openElementsLayers(self, group, crs, ownMainLayers):
+    def openElementsLayers(self, group, ownMainLayers):
         for fileName in ownMainLayers:
-            self.openLayer(crs, group, fileName)
+            self.openLayer(group, fileName)
         self.orderLayers(group)
 
-    def openIssuesLayers(self, group, crs, layers):
+    def openIssuesLayers(self, group, layers):
         for fileName in layers:
-            self.openLayer(crs, group, fileName, issues=True)
+            self.openLayer(group, fileName, issues=True)
 
-    def openLayer(self, crs, group, name, ext=".shp", results=False, toEnd=False, sectors=False, issues=False):
+    def openLayer(self, group, name, ext=".shp", results=False, toEnd=False, sectors=False, issues=False):
         showName = name
         name = name.replace(' ', '')
         layerName = self.NetworkName + "_" + name
@@ -50,7 +61,6 @@ class QGISRedUtils:
             vlayer = QgsVectorLayer(os.path.join(
                 self.ProjectDirectory, layerName + ext), showName, "ogr")
             if not ext == ".dbf":
-                vlayer.setCrs(crs)
                 if results:
                     self.setResultStyle(vlayer)
                 elif sectors:
@@ -69,11 +79,10 @@ class QGISRedUtils:
             if results:
                 self.orderResultLayers(group)
 
-    def openTreeLayer(self, crs, group, name, treeName, link=False):
+    def openTreeLayer(self, group, name, treeName, link=False):
         layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + "_Tree_" + treeName + ".shp")
         if os.path.exists(layerPath):
             vlayer = QgsVectorLayer(layerPath, name, "ogr")
-            vlayer.setCrs(crs)
             if link:
                 self.setTreeStyle(vlayer)
             QgsProject.instance().addMapLayer(vlayer, group is None)

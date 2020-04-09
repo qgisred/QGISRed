@@ -19,7 +19,6 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
     iface = None
     NetworkName = ""
     ProjectDirectory = ""
-    CRS = None
     gplFile = ""
     TemporalFolder = "Temporal folder"
 
@@ -41,11 +40,9 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
     def config(self, ifac, direct, netw, parent):
         self.iface = ifac
         self.parent = parent
-        self.CRS = self.iface.mapCanvas().mapSettings().destinationCrs()
-        if self.CRS.srsid() == 0:
-            self.CRS = QgsCoordinateReferenceSystem()
-            self.CRS.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
-        self.tbCRS.setText(self.CRS.description())
+        utils = QGISRedUtils(direct, netw, ifac)
+        self.crs = utils.getProjectCrs()
+        self.tbCRS.setText(self.crs.description())
         self.NetworkName = netw
         self.ProjectDirectory = direct
         self.tbNetworkName.setText(netw)
@@ -66,9 +63,9 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
         if projSelector.exec_():
             crsId = projSelector.crs().srsid()
             if not crsId == 0:
-                self.CRS = QgsCoordinateReferenceSystem()
-                self.CRS.createFromId(crsId, QgsCoordinateReferenceSystem.InternalCrsId)
-                self.tbCRS.setText(self.CRS.description())
+                self.crs = QgsCoordinateReferenceSystem()
+                self.crs.createFromId(crsId, QgsCoordinateReferenceSystem.InternalCrsId)
+                self.tbCRS.setText(self.crs.description())
 
     def validationsCreateProject(self):
         self.NetworkName = self.tbNetworkName.text()
@@ -99,15 +96,15 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
         # Validations
         isValid = self.validationsCreateProject()
         if isValid is True:
+            epsg = self.crs.authid().replace("EPSG:", "")
             # Process
             QApplication.setOverrideCursor(Qt.WaitCursor)
             QGISRedUtils().setCurrentDirectory()
 
             mydll = WinDLL("GISRed.QGisPlugins.dll")
-            mydll.CreateProject.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+            mydll.CreateProject.argtypes = (c_char_p, c_char_p, c_char_p)
             mydll.CreateProject.restype = c_char_p
-            b = mydll.CreateProject(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-                'utf-8'), "".encode('utf-8'), "".encode('utf-8'), "".encode('utf-8'))
+            b = mydll.CreateProject(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), epsg.encode('utf-8'))
             b = "".join(map(chr, b))  # bytes to string
             QApplication.restoreOverrideCursor()
 

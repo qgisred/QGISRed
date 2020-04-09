@@ -19,7 +19,6 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
     iface = None
     NetworkName = ""
     ProjectDirectory = ""
-    CRS = None
 
     def __init__(self, parent=None):
         """Constructor."""
@@ -49,11 +48,11 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
     def config(self, ifac, direct, netw, parent):
         self.iface = ifac
         self.parent = parent
-        self.CRS = self.iface.mapCanvas().mapSettings().destinationCrs()
-        if self.CRS.srsid() == 0:
-            self.CRS = QgsCoordinateReferenceSystem()
-            self.CRS.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
-        self.tbCRS.setText(self.CRS.description())
+
+        utils = QGISRedUtils(direct, netw, ifac)
+        self.crs = utils.getProjectCrs()
+        self.originalCrs = self.crs
+        self.tbCRS.setText(self.crs.description())
 
         self.NetworkName = netw
         self.ProjectDirectory = direct
@@ -133,9 +132,9 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         if projSelector.exec_():
             crsId = projSelector.crs().srsid()
             if not crsId == 0:
-                self.CRS = QgsCoordinateReferenceSystem()
-                self.CRS.createFromId(crsId, QgsCoordinateReferenceSystem.InternalCrsId)
-                self.tbCRS.setText(self.CRS.description())
+                self.crs = QgsCoordinateReferenceSystem()
+                self.crs.createFromId(crsId, QgsCoordinateReferenceSystem.InternalCrsId)
+                self.tbCRS.setText(self.crs.description())
 
     def getLayerPath(self, layer):
         return QGISRedUtils().getLayerPath(layer)
@@ -219,5 +218,8 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         self.layers = []
         self.createElementsList()
         self.createComplementaryList()
-        self.parent.openRemoveSpecificLayers(self.layers, self.CRS)
+        epsg = None
+        if not self.crs.srsid() == self.originalCrs.srsid():
+            epsg = self.crs.authid().replace("EPSG:", "")
+        self.parent.openRemoveSpecificLayers(self.layers, epsg)
         self.close()

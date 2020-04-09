@@ -19,7 +19,6 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
     NetworkName = ""
     ProjectDirectory = ""
     InpFile = ""
-    CRS = None
     ProcessDone = False
     gplFile = ""
     TemporalFolder = "Temporal folder"
@@ -54,8 +53,9 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
     def config(self, ifac, direct, netw, parent):
         self.parent = parent
         self.iface = ifac
-        self.CRS = self.iface.mapCanvas().mapSettings().destinationCrs()
-        self.tbCRS.setText(self.CRS.description())
+        utils = QGISRedUtils(direct, netw, ifac)
+        self.crs = utils.getProjectCrs()
+        self.tbCRS.setText(self.crs.description())
         self.ProcessDone = False
         self.NetworkName = netw
         self.ProjectDirectory = direct
@@ -87,10 +87,9 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         if projSelector.exec_():
             crsId = projSelector.crs().srsid()
             if not crsId == 0:
-                self.CRS = QgsCoordinateReferenceSystem()
-                self.CRS.createFromId(
-                    crsId, QgsCoordinateReferenceSystem.InternalCrsId)
-                self.tbCRS.setText(self.CRS.description())
+                self.crs = QgsCoordinateReferenceSystem()
+                self.crs.createFromId(crsId, QgsCoordinateReferenceSystem.InternalCrsId)
+                self.tbCRS.setText(self.crs.description())
 
     def validationsCreateProject(self):
         self.NetworkName = self.tbNetworkName.text()
@@ -153,7 +152,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             self.opendedLayers = True
             utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
             inputGroup = self.getInputGroup()
-            utils.openElementsLayers(inputGroup, self.CRS, self.ownMainLayers, self.ownFiles)
+            utils.openElementsLayers(inputGroup, self.ownMainLayers, self.ownFiles)
             raise Exception('')
 
     def setZoomExtent(self, exception=None, result=None):
@@ -176,7 +175,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
     def importInpProject(self):
         # Common validations
         isValid = self.validationsCreateProject()
-        if isValid is True:
+        if isValid:
             # Validations INP
             self.InpFile = self.tbInpFile.text()
             if len(self.InpFile) == 0:
@@ -201,14 +200,16 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             self.parent.zoomToFullExtent = True
             self.close()
             self.ProcessDone = True
+            epsg = self.crs.authid().replace("EPSG:", "")
             # Process
             QApplication.setOverrideCursor(Qt.WaitCursor)
             QGISRedUtils().setCurrentDirectory()
             mydll = WinDLL("GISRed.QGisPlugins.dll")
-            mydll.ImportFromInp.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+            mydll.ImportFromInp.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
             mydll.ImportFromInp.restype = c_char_p
-            b = mydll.ImportFromInp(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-                'utf-8'), self.parent.tempFolder.encode('utf-8'), self.InpFile.encode('utf-8'))
+            b = mydll.ImportFromInp(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'),
+                                    self.parent.tempFolder.encode('utf-8'), self.InpFile.encode('utf-8'),
+                                    epsg.encode('utf-8'))
             b = "".join(map(chr, b))  # bytes to string
             QApplication.restoreOverrideCursor()
 
@@ -698,7 +699,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
     def importShpProject(self):
         # Common validations
         isValid = self.validationsCreateProject()
-        if isValid is True:
+        if isValid:
             # Validations SHP's
             if not os.path.exists(self.tbShpDirectory.text()):
                 self.iface.messageBar().pushMessage("Validations", "The SHPs folder is not valid or does not exist", level=1)
@@ -716,16 +717,18 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             self.parent.zoomToFullExtent = True
             self.close()
             self.ProcessDone = True
+            epsg = self.crs.authid().replace("EPSG:", "")
             # Process
             QApplication.setOverrideCursor(Qt.WaitCursor)
             shapes = self.createShpsNames()
             fields = self.createShpFields()
             QGISRedUtils().setCurrentDirectory()
             mydll = WinDLL("GISRed.QGisPlugins.dll")
-            mydll.ImportFromShps.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+            mydll.ImportFromShps.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
             mydll.ImportFromShps.restype = c_char_p
-            b = mydll.ImportFromShps(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-                'utf-8'), self.parent.tempFolder.encode('utf-8'), shapes.encode('utf-8'), fields.encode('utf-8'))
+            b = mydll.ImportFromShps(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'),
+                                     self.parent.tempFolder.encode('utf-8'), shapes.encode('utf-8'),
+                                     fields.encode('utf-8'), epsg.encode('utf-8'))
             b = "".join(map(chr, b))  # bytes to string
             QApplication.restoreOverrideCursor()
 
