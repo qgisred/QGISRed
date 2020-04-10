@@ -188,7 +188,7 @@ class QGISRed:
         icon_path = ':/plugins/QGISRed/images/iconProjectManager.png'
         self.add_action(icon_path, text=self.tr(u'Project manager'), callback=self.runProjectManager, menubar=self.fileMenu,
                         toolbar=self.fileToolbar, actionBase=fileDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
-        icon_path = ':/plugins/QGISRed/images/iconCreateProject.png'
+        icon_path = ':/plugins/QGISRed/images/iconLayers.png'
         self.add_action(icon_path, text=self.tr(u'Create project'), callback=self.runCanCreateProject, menubar=self.fileMenu,
                         toolbar=self.fileToolbar, actionBase=fileDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconImport.png'
@@ -201,24 +201,27 @@ class QGISRed:
     def addProjectMenu(self):
         #    #Menu
         self.projectMenu = self.qgisredmenu.addMenu(self.tr('Project'))
-        self.projectMenu.setIcon(
-            QIcon(':/plugins/QGISRed/images/iconEditProject.png'))
+        self.projectMenu.setIcon(QIcon(':/plugins/QGISRed/images/qgisred32.png'))
         #    #Toolbar
         self.projectToolbar = self.iface.addToolBar(
             self.tr(u'QGISRed Project'))
         self.projectToolbar.setObjectName(self.tr(u'QGISRed Project'))
         self.projectToolbar.setVisible(False)
         #    #Buttons
-        icon_path = ':/plugins/QGISRed/images/iconEditProject.png'
+        icon_path = ':/plugins/QGISRed/images/qgisred32.png'
         projectDropButton = self.add_action(icon_path, text=self.tr(u'Project'), callback=self.runProjectToolbar,
                                             menubar=self.projectMenu, add_to_menu=False, toolbar=self.toolbar, createDrop=True,
                                             addActionToDrop=False, add_to_toolbar=False, parent=self.iface.mainWindow())
-        icon_path = ':/plugins/QGISRed/images/iconEditProject.png'
-        self.add_action(icon_path, text=self.tr(u'Edit project'), callback=self.runEditProject, menubar=self.projectMenu,
+        icon_path = ':/plugins/QGISRed/images/iconSettings.png'
+        self.add_action(icon_path, text=self.tr(u'Settings'), callback=self.runSettings, menubar=self.projectMenu,
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
-        icon_path = ':/plugins/QGISRed/images/iconEditOptions.png'
-        self.add_action(icon_path, text=self.tr(u'Options'), callback=self.runEditOptions, menubar=self.projectMenu,
+        icon_path = ':/plugins/QGISRed/images/iconLayerManagement.png'
+        self.add_action(icon_path, text=self.tr(u'Layer Management'), callback=self.runEditProject, menubar=self.projectMenu,
+                        toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
+                        parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconHydraulicOptions.png'
+        self.add_action(icon_path, text=self.tr(u'Analysis Options'), callback=self.runEditOptions, menubar=self.projectMenu,
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconDefaultValues.png'
@@ -237,7 +240,7 @@ class QGISRed:
         self.add_action(icon_path, text=self.tr(u'Show Results Browser'), callback=self.runShowResultsDock,
                         menubar=self.projectMenu, toolbar=self.projectToolbar, actionBase=dropButton,
                         add_to_toolbar=False, parent=self.iface.mainWindow())
-        icon_path = ':/plugins/QGISRed/images/iconShpToInp.png'
+        icon_path = ':/plugins/QGISRed/images/iconExportEpanet.png'
         self.add_action(icon_path, text=self.tr(u'Export to INP'), callback=self.runExportInp, menubar=self.projectMenu,
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
@@ -370,7 +373,7 @@ class QGISRed:
         self.verificationsMenu = self.qgisredmenu.addMenu(
             self.tr('Verifications'))
         self.verificationsMenu.setIcon(
-            QIcon(':/plugins/QGISRed/images/iconVerifications.png'))
+            QIcon(':/plugins/QGISRed/images/iconCommit.png'))
         #    #Toolbar
         self.verificationsToolbar = self.iface.addToolBar(
             self.tr(u'QGISRed Verifications'))
@@ -378,7 +381,7 @@ class QGISRed:
             self.tr(u'QGISRed Verifications'))
         self.verificationsToolbar.setVisible(False)
         #    #Buttons
-        icon_path = ':/plugins/QGISRed/images/iconVerifications.png'
+        icon_path = ':/plugins/QGISRed/images/iconCommit.png'
         verificationsDropButton = self.add_action(icon_path, text=self.tr(u'Verifications'),
                                                   callback=self.runVerificationsToolbar, menubar=self.verificationsMenu,
                                                   add_to_menu=False,
@@ -1318,6 +1321,9 @@ class QGISRed:
             self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
 
     """Project"""
+    def runSettings(self):
+        pass
+
     def runEditProject(self):
         if not self.checkDependencies():
             return
