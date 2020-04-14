@@ -197,8 +197,7 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         complLayer = layerName if complementary else ""
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.CreateLayer.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CreateLayer.restype = c_char_p
         b = mydll.CreateLayer(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'),

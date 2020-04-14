@@ -705,8 +705,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     def simulationProcess(self, exception=None, result=None):
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.Compute.argtypes = (c_char_p, c_char_p)
         mydll.Compute.restype = c_char_p
         b = mydll.Compute(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
@@ -812,8 +811,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if not found:
             # Process
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            QGISRedUtils().setCurrentDirectory()
-            mydll = WinDLL("GISRed.QGisPlugins.dll")
+            mydll = WinDLL(QGISRedUtils().getCurrentDll())
             mydll.CreateResults.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
             mydll.CreateResults.restype = c_char_p
             b = mydll.CreateResults(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
@@ -847,8 +845,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if not found:
             # Process
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            QGISRedUtils().setCurrentDirectory()
-            mydll = WinDLL("GISRed.QGisPlugins.dll")
+            mydll = WinDLL(QGISRedUtils().getCurrentDll())
             mydll.CreateResults.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
             mydll.CreateResults.restype = c_char_p
             b = mydll.CreateResults(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(

@@ -354,9 +354,9 @@ class QGISRedUtils:
     def getGISRedDllFolder(self):
         return os.path.join(self.getGISRedFolder(), "dlls")
 
-    def setCurrentDirectory(self):
-        print(QGISRedUtils.DllTempoFolder)
+    def getCurrentDll(self):
         os.chdir(QGISRedUtils.DllTempoFolder)
+        return os.path.join(QGISRedUtils.DllTempoFolder, "GISRed.QGisPlugins.dll")
 
     def getFilePaths(self):
         # initializing empty file paths list

@@ -674,13 +674,18 @@ class QGISRed:
     def removeTempFolders(self):
         if not os.path.exists(self.dllTempFolderFile):
             return
+        allDeleted = True
         with open(self.dllTempFolderFile, 'r') as file:
             lines = file.readlines()
             for line in lines:
                 filePath = line.strip('\n')
-                if os.path.exists(filePath) and os.path.isdir(filePath):
-                    shutil.rmtree(filePath)
-        os.remove(self.dllTempFolderFile)
+                try:
+                    if os.path.exists(filePath) and os.path.isdir(filePath):
+                        shutil.rmtree(filePath)
+                except Exception:
+                    allDeleted = False
+        if allDeleted:
+            os.remove(self.dllTempFolderFile)
 
     """Project"""
     def defineCurrentProject(self):
@@ -1021,8 +1026,7 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.UpdateMetadata.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.UpdateMetadata.restype = c_char_p
         b = mydll.UpdateMetadata(project.encode('utf-8'), net.encode('utf-8'), layersNames.encode('utf-8'))
@@ -1169,8 +1173,7 @@ class QGISRed:
             self.removeIssuesLayersFiles()
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.ReplaceTemporalLayers.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.ReplaceTemporalLayers.restype = c_char_p
         b = mydll.ReplaceTemporalLayers(self.ProjectDirectory.encode(
@@ -1320,8 +1323,7 @@ class QGISRed:
     def runChangeCrs(self):
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.ChangeCrs.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.ChangeCrs.restype = c_char_p
         b = mydll.ChangeCrs(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'),
@@ -1338,7 +1340,36 @@ class QGISRed:
 
     """Project"""
     def runSettings(self):
-        pass
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        # Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
+        mydll.EditProjectOptions.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.EditProjectOptions.restype = c_char_p
+        b = mydll.EditProjectOptions(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'),
+                                     self.tempFolder.encode('utf-8'))
+        b = "".join(map(chr, b))  # bytes to string
+
+        QApplication.restoreOverrideCursor()
+
+        # Message
+        if b == "True":
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Project options updated"), level=3, duration=5)
+        elif b == "False":
+            warningMessage = self.tr("Some issues occurred in the process")
+            self.iface.messageBar().pushMessage(self.tr("Warning"), warningMessage, level=1, duration=5)
+        elif b == "Cancelled":
+            pass
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
     def runEditProject(self):
         if not self.checkDependencies():
@@ -1376,8 +1407,7 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.EditOptions.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.EditOptions.restype = c_char_p
         b = mydll.EditOptions(self.ProjectDirectory.encode(
@@ -1391,8 +1421,8 @@ class QGISRed:
             self.hasToOpenNewLayers = False
             self.hasToOpenIssuesLayers = False
             self.extent = self.iface.mapCanvas().extent()
-            task1 = QgsTask.fromFunction(
-                'Dismiss this message', self.doNothing, on_finished=self.runOpenTemporaryFiles)
+            # At moment, it is not necessary
+            task1 = QgsTask.fromFunction('', self.doNothing, on_finished=self.runOpenTemporaryFiles)
             task1.run()
             QgsApplication.taskManager().addTask(task1)
         elif b == "False":
@@ -1415,8 +1445,7 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.EditDefaultValues.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.EditDefaultValues.restype = c_char_p
         b = mydll.EditDefaultValues(self.ProjectDirectory.encode(
@@ -1453,8 +1482,7 @@ class QGISRed:
             return
 
         # Process
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.AbstractReport.argtypes = (c_char_p, c_char_p)
         mydll.AbstractReport.restype = c_char_p
         b = mydll.AbstractReport(self.ProjectDirectory.encode(
@@ -1512,8 +1540,7 @@ class QGISRed:
             return
 
         # Process
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.ExportToInp.argtypes = (c_char_p, c_char_p)
         mydll.ExportToInp.restype = c_char_p
         b = mydll.ExportToInp(self.ProjectDirectory.encode(
@@ -1556,8 +1583,7 @@ class QGISRed:
                 str(p.x()) + ":" + str(p.y()) + ";"
         # C#Process:
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.AddPipe.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.AddPipe.restype = c_char_p
         b = mydll.AddPipe(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
@@ -1591,8 +1617,7 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.AddTank.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.AddTank.restype = c_char_p
         b = mydll.AddTank(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
@@ -1626,8 +1651,7 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.AddReservoir.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.AddReservoir.restype = c_char_p
         b = mydll.AddReservoir(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
@@ -1661,8 +1685,7 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.InsertValve.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.InsertValve.restype = c_char_p
 
@@ -1697,8 +1720,7 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.InsertPump.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.InsertPump.restype = c_char_p
         b = mydll.InsertPump(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
@@ -1810,8 +1832,7 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.ReverseLink.argtypes = (
             c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.ReverseLink.restype = c_char_p
@@ -1847,8 +1868,7 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.SplitPipe.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.SplitPipe.restype = c_char_p
         b = mydll.SplitPipe(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
@@ -1886,8 +1906,7 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.SplitMergeJunction.argtypes = (
             c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.SplitMergeJunction.restype = c_char_p
@@ -1925,8 +1944,7 @@ class QGISRed:
             point2 = str(point2.x()) + ":" + str(point2.y())
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.CreateReverseTConnection.argtypes = (
             c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CreateReverseTConnection.restype = c_char_p
@@ -1963,8 +1981,7 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.CreateReverseCrossings.argtypes = (
             c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CreateReverseCrossings.restype = c_char_p
@@ -2000,8 +2017,7 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.MoveValvePump.argtypes = (
             c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.MoveValvePump.restype = c_char_p
@@ -2060,8 +2076,7 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.RemoveElements.argtypes = (
             c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.RemoveElements.restype = c_char_p
@@ -2098,8 +2113,7 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.EditElements.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.EditElements.restype = c_char_p
         b = mydll.EditElements(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
@@ -2121,8 +2135,7 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.EditPatternsCurves.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.EditPatternsCurves.restype = c_char_p
         b = mydll.EditPatternsCurves(self.ProjectDirectory.encode(
@@ -2145,8 +2158,7 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.EditControls.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.EditControls.restype = c_char_p
         b = mydll.EditControls(self.ProjectDirectory.encode(
@@ -2171,8 +2183,7 @@ class QGISRed:
         # Process
         print(self.tempFolder)
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.Commit.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.Commit.restype = c_char_p
         b = mydll.Commit(self.ProjectDirectory.encode(
@@ -2194,8 +2205,7 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.CheckCoordinates.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CheckCoordinates.restype = c_char_p
         b = mydll.CheckCoordinates(self.ProjectDirectory.encode(
@@ -2217,8 +2227,7 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.ChechkAlignedVertices.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.ChechkAlignedVertices.restype = c_char_p
         b = mydll.ChechkAlignedVertices(self.ProjectDirectory.encode(
@@ -2240,8 +2249,7 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.CheckJoinPipes.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CheckJoinPipes.restype = c_char_p
         b = mydll.CheckJoinPipes(self.ProjectDirectory.encode(
@@ -2263,8 +2271,7 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.CheckTConnections.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CheckTConnections.restype = c_char_p
         b = mydll.CheckTConnections(self.ProjectDirectory.encode(
@@ -2303,8 +2310,7 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.CheckConnectivity.argtypes = (
             c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CheckConnectivity.restype = c_char_p
@@ -2364,7 +2370,7 @@ class QGISRed:
             # Process
             QApplication.setOverrideCursor(Qt.WaitCursor)
             QGISRedUtils().setCurrentDirectory()
-            mydll = WinDLL("GISRed.QGisPlugins.dll")
+            mydll = WinDLL(QGISRedUtils().getCurrentDll())
             mydll.CheckLengths.argtypes = (
                 c_char_p, c_char_p, c_char_p, c_char_p)
             mydll.CheckLengths.restype = c_char_p
@@ -2388,8 +2394,7 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.CheckDiameters.argtypes = (c_char_p, c_char_p)
         mydll.CheckDiameters.restype = c_char_p
         b = mydll.CheckDiameters(self.ProjectDirectory.encode(
@@ -2421,8 +2426,7 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.CheckMaterials.argtypes = (c_char_p, c_char_p)
         mydll.CheckMaterials.restype = c_char_p
         b = mydll.CheckMaterials(self.ProjectDirectory.encode(
@@ -2454,8 +2458,7 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.CheckInstallationDates.argtypes = (c_char_p, c_char_p)
         mydll.CheckInstallationDates.restype = c_char_p
         b = mydll.CheckInstallationDates(self.ProjectDirectory.encode(
@@ -2488,8 +2491,7 @@ class QGISRed:
         self.Sectors = "HydraulicSectors"
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.HydarulicSectors.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.HydarulicSectors.restype = c_char_p
         b = mydll.HydarulicSectors(self.ProjectDirectory.encode(
@@ -2534,8 +2536,7 @@ class QGISRed:
         #   return
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         # , c_char_p, c_char_p)
         mydll.SetRoughness.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.SetRoughness.restype = c_char_p
@@ -2568,7 +2569,7 @@ class QGISRed:
             # Process
             QApplication.setOverrideCursor(Qt.WaitCursor)
             QGISRedUtils().setCurrentDirectory()
-            mydll = WinDLL("GISRed.QGisPlugins.dll")
+            mydll = WinDLL(QGISRedUtils().getCurrentDll())
             mydll.ElevationInterpolation.argtypes = (
                 c_char_p, c_char_p, c_char_p, c_char_p)
             mydll.ElevationInterpolation.restype = c_char_p
@@ -2597,8 +2598,7 @@ class QGISRed:
         # Process
         self.complementaryLayers = ["IsolationValves"]
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.SetInitialStatusPipes.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.SetInitialStatusPipes.restype = c_char_p
         b = mydll.SetInitialStatusPipes(self.ProjectDirectory.encode(
@@ -2640,8 +2640,7 @@ class QGISRed:
         self.complementaryLayers = ["ServiceConnections"]
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.AddConnections.argtypes = (
             c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.AddConnections.restype = c_char_p
@@ -2672,8 +2671,7 @@ class QGISRed:
         self.complementaryLayers = ["Hydrants"]
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.AddHydrants.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.AddHydrants.restype = c_char_p
         b = mydll.AddHydrants(self.ProjectDirectory.encode(
@@ -2702,8 +2700,7 @@ class QGISRed:
         self.complementaryLayers = ["WashoutValves"]
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.AddPurgeValves.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.AddPurgeValves.restype = c_char_p
         b = mydll.AddPurgeValves(self.ProjectDirectory.encode(
@@ -2727,8 +2724,7 @@ class QGISRed:
         self.Sectors = "DemandSectors"
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.DemandSectors.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.DemandSectors.restype = c_char_p
         b = mydll.DemandSectors(self.ProjectDirectory.encode(
@@ -2778,8 +2774,7 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.Tree.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.Tree.restype = c_char_p
         b = mydll.Tree(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
@@ -2808,8 +2803,7 @@ class QGISRed:
         except Exception:
             os.mkdir(treeFolder)
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.ReplaceTemporalLayers.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.ReplaceTemporalLayers.restype = c_char_p
         b = mydll.ReplaceTemporalLayers(treeFolder.encode(

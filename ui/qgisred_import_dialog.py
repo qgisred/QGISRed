@@ -107,8 +107,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
 
     def createProject(self):
         # Process
-        QGISRedUtils().setCurrentDirectory()
-        mydll = WinDLL("GISRed.QGisPlugins.dll")
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.CreateProject.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CreateProject.restype = c_char_p
         b = mydll.CreateProject(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
@@ -203,8 +202,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             epsg = self.crs.authid().replace("EPSG:", "")
             # Process
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            QGISRedUtils().setCurrentDirectory()
-            mydll = WinDLL("GISRed.QGisPlugins.dll")
+            mydll = WinDLL(QGISRedUtils().getCurrentDll())
             mydll.ImportFromInp.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
             mydll.ImportFromInp.restype = c_char_p
             b = mydll.ImportFromInp(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'),
@@ -722,8 +720,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             QApplication.setOverrideCursor(Qt.WaitCursor)
             shapes = self.createShpsNames()
             fields = self.createShpFields()
-            QGISRedUtils().setCurrentDirectory()
-            mydll = WinDLL("GISRed.QGisPlugins.dll")
+            mydll = WinDLL(QGISRedUtils().getCurrentDll())
             mydll.ImportFromShps.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
             mydll.ImportFromShps.restype = c_char_p
             b = mydll.ImportFromShps(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'),

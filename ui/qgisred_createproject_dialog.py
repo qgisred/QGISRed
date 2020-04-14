@@ -99,9 +99,7 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
             epsg = self.crs.authid().replace("EPSG:", "")
             # Process
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            QGISRedUtils().setCurrentDirectory()
-
-            mydll = WinDLL("GISRed.QGisPlugins.dll")
+            mydll = WinDLL(QGISRedUtils().getCurrentDll())
             mydll.CreateProject.argtypes = (c_char_p, c_char_p, c_char_p)
             mydll.CreateProject.restype = c_char_p
             b = mydll.CreateProject(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), epsg.encode('utf-8'))
