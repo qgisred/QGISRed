@@ -531,7 +531,10 @@ class QGISRed:
         self.myMapTools = {}
 
         # QGISRed dependencies
+        self.dllTempFolderFile = os.path.join(QGISRedUtils().getGISRedFolder(), "dllTempFolders.dat")
         self.checkDependencies()
+        QGISRedUtils().copyDependencies()
+        self.removeTempFolders()
         # QGISRed updates
         self.checkForUpdates()
 
@@ -560,6 +563,9 @@ class QGISRed:
         # shutil.rmtree(dirpath)
         if os.path.exists(self.tempFolder) and os.path.isdir(self.tempFolder):
             shutil.rmtree(self.tempFolder)
+
+        with open(self.dllTempFolderFile, 'a+') as file:
+            file.write(QGISRedUtils.DllTempoFolder + '\n')
 
         if self.ResultDockwidget is not None:
             self.ResultDockwidget.close()
@@ -592,7 +598,7 @@ class QGISRed:
 
     def checkDependencies(self):
         valid = False
-        gisredDir = QGISRedUtils().getGISRedFolder()
+        gisredDir = QGISRedUtils().getGISRedDllFolder()
         if os.path.isdir(gisredDir):
             try:
                 info = GetFileVersionInfo(os.path.join(gisredDir, "GISRed.QGisPlugins.dll"), "\\")
@@ -664,6 +670,17 @@ class QGISRed:
             os.remove(tempLocalFile)
         except Exception:
             pass
+
+    def removeTempFolders(self):
+        if not os.path.exists(self.dllTempFolderFile):
+            return
+        with open(self.dllTempFolderFile, 'r') as file:
+            lines = file.readlines()
+            for line in lines:
+                filePath = line.strip('\n')
+                if os.path.exists(filePath) and os.path.isdir(filePath):
+                    shutil.rmtree(filePath)
+        os.remove(self.dllTempFolderFile)
 
     """Project"""
     def defineCurrentProject(self):
@@ -839,7 +856,6 @@ class QGISRed:
     def openSpecificLayers(self, exception=None, result=None):
         self.complementaryLayers = []
         if self.specificEpsg is not None:
-            print(self.specificEpsg)
             self.runChangeCrs()
 
         self.opendedLayers = False
@@ -1310,15 +1326,15 @@ class QGISRed:
         mydll.ChangeCrs.restype = c_char_p
         b = mydll.ChangeCrs(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'),
                             self.specificEpsg.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = "".join(map(chr, b))  # bytes to string
         QApplication.restoreOverrideCursor()
-        
-        if b == "True":
+
+        if resMessage == "True":
             pass
-        elif b == "False":
+        elif resMessage == "False":
             self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
         else:
-            self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
+            self.iface.messageBar().pushMessage("Error", resMessage, level=2, duration=5)
 
     """Project"""
     def runSettings(self):

@@ -9,11 +9,14 @@ from qgis.core import QgsRendererCategory, QgsCategorizedSymbolRenderer, QgsCoor
 import os
 import tempfile
 import datetime
+import shutil
 from zipfile import ZipFile
 from random import randrange
 
 
 class QGISRedUtils:
+    DllTempoFolder = None
+
     def __init__(self, directory="", networkName="", iface=None):
         self.iface = iface
         self.ProjectDirectory = directory
@@ -341,11 +344,19 @@ class QGISRedUtils:
             layer.setRenderer(renderer)
 
     """Others"""
+    def copyDependencies(self):
+        QGISRedUtils.DllTempoFolder = tempfile._get_default_tempdir() + "\\QGISRed_" + next(tempfile._get_candidate_names())
+        shutil.copytree(self.getGISRedDllFolder(), QGISRedUtils.DllTempoFolder)
+
     def getGISRedFolder(self):
-        return os.path.join(os.path.join(os.getenv('APPDATA'), "QGISRed"), "dlls")
+        return os.path.join(os.getenv('APPDATA'), "QGISRed")
+
+    def getGISRedDllFolder(self):
+        return os.path.join(self.getGISRedFolder(), "dlls")
 
     def setCurrentDirectory(self):
-        os.chdir(self.getGISRedFolder())
+        print(QGISRedUtils.DllTempoFolder)
+        os.chdir(QGISRedUtils.DllTempoFolder)
 
     def getFilePaths(self):
         # initializing empty file paths list
