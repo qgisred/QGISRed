@@ -61,5 +61,6 @@
         <file>images/iconHydraulicOptions.png</file>
         <file>images/iconExportEpanet.png</file>
         <file>images/iconSettings.png</file>
+        <file>images/iconAddData.png</file>
     </qresource>
 </RCC>

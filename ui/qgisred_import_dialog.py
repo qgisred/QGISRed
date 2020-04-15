@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtWidgets import QFileDialog, QDialog, QApplication, QMessageBox
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
 from qgis.core import QgsVectorLayer, QgsProject, QgsCoordinateReferenceSystem
 from qgis.PyQt import uic
 from qgis.gui import QgsProjectionSelectionDialog as QgsGenericProjectionSelector
@@ -53,19 +54,34 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
     def config(self, ifac, direct, netw, parent):
         self.parent = parent
         self.iface = ifac
+
         utils = QGISRedUtils(direct, netw, ifac)
         self.crs = utils.getProjectCrs()
         self.tbCRS.setText(self.crs.description())
         self.ProcessDone = False
-        self.NetworkName = netw
-        self.ProjectDirectory = direct
-        self.tbNetworkName.setText(netw)
         self.InpFile = ""
+
+        self.NetworkName = netw
+        self.tbNetworkName.setText(netw)
+        self.ProjectDirectory = direct
         self.tbProjectDirectory.setText(direct)
         self.tbProjectDirectory.setCursorPosition(0)
+        self.tbTolerance.setText(str(0))
+
         self.NewProject = self.ProjectDirectory == self.TemporalFolder
-        self.btSelectDirectory.setVisible(self.NewProject)
-        self.tbNetworkName.setReadOnly(not self.NewProject)
+        if not self.NewProject:
+            self.setWindowTitle("QGISRed: Add data")
+            icon_path = ':/plugins/QGISRed/images/iconAddData.png'
+            self.setWindowIcon(QIcon(icon_path))
+            self.lbProject.setVisible(False)
+            self.tbProjectDirectory.setVisible(False)
+            self.btSelectDirectory.setVisible(False)
+            self.lbName.setVisible(False)
+            self.tbNetworkName.setVisible(False)
+            self.lbCrs.setVisible(False)
+            self.tbCRS.setVisible(False)
+            self.btSelectCRS.setVisible(False)
+            self.tabWidget.removeTab(0)
 
     def selectDirectory(self):
         selected_directory = QFileDialog.getExistingDirectory()
@@ -702,6 +718,17 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             if not os.path.exists(self.tbShpDirectory.text()):
                 self.iface.messageBar().pushMessage("Validations", "The SHPs folder is not valid or does not exist", level=1)
                 return
+            # Tolerance
+            tolerance = self.tbTolerance.text()
+            try:
+                t = float(tolerance)
+                if t < 0:
+                    self.iface.messageBar().pushMessage("Validations", "Not valid Tolerance", level=1)
+                    return
+            except Exception:
+                self.iface.messageBar().pushMessage("Validations", "Not numeric Tolerance", level=1)
+                return
+            # Fields
             fields = self.createShpFields()
             if fields == "":
                 self.iface.messageBar().pushMessage("Validations", "Any SHP selected for importing", level=1)
@@ -721,11 +748,11 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             shapes = self.createShpsNames()
             fields = self.createShpFields()
             mydll = WinDLL(QGISRedUtils().getCurrentDll())
-            mydll.ImportFromShps.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+            mydll.ImportFromShps.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
             mydll.ImportFromShps.restype = c_char_p
             b = mydll.ImportFromShps(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'),
                                      self.parent.tempFolder.encode('utf-8'), shapes.encode('utf-8'),
-                                     fields.encode('utf-8'), epsg.encode('utf-8'))
+                                     fields.encode('utf-8'), epsg.encode('utf-8'), tolerance.encode('utf-8'))
             b = "".join(map(chr, b))  # bytes to string
             QApplication.restoreOverrideCursor()
 

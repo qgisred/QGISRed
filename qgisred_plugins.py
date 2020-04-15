@@ -192,7 +192,7 @@ class QGISRed:
         self.add_action(icon_path, text=self.tr(u'Create project'), callback=self.runCanCreateProject, menubar=self.fileMenu,
                         toolbar=self.fileToolbar, actionBase=fileDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconImport.png'
-        self.add_action(icon_path, text=self.tr(u'Import data'), callback=self.runImport, menubar=self.fileMenu,
+        self.add_action(icon_path, text=self.tr(u'Import data'), callback=self.runCanImportData, menubar=self.fileMenu,
                         toolbar=self.fileToolbar, actionBase=fileDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconCloseProject.png'
         self.add_action(icon_path, text=self.tr(u'Close project'), callback=self.runCloseProject, menubar=self.fileMenu,
@@ -218,6 +218,10 @@ class QGISRed:
                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconLayerManagement.png'
         self.add_action(icon_path, text=self.tr(u'Layer Management'), callback=self.runEditProject, menubar=self.projectMenu,
+                        toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
+                        parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconAddData.png'
+        self.add_action(icon_path, text=self.tr(u'Add data'), callback=self.runCanAddData, menubar=self.projectMenu,
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconHydraulicOptions.png'
@@ -1298,7 +1302,33 @@ class QGISRed:
         dlg.config(self.iface, self.ProjectDirectory, self.NetworkName, self)
         dlg.exec_()
 
-    def runImport(self):
+    def runCanImportData(self):
+        if not self.checkDependencies():
+            return
+
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            self.runImport()
+        else:
+            valid = self.isOpenedProject()
+            if valid:
+                task1 = QgsTask.fromFunction('', self.clearQGisProject, on_finished=self.runImport)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
+
+    def runCanAddData(self):
+        if not self.checkDependencies():
+            return
+
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+        self.runImport()
+
+    def runImport(self, exception=None, result=None):
         if not self.checkDependencies():
             return
         self.defineCurrentProject()
@@ -1352,10 +1382,9 @@ class QGISRed:
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.EditProjectOptions.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.EditProjectOptions.argtypes = (c_char_p, c_char_p)
         mydll.EditProjectOptions.restype = c_char_p
-        b = mydll.EditProjectOptions(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'),
-                                     self.tempFolder.encode('utf-8'))
+        b = mydll.EditProjectOptions(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
         b = "".join(map(chr, b))  # bytes to string
 
         QApplication.restoreOverrideCursor()
