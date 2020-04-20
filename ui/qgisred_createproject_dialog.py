@@ -6,10 +6,10 @@ from qgis.PyQt import uic
 from qgis.gui import QgsProjectionSelectionDialog as QgsGenericProjectionSelector
 
 from ..tools.qgisred_utils import QGISRedUtils
+from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
 import os
 import tempfile
-from ctypes import c_char_p, WinDLL
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_createproject_dialog.ui'))
 
@@ -99,15 +99,11 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
             epsg = self.crs.authid().replace("EPSG:", "")
             # Process
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            mydll = WinDLL(QGISRedUtils().getCurrentDll())
-            mydll.CreateProject.argtypes = (c_char_p, c_char_p, c_char_p)
-            mydll.CreateProject.restype = c_char_p
-            b = mydll.CreateProject(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), epsg.encode('utf-8'))
-            b = "".join(map(chr, b))  # bytes to string
+            resMessage = GISRed.CreateProject(self.ProjectDirectory, self.NetworkName, epsg)
             QApplication.restoreOverrideCursor()
 
             # Message
-            if b == "True":
+            if resMessage == "True":
                 self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=5)
                 # Project manager list
                 file = open(self.gplFile, "a+")
@@ -116,9 +112,9 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
 
                 # open layers
                 self.parent.openElementLayers(None, self.NetworkName, self.ProjectDirectory)
-            elif b == "False":
+            elif resMessage == "False":
                 self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
             else:
-                self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
+                self.iface.messageBar().pushMessage("Error", resMessage, level=2, duration=5)
 
             self.close()

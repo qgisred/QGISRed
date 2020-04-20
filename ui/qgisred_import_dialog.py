@@ -6,8 +6,8 @@ from qgis.core import QgsVectorLayer, QgsProject, QgsCoordinateReferenceSystem
 from qgis.PyQt import uic
 from qgis.gui import QgsProjectionSelectionDialog as QgsGenericProjectionSelector
 from ..tools.qgisred_utils import QGISRedUtils
+from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 import os
-from ctypes import c_char_p, WinDLL
 import tempfile
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_import_dialog.ui'))
@@ -122,20 +122,18 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         return True
 
     def createProject(self):
+        epsg = self.crs.authid().replace("EPSG:", "")
         # Process
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.CreateProject.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
-        mydll.CreateProject.restype = c_char_p
-        b = mydll.CreateProject(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-            'utf-8'), "".encode('utf-8'), "".encode('utf-8'), "".encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.CreateProject(self.ProjectDirectory, self.NetworkName, epsg)
+        QApplication.restoreOverrideCursor()
 
         # Message
-        if not b == "True":
-            if b == "False":
+        if not resMessage == "True":
+            if resMessage == "False":
                 self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
             else:
-                self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
+                self.iface.messageBar().pushMessage("Error", resMessage, level=2, duration=5)
             self.close()
             return False
 
@@ -218,16 +216,10 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             epsg = self.crs.authid().replace("EPSG:", "")
             # Process
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            mydll = WinDLL(QGISRedUtils().getCurrentDll())
-            mydll.ImportFromInp.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
-            mydll.ImportFromInp.restype = c_char_p
-            b = mydll.ImportFromInp(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'),
-                                    self.parent.tempFolder.encode('utf-8'), self.InpFile.encode('utf-8'),
-                                    epsg.encode('utf-8'))
-            b = "".join(map(chr, b))  # bytes to string
+            resMessage = GISRed.ImportFromInp(self.ProjectDirectory, self.NetworkName, self.parent.tempFolder, self.InpFile, epsg)
             QApplication.restoreOverrideCursor()
 
-            self.parent.processCsharpResult(b, "")
+            self.parent.processCsharpResult(resMessage, "")
 
     """SHPS SECTION"""
 
@@ -743,17 +735,12 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             self.close()
             self.ProcessDone = True
             epsg = self.crs.authid().replace("EPSG:", "")
-            # Process
-            QApplication.setOverrideCursor(Qt.WaitCursor)
             shapes = self.createShpsNames()
             fields = self.createShpFields()
-            mydll = WinDLL(QGISRedUtils().getCurrentDll())
-            mydll.ImportFromShps.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
-            mydll.ImportFromShps.restype = c_char_p
-            b = mydll.ImportFromShps(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'),
-                                     self.parent.tempFolder.encode('utf-8'), shapes.encode('utf-8'),
-                                     fields.encode('utf-8'), epsg.encode('utf-8'), tolerance.encode('utf-8'))
-            b = "".join(map(chr, b))  # bytes to string
+            # Process
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            resMessage = GISRed.ImportFromShps(self.ProjectDirectory, self.NetworkName, self.parent.tempFolder,
+                                               shapes, fields, epsg, tolerance)
             QApplication.restoreOverrideCursor()
 
-            self.parent.processCsharpResult(b, "")
+            self.parent.processCsharpResult(resMessage, "")

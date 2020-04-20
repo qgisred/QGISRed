@@ -9,9 +9,9 @@ from qgis.core import QgsProperty, QgsRenderContext, QgsRendererRange
 from qgis.core import QgsGraduatedSymbolRenderer, QgsGradientColorRamp as QgsVectorGradientColorRamp
 
 from ..tools.qgisred_utils import QGISRedUtils
+from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
 import os
-from ctypes import c_char_p, WinDLL
 from shutil import copyfile
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_results_dock.ui'))
@@ -705,18 +705,14 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     def simulationProcess(self, exception=None, result=None):
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.Compute.argtypes = (c_char_p, c_char_p)
-        mydll.Compute.restype = c_char_p
-        b = mydll.Compute(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.Compute(self.ProjectDirectory, self.NetworkName)
         QApplication.restoreOverrideCursor()
 
         # Message
-        if b == "False":
+        if resMessage == "False":
             self.iface.messageBar().pushMessage("Warning", self.tr("Some issues occurred in the process"), level=1, duration=5)
-        elif b.startswith("[TimeLabels]"):
-            self.openBaseResults(b.replace("[TimeLabels]", ""))
+        elif resMessage.startswith("[TimeLabels]"):
+            self.openBaseResults(resMessage.replace("[TimeLabels]", ""))
             self.show()
             # Input group
             group = self.getInputGroup()
@@ -724,7 +720,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 group.setItemVisibilityChecked(False)
             return
         else:
-            self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
+            self.iface.messageBar().pushMessage("Error", resMessage, level=2, duration=5)
 
         # If some error, close the dock
         self.close()
@@ -811,30 +807,25 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if not found:
             # Process
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            mydll = WinDLL(QGISRedUtils().getCurrentDll())
-            mydll.CreateResults.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
-            mydll.CreateResults.restype = c_char_p
-            b = mydll.CreateResults(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-                'utf-8'), self.Scenario.encode('utf-8'), self.Variables.encode('utf-8'))
-            b = "".join(map(chr, b))  # bytes to string
+            resMessage = GISRed.CreateResults(self.ProjectDirectory, self.NetworkName, self.Scenario, self.Variables)
+            QApplication.restoreOverrideCursor()
         else:
-            b = "True"
+            resMessage = "True"
 
         # Open layers
         self.openLayerResults(self.Scenario)
         value = self.cbTimes.currentIndex()
         self.paintIntervalTimeResults(value, True)
-        QApplication.restoreOverrideCursor()
 
         self.iface.actionMapTips().setChecked(True)
 
         # Message
-        if b == "True":
+        if resMessage == "True":
             pass  # self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=5)
-        elif b == "False":
+        elif resMessage == "False":
             self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
         else:
-            self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
+            self.iface.messageBar().pushMessage("Error", resMessage, level=2, duration=5)
 
     def openResult(self):
         found = True
@@ -845,28 +836,23 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if not found:
             # Process
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            mydll = WinDLL(QGISRedUtils().getCurrentDll())
-            mydll.CreateResults.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
-            mydll.CreateResults.restype = c_char_p
-            b = mydll.CreateResults(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-                'utf-8'), self.Scenario.encode('utf-8'), self.Variables.encode('utf-8'))
-            b = "".join(map(chr, b))  # bytes to string
+            resMessage = GISRed.CreateResults(self.ProjectDirectory, self.NetworkName, self.Scenario, self.Variables)
+            QApplication.restoreOverrideCursor()
         else:
-            b = "True"
+            resMessage = "True"
 
         # Open layers
         self.openLayerResults(self.Scenario)
         value = self.cbTimes.currentIndex()
         self.paintIntervalTimeResults(value, True)
-        QApplication.restoreOverrideCursor()
 
         # Message
-        if b == "True":
+        if resMessage == "True":
             pass  # self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=5)
-        elif b == "False":
+        elif resMessage == "False":
             self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
         else:
-            self.iface.messageBar().pushMessage("Error", b, level=2, duration=5)
+            self.iface.messageBar().pushMessage("Error", resMessage, level=2, duration=5)
 
     def saveScenario(self):
         if not self.isCurrentProject():

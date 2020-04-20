@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 /***************************************************************************
- QGISRed
-                                 A QGIS plugin
+                                  QGISRed
  Tool for helping the hydraulic engineer in the task of modelling a water
  distribution network and in the decision-making process
                               -------------------
         begin                : 2019-03-26
-        git sha              : $Format:%H$
         copyright            : (C) 2019 by REDHISP (UPV)
         email                : fmartine@hma.upv.es
  ***************************************************************************/
@@ -40,6 +38,7 @@ from .ui.qgisred_results_dock import QGISRedResultsDock
 from .ui.qgisred_toolLength_dialog import QGISRedLengthToolDialog
 from .ui.qgisred_toolConnectivity_dialog import QGISRedConnectivityToolDialog
 from .tools.qgisred_utils import QGISRedUtils
+from .tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from .tools.qgisred_moveNodes import QGISRedMoveNodesTool
 from .tools.qgisred_multilayerSelection import QGISRedMultiLayerSelection
 from .tools.qgisred_createPipe import QGISRedCreatePipeTool
@@ -54,7 +53,7 @@ import base64
 import shutil
 import webbrowser
 import urllib.request
-from ctypes import c_char_p, WinDLL, windll
+from ctypes import windll
 # MessageBar Levels: Info 0, Warning 1, Critical 2, Success 3
 
 
@@ -213,7 +212,7 @@ class QGISRed:
                                             menubar=self.projectMenu, add_to_menu=False, toolbar=self.toolbar, createDrop=True,
                                             addActionToDrop=False, add_to_toolbar=False, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconSettings.png'
-        self.add_action(icon_path, text=self.tr(u'Settings'), callback=self.runSettings, menubar=self.projectMenu,
+        self.add_action(icon_path, text=self.tr(u'Project Settings'), callback=self.runSettings, menubar=self.projectMenu,
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconLayerManagement.png'
@@ -225,7 +224,7 @@ class QGISRed:
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconHydraulicOptions.png'
-        self.add_action(icon_path, text=self.tr(u'Analysis Options'), callback=self.runEditOptions, menubar=self.projectMenu,
+        self.add_action(icon_path, text=self.tr(u'Analysis Options'), callback=self.runAnalysisOptions, menubar=self.projectMenu,
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconDefaultValues.png'
@@ -1030,12 +1029,7 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.UpdateMetadata.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.UpdateMetadata.restype = c_char_p
-        b = mydll.UpdateMetadata(project.encode('utf-8'), net.encode('utf-8'), layersNames.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
-
+        GISRed.UpdateMetadata(project, net, layersNames)
         QApplication.restoreOverrideCursor()
 
     def writeLayersOfGroups(self, groupName, layers):
@@ -1177,17 +1171,11 @@ class QGISRed:
             self.removeIssuesLayersFiles()
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.ReplaceTemporalLayers.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.ReplaceTemporalLayers.restype = c_char_p
-        b = mydll.ReplaceTemporalLayers(self.ProjectDirectory.encode(
-            'utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.ReplaceTemporalFiles(self.ProjectDirectory, self.tempFolder)
 
         if self.hasToOpenNewLayers:
             self.opendedLayers = False
-            task1 = QgsTask.fromFunction(
-                'Dismiss this message', self.openElementLayers, on_finished=self.setExtent)
+            task1 = QgsTask.fromFunction('', self.openElementLayers, on_finished=self.setExtent)
             task1.run()
             QgsApplication.taskManager().addTask(task1)
             self.openNewLayers = False
@@ -1206,10 +1194,10 @@ class QGISRed:
         QApplication.restoreOverrideCursor()
 
         # Message
-        if b == "True":
+        if resMessage == "True":
             pass
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
     def processCsharpResult(self, b, message):
         # Action
@@ -1353,12 +1341,7 @@ class QGISRed:
     def runChangeCrs(self):
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.ChangeCrs.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.ChangeCrs.restype = c_char_p
-        b = mydll.ChangeCrs(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'),
-                            self.specificEpsg.encode('utf-8'))
-        resMessage = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.ChangeCrs(self.ProjectDirectory, self.NetworkName, self.specificEpsg)
         QApplication.restoreOverrideCursor()
 
         if resMessage == "True":
@@ -1381,24 +1364,19 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.EditProjectOptions.argtypes = (c_char_p, c_char_p)
-        mydll.EditProjectOptions.restype = c_char_p
-        b = mydll.EditProjectOptions(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
-
+        resMessage = GISRed.EditSettings(self.ProjectDirectory, self.NetworkName)
         QApplication.restoreOverrideCursor()
 
         # Message
-        if b == "True":
+        if resMessage == "True":
             self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Project options updated"), level=3, duration=5)
-        elif b == "False":
+        elif resMessage == "False":
             warningMessage = self.tr("Some issues occurred in the process")
             self.iface.messageBar().pushMessage(self.tr("Warning"), warningMessage, level=1, duration=5)
-        elif b == "Cancelled":
+        elif resMessage == "Cancelled":
             pass
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
     def runEditProject(self):
         if not self.checkDependencies():
@@ -1424,7 +1402,7 @@ class QGISRed:
         if self.ResultDockwidget is not None:
             self.ResultDockwidget.close()
 
-    def runEditOptions(self):
+    def runAnalysisOptions(self):
         if not self.checkDependencies():
             return
         # Validations
@@ -1436,17 +1414,11 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.EditOptions.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.EditOptions.restype = c_char_p
-        b = mydll.EditOptions(self.ProjectDirectory.encode(
-            'utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
-
+        resMessage = GISRed.AnalysisOptions(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
         # Message
-        if b == "True":
+        if resMessage == "True":
             self.hasToOpenNewLayers = False
             self.hasToOpenIssuesLayers = False
             self.extent = self.iface.mapCanvas().extent()
@@ -1454,13 +1426,13 @@ class QGISRed:
             task1 = QgsTask.fromFunction('', self.doNothing, on_finished=self.runOpenTemporaryFiles)
             task1.run()
             QgsApplication.taskManager().addTask(task1)
-        elif b == "False":
+        elif resMessage == "False":
             self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr(
                 "Some issues occurred in the process"), level=1, duration=5)
-        elif b == "Cancelled":
+        elif resMessage == "Cancelled":
             pass
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
     def runDefaultValues(self):
         if not self.checkDependencies():
@@ -1474,17 +1446,11 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.EditDefaultValues.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.EditDefaultValues.restype = c_char_p
-        b = mydll.EditDefaultValues(self.ProjectDirectory.encode(
-            'utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
-
+        resMessage = GISRed.DefaultValues(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
         # Message
-        if b == "True":
+        if resMessage == "True":
             self.hasToOpenNewLayers = False
             self.hasToOpenIssuesLayers = False
             self.extent = self.iface.mapCanvas().extent()
@@ -1492,13 +1458,13 @@ class QGISRed:
                 'Dismiss this message', self.doNothing, on_finished=self.runOpenTemporaryFiles)
             task1.run()
             QgsApplication.taskManager().addTask(task1)
-        elif b == "False":
+        elif resMessage == "False":
             self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr(
                 "Some issues occurred in the process"), level=1, duration=5)
-        elif b == "Cancelled":
+        elif resMessage == "Cancelled":
             pass
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
     def runSummary(self):
         if not self.checkDependencies():
@@ -1511,23 +1477,18 @@ class QGISRed:
             return
 
         # Process
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.AbstractReport.argtypes = (c_char_p, c_char_p)
-        mydll.AbstractReport.restype = c_char_p
-        b = mydll.AbstractReport(self.ProjectDirectory.encode(
-            'utf-8'), self.NetworkName.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.Summary(self.ProjectDirectory, self.NetworkName)
+        QApplication.restoreOverrideCursor()
 
         # Message
-        if b == "True":
-            # self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Process successfully completed"),
-            # level=3, duration=5)
+        if resMessage == "True":
             pass
-        elif b == "False":
+        elif resMessage == "False":
             self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr(
                 "Some issues occurred in the process"), level=1, duration=5)
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
     def runModel(self):
         if not self.checkDependencies():
@@ -1569,22 +1530,19 @@ class QGISRed:
             return
 
         # Process
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.ExportToInp.argtypes = (c_char_p, c_char_p)
-        mydll.ExportToInp.restype = c_char_p
-        b = mydll.ExportToInp(self.ProjectDirectory.encode(
-            'utf-8'), self.NetworkName.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.ExportToInp(self.ProjectDirectory, self.NetworkName)
+        QApplication.restoreOverrideCursor()
 
         # Message
-        if b == "True":
+        if resMessage == "True":
             self.iface.messageBar().pushMessage(self.tr("Information"), self.tr(
                 "INP file successfully exported"), level=3, duration=5)
-        elif b == "False":
+        elif resMessage == "False":
             self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr(
                 "Some issues occurred in the process"), level=1, duration=5)
-        elif not b == "Cancelled":
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+        elif not resMessage == "Cancelled":
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
     """Edition"""
     def runPaintPipe(self):
@@ -1606,21 +1564,15 @@ class QGISRed:
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runCreatePipe(self, points):
-        self.pipePoint = ""
+        pipePoints = ""
         for p in points:
-            self.pipePoint = self.pipePoint + \
-                str(p.x()) + ":" + str(p.y()) + ";"
-        # C#Process:
+            pipePoints = pipePoints + str(p.x()) + ":" + str(p.y()) + ";"
+        # Process:
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.AddPipe.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
-        mydll.AddPipe.restype = c_char_p
-        b = mydll.AddPipe(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-            'utf-8'), self.tempFolder.encode('utf-8'), self.pipePoint.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.AddPipe(self.ProjectDirectory, self.NetworkName, self.tempFolder, pipePoints)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(b, "Pipe added")
+        self.processCsharpResult(resMessage, "Pipe added")
 
     def runSelectTankPoint(self):
         tool = "pointTank"
@@ -1646,15 +1598,10 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.AddTank.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
-        mydll.AddTank.restype = c_char_p
-        b = mydll.AddTank(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-            'utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.AddTank(self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(b, "")
+        self.processCsharpResult(resMessage, "")
 
     def runSelectReservoirPoint(self):
         tool = "pointReservoir"
@@ -1680,15 +1627,10 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.AddReservoir.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
-        mydll.AddReservoir.restype = c_char_p
-        b = mydll.AddReservoir(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-            'utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.AddReservoir(self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(b, "")
+        self.processCsharpResult(resMessage, "")
 
     def runSelectValvePoint(self):
         tool = "pointValve"
@@ -1714,16 +1656,10 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.InsertValve.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
-        mydll.InsertValve.restype = c_char_p
-
-        b = mydll.InsertValve(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-            'utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.InsertValve(self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(b, "")
+        self.processCsharpResult(resMessage, "")
 
     def runSelectPumpPoint(self):
         tool = "pointPump"
@@ -1749,15 +1685,10 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.InsertPump.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
-        mydll.InsertPump.restype = c_char_p
-        b = mydll.InsertPump(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-            'utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.InsertPump(self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(b, "")
+        self.processCsharpResult(resMessage, "")
 
     def runSelectElements(self):
         tool = "selectElements"
@@ -1861,17 +1792,10 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.ReverseLink.argtypes = (
-            c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
-        mydll.ReverseLink.restype = c_char_p
-        b = mydll.ReverseLink(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode(
-            'utf-8'), pointText.encode('utf-8'), self.linkIds.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.ReverseLink(self.ProjectDirectory, self.NetworkName, self.tempFolder, pointText, self.linkIds)
         QApplication.restoreOverrideCursor()
 
-        # self.selectedFids = {}
-        self.processCsharpResult(b, "")
+        self.processCsharpResult(resMessage, "")
 
     def runSelectSplitPoint(self):
         tool = "pointSplit"
@@ -1897,15 +1821,10 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.SplitPipe.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
-        mydll.SplitPipe.restype = c_char_p
-        b = mydll.SplitPipe(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-            'utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.SplitPipe(self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(b, "")
+        self.processCsharpResult(resMessage, "")
 
     def runSelectPointToMergeSplit(self):
         tool = "mergeSplitPoint"
@@ -1935,16 +1854,10 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.SplitMergeJunction.argtypes = (
-            c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
-        mydll.SplitMergeJunction.restype = c_char_p
-        b = mydll.SplitMergeJunction(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-            'utf-8'), self.tempFolder.encode('utf-8'), point1.encode('utf-8'), point2.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.SplitMergeJunction(self.ProjectDirectory, self.NetworkName, self.tempFolder, point1, point2)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(b, "")
+        self.processCsharpResult(resMessage, "")
 
     def runSelectPointToTconnections(self):
         tool = "createReverseTconn"
@@ -1971,18 +1884,13 @@ class QGISRed:
             point2 = ""
         else:
             point2 = str(point2.x()) + ":" + str(point2.y())
+
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.CreateReverseTConnection.argtypes = (
-            c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
-        mydll.CreateReverseTConnection.restype = c_char_p
-        b = mydll.CreateReverseTConnection(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-            'utf-8'), self.tempFolder.encode('utf-8'), point1.encode('utf-8'), point2.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.CreateReverseTConnection(self.ProjectDirectory, self.NetworkName, self.tempFolder, point1, point2)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(b, "")
+        self.processCsharpResult(resMessage, "")
 
     def runSelectPointToCrossings(self):
         tool = "createReverseCross"
@@ -2010,16 +1918,10 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.CreateReverseCrossings.argtypes = (
-            c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
-        mydll.CreateReverseCrossings.restype = c_char_p
-        b = mydll.CreateReverseCrossings(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-            'utf-8'), self.tempFolder.encode('utf-8'), point1.encode('utf-8'), tolerance.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.CreateReverseCrossings(self.ProjectDirectory, self.NetworkName, self.tempFolder, point1, tolerance)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(b, "")
+        self.processCsharpResult(resMessage, "")
 
     def runSelectValvePumpPoints(self):
         tool = "moveValvePump"
@@ -2046,16 +1948,10 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.MoveValvePump.argtypes = (
-            c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
-        mydll.MoveValvePump.restype = c_char_p
-        b = mydll.MoveValvePump(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-            'utf-8'), self.tempFolder.encode('utf-8'), point1.encode('utf-8'), point2.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.MoveValvePump(self.ProjectDirectory, self.NetworkName, self.tempFolder, point1, point2)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(b, "")
+        self.processCsharpResult(resMessage, "")
 
     def canDeleteElements(self):
         if not self.checkDependencies():
@@ -2105,17 +2001,12 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.RemoveElements.argtypes = (
-            c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
-        mydll.RemoveElements.restype = c_char_p
-        b = mydll.RemoveElements(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode(
-            'utf-8'), pointText.encode('utf-8'), self.nodeIds.encode('utf-8'), self.linkIds.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.RemoveElements(self.ProjectDirectory, self.NetworkName, self.tempFolder,
+                                           pointText, self.nodeIds, self.linkIds)
         QApplication.restoreOverrideCursor()
 
         self.selectedFids = {}
-        self.processCsharpResult(b, "")
+        self.processCsharpResult(resMessage, "")
 
     def runSelectPointProperties(self):
         tool = "pointElement"
@@ -2142,15 +2033,10 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.EditElements.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
-        mydll.EditElements.restype = c_char_p
-        b = mydll.EditElements(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-            'utf-8'), self.tempFolder.encode('utf-8'), point.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.EditElements(self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(b, "")
+        self.processCsharpResult(resMessage, "")
 
     def runPatternsCurves(self):
         if not self.checkDependencies():
@@ -2164,16 +2050,10 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.EditPatternsCurves.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.EditPatternsCurves.restype = c_char_p
-        b = mydll.EditPatternsCurves(self.ProjectDirectory.encode(
-            'utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
-
+        resMessage = GISRed.EditPatternsCurves(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(b, "")
+        self.processCsharpResult(resMessage, "")
 
     def runControls(self):
         if not self.checkDependencies():
@@ -2187,16 +2067,10 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.EditControls.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.EditControls.restype = c_char_p
-        b = mydll.EditControls(self.ProjectDirectory.encode(
-            'utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
-
+        resMessage = GISRed.EditControls(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(b, "")
+        self.processCsharpResult(resMessage, "")
 
     """Verifications"""
     def runCommit(self):
@@ -2210,17 +2084,11 @@ class QGISRed:
             return
 
         # Process
-        print(self.tempFolder)
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.Commit.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.Commit.restype = c_char_p
-        b = mydll.Commit(self.ProjectDirectory.encode(
-            'utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.Commit(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(b, "Input data is valid")
+        self.processCsharpResult(resMessage, "Input data is valid")
 
     def runCheckCoordinates(self):
         if not self.checkDependencies():
@@ -2234,15 +2102,10 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.CheckCoordinates.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.CheckCoordinates.restype = c_char_p
-        b = mydll.CheckCoordinates(self.ProjectDirectory.encode(
-            'utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.CheckCoordinates(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(b, "No overlapping elements found")
+        self.processCsharpResult(resMessage, "No overlapping elements found")
 
     def runSimplifyVertices(self):
         if not self.checkDependencies():
@@ -2256,15 +2119,10 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.ChechkAlignedVertices.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.ChechkAlignedVertices.restype = c_char_p
-        b = mydll.ChechkAlignedVertices(self.ProjectDirectory.encode(
-            'utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.CheckAlignedVertices(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(b, "No aligned vertices to delete")
+        self.processCsharpResult(resMessage, "No aligned vertices to delete")
 
     def runCheckJoinPipes(self):
         if not self.checkDependencies():
@@ -2278,15 +2136,10 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.CheckJoinPipes.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.CheckJoinPipes.restype = c_char_p
-        b = mydll.CheckJoinPipes(self.ProjectDirectory.encode(
-            'utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.CheckJoinPipes(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(b, "No pipes to join")
+        self.processCsharpResult(resMessage, "No pipes to join")
 
     def runCheckTConncetions(self):
         if not self.checkDependencies():
@@ -2300,15 +2153,10 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.CheckTConnections.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.CheckTConnections.restype = c_char_p
-        b = mydll.CheckTConnections(self.ProjectDirectory.encode(
-            'utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.CheckTConnections(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(b, "No T connections to create")
+        self.processCsharpResult(resMessage, "No T connections to create")
 
     def runCheckConnectivityM(self):
         self.runCheckConnectivity()
@@ -2337,43 +2185,35 @@ class QGISRed:
             else:
                 return
 
-        # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.CheckConnectivity.argtypes = (
-            c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
-        mydll.CheckConnectivity.restype = c_char_p
         step = "check"
         if toCommit:
             step = "commit"
-        b = mydll.CheckConnectivity(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-            'utf-8'), linesToDelete.encode('utf-8'), step.encode('utf-8'), self.tempFolder.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+
+        # Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.CheckConnectivity(self.ProjectDirectory, self.NetworkName, linesToDelete, step, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
         # Action
         self.hasToOpenNewLayers = False
         self.hasToOpenIssuesLayers = False
         self.hasToOpenConnectivityLayers = False
-        if b == "True":
-            self.iface.messageBar().pushMessage(self.tr("Information"),
-                                                self.tr("Only one zone"), level=3, duration=5)
-        elif b == "False":
+        if resMessage == "True":
+            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Only one zone"), level=3, duration=5)
+        elif resMessage == "False":
             pass
-        elif b == "shps":
+        elif resMessage == "shps":
             self.hasToOpenConnectivityLayers = True
-        elif b == "commit/shps":
+        elif resMessage == "commit/shps":
             self.hasToOpenNewLayers = True
             self.hasToOpenConnectivityLayers = True
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
         if self.hasToOpenNewLayers and self.hasToOpenConnectivityLayers:
-            task1 = QgsTask.fromFunction(
-                "", self.removeLayersAndConnectivity, on_finished=self.runOpenTemporaryFiles)
+            task1 = QgsTask.fromFunction("", self.removeLayersAndConnectivity, on_finished=self.runOpenTemporaryFiles)
         elif self.hasToOpenConnectivityLayers:
-            task1 = QgsTask.fromFunction(
-                "", self.removeLayersConnectivity, on_finished=self.runOpenTemporaryFiles)
+            task1 = QgsTask.fromFunction("", self.removeLayersConnectivity, on_finished=self.runOpenTemporaryFiles)
         else:
             # Not to run task
             return
@@ -2398,18 +2238,10 @@ class QGISRed:
         if result:
             # Process
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            QGISRedUtils().setCurrentDirectory()
-            mydll = WinDLL(QGISRedUtils().getCurrentDll())
-            mydll.CheckLengths.argtypes = (
-                c_char_p, c_char_p, c_char_p, c_char_p)
-            mydll.CheckLengths.restype = c_char_p
-            b = mydll.CheckLengths(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-                'utf-8'), dlg.Tolerance.encode('utf-8'), self.tempFolder.encode('utf-8'))
-            b = "".join(map(chr, b))  # bytes to string
+            resMessage = GISRed.CheckLengths(self.ProjectDirectory, self.NetworkName, dlg.Tolerance, self.tempFolder)
             QApplication.restoreOverrideCursor()
 
-            self.processCsharpResult(
-                b, "No one pipe's length out of tolerance")
+            self.processCsharpResult(resMessage, "No one pipe's length out of tolerance")
 
     def runCheckDiameters(self):
         if not self.checkDependencies():
@@ -2423,25 +2255,20 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.CheckDiameters.argtypes = (c_char_p, c_char_p)
-        mydll.CheckDiameters.restype = c_char_p
-        b = mydll.CheckDiameters(self.ProjectDirectory.encode(
-            'utf-8'), self.NetworkName.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.CheckDiameters(self.ProjectDirectory, self.NetworkName)
         QApplication.restoreOverrideCursor()
 
         # Message
-        if b == "True":
+        if resMessage == "True":
             self.iface.messageBar().pushMessage(self.tr("Information"), self.tr(
                 "No issues on diameter checking"), level=3, duration=5)
-        elif b == "False":
+        elif resMessage == "False":
             self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr(
                 "Some issues occurred in the process"), level=1, duration=5)
-        elif b == "pass":
+        elif resMessage == "pass":
             pass
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
     def runCheckMaterials(self):
         if not self.checkDependencies():
@@ -2455,25 +2282,20 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.CheckMaterials.argtypes = (c_char_p, c_char_p)
-        mydll.CheckMaterials.restype = c_char_p
-        b = mydll.CheckMaterials(self.ProjectDirectory.encode(
-            'utf-8'), self.NetworkName.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.CheckMaterials(self.ProjectDirectory, self.NetworkName)
         QApplication.restoreOverrideCursor()
 
         # Message
-        if b == "True":
+        if resMessage == "True":
             self.iface.messageBar().pushMessage(self.tr("Information"), self.tr(
                 "No issues on materials checking"), level=3, duration=5)
-        elif b == "False":
+        elif resMessage == "False":
             self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr(
                 "Some issues occurred in the process"), level=1, duration=5)
-        elif b == "pass":
+        elif resMessage == "pass":
             pass
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
     def runCheckInstallationDates(self):
         if not self.checkDependencies():
@@ -2487,25 +2309,20 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.CheckInstallationDates.argtypes = (c_char_p, c_char_p)
-        mydll.CheckInstallationDates.restype = c_char_p
-        b = mydll.CheckInstallationDates(self.ProjectDirectory.encode(
-            'utf-8'), self.NetworkName.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.CheckInstallationDates(self.ProjectDirectory, self.NetworkName)
         QApplication.restoreOverrideCursor()
 
         # Message
-        if b == "True":
+        if resMessage == "True":
             self.iface.messageBar().pushMessage(self.tr("Information"), self.tr(
                 "No issues on installation dates checking"), level=3, duration=5)
-        elif b == "False":
+        elif resMessage == "False":
             self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr(
                 "Some issues occurred in the process"), level=1, duration=5)
-        elif b == "pass":
+        elif resMessage == "pass":
             pass
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
     def runHydraulicSectors(self):
         if not self.checkDependencies():
@@ -2520,28 +2337,22 @@ class QGISRed:
         self.Sectors = "HydraulicSectors"
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.HydarulicSectors.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.HydarulicSectors.restype = c_char_p
-        b = mydll.HydarulicSectors(self.ProjectDirectory.encode(
-            'utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.HydarulicSectors(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
         # Action
         self.hasToOpenNewLayers = False
         self.hasToOpenIssuesLayers = False
         self.hasToOpenSectorLayers = False
-        if b == "False":
+        if resMessage == "False":
             pass
-        elif b == "shps":
+        elif resMessage == "shps":
             self.hasToOpenSectorLayers = True
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
         if self.hasToOpenSectorLayers:
-            task1 = QgsTask.fromFunction(
-                "", self.removeSectorLayers, on_finished=self.runOpenTemporaryFiles)
+            task1 = QgsTask.fromFunction("", self.removeSectorLayers, on_finished=self.runOpenTemporaryFiles)
         else:
             # Not to run task
             return
@@ -2563,18 +2374,12 @@ class QGISRed:
         # Process
         # if not self.getSelectedFeaturesIds():
         #   return
-        # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        # , c_char_p, c_char_p)
-        mydll.SetRoughness.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.SetRoughness.restype = c_char_p
-        b = mydll.SetRoughness(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode('utf-8'),
-                               self.tempFolder.encode('utf-8'))  # , self.nodeIds.encode('utf-8'), self.linkIds.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.SetRoughness(self.ProjectDirectory, self.NetworkName, self.tempFolder)
+        # , self.nodeIds.encode('utf-8'), self.linkIds.encode('utf-8'))
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(b, "No issues ocurred")
+        self.processCsharpResult(resMessage, "No issues ocurred")
 
     def runElevationInterpolation(self):
         if not self.checkDependencies():
@@ -2597,17 +2402,11 @@ class QGISRed:
 
             # Process
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            QGISRedUtils().setCurrentDirectory()
-            mydll = WinDLL(QGISRedUtils().getCurrentDll())
-            mydll.ElevationInterpolation.argtypes = (
-                c_char_p, c_char_p, c_char_p, c_char_p)
-            mydll.ElevationInterpolation.restype = c_char_p
-            b = mydll.ElevationInterpolation(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-                'utf-8'), self.tempFolder.encode('utf-8'), self.ElevationFiles.encode('utf-8'))
-            b = "".join(map(chr, b))  # bytes to string
+            resMessage = GISRed.ElevationInterpolation(self.ProjectDirectory, self.NetworkName,
+                                                       self.tempFolder, self.ElevationFiles)
             QApplication.restoreOverrideCursor()
 
-            self.processCsharpResult(b, "Any elevation has been estimated")
+            self.processCsharpResult(resMessage, "Any elevation has been estimated")
 
     def runSetPipeStatus(self):
         if not self.checkDependencies():
@@ -2627,16 +2426,10 @@ class QGISRed:
         # Process
         self.complementaryLayers = ["IsolationValves"]
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.SetInitialStatusPipes.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.SetInitialStatusPipes.restype = c_char_p
-        b = mydll.SetInitialStatusPipes(self.ProjectDirectory.encode(
-            'utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.SetInitialStatusPipes(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(
-            b, "Any isolation valve change status of pipes")
+        self.processCsharpResult(resMessage, "Any isolation valve change status of pipes")
 
     def runAddConnections(self):
         if not self.checkDependencies():
@@ -2667,19 +2460,11 @@ class QGISRed:
             asNode = "false"
         # Process
         self.complementaryLayers = ["ServiceConnections"]
-
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.AddConnections.argtypes = (
-            c_char_p, c_char_p, c_char_p, c_char_p)
-        mydll.AddConnections.restype = c_char_p
-        b = mydll.AddConnections(self.ProjectDirectory.encode(
-            'utf-8'), self.NetworkName.encode('utf-8'), asNode.encode('utf-8'), self.tempFolder.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.AddConnections(self.ProjectDirectory, self.NetworkName, asNode, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(
-            b, "No Service Connections to include in the model")
+        self.processCsharpResult(resMessage, "No Service Connections to include in the model")
 
     def runAddHydrants(self):
         if not self.checkDependencies():
@@ -2698,17 +2483,11 @@ class QGISRed:
 
         # Process
         self.complementaryLayers = ["Hydrants"]
-
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.AddHydrants.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.AddHydrants.restype = c_char_p
-        b = mydll.AddHydrants(self.ProjectDirectory.encode(
-            'utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.AddHydrants(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(b, "No Hydrants to include in the model")
+        self.processCsharpResult(resMessage, "No Hydrants to include in the model")
 
     def runAddPurgeValves(self):
         if not self.checkDependencies():
@@ -2727,18 +2506,11 @@ class QGISRed:
 
         # Process
         self.complementaryLayers = ["WashoutValves"]
-
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.AddPurgeValves.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.AddPurgeValves.restype = c_char_p
-        b = mydll.AddPurgeValves(self.ProjectDirectory.encode(
-            'utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.AddWashoutValves(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(
-            b, "No Washout Valves to include in the model")
+        self.processCsharpResult(resMessage, "No Washout Valves to include in the model")
 
     def runDemandSectors(self):
         if not self.checkDependencies():
@@ -2753,28 +2525,22 @@ class QGISRed:
         self.Sectors = "DemandSectors"
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.DemandSectors.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.DemandSectors.restype = c_char_p
-        b = mydll.DemandSectors(self.ProjectDirectory.encode(
-            'utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.DemandSectors(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
         # Action
         self.hasToOpenNewLayers = False
         self.hasToOpenIssuesLayers = False
         self.hasToOpenSectorLayers = False
-        if b == "False":
+        if resMessage == "False":
             pass
-        elif b == "shps":
+        elif resMessage == "shps":
             self.hasToOpenSectorLayers = True
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
         if self.hasToOpenSectorLayers:
-            task1 = QgsTask.fromFunction(
-                "", self.removeSectorLayers, on_finished=self.runOpenTemporaryFiles)
+            task1 = QgsTask.fromFunction("", self.removeSectorLayers, on_finished=self.runOpenTemporaryFiles)
         else:
             # Not to run task
             return
@@ -2803,26 +2569,21 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.Tree.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
-        mydll.Tree.restype = c_char_p
-        b = mydll.Tree(self.ProjectDirectory.encode('utf-8'), self.NetworkName.encode(
-            'utf-8'), self.tempFolder.encode('utf-8'), point1.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.Tree(self.ProjectDirectory, self.NetworkName, self.tempFolder, point1)
         QApplication.restoreOverrideCursor()
 
         # Action
-        if b == "False" or b == "Cancelled":
+        if resMessage == "False" or resMessage == "Cancelled":
             return
-        elif b == "Select":
+        elif resMessage == "Select":
             self.selectPointToTree()
-        elif "shps" in b:
-            self.treeName = b.split('^')[1]
+        elif "shps" in resMessage:
+            self.treeName = resMessage.split('^')[1]
             task1 = QgsTask.fromFunction("", self.removeTreeLayers, on_finished=self.runTreeProcess)
             task1.run()
             QgsApplication.taskManager().addTask(task1)
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
     def runTreeProcess(self, exception=None, result=None):
         # Process
@@ -2831,22 +2592,18 @@ class QGISRed:
             os.stat(treeFolder)
         except Exception:
             os.mkdir(treeFolder)
+
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.ReplaceTemporalLayers.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.ReplaceTemporalLayers.restype = c_char_p
-        b = mydll.ReplaceTemporalLayers(treeFolder.encode(
-            'utf-8'), self.NetworkName.encode('utf-8'), self.tempFolder.encode('utf-8'))
-        b = "".join(map(chr, b))  # bytes to string
+        resMessage = GISRed.ReplaceTemporalFiles(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
         self.openTreeLayers()
 
         # Message
-        if b == "True":
+        if resMessage == "True":
             pass
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
     def selectPointToTree(self):
         tool = "treeNode"
