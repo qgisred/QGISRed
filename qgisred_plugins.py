@@ -79,7 +79,6 @@ class QGISRed:
         """
         # Save reference to the QGIS interface
         self.iface = iface
-        self.KeyTemp = str(base64.b64encode(os.urandom(16)))
 
         if not platform.system() == "Windows":
             self.iface.messageBar().pushMessage(self.tr("Error"), self.tr("QGISRed only works in Windows"), level=2, duration=5)
@@ -529,6 +528,7 @@ class QGISRed:
         # Connecting QGis Events
         QgsProject.instance().projectSaved.connect(self.runSaveProject)
         QgsProject.instance().cleared.connect(self.runClearedProject)
+        QgsProject.instance().layersRemoved.connect(self.runLegendChanged)
 
         # MapTools
         self.myMapTools = {}
@@ -547,6 +547,7 @@ class QGISRed:
             os.stat(self.tempFolder)
         except Exception:
             os.mkdir(self.tempFolder)
+        self.KeyTemp = str(base64.b64encode(os.urandom(16)))
 
         # Issue layers
         self.issuesLayers = []
@@ -558,6 +559,7 @@ class QGISRed:
         self.hasToOpenSectorLayers = False
 
         self.zoomToFullExtent = False
+        self.removingLayers = False
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -807,12 +809,14 @@ class QGISRed:
     def removeDBFs(self, task, dbfs):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayers(dbfs, ".dbf")
-        raise Exception('')
+        if task is not None:
+            raise Exception('')
 
     def removeIssuesLayers(self, task):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayers(self.issuesLayers)
-        raise Exception('')
+        if task is not None:
+            raise Exception('')
 
     def removeLayersAndIssuesLayers(self, task):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
@@ -820,7 +824,8 @@ class QGISRed:
         utils.removeLayers(self.ownFiles, ".dbf")
         utils.removeLayers(self.complementaryLayers)
         utils.removeLayers(self.issuesLayers)
-        raise Exception('')
+        if task is not None:
+            raise Exception('')
 
     def removeIssuesLayersFiles(self):
         dirList = os.listdir(self.ProjectDirectory)
@@ -832,7 +837,8 @@ class QGISRed:
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayer("Links_Connectivity")
         self.removeEmptyQuerySubGroup("Connectivity")
-        raise Exception('')
+        if task is not None:
+            raise Exception('')
 
     def removeLayersAndConnectivity(self, task):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
@@ -841,13 +847,15 @@ class QGISRed:
         utils.removeLayers(self.complementaryLayers)
         utils.removeLayer("Links_Connectivity")
         self.removeEmptyQuerySubGroup("Connectivity")
-        raise Exception('')
+        if task is not None:
+            raise Exception('')
 
     def removeSectorLayers(self, task):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayers(["Links_" + self.Sectors, "Nodes_" + self.Sectors])
         self.removeEmptyQuerySubGroup("Sectors")
-        raise Exception('')
+        if task is not None:
+            raise Exception('')
 
     """Open Layers"""
     def openRemoveSpecificLayers(self, layers, epsg):
@@ -857,6 +865,7 @@ class QGISRed:
         self.extent = self.iface.mapCanvas().extent()
         self.specificEpsg = epsg
         self.specificLayers = layers
+        self.removingLayers = True
         task1 = QgsTask.fromFunction('', self.removeLayers, on_finished=self.openSpecificLayers)
         task1.run()
         QgsApplication.taskManager().addTask(task1)
@@ -879,7 +888,7 @@ class QGISRed:
             inputGroup = self.getInputGroup()
             utils.openElementsLayers(inputGroup, self.specificLayers)
             self.updateMetadata()
-
+            self.removingLayers = False
             if task is not None:
                 raise Exception('')
 
@@ -1192,6 +1201,7 @@ class QGISRed:
             self.openSectorLayers()
             self.hasToOpenSectorLayers = False
         QApplication.restoreOverrideCursor()
+        self.removingLayers = False
 
         # Message
         if resMessage == "True":
@@ -1219,15 +1229,13 @@ class QGISRed:
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
+        self.removingLayers = True
         if self.hasToOpenNewLayers and self.hasToOpenIssuesLayers:
-            task1 = QgsTask.fromFunction(
-                "", self.removeLayersAndIssuesLayers, on_finished=self.runOpenTemporaryFiles)
+            task1 = QgsTask.fromFunction("", self.removeLayersAndIssuesLayers, on_finished=self.runOpenTemporaryFiles)
         elif self.hasToOpenNewLayers:
-            task1 = QgsTask.fromFunction(
-                "", self.removeLayers, on_finished=self.runOpenTemporaryFiles)
+            task1 = QgsTask.fromFunction("", self.removeLayers, on_finished=self.runOpenTemporaryFiles)
         elif self.hasToOpenIssuesLayers:
-            task1 = QgsTask.fromFunction(
-                "", self.removeIssuesLayers, on_finished=self.runOpenTemporaryFiles)
+            task1 = QgsTask.fromFunction("", self.removeIssuesLayers, on_finished=self.runOpenTemporaryFiles)
         else:
             # Not to run task
             return
@@ -1422,8 +1430,8 @@ class QGISRed:
             self.hasToOpenNewLayers = False
             self.hasToOpenIssuesLayers = False
             self.extent = self.iface.mapCanvas().extent()
-            # At moment, it is not necessary
-            task1 = QgsTask.fromFunction('', self.doNothing, on_finished=self.runOpenTemporaryFiles)
+            self.removingLayers = True
+            task1 = QgsTask.fromFunction('', self.removeDBFs, on_finished=self.runOpenTemporaryFiles)
             task1.run()
             QgsApplication.taskManager().addTask(task1)
         elif resMessage == "False":
@@ -1454,8 +1462,8 @@ class QGISRed:
             self.hasToOpenNewLayers = False
             self.hasToOpenIssuesLayers = False
             self.extent = self.iface.mapCanvas().extent()
-            task1 = QgsTask.fromFunction(
-                'Dismiss this message', self.doNothing, on_finished=self.runOpenTemporaryFiles)
+            self.removingLayers = True
+            task1 = QgsTask.fromFunction('', self.removeDBFs, on_finished=self.runOpenTemporaryFiles)
             task1.run()
             QgsApplication.taskManager().addTask(task1)
         elif resMessage == "False":
@@ -1543,6 +1551,18 @@ class QGISRed:
                 "Some issues occurred in the process"), level=1, duration=5)
         elif not resMessage == "Cancelled":
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+
+    def runLegendChanged(self):
+        if not self.removingLayers:
+            # Validations
+            self.defineCurrentProject()
+            if self.ProjectDirectory == self.TemporalFolder:
+                return
+
+            if not self.checkDependencies():
+                return
+
+            self.updateMetadata()
 
     """Edition"""
     def runPaintPipe(self):
@@ -2210,6 +2230,7 @@ class QGISRed:
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
+        self.removingLayers = True
         if self.hasToOpenNewLayers and self.hasToOpenConnectivityLayers:
             task1 = QgsTask.fromFunction("", self.removeLayersAndConnectivity, on_finished=self.runOpenTemporaryFiles)
         elif self.hasToOpenConnectivityLayers:
@@ -2351,6 +2372,7 @@ class QGISRed:
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
+        self.removingLayers = True
         if self.hasToOpenSectorLayers:
             task1 = QgsTask.fromFunction("", self.removeSectorLayers, on_finished=self.runOpenTemporaryFiles)
         else:
@@ -2539,6 +2561,7 @@ class QGISRed:
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
+        self.removingLayers = True
         if self.hasToOpenSectorLayers:
             task1 = QgsTask.fromFunction("", self.removeSectorLayers, on_finished=self.runOpenTemporaryFiles)
         else:
@@ -2579,6 +2602,7 @@ class QGISRed:
             self.selectPointToTree()
         elif "shps" in resMessage:
             self.treeName = resMessage.split('^')[1]
+            self.removingLayers = True
             task1 = QgsTask.fromFunction("", self.removeTreeLayers, on_finished=self.runTreeProcess)
             task1.run()
             QgsApplication.taskManager().addTask(task1)
@@ -2598,6 +2622,7 @@ class QGISRed:
         QApplication.restoreOverrideCursor()
 
         self.openTreeLayers()
+        self.removingLayers = False
 
         # Message
         if resMessage == "True":
@@ -2636,4 +2661,5 @@ class QGISRed:
         utils.removeLayers(["Links_Tree_" + self.treeName, "Nodes_Tree_" + self.treeName])
 
         self.removeEmptyQuerySubGroup("Tree")
-        raise Exception('')
+        if task is not None:
+            raise Exception('')
