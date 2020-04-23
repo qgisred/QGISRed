@@ -25,7 +25,7 @@ from qgis.core import QgsProject
 from PyQt5.QtGui import QIcon, QCursor
 from PyQt5.QtWidgets import QAction, QMessageBox, QApplication, QMenu, QFileDialog, QToolButton
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
-from qgis.core import QgsTask, QgsApplication
+from qgis.core import QgsTask, QgsApplication, QgsMessageLog
 # Import resources
 from . import resources3x
 # Import other plugin code
@@ -243,7 +243,7 @@ class QGISRed:
                         menubar=self.projectMenu, toolbar=self.projectToolbar, actionBase=dropButton,
                         add_to_toolbar=False, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconExportEpanet.png'
-        self.add_action(icon_path, text=self.tr(u'Export to INP'), callback=self.runExportInp, menubar=self.projectMenu,
+        self.add_action(icon_path, text=self.tr(u'Export to Epanet'), callback=self.runExportInp, menubar=self.projectMenu,
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
 
@@ -519,7 +519,7 @@ class QGISRed:
         self.addEditMenu()
         self.addVerificationsMenu()
         self.addToolsMenu()
-        # self.addExperimentalMenu()
+        self.addExperimentalMenu()
         # About
         icon_path = ':/plugins/QGISRed/images/iconAbout.png'
         self.add_action(icon_path, text=self.tr(u'About...'), callback=self.runAbout,
@@ -560,6 +560,8 @@ class QGISRed:
 
         self.zoomToFullExtent = False
         self.removingLayers = False
+
+        QgsMessageLog.logMessage("Loaded sucssesfully", 'QGISRed', level=0)
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -2618,7 +2620,7 @@ class QGISRed:
             os.mkdir(treeFolder)
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.ReplaceTemporalFiles(self.ProjectDirectory, self.NetworkName, self.tempFolder)
+        resMessage = GISRed.ReplaceTemporalFiles(treeFolder, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
         self.openTreeLayers()
