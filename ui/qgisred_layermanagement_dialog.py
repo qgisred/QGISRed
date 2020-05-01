@@ -40,10 +40,7 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         self.btPurgeValves.clicked.connect(lambda: self.createElement("WashoutValves", True))
         self.btAirReleases.clicked.connect(lambda: self.createElement("AirReleaseValves", True))
         self.btConnections.clicked.connect(lambda: self.createElement("ServiceConnections", True))
-        self.btManometers.clicked.connect(lambda: self.createElement("Manometers", True))
-        self.btFlowmeters.clicked.connect(lambda: self.createElement("Flowmeters", True))
-        self.btCountmeters.clicked.connect(lambda: self.createElement("Countermeters", True))
-        self.btLevelmeters.clicked.connect(lambda: self.createElement("LevelSensors", True))
+        self.btMeters.clicked.connect(lambda: self.createElement("Meters", True))
 
     def config(self, ifac, direct, netw, parent):
         self.iface = ifac
@@ -75,10 +72,7 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         self.btPurgeValves.setVisible(not self.NetworkName + "_WashoutValves.shp" in dirList)
         self.btAirReleases.setVisible(not self.NetworkName + "_AirReleaseValves.shp" in dirList)
         self.btConnections.setVisible(not self.NetworkName + "_ServiceConnections.shp" in dirList)
-        self.btManometers.setVisible(not self.NetworkName + "_Manometers.shp" in dirList)
-        self.btFlowmeters.setVisible(not self.NetworkName + "_Flowmeters.shp" in dirList)
-        self.btCountmeters.setVisible(not self.NetworkName + "_Countermeters.shp" in dirList)
-        self.btLevelmeters.setVisible(not self.NetworkName + "_LevelSensors.shp" in dirList)
+        self.btMeters.setVisible(not self.NetworkName + "_Meters.shp" in dirList)
 
         # Enables
         self.cbDemands.setEnabled(self.NetworkName + "_Demands.shp" in dirList)
@@ -88,10 +82,7 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         self.cbPurgeValves.setEnabled(self.NetworkName + "_WashoutValves.shp" in dirList)
         self.cbAirReleases.setEnabled(self.NetworkName + "_AirReleaseValves.shp" in dirList)
         self.cbConnections.setEnabled(self.NetworkName + "_ServiceConnections.shp" in dirList)
-        self.cbManometers.setEnabled(self.NetworkName + "_Manometers.shp" in dirList)
-        self.cbFlowmeters.setEnabled(self.NetworkName + "_Flowmeters.shp" in dirList)
-        self.cbCountmeters.setEnabled(self.NetworkName + "_Countermeters.shp" in dirList)
-        self.cbLevelmeters.setEnabled(self.NetworkName + "_LevelSensors.shp" in dirList)
+        self.cbMeters.setEnabled(self.NetworkName + "_Meters.shp" in dirList)
 
         # Los básicos: Enables and checked
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
@@ -122,10 +113,7 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         self.cbPurgeValves.setChecked(utils.isLayerOpened("WashoutValves"))
         self.cbAirReleases.setChecked(utils.isLayerOpened("AirReleaseValves"))
         self.cbConnections.setChecked(utils.isLayerOpened("ServiceConnections"))
-        self.cbManometers.setChecked(utils.isLayerOpened("Manometers"))
-        self.cbFlowmeters.setChecked(utils.isLayerOpened("Flowmeters"))
-        self.cbCountmeters.setChecked(utils.isLayerOpened("Countermeters"))
-        self.cbLevelmeters.setChecked(utils.isLayerOpened("LevelSensors"))
+        self.cbMeters.setChecked(utils.isLayerOpened("Meters"))
 
     def selectCRS(self):
         projSelector = QgsGenericProjectionSelector()
@@ -183,14 +171,8 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
             self.layers.append("AirRelease Valves")
         if self.cbConnections.isChecked():
             self.layers.append("Service Connections")
-        if self.cbManometers.isChecked():
-            self.layers.append("Manometers")
-        if self.cbFlowmeters.isChecked():
-            self.layers.append("Flowmeters")
-        if self.cbCountmeters.isChecked():
-            self.layers.append("Countermeters")
-        if self.cbLevelmeters.isChecked():
-            self.layers.append("Levelsensors")
+        if self.cbMeters.isChecked():
+            self.layers.append("Meters")
 
     def createElement(self, layerName, complementary=False):
         layer = "" if complementary else layerName
