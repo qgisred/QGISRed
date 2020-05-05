@@ -2257,11 +2257,13 @@ class QGISRed:
         dlg = QGISRedLengthToolDialog()
         # Run the dialog event loop
         dlg.exec_()
-        result = dlg.ProcessDone
-        if result:
+        if dlg.ProcessDone:
             # Process
+            if not self.getSelectedFeaturesIds():
+                return
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            resMessage = GISRed.CheckLengths(self.ProjectDirectory, self.NetworkName, dlg.Tolerance, self.tempFolder)
+            resMessage = GISRed.CheckLengths(self.ProjectDirectory, self.NetworkName,
+                                             dlg.Tolerance, self.tempFolder, self.linkIds)
             QApplication.restoreOverrideCursor()
 
             self.processCsharpResult(resMessage, "No one pipe's length out of tolerance")
@@ -2277,8 +2279,10 @@ class QGISRed:
             return
 
         # Process
+        if not self.getSelectedFeaturesIds():
+            return
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.CheckDiameters(self.ProjectDirectory, self.NetworkName)
+        resMessage = GISRed.CheckDiameters(self.ProjectDirectory, self.NetworkName, self.linkIds)
         QApplication.restoreOverrideCursor()
 
         # Message
@@ -2304,8 +2308,10 @@ class QGISRed:
             return
 
         # Process
+        if not self.getSelectedFeaturesIds():
+            return
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.CheckMaterials(self.ProjectDirectory, self.NetworkName)
+        resMessage = GISRed.CheckMaterials(self.ProjectDirectory, self.NetworkName, self.linkIds)
         QApplication.restoreOverrideCursor()
 
         # Message
@@ -2331,8 +2337,10 @@ class QGISRed:
             return
 
         # Process
+        if not self.getSelectedFeaturesIds():
+            return
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.CheckInstallationDates(self.ProjectDirectory, self.NetworkName)
+        resMessage = GISRed.CheckInstallationDates(self.ProjectDirectory, self.NetworkName, self.linkIds)
         QApplication.restoreOverrideCursor()
 
         # Message
@@ -2396,11 +2404,10 @@ class QGISRed:
             return
 
         # Process
-        # if not self.getSelectedFeaturesIds():
-        #   return
+        if not self.getSelectedFeaturesIds():
+            return
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.SetRoughness(self.ProjectDirectory, self.NetworkName, self.tempFolder)
-        # , self.nodeIds.encode('utf-8'), self.linkIds.encode('utf-8'))
+        resMessage = GISRed.SetRoughness(self.ProjectDirectory, self.NetworkName, self.tempFolder, self.linkIds)
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "No issues ocurred")

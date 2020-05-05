@@ -142,25 +142,27 @@ class QGISRedDependencies:
         return QGISRedDependencies.toString(b)
 
     @staticmethod
-    def CheckDiameters(projectFolder, networkName):
+    def CheckDiameters(projectFolder, networkName, linkIds):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
+        linkIds = QGISRedDependencies.encode(linkIds)
 
         mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.CheckDiameters.argtypes = (c_char_p, c_char_p)
+        mydll.CheckDiameters.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CheckDiameters.restype = c_char_p
-        b = mydll.CheckDiameters(projectFolder, networkName)
+        b = mydll.CheckDiameters(projectFolder, networkName, linkIds)
         return QGISRedDependencies.toString(b)
 
     @staticmethod
-    def CheckInstallationDates(projectFolder, networkName):
+    def CheckInstallationDates(projectFolder, networkName, linkIds):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
+        linkIds = QGISRedDependencies.encode(linkIds)
 
         mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.CheckInstallationDates.argtypes = (c_char_p, c_char_p)
+        mydll.CheckInstallationDates.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CheckInstallationDates.restype = c_char_p
-        b = mydll.CheckInstallationDates(projectFolder, networkName)
+        b = mydll.CheckInstallationDates(projectFolder, networkName, linkIds)
         return QGISRedDependencies.toString(b)
 
     @staticmethod
@@ -176,27 +178,29 @@ class QGISRedDependencies:
         return QGISRedDependencies.toString(b)
 
     @staticmethod
-    def CheckLengths(projectFolder, networkName, tolerance, tempFolder):
+    def CheckLengths(projectFolder, networkName, tolerance, tempFolder, linkIds):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
         tolerance = QGISRedDependencies.encode(tolerance)
         tempFolder = QGISRedDependencies.encode(tempFolder)
+        linkIds = QGISRedDependencies.encode(linkIds)
 
         mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.CheckLengths.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.CheckLengths.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CheckLengths.restype = c_char_p
-        b = mydll.CheckLengths(projectFolder, networkName, tolerance, tempFolder)
+        b = mydll.CheckLengths(projectFolder, networkName, tolerance, tempFolder, linkIds)
         return QGISRedDependencies.toString(b)
 
     @staticmethod
-    def CheckMaterials(projectFolder, networkName):
+    def CheckMaterials(projectFolder, networkName, linkIds):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
+        linkIds = QGISRedDependencies.encode(linkIds)
 
         mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.CheckMaterials.argtypes = (c_char_p, c_char_p)
+        mydll.CheckMaterials.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CheckMaterials.restype = c_char_p
-        b = mydll.CheckMaterials(projectFolder, networkName)
+        b = mydll.CheckMaterials(projectFolder, networkName, linkIds)
         return QGISRedDependencies.toString(b)
 
     @staticmethod
@@ -531,15 +535,16 @@ class QGISRedDependencies:
         return QGISRedDependencies.toString(b)
 
     @staticmethod
-    def SetRoughness(projectFolder, networkName, tempFolder):
+    def SetRoughness(projectFolder, networkName, tempFolder, linkIds):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
+        linkIds = QGISRedDependencies.encode(linkIds)
 
         mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.SetRoughness.argtypes = (c_char_p, c_char_p, c_char_p)  # , c_char_p, c_char_p)
+        mydll.SetRoughness.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.SetRoughness.restype = c_char_p
-        b = mydll.SetRoughness(projectFolder, networkName, tempFolder)  # , self.nodeIds.encode('utf-8'), self.linkIds.encode('utf-8'))
+        b = mydll.SetRoughness(projectFolder, networkName, tempFolder, linkIds)
         return QGISRedDependencies.toString(b)
 
     @staticmethod
