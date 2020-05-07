@@ -289,11 +289,11 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbPipe_Descr.addItems(field_names)
 
         self.selectComboBoxItem(self.cbPipe_Id, ["id"])
-        self.selectComboBoxItem(self.cbPipe_Length, ["length"])
-        self.selectComboBoxItem(self.cbPipe_Diameter, ["diameter", "diam"])
+        self.selectComboBoxItem(self.cbPipe_Length, ["length", "longitud"])
+        self.selectComboBoxItem(self.cbPipe_Diameter, ["diameter", "diam", "diametro", "diámetro"])
         self.selectComboBoxItem(self.cbPipe_LossCoef, ["losscoeff"])
         self.selectComboBoxItem(self.cbPipe_Tag, ["tag"])
-        self.selectComboBoxItem(self.cbPipe_Descr, ["descrip", "descr", "description"])
+        self.selectComboBoxItem(self.cbPipe_Descr, ["descrip", "descr", "description", "descripcion", "descripción"])
 
     def valveLayerChanged(self):
         newItem = self.cbValveLayer.currentText()
@@ -325,12 +325,12 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbValve_Descr.addItems(field_names)
 
         self.selectComboBoxItem(self.cbValve_Id, ["id"])
-        self.selectComboBoxItem(self.cbValve_Diameter, ["diameter", "diam"])
-        self.selectComboBoxItem(self.cbValve_Type, ["type"])
+        self.selectComboBoxItem(self.cbValve_Diameter, ["diameter", "diam", "diametro", "diámetro"])
+        self.selectComboBoxItem(self.cbValve_Type, ["type", "tipo"])
         self.selectComboBoxItem(self.cbValve_InitStat, ["inistatus"])
         self.selectComboBoxItem(self.cbValve_Orient, ["orientatio"])
         self.selectComboBoxItem(self.cbValve_Tag, ["tag"])
-        self.selectComboBoxItem(self.cbValve_Descr, ["descrip", "descr", "description"])
+        self.selectComboBoxItem(self.cbValve_Descr, ["descrip", "descr", "description", "descripcion", "descripción"])
 
     def pumpLayerChanged(self):
         newItem = self.cbPumpLayer.currentText()
@@ -360,11 +360,11 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbPump_Descr.addItems(field_names)
 
         self.selectComboBoxItem(self.cbPump_Id, ["id"])
-        self.selectComboBoxItem(self.cbPump_Power, ["power"])
+        self.selectComboBoxItem(self.cbPump_Power, ["power", "potencia"])
         self.selectComboBoxItem(self.cbPump_InitStat, ["inistatus"])
         self.selectComboBoxItem(self.cbPump_Orient, ["orientatio"])
         self.selectComboBoxItem(self.cbPump_Tag, ["tag"])
-        self.selectComboBoxItem(self.cbPump_Descr, ["descrip", "descr", "description"])
+        self.selectComboBoxItem(self.cbPump_Descr, ["descrip", "descr", "description", "descripcion", "descripción"])
 
     def tankLayerChanged(self):
         newItem = self.cbTankLayer.currentText()
@@ -401,10 +401,10 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.selectComboBoxItem(self.cbTank_Elevat, ["elevation"])
         self.selectComboBoxItem(self.cbTank_MinLevel, ["minlevel"])
         self.selectComboBoxItem(self.cbTank_MaxLevel, ["maxlevel"])
-        self.selectComboBoxItem(self.cbTank_Diameter, ["diameter", "diam"])
+        self.selectComboBoxItem(self.cbTank_Diameter, ["diameter", "diam", "diametro", "diámetro"])
         self.selectComboBoxItem(self.cbTank_ReactCoeff, ["reactcoef"])
         self.selectComboBoxItem(self.cbTank_Tag, ["tag"])
-        self.selectComboBoxItem(self.cbTank_Descr, ["descrip", "descr", "description"])
+        self.selectComboBoxItem(self.cbTank_Descr, ["descrip", "descr", "description", "descripcion", "descripción"])
 
     def reservoirLayerChanged(self):
         newItem = self.cbReservoirLayer.currentText()
@@ -432,7 +432,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.selectComboBoxItem(self.cbReservoir_Id, ["id"])
         self.selectComboBoxItem(self.cbReservoir_TotHead, ["totalhead"])
         self.selectComboBoxItem(self.cbReservoir_Tag, ["tag"])
-        self.selectComboBoxItem(self.cbReservoir_Descr, ["descrip", "descr", "description"])
+        self.selectComboBoxItem(self.cbReservoir_Descr, ["descrip", "descr", "description", "descripcion", "descripción"])
 
     def junctionLayerChanged(self):
         newItem = self.cbJunctionLayer.currentText()
@@ -463,7 +463,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.selectComboBoxItem(self.cbJunction_Elevation, ["elevation"])
         self.selectComboBoxItem(self.cbJunction_BaseDem, ["basedem"])
         self.selectComboBoxItem(self.cbJunction_Tag, ["tag"])
-        self.selectComboBoxItem(self.cbJunction_Descr, ["descrip", "descr", "description"])
+        self.selectComboBoxItem(self.cbJunction_Descr, ["descrip", "descr", "description", "descripcion", "descripción"])
 
     def createShpsNames(self):
         shpFolder = self.tbShpDirectory.text()

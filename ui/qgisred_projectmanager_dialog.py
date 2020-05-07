@@ -264,6 +264,12 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
     def openProject(self):
         selectionModel = self.twProjectList.selectionModel()
         if selectionModel.hasSelection():
+            for row in selectionModel.selectedRows():
+                isSameProject = self.getUniformedPath(self.ProjectDirectory) == str(self.twProjectList.item(row.row(), 3).text())
+                isSameNet = self.NetworkName == str(self.twProjectList.item(row.row(), 0).text())
+                if isSameProject and isSameNet:
+                    self.iface.messageBar().pushMessage("Warning", "Selected project is currently opened.", level=1, duration=5)
+                    return
             valid = self.parent.isOpenedProject()
             if valid:
                 task1 = QgsTask.fromFunction("", self.clearQGisProject, on_finished=self.openProjectProcess)
@@ -284,11 +290,14 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         self.ProcessDone = True
 
     def createProject(self):
-        valid = self.parent.isOpenedProject()
-        if valid:
-            task1 = QgsTask.fromFunction("", self.clearQGisProject, on_finished=self.createProjectProcess)
-            task1.run()
-            QgsApplication.taskManager().addTask(task1)
+        if self.ProjectDirectory == self.parent.TemporalFolder:
+            self.createProjectProcess()
+        else:
+            valid = self.parent.isOpenedProject()
+            if valid:
+                task1 = QgsTask.fromFunction("", self.clearQGisProject, on_finished=self.createProjectProcess)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
 
     def createProjectProcess(self, exception=None, result=None):
         dlg = QGISRedCreateProjectDialog()
@@ -296,13 +305,22 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         # Run the dialog event loop
         self.close()
         dlg.exec_()
-        result = dlg.ProcessDone
-        if result:
-            self.ProjectDirectory = dlg.ProjectDirectory
-            self.NetworkName = dlg.NetworkName
-            self.ProcessDone = True
+
+        self.ProjectDirectory = dlg.ProjectDirectory
+        self.NetworkName = dlg.NetworkName
+        self.ProcessDone = True
 
     def importData(self):
+        if self.ProjectDirectory == self.parent.TemporalFolder:
+            self.importDataProcess()
+        else:
+            valid = self.parent.isOpenedProject()
+            if valid:
+                task1 = QgsTask.fromFunction("", self.clearQGisProject, on_finished=self.importDataProcess)
+                task1.run()
+                QgsApplication.taskManager().addTask(task1)
+
+    def importDataProcess(self, exception=None, result=None):
         dlg = QGISRedImportDialog()
         dlg.config(self.iface, self.ProjectDirectory, self.NetworkName, self.parent)
         # Run the dialog event loop
