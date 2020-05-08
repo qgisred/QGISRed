@@ -104,15 +104,16 @@ class QGISRedDependencies:
         return QGISRedDependencies.toString(b)
 
     @staticmethod
-    def CheckAlignedVertices(projectFolder, networkName, tempFolder):
+    def CheckAlignedVertices(projectFolder, networkName, tempFolder, linkIds):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
+        linkIds = QGISRedDependencies.encode(linkIds)
 
         mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.CheckAlignedVertices.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.CheckAlignedVertices.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CheckAlignedVertices.restype = c_char_p
-        b = mydll.CheckAlignedVertices(projectFolder, networkName, tempFolder)
+        b = mydll.CheckAlignedVertices(projectFolder, networkName, tempFolder, linkIds)
         return QGISRedDependencies.toString(b)
 
     @staticmethod
@@ -127,18 +128,6 @@ class QGISRedDependencies:
         mydll.CheckConnectivity.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CheckConnectivity.restype = c_char_p
         b = mydll.CheckConnectivity(projectFolder, networkName, linesToDelete, step, tempFolder)
-        return QGISRedDependencies.toString(b)
-
-    @staticmethod
-    def CheckCoordinates(projectFolder, networkName, tempFolder):
-        projectFolder = QGISRedDependencies.encode(projectFolder)
-        networkName = QGISRedDependencies.encode(networkName)
-        tempFolder = QGISRedDependencies.encode(tempFolder)
-
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.CheckCoordinates.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.CheckCoordinates.restype = c_char_p
-        b = mydll.CheckCoordinates(projectFolder, networkName, tempFolder)
         return QGISRedDependencies.toString(b)
 
     @staticmethod
@@ -201,6 +190,20 @@ class QGISRedDependencies:
         mydll.CheckMaterials.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.CheckMaterials.restype = c_char_p
         b = mydll.CheckMaterials(projectFolder, networkName, linkIds)
+        return QGISRedDependencies.toString(b)
+
+    @staticmethod
+    def CheckOverlappingElements(projectFolder, networkName, tempFolder, nodeIds, linkIds):
+        projectFolder = QGISRedDependencies.encode(projectFolder)
+        networkName = QGISRedDependencies.encode(networkName)
+        tempFolder = QGISRedDependencies.encode(tempFolder)
+        nodeIds = QGISRedDependencies.encode(nodeIds)
+        linkIds = QGISRedDependencies.encode(linkIds)
+
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
+        mydll.CheckOverlappingElements.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.CheckOverlappingElements.restype = c_char_p
+        b = mydll.CheckOverlappingElements(projectFolder, networkName, tempFolder, nodeIds, linkIds)
         return QGISRedDependencies.toString(b)
 
     @staticmethod

@@ -394,7 +394,7 @@ class QGISRed:
                         toolbar=self.verificationsToolbar,
                         actionBase=verificationsDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconOverloadC.png'
-        self.add_action(icon_path, text=self.tr(u'Remove overlapping elements'), callback=self.runCheckCoordinates,
+        self.add_action(icon_path, text=self.tr(u'Remove overlapping elements'), callback=self.runCheckOverlappingElements,
                         menubar=self.verificationsMenu, toolbar=self.verificationsToolbar,
                         actionBase=verificationsDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconVerticesC.png'
@@ -2112,7 +2112,7 @@ class QGISRed:
 
         self.processCsharpResult(resMessage, "Input data is valid")
 
-    def runCheckCoordinates(self):
+    def runCheckOverlappingElements(self):
         if not self.checkDependencies():
             return
         # Validations
@@ -2123,8 +2123,12 @@ class QGISRed:
             return
 
         # Process
+        if not self.getSelectedFeaturesIds():
+            return
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.CheckCoordinates(self.ProjectDirectory, self.NetworkName, self.tempFolder)
+        print(self.nodeIds)
+        print(self.linkIds)
+        resMessage = GISRed.CheckOverlappingElements(self.ProjectDirectory, self.NetworkName, self.tempFolder, self.nodeIds, self.linkIds)
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "No overlapping elements found")
@@ -2140,8 +2144,10 @@ class QGISRed:
             return
 
         # Process
+        if not self.getSelectedFeaturesIds():
+            return
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.CheckAlignedVertices(self.ProjectDirectory, self.NetworkName, self.tempFolder)
+        resMessage = GISRed.CheckAlignedVertices(self.ProjectDirectory, self.NetworkName, self.tempFolder, self.linkIds)
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "No aligned vertices to delete")
