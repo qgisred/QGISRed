@@ -345,6 +345,8 @@ class QGISRedUtils:
 
     """Others"""
     def copyDependencies(self):
+        if not os.path.exists(self.getGISRedDllFolder()):
+            return
         QGISRedUtils.DllTempoFolder = tempfile._get_default_tempdir() + "\\QGISRed_" + next(tempfile._get_candidate_names())
         shutil.copytree(self.getGISRedDllFolder(), QGISRedUtils.DllTempoFolder)
 

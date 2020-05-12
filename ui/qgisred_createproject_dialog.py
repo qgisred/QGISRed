@@ -56,7 +56,6 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
             self.tbProjectDirectory.setCursorPosition(0)
             self.ProjectDirectory = selected_directory
             self.NetworkName = self.tbNetworkName.text()
-            self.setProperties()
 
     def selectCRS(self):
         projSelector = QgsGenericProjectionSelector()

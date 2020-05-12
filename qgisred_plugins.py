@@ -67,7 +67,7 @@ class QGISRed:
     ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns"]
     complementaryLayers = []
     TemporalFolder = "Temporal folder"
-    DependenciesVersion = "1.0.9.0"
+    DependenciesVersion = "1.0.10.0"
 
     """Basic"""
     def __init__(self, iface):
@@ -519,7 +519,7 @@ class QGISRed:
         self.addEditMenu()
         self.addVerificationsMenu()
         self.addToolsMenu()
-        self.addExperimentalMenu()
+        # self.addExperimentalMenu()
         # About
         icon_path = ':/plugins/QGISRed/images/iconAbout.png'
         self.add_action(icon_path, text=self.tr(u'About...'), callback=self.runAbout,
@@ -535,7 +535,6 @@ class QGISRed:
 
         # QGISRed dependencies
         self.dllTempFolderFile = os.path.join(QGISRedUtils().getGISRedFolder(), "dllTempFolders.dat")
-        self.checkDependencies()
         QGISRedUtils().copyDependencies()
         self.removeTempFolders()
         # QGISRed updates
@@ -642,6 +641,9 @@ class QGISRed:
                 except Exception:
                     pass
                 valid = self.checkDependencies()
+                if valid:
+                    QGISRedUtils().copyDependencies()
+
         return valid
 
     def checkForUpdates(self):

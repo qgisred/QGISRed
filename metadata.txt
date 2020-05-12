@@ -7,11 +7,11 @@ name=QGISRed
 qgisMinimumVersion=3.0
 qgisMaximumVersion=3.99
 description=Free professional software to build and simulate advanced water distribution network models.
-version=0.9
+version=0.10
 author=Project Leader: REDHISP Group (IIAMA- UPV). Developer: WaterPi
 email=fmartine@hma.upv.es
 
-about=<p align="justify">QGISRed is a freeware QGIS plugin developed to assist in building hydraulic models of water distribution networks. The plugin works seamlessly with QGIS which enables the user to georeference all network elements, use geographic background layers, edit graphical and alphanumerical data, use geoprocessing tools, visualize data by layers, customize the symbology, etc.</p><p align="justify">QGISRed relies on an easy-to-use relational database of SHP and DBF files based on the EPANET data model. In case the user decides to use the QGIS tools to edit the data, QGISRed provides powerful facilities to detect potential editing errors before simulating the model, or to fill in the missing information.</p><p align="justify">In addition, QGISRed provides numerous tools to help build and analyze models, such as:</p><li>Scenario manager for easy project loading and storage</li><li>Creation of new empty scenarios</li><li>Import/export EPANET INP files and external Shapefiles</li><li>Automatic generation of topological relationships between network elements</li><li>Editing tools for the basic network elements (add, delete, move, edit vertices and nodes, reverse links, multiple selection, etc.)</li><li>Topology tools to debug the network layout and verify its connectivity</li><li>Default value allocation to newly created elements</li><li>Property editors for all element attributes, calculation options and default values</li><li>Automatic interpolation of node elevations</li><li>Automatic estimation of pipe roughness</li><li>Editing of multiple demands and quality sources integrated in the properties of the elements, and their visualization as separate layers</li><li>Powerful editors of curves, patterns, controls and rules</li><li>Validation anywhere of model properties against typical data entry errors</li><li>Auxiliary elements handling such as isolation valves, service connections, hydrants, washout valves, flowmeters, pressure sensors, etc.</li><li>Optional integration of some of these auxiliary elements into the model</li><li>Automatic identification of hydraulic sectors and demand zones</li><li>Model simulation by using the EPANET toolkit</li><li>Visualization of simulation results by means of tables, color coded theme layers, arrows and floating or static labels</li><li>Automatic creation of legends and symbols for the results (changeable with QGIS tools)</li><li>Time Browser to display simulation results</li><p align="justify">In order to improve the computing time, QGISRed uses binary libraries developed in .net, which constitutes the core of the GISRed standalone application.</p><p align="justify">The QGISRed plugin is an initiative of the <a href="https://www.iiama.upv.es/iiama/en/research/research-groups/hydraulic-networks-and-pressurised-systems.html">REDHISP</a> Research Group of the Institute of Water and Environmental Engineering (<a href="https://www.iiama.upv.es/iiama/en/">IIAMA</a>) of the Polytechnic University of Valencia, <a href="http://www.upv.es/index-en.html">UPV</a> (Spain), led by Professor <a href="https://www.researchgate.net/profile/Fernando_Martinez_Alzamora">Fernando Martínez Alzamora</a>. Its implementation was carried out by the <a href="https://waterpi.com/">WaterPi</a> company under the direction of <a href="https://www.researchgate.net/profile/Nestor_Lerma">Néstor Lerma</a>, PhD Eng.</p><p align="justify">For more information the user can download the Plugin Manual in <a href="https://redhisp.webs.upv.es/files/QGISRed/manuals/QGISRed_0.9_usermanual_en.pdf">English</a> and in <a href="https://redhisp.webs.upv.es/files/QGISRed/manuals/QGISRed_0.9_usermanual_es.pdf">Spanish</a>.</p><p><b>Requeriments</b>  .Net Framework 4.5 - Windows OS.</p><p><form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top"><input type="hidden" name="cmd" value="_s-xclick" /><input type="hidden" name="hosted_button_id" value="25M4ZMR52H8ZN" /><input type="image" src="https://www.paypalobjects.com/en_US/ES/i/btn/btn_donateCC_LG.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" /><img alt="" border="0" src="https://www.paypal.com/en_ES/i/scr/pixel.gif" width="1" height="1" /></form></p>
+about=<p align="justify">QGISRed is a freeware QGIS plugin developed to assist in building hydraulic models of water distribution networks. The plugin works seamlessly with QGIS which enables the user to georeference all network elements, use geographic background layers, edit graphical and alphanumerical data, use geoprocessing tools, visualize data by layers, customize the symbology, etc.</p><p align="justify">QGISRed relies on an easy-to-use relational database of SHP and DBF files based on the EPANET data model. In case the user decides to use the QGIS tools to edit the data, QGISRed provides powerful facilities to detect potential editing errors before simulating the model, or to fill in the missing information.</p><p align="justify">In addition, QGISRed provides numerous tools to help build and analyze models, such as:</p><li>Scenario manager for easy project loading and storage</li><li>Creation of new empty scenarios</li><li>Import/export EPANET INP files and external Shapefiles</li><li>Automatic generation of topological relationships between network elements</li><li>Editing tools for the basic network elements (add, delete, move, edit vertices and nodes, reverse links, multiple selection, etc.)</li><li>Topology tools to debug the network layout and verify its connectivity</li><li>Default value allocation to newly created elements</li><li>Property editors for all element attributes, calculation options and default values</li><li>Automatic interpolation of node elevations</li><li>Automatic estimation of pipe roughness</li><li>Editing of multiple demands and quality sources integrated in the properties of the elements, and their visualization as separate layers</li><li>Powerful editors of curves, patterns, controls and rules</li><li>Validation anywhere of model properties against typical data entry errors</li><li>Auxiliary elements handling such as isolation valves, service connections, hydrants, washout valves, flowmeters, pressure sensors, etc.</li><li>Optional integration of some of these auxiliary elements into the model</li><li>Automatic identification of hydraulic sectors and demand zones</li><li>Model simulation by using the EPANET toolkit</li><li>Visualization of simulation results by means of tables, color coded theme layers, arrows and floating or static labels</li><li>Automatic creation of legends and symbols for the results (changeable with QGIS tools)</li><li>Time Browser to display simulation results</li><p align="justify">In order to improve the computing time, QGISRed uses binary libraries developed in .net, which constitutes the core of the GISRed standalone application.</p><p align="justify">The QGISRed plugin is an initiative of the <a href="https://www.iiama.upv.es/iiama/en/research/research-groups/hydraulic-networks-and-pressurised-systems.html">REDHISP</a> Research Group of the Institute of Water and Environmental Engineering (<a href="https://www.iiama.upv.es/iiama/en/">IIAMA</a>) of the Polytechnic University of Valencia, <a href="http://www.upv.es/index-en.html">UPV</a> (Spain), led by Professor <a href="https://www.researchgate.net/profile/Fernando_Martinez_Alzamora">Fernando Martínez Alzamora</a>. Its implementation was carried out by the <a href="https://waterpi.com/">WaterPi</a> company under the direction of <a href="https://www.researchgate.net/profile/Nestor_Lerma">Néstor Lerma</a>, PhD Eng.</p><p align="justify">For more information the user can download the Plugin Manual in <a href="https://redhisp.webs.upv.es/files/QGISRed/manuals/QGISRed_0.10_usermanual_en.pdf">English</a> and in <a href="https://redhisp.webs.upv.es/files/QGISRed/manuals/QGISRed_0.10_usermanual_es.pdf">Spanish</a>.</p><p><b>Requeriments</b>  .Net Framework 4.5 - Windows OS.</p><p><form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top"><input type="hidden" name="cmd" value="_s-xclick" /><input type="hidden" name="hosted_button_id" value="25M4ZMR52H8ZN" /><input type="image" src="https://www.paypalobjects.com/en_US/ES/i/btn/btn_donateCC_LG.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" /><img alt="" border="0" src="https://www.paypal.com/en_ES/i/scr/pixel.gif" width="1" height="1" /></form></p>
 
 tracker=https://github.com/neslerel/QGISRed/issues
 repository=https://github.com/neslerel/QGISRed
@@ -23,24 +23,31 @@ repository=https://github.com/neslerel/QGISRed
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-changelog=version 0.9:
-      * A new logo for the QGISRed plugin
-      * Easy creation of pipes, reservoirs and tanks, with snapping tool
-      * Tool to create (add as you click), move or delete (right click) vertices of links
-      * Fixed valve/pump orientation when inserted into pipes
-      * Tool to reverse links (pipes, valves and pumps)
-      * Tool to split and join pipes
-      * Tool to join / separate nodes
-      * Tool to create / undo T connections
-      * Tool to create / undo pipe crossings
-      * Tool to move valves and pumps
-      * Multiple selection of elements from different layers in one step (Ctrl adds, and Shift removes)
-      * Deletion of all selected elements within a polygonal region
-      * Removed most of double buttons and replaced by a new option in the dialog window
-      * New button to access the latest results without running the model again
-      * Results menu can be expanded and compressed to allow coupling other QGIS windows
-      * Fixed error when working with long paths
-      * Some improvements on the features already offered in previous versions
+changelog=version 0.10:
+      * Fixed not correct behaviour in create/import tools when other layers are open.
+      * Headers of the INP sections written in English.
+      * Validation in element properties to prevent same final node in lines.
+      * Fixed error when importing tanks.
+      * Improved simplification of vertices to eliminate repetitions at the starting point.
+      * Fixed error writing the Times of Options.
+      * Metadata restructuring, now unified in the *_Metadata.txt file.
+      * Fixed error joining pipes with the same characteristics when they start and end in the same node.
+      * Check for new versions and notify the user.
+      * Fixed icons display in the legend for QGis version 3.12
+      * Fixed bug that prevented saving result styles.
+      * Fixed error in decimal symbol reading when the user uses the English format and changes the decimal symbol by comma.
+      * EditProject switches to LayerManagement to control visibility of layers and their creation.
+      * Now the projection is correctly saved in the PRJ file.
+      * New window with project options.
+      * Separation between Import (without project - INP or SHPs) and Add data (with project - only SHPs).
+      * Spatial tolerance when importing/adding data from SHPs.
+      * Manual includes ascii file format for elevation interpolation and classification of the 4 types of hydraulic sectors.
+      * Simplified 4 layers of meters in only 1.
+      * Fixed error when writing SHPs of issues in valves and pumps.
+      * Methods to assign roughness, check overlapping elements, aligned vertices, lengths, material, diameter or installation date now also for selected elements.
+      * Fixed error in very specific case when creating individual T-connections.
+      * New dependency management to avoid errors if they are in use.
+ 
 
 
 # Tags are comma separated with spaces allowed
