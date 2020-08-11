@@ -50,7 +50,8 @@ class QGISRedUtils:
     def openElementsLayers(self, group, ownMainLayers):
         for fileName in ownMainLayers:
             self.openLayer(group, fileName)
-        self.orderLayers(group)
+        if len(ownMainLayers) > 0:
+            self.orderLayers(group)
 
     def openIssuesLayers(self, group, layers):
         for fileName in layers:
@@ -113,17 +114,21 @@ class QGISRedUtils:
         mylayersNames = ["Sources.shp", "Reservoirs.shp", "Tanks.shp", "Pumps.shp", "Valves.shp", "Demands.shp", "Junctions.shp",
                          "Pipes.shp", "Patterns.dbf", "Curves.dbf", "Controls.dbf",
                          "Rules.dbf", "Options.dbf", "DefaultValues.dbf"]
+        layersToDelete = []
+        layers = self.getLayers()
         for layerName in mylayersNames:
             layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + layerName)
-            layers = self.getLayers()
             for layer in layers:
                 openedLayerPath = self.getLayerPath(layer)
                 if openedLayerPath == layerPath:
                     layerCloned = layer.clone()
+                    layersToDelete.append(layer.id())
                     QgsProject.instance().addMapLayer(layerCloned, group is None)
                     if group is not None:
                         group.addChildNode(QgsLayerTreeLayer(layerCloned))
-                        QgsProject.instance().removeMapLayer(layer.id())
+
+        if len(layersToDelete) > 0:
+            QgsProject.instance().removeMapLayers(layersToDelete)
 
     def orderResultLayers(self, group):
         layers = [tree_layer.layer() for tree_layer in group.findLayers()]  # Only in group

@@ -53,6 +53,7 @@ import base64
 import shutil
 import webbrowser
 import urllib.request
+import webbrowser
 from ctypes import windll
 # MessageBar Levels: Info 0, Warning 1, Critical 2, Success 3
 
@@ -67,7 +68,7 @@ class QGISRed:
     ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns"]
     complementaryLayers = []
     TemporalFolder = "Temporal folder"
-    DependenciesVersion = "1.0.10.0"
+    DependenciesVersion = "1.0.10.2"
 
     """Basic"""
     def __init__(self, iface):
@@ -519,10 +520,14 @@ class QGISRed:
         self.addEditMenu()
         self.addVerificationsMenu()
         self.addToolsMenu()
-        # self.addExperimentalMenu()
+        self.addExperimentalMenu()
         # About
         icon_path = ':/plugins/QGISRed/images/iconAbout.png'
         self.add_action(icon_path, text=self.tr(u'About...'), callback=self.runAbout,
+                        menubar=self.qgisredmenu, toolbar=self.toolbar, parent=self.iface.mainWindow())
+        # Report issues
+        icon_path = ':/plugins/QGISRed/images/iconGitHub.png'
+        self.add_action(icon_path, text=self.tr(u'Report issues or comments...'), callback=self.runReportIssues,
                         menubar=self.qgisredmenu, toolbar=self.toolbar, parent=self.iface.mainWindow())
 
         # Connecting QGis Events
@@ -1251,6 +1256,9 @@ class QGISRed:
         # show the dialog
         dlg = QGISRedAboutDialog()
         dlg.exec_()
+
+    def runReportIssues(self):
+        webbrowser.open('https://github.com/neslerel/QGISRed/issues')
 
     """File"""
     def runProjectManager(self):
