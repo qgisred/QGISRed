@@ -53,7 +53,6 @@ import base64
 import shutil
 import webbrowser
 import urllib.request
-import webbrowser
 from ctypes import windll
 # MessageBar Levels: Info 0, Warning 1, Critical 2, Success 3
 
@@ -68,7 +67,7 @@ class QGISRed:
     ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns"]
     complementaryLayers = []
     TemporalFolder = "Temporal folder"
-    DependenciesVersion = "1.0.10.2"
+    DependenciesVersion = "1.0.10.3"
 
     """Basic"""
     def __init__(self, iface):
@@ -520,7 +519,7 @@ class QGISRed:
         self.addEditMenu()
         self.addVerificationsMenu()
         self.addToolsMenu()
-        self.addExperimentalMenu()
+        # self.addExperimentalMenu()
         # About
         icon_path = ':/plugins/QGISRed/images/iconAbout.png'
         self.add_action(icon_path, text=self.tr(u'About...'), callback=self.runAbout,
@@ -621,17 +620,8 @@ class QGISRed:
             if currentVersion == self.DependenciesVersion:
                 valid = True
         if not valid:
-            locale = QSettings().value("locale/userLocale")
-            if "es" in locale:
-                lang = "es-ES"
-            else:
-                lang = "en-US"
-            if "64bit" in str(platform.architecture()):
-                plat = 'x64'
-            else:
-                plat = 'x86'
             link = '\"http://www.redhisp.webs.upv.es/files/QGISRed/' + \
-                self.DependenciesVersion + '/Installation_' + plat + '_' + lang + '.msi\"'
+                self.DependenciesVersion + '/QGISRed_Installation.msi\"'
             request = QMessageBox.question(self.iface.mainWindow(), self.tr('QGISRed Dependencies'),
                                            self.tr('QGISRed plugin only runs in Windows OS and needs some dependencies (' +
                                            self.DependenciesVersion +

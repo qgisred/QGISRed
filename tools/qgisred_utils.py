@@ -10,6 +10,7 @@ import os
 import tempfile
 import datetime
 import shutil
+import platform
 from zipfile import ZipFile
 from random import randrange
 
@@ -359,7 +360,11 @@ class QGISRedUtils:
         return os.path.join(os.getenv('APPDATA'), "QGISRed")
 
     def getGISRedDllFolder(self):
-        return os.path.join(self.getGISRedFolder(), "dlls")
+        plat = 'x86'
+        if "64bit" in str(platform.architecture()):
+            plat = 'x64'
+        dllFolder = os.path.join(self.getGISRedFolder(), "dlls")
+        return os.path.join(dllFolder, plat)
 
     def getCurrentDll(self):
         os.chdir(QGISRedUtils.DllTempoFolder)
