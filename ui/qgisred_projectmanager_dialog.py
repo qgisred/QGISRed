@@ -288,6 +288,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             break
         self.close()
         self.ProcessDone = True
+        self.parent.readUnits()
 
     def createProject(self):
         if self.ProjectDirectory == self.parent.TemporalFolder:
@@ -305,6 +306,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         # Run the dialog event loop
         self.close()
         dlg.exec_()
+        self.parent.readUnits()
 
         self.ProjectDirectory = dlg.ProjectDirectory
         self.NetworkName = dlg.NetworkName
@@ -326,6 +328,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         # Run the dialog event loop
         self.close()
         dlg.exec_()
+        self.parent.readUnits()
         result = dlg.ProcessDone
         if result:
             self.ProjectDirectory = dlg.ProjectDirectory

@@ -21,7 +21,7 @@
 """
 
 # Import QGis
-from qgis.core import QgsProject
+from qgis.core import QgsProject, QgsVectorLayer
 from PyQt5.QtGui import QIcon, QCursor
 from PyQt5.QtWidgets import QAction, QMessageBox, QApplication, QMenu, QFileDialog, QToolButton
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
@@ -108,6 +108,16 @@ class QGISRed:
         actions = self.iface.mainWindow().menuBar().actions()
         lastAction = actions[-1]
         self.iface.mainWindow().menuBar().insertMenu(lastAction, self.qgisredmenu)
+        # Status Bar
+        self.unitsButton = QToolButton()
+        self.unitsButton.setToolButtonStyle(2)
+        icon = QIcon(':/plugins/QGISRed/images/qgisred32.png')
+        self.unitsAction = QAction(icon, "QGISRed: LPS | H-W", None)
+        self.unitsAction.setToolTip("Click to change it")
+        self.unitsAction.triggered.connect(self.runAnalysisOptions)
+        self.actions.append(self.unitsAction)
+        self.unitsButton.setDefaultAction(self.unitsAction)
+        self.iface.mainWindow().statusBar().addWidget(self.unitsButton)
 
     def tr(self, message):
         """Get the translation for a string using Qt translation API.
@@ -191,6 +201,9 @@ class QGISRed:
                         toolbar=self.fileToolbar, actionBase=fileDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconImport.png'
         self.add_action(icon_path, text=self.tr(u'Import data'), callback=self.runCanImportData, menubar=self.fileMenu,
+                        toolbar=self.fileToolbar, actionBase=fileDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconLock.png'
+        self.add_action(icon_path, text=self.tr(u'Create backup'), callback=self.runCreateBackup, menubar=self.fileMenu,
                         toolbar=self.fileToolbar, actionBase=fileDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconCloseProject.png'
         self.add_action(icon_path, text=self.tr(u'Close project'), callback=self.runCloseProject, menubar=self.fileMenu,
@@ -583,8 +596,8 @@ class QGISRed:
             self.ResultDockwidget = None
 
         for action in self.actions:
-            # self.iface.removePluginMenu(self.tr(u'&QGISRed'), action)
             self.iface.removeToolBarIcon(action)
+
         # remove the toolbar
         del self.toolbar
         del self.fileToolbar
@@ -593,6 +606,10 @@ class QGISRed:
         del self.verificationsToolbar
         del self.toolsToolbar
 
+        # remove statusbar label
+        self.iface.mainWindow().statusBar().removeWidget(self.unitsButton)
+
+        # remove menus
         if self.fileMenu:
             self.fileMenu.menuAction().setVisible(False)
         if self.projectMenu:
@@ -795,6 +812,24 @@ class QGISRed:
                                                     level=1)
                 return True
         return False
+
+    def readUnits(self, folder="", network=""):
+        if folder == "" and network == "":
+            self.defineCurrentProject()
+        units = "LPS"
+        headloss = "D-W"
+        if self.ProjectDirectory == "Temporal Folder":
+            return
+        dbf = QgsVectorLayer(os.path.join(self.ProjectDirectory, self.NetworkName + "_Options.dbf"), "Options", "ogr")
+        for feature in dbf.getFeatures():
+            attrs = feature.attributes()
+            if attrs[1] == "UNITS":
+                units = attrs[2]
+            if attrs[1] == "HEADLOSS":
+                headloss = attrs[2]
+
+        self.unitsAction.setText("QGISRed: " + units + " | " + headloss)
+        del dbf
 
     """Remove Layers"""
     def removeLayers(self, task=None):
@@ -1051,10 +1086,6 @@ class QGISRed:
                     paths = paths + os.path.splitext(os.path.basename(rutaLayer))[0].replace(self.NetworkName+"_", "") + ';'
         return paths
 
-    def createBackup(self):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        utils.saveBackup(self.KeyTemp)
-
     def setCursor(self, shape):
         cursor = QCursor()
         cursor.setShape(shape)
@@ -1181,6 +1212,8 @@ class QGISRed:
         QApplication.setOverrideCursor(Qt.WaitCursor)
         resMessage = GISRed.ReplaceTemporalFiles(self.ProjectDirectory, self.tempFolder)
 
+        self.readUnits(self.ProjectDirectory, self.NetworkName)
+
         if self.hasToOpenNewLayers:
             self.opendedLayers = False
             task1 = QgsTask.fromFunction('', self.openElementLayers, on_finished=self.setExtent)
@@ -1299,6 +1332,7 @@ class QGISRed:
         dlg = QGISRedCreateProjectDialog()
         dlg.config(self.iface, self.ProjectDirectory, self.NetworkName, self)
         dlg.exec_()
+        self.readUnits()
 
     def runCanImportData(self):
         if not self.checkDependencies():
@@ -1403,6 +1437,17 @@ class QGISRed:
         # Run the dialog event loop
         dlg.exec_()
 
+    def runCreateBackup(self):
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        path = utils.saveBackup()
+        self.iface.messageBar().pushMessage("QGISRed", "Backup stored in: " + path, level=0, duration=5)
+
     def runSaveProject(self):
         self.defineCurrentProject()
         if not self.ProjectDirectory == self.TemporalFolder:
@@ -1428,7 +1473,9 @@ class QGISRed:
         QApplication.restoreOverrideCursor()
 
         # Message
-        if resMessage == "True":
+        if "True" in resMessage:
+            resMessage = resMessage.replace("True:", "")
+            self.unitsAction.setText("QGISRed: " + resMessage)
             self.hasToOpenNewLayers = False
             self.hasToOpenIssuesLayers = False
             self.extent = self.iface.mapCanvas().extent()
