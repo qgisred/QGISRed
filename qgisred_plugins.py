@@ -319,7 +319,7 @@ class QGISRed:
                                                   actionBase=editDropButton, add_to_toolbar=True, checable=True,
                                                   parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconMoveVertexs.png'
-        self.moveVertexsButton = self.add_action(icon_path, text=self.tr(u'Edit link vertexes'),
+        self.moveVertexsButton = self.add_action(icon_path, text=self.tr(u'Edit link vertices'),
                                                  callback=self.runEditVertexs, menubar=self.editionMenu,
                                                  toolbar=self.editionToolbar,
                                                  actionBase=editDropButton, add_to_toolbar=True, checable=True,
@@ -471,6 +471,10 @@ class QGISRed:
         icon_path = ':/plugins/QGISRed/images/iconRoughness.png'
         self.add_action(icon_path, text=self.tr(u'Set Roughness coefficient (from Material and Date)'),
                         callback=self.runSetRoughness, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
+                        actionBase=toolDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconRoughnessConvert.png'
+        self.add_action(icon_path, text=self.tr(u'Convert Roughness coefficient'),
+                        callback=self.runConvertRoughness, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
                         actionBase=toolDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconInterpolate.png'
         self.add_action(icon_path, text=self.tr(u'Interpolate elevation from .asc files'),
@@ -1483,6 +1487,8 @@ class QGISRed:
             task1 = QgsTask.fromFunction('', self.removeDBFs, on_finished=self.runOpenTemporaryFiles)
             task1.run()
             QgsApplication.taskManager().addTask(task1)
+        elif resMessage == "commit":
+            self.processCsharpResult(resMessage, "Pipe's roughness converted")
         elif resMessage == "False":
             self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr(
                 "Some issues occurred in the process"), level=1, duration=5)
@@ -2173,8 +2179,6 @@ class QGISRed:
         if not self.getSelectedFeaturesIds():
             return
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        print(self.nodeIds)
-        print(self.linkIds)
         resMessage = GISRed.CheckOverlappingElements(self.ProjectDirectory, self.NetworkName, self.tempFolder, self.nodeIds, self.linkIds)
         QApplication.restoreOverrideCursor()
 
@@ -2461,6 +2465,25 @@ class QGISRed:
             return
         QApplication.setOverrideCursor(Qt.WaitCursor)
         resMessage = GISRed.SetRoughness(self.ProjectDirectory, self.NetworkName, self.tempFolder, self.linkIds)
+        QApplication.restoreOverrideCursor()
+
+        self.processCsharpResult(resMessage, "No issues ocurred")
+
+    def runConvertRoughness(self):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        # Process
+        if not self.getSelectedFeaturesIds():
+            return
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.ConvertRoughness(self.ProjectDirectory, self.NetworkName, self.tempFolder, self.linkIds)
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "No issues ocurred")

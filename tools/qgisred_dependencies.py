@@ -242,6 +242,20 @@ class QGISRedDependencies:
         return QGISRedDependencies.toString(b)
 
     @staticmethod
+    def ConvertRoughness(projectFolder, networkName, tempFolder, linkIds):
+        projectFolder = QGISRedDependencies.encode(projectFolder)
+        networkName = QGISRedDependencies.encode(networkName)
+        tempFolder = QGISRedDependencies.encode(tempFolder)
+        linkIds = QGISRedDependencies.encode(linkIds)
+
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
+        mydll.ConvertRoughness.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.ConvertRoughness.restype = c_char_p
+        b = mydll.ConvertRoughness(projectFolder, networkName, tempFolder, linkIds)
+        return QGISRedDependencies.toString(b)
+
+
+    @staticmethod
     def CreateLayer(projectFolder, networkName, layer, complLayer):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
