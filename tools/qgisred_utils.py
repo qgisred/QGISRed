@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtGui import QColor
-from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer
+from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer, QgsApplication, QgsTask
 from qgis.core import QgsSvgMarkerSymbolLayer, QgsSymbol, QgsSingleSymbolRenderer
 from qgis.core import QgsLineSymbol, QgsSimpleLineSymbolLayer, QgsProperty
 from qgis.core import QgsMarkerSymbol, QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayer
@@ -408,3 +408,8 @@ class QGISRedUtils:
 
     def writeFile(self, file, string):
         file.write(string)
+
+    def runTask(self, name, process, postprocess):
+        task = QgsTask.fromFunction('QGISRed', process, on_finished=postprocess)
+        task.run()
+        QgsApplication.taskManager().addTask(task)

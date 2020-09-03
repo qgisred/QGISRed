@@ -143,13 +143,6 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         file.close()
         return True
 
-    def removeLayers(self, task, wait_time):
-        # Remove layers
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        utils.removeLayers(self.ownMainLayers)
-        utils.removeLayers(self.ownFiles, ".dbf")
-        raise Exception('')
-
     def getInputGroup(self):
         inputGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
         if inputGroup is None:
@@ -159,14 +152,6 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 netGroup = root.insertGroup(0, self.NetworkName)
             inputGroup = netGroup.addGroup("Inputs")
         return inputGroup
-
-    def openElementLayers(self, task):
-        if not self.opendedLayers:
-            self.opendedLayers = True
-            utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-            inputGroup = self.getInputGroup()
-            utils.openElementsLayers(inputGroup, self.ownMainLayers, self.ownFiles)
-            raise Exception('')
 
     def setZoomExtent(self, exception=None, result=None):
         self.iface.mapCanvas().zoomToFullExtent()

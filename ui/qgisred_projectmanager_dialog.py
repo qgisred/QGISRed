@@ -169,7 +169,8 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
 
     def clearQGisProject(self, task):
         QgsProject.instance().clear()
-        raise Exception('')
+        if task is not None:
+            return {'task': task.definition()}
 
     def openProjectInQgis(self, projectDirectory, networkName):
         metadataFile = os.path.join(
@@ -272,9 +273,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                     return
             valid = self.parent.isOpenedProject()
             if valid:
-                task1 = QgsTask.fromFunction("", self.clearQGisProject, on_finished=self.openProjectProcess)
-                task1.run()
-                QgsApplication.taskManager().addTask(task1)
+                QGISRedUtils().runTask('open project', self.clearQGisProject, self.openProjectProcess)
         else:
             self.iface.messageBar().pushMessage("Warning", "You need to select a valid project to open it.", level=1, duration=5)
 
@@ -296,9 +295,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         else:
             valid = self.parent.isOpenedProject()
             if valid:
-                task1 = QgsTask.fromFunction("", self.clearQGisProject, on_finished=self.createProjectProcess)
-                task1.run()
-                QgsApplication.taskManager().addTask(task1)
+                QGISRedUtils().runTask('create project', self.clearQGisProject, self.createProjectProcess)
 
     def createProjectProcess(self, exception=None, result=None):
         dlg = QGISRedCreateProjectDialog()
@@ -318,9 +315,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         else:
             valid = self.parent.isOpenedProject()
             if valid:
-                task1 = QgsTask.fromFunction("", self.clearQGisProject, on_finished=self.importDataProcess)
-                task1.run()
-                QgsApplication.taskManager().addTask(task1)
+                QGISRedUtils().runTask('import project', self.clearQGisProject, self.importDataProcess)
 
     def importDataProcess(self, exception=None, result=None):
         dlg = QGISRedImportDialog()

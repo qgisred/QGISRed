@@ -107,7 +107,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         utils = QGISRedUtils(resultPath, self.NetworkName + "_" + self.Scenario, self.iface)
         utils.removeLayers(self.LabelsToOpRe)
         if task is not None:
-            raise Exception('')
+            return {'task': task.definition()}
 
     def getInputGroup(self):
         # Same method in qgisred_newproject_dialog and qgisred_plugins
@@ -698,9 +698,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.saveCurrentRender()
 
         # Remove results layers previous to simulate
-        task1 = QgsTask.fromFunction("", self.removeResults, on_finished=self.simulationProcess)
-        task1.run()
-        QgsApplication.taskManager().addTask(task1)
+        QGISRedUtils().runTask('simulate', self.removeResults, self.simulationProcess)
 
     def simulationProcess(self, exception=None, result=None):
         # Process
@@ -792,9 +790,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.setLayersNames(True)
         # Task is necessary because after remove layers, DBF files are in use. With the task,
         # the remove process finishs and filer are not in use
-        task1 = QgsTask.fromFunction("", self.removeResults, on_finished=self.openAllResultsProcess)
-        task1.run()
-        QgsApplication.taskManager().addTask(task1)
+        QGISRedUtils().runTask('update all results', self.removeResults, self.openAllResultsProcess)
 
     def openAllResultsProcess(self, exception=None, result=None):
         self.setLayersNames()
@@ -904,9 +900,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.setLayersNames(True)
         # Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and
         # filer are not in use
-        task1 = QgsTask.fromFunction("", self.removeResults, on_finished=self.deleteScenarioProcess, wait_time=0)
-        task1.run()
-        QgsApplication.taskManager().addTask(task1)
+        QGISRedUtils().runTask('delete scenario', self.removeResults, self.deleteScenarioProcess)
 
     def deleteScenarioProcess(self, exception=None, result=None):
         # Delete Group
