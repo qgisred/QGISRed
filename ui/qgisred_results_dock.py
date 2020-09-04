@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtWidgets import QDockWidget, QApplication
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QColor, QFont
 from qgis.PyQt import uic
 from qgis.core import QgsProject
-from qgis.core import QgsTask, QgsApplication, QgsPalLayerSettings, QgsVectorLayerSimpleLabeling
+from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling
+from qgis.core import QgsTextFormat
 from qgis.core import QgsProperty, QgsRenderContext, QgsRendererRange
 from qgis.core import QgsGraduatedSymbolRenderer, QgsGradientColorRamp as QgsVectorGradientColorRamp
 
@@ -273,11 +274,19 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         firstCondition = layer.geometryType() == 0 and self.cbNodeLabels.isChecked()
         secondCondition = layer.geometryType() != 0 and self.cbLinkLabels.isChecked()
         if firstCondition or secondCondition:
-            pal_layer = QgsPalLayerSettings()
-            pal_layer.fieldName = fieldName
-            pal_layer.enabled = True
-            pal_layer.placement = QgsPalLayerSettings.Line
-            labels = QgsVectorLayerSimpleLabeling(pal_layer)
+            layer_settings = QgsPalLayerSettings()
+            text_format = QgsTextFormat()
+            text_format.setFont(QFont("Arial", 10))
+            color = "black"
+            if secondCondition:
+                color = "blue"
+            text_format.setColor(QColor(color))
+            layer_settings.setFormat(text_format)
+
+            layer_settings.fieldName = fieldName
+            layer_settings.placement = QgsPalLayerSettings.Line
+            layer_settings.enabled = True
+            labels = QgsVectorLayerSimpleLabeling(layer_settings)
             layer.setLabeling(labels)
             layer.setLabelsEnabled(True)
             layer.triggerRepaint()
