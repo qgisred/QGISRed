@@ -3,7 +3,6 @@ from PyQt5.QtWidgets import QTableWidgetItem, QDialog
 from PyQt5.QtCore import QFileInfo
 from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer
 from qgis.PyQt import uic
-from qgis.core import QgsTask, QgsApplication
 # Import the code for the dialog
 from .qgisred_createproject_dialog import QGISRedCreateProjectDialog
 from .qgisred_import_dialog import QGISRedImportDialog
@@ -28,7 +27,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
     ownMainLayers = ["Pipes", "Junctions", "Demands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
     layerExtensions = [".shp", ".dbf", ".shx", ".prj", ".qpj"]
     ownFiles = ["DefaultValues.dbf", "Options.dbf", "Rules.dbf", "Controls.dbf",
-                "Curves.dbf", "Patterns.dbf", "TitleAndNotes.txt"]
+                "Curves.dbf", "Patterns.dbf", "TitleAndNotes.txt", "Metadata.txt"]
 
     def __init__(self, parent=None):
         """Constructor."""
@@ -352,6 +351,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                                 if os.path.exists(layerPath + ext):
                                     name = dlg.NetworkName + "_" + layerName + ext
                                     copyfile(layerPath + ext, os.path.join(dlg.ProjectDirectory, name))
+
                         for fileName in self.ownFiles:
                             filePath = os.path.join(mainFolder, mainName + "_" + fileName)
                             if os.path.exists(filePath):

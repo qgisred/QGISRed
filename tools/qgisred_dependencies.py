@@ -254,7 +254,6 @@ class QGISRedDependencies:
         b = mydll.ConvertRoughness(projectFolder, networkName, tempFolder, linkIds)
         return QGISRedDependencies.toString(b)
 
-
     @staticmethod
     def CreateLayer(projectFolder, networkName, layer, complLayer):
         projectFolder = QGISRedDependencies.encode(projectFolder)
