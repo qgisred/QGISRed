@@ -899,8 +899,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.saveCurrentRender()
 
         self.cbScenarios.addItem(newScenario)
-        self.cbScenarios.setCurrentIndex(self.cbScenarios.count()-1)
+        # self.cbScenarios.setCurrentIndex(self.cbScenarios.count()-1)
         self.tbScenarioName.setText("")
+        self.tbComments.setText("")
 
     def deleteScenario(self):
         self.Scenario = self.cbScenarios.currentText()
