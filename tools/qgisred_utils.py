@@ -410,6 +410,8 @@ class QGISRedUtils:
         file.write(string)
 
     def runTask(self, name, process, postprocess):
-        task = QgsTask.fromFunction('QGISRed', process, on_finished=postprocess)
-        task.run()
-        QgsApplication.taskManager().addTask(task)
+        process(None)
+        postprocess()
+        # task = QgsTask.fromFunction('QGISRed', process, on_finished=postprocess)
+        # task.run()
+        # QgsApplication.taskManager().addTask(task)
