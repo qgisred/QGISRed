@@ -577,6 +577,7 @@ class QGISRed:
         self.hasToOpenConnectivityLayers = False
         self.hasToOpenIssuesLayers = False
         self.hasToOpenSectorLayers = False
+        self.selectedFids = {}
 
         self.zoomToFullExtent = False
         self.removingLayers = False
@@ -868,9 +869,9 @@ class QGISRed:
         if task is not None:
             return {'task': task.definition()}
 
-    def removeDBFs(self, task, dbfs):
+    def removeDBFs(self, task):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        utils.removeLayers(dbfs, ".dbf")
+        utils.removeLayers(self.ownFiles, ".dbf")
         if task is not None:
             return {'task': task.definition()}
 
@@ -1427,7 +1428,7 @@ class QGISRed:
 
         # Message
         if resMessage == "True":
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Project options updated"), level=3, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Info"), self.tr("Project options updated"), level=0, duration=5)
         elif resMessage == "False":
             warningMessage = self.tr("Some issues occurred in the process")
             self.iface.messageBar().pushMessage(self.tr("Warning"), warningMessage, level=1, duration=5)

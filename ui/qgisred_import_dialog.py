@@ -203,6 +203,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             QApplication.setOverrideCursor(Qt.WaitCursor)
             resMessage = GISRed.ImportFromInp(self.ProjectDirectory, self.NetworkName, self.parent.tempFolder, self.InpFile, epsg)
             QApplication.restoreOverrideCursor()
+            self.parent.ProjectDirectory = self.ProjectDirectory
+            self.parent.NetworkName = self.NetworkName
 
             self.parent.processCsharpResult(resMessage, "")
 
@@ -727,5 +729,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             resMessage = GISRed.ImportFromShps(self.ProjectDirectory, self.NetworkName, self.parent.tempFolder,
                                                shapes, fields, epsg, tolerance)
             QApplication.restoreOverrideCursor()
+            self.parent.ProjectDirectory = self.ProjectDirectory
+            self.parent.NetworkName = self.NetworkName
 
             self.parent.processCsharpResult(resMessage, "")
