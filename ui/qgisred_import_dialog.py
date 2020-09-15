@@ -20,7 +20,6 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
     NetworkName = ""
     ProjectDirectory = ""
     InpFile = ""
-    ProcessDone = False
     gplFile = ""
     TemporalFolder = "Temporal folder"
     ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs", "Demands", "Sources"]
@@ -184,22 +183,10 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                     self.iface.messageBar().pushMessage("Validations", "INP file does not exist", level=1)
                     return
 
-            # Process
-            if self.NewProject:
-                if not self.createProject():
-                    return
-            else:
-                question = 'Import INP file will be delete all previous data in the current project. Do you want to continue?'
-                request = QMessageBox.question(self.iface.mainWindow(), self.tr('QGISRed'), self.tr(question),
-                                               QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No))
-                if request == QMessageBox.No:
-                    return
-
-            self.parent.zoomToFullExtent = True
             self.close()
-            self.ProcessDone = True
-            epsg = self.crs.authid().replace("EPSG:", "")
             # Process
+            self.parent.zoomToFullExtent = True
+            epsg = self.crs.authid().replace("EPSG:", "")
             QApplication.setOverrideCursor(Qt.WaitCursor)
             resMessage = GISRed.ImportFromInp(self.ProjectDirectory, self.NetworkName, self.parent.tempFolder, self.InpFile, epsg)
             QApplication.restoreOverrideCursor()
@@ -718,9 +705,9 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 if not self.createProject():
                     return
 
-            self.parent.zoomToFullExtent = True
             self.close()
-            self.ProcessDone = True
+            self.parent.zoomToFullExtent = True
+
             epsg = self.crs.authid().replace("EPSG:", "")
             shapes = self.createShpsNames()
             fields = self.createShpFields()

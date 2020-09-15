@@ -67,7 +67,7 @@ class QGISRed:
     ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns"]
     complementaryLayers = []
     TemporalFolder = "Temporal folder"
-    DependenciesVersion = "1.0.10.3"
+    DependenciesVersion = "1.0.11.0"
 
     """Basic"""
     def __init__(self, iface):
@@ -1234,10 +1234,9 @@ class QGISRed:
     def runOpenTemporaryFiles(self, exception=None, result=None):
         if self.hasToOpenIssuesLayers:
             self.removeIssuesLayersFiles()
-        # Process
+
         QApplication.setOverrideCursor(Qt.WaitCursor)
         resMessage = GISRed.ReplaceTemporalFiles(self.ProjectDirectory, self.tempFolder)
-
         self.readUnits(self.ProjectDirectory, self.NetworkName)
 
         if self.hasToOpenNewLayers:
@@ -1388,11 +1387,6 @@ class QGISRed:
 
         # Run the dialog event loop
         dlg.exec_()
-        result = dlg.ProcessDone
-        if result:
-            self.ProjectDirectory = dlg.ProjectDirectory
-            self.NetworkName = dlg.NetworkName
-            # self.updateMetadata(self.ProjectDirectory, self.NetworkName)
 
     def runCloseProject(self):
         self.iface.newProject(True)
