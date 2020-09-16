@@ -550,6 +550,7 @@ class QGISRed:
         QgsProject.instance().projectSaved.connect(self.runSaveProject)
         QgsProject.instance().cleared.connect(self.runClearedProject)
         QgsProject.instance().layersRemoved.connect(self.runLegendChanged)
+        QgsProject.instance().readProject.connect(self.runOpenedQgisProject)
 
         # MapTools
         self.myMapTools = {}
@@ -1456,6 +1457,12 @@ class QGISRed:
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         path = utils.saveBackup()
         self.iface.messageBar().pushMessage("QGISRed", "Backup stored in: " + path, level=0, duration=5)
+
+    def runOpenedQgisProject(self):
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            return
+        self.readUnits(self.ProjectDirectory, self.NetworkName)
 
     def runSaveProject(self):
         self.defineCurrentProject()
