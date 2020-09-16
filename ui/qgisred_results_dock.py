@@ -141,7 +141,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.cbLinks.setCurrentIndex(2)
         if nameLayer == "Link_HeadLoss":
             self.cbLinks.setCurrentIndex(3)
-        if nameLayer == "Link_Quaility":
+        if nameLayer == "Link_Quality":
             self.cbLinks.setCurrentIndex(4)
         if nameLayer == "Node_Pressure":
             self.cbNodes.setCurrentIndex(1)
@@ -149,7 +149,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.cbNodes.setCurrentIndex(2)
         if nameLayer == "Node_Demand":
             self.cbNodes.setCurrentIndex(3)
-        if nameLayer == "Node_Quaility":
+        if nameLayer == "Node_Quality":
             self.cbNodes.setCurrentIndex(4)
 
     def restoreElementsCb(self):
@@ -205,7 +205,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if self.cbLinks.currentIndex() == 3 or allLayers:
             self.LabelsToOpRe.append("Link_HeadLoss")
         if self.cbLinks.currentIndex() == 4 or allLayers:
-            self.LabelsToOpRe.append("Link_Quaility")
+            self.LabelsToOpRe.append("Link_Quality")
         if self.cbNodes.currentIndex() == 1 or allLayers:
             self.LabelsToOpRe.append("Node_Pressure")
         if self.cbNodes.currentIndex() == 2 or allLayers:
@@ -213,21 +213,21 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if self.cbNodes.currentIndex() == 3 or allLayers:
             self.LabelsToOpRe.append("Node_Demand")
         if self.cbNodes.currentIndex() == 4 or allLayers:
-            self.LabelsToOpRe.append("Node_Quaility")
+            self.LabelsToOpRe.append("Node_Quality")
 
     def setLinksLayersNames(self):
         self.LabelsToOpRe = []
         self.LabelsToOpRe.append("Link_Flow")
         self.LabelsToOpRe.append("Link_Velocity")
         self.LabelsToOpRe.append("Link_HeadLoss")
-        self.LabelsToOpRe.append("Link_Quaility")
+        self.LabelsToOpRe.append("Link_Quality")
 
     def setNodesLayersNames(self):
         self.LabelsToOpRe = []
         self.LabelsToOpRe.append("Node_Pressure")
         self.LabelsToOpRe.append("Node_Head")
         self.LabelsToOpRe.append("Node_Demand")
-        self.LabelsToOpRe.append("Node_Quaility")
+        self.LabelsToOpRe.append("Node_Quality")
 
     """Symbology"""
     def saveCurrentRender(self):
