@@ -67,7 +67,7 @@ class QGISRed:
     ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns"]
     complementaryLayers = []
     TemporalFolder = "Temporal folder"
-    DependenciesVersion = "1.0.11.0"
+    DependenciesVersion = "1.0.11.1"
 
     """Basic"""
     def __init__(self, iface):
@@ -688,15 +688,19 @@ class QGISRed:
         return valid
 
     def checkForUpdates(self):
-        link = '\"http://www.redhisp.webs.upv.es/files/QGISRed/versions.txt\"'
+        link = '\"http://www.redhisp.webs.upv.es/files/QGISRed/newVersions.txt\"'
         tempLocalFile = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names()) + ".txt"
         try:
             # Read online file
             urllib.request.urlretrieve(link.strip('\'"'), tempLocalFile)
             f = open(tempLocalFile, "r")
-            contents = f.read()
+            contents = f.read()  # 0.11
             f.close()
-            if(int(contents.replace(".", "")) > int(self.DependenciesVersion.replace(".", ""))):
+            newVersion = contents
+            if len(contents.split(".")) == 2:
+                newVersion += ".0"  # 0.11.0
+            newVersion = "1." + newVersion  # 1.0.11.0
+            if(int(newVersion.replace(".", "")) > int(self.DependenciesVersion.replace(".", ""))):
                 # Read local file with versions that user don't want to remember
                 fileVersions = os.path.join(os.path.join(os.getenv('APPDATA'), "QGISRed"), "updateVersions.dat")
                 oldVersions = ""

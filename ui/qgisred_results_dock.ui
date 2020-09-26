@@ -360,6 +360,11 @@
                    </item>
                    <item>
                     <property name="text">
+                     <string>Unit HeadLoss</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
                      <string>Quality</string>
                     </property>
                    </item>

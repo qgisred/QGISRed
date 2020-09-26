@@ -193,6 +193,12 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             self.parent.ProjectDirectory = self.ProjectDirectory
             self.parent.NetworkName = self.NetworkName
 
+            # Write .gql file
+            file = open(self.gplFile, "a+")
+            QGISRedUtils().writeFile(file, self.NetworkName + ";" + self.ProjectDirectory + '\n')
+            file.close()
+
+            # Open files
             self.parent.processCsharpResult(resMessage, "")
 
     """SHPS SECTION"""

@@ -141,8 +141,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.cbLinks.setCurrentIndex(2)
         if nameLayer == "Link_HeadLoss":
             self.cbLinks.setCurrentIndex(3)
-        if nameLayer == "Link_Quality":
+        if nameLayer == "Link_UnitHeadLoss":
             self.cbLinks.setCurrentIndex(4)
+        if nameLayer == "Link_Quality":
+            self.cbLinks.setCurrentIndex(5)
         if nameLayer == "Node_Pressure":
             self.cbNodes.setCurrentIndex(1)
         if nameLayer == "Node_Head":
@@ -181,6 +183,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if self.cbLinks.currentIndex() == 3:
             self.Variables = self.Variables + "HeadLoss_Link;"
         if self.cbLinks.currentIndex() == 4:
+            self.Variables = self.Variables + "UnitHeadLoss_Link;"
+        if self.cbLinks.currentIndex() == 5:
             self.Variables = self.Variables + "Quality_Link;"
         if self.cbNodes.currentIndex() == 1:
             self.Variables = self.Variables + "Pressure_Node;"
@@ -205,6 +209,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if self.cbLinks.currentIndex() == 3 or allLayers:
             self.LabelsToOpRe.append("Link_HeadLoss")
         if self.cbLinks.currentIndex() == 4 or allLayers:
+            self.LabelsToOpRe.append("Link_UnitHeadLoss")
+        if self.cbLinks.currentIndex() == 5 or allLayers:
             self.LabelsToOpRe.append("Link_Quality")
         if self.cbNodes.currentIndex() == 1 or allLayers:
             self.LabelsToOpRe.append("Node_Pressure")
@@ -220,6 +226,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.LabelsToOpRe.append("Link_Flow")
         self.LabelsToOpRe.append("Link_Velocity")
         self.LabelsToOpRe.append("Link_HeadLoss")
+        self.LabelsToOpRe.append("Link_UnitHeadLoss")
         self.LabelsToOpRe.append("Link_Quality")
 
     def setNodesLayersNames(self):
@@ -342,6 +349,12 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             ranges.append(QgsRendererRange(1, 2, simb4, "1-2"))
             ranges.append(QgsRendererRange(2, 10000, simb5, ">2"))
         elif "HeadLoss" in nameLayer:
+            ranges.append(QgsRendererRange(-10000, 0.1, simb1, "<0.1"))
+            ranges.append(QgsRendererRange(0.1, 0.5, simb2, "0.1-0.5"))
+            ranges.append(QgsRendererRange(0.5, 1, simb3, "0.5-1"))
+            ranges.append(QgsRendererRange(1, 5, simb4, "1-5"))
+            ranges.append(QgsRendererRange(5, 10000, simb5, ">5"))
+        elif "UnitHeadLoss" in nameLayer:
             ranges.append(QgsRendererRange(-10000, 0.1, simb1, "<0.1"))
             ranges.append(QgsRendererRange(0.1, 0.5, simb2, "0.1-0.5"))
             ranges.append(QgsRendererRange(0.5, 1, simb3, "0.5-1"))
@@ -512,6 +525,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if self.cbLinks.currentIndex() == 3:
             result = "HeadLoss"
         if self.cbLinks.currentIndex() == 4:
+            result = "UnitHeadLoss"
+        if self.cbLinks.currentIndex() == 5:
             result = "Quality"
 
         self.setLinksLayersNames()
