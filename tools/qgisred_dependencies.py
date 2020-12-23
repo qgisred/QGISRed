@@ -429,6 +429,18 @@ class QGISRedDependencies:
         return QGISRedDependencies.toString(b)
 
     @staticmethod
+    def ImportDemands(projectFolder, networkName, tempFolder):
+        projectFolder = QGISRedDependencies.encode(projectFolder)
+        networkName = QGISRedDependencies.encode(networkName)
+        tempFolder = QGISRedDependencies.encode(tempFolder)
+
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
+        mydll.ImportDemands.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.ImportDemands.restype = c_char_p
+        b = mydll.ImportDemands(projectFolder, networkName, tempFolder)
+        return QGISRedDependencies.toString(b)
+
+    @staticmethod
     def ImportFromInp(projectFolder, networkName, tempFolder, inpFile, epsg):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
@@ -482,6 +494,18 @@ class QGISRedDependencies:
         mydll.InsertValve.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.InsertValve.restype = c_char_p
         b = mydll.InsertValve(projectFolder, networkName, tempFolder, point)
+        return QGISRedDependencies.toString(b)
+
+    @staticmethod
+    def Materials(projectFolder, networkName, tempFolder):
+        projectFolder = QGISRedDependencies.encode(projectFolder)
+        networkName = QGISRedDependencies.encode(networkName)
+        tempFolder = QGISRedDependencies.encode(tempFolder)
+
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
+        mydll.Materials.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.Materials.restype = c_char_p
+        b = mydll.Materials(projectFolder, networkName, tempFolder)
         return QGISRedDependencies.toString(b)
 
     @staticmethod

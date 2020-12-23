@@ -64,7 +64,7 @@ class QGISRed:
     ProjectDirectory = ""
     NetworkName = ""
     ownMainLayers = ["Pipes", "Junctions", "Demands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
-    ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns"]
+    ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns", "Materials"]
     complementaryLayers = []
     TemporalFolder = "Temporal folder"
     DependenciesVersion = "1.0.11.1"
@@ -241,6 +241,10 @@ class QGISRed:
                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconDefaultValues.png'
         self.add_action(icon_path, text=self.tr(u'Default Values'), callback=self.runDefaultValues, menubar=self.projectMenu,
+                        toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
+                        parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconMaterials.png'
+        self.add_action(icon_path, text=self.tr(u'Materials Table'), callback=self.runMaterials, menubar=self.projectMenu,
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconSummary.png'
@@ -468,6 +472,10 @@ class QGISRed:
                                          menubar=self.toolsMenu, add_to_menu=False,
                                          toolbar=self.toolbar, createDrop=True, addActionToDrop=False,
                                          add_to_toolbar=False, parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconDemands.png'
+        self.add_action(icon_path, text=self.tr(u'Import demands in junctions'),
+                        callback=self.runImportDemands, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
+                        actionBase=toolDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconRoughness.png'
         self.add_action(icon_path, text=self.tr(u'Set Roughness coefficient (from Material and Date)'),
                         callback=self.runSetRoughness, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
@@ -536,7 +544,7 @@ class QGISRed:
         self.addEditMenu()
         self.addVerificationsMenu()
         self.addToolsMenu()
-        # self.addExperimentalMenu()
+        self.addExperimentalMenu()
         # About
         icon_path = ':/plugins/QGISRed/images/iconAbout.png'
         self.add_action(icon_path, text=self.tr(u'About...'), callback=self.runAbout,
@@ -1534,12 +1542,41 @@ class QGISRed:
             self.removingLayers = True
             QGISRedUtils().runTask('remove dbfs', self.removeDBFs, self.runOpenTemporaryFiles)
         elif resMessage == "False":
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr(
-                "Some issues occurred in the process"), level=1, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
         elif resMessage == "Cancelled":
             pass
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+
+    def runMaterials(self):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        # Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.Materials(self.ProjectDirectory, self.NetworkName, self.tempFolder)
+        QApplication.restoreOverrideCursor()
+
+        # Message
+        if resMessage == "True":
+            self.hasToOpenNewLayers = False
+            self.hasToOpenIssuesLayers = False
+            self.extent = self.iface.mapCanvas().extent()
+            self.removingLayers = True
+            QGISRedUtils().runTask('remove dbfs', self.removeDBFs, self.runOpenTemporaryFiles)
+        elif resMessage == "False":
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
+        elif resMessage == "Cancelled":
+            pass
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+
 
     def runSummary(self):
         if not self.checkDependencies():
@@ -2452,6 +2489,23 @@ class QGISRed:
             QGISRedUtils().runTask('update sectors', self.removeSectorLayers, self.runOpenTemporaryFiles)
 
     """Tools"""
+    def runImportDemands(self):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        # Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.ImportDemands(self.ProjectDirectory, self.NetworkName, self.tempFolder)
+        QApplication.restoreOverrideCursor()
+
+        self.processCsharpResult(resMessage, "")
+
     def runSetRoughness(self):
         if not self.checkDependencies():
             return

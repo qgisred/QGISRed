@@ -22,6 +22,7 @@
         <file>images/iconDefaultValues.png</file>
         <file>images/iconDelete.png</file>
         <file>images/iconDeleteElements.png</file>
+        <file>images/iconDemands.png</file>
         <file>images/iconDemandSector.png</file>
         <file>images/iconDiameters.png</file>
         <file>images/iconEdit.png</file>
@@ -41,6 +42,7 @@
         <file>images/iconLinePlot.png</file>
         <file>images/iconLock.png</file>
         <file>images/iconMaterial.png</file>
+        <file>images/iconMaterials.png</file>
         <file>images/iconMergeSplitJunction.png</file>
         <file>images/iconMoveElements.png</file>
         <file>images/iconMoveValvePump.png</file>
