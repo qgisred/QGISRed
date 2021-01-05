@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-from PyQt5.QtWidgets import QFileDialog, QDialog, QApplication, QMessageBox
+from PyQt5.QtWidgets import QFileDialog, QDialog, QApplication
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from qgis.core import QgsVectorLayer, QgsProject, QgsCoordinateReferenceSystem
+from qgis.core import QgsVectorLayer, QgsProject, QgsCoordinateReferenceSystem, QgsWkbTypes
 from qgis.PyQt import uic
 from qgis.gui import QgsProjectionSelectionDialog as QgsGenericProjectionSelector
 from ..tools.qgisred_utils import QGISRedUtils
@@ -48,6 +48,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbTankLayer.currentIndexChanged.connect(self.tankLayerChanged)
         self.cbReservoirLayer.currentIndexChanged.connect(self.reservoirLayerChanged)
         self.cbJunctionLayer.currentIndexChanged.connect(self.junctionLayerChanged)
+        self.cbServiceConnectionLayer.currentIndexChanged.connect(self.serviceConnectionLayerChanged)
         self.btImportShps.clicked.connect(self.importShpProject)
 
     def config(self, ifac, direct, netw, parent):
@@ -224,15 +225,31 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbReservoirLayer.addItem("None")
         self.cbJunctionLayer.clear()
         self.cbJunctionLayer.addItem("None")
+        self.cbServiceConnectionLayer.clear()
+        self.cbServiceConnectionLayer.addItem("None")
         for file in dirList:
             if ".shp" in file:
-                name = os.path.splitext(os.path.basename(file))[0]
-                self.cbPipeLayer.addItem(name)
-                self.cbValveLayer.addItem(name)
-                self.cbPumpLayer.addItem(name)
-                self.cbTankLayer.addItem(name)
-                self.cbReservoirLayer.addItem(name)
-                self.cbJunctionLayer.addItem(name)
+                layerPath = os.path.join(self.tbShpDirectory.text(), file)
+                vlayer = QgsVectorLayer(layerPath, "layer", "ogr")
+                if not vlayer.isValid():
+                    continue
+                features = vlayer.getFeatures()
+                # only check first feature
+                for feature in features:
+                    featureType = feature.geometry().type()
+                    name = os.path.splitext(os.path.basename(file))[0]
+                    if featureType == QgsWkbTypes.LineGeometry:
+                        self.cbPipeLayer.addItem(name)
+                        self.cbServiceConnectionLayer.addItem(name)
+                    if featureType == QgsWkbTypes.LineGeometry or featureType == QgsWkbTypes.PointGeometry:
+                        self.cbValveLayer.addItem(name)
+                        self.cbPumpLayer.addItem(name)
+                    if featureType == QgsWkbTypes.PointGeometry:
+                        self.cbTankLayer.addItem(name)
+                        self.cbReservoirLayer.addItem(name)
+                        self.cbJunctionLayer.addItem(name)
+                    break
+                vlayer = None
 
     def selectComboBoxItem(self, combobox, options):
         for i in range(combobox.count()):
@@ -265,6 +282,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbPipe_Length.addItems(field_names)
         self.cbPipe_Diameter.addItems(field_names)
         self.cbPipe_LossCoef.addItems(field_names)
+        self.cbPipe_Material.addItems(field_names)
+        self.cbPipe_InstDate.addItems(field_names)
         self.cbPipe_Tag.addItems(field_names)
         self.cbPipe_Descr.addItems(field_names)
 
@@ -272,6 +291,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.selectComboBoxItem(self.cbPipe_Length, ["length", "longitud"])
         self.selectComboBoxItem(self.cbPipe_Diameter, ["diameter", "diam", "diametro", "diámetro"])
         self.selectComboBoxItem(self.cbPipe_LossCoef, ["losscoeff"])
+        self.selectComboBoxItem(self.cbPipe_Material, ["material"])
+        self.selectComboBoxItem(self.cbPipe_InstDate, ["instdate", "date", "fecha", "fecha_de_i"])
         self.selectComboBoxItem(self.cbPipe_Tag, ["tag"])
         self.selectComboBoxItem(self.cbPipe_Descr, ["descrip", "descr", "description", "descripcion", "descripción"])
 
@@ -445,6 +466,45 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.selectComboBoxItem(self.cbJunction_Tag, ["tag"])
         self.selectComboBoxItem(self.cbJunction_Descr, ["descrip", "descr", "description", "descripcion", "descripción"])
 
+    def serviceConnectionLayerChanged(self):
+        newItem = self.cbServiceConnectionLayer.currentText()
+        self.cbServiceConnection_Id.clear()
+        self.cbServiceConnection_Length.clear()
+        self.cbServiceConnection_Diameter.clear()
+        self.cbServiceConnection_Material.clear()
+        self.cbServiceConnection_InstDate.clear()
+        self.cbServiceConnection_Tag.clear()
+        self.cbServiceConnection_Descr.clear()
+
+        if newItem == "None":
+            self.gbServiceConnection.setEnabled(False)
+            return
+
+        self.gbServiceConnection.setEnabled(True)
+
+        valveLayer = os.path.join(self.tbShpDirectory.text(), newItem + ".shp")
+        vlayer = QgsVectorLayer(valveLayer, "Pumps layer", "ogr")
+        if not vlayer.isValid():
+            return
+        field_names = [field.name() for field in vlayer.fields()]
+        field_names.insert(0, "None")
+        self.cbServiceConnection_Id.addItems(field_names)
+        self.cbServiceConnection_Length.addItems(field_names)
+        self.cbServiceConnection_Diameter.addItems(field_names)
+        self.cbServiceConnection_Material.addItems(field_names)
+        self.cbServiceConnection_InstDate.addItems(field_names)
+        self.cbServiceConnection_Tag.addItems(field_names)
+        self.cbServiceConnection_Descr.addItems(field_names)
+
+        self.selectComboBoxItem(self.cbServiceConnection_Id, ["id"])
+        self.selectComboBoxItem(self.cbServiceConnection_Length, ["length", "longitud"])
+        self.selectComboBoxItem(self.cbServiceConnection_Diameter, ["diameter", "diam", "diametro", "diámetro"])
+        self.selectComboBoxItem(self.cbServiceConnection_Material, ["material"])
+        self.selectComboBoxItem(self.cbServiceConnection_InstDate, ["instdate", "date", "fecha", "fecha_de_i"])
+        self.selectComboBoxItem(self.cbServiceConnection_Tag, ["tag"])
+        self.selectComboBoxItem(self.cbServiceConnection_Descr,
+                                ["descrip", "descr", "description", "descripcion", "descripción"])
+
     def createShpsNames(self):
         shpFolder = self.tbShpDirectory.text()
         shpNames = ""
@@ -467,6 +527,9 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         name = self.cbJunctionLayer.currentText()
         if not name == "None":
             shpNames = shpNames + "[JUNCTIONS]" + os.path.join(shpFolder, name) + ","
+        name = self.cbServiceConnectionLayer.currentText()
+        if not name == "None":
+            shpNames = shpNames + "[SERVICECONNECTIONS]" + os.path.join(shpFolder, name) + ","
         return shpNames
 
     def createShpFields(self):
@@ -488,8 +551,14 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 fields = fields + name
             fields = fields + ";"
             fields = fields + ";"  # RougCoeff
-            fields = fields + ";"  # Material
-            fields = fields + ";"  # InstalDate
+            name = self.cbPipe_Material.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+            name = self.cbPipe_InstDate.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
             name = self.cbPipe_LossCoef.currentText()
             if not name == "None":
                 fields = fields + name
@@ -680,6 +749,40 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
 
             fields = fields + ","  # To separate layers
 
+        name = self.cbServiceConnectionLayer.currentText()
+        if not name == "None":
+            fields = fields + "[SERVICECONNECTIONS]"
+            name = self.cbServiceConnection_Id.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+            name = self.cbServiceConnection_Length.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+            name = self.cbServiceConnection_Diameter.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+            name = self.cbServiceConnection_Material.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+            name = self.cbServiceConnection_InstDate.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+            name = self.cbServiceConnection_Tag.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+            name = self.cbServiceConnection_Descr.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+
+            fields = fields + ","  # To separate layers
+
         return fields
 
     def importShpProject(self):
@@ -688,7 +791,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         if isValid:
             # Validations SHP's
             if not os.path.exists(self.tbShpDirectory.text()):
-                self.iface.messageBar().pushMessage("Validations", "The SHPs folder is not valid or does not exist", level=1)
+                self.iface.messageBar().pushMessage("Validations",
+                                                    "The SHPs folder is not valid or does not exist", level=1)
                 return
             # Tolerance
             tolerance = self.tbTolerance.text()
@@ -716,7 +820,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
 
             epsg = self.crs.authid().replace("EPSG:", "")
             shapes = self.createShpsNames()
-            fields = self.createShpFields()
+            # fields = self.createShpFields()
+
             # Process
             QApplication.setOverrideCursor(Qt.WaitCursor)
             resMessage = GISRed.ImportFromShps(self.ProjectDirectory, self.NetworkName, self.parent.tempFolder,
@@ -725,4 +830,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             self.parent.ProjectDirectory = self.ProjectDirectory
             self.parent.NetworkName = self.NetworkName
 
+            name = self.cbServiceConnectionLayer.currentText()
+            if not name == "None":
+                self.parent.complementaryLayers = ["ServiceConnections"]
             self.parent.processCsharpResult(resMessage, "")
