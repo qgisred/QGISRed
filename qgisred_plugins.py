@@ -25,7 +25,7 @@ from qgis.core import QgsProject, QgsVectorLayer
 from PyQt5.QtGui import QIcon, QCursor
 from PyQt5.QtWidgets import QAction, QMessageBox, QApplication, QMenu, QFileDialog, QToolButton
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
-from qgis.core import QgsTask, QgsMessageLog
+from qgis.core import QgsMessageLog
 # Import resources
 from . import resources3x
 # Import other plugin code
@@ -510,29 +510,10 @@ class QGISRed:
         self.add_action(icon_path, text=self.tr(u'Obtain demand sectors'), callback=self.runDemandSectors,
                         menubar=self.toolsMenu, toolbar=self.toolsToolbar,
                         actionBase=toolDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
-
-    def addExperimentalMenu(self):
-        #    #Menu
-        self.experimentalMenu = self.qgisredmenu.addMenu(
-            self.tr('Experimental'))
-        self.experimentalMenu.setIcon(
-            QIcon(':/plugins/QGISRed/images/iconTree.png'))
-        #    #Toolbar
-        self.experimentalToolbar = self.iface.addToolBar(
-            self.tr(u'QGISRed Experimental'))
-        self.experimentalToolbar.setObjectName(
-            self.tr(u'QGISRed Experimental'))
-        self.experimentalToolbar.setVisible(False)
-        #    #Buttons
         icon_path = ':/plugins/QGISRed/images/iconTree.png'
-        expDropButton = self.add_action(icon_path, text=self.tr(u'Experimental'), callback=self.runExperimentalToolbar,
-                                        menubar=self.experimentalMenu, add_to_menu=False,
-                                        toolbar=self.toolbar, createDrop=True, addActionToDrop=False, add_to_toolbar=False,
-                                        parent=self.iface.mainWindow())
-        icon_path = ':/plugins/QGISRed/images/iconTree.png'
-        self.add_action(icon_path, text=self.tr(u'Obtain Tree'), callback=self.runTree, menubar=self.experimentalMenu,
-                        toolbar=self.experimentalToolbar,
-                        actionBase=expDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
+        self.add_action(icon_path, text=self.tr(u'Minimum Spanning Tree'), callback=self.runTree,
+                        menubar=self.toolsMenu, toolbar=self.toolsToolbar,
+                        actionBase=toolDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
 
     def initGui(self):
         if not platform.system() == "Windows":
@@ -544,7 +525,7 @@ class QGISRed:
         self.addEditMenu()
         self.addVerificationsMenu()
         self.addToolsMenu()
-        self.addExperimentalMenu()
+
         # About
         icon_path = ':/plugins/QGISRed/images/iconAbout.png'
         self.add_action(icon_path, text=self.tr(u'About...'), callback=self.runAbout,
@@ -2613,7 +2594,7 @@ class QGISRed:
         self.reply = QMessageBox.question(self.iface.mainWindow(),
                                           self.tr('Add  service connections to the model'),
                                           self.tr(
-                                          'Do you want to include service connections as pipes (Yes) or only as nodes (No)?'),
+                                          'Do you want to include service connections as pipes (Yes) or only as junctions (No)?'),
                                           QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel))
         if self.reply == QMessageBox.Cancel:
             return
@@ -2707,7 +2688,7 @@ class QGISRed:
         if self.hasToOpenSectorLayers:
             QGISRedUtils().runTask('update sectors', self.removeSectorLayers, self.runOpenTemporaryFiles)
 
-    """Experimental"""
+    """Minimum Spanning Tree"""
     def runTree(self, point):
         if not self.checkDependencies():
             return
