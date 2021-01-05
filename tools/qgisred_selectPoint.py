@@ -25,7 +25,7 @@ class QGISRedSelectPointTool(QgsMapTool):
             QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
         if self.type == 2 or self.type == 4:
             self.startMarker.setIconType(
-                QgsVertexMarker.ICON_X)  # or ICON_CROSS, ICON_X
+                QgsVertexMarker.ICON_TRIANGLE)  # or ICON_CROSS, ICON_X
         self.startMarker.setPenWidth(3)
         self.startMarker.hide()
 

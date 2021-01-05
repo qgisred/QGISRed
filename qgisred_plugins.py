@@ -36,6 +36,7 @@ from .ui.qgisred_import_dialog import QGISRedImportDialog
 from .ui.qgisred_about_dialog import QGISRedAboutDialog
 from .ui.qgisred_results_dock import QGISRedResultsDock
 from .ui.qgisred_toolLength_dialog import QGISRedLengthToolDialog
+from .ui.qgisred_toolConnections_dialog import QGISRedServiceConnectionsToolDialog
 from .ui.qgisred_toolConnectivity_dialog import QGISRedConnectivityToolDialog
 from .tools.qgisred_utils import QGISRedUtils
 from .tools.qgisred_dependencies import QGISRedDependencies as GISRed
@@ -81,7 +82,8 @@ class QGISRed:
         self.iface = iface
 
         if not platform.system() == "Windows":
-            self.iface.messageBar().pushMessage(self.tr("Error"), self.tr("QGISRed only works in Windows"), level=2, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Error"), self.tr("QGISRed only works in Windows"),
+                                                level=2, duration=5)
             return
 
         # initialize plugin directory
@@ -190,24 +192,30 @@ class QGISRed:
         self.fileToolbar.setVisible(False)
         #    #Buttons
         icon_path = ':/plugins/QGISRed/images/iconData.png'
-        fileDropButton = self.add_action(icon_path, text=self.tr(u'File'), callback=self.runFileToolbar, menubar=self.fileMenu,
-                                         add_to_menu=False, toolbar=self.toolbar, createDrop=True, addActionToDrop=False,
+        fileDropButton = self.add_action(icon_path, text=self.tr(u'File'), callback=self.runFileToolbar,
+                                         menubar=self.fileMenu, add_to_menu=False, toolbar=self.toolbar,
+                                         createDrop=True, addActionToDrop=False,
                                          add_to_toolbar=False, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconProjectManager.png'
-        self.add_action(icon_path, text=self.tr(u'Project manager'), callback=self.runProjectManager, menubar=self.fileMenu,
-                        toolbar=self.fileToolbar, actionBase=fileDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
+        self.add_action(icon_path, text=self.tr(u'Project manager'), callback=self.runProjectManager,
+                        menubar=self.fileMenu, toolbar=self.fileToolbar, actionBase=fileDropButton,
+                        add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconLayers.png'
-        self.add_action(icon_path, text=self.tr(u'Create project'), callback=self.runCanCreateProject, menubar=self.fileMenu,
-                        toolbar=self.fileToolbar, actionBase=fileDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
+        self.add_action(icon_path, text=self.tr(u'Create project'), callback=self.runCanCreateProject,
+                        menubar=self.fileMenu, toolbar=self.fileToolbar, actionBase=fileDropButton,
+                        add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconImport.png'
-        self.add_action(icon_path, text=self.tr(u'Import data'), callback=self.runCanImportData, menubar=self.fileMenu,
-                        toolbar=self.fileToolbar, actionBase=fileDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
+        self.add_action(icon_path, text=self.tr(u'Import data'), callback=self.runCanImportData,
+                        menubar=self.fileMenu, toolbar=self.fileToolbar, actionBase=fileDropButton,
+                        add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconLock.png'
-        self.add_action(icon_path, text=self.tr(u'Create backup'), callback=self.runCreateBackup, menubar=self.fileMenu,
-                        toolbar=self.fileToolbar, actionBase=fileDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
+        self.add_action(icon_path, text=self.tr(u'Create backup'), callback=self.runCreateBackup,
+                        menubar=self.fileMenu, toolbar=self.fileToolbar, actionBase=fileDropButton,
+                        add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconCloseProject.png'
-        self.add_action(icon_path, text=self.tr(u'Close project'), callback=self.runCloseProject, menubar=self.fileMenu,
-                        toolbar=self.fileToolbar, actionBase=fileDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
+        self.add_action(icon_path, text=self.tr(u'Close project'), callback=self.runCloseProject,
+                        menubar=self.fileMenu, toolbar=self.fileToolbar, actionBase=fileDropButton,
+                        add_to_toolbar=True, parent=self.iface.mainWindow())
 
     def addProjectMenu(self):
         #    #Menu
@@ -221,14 +229,17 @@ class QGISRed:
         #    #Buttons
         icon_path = ':/plugins/QGISRed/images/qgisred32.png'
         projectDropButton = self.add_action(icon_path, text=self.tr(u'Project'), callback=self.runProjectToolbar,
-                                            menubar=self.projectMenu, add_to_menu=False, toolbar=self.toolbar, createDrop=True,
+                                            menubar=self.projectMenu, add_to_menu=False, toolbar=self.toolbar,
+                                            createDrop=True,
                                             addActionToDrop=False, add_to_toolbar=False, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconSettings.png'
-        self.add_action(icon_path, text=self.tr(u'Project Settings'), callback=self.runSettings, menubar=self.projectMenu,
+        self.add_action(icon_path, text=self.tr(u'Project Settings'), callback=self.runSettings,
+                        menubar=self.projectMenu,
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconLayerManagement.png'
-        self.add_action(icon_path, text=self.tr(u'Layer Management'), callback=self.runEditProject, menubar=self.projectMenu,
+        self.add_action(icon_path, text=self.tr(u'Layer Management'), callback=self.runEditProject,
+                        menubar=self.projectMenu,
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconAddData.png'
@@ -236,15 +247,18 @@ class QGISRed:
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconHydraulicOptions.png'
-        self.add_action(icon_path, text=self.tr(u'Analysis Options'), callback=self.runAnalysisOptions, menubar=self.projectMenu,
+        self.add_action(icon_path, text=self.tr(u'Analysis Options'), callback=self.runAnalysisOptions,
+                        menubar=self.projectMenu,
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconDefaultValues.png'
-        self.add_action(icon_path, text=self.tr(u'Default Values'), callback=self.runDefaultValues, menubar=self.projectMenu,
+        self.add_action(icon_path, text=self.tr(u'Default Values'), callback=self.runDefaultValues,
+                        menubar=self.projectMenu,
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconMaterials.png'
-        self.add_action(icon_path, text=self.tr(u'Materials Table'), callback=self.runMaterials, menubar=self.projectMenu,
+        self.add_action(icon_path, text=self.tr(u'Materials Table'), callback=self.runMaterials,
+                        menubar=self.projectMenu,
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconSummary.png'
@@ -252,7 +266,8 @@ class QGISRed:
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconFlash.png'
-        dropButton = self.add_action(icon_path, text=self.tr(u'Run Model'), callback=self.runModel, menubar=self.projectMenu,
+        dropButton = self.add_action(icon_path, text=self.tr(u'Run Model'), callback=self.runModel,
+                                     menubar=self.projectMenu,
                                      toolbar=self.projectToolbar, actionBase=projectDropButton, createDrop=True,
                                      add_to_toolbar=False, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconResults.png'
@@ -260,7 +275,8 @@ class QGISRed:
                         menubar=self.projectMenu, toolbar=self.projectToolbar, actionBase=dropButton,
                         add_to_toolbar=False, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconExportEpanet.png'
-        self.add_action(icon_path, text=self.tr(u'Export to Epanet'), callback=self.runExportInp, menubar=self.projectMenu,
+        self.add_action(icon_path, text=self.tr(u'Export to Epanet'), callback=self.runExportInp,
+                        menubar=self.projectMenu,
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
 
@@ -342,19 +358,22 @@ class QGISRed:
                                                parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconMergeSplitJunction.png'
         self.mergeSplitJunctionButton = self.add_action(icon_path, text=self.tr(u'Merge/Split junctions'),
-                                                        callback=self.runSelectPointToMergeSplit, menubar=self.editionMenu,
+                                                        callback=self.runSelectPointToMergeSplit,
+                                                        menubar=self.editionMenu,
                                                         toolbar=self.editionToolbar,
                                                         actionBase=editDropButton, add_to_toolbar=True, checable=True,
                                                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconCreateRevTconn.png'
         self.createReverseTconButton = self.add_action(icon_path, text=self.tr(u'Create/Reverse T connections'),
-                                                       callback=self.runSelectPointToTconnections, menubar=self.editionMenu,
+                                                       callback=self.runSelectPointToTconnections,
+                                                       menubar=self.editionMenu,
                                                        toolbar=self.editionToolbar,
                                                        actionBase=editDropButton, add_to_toolbar=True, checable=True,
                                                        parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconCreateRevCrossings.png'
         self.createReverseCrossButton = self.add_action(icon_path, text=self.tr(u'Create/Reverse Crossings'),
-                                                        callback=self.runSelectPointToCrossings, menubar=self.editionMenu,
+                                                        callback=self.runSelectPointToCrossings,
+                                                        menubar=self.editionMenu,
                                                         toolbar=self.editionToolbar,
                                                         actionBase=editDropButton, add_to_toolbar=True, checable=True,
                                                         parent=self.iface.mainWindow())
@@ -407,11 +426,13 @@ class QGISRed:
                                                   toolbar=self.toolbar, createDrop=True, addActionToDrop=False,
                                                   add_to_toolbar=False, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconCommit.png'
-        self.add_action(icon_path, text=self.tr(u'Commit changes'), callback=self.runCommit, menubar=self.verificationsMenu,
+        self.add_action(icon_path, text=self.tr(u'Commit changes'), callback=self.runCommit,
+                        menubar=self.verificationsMenu,
                         toolbar=self.verificationsToolbar,
                         actionBase=verificationsDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconOverloadC.png'
-        self.add_action(icon_path, text=self.tr(u'Remove overlapping elements'), callback=self.runCheckOverlappingElements,
+        self.add_action(icon_path, text=self.tr(u'Remove overlapping elements'),
+                        callback=self.runCheckOverlappingElements,
                         menubar=self.verificationsMenu, toolbar=self.verificationsToolbar,
                         actionBase=verificationsDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconVerticesC.png'
@@ -420,14 +441,16 @@ class QGISRed:
                         actionBase=verificationsDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconJoinC.png'
         self.add_action(icon_path, text=self.tr(u'Join consecutive pipes (diameter, material and year)'),
-                        callback=self.runCheckJoinPipes, menubar=self.verificationsMenu, toolbar=self.verificationsToolbar,
+                        callback=self.runCheckJoinPipes, menubar=self.verificationsMenu,
+                        toolbar=self.verificationsToolbar,
                         actionBase=verificationsDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconTconnectionsC.png'
         self.add_action(icon_path, text=self.tr(u'Create T Connections'), callback=self.runCheckTConncetions,
                         menubar=self.verificationsMenu, toolbar=self.verificationsToolbar,
                         actionBase=verificationsDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconConnectivityM.png'
-        dropButton = self.add_action(icon_path, text=self.tr(u'Check connectivity'), callback=self.runCheckConnectivityM,
+        dropButton = self.add_action(icon_path, text=self.tr(u'Check connectivity'),
+                                     callback=self.runCheckConnectivityM,
                                      menubar=self.verificationsMenu, toolbar=self.verificationsToolbar,
                                      actionBase=verificationsDropButton, createDrop=True, add_to_toolbar=False,
                                      parent=self.iface.mainWindow())
@@ -449,7 +472,8 @@ class QGISRed:
                         menubar=self.verificationsMenu, toolbar=self.verificationsToolbar,
                         actionBase=verificationsDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconDate.png'
-        self.add_action(icon_path, text=self.tr(u'Check pipe installation dates'), callback=self.runCheckInstallationDates,
+        self.add_action(icon_path, text=self.tr(u'Check pipe installation dates'),
+                        callback=self.runCheckInstallationDates,
                         menubar=self.verificationsMenu, toolbar=self.verificationsToolbar,
                         actionBase=verificationsDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconHydraulic.png'
@@ -657,8 +681,9 @@ class QGISRed:
         if not valid:
             link = '\"http://www.redhisp.webs.upv.es/files/QGISRed/' + \
                 self.DependenciesVersion + '/QGISRed_Installation.msi\"'
+            firstPartMessage = 'QGISRed plugin only runs in Windows OS and needs some dependencies ('
             request = QMessageBox.question(self.iface.mainWindow(), self.tr('QGISRed Dependencies'),
-                                           self.tr('QGISRed plugin only runs in Windows OS and needs some dependencies (' +
+                                           self.tr(firstPartMessage +
                                            self.DependenciesVersion +
                                            '). Do you want to download and authomatically install them?'),
                                            QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No))
@@ -764,16 +789,6 @@ class QGISRed:
                     return True
                 else:
                     return False
-        # else:
-            # if len(self.iface.mapCanvas().layers())>0:
-                # #Close files and continue?
-                # reply = QMessageBox.question(self.iface.mainWindow(), self.tr('Opened layers'), self.tr('Do you want to close
-                # the current layers and continue?'), QMessageBox.Yes, QMessageBox.No)
-                # if reply == QMessageBox.Yes:
-                    # QgsProject.instance().clear()
-                    # return True
-                # else:
-                    # return False
         return True
 
     def isOpenedProject(self):
@@ -822,7 +837,8 @@ class QGISRed:
 
     def isValidProject(self):
         if self.ProjectDirectory == self.TemporalFolder:
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"),
+                                                level=1, duration=5)
             return False
         return True
 
@@ -830,9 +846,8 @@ class QGISRed:
         layers = self.getLayers()
         for layer in layers:
             if layer.isEditable():
-                self.iface.messageBar().pushMessage(self.tr("Warning"),
-                                                    self.tr("Some layer is in Edit Mode. Please, commit it before continuing."),
-                                                    level=1)
+                message = "Some layer is in Edit Mode. Please, commit it before continuing."
+                self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr(message), level=1)
                 return True
         return False
 
@@ -1102,7 +1117,8 @@ class QGISRed:
             if parent is not None:
                 if parent.parent().name() == groupName:
                     rutaLayer = self.getLayerPath(layer)
-                    paths = paths + os.path.splitext(os.path.basename(rutaLayer))[0].replace(self.NetworkName+"_", "") + ';'
+                    layerName = os.path.splitext(os.path.basename(rutaLayer))[0].replace(self.NetworkName+"_", "")
+                    paths = paths + layerName + ';'
         return paths
 
     def setCursor(self, shape):
@@ -1131,7 +1147,8 @@ class QGISRed:
         user32.ReleaseDC(0, dc)
 
         # CanvasPixels
-        unitsPerPixel = self.iface.mapCanvas().getCoordinateTransform().mapUnitsPerPixel()  # x WidthPixels --> m/px * px = metros
+        unitsPerPixel = self.iface.mapCanvas().getCoordinateTransform().mapUnitsPerPixel()
+        # x WidthPixels --> m/px * px = metros
         # 25.4 mm == inch
         un = 25.4/pix_per_inch  # x WidthPixels -- > mm/px x px = mm
         # 1mm * unitsPerPixel / un -->tolerance
@@ -1281,7 +1298,8 @@ class QGISRed:
         self.removingLayers = True
         self.extent = self.iface.mapCanvas().extent()
         if self.hasToOpenNewLayers and self.hasToOpenIssuesLayers:
-            QGISRedUtils().runTask('update plus issue layers', self.removeLayersAndIssuesLayers, self.runOpenTemporaryFiles)
+            QGISRedUtils().runTask('update plus issue layers', self.removeLayersAndIssuesLayers,
+                                   self.runOpenTemporaryFiles)
         elif self.hasToOpenNewLayers:
             QGISRedUtils().runTask('update layers', self.removeLayers, self.runOpenTemporaryFiles)
         elif self.hasToOpenIssuesLayers:
@@ -1416,7 +1434,8 @@ class QGISRed:
 
         # Message
         if resMessage == "True":
-            self.iface.messageBar().pushMessage(self.tr("Info"), self.tr("Project options updated"), level=0, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Info"), self.tr("Project options updated"),
+                                                level=0, duration=5)
         elif resMessage == "False":
             warningMessage = self.tr("Some issues occurred in the process")
             self.iface.messageBar().pushMessage(self.tr("Warning"), warningMessage, level=1, duration=5)
@@ -1523,7 +1542,8 @@ class QGISRed:
             self.removingLayers = True
             QGISRedUtils().runTask('remove dbfs', self.removeDBFs, self.runOpenTemporaryFiles)
         elif resMessage == "False":
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"),
+                                                level=1, duration=5)
         elif resMessage == "Cancelled":
             pass
         else:
@@ -1552,12 +1572,12 @@ class QGISRed:
             self.removingLayers = True
             QGISRedUtils().runTask('remove dbfs', self.removeDBFs, self.runOpenTemporaryFiles)
         elif resMessage == "False":
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"),
+                                                level=1, duration=5)
         elif resMessage == "Cancelled":
             pass
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
-
 
     def runSummary(self):
         if not self.checkDependencies():
@@ -1800,7 +1820,8 @@ class QGISRed:
         if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
         else:
-            self.myMapTools[tool] = QGISRedMultiLayerSelection(self.iface, self.iface.mapCanvas(), self.selectElementsButton)
+            self.myMapTools[tool] = QGISRedMultiLayerSelection(self.iface, self.iface.mapCanvas(),
+                                                               self.selectElementsButton)
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runMoveElements(self):
@@ -1897,7 +1918,8 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.ReverseLink(self.ProjectDirectory, self.NetworkName, self.tempFolder, pointText, self.linkIds)
+        resMessage = GISRed.ReverseLink(self.ProjectDirectory, self.NetworkName, self.tempFolder,
+                                        pointText, self.linkIds)
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "")
@@ -1992,7 +2014,8 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.CreateReverseTConnection(self.ProjectDirectory, self.NetworkName, self.tempFolder, point1, point2)
+        resMessage = GISRed.CreateReverseTConnection(self.ProjectDirectory, self.NetworkName, self.tempFolder,
+                                                     point1, point2)
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "")
@@ -2023,7 +2046,8 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.CreateReverseCrossings(self.ProjectDirectory, self.NetworkName, self.tempFolder, point1, tolerance)
+        resMessage = GISRed.CreateReverseCrossings(self.ProjectDirectory, self.NetworkName, self.tempFolder,
+                                                   point1, tolerance)
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "")
@@ -2209,7 +2233,8 @@ class QGISRed:
         if not self.getSelectedFeaturesIds():
             return
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.CheckOverlappingElements(self.ProjectDirectory, self.NetworkName, self.tempFolder, self.nodeIds, self.linkIds)
+        resMessage = GISRed.CheckOverlappingElements(self.ProjectDirectory, self.NetworkName, self.tempFolder,
+                                                     self.nodeIds, self.linkIds)
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "No overlapping elements found")
@@ -2300,7 +2325,8 @@ class QGISRed:
 
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.CheckConnectivity(self.ProjectDirectory, self.NetworkName, linesToDelete, step, self.tempFolder)
+        resMessage = GISRed.CheckConnectivity(self.ProjectDirectory, self.NetworkName, linesToDelete,
+                                              step, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
         # Action
@@ -2322,7 +2348,8 @@ class QGISRed:
         self.removingLayers = True
         self.extent = self.iface.mapCanvas().extent()
         if self.hasToOpenNewLayers and self.hasToOpenConnectivityLayers:
-            QGISRedUtils().runTask('update layers and connectivity', self.removeLayersAndConnectivity, self.runOpenTemporaryFiles)
+            QGISRedUtils().runTask('update layers and connectivity', self.removeLayersAndConnectivity,
+                                   self.runOpenTemporaryFiles)
         elif self.hasToOpenConnectivityLayers:
             QGISRedUtils().runTask('update connectivity', self.removeLayersConnectivity, self.runOpenTemporaryFiles)
 
@@ -2591,17 +2618,16 @@ class QGISRed:
             return
 
         # Question
-        self.reply = QMessageBox.question(self.iface.mainWindow(),
-                                          self.tr('Add  service connections to the model'),
-                                          self.tr(
-                                          'Do you want to include service connections as pipes (Yes) or only as junctions (No)?'),
-                                          QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel))
-        if self.reply == QMessageBox.Cancel:
+        dlg = QGISRedServiceConnectionsToolDialog()
+        # Run the dialog event loop
+        dlg.exec_()
+        if not dlg.ProcessDone:
             return
 
         asNode = "true"
-        if self.reply == QMessageBox.Yes:  # Pipes
+        if dlg.AsPipes:
             asNode = "false"
+
         # Process
         self.complementaryLayers = ["ServiceConnections"]
         QApplication.setOverrideCursor(Qt.WaitCursor)
