@@ -68,7 +68,7 @@ class QGISRed:
     ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns", "Materials"]
     complementaryLayers = []
     TemporalFolder = "Temporal folder"
-    DependenciesVersion = "1.0.11.1"
+    DependenciesVersion = "1.0.12.0"
 
     """Basic"""
     def __init__(self, iface):
