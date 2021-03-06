@@ -25,7 +25,7 @@ from qgis.core import QgsProject, QgsVectorLayer
 from PyQt5.QtGui import QIcon, QCursor
 from PyQt5.QtWidgets import QAction, QMessageBox, QApplication, QMenu, QFileDialog, QToolButton
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
-from qgis.core import QgsMessageLog
+from qgis.core import QgsMessageLog, QgsCoordinateTransform
 # Import resources
 from . import resources3x
 # Import other plugin code
@@ -68,7 +68,7 @@ class QGISRed:
     ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns", "Materials"]
     complementaryLayers = []
     TemporalFolder = "Temporal folder"
-    DependenciesVersion = "1.0.12.0"
+    DependenciesVersion = "1.0.12.2"
 
     """Basic"""
     def __init__(self, iface):
@@ -500,6 +500,11 @@ class QGISRed:
         self.add_action(icon_path, text=self.tr(u'Import demands in junctions'),
                         callback=self.runImportDemands, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
                         actionBase=toolDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconSetReadings.png'
+        self.add_action(icon_path, text=self.tr(u'Assign Readings'),
+                        callback=self.runAssignDemandsFromConnections, menubar=self.toolsMenu,
+                        toolbar=self.toolsToolbar, actionBase=toolDropButton, add_to_toolbar=True,
+                        parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconRoughness.png'
         self.add_action(icon_path, text=self.tr(u'Set Roughness coefficient (from Material and Date)'),
                         callback=self.runSetRoughness, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
@@ -979,6 +984,9 @@ class QGISRed:
             inputGroup = self.getInputGroup()
             utils.openElementsLayers(inputGroup, self.ownMainLayers)
             utils.openElementsLayers(inputGroup, self.complementaryLayers)
+
+            self.complementaryLayers = []
+
             self.updateMetadata()
 
             self.setSelectedFeaturesById()
@@ -1219,6 +1227,13 @@ class QGISRed:
     def doNothing(self, task):
         if task is not None:
             return {'task': task.definition()}
+
+    def transformPoint(self, point):
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        pipesCrs = utils.getProjectCrs()
+        projectCrs = self.iface.mapCanvas().mapSettings().destinationCrs()
+        xform = QgsCoordinateTransform(projectCrs, pipesCrs, QgsProject.instance())
+        return xform.transform(point)
 
     """Main methods"""
     """Toolbars"""
@@ -1691,6 +1706,7 @@ class QGISRed:
     def runCreatePipe(self, points):
         pipePoints = ""
         for p in points:
+            p = self.transformPoint(p)
             pipePoints = pipePoints + str(p.x()) + ":" + str(p.y()) + ";"
         # Process:
         QApplication.setOverrideCursor(Qt.WaitCursor)
@@ -1719,6 +1735,7 @@ class QGISRed:
         if self.isLayerOnEdition():
             return
 
+        point = self.transformPoint(point)
         point = str(point.x()) + ":" + str(point.y())
 
         # Process
@@ -1748,6 +1765,7 @@ class QGISRed:
         if self.isLayerOnEdition():
             return
 
+        point = self.transformPoint(point)
         point = str(point.x()) + ":" + str(point.y())
 
         # Process
@@ -1777,6 +1795,7 @@ class QGISRed:
         if self.isLayerOnEdition():
             return
 
+        point = self.transformPoint(point)
         point = str(point.x()) + ":" + str(point.y())
 
         # Process
@@ -1806,6 +1825,7 @@ class QGISRed:
         if self.isLayerOnEdition():
             return
 
+        point = self.transformPoint(point)
         point = str(point.x()) + ":" + str(point.y())
 
         # Process
@@ -1914,6 +1934,7 @@ class QGISRed:
 
         pointText = ""
         if point is not None:
+            point = self.transformPoint(point)
             pointText = str(point.x()) + ":" + str(point.y())
 
         # Process
@@ -1944,6 +1965,7 @@ class QGISRed:
         if self.isLayerOnEdition():
             return
 
+        point = self.transformPoint(point)
         point = str(point.x()) + ":" + str(point.y())
 
         # Process
@@ -1973,10 +1995,12 @@ class QGISRed:
         if self.isLayerOnEdition():
             return
 
+        point1 = self.transformPoint(point1)
         point1 = str(point1.x()) + ":" + str(point1.y())
         if point2 is None:
             point2 = ""
         else:
+            point2 = self.transformPoint(point2)
             point2 = str(point2.x()) + ":" + str(point2.y())
 
         # Process
@@ -2006,10 +2030,12 @@ class QGISRed:
         if self.isLayerOnEdition():
             return
 
+        point1 = self.transformPoint(point1)
         point1 = str(point1.x()) + ":" + str(point1.y())
         if point2 is None:
             point2 = ""
         else:
+            point2 = self.transformPoint(point2)
             point2 = str(point2.x()) + ":" + str(point2.y())
 
         # Process
@@ -2040,6 +2066,7 @@ class QGISRed:
         if self.isLayerOnEdition():
             return
 
+        point1 = self.transformPoint(point1)
         point1 = str(point1.x()) + ":" + str(point1.y())
         # Important, no snapping in crossings
         tolerance = str(self.getTolerance())
@@ -2072,6 +2099,8 @@ class QGISRed:
         if self.isLayerOnEdition():
             return
 
+        point1 = self.transformPoint(point1)
+        point2 = self.transformPoint(point2)
         point1 = str(point1.x()) + ":" + str(point1.y())
         point2 = str(point2.x()) + ":" + str(point2.y())
 
@@ -2126,6 +2155,7 @@ class QGISRed:
 
         pointText = ""
         if point is not None:
+            point = self.transformPoint(point)
             pointText = str(point.x()) + ":" + str(point.y())
 
         # Process
@@ -2158,6 +2188,7 @@ class QGISRed:
         if self.isLayerOnEdition():
             return
 
+        point = self.transformPoint(point)
         point = str(point.x()) + ":" + str(point.y())
 
         # Process
@@ -2514,6 +2545,29 @@ class QGISRed:
 
         self.processCsharpResult(resMessage, "")
 
+    def runAssignDemandsFromConnections(self):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        if not os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_ServiceConnections.shp")):
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr(
+                "Does not exist ServiceConnections SHP file"), level=1, duration=5)
+            return
+
+        # Process
+        self.complementaryLayers = ["ServiceConnections"]
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.AssignDemandsFromConnections(self.ProjectDirectory, self.NetworkName, self.tempFolder)
+        QApplication.restoreOverrideCursor()
+
+        self.processCsharpResult(resMessage, "")
+
     def runSetRoughness(self):
         if not self.checkDependencies():
             return
@@ -2727,6 +2781,7 @@ class QGISRed:
 
         point1 = ""
         if point is not False:
+            point = self.transformPoint(point)
             point1 = str(point.x()) + ":" + str(point.y())
 
         tool = "treeNode"

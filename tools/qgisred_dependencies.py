@@ -92,6 +92,18 @@ class QGISRedDependencies:
         return QGISRedDependencies.toString(b)
 
     @staticmethod
+    def AssignDemandsFromConnections(projectFolder, networkName, tempFolder):
+        projectFolder = QGISRedDependencies.encode(projectFolder)
+        networkName = QGISRedDependencies.encode(networkName)
+        tempFolder = QGISRedDependencies.encode(tempFolder)
+
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
+        mydll.AssignDemandsFromConnections.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.AssignDemandsFromConnections.restype = c_char_p
+        b = mydll.AssignDemandsFromConnections(projectFolder, networkName, tempFolder)
+        return QGISRedDependencies.toString(b)
+
+    @staticmethod
     def ChangeCrs(projectFolder, networkName, epsg):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
