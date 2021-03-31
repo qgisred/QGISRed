@@ -1084,6 +1084,23 @@ class QGISRed:
                     netGroup.removeChildNode(queryGroup)
 
     """Others"""
+    def getComplementaryLayersOpened(self):
+        complementary = []
+        groupName = "Inputs"
+        dataGroup = QgsProject.instance().layerTreeRoot().findGroup(groupName)
+        if dataGroup is not None:
+            layers = self.getLayers()
+            root = QgsProject.instance().layerTreeRoot()
+            for layer in layers:
+                parent = root.findLayer(layer.id())
+                if parent is not None:
+                    if parent.parent().name() == groupName:
+                        rutaLayer = self.getLayerPath(layer)
+                        layerName = os.path.splitext(os.path.basename(rutaLayer))[0].replace(self.NetworkName+"_", "")
+                        if not self.ownMainLayers.__contains__(layerName):
+                            complementary.append(layerName)
+        return complementary
+
     def updateMetadata(self, layersNames="", project="", net=""):
         if not self.checkDependencies():
             return
@@ -2191,6 +2208,7 @@ class QGISRed:
         point = str(point.x()) + ":" + str(point.y())
 
         # Process
+        self.complementaryLayers = self.getComplementaryLayersOpened()
         QApplication.setOverrideCursor(Qt.WaitCursor)
         resMessage = GISRed.EditElements(self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
         QApplication.restoreOverrideCursor()
@@ -2243,6 +2261,7 @@ class QGISRed:
             return
 
         # Process
+        self.complementaryLayers = self.getComplementaryLayersOpened()
         QApplication.setOverrideCursor(Qt.WaitCursor)
         resMessage = GISRed.Commit(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
