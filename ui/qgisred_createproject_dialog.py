@@ -96,9 +96,11 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
         isValid = self.validationsCreateProject()
         if isValid is True:
             epsg = self.crs.authid().replace("EPSG:", "")
+            units = self.cbUnits.currentText()
+            headloss = self.cbHeadloss.currentText()
             # Process
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            resMessage = GISRed.CreateProject(self.ProjectDirectory, self.NetworkName, epsg)
+            resMessage = GISRed.CreateProject(self.ProjectDirectory, self.NetworkName, epsg, units, headloss)
             QApplication.restoreOverrideCursor()
 
             # Message

@@ -280,15 +280,17 @@ class QGISRedDependencies:
         return QGISRedDependencies.toString(b)
 
     @staticmethod
-    def CreateProject(projectFolder, networkName, epsg):
+    def CreateProject(projectFolder, networkName, epsg, units, headloss):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
         epsg = QGISRedDependencies.encode(epsg)
+        units = QGISRedDependencies.encode(units)
+        headloss = QGISRedDependencies.encode(headloss)
 
         mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.CreateProject.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.CreateProject.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.CreateProject.restype = c_char_p
-        b = mydll.CreateProject(projectFolder, networkName, epsg)
+        b = mydll.CreateProject(projectFolder, networkName, epsg, units, headloss)
         return QGISRedDependencies.toString(b)
 
     @staticmethod

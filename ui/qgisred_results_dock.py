@@ -312,60 +312,59 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         simb5.setColor(QColor(165, 0, 0))
         ranges = []
         if "Pressure" in nameLayer:
-            ranges.append(QgsRendererRange(-10000, 20, simb1, "<20"))
+            ranges.append(QgsRendererRange(-1e10, 20, simb1, "<20"))
             ranges.append(QgsRendererRange(20, 30, simb2, "20-30"))
             ranges.append(QgsRendererRange(30, 40, simb3, "30-40"))
             ranges.append(QgsRendererRange(40, 50, simb4, "40-50"))
-            ranges.append(QgsRendererRange(50, 10000, simb5, ">50"))
+            ranges.append(QgsRendererRange(50, 1e10, simb5, ">50"))
         elif "Node_Head" in nameLayer:
-            ranges.append(QgsRendererRange(-10000, 20, simb1, "<20"))
+            ranges.append(QgsRendererRange(-1e10, 20, simb1, "<20"))
             ranges.append(QgsRendererRange(20, 40, simb2, "20-40"))
             ranges.append(QgsRendererRange(40, 60, simb3, "40-60"))
             ranges.append(QgsRendererRange(60, 80, simb4, "60-80"))
-            ranges.append(QgsRendererRange(80, 10000, simb5, ">80"))
+            ranges.append(QgsRendererRange(80, 1e10, simb5, ">80"))
         elif "Demand" in nameLayer:
-            ranges.append(QgsRendererRange(-10000, 5, simb1, "<5"))
+            ranges.append(QgsRendererRange(-1e10, 5, simb1, "<5"))
             ranges.append(QgsRendererRange(5, 10, simb2, "5-10"))
             ranges.append(QgsRendererRange(10, 20, simb3, "10-20"))
             ranges.append(QgsRendererRange(20, 40, simb4, "20-40"))
-            ranges.append(QgsRendererRange(40, 10000, simb5, ">40"))
+            ranges.append(QgsRendererRange(40, 1e10, simb5, ">40"))
         elif "Node_Quality" in nameLayer:
-            ranges.append(
-                QgsRendererRange(-10000, 0.25, simb1, "<0.25"))
+            ranges.append(QgsRendererRange(-1e10, 0.25, simb1, "<0.25"))
             ranges.append(QgsRendererRange(0.25, 0.5, simb2, "0.25-0.5"))
             ranges.append(QgsRendererRange(0.5, 0.75, simb3, "0.5-0.75"))
             ranges.append(QgsRendererRange(0.75, 1, simb4, "0.75-1"))
-            ranges.append(QgsRendererRange(1, 10000, simb5, ">1"))
+            ranges.append(QgsRendererRange(1, 1e10, simb5, ">1"))
         elif "Flow" in nameLayer:
-            ranges.append(QgsRendererRange(-10000, 10, simb1, "<10"))
+            ranges.append(QgsRendererRange(-1e10, 10, simb1, "<10"))
             ranges.append(QgsRendererRange(10, 20, simb2, "10-20"))
             ranges.append(QgsRendererRange(20, 50, simb3, "20-50"))
             ranges.append(QgsRendererRange(50, 100, simb4, "50-100"))
-            ranges.append(QgsRendererRange(100, 10000, simb5, ">100"))
+            ranges.append(QgsRendererRange(100, 1e10, simb5, ">100"))
         elif "Velocity" in nameLayer:
-            ranges.append(QgsRendererRange(-10000, 0.1, simb1, "<0.1"))
+            ranges.append(QgsRendererRange(-1e10, 0.1, simb1, "<0.1"))
             ranges.append(QgsRendererRange(0.1, 0.5, simb2, "0.1-0.5"))
             ranges.append(QgsRendererRange(0.5, 1, simb3, "0.5-1"))
             ranges.append(QgsRendererRange(1, 2, simb4, "1-2"))
-            ranges.append(QgsRendererRange(2, 10000, simb5, ">2"))
+            ranges.append(QgsRendererRange(2, 1e10, simb5, ">2"))
         elif "HeadLoss" in nameLayer:
-            ranges.append(QgsRendererRange(-10000, 0.1, simb1, "<0.1"))
+            ranges.append(QgsRendererRange(-1e10, 0.1, simb1, "<0.1"))
             ranges.append(QgsRendererRange(0.1, 0.5, simb2, "0.1-0.5"))
             ranges.append(QgsRendererRange(0.5, 1, simb3, "0.5-1"))
             ranges.append(QgsRendererRange(1, 5, simb4, "1-5"))
-            ranges.append(QgsRendererRange(5, 10000, simb5, ">5"))
+            ranges.append(QgsRendererRange(5, 1e10, simb5, ">5"))
         elif "UnitHeadLoss" in nameLayer:
-            ranges.append(QgsRendererRange(-10000, 0.1, simb1, "<0.1"))
+            ranges.append(QgsRendererRange(-1e10, 0.1, simb1, "<0.1"))
             ranges.append(QgsRendererRange(0.1, 0.5, simb2, "0.1-0.5"))
             ranges.append(QgsRendererRange(0.5, 1, simb3, "0.5-1"))
             ranges.append(QgsRendererRange(1, 5, simb4, "1-5"))
-            ranges.append(QgsRendererRange(5, 10000, simb5, ">5"))
+            ranges.append(QgsRendererRange(5, 1e10, simb5, ">5"))
         elif "Link_Quality" in nameLayer:
-            ranges.append(QgsRendererRange(-10000, 0.25, simb1, "<0.25"))
+            ranges.append(QgsRendererRange(-1e10, 0.25, simb1, "<0.25"))
             ranges.append(QgsRendererRange(0.25, 0.5, simb2, "0.25-0.5"))
             ranges.append(QgsRendererRange(0.5, 0.75, simb3, "0.5-0.75"))
             ranges.append(QgsRendererRange(0.75, 1, simb4, "0.75-1"))
-            ranges.append(QgsRendererRange(1, 10000, simb5, ">1"))
+            ranges.append(QgsRendererRange(1, 1e10, simb5, ">1"))
 
         return ranges
 

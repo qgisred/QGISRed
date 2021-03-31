@@ -82,6 +82,10 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             self.tbCRS.setVisible(False)
             self.btSelectCRS.setVisible(False)
             self.tabWidget.removeTab(0)
+            self.label_14.setVisible(False)
+            self.label_15.setVisible(False)
+            self.cbUnits.setVisible(False)
+            self.cbHeadloss.setVisible(False)
 
     def selectDirectory(self):
         selected_directory = QFileDialog.getExistingDirectory()
@@ -123,9 +127,11 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
 
     def createProject(self):
         epsg = self.crs.authid().replace("EPSG:", "")
+        units = self.cbUnits.currentText()
+        headloss = self.cbHeadloss.currentText()
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.CreateProject(self.ProjectDirectory, self.NetworkName, epsg)
+        resMessage = GISRed.CreateProject(self.ProjectDirectory, self.NetworkName, epsg, units, headloss)
         QApplication.restoreOverrideCursor()
 
         # Message

@@ -502,7 +502,7 @@ class QGISRed:
                         actionBase=toolDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconSetReadings.png'
         self.add_action(icon_path, text=self.tr(u'Assign Readings'),
-                        callback=self.runAssignDemandsFromConnections, menubar=self.toolsMenu,
+                        callback=self.runAssignDemandsFromReadings, menubar=self.toolsMenu,
                         toolbar=self.toolsToolbar, actionBase=toolDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconRoughness.png'
@@ -936,9 +936,8 @@ class QGISRed:
 
     """Open Layers"""
     def openRemoveSpecificLayers(self, layers, epsg):
-        self.complementaryLayers = ["IsolationValves", "Hydrants",
-                                    "WashoutValves", "AirReleaseValves", "ServiceConnections",
-                                    "Manometers", "Flowmeters", "Countermeters", "LevelSensors"]
+        self.complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves",
+                                    "AirReleaseValves", "ServiceConnections", "Meters"]
         self.extent = self.iface.mapCanvas().extent()
         self.specificEpsg = epsg
         self.specificLayers = layers
@@ -2545,7 +2544,7 @@ class QGISRed:
 
         self.processCsharpResult(resMessage, "")
 
-    def runAssignDemandsFromConnections(self):
+    def runAssignDemandsFromReadings(self):
         if not self.checkDependencies():
             return
         # Validations
@@ -2555,10 +2554,10 @@ class QGISRed:
         if self.isLayerOnEdition():
             return
 
-        if not os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_ServiceConnections.shp")):
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr(
-                "Does not exist ServiceConnections SHP file"), level=1, duration=5)
-            return
+        # if not os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_ServiceConnections.shp")):
+        #     self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr(
+        #         "Does not exist ServiceConnections SHP file"), level=1, duration=5)
+        #     return
 
         # Process
         self.complementaryLayers = ["ServiceConnections"]
