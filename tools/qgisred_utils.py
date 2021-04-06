@@ -38,6 +38,17 @@ class QGISRedUtils:
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
         return crs
 
+    def getLayerNameToLegend(self, original):
+        upperIndex = []
+        for x in range(len(original)):
+            if original[x].isupper():
+                upperIndex.append(x)
+        upperIndex = upperIndex[::-1]
+        for ind in upperIndex:
+            if ind != 0:
+                original = original[:ind] + ' ' + original[ind:]
+        return original
+
     """Open Layers"""
     def isLayerOpened(self, layerName):
         layers = self.getLayers()
@@ -59,7 +70,7 @@ class QGISRedUtils:
             self.openLayer(group, fileName, issues=True)
 
     def openLayer(self, group, name, ext=".shp", results=False, toEnd=False, sectors=False, issues=False):
-        showName = name
+        showName = self.getLayerNameToLegend(name)
         name = name.replace(' ', '')
         layerName = self.NetworkName + "_" + name
         if os.path.exists(os.path.join(self.ProjectDirectory, layerName + ext)):
