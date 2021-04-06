@@ -4,6 +4,19 @@ from ctypes import c_char_p, WinDLL
 
 class QGISRedDependencies:
     @staticmethod
+    def AddConnection(projectFolder, networkName, tempFolder, pipePoints):
+        projectFolder = QGISRedDependencies.encode(projectFolder)
+        networkName = QGISRedDependencies.encode(networkName)
+        tempFolder = QGISRedDependencies.encode(tempFolder)
+        pipePoints = QGISRedDependencies.encode(pipePoints)
+
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
+        mydll.AddConnection.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.AddConnection.restype = c_char_p
+        b = mydll.AddConnection(projectFolder, networkName, tempFolder, pipePoints)
+        return QGISRedDependencies.toString(b)
+
+    @staticmethod
     def AddConnections(projectFolder, networkName, asNode, tempFolder):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)

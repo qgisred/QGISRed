@@ -4,7 +4,7 @@ from qgis.core import QgsPointXY, QgsPoint, QgsGeometry, QgsProject, QgsSnapping
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSnappingUtils
 
 
-class QGISRedCreatePipeTool(QgsMapTool):
+class QGISRedCreateConnectionTool(QgsMapTool):
     def __init__(self, button, iface, projectDirectory, netwName, method):
         QgsMapTool.__init__(self, iface.mapCanvas())
         self.iface = iface
@@ -15,19 +15,19 @@ class QGISRedCreatePipeTool(QgsMapTool):
 
         self.startMarker = QgsVertexMarker(self.iface.mapCanvas())
         self.startMarker.setColor(QColor(255, 87, 51))
-        self.startMarker.setIconSize(15)
+        self.startMarker.setIconSize(10)
         self.startMarker.setIconType(
-            QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
+            QgsVertexMarker.ICON_X)  # or ICON_CROSS, ICON_X
         self.startMarker.setPenWidth(3)
         self.startMarker.hide()
 
-        self.endMarker = QgsVertexMarker(self.iface.mapCanvas())
-        self.endMarker.setColor(QColor(255, 87, 51))
-        self.endMarker.setIconSize(15)
-        self.endMarker.setIconType(
-            QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
-        self.endMarker.setPenWidth(3)
-        self.endMarker.hide()
+        # self.endMarker = QgsVertexMarker(self.iface.mapCanvas())
+        # self.endMarker.setColor(QColor(255, 87, 51))
+        # self.endMarker.setIconSize(15)
+        # self.endMarker.setIconType(
+        #     QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
+        # self.endMarker.setPenWidth(3)
+        # self.endMarker.hide()
 
         self.snapper = None
         self.rubberBand1 = None
@@ -41,7 +41,7 @@ class QGISRedCreatePipeTool(QgsMapTool):
         self.snapper = QgsMapCanvasSnappingUtils(self.iface.mapCanvas())
         self.snapper.setMapSettings(self.iface.mapCanvas().mapSettings())
         config = QgsSnappingConfig(QgsProject.instance())
-        config.setType(1)  # Vertex
+        config.setType(3)  # Segment
         config.setMode(2)  # All layers
         config.setTolerance(10)
         config.setUnits(1)  # Pixels
@@ -69,7 +69,7 @@ class QGISRedCreatePipeTool(QgsMapTool):
         if self.rubberBand2 is not None:
             self.iface.mapCanvas().scene().removeItem(self.rubberBand2)
         self.startMarker.hide()
-        self.endMarker.hide()
+        # self.endMarker.hide()
 
         self.mousePoints = []
         self.firstClicked = False
@@ -145,16 +145,17 @@ class QGISRedCreatePipeTool(QgsMapTool):
                 self.startMarker.hide()
         # Mouse clicked
         else:
+            self.startMarker.hide()
             point = self.toMapCoordinates(event.pos())
-            match = self.snapper.snapToMap(point)
-            if match.isValid():
-                self.objectSnapped = match
-                self.endMarker.setCenter(QgsPointXY(
-                    match.point().x(), match.point().y()))
-                self.endMarker.show()
-                self.mousePoints[-1] = match.point()
-            else:
-                self.objectSnapped = None
-                self.endMarker.hide()
-                self.mousePoints[-1] = point
+            # match = self.snapper.snapToMap(point)
+            # if match.isValid():
+            #     self.objectSnapped = match
+            #     self.endMarker.setCenter(QgsPointXY(
+            #         match.point().x(), match.point().y()))
+            #     self.endMarker.show()
+            #     self.mousePoints[-1] = match.point()
+            # else:
+            self.objectSnapped = None
+            # self.endMarker.hide()
+            self.mousePoints[-1] = point
             self.createRubberBand(self.mousePoints)

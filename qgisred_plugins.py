@@ -43,6 +43,7 @@ from .tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from .tools.qgisred_moveNodes import QGISRedMoveNodesTool
 from .tools.qgisred_multilayerSelection import QGISRedMultiLayerSelection
 from .tools.qgisred_createPipe import QGISRedCreatePipeTool
+from .tools.qgisred_createConnection import QGISRedCreateConnectionTool
 from .tools.qgisred_moveVertexs import QGISRedMoveVertexsTool
 from .tools.qgisred_selectPoint import QGISRedSelectPointTool
 # Others imports
@@ -325,7 +326,14 @@ class QGISRed:
                                                 actionBase=editDropButton, add_to_toolbar=True, checable=True,
                                                 parent=self.iface.mainWindow())
         self.editionToolbar.addSeparator()
+        icon_path = ':/plugins/QGISRed/images/iconAddConnection.png'
+        self.addServConnButton = self.add_action(icon_path, text=self.tr(u'Add Service Connection'),
+                                                 callback=self.runPaintServiceConnection,
+                                                 menubar=self.editionMenu, toolbar=self.editionToolbar,
+                                                 actionBase=editDropButton, add_to_toolbar=True, checable=True,
+                                                 parent=self.iface.mainWindow())
 
+        self.editionToolbar.addSeparator()
         icon_path = ':/plugins/QGISRed/images/iconSelection.png'
         self.selectElementsButton = self.add_action(icon_path, text=self.tr(u'Select multiple elements'),
                                                     callback=self.runSelectElements, menubar=self.editionMenu,
@@ -1716,7 +1724,7 @@ class QGISRed:
                 self.addPipeButton.setChecked(False)
                 return
             self.myMapTools[tool] = QGISRedCreatePipeTool(
-                self.addPipeButton, self.iface, self.ProjectDirectory, self.NetworkName, self)
+                self.addPipeButton, self.iface, self.ProjectDirectory, self.NetworkName, self.runCreatePipe)
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runCreatePipe(self, points):
@@ -1850,6 +1858,38 @@ class QGISRed:
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "")
+
+    def runPaintServiceConnection(self):
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            self.addServConnButton.setChecked(False)
+            return
+
+        tool = "createConnection"
+        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
+        else:
+            if self.isLayerOnEdition():
+                self.addServConnButton.setChecked(False)
+                return
+            self.myMapTools[tool] = QGISRedCreateConnectionTool(
+                self.addServConnButton, self.iface, self.ProjectDirectory, self.NetworkName,
+                self.runCreateServiceConnection)
+            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
+
+    def runCreateServiceConnection(self, points):
+        pipePoints = ""
+        for p in points:
+            p = self.transformPoint(p)
+            pipePoints = pipePoints + str(p.x()) + ":" + str(p.y()) + ";"
+        # Process:
+        self.complementaryLayers = ["ServiceConnections"]
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.AddConnection(self.ProjectDirectory, self.NetworkName, self.tempFolder, pipePoints)
+        QApplication.restoreOverrideCursor()
+
+        self.processCsharpResult(resMessage, "Service Connection added")
 
     def runSelectElements(self):
         tool = "selectElements"
