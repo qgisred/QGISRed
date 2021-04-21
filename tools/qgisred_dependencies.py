@@ -550,18 +550,17 @@ class QGISRedDependencies:
         return QGISRedDependencies.toString(b)
 
     @staticmethod
-    def RemoveElements(projectFolder, networkName, tempFolder, point, nodeIds, linkIds):
+    def RemoveElements(projectFolder, networkName, tempFolder, point, ids):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
         point = QGISRedDependencies.encode(point)
-        nodeIds = QGISRedDependencies.encode(nodeIds)
-        linkIds = QGISRedDependencies.encode(linkIds)
+        ids = QGISRedDependencies.encode(ids)
 
         mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.RemoveElements.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.RemoveElements.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.RemoveElements.restype = c_char_p
-        b = mydll.RemoveElements(projectFolder, networkName, tempFolder, point, nodeIds, linkIds)
+        b = mydll.RemoveElements(projectFolder, networkName, tempFolder, point, ids)
         return QGISRedDependencies.toString(b)
 
     @staticmethod

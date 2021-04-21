@@ -67,7 +67,9 @@ class QGISRed:
     NetworkName = ""
     ownMainLayers = ["Pipes", "Junctions", "Demands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
     ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns", "Materials"]
-    complementaryLayers = []
+    especificComplementaryLayers = []
+    complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves",
+                            "AirReleaseValves", "ServiceConnections", "Meters"]
     TemporalFolder = "Temporal folder"
     DependenciesVersion = "1.0.12.2"
 
@@ -325,13 +327,6 @@ class QGISRed:
                                                 toolbar=self.editionToolbar,
                                                 actionBase=editDropButton, add_to_toolbar=True, checable=True,
                                                 parent=self.iface.mainWindow())
-        self.editionToolbar.addSeparator()
-        icon_path = ':/plugins/QGISRed/images/iconAddConnection.png'
-        self.addServConnButton = self.add_action(icon_path, text=self.tr(u'Add Service Connection'),
-                                                 callback=self.runPaintServiceConnection,
-                                                 menubar=self.editionMenu, toolbar=self.editionToolbar,
-                                                 actionBase=editDropButton, add_to_toolbar=True, checable=True,
-                                                 parent=self.iface.mainWindow())
 
         self.editionToolbar.addSeparator()
         icon_path = ':/plugins/QGISRed/images/iconSelection.png'
@@ -505,14 +500,9 @@ class QGISRed:
                                          toolbar=self.toolbar, createDrop=True, addActionToDrop=False,
                                          add_to_toolbar=False, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconDemands.png'
-        self.add_action(icon_path, text=self.tr(u'Import demands in junctions'),
+        self.add_action(icon_path, text=self.tr(u'Demands manager'),
                         callback=self.runImportDemands, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
                         actionBase=toolDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
-        icon_path = ':/plugins/QGISRed/images/iconSetReadings.png'
-        self.add_action(icon_path, text=self.tr(u'Assign Readings'),
-                        callback=self.runAssignDemandsFromReadings, menubar=self.toolsMenu,
-                        toolbar=self.toolsToolbar, actionBase=toolDropButton, add_to_toolbar=True,
-                        parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconRoughness.png'
         self.add_action(icon_path, text=self.tr(u'Set Roughness coefficient (from Material and Date)'),
                         callback=self.runSetRoughness, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
@@ -525,23 +515,6 @@ class QGISRed:
         self.add_action(icon_path, text=self.tr(u'Interpolate elevation from .asc files'),
                         callback=self.runElevationInterpolation, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
                         actionBase=toolDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
-        icon_path = ':/plugins/QGISRed/images/iconStatus.png'
-        self.add_action(icon_path, text=self.tr(u'Set pipe\'s initial status from isolation valves'),
-                        callback=self.runSetPipeStatus, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
-                        actionBase=toolDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
-        self.toolsToolbar.addSeparator()
-        icon_path = ':/plugins/QGISRed/images/iconConnections.png'
-        self.add_action(icon_path, text=self.tr(u'Add service connections to the model'),
-                        callback=self.runAddConnections, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
-                        actionBase=toolDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
-        icon_path = ':/plugins/QGISRed/images/iconHydrants.png'
-        self.add_action(icon_path, text=self.tr(u'Add hydrants to the model'), callback=self.runAddHydrants,
-                        menubar=self.toolsMenu, toolbar=self.toolsToolbar,
-                        actionBase=toolDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
-        icon_path = ':/plugins/QGISRed/images/iconPurges.png'
-        self.add_action(icon_path, text=self.tr(u'Add washout valves to the model'), callback=self.runAddPurgeValves,
-                        menubar=self.toolsMenu, toolbar=self.toolsToolbar,
-                        actionBase=toolDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         self.toolsToolbar.addSeparator()
         icon_path = ':/plugins/QGISRed/images/iconDemandSector.png'
         self.add_action(icon_path, text=self.tr(u'Obtain demand sectors'), callback=self.runDemandSectors,
@@ -551,6 +524,52 @@ class QGISRed:
         self.add_action(icon_path, text=self.tr(u'Minimum Spanning Tree'), callback=self.runTree,
                         menubar=self.toolsMenu, toolbar=self.toolsToolbar,
                         actionBase=toolDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
+
+    def addDigitalTwinMenu(self):
+        #    #Menu
+        self.dtMenu = self.qgisredmenu.addMenu(self.tr('Digital Twin'))
+        self.dtMenu.setIcon(QIcon(':/plugins/QGISRed/images/iconDigitalTwin.png'))
+        #    #Toolbar
+        self.dtToolbar = self.iface.addToolBar(self.tr(u'QGISRed Digital Twin'))
+        self.dtToolbar.setObjectName(self.tr(u'QGISRed Digital Twin'))
+        self.dtToolbar.setVisible(False)
+        #    #Buttons
+        icon_path = ':/plugins/QGISRed/images/iconDigitalTwin.png'
+        dtDropButton = self.add_action(icon_path, text=self.tr(u'Tools'), callback=self.runDtToolbar,
+                                       menubar=self.dtMenu, add_to_menu=False,
+                                       toolbar=self.toolbar, createDrop=True, addActionToDrop=False,
+                                       add_to_toolbar=False, parent=self.iface.mainWindow())
+
+        icon_path = ':/plugins/QGISRed/images/iconAddConnection.png'
+        self.addServConnButton = self.add_action(icon_path, text=self.tr(u'Add Service Connection'),
+                                                 callback=self.runPaintServiceConnection,
+                                                 menubar=self.dtMenu, toolbar=self.dtToolbar,
+                                                 actionBase=dtDropButton, add_to_toolbar=True, checable=True,
+                                                 parent=self.iface.mainWindow())
+        self.dtToolbar.addSeparator()
+        icon_path = ':/plugins/QGISRed/images/iconSetReadings.png'
+        self.add_action(icon_path, text=self.tr(u'Assign Readings'),
+                        callback=self.runAssignDemandsFromReadings, menubar=self.dtMenu,
+                        toolbar=self.dtToolbar, actionBase=dtDropButton, add_to_toolbar=True,
+                        parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconStatus.png'
+        self.add_action(icon_path, text=self.tr(u'Set pipe\'s initial status from isolation valves'),
+                        callback=self.runSetPipeStatus, menubar=self.dtMenu, toolbar=self.dtToolbar,
+                        actionBase=dtDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
+        self.dtToolbar.addSeparator()
+        icon_path = ':/plugins/QGISRed/images/iconConnections.png'
+        self.add_action(icon_path, text=self.tr(u'Add service connections to the model'),
+                        callback=self.runAddConnections, menubar=self.dtMenu, toolbar=self.dtToolbar,
+                        actionBase=dtDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconHydrants.png'
+        self.add_action(icon_path, text=self.tr(u'Add hydrants to the model'), callback=self.runAddHydrants,
+                        menubar=self.dtMenu, toolbar=self.dtToolbar,
+                        actionBase=dtDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconPurges.png'
+        self.add_action(icon_path, text=self.tr(u'Add washout valves to the model'), callback=self.runAddPurgeValves,
+                        menubar=self.dtMenu, toolbar=self.dtToolbar,
+                        actionBase=dtDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
+
 
     def initGui(self):
         if not platform.system() == "Windows":
@@ -562,6 +581,7 @@ class QGISRed:
         self.addEditMenu()
         self.addVerificationsMenu()
         self.addToolsMenu()
+        self.addDigitalTwinMenu()
 
         # About
         icon_path = ':/plugins/QGISRed/images/iconAbout.png'
@@ -637,6 +657,7 @@ class QGISRed:
         del self.editionToolbar
         del self.verificationsToolbar
         del self.toolsToolbar
+        del self.dtToolbar
 
         # remove statusbar label
         self.iface.mainWindow().statusBar().removeWidget(self.unitsButton)
@@ -652,6 +673,8 @@ class QGISRed:
             self.verificationsMenu.menuAction().setVisible(False)
         if self.toolsMenu:
             self.toolsMenu.menuAction().setVisible(False)
+        if self.dtMenu:
+            self.dtMenu.menuAction().setVisible(False)
         if self.qgisredmenu:
             self.qgisredmenu.menuAction().setVisible(False)
 
@@ -887,7 +910,7 @@ class QGISRed:
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayers(self.ownMainLayers)
         utils.removeLayers(self.ownFiles, ".dbf")
-        utils.removeLayers(self.complementaryLayers)
+        utils.removeLayers(self.especificComplementaryLayers)
         if task is not None:
             return {'task': task.definition()}
 
@@ -907,7 +930,7 @@ class QGISRed:
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayers(self.ownMainLayers)
         utils.removeLayers(self.ownFiles, ".dbf")
-        utils.removeLayers(self.complementaryLayers)
+        utils.removeLayers(self.especificComplementaryLayers)
         utils.removeLayers(self.issuesLayers)
         if task is not None:
             return {'task': task.definition()}
@@ -929,7 +952,7 @@ class QGISRed:
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayers(self.ownMainLayers)
         utils.removeLayers(self.ownFiles, ".dbf")
-        utils.removeLayers(self.complementaryLayers)
+        utils.removeLayers(self.especificComplementaryLayers)
         utils.removeLayer("Links_Connectivity")
         self.removeEmptyQuerySubGroup("Connectivity")
         if task is not None:
@@ -944,8 +967,7 @@ class QGISRed:
 
     """Open Layers"""
     def openRemoveSpecificLayers(self, layers, epsg):
-        self.complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves",
-                                    "AirReleaseValves", "ServiceConnections", "Meters"]
+        self.especificComplementaryLayers = self.complementaryLayers
         self.extent = self.iface.mapCanvas().extent()
         self.specificEpsg = epsg
         self.specificLayers = layers
@@ -953,7 +975,7 @@ class QGISRed:
         QGISRedUtils().runTask('update specific layers', self.removeLayers, self.openSpecificLayers)
 
     def openSpecificLayers(self, exception=None, result=None):
-        self.complementaryLayers = []
+        self.especificComplementaryLayers = []
         if self.specificEpsg is not None:
             self.runChangeCrs()
 
@@ -990,9 +1012,9 @@ class QGISRed:
             utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
             inputGroup = self.getInputGroup()
             utils.openElementsLayers(inputGroup, self.ownMainLayers)
-            utils.openElementsLayers(inputGroup, self.complementaryLayers)
+            utils.openElementsLayers(inputGroup, self.especificComplementaryLayers)
 
-            self.complementaryLayers = []
+            self.especificComplementaryLayers = []
 
             self.updateMetadata()
 
@@ -1203,6 +1225,7 @@ class QGISRed:
         linkIdsList = []
         nodeIdsList = []
         self.selectedFids = {}
+        self.selectedIds = {}
 
         layers = self.getLayers()
         mylayersNames = self.ownMainLayers
@@ -1213,19 +1236,53 @@ class QGISRed:
                     continue
                 if self.getLayerPath(layer) == layerPath:
                     fids = []
+                    ids = []
                     for feature in layer.getSelectedFeatures():
                         fids.append(feature.id())
+                        id = str(feature['Id'])
+                        if id == 'NULL':
+                            message = self.tr("Some Ids are not defined. Commit before and try again.")
+                            self.iface.messageBar().pushMessage(self.tr("Warning"), message, level=1, duration=5)
+                            self.selectedFids = {}
+                            return False
                         if layer.geometryType() == 0:
-                            nodeIdsList.append(str(feature['Id']))
+                            ids.append(id)
+                            nodeIdsList.append(id)
                         else:
-                            linkIdsList.append(str(feature['Id']))
-                    self.selectedFids[layerName] = fids
+                            ids.append(id)
+                            linkIdsList.append(id)
+                    if (len(fids) > 0):
+                        self.selectedFids[layerName] = fids
+                    if (len(ids) > 0):
+                        self.selectedIds[layerName] = ids
 
-        if 'NULL' in nodeIdsList or 'NULL' in linkIdsList:
-            self.iface.messageBar().pushMessage(self.tr("Warning"),
-                                                self.tr("Some Ids are not defined. Commit before and try again."),
-                                                level=1, duration=5)
-            return False
+        # if 'NULL' in nodeIdsList or 'NULL' in linkIdsList:
+        #     self.iface.messageBar().pushMessage(self.tr("Warning"),
+        #                                         self.tr("Some Ids are not defined. Commit before and try again."),
+        #                                         level=1, duration=5)
+        #     return False
+
+        mylayersNames = self.complementaryLayers
+        for layer in layers:
+            for layerName in mylayersNames:
+                layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp")
+                if self.getLayerPath(layer) == layerPath:
+                    fids = []
+                    ids = []
+                    for feature in layer.getSelectedFeatures():
+                        fids.append(feature.id())
+                        id = str(feature['Id'])
+                        if id == 'NULL':
+                            message = self.tr("Some Ids are not defined. Commit before and try again.")
+                            self.iface.messageBar().pushMessage(self.tr("Warning"), message, level=1, duration=5)
+                            self.selectedFids = {}
+                            return False
+                        ids.append(id)
+                    if (len(fids) > 0):
+                        self.selectedFids[layerName] = fids
+                    if (len(ids) > 0):
+                        self.selectedIds[layerName] = ids
+
         # Generate concatenate string for links and nodes
         self.linkIds = ""
         for id in linkIdsList:
@@ -1276,6 +1333,9 @@ class QGISRed:
 
     def runToolsToolbar(self):
         self.toolsToolbar.setVisible(not self.toolsToolbar.isVisible())
+
+    def runDtToolbar(self):
+        self.dtToolbar.setVisible(not self.dtToolbar.isVisible())
 
     def runExperimentalToolbar(self):
         self.experimentalToolbar.setVisible(not self.experimentalToolbar.isVisible())
@@ -1363,7 +1423,7 @@ class QGISRed:
 
         # if we need to create project
         self.opendedLayers = False
-        self.complementaryLayers = []
+        self.especificComplementaryLayers = []
         self.selectedFids = {}
 
         # Run the dialog event loop
@@ -1394,7 +1454,7 @@ class QGISRed:
             self.defineCurrentProject()
 
         self.opendedLayers = False
-        self.complementaryLayers = []
+        self.especificComplementaryLayers = []
         self.selectedFids = {}
         dlg = QGISRedCreateProjectDialog()
         dlg.config(self.iface, self.ProjectDirectory, self.NetworkName, self)
@@ -1884,7 +1944,7 @@ class QGISRed:
             p = self.transformPoint(p)
             pipePoints = pipePoints + str(p.x()) + ":" + str(p.y()) + ";"
         # Process:
-        self.complementaryLayers = ["ServiceConnections"]
+        self.especificComplementaryLayers = ["ServiceConnections"]
         QApplication.setOverrideCursor(Qt.WaitCursor)
         resMessage = GISRed.AddConnection(self.ProjectDirectory, self.NetworkName, self.tempFolder, pipePoints)
         QApplication.restoreOverrideCursor()
@@ -2179,7 +2239,7 @@ class QGISRed:
         if not self.getSelectedFeaturesIds():
             self.removeElementsButton.setChecked(False)
             return
-        if self.nodeIds == "" and self.linkIds == "":
+        if len(self.selectedIds) == 0:
             self.runSelectDeleteElementPoint()
             return
         self.removeElementsButton.setChecked(False)
@@ -2214,10 +2274,15 @@ class QGISRed:
             point = self.transformPoint(point)
             pointText = str(point.x()) + ":" + str(point.y())
 
+        ids = ""
+        for key in self.selectedIds:
+            ids = ids + key + ":" + str(self.selectedIds[key]) + ";"
+
         # Process
+        self.especificComplementaryLayers = self.getComplementaryLayersOpened()
         QApplication.setOverrideCursor(Qt.WaitCursor)
         resMessage = GISRed.RemoveElements(self.ProjectDirectory, self.NetworkName, self.tempFolder,
-                                           pointText, self.nodeIds, self.linkIds)
+                                           pointText, ids)
         QApplication.restoreOverrideCursor()
 
         self.selectedFids = {}
@@ -2248,7 +2313,7 @@ class QGISRed:
         point = str(point.x()) + ":" + str(point.y())
 
         # Process
-        self.complementaryLayers = self.getComplementaryLayersOpened()
+        self.especificComplementaryLayers = self.getComplementaryLayersOpened()
         QApplication.setOverrideCursor(Qt.WaitCursor)
         resMessage = GISRed.EditElements(self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
         QApplication.restoreOverrideCursor()
@@ -2301,7 +2366,7 @@ class QGISRed:
             return
 
         # Process
-        self.complementaryLayers = self.getComplementaryLayersOpened()
+        self.especificComplementaryLayers = self.getComplementaryLayersOpened()
         QApplication.setOverrideCursor(Qt.WaitCursor)
         resMessage = GISRed.Commit(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
@@ -2619,7 +2684,7 @@ class QGISRed:
         #     return
 
         # Process
-        self.complementaryLayers = ["ServiceConnections"]
+        self.especificComplementaryLayers = ["ServiceConnections"]
         QApplication.setOverrideCursor(Qt.WaitCursor)
         resMessage = GISRed.AssignDemandsFromConnections(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
@@ -2707,7 +2772,7 @@ class QGISRed:
             return
 
         # Process
-        self.complementaryLayers = ["IsolationValves"]
+        self.especificComplementaryLayers = ["IsolationValves"]
         QApplication.setOverrideCursor(Qt.WaitCursor)
         resMessage = GISRed.SetInitialStatusPipes(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
@@ -2741,7 +2806,7 @@ class QGISRed:
             asNode = "false"
 
         # Process
-        self.complementaryLayers = ["ServiceConnections"]
+        self.especificComplementaryLayers = ["ServiceConnections"]
         QApplication.setOverrideCursor(Qt.WaitCursor)
         resMessage = GISRed.AddConnections(self.ProjectDirectory, self.NetworkName, asNode, self.tempFolder)
         QApplication.restoreOverrideCursor()
@@ -2764,7 +2829,7 @@ class QGISRed:
             return
 
         # Process
-        self.complementaryLayers = ["Hydrants"]
+        self.especificComplementaryLayers = ["Hydrants"]
         QApplication.setOverrideCursor(Qt.WaitCursor)
         resMessage = GISRed.AddHydrants(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
@@ -2787,7 +2852,7 @@ class QGISRed:
             return
 
         # Process
-        self.complementaryLayers = ["WashoutValves"]
+        self.especificComplementaryLayers = ["WashoutValves"]
         QApplication.setOverrideCursor(Qt.WaitCursor)
         resMessage = GISRed.AddWashoutValves(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()

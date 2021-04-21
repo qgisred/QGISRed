@@ -75,8 +75,6 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         self.btMeters.setVisible(not self.NetworkName + "_Meters.shp" in dirList)
 
         # Enables
-        self.cbDemands.setEnabled(self.NetworkName + "_Demands.shp" in dirList)
-        self.cbSources.setEnabled(self.NetworkName + "_Sources.shp" in dirList)
         self.cbIsolatedValves.setEnabled(self.NetworkName + "_IsolationValves.shp" in dirList)
         self.cbHydrants.setEnabled(self.NetworkName + "_Hydrants.shp" in dirList)
         self.cbPurgeValves.setEnabled(self.NetworkName + "_WashoutValves.shp" in dirList)
@@ -105,9 +103,14 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         self.cbPumps.setChecked(hasLayer)
         self.cbPumps.setEnabled(self.NetworkName + "_Pumps.shp" in dirList and not hasLayer)
 
+        hasLayer = utils.isLayerOpened("Demands")
+        self.cbDemands.setChecked(hasLayer)
+        self.cbDemands.setEnabled(self.NetworkName + "_Demands.shp" in dirList and not hasLayer)
+        hasLayer = utils.isLayerOpened("Sources")
+        self.cbSources.setChecked(hasLayer)
+        self.cbSources.setEnabled(self.NetworkName + "_Sources.shp" in dirList and not hasLayer)
+
         # Checked
-        self.cbDemands.setChecked(utils.isLayerOpened("Demands"))
-        self.cbSources.setChecked(utils.isLayerOpened("Sources"))
         self.cbIsolatedValves.setChecked(utils.isLayerOpened("IsolationValves"))
         self.cbHydrants.setChecked(utils.isLayerOpened("Hydrants"))
         self.cbPurgeValves.setChecked(utils.isLayerOpened("WashoutValves"))
