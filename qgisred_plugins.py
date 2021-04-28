@@ -69,9 +69,10 @@ class QGISRed:
     ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns", "Materials"]
     especificComplementaryLayers = []
     complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves",
-                            "AirReleaseValves", "ServiceConnections", "Meters"]
+                           "AirReleaseValves", "ServiceConnections", "Meters"]
     TemporalFolder = "Temporal folder"
     DependenciesVersion = "1.0.12.2"
+    gisredDll = None
 
     """Basic"""
     def __init__(self, iface):
@@ -463,7 +464,7 @@ class QGISRed:
                         actionBase=dropButton, add_to_toolbar=False, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconLengthC.png'
         self.verificationsToolbar.addSeparator()
-        self.add_action(icon_path, text=self.tr(u'Change pipe lengths'), callback=self.runCheckLengths,
+        self.add_action(icon_path, text=self.tr(u'Check pipe lengths'), callback=self.runCheckLengths,
                         menubar=self.verificationsMenu, toolbar=self.verificationsToolbar,
                         actionBase=verificationsDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconDiameters.png'
@@ -501,7 +502,7 @@ class QGISRed:
                                          add_to_toolbar=False, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconDemands.png'
         self.add_action(icon_path, text=self.tr(u'Demands manager'),
-                        callback=self.runImportDemands, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
+                        callback=self.runDemandsManager, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
                         actionBase=toolDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconRoughness.png'
         self.add_action(icon_path, text=self.tr(u'Set Roughness coefficient (from Material and Date)'),
@@ -535,7 +536,7 @@ class QGISRed:
         self.dtToolbar.setVisible(False)
         #    #Buttons
         icon_path = ':/plugins/QGISRed/images/iconDigitalTwin.png'
-        dtDropButton = self.add_action(icon_path, text=self.tr(u'Tools'), callback=self.runDtToolbar,
+        dtDropButton = self.add_action(icon_path, text=self.tr(u'Digital Twin'), callback=self.runDtToolbar,
                                        menubar=self.dtMenu, add_to_menu=False,
                                        toolbar=self.toolbar, createDrop=True, addActionToDrop=False,
                                        add_to_toolbar=False, parent=self.iface.mainWindow())
@@ -548,8 +549,8 @@ class QGISRed:
                                                  parent=self.iface.mainWindow())
         self.dtToolbar.addSeparator()
         icon_path = ':/plugins/QGISRed/images/iconSetReadings.png'
-        self.add_action(icon_path, text=self.tr(u'Assign Readings'),
-                        callback=self.runAssignDemandsFromReadings, menubar=self.dtMenu,
+        self.add_action(icon_path, text=self.tr(u'Load Meter Readings'),
+                        callback=self.runLoadReadings, menubar=self.dtMenu,
                         toolbar=self.dtToolbar, actionBase=dtDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconStatus.png'
@@ -569,7 +570,6 @@ class QGISRed:
         self.add_action(icon_path, text=self.tr(u'Add washout valves to the model'), callback=self.runAddPurgeValves,
                         menubar=self.dtMenu, toolbar=self.dtToolbar,
                         actionBase=dtDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
-
 
     def initGui(self):
         if not platform.system() == "Windows":
@@ -1131,6 +1131,11 @@ class QGISRed:
                             complementary.append(layerName)
         return complementary
 
+    def blockLayers(self, readonly):
+        layers = self.getLayers()
+        for layer in layers:
+            layer.setReadOnly(readonly)
+
     def updateMetadata(self, layersNames="", project="", net=""):
         if not self.checkDependencies():
             return
@@ -1581,6 +1586,7 @@ class QGISRed:
             self.updateMetadata()
 
     def runClearedProject(self):
+        self.gisredDll = None
         if self.ResultDockwidget is not None:
             self.ResultDockwidget.close()
 
@@ -1918,38 +1924,6 @@ class QGISRed:
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "")
-
-    def runPaintServiceConnection(self):
-        # Validations
-        self.defineCurrentProject()
-        if not self.isValidProject():
-            self.addServConnButton.setChecked(False)
-            return
-
-        tool = "createConnection"
-        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
-            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
-        else:
-            if self.isLayerOnEdition():
-                self.addServConnButton.setChecked(False)
-                return
-            self.myMapTools[tool] = QGISRedCreateConnectionTool(
-                self.addServConnButton, self.iface, self.ProjectDirectory, self.NetworkName,
-                self.runCreateServiceConnection)
-            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
-
-    def runCreateServiceConnection(self, points):
-        pipePoints = ""
-        for p in points:
-            p = self.transformPoint(p)
-            pipePoints = pipePoints + str(p.x()) + ":" + str(p.y()) + ";"
-        # Process:
-        self.especificComplementaryLayers = ["ServiceConnections"]
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.AddConnection(self.ProjectDirectory, self.NetworkName, self.tempFolder, pipePoints)
-        QApplication.restoreOverrideCursor()
-
-        self.processCsharpResult(resMessage, "Service Connection added")
 
     def runSelectElements(self):
         tool = "selectElements"
@@ -2294,6 +2268,7 @@ class QGISRed:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.editElementButton.setChecked(False)
         else:
+            self.gisredDll = None
             self.myMapTools[tool] = QGISRedSelectPointTool(
                 self.editElementButton, self, self.runProperties, 2)
             self.myMapTools[tool].setCursor(Qt.WhatsThisCursor)
@@ -2314,11 +2289,19 @@ class QGISRed:
 
         # Process
         self.especificComplementaryLayers = self.getComplementaryLayersOpened()
+        if (self.gisredDll is None):
+            self.gisredDll = GISRed.CreateInstance()
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.EditElements(self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
+        resMessage = GISRed.EditElements(self.gisredDll, self.ProjectDirectory,
+                                         self.NetworkName, self.tempFolder, point)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(resMessage, "")
+        if not resMessage == "Select":
+            self.processCsharpResult(resMessage, "")
+            self.gisredDll = None
+            self.blockLayers(False)
+        else:
+            self.blockLayers(True)
 
     def runPatternsCurves(self):
         if not self.checkDependencies():
@@ -2651,7 +2634,7 @@ class QGISRed:
             QGISRedUtils().runTask('update sectors', self.removeSectorLayers, self.runOpenTemporaryFiles)
 
     """Tools"""
-    def runImportDemands(self):
+    def runDemandsManager(self):
         if not self.checkDependencies():
             return
         # Validations
@@ -2661,35 +2644,18 @@ class QGISRed:
         if self.isLayerOnEdition():
             return
 
+        self.getSelectedFeaturesIds()
+        ids = ""
+        if "Junctions" in self.selectedIds:
+            ids = "Junctions:" + str(self.selectedIds["Junctions"]) + ";"
+
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.ImportDemands(self.ProjectDirectory, self.NetworkName, self.tempFolder)
+        resMessage = GISRed.DemandsManager(self.ProjectDirectory, self.NetworkName, self.tempFolder, ids)
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "")
-
-    def runAssignDemandsFromReadings(self):
-        if not self.checkDependencies():
-            return
-        # Validations
-        self.defineCurrentProject()
-        if not self.isValidProject():
-            return
-        if self.isLayerOnEdition():
-            return
-
-        # if not os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_ServiceConnections.shp")):
-        #     self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr(
-        #         "Does not exist ServiceConnections SHP file"), level=1, duration=5)
-        #     return
-
-        # Process
-        self.especificComplementaryLayers = ["ServiceConnections"]
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.AssignDemandsFromConnections(self.ProjectDirectory, self.NetworkName, self.tempFolder)
-        QApplication.restoreOverrideCursor()
-
-        self.processCsharpResult(resMessage, "")
+        self.selectedFids = {}
 
     def runSetRoughness(self):
         if not self.checkDependencies():
@@ -2755,6 +2721,94 @@ class QGISRed:
             QApplication.restoreOverrideCursor()
 
             self.processCsharpResult(resMessage, "Any elevation has been estimated")
+
+    def runDemandSectors(self):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        self.Sectors = "DemandSectors"
+        # Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.DemandSectors(self.ProjectDirectory, self.NetworkName, self.tempFolder)
+        QApplication.restoreOverrideCursor()
+
+        # Action
+        self.hasToOpenNewLayers = False
+        self.hasToOpenIssuesLayers = False
+        self.hasToOpenSectorLayers = False
+        if resMessage == "False":
+            pass
+        elif resMessage == "shps":
+            self.hasToOpenSectorLayers = True
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+
+        self.removingLayers = True
+        self.extent = self.iface.mapCanvas().extent()
+        if self.hasToOpenSectorLayers:
+            QGISRedUtils().runTask('update sectors', self.removeSectorLayers, self.runOpenTemporaryFiles)
+
+    """Digital Twin"""
+    def runPaintServiceConnection(self):
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            self.addServConnButton.setChecked(False)
+            return
+
+        tool = "createConnection"
+        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
+        else:
+            if self.isLayerOnEdition():
+                self.addServConnButton.setChecked(False)
+                return
+            self.myMapTools[tool] = QGISRedCreateConnectionTool(
+                self.addServConnButton, self.iface, self.ProjectDirectory, self.NetworkName,
+                self.runCreateServiceConnection)
+            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
+
+    def runCreateServiceConnection(self, points):
+        pipePoints = ""
+        for p in points:
+            p = self.transformPoint(p)
+            pipePoints = pipePoints + str(p.x()) + ":" + str(p.y()) + ";"
+        # Process:
+        self.especificComplementaryLayers = ["ServiceConnections"]
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.AddConnection(self.ProjectDirectory, self.NetworkName, self.tempFolder, pipePoints)
+        QApplication.restoreOverrideCursor()
+
+        self.processCsharpResult(resMessage, "Service Connection added")
+
+    def runLoadReadings(self):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        # if not os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_ServiceConnections.shp")):
+        #     self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr(
+        #         "Does not exist ServiceConnections SHP file"), level=1, duration=5)
+        #     return
+
+        # Process
+        self.especificComplementaryLayers = ["ServiceConnections"]
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.LoadReadings(self.ProjectDirectory, self.NetworkName, self.tempFolder)
+        QApplication.restoreOverrideCursor()
+
+        self.processCsharpResult(resMessage, "")
 
     def runSetPipeStatus(self):
         if not self.checkDependencies():
@@ -2858,38 +2912,6 @@ class QGISRed:
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "No Washout Valves to include in the model")
-
-    def runDemandSectors(self):
-        if not self.checkDependencies():
-            return
-        # Validations
-        self.defineCurrentProject()
-        if not self.isValidProject():
-            return
-        if self.isLayerOnEdition():
-            return
-
-        self.Sectors = "DemandSectors"
-        # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.DemandSectors(self.ProjectDirectory, self.NetworkName, self.tempFolder)
-        QApplication.restoreOverrideCursor()
-
-        # Action
-        self.hasToOpenNewLayers = False
-        self.hasToOpenIssuesLayers = False
-        self.hasToOpenSectorLayers = False
-        if resMessage == "False":
-            pass
-        elif resMessage == "shps":
-            self.hasToOpenSectorLayers = True
-        else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
-
-        self.removingLayers = True
-        self.extent = self.iface.mapCanvas().extent()
-        if self.hasToOpenSectorLayers:
-            QGISRedUtils().runTask('update sectors', self.removeSectorLayers, self.runOpenTemporaryFiles)
 
     """Minimum Spanning Tree"""
     def runTree(self, point):

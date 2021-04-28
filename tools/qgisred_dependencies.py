@@ -4,6 +4,11 @@ from ctypes import c_char_p, WinDLL
 
 class QGISRedDependencies:
     @staticmethod
+    def CreateInstance():
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
+        return mydll
+
+    @staticmethod
     def AddConnection(projectFolder, networkName, tempFolder, pipePoints):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
@@ -105,15 +110,15 @@ class QGISRedDependencies:
         return QGISRedDependencies.toString(b)
 
     @staticmethod
-    def AssignDemandsFromConnections(projectFolder, networkName, tempFolder):
+    def LoadReadings(projectFolder, networkName, tempFolder):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
 
         mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.AssignDemandsFromConnections.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.AssignDemandsFromConnections.restype = c_char_p
-        b = mydll.AssignDemandsFromConnections(projectFolder, networkName, tempFolder)
+        mydll.LoadReadings.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.LoadReadings.restype = c_char_p
+        b = mydll.LoadReadings(projectFolder, networkName, tempFolder)
         return QGISRedDependencies.toString(b)
 
     @staticmethod
@@ -384,13 +389,12 @@ class QGISRedDependencies:
         return QGISRedDependencies.toString(b)
 
     @staticmethod
-    def EditElements(projectFolder, networkName, tempFolder, point):
+    def EditElements(mydll, projectFolder, networkName, tempFolder, point):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
         point = QGISRedDependencies.encode(point)
 
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
         mydll.EditElements.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.EditElements.restype = c_char_p
         b = mydll.EditElements(projectFolder, networkName, tempFolder, point)
@@ -456,15 +460,16 @@ class QGISRedDependencies:
         return QGISRedDependencies.toString(b)
 
     @staticmethod
-    def ImportDemands(projectFolder, networkName, tempFolder):
+    def DemandsManager(projectFolder, networkName, tempFolder, ids):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
+        ids = QGISRedDependencies.encode(ids)
 
         mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.ImportDemands.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.ImportDemands.restype = c_char_p
-        b = mydll.ImportDemands(projectFolder, networkName, tempFolder)
+        mydll.DemandsManager.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.DemandsManager.restype = c_char_p
+        b = mydll.DemandsManager(projectFolder, networkName, tempFolder, ids)
         return QGISRedDependencies.toString(b)
 
     @staticmethod

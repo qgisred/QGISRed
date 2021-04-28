@@ -512,7 +512,7 @@
         </size>
        </property>
        <property name="title">
-        <string>Complementary Elements Visibility in Legend</string>
+        <string>Digital Twin Visibility in Legend</string>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
