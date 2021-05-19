@@ -620,6 +620,8 @@ class QGISRed:
         self.issuesLayers = []
         for name in self.ownMainLayers:
             self.issuesLayers.append(name + "_Issues")
+        for name in self.complementaryLayers:
+            self.issuesLayers.append(name + "_Issues")
         # Open layers options
         self.hasToOpenConnectivityLayers = False
         self.hasToOpenIssuesLayers = False
