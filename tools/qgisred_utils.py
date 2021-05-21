@@ -157,7 +157,11 @@ class QGISRedUtils:
         return path.replace("/", "\\")
 
     def getLayerPath(self, layer):
-        return self.getUniformedPath(str(layer.dataProvider().dataSourceUri().split("|")[0]))
+        try:
+            path = str(layer.dataProvider().dataSourceUri().split("|")[0])
+            return self.getUniformedPath(path)
+        except:
+            return ""
 
     def generatePath(self, folder, fileName):
         return self.getUniformedPath(os.path.join(folder, fileName))
