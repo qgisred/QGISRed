@@ -238,12 +238,12 @@ class QGISRed:
                                             createDrop=True,
                                             addActionToDrop=False, add_to_toolbar=False, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconSettings.png'
-        self.add_action(icon_path, text=self.tr(u'Project Settings'), callback=self.runSettings,
+        self.add_action(icon_path, text=self.tr(u'Project settings'), callback=self.runSettings,
                         menubar=self.projectMenu,
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconLayerManagement.png'
-        self.add_action(icon_path, text=self.tr(u'Layer Management'), callback=self.runEditProject,
+        self.add_action(icon_path, text=self.tr(u'Layer management'), callback=self.runEditProject,
                         menubar=self.projectMenu,
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
@@ -252,17 +252,17 @@ class QGISRed:
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconHydraulicOptions.png'
-        self.add_action(icon_path, text=self.tr(u'Analysis Options'), callback=self.runAnalysisOptions,
+        self.add_action(icon_path, text=self.tr(u'Analysis options'), callback=self.runAnalysisOptions,
                         menubar=self.projectMenu,
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconDefaultValues.png'
-        self.add_action(icon_path, text=self.tr(u'Default Values'), callback=self.runDefaultValues,
+        self.add_action(icon_path, text=self.tr(u'Default values'), callback=self.runDefaultValues,
                         menubar=self.projectMenu,
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconMaterials.png'
-        self.add_action(icon_path, text=self.tr(u'Materials Table'), callback=self.runMaterials,
+        self.add_action(icon_path, text=self.tr(u'Materials table'), callback=self.runMaterials,
                         menubar=self.projectMenu,
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
@@ -271,12 +271,12 @@ class QGISRed:
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconFlash.png'
-        dropButton = self.add_action(icon_path, text=self.tr(u'Run Model'), callback=self.runModel,
+        dropButton = self.add_action(icon_path, text=self.tr(u'Run model'), callback=self.runModel,
                                      menubar=self.projectMenu,
                                      toolbar=self.projectToolbar, actionBase=projectDropButton, createDrop=True,
                                      add_to_toolbar=False, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconResults.png'
-        self.add_action(icon_path, text=self.tr(u'Show Results Browser'), callback=self.runShowResultsDock,
+        self.add_action(icon_path, text=self.tr(u'Show results browser'), callback=self.runShowResultsDock,
                         menubar=self.projectMenu, toolbar=self.projectToolbar, actionBase=dropButton,
                         add_to_toolbar=False, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconExportEpanet.png'
@@ -302,29 +302,29 @@ class QGISRed:
                                          toolbar=self.toolbar, createDrop=True, addActionToDrop=False,
                                          add_to_toolbar=False, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconAddPipe.png'
-        self.addPipeButton = self.add_action(icon_path, text=self.tr(u'Add Pipe'), callback=self.runPaintPipe,
+        self.addPipeButton = self.add_action(icon_path, text=self.tr(u'Add pipe'), callback=self.runPaintPipe,
                                              menubar=self.editionMenu, toolbar=self.editionToolbar,
                                              actionBase=editDropButton, add_to_toolbar=True, checable=True,
                                              parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconAddTank.png'
-        self.addTankButton = self.add_action(icon_path, text=self.tr(u'Add Tank'), callback=self.runSelectTankPoint,
+        self.addTankButton = self.add_action(icon_path, text=self.tr(u'Add tank'), callback=self.runSelectTankPoint,
                                              menubar=self.editionMenu, toolbar=self.editionToolbar,
                                              actionBase=editDropButton, add_to_toolbar=True, checable=True,
                                              parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconAddReservoir.png'
-        self.addReservoirButton = self.add_action(icon_path, text=self.tr(u'Add Reservoir'),
+        self.addReservoirButton = self.add_action(icon_path, text=self.tr(u'Add reservoir'),
                                                   callback=self.runSelectReservoirPoint,
                                                   menubar=self.editionMenu, toolbar=self.editionToolbar,
                                                   actionBase=editDropButton, add_to_toolbar=True, checable=True,
                                                   parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconAddValve.png'
-        self.insertValveButton = self.add_action(icon_path, text=self.tr(u'Insert Valve in Pipe'),
+        self.insertValveButton = self.add_action(icon_path, text=self.tr(u'Insert valve in pipe'),
                                                  callback=self.runSelectValvePoint, menubar=self.editionMenu,
                                                  toolbar=self.editionToolbar,
                                                  actionBase=editDropButton, add_to_toolbar=True, checable=True,
                                                  parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconAddPump.png'
-        self.insertPumpButton = self.add_action(icon_path, text=self.tr(u'Insert Pump in Pipe'),
+        self.insertPumpButton = self.add_action(icon_path, text=self.tr(u'Insert pump in pipe'),
                                                 callback=self.runSelectPumpPoint, menubar=self.editionMenu,
                                                 toolbar=self.editionToolbar,
                                                 actionBase=editDropButton, add_to_toolbar=True, checable=True,
@@ -356,7 +356,7 @@ class QGISRed:
                                                  actionBase=editDropButton, add_to_toolbar=True, checable=True,
                                                  parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconSplitPipe.png'
-        self.splitPipeButton = self.add_action(icon_path, text=self.tr(u'Split/Join Pipe/s'),
+        self.splitPipeButton = self.add_action(icon_path, text=self.tr(u'Split/Join pipe/s'),
                                                callback=self.runSelectSplitPoint, menubar=self.editionMenu,
                                                toolbar=self.editionToolbar,
                                                actionBase=editDropButton, add_to_toolbar=True, checable=True,
@@ -376,14 +376,14 @@ class QGISRed:
                                                        actionBase=editDropButton, add_to_toolbar=True, checable=True,
                                                        parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconCreateRevCrossings.png'
-        self.createReverseCrossButton = self.add_action(icon_path, text=self.tr(u'Create/Reverse Crossings'),
+        self.createReverseCrossButton = self.add_action(icon_path, text=self.tr(u'Create/Reverse crossings'),
                                                         callback=self.runSelectPointToCrossings,
                                                         menubar=self.editionMenu,
                                                         toolbar=self.editionToolbar,
                                                         actionBase=editDropButton, add_to_toolbar=True, checable=True,
                                                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconMoveValvePump.png'
-        self.moveValvePumpButton = self.add_action(icon_path, text=self.tr(u'Move Valve/Pump to another pipe'),
+        self.moveValvePumpButton = self.add_action(icon_path, text=self.tr(u'Move valve/pump to another pipe'),
                                                    callback=self.runSelectValvePumpPoints, menubar=self.editionMenu,
                                                    toolbar=self.editionToolbar,
                                                    actionBase=editDropButton, add_to_toolbar=True, checable=True,
@@ -397,17 +397,17 @@ class QGISRed:
         self.editionToolbar.addSeparator()
 
         icon_path = ':/plugins/QGISRed/images/iconEdit.png'
-        self.editElementButton = self.add_action(icon_path, text=self.tr(u'Edit Element Properties'),
+        self.editElementButton = self.add_action(icon_path, text=self.tr(u'Edit element properties'),
                                                  callback=self.runSelectPointProperties, menubar=self.editionMenu,
                                                  toolbar=self.editionToolbar,
                                                  actionBase=editDropButton, add_to_toolbar=True, checable=True,
                                                  parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconLinePlot.png'
-        self.add_action(icon_path, text=self.tr(u'Edit Patterns and Curves'),
+        self.add_action(icon_path, text=self.tr(u'Edit patterns and curves'),
                         callback=self.runPatternsCurves, menubar=self.editionMenu, toolbar=self.editionToolbar,
                         actionBase=editDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconRules.png'
-        self.add_action(icon_path, text=self.tr(u'Edit Controls'),
+        self.add_action(icon_path, text=self.tr(u'Edit controls'),
                         callback=self.runControls, menubar=self.editionMenu, toolbar=self.editionToolbar,
                         actionBase=editDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
 
@@ -506,11 +506,11 @@ class QGISRed:
                         callback=self.runDemandsManager, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
                         actionBase=toolDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconRoughness.png'
-        self.add_action(icon_path, text=self.tr(u'Set Roughness coefficient (from Material and Date)'),
+        self.add_action(icon_path, text=self.tr(u'Set roughness coefficient (from Material and Date)'),
                         callback=self.runSetRoughness, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
                         actionBase=toolDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconRoughnessConvert.png'
-        self.add_action(icon_path, text=self.tr(u'Convert Roughness coefficient'),
+        self.add_action(icon_path, text=self.tr(u'Convert roughness coefficient'),
                         callback=self.runConvertRoughness, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
                         actionBase=toolDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconInterpolate.png'
@@ -543,21 +543,21 @@ class QGISRed:
                                        add_to_toolbar=False, parent=self.iface.mainWindow())
 
         icon_path = ':/plugins/QGISRed/images/iconAddConnection.png'
-        self.addServConnButton = self.add_action(icon_path, text=self.tr(u'Add Service Connection'),
+        self.addServConnButton = self.add_action(icon_path, text=self.tr(u'Add service connection'),
                                                  callback=self.runPaintServiceConnection,
                                                  menubar=self.dtMenu, toolbar=self.dtToolbar,
                                                  actionBase=dtDropButton, add_to_toolbar=True, checable=True,
                                                  parent=self.iface.mainWindow())
         self.dtToolbar.addSeparator()
         icon_path = ':/plugins/QGISRed/images/iconEditConnection.png'
-        self.editServConnButton = self.add_action(icon_path, text=self.tr(u'Edit Service Connection path'),
+        self.editServConnButton = self.add_action(icon_path, text=self.tr(u'Edit service connection path'),
                                                   callback=self.runEditServiceConnectionPath,
                                                   menubar=self.dtMenu, toolbar=self.dtToolbar,
                                                   actionBase=dtDropButton, add_to_toolbar=True, checable=True,
                                                   parent=self.iface.mainWindow())
         self.dtToolbar.addSeparator()
         icon_path = ':/plugins/QGISRed/images/iconSetReadings.png'
-        self.add_action(icon_path, text=self.tr(u'Load Meter Readings'),
+        self.add_action(icon_path, text=self.tr(u'Load meter readings'),
                         callback=self.runLoadReadings, menubar=self.dtMenu,
                         toolbar=self.dtToolbar, actionBase=dtDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
