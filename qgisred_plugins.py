@@ -550,7 +550,7 @@ class QGISRed:
                                                  parent=self.iface.mainWindow())
         self.dtToolbar.addSeparator()
         icon_path = ':/plugins/QGISRed/images/iconEditConnection.png'
-        self.editServConnButton = self.add_action(icon_path, text=self.tr(u'Edit service connection path'),
+        self.editServConnButton = self.add_action(icon_path, text=self.tr(u'Edit service connection geometry'),
                                                   callback=self.runEditServiceConnectionPath,
                                                   menubar=self.dtMenu, toolbar=self.dtToolbar,
                                                   actionBase=dtDropButton, add_to_toolbar=True, checable=True,
@@ -567,7 +567,7 @@ class QGISRed:
                         actionBase=dtDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         self.dtToolbar.addSeparator()
         icon_path = ':/plugins/QGISRed/images/iconConnections.png'
-        self.add_action(icon_path, text=self.tr(u'Add service connections to the model'),
+        self.add_action(icon_path, text=self.tr(u'Convert service connections into pipes/nodes'),
                         callback=self.runAddConnections, menubar=self.dtMenu, toolbar=self.dtToolbar,
                         actionBase=dtDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconHydrants.png'
