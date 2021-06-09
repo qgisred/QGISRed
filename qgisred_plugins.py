@@ -649,8 +649,9 @@ class QGISRed:
         if os.path.exists(self.tempFolder) and os.path.isdir(self.tempFolder):
             shutil.rmtree(self.tempFolder)
 
-        with open(self.dllTempFolderFile, 'a+') as file:
-            file.write(QGISRedUtils.DllTempoFolder + '\n')
+        if QGISRedUtils.DllTempoFolder is not None:
+            with open(self.dllTempFolderFile, 'a+') as file:
+                file.write(QGISRedUtils.DllTempoFolder + '\n')
 
         if self.ResultDockwidget is not None:
             self.ResultDockwidget.close()
