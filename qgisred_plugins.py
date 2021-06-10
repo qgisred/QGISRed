@@ -44,9 +44,8 @@ from .tools.qgisred_moveNodes import QGISRedMoveNodesTool
 from .tools.qgisred_multilayerSelection import QGISRedMultiLayerSelection
 from .tools.qgisred_createPipe import QGISRedCreatePipeTool
 from .tools.qgisred_createConnection import QGISRedCreateConnectionTool
-from .tools.qgisred_moveVertexs import QGISRedMoveVertexsTool
+from .tools.qgisred_editLinksGeometry import QGISRedEditLinksGeometryTool
 from .tools.qgisred_selectPoint import QGISRedSelectPointTool
-from .tools.qgisred_editConnections import QGISRedEditConnectionsTool
 # Others imports
 import os
 import tempfile
@@ -345,7 +344,7 @@ class QGISRed:
                                                   parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconMoveVertexs.png'
         self.moveVertexsButton = self.add_action(icon_path, text=self.tr(u'Edit link vertices'),
-                                                 callback=self.runEditVertexs, menubar=self.editionMenu,
+                                                 callback=self.runEditLinkGeometry, menubar=self.editionMenu,
                                                  toolbar=self.editionToolbar,
                                                  actionBase=editDropButton, add_to_toolbar=True, checable=True,
                                                  parent=self.iface.mainWindow())
@@ -548,13 +547,6 @@ class QGISRed:
                                                  menubar=self.dtMenu, toolbar=self.dtToolbar,
                                                  actionBase=dtDropButton, add_to_toolbar=True, checable=True,
                                                  parent=self.iface.mainWindow())
-        self.dtToolbar.addSeparator()
-        icon_path = ':/plugins/QGISRed/images/iconEditConnection.png'
-        self.editServConnButton = self.add_action(icon_path, text=self.tr(u'Edit service connection geometry'),
-                                                  callback=self.runEditServiceConnectionPath,
-                                                  menubar=self.dtMenu, toolbar=self.dtToolbar,
-                                                  actionBase=dtDropButton, add_to_toolbar=True, checable=True,
-                                                  parent=self.iface.mainWindow())
         self.dtToolbar.addSeparator()
         icon_path = ':/plugins/QGISRed/images/iconSetReadings.png'
         self.add_action(icon_path, text=self.tr(u'Load meter readings'),
@@ -1969,7 +1961,7 @@ class QGISRed:
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
             self.setCursor(Qt.CrossCursor)
 
-    def runEditVertexs(self):
+    def runEditLinkGeometry(self):
         # Validations
         self.defineCurrentProject()
         if not self.isValidProject():
@@ -1987,7 +1979,7 @@ class QGISRed:
             if self.isLayerOnEdition():
                 self.moveVertexsButton.setChecked(False)
                 return
-            self.myMapTools[tool] = QGISRedMoveVertexsTool(
+            self.myMapTools[tool] = QGISRedEditLinksGeometryTool(
                 self.moveVertexsButton, self.iface, self.ProjectDirectory, self.NetworkName)
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
             self.setCursor(Qt.CrossCursor)
@@ -2798,25 +2790,6 @@ class QGISRed:
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "Service Connection added")
-
-    def runEditServiceConnectionPath(self):
-        # Validations
-        self.defineCurrentProject()
-        if not self.isValidProject():
-            self.editServConnButton.setChecked(False)
-            return
-
-        tool = "editConnection"
-        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
-            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
-        else:
-            if self.isLayerOnEdition():
-                self.editServConnButton.setChecked(False)
-                return
-            self.myMapTools[tool] = QGISRedEditConnectionsTool(
-                self.editServConnButton, self.iface, self.ProjectDirectory, self.NetworkName)
-            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
-            self.setCursor(Qt.CrossCursor)
 
     def runLoadReadings(self):
         if not self.checkDependencies():

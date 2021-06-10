@@ -6,8 +6,8 @@ from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSna
 from ..tools.qgisred_utils import QGISRedUtils
 
 
-class QGISRedMoveVertexsTool(QgsMapTool):
-    ownMainLayers = ["Pipes", "Valves", "Pumps"]
+class QGISRedEditLinksGeometryTool(QgsMapTool):
+    ownMainLayers = ["Pipes", "Valves", "Pumps", "ServiceConnections"]
 
     def __init__(self, button, iface, projectDirectory, netwName):
         QgsMapTool.__init__(self, iface.mapCanvas())
@@ -24,9 +24,21 @@ class QGISRedMoveVertexsTool(QgsMapTool):
         self.vertexMarker.setPenWidth(3)
         self.vertexMarker.hide()
 
+        self.pipeSnapper = None
+        self.pipeMarker = QgsVertexMarker(self.iface.mapCanvas())
+        self.pipeMarker.setColor(QColor(143, 0, 255))
+        self.pipeMarker.setIconSize(10)
+        try:
+            self.pipeMarker.setIconType(QgsVertexMarker.ICON_DOUBLE_TRIANGLE)  # or ICON_CROSS, ICON_X
+        except:
+            self.pipeMarker.setIconType(QgsVertexMarker.ICON_X)  # or ICON_CROSS, ICON_X
+        self.pipeMarker.setPenWidth(3)
+        self.pipeMarker.hide()
+
         self.mouseClicked = False
         self.clickedPoint = None
         self.objectSnapped = None
+        self.pipeSnapped = None
         self.selectedFeature = None
         self.selectedLayer = None
         self.newPositionVector = QgsVector(0, 0)
@@ -64,6 +76,16 @@ class QGISRedMoveVertexsTool(QgsMapTool):
         config.setUnits(1)  # Pixels
         config.setEnabled(True)
         self.snapper.setConfig(config)
+
+        self.pipeSnapper = QgsMapCanvasSnappingUtils(self.iface.mapCanvas())
+        self.pipeSnapper.setMapSettings(self.iface.mapCanvas().mapSettings())
+        config = QgsSnappingConfig(QgsProject.instance())
+        config.setType(2)  # Vertex
+        config.setMode(2)  # All layers
+        config.setTolerance(10)
+        config.setUnits(1)  # Pixels
+        config.setEnabled(True)
+        self.pipeSnapper.setConfig(config)
 
     def deactivate(self):
         self.toolbarButton.setChecked(False)
@@ -203,13 +225,13 @@ class QGISRedMoveVertexsTool(QgsMapTool):
             if self.vertexIndex == -1:
                 return
             self.mouseClicked = True
-            self.createRubberBand(
-                [self.objectSnapped.point(), self.objectSnapped.point()])
+            self.createRubberBand([self.objectSnapped.point(), self.objectSnapped.point()])
 
     def canvasMoveEvent(self, event):
         mousePoint = self.toMapCoordinates(event.pos())
         # Mouse not clicked
         if not self.mouseClicked:
+            self.pipeSnappedOn = False
             matchSnapper = self.snapper.snapToMap(mousePoint)
             if matchSnapper.isValid():
                 valid = False
@@ -241,17 +263,19 @@ class QGISRedMoveVertexsTool(QgsMapTool):
                                 i = -1
                                 for v in part:
                                     i = i+1
-                                    if i == 0 or i == len(part)-1:
+                                    if (i == 0 or i == len(part)-1) and "ServiceConnections" not in snapLayerPath:
                                         continue
+
                                     matchedPoint = QgsPointXY(vertex.x(), vertex.y())
                                     if self.areOverlapedPoints(QgsGeometry.fromPointXY(matchedPoint),
                                                                QgsGeometry.fromPointXY(QgsPointXY(v.x(), v.y()))):
                                         middleNode = True
                                         self.vertexIndex = i
+                                        if (i == 0 or i == len(part)-1) and "ServiceConnections" in snapLayerPath:
+                                            self.pipeSnappedOn = True
                                         break
                     if middleNode:
-                        self.vertexMarker.setCenter(
-                            QgsPointXY(vertex.x(), vertex.y()))
+                        self.vertexMarker.setCenter(QgsPointXY(vertex.x(), vertex.y()))
                         self.vertexMarker.show()
                     else:
                         self.vertexMarker.hide()
@@ -267,6 +291,27 @@ class QGISRedMoveVertexsTool(QgsMapTool):
                 self.vertexMarker.hide()
         # Mouse clicked
         else:
+            # Snap pipe layer
+            if self.pipeSnappedOn:
+                matchSnapper = self.pipeSnapper.snapToMap(mousePoint)
+                if matchSnapper.isValid():
+                    valid = False
+                    layer = matchSnapper.layer()
+                    snapLayerPath = self.getLayerPath(layer)
+                    for name in self.ownMainLayers:
+                        layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_Pipes.shp")
+                        if snapLayerPath == layerPath:
+                            valid = True
+                    if valid:
+                        self.pipeSnapped = matchSnapper
+                        self.pipeMarker.setCenter(matchSnapper.point())
+                        self.pipeMarker.show()
+                    else:
+                        self.pipeMarker.hide()
+                else:
+                    self.pipeMarker.hide()
+                    self.pipeSnapped = None
+
             # # Update rubber band
             if self.objectSnapped is not None and self.rubberBand is not None:
                 snappedPoint = self.objectSnapped.point()
@@ -274,9 +319,11 @@ class QGISRedMoveVertexsTool(QgsMapTool):
                 self.updateRubberBand()
 
     def canvasReleaseEvent(self, event):
-        mousePoint = self.toMapCoordinates(event.pos())
         if self.mouseClicked:
             if event.button() == 1:
+                mousePoint = self.toMapCoordinates(event.pos())
+                if (self.pipeSnapped is not None):
+                    mousePoint = self.pipeSnapped.point()
                 self.mouseClicked = False
                 if self.objectSnapped is not None:
                     self.moveVertexLink(self.selectedLayer, self.selectedFeature, mousePoint, self.vertexIndex)
@@ -287,6 +334,7 @@ class QGISRedMoveVertexsTool(QgsMapTool):
             if self.objectSnapped is not None:
                 self.insertVertexLink(self.selectedLayer, self.selectedFeature, self.objectSnapped.point())
         self.objectSnapped = None
+        self.pipeSnapped = None
         self.selectedFeature = None
         self.selectedLayer = None
         self.vertexIndex = -1
@@ -295,3 +343,4 @@ class QGISRedMoveVertexsTool(QgsMapTool):
         self.vertexMarker.hide()
         self.iface.mapCanvas().scene().removeItem(self.rubberBand)
         self.newVertexMarker.hide()
+        self.pipeMarker.hide()
