@@ -570,14 +570,15 @@ class QGISRed:
         self.add_action(icon_path, text=self.tr(u'Convert service connections into pipes/nodes'),
                         callback=self.runAddConnections, menubar=self.dtMenu, toolbar=self.dtToolbar,
                         actionBase=dtDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
-        icon_path = ':/plugins/QGISRed/images/iconHydrants.png'
-        self.add_action(icon_path, text=self.tr(u'Add hydrants to the model'), callback=self.runAddHydrants,
-                        menubar=self.dtMenu, toolbar=self.dtToolbar,
-                        actionBase=dtDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
-        icon_path = ':/plugins/QGISRed/images/iconPurges.png'
-        self.add_action(icon_path, text=self.tr(u'Add washout valves to the model'), callback=self.runAddPurgeValves,
-                        menubar=self.dtMenu, toolbar=self.dtToolbar,
-                        actionBase=dtDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
+        # icon_path = ':/plugins/QGISRed/images/iconHydrants.png'
+        # self.add_action(icon_path, text=self.tr(u'Add hydrants to the model'), callback=self.runAddHydrants,
+        #                 menubar=self.dtMenu, toolbar=self.dtToolbar,
+        #                 actionBase=dtDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
+        # icon_path = ':/plugins/QGISRed/images/iconPurges.png'
+        # self.add_action(icon_path, text=self.tr(u'Add washout valves to the model'), callback=self.runAddPurgeValves,
+        #                 menubar=self.dtMenu, toolbar=self.dtToolbar,
+        #                 actionBase=dtDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
+        pass
 
     def initGui(self):
         if not platform.system() == "Windows":
