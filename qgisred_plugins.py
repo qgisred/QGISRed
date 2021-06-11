@@ -71,7 +71,7 @@ class QGISRed:
     complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves",
                            "AirReleaseValves", "ServiceConnections", "Meters"]
     TemporalFolder = "Temporal folder"
-    DependenciesVersion = "1.0.13.1"
+    DependenciesVersion = "1.0.14.0"
     gisredDll = None
 
     """Basic"""
