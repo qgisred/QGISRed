@@ -21,7 +21,7 @@
 """
 
 # Import QGis
-from qgis.core import QgsProject, QgsVectorLayer
+from qgis.core import QgsProject, QgsVectorLayer, QgsMapLayer
 from PyQt5.QtGui import QIcon, QCursor
 from PyQt5.QtWidgets import QAction, QMessageBox, QApplication, QMenu, QFileDialog, QToolButton
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
@@ -1138,6 +1138,8 @@ class QGISRed:
     def blockLayers(self, readonly):
         layers = self.getLayers()
         for layer in layers:
+            if layer.type() == QgsMapLayer.RasterLayer:
+                continue
             layer.setReadOnly(readonly)
 
     def updateMetadata(self, layersNames="", project="", net=""):
