@@ -71,7 +71,7 @@ class QGISRed:
     complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves",
                            "AirReleaseValves", "ServiceConnections", "Meters"]
     TemporalFolder = "Temporal folder"
-    DependenciesVersion = "1.0.14.0"
+    DependenciesVersion = "1.0.14.4"
     gisredDll = None
 
     """Basic"""
@@ -547,6 +547,13 @@ class QGISRed:
                                                  menubar=self.dtMenu, toolbar=self.dtToolbar,
                                                  actionBase=dtDropButton, add_to_toolbar=True, checable=True,
                                                  parent=self.iface.mainWindow())
+                                                 
+        icon_path = ':/plugins/QGISRed/images/iconAddIsolationValve.png'
+        self.addIsolationValveButton = self.add_action(icon_path, text=self.tr(u'Add isolation valve'),
+                                                       callback=self.runSelectIsolationValvePoint,
+                                                       menubar=self.dtMenu, toolbar=self.dtToolbar,
+                                                       actionBase=dtDropButton, add_to_toolbar=True, checable=True,
+                                                       parent=self.iface.mainWindow())
         self.dtToolbar.addSeparator()
         icon_path = ':/plugins/QGISRed/images/iconSetReadings.png'
         self.add_action(icon_path, text=self.tr(u'Load meter readings'),
@@ -2792,6 +2799,37 @@ class QGISRed:
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "Service Connection added")
+
+    def runSelectIsolationValvePoint(self):
+        tool = "pointIsolationValve"
+        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
+            self.addIsolationValveButton.setChecked(False)
+        else:
+            self.myMapTools[tool] = QGISRedSelectPointTool(
+                self.addIsolationValveButton, self, self.runAddIsolationValve, 2)
+            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
+
+    def runAddIsolationValve(self, point):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        point = self.transformPoint(point)
+        point = str(point.x()) + ":" + str(point.y())
+
+        # Process
+        self.especificComplementaryLayers = ["IsolationValves"]
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.AddIsolationValve(self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
+        QApplication.restoreOverrideCursor()
+
+        self.processCsharpResult(resMessage, "")
 
     def runLoadReadings(self):
         if not self.checkDependencies():

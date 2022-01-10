@@ -49,6 +49,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbReservoirLayer.currentIndexChanged.connect(self.reservoirLayerChanged)
         self.cbJunctionLayer.currentIndexChanged.connect(self.junctionLayerChanged)
         self.cbServiceConnectionLayer.currentIndexChanged.connect(self.serviceConnectionLayerChanged)
+        self.cbIsolationValveLayer.currentIndexChanged.connect(self.isolationValveLayerChanged)
         self.btImportShps.clicked.connect(self.importShpProject)
 
     def config(self, ifac, direct, netw, parent):
@@ -233,6 +234,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbJunctionLayer.addItem("None")
         self.cbServiceConnectionLayer.clear()
         self.cbServiceConnectionLayer.addItem("None")
+        self.cbIsolationValveLayer.clear()
+        self.cbIsolationValveLayer.addItem("None")
         for file in dirList:
             if ".shp" in file:
                 layerPath = os.path.join(self.tbShpDirectory.text(), file)
@@ -254,6 +257,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                         self.cbTankLayer.addItem(name)
                         self.cbReservoirLayer.addItem(name)
                         self.cbJunctionLayer.addItem(name)
+                        self.cbIsolationValveLayer.addItem(name)
                     break
                 vlayer = None
 
@@ -298,7 +302,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.selectComboBoxItem(self.cbPipe_Diameter, ["diameter", "diam", "diametro", "diámetro"])
         self.selectComboBoxItem(self.cbPipe_LossCoef, ["losscoeff"])
         self.selectComboBoxItem(self.cbPipe_Material, ["material"])
-        self.selectComboBoxItem(self.cbPipe_InstDate, ["instdate", "date", "fecha", "fecha_de_i"])
+        self.selectComboBoxItem(self.cbPipe_InstDate, ["instaldate", "instdate", "date", "fecha", "fecha_de_i"])
         self.selectComboBoxItem(self.cbPipe_Tag, ["tag"])
         self.selectComboBoxItem(self.cbPipe_Descr, ["descrip", "descr", "description", "descripcion", "descripción"])
 
@@ -489,7 +493,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.gbServiceConnection.setEnabled(True)
 
         valveLayer = os.path.join(self.tbShpDirectory.text(), newItem + ".shp")
-        vlayer = QgsVectorLayer(valveLayer, "Pumps layer", "ogr")
+        vlayer = QgsVectorLayer(valveLayer, "SC layer", "ogr")
         if not vlayer.isValid():
             return
         field_names = [field.name() for field in vlayer.fields()]
@@ -509,6 +513,48 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.selectComboBoxItem(self.cbServiceConnection_InstDate, ["instdate", "date", "fecha", "fecha_de_i"])
         self.selectComboBoxItem(self.cbServiceConnection_Tag, ["tag"])
         self.selectComboBoxItem(self.cbServiceConnection_Descr,
+                                ["descrip", "descr", "description", "descripcion", "descripción"])
+
+    def isolationValveLayerChanged(self):
+        newItem = self.cbIsolationValveLayer.currentText()
+        self.cbIsolationValve_Id.clear()
+        self.cbIsolationValve_Diameter.clear()
+        self.cbIsolationValve_LossCoeff.clear()
+        self.cbIsolationValve_Status.clear()
+        self.cbIsolationValve_Available.clear()
+        self.cbIsolationValve_InstDate.clear()
+        self.cbIsolationValve_Tag.clear()
+        self.cbIsolationValve_Descr.clear()
+
+        if newItem == "None":
+            self.gbIsolationValve.setEnabled(False)
+            return
+
+        self.gbIsolationValve.setEnabled(True)
+
+        valveLayer = os.path.join(self.tbShpDirectory.text(), newItem + ".shp")
+        vlayer = QgsVectorLayer(valveLayer, "IV layer", "ogr")
+        if not vlayer.isValid():
+            return
+        field_names = [field.name() for field in vlayer.fields()]
+        field_names.insert(0, "None")
+        self.cbIsolationValve_Id.addItems(field_names)
+        self.cbIsolationValve_Diameter.addItems(field_names)
+        self.cbIsolationValve_LossCoeff.addItems(field_names)
+        self.cbIsolationValve_Status.addItems(field_names)
+        self.cbIsolationValve_Available.addItems(field_names)
+        self.cbIsolationValve_InstDate.addItems(field_names)
+        self.cbIsolationValve_Tag.addItems(field_names)
+        self.cbIsolationValve_Descr.addItems(field_names)
+
+        self.selectComboBoxItem(self.cbIsolationValve_Id, ["id"])
+        self.selectComboBoxItem(self.cbIsolationValve_Diameter, ["diameter", "diam", "diametro", "diámetro"])
+        self.selectComboBoxItem(self.cbIsolationValve_LossCoeff, ["losscoeff"])
+        self.selectComboBoxItem(self.cbIsolationValve_Status, ["status", "estado"])
+        self.selectComboBoxItem(self.cbIsolationValve_Available, ["available", "works", "disponible", "funciona"])
+        self.selectComboBoxItem(self.cbIsolationValve_InstDate, ["instdate", "date", "fecha", "fecha_de_i"])
+        self.selectComboBoxItem(self.cbIsolationValve_Tag, ["tag"])
+        self.selectComboBoxItem(self.cbIsolationValve_Descr,
                                 ["descrip", "descr", "description", "descripcion", "descripción"])
 
     def createShpsNames(self):
@@ -536,6 +582,9 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         name = self.cbServiceConnectionLayer.currentText()
         if not name == "None":
             shpNames = shpNames + "[SERVICECONNECTIONS]" + os.path.join(shpFolder, name) + ","
+        name = self.cbIsolationValveLayer.currentText()
+        if not name == "None":
+            shpNames = shpNames + "[ISOLATIONVALVES]" + os.path.join(shpFolder, name) + ","
         return shpNames
 
     def createShpFields(self):
@@ -789,6 +838,44 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
 
             fields = fields + ","  # To separate layers
 
+        name = self.cbIsolationValveLayer.currentText()
+        if not name == "None":
+            fields = fields + "[ISOLATIONVALVES]"
+            name = self.cbIsolationValve_Id.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+            name = self.cbIsolationValve_Diameter.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+            name = self.cbIsolationValve_LossCoeff.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+            name = self.cbIsolationValve_Status.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+            name = self.cbIsolationValve_Available.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+            name = self.cbIsolationValve_InstDate.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+            name = self.cbIsolationValve_Tag.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+            name = self.cbIsolationValve_Descr.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+
+            fields = fields + ","  # To separate layers
+
         return fields
 
     def importShpProject(self):
@@ -836,7 +923,13 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             self.parent.ProjectDirectory = self.ProjectDirectory
             self.parent.NetworkName = self.NetworkName
 
-            name = self.cbServiceConnectionLayer.currentText()
-            if not name == "None":
-                self.parent.complementaryLayers = ["ServiceConnections"]
+            self.parent.especificComplementaryLayers = []
+            sc = self.cbServiceConnectionLayer.currentText()
+            if not sc == "None":
+                self.parent.especificComplementaryLayers.append("ServiceConnections")
+
+            iv = self.cbIsolationValveLayer.currentText()
+            if not iv == "None":
+                self.parent.especificComplementaryLayers.append("IsolationValves")
+
             self.parent.processCsharpResult(resMessage, "")
