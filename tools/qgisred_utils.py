@@ -201,9 +201,19 @@ class QGISRedUtils:
                 lineSymbol = QgsSimpleLineSymbolLayer()
                 lineSymbol.setWidthUnit(2)  # Pixels
                 lineSymbol.setWidth(1.5)
-                if name == "pipes":
-                    lineSymbol.setColor(QColor("#0f1291"))
                 symbol.appendSymbolLayer(lineSymbol)
+                # Line Color
+                pipesColor = "if(IniStatus is NULL, '#0f1291',if(IniStatus !='CLOSED', '#0f1291','#9a1313'))"
+                valvesColor = "if(IniStatus is NULL, '#0f1291',if(IniStatus is 'CLOSED', '#9a1313', if(IniStatus !='ACTIVE', '#0f1291','#85b66f')))"
+                pumpsColor = "if(IniStatus is NULL, '#85b66f',if(IniStatus !='CLOSED', '#85b66f','#9a1313'))"
+                prop = QgsProperty()
+                if name == "pipes":
+                    prop.setExpressionString(pipesColor)
+                if name == "valves":
+                    prop.setExpressionString(valvesColor)
+                if name == "pumps":
+                    prop.setExpressionString(pumpsColor)
+                symbol.symbolLayer(0).setDataDefinedProperty(4, prop)
                 # Symbol
                 marker = QgsMarkerSymbol.createSimple({})
                 marker.deleteSymbolLayer(0)
@@ -216,6 +226,8 @@ class QGISRedUtils:
                 svg_props['offset'] = '-0.5,-0.5'
                 svg_props['offset_unit'] = 'Pixel'
                 markerSymbol = QgsSvgMarkerSymbolLayer.create(svg_props)
+                # SVG marker Color
+                markerSymbol.setDataDefinedProperty(3, prop)
                 marker.appendSymbolLayer(markerSymbol)
                 # Final Symbol
                 finalMarker = QgsMarkerLineSymbolLayer()
@@ -225,7 +237,7 @@ class QGISRedUtils:
                 if name == "pipes":
                     prop = QgsProperty()
                     prop.setExpressionString("if(IniStatus is NULL, 0,if(IniStatus !='CV', 0,5))")
-                    symbol.symbolLayer(1).setDataDefinedProperty(9, prop)  # 9 = PropertyWidth
+                    finalMarker.setDataDefinedProperty(9, prop)  # 9 = PropertyWidth
                 renderer = QgsSingleSymbolRenderer(symbol)
 
             layer.setRenderer(renderer)

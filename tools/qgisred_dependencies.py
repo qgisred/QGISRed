@@ -147,6 +147,19 @@ class QGISRedDependencies:
         return QGISRedDependencies.toString(b)
 
     @staticmethod
+    def ChangeStatus(projectFolder, networkName, tempFolder, point):
+        projectFolder = QGISRedDependencies.encode(projectFolder)
+        networkName = QGISRedDependencies.encode(networkName)
+        tempFolder = QGISRedDependencies.encode(tempFolder)
+        point = QGISRedDependencies.encode(point)
+
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
+        mydll.ChangeStatus.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.ChangeStatus.restype = c_char_p
+        b = mydll.ChangeStatus(projectFolder, networkName, tempFolder, point)
+        return QGISRedDependencies.toString(b)
+
+    @staticmethod
     def CheckAlignedVertices(projectFolder, networkName, tempFolder, linkIds):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)

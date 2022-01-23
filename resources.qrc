@@ -70,6 +70,7 @@
         <file>images/iconTools.png</file>
         <file>images/iconTree.png</file>
         <file>images/iconVerticesC.png</file>
+        <file>images/iconWand.png</file>
         <file>images/qgisred32.png</file>
     </qresource>
 </RCC>

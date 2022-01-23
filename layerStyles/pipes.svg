@@ -72,7 +72,11 @@
          inkscape:connector-curvature="0"
          sodipodi:nodetypes="cccccccccccc" />
       <path
-         style="fill-opacity:1;stroke-width:1.47811079"
+         fill="param(fill) #000"
+         fill-opacity="param(fill-opacity)"
+         stroke="param(outline) #FFF"
+         stroke-opacity="param(outline-opacity)"
+         stroke-width="param(outline-width) 0"
          d="m 407.72206,148.61076 1.75709,-0.65403 2.08123,-0.0939 h 41.51598 l 2.00388,0.0928 1.30858,0.35477 0.6625,0.8543 0.0829,1.58657 v 274.46651 l -0.10361,0.37122 -0.26925,0.15255 -0.56931,0.0559 c -138.03817,0 -32.05812,0 -48.24764,0 l -0.62485,-0.0736 -0.36886,-0.17043 -0.16564,-0.36613 V 150.21874 l 0.51151,-0.87792 z"
          id="rect4518"
          inkscape:connector-curvature="0"
