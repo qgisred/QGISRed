@@ -203,9 +203,9 @@ class QGISRedUtils:
                 lineSymbol.setWidth(1.5)
                 symbol.appendSymbolLayer(lineSymbol)
                 # Line Color
-                pipesColor = "if(IniStatus is NULL, '#0f1291',if(IniStatus !='CLOSED', '#0f1291','#9a1313'))"
-                valvesColor = "if(IniStatus is NULL, '#0f1291',if(IniStatus is 'CLOSED', '#9a1313', if(IniStatus !='ACTIVE', '#0f1291','#85b66f')))"
-                pumpsColor = "if(IniStatus is NULL, '#85b66f',if(IniStatus !='CLOSED', '#85b66f','#9a1313'))"
+                pipesColor = "if(IniStatus is NULL, '#0f1291',if(IniStatus !='CLOSED', '#0f1291','#ff0f13'))"
+                valvesColor = "if(IniStatus is NULL, '#0f1291',if(IniStatus is 'CLOSED', '#ff0f13', if(IniStatus !='ACTIVE', '#0f1291','#85b66f')))"
+                pumpsColor = "if(IniStatus is NULL, '#85b66f',if(IniStatus !='CLOSED', '#85b66f','#ff0f13'))"
                 prop = QgsProperty()
                 if name == "pipes":
                     prop.setExpressionString(pipesColor)
@@ -214,6 +214,10 @@ class QGISRedUtils:
                 if name == "pumps":
                     prop.setExpressionString(pumpsColor)
                 symbol.symbolLayer(0).setDataDefinedProperty(4, prop)
+                # Custom dash
+                prop2 = QgsProperty()
+                prop2.setExpressionString("if(IniStatus = 'CLOSED', '5;2', '5;0')")
+                symbol.symbolLayer(0).setDataDefinedProperty(36, prop2)
                 # Symbol
                 marker = QgsMarkerSymbol.createSimple({})
                 marker.deleteSymbolLayer(0)
