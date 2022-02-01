@@ -71,7 +71,7 @@ class QGISRed:
     complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves",
                            "AirReleaseValves", "ServiceConnections", "Meters"]
     TemporalFolder = "Temporal folder"
-    DependenciesVersion = "1.0.14.5"
+    DependenciesVersion = "1.0.14.6"
     gisredDll = None
 
     """Basic"""
@@ -387,6 +387,12 @@ class QGISRed:
                                                    toolbar=self.editionToolbar,
                                                    actionBase=editDropButton, add_to_toolbar=True, checable=True,
                                                    parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconWand.png'
+        self.changeStatusButton = self.add_action(icon_path, text=self.tr(u'Change element status'),
+                                                       callback=self.runSelectElementStatusPoint,
+                                                       menubar=self.editionMenu, toolbar=self.editionToolbar,
+                                                       actionBase=editDropButton, add_to_toolbar=True, checable=True,
+                                                       parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconDeleteElements.png'
         self.removeElementsButton = self.add_action(icon_path, text=self.tr(u'Delete elements'),
                                                     callback=self.canDeleteElements, menubar=self.editionMenu,
@@ -560,12 +566,6 @@ class QGISRed:
                         callback=self.runLoadReadings, menubar=self.dtMenu,
                         toolbar=self.dtToolbar, actionBase=dtDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
-        icon_path = ':/plugins/QGISRed/images/iconWand.png'
-        self.changeStatusButton = self.add_action(icon_path, text=self.tr(u'Change isolation valve status'),
-                                                       callback=self.runSelectIsolationValveStatusPoint,
-                                                       menubar=self.dtMenu, toolbar=self.dtToolbar,
-                                                       actionBase=dtDropButton, add_to_toolbar=True, checable=True,
-                                                       parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconStatus.png'
         self.add_action(icon_path, text=self.tr(u'Set pipe\'s initial status from isolation valves'),
                         callback=self.runSetPipeStatus, menubar=self.dtMenu, toolbar=self.dtToolbar,
@@ -2220,6 +2220,37 @@ class QGISRed:
 
         self.processCsharpResult(resMessage, "")
 
+    def runSelectElementStatusPoint(self):
+        tool = "pointElementStatus"
+        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
+            self.changeStatusButton.setChecked(False)
+        else:
+            self.myMapTools[tool] = QGISRedSelectPointTool(
+                self.changeStatusButton, self, self.runChangeStatus, 2)
+            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
+
+    def runChangeStatus(self, point):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        point = self.transformPoint(point)
+        point = str(point.x()) + ":" + str(point.y())
+
+        # Process
+        self.especificComplementaryLayers = ["IsolationValves"]
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.ChangeStatus(self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
+        QApplication.restoreOverrideCursor()
+
+        self.processCsharpResult(resMessage, "")
+
     def canDeleteElements(self):
         if not self.checkDependencies():
             return
@@ -2856,37 +2887,6 @@ class QGISRed:
         self.especificComplementaryLayers = ["ServiceConnections"]
         QApplication.setOverrideCursor(Qt.WaitCursor)
         resMessage = GISRed.LoadReadings(self.ProjectDirectory, self.NetworkName, self.tempFolder)
-        QApplication.restoreOverrideCursor()
-
-        self.processCsharpResult(resMessage, "")
-
-    def runSelectIsolationValveStatusPoint(self):
-        tool = "pointIsolationValveStatus"
-        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
-            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
-            self.changeStatusButton.setChecked(False)
-        else:
-            self.myMapTools[tool] = QGISRedSelectPointTool(
-                self.changeStatusButton, self, self.runChangeStatus, 2)
-            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
-
-    def runChangeStatus(self, point):
-        if not self.checkDependencies():
-            return
-        # Validations
-        self.defineCurrentProject()
-        if not self.isValidProject():
-            return
-        if self.isLayerOnEdition():
-            return
-
-        point = self.transformPoint(point)
-        point = str(point.x()) + ":" + str(point.y())
-
-        # Process
-        self.especificComplementaryLayers = ["IsolationValves"]
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.ChangeStatus(self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "")
