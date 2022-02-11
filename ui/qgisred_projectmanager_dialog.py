@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtWidgets import QTableWidgetItem, QDialog
 from PyQt5.QtCore import QFileInfo
-from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer
+from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer, QgsTask, QgsApplication
 from qgis.PyQt import uic
 # Import the code for the dialog
 from .qgisred_createproject_dialog import QGISRedCreateProjectDialog
@@ -172,8 +172,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             return {'task': task.definition()}
 
     def openProjectInQgis(self, projectDirectory, networkName):
-        metadataFile = os.path.join(
-            projectDirectory, networkName + "_Metadata.txt")
+        metadataFile = os.path.join(projectDirectory, networkName + "_Metadata.txt")
         if os.path.exists(metadataFile):
             # Read data as text plain to include the encoding
             data = ""
@@ -272,7 +271,10 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                     return
             valid = self.parent.isOpenedProject()
             if valid:
-                QGISRedUtils().runTask('open project', self.clearQGisProject, self.openProjectProcess)
+                task = QgsTask.fromFunction('open project', self.clearQGisProject, on_finished=self.openProjectProcess)
+                task.run()
+                QgsApplication.taskManager().addTask(task)
+                # QGISRedUtils().runTask('open project', self.clearQGisProject, self.openProjectProcess)
         else:
             self.iface.messageBar().pushMessage("Warning", "You need to select a valid project to open it.", level=1, duration=5)
 
