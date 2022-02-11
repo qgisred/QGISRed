@@ -1329,6 +1329,19 @@ class QGISRed:
                     if (layerName in self.selectedFids):
                         layer.selectByIds(self.selectedFids[layerName])
 
+    def zoomToSelectedElementFromProperties(self, layerName, elementId):
+        layers = self.getLayers()
+        layer = None
+        for la in layers:
+            path = QGISRedUtils.getLayerPath(self, la)
+            if (self.NetworkName+"_" + layerName in path):
+                layer = la
+
+        layer.selectByExpression("\"Id\"='" + elementId + "'")
+        box = layer.boundingBoxOfSelected()
+        self.iface.mapCanvas().setExtent(box)
+        self.iface.mapCanvas().refresh()
+
     def doNothing(self, task):
         if task is not None:
             return {'task': task.definition()}
@@ -2334,8 +2347,9 @@ class QGISRed:
         if self.isLayerOnEdition():
             return
 
-        point = self.transformPoint(point)
-        point = str(point.x()) + ":" + str(point.y())
+        if not point == "":
+            point = self.transformPoint(point)
+            point = str(point.x()) + ":" + str(point.y())
 
         # Process
         self.especificComplementaryLayers = self.getComplementaryLayersOpened()
@@ -2346,12 +2360,20 @@ class QGISRed:
                                          self.NetworkName, self.tempFolder, point)
         QApplication.restoreOverrideCursor()
 
-        if not resMessage == "Select":
+        if resMessage == "Select":
+            self.blockLayers(True)
+        elif resMessage.startswith("["):
+            self.blockLayers(True)
+            comp = resMessage.split(']')
+            layerName = comp[0].replace('[', '')
+            elementId = comp[1]
+            self.zoomToSelectedElementFromProperties(layerName, elementId)
+
+            self.runProperties("")
+        else:
             self.processCsharpResult(resMessage, "")
             self.gisredDll = None
             self.blockLayers(False)
-        else:
-            self.blockLayers(True)
 
     def runPatternsCurves(self):
         if not self.checkDependencies():
