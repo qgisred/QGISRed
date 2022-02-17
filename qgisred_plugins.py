@@ -71,7 +71,7 @@ class QGISRed:
     complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves",
                            "AirReleaseValves", "ServiceConnections", "Meters"]
     TemporalFolder = "Temporal folder"
-    DependenciesVersion = "1.0.14.6"
+    DependenciesVersion = "1.0.14.7"
     gisredDll = None
 
     """Basic"""
@@ -1329,7 +1329,7 @@ class QGISRed:
                     if (layerName in self.selectedFids):
                         layer.selectByIds(self.selectedFids[layerName])
 
-    def zoomToSelectedElementFromProperties(self, layerName, elementId):
+    def zoomToElementFromProperties(self, layerName, elementId):
         layers = self.getLayers()
         layer = None
         for la in layers:
@@ -1337,10 +1337,12 @@ class QGISRed:
             if (self.NetworkName+"_" + layerName in path):
                 layer = la
 
-        layer.selectByExpression("\"Id\"='" + elementId + "'")
-        box = layer.boundingBoxOfSelected()
-        self.iface.mapCanvas().setExtent(box)
-        self.iface.mapCanvas().refresh()
+        features = layer.getFeatures("\"Id\"='" + elementId + "'")
+        for feat in features:
+            box = feat.geometry().boundingBox()
+            self.iface.mapCanvas().setExtent(box)
+            self.iface.mapCanvas().refresh()
+            return
 
     def doNothing(self, task):
         if task is not None:
@@ -2367,7 +2369,7 @@ class QGISRed:
             comp = resMessage.split(']')
             layerName = comp[0].replace('[', '')
             elementId = comp[1]
-            self.zoomToSelectedElementFromProperties(layerName, elementId)
+            self.zoomToElementFromProperties(layerName, elementId)
 
             self.runProperties("")
         else:
