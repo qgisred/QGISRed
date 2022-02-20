@@ -104,6 +104,7 @@ class QGISRed:
             if qVersion() > '4.3.3':
                 QCoreApplication.installTranslator(self.translator)
 
+        self.iface.initializationCompleted.connect(self.updateChecables)
         # Declare instance attributes
         self.actions = []
         # Toolbar
@@ -193,13 +194,16 @@ class QGISRed:
         #    #Toolbar
         self.fileToolbar = self.iface.addToolBar(self.tr(u'QGISRed File'))
         self.fileToolbar.setObjectName(self.tr(u'QGISRed File'))
+        self.fileToolbar.visibilityChanged.connect(self.cahngeFileToolbarVisibility)
         self.fileToolbar.setVisible(False)
         #    #Buttons
         icon_path = ':/plugins/QGISRed/images/iconData.png'
         fileDropButton = self.add_action(icon_path, text=self.tr(u'File'), callback=self.runFileToolbar,
                                          menubar=self.fileMenu, add_to_menu=False, toolbar=self.toolbar,
-                                         createDrop=True, addActionToDrop=False,
+                                         createDrop=True, addActionToDrop=False, checable=True,
                                          add_to_toolbar=False, parent=self.iface.mainWindow())
+        self.fileDropButton = fileDropButton
+
         icon_path = ':/plugins/QGISRed/images/iconProjectManager.png'
         self.add_action(icon_path, text=self.tr(u'Project manager'), callback=self.runProjectManager,
                         menubar=self.fileMenu, toolbar=self.fileToolbar, actionBase=fileDropButton,
@@ -229,13 +233,16 @@ class QGISRed:
         self.projectToolbar = self.iface.addToolBar(
             self.tr(u'QGISRed Project'))
         self.projectToolbar.setObjectName(self.tr(u'QGISRed Project'))
+        self.projectToolbar.visibilityChanged.connect(self.cahngeProjectToolbarVisibility)
         self.projectToolbar.setVisible(False)
         #    #Buttons
         icon_path = ':/plugins/QGISRed/images/qgisred32.png'
         projectDropButton = self.add_action(icon_path, text=self.tr(u'Project'), callback=self.runProjectToolbar,
                                             menubar=self.projectMenu, add_to_menu=False, toolbar=self.toolbar,
-                                            createDrop=True,
+                                            createDrop=True, checable=True,
                                             addActionToDrop=False, add_to_toolbar=False, parent=self.iface.mainWindow())
+        self.projectDropButton = projectDropButton
+
         icon_path = ':/plugins/QGISRed/images/iconSettings.png'
         self.add_action(icon_path, text=self.tr(u'Project settings'), callback=self.runSettings,
                         menubar=self.projectMenu,
@@ -290,16 +297,19 @@ class QGISRed:
         self.editionMenu.setIcon(
             QIcon(':/plugins/QGISRed/images/iconEdit.png'))
         #    #Toolbar
-        self.editionToolbar = self.iface.addToolBar(
-            self.tr(u'QGISRed Edition'))
+        self.editionToolbar = self.iface.addToolBar(self.tr(u'QGISRed Edition'))
         self.editionToolbar.setObjectName(self.tr(u'QGISRed Edition'))
+        self.editionToolbar.visibilityChanged.connect(self.cahngeEditionToolbarVisibility)
         self.editionToolbar.setVisible(False)
+
         #    #Buttons
         icon_path = ':/plugins/QGISRed/images/iconEdit.png'
         editDropButton = self.add_action(icon_path, text=self.tr(u'Edition'), callback=self.runEditionToolbar,
-                                         menubar=self.editionMenu, add_to_menu=False,
+                                         menubar=self.editionMenu, add_to_menu=False, checable=True,
                                          toolbar=self.toolbar, createDrop=True, addActionToDrop=False,
                                          add_to_toolbar=False, parent=self.iface.mainWindow())
+        self.editDropButton = editDropButton
+
         icon_path = ':/plugins/QGISRed/images/iconAddPipe.png'
         self.addPipeButton = self.add_action(icon_path, text=self.tr(u'Add pipe'), callback=self.runPaintPipe,
                                              menubar=self.editionMenu, toolbar=self.editionToolbar,
@@ -425,16 +435,18 @@ class QGISRed:
         #    #Toolbar
         self.verificationsToolbar = self.iface.addToolBar(
             self.tr(u'QGISRed Verifications'))
-        self.verificationsToolbar.setObjectName(
-            self.tr(u'QGISRed Verifications'))
+        self.verificationsToolbar.setObjectName(self.tr(u'QGISRed Verifications'))
+        self.verificationsToolbar.visibilityChanged.connect(self.cahngeVerificationsToolbarVisibility)
         self.verificationsToolbar.setVisible(False)
         #    #Buttons
         icon_path = ':/plugins/QGISRed/images/iconCommit.png'
         verificationsDropButton = self.add_action(icon_path, text=self.tr(u'Verifications'),
                                                   callback=self.runVerificationsToolbar, menubar=self.verificationsMenu,
-                                                  add_to_menu=False,
+                                                  add_to_menu=False, checable=True,
                                                   toolbar=self.toolbar, createDrop=True, addActionToDrop=False,
                                                   add_to_toolbar=False, parent=self.iface.mainWindow())
+        self.verificationsDropButton = verificationsDropButton
+
         icon_path = ':/plugins/QGISRed/images/iconCommit.png'
         self.add_action(icon_path, text=self.tr(u'Commit changes'), callback=self.runCommit,
                         menubar=self.verificationsMenu,
@@ -499,13 +511,16 @@ class QGISRed:
         #    #Toolbar
         self.toolsToolbar = self.iface.addToolBar(self.tr(u'QGISRed Tools'))
         self.toolsToolbar.setObjectName(self.tr(u'QGISRed Tools'))
+        self.toolsToolbar.visibilityChanged.connect(self.cahngeToolsToolbarVisibility)
         self.toolsToolbar.setVisible(False)
         #    #Buttons
         icon_path = ':/plugins/QGISRed/images/iconTools.png'
         toolDropButton = self.add_action(icon_path, text=self.tr(u'Tools'), callback=self.runToolsToolbar,
-                                         menubar=self.toolsMenu, add_to_menu=False,
+                                         menubar=self.toolsMenu, add_to_menu=False, checable=True,
                                          toolbar=self.toolbar, createDrop=True, addActionToDrop=False,
                                          add_to_toolbar=False, parent=self.iface.mainWindow())
+        self.toolsDropButton = toolDropButton
+
         icon_path = ':/plugins/QGISRed/images/iconDemands.png'
         self.add_action(icon_path, text=self.tr(u'Demands manager'),
                         callback=self.runDemandsManager, menubar=self.toolsMenu, toolbar=self.toolsToolbar,
@@ -539,13 +554,15 @@ class QGISRed:
         #    #Toolbar
         self.dtToolbar = self.iface.addToolBar(self.tr(u'QGISRed Digital Twin'))
         self.dtToolbar.setObjectName(self.tr(u'QGISRed Digital Twin'))
+        self.dtToolbar.visibilityChanged.connect(self.cahngeDtToolbarVisibility)
         self.dtToolbar.setVisible(False)
         #    #Buttons
         icon_path = ':/plugins/QGISRed/images/iconDigitalTwin.png'
         dtDropButton = self.add_action(icon_path, text=self.tr(u'Digital Twin'), callback=self.runDtToolbar,
-                                       menubar=self.dtMenu, add_to_menu=False,
+                                       menubar=self.dtMenu, add_to_menu=False, checable=True,
                                        toolbar=self.toolbar, createDrop=True, addActionToDrop=False,
                                        add_to_toolbar=False, parent=self.iface.mainWindow())
+        self.dtDropButton = dtDropButton
 
         icon_path = ':/plugins/QGISRed/images/iconAddConnection.png'
         self.addServConnButton = self.add_action(icon_path, text=self.tr(u'Add service connection'),
@@ -1360,24 +1377,49 @@ class QGISRed:
     def runFileToolbar(self):
         self.fileToolbar.setVisible(not self.fileToolbar.isVisible())
 
+    def cahngeFileToolbarVisibility(self, status):
+        self.fileDropButton.setChecked(status)
+
     def runProjectToolbar(self):
         self.projectToolbar.setVisible(not self.projectToolbar.isVisible())
+
+    def cahngeProjectToolbarVisibility(self, status):
+        self.projectDropButton.setChecked(status)
 
     def runEditionToolbar(self):
         self.editionToolbar.setVisible(not self.editionToolbar.isVisible())
 
+    def cahngeEditionToolbarVisibility(self, status):
+        self.editDropButton.setChecked(status)
+
     def runVerificationsToolbar(self):
-        self.verificationsToolbar.setVisible(
-            not self.verificationsToolbar.isVisible())
+        self.verificationsToolbar.setVisible(not self.verificationsToolbar.isVisible())
+
+    def cahngeVerificationsToolbarVisibility(self, status):
+        self.verificationsDropButton.setChecked(status)
 
     def runToolsToolbar(self):
         self.toolsToolbar.setVisible(not self.toolsToolbar.isVisible())
 
+    def cahngeToolsToolbarVisibility(self, status):
+        self.toolsDropButton.setChecked(status)
+
     def runDtToolbar(self):
         self.dtToolbar.setVisible(not self.dtToolbar.isVisible())
 
+    def cahngeDtToolbarVisibility(self, status):
+        self.dtDropButton.setChecked(status)
+
     def runExperimentalToolbar(self):
         self.experimentalToolbar.setVisible(not self.experimentalToolbar.isVisible())
+
+    def updateChecables(self):
+        self.fileDropButton.setChecked(self.fileToolbar.isVisible())
+        self.projectDropButton.setChecked(self.projectToolbar.isVisible())
+        self.editDropButton.setChecked(self.editionToolbar.isVisible())
+        self.verificationsDropButton.setChecked(self.verificationsToolbar.isVisible())
+        self.toolsDropButton.setChecked(self.toolsToolbar.isVisible())
+        self.dtDropButton.setChecked(self.dtToolbar.isVisible())
 
     """Common"""
     def runOpenTemporaryFiles(self, exception=None, result=None):
