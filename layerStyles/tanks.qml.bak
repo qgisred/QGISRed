@@ -25,6 +25,9 @@
     <edittype widgetv2type="TextEdit" name="IdVolCurve">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
+    edittype widgetv2type="TextEdit" name="Overflow">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
     <edittype widgetv2type="TextEdit" name="MixingMod">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
@@ -279,12 +282,13 @@
     <alias field="Diameter" index="5" name=""/>
     <alias field="MinVolume" index="6" name=""/>
     <alias field="IdVolCurve" index="7" name=""/>
-    <alias field="MixingMod" index="8" name=""/>
-    <alias field="MixingFrac" index="9" name=""/>
-    <alias field="ReactCoef" index="10" name=""/>
-    <alias field="IniQuality" index="11" name=""/>
-    <alias field="Tag" index="12" name=""/>
-    <alias field="Descrip" index="13" name=""/>
+    <alias field="Overflow" index="8" name=""/>
+    <alias field="MixingMod" index="9" name=""/>
+    <alias field="MixingFrac" index="10" name=""/>
+    <alias field="ReactCoef" index="11" name=""/>
+    <alias field="IniQuality" index="12" name=""/>
+    <alias field="Tag" index="13" name=""/>
+    <alias field="Descrip" index="14" name=""/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
@@ -299,6 +303,7 @@
       <column width="-1" hidden="0" type="field" name="Diameter"/>
       <column width="-1" hidden="0" type="field" name="MinVolume"/>
       <column width="-1" hidden="0" type="field" name="IdVolCurve"/>
+      <column width="-1" hidden="0" type="field" name="Overflow"/>
       <column width="-1" hidden="0" type="field" name="MixingMod"/>
       <column width="-1" hidden="0" type="field" name="MixingFrac"/>
       <column width="-1" hidden="0" type="field" name="ReactCoef"/>
@@ -345,6 +350,7 @@ def my_form_open(dialog, layer, feature):
     <default field="Diameter" expression=""/>
     <default field="MinVolume" expression=""/>
     <default field="IdVolCurve" expression=""/>
+    <default field="Overflow" expression=""/>
     <default field="MixingMod" expression=""/>
     <default field="MixingFrac" expression=""/>
     <default field="ReactCoef" expression=""/>
