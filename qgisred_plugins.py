@@ -71,7 +71,7 @@ class QGISRed:
     complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves",
                            "AirReleaseValves", "ServiceConnections", "Meters"]
     TemporalFolder = "Temporal folder"
-    DependenciesVersion = "1.0.14.7"
+    DependenciesVersion = "1.0.14.9"
     gisredDll = None
 
     """Basic"""
@@ -187,6 +187,116 @@ class QGISRed:
             return dropButton
         return action
 
+    def initGui(self):
+        if not platform.system() == "Windows":
+            return
+
+        """Create the menu entries and toolbar icons inside the QGIS GUI."""
+        self.addFileMenu()
+        self.addProjectMenu()
+        self.addEditMenu()
+        self.addVerificationsMenu()
+        self.addToolsMenu()
+        self.addDigitalTwinMenu()
+
+        # About
+        icon_path = ':/plugins/QGISRed/images/iconAbout.png'
+        self.add_action(icon_path, text=self.tr(u'About...'), callback=self.runAbout,
+                        menubar=self.qgisredmenu, toolbar=self.toolbar, parent=self.iface.mainWindow())
+        # Report issues
+        icon_path = ':/plugins/QGISRed/images/iconGitHub.png'
+        self.add_action(icon_path, text=self.tr(u'Report issues or comments...'), callback=self.runReportIssues,
+                        menubar=self.qgisredmenu, toolbar=self.toolbar, parent=self.iface.mainWindow())
+
+        # Connecting QGis Events
+        QgsProject.instance().projectSaved.connect(self.runSaveProject)
+        QgsProject.instance().cleared.connect(self.runClearedProject)
+        QgsProject.instance().layersRemoved.connect(self.runLegendChanged)
+        QgsProject.instance().readProject.connect(self.runOpenedQgisProject)
+
+        # MapTools
+        self.myMapTools = {}
+
+        # QGISRed dependencies
+        self.dllTempFolderFile = os.path.join(QGISRedUtils().getGISRedFolder(), "dllTempFolders.dat")
+        QGISRedUtils().copyDependencies()
+        self.removeTempFolders()
+        # QGISRed updates
+        self.checkForUpdates()
+
+        # SHPs temporal folder
+        self.tempFolder = tempfile._get_default_tempdir() + "\\QGISRed_" + next(tempfile._get_candidate_names())
+        try:  # create directory if does not exist
+            os.stat(self.tempFolder)
+        except Exception:
+            os.mkdir(self.tempFolder)
+        self.KeyTemp = str(base64.b64encode(os.urandom(16)))
+
+        # Issue layers
+        self.issuesLayers = []
+        for name in self.ownMainLayers:
+            self.issuesLayers.append(name + "_Issues")
+        for name in self.complementaryLayers:
+            self.issuesLayers.append(name + "_Issues")
+        # Open layers options
+        self.hasToOpenConnectivityLayers = False
+        self.hasToOpenIssuesLayers = False
+        self.hasToOpenSectorLayers = False
+        self.selectedFids = {}
+
+        self.zoomToFullExtent = False
+        self.removingLayers = False
+
+        QgsMessageLog.logMessage("Loaded sucssesfully", 'QGISRed', level=0)
+
+    def unload(self):
+        """Removes the plugin menu item and icon from QGIS GUI."""
+        # dirpath = os.path.join(tempfile._get_default_tempdir(), "qgisred" + self.KeyTemp)
+        # if os.path.exists(dirpath) and os.path.isdir(dirpath):
+        # shutil.rmtree(dirpath)
+        if os.path.exists(self.tempFolder) and os.path.isdir(self.tempFolder):
+            shutil.rmtree(self.tempFolder)
+
+        if QGISRedUtils.DllTempoFolder is not None:
+            with open(self.dllTempFolderFile, 'a+') as file:
+                file.write(QGISRedUtils.DllTempoFolder + '\n')
+
+        if self.ResultDockwidget is not None:
+            self.ResultDockwidget.close()
+            self.iface.removeDockWidget(self.ResultDockwidget)
+            self.ResultDockwidget = None
+
+        for action in self.actions:
+            self.iface.removeToolBarIcon(action)
+
+        # remove the toolbar
+        del self.toolbar
+        del self.fileToolbar
+        del self.projectToolbar
+        del self.editionToolbar
+        del self.verificationsToolbar
+        del self.toolsToolbar
+        del self.dtToolbar
+
+        # remove statusbar label
+        self.iface.mainWindow().statusBar().removeWidget(self.unitsButton)
+
+        # remove menus
+        if self.fileMenu:
+            self.fileMenu.menuAction().setVisible(False)
+        if self.projectMenu:
+            self.projectMenu.menuAction().setVisible(False)
+        if self.editionMenu:
+            self.editionMenu.menuAction().setVisible(False)
+        if self.verificationsMenu:
+            self.verificationsMenu.menuAction().setVisible(False)
+        if self.toolsMenu:
+            self.toolsMenu.menuAction().setVisible(False)
+        if self.dtMenu:
+            self.dtMenu.menuAction().setVisible(False)
+        if self.qgisredmenu:
+            self.qgisredmenu.menuAction().setVisible(False)
+
     def addFileMenu(self):
         #    #Menu
         self.fileMenu = self.qgisredmenu.addMenu(self.tr('File'))
@@ -243,9 +353,8 @@ class QGISRed:
                                             addActionToDrop=False, add_to_toolbar=False, parent=self.iface.mainWindow())
         self.projectDropButton = projectDropButton
 
-        icon_path = ':/plugins/QGISRed/images/iconSettings.png'
-        self.add_action(icon_path, text=self.tr(u'Project settings'), callback=self.runSettings,
-                        menubar=self.projectMenu,
+        icon_path = ':/plugins/QGISRed/images/iconSummary.png'
+        self.add_action(icon_path, text=self.tr(u'Summary'), callback=self.runSummary, menubar=self.projectMenu,
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconLayerManagement.png'
@@ -257,8 +366,9 @@ class QGISRed:
         self.add_action(icon_path, text=self.tr(u'Add data'), callback=self.runCanAddData, menubar=self.projectMenu,
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
-        icon_path = ':/plugins/QGISRed/images/iconHydraulicOptions.png'
-        self.add_action(icon_path, text=self.tr(u'Analysis options'), callback=self.runAnalysisOptions,
+        self.projectToolbar.addSeparator()
+        icon_path = ':/plugins/QGISRed/images/iconSettings.png'
+        self.add_action(icon_path, text=self.tr(u'Project settings'), callback=self.runSettings,
                         menubar=self.projectMenu,
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
@@ -272,8 +382,10 @@ class QGISRed:
                         menubar=self.projectMenu,
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
-        icon_path = ':/plugins/QGISRed/images/iconSummary.png'
-        self.add_action(icon_path, text=self.tr(u'Summary'), callback=self.runSummary, menubar=self.projectMenu,
+        self.projectToolbar.addSeparator()
+        icon_path = ':/plugins/QGISRed/images/iconHydraulicOptions.png'
+        self.add_action(icon_path, text=self.tr(u'Analysis options'), callback=self.runAnalysisOptions,
+                        menubar=self.projectMenu,
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconFlash.png'
@@ -601,116 +713,6 @@ class QGISRed:
         #                 menubar=self.dtMenu, toolbar=self.dtToolbar,
         #                 actionBase=dtDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         pass
-
-    def initGui(self):
-        if not platform.system() == "Windows":
-            return
-
-        """Create the menu entries and toolbar icons inside the QGIS GUI."""
-        self.addFileMenu()
-        self.addProjectMenu()
-        self.addEditMenu()
-        self.addVerificationsMenu()
-        self.addToolsMenu()
-        self.addDigitalTwinMenu()
-
-        # About
-        icon_path = ':/plugins/QGISRed/images/iconAbout.png'
-        self.add_action(icon_path, text=self.tr(u'About...'), callback=self.runAbout,
-                        menubar=self.qgisredmenu, toolbar=self.toolbar, parent=self.iface.mainWindow())
-        # Report issues
-        icon_path = ':/plugins/QGISRed/images/iconGitHub.png'
-        self.add_action(icon_path, text=self.tr(u'Report issues or comments...'), callback=self.runReportIssues,
-                        menubar=self.qgisredmenu, toolbar=self.toolbar, parent=self.iface.mainWindow())
-
-        # Connecting QGis Events
-        QgsProject.instance().projectSaved.connect(self.runSaveProject)
-        QgsProject.instance().cleared.connect(self.runClearedProject)
-        QgsProject.instance().layersRemoved.connect(self.runLegendChanged)
-        QgsProject.instance().readProject.connect(self.runOpenedQgisProject)
-
-        # MapTools
-        self.myMapTools = {}
-
-        # QGISRed dependencies
-        self.dllTempFolderFile = os.path.join(QGISRedUtils().getGISRedFolder(), "dllTempFolders.dat")
-        QGISRedUtils().copyDependencies()
-        self.removeTempFolders()
-        # QGISRed updates
-        self.checkForUpdates()
-
-        # SHPs temporal folder
-        self.tempFolder = tempfile._get_default_tempdir() + "\\QGISRed_" + next(tempfile._get_candidate_names())
-        try:  # create directory if does not exist
-            os.stat(self.tempFolder)
-        except Exception:
-            os.mkdir(self.tempFolder)
-        self.KeyTemp = str(base64.b64encode(os.urandom(16)))
-
-        # Issue layers
-        self.issuesLayers = []
-        for name in self.ownMainLayers:
-            self.issuesLayers.append(name + "_Issues")
-        for name in self.complementaryLayers:
-            self.issuesLayers.append(name + "_Issues")
-        # Open layers options
-        self.hasToOpenConnectivityLayers = False
-        self.hasToOpenIssuesLayers = False
-        self.hasToOpenSectorLayers = False
-        self.selectedFids = {}
-
-        self.zoomToFullExtent = False
-        self.removingLayers = False
-
-        QgsMessageLog.logMessage("Loaded sucssesfully", 'QGISRed', level=0)
-
-    def unload(self):
-        """Removes the plugin menu item and icon from QGIS GUI."""
-        # dirpath = os.path.join(tempfile._get_default_tempdir(), "qgisred" + self.KeyTemp)
-        # if os.path.exists(dirpath) and os.path.isdir(dirpath):
-        # shutil.rmtree(dirpath)
-        if os.path.exists(self.tempFolder) and os.path.isdir(self.tempFolder):
-            shutil.rmtree(self.tempFolder)
-
-        if QGISRedUtils.DllTempoFolder is not None:
-            with open(self.dllTempFolderFile, 'a+') as file:
-                file.write(QGISRedUtils.DllTempoFolder + '\n')
-
-        if self.ResultDockwidget is not None:
-            self.ResultDockwidget.close()
-            self.iface.removeDockWidget(self.ResultDockwidget)
-            self.ResultDockwidget = None
-
-        for action in self.actions:
-            self.iface.removeToolBarIcon(action)
-
-        # remove the toolbar
-        del self.toolbar
-        del self.fileToolbar
-        del self.projectToolbar
-        del self.editionToolbar
-        del self.verificationsToolbar
-        del self.toolsToolbar
-        del self.dtToolbar
-
-        # remove statusbar label
-        self.iface.mainWindow().statusBar().removeWidget(self.unitsButton)
-
-        # remove menus
-        if self.fileMenu:
-            self.fileMenu.menuAction().setVisible(False)
-        if self.projectMenu:
-            self.projectMenu.menuAction().setVisible(False)
-        if self.editionMenu:
-            self.editionMenu.menuAction().setVisible(False)
-        if self.verificationsMenu:
-            self.verificationsMenu.menuAction().setVisible(False)
-        if self.toolsMenu:
-            self.toolsMenu.menuAction().setVisible(False)
-        if self.dtMenu:
-            self.dtMenu.menuAction().setVisible(False)
-        if self.qgisredmenu:
-            self.qgisredmenu.menuAction().setVisible(False)
 
     def getVersion(self, filename, what):
         class LANGANDCODEPAGE(Structure):
@@ -1090,8 +1092,7 @@ class QGISRed:
             return
         group = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
         if group is not None:
-            group.setItemVisibilityChecked(
-                not self.ResultDockwidget.isVisible())
+            group.setItemVisibilityChecked(not self.ResultDockwidget.isVisible())
         group = QgsProject.instance().layerTreeRoot().findGroup("Results")
         if group is not None:
             group.setItemVisibilityChecked(self.ResultDockwidget.isVisible())
