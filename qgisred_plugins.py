@@ -71,7 +71,7 @@ class QGISRed:
     complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves",
                            "AirReleaseValves", "ServiceConnections", "Meters"]
     TemporalFolder = "Temporal folder"
-    DependenciesVersion = "1.0.14.9"
+    DependenciesVersion = "1.0.14.11"
     gisredDll = None
 
     """Basic"""
@@ -801,7 +801,7 @@ class QGISRed:
                                                             "). You can upgrade it from the QGis plugin manager." +
                                                             "Do you want to remember it again?"),
                                                     QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No))
-                    webbrowser.open('https://tr.im/qgisredplugin')
+                    webbrowser.open('https://plugins.qgis.org/plugins/QGISRed/')
                     # If user don't want to remember a local file is written with this version
                     if response == QMessageBox.No:
                         f = open(fileVersions, "w+")
