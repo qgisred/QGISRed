@@ -801,7 +801,10 @@ class QGISRed:
                                                             "). You can upgrade it from the QGis plugin manager." +
                                                             "Do you want to remember it again?"),
                                                     QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No))
-                    webbrowser.open('https://plugins.qgis.org/plugins/QGISRed/')
+                    if (self.checkShortener()):
+                        webbrowser.open('https://bit.ly/qgisred')
+                    else:
+                        webbrowser.open('https://plugins.qgis.org/plugins/QGISRed/')
                     # If user don't want to remember a local file is written with this version
                     if response == QMessageBox.No:
                         f = open(fileVersions, "w+")
@@ -810,6 +813,19 @@ class QGISRed:
             os.remove(tempLocalFile)
         except Exception:
             pass
+
+    def checkShortener(self):
+        link = '\"http://www.redhisp.webs.upv.es/files/QGISRed/shortener.txt\"'
+        tempLocalFile = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names()) + ".txt"
+        try:
+            # Read online file
+            urllib.request.urlretrieve(link.strip('\'"'), tempLocalFile)
+            f = open(tempLocalFile, "r")
+            contents = f.read()
+            f.close()
+            return contents.startswith('1')
+        except:
+            return False
 
     def removeTempFolders(self):
         if not os.path.exists(self.dllTempFolderFile):
