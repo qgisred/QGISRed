@@ -3,6 +3,7 @@ from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QApplication
 from qgis.core import QgsPointXY, QgsPoint, QgsGeometry, QgsFeature, QgsRectangle, QgsVectorLayer, QgsMapLayer
 from qgis.gui import QgsMapTool, QgsRubberBand
+from qgis.utils import Qgis
 import processing
 
 
@@ -159,11 +160,11 @@ class QGISRedMultiLayerSelection(QgsMapTool):
                 lRect = self.canvas.mapSettings().mapToLayerCoordinates(layer, rect)
                 modifiers = QApplication.keyboardModifiers()
                 if modifiers == Qt.ShiftModifier:
-                    layer.selectByRect(lRect, 3)  # Remove
+                    layer.selectByRect(lRect, Qgis.SelectBehavior.RemoveFromSelection)  # Remove
                 elif modifiers == Qt.ControlModifier:
-                    layer.selectByRect(lRect, 1)  # Add
+                    layer.selectByRect(lRect, Qgis.SelectBehavior.AddToSelection)  # Add
                 else:
-                    layer.selectByRect(lRect, 0)  # Set
+                    layer.selectByRect(lRect, Qgis.SelectBehavior.SetSelection)  # Set
             self.myRubberBand.hide()
 
     def canvasMoveEvent(self, e):
