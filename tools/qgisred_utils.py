@@ -123,8 +123,8 @@ class QGISRedUtils:
 
     """Order Layers"""
     def orderLayers(self, group):
-        mylayersNames = ["IsolationValves", "Hydrants", "WashoutValves",
-                         "AirReleaseValves", "Meters", "ServiceConnections",
+        mylayersNames = ["IsolationValves.shp", "Hydrants.shp", "WashoutValves.shp",
+                         "AirReleaseValves.shp", "Meters.shp", "ServiceConnections.shp",
                          "Sources.shp", "Reservoirs.shp", "Tanks.shp", "Junctions.shp", "Pumps.shp",
                          "Valves.shp", "Demands.shp", "Pipes.shp"]
         layersToDelete = []
