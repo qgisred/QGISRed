@@ -50,6 +50,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbJunctionLayer.currentIndexChanged.connect(self.junctionLayerChanged)
         self.cbServiceConnectionLayer.currentIndexChanged.connect(self.serviceConnectionLayerChanged)
         self.cbIsolationValveLayer.currentIndexChanged.connect(self.isolationValveLayerChanged)
+        self.cbMeterLayer.currentIndexChanged.connect(self.meterLayerChanged)
         self.btImportShps.clicked.connect(self.importShpProject)
 
     def config(self, ifac, direct, netw, parent):
@@ -236,6 +237,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbServiceConnectionLayer.addItem("None")
         self.cbIsolationValveLayer.clear()
         self.cbIsolationValveLayer.addItem("None")
+        self.cbMeterLayer.clear()
+        self.cbMeterLayer.addItem("None")
         for file in dirList:
             if ".shp" in file:
                 layerPath = os.path.join(self.tbShpDirectory.text(), file)
@@ -258,6 +261,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                         self.cbReservoirLayer.addItem(name)
                         self.cbJunctionLayer.addItem(name)
                         self.cbIsolationValveLayer.addItem(name)
+                        self.cbMeterLayer.addItem(name)
                     break
                 vlayer = None
 
@@ -557,6 +561,43 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.selectComboBoxItem(self.cbIsolationValve_Descr,
                                 ["descrip", "descr", "description", "descripcion", "descripción"])
 
+    def meterLayerChanged(self):
+        newItem = self.cbMeterLayer.currentText()
+        self.cbMeter_Id.clear()
+        self.cbMeter_Type.clear()
+        self.cbMeter_Active.clear()
+        self.cbMeter_InstDate.clear()
+        self.cbMeter_Tag.clear()
+        self.cbMeter_Descr.clear()
+
+        if newItem == "None":
+            self.gbMeter.setEnabled(False)
+            return
+
+        self.gbMeter.setEnabled(True)
+
+        valveLayer = os.path.join(self.tbShpDirectory.text(), newItem + ".shp")
+        vlayer = QgsVectorLayer(valveLayer, "IV layer", "ogr")
+        if not vlayer.isValid():
+            return
+        field_names = [field.name() for field in vlayer.fields()]
+        field_names.insert(0, "None")
+        self.cbMeter_Id.addItems(field_names)
+        self.cbMeter_Type.addItems(field_names)
+        self.cbMeter_Active.addItems(field_names)
+        self.cbMeter_InstDate.addItems(field_names)
+        self.cbMeter_Tag.addItems(field_names)
+        self.cbMeter_Descr.addItems(field_names)
+
+        self.selectComboBoxItem(self.cbMeter_Id, ["id"])
+        self.selectComboBoxItem(self.cbMeter_Type, ["type", "tipo", "meter", "medidor"])
+        self.selectComboBoxItem(self.cbMeter_Active, ["active", "activo"])
+        self.selectComboBoxItem(self.cbMeter_InstDate, ["instdate", "date", "fecha", "fecha_de_i"])
+        self.selectComboBoxItem(self.cbMeter_Tag, ["tag"])
+        self.selectComboBoxItem(self.cbMeter_Descr,
+                                ["descrip", "descr", "description", "descripcion", "descripción"])
+
+
     def createShpsNames(self):
         shpFolder = self.tbShpDirectory.text()
         shpNames = ""
@@ -585,6 +626,9 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         name = self.cbIsolationValveLayer.currentText()
         if not name == "None":
             shpNames = shpNames + "[ISOLATIONVALVES]" + os.path.join(shpFolder, name) + ","
+        name = self.cbMeterLayer.currentText()
+        if not name == "None":
+            shpNames = shpNames + "[METERS]" + os.path.join(shpFolder, name) + ","
         return shpNames
 
     def createShpFields(self):
@@ -876,6 +920,36 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
 
             fields = fields + ","  # To separate layers
 
+        name = self.cbMeterLayer.currentText()
+        if not name == "None":
+            fields = fields + "[METERS]"
+            name = self.cbMeter_Id.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+            name = self.cbMeter_Type.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+            name = self.cbMeter_Active.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+            name = self.cbMeter_InstDate.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+            name = self.cbMeter_Tag.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+            name = self.cbMeter_Descr.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+
+            fields = fields + ","  # To separate layers
+
         return fields
 
     def importShpProject(self):
@@ -931,5 +1005,9 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             iv = self.cbIsolationValveLayer.currentText()
             if not iv == "None":
                 self.parent.especificComplementaryLayers.append("IsolationValves")
+
+            me = self.cbMeterLayer.currentText()
+            if not me == "None":
+                self.parent.especificComplementaryLayers.append("Meters")
 
             self.parent.processCsharpResult(resMessage, "")
