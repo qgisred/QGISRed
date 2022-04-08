@@ -51,6 +51,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbServiceConnectionLayer.currentIndexChanged.connect(self.serviceConnectionLayerChanged)
         self.cbIsolationValveLayer.currentIndexChanged.connect(self.isolationValveLayerChanged)
         self.cbMeterLayer.currentIndexChanged.connect(self.meterLayerChanged)
+        self.cbMeterType.currentIndexChanged.connect(self.meterTypeChanged)
         self.btImportShps.clicked.connect(self.importShpProject)
 
     def config(self, ifac, direct, netw, parent):
@@ -567,6 +568,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbMeter_Type.clear()
         self.cbMeter_Active.clear()
         self.cbMeter_InstDate.clear()
+        self.cbMeter_Orientation.clear()
         self.cbMeter_Tag.clear()
         self.cbMeter_Descr.clear()
 
@@ -586,6 +588,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbMeter_Type.addItems(field_names)
         self.cbMeter_Active.addItems(field_names)
         self.cbMeter_InstDate.addItems(field_names)
+        self.cbMeter_Orientation.addItems(field_names)
         self.cbMeter_Tag.addItems(field_names)
         self.cbMeter_Descr.addItems(field_names)
 
@@ -593,10 +596,20 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.selectComboBoxItem(self.cbMeter_Type, ["type", "tipo", "meter", "medidor"])
         self.selectComboBoxItem(self.cbMeter_Active, ["active", "activo"])
         self.selectComboBoxItem(self.cbMeter_InstDate, ["instdate", "date", "fecha", "fecha_de_i"])
+        self.selectComboBoxItem(self.cbMeter_Orientation, ["orientation"])
         self.selectComboBoxItem(self.cbMeter_Tag, ["tag"])
         self.selectComboBoxItem(self.cbMeter_Descr,
                                 ["descrip", "descr", "description", "descripcion", "descripción"])
 
+    def meterTypeChanged(self):
+        newItem = self.cbMeterType.currentIndex()
+        
+        self.cbMeter_Type.setEnabled(newItem == 0)
+        if newItem != 0:
+            self.cbMeter_Type.setCurrentIndex(0)
+        self.cbMeter_Orientation.setEnabled(newItem == 0 or newItem == 2 or newItem == 3)
+        if newItem != 0 and newItem != 2 and newItem != 3:
+            self.cbMeter_Orientation.setCurrentIndex(0)
 
     def createShpsNames(self):
         shpFolder = self.tbShpDirectory.text()
@@ -927,9 +940,14 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             if not name == "None":
                 fields = fields + name
             fields = fields + ";"
-            name = self.cbMeter_Type.currentText()
-            if not name == "None":
-                fields = fields + name
+            index = self.cbMeterType.currentIndex()
+            if index == 0:
+                name = self.cbMeter_Type.currentText()
+                if not name == "None":
+                    fields = fields + name
+            else:
+                name = self.cbMeterType.currentText()
+                fields = fields + "QGISRed" + name.replace(" ", "")
             fields = fields + ";"
             name = self.cbMeter_Active.currentText()
             if not name == "None":
@@ -944,6 +962,10 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 fields = fields + name
             fields = fields + ";"
             name = self.cbMeter_Descr.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+            name = self.cbMeter_Orientation.currentText()
             if not name == "None":
                 fields = fields + name
             fields = fields + ";"

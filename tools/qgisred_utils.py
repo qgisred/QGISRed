@@ -188,12 +188,27 @@ class QGISRedUtils:
             if layer.geometryType() == 0:  # Point
                 svg_style = dict()
                 svg_style['name'] = svgPath
-                svg_style['size'] = str(7)
+                size = "7"
+                if name == "meters":
+                    size = "3"
+                svg_style['size'] = size
                 if name == "demands":
                     svg_style['fill'] = '#9a1313'
                 symbol_layer = QgsSvgMarkerSymbolLayer.create(svg_style)
                 symbol = QgsSymbol.defaultSymbol(layer.geometryType())
-                symbol.changeSymbolLayer(0, symbol_layer)
+                if name == "meters":
+                    prop = QgsProperty()
+                    prop.setExpressionString("if(IsActive is NULL, 0,if(IsActive !=0, 3,0))")
+                    symbol_layer.setDataDefinedProperty(9, prop)  # 9 = PropertyWidth
+                    symbol.appendSymbolLayer(symbol_layer)
+                    svg_style['name'] = os.path.join(stylePath, name + "Off.svg")
+                    symbol_layer = QgsSvgMarkerSymbolLayer.create(svg_style)
+                    prop = QgsProperty()
+                    prop.setExpressionString("if(IsActive is NULL, 0,if(IsActive !=0, 0,3))")
+                    symbol_layer.setDataDefinedProperty(9, prop)  # 9 = PropertyWidth
+                    symbol.changeSymbolLayer(0, symbol_layer)
+                else:
+                    symbol.changeSymbolLayer(0, symbol_layer)
                 renderer = QgsSingleSymbolRenderer(symbol)
             else:  # Line
                 symbol = QgsLineSymbol().createSimple({})
