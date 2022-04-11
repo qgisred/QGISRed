@@ -487,6 +487,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbServiceConnection_Length.clear()
         self.cbServiceConnection_Diameter.clear()
         self.cbServiceConnection_Material.clear()
+        self.cbServiceConnection_IsActive.clear()
         self.cbServiceConnection_InstDate.clear()
         self.cbServiceConnection_Tag.clear()
         self.cbServiceConnection_Descr.clear()
@@ -507,6 +508,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbServiceConnection_Length.addItems(field_names)
         self.cbServiceConnection_Diameter.addItems(field_names)
         self.cbServiceConnection_Material.addItems(field_names)
+        self.cbServiceConnection_IsActive.addItems(field_names)
         self.cbServiceConnection_InstDate.addItems(field_names)
         self.cbServiceConnection_Tag.addItems(field_names)
         self.cbServiceConnection_Descr.addItems(field_names)
@@ -515,6 +517,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.selectComboBoxItem(self.cbServiceConnection_Length, ["length", "longitud"])
         self.selectComboBoxItem(self.cbServiceConnection_Diameter, ["diameter", "diam", "diametro", "diámetro"])
         self.selectComboBoxItem(self.cbServiceConnection_Material, ["material"])
+        self.selectComboBoxItem(self.cbServiceConnection_IsActive, ["isactive", "active"])
         self.selectComboBoxItem(self.cbServiceConnection_InstDate, ["instdate", "date", "fecha", "fecha_de_i"])
         self.selectComboBoxItem(self.cbServiceConnection_Tag, ["tag"])
         self.selectComboBoxItem(self.cbServiceConnection_Descr,
@@ -603,7 +606,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
 
     def meterTypeChanged(self):
         newItem = self.cbMeterType.currentIndex()
-        
+
         self.cbMeter_Type.setEnabled(newItem == 0)
         if newItem != 0:
             self.cbMeter_Type.setCurrentIndex(0)
@@ -877,6 +880,10 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 fields = fields + name
             fields = fields + ";"
             name = self.cbServiceConnection_Material.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+            name = self.cbServiceConnection_IsActive.currentText()
             if not name == "None":
                 fields = fields + name
             fields = fields + ";"
