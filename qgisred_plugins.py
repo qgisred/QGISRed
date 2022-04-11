@@ -2323,7 +2323,7 @@ class QGISRed:
         point = str(point.x()) + ":" + str(point.y())
 
         # Process
-        self.especificComplementaryLayers = ["IsolationValves"]
+        self.especificComplementaryLayers = ["IsolationValves", "Meters", "ServiceConnections"]
         QApplication.setOverrideCursor(Qt.WaitCursor)
         resMessage = GISRed.ChangeStatus(self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
         QApplication.restoreOverrideCursor()
