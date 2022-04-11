@@ -182,33 +182,35 @@ class QGISRedUtils:
         # default style
         qmlPath = os.path.join(stylePath, name + ".qml.bak")
         if os.path.exists(qmlPath):
-            layer.loadNamedStyle(qmlPath)
+            if name == "meters":
+                f = open(qmlPath, "r")
+                contents = f.read()
+                f.close()
+                newQmlPath = ""
+                svgPath = os.path.join(stylePath, "meterMan.svg")
+                contents = contents.replace("meterMan.svg", svgPath)
+                svgPath = os.path.join(stylePath, "meterManOff.svg")
+                contents = contents.replace("meterManOff.svg", svgPath)
+                newQmlPath = os.path.join(stylePath, "meters.qml")
+                f = open(newQmlPath, "w+")
+                f.write(contents)
+                f.close()
+                layer.loadNamedStyle(newQmlPath)
+                os.remove(newQmlPath)
+            else:
+                layer.loadNamedStyle(qmlPath)
         svgPath = os.path.join(stylePath, name + ".svg")
         if os.path.exists(svgPath):
             if layer.geometryType() == 0:  # Point
                 svg_style = dict()
                 svg_style['name'] = svgPath
                 size = "7"
-                if name == "meters":
-                    size = "3"
                 svg_style['size'] = size
                 if name == "demands":
                     svg_style['fill'] = '#9a1313'
                 symbol_layer = QgsSvgMarkerSymbolLayer.create(svg_style)
                 symbol = QgsSymbol.defaultSymbol(layer.geometryType())
-                if name == "meters":
-                    prop = QgsProperty()
-                    prop.setExpressionString("if(IsActive is NULL, 0,if(IsActive !=0, 3,0))")
-                    symbol_layer.setDataDefinedProperty(9, prop)  # 9 = PropertyWidth
-                    symbol.appendSymbolLayer(symbol_layer)
-                    svg_style['name'] = os.path.join(stylePath, name + "Off.svg")
-                    symbol_layer = QgsSvgMarkerSymbolLayer.create(svg_style)
-                    prop = QgsProperty()
-                    prop.setExpressionString("if(IsActive is NULL, 0,if(IsActive !=0, 0,3))")
-                    symbol_layer.setDataDefinedProperty(9, prop)  # 9 = PropertyWidth
-                    symbol.changeSymbolLayer(0, symbol_layer)
-                else:
-                    symbol.changeSymbolLayer(0, symbol_layer)
+                symbol.changeSymbolLayer(0, symbol_layer)
                 renderer = QgsSingleSymbolRenderer(symbol)
             else:  # Line
                 symbol = QgsLineSymbol().createSimple({})
