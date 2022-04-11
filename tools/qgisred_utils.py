@@ -232,7 +232,7 @@ class QGISRedUtils:
                 symbol.symbolLayer(0).setDataDefinedProperty(4, prop)
                 # Custom dash
                 prop2 = QgsProperty()
-                prop2.setExpressionString("if(IniStatus = 'CLOSED', '5;2', '5;0')")
+                prop2.setExpressionString("if(IniStatus = 'CLOSED', '5;2', '5000;0')")
                 symbol.symbolLayer(0).setDataDefinedProperty(36, prop2)
                 # Symbol
                 marker = QgsMarkerSymbol.createSimple({})
