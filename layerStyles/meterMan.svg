@@ -8,10 +8,10 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    version="1.0"
-   width="154mm"
-   height="154mm"
+   width="550"
+   height="550"
    id="svg27"
-   sodipodi:docname="meters.svg"
+   sodipodi:docname="meterMan.svg"
    inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)">
   <metadata
      id="metadata31">
@@ -21,7 +21,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -45,7 +45,8 @@
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
      inkscape:current-layer="g6"
-     inkscape:document-rotation="0" />
+     inkscape:document-rotation="0"
+     units="px" />
   <defs
      id="defs3">
     <pattern
@@ -60,26 +61,29 @@
      id="g6"
      transform="matrix(8.3374576,0,0,8.3374576,20.951269,24.228671)"
      style="fill:#1a1a1a">
-    <ellipse
-       style="fill:none;stroke:#1a1a1b;stroke-width:14.6636;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;stop-color:#000000"
-       id="path851"
-       cx="31.3888"
-       cy="30.891117"
-       rx="26.401823"
-       ry="26.401825" />
     <circle
-       style="fill:#ffffff;stroke:none;stroke-width:12.3813;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;stop-color:#000000"
-       id="path855"
-       cx="31.8771"
-       cy="30.494738"
-       r="23.046867" />
+       id="path833"
+       cx="30.470768"
+       cy="30.077673"
+       fill="param(fill)"
+       fill-opacity="param(fill-opacity)"
+       stroke="param(outline)"
+       stroke-opacity="param(outline-opacity)"
+       stroke-width="10"
+       inkscape:connector-curvature="0"
+       r="28.609692" />
     <rect
-       style="fill:#1a1a1a;stroke:#1a1a1b;stroke-width:7.89958;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;stop-color:#000000"
        id="rect853"
-       width="0.14990686"
-       height="14.466012"
-       x="44.562107"
-       y="-18.122095"
-       transform="rotate(48.835443)" />
+       width="0.16190387"
+       height="15.327653"
+       x="43.968143"
+       y="-21.359869"
+       transform="matrix(0.60349046,0.79737022,-0.70355505,0.71064076,0,0)"
+       fill="param(fill)"
+       fill-opacity="param(fill-opacity)"
+       stroke="param(outline)"
+       stroke-opacity="param(outline-opacity)"
+       stroke-width="10"
+       inkscape:connector-curvature="0" />
   </g>
 </svg>

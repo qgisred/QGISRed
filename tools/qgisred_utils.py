@@ -189,8 +189,6 @@ class QGISRedUtils:
                 newQmlPath = ""
                 svgPath = os.path.join(stylePath, "meterMan.svg")
                 contents = contents.replace("meterMan.svg", svgPath)
-                svgPath = os.path.join(stylePath, "meterManOff.svg")
-                contents = contents.replace("meterManOff.svg", svgPath)
                 newQmlPath = os.path.join(stylePath, "meters.qml")
                 f = open(newQmlPath, "w+")
                 f.write(contents)
