@@ -138,7 +138,7 @@ class QGISRed:
         return QCoreApplication.translate('QGISRed', message)
 
     def add_action(self, icon_path, text, callback, menubar, toolbar,
-                   checable=False, actionBase=None, createDrop=False, addActionToDrop=True,
+                   checable=False, actionBase=None, dropButton=None, addActionToDrop=True,
                    enabled_flag=True, add_to_menu=True, add_to_toolbar=True,
                    status_tip=None, whats_this=None, parent=None):
         # Create the dialog (after translation) and keep reference
@@ -164,8 +164,7 @@ class QGISRed:
                 # actionBase.setDefaultAction(action)
                 actionBase.setPopupMode(QToolButton.MenuButtonPopup)
 
-        dropButton = QToolButton()
-        if createDrop:
+        if dropButton is not None:
             menu = QMenu()
             if addActionToDrop:
                 menu.addAction(action)
@@ -183,8 +182,6 @@ class QGISRed:
 
         self.actions.append(action)
 
-        if createDrop:
-            return dropButton
         return action
 
     def initGui(self):
@@ -307,10 +304,11 @@ class QGISRed:
         self.fileToolbar.visibilityChanged.connect(self.cahngeFileToolbarVisibility)
         self.fileToolbar.setVisible(False)
         #    #Buttons
+        fileDropButton = QToolButton()
         icon_path = ':/plugins/QGISRed/images/iconData.png'
-        fileDropButton = self.add_action(icon_path, text=self.tr(u'File'), callback=self.runFileToolbar,
+        self.add_action(icon_path, text=self.tr(u'File'), callback=self.runFileToolbar,
                                          menubar=self.fileMenu, add_to_menu=False, toolbar=self.toolbar,
-                                         createDrop=True, addActionToDrop=False, checable=True,
+                                         dropButton=fileDropButton, addActionToDrop=False, checable=True,
                                          add_to_toolbar=False, parent=self.iface.mainWindow())
         self.fileDropButton = fileDropButton
 
@@ -346,10 +344,11 @@ class QGISRed:
         self.projectToolbar.visibilityChanged.connect(self.cahngeProjectToolbarVisibility)
         self.projectToolbar.setVisible(False)
         #    #Buttons
+        projectDropButton = QToolButton()
         icon_path = ':/plugins/QGISRed/images/qgisred32.png'
-        projectDropButton = self.add_action(icon_path, text=self.tr(u'Project'), callback=self.runProjectToolbar,
+        self.add_action(icon_path, text=self.tr(u'Project'), callback=self.runProjectToolbar,
                                             menubar=self.projectMenu, add_to_menu=False, toolbar=self.toolbar,
-                                            createDrop=True, checable=True,
+                                            dropButton=projectDropButton, checable=True,
                                             addActionToDrop=False, add_to_toolbar=False, parent=self.iface.mainWindow())
         self.projectDropButton = projectDropButton
 
@@ -389,9 +388,10 @@ class QGISRed:
                         toolbar=self.projectToolbar, actionBase=projectDropButton, add_to_toolbar=True,
                         parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconFlash.png'
+        dropButton = QToolButton()
         dropButton = self.add_action(icon_path, text=self.tr(u'Run model'), callback=self.runModel,
                                      menubar=self.projectMenu,
-                                     toolbar=self.projectToolbar, actionBase=projectDropButton, createDrop=True,
+                                     toolbar=self.projectToolbar, actionBase=projectDropButton, dropButton=dropButton,
                                      add_to_toolbar=False, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconResults.png'
         self.add_action(icon_path, text=self.tr(u'Show results browser'), callback=self.runShowResultsDock,
@@ -415,10 +415,11 @@ class QGISRed:
         self.editionToolbar.setVisible(False)
 
         #    #Buttons
+        editDropButton = QToolButton()
         icon_path = ':/plugins/QGISRed/images/iconEdit.png'
-        editDropButton = self.add_action(icon_path, text=self.tr(u'Edition'), callback=self.runEditionToolbar,
+        self.add_action(icon_path, text=self.tr(u'Edition'), callback=self.runEditionToolbar,
                                          menubar=self.editionMenu, add_to_menu=False, checable=True,
-                                         toolbar=self.toolbar, createDrop=True, addActionToDrop=False,
+                                         toolbar=self.toolbar, dropButton=editDropButton, addActionToDrop=False,
                                          add_to_toolbar=False, parent=self.iface.mainWindow())
         self.editDropButton = editDropButton
 
@@ -551,11 +552,12 @@ class QGISRed:
         self.verificationsToolbar.visibilityChanged.connect(self.cahngeVerificationsToolbarVisibility)
         self.verificationsToolbar.setVisible(False)
         #    #Buttons
+        verificationsDropButton = QToolButton()
         icon_path = ':/plugins/QGISRed/images/iconCommit.png'
-        verificationsDropButton = self.add_action(icon_path, text=self.tr(u'Verifications'),
+        self.add_action(icon_path, text=self.tr(u'Verifications'),
                                                   callback=self.runVerificationsToolbar, menubar=self.verificationsMenu,
                                                   add_to_menu=False, checable=True,
-                                                  toolbar=self.toolbar, createDrop=True, addActionToDrop=False,
+                                                  toolbar=self.toolbar, dropButton=verificationsDropButton, addActionToDrop=False,
                                                   add_to_toolbar=False, parent=self.iface.mainWindow())
         self.verificationsDropButton = verificationsDropButton
 
@@ -583,10 +585,11 @@ class QGISRed:
                         menubar=self.verificationsMenu, toolbar=self.verificationsToolbar,
                         actionBase=verificationsDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconConnectivityM.png'
-        dropButton = self.add_action(icon_path, text=self.tr(u'Check connectivity'),
+        dropButton = QToolButton()
+        self.add_action(icon_path, text=self.tr(u'Check connectivity'),
                                      callback=self.runCheckConnectivityM,
                                      menubar=self.verificationsMenu, toolbar=self.verificationsToolbar,
-                                     actionBase=verificationsDropButton, createDrop=True, add_to_toolbar=False,
+                                     actionBase=verificationsDropButton, dropButton=dropButton, add_to_toolbar=False,
                                      parent=self.iface.mainWindow())
         icon_path = ':/plugins/QGISRed/images/iconConnectivityC.png'
         self.add_action(icon_path, text=self.tr(u'Delete issolated subzones'), callback=self.runCheckConnectivityC,
@@ -626,10 +629,11 @@ class QGISRed:
         self.toolsToolbar.visibilityChanged.connect(self.cahngeToolsToolbarVisibility)
         self.toolsToolbar.setVisible(False)
         #    #Buttons
+        toolDropButton = QToolButton()
         icon_path = ':/plugins/QGISRed/images/iconTools.png'
-        toolDropButton = self.add_action(icon_path, text=self.tr(u'Tools'), callback=self.runToolsToolbar,
+        self.add_action(icon_path, text=self.tr(u'Tools'), callback=self.runToolsToolbar,
                                          menubar=self.toolsMenu, add_to_menu=False, checable=True,
-                                         toolbar=self.toolbar, createDrop=True, addActionToDrop=False,
+                                         toolbar=self.toolbar, dropButton=toolDropButton, addActionToDrop=False,
                                          add_to_toolbar=False, parent=self.iface.mainWindow())
         self.toolsDropButton = toolDropButton
 
@@ -669,10 +673,11 @@ class QGISRed:
         self.dtToolbar.visibilityChanged.connect(self.cahngeDtToolbarVisibility)
         self.dtToolbar.setVisible(False)
         #    #Buttons
+        dtDropButton = QToolButton()
         icon_path = ':/plugins/QGISRed/images/iconDigitalTwin.png'
-        dtDropButton = self.add_action(icon_path, text=self.tr(u'Digital Twin'), callback=self.runDtToolbar,
+        self.add_action(icon_path, text=self.tr(u'Digital Twin'), callback=self.runDtToolbar,
                                        menubar=self.dtMenu, add_to_menu=False, checable=True,
-                                       toolbar=self.toolbar, createDrop=True, addActionToDrop=False,
+                                       toolbar=self.toolbar, dropButton=dtDropButton, addActionToDrop=False,
                                        add_to_toolbar=False, parent=self.iface.mainWindow())
         self.dtDropButton = dtDropButton
 
@@ -689,11 +694,72 @@ class QGISRed:
                                                        menubar=self.dtMenu, toolbar=self.dtToolbar,
                                                        actionBase=dtDropButton, add_to_toolbar=True, checable=True,
                                                        parent=self.iface.mainWindow())
-        icon_path = ':/plugins/QGISRed/images/iconAddMeter.png'
-        self.addMeterButton = self.add_action(icon_path, text=self.tr(u'Add meter'), callback=self.runSelectMeterPoint,
-                                              menubar=self.dtMenu, toolbar=self.dtToolbar, actionBase=dtDropButton,
-                                              add_to_toolbar=True, checable=True, parent=self.iface.mainWindow())
-        
+
+        self.currentMeter = "Undefined"
+        self.addMeterDropButton = QToolButton()
+        icon_path = ':/plugins/QGISRed/images/iconAddDefaultMeter.png'
+        self.add_action(icon_path, text=self.tr(u'Add meter'), callback=self.runSelectDefaultMeterPoint,
+                                              add_to_menu=False, menubar=None, toolbar=self.dtToolbar,
+                                              actionBase=dtDropButton, addActionToDrop=False,
+                                              add_to_toolbar=False, checable=True, dropButton=self.addMeterDropButton,
+                                              parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconAddAutometer.png'
+        self.addAutoMeterButton = self.add_action(icon_path, text=self.tr(u'Add automatic meter'),
+                                                  callback=self.runSelectAutoMeterPoint, menubar=self.dtMenu,
+                                                  toolbar=self.dtToolbar, actionBase=self.addMeterDropButton,
+                                                  add_to_toolbar=False, checable=True, parent=self.iface.mainWindow())
+        self.addMeterDropButton.setDefaultAction(self.addAutoMeterButton)
+        icon_path = ':/plugins/QGISRed/images/iconAddManometer.png'
+        self.addManometerButton = self.add_action(icon_path, text=self.tr(u'Add manometer'),
+                                                  callback=self.runSelectManometerPoint, menubar=self.dtMenu,
+                                                  toolbar=self.dtToolbar, actionBase=self.addMeterDropButton,
+                                                  add_to_toolbar=False, checable=True, parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconAddManometer.png'
+        self.addFlowmeterButton = self.add_action(icon_path, text=self.tr(u'Add flowmeter'),
+                                                  callback=self.runSelectFlowmeterPoint, menubar=self.dtMenu,
+                                                  toolbar=self.dtToolbar, actionBase=self.addMeterDropButton,
+                                                  add_to_toolbar=False, checable=True, parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconAddManometer.png'
+        self.addCountermeterButton = self.add_action(icon_path, text=self.tr(u'Add countermeter'),
+                                                  callback=self.runSelectCountermeterPoint, menubar=self.dtMenu,
+                                                  toolbar=self.dtToolbar, actionBase=self.addMeterDropButton,
+                                                  add_to_toolbar=False, checable=True, parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconAddManometer.png'
+        self.addLevelSensorButton = self.add_action(icon_path, text=self.tr(u'Add level sensor'),
+                                                  callback=self.runSelectLevelSensorPoint, menubar=self.dtMenu,
+                                                  toolbar=self.dtToolbar, actionBase=self.addMeterDropButton,
+                                                  add_to_toolbar=False, checable=True, parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconAddManometer.png'
+        self.addDifferentialManometerButton = self.add_action(icon_path, text=self.tr(u'Add differential manometer'),
+                                                  callback=self.runSelectDifferentialManometerPoint, menubar=self.dtMenu,
+                                                  toolbar=self.dtToolbar, actionBase=self.addMeterDropButton,
+                                                  add_to_toolbar=False, checable=True, parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconAddManometer.png'
+        self.addQualitySensorButton = self.add_action(icon_path, text=self.tr(u'Add quality sensor'),
+                                                  callback=self.runSelectQualitySensorPoint, menubar=self.dtMenu,
+                                                  toolbar=self.dtToolbar, actionBase=self.addMeterDropButton,
+                                                  add_to_toolbar=False, checable=True, parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconAddManometer.png'
+        self.addEnergySensorButton = self.add_action(icon_path, text=self.tr(u'Add energy sensor'),
+                                                  callback=self.runSelectEnergySensorPoint, menubar=self.dtMenu,
+                                                  toolbar=self.dtToolbar, actionBase=self.addMeterDropButton,
+                                                  add_to_toolbar=False, checable=True, parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconAddManometer.png'
+        self.addStatusSensorButton = self.add_action(icon_path, text=self.tr(u'Add status sensor'),
+                                                  callback=self.runSelectStatusSensorPoint, menubar=self.dtMenu,
+                                                  toolbar=self.dtToolbar, actionBase=self.addMeterDropButton,
+                                                  add_to_toolbar=False, checable=True, parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconAddManometer.png'
+        self.addValveOpeningButton = self.add_action(icon_path, text=self.tr(u'Add valve opening'),
+                                                  callback=self.runSelectValveOpeningPoint, menubar=self.dtMenu,
+                                                  toolbar=self.dtToolbar, actionBase=self.addMeterDropButton,
+                                                  add_to_toolbar=False, checable=True, parent=self.iface.mainWindow())
+        icon_path = ':/plugins/QGISRed/images/iconAddManometer.png'
+        self.addTachometerButton = self.add_action(icon_path, text=self.tr(u'Add tachometer'),
+                                                  callback=self.runSelectTachometerPoint, menubar=self.dtMenu,
+                                                  toolbar=self.dtToolbar, actionBase=self.addMeterDropButton,
+                                                  add_to_toolbar=False, checable=True, parent=self.iface.mainWindow())
+
         self.dtToolbar.addSeparator()
         icon_path = ':/plugins/QGISRed/images/iconSetReadings.png'
         self.add_action(icon_path, text=self.tr(u'Load meter readings'),
@@ -1383,7 +1449,7 @@ class QGISRed:
             self.iface.mapCanvas().refresh()
             return
 
-    def doNothing(self, task):
+    def doNothing(self, task=None):
         if task is not None:
             return {'task': task.definition()}
 
@@ -2956,15 +3022,72 @@ class QGISRed:
 
         self.processCsharpResult(resMessage, "")
 
-    def runSelectMeterPoint(self):
-        tool = "pointMeter"
+    def runSelectMeterPoint(self, action=None):
+        tool = "pointMeter" + self.currentMeter
         if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
-            self.addMeterButton.setChecked(False)
+            action.setChecked(False)
         else:
-            self.myMapTools[tool] = QGISRedSelectPointTool(
-                self.addMeterButton, self, self.runAddMeter, 2)
+            self.myMapTools[tool] = QGISRedSelectPointTool(action, self, self.runAddMeter, 2)
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
+
+    def runSelectDefaultMeterPoint(self):
+        self.runSelectMeterPoint(self.addMeterDropButton.defaultAction())
+
+    def runSelectAutoMeterPoint(self):
+        self.currentMeter = "Undefined"
+        self.addMeterDropButton.setDefaultAction(self.addAutoMeterButton)
+        self.runSelectMeterPoint(self.addAutoMeterButton)
+
+    def runSelectManometerPoint(self):
+        self.currentMeter = "Manometer"
+        self.addMeterDropButton.setDefaultAction(self.addManometerButton)
+        self.runSelectMeterPoint(self.addManometerButton)
+
+    def runSelectFlowmeterPoint(self):
+        self.currentMeter = "Flowmeter"
+        self.addMeterDropButton.setDefaultAction(self.addFlowmeterButton)
+        self.runSelectMeterPoint(self.addFlowmeterButton)
+
+    def runSelectCountermeterPoint(self):
+        self.currentMeter = "Countermeter"
+        self.addMeterDropButton.setDefaultAction(self.addCountermeterButton)
+        self.runSelectMeterPoint(self.addCountermeterButton)
+    
+    def runSelectLevelSensorPoint(self):
+        self.currentMeter = "LevelSensor"
+        self.addMeterDropButton.setDefaultAction(self.addLevelSensorButton)
+        self.runSelectMeterPoint(self.addLevelSensorButton)
+    
+    def runSelectDifferentialManometerPoint(self):
+        self.currentMeter = "DifferentialManometer"
+        self.addMeterDropButton.setDefaultAction(self.addDifferentialManometerButton)
+        self.runSelectMeterPoint(self.addDifferentialManometerButton)
+    
+    def runSelectQualitySensorPoint(self):
+        self.currentMeter = "QualitySensor"
+        self.addMeterDropButton.setDefaultAction(self.addQualitySensorButton)
+        self.runSelectMeterPoint(self.addQualitySensorButton)
+    
+    def runSelectEnergySensorPoint(self):
+        self.currentMeter = "EnergySensor"
+        self.addMeterDropButton.setDefaultAction(self.addEnergySensorButton)
+        self.runSelectMeterPoint(self.addEnergySensorButton)
+    
+    def runSelectStatusSensorPoint(self):
+        self.currentMeter = "StatusSensor"
+        self.addMeterDropButton.setDefaultAction(self.addStatusSensorButton)
+        self.runSelectMeterPoint(self.addStatusSensorButton)
+    
+    def runSelectValveOpeningPoint(self):
+        self.currentMeter = "ValveOpening"
+        self.addMeterDropButton.setDefaultAction(self.addValveOpeningButton)
+        self.runSelectMeterPoint(self.addValveOpeningButton)
+    
+    def runSelectTachometerPoint(self):
+        self.currentMeter = "Tachometer"
+        self.addMeterDropButton.setDefaultAction(self.addTachometerButton)
+        self.runSelectMeterPoint(self.addTachometerButton)  
 
     def runAddMeter(self, point):
         if not self.checkDependencies():
@@ -2982,7 +3105,7 @@ class QGISRed:
         # Process
         self.especificComplementaryLayers = ["Meters"]
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.AddMeter(self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
+        resMessage = GISRed.AddMeter(self.ProjectDirectory, self.NetworkName, self.tempFolder, point, self.currentMeter)
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "")

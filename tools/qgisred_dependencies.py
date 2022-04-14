@@ -60,16 +60,17 @@ class QGISRedDependencies:
         return QGISRedDependencies.toString(b)
 
     @staticmethod
-    def AddMeter(projectFolder, networkName, tempFolder, point):
+    def AddMeter(projectFolder, networkName, tempFolder, point, metertype):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
         point = QGISRedDependencies.encode(point)
+        metertype = QGISRedDependencies.encode(metertype)
 
         mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.AddMeter.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.AddMeter.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.AddMeter.restype = c_char_p
-        b = mydll.AddMeter(projectFolder, networkName, tempFolder, point)
+        b = mydll.AddMeter(projectFolder, networkName, tempFolder, point, metertype)
         return QGISRedDependencies.toString(b)
 
     @staticmethod
