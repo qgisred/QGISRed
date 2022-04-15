@@ -723,7 +723,7 @@ class QGISRedDependencies:
 
     @staticmethod
     def encode(string):
-        return string.encode('utf-8')
+        return string.encode("utf-8")
 
     @staticmethod
     def toString(binary):

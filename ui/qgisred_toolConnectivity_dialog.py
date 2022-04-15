@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QDialog
 from qgis.PyQt import uic
 import os
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_toolConnectivity_dialog.ui'))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_toolConnectivity_dialog.ui"))
 
 
 class QGISRedConnectivityToolDialog(QDialog, FORM_CLASS):

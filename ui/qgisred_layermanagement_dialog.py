@@ -11,7 +11,7 @@ from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 import os
 
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_layermanagement_dialog.ui'))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_layermanagement_dialog.ui"))
 
 
 class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):

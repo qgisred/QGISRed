@@ -15,7 +15,7 @@ from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 import os
 from shutil import copyfile
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_results_dock.ui'))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_results_dock.ui"))
 
 
 class QGISRedResultsDock(QDockWidget, FORM_CLASS):
@@ -53,6 +53,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.btDeleteScenario.clicked.connect(self.deleteScenario)
 
     """Methods"""
+
     def isCurrentProject(self):
         currentNetwork = ""
         currentDirectory = ""
@@ -78,7 +79,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         return False
 
     def insert(self, source_str, insert_str, pos):
-        return source_str[:pos]+insert_str+source_str[pos:]
+        return source_str[:pos] + insert_str + source_str[pos:]
 
     def getUniformedPath(self, path):
         return QGISRedUtils().getUniformedPath(path)
@@ -90,6 +91,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         return QGISRedUtils().generatePath(folder, fileName)
 
     """Layers and Groups"""
+
     def getLayers(self):
         return QGISRedUtils().getLayers()
 
@@ -108,7 +110,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         utils = QGISRedUtils(resultPath, self.NetworkName + "_" + self.Scenario, self.iface)
         utils.removeLayers(self.LabelsToOpRe)
         if task is not None:
-            return {'task': task.definition()}
+            return {"task": task.definition()}
 
     def getInputGroup(self):
         # Same method in qgisred_newproject_dialog and qgisred_plugins
@@ -133,6 +135,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         return resultGroup
 
     """UI Elements"""
+
     def setSelectedItemInLinkNodeComboboxes(self, nameLayer):
         if nameLayer == "Link_Flow":
             self.cbLinks.setCurrentIndex(1)
@@ -174,6 +177,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.Computing = False
 
     """Create Lists"""
+
     def setVariables(self):
         self.Variables = ""
         if self.cbLinks.currentIndex() == 1:
@@ -237,6 +241,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.LabelsToOpRe.append("Node_Quality")
 
     """Symbology"""
+
     def saveCurrentRender(self):
         openedLayers = self.getLayers()
         resultPath = os.path.join(self.ProjectDirectory, "Results")
@@ -249,7 +254,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 openedLayerPath = self.getLayerPath(layer)
                 if openedLayerPath == resultLayerPath:
                     renderer = layer.renderer()
-                    if renderer.type() == 'graduatedSymbol':
+                    if renderer.type() == "graduatedSymbol":
                         # Guarda por ruta, se pierde al cerrar QGis
                         dictSce[openedLayerPath] = renderer.ranges()
         self.Renders[self.Scenario] = dictSce
@@ -270,10 +275,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 openedLayerPath = self.getLayerPath(layer)
                 if openedLayerPath == resultLayerPath:
                     field_names = [field.name() for field in layer.fields()]
-                    field = field_names[columnNumber+2]
+                    field = field_names[columnNumber + 2]
                     self.setGraduadedPalette(layer, field, setRender, nameLayer)
                     layer.setName(nameLayer.replace("_", " "))
-                    name = nameLayer.replace("Link_", "").replace("Node_", "") + ": [% \"T" + str(columnNumber) + "\" %]"
+                    name = nameLayer.replace("Link_", "").replace("Node_", "") + ': [% "T' + str(columnNumber) + '" %]'
                     layer.setMapTipTemplate(name)
                     self.setLayerLabels(layer, "T" + str(columnNumber))
 
@@ -448,8 +453,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 else:
                     mode = QgsGraduatedSymbolRenderer.EqualInterval  # Quantile
                     classes = 5
-                    ramp = {'color1': '0,0,255,255', 'color2': '255,0,0,255',
-                            'stops': '0.25;0,255,255,255:0.50;0,255,0,255:0.75;255,255,0,255'}
+                    ramp = {
+                        "color1": "0,0,255,255",
+                        "color2": "255,0,0,255",
+                        "stops": "0.25;0,255,255,255:0.50;0,255,0,255:0.75;255,255,0,255",
+                    }
                     colorRamp = QgsVectorGradientColorRamp.create(ramp)
                     self.iface.setActiveLayer(layer)
                     renderer = QgsGraduatedSymbolRenderer.createRenderer(layer, field, classes, mode, symbol, colorRamp)
@@ -464,17 +472,18 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         layer.triggerRepaint()
 
     """Scenario"""
+
     def writeScenario(self, scenario, labels, comments):
         filePath = os.path.join(os.path.join(self.ProjectDirectory, "Results"), self.NetworkName + "_" + scenario + ".sce")
         f = open(filePath, "w+")
-        QGISRedUtils().writeFile(f, "[TimeLabels]" + '\n')
+        QGISRedUtils().writeFile(f, "[TimeLabels]" + "\n")
         lab = ""
         for label in labels:
             lab = lab + label + ";"
-        lab = lab.strip(';')
-        QGISRedUtils().writeFile(f, lab + '\n')
-        QGISRedUtils().writeFile(f, "[Comments]" + '\n')
-        QGISRedUtils().writeFile(f, comments + '\n')
+        lab = lab.strip(";")
+        QGISRedUtils().writeFile(f, lab + "\n")
+        QGISRedUtils().writeFile(f, "[Comments]" + "\n")
+        QGISRedUtils().writeFile(f, comments + "\n")
         f.close()
 
     def readSavedScenarios(self):
@@ -497,7 +506,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                         isComments = True
                         continue
                     if isLabel:
-                        self.LabelResults[nameSc] = line.strip("\r\n").split(';')
+                        self.LabelResults[nameSc] = line.strip("\r\n").split(";")
                         isLabel = False
                     if isComments:
                         comments = comments + line.strip() + "\n"
@@ -509,6 +518,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 f.close()
 
     """Clicked events"""
+
     def linksChanged(self):
         if self.Computing:
             return
@@ -604,17 +614,17 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
     def nextTime(self):
         index = self.cbTimes.currentIndex()
-        if self.cbTimes.count()-1 == index:
+        if self.cbTimes.count() - 1 == index:
             self.cbTimes.setCurrentIndex(0)
         else:
-            self.cbTimes.setCurrentIndex(index+1)
+            self.cbTimes.setCurrentIndex(index + 1)
 
     def previousTime(self):
         index = self.cbTimes.currentIndex()
         if index == 0:
-            self.cbTimes.setCurrentIndex(self.cbTimes.count()-1)
+            self.cbTimes.setCurrentIndex(self.cbTimes.count() - 1)
         else:
-            self.cbTimes.setCurrentIndex(index-1)
+            self.cbTimes.setCurrentIndex(index - 1)
 
     def timeChanged(self):
         if self.Computing:
@@ -673,6 +683,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.Computing = False
 
     """Main methods"""
+
     def validationsOpenResult(self, restore=False):
         if not self.isCurrentProject():
             return False
@@ -721,7 +732,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.saveCurrentRender()
 
         # Remove results layers previous to simulate
-        task = QgsTask.fromFunction('simulate', self.removeResults, on_finished=self.simulationProcess)
+        task = QgsTask.fromFunction("simulate", self.removeResults, on_finished=self.simulationProcess)
         task.run()
         QgsApplication.taskManager().addTask(task)
         # QGISRedUtils().runTask('simulate', self.removeResults, self.simulationProcess)
@@ -764,7 +775,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 self.setSelectedItemInLinkNodeComboboxes(nameLayer)
 
         # Time labels
-        mylist = labels.split(';')
+        mylist = labels.split(";")
         self.TimeLabels = []
         self.cbTimes.clear()
         if len(mylist) == 1:
@@ -816,7 +827,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.setLayersNames(True)
         # Task is necessary because after remove layers, DBF files are in use. With the task,
         # the remove process finishs and filer are not in use
-        QGISRedUtils().runTask('update all results', self.removeResults, self.openAllResultsProcess)
+        QGISRedUtils().runTask("update all results", self.removeResults, self.openAllResultsProcess)
 
     def openAllResultsProcess(self, exception=None, result=None):
         self.setLayersNames()
@@ -896,14 +907,15 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         # Save options
         resultPath = os.path.join(self.ProjectDirectory, "Results")
         try:
-            copyfile(os.path.join(resultPath, self.NetworkName + "_Base"),
-                     os.path.join(resultPath, self.NetworkName + "_" + newScenario))  # Binary
+            copyfile(
+                os.path.join(resultPath, self.NetworkName + "_Base"),
+                os.path.join(resultPath, self.NetworkName + "_" + newScenario),
+            )  # Binary
             files = os.listdir(resultPath)
             for file in files:  # only names
                 if self.NetworkName + "_Base_Link" in file or self.NetworkName + "_Base_Node" in file:
                     newName = file.replace("_Base_", "_" + newScenario + "_")
-                    copyfile(os.path.join(resultPath, file),
-                             os.path.join(resultPath, newName))
+                    copyfile(os.path.join(resultPath, file), os.path.join(resultPath, newName))
 
             self.LabelResults[newScenario] = self.TimeLabels
             self.IndexTime[newScenario] = self.cbTimes.currentIndex()
@@ -927,7 +939,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.setLayersNames(True)
         # Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and
         # filer are not in use
-        QGISRedUtils().runTask('delete scenario', self.removeResults, self.deleteScenarioProcess)
+        QGISRedUtils().runTask("delete scenario", self.removeResults, self.deleteScenarioProcess)
 
     def deleteScenarioProcess(self, exception=None, result=None):
         # Delete Group
@@ -947,4 +959,4 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         # Delete from combobox
         self.cbScenarios.removeItem(self.cbScenarios.currentIndex())
-        self.cbScenarios.setCurrentIndex(self.cbScenarios.count()-1)
+        self.cbScenarios.setCurrentIndex(self.cbScenarios.count() - 1)

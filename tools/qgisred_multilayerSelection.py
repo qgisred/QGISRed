@@ -8,7 +8,6 @@ import processing
 
 
 class QGISRedMultiLayerSelection(QgsMapTool):
-
     def __init__(self, iface, canvas, action):
         QgsMapTool.__init__(self, canvas)
         self.canvas = canvas
@@ -34,6 +33,7 @@ class QGISRedMultiLayerSelection(QgsMapTool):
         QgsMapTool.activate(self)
 
     """Methods"""
+
     def reset(self):
         self.initialPoint = None
         self.finalPoint = None
@@ -99,9 +99,10 @@ class QGISRedMultiLayerSelection(QgsMapTool):
         return QgsRectangle(self.initialPoint, self.finalPoint)
 
     """Events"""
+
     def canvasPressEvent(self, e):
         if e.button() == Qt.RightButton and len(self.mousePoints) > 0:
-            poligon = QgsVectorLayer('Polygon', 'poly', "memory")
+            poligon = QgsVectorLayer("Polygon", "poly", "memory")
             pr = poligon.dataProvider()
             poly = QgsFeature()
             if len(self.mousePoints) > 3:
@@ -116,14 +117,17 @@ class QGISRedMultiLayerSelection(QgsMapTool):
                         continue
                     modifiers = QApplication.keyboardModifiers()
                     if modifiers == Qt.ShiftModifier:
-                        processing.run('qgis:selectbylocation',
-                                       {'INPUT': layer, 'PREDICATE': [0], 'INTERSECT': poligon, 'METHOD': 3})  # Remove
+                        processing.run(
+                            "qgis:selectbylocation", {"INPUT": layer, "PREDICATE": [0], "INTERSECT": poligon, "METHOD": 3}
+                        )  # Remove
                     elif modifiers == Qt.ControlModifier:
-                        processing.run('qgis:selectbylocation',
-                                       {'INPUT': layer, 'PREDICATE': [0], 'INTERSECT': poligon, 'METHOD': 1})  # Add
+                        processing.run(
+                            "qgis:selectbylocation", {"INPUT": layer, "PREDICATE": [0], "INTERSECT": poligon, "METHOD": 1}
+                        )  # Add
                     else:
-                        processing.run('qgis:selectbylocation',
-                                       {'INPUT': layer, 'PREDICATE': [0], 'INTERSECT': poligon, 'METHOD': 0})  # Set
+                        processing.run(
+                            "qgis:selectbylocation", {"INPUT": layer, "PREDICATE": [0], "INTERSECT": poligon, "METHOD": 0}
+                        )  # Set
             except Exception:
                 self.iface.messageBar().pushMessage("Warning", "Polygon not valid for selecting elements", level=1, duration=5)
             self.reset()

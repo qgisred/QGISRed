@@ -11,7 +11,7 @@ from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 import os
 import tempfile
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_createproject_dialog.ui'))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_createproject_dialog.ui"))
 
 
 class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
@@ -30,7 +30,7 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
         self.btSelectDirectory.clicked.connect(self.selectDirectory)
         self.btSelectCRS.clicked.connect(self.selectCRS)
         # Variables:
-        gplFolder = os.path.join(os.getenv('APPDATA'), "QGISRed")
+        gplFolder = os.path.join(os.getenv("APPDATA"), "QGISRed")
         try:  # create directory if does not exist
             os.stat(gplFolder)
         except Exception:
@@ -80,9 +80,23 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
                 return False
             else:
                 dirList = os.listdir(self.ProjectDirectory)
-                layers = ["Pipes", "Junctions", "Tanks", "Reservoirs", "Valves", "Pumps", "IsolationValves", "Hydrants",
-                          "WashoutValves", "AirReleaseValves", "ServiceConnections", "Manometers", "Flowmeters",
-                          "Countermeters", "LevelSensors"]
+                layers = [
+                    "Pipes",
+                    "Junctions",
+                    "Tanks",
+                    "Reservoirs",
+                    "Valves",
+                    "Pumps",
+                    "IsolationValves",
+                    "Hydrants",
+                    "WashoutValves",
+                    "AirReleaseValves",
+                    "ServiceConnections",
+                    "Manometers",
+                    "Flowmeters",
+                    "Countermeters",
+                    "LevelSensors",
+                ]
                 for layer in layers:
                     if self.NetworkName + "_" + layer + ".shp" in dirList:
                         message = "The project directory has some file to selected network's name"
@@ -108,7 +122,7 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
                 self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=5)
                 # Project manager list
                 file = open(self.gplFile, "a+")
-                QGISRedUtils().writeFile(file, self.NetworkName + ";" + self.ProjectDirectory + '\n')
+                QGISRedUtils().writeFile(file, self.NetworkName + ";" + self.ProjectDirectory + "\n")
                 file.close()
 
                 # open layers

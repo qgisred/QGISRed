@@ -5,6 +5,7 @@ from qgis.core import QgsSvgMarkerSymbolLayer, QgsSymbol, QgsSingleSymbolRendere
 from qgis.core import QgsLineSymbol, QgsSimpleLineSymbolLayer, QgsProperty
 from qgis.core import QgsMarkerSymbol, QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayer
 from qgis.core import QgsRendererCategory, QgsCategorizedSymbolRenderer, QgsCoordinateReferenceSystem
+
 # Others imports
 import os
 import tempfile
@@ -24,6 +25,7 @@ class QGISRedUtils:
         self.NetworkName = networkName
 
     """Layers"""
+
     def getLayers(self):
         return [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
 
@@ -46,10 +48,11 @@ class QGISRedUtils:
         upperIndex = upperIndex[::-1]
         for ind in upperIndex:
             if ind != 0:
-                original = original[:ind] + ' ' + original[ind:]
+                original = original[:ind] + " " + original[ind:]
         return original
 
     """Open Layers"""
+
     def isLayerOpened(self, layerName):
         layers = self.getLayers()
         layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp")
@@ -71,11 +74,10 @@ class QGISRedUtils:
 
     def openLayer(self, group, name, ext=".shp", results=False, toEnd=False, sectors=False, issues=False):
         showName = self.getLayerNameToLegend(name)
-        name = name.replace(' ', '')
+        name = name.replace(" ", "")
         layerName = self.NetworkName + "_" + name
         if os.path.exists(os.path.join(self.ProjectDirectory, layerName + ext)):
-            vlayer = QgsVectorLayer(os.path.join(
-                self.ProjectDirectory, layerName + ext), showName, "ogr")
+            vlayer = QgsVectorLayer(os.path.join(self.ProjectDirectory, layerName + ext), showName, "ogr")
             if not ext == ".dbf":
                 if results:
                     self.setResultStyle(vlayer)
@@ -107,6 +109,7 @@ class QGISRedUtils:
             del vlayer
 
     """Remove Layers"""
+
     def removeLayers(self, layers, ext=".shp"):
         for layerName in layers:
             self.removeLayer(layerName, ext)
@@ -122,11 +125,24 @@ class QGISRedUtils:
         del layers
 
     """Order Layers"""
+
     def orderLayers(self, group):
-        mylayersNames = ["IsolationValves.shp", "Hydrants.shp", "WashoutValves.shp",
-                         "AirReleaseValves.shp", "Meters.shp", "ServiceConnections.shp",
-                         "Sources.shp", "Reservoirs.shp", "Tanks.shp", "Junctions.shp", "Pumps.shp",
-                         "Valves.shp", "Demands.shp", "Pipes.shp"]
+        mylayersNames = [
+            "IsolationValves.shp",
+            "Hydrants.shp",
+            "WashoutValves.shp",
+            "AirReleaseValves.shp",
+            "Meters.shp",
+            "ServiceConnections.shp",
+            "Sources.shp",
+            "Reservoirs.shp",
+            "Tanks.shp",
+            "Junctions.shp",
+            "Pumps.shp",
+            "Valves.shp",
+            "Demands.shp",
+            "Pipes.shp",
+        ]
         layersToDelete = []
         layers = self.getLayers()
         for layerName in mylayersNames:
@@ -154,6 +170,7 @@ class QGISRedUtils:
                     QgsProject.instance().removeMapLayer(layer.id())
 
     """Paths"""
+
     def getUniformedPath(self, path):
         return path.replace("/", "\\")
 
@@ -168,6 +185,7 @@ class QGISRedUtils:
         return self.getUniformedPath(os.path.join(folder, fileName))
 
     """Styles"""
+
     def setStyle(self, layer, name):
         if name == "":
             return
@@ -201,11 +219,11 @@ class QGISRedUtils:
         if os.path.exists(svgPath):
             if layer.geometryType() == 0:  # Point
                 svg_style = dict()
-                svg_style['name'] = svgPath
+                svg_style["name"] = svgPath
                 size = "7"
-                svg_style['size'] = size
+                svg_style["size"] = size
                 if name == "demands":
-                    svg_style['fill'] = '#9a1313'
+                    svg_style["fill"] = "#9a1313"
                 symbol_layer = QgsSvgMarkerSymbolLayer.create(svg_style)
                 symbol = QgsSymbol.defaultSymbol(layer.geometryType())
                 symbol.changeSymbolLayer(0, symbol_layer)
@@ -238,13 +256,13 @@ class QGISRedUtils:
                 marker = QgsMarkerSymbol.createSimple({})
                 marker.deleteSymbolLayer(0)
                 svg_props = dict()
-                svg_props['name'] = svgPath
+                svg_props["name"] = svgPath
                 size = 5
                 if name == "pipes":
                     size = 0
-                svg_props['size'] = str(size)
-                svg_props['offset'] = '-0.5,-0.5'
-                svg_props['offset_unit'] = 'Pixel'
+                svg_props["size"] = str(size)
+                svg_props["offset"] = "-0.5,-0.5"
+                svg_props["offset_unit"] = "Pixel"
                 markerSymbol = QgsSvgMarkerSymbolLayer.create(svg_props)
                 # SVG marker Color
                 markerSymbol.setDataDefinedProperty(3, prop)
@@ -298,11 +316,11 @@ class QGISRedUtils:
 
     def setSectorsStyle(self, layer):
         # get unique values
-        field = 'Class'
+        field = "Class"
         fni = layer.fields().indexFromName(field)
 
         if fni == -1:  # Hydraulic sectors
-            field = 'SubNet'
+            field = "SubNet"
             fni = layer.fields().indexFromName(field)
 
         unique_values = layer.dataProvider().uniqueValues(fni)
@@ -317,8 +335,8 @@ class QGISRedUtils:
             symbol_layer = None
             if layer.geometryType() == 0:  # Point
                 layer_style = dict()
-                layer_style['color'] = '%d, %d, %d' % (randrange(0, 256), randrange(0, 256), randrange(0, 256))
-                layer_style['size'] = str(2)
+                layer_style["color"] = "%d, %d, %d" % (randrange(0, 256), randrange(0, 256), randrange(0, 256))
+                layer_style["size"] = str(2)
                 symbol_layer = QgsSimpleMarkerSymbolLayer.create(layer_style)
             else:
                 symbol = QgsLineSymbol().createSimple({})
@@ -348,7 +366,7 @@ class QGISRedUtils:
 
     def setTreeStyle(self, layer):
         # get unique values
-        field = 'ArcType'
+        field = "ArcType"
         fni = layer.fields().indexFromName(field)
         unique_values = layer.dataProvider().uniqueValues(fni)
 
@@ -362,8 +380,8 @@ class QGISRedUtils:
             symbol_layer = None
             if layer.geometryType() == 0:  # Point
                 layer_style = dict()
-                layer_style['color'] = '%d, %d, %d' % (randrange(0, 256), randrange(0, 256), randrange(0, 256))
-                layer_style['size'] = str(2)
+                layer_style["color"] = "%d, %d, %d" % (randrange(0, 256), randrange(0, 256), randrange(0, 256))
+                layer_style["size"] = str(2)
                 symbol_layer = QgsSimpleMarkerSymbolLayer.create(layer_style)
             else:
                 symbol = QgsLineSymbol().createSimple({})
@@ -397,6 +415,7 @@ class QGISRedUtils:
             layer.setRenderer(renderer)
 
     """Others"""
+
     def copyDependencies(self):
         if not os.path.exists(self.getGISRedDllFolder()):
             return
@@ -404,12 +423,12 @@ class QGISRedUtils:
         shutil.copytree(self.getGISRedDllFolder(), QGISRedUtils.DllTempoFolder)
 
     def getGISRedFolder(self):
-        return os.path.join(os.getenv('APPDATA'), "QGISRed")
+        return os.path.join(os.getenv("APPDATA"), "QGISRed")
 
     def getGISRedDllFolder(self):
-        plat = 'x86'
+        plat = "x86"
         if "64bit" in str(platform.architecture()):
-            plat = 'x64'
+            plat = "x64"
         dllFolder = os.path.join(self.getGISRedFolder(), "dlls")
         return os.path.join(dllFolder, plat)
 
@@ -447,7 +466,7 @@ class QGISRedUtils:
         timeString = datetime.datetime.now().timestamp()
         zipPath = os.path.join(dirpath, self.NetworkName + "_" + str(timeString) + ".zip")
 
-        with ZipFile(zipPath, 'w') as zip:
+        with ZipFile(zipPath, "w") as zip:
             # writing each file one by one
             for file in file_paths:
                 zip.write(file, file.replace(self.getUniformedPath(self.ProjectDirectory), ""))

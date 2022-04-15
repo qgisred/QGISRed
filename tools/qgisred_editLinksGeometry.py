@@ -111,6 +111,7 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
         return True
 
     """Methods"""
+
     def getUniformedPath(self, path):
         return QGISRedUtils().getUniformedPath(path)
 
@@ -137,11 +138,11 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
         heightM = myPoint.y() - point1.y()
         if abs(width) >= abs(height):
             yEst = widthM * height / width + point1.y()
-            if abs(yEst - myPoint.y()) < 1E-9:
+            if abs(yEst - myPoint.y()) < 1e-9:
                 return True
         else:
             xEst = heightM * width / height + point1.x()
-            if abs(xEst - myPoint.x()) < 1E-9:
+            if abs(xEst - myPoint.x()) < 1e-9:
                 return True
         return False
 
@@ -156,8 +157,7 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
         self.rubberBand.setColor(QColor(55, 198, 5))
         self.rubberBand.setWidth(1)
         self.rubberBand.setLineStyle(Qt.DashLine)
-        self.newVertexMarker.setCenter(
-            QgsPointXY(points[0].x(), points[0].y()))
+        self.newVertexMarker.setCenter(QgsPointXY(points[0].x(), points[0].y()))
         self.newVertexMarker.show()
 
     def updateRubberBand(self):
@@ -197,20 +197,21 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
                 if featureGeometry.isMultipart():
                     parts = featureGeometry.get()
                     for part in parts:  # only one part
-                        for i in range(len(part)-1):
-                            if self.isInPath(QgsPointXY(part[i].x(), part[i].y()),
-                                             QgsPointXY(part[i+1].x(), part[i+1].y()), newPoint):
-                                vertex = i+1
+                        for i in range(len(part) - 1):
+                            if self.isInPath(
+                                QgsPointXY(part[i].x(), part[i].y()), QgsPointXY(part[i + 1].x(), part[i + 1].y()), newPoint
+                            ):
+                                vertex = i + 1
             try:
                 edit_utils = QgsVectorLayerEditUtils(layer)
-                edit_utils.insertVertex(
-                    newPoint.x(), newPoint.y(), feature.id(), vertex)
+                edit_utils.insertVertex(newPoint.x(), newPoint.y(), feature.id(), vertex)
             except Exception as e:
                 layer.destroyEditCommand()
                 raise e
             layer.endEditCommand()
 
     """Events"""
+
     def canvasPressEvent(self, event):
         if self.objectSnapped is None:
             self.clickedPoint = None
@@ -262,16 +263,17 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
                                     break
                                 i = -1
                                 for v in part:
-                                    i = i+1
-                                    if (i == 0 or i == len(part)-1) and "ServiceConnections" not in snapLayerPath:
+                                    i = i + 1
+                                    if (i == 0 or i == len(part) - 1) and "ServiceConnections" not in snapLayerPath:
                                         continue
 
                                     matchedPoint = QgsPointXY(vertex.x(), vertex.y())
-                                    if self.areOverlapedPoints(QgsGeometry.fromPointXY(matchedPoint),
-                                                               QgsGeometry.fromPointXY(QgsPointXY(v.x(), v.y()))):
+                                    if self.areOverlapedPoints(
+                                        QgsGeometry.fromPointXY(matchedPoint), QgsGeometry.fromPointXY(QgsPointXY(v.x(), v.y()))
+                                    ):
                                         middleNode = True
                                         self.vertexIndex = i
-                                        if (i == 0 or i == len(part)-1) and "ServiceConnections" in snapLayerPath:
+                                        if (i == 0 or i == len(part) - 1) and "ServiceConnections" in snapLayerPath:
                                             self.pipeSnappedOn = True
                                         break
                     if middleNode:
@@ -322,7 +324,7 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
         if self.mouseClicked:
             if event.button() == 1:
                 mousePoint = self.toMapCoordinates(event.pos())
-                if (self.pipeSnapped is not None):
+                if self.pipeSnapped is not None:
                     mousePoint = self.pipeSnapped.point()
                 self.mouseClicked = False
                 if self.objectSnapped is not None:

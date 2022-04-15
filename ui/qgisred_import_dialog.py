@@ -10,7 +10,7 @@ from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 import os
 import tempfile
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'qgisred_import_dialog.ui'))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_import_dialog.ui"))
 
 
 class QGISRedImportDialog(QDialog, FORM_CLASS):
@@ -29,7 +29,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         """Constructor."""
         super(QGISRedImportDialog, self).__init__(parent)
         self.setupUi(self)
-        gplFolder = os.path.join(os.getenv('APPDATA'), "QGISRed")
+        gplFolder = os.path.join(os.getenv("APPDATA"), "QGISRed")
         try:  # create directory if does not exist
             os.stat(gplFolder)
         except Exception:
@@ -74,7 +74,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.NewProject = self.ProjectDirectory == self.TemporalFolder
         if not self.NewProject:
             self.setWindowTitle("QGISRed: Add data")
-            icon_path = ':/plugins/QGISRed/images/iconAddData.png'
+            icon_path = ":/plugins/QGISRed/images/iconAddData.png"
             self.setWindowIcon(QIcon(icon_path))
             self.lbProject.setVisible(False)
             self.tbProjectDirectory.setVisible(False)
@@ -148,7 +148,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
 
         # Write .gql file
         file = open(self.gplFile, "a+")
-        QGISRedUtils().writeFile(file, self.NetworkName + ";" + self.ProjectDirectory + '\n')
+        QGISRedUtils().writeFile(file, self.NetworkName + ";" + self.ProjectDirectory + "\n")
         file.close()
         return True
 
@@ -205,7 +205,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
 
             # Write .gql file
             file = open(self.gplFile, "a+")
-            QGISRedUtils().writeFile(file, self.NetworkName + ";" + self.ProjectDirectory + '\n')
+            QGISRedUtils().writeFile(file, self.NetworkName + ";" + self.ProjectDirectory + "\n")
             file.close()
 
             # Open files
@@ -520,8 +520,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.selectComboBoxItem(self.cbServiceConnection_IsActive, ["isactive", "active"])
         self.selectComboBoxItem(self.cbServiceConnection_InstDate, ["instdate", "date", "fecha", "fecha_de_i"])
         self.selectComboBoxItem(self.cbServiceConnection_Tag, ["tag"])
-        self.selectComboBoxItem(self.cbServiceConnection_Descr,
-                                ["descrip", "descr", "description", "descripcion", "descripción"])
+        self.selectComboBoxItem(self.cbServiceConnection_Descr, ["descrip", "descr", "description", "descripcion", "descripción"])
 
     def isolationValveLayerChanged(self):
         newItem = self.cbIsolationValveLayer.currentText()
@@ -562,8 +561,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.selectComboBoxItem(self.cbIsolationValve_Available, ["available", "works", "disponible", "funciona"])
         self.selectComboBoxItem(self.cbIsolationValve_InstDate, ["instdate", "date", "fecha", "fecha_de_i"])
         self.selectComboBoxItem(self.cbIsolationValve_Tag, ["tag"])
-        self.selectComboBoxItem(self.cbIsolationValve_Descr,
-                                ["descrip", "descr", "description", "descripcion", "descripción"])
+        self.selectComboBoxItem(self.cbIsolationValve_Descr, ["descrip", "descr", "description", "descripcion", "descripción"])
 
     def meterLayerChanged(self):
         newItem = self.cbMeterLayer.currentText()
@@ -601,8 +599,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.selectComboBoxItem(self.cbMeter_InstDate, ["instdate", "date", "fecha", "fecha_de_i"])
         self.selectComboBoxItem(self.cbMeter_Orientation, ["orientation"])
         self.selectComboBoxItem(self.cbMeter_Tag, ["tag"])
-        self.selectComboBoxItem(self.cbMeter_Descr,
-                                ["descrip", "descr", "description", "descripcion", "descripción"])
+        self.selectComboBoxItem(self.cbMeter_Descr, ["descrip", "descr", "description", "descripcion", "descripción"])
 
     def meterTypeChanged(self):
         newItem = self.cbMeterType.currentIndex()
@@ -987,8 +984,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         if isValid:
             # Validations SHP's
             if not os.path.exists(self.tbShpDirectory.text()):
-                self.iface.messageBar().pushMessage("Validations",
-                                                    "The SHPs folder is not valid or does not exist", level=1)
+                self.iface.messageBar().pushMessage("Validations", "The SHPs folder is not valid or does not exist", level=1)
                 return
             # Tolerance
             tolerance = self.tbTolerance.text()
@@ -1020,8 +1016,9 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
 
             # Process
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            resMessage = GISRed.ImportFromShps(self.ProjectDirectory, self.NetworkName, self.parent.tempFolder,
-                                               shapes, fields, epsg, tolerance)
+            resMessage = GISRed.ImportFromShps(
+                self.ProjectDirectory, self.NetworkName, self.parent.tempFolder, shapes, fields, epsg, tolerance
+            )
             QApplication.restoreOverrideCursor()
             self.parent.ProjectDirectory = self.ProjectDirectory
             self.parent.NetworkName = self.NetworkName

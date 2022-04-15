@@ -21,8 +21,7 @@ class QGISRedSelectPointTool(QgsMapTool):
         if self.type == 3 or self.type == 4 or self.type == 5:
             self.startMarker.setColor(QColor(139, 0, 0))
         self.startMarker.setIconSize(15)
-        self.startMarker.setIconType(
-            QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
+        self.startMarker.setIconType(QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
         if self.type == 2 or self.type == 4:
             try:
                 self.startMarker.setIconType(QgsVertexMarker.ICON_TRIANGLE)  # or ICON_CROSS, ICON_X
@@ -34,11 +33,9 @@ class QGISRedSelectPointTool(QgsMapTool):
         self.endMarker = QgsVertexMarker(self.iface.mapCanvas())
         self.endMarker.setColor(QColor(0, 128, 0))
         self.endMarker.setIconSize(15)
-        self.endMarker.setIconType(
-            QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
+        self.endMarker.setIconType(QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
         if self.type == 4 or self.type == 5:
-            self.endMarker.setIconType(
-                QgsVertexMarker.ICON_X)  # or ICON_CROSS, ICON_X
+            self.endMarker.setIconType(QgsVertexMarker.ICON_X)  # or ICON_CROSS, ICON_X
         self.endMarker.setPenWidth(3)
         self.endMarker.hide()
         self.firstPoint = None
@@ -67,6 +64,7 @@ class QGISRedSelectPointTool(QgsMapTool):
         return True
 
     """Methods"""
+
     def configSnapper(self, type):
         # Snapping
         self.snapper = QgsMapCanvasSnappingUtils(self.iface.mapCanvas())
@@ -86,6 +84,7 @@ class QGISRedSelectPointTool(QgsMapTool):
         self.objectSnapped = None
 
     """Events"""
+
     def canvasReleaseEvent(self, event):
         if event.button() == Qt.LeftButton:
             if self.objectSnapped is None:

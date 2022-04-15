@@ -92,6 +92,7 @@ class QGISRedMoveNodesTool(QgsMapTool):
         return True
 
     """Methods"""
+
     def getUniformedPath(self, path):
         return QGISRedUtils().getUniformedPath(path)
 
@@ -129,8 +130,9 @@ class QGISRedMoveNodesTool(QgsMapTool):
 
                             firsVertex = QgsGeometry.fromPointXY(QgsPointXY(first_vertex.x(), first_vertex.y()))
                             lastVertex = QgsGeometry.fromPointXY(QgsPointXY(last_vertex.x(), last_vertex.y()))
-                            if self.areOverlapedPoints(nodeGeometry, firsVertex) or\
-                                    self.areOverlapedPoints(nodeGeometry, lastVertex):
+                            if self.areOverlapedPoints(nodeGeometry, firsVertex) or self.areOverlapedPoints(
+                                nodeGeometry, lastVertex
+                            ):
                                 adjacentFeatures.append(feature)
                     if len(adjacentFeatures) > 0:
                         adjacentElements[layer] = adjacentFeatures
@@ -166,11 +168,10 @@ class QGISRedMoveNodesTool(QgsMapTool):
 
     def moveNodePoint(self, layer, nodeFeature, newPosition):
         if layer.isEditable():
-            layer.beginEditCommand('Move node')
+            layer.beginEditCommand("Move node")
             try:
                 edit_utils = QgsVectorLayerEditUtils(layer)
-                edit_utils.moveVertex(
-                    newPosition.x(), newPosition.y(), nodeFeature.id(), 0)
+                edit_utils.moveVertex(newPosition.x(), newPosition.y(), nodeFeature.id(), 0)
             except Exception as e:
                 layer.destroyEditCommand()
                 raise e
@@ -181,14 +182,14 @@ class QGISRedMoveNodesTool(QgsMapTool):
             layer.beginEditCommand("Update link geometry")
             try:
                 edit_utils = QgsVectorLayerEditUtils(layer)
-                edit_utils.moveVertex(
-                    newPosition.x(), newPosition.y(), feature.id(), vertexIndex)
+                edit_utils.moveVertex(newPosition.x(), newPosition.y(), feature.id(), vertexIndex)
             except Exception as e:
                 layer.destroyEditCommand()
                 raise e
             layer.endEditCommand()
 
     """Events"""
+
     def canvasPressEvent(self, event):
         if self.objectSnapped is None:
             self.clickedPoint = None
@@ -213,8 +214,7 @@ class QGISRedMoveNodesTool(QgsMapTool):
                     layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp")
                     if openedLayerPath == layerPath:
                         locatedPoint = self.snapper.locatorForLayer(layer)
-                        match = locatedPoint.nearestVertex(
-                            self.objectSnapped.point(), 1)
+                        match = locatedPoint.nearestVertex(self.objectSnapped.point(), 1)
                         if match.isValid():
                             featureId = match.featureId()
                             request = QgsFeatureRequest().setFilterFid(featureId)
@@ -280,9 +280,8 @@ class QGISRedMoveNodesTool(QgsMapTool):
                                 if self.areOverlapedPoints(nodeGeometry, firstPoint):
                                     index = 0
                                 else:
-                                    index = vertices-1
-                                self.moveVertexLink(
-                                    adjLayer, feature, mousePoint, index)
+                                    index = vertices - 1
+                                self.moveVertexLink(adjLayer, feature, mousePoint, index)
                 self.objectSnapped = None
                 self.selectedNodeFeature = None
                 self.iface.mapCanvas().refresh()

@@ -16,8 +16,7 @@ class QGISRedCreateConnectionTool(QgsMapTool):
         self.startMarker = QgsVertexMarker(self.iface.mapCanvas())
         self.startMarker.setColor(QColor(255, 87, 51))
         self.startMarker.setIconSize(10)
-        self.startMarker.setIconType(
-            QgsVertexMarker.ICON_X)  # or ICON_CROSS, ICON_X
+        self.startMarker.setIconType(QgsVertexMarker.ICON_X)  # or ICON_CROSS, ICON_X
         self.startMarker.setPenWidth(3)
         self.startMarker.hide()
 
@@ -62,6 +61,7 @@ class QGISRedCreateConnectionTool(QgsMapTool):
         return True
 
     """Methods"""
+
     def resetProperties(self):
         # self.toolbarButton.setChecked(False)
         if self.rubberBand1 is not None:
@@ -86,8 +86,7 @@ class QGISRedCreateConnectionTool(QgsMapTool):
         if self.rubberBand1 is not None:
             self.iface.mapCanvas().scene().removeItem(self.rubberBand1)
         self.rubberBand1 = QgsRubberBand(self.iface.mapCanvas(), False)
-        self.rubberBand1.setToGeometry(
-            QgsGeometry.fromPolyline(myPoints1), None)
+        self.rubberBand1.setToGeometry(QgsGeometry.fromPolyline(myPoints1), None)
         self.rubberBand1.setColor(QColor(240, 40, 40))
         self.rubberBand1.setWidth(1)
         self.rubberBand1.setLineStyle(Qt.SolidLine)
@@ -98,13 +97,13 @@ class QGISRedCreateConnectionTool(QgsMapTool):
         if self.rubberBand2 is not None:
             self.iface.mapCanvas().scene().removeItem(self.rubberBand2)
         self.rubberBand2 = QgsRubberBand(self.iface.mapCanvas(), False)
-        self.rubberBand2.setToGeometry(
-            QgsGeometry.fromPolyline(myPoints2), None)
+        self.rubberBand2.setToGeometry(QgsGeometry.fromPolyline(myPoints2), None)
         self.rubberBand2.setColor(QColor(240, 40, 40))
         self.rubberBand2.setWidth(1)
         self.rubberBand2.setLineStyle(Qt.DashLine)
 
     """Events"""
+
     def canvasPressEvent(self, event):
         if event.button() == Qt.LeftButton:
             if not self.firstClicked:
@@ -121,7 +120,7 @@ class QGISRedCreateConnectionTool(QgsMapTool):
         if event.button() == Qt.RightButton:
             self.mousePoints.remove(self.mousePoints[-1])
             if self.firstClicked:
-                if (len(self.mousePoints) == 2 and self.mousePoints[0] == self.mousePoints[1]):
+                if len(self.mousePoints) == 2 and self.mousePoints[0] == self.mousePoints[1]:
                     createdPipe = False
                 elif len(self.mousePoints) < 2:
                     createdPipe = False
@@ -137,8 +136,7 @@ class QGISRedCreateConnectionTool(QgsMapTool):
             match = self.snapper.snapToMap(self.toMapCoordinates(event.pos()))
             if match.isValid():
                 self.objectSnapped = match
-                self.startMarker.setCenter(QgsPointXY(
-                    match.point().x(), match.point().y()))
+                self.startMarker.setCenter(QgsPointXY(match.point().x(), match.point().y()))
                 self.startMarker.show()
             else:
                 self.objectSnapped = None
