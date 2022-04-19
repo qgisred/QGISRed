@@ -20,13 +20,12 @@ class QGISRedCreateConnectionTool(QgsMapTool):
         self.startMarker.setPenWidth(3)
         self.startMarker.hide()
 
-        # self.endMarker = QgsVertexMarker(self.iface.mapCanvas())
-        # self.endMarker.setColor(QColor(255, 87, 51))
-        # self.endMarker.setIconSize(15)
-        # self.endMarker.setIconType(
-        #     QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
-        # self.endMarker.setPenWidth(3)
-        # self.endMarker.hide()
+        self.endMarker = QgsVertexMarker(self.iface.mapCanvas())
+        self.endMarker.setColor(QColor(255, 87, 51))
+        self.endMarker.setIconSize(10)
+        self.endMarker.setIconType(QgsVertexMarker.ICON_X)  # or ICON_CROSS, ICON_X
+        self.endMarker.setPenWidth(3)
+        self.endMarker.hide()
 
         self.snapper = None
         self.rubberBand1 = None
@@ -69,7 +68,7 @@ class QGISRedCreateConnectionTool(QgsMapTool):
         if self.rubberBand2 is not None:
             self.iface.mapCanvas().scene().removeItem(self.rubberBand2)
         self.startMarker.hide()
-        # self.endMarker.hide()
+        self.endMarker.hide()
 
         self.mousePoints = []
         self.firstClicked = False
@@ -114,6 +113,10 @@ class QGISRedCreateConnectionTool(QgsMapTool):
                 self.mousePoints.append(point)
                 self.mousePoints.append(point)
             else:
+                if self.objectSnapped is not None:
+                    self.mousePoints.remove(self.mousePoints[-1])
+                    point = self.objectSnapped.point()
+                    self.mousePoints.append(point)
                 self.mousePoints.append(self.mousePoints[-1])
             self.createRubberBand(self.mousePoints)
 
@@ -145,15 +148,14 @@ class QGISRedCreateConnectionTool(QgsMapTool):
         else:
             self.startMarker.hide()
             point = self.toMapCoordinates(event.pos())
-            # match = self.snapper.snapToMap(point)
-            # if match.isValid():
-            #     self.objectSnapped = match
-            #     self.endMarker.setCenter(QgsPointXY(
-            #         match.point().x(), match.point().y()))
-            #     self.endMarker.show()
-            #     self.mousePoints[-1] = match.point()
-            # else:
-            self.objectSnapped = None
-            # self.endMarker.hide()
+            match = self.snapper.snapToMap(point)
+            if match.isValid():
+                self.objectSnapped = match
+                self.endMarker.setCenter(QgsPointXY(match.point().x(), match.point().y()))
+                self.endMarker.show()
+                self.mousePoints[-1] = match.point()
+            else:
+                self.objectSnapped = None
+                self.endMarker.hide()
             self.mousePoints[-1] = point
             self.createRubberBand(self.mousePoints)
