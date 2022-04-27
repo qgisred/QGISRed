@@ -6,16 +6,25 @@
         <file>images/iconAbout.png</file>
         <file>images/iconAddAutometer.png</file>
         <file>images/iconAddConnection.png</file>
+        <file>images/iconAddCountermeter.png</file>
         <file>images/iconAddData.png</file>
         <file>images/iconAddDefaultMeter.png</file>
+        <file>images/iconAddDiffManometer.png</file>
+        <file>images/iconAddEnergySensor.png</file>
+        <file>images/iconAddFlowmeter.png</file>
         <file>images/iconAddIsolationValve.png</file>
+        <file>images/iconAddLevelSensor.png</file>
         <file>images/iconAddManometer.png</file>
         <file>images/iconAddMeter.png</file>
         <file>images/iconAddPipe.png</file>
         <file>images/iconAddPump.png</file>
+        <file>images/iconAddQualitySensor.png</file>
         <file>images/iconAddReservoir.png</file>
+        <file>images/iconAddStatusSensor.png</file>
+        <file>images/iconAddTachometer.png</file>
         <file>images/iconAddTank.png</file>
         <file>images/iconAddValve.png</file>
+        <file>images/iconAddValveOpening.png</file>
         <file>images/iconCloseProject.png</file>
         <file>images/iconCommit.png</file>
         <file>images/iconConnections.png</file>

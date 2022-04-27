@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.0"
+   width="550"
+   height="550"
+   id="svg27"
+   sodipodi:docname="meterQuality.svg"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)">
+  <metadata
+     id="metadata31">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     id="namedview29"
+     showgrid="false"
+     inkscape:zoom="1.1468292"
+     inkscape:cx="329.7144"
+     inkscape:cy="273.22044"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g28589"
+     inkscape:document-rotation="0"
+     units="px" />
+  <defs
+     id="defs3">
+    <pattern
+       id="EMFhbasepattern"
+       patternUnits="userSpaceOnUse"
+       width="6"
+       height="6"
+       x="0"
+       y="0" />
+  </defs>
+  <g
+     id="g6"
+     transform="matrix(8.3374576,0,0,8.3374576,20.951269,24.228671)"
+     style="fill:#1a1a1a">
+    <g
+       id="g28589"
+       transform="matrix(6.3491246,0,0,6.3491246,-1186.6808,-409.42563)">
+      <g
+         id="g848"
+         transform="translate(-0.05142414,-0.0020088)">
+        <circle
+           fill="param(fill)"
+           fill-opacity="param(fill-opacity)"
+           stroke="param(outline)"
+           stroke-opacity="param(outline-opacity)"
+           stroke-width="2"
+           inkscape:connector-curvature="0"
+           id="path43-2"
+           cx="191.75526"
+           cy="69.22467"
+           r="4.3354821" />
+        <ellipse
+           fill="param(fill)"
+           fill-opacity="param(fill-opacity)"
+           stroke="param(outline)"
+           stroke-opacity="param(outline-opacity)"
+           stroke-width="1"
+           inkscape:connector-curvature="0"
+           id="path43-2-1"
+           cx="191.69202"
+           cy="69.099487"
+           rx="1.3590856"
+           ry="1.6817995" />
+        <path
+           fill="param(fill)"
+           fill-opacity="param(fill-opacity)"
+           stroke="param(outline)"
+           stroke-opacity="param(outline-opacity)"
+           stroke-width="1"
+           inkscape:connector-curvature="0"
+           d="m 191.82684,70.266597 c 0,0 0.74945,-0.648978 1.29869,0 0.54924,0.648978 1.17351,-0.2692 1.17351,-0.2692"
+           id="path23183"
+           sodipodi:nodetypes="czc" />
+      </g>
+    </g>
+  </g>
+</svg>

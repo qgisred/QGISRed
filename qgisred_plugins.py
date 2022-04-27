@@ -1155,7 +1155,7 @@ class QGISRed:
             checable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconAddManometer.png"
+        icon_path = ":/plugins/QGISRed/images/iconAddFlowmeter.png"
         self.addFlowmeterButton = self.add_action(
             icon_path,
             text=self.tr("Add flowmeter"),
@@ -1167,7 +1167,7 @@ class QGISRed:
             checable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconAddManometer.png"
+        icon_path = ":/plugins/QGISRed/images/iconAddCountermeter.png"
         self.addCountermeterButton = self.add_action(
             icon_path,
             text=self.tr("Add countermeter"),
@@ -1179,7 +1179,7 @@ class QGISRed:
             checable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconAddManometer.png"
+        icon_path = ":/plugins/QGISRed/images/iconAddLevelSensor.png"
         self.addLevelSensorButton = self.add_action(
             icon_path,
             text=self.tr("Add level sensor"),
@@ -1191,7 +1191,7 @@ class QGISRed:
             checable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconAddManometer.png"
+        icon_path = ":/plugins/QGISRed/images/iconAddDiffManometer.png"
         self.addDifferentialManometerButton = self.add_action(
             icon_path,
             text=self.tr("Add differential manometer"),
@@ -1203,7 +1203,7 @@ class QGISRed:
             checable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconAddManometer.png"
+        icon_path = ":/plugins/QGISRed/images/iconAddQualitySensor.png"
         self.addQualitySensorButton = self.add_action(
             icon_path,
             text=self.tr("Add quality sensor"),
@@ -1215,7 +1215,7 @@ class QGISRed:
             checable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconAddManometer.png"
+        icon_path = ":/plugins/QGISRed/images/iconAddEnergySensor.png"
         self.addEnergySensorButton = self.add_action(
             icon_path,
             text=self.tr("Add energy sensor"),
@@ -1227,7 +1227,7 @@ class QGISRed:
             checable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconAddManometer.png"
+        icon_path = ":/plugins/QGISRed/images/iconAddStatusSensor.png"
         self.addStatusSensorButton = self.add_action(
             icon_path,
             text=self.tr("Add status sensor"),
@@ -1239,7 +1239,7 @@ class QGISRed:
             checable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconAddManometer.png"
+        icon_path = ":/plugins/QGISRed/images/iconAddValveOpening.png"
         self.addValveOpeningButton = self.add_action(
             icon_path,
             text=self.tr("Add valve opening"),
@@ -1251,7 +1251,7 @@ class QGISRed:
             checable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconAddManometer.png"
+        icon_path = ":/plugins/QGISRed/images/iconAddTachometer.png"
         self.addTachometerButton = self.add_action(
             icon_path,
             text=self.tr("Add tachometer"),
