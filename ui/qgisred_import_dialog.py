@@ -253,10 +253,10 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                     name = os.path.splitext(os.path.basename(file))[0]
                     if featureType == QgsWkbTypes.LineGeometry:
                         self.cbPipeLayer.addItem(name)
-                        self.cbServiceConnectionLayer.addItem(name)
                     if featureType == QgsWkbTypes.LineGeometry or featureType == QgsWkbTypes.PointGeometry:
                         self.cbValveLayer.addItem(name)
                         self.cbPumpLayer.addItem(name)
+                        self.cbServiceConnectionLayer.addItem(name)
                     if featureType == QgsWkbTypes.PointGeometry:
                         self.cbTankLayer.addItem(name)
                         self.cbReservoirLayer.addItem(name)
