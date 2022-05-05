@@ -71,6 +71,7 @@ class QGISRedCreateConnectionTool(QgsMapTool):
         self.endMarker.hide()
 
         self.mousePoints = []
+        self.firstSnapped = False
         self.firstClicked = False
         self.objectSnapped = None
 
@@ -109,6 +110,7 @@ class QGISRedCreateConnectionTool(QgsMapTool):
                 self.firstClicked = True
                 point = self.toMapCoordinates(event.pos())
                 if self.objectSnapped is not None:
+                    self.firstSnapped = True
                     point = self.objectSnapped.point()
                 self.mousePoints.append(point)
                 self.mousePoints.append(point)
@@ -132,6 +134,12 @@ class QGISRedCreateConnectionTool(QgsMapTool):
             if createdPipe:
                 self.method(self.mousePoints)
             self.resetProperties()
+
+    def canvasDoubleClickEvent(self, event):
+        if (self.objectSnapped is not None or self.firstSnapped) and len(self.mousePoints) > 2:
+            self.mousePoints.remove(self.mousePoints[-1])
+        self.method(self.mousePoints)
+        self.resetProperties()
 
     def canvasMoveEvent(self, event):
         # Mouse not clicked
