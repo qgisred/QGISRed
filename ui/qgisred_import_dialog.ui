@@ -2302,7 +2302,7 @@
                </property>
                <widget class="QWidget" name="tabServiceConnections">
                 <attribute name="title">
-                 <string>Connections</string>
+                 <string>Service Connections</string>
                 </attribute>
                 <layout class="QGridLayout" name="gridLayout_36">
                  <item row="0" column="0">
