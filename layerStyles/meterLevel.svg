@@ -64,7 +64,7 @@
      fill-opacity="param(fill-opacity)"
      stroke="param(outline)"
      stroke-opacity="param(outline-opacity)"
-     stroke-width="10"
+     stroke-width="7"
      inkscape:connector-curvature="0">
     <path
        d="M 3.4537544,7.7488665 H 57.48778 L 31.704679,52.406481 Z"

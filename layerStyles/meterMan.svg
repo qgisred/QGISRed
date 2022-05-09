@@ -69,7 +69,7 @@
        fill-opacity="param(fill-opacity)"
        stroke="param(outline)"
        stroke-opacity="param(outline-opacity)"
-       stroke-width="10"
+       stroke-width="8"
        inkscape:connector-curvature="0"
        r="28.609692" />
     <rect
@@ -83,7 +83,7 @@
        fill-opacity="param(fill-opacity)"
        stroke="param(outline)"
        stroke-opacity="param(outline-opacity)"
-       stroke-width="10"
+       stroke-width="8"
        inkscape:connector-curvature="0" />
   </g>
 </svg>

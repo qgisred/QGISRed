@@ -21,7 +21,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -44,7 +44,7 @@
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
-     inkscape:current-layer="g28620"
+     inkscape:current-layer="g6"
      inkscape:document-rotation="0"
      units="px" />
   <defs
@@ -60,32 +60,97 @@
   <g
      id="g6"
      transform="matrix(8.3374576,0,0,8.3374576,20.951269,24.228671)"
-     fill="param(fill)"
-     fill-opacity="param(fill-opacity)"
-     stroke="param(outline)"
-     stroke-opacity="param(outline-opacity)"
-     stroke-width="1"
-     inkscape:connector-curvature="0">
-    <g
-       id="g28594"
-       transform="matrix(6.8052798,0,0,6.8052798,-2138.9909,-402.27273)">
-      <g
-         id="g28620"
-         transform="matrix(0.6773889,0,0,0.6773889,106.99351,-43.586582)">
-        <g
-           id="g862"
-           transform="translate(-0.1842732,0.31400725)">
-          <rect
-             id="rect28367"
-             width="13.011822"
-             height="5.0085187"
-             x="306.34579"
-             y="155.3157" />
-          <path
-             d="m 306.3458,155.3157 13.01181,5.00852"
-             id="path28424" />
-        </g>
-      </g>
-    </g>
+     style="fill:#1a1a1a">
+    <circle
+       id="path833"
+       cx="30.470768"
+       cy="30.077673"
+       fill="param(fill)"
+       fill-opacity="param(fill-opacity)"
+       stroke="param(outline)"
+       stroke-opacity="param(outline-opacity)"
+       stroke-width="8"
+       inkscape:connector-curvature="0"
+       r="28.609692" />
+    <path
+       fill="param(fill)"
+       fill-opacity="param(fill-opacity)"
+       stroke="param(outline)"
+       stroke-opacity="param(outline-opacity)"
+       stroke-width="8"
+       inkscape:connector-curvature="0"
+       d="m 10.089532,13.043145 38.905461,33.8854"
+       id="path832-6"
+       sodipodi:nodetypes="cc" />
+    <path
+       fill="param(fill)"
+       fill-opacity="param(fill-opacity)"
+       stroke="param(outline)"
+       stroke-opacity="param(outline-opacity)"
+       stroke-width="8"
+       inkscape:connector-curvature="0"
+       d="M 8.4161785,15.44859 47.217056,49.229406"
+       id="path832-2"
+       sodipodi:nodetypes="cc" />
+    <path
+       fill="param(fill)"
+       fill-opacity="param(fill-opacity)"
+       stroke="param(outline)"
+       stroke-opacity="param(outline-opacity)"
+       stroke-width="8"
+       inkscape:connector-curvature="0"
+       d="M 6.6382408,18.795296 44.916194,52.053188"
+       id="path832-4"
+       sodipodi:nodetypes="cc" />
+    <path
+       fill="param(fill)"
+       fill-opacity="param(fill-opacity)"
+       stroke="param(outline)"
+       stroke-opacity="param(outline-opacity)"
+       stroke-width="8"
+       inkscape:connector-curvature="0"
+       d="M 5.3832261,22.76951 41.36032,53.621958"
+       id="path832-47"
+       sodipodi:nodetypes="cc" />
+    <path
+       fill="param(fill)"
+       fill-opacity="param(fill-opacity)"
+       stroke="param(outline)"
+       stroke-opacity="param(outline-opacity)"
+       stroke-width="8"
+       inkscape:connector-curvature="0"
+       d="M 4.9648877,25.802463 37.804444,55.190727"
+       id="path832-7"
+       sodipodi:nodetypes="cc" />
+    <path
+       fill="param(fill)"
+       fill-opacity="param(fill-opacity)"
+       stroke="param(outline)"
+       stroke-opacity="param(outline-opacity)"
+       stroke-width="8"
+       inkscape:connector-curvature="0"
+       d="M 3.919042,29.985846 33.202723,55.71365"
+       id="path832-23"
+       sodipodi:nodetypes="cc" />
+    <path
+       fill="param(fill)"
+       fill-opacity="param(fill-opacity)"
+       stroke="param(outline)"
+       stroke-opacity="param(outline-opacity)"
+       stroke-width="8"
+       inkscape:connector-curvature="0"
+       d="M 4.1282112,34.169228 29.437679,56.341157"
+       id="path832-0"
+       sodipodi:nodetypes="cc" />
+    <path
+       fill="param(fill)"
+       fill-opacity="param(fill-opacity)"
+       stroke="param(outline)"
+       stroke-opacity="param(outline-opacity)"
+       stroke-width="8"
+       inkscape:connector-curvature="0"
+       d="M 6.115318,40.235134 23.476358,55.50448"
+       id="path832-28"
+       sodipodi:nodetypes="cc" />
   </g>
 </svg>

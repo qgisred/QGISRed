@@ -72,7 +72,7 @@
            fill-opacity="param(fill-opacity)"
            stroke="param(outline)"
            stroke-opacity="param(outline-opacity)"
-           stroke-width="2"
+           stroke-width="1"
            inkscape:connector-curvature="0"
            id="path43-2"
            cx="191.75526"
