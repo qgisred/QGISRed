@@ -65,7 +65,7 @@
                 </Option>
                 <Option name="width" type="Map">
                   <Option name="active" type="bool" value="true"/>
-                  <Option name="expression" type="QString" value="if (Type is NULL, 0, if (Type = 'EnergySensor', 3, 0))"/>
+                  <Option name="expression" type="QString" value="if (Type is NULL, 0, if (Type = 'EnergySensor', 5, 0))"/>
                   <Option name="type" type="int" value="3"/>
                 </Option>
               </Option>
@@ -128,7 +128,7 @@
                 </Option>
                 <Option name="width" type="Map">
                   <Option name="active" type="bool" value="true"/>
-                  <Option name="expression" type="QString" value="if (Type is NULL, 0, if (Type = 'ValveOpening', 3, 0))"/>
+                  <Option name="expression" type="QString" value="if (Type is NULL, 0, if (Type = 'ValveOpening', 5, 0))"/>
                   <Option name="type" type="int" value="3"/>
                 </Option>
               </Option>
@@ -191,7 +191,7 @@
                 </Option>
                 <Option name="width" type="Map">
                   <Option name="active" type="bool" value="true"/>
-                  <Option name="expression" type="QString" value="if (Type is NULL, 0, if (Type = 'DifferentialManometer', 3, 0))"/>
+                  <Option name="expression" type="QString" value="if (Type is NULL, 0, if (Type = 'DifferentialManometer', 5, 0))"/>
                   <Option name="type" type="int" value="3"/>
                 </Option>
               </Option>
@@ -254,7 +254,7 @@
                 </Option>
                 <Option name="width" type="Map">
                   <Option name="active" type="bool" value="true"/>
-                  <Option name="expression" type="QString" value="if (Type is NULL, 0, if (Type = 'StatusSensor', 3, 0))"/>
+                  <Option name="expression" type="QString" value="if (Type is NULL, 0, if (Type = 'StatusSensor', 5, 0))"/>
                   <Option name="type" type="int" value="3"/>
                 </Option>
               </Option>
@@ -317,7 +317,7 @@
                 </Option>
                 <Option name="width" type="Map">
                   <Option name="active" type="bool" value="true"/>
-                  <Option name="expression" type="QString" value="if (Type is NULL, 0, if (Type = 'Tachometer', 3, 0))"/>
+                  <Option name="expression" type="QString" value="if (Type is NULL, 0, if (Type = 'Tachometer', 5, 0))"/>
                   <Option name="type" type="int" value="3"/>
                 </Option>
               </Option>
@@ -380,7 +380,7 @@
                 </Option>
                 <Option name="width" type="Map">
                   <Option name="active" type="bool" value="true"/>
-                  <Option name="expression" type="QString" value="if (Type is NULL, 0, if (Type = 'Countermeter', 3, 0))"/>
+                  <Option name="expression" type="QString" value="if (Type is NULL, 0, if (Type = 'Countermeter', 5, 0))"/>
                   <Option name="type" type="int" value="3"/>
                 </Option>
               </Option>
@@ -443,7 +443,7 @@
                 </Option>
                 <Option name="width" type="Map">
                   <Option name="active" type="bool" value="true"/>
-                  <Option name="expression" type="QString" value="if (Type is NULL, 0, if (Type = 'Flowmeter', 3, 0))"/>
+                  <Option name="expression" type="QString" value="if (Type is NULL, 0, if (Type = 'Flowmeter', 5, 0))"/>
                   <Option name="type" type="int" value="3"/>
                 </Option>
               </Option>
@@ -506,7 +506,7 @@
                 </Option>
                 <Option name="width" type="Map">
                   <Option name="active" type="bool" value="true"/>
-                  <Option name="expression" type="QString" value="if (Type is NULL, 0, if (Type = 'QualitySensor', 3, 0))"/>
+                  <Option name="expression" type="QString" value="if (Type is NULL, 0, if (Type = 'QualitySensor', 5, 0))"/>
                   <Option name="type" type="int" value="3"/>
                 </Option>
               </Option>
@@ -569,7 +569,7 @@
                 </Option>
                 <Option name="width" type="Map">
                   <Option name="active" type="bool" value="true"/>
-                  <Option name="expression" type="QString" value="if (Type is NULL, 0, if (Type = 'LevelSensor', 3, 0))"/>
+                  <Option name="expression" type="QString" value="if (Type is NULL, 0, if (Type = 'LevelSensor', 5, 0))"/>
                   <Option name="type" type="int" value="3"/>
                 </Option>
               </Option>
@@ -632,7 +632,7 @@
                 </Option>
                 <Option name="width" type="Map">
                   <Option name="active" type="bool" value="true"/>
-                  <Option name="expression" type="QString" value="if (Type is NULL, 3, if (Type = 'Manometer', 3, 0))"/>
+                  <Option name="expression" type="QString" value="if (Type is NULL, 5, if (Type = 'Manometer', 5, 0))"/>
                   <Option name="type" type="int" value="3"/>
                 </Option>
               </Option>
