@@ -183,7 +183,7 @@
                   <Option name="properties" type="Map">
                     <Option name="fillColor" type="Map">
                       <Option name="active" type="bool" value="true"/>
-                      <Option name="expression" type="QString" value="if(IsActive is NULL or IsActive >0, if(BaseDemand>0,'#b7dfa3','#fff'),'#c7cbc5')"/>
+                      <Option name="expression" type="QString" value="if(BaseDemand>0,if(IsActive is NULL or IsActive >0,'#b7dfa3','#c7cbc5'),'#fff')"/>
                       <Option name="type" type="int" value="3"/>
                     </Option>
                     <Option name="outlineColor" type="Map">
