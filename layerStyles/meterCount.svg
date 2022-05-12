@@ -72,85 +72,16 @@
        stroke-width="8"
        inkscape:connector-curvature="0"
        r="28.609692" />
-    <path
+    <text
+       xml:space="preserve"
        fill="param(fill)"
        fill-opacity="param(fill-opacity)"
        stroke="param(outline)"
        stroke-opacity="param(outline-opacity)"
-       stroke-width="8"
-       inkscape:connector-curvature="0"
-       d="m 10.089532,13.043145 38.905461,33.8854"
-       id="path832-6"
-       sodipodi:nodetypes="cc" />
-    <path
-       fill="param(fill)"
-       fill-opacity="param(fill-opacity)"
-       stroke="param(outline)"
-       stroke-opacity="param(outline-opacity)"
-       stroke-width="8"
-       inkscape:connector-curvature="0"
-       d="M 8.4161785,15.44859 47.217056,49.229406"
-       id="path832-2"
-       sodipodi:nodetypes="cc" />
-    <path
-       fill="param(fill)"
-       fill-opacity="param(fill-opacity)"
-       stroke="param(outline)"
-       stroke-opacity="param(outline-opacity)"
-       stroke-width="8"
-       inkscape:connector-curvature="0"
-       d="M 6.6382408,18.795296 44.916194,52.053188"
-       id="path832-4"
-       sodipodi:nodetypes="cc" />
-    <path
-       fill="param(fill)"
-       fill-opacity="param(fill-opacity)"
-       stroke="param(outline)"
-       stroke-opacity="param(outline-opacity)"
-       stroke-width="8"
-       inkscape:connector-curvature="0"
-       d="M 5.3832261,22.76951 41.36032,53.621958"
-       id="path832-47"
-       sodipodi:nodetypes="cc" />
-    <path
-       fill="param(fill)"
-       fill-opacity="param(fill-opacity)"
-       stroke="param(outline)"
-       stroke-opacity="param(outline-opacity)"
-       stroke-width="8"
-       inkscape:connector-curvature="0"
-       d="M 4.9648877,25.802463 37.804444,55.190727"
-       id="path832-7"
-       sodipodi:nodetypes="cc" />
-    <path
-       fill="param(fill)"
-       fill-opacity="param(fill-opacity)"
-       stroke="param(outline)"
-       stroke-opacity="param(outline-opacity)"
-       stroke-width="8"
-       inkscape:connector-curvature="0"
-       d="M 3.919042,29.985846 33.202723,55.71365"
-       id="path832-23"
-       sodipodi:nodetypes="cc" />
-    <path
-       fill="param(fill)"
-       fill-opacity="param(fill-opacity)"
-       stroke="param(outline)"
-       stroke-opacity="param(outline-opacity)"
-       stroke-width="8"
-       inkscape:connector-curvature="0"
-       d="M 4.1282112,34.169228 29.437679,56.341157"
-       id="path832-0"
-       sodipodi:nodetypes="cc" />
-    <path
-       fill="param(fill)"
-       fill-opacity="param(fill-opacity)"
-       stroke="param(outline)"
-       stroke-opacity="param(outline-opacity)"
-       stroke-width="8"
-       inkscape:connector-curvature="0"
-       d="M 6.115318,40.235134 23.476358,55.50448"
-       id="path832-28"
-       sodipodi:nodetypes="cc" />
+       stroke-width="9"
+       x="15.440939"
+       y="46.236"
+       id="text839"
+       style="font-size:45.5165px">Σ</text>
   </g>
 </svg>
