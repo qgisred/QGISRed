@@ -69,7 +69,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.ProjectDirectory = direct
         self.tbProjectDirectory.setText(direct)
         self.tbProjectDirectory.setCursorPosition(0)
-        self.tbTolerance.setText(str(0))
+        self.tbTolerance.setText(str(0.1))
 
         self.NewProject = self.ProjectDirectory == self.TemporalFolder
         if not self.NewProject:
