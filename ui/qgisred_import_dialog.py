@@ -458,6 +458,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbJunction_Id.clear()
         self.cbJunction_Elevation.clear()
         self.cbJunction_BaseDem.clear()
+        self.cbJunction_Pattern.clear()
         self.cbJunction_Tag.clear()
         self.cbJunction_Descr.clear()
         if newItem == "None":
@@ -475,12 +476,14 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbJunction_Id.addItems(field_names)
         self.cbJunction_Elevation.addItems(field_names)
         self.cbJunction_BaseDem.addItems(field_names)
+        self.cbJunction_Pattern.addItems(field_names)
         self.cbJunction_Tag.addItems(field_names)
         self.cbJunction_Descr.addItems(field_names)
 
         self.selectComboBoxItem(self.cbJunction_Id, ["id"])
         self.selectComboBoxItem(self.cbJunction_Elevation, ["elevation"])
         self.selectComboBoxItem(self.cbJunction_BaseDem, ["basedem"])
+        self.selectComboBoxItem(self.cbJunction_Pattern, ["pattern", "idpattdem"])
         self.selectComboBoxItem(self.cbJunction_Tag, ["tag"])
         self.selectComboBoxItem(self.cbJunction_Descr, ["descrip", "descr", "description", "descripcion", "descripción"])
 
@@ -491,6 +494,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbServiceConnection_Diameter.clear()
         self.cbServiceConnection_Roughness.clear()
         self.cbServiceConnection_Material.clear()
+        self.cbServiceConnection_Demand.clear()
+        self.cbServiceConnection_Pattern.clear()
         self.cbServiceConnection_IsActive.clear()
         self.cbServiceConnection_InstDate.clear()
         self.cbServiceConnection_Tag.clear()
@@ -513,6 +518,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbServiceConnection_Diameter.addItems(field_names)
         self.cbServiceConnection_Roughness.addItems(field_names)
         self.cbServiceConnection_Material.addItems(field_names)
+        self.cbServiceConnection_Demand.addItems(field_names)
+        self.cbServiceConnection_Pattern.addItems(field_names)
         self.cbServiceConnection_IsActive.addItems(field_names)
         self.cbServiceConnection_InstDate.addItems(field_names)
         self.cbServiceConnection_Tag.addItems(field_names)
@@ -523,6 +530,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.selectComboBoxItem(self.cbServiceConnection_Diameter, ["diameter", "diam", "diametro", "diámetro"])
         self.selectComboBoxItem(self.cbServiceConnection_Roughness, ["roughness"])
         self.selectComboBoxItem(self.cbServiceConnection_Material, ["material"])
+        self.selectComboBoxItem(self.cbServiceConnection_Demand, ["demand", "basedem", "basedemand"])
+        self.selectComboBoxItem(self.cbServiceConnection_Pattern, ["pattern", "idpattdem"])
         self.selectComboBoxItem(self.cbServiceConnection_IsActive, ["isactive", "active"])
         self.selectComboBoxItem(self.cbServiceConnection_InstDate, ["instdate", "date", "fecha", "fecha_de_i"])
         self.selectComboBoxItem(self.cbServiceConnection_Tag, ["tag"])
@@ -856,7 +865,9 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             if not name == "None":
                 fields = fields + name
             fields = fields + ";"
-            fields = fields + ";"  # IdDemPat
+            name = self.cbJunction_Pattern.currentText()
+            if not name == "None":
+                fields = fields + name
             fields = fields + ";"  # EmitCoef
             fields = fields + ";"  # IniQual
             name = self.cbJunction_Tag.currentText()
@@ -909,7 +920,15 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             if not name == "None":
                 fields = fields + name
             fields = fields + ";"
-
+            name = self.cbServiceConnection_Demand.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+            name = self.cbServiceConnection_Pattern.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+            fields = fields + ";"  # Reliability
             fields = fields + ","  # To separate layers
 
         name = self.cbIsolationValveLayer.currentText()
