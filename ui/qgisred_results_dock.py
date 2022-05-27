@@ -5,9 +5,9 @@ from PyQt5.QtGui import QColor, QFont
 from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsTask, QgsApplication
 from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling
-from qgis.core import QgsTextFormat
-from qgis.core import QgsProperty, QgsRenderContext, QgsRendererRange
-from qgis.core import QgsGraduatedSymbolRenderer, QgsGradientColorRamp as QgsVectorGradientColorRamp
+from qgis.core import QgsTextFormat, QgsSymbol
+from qgis.core import QgsProperty, QgsRenderContext, QgsRendererRange, QgsRendererCategory, QgsLineSymbol
+from qgis.core import QgsGraduatedSymbolRenderer, QgsGradientColorRamp as QgsVectorGradientColorRamp, QgsRuleBasedRenderer
 
 from ..tools.qgisred_utils import QGISRedUtils
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
@@ -146,8 +146,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.cbLinks.setCurrentIndex(3)
         if nameLayer == "Link_UnitHeadLoss":
             self.cbLinks.setCurrentIndex(4)
-        if nameLayer == "Link_Quality":
+        if nameLayer == "Link_Status":
             self.cbLinks.setCurrentIndex(5)
+        if nameLayer == "Link_Quality":
+            self.cbLinks.setCurrentIndex(6)
         if nameLayer == "Node_Pressure":
             self.cbNodes.setCurrentIndex(1)
         if nameLayer == "Node_Head":
@@ -189,6 +191,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if self.cbLinks.currentIndex() == 4:
             self.Variables = self.Variables + "UnitHeadLoss_Link;"
         if self.cbLinks.currentIndex() == 5:
+            self.Variables = self.Variables + "Status_Link;"
+        if self.cbLinks.currentIndex() == 6:
             self.Variables = self.Variables + "Quality_Link;"
         if self.cbNodes.currentIndex() == 1:
             self.Variables = self.Variables + "Pressure_Node;"
@@ -215,6 +219,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if self.cbLinks.currentIndex() == 4 or allLayers:
             self.LabelsToOpRe.append("Link_UnitHeadLoss")
         if self.cbLinks.currentIndex() == 5 or allLayers:
+            self.LabelsToOpRe.append("Link_Status")
+        if self.cbLinks.currentIndex() == 6 or allLayers:
             self.LabelsToOpRe.append("Link_Quality")
         if self.cbNodes.currentIndex() == 1 or allLayers:
             self.LabelsToOpRe.append("Node_Pressure")
@@ -231,6 +237,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.LabelsToOpRe.append("Link_Velocity")
         self.LabelsToOpRe.append("Link_HeadLoss")
         self.LabelsToOpRe.append("Link_UnitHeadLoss")
+        self.LabelsToOpRe.append("Link_Status")
         self.LabelsToOpRe.append("Link_Quality")
 
     def setNodesLayersNames(self):
@@ -257,6 +264,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     if renderer.type() == "graduatedSymbol":
                         # Guarda por ruta, se pierde al cerrar QGis
                         dictSce[openedLayerPath] = renderer.ranges()
+                    else:
+                        dictSce[openedLayerPath] = renderer.rootRule().clone()
         self.Renders[self.Scenario] = dictSce
 
     def paintIntervalTimeResults(self, columnNumber, setRender=False):
@@ -412,11 +421,12 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             else:  # point
                 self.setNodesVisibility(prop, symbol)
         else:
-            # GraduatedSymbol (other times)
-            symbols = renderer.symbols(QgsRenderContext())
-            for symbol in symbols:
-                if symbol.type() == 1:  # line
-                    self.setArrowsVisibility(symbol, layer, prop, field)
+            if not "Link_Status" in nameLayer:
+                # GraduatedSymbol (other times)
+                symbols = renderer.symbols(QgsRenderContext())
+                for symbol in symbols:
+                    if symbol.type() == 1:  # line
+                        self.setArrowsVisibility(symbol, layer, prop, field)
 
         if "Flow" in layer.name():
             field = "abs(" + field + ")"
@@ -445,28 +455,62 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
             # Apply render
             if hasRender:
-                renderer = QgsGraduatedSymbolRenderer(field, ranges)
-            else:
-                ranges = self.getColorClasses(symbol, nameLayer)
-                if len(ranges) > 0:
-                    renderer = QgsGraduatedSymbolRenderer(field, ranges)
+                if "Link_Status" in nameLayer:
+                    renderer = QgsRuleBasedRenderer(ranges)  # this ranges is a rootRule
                 else:
-                    mode = QgsGraduatedSymbolRenderer.EqualInterval  # Quantile
-                    classes = 5
-                    ramp = {
-                        "color1": "0,0,255,255",
-                        "color2": "255,0,0,255",
-                        "stops": "0.25;0,255,255,255:0.50;0,255,0,255:0.75;255,255,0,255",
-                    }
-                    colorRamp = QgsVectorGradientColorRamp.create(ramp)
-                    self.iface.setActiveLayer(layer)
-                    renderer = QgsGraduatedSymbolRenderer.createRenderer(layer, field, classes, mode, symbol, colorRamp)
-                    myFormat = renderer.labelFormat()
-                    myFormat.setPrecision(2)
-                    myFormat.setTrimTrailingZeroes(True)
-                    renderer.setLabelFormat(myFormat, True)
+                    renderer = QgsGraduatedSymbolRenderer(field, ranges)
+            else:
+                if "Link_Status" in nameLayer:
+                    symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+                    renderer = QgsRuleBasedRenderer(symbol)
+                    root_rule = renderer.rootRule()
+                    rule = root_rule.children()[0].clone()
+                    root_rule.removeChildAt(0)
+
+                    rule.setLabel("Closed")
+                    rule.setFilterExpression(field + "<=2")
+                    rule.symbol().setColor(QColor("red"))
+                    root_rule.appendChild(rule)
+                    rule = root_rule.children()[0].clone()
+                    rule.setLabel("Open")
+                    rule.setFilterExpression(field + "=3 or " + field + ">=5")
+                    rule.symbol().setColor(QColor("blue"))
+                    root_rule.appendChild(rule)
+                    rule = root_rule.children()[0].clone()
+                    rule.setLabel("Active")
+                    rule.setFilterExpression(field + "=4")
+                    rule.symbol().setColor(QColor("green"))
+                    root_rule.appendChild(rule)
+                else:
+                    ranges = self.getColorClasses(symbol, nameLayer)
+                    if len(ranges) > 0:
+                        renderer = QgsGraduatedSymbolRenderer(field, ranges)
+                    else:
+                        mode = QgsGraduatedSymbolRenderer.EqualInterval  # Quantile
+                        classes = 5
+                        ramp = {
+                            "color1": "0,0,255,255",
+                            "color2": "255,0,0,255",
+                            "stops": "0.25;0,255,255,255:0.50;0,255,0,255:0.75;255,255,0,255",
+                        }
+                        colorRamp = QgsVectorGradientColorRamp.create(ramp)
+                        self.iface.setActiveLayer(layer)
+                        renderer = QgsGraduatedSymbolRenderer.createRenderer(layer, field, classes, mode, symbol, colorRamp)
+                        myFormat = renderer.labelFormat()
+                        myFormat.setPrecision(2)
+                        myFormat.setTrimTrailingZeroes(True)
+                        renderer.setLabelFormat(myFormat, True)
         else:
-            renderer.setClassAttribute(field)
+            if "Link_Status" in nameLayer:
+                root_rule = renderer.rootRule()
+                rule = root_rule.children()[0]
+                rule.setFilterExpression(field + "<=2")
+                rule = root_rule.children()[1]
+                rule.setFilterExpression(field + "=3 or " + field + ">=5")
+                rule = root_rule.children()[2]
+                rule.setFilterExpression(field + "=4")
+            else:
+                renderer.setClassAttribute(field)
 
         layer.setRenderer(renderer)
         layer.triggerRepaint()
@@ -536,6 +580,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if self.cbLinks.currentIndex() == 4:
             result = "UnitHeadLoss"
         if self.cbLinks.currentIndex() == 5:
+            result = "Status"
+        if self.cbLinks.currentIndex() == 6:
             result = "Quality"
 
         self.setLinksLayersNames()
