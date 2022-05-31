@@ -73,7 +73,7 @@ class QGISRed:
     especificComplementaryLayers = []
     complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves", "AirReleaseValves", "ServiceConnections", "Meters"]
     TemporalFolder = "Temporal folder"
-    DependenciesVersion = "1.0.15.0"
+    DependenciesVersion = "1.0.15.3"
     gisredDll = None
 
     """Basic"""
@@ -671,7 +671,7 @@ class QGISRed:
         icon_path = ":/plugins/QGISRed/images/iconReverseLink.png"
         self.reverseLinkButton = self.add_action(
             icon_path,
-            text=self.tr("Reverse link"),
+            text=self.tr("Reverse element"),
             callback=self.canReverseLink,
             menubar=self.editionMenu,
             toolbar=self.editionToolbar,
@@ -2710,7 +2710,7 @@ class QGISRed:
         if not self.getSelectedFeaturesIds():
             self.reverseLinkButton.setChecked(False)
             return
-        if self.linkIds == "":
+        if self.linkIds == "" and not self.selectedIds["ServiceConnections"]:
             self.runSelectReverseLinkPoint()
             return
         self.reverseLinkButton.setChecked(False)
@@ -2739,14 +2739,19 @@ class QGISRed:
         if self.isLayerOnEdition():
             return
 
+        ids = ""
         pointText = ""
         if point is not None:
             point = self.transformPoint(point)
             pointText = str(point.x()) + ":" + str(point.y())
+        else:
+            for key in self.selectedIds:
+                ids = ids + key + ":" + str(self.selectedIds[key]) + ";"
 
         # Process
+        self.especificComplementaryLayers = ["ServiceConnections"]
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.ReverseLink(self.ProjectDirectory, self.NetworkName, self.tempFolder, pointText, self.linkIds)
+        resMessage = GISRed.ReverseLink(self.ProjectDirectory, self.NetworkName, self.tempFolder, pointText, ids)
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "")
