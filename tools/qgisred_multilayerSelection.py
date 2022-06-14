@@ -5,6 +5,7 @@ from qgis.core import QgsPointXY, QgsPoint, QgsGeometry, QgsFeature, QgsRectangl
 from qgis.gui import QgsMapTool, QgsRubberBand
 from qgis.utils import Qgis
 import processing
+from ..tools.qgisred_utils import QGISRedUtils
 
 
 class QGISRedMultiLayerSelection(QgsMapTool):
@@ -44,6 +45,13 @@ class QGISRedMultiLayerSelection(QgsMapTool):
             self.iface.mapCanvas().scene().removeItem(self.rubberBand1)
         if self.rubberBand2 is not None:
             self.iface.mapCanvas().scene().removeItem(self.rubberBand2)
+
+        layers = self.canvas.layers()
+        for layer in layers:
+            path = QGISRedUtils().getLayerPath(layer)
+            if "_Pipes.shp" in path:
+                c = layer.sourceCrs()
+                self.crs = "?crs=" + c.authid()
 
         self.mousePoints = []
         self.rubberBand1 = None
@@ -102,7 +110,7 @@ class QGISRedMultiLayerSelection(QgsMapTool):
 
     def canvasPressEvent(self, e):
         if e.button() == Qt.RightButton and len(self.mousePoints) > 0:
-            poligon = QgsVectorLayer("Polygon", "poly", "memory")
+            poligon = QgsVectorLayer("Polygon?crs=" + self.crs, "poly", "memory")
             pr = poligon.dataProvider()
             poly = QgsFeature()
             if len(self.mousePoints) > 3:
