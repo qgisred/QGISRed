@@ -1647,7 +1647,7 @@ class QGISRed:
 
     def openRemoveSpecificLayers(self, layers, epsg):
         self.especificComplementaryLayers = self.complementaryLayers
-        self.extent = self.iface.mapCanvas().extent()
+        self.extent = QGISRedUtils().getProjectExtent()
         self.specificEpsg = epsg
         self.specificLayers = layers
         self.removingLayers = True
@@ -2122,7 +2122,7 @@ class QGISRed:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
         self.removingLayers = True
-        self.extent = self.iface.mapCanvas().extent()
+        self.extent = QGISRedUtils().getProjectExtent()
         if self.hasToOpenNewLayers and self.hasToOpenIssuesLayers:
             QGISRedUtils().runTask("update plus issue layers", self.removeLayersAndIssuesLayers, self.runOpenTemporaryFiles)
         elif self.hasToOpenNewLayers:
@@ -2333,7 +2333,7 @@ class QGISRed:
             self.unitsAction.setText("QGISRed: " + resMessage)
             self.hasToOpenNewLayers = False
             self.hasToOpenIssuesLayers = False
-            self.extent = self.iface.mapCanvas().extent()
+            self.extent = QGISRedUtils().getProjectExtent()
             self.removingLayers = True
             QGISRedUtils().runTask("remove dbfs", self.removeDBFs, self.runOpenTemporaryFiles)
         elif resMessage == "commit":
@@ -2366,7 +2366,7 @@ class QGISRed:
         if resMessage == "True":
             self.hasToOpenNewLayers = False
             self.hasToOpenIssuesLayers = False
-            self.extent = self.iface.mapCanvas().extent()
+            self.extent = QGISRedUtils().getProjectExtent()
             self.removingLayers = True
             QGISRedUtils().runTask("remove dbfs", self.removeDBFs, self.runOpenTemporaryFiles)
         elif resMessage == "False":
@@ -2397,7 +2397,7 @@ class QGISRed:
         if resMessage == "True":
             self.hasToOpenNewLayers = False
             self.hasToOpenIssuesLayers = False
-            self.extent = self.iface.mapCanvas().extent()
+            self.extent = QGISRedUtils().getProjectExtent()
             self.removingLayers = True
             QGISRedUtils().runTask("remove dbfs", self.removeDBFs, self.runOpenTemporaryFiles)
         elif resMessage == "False":
@@ -3244,7 +3244,7 @@ class QGISRed:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
         self.removingLayers = True
-        self.extent = self.iface.mapCanvas().extent()
+        self.extent = QGISRedUtils().getProjectExtent()
         if self.hasToOpenNewLayers and self.hasToOpenConnectivityLayers:
             QGISRedUtils().runTask("update layers and connectivity", self.removeLayersAndConnectivity, self.runOpenTemporaryFiles)
         elif self.hasToOpenConnectivityLayers:
@@ -3396,7 +3396,7 @@ class QGISRed:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
         self.removingLayers = True
-        self.extent = self.iface.mapCanvas().extent()
+        self.extent = QGISRedUtils().getProjectExtent()
         if self.hasToOpenSectorLayers:
             QGISRedUtils().runTask("update sectors", self.removeSectorLayers, self.runOpenTemporaryFiles)
 
@@ -3519,7 +3519,7 @@ class QGISRed:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
         self.removingLayers = True
-        self.extent = self.iface.mapCanvas().extent()
+        self.extent = QGISRedUtils().getProjectExtent()
         if self.hasToOpenSectorLayers:
             QGISRedUtils().runTask("update sectors", self.removeSectorLayers, self.runOpenTemporaryFiles)
 

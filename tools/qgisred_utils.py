@@ -40,6 +40,13 @@ class QGISRedUtils:
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
         return crs
 
+    def getProjectExtent(self):
+        layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_Pipes.shp")
+        for layer in self.getLayers():
+            if layerPath == self.getLayerPath(layer):
+                return layer.extent()
+        return None
+
     def getLayerNameToLegend(self, original):
         upperIndex = []
         for x in range(len(original)):
