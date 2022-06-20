@@ -280,6 +280,9 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbPipe_Diameter.clear()
         self.cbPipe_Roughness.clear()
         self.cbPipe_LossCoef.clear()
+        self.cbPipe_Status.clear()
+        self.cbPipe_Bulk.clear()
+        self.cbPipe_Wall.clear()
         self.cbPipe_Tag.clear()
         self.cbPipe_Descr.clear()
         if newItem == "None":
@@ -301,16 +304,22 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbPipe_LossCoef.addItems(field_names)
         self.cbPipe_Material.addItems(field_names)
         self.cbPipe_InstDate.addItems(field_names)
+        self.cbPipe_Status.addItems(field_names)
+        self.cbPipe_Bulk.addItems(field_names)
+        self.cbPipe_Wall.addItems(field_names)
         self.cbPipe_Tag.addItems(field_names)
         self.cbPipe_Descr.addItems(field_names)
 
         self.selectComboBoxItem(self.cbPipe_Id, ["id"])
         self.selectComboBoxItem(self.cbPipe_Length, ["length", "longitud"])
         self.selectComboBoxItem(self.cbPipe_Diameter, ["diameter", "diam", "diametro", "diámetro"])
-        self.selectComboBoxItem(self.cbPipe_Roughness, ["roughness"])
+        self.selectComboBoxItem(self.cbPipe_Roughness, ["roughness", "roughcoeff"])
         self.selectComboBoxItem(self.cbPipe_LossCoef, ["losscoeff"])
         self.selectComboBoxItem(self.cbPipe_Material, ["material"])
         self.selectComboBoxItem(self.cbPipe_InstDate, ["instaldate", "instdate", "date", "fecha", "fecha_de_i"])
+        self.selectComboBoxItem(self.cbPipe_Status, ["status", "estado", "inistatus"])
+        self.selectComboBoxItem(self.cbPipe_Bulk, ["bulkcoeff"])
+        self.selectComboBoxItem(self.cbPipe_Wall, ["wallcoeff"])
         self.selectComboBoxItem(self.cbPipe_Tag, ["tag"])
         self.selectComboBoxItem(self.cbPipe_Descr, ["descrip", "descr", "description", "descripcion", "descripción"])
 
@@ -693,9 +702,18 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             if not name == "None":
                 fields = fields + name
             fields = fields + ";"
-            fields = fields + ";"  # InitStat
-            fields = fields + ";"  # BulkCoef
-            fields = fields + ";"  # WallCoef
+            name = self.cbPipe_Status.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+            name = self.cbPipe_Bulk.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+            name = self.cbPipe_Wall.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
             name = self.cbPipe_Tag.currentText()
             if not name == "None":
                 fields = fields + name
