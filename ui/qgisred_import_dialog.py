@@ -438,6 +438,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         newItem = self.cbReservoirLayer.currentText()
         self.cbReservoir_Id.clear()
         self.cbReservoir_TotHead.clear()
+        self.cbReservoir_HeadPatt.clear()
         self.cbReservoir_Tag.clear()
         self.cbReservoir_Descr.clear()
         if newItem == "None":
@@ -454,11 +455,13 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         field_names.insert(0, "None")
         self.cbReservoir_Id.addItems(field_names)
         self.cbReservoir_TotHead.addItems(field_names)
+        self.cbReservoir_HeadPatt.addItems(field_names)
         self.cbReservoir_Tag.addItems(field_names)
         self.cbReservoir_Descr.addItems(field_names)
 
         self.selectComboBoxItem(self.cbReservoir_Id, ["id"])
         self.selectComboBoxItem(self.cbReservoir_TotHead, ["totalhead"])
+        self.selectComboBoxItem(self.cbReservoir_HeadPatt, ["idheadpatt"])
         self.selectComboBoxItem(self.cbReservoir_Tag, ["tag"])
         self.selectComboBoxItem(self.cbReservoir_Descr, ["descrip", "descr", "description", "descripcion", "descripción"])
 
@@ -855,7 +858,10 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             if not name == "None":
                 fields = fields + name
             fields = fields + ";"
-            fields = fields + ";"  # IdHeadPat
+            name = self.cbReservoir_HeadPatt.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
             fields = fields + ";"  # IniQual
             name = self.cbReservoir_Tag.currentText()
             if not name == "None":

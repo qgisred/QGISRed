@@ -1318,8 +1318,21 @@
                      <layout class="QGridLayout" name="gridLayout_19">
                       <item row="0" column="0">
                        <layout class="QGridLayout" name="gridLayout_29">
-                        <item row="0" column="3">
-                         <widget class="QComboBox" name="cbReservoir_TotHead">
+                        <item row="0" column="4">
+                         <spacer name="horizontalSpacer_30">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>40</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                        <item row="2" column="1">
+                         <widget class="QComboBox" name="cbReservoir_Tag">
                           <property name="sizePolicy">
                            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                             <horstretch>0</horstretch>
@@ -1328,13 +1341,29 @@
                           </property>
                          </widget>
                         </item>
-                        <item row="0" column="1">
-                         <widget class="QComboBox" name="cbReservoir_Id">
+                        <item row="2" column="3">
+                         <widget class="QComboBox" name="cbReservoir_Descr">
                           <property name="sizePolicy">
                            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                             <horstretch>0</horstretch>
                             <verstretch>0</verstretch>
                            </sizepolicy>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="2" column="2">
+                         <widget class="QLabel" name="label_72">
+                          <property name="minimumSize">
+                           <size>
+                            <width>100</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="text">
+                           <string>Description</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                           </property>
                          </widget>
                         </item>
@@ -1354,8 +1383,8 @@
                           </property>
                          </widget>
                         </item>
-                        <item row="1" column="1">
-                         <widget class="QComboBox" name="cbReservoir_Tag">
+                        <item row="0" column="1">
+                         <widget class="QComboBox" name="cbReservoir_Id">
                           <property name="sizePolicy">
                            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                             <horstretch>0</horstretch>
@@ -1364,7 +1393,36 @@
                           </property>
                          </widget>
                         </item>
-                        <item row="0" column="2">
+                        <item row="2" column="4">
+                         <spacer name="horizontalSpacer_36">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>40</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                        <item row="2" column="0">
+                         <widget class="QLabel" name="label_71">
+                          <property name="minimumSize">
+                           <size>
+                            <width>70</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="text">
+                           <string>Tag</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="1" column="0">
                          <widget class="QLabel" name="label_60">
                           <property name="minimumSize">
                            <size>
@@ -1380,37 +1438,8 @@
                           </property>
                          </widget>
                         </item>
-                        <item row="1" column="2">
-                         <widget class="QLabel" name="label_72">
-                          <property name="minimumSize">
-                           <size>
-                            <width>100</width>
-                            <height>0</height>
-                           </size>
-                          </property>
-                          <property name="text">
-                           <string>Description</string>
-                          </property>
-                          <property name="alignment">
-                           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                          </property>
-                         </widget>
-                        </item>
-                        <item row="1" column="4">
-                         <spacer name="horizontalSpacer_36">
-                          <property name="orientation">
-                           <enum>Qt::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>40</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item row="1" column="3">
-                         <widget class="QComboBox" name="cbReservoir_Descr">
+                        <item row="1" column="1">
+                         <widget class="QComboBox" name="cbReservoir_TotHead">
                           <property name="sizePolicy">
                            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                             <horstretch>0</horstretch>
@@ -1419,32 +1448,29 @@
                           </property>
                          </widget>
                         </item>
-                        <item row="0" column="4">
-                         <spacer name="horizontalSpacer_30">
-                          <property name="orientation">
-                           <enum>Qt::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>40</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item row="1" column="0">
-                         <widget class="QLabel" name="label_71">
+                        <item row="1" column="2">
+                         <widget class="QLabel" name="label_94">
                           <property name="minimumSize">
                            <size>
-                            <width>70</width>
+                            <width>100</width>
                             <height>0</height>
                            </size>
                           </property>
                           <property name="text">
-                           <string>Tag</string>
+                           <string>Id Head Pattern</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="1" column="3">
+                         <widget class="QComboBox" name="cbReservoir_HeadPatt">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
                           </property>
                          </widget>
                         </item>
