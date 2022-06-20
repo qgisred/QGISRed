@@ -100,14 +100,18 @@ class QGISRedSelectPointTool(QgsMapTool):
                     point2 = self.objectSnapped.point()
                     # Call to parent method
                     self.method(point1, point2)
-                    self.resetProperties()
-                    if self.type == 5:
-                        self.configSnapper(1)
+                    self.deactivate()
+                    self.activate()
+                    # self.resetProperties()
+                    # if self.type == 5:
+                    #     self.configSnapper(1)
             else:
                 point = self.objectSnapped.point()
                 # Call to parent method
                 self.method(point)
-                self.resetProperties()
+                self.deactivate()
+                self.activate()
+                # self.resetProperties()
         if event.button() == Qt.RightButton:
             if self.type == 3 or self.type == 5:
                 if self.objectSnapped is None:
@@ -118,7 +122,9 @@ class QGISRedSelectPointTool(QgsMapTool):
                     # Call to parent method
                     # Tconnection & Split/merge Juncitons
                     self.method(point, None)
-                    self.resetProperties()
+                    self.deactivate()
+                    self.activate()
+                    # self.resetProperties()
             else:
                 self.canvas.unsetMapTool(self)
                 self.deactivate()
