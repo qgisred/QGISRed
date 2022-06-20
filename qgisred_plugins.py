@@ -73,7 +73,7 @@ class QGISRed:
     especificComplementaryLayers = []
     complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves", "AirReleaseValves", "ServiceConnections", "Meters"]
     TemporalFolder = "Temporal folder"
-    DependenciesVersion = "1.0.15.3"
+    DependenciesVersion = "1.0.15.6"
     gisredDll = None
 
     """Basic"""
@@ -377,28 +377,6 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconLock.png"
-        self.add_action(
-            icon_path,
-            text=self.tr("Create backup"),
-            callback=self.runCreateBackup,
-            menubar=self.fileMenu,
-            toolbar=self.fileToolbar,
-            actionBase=fileDropButton,
-            add_to_toolbar=True,
-            parent=self.iface.mainWindow(),
-        )
-        icon_path = ":/plugins/QGISRed/images/iconCloseProject.png"
-        self.add_action(
-            icon_path,
-            text=self.tr("Close project"),
-            callback=self.runCloseProject,
-            menubar=self.fileMenu,
-            toolbar=self.fileToolbar,
-            actionBase=fileDropButton,
-            add_to_toolbar=True,
-            parent=self.iface.mainWindow(),
-        )
 
     def addProjectMenu(self):
         #    #Menu
@@ -452,7 +430,7 @@ class QGISRed:
         icon_path = ":/plugins/QGISRed/images/iconAddData.png"
         self.add_action(
             icon_path,
-            text=self.tr("Add data"),
+            text=self.tr("Add data by import"),
             callback=self.runCanAddData,
             menubar=self.projectMenu,
             toolbar=self.projectToolbar,
@@ -461,6 +439,7 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         self.projectToolbar.addSeparator()
+        self.projectMenu.addSeparator()
         icon_path = ":/plugins/QGISRed/images/iconSettings.png"
         self.add_action(
             icon_path,
@@ -475,7 +454,7 @@ class QGISRed:
         icon_path = ":/plugins/QGISRed/images/iconDefaultValues.png"
         self.add_action(
             icon_path,
-            text=self.tr("Default values"),
+            text=self.tr("Project default values"),
             callback=self.runDefaultValues,
             menubar=self.projectMenu,
             toolbar=self.projectToolbar,
@@ -486,7 +465,7 @@ class QGISRed:
         icon_path = ":/plugins/QGISRed/images/iconMaterials.png"
         self.add_action(
             icon_path,
-            text=self.tr("Materials table"),
+            text=self.tr("Project materials"),
             callback=self.runMaterials,
             menubar=self.projectMenu,
             toolbar=self.projectToolbar,
@@ -495,6 +474,7 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         self.projectToolbar.addSeparator()
+        self.projectMenu.addSeparator()
         icon_path = ":/plugins/QGISRed/images/iconHydraulicOptions.png"
         self.add_action(
             icon_path,
@@ -538,6 +518,28 @@ class QGISRed:
             menubar=self.projectMenu,
             toolbar=self.projectToolbar,
             actionBase=projectDropButton,
+            add_to_toolbar=True,
+            parent=self.iface.mainWindow(),
+        )
+        icon_path = ":/plugins/QGISRed/images/iconLock.png"
+        self.add_action(
+            icon_path,
+            text=self.tr("Project backup"),
+            callback=self.runCreateBackup,
+            menubar=self.projectMenu,
+            toolbar=self.projectToolbar,
+            actionBase=dropButton,
+            add_to_toolbar=True,
+            parent=self.iface.mainWindow(),
+        )
+        icon_path = ":/plugins/QGISRed/images/iconCloseProject.png"
+        self.add_action(
+            icon_path,
+            text=self.tr("Close project"),
+            callback=self.runCloseProject,
+            menubar=self.projectMenu,
+            toolbar=self.projectToolbar,
+            actionBase=dropButton,
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
@@ -632,6 +634,7 @@ class QGISRed:
         )
 
         self.editionToolbar.addSeparator()
+        self.editionMenu.addSeparator()
         icon_path = ":/plugins/QGISRed/images/iconSelection.png"
         self.selectElementsButton = self.add_action(
             icon_path,
@@ -765,7 +768,7 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         self.editionToolbar.addSeparator()
-
+        self.editionMenu.addSeparator()
         icon_path = ":/plugins/QGISRed/images/iconEdit.png"
         self.editElementButton = self.add_action(
             icon_path,
@@ -909,6 +912,7 @@ class QGISRed:
         )
         icon_path = ":/plugins/QGISRed/images/iconLengthC.png"
         self.verificationsToolbar.addSeparator()
+        self.verificationsMenu.addSeparator()
         self.add_action(
             icon_path,
             text=self.tr("Check pipe lengths"),
@@ -954,6 +958,7 @@ class QGISRed:
         )
         icon_path = ":/plugins/QGISRed/images/iconHydraulic.png"
         self.verificationsToolbar.addSeparator()
+        self.verificationsMenu.addSeparator()
         self.add_action(
             icon_path,
             text=self.tr("Obtain hydraulic sectors"),
@@ -992,11 +997,11 @@ class QGISRed:
         )
         self.toolsDropButton = toolDropButton
 
-        icon_path = ":/plugins/QGISRed/images/iconDemands.png"
+        icon_path = ":/plugins/QGISRed/images/iconInterpolate.png"
         self.add_action(
             icon_path,
-            text=self.tr("Demands manager"),
-            callback=self.runDemandsManager,
+            text=self.tr("Interpolate elevation from .asc files"),
+            callback=self.runElevationInterpolation,
             menubar=self.toolsMenu,
             toolbar=self.toolsToolbar,
             actionBase=toolDropButton,
@@ -1025,11 +1030,13 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconInterpolate.png"
+        self.toolsToolbar.addSeparator()
+        self.toolsMenu.addSeparator()
+        icon_path = ":/plugins/QGISRed/images/iconDemands.png"
         self.add_action(
             icon_path,
-            text=self.tr("Interpolate elevation from .asc files"),
-            callback=self.runElevationInterpolation,
+            text=self.tr("Nodal Demand Manager"),
+            callback=self.runDemandsManager,
             menubar=self.toolsMenu,
             toolbar=self.toolsToolbar,
             actionBase=toolDropButton,
@@ -1037,6 +1044,7 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         self.toolsToolbar.addSeparator()
+        self.toolsMenu.addSeparator()
         icon_path = ":/plugins/QGISRed/images/iconDemandSector.png"
         self.add_action(
             icon_path,
@@ -1263,7 +1271,7 @@ class QGISRed:
             checable=True,
             parent=self.iface.mainWindow(),
         )
-
+        self.dtMenu.addSeparator()
         self.dtToolbar.addSeparator()
         icon_path = ":/plugins/QGISRed/images/iconSetReadings.png"
         self.add_action(
@@ -1287,6 +1295,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
+        self.dtMenu.addSeparator()
         self.dtToolbar.addSeparator()
         icon_path = ":/plugins/QGISRed/images/iconConnections.png"
         self.add_action(
