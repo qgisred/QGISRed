@@ -12,6 +12,7 @@ class QGISRedAboutDialog(QDialog, FORM_CLASS):
         """Constructor."""
         super(QGISRedAboutDialog, self).__init__(parent)
         self.setupUi(self)
+        self.labelQGISRed.mousePressEvent = self.linkQgisred
         self.labelRedhisp.mousePressEvent = self.linkRedhisp
         self.labelIiama.mousePressEvent = self.linkIiama
         self.labelUpv.mousePressEvent = self.linkUpv
@@ -27,6 +28,9 @@ class QGISRedAboutDialog(QDialog, FORM_CLASS):
                 if "version=" in line:
                     self.versionLabel.setText("v." + line.replace("version=", ""))
                     return
+
+    def linkQgisred(self, event):
+        webbrowser.open("https://qgisred.upv.es")
 
     def linkRedhisp(self, event):
         url = "https://www.iiama.upv.es/iiama/en/research/research-groups/hydraulic-networks-and-pressurised-systems.html"
