@@ -364,6 +364,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         newItem = self.cbPumpLayer.currentText()
         self.cbPump_Id.clear()
         self.cbPump_Power.clear()
+        self.cbPump_PumpCurve.clear()
+        self.cbPump_EfficCurve.clear()
         self.cbPump_InitStat.clear()
         self.cbPump_Orient.clear()
         self.cbPump_Tag.clear()
@@ -382,6 +384,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         field_names.insert(0, "None")
         self.cbPump_Id.addItems(field_names)
         self.cbPump_Power.addItems(field_names)
+        self.cbPump_PumpCurve.addItems(field_names)
+        self.cbPump_EfficCurve.addItems(field_names)
         self.cbPump_InitStat.addItems(field_names)
         self.cbPump_Orient.addItems(field_names)
         self.cbPump_Tag.addItems(field_names)
@@ -389,6 +393,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
 
         self.selectComboBoxItem(self.cbPump_Id, ["id"])
         self.selectComboBoxItem(self.cbPump_Power, ["power", "potencia"])
+        self.selectComboBoxItem(self.cbPump_PumpCurve, ["idhfcurve"])
+        self.selectComboBoxItem(self.cbPump_EfficCurve, ["idefficur"])
         self.selectComboBoxItem(self.cbPump_InitStat, ["inistatus"])
         self.selectComboBoxItem(self.cbPump_Orient, ["orientatio"])
         self.selectComboBoxItem(self.cbPump_Tag, ["tag"])
@@ -785,6 +791,9 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             if not name == "None":
                 fields = fields + name
             fields = fields + ";"
+            name = self.cbPump_PumpCurve.currentText()
+            if not name == "None":
+                fields = fields + name
             fields = fields + ";"  # IdHFCurve
             name = self.cbPump_Power.currentText()
             if not name == "None":
@@ -796,7 +805,10 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             if not name == "None":
                 fields = fields + name
             fields = fields + ";"
-            fields = fields + ";"  # IdEfficCur
+            name = self.cbPump_EfficCurve.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
             fields = fields + ";"  # EnergPrice
             fields = fields + ";"  # IdPricePat
             name = self.cbPump_Tag.currentText()

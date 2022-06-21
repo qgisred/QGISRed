@@ -969,6 +969,32 @@
                           </property>
                          </widget>
                         </item>
+                        <item row="3" column="4">
+                         <spacer name="horizontalSpacer_54">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>40</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                        <item row="4" column="4">
+                         <spacer name="horizontalSpacer_55">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>40</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
                        </layout>
                       </item>
                      </layout>
@@ -1474,6 +1500,19 @@
                           </property>
                          </widget>
                         </item>
+                        <item row="1" column="4">
+                         <spacer name="horizontalSpacer_53">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>40</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
                        </layout>
                       </item>
                      </layout>
@@ -1915,6 +1954,45 @@
                           </property>
                          </widget>
                         </item>
+                        <item row="1" column="4">
+                         <spacer name="horizontalSpacer_25">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>40</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                        <item row="3" column="4">
+                         <spacer name="horizontalSpacer_51">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>40</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                        <item row="5" column="4">
+                         <spacer name="horizontalSpacer_52">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>40</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
                        </layout>
                       </item>
                      </layout>
@@ -2303,21 +2381,76 @@
                      <layout class="QGridLayout" name="gridLayout_13">
                       <item row="0" column="1">
                        <layout class="QGridLayout" name="gridLayout_27">
-                        <item row="1" column="4">
-                         <spacer name="horizontalSpacer_17">
-                          <property name="orientation">
-                           <enum>Qt::Horizontal</enum>
+                        <item row="2" column="3">
+                         <widget class="QComboBox" name="cbPump_Orient">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
                           </property>
-                          <property name="sizeHint" stdset="0">
+                         </widget>
+                        </item>
+                        <item row="3" column="0">
+                         <widget class="QLabel" name="label_39">
+                          <property name="minimumSize">
                            <size>
-                            <width>40</width>
-                            <height>20</height>
+                            <width>70</width>
+                            <height>0</height>
                            </size>
                           </property>
-                         </spacer>
+                          <property name="text">
+                           <string>Tag</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="2" column="0">
+                         <widget class="QLabel" name="label_36">
+                          <property name="minimumSize">
+                           <size>
+                            <width>70</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="text">
+                           <string>Initial Status</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="3" column="2">
+                         <widget class="QLabel" name="label_40">
+                          <property name="minimumSize">
+                           <size>
+                            <width>100</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="text">
+                           <string>Description</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="0" column="1">
+                         <widget class="QComboBox" name="cbPump_Id">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                         </widget>
                         </item>
                         <item row="2" column="4">
-                         <spacer name="horizontalSpacer_19">
+                         <spacer name="horizontalSpacer_17">
                           <property name="orientation">
                            <enum>Qt::Horizontal</enum>
                           </property>
@@ -2345,19 +2478,13 @@
                           </property>
                          </widget>
                         </item>
-                        <item row="1" column="0">
-                         <widget class="QLabel" name="label_36">
-                          <property name="minimumSize">
-                           <size>
-                            <width>70</width>
-                            <height>0</height>
-                           </size>
-                          </property>
-                          <property name="text">
-                           <string>Initial Status</string>
-                          </property>
-                          <property name="alignment">
-                           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                        <item row="0" column="3">
+                         <widget class="QComboBox" name="cbPump_Power">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
                           </property>
                          </widget>
                         </item>
@@ -2374,7 +2501,7 @@
                           </property>
                          </spacer>
                         </item>
-                        <item row="1" column="1">
+                        <item row="2" column="1">
                          <widget class="QComboBox" name="cbPump_InitStat">
                           <property name="sizePolicy">
                            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -2384,21 +2511,54 @@
                           </property>
                          </widget>
                         </item>
-                        <item row="2" column="0">
-                         <widget class="QLabel" name="label_39">
+                        <item row="2" column="2">
+                         <widget class="QLabel" name="label_42">
                           <property name="minimumSize">
                            <size>
-                            <width>70</width>
+                            <width>100</width>
                             <height>0</height>
                            </size>
                           </property>
                           <property name="text">
-                           <string>Tag</string>
+                           <string>Orientation</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                           </property>
                          </widget>
+                        </item>
+                        <item row="3" column="1">
+                         <widget class="QComboBox" name="cbPump_Tag">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="3" column="3">
+                         <widget class="QComboBox" name="cbPump_Descr">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="3" column="4">
+                         <spacer name="horizontalSpacer_19">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>40</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
                         </item>
                         <item row="0" column="0">
                          <widget class="QLabel" name="label_31">
@@ -2416,18 +2576,24 @@
                           </property>
                          </widget>
                         </item>
-                        <item row="0" column="3">
-                         <widget class="QComboBox" name="cbPump_Power">
-                          <property name="sizePolicy">
-                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                           </sizepolicy>
+                        <item row="1" column="0">
+                         <widget class="QLabel" name="label_37">
+                          <property name="minimumSize">
+                           <size>
+                            <width>70</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="text">
+                           <string>Id Pump Curve</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                           </property>
                          </widget>
                         </item>
-                        <item row="0" column="1">
-                         <widget class="QComboBox" name="cbPump_Id">
+                        <item row="1" column="1">
+                         <widget class="QComboBox" name="cbPump_PumpCurve">
                           <property name="sizePolicy">
                            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                             <horstretch>0</horstretch>
@@ -2437,7 +2603,7 @@
                          </widget>
                         </item>
                         <item row="1" column="2">
-                         <widget class="QLabel" name="label_42">
+                         <widget class="QLabel" name="label_97">
                           <property name="minimumSize">
                            <size>
                             <width>100</width>
@@ -2445,7 +2611,7 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Orientation</string>
+                           <string>Id Effic. Curve</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -2453,7 +2619,7 @@
                          </widget>
                         </item>
                         <item row="1" column="3">
-                         <widget class="QComboBox" name="cbPump_Orient">
+                         <widget class="QComboBox" name="cbPump_EfficCurve">
                           <property name="sizePolicy">
                            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                             <horstretch>0</horstretch>
@@ -2462,41 +2628,18 @@
                           </property>
                          </widget>
                         </item>
-                        <item row="2" column="1">
-                         <widget class="QComboBox" name="cbPump_Tag">
-                          <property name="sizePolicy">
-                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                           </sizepolicy>
+                        <item row="1" column="4">
+                         <spacer name="horizontalSpacer_20">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
                           </property>
-                         </widget>
-                        </item>
-                        <item row="2" column="2">
-                         <widget class="QLabel" name="label_40">
-                          <property name="minimumSize">
+                          <property name="sizeHint" stdset="0">
                            <size>
-                            <width>100</width>
-                            <height>0</height>
+                            <width>40</width>
+                            <height>20</height>
                            </size>
                           </property>
-                          <property name="text">
-                           <string>Description</string>
-                          </property>
-                          <property name="alignment">
-                           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                          </property>
-                         </widget>
-                        </item>
-                        <item row="2" column="3">
-                         <widget class="QComboBox" name="cbPump_Descr">
-                          <property name="sizePolicy">
-                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                           </sizepolicy>
-                          </property>
-                         </widget>
+                         </spacer>
                         </item>
                        </layout>
                       </item>
