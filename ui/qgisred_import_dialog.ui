@@ -2002,22 +2002,6 @@
                           </property>
                          </widget>
                         </item>
-                        <item row="1" column="2">
-                         <widget class="QLabel" name="label_26">
-                          <property name="minimumSize">
-                           <size>
-                            <width>100</width>
-                            <height>0</height>
-                           </size>
-                          </property>
-                          <property name="text">
-                           <string>Initial Status</string>
-                          </property>
-                          <property name="alignment">
-                           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                          </property>
-                         </widget>
-                        </item>
                         <item row="3" column="0">
                          <widget class="QLabel" name="label_28">
                           <property name="minimumSize">
@@ -2060,22 +2044,6 @@
                           </property>
                          </widget>
                         </item>
-                        <item row="2" column="0">
-                         <widget class="QLabel" name="label_27">
-                          <property name="minimumSize">
-                           <size>
-                            <width>70</width>
-                            <height>0</height>
-                           </size>
-                          </property>
-                          <property name="text">
-                           <string>Orientation</string>
-                          </property>
-                          <property name="alignment">
-                           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                          </property>
-                         </widget>
-                        </item>
                         <item row="3" column="2">
                          <widget class="QLabel" name="label_29">
                           <property name="minimumSize">
@@ -2089,16 +2057,6 @@
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                          </property>
-                         </widget>
-                        </item>
-                        <item row="2" column="1">
-                         <widget class="QComboBox" name="cbValve_Orient">
-                          <property name="sizePolicy">
-                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                           </sizepolicy>
                           </property>
                          </widget>
                         </item>
@@ -2183,16 +2141,6 @@
                           </property>
                          </widget>
                         </item>
-                        <item row="1" column="3">
-                         <widget class="QComboBox" name="cbValve_InitStat">
-                          <property name="sizePolicy">
-                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                           </sizepolicy>
-                          </property>
-                         </widget>
-                        </item>
                         <item row="0" column="1">
                          <widget class="QComboBox" name="cbValve_Id">
                           <property name="sizePolicy">
@@ -2218,6 +2166,58 @@
                         </item>
                         <item row="3" column="3">
                          <widget class="QComboBox" name="cbValve_Descr">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="2" column="0">
+                         <widget class="QLabel" name="label_26">
+                          <property name="minimumSize">
+                           <size>
+                            <width>100</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="text">
+                           <string>Initial Status</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="2" column="1">
+                         <widget class="QComboBox" name="cbValve_InitStat">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="1" column="2">
+                         <widget class="QLabel" name="label_27">
+                          <property name="minimumSize">
+                           <size>
+                            <width>70</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="text">
+                           <string>Orientation</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="1" column="3">
+                         <widget class="QComboBox" name="cbValve_Orient">
                           <property name="sizePolicy">
                            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                             <horstretch>0</horstretch>
