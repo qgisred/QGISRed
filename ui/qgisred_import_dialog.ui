@@ -1564,7 +1564,7 @@
                           </property>
                          </spacer>
                         </item>
-                        <item row="1" column="2">
+                        <item row="2" column="2">
                          <widget class="QLabel" name="label_48">
                           <property name="minimumSize">
                            <size>
@@ -1580,34 +1580,24 @@
                           </property>
                          </widget>
                         </item>
-                        <item row="3" column="0">
-                         <widget class="QLabel" name="label_54">
+                        <item row="0" column="2">
+                         <widget class="QLabel" name="label_45">
                           <property name="minimumSize">
                            <size>
-                            <width>70</width>
+                            <width>100</width>
                             <height>0</height>
                            </size>
                           </property>
                           <property name="text">
-                           <string>Tag</string>
+                           <string>Elevation</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                           </property>
                          </widget>
                         </item>
-                        <item row="3" column="3">
-                         <widget class="QComboBox" name="cbTank_Descr">
-                          <property name="sizePolicy">
-                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                           </sizepolicy>
-                          </property>
-                         </widget>
-                        </item>
-                        <item row="1" column="4">
-                         <spacer name="horizontalSpacer_23">
+                        <item row="4" column="4">
+                         <spacer name="horizontalSpacer_24">
                           <property name="orientation">
                            <enum>Qt::Horizontal</enum>
                           </property>
@@ -1619,8 +1609,18 @@
                           </property>
                          </spacer>
                         </item>
+                        <item row="6" column="1">
+                         <widget class="QComboBox" name="cbTank_Tag">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                         </widget>
+                        </item>
                         <item row="2" column="1">
-                         <widget class="QComboBox" name="cbTank_Diameter">
+                         <widget class="QComboBox" name="cbTank_MinLevel">
                           <property name="sizePolicy">
                            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                             <horstretch>0</horstretch>
@@ -1629,8 +1629,8 @@
                           </property>
                          </widget>
                         </item>
-                        <item row="1" column="3">
-                         <widget class="QComboBox" name="cbTank_MaxLevel">
+                        <item row="6" column="3">
+                         <widget class="QComboBox" name="cbTank_Descr">
                           <property name="sizePolicy">
                            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                             <horstretch>0</horstretch>
@@ -1639,33 +1639,7 @@
                           </property>
                          </widget>
                         </item>
-                        <item row="1" column="0">
-                         <widget class="QLabel" name="label_47">
-                          <property name="minimumSize">
-                           <size>
-                            <width>70</width>
-                            <height>0</height>
-                           </size>
-                          </property>
-                          <property name="text">
-                           <string>Min Level</string>
-                          </property>
-                          <property name="alignment">
-                           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                          </property>
-                         </widget>
-                        </item>
-                        <item row="2" column="3">
-                         <widget class="QComboBox" name="cbTank_ReactCoeff">
-                          <property name="sizePolicy">
-                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                           </sizepolicy>
-                          </property>
-                         </widget>
-                        </item>
-                        <item row="3" column="2">
+                        <item row="6" column="2">
                          <widget class="QLabel" name="label_55">
                           <property name="minimumSize">
                            <size>
@@ -1681,54 +1655,8 @@
                           </property>
                          </widget>
                         </item>
-                        <item row="3" column="1">
-                         <widget class="QComboBox" name="cbTank_Tag">
-                          <property name="sizePolicy">
-                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                           </sizepolicy>
-                          </property>
-                         </widget>
-                        </item>
-                        <item row="1" column="1">
-                         <widget class="QComboBox" name="cbTank_MinLevel">
-                          <property name="sizePolicy">
-                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                           </sizepolicy>
-                          </property>
-                         </widget>
-                        </item>
-                        <item row="2" column="4">
-                         <spacer name="horizontalSpacer_24">
-                          <property name="orientation">
-                           <enum>Qt::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>40</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item row="3" column="4">
-                         <spacer name="horizontalSpacer_27">
-                          <property name="orientation">
-                           <enum>Qt::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>40</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item row="0" column="1">
-                         <widget class="QComboBox" name="cbTank_Id">
+                        <item row="0" column="3">
+                         <widget class="QComboBox" name="cbTank_Elevat">
                           <property name="sizePolicy">
                            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                             <horstretch>0</horstretch>
@@ -1753,8 +1681,8 @@
                           </property>
                          </widget>
                         </item>
-                        <item row="0" column="3">
-                         <widget class="QComboBox" name="cbTank_Elevat">
+                        <item row="0" column="1">
+                         <widget class="QComboBox" name="cbTank_Id">
                           <property name="sizePolicy">
                            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                             <horstretch>0</horstretch>
@@ -1763,8 +1691,44 @@
                           </property>
                          </widget>
                         </item>
+                        <item row="2" column="3">
+                         <widget class="QComboBox" name="cbTank_MaxLevel">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="2" column="4">
+                         <spacer name="horizontalSpacer_23">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>40</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                        <item row="6" column="4">
+                         <spacer name="horizontalSpacer_27">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>40</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
                         <item row="2" column="0">
-                         <widget class="QLabel" name="label_49">
+                         <widget class="QLabel" name="label_47">
                           <property name="minimumSize">
                            <size>
                             <width>70</width>
@@ -1772,14 +1736,102 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Diameter</string>
+                           <string>Min Level</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                           </property>
                          </widget>
                         </item>
-                        <item row="2" column="2">
+                        <item row="6" column="0">
+                         <widget class="QLabel" name="label_54">
+                          <property name="minimumSize">
+                           <size>
+                            <width>70</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="text">
+                           <string>Tag</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="3" column="2">
+                         <widget class="QLabel" name="label_51">
+                          <property name="minimumSize">
+                           <size>
+                            <width>70</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="text">
+                           <string>Min Volume</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="3" column="3">
+                         <widget class="QComboBox" name="cbTank_MinVolume">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="4" column="1">
+                         <widget class="QComboBox" name="cbTank_ReactCoeff">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="3" column="1">
+                         <widget class="QComboBox" name="cbTank_InitLevel">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="1" column="1">
+                         <widget class="QComboBox" name="cbTank_Diameter">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="3" column="0">
+                         <widget class="QLabel" name="label_50">
+                          <property name="minimumSize">
+                           <size>
+                            <width>70</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="text">
+                           <string>Initial Level</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="4" column="0">
                          <widget class="QLabel" name="label_56">
                           <property name="minimumSize">
                            <size>
@@ -1795,8 +1847,24 @@
                           </property>
                          </widget>
                         </item>
-                        <item row="0" column="2">
-                         <widget class="QLabel" name="label_45">
+                        <item row="1" column="0">
+                         <widget class="QLabel" name="label_49">
+                          <property name="minimumSize">
+                           <size>
+                            <width>70</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="text">
+                           <string>Diameter</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="5" column="0">
+                         <widget class="QLabel" name="label_95">
                           <property name="minimumSize">
                            <size>
                             <width>100</width>
@@ -1804,10 +1872,46 @@
                            </size>
                           </property>
                           <property name="text">
-                           <string>Elevation</string>
+                           <string>Mixing Model</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="5" column="2">
+                         <widget class="QLabel" name="label_96">
+                          <property name="minimumSize">
+                           <size>
+                            <width>100</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="text">
+                           <string>Mixing Fraction</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="5" column="1">
+                         <widget class="QComboBox" name="cbTank_MixModel">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="5" column="3">
+                         <widget class="QComboBox" name="cbTank_MixFraction">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
                           </property>
                          </widget>
                         </item>

@@ -402,6 +402,10 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbTank_MaxLevel.clear()
         self.cbTank_Diameter.clear()
         self.cbTank_ReactCoeff.clear()
+        self.cbTank_InitLevel.clear()
+        self.cbTank_MinVolume.clear()
+        self.cbTank_MixModel.clear()
+        self.cbTank_MixFraction.clear()
         self.cbTank_Tag.clear()
         self.cbTank_Descr.clear()
         if newItem == "None":
@@ -422,6 +426,10 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbTank_MaxLevel.addItems(field_names)
         self.cbTank_Diameter.addItems(field_names)
         self.cbTank_ReactCoeff.addItems(field_names)
+        self.cbTank_InitLevel.addItems(field_names)
+        self.cbTank_MinVolume.addItems(field_names)
+        self.cbTank_MixModel.addItems(field_names)
+        self.cbTank_MixFraction.addItems(field_names)
         self.cbTank_Tag.addItems(field_names)
         self.cbTank_Descr.addItems(field_names)
 
@@ -431,6 +439,10 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.selectComboBoxItem(self.cbTank_MaxLevel, ["maxlevel"])
         self.selectComboBoxItem(self.cbTank_Diameter, ["diameter", "diam", "diametro", "diámetro"])
         self.selectComboBoxItem(self.cbTank_ReactCoeff, ["reactcoef"])
+        self.selectComboBoxItem(self.cbTank_InitLevel, ["inilevel", "level", "nivel"])
+        self.selectComboBoxItem(self.cbTank_MinVolume, ["minvolume"])
+        self.selectComboBoxItem(self.cbTank_MixModel, ["mixingmod", "mixmodel"])
+        self.selectComboBoxItem(self.cbTank_MixFraction, ["mixingfrac", "mixfraction"])
         self.selectComboBoxItem(self.cbTank_Tag, ["tag"])
         self.selectComboBoxItem(self.cbTank_Descr, ["descrip", "descr", "description", "descripcion", "descripción"])
 
@@ -814,7 +826,10 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             if not name == "None":
                 fields = fields + name
             fields = fields + ";"
-            fields = fields + ";"  # IniLevel
+            name = self.cbTank_InitLevel.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
             name = self.cbTank_MinLevel.currentText()
             if not name == "None":
                 fields = fields + name
@@ -827,10 +842,19 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             if not name == "None":
                 fields = fields + name
             fields = fields + ";"
-            fields = fields + ";"  # MinVolum
+            name = self.cbTank_MinVolume.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
             fields = fields + ";"  # IdVolCur
-            fields = fields + ";"  # MixMod
-            fields = fields + ";"  # MixFrac
+            name = self.cbTank_MixModel.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
+            name = self.cbTank_MixFraction.currentText()
+            if not name == "None":
+                fields = fields + name
+            fields = fields + ";"
             name = self.cbTank_ReactCoeff.currentText()
             if not name == "None":
                 fields = fields + name
