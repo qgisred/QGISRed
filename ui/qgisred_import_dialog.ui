@@ -439,7 +439,7 @@
               <enum>QFrame::NoFrame</enum>
              </property>
              <property name="text">
-              <string>[L]</string>
+              <string>m</string>
              </property>
             </widget>
            </item>
@@ -3507,7 +3507,7 @@
                      <item>
                       <widget class="QLabel" name="label_86">
                        <property name="text">
-                        <string>Meter's Layer</string>
+                        <string>Meter's Type</string>
                        </property>
                       </widget>
                      </item>
