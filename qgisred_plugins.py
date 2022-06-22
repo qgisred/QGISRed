@@ -1726,8 +1726,8 @@ class QGISRed:
                 queryGroup = self.getQueryGroup()
                 hydrGroup = queryGroup.insertGroup(0, "Sectors")
 
-            utils.openLayer(hydrGroup, "Nodes_" + self.Sectors, sectors=True)
             utils.openLayer(hydrGroup, "Links_" + self.Sectors, sectors=True)
+            utils.openLayer(hydrGroup, "Nodes_" + self.Sectors, sectors=True)
 
     """Groups"""
 
