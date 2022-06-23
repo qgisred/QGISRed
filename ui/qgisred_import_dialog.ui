@@ -549,7 +549,7 @@
                      <item>
                       <widget class="QLabel" name="label_6">
                        <property name="text">
-                        <string>Pipe's Layer</string>
+                        <string>Pipe Layer</string>
                        </property>
                       </widget>
                      </item>
@@ -1029,7 +1029,7 @@
                      <item>
                       <widget class="QLabel" name="label_63">
                        <property name="text">
-                        <string>Junction's Layer</string>
+                        <string>Junction Layer</string>
                        </property>
                       </widget>
                      </item>
@@ -1301,7 +1301,7 @@
                      <item>
                       <widget class="QLabel" name="label_58">
                        <property name="text">
-                        <string>Reservoir's Layer</string>
+                        <string>Reservoir Layer</string>
                        </property>
                       </widget>
                      </item>
@@ -1547,7 +1547,7 @@
                      <item>
                       <widget class="QLabel" name="label_43">
                        <property name="text">
-                        <string>Tank's Layer</string>
+                        <string>Tank Layer</string>
                        </property>
                       </widget>
                      </item>
@@ -2027,7 +2027,7 @@
                      <item>
                       <widget class="QLabel" name="label_8">
                        <property name="text">
-                        <string>Valve's Layer</string>
+                        <string>Valve Layer</string>
                        </property>
                       </widget>
                      </item>
@@ -2338,7 +2338,7 @@
                      <item>
                       <widget class="QLabel" name="label_30">
                        <property name="text">
-                        <string>Pump's Layer</string>
+                        <string>Pump Layer</string>
                        </property>
                       </widget>
                      </item>
@@ -3059,7 +3059,7 @@
                      <item>
                       <widget class="QLabel" name="label_53">
                        <property name="text">
-                        <string>SeviceConnection's Layer</string>
+                        <string>SeviceConnection Layer</string>
                        </property>
                       </widget>
                      </item>
@@ -3396,7 +3396,7 @@
                      <item>
                       <widget class="QLabel" name="label_78">
                        <property name="text">
-                        <string>Isolation Valve's Layer</string>
+                        <string>Isolation Valve Layer</string>
                        </property>
                       </widget>
                      </item>
@@ -3454,7 +3454,7 @@
                      <item>
                       <widget class="QLabel" name="label_85">
                        <property name="text">
-                        <string>Meter's Layer</string>
+                        <string>Meter Layer</string>
                        </property>
                       </widget>
                      </item>
@@ -3754,7 +3754,7 @@
                      <item>
                       <widget class="QLabel" name="label_86">
                        <property name="text">
-                        <string>Meter's Type</string>
+                        <string>Meter Type</string>
                        </property>
                       </widget>
                      </item>
