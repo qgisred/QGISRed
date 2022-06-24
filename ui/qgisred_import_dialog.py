@@ -70,6 +70,9 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.tbProjectDirectory.setText(direct)
         self.tbProjectDirectory.setCursorPosition(0)
         self.tbTolerance.setText(str(0.1))
+        self.tbScLength.setText(str(5))
+        self.isPunctualConnection = False
+        self.tbScLength.setEnabled(self.isPunctualConnection)
 
         self.NewProject = self.ProjectDirectory == self.TemporalFolder
         if not self.NewProject:
@@ -240,6 +243,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbIsolationValveLayer.addItem("None")
         self.cbMeterLayer.clear()
         self.cbMeterLayer.addItem("None")
+
+        self.layerGeometryType = {}
         for file in dirList:
             if ".shp" in file:
                 layerPath = os.path.join(self.tbShpDirectory.text(), file)
@@ -254,6 +259,10 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                     if featureType == QgsWkbTypes.LineGeometry:
                         self.cbPipeLayer.addItem(name)
                     if featureType == QgsWkbTypes.LineGeometry or featureType == QgsWkbTypes.PointGeometry:
+                        if featureType == QgsWkbTypes.LineGeometry:
+                            self.layerGeometryType[name] = "Line"
+                        else:
+                            self.layerGeometryType[name] = "Point"
                         self.cbValveLayer.addItem(name)
                         self.cbPumpLayer.addItem(name)
                         self.cbServiceConnectionLayer.addItem(name)
@@ -280,6 +289,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbPipe_Diameter.clear()
         self.cbPipe_Roughness.clear()
         self.cbPipe_LossCoef.clear()
+        self.cbPipe_Material.clear()
+        self.cbPipe_InstDate.clear()
         self.cbPipe_Status.clear()
         self.cbPipe_Bulk.clear()
         self.cbPipe_Wall.clear()
@@ -531,11 +542,13 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbServiceConnection_Tag.clear()
         self.cbServiceConnection_Descr.clear()
 
-        if newItem == "None":
+        if newItem == "None" or newItem == "":
             self.gbServiceConnection.setEnabled(False)
             return
 
         self.gbServiceConnection.setEnabled(True)
+        self.isPunctualConnection = self.layerGeometryType[newItem] == "Point"
+        self.tbScLength.setEnabled(self.isPunctualConnection)
 
         valveLayer = os.path.join(self.tbShpDirectory.text(), newItem + ".shp")
         vlayer = QgsVectorLayer(valveLayer, "SC layer", "ogr")
@@ -1088,6 +1101,17 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             except Exception:
                 self.iface.messageBar().pushMessage("Validations", "Not numeric Tolerance", level=1)
                 return
+            # ServiceConnection Length
+            scLength = self.tbScLength.text()
+            if self.isPunctualConnection:
+                try:
+                    t = float(scLength)
+                    if t < 0:
+                        self.iface.messageBar().pushMessage("Validations", "Not valid Service Connection Length", level=1)
+                        return
+                except Exception:
+                    self.iface.messageBar().pushMessage("Validations", "Not numeric Service Connection Length", level=1)
+                    return
             # Fields
             fields = self.createShpFields()
             if fields == "":
@@ -1109,7 +1133,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             # Process
             QApplication.setOverrideCursor(Qt.WaitCursor)
             resMessage = GISRed.ImportFromShps(
-                self.ProjectDirectory, self.NetworkName, self.parent.tempFolder, shapes, fields, epsg, tolerance
+                self.ProjectDirectory, self.NetworkName, self.parent.tempFolder, shapes, fields, epsg, tolerance, scLength
             )
             QApplication.restoreOverrideCursor()
             self.parent.ProjectDirectory = self.ProjectDirectory

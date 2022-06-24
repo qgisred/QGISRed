@@ -527,7 +527,7 @@ class QGISRedDependencies:
         return QGISRedDependencies.toString(b)
 
     @staticmethod
-    def ImportFromShps(projectFolder, networkName, tempFolder, shapes, fields, epsg, tolerance):
+    def ImportFromShps(projectFolder, networkName, tempFolder, shapes, fields, epsg, tolerance, scLength):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
@@ -535,11 +535,12 @@ class QGISRedDependencies:
         fields = QGISRedDependencies.encode(fields)
         epsg = QGISRedDependencies.encode(epsg)
         tolerance = QGISRedDependencies.encode(tolerance)
+        scLength = QGISRedDependencies.encode(scLength)
 
         mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.ImportFromShps.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.ImportFromShps.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.ImportFromShps.restype = c_char_p
-        b = mydll.ImportFromShps(projectFolder, networkName, tempFolder, shapes, fields, epsg, tolerance)
+        b = mydll.ImportFromShps(projectFolder, networkName, tempFolder, shapes, fields, epsg, tolerance, scLength)
         return QGISRedDependencies.toString(b)
 
     @staticmethod
