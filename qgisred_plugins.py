@@ -488,7 +488,7 @@ class QGISRed:
         )
         icon_path = ":/plugins/QGISRed/images/iconFlash.png"
         dropButton = QToolButton()
-        dropButton = self.add_action(
+        self.add_action(
             icon_path,
             text=self.tr("Run model"),
             callback=self.runModel,
@@ -528,7 +528,7 @@ class QGISRed:
             callback=self.runCreateBackup,
             menubar=self.projectMenu,
             toolbar=self.projectToolbar,
-            actionBase=dropButton,
+            actionBase=projectDropButton,
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
@@ -539,7 +539,7 @@ class QGISRed:
             callback=self.runCloseProject,
             menubar=self.projectMenu,
             toolbar=self.projectToolbar,
-            actionBase=dropButton,
+            actionBase=projectDropButton,
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
