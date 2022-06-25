@@ -40,7 +40,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.setupUi(self)
 
         self.btMoreTime.clicked.connect(self.nextTime)
+        self.btEndTime.clicked.connect(self.endTime)
         self.btLessTime.clicked.connect(self.previousTime)
+        self.btInitTime.clicked.connect(self.initTime)
+        self.cbTimes.view().setVerticalScrollBarPolicy(0)
         self.cbTimes.currentIndexChanged.connect(self.timeChanged)
 
         self.cbLinks.currentIndexChanged.connect(self.linksChanged)
@@ -665,6 +668,12 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         else:
             self.cbTimes.setCurrentIndex(index + 1)
 
+    def endTime(self):
+        self.cbTimes.setCurrentIndex(self.cbTimes.count() - 1)
+
+    def initTime(self):
+        self.cbTimes.setCurrentIndex(0)
+
     def previousTime(self):
         index = self.cbTimes.currentIndex()
         if index == 0:
@@ -699,12 +708,16 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.lbLabel5.setVisible(False)
             self.btLessTime.setVisible(False)
             self.btMoreTime.setVisible(False)
+            self.btInitTime.setVisible(False)
+            self.btEndTime.setVisible(False)
             self.cbTimes.setVisible(False)
             self.cbTimes.addItem("Permanent")
         else:
             self.lbLabel5.setVisible(True)
             self.btLessTime.setVisible(True)
             self.btMoreTime.setVisible(True)
+            self.btInitTime.setVisible(True)
+            self.btEndTime.setVisible(True)
             self.cbTimes.setVisible(True)
             for label in self.TimeLabels:
                 self.cbTimes.addItem(label)
@@ -848,11 +861,15 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.lbLabel5.setVisible(False)
             self.btLessTime.setVisible(False)
             self.btMoreTime.setVisible(False)
+            self.btInitTime.setVisible(False)
+            self.btEndTime.setVisible(False)
             self.cbTimes.setVisible(False)
         else:
             self.lbLabel5.setVisible(True)
             self.btLessTime.setVisible(True)
             self.btMoreTime.setVisible(True)
+            self.btInitTime.setVisible(True)
+            self.btEndTime.setVisible(True)
             self.cbTimes.setVisible(True)
 
         self.Computing = False
