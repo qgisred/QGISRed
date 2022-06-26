@@ -45,6 +45,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.btInitTime.clicked.connect(self.initTime)
         self.cbTimes.view().setVerticalScrollBarPolicy(0)
         self.cbTimes.currentIndexChanged.connect(self.timeChanged)
+        self.timeSlider.valueChanged.connect(self.sliderChanged)
 
         self.cbLinks.currentIndexChanged.connect(self.linksChanged)
         self.cbNodes.currentIndexChanged.connect(self.nodesChanged)
@@ -681,6 +682,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         else:
             self.cbTimes.setCurrentIndex(index - 1)
 
+    def sliderChanged(self):
+        if not self.timeSlider.value() == self.cbTimes.currentIndex():
+            self.cbTimes.setCurrentIndex(self.timeSlider.value())
+
     def timeChanged(self):
         if self.Computing:
             return
@@ -691,6 +696,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             return
 
         value = self.cbTimes.currentIndex()
+        self.timeSlider.setValue(value)
         self.IndexTime[self.cbScenarios.currentText()] = value
         self.setLayersNames()
         self.paintIntervalTimeResults(value, False)
@@ -711,6 +717,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.btInitTime.setVisible(False)
             self.btEndTime.setVisible(False)
             self.cbTimes.setVisible(False)
+            self.timeSlider.setVisible(False)
             self.cbTimes.addItem("Permanent")
         else:
             self.lbLabel5.setVisible(True)
@@ -719,10 +726,12 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.btInitTime.setVisible(True)
             self.btEndTime.setVisible(True)
             self.cbTimes.setVisible(True)
+            self.timeSlider.setVisible(True)
             for label in self.TimeLabels:
                 self.cbTimes.addItem(label)
             if self.IndexTime.get(currentScenario) is not None:
                 self.cbTimes.setCurrentIndex(self.IndexTime[currentScenario])
+        self.timeSlider.setMaximum(len(self.TimeLabels) - 1)
         self.lbTime.setText(self.TimeLabels[self.IndexTime[currentScenario]])
         self.lbComments.setText(self.Comments[currentScenario])
         self.Computing = False
@@ -847,6 +856,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.LabelResults["Base"] = self.TimeLabels
         self.IndexTime["Base"] = 0
         self.cbTimes.setCurrentIndex(0)
+        self.timeSlider.setValue(0)
+        self.timeSlider.setMaximum(len(self.TimeLabels) - 1)
         self.lbTime.setText(self.TimeLabels[0])
 
         # Comments
@@ -864,6 +875,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.btInitTime.setVisible(False)
             self.btEndTime.setVisible(False)
             self.cbTimes.setVisible(False)
+            self.timeSlider.setVisible(False)
         else:
             self.lbLabel5.setVisible(True)
             self.btLessTime.setVisible(True)
@@ -871,6 +883,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.btInitTime.setVisible(True)
             self.btEndTime.setVisible(True)
             self.cbTimes.setVisible(True)
+            self.timeSlider.setVisible(True)
 
         self.Computing = False
 
