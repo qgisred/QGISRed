@@ -71,7 +71,7 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
         self.snapper.setMapSettings(self.iface.mapCanvas().mapSettings())
         config = QgsSnappingConfig(QgsProject.instance())
         config.setType(2)  # Vertex
-        config.setMode(2)  # All layers
+        config.setMode(QgsSnappingConfig.SnappingMode.AllLayers)  # All layers
         config.setTolerance(10)
         config.setUnits(1)  # Pixels
         config.setEnabled(True)
@@ -81,7 +81,7 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
         self.pipeSnapper.setMapSettings(self.iface.mapCanvas().mapSettings())
         config = QgsSnappingConfig(QgsProject.instance())
         config.setType(2)  # Vertex
-        config.setMode(2)  # All layers
+        config.setMode(QgsSnappingConfig.SnappingMode.AllLayers)  # All layers
         config.setTolerance(10)
         config.setUnits(1)  # Pixels
         config.setEnabled(True)
