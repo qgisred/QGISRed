@@ -57,6 +57,7 @@ import base64
 import shutil
 import webbrowser
 import urllib.request
+import ssl
 from ctypes import windll, c_uint16, c_uint, wstring_at, byref, cast
 from ctypes import create_string_buffer, c_void_p, Structure, POINTER
 
@@ -73,7 +74,7 @@ class QGISRed:
     especificComplementaryLayers = []
     complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves", "AirReleaseValves", "ServiceConnections", "Meters"]
     TemporalFolder = "Temporal folder"
-    DependenciesVersion = "1.0.15.6"
+    DependenciesVersion = "1.0.15.7"
     gisredDll = None
 
     """Basic"""
@@ -126,6 +127,9 @@ class QGISRed:
         self.actions.append(self.unitsAction)
         self.unitsButton.setDefaultAction(self.unitsAction)
         self.iface.mainWindow().statusBar().addWidget(self.unitsButton)
+
+        # To allow downloads from qgisred web page
+        ssl._create_default_https_context = ssl._create_unverified_context
 
     def tr(self, message):
         """Get the translation for a string using Qt translation API.
@@ -1355,7 +1359,7 @@ class QGISRed:
             if currentVersion == self.DependenciesVersion:
                 valid = True
         if not valid:
-            link = '"http://www.redhisp.webs.upv.es/files/QGISRed/' + self.DependenciesVersion + '/QGISRed_Installation.msi"'
+            link = '"https://qgisred.upv.es/files/dependencies/' + self.DependenciesVersion + '/QGISRed_Installation.msi"'
             firstPartMessage = "QGISRed plugin only runs in Windows OS and needs some dependencies ("
             request = QMessageBox.question(
                 self.iface.mainWindow(),
@@ -1380,7 +1384,7 @@ class QGISRed:
         return valid
 
     def checkForUpdates(self):
-        link = '"http://www.redhisp.webs.upv.es/files/QGISRed/newVersions.txt"'
+        link = '"https://qgisred.upv.es/files/versions.txt"'
         tempLocalFile = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names()) + ".txt"
         try:
             # Read online file
@@ -1413,31 +1417,28 @@ class QGISRed:
                         ),
                         QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
                     )
-                    if self.checkShortener():
-                        webbrowser.open("https://bit.ly/qgisred")
-                    else:
-                        webbrowser.open("https://plugins.qgis.org/plugins/QGISRed/")
+                    self.linkToNewVersion()
                     # If user don't want to remember a local file is written with this version
                     if response == QMessageBox.No:
                         f = open(fileVersions, "w+")
                         f.write(contents + "\n")
                         f.close()
             os.remove(tempLocalFile)
-        except Exception:
+        except:
             pass
 
-    def checkShortener(self):
-        link = '"http://www.redhisp.webs.upv.es/files/QGISRed/shortener.txt"'
+    def linkToNewVersion(self):
+        link = '"https://qgisred.upv.es/files/linkToNewVersion.txt"'
         tempLocalFile = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names()) + ".txt"
         try:
             # Read online file
             urllib.request.urlretrieve(link.strip("'\""), tempLocalFile)
             f = open(tempLocalFile, "r")
-            contents = f.read()
+            url = f.readline()
             f.close()
-            return contents.startswith("1")
+            webbrowser.open(url)
         except:
-            return False
+            pass
 
     def removeTempFolders(self):
         if not os.path.exists(self.dllTempFolderFile):
