@@ -635,6 +635,19 @@ class QGISRedDependencies:
         return QGISRedDependencies.toString(b)
 
     @staticmethod
+    def ScenarioManager(projectFolder, networkName, tempFolder, ids):
+        projectFolder = QGISRedDependencies.encode(projectFolder)
+        networkName = QGISRedDependencies.encode(networkName)
+        tempFolder = QGISRedDependencies.encode(tempFolder)
+        ids = QGISRedDependencies.encode(ids)
+
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
+        mydll.ScenarioManager.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.ScenarioManager.restype = c_char_p
+        b = mydll.ScenarioManager(projectFolder, networkName, tempFolder, ids)
+        return QGISRedDependencies.toString(b)
+
+    @staticmethod
     def SetInitialStatusPipes(projectFolder, networkName, tempFolder):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)

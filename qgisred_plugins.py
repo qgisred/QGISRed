@@ -1047,6 +1047,17 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
+        icon_path = ":/plugins/QGISRed/images/iconScenario.png"
+        self.add_action(
+            icon_path,
+            text=self.tr("Scenario Manager"),
+            callback=self.runScenarioManager,
+            menubar=self.toolsMenu,
+            toolbar=self.toolsToolbar,
+            actionBase=toolDropButton,
+            add_to_toolbar=True,
+            parent=self.iface.mainWindow(),
+        )
         self.toolsToolbar.addSeparator()
         self.toolsMenu.addSeparator()
         icon_path = ":/plugins/QGISRed/images/iconDemandSector.png"
@@ -3425,6 +3436,30 @@ class QGISRed:
 
         self.processCsharpResult(resMessage, "")
         self.selectedFids = {}
+
+    def runScenarioManager(self):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        if not self.getSelectedFeaturesIds():
+            return
+
+        ids = ""
+        for key in self.selectedIds:
+            ids = ids + key + ":" + str(self.selectedIds[key]) + ";"
+
+        # Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.ScenarioManager(self.ProjectDirectory, self.NetworkName, self.tempFolder, ids)
+        QApplication.restoreOverrideCursor()
+
+        self.processCsharpResult(resMessage, "")
 
     def runSetRoughness(self):
         if not self.checkDependencies():
