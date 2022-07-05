@@ -25,7 +25,7 @@ from qgis.core import QgsProject, QgsVectorLayer, QgsMapLayer
 from PyQt5.QtGui import QIcon, QCursor
 from PyQt5.QtWidgets import QAction, QMessageBox, QApplication, QMenu, QFileDialog, QToolButton
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
-from qgis.core import QgsMessageLog, QgsCoordinateTransform
+from qgis.core import QgsMessageLog, QgsCoordinateTransform, QgsApplication
 
 # Import resources
 from . import resources3x
@@ -1381,6 +1381,7 @@ class QGISRed:
                 QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
             )
             if request == QMessageBox.Yes:
+                self.openNewFeaturesWebpage()
                 localFile = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names()) + ".msi"
                 try:
                     urllib.request.urlretrieve(link.strip("'\""), localFile)
@@ -1428,7 +1429,7 @@ class QGISRed:
                         ),
                         QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
                     )
-                    self.linkToNewVersion()
+
                     # If user don't want to remember a local file is written with this version
                     if response == QMessageBox.No:
                         f = open(fileVersions, "w+")
@@ -1438,8 +1439,11 @@ class QGISRed:
         except:
             pass
 
-    def linkToNewVersion(self):
-        link = '"https://qgisred.upv.es/files/linkToNewVersion.txt"'
+    def openNewFeaturesWebpage(self):
+        language = "en"
+        if QgsApplication.instance().locale() == "es":
+            language = "es"
+        link = "https://qgisred.upv.es/files/news_" + language
         tempLocalFile = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names()) + ".txt"
         try:
             # Read online file
@@ -1448,6 +1452,7 @@ class QGISRed:
             url = f.readline()
             f.close()
             webbrowser.open(url)
+            return url
         except:
             pass
 
