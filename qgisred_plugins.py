@@ -70,7 +70,7 @@ class QGISRed:
     ProjectDirectory = ""
     NetworkName = ""
     ownMainLayers = ["Pipes", "Junctions", "Demands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
-    ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns", "Materials"]
+    ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns", "Materials", "Signals"]
     especificComplementaryLayers = []
     complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves", "AirReleaseValves", "ServiceConnections", "Meters"]
     TemporalFolder = "Temporal folder"
@@ -1293,6 +1293,17 @@ class QGISRed:
             icon_path,
             text=self.tr("Load meter readings"),
             callback=self.runLoadReadings,
+            menubar=self.dtMenu,
+            toolbar=self.dtToolbar,
+            actionBase=dtDropButton,
+            add_to_toolbar=True,
+            parent=self.iface.mainWindow(),
+        )
+        icon_path = ":/plugins/QGISRed/images/iconLoadScada.png"
+        self.add_action(
+            icon_path,
+            text=self.tr("Load SCADA data"),
+            callback=self.runLoadScada,
             menubar=self.dtMenu,
             toolbar=self.dtToolbar,
             actionBase=dtDropButton,
@@ -3739,6 +3750,24 @@ class QGISRed:
         self.especificComplementaryLayers = ["ServiceConnections"]
         QApplication.setOverrideCursor(Qt.WaitCursor)
         resMessage = GISRed.LoadReadings(self.ProjectDirectory, self.NetworkName, self.tempFolder)
+        QApplication.restoreOverrideCursor()
+
+        self.processCsharpResult(resMessage, "")
+
+    def runLoadScada(self):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        # Process
+        self.especificComplementaryLayers = ["Meters"]
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.LoadScada(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "")

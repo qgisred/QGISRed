@@ -15,7 +15,6 @@
         <file>images/iconAddIsolationValve.png</file>
         <file>images/iconAddLevelSensor.png</file>
         <file>images/iconAddManometer.png</file>
-        <file>images/iconAddMeter.png</file>
         <file>images/iconAddPipe.png</file>
         <file>images/iconAddPump.png</file>
         <file>images/iconAddQualitySensor.png</file>
@@ -57,6 +56,7 @@
         <file>images/iconLayers.png</file>
         <file>images/iconLengthC.png</file>
         <file>images/iconLinePlot.png</file>
+        <file>images/iconLoadScada.png</file>
         <file>images/iconLock.png</file>
         <file>images/iconMaterial.png</file>
         <file>images/iconMaterials.png</file>
