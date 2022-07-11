@@ -369,7 +369,7 @@ class QGISRedUtils:
                 # Line
                 lineSymbol = QgsSimpleLineSymbolLayer()
                 lineSymbol.setWidthUnit(2)  # Pixels
-                lineSymbol.setWidth(1.5)
+                lineSymbol.setWidth(2)
                 lineSymbol.setColor(QColor(randrange(0, 256), randrange(0, 256), randrange(0, 256)))
                 symbol.appendSymbolLayer(lineSymbol)
 
