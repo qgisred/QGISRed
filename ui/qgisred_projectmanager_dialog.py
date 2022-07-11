@@ -26,6 +26,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
     ProcessDone = False
     gplFile = ""
     ownMainLayers = ["Pipes", "Junctions", "Demands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
+    complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves", "AirReleaseValves", "ServiceConnections", "Meters"]
     layerExtensions = [".shp", ".dbf", ".shx", ".prj", ".qpj"]
     ownFiles = [
         "DefaultValues.dbf",
@@ -354,6 +355,14 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                         self.iface.messageBar().pushMessage("Warning", message, level=1, duration=5)
                     else:
                         for layerName in self.ownMainLayers:
+                            layerPath = os.path.join(mainFolder, mainName + "_" + layerName)
+                            # Extensions
+                            for ext in self.layerExtensions:
+                                if os.path.exists(layerPath + ext):
+                                    name = dlg.NetworkName + "_" + layerName + ext
+                                    copyfile(layerPath + ext, os.path.join(dlg.ProjectDirectory, name))
+
+                        for layerName in self.complementaryLayers:
                             layerPath = os.path.join(mainFolder, mainName + "_" + layerName)
                             # Extensions
                             for ext in self.layerExtensions:
