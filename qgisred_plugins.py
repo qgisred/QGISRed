@@ -74,7 +74,7 @@ class QGISRed:
     especificComplementaryLayers = []
     complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves", "AirReleaseValves", "ServiceConnections", "Meters"]
     TemporalFolder = "Temporal folder"
-    DependenciesVersion = "1.0.15.7"
+    DependenciesVersion = "1.0.15.8"
     gisredDll = None
 
     """Basic"""
@@ -702,7 +702,7 @@ class QGISRed:
         icon_path = ":/plugins/QGISRed/images/iconMergeSplitJunction.png"
         self.mergeSplitJunctionButton = self.add_action(
             icon_path,
-            text=self.tr("Merge/Split junctions"),
+            text=self.tr("Merge/Dissolve junctions"),
             callback=self.runSelectPointToMergeSplit,
             menubar=self.editionMenu,
             toolbar=self.editionToolbar,
