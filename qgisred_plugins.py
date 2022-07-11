@@ -209,6 +209,7 @@ class QGISRed:
         self.addEditMenu()
         self.addVerificationsMenu()
         self.addToolsMenu()
+        self.addAnalysisMenu()
         self.addDigitalTwinMenu()
 
         # About
@@ -300,6 +301,7 @@ class QGISRed:
         del self.editionToolbar
         del self.verificationsToolbar
         del self.toolsToolbar
+        del self.analysisToolbar
         del self.dtToolbar
 
         # remove statusbar label
@@ -316,6 +318,8 @@ class QGISRed:
             self.verificationsMenu.menuAction().setVisible(False)
         if self.toolsMenu:
             self.toolsMenu.menuAction().setVisible(False)
+        if self.analysisMenu:
+            self.analysisMenu.menuAction().setVisible(False)
         if self.dtMenu:
             self.dtMenu.menuAction().setVisible(False)
         if self.qgisredmenu:
@@ -479,52 +483,6 @@ class QGISRed:
         )
         self.projectToolbar.addSeparator()
         self.projectMenu.addSeparator()
-        icon_path = ":/plugins/QGISRed/images/iconHydraulicOptions.png"
-        self.add_action(
-            icon_path,
-            text=self.tr("Analysis options"),
-            callback=self.runAnalysisOptions,
-            menubar=self.projectMenu,
-            toolbar=self.projectToolbar,
-            actionBase=projectDropButton,
-            add_to_toolbar=True,
-            parent=self.iface.mainWindow(),
-        )
-        icon_path = ":/plugins/QGISRed/images/iconFlash.png"
-        dropButton = QToolButton()
-        self.add_action(
-            icon_path,
-            text=self.tr("Run model"),
-            callback=self.runModel,
-            menubar=self.projectMenu,
-            toolbar=self.projectToolbar,
-            actionBase=projectDropButton,
-            dropButton=dropButton,
-            add_to_toolbar=False,
-            parent=self.iface.mainWindow(),
-        )
-        icon_path = ":/plugins/QGISRed/images/iconResults.png"
-        self.add_action(
-            icon_path,
-            text=self.tr("Show results browser"),
-            callback=self.runShowResultsDock,
-            menubar=self.projectMenu,
-            toolbar=self.projectToolbar,
-            actionBase=dropButton,
-            add_to_toolbar=False,
-            parent=self.iface.mainWindow(),
-        )
-        icon_path = ":/plugins/QGISRed/images/iconExportEpanet.png"
-        self.add_action(
-            icon_path,
-            text=self.tr("Export to Epanet"),
-            callback=self.runExportInp,
-            menubar=self.projectMenu,
-            toolbar=self.projectToolbar,
-            actionBase=projectDropButton,
-            add_to_toolbar=True,
-            parent=self.iface.mainWindow(),
-        )
         icon_path = ":/plugins/QGISRed/images/iconLock.png"
         self.add_action(
             icon_path,
@@ -1001,6 +959,17 @@ class QGISRed:
         )
         self.toolsDropButton = toolDropButton
 
+        icon_path = ":/plugins/QGISRed/images/iconCalculateLength.png"
+        self.add_action(
+            icon_path,
+            text=self.tr("Automatically Calculate Pipe Lengths"),
+            callback=self.runCalculateLengths,
+            menubar=self.toolsMenu,
+            toolbar=self.toolsToolbar,
+            actionBase=toolDropButton,
+            add_to_toolbar=True,
+            parent=self.iface.mainWindow(),
+        )
         icon_path = ":/plugins/QGISRed/images/iconInterpolate.png"
         self.add_action(
             icon_path,
@@ -1079,6 +1048,80 @@ class QGISRed:
             menubar=self.toolsMenu,
             toolbar=self.toolsToolbar,
             actionBase=toolDropButton,
+            add_to_toolbar=True,
+            parent=self.iface.mainWindow(),
+        )
+
+    def addAnalysisMenu(self):
+        #    #Menu
+        self.analysisMenu = self.qgisredmenu.addMenu(self.tr("Analysis"))
+        self.analysisMenu.setIcon(QIcon(":/plugins/QGISRed/images/iconFlash.png"))
+        #    #Toolbar
+        self.analysisToolbar = self.iface.addToolBar(self.tr("QGISRed Analysis"))
+        self.analysisToolbar.setObjectName(self.tr("QGISRed Analysis"))
+        self.analysisToolbar.visibilityChanged.connect(self.cahngeAnalysisToolbarVisibility)
+        self.analysisToolbar.setVisible(False)
+        #    #Buttons
+        analysisDropButton = QToolButton()
+        icon_path = ":/plugins/QGISRed/images/iconFlash.png"
+        self.add_action(
+            icon_path,
+            text=self.tr("Analysis"),
+            callback=self.runAnalysisToolbar,
+            menubar=self.analysisMenu,
+            add_to_menu=False,
+            toolbar=self.toolbar,
+            dropButton=analysisDropButton,
+            checable=True,
+            addActionToDrop=False,
+            add_to_toolbar=False,
+            parent=self.iface.mainWindow(),
+        )
+        self.analysisDropButton = analysisDropButton
+
+        icon_path = ":/plugins/QGISRed/images/iconHydraulicOptions.png"
+        self.add_action(
+            icon_path,
+            text=self.tr("Analysis options"),
+            callback=self.runAnalysisOptions,
+            menubar=self.analysisMenu,
+            toolbar=self.analysisToolbar,
+            actionBase=analysisDropButton,
+            add_to_toolbar=True,
+            parent=self.iface.mainWindow(),
+        )
+        icon_path = ":/plugins/QGISRed/images/iconFlash.png"
+        dropButton = QToolButton()
+        self.add_action(
+            icon_path,
+            text=self.tr("Run model"),
+            callback=self.runModel,
+            menubar=self.analysisMenu,
+            toolbar=self.analysisToolbar,
+            actionBase=analysisDropButton,
+            dropButton=dropButton,
+            add_to_toolbar=False,
+            parent=self.iface.mainWindow(),
+        )
+        icon_path = ":/plugins/QGISRed/images/iconResults.png"
+        self.add_action(
+            icon_path,
+            text=self.tr("Show results browser"),
+            callback=self.runShowResultsDock,
+            menubar=self.analysisMenu,
+            toolbar=self.analysisToolbar,
+            actionBase=dropButton,
+            add_to_toolbar=False,
+            parent=self.iface.mainWindow(),
+        )
+        icon_path = ":/plugins/QGISRed/images/iconExportEpanet.png"
+        self.add_action(
+            icon_path,
+            text=self.tr("Export to Epanet"),
+            callback=self.runExportInp,
+            menubar=self.analysisMenu,
+            toolbar=self.analysisToolbar,
+            actionBase=analysisDropButton,
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
@@ -2077,6 +2120,12 @@ class QGISRed:
 
     def cahngeToolsToolbarVisibility(self, status):
         self.toolsDropButton.setChecked(status)
+
+    def runAnalysisToolbar(self):
+        self.analysisToolbar.setVisible(not self.analysisToolbar.isVisible())
+
+    def cahngeAnalysisToolbarVisibility(self, status):
+        self.analysisDropButton.setChecked(status)
 
     def runDtToolbar(self):
         self.dtToolbar.setVisible(not self.dtToolbar.isVisible())
@@ -3477,6 +3526,30 @@ class QGISRed:
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "")
+
+    def runCalculateLengths(self):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        # Process
+        if not self.getSelectedFeaturesIds():
+            return
+
+        ids = ""
+        for key in self.selectedIds:
+            ids = ids + key + ":" + str(self.selectedIds[key]) + ";"
+
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.CalculateLengths(self.ProjectDirectory, self.NetworkName, self.tempFolder, ids)
+        QApplication.restoreOverrideCursor()
+
+        self.processCsharpResult(resMessage, "No issues ocurred")
 
     def runSetRoughness(self):
         if not self.checkDependencies():

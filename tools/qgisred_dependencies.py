@@ -137,27 +137,16 @@ class QGISRedDependencies:
         return QGISRedDependencies.toString(b)
 
     @staticmethod
-    def LoadReadings(projectFolder, networkName, tempFolder):
+    def CalculateLengths(projectFolder, networkName, tempFolder, linkIds):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
+        linkIds = QGISRedDependencies.encode(linkIds)
 
         mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.LoadReadings.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.LoadReadings.restype = c_char_p
-        b = mydll.LoadReadings(projectFolder, networkName, tempFolder)
-        return QGISRedDependencies.toString(b)
-
-    @staticmethod
-    def LoadScada(projectFolder, networkName, tempFolder):
-        projectFolder = QGISRedDependencies.encode(projectFolder)
-        networkName = QGISRedDependencies.encode(networkName)
-        tempFolder = QGISRedDependencies.encode(tempFolder)
-
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.LoadScada.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.LoadScada.restype = c_char_p
-        b = mydll.LoadScada(projectFolder, networkName, tempFolder)
+        mydll.CalculateLengths.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.CalculateLengths.restype = c_char_p
+        b = mydll.CalculateLengths(projectFolder, networkName, tempFolder, linkIds)
         return QGISRedDependencies.toString(b)
 
     @staticmethod
@@ -579,6 +568,30 @@ class QGISRedDependencies:
         mydll.InsertValve.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.InsertValve.restype = c_char_p
         b = mydll.InsertValve(projectFolder, networkName, tempFolder, point)
+        return QGISRedDependencies.toString(b)
+
+    @staticmethod
+    def LoadReadings(projectFolder, networkName, tempFolder):
+        projectFolder = QGISRedDependencies.encode(projectFolder)
+        networkName = QGISRedDependencies.encode(networkName)
+        tempFolder = QGISRedDependencies.encode(tempFolder)
+
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
+        mydll.LoadReadings.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.LoadReadings.restype = c_char_p
+        b = mydll.LoadReadings(projectFolder, networkName, tempFolder)
+        return QGISRedDependencies.toString(b)
+
+    @staticmethod
+    def LoadScada(projectFolder, networkName, tempFolder):
+        projectFolder = QGISRedDependencies.encode(projectFolder)
+        networkName = QGISRedDependencies.encode(networkName)
+        tempFolder = QGISRedDependencies.encode(tempFolder)
+
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
+        mydll.LoadScada.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.LoadScada.restype = c_char_p
+        b = mydll.LoadScada(projectFolder, networkName, tempFolder)
         return QGISRedDependencies.toString(b)
 
     @staticmethod
