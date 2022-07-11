@@ -2747,7 +2747,8 @@ class QGISRed:
         if not self.getSelectedFeaturesIds():
             self.reverseLinkButton.setChecked(False)
             return
-        if self.linkIds == "" and not self.selectedIds["ServiceConnections"]:
+
+        if self.linkIds == "" and not "ServiceConnections" in self.selectedIds:
             self.runSelectReverseLinkPoint()
             return
         self.reverseLinkButton.setChecked(False)
