@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QDockWidget, QApplication
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QFont
 from qgis.PyQt import uic
-from qgis.core import QgsProject, QgsTask, QgsApplication
+from qgis.core import QgsProject
 from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling
 from qgis.core import QgsTextFormat, QgsSymbol
 from qgis.core import QgsProperty, QgsRenderContext, QgsRendererRange, QgsRendererCategory, QgsLineSymbol
@@ -800,10 +800,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.saveCurrentRender()
 
         # Remove results layers previous to simulate
-        task = QgsTask.fromFunction("simulate", self.removeResults, on_finished=self.simulationProcess)
-        task.run()
-        QgsApplication.taskManager().addTask(task)
-        # QGISRedUtils().runTask('simulate', self.removeResults, self.simulationProcess)
+        QGISRedUtils().runTask("simulate", self.removeResults, self.simulationProcess, True)
 
     def simulationProcess(self, exception=None, result=None):
         # Process

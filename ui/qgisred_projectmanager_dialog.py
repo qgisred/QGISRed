@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtWidgets import QTableWidgetItem, QDialog
 from PyQt5.QtCore import QFileInfo
-from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer, QgsTask, QgsApplication
+from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer
 from qgis.PyQt import uic
 
 # Import the code for the dialog
@@ -279,10 +279,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                     return
             valid = self.parent.isOpenedProject()
             if valid:
-                task = QgsTask.fromFunction("open project", self.clearQGisProject, on_finished=self.openProjectProcess)
-                task.run()
-                QgsApplication.taskManager().addTask(task)
-                # QGISRedUtils().runTask('open project', self.clearQGisProject, self.openProjectProcess)
+                QGISRedUtils().runTask("open project", self.clearQGisProject, self.openProjectProcess, True)
         else:
             self.iface.messageBar().pushMessage("Warning", "You need to select a valid project to open it.", level=1, duration=5)
 
