@@ -332,7 +332,7 @@ class QGISRed:
         #    #Toolbar
         self.fileToolbar = self.iface.addToolBar(self.tr("QGISRed File"))
         self.fileToolbar.setObjectName(self.tr("QGISRed File"))
-        self.fileToolbar.visibilityChanged.connect(self.cahngeFileToolbarVisibility)
+        self.fileToolbar.visibilityChanged.connect(self.changeFileToolbarVisibility)
         self.fileToolbar.setVisible(False)
         #    #Buttons
         fileDropButton = QToolButton()
@@ -393,7 +393,7 @@ class QGISRed:
         #    #Toolbar
         self.projectToolbar = self.iface.addToolBar(self.tr("QGISRed Project"))
         self.projectToolbar.setObjectName(self.tr("QGISRed Project"))
-        self.projectToolbar.visibilityChanged.connect(self.cahngeProjectToolbarVisibility)
+        self.projectToolbar.visibilityChanged.connect(self.changeProjectToolbarVisibility)
         self.projectToolbar.setVisible(False)
         #    #Buttons
         projectDropButton = QToolButton()
@@ -513,7 +513,7 @@ class QGISRed:
         #    #Toolbar
         self.editionToolbar = self.iface.addToolBar(self.tr("QGISRed Edition"))
         self.editionToolbar.setObjectName(self.tr("QGISRed Edition"))
-        self.editionToolbar.visibilityChanged.connect(self.cahngeEditionToolbarVisibility)
+        self.editionToolbar.visibilityChanged.connect(self.changeEditionToolbarVisibility)
         self.editionToolbar.setVisible(False)
 
         #    #Buttons
@@ -773,7 +773,7 @@ class QGISRed:
         #    #Toolbar
         self.verificationsToolbar = self.iface.addToolBar(self.tr("QGISRed Verifications"))
         self.verificationsToolbar.setObjectName(self.tr("QGISRed Verifications"))
-        self.verificationsToolbar.visibilityChanged.connect(self.cahngeVerificationsToolbarVisibility)
+        self.verificationsToolbar.visibilityChanged.connect(self.changeVerificationsToolbarVisibility)
         self.verificationsToolbar.setVisible(False)
         #    #Buttons
         verificationsDropButton = QToolButton()
@@ -939,7 +939,7 @@ class QGISRed:
         #    #Toolbar
         self.toolsToolbar = self.iface.addToolBar(self.tr("QGISRed Tools"))
         self.toolsToolbar.setObjectName(self.tr("QGISRed Tools"))
-        self.toolsToolbar.visibilityChanged.connect(self.cahngeToolsToolbarVisibility)
+        self.toolsToolbar.visibilityChanged.connect(self.changeToolsToolbarVisibility)
         self.toolsToolbar.setVisible(False)
         #    #Buttons
         toolDropButton = QToolButton()
@@ -1059,7 +1059,7 @@ class QGISRed:
         #    #Toolbar
         self.analysisToolbar = self.iface.addToolBar(self.tr("QGISRed Analysis"))
         self.analysisToolbar.setObjectName(self.tr("QGISRed Analysis"))
-        self.analysisToolbar.visibilityChanged.connect(self.cahngeAnalysisToolbarVisibility)
+        self.analysisToolbar.visibilityChanged.connect(self.changeAnalysisToolbarVisibility)
         self.analysisToolbar.setVisible(False)
         #    #Buttons
         analysisDropButton = QToolButton()
@@ -1133,7 +1133,7 @@ class QGISRed:
         #    #Toolbar
         self.dtToolbar = self.iface.addToolBar(self.tr("QGISRed Digital Twin"))
         self.dtToolbar.setObjectName(self.tr("QGISRed Digital Twin"))
-        self.dtToolbar.visibilityChanged.connect(self.cahngeDtToolbarVisibility)
+        self.dtToolbar.visibilityChanged.connect(self.changeDtToolbarVisibility)
         self.dtToolbar.setVisible(False)
         #    #Buttons
         dtDropButton = QToolButton()
@@ -2094,43 +2094,43 @@ class QGISRed:
     def runFileToolbar(self):
         self.fileToolbar.setVisible(not self.fileToolbar.isVisible())
 
-    def cahngeFileToolbarVisibility(self, status):
+    def changeFileToolbarVisibility(self, status):
         self.fileDropButton.setChecked(status)
 
     def runProjectToolbar(self):
         self.projectToolbar.setVisible(not self.projectToolbar.isVisible())
 
-    def cahngeProjectToolbarVisibility(self, status):
+    def changeProjectToolbarVisibility(self, status):
         self.projectDropButton.setChecked(status)
 
     def runEditionToolbar(self):
         self.editionToolbar.setVisible(not self.editionToolbar.isVisible())
 
-    def cahngeEditionToolbarVisibility(self, status):
+    def changeEditionToolbarVisibility(self, status):
         self.editDropButton.setChecked(status)
 
     def runVerificationsToolbar(self):
         self.verificationsToolbar.setVisible(not self.verificationsToolbar.isVisible())
 
-    def cahngeVerificationsToolbarVisibility(self, status):
+    def changeVerificationsToolbarVisibility(self, status):
         self.verificationsDropButton.setChecked(status)
 
     def runToolsToolbar(self):
         self.toolsToolbar.setVisible(not self.toolsToolbar.isVisible())
 
-    def cahngeToolsToolbarVisibility(self, status):
+    def changeToolsToolbarVisibility(self, status):
         self.toolsDropButton.setChecked(status)
 
     def runAnalysisToolbar(self):
         self.analysisToolbar.setVisible(not self.analysisToolbar.isVisible())
 
-    def cahngeAnalysisToolbarVisibility(self, status):
+    def changeAnalysisToolbarVisibility(self, status):
         self.analysisDropButton.setChecked(status)
 
     def runDtToolbar(self):
         self.dtToolbar.setVisible(not self.dtToolbar.isVisible())
 
-    def cahngeDtToolbarVisibility(self, status):
+    def changeDtToolbarVisibility(self, status):
         self.dtDropButton.setChecked(status)
 
     def runExperimentalToolbar(self):
@@ -2142,6 +2142,7 @@ class QGISRed:
         self.editDropButton.setChecked(self.editionToolbar.isVisible())
         self.verificationsDropButton.setChecked(self.verificationsToolbar.isVisible())
         self.toolsDropButton.setChecked(self.toolsToolbar.isVisible())
+        self.analysisDropButton.setChecked(self.analysisToolbar.isVisible())
         self.dtDropButton.setChecked(self.dtToolbar.isVisible())
 
     """Common"""
