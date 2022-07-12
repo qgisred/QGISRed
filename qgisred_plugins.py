@@ -4040,7 +4040,8 @@ class QGISRed:
         return treeGroup
 
     def removeTreeLayers(self, task):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        treePath = os.path.join(self.ProjectDirectory, "Trees")
+        utils = QGISRedUtils(treePath, self.NetworkName, self.iface)
         utils.removeLayers(["Links_Tree_" + self.treeName, "Nodes_Tree_" + self.treeName])
 
         self.removeEmptyQuerySubGroup("Tree")
