@@ -171,12 +171,20 @@ class QGISRedMultiLayerSelection(QgsMapTool):
                     continue
                 lRect = self.canvas.mapSettings().mapToLayerCoordinates(layer, rect)
                 modifiers = QApplication.keyboardModifiers()
-                if modifiers == Qt.ShiftModifier:
-                    layer.selectByRect(lRect, Qgis.SelectBehavior.RemoveFromSelection)  # Remove
-                elif modifiers == Qt.ControlModifier:
-                    layer.selectByRect(lRect, Qgis.SelectBehavior.AddToSelection)  # Add
-                else:
-                    layer.selectByRect(lRect, Qgis.SelectBehavior.SetSelection)  # Set
+                try:
+                    if modifiers == Qt.ShiftModifier:
+                        layer.selectByRect(lRect, Qgis.SelectBehavior.RemoveFromSelection)  # Remove
+                    elif modifiers == Qt.ControlModifier:
+                        layer.selectByRect(lRect, Qgis.SelectBehavior.AddToSelection)  # Add
+                    else:
+                        layer.selectByRect(lRect, Qgis.SelectBehavior.SetSelection)  # Set
+                except:
+                    if modifiers == Qt.ShiftModifier:
+                        layer.selectByRect(lRect, 3)  # Remove
+                    elif modifiers == Qt.ControlModifier:
+                        layer.selectByRect(lRect, 1)  # Add
+                    else:
+                        layer.selectByRect(lRect, 0)  # Set
             self.myRubberBand.hide()
 
     def canvasMoveEvent(self, e):
