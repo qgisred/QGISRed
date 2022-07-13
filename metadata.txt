@@ -7,15 +7,15 @@ name=QGISRed
 qgisMinimumVersion=3.2
 qgisMaximumVersion=3.99
 description=Free professional software to build and analyze advanced water distribution network models and Digital Twins.
-version=0.15
+version=0.15.9
 author=Project Leader: REDHISP Group (IIAMA- UPV). Developer: WaterPi
 email=fmartine@hma.upv.es
 
-about=<p align="justify">QGISRed is a freeware QGIS plugin developed to assist in building and analyzing hydraulic models of water distribution networks of any complexity, up to the level of detail required by Digital Twins. The plugin works seamlessly with QGIS which enables the user to georeference all network elements, use geographic background layers, edit graphical and alphanumeric data, use geoprocessing tools, visualize data by layers, customize the symbology, etc.</p><p align="justify">QGISRed relies on an easy-to-use relational database of SHP and DBF files based on the EPANET data model. In case the user decides to use the QGIS tools to edit the data, QGISRed provides powerful facilities to detect potential editing errors before simulating the model, or to fill in the missing information.</p><p align="justify">In addition, QGISRed provides numerous tools to help building hydraulic models, to manage demand scenarios and to analyze the results without the need to use the QGIS environment, such as:</p><li>Project manager for easy project loading and storage</li><li>Automatic creation of new empty projects</li><li>Creation of a project backup</li><li>Import/export EPANET INP files</li><li>Import basic network components from Shapefiles and other auxiliary components managed by the Digital Twin (DT) such as service connections and isolation valves. Shortly also meters, hydrants, purge valves, etc.</li><li>Automatic generation of topological relationships between all the network elements</li><li>Graphical editing tools for all network elements including those of the DT (add, delete, move, edit vertices and nodes, reverse links, multiple selection, etc.)</li><li>Tools to debug the network layout and verify its connectivity</li><li>Default values to newly created elements</li><li>Property editors for all model and DT component attributes, analysis options and default values</li><li>Automatic interpolation of node elevations from DTM</li><li>Automatic estimation of pipe roughness from material and age of pipes</li><li>Conversion of roughness coefficients between different headloss formulas and unit systems</li><li>Visualization of multiple demands and quality sources as distinct layers and integrated editing of their properties along with those of the nodes</li><li>Powerful editors of curves, patterns, controls and rules</li><li>Validation anywhere of model properties against typical data entry errors</li><li>Load of demands to service connections from the meter readings, and move them to the closest nodes</li><li>Optional integration of service connections into the model</li><li>Demand scenarios management by importing/exporting files</li><li>Automatic identification of hydraulic sectors and demand zones</li><li>Model simulation by using the EPANET toolkit 2.2</li><li>Visualization of simulation results by means of tables, color coded layers, arrows and floating or static labels</li><li>Automatic creation of legends and symbols for the results (customizable  with QGIS tools)</li><li>Time Browser to display simulation results</li><p align="justify">In order to improve the computing time, QGISRed uses binary libraries developed in .net, which constitutes the core of the GISRed standalone application.</p><p align="justify">The QGISRed plugin is an initiative of the <a href="https://www.iiama.upv.es/iiama/en/research/research-groups/hydraulic-networks-and-pressurised-systems.html">REDHISP</a> Research Group of the Institute of Water and Environmental Engineering (<a href="https://www.iiama.upv.es/iiama/en/">IIAMA</a>) of the Polytechnic University of Valencia, <a href="http://www.upv.es/index-en.html">UPV</a> (Spain), led by Professor <a href="https://www.researchgate.net/profile/Fernando_Martinez_Alzamora">Fernando Martínez Alzamora</a>. Its implementation is carried out by the <a href="https://waterpi.com/">WaterPi</a> company under the direction of <a href="https://www.researchgate.net/profile/Nestor_Lerma">Néstor Lerma</a>, PhD Eng.</p><p align="justify">For more information the user can download the Plugin Manual in <a href="https://redhisp.webs.upv.es/files/QGISRed/manuals/QGISRed_0.15_usermanual_en.pdf">English</a> and in <a href="https://redhisp.webs.upv.es/files/QGISRed/manuals/QGISRed_0.15_usermanual_es.pdf">Spanish</a>.</p><p><b>Requeriments</b>  .Net Framework 4.5 - Windows OS.</p><p><form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top"><input type="hidden" name="cmd" value="_s-xclick" /><input type="hidden" name="hosted_button_id" value="25M4ZMR52H8ZN" /><input type="image" src="https://www.paypalobjects.com/en_US/ES/i/btn/btn_donateCC_LG.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" /><img alt="" border="0" src="https://www.paypal.com/en_ES/i/scr/pixel.gif" width="1" height="1" /></form></p>
+about=<p align="justify">QGISRed is a freeware QGIS plugin developed to assist in building and analyzing hydraulic models of water distribution networks of any complexity, up to the level of detail required by Digital Twins. The plugin works seamlessly with QGIS which enables the user to georeference all network elements, use geographic background layers, edit graphical and alphanumeric data, use geoprocessing tools, visualize data by layers, customize the symbology, etc.</p><p align="justify">QGISRed relies on an easy-to-use relational database of SHP and DBF files based on the EPANET data model, which has been extended to add new capabilities. Starting from the EPANET data model significantly reduces the learning curve.</p><p align="justify">In fact, the previous skills required on QGIS are minimum because QGISRed provides numerous tools to help building hydraulic models, to manage demand scenarios and to analyze the results without the need to use the QGIS environment, such as:</p><li>Project manager for easy project loading and storage</li><li>Automatic creation of new empty projects</li><li>Creation of a project backup</li><li>Import/export EPANET INP files</li><li>Import basic network components from Shapefiles and other auxiliary components managed by the Digital Twin (DT) such as service connections and isolation valves. Shortly also meters, hydrants, purge valves, etc.</li><li>Automatic generation of topological relationships between all the network elements</li><li>Graphical editing tools for all network elements including those of the DT (add, delete, move, edit vertices and nodes, reverse links, multiple selection, etc.)</li><li>Tools to debug the network layout and verify its connectivity</li><li>Default values to newly created elements</li><li>Property editor for all model and DT component attributes, analysis options and default values</li><li>Complete editor of analysis options and default values</li><li>Automatic calculation of pipe lengths from the coordinates of the vertices</li><li>Automatic interpolation of node elevations from DTM</li><li>Automatic estimation of pipe roughness from material and age of pipes</li><li>Conversion of roughness coefficients between different headloss formulas and unit systems</li><li>Visualization of multiple demands and quality sources as distinct layers and edition of its properties integrated with those of nodes</li><li>Automatic nodal demand allocation from punctual or sectorial consumptions</li><li>Automatic pattern and hydraulic efficiency allocation by sector</li><li>Scenario management for various model parameters by importing/exporting files</li><li>Demand scenarios management by importing/exporting files</li><li>Powerful editors of curves, patterns, controls and rules</li><li>Validation anywhere of model properties against typical data entry errors</li><li>Load of demands to service connections from the meter readings, and move them to the closest nodes</li><li>Management of service connections and isolation valves as differentiated elements</li><li>Detection of isolated zones when closing the isolation valves and canceling the demands on them</li><li>Optional integration of service connections into the model</li><li>Declaration of the meter sensors as distinct elements and the association of signals to them</li><li>Reading field data for the simulation period from files and export to EPANET</li><li>Automatic identification of hydraulic sectors and demand zones</li><li>Model simulation by using the EPANET toolkit 2.2</li><li>Visualization of simulation results by means of tables, color coded layers, arrows and floating or static labels</li><li>Automatic creation of legends and symbols for the results (customizable  with QGIS tools)</li><li>Navigation bar to display simulation results</li><p align="justify">Nevertheless, in case the user decides to use the QGIS tools to edit the data, QGISRed provides powerful facilities to detect potential editing errors before simulating the model, or to fill in the missing information.</p><p align="justify">The development of the new QGISRed plugin is an initiative of the <a href="https://www.iiama.upv.es/iiama/en/research/research-groups/hydraulic-networks-and-pressurised-systems.html">REDHISP</a> Research Group of the Institute of Water and Environmental Engineering (<a href="https://www.iiama.upv.es/iiama/en/">IIAMA</a>) of the Polytechnic University of Valencia, <a href="http://www.upv.es/index-en.html">UPV</a> (Spain), led by Professor <a href="https://www.researchgate.net/profile/Fernando_Martinez_Alzamora">Fernando Martínez Alzamora</a>. Its implementation is carried out by the <a href="https://waterpi.com/">WaterPi</a> company under the direction of <a href="https://www.researchgate.net/profile/Nestor_Lerma">Néstor Lerma</a>, PhD Eng.</p><p align="justify">The QGISRed extension for QGIS is an update of the old GISRed application developed by our group for the ArcView 3.1 environment (<a href="https://www.researchgate.net/publication/336170857_Upgrade_of_the_GISRed_application_for_the_free_analysis_of_WDN_under_GIS_environment">see launching paper</a>). Currently the name GISRed has been kept concerning to the libraries developed in .net, which are used by QGISRed to improve the processing time and constitutes the core of the GISRed standalone application.</p><p align="justify">For more information the user can check the official <a href="https://qgisred.upv.es">website</a> of QGISRed or the <a href="https://plugins.qgis.org/plugins/QGISRed/">section of QGISRed</a> in the official QGIS plugin repository. Also User’s Manual in <a href="https://redhisp.webs.upv.es/files/QGISRed/manuals/QGISRed_0.15_usermanual_en.pdf">English</a> and in <a href="https://redhisp.webs.upv.es/files/QGISRed/manuals/QGISRed_0.15_usermanual_es.pdf">Spanish</a> are available.</p><p><b>Requeriments</b>  .Net Framework 4.5 - Windows OS.</p><p><form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top"><input type="hidden" name="cmd" value="_s-xclick" /><input type="hidden" name="hosted_button_id" value="25M4ZMR52H8ZN" /><input type="image" src="https://www.paypalobjects.com/en_US/ES/i/btn/btn_donateCC_LG.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" /><img alt="" border="0" src="https://www.paypal.com/en_ES/i/scr/pixel.gif" width="1" height="1" /></form></p>
 
 tracker=https://github.com/neslerel/QGISRed/issues
 repository=https://github.com/neslerel/QGISRed
-homepage=https://plugins.qgis.org/plugins/QGISRed/
+homepage=https://qgisred.upv.es/
 
 # End of mandatory metadata
 
@@ -23,26 +23,48 @@ homepage=https://plugins.qgis.org/plugins/QGISRed/
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-changelog=version 0.15:
-      * Management of isolation valves (import, creation, deletion, property editing, interaction with pipeline status...)
-      * New tool to change the status of linear elements and manual valves
-      * New symbolization of pipes, pumps, regulating valves and isolation valves according to their status
-      * Cancellation of isolated demands due to pipe or valve closure during simulations
-      * Assignment of nodal demands from demand sectors and pinpointed demands, with various options
-      * Improvements in the property editing window (multiple selection, connected elements, visited elements, center selected element)
-      * Revision and extension of the analysis options (hydraulic, quality, time and energy)
-      * Addition of new Epanet 2.2 parameters to forms (tank overflow, pressure dependent demands)
-      * Highlighted main toolbar buttons/menus
-      * Default and only English language (for now)
-      * Improved editing of rules (with times and clocktimes)
-      * Fixed bug when typing demand values with more than 4 digits to the left of decimal point
-      * Fixed bug in time labels for result selection
-      * Fixed bug when converting numbers in the dimension interpolation process
-      * Fixed bug when reading and writing rules
-      * Fixed bug in the order of rules
-      * Fixed bug with rules using comma as decimal separator
-      * Fixed problem with project projection assignment
-      * Fixed bug when editing properties working with raster layers
+changelog=version 0.16:
+      * New options in the nodal demand manager to declare consumption for the entire network or by zones.
+      * Option to export, edit and re-import links between point consumption and junctions
+      * New options for importing/exporting/deleting demand scenarios by categories
+      * New tools in the nodal demand manager to consider water efficiency or assign consumption patterns by sectors
+      * New scenario manager to store and retrieve some model parameters in block
+
+      * Automatic calculation of pipe lengths from the coordinates of the vertices
+      * Automatic service connection layout, creating a perpendicular to the nearest pipe or a link to the nearest junction
+      * Possibility to automatically trace connections of predefined length from a point on a pipe or a junction
+      * New option to mirror a service connection with the invert tool
+      * New option to import service connections as points, creating perpendiculars to the nearest pipe or junctions
+      * New IsActive field in service connections to define if it is operational or not
+      * Verification of the contact point of a service connection with a pipe or junction at both ends
+      * Before calculating the hydraulic sectorization, the status of the manual valves is now transmitted to the pipes
+      * When exporting to INP the loss coefficient of the shut-off valves is transmitted to the pipes
+      * Declaration, editing and deletion of meters of various types, as new elements of the Digital Twin
+      * Editing, reading and saving of signals associated with meters
+      * New dialog for reading field data and exporting to CSV those corresponding to the simulation interval
+      * New option to export the field data, together with the INP file
+
+      * New fields in the import dialog, to be able to import more element information
+      * New option to show in the auxiliary themes the elements with some incidence, during the shapefile importing process
+      * New buttons and new slider in the results panel
+      * Improvements in the labels to display the results
+      * New type of result to display the Status of lines
+      * Improvements in the search from the property editor
+      * When exporting INP, a new list of EPANET executable paths is offered to  automatically open the exported file
+      * When importing an INPs file, patterns are now classified by type
+      * New warning has added when autocompleting the ID of an element
+      * Changes in the order and names of some toolbar buttons
+      * Changes in the visual styles of some of the elements
+      * New link to QGISRed website in the info window
+
+      * Fixed an error when reading the IDcurve in GPV valves and editing it from the properties dialog
+      * Fixed an error when assigning default values to bulk and wall reaction coefficients while importing an INP file
+      * Fixed a bug and message displayed when reading quality sources in reservoirs and tanks
+      * Fixed a problem that caused the point selection tools to stop for certain features
+      * Fixed a bug in the tool to create T-connections massively
+      * Fixed a bug with the multiple selection tool
+      * Fixed a bug in the polygon selection tool, when the reference system was not assumed by default
+      * Fixed a bug with the snapping tool (point selection of elements) in QGis version 3.26
 
 
 
