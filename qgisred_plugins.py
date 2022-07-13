@@ -74,7 +74,7 @@ class QGISRed:
     especificComplementaryLayers = []
     complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves", "AirReleaseValves", "ServiceConnections", "Meters"]
     TemporalFolder = "Temporal folder"
-    DependenciesVersion = "1.0.15.8"
+    DependenciesVersion = "1.0.15.9"
     gisredDll = None
 
     """Basic"""
@@ -612,7 +612,7 @@ class QGISRed:
         icon_path = ":/plugins/QGISRed/images/iconMoveElements.png"
         self.moveElementsButton = self.add_action(
             icon_path,
-            text=self.tr("Move node elements"),
+            text=self.tr("Move nodes"),
             callback=self.runMoveElements,
             menubar=self.editionMenu,
             toolbar=self.editionToolbar,
@@ -636,7 +636,7 @@ class QGISRed:
         icon_path = ":/plugins/QGISRed/images/iconReverseLink.png"
         self.reverseLinkButton = self.add_action(
             icon_path,
-            text=self.tr("Reverse element"),
+            text=self.tr("Reverse elements"),
             callback=self.canReverseLink,
             menubar=self.editionMenu,
             toolbar=self.editionToolbar,
@@ -648,7 +648,7 @@ class QGISRed:
         icon_path = ":/plugins/QGISRed/images/iconSplitPipe.png"
         self.splitPipeButton = self.add_action(
             icon_path,
-            text=self.tr("Split/Join pipe/s"),
+            text=self.tr("Split/Join pipes"),
             callback=self.runSelectSplitPoint,
             menubar=self.editionMenu,
             toolbar=self.editionToolbar,
@@ -672,7 +672,7 @@ class QGISRed:
         icon_path = ":/plugins/QGISRed/images/iconCreateRevTconn.png"
         self.createReverseTconButton = self.add_action(
             icon_path,
-            text=self.tr("Create/Reverse T connections"),
+            text=self.tr("Create/Remove T connections"),
             callback=self.runSelectPointToTconnections,
             menubar=self.editionMenu,
             toolbar=self.editionToolbar,
@@ -684,7 +684,7 @@ class QGISRed:
         icon_path = ":/plugins/QGISRed/images/iconCreateRevCrossings.png"
         self.createReverseCrossButton = self.add_action(
             icon_path,
-            text=self.tr("Create/Reverse crossings"),
+            text=self.tr("Create/Remove crossings"),
             callback=self.runSelectPointToCrossings,
             menubar=self.editionMenu,
             toolbar=self.editionToolbar,
@@ -696,7 +696,7 @@ class QGISRed:
         icon_path = ":/plugins/QGISRed/images/iconMoveValvePump.png"
         self.moveValvePumpButton = self.add_action(
             icon_path,
-            text=self.tr("Move valve/pump to another pipe"),
+            text=self.tr("Move valves/pumps"),
             callback=self.runSelectValvePumpPoints,
             menubar=self.editionMenu,
             toolbar=self.editionToolbar,
@@ -1345,7 +1345,7 @@ class QGISRed:
         icon_path = ":/plugins/QGISRed/images/iconLoadScada.png"
         self.add_action(
             icon_path,
-            text=self.tr("Load SCADA data"),
+            text=self.tr("Load field data"),
             callback=self.runLoadScada,
             menubar=self.dtMenu,
             toolbar=self.dtToolbar,
