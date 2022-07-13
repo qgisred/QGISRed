@@ -349,6 +349,7 @@ class QGISRedUtils:
             fni = layer.fields().indexFromName(field)
 
         unique_values = layer.dataProvider().uniqueValues(fni)
+        unique_values = sorted(unique_values)
 
         # define categories
         categories = []
