@@ -74,7 +74,7 @@ class QGISRed:
     especificComplementaryLayers = []
     complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves", "AirReleaseValves", "ServiceConnections", "Meters"]
     TemporalFolder = "Temporal folder"
-    DependenciesVersion = "1.0.15.9"
+    DependenciesVersion = "1.0.16.0"
     gisredDll = None
 
     """Basic"""
@@ -1106,7 +1106,7 @@ class QGISRed:
         icon_path = ":/plugins/QGISRed/images/iconResults.png"
         self.add_action(
             icon_path,
-            text=self.tr("Show results browser"),
+            text=self.tr("Results browser"),
             callback=self.runShowResultsDock,
             menubar=self.analysisMenu,
             toolbar=self.analysisToolbar,
