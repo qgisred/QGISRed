@@ -1436,6 +1436,14 @@ class QGISRed:
             )
             if request == QMessageBox.Yes:
                 self.openNewFeaturesWebpage()
+                # Remove previous dependencies version
+                if not self.DependenciesVersion.endswith(".0"):
+                    uninstallFile = os.path.join(
+                        os.path.join(os.path.join(os.getenv("APPDATA"), "QGISRed"), "dlls"), "Uninstall.msi.lnk"
+                    )
+                    if os.path.exists(uninstallFile):
+                        os.system(uninstallFile)
+
                 localFile = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names()) + ".msi"
                 try:
                     urllib.request.urlretrieve(link.strip("'\""), localFile)
