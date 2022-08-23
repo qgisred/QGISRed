@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtWidgets import QTableWidgetItem, QDialog
 from PyQt5.QtCore import QFileInfo
+from PyQt5.QtGui import QFont
 from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer
 from qgis.PyQt import uic
 
@@ -81,11 +82,16 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         self.NetworkName = netw
         self.ProjectDirectory = direct
 
+        font = QFont()
+        font.setBold(True)
+
         for row in range(0, self.twProjectList.rowCount()):
             isSameProject = self.getUniformedPath(self.ProjectDirectory) == str(self.twProjectList.item(row, 3).text())
             isSameNet = self.NetworkName == str(self.twProjectList.item(row, 0).text())
             if isSameProject and isSameNet:
                 self.twProjectList.setCurrentCell(row, 1)
+                for column in range(0, self.twProjectList.columnCount()):
+                    self.twProjectList.item(row, column).setFont(font)
                 break
 
     def fillTable(self):
