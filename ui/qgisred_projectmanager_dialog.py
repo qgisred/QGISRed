@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from PyQt5.QtWidgets import QTableWidgetItem, QDialog
+from PyQt5.QtWidgets import QTableWidgetItem, QDialog, QFileDialog
 from PyQt5.QtCore import QFileInfo
 from PyQt5.QtGui import QFont
 from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer
@@ -15,6 +15,7 @@ from ..tools.qgisred_utils import QGISRedUtils
 import os
 from shutil import copyfile
 from xml.etree import ElementTree
+from zipfile import ZipFile
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_projectmanager_dialog.ui"))
 
@@ -46,6 +47,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         self.setupUi(self)
         self.btCreate.clicked.connect(self.createProject)
         self.btImport.clicked.connect(self.importData)
+        self.btExport.clicked.connect(self.exportData)
         self.btOpen.clicked.connect(self.openProject)
         self.btClone.clicked.connect(self.cloneProject)
 
@@ -328,6 +330,35 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             valid = self.parent.isOpenedProject()
             if valid:
                 QGISRedUtils().runTask("import project", self.clearQGisProject, self.importDataProcess)
+
+    def exportData(self):
+        selectionModel = self.twProjectList.selectionModel()
+        if selectionModel.hasSelection():
+            for row in selectionModel.selectedRows():
+                projectDirec = str(self.twProjectList.item(row.row(), 3).text())
+                networkName = str(self.twProjectList.item(row.row(), 0).text())
+
+                # Ask for a zip file
+                qfd = QFileDialog()
+                path = ""
+                filter = "zip(*.zip)"
+                f = QFileDialog.getSaveFileName(qfd, "Zip file to export project", path, filter)
+                zipPath = f[0]
+                if zipPath == "":
+                    return
+
+                utils = QGISRedUtils(projectDirec, networkName, self.iface)
+                files = utils.getFilePaths()
+                with ZipFile(zipPath, "w") as zip:
+                    # writing each file one by one
+                    for file in files:
+                        if self.getUniformedPath(projectDirec) + "\\" + networkName + "_" in file:
+                            zip.write(file, file.replace(self.getUniformedPath(projectDirec), ""))
+
+                self.iface.messageBar().pushMessage("QGISRed", "Zip file stored in: " + zipPath, level=0, duration=5)
+                return
+        else:
+            self.iface.messageBar().pushMessage("Warning", "You need to select a project to export it.", level=1, duration=5)
 
     def importDataProcess(self, exception=None, result=None):
         dlg = QGISRedImportDialog()
