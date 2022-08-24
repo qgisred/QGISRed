@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from PyQt5.QtWidgets import QTableWidgetItem, QDialog, QFileDialog
+from PyQt5.QtWidgets import QTableWidgetItem, QDialog, QFileDialog, QMessageBox
 from PyQt5.QtCore import QFileInfo
 from PyQt5.QtGui import QFont
 from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer
@@ -13,6 +13,7 @@ from .qgisred_cloneproject_dialog import QGISRedCloneProjectDialog
 from ..tools.qgisred_utils import QGISRedUtils
 
 import os
+import shutil
 from shutil import copyfile
 from xml.etree import ElementTree
 from zipfile import ZipFile
@@ -45,11 +46,12 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         """Constructor."""
         super(QGISRedProjectManagerDialog, self).__init__(parent)
         self.setupUi(self)
+        self.btOpen.clicked.connect(self.openProject)
         self.btCreate.clicked.connect(self.createProject)
         self.btImport.clicked.connect(self.importData)
         self.btExport.clicked.connect(self.exportData)
-        self.btOpen.clicked.connect(self.openProject)
         self.btClone.clicked.connect(self.cloneProject)
+        self.btRemove.clicked.connect(self.removeProject)
 
         self.btLoad.clicked.connect(self.loadProject)
         self.btUnLoad.clicked.connect(self.unloadProject)
@@ -71,8 +73,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         self.twProjectList.setHorizontalHeaderItem(2, item)
         item = QTableWidgetItem("Folder")
         self.twProjectList.setHorizontalHeaderItem(3, item)
-        # Rows:
-        self.fillTable()
+
         self.twProjectList.cellDoubleClicked.connect(self.openProject)
 
     """Methods"""
@@ -84,19 +85,13 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         self.NetworkName = netw
         self.ProjectDirectory = direct
 
+        # Rows:
+        self.fillTable()
+
+    def fillTable(self):
         font = QFont()
         font.setBold(True)
 
-        for row in range(0, self.twProjectList.rowCount()):
-            isSameProject = self.getUniformedPath(self.ProjectDirectory) == str(self.twProjectList.item(row, 3).text())
-            isSameNet = self.NetworkName == str(self.twProjectList.item(row, 0).text())
-            if isSameProject and isSameNet:
-                self.twProjectList.setCurrentCell(row, 1)
-                for column in range(0, self.twProjectList.columnCount()):
-                    self.twProjectList.item(row, column).setFont(font)
-                break
-
-    def fillTable(self):
         self.twProjectList.setRowCount(0)
         if not os.path.exists(self.gplFile):
             f1 = open(self.gplFile, "w+")
@@ -149,6 +144,14 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                     self.twProjectList.setItem(rowPosition, 1, QTableWidgetItem(dateLast))
                     self.twProjectList.setItem(rowPosition, 2, QTableWidgetItem(dateCreate))
                     self.twProjectList.setItem(rowPosition, 3, QTableWidgetItem(values[1]))
+
+                    isSameProject = self.getUniformedPath(self.ProjectDirectory) == self.getUniformedPath(values[1])
+                    isSameNet = self.NetworkName == values[0]
+                    if isSameProject and isSameNet:
+                        self.twProjectList.setCurrentCell(rowPosition, 1)
+                        for column in range(0, self.twProjectList.columnCount()):
+                            self.twProjectList.item(rowPosition, column).setFont(font)
+
         f.close()
         f = open(self.gplFile, "w")
         for x in validLines:
@@ -331,6 +334,19 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             if valid:
                 QGISRedUtils().runTask("import project", self.clearQGisProject, self.importDataProcess)
 
+    def importDataProcess(self, exception=None, result=None):
+        dlg = QGISRedImportDialog()
+        dlg.config(self.iface, self.ProjectDirectory, self.NetworkName, self.parent)
+        # Run the dialog event loop
+        self.close()
+        dlg.exec_()
+        self.parent.readUnits()
+        result = dlg.ProcessDone
+        if result:
+            self.ProjectDirectory = dlg.ProjectDirectory
+            self.NetworkName = dlg.NetworkName
+            self.ProcessDone = True
+
     def exportData(self):
         selectionModel = self.twProjectList.selectionModel()
         if selectionModel.hasSelection():
@@ -359,19 +375,6 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 return
         else:
             self.iface.messageBar().pushMessage("Warning", "You need to select a project to export it.", level=1, duration=5)
-
-    def importDataProcess(self, exception=None, result=None):
-        dlg = QGISRedImportDialog()
-        dlg.config(self.iface, self.ProjectDirectory, self.NetworkName, self.parent)
-        # Run the dialog event loop
-        self.close()
-        dlg.exec_()
-        self.parent.readUnits()
-        result = dlg.ProcessDone
-        if result:
-            self.ProjectDirectory = dlg.ProjectDirectory
-            self.NetworkName = dlg.NetworkName
-            self.ProcessDone = True
 
     def cloneProject(self):
         selectionModel = self.twProjectList.selectionModel()
@@ -414,6 +417,9 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         else:
             self.iface.messageBar().pushMessage("Warning", "There is no a selected project to clone.", level=1, duration=5)
 
+    def removeProject(self):
+        self.quitProject(True)
+
     def loadProject(self):
         dlg = QGISRedImportProjectDialog()
         # Run the dialog event loop
@@ -423,14 +429,36 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             self.addProjectToTable(dlg.ProjectDirectory, dlg.NetworkName)
 
     def unloadProject(self):
+        self.quitProject()
+
+    def quitProject(self, remove=False):
         selectionModel = self.twProjectList.selectionModel()
         if selectionModel.hasSelection():
             for row in selectionModel.selectedRows():
-                isSameProject = self.getUniformedPath(self.ProjectDirectory) == str(self.twProjectList.item(row.row(), 3).text())
+                projectPath = str(self.twProjectList.item(row.row(), 3).text())
+                isSameProject = self.getUniformedPath(self.ProjectDirectory) == projectPath
                 isSameNet = self.NetworkName == str(self.twProjectList.item(row.row(), 0).text())
                 if isSameProject and isSameNet:
-                    self.iface.messageBar().pushMessage("Warning", "Current project can not be unloaded.", level=1, duration=5)
+                    word = "unloaded"
+                    if remove:
+                        word = "removed"
+                    self.iface.messageBar().pushMessage(
+                        "Warning", "Current project can not be " + word + ".", level=1, duration=5
+                    )
                     return
+
+                if remove:
+                    request = QMessageBox.question(
+                        self.iface.mainWindow(),
+                        self.tr("QGISRed"),
+                        self.tr("Project will be remove completely from your computer. Are you sure?"),
+                        QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
+                    )
+                    if request == QMessageBox.Yes:
+                        shutil.rmtree(projectPath)
+                    else:
+                        return
+
                 if os.path.exists(self.gplFile):
                     f = open(self.gplFile, "r")
                     lines = f.readlines()
