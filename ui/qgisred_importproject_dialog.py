@@ -20,7 +20,6 @@ class QGISRedImportProjectDialog(QDialog, FORM_CLASS):
         self.setupUi(self)
         self.btSelectDirectory.clicked.connect(self.selectDirectory)
         self.btAccept.clicked.connect(self.accept)
-        self.rbSelected()
 
     def selectDirectory(self):
         selected_directory = QFileDialog.getExistingDirectory()
@@ -28,15 +27,25 @@ class QGISRedImportProjectDialog(QDialog, FORM_CLASS):
             self.tbProjectDirectory.setText(selected_directory)
             self.tbProjectDirectory.setCursorPosition(0)
             self.ProjectDirectory = selected_directory
+            self.createNetworkList()
 
-    def rbSelected(self):
-        self.tbNetworkName.setEnabled(True)
-        self.tbProjectDirectory.setEnabled(True)
-        self.btSelectDirectory.setEnabled(True)
+    def createNetworkList(self):
+        self.cbNetworkName.clear()
+        nameList = []
+        for f in os.listdir(self.ProjectDirectory):
+            if not "_" in f:
+                continue
+            nameList.append(f.split("_")[0])
+        nameList = list(dict.fromkeys(nameList))
+        for name in nameList:
+            if os.path.exists(os.path.join(self.ProjectDirectory, name + "_Pipes.shp")):
+                self.cbNetworkName.addItem(name)
+        if self.cbNetworkName.count() > 0:
+            self.cbNetworkName.setCurrentIndex(0)
 
     def accept(self):
         valid = True
-        self.NetworkName = self.tbNetworkName.text()
+        self.NetworkName = self.cbNetworkName.currentText()
         if self.NetworkName == "":
             self.lbMessage.setText("Not valid Network's Name")
             valid = False
