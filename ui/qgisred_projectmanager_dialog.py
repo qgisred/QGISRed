@@ -403,8 +403,8 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 dlg.exec_()
                 result = dlg.ProcessDone
                 if result:
-                    if mainName == dlg.NetworkName:
-                        message = "Selected project has the same Network's Name. Plase, set another name."
+                    if mainName == dlg.NetworkName and mainFolder == dlg.ProjectDirectory:
+                        message = "Selected project has the same Network's Name for cloning it in the original directory. Please, set another name or directory."
                         self.iface.messageBar().pushMessage("Warning", message, level=1, duration=5)
                     else:
                         for layerName in self.ownMainLayers:
