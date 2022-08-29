@@ -506,3 +506,6 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             for row in selectionModel.selectedRows():
                 mainFolder = str(self.twProjectList.item(row.row(), 3).text())
                 os.startfile(mainFolder)
+        else:
+            message = "Any selected project to open its folder. Please, select one."
+            self.iface.messageBar().pushMessage("Warning", message, level=1, duration=5)
