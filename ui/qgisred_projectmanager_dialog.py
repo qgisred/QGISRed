@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from genericpath import isdir
 from PyQt5.QtWidgets import QTableWidgetItem, QDialog, QFileDialog, QMessageBox
 from PyQt5.QtCore import QFileInfo
 from PyQt5.QtGui import QFont
@@ -277,6 +278,21 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
     def getLayers(self):
         return QGISRedUtils().getLayers()
 
+    def removeFilesFromFolder(self, folder, networkName):
+        folder = self.getUniformedPath(folder)
+        for f in os.listdir(folder):
+            filepath = os.path.join(folder, f)
+            print(filepath)
+            if os.path.isfile(filepath) and os.path.join(folder, networkName + "_") in filepath:
+                try:
+                    os.remove(filepath)
+                except:
+                    pass
+            elif os.path.isdir(filepath):
+                self.removeFilesFromFolder(filepath, networkName)
+        if len(os.listdir(folder)) == 0:
+            os.rmdir(folder)
+
     """MainMethods"""
 
     def openProject(self):
@@ -436,8 +452,9 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         if selectionModel.hasSelection():
             for row in selectionModel.selectedRows():
                 projectPath = str(self.twProjectList.item(row.row(), 3).text())
+                projectNetwork = str(self.twProjectList.item(row.row(), 0).text())
                 isSameProject = self.getUniformedPath(self.ProjectDirectory) == projectPath
-                isSameNet = self.NetworkName == str(self.twProjectList.item(row.row(), 0).text())
+                isSameNet = self.NetworkName == projectNetwork
                 if isSameProject and isSameNet:
                     word = "unloaded"
                     if remove:
@@ -455,7 +472,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                         QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
                     )
                     if request == QMessageBox.Yes:
-                        shutil.rmtree(projectPath)
+                        self.removeFilesFromFolder(projectPath, projectNetwork)
                     else:
                         return
 
