@@ -475,6 +475,17 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                         self.removeFilesFromFolder(projectPath, projectNetwork)
                     else:
                         return
+                else:
+                    request = QMessageBox.question(
+                        self.iface.mainWindow(),
+                        self.tr("QGISRed"),
+                        self.tr(
+                            "Project will be unloaded from this list, but will remain in your computer. You could add it back using the Load button. Do you want to continue?"
+                        ),
+                        QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
+                    )
+                    if request == QMessageBox.No:
+                        return
 
                 if os.path.exists(self.gplFile):
                     f = open(self.gplFile, "r")
