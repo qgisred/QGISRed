@@ -47,6 +47,9 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         """Constructor."""
         super(QGISRedProjectManagerDialog, self).__init__(parent)
         self.setupUi(self)
+        self.btUp.clicked.connect(self.up)
+        self.btDown.clicked.connect(self.down)
+
         self.btOpen.clicked.connect(self.openProject)
         self.btCreate.clicked.connect(self.createProject)
         self.btImport.clicked.connect(self.importData)
@@ -293,7 +296,62 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         if len(os.listdir(folder)) == 0:
             os.rmdir(folder)
 
+    def takeRow(self, rowIndex):
+        rowItems = []
+        columns = self.twProjectList.columnCount()
+        col = 0
+        while col < columns:
+            rowItems.append(self.twProjectList.takeItem(rowIndex, col))
+            col += 1
+        return rowItems
+
+    def setRow(self, rowIndex, rowItems):
+        columns = self.twProjectList.columnCount()
+        col = 0
+        while col < columns:
+            self.twProjectList.setItem(rowIndex, col, rowItems[col])
+            col += 1
+
+    def move(self, up):
+        selectionModel = self.twProjectList.selectionModel()
+        if selectionModel.hasSelection():
+            for row in selectionModel.selectedRows():
+                sourceRow = row.row()
+                destRow = sourceRow - 1
+                if not up:
+                    destRow = sourceRow + 1
+                rows = self.twProjectList.rowCount()
+                if destRow < 0 or destRow >= rows:
+                    self.twProjectList.setFocus()
+                    return
+
+                sourceItems = self.takeRow(sourceRow)
+                destItems = self.takeRow(destRow)
+
+                self.setRow(sourceRow, destItems)
+                self.setRow(destRow, sourceItems)
+
+                self.twProjectList.setCurrentCell(destRow, 1)
+                self.twProjectList.setFocus()
+
+                f = open(self.gplFile, "w")
+                rowIndex = 0
+                while rowIndex < rows:
+                    name = str(self.twProjectList.item(rowIndex, 0).text())
+                    directory = str(self.twProjectList.item(rowIndex, 3).text())
+                    QGISRedUtils().writeFile(f, name + ";" + directory + "\n")
+                    rowIndex = rowIndex + 1
+                f.close()
+        else:
+            self.iface.messageBar().pushMessage("Warning", "Please, select a row project to move.", level=1, duration=5)
+
     """MainMethods"""
+
+    def up(self):
+        self.move(True)
+
+    def down(self):
+        self.move(False)
 
     def openProject(self):
         selectionModel = self.twProjectList.selectionModel()
