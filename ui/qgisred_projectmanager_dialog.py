@@ -313,37 +313,92 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             col += 1
 
     def move(self, up):
+        ok, _, _, sourceRow = self.getSelectedRowInfo()
+        if ok:
+            destRow = sourceRow - 1
+            if not up:
+                destRow = sourceRow + 1
+            rows = self.twProjectList.rowCount()
+            if destRow < 0 or destRow >= rows:
+                self.twProjectList.setFocus()
+                return
+
+            sourceItems = self.takeRow(sourceRow)
+            destItems = self.takeRow(destRow)
+
+            self.setRow(sourceRow, destItems)
+            self.setRow(destRow, sourceItems)
+
+            self.twProjectList.setCurrentCell(destRow, 1)
+            self.twProjectList.setFocus()
+
+            f = open(self.gplFile, "w")
+            rowIndex = 0
+            while rowIndex < rows:
+                name = str(self.twProjectList.item(rowIndex, 0).text())
+                directory = str(self.twProjectList.item(rowIndex, 3).text())
+                QGISRedUtils().writeFile(f, name + ";" + directory + "\n")
+                rowIndex = rowIndex + 1
+            f.close()
+        else:
+            self.iface.messageBar().pushMessage("Warning", "Please, select a row project to move.", level=1, duration=5)
+
+    def quitProject(self, remove=False):
+        ok, projectNetwork, projectPath, rowIndex = self.getSelectedRowInfo()
+        if ok:
+            isSameProject = self.getUniformedPath(self.ProjectDirectory) == projectPath
+            isSameNet = self.NetworkName == projectNetwork
+            if isSameProject and isSameNet:
+                word = "unloaded"
+                if remove:
+                    word = "removed"
+                self.iface.messageBar().pushMessage("Warning", "Current project can not be " + word + ".", level=1, duration=5)
+                return
+
+            if remove:
+                request = QMessageBox.question(
+                    self.iface.mainWindow(),
+                    self.tr("QGISRed"),
+                    self.tr("Project will be remove completely from your computer. Are you sure?"),
+                    QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
+                )
+                if request == QMessageBox.Yes:
+                    self.removeFilesFromFolder(projectPath, projectNetwork)
+                else:
+                    return
+            else:
+                request = QMessageBox.question(
+                    self.iface.mainWindow(),
+                    self.tr("QGISRed"),
+                    self.tr(
+                        "Project will be unloaded from this list, but will remain in your computer. You could add it back using the Load button. Do you want to continue?"
+                    ),
+                    QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
+                )
+                if request == QMessageBox.No:
+                    return
+
+            if os.path.exists(self.gplFile):
+                f = open(self.gplFile, "r")
+                lines = f.readlines()
+                f.close()
+                f = open(self.gplFile, "w")
+                i = 0
+                for line in lines:
+                    if not i == rowIndex:
+                        QGISRedUtils().writeFile(f, line)
+                    i = i + 1
+                f.close()
+            self.fillTable()
+
+    def getSelectedRowInfo(self):
         selectionModel = self.twProjectList.selectionModel()
         if selectionModel.hasSelection():
             for row in selectionModel.selectedRows():
-                sourceRow = row.row()
-                destRow = sourceRow - 1
-                if not up:
-                    destRow = sourceRow + 1
-                rows = self.twProjectList.rowCount()
-                if destRow < 0 or destRow >= rows:
-                    self.twProjectList.setFocus()
-                    return
-
-                sourceItems = self.takeRow(sourceRow)
-                destItems = self.takeRow(destRow)
-
-                self.setRow(sourceRow, destItems)
-                self.setRow(destRow, sourceItems)
-
-                self.twProjectList.setCurrentCell(destRow, 1)
-                self.twProjectList.setFocus()
-
-                f = open(self.gplFile, "w")
-                rowIndex = 0
-                while rowIndex < rows:
-                    name = str(self.twProjectList.item(rowIndex, 0).text())
-                    directory = str(self.twProjectList.item(rowIndex, 3).text())
-                    QGISRedUtils().writeFile(f, name + ";" + directory + "\n")
-                    rowIndex = rowIndex + 1
-                f.close()
-        else:
-            self.iface.messageBar().pushMessage("Warning", "Please, select a row project to move.", level=1, duration=5)
+                project = str(self.twProjectList.item(row.row(), 3).text())
+                name = str(self.twProjectList.item(row.row(), 0).text())
+                return True, name, project, row.row()
+        return False, "", "", -1
 
     """MainMethods"""
 
@@ -354,14 +409,13 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         self.move(False)
 
     def openProject(self):
-        selectionModel = self.twProjectList.selectionModel()
-        if selectionModel.hasSelection():
-            for row in selectionModel.selectedRows():
-                isSameProject = self.getUniformedPath(self.ProjectDirectory) == str(self.twProjectList.item(row.row(), 3).text())
-                isSameNet = self.NetworkName == str(self.twProjectList.item(row.row(), 0).text())
-                if isSameProject and isSameNet:
-                    self.iface.messageBar().pushMessage("Warning", "Selected project is currently opened.", level=1, duration=5)
-                    return
+        ok, name, project, _ = self.getSelectedRowInfo()
+        if ok:
+            isSameProject = self.getUniformedPath(self.ProjectDirectory) == project
+            isSameNet = self.NetworkName == name
+            if isSameProject and isSameNet:
+                self.iface.messageBar().pushMessage("Warning", "Selected project is currently opened.", level=1, duration=5)
+                return
             valid = self.parent.isOpenedProject()
             if valid:
                 QGISRedUtils().runTask("open project", self.clearQGisProject, self.openProjectProcess, True)
@@ -369,16 +423,14 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             self.iface.messageBar().pushMessage("Warning", "You need to select a valid project to open it.", level=1, duration=5)
 
     def openProjectProcess(self, exception=None, result=None):
-        selectionModel = self.twProjectList.selectionModel()
-        for row in selectionModel.selectedRows():
-            rowIndex = row.row()
-            self.NetworkName = str(self.twProjectList.item(rowIndex, 0).text())
-            self.ProjectDirectory = str(self.twProjectList.item(rowIndex, 3).text())
+        ok, name, project, _ = self.getSelectedRowInfo()
+        if ok:
+            self.NetworkName = name
+            self.ProjectDirectory = project
             self.openProjectInQgis(self.ProjectDirectory, self.NetworkName)
-            break
-        self.close()
-        self.ProcessDone = True
-        self.parent.readUnits()
+            self.close()
+            self.ProcessDone = True
+            self.parent.readUnits()
 
     def createProject(self):
         if self.ProjectDirectory == self.parent.TemporalFolder:
@@ -422,72 +474,64 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             self.ProcessDone = True
 
     def exportData(self):
-        selectionModel = self.twProjectList.selectionModel()
-        if selectionModel.hasSelection():
-            for row in selectionModel.selectedRows():
-                projectDirec = str(self.twProjectList.item(row.row(), 3).text())
-                networkName = str(self.twProjectList.item(row.row(), 0).text())
-
-                # Ask for a zip file
-                qfd = QFileDialog()
-                path = ""
-                filter = "zip(*.zip)"
-                f = QFileDialog.getSaveFileName(qfd, "Zip file to export project", path, filter)
-                zipPath = f[0]
-                if zipPath == "":
-                    return
-
-                utils = QGISRedUtils(projectDirec, networkName, self.iface)
-                files = utils.getFilePaths()
-                with ZipFile(zipPath, "w") as zip:
-                    # writing each file one by one
-                    for file in files:
-                        if self.getUniformedPath(projectDirec) + "\\" + networkName + "_" in file:
-                            zip.write(file, file.replace(self.getUniformedPath(projectDirec), ""))
-
-                self.iface.messageBar().pushMessage("QGISRed", "Zip file stored in: " + zipPath, level=0, duration=5)
+        ok, name, project, _ = self.getSelectedRowInfo()
+        if ok:
+            # Ask for a zip file
+            qfd = QFileDialog()
+            path = ""
+            filter = "zip(*.zip)"
+            f = QFileDialog.getSaveFileName(qfd, "Zip file to export project", path, filter)
+            zipPath = f[0]
+            if zipPath == "":
                 return
+
+            utils = QGISRedUtils(project, name, self.iface)
+            files = utils.getFilePaths()
+            with ZipFile(zipPath, "w") as zip:
+                # writing each file one by one
+                for file in files:
+                    if self.getUniformedPath(project) + "\\" + name + "_" in file:
+                        zip.write(file, file.replace(self.getUniformedPath(project), ""))
+
+            self.iface.messageBar().pushMessage("QGISRed", "Zip file stored in: " + zipPath, level=0, duration=5)
+            return
         else:
             self.iface.messageBar().pushMessage("Warning", "You need to select a project to export it.", level=1, duration=5)
 
     def cloneProject(self):
-        selectionModel = self.twProjectList.selectionModel()
-        if selectionModel.hasSelection():
-            for row in selectionModel.selectedRows():
-                mainName = str(self.twProjectList.item(row.row(), 0).text())
-                mainFolder = str(self.twProjectList.item(row.row(), 3).text())
-                dlg = QGISRedCloneProjectDialog()
-                # Run the dialog event loop
-                dlg.exec_()
-                result = dlg.ProcessDone
-                if result:
-                    if mainName == dlg.NetworkName and mainFolder == dlg.ProjectDirectory:
-                        message = "Selected project has the same Network's Name for cloning it in the original directory. Please, set another name or directory."
-                        self.iface.messageBar().pushMessage("Warning", message, level=1, duration=5)
-                    else:
-                        for layerName in self.ownMainLayers:
-                            layerPath = os.path.join(mainFolder, mainName + "_" + layerName)
-                            # Extensions
-                            for ext in self.layerExtensions:
-                                if os.path.exists(layerPath + ext):
-                                    name = dlg.NetworkName + "_" + layerName + ext
-                                    copyfile(layerPath + ext, os.path.join(dlg.ProjectDirectory, name))
+        ok, mainName, mainFolder, _ = self.getSelectedRowInfo()
+        if ok:
+            dlg = QGISRedCloneProjectDialog()
+            # Run the dialog event loop
+            dlg.exec_()
+            result = dlg.ProcessDone
+            if result:
+                if mainName == dlg.NetworkName and mainFolder == dlg.ProjectDirectory:
+                    message = "Selected project has the same Network's Name for cloning it in the original directory. Please, set another name or directory."
+                    self.iface.messageBar().pushMessage("Warning", message, level=1, duration=5)
+                else:
+                    for layerName in self.ownMainLayers:
+                        layerPath = os.path.join(mainFolder, mainName + "_" + layerName)
+                        # Extensions
+                        for ext in self.layerExtensions:
+                            if os.path.exists(layerPath + ext):
+                                name = dlg.NetworkName + "_" + layerName + ext
+                                copyfile(layerPath + ext, os.path.join(dlg.ProjectDirectory, name))
 
-                        for layerName in self.complementaryLayers:
-                            layerPath = os.path.join(mainFolder, mainName + "_" + layerName)
-                            # Extensions
-                            for ext in self.layerExtensions:
-                                if os.path.exists(layerPath + ext):
-                                    name = dlg.NetworkName + "_" + layerName + ext
-                                    copyfile(layerPath + ext, os.path.join(dlg.ProjectDirectory, name))
+                    for layerName in self.complementaryLayers:
+                        layerPath = os.path.join(mainFolder, mainName + "_" + layerName)
+                        # Extensions
+                        for ext in self.layerExtensions:
+                            if os.path.exists(layerPath + ext):
+                                name = dlg.NetworkName + "_" + layerName + ext
+                                copyfile(layerPath + ext, os.path.join(dlg.ProjectDirectory, name))
 
-                        for fileName in self.ownFiles:
-                            filePath = os.path.join(mainFolder, mainName + "_" + fileName)
-                            if os.path.exists(filePath):
-                                copyfile(filePath, os.path.join(dlg.ProjectDirectory, dlg.NetworkName + "_" + fileName))
+                    for fileName in self.ownFiles:
+                        filePath = os.path.join(mainFolder, mainName + "_" + fileName)
+                        if os.path.exists(filePath):
+                            copyfile(filePath, os.path.join(dlg.ProjectDirectory, dlg.NetworkName + "_" + fileName))
 
-                        self.addProjectToTable(dlg.ProjectDirectory, dlg.NetworkName)
-                break
+                    self.addProjectToTable(dlg.ProjectDirectory, dlg.NetworkName)
         else:
             self.iface.messageBar().pushMessage("Warning", "There is no a selected project to clone.", level=1, duration=5)
 
@@ -504,59 +548,6 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
 
     def unloadProject(self):
         self.quitProject()
-
-    def quitProject(self, remove=False):
-        selectionModel = self.twProjectList.selectionModel()
-        if selectionModel.hasSelection():
-            for row in selectionModel.selectedRows():
-                projectPath = str(self.twProjectList.item(row.row(), 3).text())
-                projectNetwork = str(self.twProjectList.item(row.row(), 0).text())
-                isSameProject = self.getUniformedPath(self.ProjectDirectory) == projectPath
-                isSameNet = self.NetworkName == projectNetwork
-                if isSameProject and isSameNet:
-                    word = "unloaded"
-                    if remove:
-                        word = "removed"
-                    self.iface.messageBar().pushMessage(
-                        "Warning", "Current project can not be " + word + ".", level=1, duration=5
-                    )
-                    return
-
-                if remove:
-                    request = QMessageBox.question(
-                        self.iface.mainWindow(),
-                        self.tr("QGISRed"),
-                        self.tr("Project will be remove completely from your computer. Are you sure?"),
-                        QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
-                    )
-                    if request == QMessageBox.Yes:
-                        self.removeFilesFromFolder(projectPath, projectNetwork)
-                    else:
-                        return
-                else:
-                    request = QMessageBox.question(
-                        self.iface.mainWindow(),
-                        self.tr("QGISRed"),
-                        self.tr(
-                            "Project will be unloaded from this list, but will remain in your computer. You could add it back using the Load button. Do you want to continue?"
-                        ),
-                        QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
-                    )
-                    if request == QMessageBox.No:
-                        return
-
-                if os.path.exists(self.gplFile):
-                    f = open(self.gplFile, "r")
-                    lines = f.readlines()
-                    f.close()
-                    f = open(self.gplFile, "w")
-                    i = 0
-                    for line in lines:
-                        if not i == row.row():
-                            QGISRedUtils().writeFile(f, line)
-                        i = i + 1
-                    f.close()
-            self.fillTable()
 
     def openFolder(self):
         selectionModel = self.twProjectList.selectionModel()
