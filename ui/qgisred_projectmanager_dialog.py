@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from genericpath import isdir
-from PyQt5.QtWidgets import QTableWidgetItem, QDialog, QFileDialog, QMessageBox
-from PyQt5.QtCore import QFileInfo
+from PyQt5.QtWidgets import QTableWidgetItem, QDialog, QFileDialog, QMessageBox, QApplication
+from PyQt5.QtCore import QFileInfo, Qt
 from PyQt5.QtGui import QFont
 from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer
 from qgis.PyQt import uic
@@ -11,6 +11,7 @@ from .qgisred_createproject_dialog import QGISRedCreateProjectDialog
 from .qgisred_import_dialog import QGISRedImportDialog
 from .qgisred_importproject_dialog import QGISRedImportProjectDialog
 from .qgisred_cloneproject_dialog import QGISRedCloneProjectDialog
+from .qgisred_renameproject_dialog import QGISRedRenameProjectDialog
 from ..tools.qgisred_utils import QGISRedUtils
 
 import os
@@ -59,6 +60,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
 
         self.btLoad.clicked.connect(self.loadProject)
         self.btUnLoad.clicked.connect(self.unloadProject)
+        self.btChangeName.clicked.connect(self.changeName)
         self.btGo2Folder.clicked.connect(self.openFolder)
         # Variables:
         gplFolder = os.path.join(os.getenv("APPDATA"), "QGISRed")
@@ -285,7 +287,6 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         folder = self.getUniformedPath(folder)
         for f in os.listdir(folder):
             filepath = os.path.join(folder, f)
-            print(filepath)
             if os.path.isfile(filepath) and os.path.join(folder, networkName + "_") in filepath:
                 try:
                     os.remove(filepath)
@@ -295,6 +296,19 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 self.removeFilesFromFolder(filepath, networkName)
         if len(os.listdir(folder)) == 0:
             os.rmdir(folder)
+
+    def renameFiles(self, folder, oldName, newName):
+        folder = self.getUniformedPath(folder)
+        for f in os.listdir(folder):
+            filepath = os.path.join(folder, f)
+            if os.path.isfile(filepath) and os.path.join(folder, oldName + "_") in filepath:
+                try:
+                    copyfile(r"" + filepath, r"" + filepath.replace(oldName + "_", newName + "_"))
+                    os.remove(filepath)
+                except:
+                    pass
+            elif os.path.isdir(filepath):
+                self.renameFiles(filepath, oldName, newName)
 
     def takeRow(self, rowIndex):
         rowItems = []
@@ -548,6 +562,41 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
 
     def unloadProject(self):
         self.quitProject()
+
+    def changeName(self):
+        ok, projectNetwork, projectPath, rowIndex = self.getSelectedRowInfo()
+        if ok:
+            isSameProject = self.getUniformedPath(self.ProjectDirectory) == projectPath
+            isSameNet = self.NetworkName == projectNetwork
+            if isSameProject and isSameNet:
+                self.iface.messageBar().pushMessage("Warning", "Current project can not be renamed.", level=1, duration=5)
+                return
+            dlg = QGISRedRenameProjectDialog(None, projectNetwork, projectPath)
+            # Run the dialog event loop
+            dlg.exec_()
+            result = dlg.ProcessDone
+            if not result:
+                return
+            newName = dlg.NetworkName
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            self.renameFiles(projectPath, projectNetwork, newName)
+            self.twProjectList.setItem(rowIndex, 0, QTableWidgetItem(newName))
+            QApplication.restoreOverrideCursor()
+
+            f = open(self.gplFile, "r")
+            lines = f.readlines()
+            f.close()
+            f = open(self.gplFile, "w")
+            i = 0
+            for line in lines:
+                if not i == rowIndex:
+                    QGISRedUtils().writeFile(f, line)
+                else:
+                    QGISRedUtils().writeFile(f, newName + ";" + projectPath)
+                i = i + 1
+            f.close()
+
+            self.iface.messageBar().pushMessage("QGISRed", "Network's name has been renamed to " + newName, level=0, duration=5)
 
     def openFolder(self):
         selectionModel = self.twProjectList.selectionModel()
