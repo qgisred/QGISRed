@@ -120,11 +120,12 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 dateLast = None
                 dateCreate = None
 
-                pp = os.path.realpath(os.path.join(values[1], values[0] + "_Metadata.txt"))
-                if os.path.exists(pp):
+                metadataFile = os.path.realpath(os.path.join(values[1], values[0] + "_Metadata.txt"))
+                pipeFile = os.path.realpath(os.path.join(values[1], values[0] + "_Pipes.shp"))
+                if os.path.exists(metadataFile) and os.path.exists(pipeFile):
                     validLines.append(x)
                     data = ""
-                    with open(pp, "r", encoding="latin-1") as content_file:
+                    with open(metadataFile, "r", encoding="latin-1") as content_file:
                         data = content_file.read()
                     # Parse data as XML
                     root = ElementTree.fromstring(data)
@@ -134,10 +135,10 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                     for dc in root.iter("DateCreation"):
                         dateCreate = dc.text
                 else:
-                    pp = os.path.realpath(os.path.join(values[1], values[0] + ".gqp"))  # old file
-                    if os.path.exists(pp):
+                    metadataFile = os.path.realpath(os.path.join(values[1], values[0] + ".gqp"))  # old file
+                    if os.path.exists(metadataFile) and os.path.exists(pipeFile):
                         validLines.append(x)
-                        f2 = open(pp, "r")
+                        f2 = open(metadataFile, "r")
                         lines = f2.readlines()
                         if len(lines) >= 2:
                             dateLast = lines[1]
@@ -173,6 +174,8 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             QGISRedUtils().writeFile(file, net + ";" + folder + "\n")
             file.close()
             self.fillTable()
+            self.twProjectList.setCurrentCell(self.twProjectList.rowCount() - 1, 1)
+            self.twProjectList.setFocus()
         else:
             message = "'" + net + "' project is not found in selected folder"
             self.iface.messageBar().pushMessage("Warning", message, level=1, duration=5)
