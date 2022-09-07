@@ -520,32 +520,28 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             dlg.exec_()
             result = dlg.ProcessDone
             if result:
-                if mainName == dlg.NetworkName and mainFolder == dlg.ProjectDirectory:
-                    message = "Selected project has the same Network's Name for cloning it in the original directory. Please, set another name or directory."
-                    self.iface.messageBar().pushMessage("Warning", message, level=1, duration=5)
-                else:
-                    for layerName in self.ownMainLayers:
-                        layerPath = os.path.join(mainFolder, mainName + "_" + layerName)
-                        # Extensions
-                        for ext in self.layerExtensions:
-                            if os.path.exists(layerPath + ext):
-                                name = dlg.NetworkName + "_" + layerName + ext
-                                copyfile(layerPath + ext, os.path.join(dlg.ProjectDirectory, name))
+                for layerName in self.ownMainLayers:
+                    layerPath = os.path.join(mainFolder, mainName + "_" + layerName)
+                    # Extensions
+                    for ext in self.layerExtensions:
+                        if os.path.exists(layerPath + ext):
+                            name = dlg.NetworkName + "_" + layerName + ext
+                            copyfile(layerPath + ext, os.path.join(dlg.ProjectDirectory, name))
 
-                    for layerName in self.complementaryLayers:
-                        layerPath = os.path.join(mainFolder, mainName + "_" + layerName)
-                        # Extensions
-                        for ext in self.layerExtensions:
-                            if os.path.exists(layerPath + ext):
-                                name = dlg.NetworkName + "_" + layerName + ext
-                                copyfile(layerPath + ext, os.path.join(dlg.ProjectDirectory, name))
+                for layerName in self.complementaryLayers:
+                    layerPath = os.path.join(mainFolder, mainName + "_" + layerName)
+                    # Extensions
+                    for ext in self.layerExtensions:
+                        if os.path.exists(layerPath + ext):
+                            name = dlg.NetworkName + "_" + layerName + ext
+                            copyfile(layerPath + ext, os.path.join(dlg.ProjectDirectory, name))
 
-                    for fileName in self.ownFiles:
-                        filePath = os.path.join(mainFolder, mainName + "_" + fileName)
-                        if os.path.exists(filePath):
-                            copyfile(filePath, os.path.join(dlg.ProjectDirectory, dlg.NetworkName + "_" + fileName))
+                for fileName in self.ownFiles:
+                    filePath = os.path.join(mainFolder, mainName + "_" + fileName)
+                    if os.path.exists(filePath):
+                        copyfile(filePath, os.path.join(dlg.ProjectDirectory, dlg.NetworkName + "_" + fileName))
 
-                    self.addProjectToTable(dlg.ProjectDirectory, dlg.NetworkName)
+                self.addProjectToTable(dlg.ProjectDirectory, dlg.NetworkName)
         else:
             self.iface.messageBar().pushMessage("Warning", "There is no a selected project to clone.", level=1, duration=5)
 

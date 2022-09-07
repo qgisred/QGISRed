@@ -35,8 +35,8 @@ class QGISRedCloneProjectDialog(QDialog, FORM_CLASS):
             self.lbMessage.setText("Not valid Project Directory")
             return
 
-        if os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + ".gqp")):
-            self.lbMessage.setText("There is already a project with this name in this folder.")
+        if os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_Pipes.shp")):
+            self.lbMessage.setText("There is already a project with this name in the selected project folder.")
             return
 
         self.ProcessDone = True
