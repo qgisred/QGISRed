@@ -981,14 +981,14 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         resultPath = os.path.join(self.ProjectDirectory, "Results")
         try:
             copyfile(
-                os.path.join(resultPath, self.NetworkName + "_Base"),
-                os.path.join(resultPath, self.NetworkName + "_" + newScenario),
+                r"" + os.path.join(resultPath, self.NetworkName + "_Base"),
+                r"" + os.path.join(resultPath, self.NetworkName + "_" + newScenario),
             )  # Binary
             files = os.listdir(resultPath)
             for file in files:  # only names
                 if self.NetworkName + "_Base_Link" in file or self.NetworkName + "_Base_Node" in file:
                     newName = file.replace("_Base_", "_" + newScenario + "_")
-                    copyfile(os.path.join(resultPath, file), os.path.join(resultPath, newName))
+                    copyfile(r"" + os.path.join(resultPath, file), r"" + os.path.join(resultPath, newName))
 
             self.LabelResults[newScenario] = self.TimeLabels
             self.IndexTime[newScenario] = self.cbTimes.currentIndex()

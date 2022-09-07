@@ -526,7 +526,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                     for ext in self.layerExtensions:
                         if os.path.exists(layerPath + ext):
                             name = dlg.NetworkName + "_" + layerName + ext
-                            copyfile(layerPath + ext, os.path.join(dlg.ProjectDirectory, name))
+                            copyfile(r"" + layerPath + ext, r"" + os.path.join(dlg.ProjectDirectory, name))
 
                 for layerName in self.complementaryLayers:
                     layerPath = os.path.join(mainFolder, mainName + "_" + layerName)
@@ -534,12 +534,12 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                     for ext in self.layerExtensions:
                         if os.path.exists(layerPath + ext):
                             name = dlg.NetworkName + "_" + layerName + ext
-                            copyfile(layerPath + ext, os.path.join(dlg.ProjectDirectory, name))
+                            copyfile(r"" + layerPath + ext, r"" + os.path.join(dlg.ProjectDirectory, name))
 
                 for fileName in self.ownFiles:
                     filePath = os.path.join(mainFolder, mainName + "_" + fileName)
                     if os.path.exists(filePath):
-                        copyfile(filePath, os.path.join(dlg.ProjectDirectory, dlg.NetworkName + "_" + fileName))
+                        copyfile(r"" + filePath, r"" + os.path.join(dlg.ProjectDirectory, dlg.NetworkName + "_" + fileName))
 
                 self.addProjectToTable(dlg.ProjectDirectory, dlg.NetworkName)
         else:
