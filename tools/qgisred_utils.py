@@ -462,26 +462,19 @@ class QGISRedUtils:
         os.chdir(QGISRedUtils.DllTempoFolder)
         return os.path.join(QGISRedUtils.DllTempoFolder, "GISRed.QGisPlugins.dll")
 
-    def getFilePaths(self):
-        # initializing empty file paths list
-        # file_paths = []
-        # # crawling through directory and subdirectories
-        # for root, _, files in os.walk(self.ProjectDirectory):
-        #     for filename in files:
-        #         if self.NetworkName in filename:
-        #             # join the two strings in order to form the full filepath.
-        #             filepath = os.path.join(root, filename)
-        #             file_paths.append(self.getUniformedPath(filepath))
-        # # returning all file paths
+    def saveFilesInZip(self, zipPath):
         file_paths = []
         for f in os.listdir(self.ProjectDirectory):
             filepath = os.path.join(self.ProjectDirectory, f)
             if os.path.isfile(filepath):
                 file_paths.append(self.getUniformedPath(filepath))
-        return file_paths
+
+        with ZipFile(zipPath, "w") as zip:
+            for file in file_paths:
+                if self.getUniformedPath(self.ProjectDirectory) + "\\" + self.NetworkName + "_" in file:
+                    zip.write(file, file.replace(self.getUniformedPath(self.ProjectDirectory), ""))
 
     def saveBackup(self):
-        file_paths = self.getFilePaths()
         dirpath = os.path.join(self.ProjectDirectory, "backups")
         if not os.path.exists(dirpath):
             try:
@@ -492,10 +485,7 @@ class QGISRedUtils:
         timeString = datetime.datetime.now().timestamp()
         zipPath = os.path.join(dirpath, self.NetworkName + "_" + str(timeString) + ".zip")
 
-        with ZipFile(zipPath, "w") as zip:
-            # writing each file one by one
-            for file in file_paths:
-                zip.write(file, file.replace(self.getUniformedPath(self.ProjectDirectory), ""))
+        self.saveFilesInZip(zipPath)
         return zipPath
 
     def writeFile(self, file, string):

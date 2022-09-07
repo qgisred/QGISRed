@@ -503,13 +503,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 return
 
             utils = QGISRedUtils(project, name, self.iface)
-            files = utils.getFilePaths()
-            with ZipFile(zipPath, "w") as zip:
-                # writing each file one by one
-                for file in files:
-                    if self.getUniformedPath(project) + "\\" + name + "_" in file:
-                        zip.write(file, file.replace(self.getUniformedPath(project), ""))
-
+            utils.saveFilesInZip(zipPath)
             self.iface.messageBar().pushMessage("QGISRed", "Zip file stored in: " + zipPath, level=0, duration=5)
             return
         else:
