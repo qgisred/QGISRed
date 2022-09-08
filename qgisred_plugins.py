@@ -276,11 +276,7 @@ class QGISRed:
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
-        # dirpath = os.path.join(tempfile._get_default_tempdir(), "qgisred" + self.KeyTemp)
-        # if os.path.exists(dirpath) and os.path.isdir(dirpath):
-        # shutil.rmtree(dirpath)
-        if os.path.exists(self.tempFolder) and os.path.isdir(self.tempFolder):
-            shutil.rmtree(self.tempFolder)
+        QGISRedUtils().removeFolder(self.tempFolder)
 
         if QGISRedUtils.DllTempoFolder is not None:
             with open(self.dllTempFolderFile, "a+") as file:
@@ -1528,10 +1524,7 @@ class QGISRed:
             lines = file.readlines()
             for line in lines:
                 filePath = line.strip("\n")
-                try:
-                    if os.path.exists(filePath) and os.path.isdir(filePath):
-                        shutil.rmtree(filePath)
-                except Exception:
+                if not QGISRedUtils().removeFolder(filePath):
                     allDeleted = False
         if allDeleted:
             os.remove(self.dllTempFolderFile)

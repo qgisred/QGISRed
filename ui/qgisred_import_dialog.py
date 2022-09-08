@@ -9,6 +9,8 @@ from ..tools.qgisred_utils import QGISRedUtils
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 import os
 import tempfile
+import shutil
+
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_import_dialog.ui"))
 
@@ -20,6 +22,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
     NetworkName = ""
     ProjectDirectory = ""
     InpFile = ""
+    ZipFile = ""
     gplFile = ""
     TemporalFolder = "Temporal folder"
     ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs", "Demands", "Sources"]
@@ -53,6 +56,9 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbMeterLayer.currentIndexChanged.connect(self.meterLayerChanged)
         self.cbMeterType.currentIndexChanged.connect(self.meterTypeChanged)
         self.btImportShps.clicked.connect(self.importShpProject)
+        # QGISRed project
+        self.btSelectZip.clicked.connect(self.selectZIP)
+        self.btImportProject.clicked.connect(self.importProject)
 
     def config(self, ifac, direct, netw, parent):
         self.parent = parent
@@ -88,6 +94,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             self.tbCRS.setVisible(False)
             self.btSelectCRS.setVisible(False)
             self.tabWidget.removeTab(0)
+            self.tabWidget.removeTab(1)
             self.label_14.setVisible(False)
             self.label_15.setVisible(False)
             self.cbUnits.setVisible(False)
@@ -117,9 +124,9 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 self.crs.createFromId(crsId, QgsCoordinateReferenceSystem.InternalCrsId)
                 self.tbCRS.setText(self.crs.description())
 
-    def validationsCreateProject(self):
+    def validationsCreateProject(self, validateName=True):
         self.NetworkName = self.tbNetworkName.text()
-        if len(self.NetworkName) == 0:
+        if validateName and len(self.NetworkName) == 0:
             self.iface.messageBar().pushMessage("Validations", "The network's name is not valid", level=1)
             return False
         self.ProjectDirectory = self.tbProjectDirectory.text()
@@ -1153,3 +1160,66 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 self.parent.especificComplementaryLayers.append("Meters")
 
             self.parent.processCsharpResult(resMessage, "")
+
+    """QGISRED PROJECT SECTION"""
+
+    def selectZIP(self):
+        qfd = QFileDialog()
+        path = ""
+        filter = "zip(*.zip)"
+        f = QFileDialog.getOpenFileName(qfd, "Select ZIP file", path, filter)
+        f = f[0]
+        if not f == "":
+            self.ZipFile = f
+            self.tbZipFile.setText(f)
+            self.tbZipFile.setCursorPosition(0)
+
+    def importProject(self):
+        pass
+        # Common validations
+        isValid = self.validationsCreateProject(False)
+        if isValid:
+            # Validations ZIP
+            self.ZipFile = self.tbZipFile.text()
+            if len(self.ZipFile) == 0:
+                self.iface.messageBar().pushMessage("Validations", "ZIP file is not valid", level=1)
+                return
+            else:
+                if not os.path.exists(self.ZipFile):
+                    self.iface.messageBar().pushMessage("Validations", "ZIP file does not exist", level=1)
+                    return
+
+            self.close()
+            # Process
+            self.parent.zoomToFullExtent = True
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            # Unzip
+            tempFolder = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names())
+            QGISRedUtils().unzipFile(self.ZipFile, tempFolder)
+            QApplication.restoreOverrideCursor()
+
+            validProject = False
+            for f in os.listdir(tempFolder):
+                filepath = os.path.join(tempFolder, f)
+                if "_Pipes.shp" in filepath:
+                    validProject = True
+                    self.NetworkName = f.replace("_Pipes.shp", "")
+                    break
+
+            if not validProject:
+                self.iface.messageBar().pushMessage("Warninf", "ZIP file does not contain a valid QGISRed project", level=1)
+                return
+
+            QGISRedUtils().copyFolderFiles(tempFolder, self.ProjectDirectory)
+            QGISRedUtils().removeFolder(tempFolder)
+            self.parent.ProjectDirectory = self.ProjectDirectory
+            self.parent.NetworkName = self.NetworkName
+
+            # Write .gql file
+            file = open(self.gplFile, "a+")
+            QGISRedUtils().writeFile(file, self.NetworkName + ";" + self.ProjectDirectory + "\n")
+            file.close()
+
+            # Open files
+            utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+            utils.openProjectInQgis()
