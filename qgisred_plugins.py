@@ -1425,12 +1425,14 @@ class QGISRed:
                 valid = True
         if not valid:
             link = '"https://qgisred.upv.es/files/dependencies/' + self.DependenciesVersion + '/QGISRed_Installation.msi"'
-            firstPartMessage = "QGISRed plugin only runs in Windows OS and needs some dependencies ("
             request = QMessageBox.question(
                 self.iface.mainWindow(),
                 self.tr("QGISRed Dependencies"),
                 self.tr(
-                    firstPartMessage + self.DependenciesVersion + "). Do you want to download and authomatically install them?"
+                    "QGISRed plugin only runs in Windows OS and requires some dependencies (v"
+                    + self.DependenciesVersion
+                    + "). Do you want to install them now?\n\nAt the end, the QGISRed web page will be open to show the news, "
+                    "where you can also register if you wish to receive the newsletters."
                 ),
                 QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
             )
