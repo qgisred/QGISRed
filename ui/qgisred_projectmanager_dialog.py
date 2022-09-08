@@ -71,7 +71,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         self.gplFile = os.path.join(gplFolder, "qgisredprojectlist.gpl")
         # Columns:
         self.twProjectList.setColumnCount(4)
-        item = QTableWidgetItem("Network's Name")
+        item = QTableWidgetItem("Name")
         self.twProjectList.setHorizontalHeaderItem(0, item)
         item = QTableWidgetItem("Last update")
         self.twProjectList.setHorizontalHeaderItem(1, item)
