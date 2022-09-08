@@ -12,6 +12,7 @@ import os
 import tempfile
 import datetime
 import shutil
+from shutil import copyfile
 import platform
 from zipfile import ZipFile
 from random import randrange
@@ -464,7 +465,7 @@ class QGISRedUtils:
         os.chdir(QGISRedUtils.DllTempoFolder)
         return os.path.join(QGISRedUtils.DllTempoFolder, "GISRed.QGisPlugins.dll")
 
-    """Open/Save files"""
+    """Open/Save/Remove files"""
 
     def openProjectInQgis(self):
         metadataFile = os.path.join(self.ProjectDirectory, self.NetworkName + "_Metadata.txt")
@@ -550,6 +551,10 @@ class QGISRedUtils:
                 if self.getUniformedPath(self.ProjectDirectory) + "\\" + self.NetworkName + "_" in file:
                     zip.write(file, file.replace(self.getUniformedPath(self.ProjectDirectory), ""))
 
+    def unzipFile(self, zipfile, directory):
+        with ZipFile(zipfile, "r") as zip_ref:
+            zip_ref.extractall(directory)
+
     def saveBackup(self):
         dirpath = os.path.join(self.ProjectDirectory, "backups")
         if not os.path.exists(dirpath):
@@ -566,6 +571,32 @@ class QGISRedUtils:
 
     def writeFile(self, file, string):
         file.write(string)
+
+    def copyFolderFiles(self, originalFolder, destinationFolder):
+        if not os.path.exists(destinationFolder):
+            try:
+                os.mkdir(destinationFolder)
+            except Exception:
+                pass
+
+        folder = self.getUniformedPath(originalFolder)
+        for f in os.listdir(folder):
+            filepath = os.path.join(folder, f)
+            if os.path.isfile(filepath):
+                try:
+                    copyfile(r"" + filepath, r"" + filepath.replace(folder, destinationFolder))
+                except:
+                    pass
+            elif os.path.isdir(filepath):
+                self.copyFolderFiles(filepath, os.path.join(destinationFolder, f))
+
+    def removeFolder(self, folder):
+        try:
+            if os.path.exists(folder) and os.path.isdir(folder):
+                shutil.rmtree(folder)
+        except:
+            return False
+        return True
 
     """Tasks"""
 
