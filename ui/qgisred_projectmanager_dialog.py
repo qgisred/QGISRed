@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-from genericpath import isdir
 from PyQt5.QtWidgets import QTableWidgetItem, QDialog, QFileDialog, QMessageBox, QApplication
-from PyQt5.QtCore import QFileInfo, Qt
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
-from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer
+from qgis.core import QgsProject
 from qgis.PyQt import uic
 
 # Import the code for the dialog
@@ -15,7 +14,6 @@ from .qgisred_renameproject_dialog import QGISRedRenameProjectDialog
 from ..tools.qgisred_utils import QGISRedUtils
 
 import os
-import shutil
 from shutil import copyfile
 from xml.etree import ElementTree
 from zipfile import ZipFile
@@ -202,78 +200,6 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         if task is not None:
             return {"task": task.definition()}
 
-    def openProjectInQgis(self, projectDirectory, networkName):
-        metadataFile = os.path.join(projectDirectory, networkName + "_Metadata.txt")
-        if os.path.exists(metadataFile):
-            # Read data as text plain to include the encoding
-            data = ""
-            with open(metadataFile, "r", encoding="latin-1") as content_file:
-                data = content_file.read()
-            # Parse data as XML
-            root = ElementTree.fromstring(data)
-            # Get data from nodes
-            for qgs in root.findall("./ThirdParty/QGISRed/QGisProject"):
-                if ".qgs" in qgs.text or ".qgz" in qgs.text:
-                    finfo = QFileInfo(qgs.text)
-                    QgsProject.instance().read(finfo.filePath())
-                    return
-            for groups in root.findall("./ThirdParty/QGISRed/Groups"):
-                for group in groups:
-                    groupName = group.tag
-                    root = QgsProject.instance().layerTreeRoot()
-                    netGroup = root.addGroup(networkName)
-                    treeGroup = netGroup.addGroup(groupName)
-                    for lay in group.iter("Layer"):
-                        layerName = lay.text
-                        layerPath = os.path.join(projectDirectory, networkName + "_" + layerName + ".shp")
-                        if not os.path.exists(layerPath):
-                            continue
-                        if treeGroup is None:
-                            vlayer = self.iface.addVectorLayer(layerPath, layerName, "ogr")
-                        else:
-                            vlayer = QgsVectorLayer(layerPath, layerName, "ogr")
-                            QgsProject.instance().addMapLayer(vlayer, False)
-                            treeGroup.insertChildNode(0, QgsLayerTreeLayer(vlayer))
-                        if vlayer is not None:
-                            if ".shp" in layerPath:
-                                QGISRedUtils().setStyle(vlayer, layerName.lower())
-        else:  # old file
-            gqpFilename = os.path.join(projectDirectory, networkName + ".gqp")
-            if os.path.exists(gqpFilename):
-                f = open(gqpFilename, "r")
-                lines = f.readlines()
-                qgsFile = lines[2]
-                if ".qgs" in qgsFile or ".qgz" in qgsFile:
-                    finfo = QFileInfo(qgsFile)
-                    QgsProject.instance().read(finfo.filePath())
-                else:
-                    group = None
-                    for i in range(2, len(lines)):
-                        if "[" in lines[i]:
-                            groupName = str(lines[i].strip("[").strip("\r\n").strip("]")).replace(networkName + " ", "")
-                            root = QgsProject.instance().layerTreeRoot()
-                            netGroup = root.addGroup(networkName)
-                            group = netGroup.addGroup(groupName)
-                        else:
-                            layerPath = lines[i].strip("\r\n")
-                            if not os.path.exists(layerPath):
-                                continue
-                            vlayer = None
-                            layerName = os.path.splitext(os.path.basename(layerPath))[0].replace(networkName + "_", "")
-                            if group is None:
-                                vlayer = self.iface.addVectorLayer(layerPath, layerName, "ogr")
-                            else:
-                                vlayer = QgsVectorLayer(layerPath, layerName, "ogr")
-                                QgsProject.instance().addMapLayer(vlayer, False)
-                                group.insertChildNode(0, QgsLayerTreeLayer(vlayer))
-                            if vlayer is not None:
-                                if ".shp" in layerPath:
-                                    names = (os.path.splitext(os.path.basename(layerPath))[0]).split("_")
-                                    nameLayer = names[len(names) - 1]
-                                    QGISRedUtils().setStyle(vlayer, nameLayer.lower())
-            else:
-                self.iface.messageBar().pushMessage("Warning", "File not found", level=1, duration=5)
-
     def getUniformedPath(self, path):
         return QGISRedUtils().getUniformedPath(path)
 
@@ -444,7 +370,8 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         if ok:
             self.NetworkName = name
             self.ProjectDirectory = project
-            self.openProjectInQgis(self.ProjectDirectory, self.NetworkName)
+            utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+            utils.openProjectInQgis()
             self.close()
             self.ProcessDone = True
             self.parent.readUnits()
