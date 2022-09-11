@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtWidgets import QFileDialog, QDialog
 from qgis.PyQt import uic
+
+from ..tools.qgisred_utils import QGISRedUtils
+
 import os
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_importproject_dialog.ui"))
@@ -23,6 +26,7 @@ class QGISRedImportProjectDialog(QDialog, FORM_CLASS):
 
     def selectDirectory(self):
         selected_directory = QFileDialog.getExistingDirectory()
+        selected_directory = QGISRedUtils().getUniformedPath(selected_directory)
         if not selected_directory == "":
             self.tbProjectDirectory.setText(selected_directory)
             self.tbProjectDirectory.setCursorPosition(0)
@@ -33,13 +37,8 @@ class QGISRedImportProjectDialog(QDialog, FORM_CLASS):
         self.cbNetworkName.clear()
         nameList = []
         for f in os.listdir(self.ProjectDirectory):
-            if not "_" in f:
-                continue
-            nameList.append(f.split("_")[0])
-        nameList = list(dict.fromkeys(nameList))
-        for name in nameList:
-            if os.path.exists(os.path.join(self.ProjectDirectory, name + "_Pipes.shp")):
-                self.cbNetworkName.addItem(name)
+            if "_Pipes.shp" in f:
+                self.cbNetworkName.addItem(f.replace("_Pipes.shp", ""))
         if self.cbNetworkName.count() > 0:
             self.cbNetworkName.setCurrentIndex(0)
 
