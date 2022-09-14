@@ -25,7 +25,7 @@
        <item>
         <widget class="QLabel" name="label">
          <property name="text">
-          <string>New Network's name:</string>
+          <string>New Project's name:</string>
          </property>
         </widget>
        </item>

@@ -25,7 +25,7 @@
        <item>
         <widget class="QLabel" name="lbName">
          <property name="text">
-          <string>Network's name:</string>
+          <string>Project's name:</string>
          </property>
         </widget>
        </item>
@@ -4011,7 +4011,7 @@
               </font>
              </property>
              <property name="text">
-              <string>** Network's name will be ignored preserving the name of the network stored in the ZIP file</string>
+              <string>** Project's name will be ignored preserving the name of the network stored in the ZIP file</string>
              </property>
             </widget>
            </item>

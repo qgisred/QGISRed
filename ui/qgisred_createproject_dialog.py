@@ -69,7 +69,7 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
     def validationsCreateProject(self):
         self.NetworkName = self.tbNetworkName.text()
         if len(self.NetworkName) == 0:
-            self.iface.messageBar().pushMessage("Validations", "The network's name is not valid", level=1)
+            self.iface.messageBar().pushMessage("Validations", "The project's name is not valid", level=1)
             return False
         self.ProjectDirectory = self.tbProjectDirectory.text()
         if len(self.ProjectDirectory) == 0 or self.ProjectDirectory == self.TemporalFolder:
@@ -99,7 +99,7 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
                 ]
                 for layer in layers:
                     if self.NetworkName + "_" + layer + ".shp" in dirList:
-                        message = "The project directory has some file to selected network's name"
+                        message = "The project directory has some file to selected project's name"
                         self.iface.messageBar().pushMessage("Validations", message, level=1)
                         return False
 
