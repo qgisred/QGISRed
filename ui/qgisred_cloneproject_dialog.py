@@ -29,7 +29,7 @@ class QGISRedCloneProjectDialog(QDialog, FORM_CLASS):
     def accept(self):
         self.NetworkName = self.tbNetworkName.text()
         if self.NetworkName == "":
-            self.lbMessage.setText("Not valid New Network's Name")
+            self.lbMessage.setText("Not valid New Project's Name")
             return
         if self.ProjectDirectory == "":
             self.lbMessage.setText("Not valid Project Directory")
