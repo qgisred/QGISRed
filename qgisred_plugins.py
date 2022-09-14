@@ -2296,6 +2296,9 @@ class QGISRed:
         self.selectedFids = {}
 
         dlg = QGISRedImportProjectDialog()
+        icon_path = ":/plugins/QGISRed/images/iconData.png"
+        dlg.setWindowIcon(QIcon(icon_path))
+        dlg.setWindowTitle("QGISRed: Open project")
         # Run the dialog event loop
         dlg.exec_()
         result = dlg.ProcessDone
