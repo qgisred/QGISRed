@@ -41,7 +41,7 @@
        <item>
         <widget class="QLabel" name="label_2">
          <property name="text">
-          <string>Project directory:</string>
+          <string>Project folder:</string>
          </property>
         </widget>
        </item>
@@ -112,7 +112,7 @@
           </size>
          </property>
          <property name="text">
-          <string>Project's name:</string>
+          <string>Project name:</string>
          </property>
         </widget>
        </item>
