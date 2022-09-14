@@ -515,7 +515,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 i = i + 1
             f.close()
 
-            self.iface.messageBar().pushMessage("QGISRed", "Project's name has been renamed to " + newName, level=0, duration=5)
+            self.iface.messageBar().pushMessage("QGISRed", "Project name has been renamed to " + newName, level=0, duration=5)
 
     def openFolder(self):
         selectionModel = self.twProjectList.selectionModel()

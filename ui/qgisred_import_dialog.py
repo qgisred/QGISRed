@@ -127,14 +127,14 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
     def validationsCreateProject(self, validateName=True):
         self.NetworkName = self.tbNetworkName.text()
         if validateName and len(self.NetworkName) == 0:
-            self.iface.messageBar().pushMessage("Validations", "The project's name is not valid", level=1)
+            self.iface.messageBar().pushMessage("Validations", "The project name is not valid", level=1)
             return False
         self.ProjectDirectory = self.tbProjectDirectory.text()
         if len(self.ProjectDirectory) == 0 or self.ProjectDirectory == self.TemporalFolder:
             self.ProjectDirectory = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names())
         else:
             if not os.path.exists(self.ProjectDirectory):
-                self.iface.messageBar().pushMessage("Validations", "The project directory does not exist", level=1)
+                self.iface.messageBar().pushMessage("Validations", "The project folder does not exist", level=1)
                 return False
         return True
 

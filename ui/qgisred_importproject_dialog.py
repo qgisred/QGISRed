@@ -46,10 +46,10 @@ class QGISRedImportProjectDialog(QDialog, FORM_CLASS):
         valid = True
         self.NetworkName = self.cbNetworkName.currentText()
         if self.NetworkName == "":
-            self.lbMessage.setText("Not valid Project's Name")
+            self.lbMessage.setText("Not valid Project Name")
             valid = False
         if self.ProjectDirectory == "":
-            self.lbMessage.setText("Not valid Project Directory")
+            self.lbMessage.setText("Not valid Project Folder")
             valid = False
 
         if valid:
