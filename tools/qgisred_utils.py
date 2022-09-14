@@ -465,6 +465,19 @@ class QGISRedUtils:
         os.chdir(QGISRedUtils.DllTempoFolder)
         return os.path.join(QGISRedUtils.DllTempoFolder, "GISRed.QGisPlugins.dll")
 
+    def getUserFolder(self):
+        userFolder = os.path.expanduser("~\\QGISRed")
+        try:  # create directory if does not exist
+            os.stat(userFolder)
+        except Exception:
+            os.mkdir(userFolder)
+        userFolder = os.path.expanduser("~\\QGISRed\\Projects")
+        try:  # create directory if does not exist
+            os.stat(userFolder)
+        except Exception:
+            os.mkdir(userFolder)
+        return userFolder
+
     """Open/Save/Remove files"""
 
     def openProjectInQgis(self):

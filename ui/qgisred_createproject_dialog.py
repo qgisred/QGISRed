@@ -9,7 +9,6 @@ from ..tools.qgisred_utils import QGISRedUtils
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
 import os
-import tempfile
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_createproject_dialog.ui"))
 
@@ -20,7 +19,6 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
     NetworkName = ""
     ProjectDirectory = ""
     gplFile = ""
-    TemporalFolder = "Temporal folder"
 
     def __init__(self, parent=None):
         """Constructor."""
@@ -44,13 +42,15 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
         self.crs = utils.getProjectCrs()
         self.tbCRS.setText(self.crs.description())
         self.NetworkName = netw
+        if direct == "Temporal folder":
+            direct = QGISRedUtils().getUserFolder()
         self.ProjectDirectory = direct
         self.tbNetworkName.setText(netw)
         self.tbProjectDirectory.setText(direct)
         self.tbProjectDirectory.setCursorPosition(0)
 
     def selectDirectory(self):
-        selected_directory = QFileDialog.getExistingDirectory()
+        selected_directory = QFileDialog.getExistingDirectory(self, "Select folder", self.ProjectDirectory)
         if not selected_directory == "":
             self.tbProjectDirectory.setText(selected_directory)
             self.tbProjectDirectory.setCursorPosition(0)
@@ -72,8 +72,9 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
             self.iface.messageBar().pushMessage("Validations", "The project name is not valid", level=1)
             return False
         self.ProjectDirectory = self.tbProjectDirectory.text()
-        if len(self.ProjectDirectory) == 0 or self.ProjectDirectory == self.TemporalFolder:
-            self.ProjectDirectory = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names())
+        if len(self.ProjectDirectory) == 0:
+            self.iface.messageBar().pushMessage("Validations", "The project folder is not valid", level=1)
+            return False
         else:
             if not os.path.exists(self.ProjectDirectory):
                 self.iface.messageBar().pushMessage("Validations", "The project folder does not exist", level=1)
@@ -99,7 +100,7 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
                 ]
                 for layer in layers:
                     if self.NetworkName + "_" + layer + ".shp" in dirList:
-                        message = "The project folder has some file to selected project name"
+                        message = "The project folder has some file with the selected project name."
                         self.iface.messageBar().pushMessage("Validations", message, level=1)
                         return False
 
