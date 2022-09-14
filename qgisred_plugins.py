@@ -40,6 +40,7 @@ from .ui.qgisred_results_dock import QGISRedResultsDock
 from .ui.qgisred_toolLength_dialog import QGISRedLengthToolDialog
 from .ui.qgisred_toolConnections_dialog import QGISRedServiceConnectionsToolDialog
 from .ui.qgisred_toolConnectivity_dialog import QGISRedConnectivityToolDialog
+from .ui.qgisred_importproject_dialog import QGISRedImportProjectDialog
 from .tools.qgisred_utils import QGISRedUtils
 from .tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from .tools.qgisred_moveNodes import QGISRedMoveNodesTool
@@ -249,6 +250,13 @@ class QGISRed:
         # QGISRed updates
         self.checkForUpdates()
 
+        self.gplFolder = os.path.join(os.getenv("APPDATA"), "QGISRed")
+        try:  # create directory if does not exist
+            os.stat(self.gplFolder)
+        except Exception:
+            os.mkdir(self.gplFolder)
+        self.gplFile = os.path.join(self.gplFolder, "qgisredprojectlist.gpl")
+
         # SHPs temporal folder
         self.tempFolder = tempfile._get_default_tempdir() + "\\QGISRed_" + next(tempfile._get_candidate_names())
         try:  # create directory if does not exist
@@ -353,6 +361,17 @@ class QGISRed:
             icon_path,
             text=self.tr("Project manager"),
             callback=self.runProjectManager,
+            menubar=self.fileMenu,
+            toolbar=self.fileToolbar,
+            actionBase=fileDropButton,
+            add_to_toolbar=True,
+            parent=self.iface.mainWindow(),
+        )
+        icon_path = ":/plugins/QGISRed/images/iconData.png"
+        self.add_action(
+            icon_path,
+            text=self.tr("Open project"),
+            callback=self.runCanOpenProject,
             menubar=self.fileMenu,
             toolbar=self.fileToolbar,
             actionBase=fileDropButton,
@@ -479,6 +498,17 @@ class QGISRed:
         )
         self.projectToolbar.addSeparator()
         self.projectMenu.addSeparator()
+        icon_path = ":/plugins/QGISRed/images/iconSave.png"
+        self.add_action(
+            icon_path,
+            text=self.tr("Save project"),
+            callback=self.runSaveActionProject,
+            menubar=self.projectMenu,
+            toolbar=self.projectToolbar,
+            actionBase=projectDropButton,
+            add_to_toolbar=True,
+            parent=self.iface.mainWindow(),
+        )
         icon_path = ":/plugins/QGISRed/images/iconLock.png"
         self.add_action(
             icon_path,
@@ -2241,6 +2271,48 @@ class QGISRed:
             self.NetworkName = dlg.NetworkName
             self.ProjectDirectory = dlg.ProjectDirectory
 
+    def runCanOpenProject(self):
+        if not self.checkDependencies():
+            return
+
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            self.runOpenProject()
+        else:
+            valid = self.isOpenedProject()
+            if valid:
+                QGISRedUtils().runTask("open project", self.clearQGisProject, self.runOpenProject)
+
+    def runOpenProject(self, exception=None, result=None):
+        if not self.checkDependencies():
+            return
+
+        if not self.ProjectDirectory == self.TemporalFolder:
+            QgsProject.instance().clear()
+            self.defineCurrentProject()
+
+        self.opendedLayers = False
+        self.especificComplementaryLayers = []
+        self.selectedFids = {}
+
+        dlg = QGISRedImportProjectDialog()
+        # Run the dialog event loop
+        dlg.exec_()
+        result = dlg.ProcessDone
+        if result:
+            self.NetworkName = dlg.NetworkName
+            self.ProjectDirectory = dlg.ProjectDirectory
+            # Write .gql file
+            file = open(self.gplFile, "a+")
+            QGISRedUtils().writeFile(file, self.NetworkName + ";" + self.ProjectDirectory + "\n")
+            file.close()
+
+            # Open files
+            utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+            utils.openProjectInQgis()
+
+            self.readUnits()
+
     def runCanCreateProject(self):
         if not self.checkDependencies():
             return
@@ -2309,6 +2381,10 @@ class QGISRed:
 
     def runCloseProject(self):
         self.iface.newProject(True)
+
+    def runSaveActionProject(self):
+        self.iface.mainWindow().findChild(QAction, "mActionSaveProject").trigger()
+        self.iface.messageBar().pushMessage(self.tr("Info"), self.tr("Project saved"), level=0, duration=5)
 
     def runChangeCrs(self):
         # Process
