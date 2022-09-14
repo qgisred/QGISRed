@@ -286,14 +286,15 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             self.iface.messageBar().pushMessage("Warning", "Please, select a row project to move.", level=1, duration=5)
 
     def quitProject(self, remove=False):
+        word = "unloaded"
+        if remove:
+            word = "removed"
         ok, projectNetwork, projectPath, rowIndex = self.getSelectedRowInfo()
         if ok:
             isSameProject = self.getUniformedPath(self.ProjectDirectory) == projectPath
             isSameNet = self.NetworkName == projectNetwork
             if isSameProject and isSameNet:
-                word = "unloaded"
-                if remove:
-                    word = "removed"
+
                 self.iface.messageBar().pushMessage("Warning", "Current project can not be " + word + ".", level=1, duration=5)
                 return
 
@@ -332,6 +333,10 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                     i = i + 1
                 f.close()
             self.fillTable()
+        else:
+            self.iface.messageBar().pushMessage(
+                "Warning", "You need to select a project to " + word + " it.", level=1, duration=5
+            )
 
     def getSelectedRowInfo(self):
         selectionModel = self.twProjectList.selectionModel()
@@ -466,7 +471,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
 
                 self.addProjectToTable(dlg.ProjectDirectory, dlg.NetworkName)
         else:
-            self.iface.messageBar().pushMessage("Warning", "There is no a selected project to clone.", level=1, duration=5)
+            self.iface.messageBar().pushMessage("Warning", "You need to select a valid project to clone.", level=1, duration=5)
 
     def removeProject(self):
         self.quitProject(True)
@@ -516,6 +521,10 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             f.close()
 
             self.iface.messageBar().pushMessage("QGISRed", "Project name has been renamed to " + newName, level=0, duration=5)
+        else:
+            self.iface.messageBar().pushMessage(
+                "Warning", "You need to select a project to change its name.", level=1, duration=5
+            )
 
     def openFolder(self):
         selectionModel = self.twProjectList.selectionModel()
@@ -524,5 +533,5 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 mainFolder = str(self.twProjectList.item(row.row(), 3).text())
                 os.startfile(mainFolder)
         else:
-            message = "Any selected project to open its folder. Please, select one."
+            message = "You need to select a valid project to open its folder."
             self.iface.messageBar().pushMessage("Warning", message, level=1, duration=5)
