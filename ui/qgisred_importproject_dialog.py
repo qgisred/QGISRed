@@ -29,7 +29,7 @@ class QGISRedImportProjectDialog(QDialog, FORM_CLASS):
         selected_directory = QGISRedUtils().getUniformedPath(selected_directory)
         if not selected_directory == "":
             self.tbProjectDirectory.setText(selected_directory)
-            self.tbProjectDirectory.setCursorPosition(0)
+            # self.tbProjectDirectory.setCursorPosition(0)
             self.ProjectDirectory = selected_directory
             self.createNetworkList()
 
