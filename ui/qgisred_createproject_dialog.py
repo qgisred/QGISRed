@@ -47,13 +47,13 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
         self.ProjectDirectory = direct
         self.tbNetworkName.setText(netw)
         self.tbProjectDirectory.setText(direct)
-        self.tbProjectDirectory.setCursorPosition(0)
+        # self.tbProjectDirectory.setCursorPosition(0)
 
     def selectDirectory(self):
         selected_directory = QFileDialog.getExistingDirectory(self, "Select folder", self.ProjectDirectory)
         if not selected_directory == "":
             self.tbProjectDirectory.setText(selected_directory)
-            self.tbProjectDirectory.setCursorPosition(0)
+            # self.tbProjectDirectory.setCursorPosition(0)
             self.ProjectDirectory = selected_directory
             self.NetworkName = self.tbNetworkName.text()
 

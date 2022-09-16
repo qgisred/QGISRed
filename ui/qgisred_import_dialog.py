@@ -76,7 +76,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             direct = QGISRedUtils().getUserFolder()
         self.ProjectDirectory = direct
         self.tbProjectDirectory.setText(direct)
-        self.tbProjectDirectory.setCursorPosition(0)
+        # self.tbProjectDirectory.setCursorPosition(0)
         self.tbTolerance.setText(str(0.1))
         self.tbScLength.setText(str(5))
         self.isPunctualConnection = False
@@ -105,7 +105,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         selected_directory = QFileDialog.getExistingDirectory(self, "Select folder", self.ProjectDirectory)
         if not selected_directory == "":
             self.tbProjectDirectory.setText(selected_directory)
-            self.tbProjectDirectory.setCursorPosition(0)
+            # self.tbProjectDirectory.setCursorPosition(0)
             self.ProjectDirectory = selected_directory
             self.NetworkName = self.tbNetworkName.text()
 
@@ -213,7 +213,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         if not f == "":
             self.InpFile = f
             self.tbInpFile.setText(f)
-            self.tbInpFile.setCursorPosition(0)
+            # self.tbInpFile.setCursorPosition(0)
 
     def importInpProject(self):
         # Common validations
@@ -255,7 +255,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             return
 
         self.tbShpDirectory.setText(selected_directory)
-        self.tbShpDirectory.setCursorPosition(0)
+        # self.tbShpDirectory.setCursorPosition(0)
 
         dirList = os.listdir(selected_directory)
         self.cbPipeLayer.clear()
@@ -1198,7 +1198,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         if not f == "":
             self.ZipFile = f
             self.tbZipFile.setText(f)
-            self.tbZipFile.setCursorPosition(0)
+            # self.tbZipFile.setCursorPosition(0)
 
     def importProject(self):
         pass
