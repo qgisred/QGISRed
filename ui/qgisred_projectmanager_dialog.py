@@ -286,15 +286,14 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             self.iface.messageBar().pushMessage("Warning", "Please, select a row project to move.", level=1, duration=5)
 
     def quitProject(self, remove=False):
-        word = "unloaded"
-        if remove:
-            word = "removed"
         ok, projectNetwork, projectPath, rowIndex = self.getSelectedRowInfo()
         if ok:
             isSameProject = self.getUniformedPath(self.ProjectDirectory) == projectPath
             isSameNet = self.NetworkName == projectNetwork
             if isSameProject and isSameNet:
-
+                word = "unloaded"
+                if remove:
+                    word = "removed"
                 self.iface.messageBar().pushMessage("Warning", "Current project can not be " + word + ".", level=1, duration=5)
                 return
 
@@ -334,6 +333,9 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 f.close()
             self.fillTable()
         else:
+            word = "unload"
+            if remove:
+                word = "remove"
             self.iface.messageBar().pushMessage(
                 "Warning", "You need to select a project to " + word + " it.", level=1, duration=5
             )
@@ -367,7 +369,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             if valid:
                 QGISRedUtils().runTask("open project", self.clearQGisProject, self.openProjectProcess, True)
         else:
-            self.iface.messageBar().pushMessage("Warning", "You need to select a valid project to open it.", level=1, duration=5)
+            self.iface.messageBar().pushMessage("Warning", "You need to select a project to open it.", level=1, duration=5)
 
     def openProjectProcess(self, exception=None, result=None):
         ok, name, project, _ = self.getSelectedRowInfo()
@@ -471,7 +473,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
 
                 self.addProjectToTable(dlg.ProjectDirectory, dlg.NetworkName)
         else:
-            self.iface.messageBar().pushMessage("Warning", "You need to select a valid project to clone.", level=1, duration=5)
+            self.iface.messageBar().pushMessage("Warning", "You need to select a project to clone.", level=1, duration=5)
 
     def removeProject(self):
         self.quitProject(True)
@@ -533,5 +535,5 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 mainFolder = str(self.twProjectList.item(row.row(), 3).text())
                 os.startfile(mainFolder)
         else:
-            message = "You need to select a valid project to open its folder."
+            message = "You need to select a project to open its folder."
             self.iface.messageBar().pushMessage("Warning", message, level=1, duration=5)
