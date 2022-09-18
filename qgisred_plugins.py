@@ -461,6 +461,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
+        projectDropButton.menu().addSeparator()
         self.projectToolbar.addSeparator()
         self.projectMenu.addSeparator()
         icon_path = ":/plugins/QGISRed/images/iconSettings.png"
@@ -496,6 +497,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
+        projectDropButton.menu().addSeparator()
         self.projectToolbar.addSeparator()
         self.projectMenu.addSeparator()
         icon_path = ":/plugins/QGISRed/images/iconSave.png"
@@ -620,7 +622,7 @@ class QGISRed:
             checable=True,
             parent=self.iface.mainWindow(),
         )
-
+        editDropButton.menu().addSeparator()
         self.editionToolbar.addSeparator()
         self.editionMenu.addSeparator()
         icon_path = ":/plugins/QGISRed/images/iconSelection.png"
@@ -755,6 +757,7 @@ class QGISRed:
             checable=True,
             parent=self.iface.mainWindow(),
         )
+        editDropButton.menu().addSeparator()
         self.editionToolbar.addSeparator()
         self.editionMenu.addSeparator()
         icon_path = ":/plugins/QGISRed/images/iconEdit.png"
@@ -898,9 +901,10 @@ class QGISRed:
             add_to_toolbar=False,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconLengthC.png"
+        dropButton.menu().addSeparator()
         self.verificationsToolbar.addSeparator()
         self.verificationsMenu.addSeparator()
+        icon_path = ":/plugins/QGISRed/images/iconLengthC.png"
         self.add_action(
             icon_path,
             text=self.tr("Check pipe lengths"),
@@ -944,9 +948,10 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconHydraulic.png"
+        dropButton.menu().addSeparator()
         self.verificationsToolbar.addSeparator()
         self.verificationsMenu.addSeparator()
+        icon_path = ":/plugins/QGISRed/images/iconHydraulic.png"
         self.add_action(
             icon_path,
             text=self.tr("Obtain hydraulic sectors"),
@@ -1029,6 +1034,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
+        toolDropButton.menu().addSeparator()
         self.toolsToolbar.addSeparator()
         self.toolsMenu.addSeparator()
         icon_path = ":/plugins/QGISRed/images/iconDemands.png"
@@ -1053,6 +1059,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
+        toolDropButton.menu().addSeparator()
         self.toolsToolbar.addSeparator()
         self.toolsMenu.addSeparator()
         icon_path = ":/plugins/QGISRed/images/iconDemandSector.png"
@@ -1355,6 +1362,7 @@ class QGISRed:
             checable=True,
             parent=self.iface.mainWindow(),
         )
+        dtDropButton.menu().addSeparator()
         self.dtMenu.addSeparator()
         self.dtToolbar.addSeparator()
         icon_path = ":/plugins/QGISRed/images/iconSetReadings.png"
@@ -1390,6 +1398,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
+        dtDropButton.menu().addSeparator()
         self.dtMenu.addSeparator()
         self.dtToolbar.addSeparator()
         icon_path = ":/plugins/QGISRed/images/iconConnections.png"
