@@ -392,7 +392,7 @@ class QGISRed:
         icon_path = ":/plugins/QGISRed/images/iconImport.png"
         self.add_action(
             icon_path,
-            text=self.tr("Import data"),
+            text=self.tr("Import project"),
             callback=self.runCanImportData,
             menubar=self.fileMenu,
             toolbar=self.fileToolbar,
