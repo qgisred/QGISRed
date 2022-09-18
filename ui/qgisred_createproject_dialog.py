@@ -80,29 +80,38 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
                 self.iface.messageBar().pushMessage("Validations", "The project folder does not exist", level=1)
                 return False
             else:
-                dirList = os.listdir(self.ProjectDirectory)
-                layers = [
-                    "Pipes",
-                    "Junctions",
-                    "Tanks",
-                    "Reservoirs",
-                    "Valves",
-                    "Pumps",
-                    "IsolationValves",
-                    "Hydrants",
-                    "WashoutValves",
-                    "AirReleaseValves",
-                    "ServiceConnections",
-                    "Manometers",
-                    "Flowmeters",
-                    "Countermeters",
-                    "LevelSensors",
-                ]
-                for layer in layers:
-                    if self.NetworkName + "_" + layer + ".shp" in dirList:
-                        message = "The project folder has some file with the selected project name."
-                        self.iface.messageBar().pushMessage("Validations", message, level=1)
-                        return False
+                if self.cbCreateSubfolder.isChecked():
+                    self.ProjectDirectory = os.path.join(self.ProjectDirectory, self.NetworkName)
+                if os.path.exists(self.ProjectDirectory):
+                    dirList = os.listdir(self.ProjectDirectory)
+                    layers = [
+                        "Pipes",
+                        "Junctions",
+                        "Tanks",
+                        "Reservoirs",
+                        "Valves",
+                        "Pumps",
+                        "IsolationValves",
+                        "Hydrants",
+                        "WashoutValves",
+                        "AirReleaseValves",
+                        "ServiceConnections",
+                        "Manometers",
+                        "Flowmeters",
+                        "Countermeters",
+                        "LevelSensors",
+                    ]
+                    for layer in layers:
+                        if self.NetworkName + "_" + layer + ".shp" in dirList:
+                            message = "The selected folder has some files with the same project name."
+                            self.iface.messageBar().pushMessage("Validations", message, level=1)
+                            return False
+
+        if self.cbCreateSubfolder.isChecked() and not os.path.exists(self.ProjectDirectory):
+            try:  # create directory if does not exist
+                os.stat(self.ProjectDirectory)
+            except Exception:
+                os.mkdir(self.ProjectDirectory)
 
         return True
 
