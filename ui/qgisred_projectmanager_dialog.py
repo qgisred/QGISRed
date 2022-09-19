@@ -8,7 +8,7 @@ from qgis.PyQt import uic
 # Import the code for the dialog
 from .qgisred_createproject_dialog import QGISRedCreateProjectDialog
 from .qgisred_import_dialog import QGISRedImportDialog
-from .qgisred_importproject_dialog import QGISRedImportProjectDialog
+from .qgisred_loadproject_dialog import QGISRedImportProjectDialog
 from .qgisred_cloneproject_dialog import QGISRedCloneProjectDialog
 from .qgisred_renameproject_dialog import QGISRedRenameProjectDialog
 from ..tools.qgisred_utils import QGISRedUtils

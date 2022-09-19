@@ -6,7 +6,7 @@ from ..tools.qgisred_utils import QGISRedUtils
 
 import os
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_importproject_dialog.ui"))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_loadproject_dialog.ui"))
 
 
 class QGISRedImportProjectDialog(QDialog, FORM_CLASS):
@@ -35,7 +35,6 @@ class QGISRedImportProjectDialog(QDialog, FORM_CLASS):
 
     def createNetworkList(self):
         self.cbNetworkName.clear()
-        nameList = []
         for f in os.listdir(self.ProjectDirectory):
             if "_Pipes.shp" in f:
                 self.cbNetworkName.addItem(f.replace("_Pipes.shp", ""))
