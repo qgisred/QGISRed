@@ -468,23 +468,22 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     symbol = QgsSymbol.defaultSymbol(layer.geometryType())
                     renderer = QgsRuleBasedRenderer(symbol)
                     root_rule = renderer.rootRule()
-                    rule = root_rule.children()[0].clone()
-                    root_rule.removeChildAt(0)
 
-                    rule.setLabel("Closed")
-                    rule.setFilterExpression(field + "<=2")
-                    rule.symbol().setColor(QColor("red"))
-                    root_rule.appendChild(rule)
-                    rule = root_rule.children()[0].clone()
-                    rule.setLabel("Open")
-                    rule.setFilterExpression(field + "=3 or " + field + ">=5")
-                    rule.symbol().setColor(QColor("blue"))
-                    root_rule.appendChild(rule)
-                    rule = root_rule.children()[0].clone()
-                    rule.setLabel("Active")
-                    rule.setFilterExpression(field + "=4")
-                    rule.symbol().setColor(QColor("green"))
-                    root_rule.appendChild(rule)
+                    self.setRule(root_rule, "Temp Closed", field, "=1", "red", True)
+                    self.setRule(root_rule, "Closed", field, "=2", "red")
+                    self.setRule(root_rule, "Closed (H > Hmax)", field, "=5", "red")
+                    self.setRule(root_rule, "Closed (Q < 0)", field, "=8", "red")
+                    self.setRule(root_rule, "Closed (P < Pset)", field, "=9", "red")
+                    self.setRule(root_rule, "Closed (P > Pset)", field, "=11", "red")
+
+                    self.setRule(root_rule, "Open", field, "=3", "blue")
+                    self.setRule(root_rule, "Open (Q > Qmax)", field, "=6", "blue")
+                    self.setRule(root_rule, "Open (Q < Qset)", field, "=7", "blue")
+                    self.setRule(root_rule, "Open (P > Pset)", field, "=10", "blue")
+                    self.setRule(root_rule, "Open (P < Pset)", field, "=12", "blue")
+
+                    self.setRule(root_rule, "Active", field, "=4", "green")
+                    self.setRule(root_rule, "Active (Rev Pump)", field, "=13", "green")
                 else:
                     ranges = self.getColorClasses(symbol, nameLayer)
                     if len(ranges) > 0:
@@ -505,19 +504,39 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                         myFormat.setTrimTrailingZeroes(True)
                         renderer.setLabelFormat(myFormat, True)
         else:
-            if "Link_Status" in nameLayer:
+            if "Link_Status" in nameLayer:  # Id users change the layer style it will fail
                 root_rule = renderer.rootRule()
-                rule = root_rule.children()[0]
-                rule.setFilterExpression(field + "<=2")
-                rule = root_rule.children()[1]
-                rule.setFilterExpression(field + "=3 or " + field + ">=5")
-                rule = root_rule.children()[2]
-                rule.setFilterExpression(field + "=4")
+                self.setFilterExpression(root_rule, 0, field, "=1")
+                self.setFilterExpression(root_rule, 1, field, "=2")
+                self.setFilterExpression(root_rule, 2, field, "=5")
+                self.setFilterExpression(root_rule, 3, field, "=8")
+                self.setFilterExpression(root_rule, 4, field, "=9")
+                self.setFilterExpression(root_rule, 5, field, "=11")
+                self.setFilterExpression(root_rule, 6, field, "=3")
+                self.setFilterExpression(root_rule, 7, field, "=6")
+                self.setFilterExpression(root_rule, 8, field, "=7")
+                self.setFilterExpression(root_rule, 9, field, "=10")
+                self.setFilterExpression(root_rule, 10, field, "=12")
+                self.setFilterExpression(root_rule, 11, field, "=4")
+                self.setFilterExpression(root_rule, 12, field, "=13")
             else:
                 renderer.setClassAttribute(field)
 
         layer.setRenderer(renderer)
         layer.triggerRepaint()
+
+    def setRule(self, root_rule, label, field, expression, color, first=False):
+        rule = root_rule.children()[0].clone()
+        rule.setLabel(label)
+        rule.setFilterExpression(field + expression)
+        rule.symbol().setColor(QColor(color))
+        if first:
+            root_rule.removeChildAt(0)
+        root_rule.appendChild(rule)
+
+    def setFilterExpression(self, root_rule, index, field, expression):
+        rule = root_rule.children()[index]
+        rule.setFilterExpression(field + expression)
 
     """Scenario"""
 
