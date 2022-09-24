@@ -331,16 +331,16 @@ class QGISRed:
 
     def addFileMenu(self):
         #    #Menu
-        self.fileMenu = self.qgisredmenu.addMenu(self.tr("File"))
-        self.fileMenu.setIcon(QIcon(":/plugins/QGISRed/images/iconData.png"))
+        self.fileMenu = self.qgisredmenu.addMenu(self.tr("Global"))
+        self.fileMenu.setIcon(QIcon(":/plugins/QGISRed/images/qgisred32.png"))
         #    #Toolbar
-        self.fileToolbar = self.iface.addToolBar(self.tr("QGISRed File"))
-        self.fileToolbar.setObjectName(self.tr("QGISRed File"))
+        self.fileToolbar = self.iface.addToolBar(self.tr("QGISRed Global"))
+        self.fileToolbar.setObjectName(self.tr("QGISRed Global"))
         self.fileToolbar.visibilityChanged.connect(self.changeFileToolbarVisibility)
         self.fileToolbar.setVisible(False)
         #    #Buttons
         fileDropButton = QToolButton()
-        icon_path = ":/plugins/QGISRed/images/iconData.png"
+        icon_path = ":/plugins/QGISRed/images/qgisred32.png"
         self.add_action(
             icon_path,
             text=self.tr("File"),
@@ -404,7 +404,7 @@ class QGISRed:
     def addProjectMenu(self):
         #    #Menu
         self.projectMenu = self.qgisredmenu.addMenu(self.tr("Project"))
-        self.projectMenu.setIcon(QIcon(":/plugins/QGISRed/images/qgisred32.png"))
+        self.projectMenu.setIcon(QIcon(":/plugins/QGISRed/images/iconLayerManagement.png"))
         #    #Toolbar
         self.projectToolbar = self.iface.addToolBar(self.tr("QGISRed Project"))
         self.projectToolbar.setObjectName(self.tr("QGISRed Project"))
@@ -412,7 +412,7 @@ class QGISRed:
         self.projectToolbar.setVisible(False)
         #    #Buttons
         projectDropButton = QToolButton()
-        icon_path = ":/plugins/QGISRed/images/qgisred32.png"
+        icon_path = ":/plugins/QGISRed/images/iconLayerManagement.png"
         self.add_action(
             icon_path,
             text=self.tr("Project"),
