@@ -5,8 +5,8 @@ from PyQt5.QtGui import QColor, QFont
 from qgis.PyQt import uic
 from qgis.core import QgsProject
 from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling
-from qgis.core import QgsTextFormat, QgsSymbol
-from qgis.core import QgsProperty, QgsRenderContext, QgsRendererRange, QgsRendererCategory, QgsLineSymbol
+from qgis.core import QgsTextFormat
+from qgis.core import QgsProperty, QgsRenderContext, QgsRendererRange
 from qgis.core import QgsGraduatedSymbolRenderer, QgsGradientColorRamp as QgsVectorGradientColorRamp, QgsRuleBasedRenderer
 
 from ..tools.qgisred_utils import QGISRedUtils
@@ -465,7 +465,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     renderer = QgsGraduatedSymbolRenderer(field, ranges)
             else:
                 if "Link_Status" in nameLayer:
-                    symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+                    symbol = renderer.symbol().clone()
                     renderer = QgsRuleBasedRenderer(symbol)
                     root_rule = renderer.rootRule()
 
