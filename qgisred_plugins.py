@@ -75,7 +75,7 @@ class QGISRed:
     especificComplementaryLayers = []
     complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves", "AirReleaseValves", "ServiceConnections", "Meters"]
     TemporalFolder = "Temporal folder"
-    DependenciesVersion = "1.0.16.2"
+    DependenciesVersion = "1.0.16.3"
     gisredDll = None
 
     """Basic"""
@@ -1040,7 +1040,7 @@ class QGISRed:
         icon_path = ":/plugins/QGISRed/images/iconDemands.png"
         self.add_action(
             icon_path,
-            text=self.tr("Nodal Demand Manager"),
+            text=self.tr("Nodal Demand Builder"),
             callback=self.runDemandsManager,
             menubar=self.toolsMenu,
             toolbar=self.toolsToolbar,
@@ -1051,7 +1051,7 @@ class QGISRed:
         icon_path = ":/plugins/QGISRed/images/iconScenario.png"
         self.add_action(
             icon_path,
-            text=self.tr("Scenario Manager"),
+            text=self.tr("Scenario Builder"),
             callback=self.runScenarioManager,
             menubar=self.toolsMenu,
             toolbar=self.toolsToolbar,
