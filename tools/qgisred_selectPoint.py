@@ -108,9 +108,10 @@ class QGISRedSelectPointTool(QgsMapTool):
             else:
                 point = self.objectSnapped.point()
                 # Call to parent method
-                self.method(point)
                 self.deactivate()
                 self.activate()
+                self.method(point)
+
                 # self.resetProperties()
         if event.button() == Qt.RightButton:
             if self.type == 3 or self.type == 5:

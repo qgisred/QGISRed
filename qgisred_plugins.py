@@ -75,7 +75,7 @@ class QGISRed:
     especificComplementaryLayers = []
     complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves", "AirReleaseValves", "ServiceConnections", "Meters"]
     TemporalFolder = "Temporal folder"
-    DependenciesVersion = "1.0.16.3"
+    DependenciesVersion = "1.0.16.4"
     gisredDll = None
 
     """Basic"""
@@ -1057,6 +1057,18 @@ class QGISRed:
             toolbar=self.toolsToolbar,
             actionBase=toolDropButton,
             add_to_toolbar=True,
+            parent=self.iface.mainWindow(),
+        )
+        icon_path = ":/plugins/QGISRed/images/iconIsolatedSegments.png"
+        self.isolatedSegmentsButton = self.add_action(
+            icon_path,
+            text=self.tr("Isolated Segments"),
+            callback=self.runIsolatedSegments,
+            menubar=self.toolsMenu,
+            toolbar=self.toolsToolbar,
+            actionBase=toolDropButton,
+            add_to_toolbar=True,
+            checable=True,
             parent=self.iface.mainWindow(),
         )
         toolDropButton.menu().addSeparator()
@@ -3618,6 +3630,96 @@ class QGISRed:
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "")
+
+    def runIsolatedSegments(self, point):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        resMessage = "Select"
+        tool = "pointIsolatedSegment"
+        if point == True or point == False:
+            point = ""
+            self.gisredDll = None
+        if not point == "":
+            point = self.transformPoint(point)
+            point = str(point.x()) + ":" + str(point.y())
+
+            # Process
+            if self.gisredDll is None:
+                self.gisredDll = GISRed.CreateInstance()
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            resMessage = GISRed.IsolatedSegments(self.gisredDll, self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
+            QApplication.restoreOverrideCursor()
+
+        if resMessage == "False" or resMessage == "Cancelled":
+            return
+        elif resMessage == "Select":
+            self.blockLayers(True)
+            self.myMapTools[tool] = QGISRedSelectPointTool(self.isolatedSegmentsButton, self, self.runIsolatedSegments, 2)
+            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
+        elif "shps" in resMessage:
+            if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+                self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
+                self.isolatedSegmentsButton.setChecked(False)
+            self.gisredDll = None
+            self.blockLayers(False)
+            # self.treeName = resMessage.split("^")[1]
+            self.removingLayers = True
+            QGISRedUtils().runTask(
+                "update isolated segments layers", self.removeIsolatedSegmentsLayers, self.runLoadIsolatedSegmentLayers
+            )
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+
+    def runLoadIsolatedSegmentLayers(self, exception=None, result=None):
+        # Process
+        queriesFolder = os.path.join(self.ProjectDirectory, "Queries")
+        try:  # create directory if does not exist
+            os.stat(queriesFolder)
+        except Exception:
+            os.mkdir(queriesFolder)
+
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.ReplaceTemporalFiles(queriesFolder, self.tempFolder)
+        QApplication.restoreOverrideCursor()
+
+        self.openIsolatedSegmentsLayers()
+        self.removingLayers = False
+
+        # Message
+        if resMessage == "True":
+            pass
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+
+    def openIsolatedSegmentsLayers(self):
+        # Open layers
+        isoaltedSegmentsGroup = self.getIsolatedSegmentsGroup()
+        queriesFolder = os.path.join(self.ProjectDirectory, "Queries")
+        utils = QGISRedUtils(queriesFolder, self.NetworkName, self.iface)
+        utils.openIsolatedSegmentsLayer(isoaltedSegmentsGroup, "Links")
+        utils.openIsolatedSegmentsLayer(isoaltedSegmentsGroup, "Nodes")
+
+    def getIsolatedSegmentsGroup(self):
+        group = QgsProject.instance().layerTreeRoot().findGroup("Isolated Segments")
+        if group is None:
+            queryGroup = self.getQueryGroup()
+            group = queryGroup.insertGroup(0, "Isolated Segments")
+        return group
+
+    def removeIsolatedSegmentsLayers(self, task):
+        path = os.path.join(self.ProjectDirectory, "Queries")
+        utils = QGISRedUtils(path, self.NetworkName, self.iface)
+        utils.removeLayers(["IsolatedSegments_Links", "IsolatedSegments_Nodes"])
+
+        if task is not None:
+            return {"task": task.definition()}
 
     def runCalculateLengths(self):
         if not self.checkDependencies():

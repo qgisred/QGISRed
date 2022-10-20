@@ -406,6 +406,19 @@ class QGISRedDependencies:
         return QGISRedDependencies.toString(b)
 
     @staticmethod
+    def DemandsManager(projectFolder, networkName, tempFolder, ids):
+        projectFolder = QGISRedDependencies.encode(projectFolder)
+        networkName = QGISRedDependencies.encode(networkName)
+        tempFolder = QGISRedDependencies.encode(tempFolder)
+        ids = QGISRedDependencies.encode(ids)
+
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
+        mydll.DemandsManager.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.DemandsManager.restype = c_char_p
+        b = mydll.DemandsManager(projectFolder, networkName, tempFolder, ids)
+        return QGISRedDependencies.toString(b)
+
+    @staticmethod
     def DemandSectors(projectFolder, networkName, tempFolder):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
@@ -501,16 +514,15 @@ class QGISRedDependencies:
         return QGISRedDependencies.toString(b)
 
     @staticmethod
-    def DemandsManager(projectFolder, networkName, tempFolder, ids):
+    def IsolatedSegments(mydll, projectFolder, networkName, tempFolder, point):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
-        ids = QGISRedDependencies.encode(ids)
+        point = QGISRedDependencies.encode(point)
 
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
-        mydll.DemandsManager.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
-        mydll.DemandsManager.restype = c_char_p
-        b = mydll.DemandsManager(projectFolder, networkName, tempFolder, ids)
+        mydll.IsolatedSegments.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.IsolatedSegments.restype = c_char_p
+        b = mydll.IsolatedSegments(projectFolder, networkName, tempFolder, point)
         return QGISRedDependencies.toString(b)
 
     @staticmethod
