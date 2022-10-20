@@ -118,6 +118,16 @@ class QGISRedUtils:
                 group.insertChildNode(0, QgsLayerTreeLayer(vlayer))
             del vlayer
 
+    def openIsolatedSegmentsLayer(self, group, name):
+        layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_IsolatedSegments_" + name + ".shp")
+        if os.path.exists(layerPath):
+            vlayer = QgsVectorLayer(layerPath, name, "ogr")
+            self.setIsolatedSegmentsStyle(vlayer)
+            QgsProject.instance().addMapLayer(vlayer, group is None)
+            if group is not None:
+                group.insertChildNode(0, QgsLayerTreeLayer(vlayer))
+            del vlayer
+
     """Remove Layers"""
 
     def removeLayers(self, layers, ext=".shp"):
@@ -442,6 +452,38 @@ class QGISRedUtils:
         # assign the created renderer to the layer
         if renderer is not None:
             layer.setRenderer(renderer)
+
+    def setIsolatedSegmentsStyle(self, layer):
+        stylePath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "layerStyles")
+
+        # default style
+        if layer.geometryType() == 0:  # Point
+            qmlBasePath = os.path.join(stylePath, "isolatedSegmentsNodes.qml.bak")
+        else:
+            qmlBasePath = os.path.join(stylePath, "isolatedSegmentsLinks.qml.bak")
+        if os.path.exists(qmlBasePath):
+            f = open(qmlBasePath, "r")
+            contents = f.read()
+            f.close()
+            qmlPath = ""
+            if layer.geometryType() == 0:  # Point
+                svgPath = os.path.join(stylePath, "tanksResults.svg")
+                contents = contents.replace("tanks.svg", svgPath)
+                svgPath = os.path.join(stylePath, "reservoirsResults.svg")
+                contents = contents.replace("reservoirs.svg", svgPath)
+                qmlPath = os.path.join(stylePath, "nodeResults.qml")
+            else:
+                svgPath = os.path.join(stylePath, "pumps.svg")
+                contents = contents.replace("pumps.svg", svgPath)
+                svgPath = os.path.join(stylePath, "valves.svg")
+                contents = contents.replace("valves.svg", svgPath)
+                qmlPath = os.path.join(stylePath, "linkResults.qml")
+            f = open(qmlPath, "w+")
+            f.write(contents)
+            f.close()
+            # ret = layer.loadNamedStyle(qmlPath)
+            layer.loadNamedStyle(qmlPath)
+            os.remove(qmlPath)
 
     """Others"""
 
