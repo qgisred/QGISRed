@@ -205,7 +205,6 @@
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerTransparency>0</layerTransparency>
-  <displayfield>[Isolation Valve] [% "Id" %]</displayfield>
   <label>0</label>
   <labelattributes>
     <label fieldname="" text="Etiqueta"/>
@@ -300,5 +299,6 @@ def my_form_open(dialog, layer, feature):
     <default field="Sector" expression=""/>
   </defaults>
   <previewExpression>COALESCE( "Descrip", '&lt;NULL>' )</previewExpression>
+  <mapTip>[Isolation Valve] [% "Id" %]</mapTip>
   <layerGeometryType>0</layerGeometryType>
 </qgis>

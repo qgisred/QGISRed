@@ -203,5 +203,6 @@
   </renderer-v2>
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
+  <mapTip>[Service Connection] [% "Id" %]</mapTip>
   <layerGeometryType>1</layerGeometryType>
 </qgis>
