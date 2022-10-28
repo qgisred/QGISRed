@@ -276,7 +276,7 @@ class QGISRedUtils:
                 symbol.appendSymbolLayer(lineSymbol)
                 # Line Color
                 pipesColor = "if(IniStatus is NULL, '#0f1291',if(IniStatus !='CLOSED', '#0f1291','#ff0f13'))"
-                valvesColor = "if(IniStatus is NULL, '#0f1291',if(IniStatus is 'CLOSED', '#ff0f13', if(IniStatus !='ACTIVE', '#0f1291','#85b66f')))"
+                valvesColor = "if(IniStatus is NULL, '#85b66f',if(IniStatus is 'CLOSED', '#ff0f13', if(IniStatus !='ACTIVE', '#85b66f','#ff9900')))"
                 pumpsColor = "if(IniStatus is NULL, '#85b66f',if(IniStatus !='CLOSED', '#85b66f','#ff0f13'))"
                 prop = QgsProperty()
                 if name == "pipes":
