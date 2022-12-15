@@ -22,12 +22,12 @@ class QGISRedAboutDialog(QDialog, FORM_CLASS):
         # version
         metadata = os.path.join(os.path.dirname(os.path.dirname(__file__)), "metadata.txt")
         if os.path.exists(metadata):
-            f = open(metadata, "r")
-            lines = f.readlines()
-            for line in lines:
-                if "version=" in line:
-                    self.versionLabel.setText("v." + line.replace("version=", ""))
-                    return
+            with open(metadata, "r") as f:
+                lines = f.readlines()
+                for line in lines:
+                    if "version=" in line:
+                        self.versionLabel.setText("v." + line.replace("version=", ""))
+                        return
 
     def linkQgisred(self, event):
         webbrowser.open("https://qgisred.upv.es")
