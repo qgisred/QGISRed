@@ -100,6 +100,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             self.label_15.setVisible(False)
             self.cbUnits.setVisible(False)
             self.cbHeadloss.setVisible(False)
+            self.cbCreateSubfolder.setVisible(False)
 
     def selectDirectory(self):
         selected_directory = QFileDialog.getExistingDirectory(self, "Select folder", self.ProjectDirectory)
@@ -126,6 +127,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 self.tbCRS.setText(self.crs.description())
 
     def validationsCreateProject(self, validateName=True):
+        if not self.NewProject:
+            return True
         self.NetworkName = self.tbNetworkName.text()
         if validateName and len(self.NetworkName) == 0:
             self.iface.messageBar().pushMessage("Validations", "The project name is not valid", level=1)
