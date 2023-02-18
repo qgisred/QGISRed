@@ -329,6 +329,8 @@ class QGISRed:
         if self.qgisredmenu:
             self.qgisredmenu.menuAction().setVisible(False)
 
+    """Create menus"""
+
     def addFileMenu(self):
         #    #Menu
         self.fileMenu = self.qgisredmenu.addMenu(self.tr("Global"))
@@ -1434,6 +1436,8 @@ class QGISRed:
         #                 actionBase=dtDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         pass
 
+    """Version & DLLs"""
+
     def getVersion(self, filename, what):
         class LANGANDCODEPAGE(Structure):
             _fields_ = [("wLanguage", c_uint16), ("wCodePage", c_uint16)]
@@ -1919,6 +1923,67 @@ class QGISRed:
 
     """Others"""
 
+    def runOpenTemporaryFiles(self, exception=None, result=None):
+        if self.hasToOpenIssuesLayers:
+            self.removeIssuesLayersFiles()
+
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.ReplaceTemporalFiles(self.ProjectDirectory, self.tempFolder)
+        self.readUnits(self.ProjectDirectory, self.NetworkName)
+
+        if self.hasToOpenNewLayers:
+            self.opendedLayers = False
+            QGISRedUtils().runTask("update layers", self.openElementLayers, self.setExtent)
+            self.openNewLayers = False
+
+        if self.hasToOpenIssuesLayers:
+            self.openIssuesLayers()
+            self.hasToOpenIssuesLayers = False
+
+        if self.hasToOpenConnectivityLayers:
+            self.openConnectivityLayer()
+            self.hasToOpenConnectivityLayers = False
+
+        if self.hasToOpenSectorLayers:
+            self.openSectorLayers()
+            self.hasToOpenSectorLayers = False
+        QApplication.restoreOverrideCursor()
+        self.removingLayers = False
+
+        # Message
+        if resMessage == "True":
+            pass
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+
+    def processCsharpResult(self, b, message):
+        # Action
+        self.hasToOpenNewLayers = False
+        self.hasToOpenIssuesLayers = False
+        if b == "True":
+            if not message == "":
+                self.iface.messageBar().pushMessage(self.tr("Information"), self.tr(message), level=3, duration=5)
+        elif b == "False" or b == "Cancelled":
+            pass
+        elif b == "commit":
+            self.hasToOpenNewLayers = True
+        elif b == "shps":
+            self.hasToOpenIssuesLayers = True
+        elif b == "commit/shps":
+            self.hasToOpenNewLayers = True
+            self.hasToOpenIssuesLayers = True
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+
+        self.removingLayers = True
+        self.extent = QGISRedUtils().getProjectExtent()
+        if self.hasToOpenNewLayers and self.hasToOpenIssuesLayers:
+            QGISRedUtils().runTask("update plus issue layers", self.removeLayersAndIssuesLayers, self.runOpenTemporaryFiles)
+        elif self.hasToOpenNewLayers:
+            QGISRedUtils().runTask("update layers", self.removeLayers, self.runOpenTemporaryFiles)
+        elif self.hasToOpenIssuesLayers:
+            QGISRedUtils().runTask("update issue layers", self.removeIssuesLayers, self.runOpenTemporaryFiles)
+
     def getComplementaryLayersOpened(self):
         complementary = []
         groupName = "Inputs"
@@ -2198,69 +2263,6 @@ class QGISRed:
         self.toolsDropButton.setChecked(self.toolsToolbar.isVisible())
         self.analysisDropButton.setChecked(self.analysisToolbar.isVisible())
         self.dtDropButton.setChecked(self.dtToolbar.isVisible())
-
-    """Common"""
-
-    def runOpenTemporaryFiles(self, exception=None, result=None):
-        if self.hasToOpenIssuesLayers:
-            self.removeIssuesLayersFiles()
-
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.ReplaceTemporalFiles(self.ProjectDirectory, self.tempFolder)
-        self.readUnits(self.ProjectDirectory, self.NetworkName)
-
-        if self.hasToOpenNewLayers:
-            self.opendedLayers = False
-            QGISRedUtils().runTask("update layers", self.openElementLayers, self.setExtent)
-            self.openNewLayers = False
-
-        if self.hasToOpenIssuesLayers:
-            self.openIssuesLayers()
-            self.hasToOpenIssuesLayers = False
-
-        if self.hasToOpenConnectivityLayers:
-            self.openConnectivityLayer()
-            self.hasToOpenConnectivityLayers = False
-
-        if self.hasToOpenSectorLayers:
-            self.openSectorLayers()
-            self.hasToOpenSectorLayers = False
-        QApplication.restoreOverrideCursor()
-        self.removingLayers = False
-
-        # Message
-        if resMessage == "True":
-            pass
-        else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
-
-    def processCsharpResult(self, b, message):
-        # Action
-        self.hasToOpenNewLayers = False
-        self.hasToOpenIssuesLayers = False
-        if b == "True":
-            if not message == "":
-                self.iface.messageBar().pushMessage(self.tr("Information"), self.tr(message), level=3, duration=5)
-        elif b == "False" or b == "Cancelled":
-            pass
-        elif b == "commit":
-            self.hasToOpenNewLayers = True
-        elif b == "shps":
-            self.hasToOpenIssuesLayers = True
-        elif b == "commit/shps":
-            self.hasToOpenNewLayers = True
-            self.hasToOpenIssuesLayers = True
-        else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
-
-        self.removingLayers = True
-        self.extent = QGISRedUtils().getProjectExtent()
-        if self.hasToOpenNewLayers and self.hasToOpenIssuesLayers:
-            QGISRedUtils().runTask("update plus issue layers", self.removeLayersAndIssuesLayers, self.runOpenTemporaryFiles)
-        elif self.hasToOpenNewLayers:
-            QGISRedUtils().runTask("update layers", self.removeLayers, self.runOpenTemporaryFiles)
-        elif self.hasToOpenIssuesLayers:
-            QGISRedUtils().runTask("update issue layers", self.removeIssuesLayers, self.runOpenTemporaryFiles)
 
     def runAbout(self):
         # show the dialog
