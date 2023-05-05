@@ -2,7 +2,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QCursor, QColor
 from qgis.core import QgsPointXY, QgsPoint, QgsFeatureRequest, QgsFeature, QgsGeometry, QgsProject, QgsVector
 from qgis.core import QgsVectorLayerEditUtils, QgsSnappingConfig
-from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSnappingUtils
+from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSnappingUtils, Qgis
 from ..tools.qgisred_utils import QGISRedUtils
 
 
@@ -152,7 +152,10 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
             myPoints = []
             for p in points:
                 myPoints.append(QgsPoint(p.x(), p.y()))
-        self.rubberBand = QgsRubberBand(self.iface.mapCanvas(), False)
+        try:  # From QGis 3.30
+            self.rubberBand = QgsRubberBand(self.iface.mapCanvas(), Qgis.GeometryType.Line)
+        except:
+            self.rubberBand = QgsRubberBand(self.iface.mapCanvas(), False)
         self.rubberBand.setToGeometry(QgsGeometry.fromPolyline(myPoints), None)
         self.rubberBand.setColor(QColor(55, 198, 5))
         self.rubberBand.setWidth(1)
