@@ -2,7 +2,7 @@
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import QFileInfo
 from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer, QgsTask, QgsApplication
-from qgis.core import QgsSvgMarkerSymbolLayer, QgsSymbol, QgsSingleSymbolRenderer
+from qgis.core import QgsSvgMarkerSymbolLayer, QgsSymbol, QgsSingleSymbolRenderer, Qgis
 from qgis.core import QgsLineSymbol, QgsSimpleLineSymbolLayer, QgsProperty
 from qgis.core import QgsMarkerSymbol, QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayer
 from qgis.core import QgsRendererCategory, QgsCategorizedSymbolRenderer, QgsCoordinateReferenceSystem
@@ -271,7 +271,10 @@ class QGISRedUtils:
                 symbol.deleteSymbolLayer(0)
                 # Line
                 lineSymbol = QgsSimpleLineSymbolLayer()
-                lineSymbol.setWidthUnit(2)  # Pixels
+                try:  # From QGis 3.30
+                    lineSymbol.setWidthUnit(Qgis.RenderUnit.RenderPixels)  # Pixels
+                except:
+                    lineSymbol.setWidthUnit(2)  # Pixels
                 lineSymbol.setWidth(1.5)
                 symbol.appendSymbolLayer(lineSymbol)
                 # Line Color
@@ -382,7 +385,10 @@ class QGISRedUtils:
                 symbol.deleteSymbolLayer(0)
                 # Line
                 lineSymbol = QgsSimpleLineSymbolLayer()
-                lineSymbol.setWidthUnit(2)  # Pixels
+                try:  # From QGis 3.30
+                    lineSymbol.setWidthUnit(Qgis.RenderUnit.RenderPixels)  # Pixels
+                except:
+                    lineSymbol.setWidthUnit(2)  # Pixels
                 lineSymbol.setWidth(2)
                 lineSymbol.setColor(QColor(randrange(0, 256), randrange(0, 256), randrange(0, 256)))
                 symbol.appendSymbolLayer(lineSymbol)
@@ -427,7 +433,10 @@ class QGISRedUtils:
                 symbol.deleteSymbolLayer(0)
                 # Line
                 lineSymbol = QgsSimpleLineSymbolLayer()
-                lineSymbol.setWidthUnit(2)  # Pixels
+                try:  # From QGis 3.30
+                    lineSymbol.setWidthUnit(Qgis.RenderUnit.RenderPixels)  # Pixels
+                except:
+                    lineSymbol.setWidthUnit(2)  # Pixels
                 lineSymbol.setWidth(3)
                 lineSymbol.setColor(QColor(178, 47, 60))
                 if "Branch" in unique_value:
