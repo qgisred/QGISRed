@@ -1,7 +1,7 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 from qgis.core import QgsPointXY, QgsPoint, QgsGeometry, QgsProject, QgsSnappingConfig
-from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSnappingUtils
+from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSnappingUtils, Qgis
 
 
 class QGISRedCreateConnectionTool(QgsMapTool):
@@ -85,7 +85,10 @@ class QGISRedCreateConnectionTool(QgsMapTool):
         myPoints1.remove(myPoints1[-1])
         if self.rubberBand1 is not None:
             self.iface.mapCanvas().scene().removeItem(self.rubberBand1)
-        self.rubberBand1 = QgsRubberBand(self.iface.mapCanvas(), False)
+        try:  # From QGis 3.30
+            self.rubberBand1 = QgsRubberBand(self.iface.mapCanvas(), Qgis.GeometryType.Line)
+        except:
+            self.rubberBand1 = QgsRubberBand(self.iface.mapCanvas(), False)
         self.rubberBand1.setToGeometry(QgsGeometry.fromPolyline(myPoints1), None)
         self.rubberBand1.setColor(QColor(240, 40, 40))
         self.rubberBand1.setWidth(1)
@@ -96,7 +99,10 @@ class QGISRedCreateConnectionTool(QgsMapTool):
         myPoints2.append(QgsPoint(points[-1].x(), points[-1].y()))
         if self.rubberBand2 is not None:
             self.iface.mapCanvas().scene().removeItem(self.rubberBand2)
-        self.rubberBand2 = QgsRubberBand(self.iface.mapCanvas(), False)
+        try:  # From QGis 3.30
+            self.rubberBand2 = QgsRubberBand(self.iface.mapCanvas(), Qgis.GeometryType.Line)
+        except:
+            self.rubberBand2 = QgsRubberBand(self.iface.mapCanvas(), False)
         self.rubberBand2.setToGeometry(QgsGeometry.fromPolyline(myPoints2), None)
         self.rubberBand2.setColor(QColor(240, 40, 40))
         self.rubberBand2.setWidth(1)
