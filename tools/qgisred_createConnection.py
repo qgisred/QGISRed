@@ -1,6 +1,6 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
-from qgis.core import QgsPointXY, QgsPoint, QgsGeometry, QgsProject, QgsSnappingConfig
+from qgis.core import QgsPointXY, QgsPoint, QgsGeometry, QgsProject, QgsSnappingConfig, QgsTolerance
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSnappingUtils, Qgis
 
 
@@ -42,7 +42,7 @@ class QGISRedCreateConnectionTool(QgsMapTool):
         config.setType(3)  # Segment
         config.setMode(QgsSnappingConfig.SnappingMode.AllLayers)  # All layers
         config.setTolerance(10)
-        config.setUnits(1)  # Pixels
+        config.setUnits(QgsTolerance.UnitType.Pixels)
         config.setEnabled(True)
         self.snapper.setConfig(config)
 

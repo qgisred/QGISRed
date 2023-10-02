@@ -1,6 +1,6 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
-from qgis.core import QgsPointXY, QgsProject, QgsSnappingConfig
+from qgis.core import QgsPointXY, QgsProject, QgsSnappingConfig, QgsTolerance
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsMapCanvasSnappingUtils
 
 
@@ -73,7 +73,7 @@ class QGISRedSelectPointTool(QgsMapTool):
         config.setType(type)  # 1: Vertex; 2:Segment
         config.setMode(QgsSnappingConfig.SnappingMode.AllLayers)  # All layers
         config.setTolerance(10)
-        config.setUnits(1)  # Pixels
+        config.setUnits(QgsTolerance.UnitType.Pixels)
         config.setEnabled(True)
         self.snapper.setConfig(config)
 
