@@ -1,7 +1,7 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QCursor, QColor
 from qgis.core import QgsPointXY, QgsPoint, QgsFeatureRequest, QgsFeature, QgsGeometry, QgsProject, QgsVector
-from qgis.core import QgsVectorLayerEditUtils, QgsSnappingConfig
+from qgis.core import QgsVectorLayerEditUtils, QgsSnappingConfig, QgsTolerance
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSnappingUtils, Qgis
 from ..tools.qgisred_utils import QGISRedUtils
 
@@ -64,7 +64,7 @@ class QGISRedMoveNodesTool(QgsMapTool):
         config.setType(1)  # Vertex
         config.setMode(QgsSnappingConfig.SnappingMode.AllLayers)  # All layers
         config.setTolerance(1)
-        config.setUnits(2)  # Pixels
+        config.setUnits(QgsTolerance.UnitType.ProjectUnits)
         config.setEnabled(True)
         self.snapper.setConfig(config)
 
