@@ -303,8 +303,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             text_format = QgsTextFormat()
             text_format.setFont(QFont("Arial", 10))
             color = "black"
-            if secondCondition:
-                color = "blue"
+            # if secondCondition:
+            #     color = "blue"
             text_format.setColor(QColor(color))
             layer_settings.setFormat(text_format)
 
@@ -348,11 +348,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             ranges.append(QgsRendererRange(20, 40, simb4, "20-40"))
             ranges.append(QgsRendererRange(40, 1e10, simb5, ">40"))
         elif "Node_Quality" in nameLayer:
-            ranges.append(QgsRendererRange(-1e10, 0.25, simb1, "<0.25"))
-            ranges.append(QgsRendererRange(0.25, 0.5, simb2, "0.25-0.5"))
-            ranges.append(QgsRendererRange(0.5, 0.75, simb3, "0.5-0.75"))
-            ranges.append(QgsRendererRange(0.75, 1, simb4, "0.75-1"))
-            ranges.append(QgsRendererRange(1, 1e10, simb5, ">1"))
+            ranges.append(QgsRendererRange(-1e10, 25, simb1, "<25%"))
+            ranges.append(QgsRendererRange(25, 50, simb2, "25%-50%"))
+            ranges.append(QgsRendererRange(50, 75, simb3, "50%-75%"))
+            ranges.append(QgsRendererRange(75, 100, simb4, "75%-100%"))
+            ranges.append(QgsRendererRange(100, 1e10, simb5, ">100%"))
         elif "Flow" in nameLayer:
             ranges.append(QgsRendererRange(-1e10, 10, simb1, "<10"))
             ranges.append(QgsRendererRange(10, 20, simb2, "10-20"))
@@ -378,11 +378,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             ranges.append(QgsRendererRange(1, 5, simb4, "1-5"))
             ranges.append(QgsRendererRange(5, 1e10, simb5, ">5"))
         elif "Link_Quality" in nameLayer:
-            ranges.append(QgsRendererRange(-1e10, 0.25, simb1, "<0.25"))
-            ranges.append(QgsRendererRange(0.25, 0.5, simb2, "0.25-0.5"))
-            ranges.append(QgsRendererRange(0.5, 0.75, simb3, "0.5-0.75"))
-            ranges.append(QgsRendererRange(0.75, 1, simb4, "0.75-1"))
-            ranges.append(QgsRendererRange(1, 1e10, simb5, ">1"))
+            ranges.append(QgsRendererRange(-1e10, 25, simb1, "<25%"))
+            ranges.append(QgsRendererRange(25, 50, simb2, "25%-50%"))
+            ranges.append(QgsRendererRange(50, 75, simb3, "50%-75%"))
+            ranges.append(QgsRendererRange(75, 100, simb4, "75%-100%"))
+            ranges.append(QgsRendererRange(100, 1e10, simb5, ">100%"))
 
         return ranges
 
