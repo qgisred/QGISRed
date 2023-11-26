@@ -544,7 +544,16 @@ class QGISRedUtils:
             for qgs in root.findall("./ThirdParty/QGISRed/QGisProject"):
                 if ".qgs" in qgs.text or ".qgz" in qgs.text:
                     finfo = QFileInfo(qgs.text)
-                    QgsProject.instance().read(finfo.filePath())
+                    # Create absolute path
+                    qgisPath = finfo.filePath()
+                    if (os.path.isfile(qgisPath)):
+                        QgsProject.instance().read(qgisPath)
+                    else:
+                        currentDirectory = os.getcwd()
+                        os.chdir(self.ProjectDirectory)
+                        fullPath = os.path.abspath(qgisPath)
+                        os.chdir(currentDirectory)
+                        QgsProject.instance().read(fullPath)
                     return
             for groups in root.findall("./ThirdParty/QGISRed/Groups"):
                 for group in groups:
