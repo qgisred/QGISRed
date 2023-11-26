@@ -956,7 +956,7 @@ class QGISRed:
         icon_path = ":/plugins/QGISRed/images/iconHydraulic.png"
         self.add_action(
             icon_path,
-            text=self.tr("Obtain hydraulic sectors"),
+            text=self.tr("Check hydraulic sectors"),
             callback=self.runHydraulicSectors,
             menubar=self.verificationsMenu,
             toolbar=self.verificationsToolbar,
