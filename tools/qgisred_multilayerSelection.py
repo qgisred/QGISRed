@@ -2,8 +2,12 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QApplication
 from qgis.core import QgsPointXY, QgsPoint, QgsGeometry, QgsFeature, QgsRectangle, QgsVectorLayer, QgsMapLayer
-from qgis.gui import QgsMapTool, QgsRubberBand, Qgis as QgisGui
+from qgis.gui import QgsMapTool, QgsRubberBand
 from qgis.utils import Qgis
+try:
+    from qgis.gui import Qgis as QgisGui
+except:
+    pass
 import processing
 from ..tools.qgisred_utils import QGISRedUtils
 
