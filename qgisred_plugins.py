@@ -1829,6 +1829,12 @@ class QGISRed:
             self.setSelectedFeaturesById()
             if task is not None:
                 return {"task": task.definition()}
+    
+    def openInputLayers(self, projectDir, networkName):
+        # Open layers
+        utils = QGISRedUtils(projectDir, networkName, self.iface)
+        inputGroup = self.getInputGroup()
+        utils.openElementsLayers(inputGroup, self.ownMainLayers)
 
     def openIssuesLayers(self):
         # Open layers
@@ -2484,6 +2490,12 @@ class QGISRed:
         if self.ProjectDirectory == self.TemporalFolder:
             return
         self.readUnits(self.ProjectDirectory, self.NetworkName)
+        # Reload input layers
+        project = self.ProjectDirectory
+        net = self.NetworkName
+        self.especificComplementaryLayers = []
+        self.removeLayers()
+        self.openInputLayers(project, net)
 
     def runSaveProject(self):
         self.defineCurrentProject()
