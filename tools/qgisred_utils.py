@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import QFileInfo
+from PyQt5.QtWidgets import QMessageBox, QFileDialog
 from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer, QgsTask, QgsApplication
 from qgis.core import QgsSvgMarkerSymbolLayer, QgsSymbol, QgsSingleSymbolRenderer, Qgis
 from qgis.core import QgsLineSymbol, QgsSimpleLineSymbolLayer, QgsProperty
@@ -544,16 +545,31 @@ class QGISRedUtils:
             for qgs in root.findall("./ThirdParty/QGISRed/QGisProject"):
                 if ".qgs" in qgs.text or ".qgz" in qgs.text:
                     finfo = QFileInfo(qgs.text)
-                    # Create absolute path
                     qgisPath = finfo.filePath()
-                    if (os.path.isfile(qgisPath)):
-                        QgsProject.instance().read(qgisPath)
-                    else:
+                    if not os.path.isfile(qgisPath): # Create absolute path
                         currentDirectory = os.getcwd()
                         os.chdir(self.ProjectDirectory)
-                        fullPath = os.path.abspath(qgisPath)
+                        qgisPath = os.path.abspath(qgisPath)
                         os.chdir(currentDirectory)
-                        QgsProject.instance().read(fullPath)
+
+                    if os.path.exists(qgisPath):   
+                        QgsProject.instance().read(qgisPath)
+                    else:
+                        request = QMessageBox.question(
+                            self.iface.mainWindow(),
+                            "QGISRed project",
+                            "We cannot find the qgis project file. Do you want to find this file manually? If not, you could try to unload and load the project to recover it.",
+                            QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
+                        )
+                        if request == QMessageBox.Yes:
+                            qfd = QFileDialog()
+                            filter = "qgz(*.qgz)"
+                            f = QFileDialog.getOpenFileName(qfd, "Select QGis file", "", filter)
+                            qgisPath = f[0]
+                            if not qgisPath == "":
+                                QgsProject.instance().read(qgisPath)
+                                
+
                     return
             for groups in root.findall("./ThirdParty/QGISRed/Groups"):
                 for group in groups:
