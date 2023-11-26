@@ -78,6 +78,8 @@ class QGISRedUtils:
             self.openLayer(group, fileName)
         if len(ownMainLayers) > 0:
             self.orderLayers(group)
+        for child in group.children():
+            child.setCustomProperty("showFeatureCount", True)
 
     def openIssuesLayers(self, group, layers):
         for fileName in layers:
@@ -573,8 +575,6 @@ class QGISRedUtils:
                             qgisPath = f[0]
                             if not qgisPath == "":
                                 QgsProject.instance().read(qgisPath)
-                                
-
                     return
             for groups in root.findall("./ThirdParty/QGISRed/Groups"):
                 for group in groups:
@@ -596,6 +596,9 @@ class QGISRedUtils:
                         if vlayer is not None:
                             if ".shp" in layerPath:
                                 QGISRedUtils().setStyle(vlayer, layerName.lower())
+                    if groupName == "Inputs":
+                        for child in treeGroup.children():
+                            child.setCustomProperty("showFeatureCount", True)
         else:  # old file
             gqpFilename = os.path.join(self.ProjectDirectory, self.NetworkName + ".gqp")
             if os.path.exists(gqpFilename):
