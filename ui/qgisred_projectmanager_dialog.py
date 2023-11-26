@@ -165,8 +165,11 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
     def addProjectToTable(self, folder, net):
         folder = self.getUniformedPath(folder)
         dirList = os.listdir(folder)
-        if net + "_Pipes.shp" in dirList:
-            self.updateMetadata(net, folder)
+        isPipes = net + "_Pipes.shp" in dirList
+        isMetadata = net + "_Metadata.txt" in dirList
+        if isPipes:
+            if not isMetadata:
+                self.updateMetadata(net, folder)
             file = open(self.gplFile, "a+")
             QGISRedUtils().writeFile(file, net + ";" + folder + "\n")
             file.close()
