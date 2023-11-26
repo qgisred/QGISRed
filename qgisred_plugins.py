@@ -2023,7 +2023,7 @@ class QGISRed:
         if layersNames == "":
             qgsFilename = QgsProject.instance().fileName()
             if not qgsFilename == "":
-                layersNames = qgsFilename
+                layersNames = os.path.relpath(qgsFilename, project)
             else:
                 layers = self.getLayers()
                 # Inputs
