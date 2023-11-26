@@ -283,11 +283,15 @@ class QGISRedUtils:
                 valvesColor = "if(IniStatus is NULL, '#85b66f',if(IniStatus is 'CLOSED', '#ff0f13', if(IniStatus !='ACTIVE', '#85b66f','#ff9900')))"
                 pumpsColor = "if(IniStatus is NULL, '#85b66f',if(IniStatus !='CLOSED', '#85b66f','#ff0f13'))"
                 prop = QgsProperty()
+                tip= ""
                 if name == "pipes":
+                    tip = "Pipe"
                     prop.setExpressionString(pipesColor)
                 if name == "valves":
+                    tip = "Valve"
                     prop.setExpressionString(valvesColor)
                 if name == "pumps":
+                    tip = "Pump"
                     prop.setExpressionString(pumpsColor)
                 symbol.symbolLayer(0).setDataDefinedProperty(4, prop)
                 # Custom dash
@@ -319,6 +323,7 @@ class QGISRedUtils:
                     prop.setExpressionString("if(IniStatus is NULL, 0,if(IniStatus !='CV', 0,5))")
                     finalMarker.setDataDefinedProperty(9, prop)  # 9 = PropertyWidth
                 renderer = QgsSingleSymbolRenderer(symbol)
+                layer.setMapTipTemplate(tip + " [[% \"Id\" %]]")    
 
             layer.setRenderer(renderer)
 

@@ -25,7 +25,7 @@
     <edittype widgetv2type="TextEdit" name="IdVolCurve">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    edittype widgetv2type="TextEdit" name="Overflow">
+    <edittype widgetv2type="TextEdit" name="Overflow">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
     <edittype widgetv2type="TextEdit" name="MixingMod">
@@ -222,7 +222,6 @@
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerTransparency>0</layerTransparency>
-  <displayfield>[Tank] [% "Id" %]</displayfield>
   <label>0</label>
   <labelattributes>
     <label fieldname="" text="Etiqueta"/>
@@ -359,6 +358,6 @@ def my_form_open(dialog, layer, feature):
     <default field="Descrip" expression=""/>
   </defaults>
   <previewExpression>COALESCE( "Descrip", '&lt;NULL>' )</previewExpression>
-  <mapTip>[Tank] [% "Id" %]</mapTip>
+  <mapTip>Tank [[% "Id" %]]</mapTip>
   <layerGeometryType>0</layerGeometryType>
 </qgis>
