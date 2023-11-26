@@ -1,7 +1,11 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 from qgis.core import QgsPointXY, QgsPoint, QgsGeometry, QgsProject, QgsSnappingConfig, QgsTolerance
-from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSnappingUtils, Qgis
+from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSnappingUtils
+try:
+    from qgis.gui import Qgis
+except:
+    pass
 
 
 class QGISRedCreatePipeTool(QgsMapTool):

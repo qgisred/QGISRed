@@ -2,7 +2,12 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QCursor, QColor
 from qgis.core import QgsPointXY, QgsPoint, QgsFeatureRequest, QgsFeature, QgsGeometry, QgsProject, QgsVector
 from qgis.core import QgsVectorLayerEditUtils, QgsSnappingConfig, QgsTolerance
-from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSnappingUtils, Qgis
+from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSnappingUtils
+try:
+    from qgis.gui import Qgis
+except:
+    pass
+
 from ..tools.qgisred_utils import QGISRedUtils
 
 
