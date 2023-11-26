@@ -827,7 +827,7 @@ class QGISRed:
         icon_path = ":/plugins/QGISRed/images/iconCommit.png"
         self.add_action(
             icon_path,
-            text=self.tr("Commit changes"),
+            text=self.tr("Check && Commit data"),
             callback=self.runCommit,
             menubar=self.verificationsMenu,
             toolbar=self.verificationsToolbar,
