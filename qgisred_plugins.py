@@ -2490,6 +2490,10 @@ class QGISRed:
         if self.ProjectDirectory == self.TemporalFolder:
             return
         self.readUnits(self.ProjectDirectory, self.NetworkName)
+        # Add to the project manager list
+        file = open(self.gplFile, "a+")
+        QGISRedUtils().writeFile(file, self.NetworkName + ";" + self.ProjectDirectory + "\n")
+        file.close()
         # Reload input layers
         project = self.ProjectDirectory
         net = self.NetworkName
