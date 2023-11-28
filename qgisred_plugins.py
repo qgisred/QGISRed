@@ -2494,12 +2494,14 @@ class QGISRed:
         file = open(self.gplFile, "a+")
         QGISRedUtils().writeFile(file, self.NetworkName + ";" + self.ProjectDirectory + "\n")
         file.close()
-        # Reload input layers
-        project = self.ProjectDirectory
-        net = self.NetworkName
-        self.especificComplementaryLayers = []
-        self.removeLayers()
-        self.openInputLayers(project, net)
+        # Reload input styles
+        layers = self.getLayers()
+        for name in self.ownMainLayers:
+            layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp")
+            for layer in layers:
+                openedLayerPath = self.getLayerPath(layer)
+                if openedLayerPath == layerPath:
+                    QGISRedUtils.setStyle(None, layer, name.lower())
 
     def runSaveProject(self):
         self.defineCurrentProject()
