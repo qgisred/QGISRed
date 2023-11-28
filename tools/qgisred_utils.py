@@ -565,7 +565,7 @@ class QGISRedUtils:
                         request = QMessageBox.question(
                             self.iface.mainWindow(),
                             "QGISRed project",
-                            "We cannot find the qgis project file. Do you want to find this file manually? If not, you could try to unload and load the project to recover it.",
+                            "We cannot find the qgis project file. Do you want to find this file manually? If not, we will open only the layers from the Inputs group.",
                             QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
                         )
                         if request == QMessageBox.Yes:
@@ -575,30 +575,18 @@ class QGISRedUtils:
                             qgisPath = f[0]
                             if not qgisPath == "":
                                 QgsProject.instance().read(qgisPath)
+                        else:
+                            layers = ["Pipes", "Junctions", "Demands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
+                            self.openGroupLayers("Inputs", layers)
                     return
             for groups in root.findall("./ThirdParty/QGISRed/Groups"):
                 for group in groups:
                     groupName = group.tag
-                    root = QgsProject.instance().layerTreeRoot()
-                    netGroup = root.addGroup(self.NetworkName)
-                    treeGroup = netGroup.addGroup(groupName)
+                    layers = []
                     for lay in group.iter("Layer"):
-                        layerName = lay.text
-                        layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp")
-                        if not os.path.exists(layerPath):
-                            continue
-                        if treeGroup is None:
-                            vlayer = self.iface.addVectorLayer(layerPath, layerName, "ogr")
-                        else:
-                            vlayer = QgsVectorLayer(layerPath, layerName, "ogr")
-                            QgsProject.instance().addMapLayer(vlayer, False)
-                            treeGroup.insertChildNode(0, QgsLayerTreeLayer(vlayer))
-                        if vlayer is not None:
-                            if ".shp" in layerPath:
-                                QGISRedUtils().setStyle(vlayer, layerName.lower())
-                    if groupName == "Inputs":
-                        for child in treeGroup.children():
-                            child.setCustomProperty("showFeatureCount", True)
+                        layers.append(lay.text)
+                    self.openGroupLayers(groupName, layers)
+                   
         else:  # old file
             gqpFilename = os.path.join(self.ProjectDirectory, self.NetworkName + ".gqp")
             if os.path.exists(gqpFilename):
@@ -636,6 +624,29 @@ class QGISRedUtils:
             else:
                 self.iface.messageBar().pushMessage("Warning", "File not found", level=1, duration=5)
 
+    def openGroupLayers(self, groupName, layerNames):
+        root = QgsProject.instance().layerTreeRoot()
+        netGroup = root.addGroup(self.NetworkName)
+        treeGroup = netGroup.addGroup(groupName)
+        for lay in layerNames:
+            layerName = lay
+            layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp")
+            if not os.path.exists(layerPath):
+                continue
+
+            if treeGroup is None:
+                vlayer = self.iface.addVectorLayer(layerPath, layerName, "ogr")
+            else:
+                vlayer = QgsVectorLayer(layerPath, layerName, "ogr")
+                QgsProject.instance().addMapLayer(vlayer, False)
+                treeGroup.insertChildNode(0, QgsLayerTreeLayer(vlayer))
+
+            if vlayer is not None:
+                QGISRedUtils().setStyle(vlayer, layerName.lower())
+        if groupName == "Inputs":
+            for child in treeGroup.children():
+                child.setCustomProperty("showFeatureCount", True)
+        
     def saveFilesInZip(self, zipPath):
         file_paths = []
         for f in os.listdir(self.ProjectDirectory):
