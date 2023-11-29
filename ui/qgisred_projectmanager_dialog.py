@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtWidgets import QTableWidgetItem, QDialog, QFileDialog, QMessageBox, QApplication
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QDateTime
 from PyQt5.QtGui import QFont
 from qgis.core import QgsProject
 from qgis.PyQt import uic
@@ -145,8 +145,12 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                     rowPosition = self.twProjectList.rowCount()
                     self.twProjectList.insertRow(rowPosition)
                     self.twProjectList.setItem(rowPosition, 0, QTableWidgetItem(values[0]))
-                    self.twProjectList.setItem(rowPosition, 1, QTableWidgetItem(dateLast))
-                    self.twProjectList.setItem(rowPosition, 2, QTableWidgetItem(dateCreate))
+                    dateL = QTableWidgetItem()
+                    dateL.setData(0,QDateTime.fromString(dateLast, 'dd/MM/yyyy HH:mm:ss'))
+                    self.twProjectList.setItem(rowPosition, 1, dateL)
+                    dateC = QTableWidgetItem()
+                    dateC.setData(0,QDateTime.fromString(dateCreate, 'dd/MM/yyyy HH:mm:ss'))
+                    self.twProjectList.setItem(rowPosition, 2, dateC)
                     self.twProjectList.setItem(rowPosition, 3, QTableWidgetItem(values[1]))
 
                     isSameProject = self.getUniformedPath(self.ProjectDirectory) == self.getUniformedPath(values[1])
