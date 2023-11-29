@@ -357,7 +357,6 @@ def my_form_open(dialog, layer, feature):
     <default field="Tag" expression=""/>
     <default field="Descrip" expression=""/>
   </defaults>
-  <previewExpression>COALESCE( "Descrip", '&lt;NULL>' )</previewExpression>
-  <mapTip>Tank [[% "Id" %]]</mapTip>
+  <mapTip>[Tank] [% "Id" %]</mapTip>
   <layerGeometryType>0</layerGeometryType>
 </qgis>
