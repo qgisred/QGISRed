@@ -160,10 +160,10 @@ class QGISRedUtils:
             "Sources.shp",
             "Reservoirs.shp",
             "Tanks.shp",
+            "Demands.shp",
             "Junctions.shp",
             "Pumps.shp",
             "Valves.shp",
-            "Demands.shp",
             "Pipes.shp",
         ]
         layersToDelete = []
@@ -287,13 +287,13 @@ class QGISRedUtils:
                 prop = QgsProperty()
                 tip= ""
                 if name == "pipes":
-                    tip = "Pipe"
+                    tip = "[Pipe]"
                     prop.setExpressionString(pipesColor)
                 if name == "valves":
-                    tip = "Valve"
+                    tip = "[Valve]"
                     prop.setExpressionString(valvesColor)
                 if name == "pumps":
-                    tip = "Pump"
+                    tip = "[Pump]"
                     prop.setExpressionString(pumpsColor)
                 symbol.symbolLayer(0).setDataDefinedProperty(4, prop)
                 # Custom dash
@@ -325,7 +325,7 @@ class QGISRedUtils:
                     prop.setExpressionString("if(IniStatus is NULL, 0,if(IniStatus !='CV', 0,5))")
                     finalMarker.setDataDefinedProperty(9, prop)  # 9 = PropertyWidth
                 renderer = QgsSingleSymbolRenderer(symbol)
-                layer.setMapTipTemplate(tip + " [[% \"Id\" %]]")    
+                layer.setMapTipTemplate(tip + " [% \"Id\" %]")    
 
             layer.setRenderer(renderer)
 

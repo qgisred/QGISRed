@@ -73,4 +73,5 @@
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerGeometryType>0</layerGeometryType>
+  <mapTip>[Source] [% "Type" %] [% "BaseValue" %]</mapTip>
 </qgis>
