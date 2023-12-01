@@ -74,6 +74,7 @@ class QGISRedMoveNodesTool(QgsMapTool):
         self.snapper.setConfig(config)
 
     def deactivate(self):
+        self.vertexMarker.hide()
         self.toolbarButton.setChecked(False)
         # End Editing
         layers = self.getLayers()
