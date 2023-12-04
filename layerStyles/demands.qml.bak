@@ -1,0 +1,75 @@
+<!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
+<qgis version="3.10.0-A CoruÃ±a" styleCategories="Symbology|MapTips">
+  <renderer-v2 enableorderby="0" type="singleSymbol" symbollevels="0" forceraster="0">
+    <symbols>
+      <symbol name="0" clip_to_extent="1" type="marker" alpha="1" force_rhr="0">
+        <layer pass="0" enabled="1" class="SimpleMarker" locked="0">
+          <prop v="0" k="angle"/>
+          <prop v="253,191,111,255" k="color"/>
+          <prop v="1" k="horizontal_anchor_point"/>
+          <prop v="bevel" k="joinstyle"/>
+          <prop v="circle" k="name"/>
+          <prop v="0,0" k="offset"/>
+          <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+          <prop v="MM" k="offset_unit"/>
+          <prop v="50,87,128,255" k="outline_color"/>
+          <prop v="solid" k="outline_style"/>
+          <prop v="0.5" k="outline_width"/>
+          <prop v="3x:0,0,0,0,0,0" k="outline_width_map_unit_scale"/>
+          <prop v="MM" k="outline_width_unit"/>
+          <prop v="diameter" k="scale_method"/>
+          <prop v="1.8" k="size"/>
+          <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
+          <prop v="MM" k="size_unit"/>
+          <prop v="1" k="vertical_anchor_point"/>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option name="name" type="QString" value=""/>
+              <Option name="properties" type="Map">
+                <Option name="fillColor" type="Map">
+                  <Option name="active" type="bool" value="true"/>
+                  <Option name="expression" type="QString" value="if (BaseDem is NULL, '#fdbf6f', if( BaseDem >0, '#fdbf6f', if (BaseDem &lt;0 , '#a6cee3', '#ffffff')))"/>
+                  <Option name="type" type="int" value="3"/>
+                </Option>
+              </Option>
+              <Option name="type" type="QString" value="collection"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+        <layer pass="0" enabled="1" class="SimpleMarker" locked="0">
+          <prop v="0" k="angle"/>
+          <prop v="255,0,0,255" k="color"/>
+          <prop v="1" k="horizontal_anchor_point"/>
+          <prop v="bevel" k="joinstyle"/>
+          <prop v="cross_fill" k="name"/>
+          <prop v="1,-1" k="offset"/>
+          <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+          <prop v="MM" k="offset_unit"/>
+          <prop v="35,35,35,255" k="outline_color"/>
+          <prop v="solid" k="outline_style"/>
+          <prop v="0" k="outline_width"/>
+          <prop v="3x:0,0,0,0,0,0" k="outline_width_map_unit_scale"/>
+          <prop v="Inch" k="outline_width_unit"/>
+          <prop v="diameter" k="scale_method"/>
+          <prop v="2" k="size"/>
+          <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
+          <prop v="MM" k="size_unit"/>
+          <prop v="1" k="vertical_anchor_point"/>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option name="name" type="QString" value=""/>
+              <Option name="properties"/>
+              <Option name="type" type="QString" value="collection"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+      </symbol>
+    </symbols>
+    <rotation/>
+    <sizescale/>
+  </renderer-v2>
+  <blendMode>0</blendMode>
+  <featureBlendMode>0</featureBlendMode>
+  <mapTip>[Mult_Demand] [% "BaseValue" %] ...</mapTip>
+  <layerGeometryType>0</layerGeometryType>
+</qgis>
