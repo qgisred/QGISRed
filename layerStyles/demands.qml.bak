@@ -14,11 +14,11 @@
           <prop v="MM" k="offset_unit"/>
           <prop v="50,87,128,255" k="outline_color"/>
           <prop v="solid" k="outline_style"/>
-          <prop v="0.5" k="outline_width"/>
+          <prop v="0.3" k="outline_width"/>
           <prop v="3x:0,0,0,0,0,0" k="outline_width_map_unit_scale"/>
           <prop v="MM" k="outline_width_unit"/>
           <prop v="diameter" k="scale_method"/>
-          <prop v="1.8" k="size"/>
+          <prop v="1.6" k="size"/>
           <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
           <prop v="MM" k="size_unit"/>
           <prop v="1" k="vertical_anchor_point"/>
@@ -38,20 +38,20 @@
         </layer>
         <layer pass="0" enabled="1" class="SimpleMarker" locked="0">
           <prop v="0" k="angle"/>
-          <prop v="255,0,0,255" k="color"/>
+          <prop v="249,29,9,255" k="color"/>
           <prop v="1" k="horizontal_anchor_point"/>
           <prop v="bevel" k="joinstyle"/>
           <prop v="cross_fill" k="name"/>
           <prop v="1,-1" k="offset"/>
           <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
           <prop v="MM" k="offset_unit"/>
-          <prop v="35,35,35,255" k="outline_color"/>
+          <prop v="255,255,255,255" k="outline_color"/>
           <prop v="solid" k="outline_style"/>
           <prop v="0" k="outline_width"/>
           <prop v="3x:0,0,0,0,0,0" k="outline_width_map_unit_scale"/>
           <prop v="Inch" k="outline_width_unit"/>
           <prop v="diameter" k="scale_method"/>
-          <prop v="2" k="size"/>
+          <prop v="1.8" k="size"/>
           <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
           <prop v="MM" k="size_unit"/>
           <prop v="1" k="vertical_anchor_point"/>
