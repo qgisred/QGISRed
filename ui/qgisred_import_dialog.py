@@ -65,6 +65,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         utils = QGISRedUtils(direct, netw, ifac)
         self.crs = utils.getProjectCrs()
         self.tbCRS.setText(self.crs.description())
+        self.lbUnits.setText("Degrees")
         self.ProcessDone = False
         self.InpFile = ""
 
@@ -125,6 +126,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 self.crs = QgsCoordinateReferenceSystem()
                 self.crs.createFromId(crsId, QgsCoordinateReferenceSystem.InternalCrsId)
                 self.tbCRS.setText(self.crs.description())
+                self.lbUnits.setText(str(self.crs.mapUnits()).replace("DistanceUnit.", ""))
+
 
     def validationsCreateProject(self, validateName=True):
         if not self.NewProject:
