@@ -71,7 +71,7 @@
                 </Option>
                 <Option name="size" type="Map">
                   <Option name="active" type="bool" value="true"/>
-                  <Option name="expression" type="QString" value="if (EmittCoef>=0, 0, if (BaseDem is NULL, 1.3, if( BaseDem >0, 1.3, if (BaseDem &lt;0 , 2.3, 1.3))))"/>
+                  <Option name="expression" type="QString" value="if (EmittCoef>0, 0, if (BaseDem is NULL, 1.3, if( BaseDem >0, 1.3, if (BaseDem &lt;0 , 2.3, 1.3))))"/>
                   <Option name="type" type="int" value="3"/>
                 </Option>
               </Option>
