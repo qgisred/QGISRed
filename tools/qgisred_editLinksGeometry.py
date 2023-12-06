@@ -93,6 +93,10 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
         self.pipeSnapper.setConfig(config)
 
     def deactivate(self):
+        self.vertexMarker.hide()
+        self.newVertexMarker.hide()
+        self.pipeMarker.hide()
+        
         self.toolbarButton.setChecked(False)
         # End Editing
         layers = self.getLayers()
