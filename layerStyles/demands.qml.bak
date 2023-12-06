@@ -12,7 +12,7 @@
           <prop v="0,0" k="offset"/>
           <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
           <prop v="MM" k="offset_unit"/>
-          <prop v="50,87,128,255" k="outline_color"/>
+          <prop v="21,21,21,255" k="outline_color"/>
           <prop v="solid" k="outline_style"/>
           <prop v="0.3" k="outline_width"/>
           <prop v="3x:0,0,0,0,0,0" k="outline_width_map_unit_scale"/>
@@ -33,7 +33,7 @@
                 </Option>
 				<Option name="size" type="Map">
                   <Option name="active" type="bool" value="true"/>
-                  <Option name="expression" type="QString" value="0.888889*(if (BaseValue is NULL, 1.8, if( BaseValue >0, 1.8, if (BaseValue &lt;0 , 2.3, 1.8))))"/>
+                  <Option name="expression" type="QString" value="if (BaseValue is NULL, 1.6, if( BaseValue >0, 1.6, if (BaseValue &lt;0 , 2.3, 1.6)))"/>
                   <Option name="type" type="int" value="3"/>
                 </Option>				   
 		      </Option>
