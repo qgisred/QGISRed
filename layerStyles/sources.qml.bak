@@ -23,7 +23,7 @@
             <Option value="MM" type="QString" name="offset_unit"/>
             <Option value="203,15,150,255" type="QString" name="outline_color"/>
             <Option value="solid" type="QString" name="outline_style"/>
-            <Option value="6" type="QString" name="outline_width"/>
+            <Option value="4.6" type="QString" name="outline_width"/>
             <Option value="3x:0,0,0,0,0,0" type="QString" name="outline_width_map_unit_scale"/>
             <Option value="Pixel" type="QString" name="outline_width_unit"/>
             <Option value="diameter" type="QString" name="scale_method"/>
