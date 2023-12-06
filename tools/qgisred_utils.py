@@ -60,6 +60,9 @@ class QGISRedUtils:
         for ind in upperIndex:
             if ind != 0:
                 original = original[:ind] + " " + original[ind:]
+
+        if "Demands" in original:
+            original = "Multiple Demands"
         return original
 
     """Open Layers"""
@@ -151,12 +154,12 @@ class QGISRedUtils:
 
     def orderLayers(self, group):
         mylayersNames = [
+            "Meters.shp",
+            "ServiceConnections.shp",
             "IsolationValves.shp",
             "Hydrants.shp",
             "WashoutValves.shp",
             "AirReleaseValves.shp",
-            "Meters.shp",
-            "ServiceConnections.shp",
             "Sources.shp",
             "Reservoirs.shp",
             "Tanks.shp",
