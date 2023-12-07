@@ -78,7 +78,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.ProjectDirectory = direct
         self.tbProjectDirectory.setText(direct)
         # self.tbProjectDirectory.setCursorPosition(0)
-        self.tbTolerance.setText(str(0.1))
+        self.tbTolerance.setText(str(0))
         self.tbScLength.setText(str(5))
         self.isPunctualConnection = False
         self.tbScLength.setEnabled(self.isPunctualConnection)
@@ -126,8 +126,32 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 self.crs = QgsCoordinateReferenceSystem()
                 self.crs.createFromId(crsId, QgsCoordinateReferenceSystem.InternalCrsId)
                 self.tbCRS.setText(self.crs.description())
-                self.lbUnits.setText(str(self.crs.mapUnits()).replace("DistanceUnit.", ""))
+                self.lbUnits.setText(str(self.convertMapUnits(self.crs.mapUnits())).replace("DistanceUnit.", ""))
 
+    def convertMapUnits(self, units):
+        if units == 0:
+            return "Meters"
+        if units == 1:
+            return "Kilometers"
+        if units == 2:
+            return "Feets"
+        if units == 3:
+            return "NauticalMiles"
+        if units == 4:
+            return "Yards"
+        if units == 5:
+            return "Miles"
+        if units == 6:
+            return "Degrees"
+        if units == 7:
+            return "Centimeters"
+        if units == 8:
+            return "Milimeters"
+        if units == 9:
+            return "Unknown"
+
+        return units
+        
 
     def validationsCreateProject(self, validateName=True):
         if not self.NewProject:
