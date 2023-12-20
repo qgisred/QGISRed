@@ -5,7 +5,7 @@
       <symbol alpha="1" clip_to_extent="1" type="marker" name="0" force_rhr="0">
         <layer pass="0" class="SimpleMarker" enabled="1" locked="0">
           <prop v="0" k="angle"/>
-          <prop v="15,18,145,255" k="color"/>
+          <prop v="18,180,37,255" k="color"/>
           <prop v="1" k="horizontal_anchor_point"/>
           <prop v="bevel" k="joinstyle"/>
           <prop v="circle" k="name"/>
@@ -28,8 +28,8 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="fillColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if( &quot;Available&quot;!=0,if( &quot;Status&quot;='CLOSED',color_rgb(255,19,19), color_rgb(15,18,145)),color_rgb(125,139,143))" type="QString" name="expression"/>
-                  <Option value="3" type="int" name="type"/>
+                  <Option type="QString" value="if( &quot;Available&quot;!=0,if( &quot;Status&quot;='CLOSED',color_rgb(255,19,19), if(&quot;LossCoeff&quot; = 0, color_rgb(18,180,37),color_rgb(246,185,18))),color_rgb(125,139,143))" name="expression"/>
+				  <Option value="3" type="int" name="type"/>
                 </Option>
               </Option>
               <Option value="collection" type="QString" name="type"/>
