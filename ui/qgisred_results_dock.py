@@ -302,6 +302,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         secondCondition = layer.geometryType() != 0 and self.cbLinkLabels.isChecked()
         if firstCondition or secondCondition:
             layer_settings = QgsPalLayerSettings()
+            layer_settings.formatNumbers = True 
+            layer_settings.decimals = 2
             text_format = QgsTextFormat()
             text_format.setFont(QFont("Arial", 10))
             color = "black"
