@@ -25,8 +25,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>306</width>
-         <height>640</height>
+         <width>293</width>
+         <height>668</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_3">
@@ -459,23 +459,43 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="cbFlowDirections">
-                   <property name="font">
-                    <font>
-                     <family>MS Shell Dlg 2</family>
-                     <pointsize>8</pointsize>
-                     <weight>50</weight>
-                     <italic>true</italic>
-                     <bold>false</bold>
-                    </font>
-                   </property>
-                   <property name="styleSheet">
-                    <string notr="true">font: italic 8pt &quot;MS Shell Dlg 2&quot;;</string>
-                   </property>
-                   <property name="text">
-                    <string>Show Flow directions</string>
-                   </property>
-                  </widget>
+                  <layout class="QHBoxLayout" name="horizontalLayout_3">
+                   <item>
+                    <widget class="QCheckBox" name="cbFlowDirections">
+                     <property name="font">
+                      <font>
+                       <family>MS Shell Dlg 2</family>
+                       <pointsize>8</pointsize>
+                       <weight>50</weight>
+                       <italic>true</italic>
+                       <bold>false</bold>
+                      </font>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">font: italic 8pt &quot;MS Shell Dlg 2&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>Show Flow directions</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="lbNotAvailable">
+                     <property name="font">
+                      <font>
+                       <pointsize>7</pointsize>
+                       <italic>true</italic>
+                      </font>
+                     </property>
+                     <property name="text">
+                      <string>Not available. Default style changed</string>
+                     </property>
+                     <property name="wordWrap">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
                  </item>
                 </layout>
                </item>
