@@ -56,6 +56,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.cbScenarios.currentIndexChanged.connect(self.scenarioChanged)
         self.btDeleteScenario.clicked.connect(self.deleteScenario)
 
+        self.lbNotAvailable.setVisible(False)
+
     """Methods"""
 
     def isCurrentProject(self):
@@ -387,19 +389,24 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         return ranges
 
     def setArrowsVisibility(self, symbol, layer, prop, field):
-        if "Flow" in layer.name() and self.cbFlowDirections.isChecked():
-            # Show arrows in pipes
-            ss = symbol.symbolLayer(3)  # arrow positive flow
-            prop.setExpressionString("if(Type='PIPE', if(" + field + ">0,3,0),0)")
-            ss.subSymbol().setDataDefinedSize(prop)
-            ss = symbol.symbolLayer(4)  # arrow negative flow
-            prop.setExpressionString("if(Type='PIPE', if(" + field + "<0,3,0),0)")
-            ss.subSymbol().setDataDefinedSize(prop)
-        else:
-            # Hide arrows
-            prop.setExpressionString("0")
-            symbol.symbolLayer(3).subSymbol().setDataDefinedSize(prop)
-            symbol.symbolLayer(4).subSymbol().setDataDefinedSize(prop)
+        try:
+            if "Flow" in layer.name() and self.cbFlowDirections.isChecked():
+                # Show arrows in pipes
+                ss = symbol.symbolLayer(3)  # arrow positive flow
+                prop.setExpressionString("if(Type='PIPE', if(" + field + ">0,3,0),0)")
+                ss.subSymbol().setDataDefinedSize(prop)
+                ss = symbol.symbolLayer(4)  # arrow negative flow
+                prop.setExpressionString("if(Type='PIPE', if(" + field + "<0,3,0),0)")
+                ss.subSymbol().setDataDefinedSize(prop)
+            else:
+                # Hide arrows
+                prop.setExpressionString("0")
+                symbol.symbolLayer(3).subSymbol().setDataDefinedSize(prop)
+                symbol.symbolLayer(4).subSymbol().setDataDefinedSize(prop)
+        except:
+            self.cbFlowDirections.setChecked(False)
+            self.cbFlowDirections.setEnabled(False)
+            self.lbNotAvailable.setVisible(True)
 
     def setNodesVisibility(self, prop, symbol):
         prop.setExpressionString("if(Type ='TANK', 7,0)")
