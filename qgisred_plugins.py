@@ -1138,7 +1138,6 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         icon_path = ":/plugins/QGISRed/images/iconFlash.png"
-        dropButton = QToolButton()
         self.add_action(
             icon_path,
             text=self.tr("Run model"),
@@ -1146,8 +1145,7 @@ class QGISRed:
             menubar=self.analysisMenu,
             toolbar=self.analysisToolbar,
             actionBase=analysisDropButton,
-            dropButton=dropButton,
-            add_to_toolbar=False,
+            add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
         icon_path = ":/plugins/QGISRed/images/iconResults.png"
@@ -1157,8 +1155,8 @@ class QGISRed:
             callback=self.runShowResultsDock,
             menubar=self.analysisMenu,
             toolbar=self.analysisToolbar,
-            actionBase=dropButton,
-            add_to_toolbar=False,
+            actionBase=analysisDropButton,
+            add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
         icon_path = ":/plugins/QGISRed/images/iconExportEpanet.png"
