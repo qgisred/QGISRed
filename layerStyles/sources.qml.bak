@@ -28,7 +28,7 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="outlineColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if (BaseValue is NULL or BaseValue = 0, '#9d979d' , if ( Type = 'MASS', '#ffd17123', if (Type = 'FLOWPACED', '#ff23d146', if (Type = 'CONCEN', '#ff0f12cb', '#ffcb0f96'))))" type="QString" name="expression"/>
+                  <Option value="if (BaseValue is NULL or BaseValue = 0, '#9d979d' , if ( Type = 'MASS', '#ffd17123', if (Type = 'FLOWPACED', '#ff23d146', if (Type = 'CONCEN', '#0d20ed', '#ffcb0f96'))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
               </Option>
