@@ -8,6 +8,7 @@ from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling
 from qgis.core import QgsTextFormat
 from qgis.core import QgsProperty, QgsRenderContext, QgsRendererRange
 from qgis.core import QgsGraduatedSymbolRenderer, QgsGradientColorRamp as QgsVectorGradientColorRamp, QgsRuleBasedRenderer
+from qgis.core import QgsSymbolLayer
 
 from ..tools.qgisred_utils import QGISRedUtils
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
@@ -412,14 +413,14 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
     def setNodesVisibility(self, prop, symbol):
         prop.setExpressionString("if(Type ='TANK', 7,0)")
-        symbol.symbolLayer(0).setDataDefinedProperty(0, prop)  # 0 = PropertySize
-        symbol.symbolLayer(0).setDataDefinedProperty(9, prop)  # 0 = PropertyWidth
+        symbol.symbolLayer(0).setDataDefinedProperty(QgsSymbolLayer.PropertySize, prop)  # 0 = PropertySize
+        symbol.symbolLayer(0).setDataDefinedProperty(QgsSymbolLayer.PropertyWidth, prop)  # 0 = PropertyWidth
         prop.setExpressionString("if(Type ='RESERVOIR', 7,0)")
-        symbol.symbolLayer(1).setDataDefinedProperty(0, prop)
-        symbol.symbolLayer(1).setDataDefinedProperty(9, prop)
+        symbol.symbolLayer(1).setDataDefinedProperty(QgsSymbolLayer.PropertySize, prop)
+        symbol.symbolLayer(1).setDataDefinedProperty(QgsSymbolLayer.PropertyWidth, prop)
         prop.setExpressionString("if(Type ='RESERVOIR' or Type='TANK', 0,2)")
-        symbol.symbolLayer(2).setDataDefinedProperty(0, prop)
-        symbol.symbolLayer(2).setDataDefinedProperty(9, prop)
+        symbol.symbolLayer(2).setDataDefinedProperty(QgsSymbolLayer.PropertySize, prop)
+        symbol.symbolLayer(2).setDataDefinedProperty(QgsSymbolLayer.PropertyWidth, prop)
 
     def setGraduadedPalette(self, layer, field, setRender, nameLayer):
         renderer = layer.renderer()
