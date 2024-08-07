@@ -7,6 +7,7 @@ from qgis.core import QgsSvgMarkerSymbolLayer, QgsSymbol, QgsSingleSymbolRendere
 from qgis.core import QgsLineSymbol, QgsSimpleLineSymbolLayer, QgsProperty
 from qgis.core import QgsMarkerSymbol, QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayer
 from qgis.core import QgsRendererCategory, QgsCategorizedSymbolRenderer, QgsCoordinateReferenceSystem
+from qgis.core import QgsSymbolLayer
 
 # Others imports
 import os
@@ -298,11 +299,11 @@ class QGISRedUtils:
                 if name == "pumps":
                     tip = "[Pump]"
                     prop.setExpressionString(pumpsColor)
-                symbol.symbolLayer(0).setDataDefinedProperty(4, prop)
+                symbol.symbolLayer(0).setDataDefinedProperty(QgsSymbolLayer.PropertyStrokeColor, prop)
                 # Custom dash
                 prop2 = QgsProperty()
                 prop2.setExpressionString("if(IniStatus = 'CLOSED', '5;2', '5000;0')")
-                symbol.symbolLayer(0).setDataDefinedProperty(36, prop2)
+                symbol.symbolLayer(0).setDataDefinedProperty(QgsSymbolLayer.PropertyCustomDash, prop2)
                 # Symbol
                 marker = QgsMarkerSymbol.createSimple({})
                 marker.deleteSymbolLayer(0)
@@ -316,7 +317,7 @@ class QGISRedUtils:
                 svg_props["offset_unit"] = "Pixel"
                 markerSymbol = QgsSvgMarkerSymbolLayer.create(svg_props)
                 # SVG marker Color
-                markerSymbol.setDataDefinedProperty(3, prop)
+                markerSymbol.setDataDefinedProperty(QgsSymbolLayer.PropertyFillColor, prop)
                 marker.appendSymbolLayer(markerSymbol)
                 # Final Symbol
                 finalMarker = QgsMarkerLineSymbolLayer()
@@ -326,7 +327,7 @@ class QGISRedUtils:
                 if name == "pipes":
                     prop = QgsProperty()
                     prop.setExpressionString("if(IniStatus is NULL, 0,if(IniStatus !='CV', 0,5))")
-                    finalMarker.setDataDefinedProperty(9, prop)  # 9 = PropertyWidth
+                    finalMarker.setDataDefinedProperty(QgsSymbolLayer.PropertyWidth, prop)  # 9 = PropertyWidth
                 renderer = QgsSingleSymbolRenderer(symbol)
                 layer.setMapTipTemplate(tip + " [% \"Id\" %]")    
 
