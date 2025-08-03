@@ -6,7 +6,10 @@ from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSna
 try:
     from qgis.gui import Qgis
 except:
-    pass
+    try:
+        from qgis.core import Qgis # Compatibility with QGis 3.4x
+    except:
+        pass
 
 from ..tools.qgisred_utils import QGISRedUtils
 
