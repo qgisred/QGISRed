@@ -7,7 +7,10 @@ from qgis.utils import Qgis
 try:
     from qgis.gui import Qgis as QgisGui
 except:
-    pass
+    try:
+        from qgis.core import Qgis as QgisGui # Compatibility with QGis 3.4x
+    except:
+        pass
 import processing
 from ..tools.qgisred_utils import QGISRedUtils
 
