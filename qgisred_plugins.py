@@ -75,7 +75,7 @@ class QGISRed:
     especificComplementaryLayers = []
     complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves", "AirReleaseValves", "ServiceConnections", "Meters"]
     TemporalFolder = "Temporal folder"
-    DependenciesVersion = "1.0.16.12"
+    DependenciesVersion = "1.0.17.0"
     gisredDll = None
 
     """Basic"""
@@ -1537,7 +1537,7 @@ class QGISRed:
                         self.tr(
                             "QGISRed plugin has a new version ("
                             + contents
-                            + "). You can upgrade it from the QGis plugin manager."
+                            + "). You can upgrade it from the QGis plugin manager. "
                             + "Do you want to remember it again?"
                         ),
                         QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
