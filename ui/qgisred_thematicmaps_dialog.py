@@ -96,18 +96,28 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             super().accept()
             return
 
+        # remove old layers (supports both old location under 'Queries' and new under 'Thematic Maps')
         self.removeQueryLayersByIdentifiers(toRemoveIdentifiers)
 
+        # cleanup empty groups first
         queriesGroup = self.findGroupByName(rootGroup, 'Queries')
-        if queriesGroup and not queriesGroup.children():
-            parent = queriesGroup.parent()
-            if parent:
-                parent.removeChildNode(queriesGroup)
+        if queriesGroup:
+            thematicGroup = self.findGroupByName(queriesGroup, 'Thematic Maps')
+            if thematicGroup and not thematicGroup.children():
+                queriesGroup.removeChildNode(thematicGroup)
+            if not queriesGroup.children():
+                parent = queriesGroup.parent()
+                if parent:
+                    parent.removeChildNode(queriesGroup)
 
         if selectedQueries:
-            queriesGroup = self.getOrCreateQueriesGroup(rootGroup, inputsGroup)
-            pipesLayer = self.findLayerInGroup(inputsGroup, 'Pipes')
+            # now ensure Queries → Thematic Maps hierarchy exists
+            thematicGroup = self.getOrCreateQueriesGroup(rootGroup, inputsGroup)
+
+            pipesLayer = self.findLayerInGroup(inputsGroup, 'Pipes', 'qgisred_pipes')
+            print("pipesLayer : ", pipesLayer)
             if pipesLayer is None:
+                super().accept()
                 return
 
             newQueries = [
@@ -117,7 +127,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             ]
 
             for query in reversed(newQueries):
-                self.processQuery(query, pipesLayer, queriesGroup)
+                self.processQuery(query, pipesLayer, thematicGroup)
 
         super().accept()
 
@@ -125,9 +135,24 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if not identifiersToRemove:
             return
         root = QgsProject.instance().layerTreeRoot()
+
+        # Prefer Queries → Thematic Maps, but fall back to Queries (for legacy layers)
         queriesGroup = self.findGroupByName(root, 'Queries')
+        targetGroup = None
         if queriesGroup:
-            self.recursiveRemoveByIdentifiers(queriesGroup, identifiersToRemove)
+            thematicGroup = self.findGroupByName(queriesGroup, 'Thematic Maps')
+            targetGroup = thematicGroup or queriesGroup
+
+        if targetGroup:
+            self.recursiveRemoveByIdentifiers(targetGroup, identifiersToRemove)
+
+            # tidy up if groups become empty
+            if thematicGroup and not thematicGroup.children():
+                queriesGroup.removeChildNode(thematicGroup)
+            if queriesGroup and not queriesGroup.children():
+                parent = queriesGroup.parent()
+                if parent:
+                    parent.removeChildNode(queriesGroup)
 
     def recursiveRemoveByIdentifiers(self, group, identifiers):
         for child in list(group.children()):
@@ -156,29 +181,48 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if inputsParent is None:
             inputsParent = rootGroup
 
-        queriesGroup = self.findGroupByName(rootGroup, 'Queries')
-        if queriesGroup is None:
-            inputsGroupIndex = inputsParent.children().index(inputsGroup)
-            queriesGroup = inputsParent.insertGroup(inputsGroupIndex, 'Queries')
-        else:
-            if queriesGroup.parent() != inputsParent:
+        # Ensure 'Queries' exists directly under inputsParent
+        queriesGroup = self.findGroupByName(inputsParent, 'Queries')
+        if queriesGroup is None or queriesGroup.parent() != inputsParent:
+            if queriesGroup is not None and queriesGroup.parent():
+                # move existing Queries under inputsParent
                 oldParent = queriesGroup.parent()
                 oldParent.removeChildNode(queriesGroup)
                 inputsParent.insertChildNode(0, queriesGroup)
-        return queriesGroup
+            else:
+                inputsGroupIndex = inputsParent.children().index(inputsGroup)
+                queriesGroup = inputsParent.insertGroup(inputsGroupIndex, 'Queries')
 
-    def findLayerInGroup(self, group, layerName):
+        # Ensure 'Thematic Maps' exists inside 'Queries'
+        thematicGroup = self.findGroupByName(queriesGroup, 'Thematic Maps')
+        if thematicGroup is None:
+            thematicGroup = queriesGroup.insertGroup(0, 'Thematic Maps')
+
+        # Return the subgroup where queries should be inserted
+        return thematicGroup
+
+    def findLayerInGroup(self, group, layerName=None, custom_property=None):
         for child in group.children():
-            if child.nodeType() == QgsLayerTreeNode.NodeLayer and child.name() == layerName and child.checkedLayers():
-                return child.checkedLayers()[0]
-            elif isinstance(child, QgsLayerTreeLayer) and child.name() == layerName:
-                return child.layer()
-            elif isinstance(child, QgsLayerTreeGroup):
-                layer = self.findLayerInGroup(child, layerName)
+            if custom_property:
+                # Search by custom property
+                if isinstance(child, QgsLayerTreeLayer):
+                    layer = child.layer()
+                    if layer and layer.customProperty('qgisred_identifier') == custom_property:
+                        return layer
+            else:
+                # Search by layer name (original behavior)
+                if child.nodeType() == QgsLayerTreeNode.NodeLayer and child.name() == layerName and child.checkedLayers():
+                    return child.checkedLayers()[0]
+                elif isinstance(child, QgsLayerTreeLayer) and child.name() == layerName:
+                    return child.layer()
+            
+            # Recursively search in subgroups
+            if isinstance(child, QgsLayerTreeGroup):
+                layer = self.findLayerInGroup(child, layerName, custom_property)
                 if layer is not None:
                     return layer
         return None
-
+    
     def processQuery(self, query, mainLayer, queriesGroup):
         layerName = query['layer_name']
         field = query['field']
@@ -338,12 +382,14 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
     def updateCheckboxStates(self):
         root = QgsProject.instance().layerTreeRoot()
         queriesGroup = self.findGroupByName(root, 'Queries')
+        thematicGroup = self.findGroupByName(queriesGroup, 'Thematic Maps') if queriesGroup else None
+        targetGroup = thematicGroup or queriesGroup  # support legacy placement
 
         checkboxMapping = self.createIdentifierCheckboxMapping()
-        if queriesGroup:
-            self.checkLayersRecursiveByIdentifier(queriesGroup, checkboxMapping)
-        
-        self.initialValidIdentifiers = self.collectExistingIdentifiers(queriesGroup) if queriesGroup else set()
+        if targetGroup:
+            self.checkLayersRecursiveByIdentifier(targetGroup, checkboxMapping)
+
+        self.initialValidIdentifiers = self.collectExistingIdentifiers(targetGroup) if targetGroup else set()
 
     def collectExistingIdentifiers(self, group):
         identifiers = set()

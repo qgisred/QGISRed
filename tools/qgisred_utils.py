@@ -139,7 +139,8 @@ class QGISRedUtils:
     def openLayer(self, group, name, ext=".shp", results=False, toEnd=False, sectors=False, issues=False):
         showName = self.getLayerNameToLegend(name)
         name = name.replace(" ", "")
-        layerName = self.NetworkName + "_" + name
+        originalName = self.getOriginalNameFromLayerName(name)
+        layerName = self.NetworkName + "_" + originalName 
         if os.path.exists(os.path.join(self.ProjectDirectory, layerName + ext)):
             vlayer = QgsVectorLayer(os.path.join(self.ProjectDirectory, layerName + ext), showName, "ogr")
             if not ext == ".dbf":
@@ -168,7 +169,8 @@ class QGISRedUtils:
 
 
     def openTreeLayer(self, group, name, treeName, link=False):
-        layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + "_Tree_" + treeName + ".shp")
+        originalName = self.getOriginalNameFromLayerName(name)
+        layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + originalName + "_Tree_" + treeName + ".shp")
         if os.path.exists(layerPath):
             vlayer = QgsVectorLayer(layerPath, name, "ogr")
             if link:
@@ -179,7 +181,8 @@ class QGISRedUtils:
             del vlayer
 
     def openIsolatedSegmentsLayer(self, group, name):
-        layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_IsolatedSegments_" + name + ".shp")
+        originalName = self.getOriginalNameFromLayerName(name)
+        layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_IsolatedSegments_" + originalName + ".shp")
         if os.path.exists(layerPath):
             vlayer = QgsVectorLayer(layerPath, name, "ogr")
             self.setIsolatedSegmentsStyle(vlayer)
