@@ -43,8 +43,6 @@ from .ui.qgisred_toolConnections_dialog import QGISRedServiceConnectionsToolDial
 from .ui.qgisred_toolConnectivity_dialog import QGISRedConnectivityToolDialog
 from .ui.qgisred_loadproject_dialog import QGISRedImportProjectDialog
 from .ui.qgisred_thematicmaps_dialog import QGISRedThematicMapsDialog
-from .ui.qgisred_findElements_dock import QGISRedFindElementsDock
-from .ui.qgisred_elementproperties_dock import QGISRedElementsPropertyDock
 from .ui.qgisred_unified_find_properties import QGISRedElementsExplorerDock
 from .tools.qgisred_utils import QGISRedUtils
 from .tools.qgisred_dependencies import QGISRedDependencies as GISRed
@@ -4444,9 +4442,9 @@ class QGISRed:
         else:
             useElementProperties = False
             if existingDock:
-                useElementProperties = existingDock.spoilerElementProperties.isExpanded()
-                if not existingDock.spoilerFindElements.isExpanded():
-                    existingDock.spoilerFindElements.setExpanded(True)
+                useElementProperties = not existingDock.mElementPropertiesGroupBox.isCollapsed()
+                if existingDock.mFindElementsGroupBox.isCollapsed():
+                    existingDock.mFindElementsGroupBox.setCollapsed(False)
 
                 existingDock.initializeElementTypes()
             else:
@@ -4464,7 +4462,7 @@ class QGISRed:
                     dock.activateWindow()
                     dock.onLayerTreeChanged()
                     dock.setDefaultValue()
-                    dock.spoilerFindElements.setExpanded(True)
+                    dock.mFindElementsGroupBox.setCollapsed(False)
                 except Exception as e:
                     print(f"Error creating dock: {str(e)}")
                     self.openFindElementsDialog.setChecked(False)
@@ -4514,8 +4512,8 @@ class QGISRed:
             self.openElementsPropertyDialog.setChecked(False)
         else:
             if existingDock:
-                if not existingDock.spoilerElementProperties.isExpanded():
-                    existingDock.spoilerElementProperties.setExpanded(True)
+                if existingDock.mElementPropertiesGroupBox.isCollapsed():
+                    existingDock.mElementPropertiesGroupBox.setCollapsed(False)
                 existingDock.initializeElementTypes()
             try:
                 self.myMapTools[tool] = QGISRedIdentifyFeature(
