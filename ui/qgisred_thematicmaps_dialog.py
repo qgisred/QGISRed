@@ -197,7 +197,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         self.assign_labels(new_layer, field)
 
         # Assign map tooltips
-        html_map_tip = f'<html><body><p>{tooltip_prefix} [% "{field}" %]</p></body></html>'
+        html_map_tip = f'<html><body><p> {tooltip_prefix} [% "{field}" %] </p></body></html>'
         new_layer.setMapTipTemplate(html_map_tip)
 
         layer_tree_layer.setCustomProperty("showFeatureCount", True)
