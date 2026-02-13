@@ -2,8 +2,9 @@
 from PyQt5.QtGui import QColor, QPixmap, QPainter, QIcon
 from PyQt5.QtWidgets import (QDialog, QDialogButtonBox, QDoubleSpinBox, QLabel,
                              QVBoxLayout, QWidget, QHBoxLayout, QCheckBox,
-                             QToolButton, QPushButton, QComboBox)
-from PyQt5.QtCore import pyqtSignal, Qt, QEvent, QSize
+                             QToolButton, QPushButton, QComboBox, QApplication)
+from PyQt5.QtCore import (pyqtSignal, Qt, QEvent, QSize, QObject, QPoint,
+                          QItemSelectionModel, QItemSelection)
 
 from qgis.gui import QgsSymbolButton, QgsColorDialog
 from qgis.core import QgsMarkerSymbol, QgsLineSymbol, QgsFillSymbol, QgsColorRamp
@@ -346,3 +347,53 @@ class QGISRedColorRampSelector(QComboBox):
     def createRampIcon(self, ramp, width, height):
         pixmap = self.renderGradientPreview(ramp, width, height)
         return QIcon(pixmap)
+
+class QGISRedRowSelectionFilter(QObject):
+    def __init__(self, table):
+        super(QGISRedRowSelectionFilter, self).__init__(table)
+        self.table = table
+
+    def eventFilter(self, widget, event):
+        if self.shouldHandleEvent(event):
+            self.handleSelectionEvent(widget)
+        return False
+
+    def shouldHandleEvent(self, event):
+        isFocusIn = event.type() == QEvent.FocusIn
+        isLeftClick = event.type() == QEvent.MouseButtonPress and event.button() == Qt.LeftButton
+        return isFocusIn or isLeftClick
+
+    def handleSelectionEvent(self, widget):
+        index = self.getIndexFromWidget(widget)
+        if index.isValid():
+            self.performRowSelection(index)
+
+    def getIndexFromWidget(self, widget):
+        position = widget.mapTo(self.table.viewport(), QPoint(0, 0))
+        return self.table.indexAt(position)
+
+    def performRowSelection(self, index):
+        command = self.getSelectionCommand()
+        selection = self.getRowSelectionRange(index)
+        self.applySelection(selection, command, index)
+
+    def getSelectionCommand(self):
+        modifiers = QApplication.keyboardModifiers()
+        if modifiers & Qt.ControlModifier:
+            return QItemSelectionModel.Toggle
+        if modifiers & Qt.ShiftModifier:
+            return QItemSelectionModel.Select
+        return QItemSelectionModel.ClearAndSelect
+
+    def getRowSelectionRange(self, index):
+        row = index.row()
+        lastColumn = self.table.columnCount() - 1
+        model = self.table.model()
+        topLeft = model.index(row, 0)
+        bottomRight = model.index(row, lastColumn)
+        return QItemSelection(topLeft, bottomRight)
+
+    def applySelection(self, selection, command, index):
+        self.table.selectionModel().select(selection, command)
+        self.table.setCurrentIndex(index)
+        self.table.viewport().update()

@@ -28,52 +28,10 @@ from qgis.utils import iface
 
 # Local imports
 from ..tools.qgisred_utils import QGISRedUtils
-from .qgisred_custom_dialogs import QGISRedRangeEditDialog, QGISRedSymbolColorSelector, QGISRedColorRampSelector
+from .qgisred_custom_dialogs import QGISRedRangeEditDialog, QGISRedSymbolColorSelector, QGISRedColorRampSelector, QGISRedRowSelectionFilter
 
 # Load UI
 formClass, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_legends_dialog.ui"))
-
-class RowSelectionFilter(QObject):
-    """
-    Event filter to ensure clicking a cell widget selects the underlying table row
-    while respecting Ctrl/Shift modifiers for multi-selection.
-    """
-    def __init__(self, table):
-        super(RowSelectionFilter, self).__init__(table)
-        self.table = table
-
-    def eventFilter(self, widget, event):
-        if event.type() == QEvent.FocusIn or (event.type() == QEvent.MouseButtonPress and event.button() == Qt.LeftButton):
-            # Find the widget's position in the table using mapTo for robustness (handles nested widgets)
-            pos = widget.mapTo(self.table.viewport(), QPoint(0, 0))
-            index = self.table.indexAt(pos)
-            if index.isValid():
-                selectionModel = self.table.selectionModel()
-                modifiers = QApplication.keyboardModifiers()
-
-                # Define selection behavior based on modifiers
-                if modifiers & Qt.ControlModifier:
-                    command = QItemSelectionModel.Toggle
-                elif modifiers & Qt.ShiftModifier:
-                    # Treat focus on widget with Shift as adding to selection
-                    command = QItemSelectionModel.Select
-                else:
-                    command = QItemSelectionModel.ClearAndSelect
-
-                # Create a selection range covering the entire row (all columns)
-                topLeft = self.table.model().index(index.row(), 0)
-                bottomRight = self.table.model().index(index.row(), self.table.columnCount() - 1)
-                selection = QItemSelection(topLeft, bottomRight)
-
-                # Apply selection
-                selectionModel.select(selection, command)
-
-                # Update current index so Shift+Click range selection logic works nicely later
-                self.table.setCurrentIndex(index)
-
-                # Ensure the selection color shows immediately
-                self.table.viewport().update()
-        return False
 
 class QGISRedLegendsDialog(QDialog, formClass):
     FIELD_TYPE_NUMERIC = 'numeric'
@@ -178,7 +136,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.tableView.setHorizontalHeaderLabels(["", "Color", "Size", "Value", "Legend"])
 
         # Initialize Event Filter for row selection logic
-        self.rowSelectionFilter = RowSelectionFilter(self.tableView)
+        self.rowSelectionFilter = QGISRedRowSelectionFilter(self.tableView)
 
         header = self.tableView.horizontalHeader()
 
@@ -234,7 +192,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def setupClassCountField(self):
         """Configure class count field with conditional editability."""
-        self.leClassCount.setMinimum(1)
+        self.leClassCount.setMinimum(0)
         self.leClassCount.setMaximum(self.MAX_CLASSES)
         self.leClassCount.valueChanged.connect(self.onClassCountChanged)
         self.setClassCountEditable(False)
@@ -278,14 +236,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 while self.tableView.rowCount() < newValue:
                     self.addNumericClass()
             elif newValue < currentCount:
-                while self.tableView.rowCount() > newValue and self.tableView.rowCount() > 1:
+                while self.tableView.rowCount() > newValue and self.tableView.rowCount() > 0:
                     self.tableView.removeRow(self.tableView.rowCount() - 1)
             
             self.leClassCount.setValue(self.tableView.rowCount())
             self.leClassCount.blockSignals(False)
             
             modeId = self.cbMode.currentData()
-            if modeId and modeId not in [None, "Manual"]:
+            if modeId and modeId not in [None, "Manual"] and newValue > currentCount:
                 self.applyClassificationMethod(modeId)
         
         elif self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
@@ -301,12 +259,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.updateClassCountLimits()
 
     def setupAdvancedUi(self):
-        self.cbSizes.addItems(["Manual", "Equal", "Linear", "Quadratic", "Exponential"])
+        self.cbSizes.addItems(["Manual", "Equal", "Linear", "Quadratic", "Exponential", "Proportional to Value"])
         self.cbSizes.currentIndexChanged.connect(self.onSizeModeChanged)
         self.spinSizeEqual.valueChanged.connect(self.applySizeLogic)
         self.spinSizeMin.valueChanged.connect(self.applySizeLogic)
+        self.spinSizeMin.valueChanged.connect(self.updateSizeSpinBoxConstraints)
         self.spinSizeMax.valueChanged.connect(self.applySizeLogic)
+        self.spinSizeMax.valueChanged.connect(self.updateSizeSpinBoxConstraints)
         self.ckSizeInvert.toggled.connect(self.applySizeLogic)
+
+        # Initialize constraints
+        self.updateSizeSpinBoxConstraints()
 
         self.cbColors.addItems(["Manual", "Equal", "Random", "Ramp", "Palette"])
         self.cbColors.currentIndexChanged.connect(self.onColorModeChanged)
@@ -316,7 +279,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         # Setup refresh colors button
         self.btRefreshColors.setIcon(QIcon(":/images/themes/default/mActionRefresh.svg"))
-        self.btRefreshColors.clicked.connect(self.applyColorLogic)
+        self.btRefreshColors.clicked.connect(lambda: self.applyColorLogic(forceRefresh=True))
 
         self.setupColorRampButton()
 
@@ -892,7 +855,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         """Handle size mode change."""
         mode = self.cbSizes.currentText()
         showEqual = mode == "Equal"
-        showMinMax = mode in ["Linear", "Quadratic", "Exponential"]
+        showMinMax = mode in ["Linear", "Quadratic", "Exponential", "Proportional to Value"]
         self.spinSizeEqual.setVisible(showEqual)
         self.labelSizeValue.setVisible(showEqual)
         self.spinSizeMin.setVisible(showMinMax)
@@ -902,7 +865,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.ckSizeInvert.setVisible(mode != "Manual" and mode != "Equal")
         self.applySizeLogic()
 
+    def updateSizeSpinBoxConstraints(self):
+        minVal = self.spinSizeMin.value()
+        maxVal = self.spinSizeMax.value()
 
+        self.spinSizeMin.blockSignals(True)
+        self.spinSizeMax.blockSignals(True)
+
+        self.spinSizeMin.setMaximum(maxVal)
+        self.spinSizeMax.setMinimum(minVal)
+
+        self.spinSizeMin.blockSignals(False)
+        self.spinSizeMax.blockSignals(False)
 
     def syncColorRampButton(self):
         """Update CustomColorRampSelector with ramps from style database."""
@@ -1004,6 +978,42 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if mode == "Equal":
             val = self.spinSizeEqual.value()
             sizes = [val] * rows
+        elif mode == "Proportional to Value":
+            # Proportional to Value mode - size scales based on actual range values
+            minSize = self.spinSizeMin.value()
+            maxSize = self.spinSizeMax.value()
+
+            # Calculate average value for each range (midpoint between lower and upper bounds)
+            rangeAverageValues = []
+            for row in range(rows):
+                rangeValues = self.getRangeValues(row)
+                if rangeValues:
+                    lowerBound, upperBound = rangeValues
+                    rangeAverageValues.append((lowerBound + upperBound) / 2.0)
+                else:
+                    rangeAverageValues.append(0.0)
+
+            # Determine global min from first average, and max from the lower bound of last class
+            if rangeAverageValues:
+                globalValueMin = min(rangeAverageValues)
+                # Get the lower bound of the last class as globalValueMax
+                lastClassRange = self.getRangeValues(rows - 1)
+                if lastClassRange:
+                    globalValueMax = lastClassRange[0]  # Lower bound of last class
+                else:
+                    globalValueMax = max(rangeAverageValues)
+            else:
+                globalValueMin = 0.0
+                globalValueMax = 1.0
+
+            # Apply proportional algorithm to each range
+            for averageValue in rangeAverageValues:
+                calculatedSize = self.calculateProportionalSize(minSize, maxSize, globalValueMin, globalValueMax, averageValue)
+                sizes.append(calculatedSize)
+
+            # Apply inversion if checked
+            if self.ckSizeInvert.isChecked():
+                sizes.reverse()
         else:
             min_s = self.spinSizeMin.value()
             max_s = self.spinSizeMax.value()
@@ -1043,8 +1053,34 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if cw:
                 cw.updateSymbolSize(sizes[r], isLine)
 
-    def applyColorLogic(self):
-        """Apply color algorithm based on selected mode."""
+    def calculateProportionalSize(self, minSize, maxSize, globalValueMin, globalValueMax, averageValue):
+        """
+        Calculate proportional size based on the average value of a range.
+
+        Args:
+            minSize: Minimum size (from spinSizeMin)
+            maxSize: Maximum size (from spinSizeMax)
+            globalValueMin: Minimum average value across all ranges
+            globalValueMax: Maximum average value across all ranges
+            averageValue: Average value of the current range
+
+        Returns:
+            float: The calculated size proportional to the value
+        """
+        if globalValueMax == globalValueMin:
+            return minSize
+
+        normalizedPosition = (averageValue - globalValueMin) / (globalValueMax - globalValueMin)
+        normalizedPosition = max(0.0, min(1.0, normalizedPosition))
+
+        return minSize + normalizedPosition * (maxSize - minSize)
+
+    def applyColorLogic(self, forceRefresh=False):
+        """Apply color algorithm based on selected mode.
+        
+        Args:
+            forceRefresh: If True, regenerate all colors even for existing rows (used by refresh button).
+        """
         if not hasattr(self, 'cbColors'):
             return
 
@@ -1060,7 +1096,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
             colors = [c] * rows
 
         elif mode == "Random":
-            colors = [self.generateRandomColor() for _ in range(rows)]
+            if forceRefresh:
+                # Force refresh: generate new random colors for all rows
+                colors = [self.generateRandomColor() for _ in range(rows)]
+            else:
+                # Preserve existing colors; only generate new random colors for rows without valid colors
+                colors = []
+                for r in range(rows):
+                    existingColor = self.getRowColor(r)
+                    if existingColor and existingColor.isValid():
+                        colors.append(existingColor)
+                    else:
+                        colors.append(self.generateRandomColor())
 
         elif mode == "Ramp":
             ramp = self.btnColorRamp.currentRamp()
@@ -1386,6 +1433,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         isNum = self.currentFieldType == self.FIELD_TYPE_NUMERIC
         isCat = self.currentFieldType == self.FIELD_TYPE_CATEGORICAL
         isFixed = isNum and self.cbMode.currentData() == "FixedInterval"
+        isManual = isNum and (self.cbMode.currentData() is None or self.cbMode.currentData() == "Manual")
 
         self.cbMode.setVisible(isNum)
         self.labelMode.setVisible(isNum)
@@ -1402,15 +1450,19 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.btUp.setVisible(isCat)
         self.btDown.setVisible(isCat)
         self.labelFrameLegends.setVisible(isNum or isCat)
-        
+
         self.btClassifyAll.setVisible(isCat)
-        
+
         # Toggle class count editability based on mode
         if isCat:
-            self.setClassCountEditable(True)
+            # For categorized: always display-only (no spin buttons)
+            self.setClassCountEditable(False)
             self.updateClassCountLimits()
+        elif isNum:
+            # For numeric: disable editing when in Manual mode, enable for other variable-count modes
+            self.setClassCountEditable(not isManual and self.modeHasVariableClassCount())
         else:
-            self.setClassCountEditable(isNum and self.modeHasVariableClassCount())
+            self.setClassCountEditable(False)
         
         # Update tooltip based on layer type
         if isCat:
@@ -1590,11 +1642,23 @@ class QGISRedLegendsDialog(QDialog, formClass):
             v = f[self.currentFieldName]
             vals.add(str(v) if v is not None else "NULL")
         
-        lst = sorted(list(vals))
-        if "NULL" in lst: # Move NULL to front
-            lst.remove("NULL")
-            lst.insert(0, "NULL")
+        # Special values that should be added last (before "Other Values")
+        specialValues = ["NULL", "#NA"]
+        
+        # Separate special values from regular values
+        regularVals = [v for v in vals if v not in specialValues]
+        foundSpecials = [v for v in specialValues if v in vals]
+        
+        # Sort regular values, then append special values at the end
+        lst = sorted(regularVals) + foundSpecials
         return lst
+
+    def _sortAvailableUniqueValues(self):
+        """Sort availableUniqueValues keeping NULL and #NA at the end."""
+        specialValues = ["NULL", "#NA"]
+        regularVals = [v for v in self.availableUniqueValues if v not in specialValues]
+        foundSpecials = [v for v in specialValues if v in self.availableUniqueValues]
+        self.availableUniqueValues = sorted(regularVals) + foundSpecials
 
     # --- Table Manipulation ---
 
@@ -1759,8 +1823,20 @@ class QGISRedLegendsDialog(QDialog, formClass):
         sym = QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
         sym.setColor(newColor)
 
+        # Set default size
+        if self.currentLayer.geometryType() == 0:  # Point
+            sym.setSize(3)
+        elif self.currentLayer.geometryType() == 1:  # Line
+            sym.setWidth(0.4)
+        else:  # Polygon
+            sym.setSize(1.5)
+
         self.setRowWidgets(row, sym, True, f"{lower:.2f} - {upper:.2f}", f"{lower:.2f} - {upper:.2f}", self.getGeometryHint())
         self.updateAdjacentRowsAfterInsertion(row, lower, upper)
+        
+        # Edge color smoothing: recolor the old edge row using interpolation
+        if (modeId == "Manual" or modeId is None) and colorMode == "Manual":
+            self.smoothEdgeColorAfterInsertion(row)
 
         self.tableView.clearSelection()
         self.tableView.selectRow(row)
@@ -1799,7 +1875,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.tableView.insertRow(row)
         sym = QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
         sym.setColor(self.generateRandomColor())
-        
+
+        # Set default size
+        if self.currentLayer.geometryType() == 0:  # Point
+            sym.setSize(3)
+        elif self.currentLayer.geometryType() == 1:  # Line
+            sym.setWidth(0.4)
+        else:  # Polygon
+            sym.setSize(1.5)
+
         disp = str(val)
         # Add unit abbreviation to legend if available
         unitAbbr = self.getCurrentLayerUnitAbbr()
@@ -1826,7 +1910,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                         self.usedUniqueValues.remove(val)
                         self.availableUniqueValues.append(val)
                 self.tableView.removeRow(r)
-            self.availableUniqueValues.sort()
+            self._sortAvailableUniqueValues()
         else:
             lowest = rows[-1]
             for r in rows: self.tableView.removeRow(r)
@@ -1857,7 +1941,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 self.usedUniqueValues.remove(val)
                 self.availableUniqueValues.append(val)
         self.tableView.removeRow(row)
-        self.availableUniqueValues.sort()
+        self._sortAvailableUniqueValues()
         self.updateButtonStates()
 
     def updateClassCountLimits(self):
@@ -2029,23 +2113,73 @@ class QGISRedLegendsDialog(QDialog, formClass):
     # --- Numeric Logic & Classification ---
 
     def calculateInitialRangeForNewRow(self, row):
-        """Determine smart default range for new row."""
+        """
+        Determine deterministic range for new row using half-splitting logic.
+        
+        Rules:
+        - If no rows exist → create [min, max] from layer data
+        - If 1 row exists → split that row in half at midpoint
+        - For further additions → split the selected row's range in half
+        """
         total = self.tableView.rowCount()
+        
+        # Case 1: No rows exist - create first class with [min, max] from layer
+        if total == 0:
+            return self._getLayerMinMax()
+        
+        # Case 2: 1 row exists - we need to split it
+        if total == 1:
+            existing = self.getRangeValues(0)
+            if existing:
+                lower, upper = existing
+                mid = (lower + upper) / 2.0
+                # The new row will be inserted, and we'll update the existing row
+                if row == 0:
+                    # Inserting before: new row gets [lower, mid], existing gets [mid, upper]
+                    return (lower, mid)
+                else:
+                    # Inserting after: existing stays [lower, mid], new row gets [mid, upper]
+                    return (mid, upper)
+            return self._getLayerMinMax()
+        
+        # Case 3: Multiple rows - split the selected or target row in half
+        # Determine which row to split based on insertion position
         if row == 0:
-            if total > 0:
-                first = self.getRangeValues(0)
-                return (first[0] - 1.0, first[0]) if first else (0.0, 1.0)
-            return 0.0, 1.0
+            # Inserting at the beginning - split the first row
+            splitRow = 0
         elif row >= total:
-            last = self.getRangeValues(total - 1)
-            return (last[1], last[1] + 1.0) if last else (0.0, 1.0)
+            # Inserting at the end - split the last row
+            splitRow = total - 1
         else:
-            prev = self.getRangeValues(row - 1)
-            nxt = self.getRangeValues(row) # Technically row before insertion becomes next
-            if prev and nxt:
-                mid = (prev[1] + nxt[0]) / 2.0
-                return prev[1], mid
-        return 0.0, 1.0
+            # Inserting in the middle
+            if self.btClassPlusAddBefore:
+                # Add Before: split the row we're inserting before
+                splitRow = row
+            else:
+                # Add After: split the row we're inserting after
+                splitRow = row - 1
+        
+        targetRange = self.getRangeValues(splitRow)
+        if targetRange:
+            lower, upper = targetRange
+            mid = (lower + upper) / 2.0
+            
+            if row <= splitRow:
+                # Inserting before/at split position: new row gets lower half [lower, mid]
+                return (lower, mid)
+            else:
+                # Inserting after split position: new row gets upper half [mid, upper]
+                return (mid, upper)
+        
+        # Fallback
+        return self._getLayerMinMax()
+    
+    def _getLayerMinMax(self):
+        """Get min and max values from the current layer's numeric field."""
+        vals = self.getNumericValues()
+        if vals and len(vals) > 0:
+            return (min(vals), max(vals))
+        return (0.0, 1.0)
 
     def getRangeValues(self, row):
         """Parse range string from table."""
@@ -2057,9 +2191,46 @@ class QGISRedLegendsDialog(QDialog, formClass):
         except: return None
 
     def updateAdjacentRowsAfterInsertion(self, row, newLower, newUpper):
-        """Maintain contiguity after insert."""
-        if row > 0: self.updateRangeValue(row - 1, None, newLower)
-        if row < self.tableView.rowCount() - 1: self.updateRangeValue(row + 1, newUpper, None)
+        """
+        Maintain contiguity after insert using half-splitting logic.
+        
+        When a row is split:
+        - Update the adjacent row to the other half of the original range
+        - Ensure neighbors maintain proper contiguity
+        """
+        total = self.tableView.rowCount()
+        
+        # Handle 2-row case (just split from single row)
+        if total == 2:
+            # One row was split into two - ensure proper ranges
+            # Row 0 should end where Row 1 starts
+            r0 = self.getRangeValues(0)
+            r1 = self.getRangeValues(1)
+            if r0 and r1:
+                # If the new row is row 0, update row 1 to start at newUpper
+                # If the new row is row 1, update row 0 to end at newLower
+                if row == 0:
+                    self.updateRangeValue(1, newUpper, None)
+                else:
+                    self.updateRangeValue(0, None, newLower)
+            return
+        
+        # General case: Update the row that was split to its remaining half
+        if row > 0:
+            prevRange = self.getRangeValues(row - 1)
+            if prevRange:
+                prevLower, prevUpper = prevRange
+                # If we took the upper half from prev, update prev to end at newLower
+                if abs(prevUpper - newLower) < 0.0001 or prevUpper > newLower:
+                    self.updateRangeValue(row - 1, None, newLower)
+                    
+        if row < total - 1:
+            nextRange = self.getRangeValues(row + 1)
+            if nextRange:
+                nextLower, nextUpper = nextRange
+                # If we took the lower half from next, update next to start at newUpper
+                if abs(nextLower - newUpper) < 0.0001 or nextLower < newUpper:
+                    self.updateRangeValue(row + 1, newUpper, None)
 
     def mergeAdjacentRowsAfterDeletion(self, rowPos):
         """Fill gap after delete."""
@@ -2590,23 +2761,41 @@ class QGISRedLegendsDialog(QDialog, formClass):
         b = (color1.blue() + color2.blue()) // 2
         return QColor(r, g, b)
 
+    def calculateComplementaryColor(self, color):
+        """Calculate the complementary color (opposite on the color wheel)."""
+        h, s, l, a = color.getHsl()
+        # Add 180 degrees to hue for complementary color (opposite on color wheel)
+        complementary_h = (h + 180) % 360
+        complementary_color = QColor()
+        complementary_color.setHsl(complementary_h, s, l, a)
+        return complementary_color
+
     def getSmartColorForNewRow(self, insertionRow):
         """
         Determine the color for a new row based on its position when both
         intervals and colors are in manual mode.
-        
+
         Rules:
+        - First class (rowCount == 0): totally random color
+        - Second class (rowCount == 1): complementary color of the first class
         - If inserting between two classes: use intermediate color of neighbors
         - If inserting at end (last class): use color of current last class
         - If inserting at first position:
-            - If 0 or 1 existing classes: random color
             - If 2+ existing classes: use color of current first class
         """
         rowCount = self.tableView.rowCount()
-        
-        # Empty table or single row - use random
-        if rowCount <= 1:
+
+        # Empty table - first class gets totally random color
+        if rowCount == 0:
             return self.generateRandomColor()
+
+        # Single row - second class gets complementary color of first
+        if rowCount == 1:
+            firstColor = self.getRowColor(0)
+            if firstColor:
+                return self.calculateComplementaryColor(firstColor)
+            else:
+                return self.generateRandomColor()
         
         # Inserting at position 0 (first)
         if insertionRow == 0:
@@ -2632,6 +2821,60 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return nextColor
         else:
             return self.generateRandomColor()
+
+    def smoothEdgeColorAfterInsertion(self, insertedRow):
+        """
+        Apply edge color smoothing after insertion when there are ≥3 classes.
+        
+        When inserting at the top:
+        - New first row already has the old first's color
+        - Old first (now row 1) gets interpolated color between new first and last
+        
+        When inserting at the bottom:
+        - New last row already has the old last's color  
+        - Old last (now second-to-last) gets interpolated color between
+          new last and the antepenultimate (row before old last)
+        """
+        rowCount = self.tableView.rowCount()
+        
+        # Need at least 3 classes for edge smoothing to apply
+        if rowCount < 3:
+            return
+        
+        # Case: Inserted at first position (row 0)
+        if insertedRow == 0:
+            # Old first is now at row 1
+            newFirstColor = self.getRowColor(0)  # New first row color (same as old first was)
+            lastColor = self.getRowColor(rowCount - 1)  # Last row color
+            
+            if newFirstColor and lastColor:
+                interpolatedColor = self.calculateIntermediateColor(newFirstColor, lastColor)
+                self.setRowColor(1, interpolatedColor)
+        
+        # Case: Inserted at last position (after all existing rows)
+        elif insertedRow == rowCount - 1:
+            # Old last is now at row (rowCount - 2)
+            newLastColor = self.getRowColor(rowCount - 1)  # New last row color (same as old last was)
+            
+            # Antepenultimate is the row before old last, which is now at (rowCount - 3)
+            if rowCount >= 3:
+                antepenultimateColor = self.getRowColor(rowCount - 3)
+            else:
+                antepenultimateColor = None
+            
+            if newLastColor and antepenultimateColor:
+                interpolatedColor = self.calculateIntermediateColor(newLastColor, antepenultimateColor)
+                self.setRowColor(rowCount - 2, interpolatedColor)
+
+    def setRowColor(self, row, color):
+        """Set the color of a specific row's color widget."""
+        if row < 0 or row >= self.tableView.rowCount():
+            return
+        colorContainer = self.tableView.cellWidget(row, 1)
+        if colorContainer:
+            cw = colorContainer.findChild(QGISRedSymbolColorSelector)
+            if cw:
+                cw.setColor(color)
 
     def getSelectedRows(self):
         return [i.row() for i in self.tableView.selectionModel().selectedRows()]
