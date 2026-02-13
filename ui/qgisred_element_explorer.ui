@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>331</width>
+    <width>315</width>
     <height>400</height>
    </rect>
   </property>
@@ -36,8 +36,8 @@
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>-4</y>
-         <width>296</width>
+         <y>0</y>
+         <width>280</width>
          <height>516</height>
         </rect>
        </property>
@@ -169,6 +169,66 @@
                <property name="enabled">
                 <bool>true</bool>
                </property>
+               <property name="frameShadow">
+                <enum>QFrame::Raised</enum>
+               </property>
+               <property name="lineWidth">
+                <number>-1</number>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="Line" name="line_2">
+               <property name="enabled">
+                <bool>true</bool>
+               </property>
+               <property name="lineWidth">
+                <number>0</number>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QgsCollapsibleGroupBox" name="mElementPropertiesGroupBox">
+          <property name="title">
+           <string>Element Properties</string>
+          </property>
+          <property name="collapsed">
+           <bool>false</bool>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_3">
+           <item>
+            <layout class="QVBoxLayout" name="elementPropertiesLayout">
+             <property name="spacing">
+              <number>2</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="Line" name="lineEp">
+               <property name="enabled">
+                <bool>true</bool>
+               </property>
                <property name="lineWidth">
                 <number>0</number>
                </property>
@@ -195,19 +255,6 @@
               <widget class="QLabel" name="labelFoundElementDescription">
                <property name="text">
                 <string>-</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="Line" name="line_2">
-               <property name="enabled">
-                <bool>true</bool>
-               </property>
-               <property name="lineWidth">
-                <number>0</number>
-               </property>
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -267,50 +314,6 @@
                  </widget>
                 </item>
                </layout>
-              </widget>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
-         <widget class="QgsCollapsibleGroupBox" name="mElementPropertiesGroupBox">
-          <property name="title">
-           <string>Element Properties</string>
-          </property>
-          <property name="collapsed">
-           <bool>false</bool>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_3">
-           <item>
-            <layout class="QVBoxLayout" name="elementPropertiesLayout">
-             <property name="spacing">
-              <number>2</number>
-             </property>
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
-             <property name="topMargin">
-              <number>0</number>
-             </property>
-             <property name="rightMargin">
-              <number>0</number>
-             </property>
-             <property name="bottomMargin">
-              <number>0</number>
-             </property>
-             <item>
-              <widget class="Line" name="lineEp">
-               <property name="enabled">
-                <bool>true</bool>
-               </property>
-               <property name="lineWidth">
-                <number>0</number>
-               </property>
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
               </widget>
              </item>
              <item>

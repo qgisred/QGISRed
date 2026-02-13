@@ -1,4 +1,5 @@
-from ..ui.qgisred_unified_find_properties import QGISRedElementsExplorerDock
+from ..ui.qgisred_element_explorer import QGISRedElementExplorerDock
+
 from qgis.gui import QgsMapToolIdentify, QgsHighlight
 from qgis.utils import iface
 from qgis.core import QgsProject, QgsVectorLayer
@@ -83,21 +84,31 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
         self.currentHighlight.show()
     
     def showFeatureInDock(self, layer, feature, handler=None):
-        self.dock = QGISRedElementsExplorerDock.getInstance(
+        self.dock = QGISRedElementExplorerDock.getInstance(
             self.canvas, 
             iface.mainWindow(),
-            show_find_elements=True,
-            show_element_properties=True
+            showFindElements=True,
+            showElementProperties=True
         )
 
         if self.dock is None:
             return
         
         if not self.dock.isVisible():
+            print("here")
             iface.addDockWidget(Qt.RightDockWidgetArea, self.dock)
             self.dock.show()
             self.dock.raise_()
             self.dock.activateWindow()
+
+        # if self.dock.mElementPropertiesGroupBox.isCollapsed() and not self.useElementPropertiesDock:
+        #     print('1.1')
+        #     self.dock.moveWidgetsToFindElements()
+        #     self.dock.mElementPropertiesGroupBox.setCollapsed(True)
+        # elif self.useElementPropertiesDock:
+        #     print('1.2')
+        #     self.dock.moveWidgetsToElementProperties()
+        #     self.dock.mElementPropertiesGroupBox.setCollapsed(False)
 
         self.dock.findFeature(layer, feature)
 

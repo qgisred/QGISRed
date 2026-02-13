@@ -43,7 +43,7 @@ from .ui.qgisred_toolConnections_dialog import QGISRedServiceConnectionsToolDial
 from .ui.qgisred_toolConnectivity_dialog import QGISRedConnectivityToolDialog
 from .ui.qgisred_loadproject_dialog import QGISRedImportProjectDialog
 from .ui.qgisred_thematicmaps_dialog import QGISRedThematicMapsDialog
-from .ui.qgisred_unified_find_properties import QGISRedElementsExplorerDock
+from .ui.qgisred_element_explorer import QGISRedElementExplorerDock
 from .tools.qgisred_utils import QGISRedUtils
 from .tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from .tools.qgisred_moveNodes import QGISRedMoveNodesTool
@@ -4420,7 +4420,7 @@ class QGISRed:
             self.openFindElementsDialog.setChecked(False)
             return
         
-        existingDock = QGISRedElementsExplorerDock._instance
+        existingDock = QGISRedElementExplorerDock._instance
         
         tool = "identifyFeature"
         if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
@@ -4443,17 +4443,17 @@ class QGISRed:
             useElementProperties = False
             if existingDock:
                 useElementProperties = not existingDock.mElementPropertiesGroupBox.isCollapsed()
-                if existingDock.mFindElementsGroupBox.isCollapsed():
-                    existingDock.mFindElementsGroupBox.setCollapsed(False)
-
+                # if existingDock.mFindElementsGroupBox.isCollapsed():
+                #     existingDock.mFindElementsGroupBox.setCollapsed(False)
+                
                 existingDock.initializeElementTypes()
             else:
                 try:
-                    dock = QGISRedElementsExplorerDock.getInstance(
+                    dock = QGISRedElementExplorerDock.getInstance(
                         self.iface.mapCanvas(),
                         self.iface.mainWindow(),
-                        show_find_elements=True,
-                        show_element_properties=useElementProperties
+                        showFindElements=True,
+                        showElementProperties=useElementProperties
                     )
 
                     self.iface.addDockWidget(Qt.RightDockWidgetArea, dock)
@@ -4462,7 +4462,8 @@ class QGISRed:
                     dock.activateWindow()
                     dock.onLayerTreeChanged()
                     dock.setDefaultValue()
-                    dock.mFindElementsGroupBox.setCollapsed(False)
+                    # dock.mFindElementsGroupBox.setCollapsed(False)
+                    # dock.moveWidgetsToFindElements()
                 except Exception as e:
                     print(f"Error creating dock: {str(e)}")
                     self.openFindElementsDialog.setChecked(False)
@@ -4491,7 +4492,7 @@ class QGISRed:
             self.openElementsPropertyDialog.setChecked(False)
             return
         
-        existingDock = QGISRedElementsExplorerDock._instance
+        existingDock = QGISRedElementExplorerDock._instance
 
         tool = "identifyFeatureElementProperties"
         if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
@@ -4512,8 +4513,8 @@ class QGISRed:
             self.openElementsPropertyDialog.setChecked(False)
         else:
             if existingDock:
-                if existingDock.mElementPropertiesGroupBox.isCollapsed():
-                    existingDock.mElementPropertiesGroupBox.setCollapsed(False)
+                # if existingDock.mElementPropertiesGroupBox.isCollapsed():
+                #     existingDock.mElementPropertiesGroupBox.setCollapsed(False)
                 existingDock.initializeElementTypes()
             try:
                 self.myMapTools[tool] = QGISRedIdentifyFeature(
@@ -4526,7 +4527,7 @@ class QGISRed:
             except Exception as e:
                 print(f"Error creating map tool: {str(e)}")
                 self.openElementsPropertyDialog.setChecked(False)
-                
+
 # ==============================================================
 #                        END: QUERIES FIND ELEMENTS
 # --------------------------------------------------------------
