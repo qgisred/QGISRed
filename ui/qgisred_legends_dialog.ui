@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>580</width>
-    <height>360</height>
+    <width>618</width>
+    <height>453</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -63,8 +63,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>564</width>
-        <height>360</height>
+        <width>602</width>
+        <height>501</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -168,47 +168,214 @@
               <item>
                <layout class="QVBoxLayout" name="verticalLayout">
                 <item>
-                 <widget class="QLabel" name="labelMode">
-                  <property name="text">
-                   <string>Mode</string>
+                 <layout class="QHBoxLayout" name="horizontalLayout_9">
+                  <item>
+                   <widget class="QLabel" name="labelMode">
+                    <property name="maximumSize">
+                     <size>
+                      <width>50</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>Intervals</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QComboBox" name="cbMode">
+                    <property name="minimumSize">
+                     <size>
+                      <width>150</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_5">
+                  <item>
+                   <widget class="QLabel" name="labelIntervalRange">
+                    <property name="text">
+                     <string>Interval Range</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QDoubleSpinBox" name="spinIntervalRange">
+                    <property name="maximumSize">
+                     <size>
+                      <width>80</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="maximum">
+                     <double>9999999999999999583119736832.000000000000000</double>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <widget class="Line" name="line_3">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QComboBox" name="cbMode">
-                  <property name="minimumSize">
-                   <size>
-                    <width>150</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                 </widget>
+                 <layout class="QVBoxLayout" name="verticalLayout_4">
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_10">
+                    <item>
+                     <widget class="QLabel" name="labelSizes">
+                      <property name="maximumSize">
+                       <size>
+                        <width>50</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string>Sizes</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QComboBox" name="cbSizes">
+                      <property name="minimumSize">
+                       <size>
+                        <width>150</width>
+                        <height>0</height>
+                       </size>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_13">
+                    <item>
+                     <widget class="QDoubleSpinBox" name="spinSizeEqual">
+                      <property name="maximum">
+                       <double>20.000000000000000</double>
+                      </property>
+                      <property name="singleStep">
+                       <double>0.100000000000000</double>
+                      </property>
+                      <property name="value">
+                       <double>1.000000000000000</double>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QCheckBox" name="ckSizeInvert">
+                      <property name="text">
+                       <string>Invert</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_14">
+                    <item>
+                     <widget class="QDoubleSpinBox" name="spinSizeMin">
+                      <property name="prefix">
+                       <string>Min: </string>
+                      </property>
+                      <property name="singleStep">
+                       <double>0.100000000000000</double>
+                      </property>
+                      <property name="value">
+                       <double>0.500000000000000</double>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QDoubleSpinBox" name="spinSizeMax">
+                      <property name="prefix">
+                       <string>Max: </string>
+                      </property>
+                      <property name="maximum">
+                       <double>20.000000000000000</double>
+                      </property>
+                      <property name="singleStep">
+                       <double>0.100000000000000</double>
+                      </property>
+                      <property name="value">
+                       <double>3.000000000000000</double>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
                 </item>
                </layout>
               </item>
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_5">
+               <widget class="Line" name="line_4">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_2">
                 <item>
-                 <widget class="QLabel" name="labelIntervalRange">
-                  <property name="text">
-                   <string>Interval Range</string>
-                  </property>
-                 </widget>
+                 <layout class="QHBoxLayout" name="horizontalLayout_11">
+                  <item>
+                   <widget class="QLabel" name="labelColors">
+                    <property name="maximumSize">
+                     <size>
+                      <width>50</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>Colors</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QComboBox" name="cbColors">
+                    <property name="minimumSize">
+                     <size>
+                      <width>150</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
                 </item>
                 <item>
-                 <widget class="QDoubleSpinBox" name="spinIntervalRange">
-                  <property name="maximumSize">
-                   <size>
-                    <width>60</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="maximum">
-                   <double>9999999999999999583119736832.000000000000000</double>
-                  </property>
-                 </widget>
+                 <layout class="QHBoxLayout" name="horizontalLayout_12">
+                  <item>
+                   <widget class="QgsColorButton" name="btColorEqual"/>
+                  </item>
+                  <item>
+                   <widget class="QCheckBox" name="ckColorInvert">
+                    <property name="text">
+                     <string>Invert</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="cbColorRampPalette"/>
                 </item>
                </layout>
+              </item>
+              <item>
+               <widget class="Line" name="line_5">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
               </item>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout">
@@ -425,6 +592,11 @@
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>QgsColorButton</class>
+   <extends>QToolButton</extends>
+   <header>qgscolorbutton.h</header>
+  </customwidget>
   <customwidget>
    <class>QgsMapLayerComboBox</class>
    <extends>QComboBox</extends>

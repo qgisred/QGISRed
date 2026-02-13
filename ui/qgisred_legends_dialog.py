@@ -10,16 +10,19 @@ import statistics
 from PyQt5.QtGui import QIcon, QColor, QFont
 from PyQt5.QtWidgets import (QDialog, QMessageBox, QHeaderView,
                              QComboBox, QLineEdit, QAbstractItemView, QLabel,
-                             QWidget, QHBoxLayout, QPushButton, QVBoxLayout)
+                             QWidget, QHBoxLayout, QPushButton, QVBoxLayout,
+                             QCheckBox, QDoubleSpinBox)
 from PyQt5.QtCore import QVariant, Qt, QTimer
 from qgis.PyQt import uic
 
 # QGIS imports
-from qgis.core import (QgsProject, QgsVectorLayer, QgsMessageLog, Qgis, 
-                       QgsGraduatedSymbolRenderer, QgsCategorizedSymbolRenderer, 
-                       QgsRendererRange, QgsRendererCategory, QgsSymbol, 
-                       QgsLayerTreeGroup, QgsLayerTreeLayer, QgsGradientColorRamp, 
-                       QgsClassificationJenks, QgsClassificationPrettyBreaks)
+from qgis.core import (QgsProject, QgsVectorLayer, QgsMessageLog, Qgis,
+                       QgsGraduatedSymbolRenderer, QgsCategorizedSymbolRenderer,
+                       QgsRendererRange, QgsRendererCategory, QgsSymbol,
+                       QgsLayerTreeGroup, QgsLayerTreeLayer, QgsGradientColorRamp,
+                       QgsClassificationJenks, QgsClassificationPrettyBreaks,
+                       QgsStyle, QgsPresetSchemeColorRamp, QgsColorRamp)
+from qgis.gui import QgsColorButton
 from qgis.utils import iface
 
 # Local imports
@@ -58,6 +61,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.btClassPlusAddBefore = False
         self.dragPosition = None
         self.layerTreeViewConnection = None
+        self.style = None  # QGISRed style database
 
     def initUi(self):
         """Initialize UI components."""
@@ -66,6 +70,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.populateClassificationModes()
         self.populateGroups()
         self.setupClassCountField()
+
+        # NEW: Setup Advanced Color and Size UI
+        self.setupAdvancedUi()
+        self.loadStyleDatabase()
+
         self.labelIntervalRange.setVisible(False)
         self.spinIntervalRange.setVisible(False)
         #self.initializeUiVisibility()
@@ -83,7 +92,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         """Build custom title bar."""
         titleBar = QWidget(self)
         titleBar.setStyleSheet("background-color: rgb(215, 215, 215);")
-        
+        titleBar.setMaximumHeight(30)
+
         titleLabel = QLabel("QGISRed Legend Editor", titleBar)
         titleFont = QFont()
         titleFont.setBold(True)
@@ -91,8 +101,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         titleLabel.setFont(titleFont)
         titleLabel.setStyleSheet("color: rgb(25, 64, 75); background-color: transparent;")
 
-        closeButton = QPushButton("x", titleBar)
-        closeButton.setFixedSize(20, 20)
+        closeButton = QPushButton("X", titleBar)
+        closeButton.setFixedSize(30, 30)
         closeButton.setStyleSheet("QPushButton { background-color: transparent; color: rgb(25, 64, 75); font-weight: bold; border: none; } QPushButton:hover { background-color: rgb(195, 195, 195); }")
         closeButton.clicked.connect(self.close)
 
@@ -131,19 +141,66 @@ class QGISRedLegendsDialog(QDialog, formClass):
         header.setSectionResizeMode(3, QHeaderView.Stretch)
         self.tableView.setColumnWidth(0, 50)
         self.tableView.setColumnWidth(1, 60)
-        self.tableView.setColumnWidth(2, 100)
+        self.tableView.setColumnWidth(2, 120)
         
         self.tableView.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.tableView.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.tableView.setAlternatingRowColors(False)
         self.tableView.verticalHeader().setVisible(False)
-        self.tableView.setShowGrid(False)
-        self.tableView.setStyleSheet("QTableWidget { background-color: white; border: none; selection-background-color: #3399ff; selection-color: white; } QTableWidget::item { border: none; }")
+        self.tableView.setShowGrid(True)
+        self.tableView.setStyleSheet("QTableWidget { background-color: white; border: none; selection-background-color: #3399ff; selection-color: white; gridline-color: #e0e0e0; } QTableWidget::item { border: none; }")
 
     def setupClassCountField(self):
         """Configure read-only class count field."""
         self.leClassCount.setReadOnly(True)
         self.leClassCount.setStyleSheet("QLineEdit { background-color: #F0F0F0; color: #808080; }")
+
+    def setupAdvancedUi(self):
+        self.cbSizes.addItems(["Manual", "Equal", "Linear", "Quadratic", "Exponential"])
+        self.cbSizes.currentIndexChanged.connect(self.onSizeModeChanged)
+        self.spinSizeEqual.valueChanged.connect(self.applySizeLogic)
+        self.spinSizeMin.valueChanged.connect(self.applySizeLogic)
+        self.spinSizeMax.valueChanged.connect(self.applySizeLogic)
+        self.ckSizeInvert.toggled.connect(self.applySizeLogic)
+
+        self.cbColors.addItems(["Manual", "Equal", "Random", "Ramp", "Palette"])
+        self.cbColors.currentIndexChanged.connect(self.onColorModeChanged)
+        self.btColorEqual.setColor(QColor("red"))
+        self.btColorEqual.colorChanged.connect(self.applyColorLogic)
+        self.cbColorRampPalette.currentIndexChanged.connect(self.applyColorLogic)
+        self.ckColorInvert.toggled.connect(self.applyColorLogic)
+        
+        self.onSizeModeChanged()
+        self.onColorModeChanged()
+
+    def loadStyleDatabase(self):
+        """Loads the proprietary QGISRed style database."""
+        self.style = QgsStyle()
+        dbPath = os.path.join(self.pluginFolder, "defaults", "symbology-style_QGISRed.db")
+
+        # Try to load the style database
+        if os.path.exists(dbPath):
+            try:
+                # For QGIS 3, try loading directly
+                success = self.style.createDatabase(dbPath) or self.style.load(dbPath)
+                if not success:
+                    QgsMessageLog.logMessage(
+                        f"Failed to load style database: {dbPath}",
+                        "QGISRed",
+                        Qgis.Warning
+                    )
+            except Exception as e:
+                QgsMessageLog.logMessage(
+                    f"Error loading style database: {str(e)}",
+                    "QGISRed",
+                    Qgis.Warning
+                )
+        else:
+            QgsMessageLog.logMessage(
+                f"Style database not found: {dbPath}",
+                "QGISRed",
+                Qgis.Info
+            )
 
     def connectSignals(self):
         """Wire up all UI signals."""
@@ -274,6 +331,262 @@ class QGISRedLegendsDialog(QDialog, formClass):
         """Route double click to specific editors."""
         if column == 2 and self.currentFieldType == self.FIELD_TYPE_NUMERIC:
             self.openRangeEditor(row)
+
+    # --- Advanced Size & Color UI Logic ---
+
+    def onSizeModeChanged(self):
+        """Handle size mode change."""
+        mode = self.cbSizes.currentText()
+        self.spinSizeEqual.setVisible(mode == "Equal")
+        self.spinSizeMin.setVisible(mode in ["Linear", "Quadratic", "Exponential"])
+        self.spinSizeMax.setVisible(mode in ["Linear", "Quadratic", "Exponential"])
+        self.ckSizeInvert.setVisible(mode != "Manual" and mode != "Equal")
+        self.applySizeLogic()
+
+    def onColorModeChanged(self):
+        """Handle color mode change."""
+        mode = self.cbColors.currentText()
+        self.btColorEqual.setVisible(mode == "Equal")
+        self.cbColorRampPalette.setVisible(mode in ["Ramp", "Palette"])
+        self.ckColorInvert.setVisible(mode in ["Ramp", "Palette"])
+
+        if mode == "Ramp":
+            self.populateRamps()
+        elif mode == "Palette":
+            self.populatePalettes()
+
+        self.applyColorLogic()
+
+    def populateRamps(self):
+        """Populate color ramps from style database."""
+        self.cbColorRampPalette.blockSignals(True)
+        self.cbColorRampPalette.clear()
+
+        if self.style:
+            # Load Gradient Ramps from Style
+            names = self.style.colorRampNames()
+            for name in names:
+                ramp = self.style.colorRamp(name)
+                if isinstance(ramp, QgsGradientColorRamp):
+                    self.cbColorRampPalette.addItem(name, ramp)
+
+        # If no ramps found, add default gradient
+        if self.cbColorRampPalette.count() == 0:
+            defaultRamp = QgsGradientColorRamp(QColor(0, 0, 255), QColor(255, 0, 0))
+            self.cbColorRampPalette.addItem("Default (Blue to Red)", defaultRamp)
+
+        self.cbColorRampPalette.blockSignals(False)
+
+    def populatePalettes(self):
+        """Populate color palettes from style database."""
+        self.cbColorRampPalette.blockSignals(True)
+        self.cbColorRampPalette.clear()
+
+        if self.style:
+            # Load Preset Schemes (Palettes)
+            names = self.style.colorRampNames()
+            for name in names:
+                ramp = self.style.colorRamp(name)
+                # QGIS treats Palettes as PresetSchemeColorRamp
+                if isinstance(ramp, QgsPresetSchemeColorRamp):
+                    self.cbColorRampPalette.addItem(name, ramp)
+
+        # If no palettes found, create a default one
+        if self.cbColorRampPalette.count() == 0:
+            # Create a simple default palette
+            defaultColors = [QColor(255, 0, 0), QColor(0, 255, 0), QColor(0, 0, 255),
+                           QColor(255, 255, 0), QColor(255, 0, 255), QColor(0, 255, 255)]
+            defaultPalette = QgsPresetSchemeColorRamp(defaultColors)
+            self.cbColorRampPalette.addItem("Default Palette", defaultPalette)
+
+        self.cbColorRampPalette.blockSignals(False)
+
+    # --- Mathematical Algorithms ---
+
+    def applySizeLogic(self):
+        """Apply size algorithm based on selected mode."""
+        if not hasattr(self, 'cbSizes'):
+            return
+
+        mode = self.cbSizes.currentText()
+        if mode == "Manual" or self.tableView.rowCount() == 0:
+            return
+
+        rows = self.tableView.rowCount()
+        sizes = []
+
+        if mode == "Equal":
+            val = self.spinSizeEqual.value()
+            sizes = [val] * rows
+        else:
+            min_s = self.spinSizeMin.value()
+            max_s = self.spinSizeMax.value()
+
+            # Normalize 0..1
+            t_values = [i / max(1, rows - 1) for i in range(rows)]
+
+            if self.ckSizeInvert.isChecked():
+                t_values.reverse()
+
+            for t in t_values:
+                if mode == "Linear":
+                    # y = min + t * (max - min)
+                    sizes.append(min_s + t * (max_s - min_s))
+                elif mode == "Quadratic":
+                    # y = min + t^2 * (max - min)
+                    sizes.append(min_s + (t * t) * (max_s - min_s))
+                elif mode == "Exponential":
+                    # Simple exponential interpolation mapping
+                    # y = min + (e^t - 1)/(e - 1) * (max - min)
+                    if rows > 1:
+                        factor = (math.exp(t) - 1) / (math.exp(1) - 1)
+                        sizes.append(min_s + factor * (max_s - min_s))
+                    else:
+                        sizes.append(min_s)
+
+        # Apply to Table
+        isLine = self.getGeometryHint() == "line"
+        for r in range(rows):
+            sw = self.tableView.cellWidget(r, 1)  # Size Widget
+            cw = self.tableView.cellWidget(r, 0)  # Color/Symbol Widget
+            if sw:
+                sw.blockSignals(True)
+                sw.setText(f"{sizes[r]:.2f}")
+                sw.blockSignals(False)
+            if cw:
+                cw.updateSymbolSize(sizes[r], isLine)
+
+    def applyColorLogic(self):
+        """Apply color algorithm based on selected mode."""
+        if not hasattr(self, 'cbColors'):
+            return
+
+        mode = self.cbColors.currentText()
+        if mode == "Manual" or self.tableView.rowCount() == 0:
+            return
+
+        rows = self.tableView.rowCount()
+        colors = []
+
+        if mode == "Equal":
+            c = self.btColorEqual.color()
+            colors = [c] * rows
+
+        elif mode == "Random":
+            colors = [self.generateRandomColor() for _ in range(rows)]
+
+        elif mode == "Ramp":
+            ramp = self.cbColorRampPalette.currentData()
+            if isinstance(ramp, QgsGradientColorRamp):
+                colors = self.algorithmRamp(ramp, rows)
+            else:
+                colors = [self.generateRandomColor() for _ in range(rows)]
+
+        elif mode == "Palette":
+            palette = self.cbColorRampPalette.currentData()
+            if isinstance(palette, QgsPresetSchemeColorRamp):
+                colors = self.algorithmPalette(palette, rows)
+            else:
+                colors = [self.generateRandomColor() for _ in range(rows)]
+
+        # Apply Inversion for Ramp/Palette
+        if mode in ["Ramp", "Palette"] and self.ckColorInvert.isChecked():
+            colors.reverse()
+
+        # Update Table
+        for r in range(rows):
+            cw = self.tableView.cellWidget(r, 0)
+            if cw:
+                cw.setColor(colors[r])
+
+    def algorithmPalette(self, paletteRamp, numClasses):
+        """
+        Port of 'Colores_Paleta' VB Algorithm.
+        Interpolates or Picks from a discrete list of colors.
+        """
+        if numClasses < 1:
+            return []
+
+        # 1. Extract Colors from QGIS Preset Ramp
+        palColors = paletteRamp.colors()
+        if not palColors:
+            return [QColor("black")] * numClasses
+
+        numColPaleta = len(palColors)
+
+        # 2. Calculate Increment
+        increment = 0.0
+        if numClasses > 1:
+            increment = (numColPaleta - 1) / (numClasses - 1)
+
+        # 3. Assign Indices (IndColor)
+        ind_color = []  # Indices into palColors
+        for i in range(numClasses):
+            idx = int(math.floor(increment * i))
+            # Clamp
+            idx = max(0, min(idx, numColPaleta - 1))
+            ind_color.append(idx)
+
+        # 4. Grouping and Interpolation
+        final_colors = [QColor()] * numClasses
+
+        # Iterate through groups of identical indices
+        i = 0
+        while i < numClasses:
+            current_pal_idx = ind_color[i]
+
+            # Find the end of this group
+            j = i
+            while j < numClasses and ind_color[j] == current_pal_idx:
+                j += 1
+
+            # Group range is [i, j-1]
+            group_size = j - i
+
+            # Determine Start and End Colors
+            c_start = palColors[current_pal_idx]
+
+            # End color is the palette color at the NEXT index (if it exists)
+            if current_pal_idx + 1 < numColPaleta:
+                c_end = palColors[current_pal_idx + 1]
+            else:
+                c_end = c_start  # Last group repeats color
+
+            # Interpolate within the group
+            for k in range(group_size):
+                global_idx = i + k
+
+                # Interpolation factor
+                factor = (k) / (group_size + 1) if (group_size + 1) > 0 else 0
+
+                r = int(c_start.red() + (c_end.red() - c_start.red()) * factor)
+                g = int(c_start.green() + (c_end.green() - c_start.green()) * factor)
+                b = int(c_start.blue() + (c_end.blue() - c_start.blue()) * factor)
+
+                final_colors[global_idx] = QColor(r, g, b)
+
+            i = j  # Move to next group
+
+        return final_colors
+
+    def algorithmRamp(self, gradientRamp, numClasses):
+        """
+        Port of 'Colores_Rampa' VB Algorithm.
+        Interpolates based on positions 0..100 (converted to 0..1 for QGIS).
+        """
+        if numClasses < 1:
+            return []
+
+        colors = []
+        for i in range(numClasses):
+            # Calculate position (0.0 to 1.0)
+            position = 0.0
+            if numClasses > 1:
+                position = i / (numClasses - 1)
+
+            colors.append(gradientRamp.color(position))
+
+        return colors
 
     # --- Layer & Group Logic ---
 
@@ -431,19 +744,24 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.labelMode.setVisible(isNum)
         self.labelIntervalRange.setVisible(isFixed)
         self.spinIntervalRange.setVisible(isFixed)
-        
+
         self.btClassPlus.setVisible(isCat or isNum)
         self.btClassMinus.setVisible(isCat or isNum)
         self.btClassPlus.setEnabled(not isFixed)
         self.btClassMinus.setEnabled(not isFixed)
-        
+
         self.labelClass.setVisible(isCat or isNum)
         self.leClassCount.setVisible(isCat or isNum)
         self.btUp.setVisible(isCat)
         self.btDown.setVisible(isCat)
         self.labelFrameLegends.setVisible(isNum or isCat)
-        
+
         if isCat: self.updateAddClassButtonState()
+
+        # NEW: Refresh color/size logic when field changes
+        if self.currentFieldType != self.FIELD_TYPE_UNKNOWN:
+            self.applySizeLogic()
+            self.applyColorLogic()
 
     def clearTable(self):
         self.tableView.setRowCount(0)
@@ -522,9 +840,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         vw.setReadOnly(True)
         vw.setAlignment(Qt.AlignCenter)
         if isReadOnlyVal:
-            vw.setStyleSheet("QLineEdit { background-color: white; color: #808080; border: none; }")
+            vw.setStyleSheet("QLineEdit { background-color: white; color: #808080; border: 1px inset #696969; }")
         else:
-            vw.setStyleSheet("QLineEdit { background-color: white; color: #404040; border: none; }")
+            vw.setStyleSheet("QLineEdit { background-color: white; color: #404040; border: 1px inset #696969; }")
             vw.mouseDoubleClickEvent = lambda _event, r=row: self.openRangeEditor(r)
         self.tableView.setCellWidget(row, 2, vw)
 
@@ -582,6 +900,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
             mid = self.cbMode.currentData()
             if mid: self.applyClassificationMethod(mid)
         self.updateButtonStates()
+
+        # NEW: Re-apply generic logic
+        self.applyColorLogic()
+        self.applySizeLogic()
 
     def addNumericClass(self):
         """Add numeric range."""
@@ -662,6 +984,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.updateClassCount()
         self.updateButtonStates()
 
+        # NEW: Re-apply generic logic
+        self.applyColorLogic()
+        self.applySizeLogic()
+
     def moveClassUp(self):
         self._moveRow(-1)
 
@@ -719,10 +1045,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
                     if c == 2:  # Value column
                         le.setAlignment(Qt.AlignCenter)
                         if hasDoubleClick:  # Numeric - editable via double-click
-                            le.setStyleSheet("QLineEdit { background-color: white; color: #404040; border: none; }")
+                            le.setStyleSheet("QLineEdit { background-color: white; color: #404040; border: 1px solid #e0e0e0; }")
                             le.mouseDoubleClickEvent = lambda _event, r=row: self.openRangeEditor(r)
                         else:  # Categorical - truly read-only
-                            le.setStyleSheet("QLineEdit { background-color: white; color: #808080; border: none; }")
+                            le.setStyleSheet("QLineEdit { background-color: white; color: #808080; border: 1px solid #e0e0e0; }")
                     else:  # Other read-only columns
                         le.setStyleSheet("QLineEdit { background-color: #F8F8F8; color: #808080; }")
                 if c == 1:
@@ -868,8 +1194,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
             lw = self.tableView.cellWidget(i, 3)
             if isinstance(lw, QLineEdit): lw.setText(txt)
-        
+
         self.updateClassCount()
+
+        # NEW: Re-apply generic logic after classification
+        self.applyColorLogic()
+        self.applySizeLogic()
 
     def getNumericValues(self):
         """Get list of float values from layer."""
