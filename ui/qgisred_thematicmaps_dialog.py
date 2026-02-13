@@ -260,12 +260,12 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         derivedLayer.setLabelsEnabled(False)
         
         if field == 'Material':
-            QGISRedUtils().apply_categorized_renderer(derivedLayer, field, qmlPath)
+            QGISRedUtils().applyCategorizedRenderer(derivedLayer, field, qmlPath)
 
         derivedLayer.setCustomProperty("qgisred_identifier", layerIdentifier)
-        
+
         QgsProject.instance().addMapLayer(derivedLayer, False)
-        QGISRedUtils().hide_fields(derivedLayer, field)
+        QGISRedUtils().hideFields(derivedLayer, field)
 
         if parentGroup and not sip.isdeleted(parentGroup):
             layerTreeLayer = parentGroup.insertLayer(layerPosition, derivedLayer)

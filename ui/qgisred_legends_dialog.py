@@ -703,31 +703,25 @@ class QGISRedLegendsDialog(QDialog, formClass):
             else:
                 rangeAverageValues.append(0.0)
 
-        _, globalValueMax = self.getLayerMinMax()
+        globalValueMin, globalValueMax = self.getLayerMinMax()
 
         sizes = []
-        for index, averageValue in enumerate(rangeAverageValues):
-            if index == 0:
-                sizes.append(minSize)
-            elif index == rows - 1:
-                sizes.append(maxSize)
-            else:
-                calculatedSize = self.computeProportionalSize(minSize, maxSize, globalValueMax, averageValue)
-                sizes.append(calculatedSize)
+        for averageValue in rangeAverageValues:
+            calculatedSize = self.computeProportionalSize(minSize, maxSize, globalValueMin, globalValueMax, averageValue)
+            sizes.append(calculatedSize)
 
         if self.ckSizeInvert.isChecked():
             sizes.reverse()
 
         return sizes
 
-    def computeProportionalSize(self, minSize, maxSize, globalValueMax, averageValue):
-        if globalValueMax == 0:
+    def computeProportionalSize(self, minSize, maxSize, globalValueMin, globalValueMax, averageValue):
+        valueRange = globalValueMax - globalValueMin
+        if valueRange == 0:
             return minSize
 
-        normalizedPosition = averageValue / globalValueMax
-        normalizedPosition = max(0.0, min(1.0, normalizedPosition))
-
-        return minSize + normalizedPosition * (maxSize - minSize)
+        calculatedSize = minSize + ((maxSize - minSize) / valueRange) * (averageValue - globalValueMin)
+        return max(minSize, min(maxSize, calculatedSize))
 
     def calculateInterpolatedSizes(self, mode, rows):
         minSize = self.spinSizeMin.value()
@@ -2881,11 +2875,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
         )
         isAutoNumeric = self.currentFieldType == self.FIELD_TYPE_NUMERIC and not isManualNumeric
 
-        self.updateAddButtonState(isCategorical, isAutoNumeric, isManualNumeric, selectionCount)
+        self.updateAddButtonState(isCategorical, isAutoNumeric, isManualNumeric, selectionCount, modeId)
         self.updateRemoveButtonState(modeId, selectionCount)
         self.updateMoveButtonsState(isCategorical, selectionCount, selectedRows)
 
-    def updateAddButtonState(self, isCategorical, isAutoNumeric, isManualNumeric, selectionCount):
+    def updateAddButtonState(self, isCategorical, isAutoNumeric, isManualNumeric, selectionCount, modeId):
+        if modeId == "FixedInterval":
+            self.btClassPlus.setEnabled(False)
+            return
+
         if isCategorical:
             if selectionCount > 1:
                 self.btClassPlus.setEnabled(False)

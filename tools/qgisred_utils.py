@@ -3,25 +3,13 @@ from PyQt5.QtGui import QColor
 from PyQt5.QtCore import QFileInfo
 from PyQt5.QtWidgets import QMessageBox, QFileDialog
 from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer, QgsTask, QgsApplication, QgsLayerMetadata
-from qgis.core import QgsSvgMarkerSymbolLayer, QgsSymbol, QgsSingleSymbolRenderer, Qgis, QgsLayerTreeGroup
-from qgis.core import QgsLineSymbol, QgsSimpleLineSymbolLayer, QgsProperty, QgsLayerDefinition
-from qgis.core import QgsMarkerSymbol, QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayer
+from qgis.core import QgsSymbol, Qgis, QgsLayerTreeGroup, QgsLayerDefinition
+from qgis.core import QgsLineSymbol, QgsSimpleLineSymbolLayer, QgsSimpleMarkerSymbolLayer
 from qgis.core import QgsRendererCategory, QgsCategorizedSymbolRenderer, QgsCoordinateReferenceSystem, QgsVectorLayerCache
+from qgis.core import QgsMessageLog, NULL
 from qgis.gui import QgsAttributeTableFilterModel, QgsAttributeTableModel, QgsAttributeTableView
-from qgis.core import QgsSymbolLayer, NULL
 from qgis.utils import iface
-from qgis.core import QgsSingleSymbolRenderer, QgsSymbol,QgsSvgMarkerSymbolLayer,QgsMarkerLineSymbolLayer,QgsMarkerSymbol,QgsWkbTypes
-from qgis.core import QgsReadWriteContext
-from PyQt5.QtXml import QDomDocument
-from qgis.core import (
-    QgsProject,
-    QgsLayerTreeLayer,
-    QgsLayerDefinition,
-    QgsMessageLog,
-    Qgis
-)
 
-# Others imports
 import os
 import tempfile
 import datetime
@@ -159,11 +147,10 @@ class QGISRedUtils:
             'qgisred_query_material_mat': 'Pipe Materials',
         }
         
-
     """Layers"""
 
     def getLayers(self):
-        return [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
+        return [treeLayer.layer() for treeLayer in QgsProject.instance().layerTreeRoot().findLayers()]
 
     def getProjectDirectory(self):
         return self.ProjectDirectory
@@ -311,42 +298,6 @@ class QGISRedUtils:
             currentParent = foundGroup
         return currentParent
 
-    def getOrCreateNetworkGroup(self):
-        root = QgsProject.instance().layerTreeRoot()
-        identifier = self.groupIdentifiers.get(self.NetworkName)
-        if identifier:
-            group = self.findGroupByIdentifier(identifier)
-            if group:
-                return group
-        group = self._findGroupByNameRecursive(root, self.NetworkName)
-        if group:
-            self.setGroupIdentifier(group, self.NetworkName)
-            return group
-        networkGroup = root.insertGroup(0, self.NetworkName)
-        self.setGroupIdentifier(networkGroup, self.NetworkName)
-        return networkGroup
-
-    @classmethod
-    def assignGroupIdentifiers(cls):
-        root = QgsProject.instance().layerTreeRoot()
-        cls._assignGroupIdentifiersRecursive(root)
-
-    @classmethod
-    def _assignGroupIdentifiersRecursive(cls, parent):
-        for child in parent.children():
-            if isinstance(child, QgsLayerTreeGroup):
-                existingId = child.customProperty("qgisred_identifier")
-                if not existingId:
-                    groupName = child.name()
-                    cls.setGroupIdentifier(child, groupName)
-                else:
-                    groupName = child.name()
-                    if groupName not in cls.groupIdentifiers:
-                        cls.groupIdentifiers[groupName] = existingId
-                    if existingId not in cls.identifierToGroupName:
-                        cls.identifierToGroupName[existingId] = groupName
-                cls._assignGroupIdentifiersRecursive(child)
-
     """Open Layers"""
 
     def isLayerOpened(self, layerName):
@@ -360,13 +311,11 @@ class QGISRedUtils:
                 return True
         return False
 
-    def openElementsLayers(self, group, ownMainLayers,processOnly=False):
-        print("reached 2")
+    def openElementsLayers(self, group, ownMainLayers, processOnly=False):
         if not processOnly:
             for fileName in ownMainLayers:
                 self.openLayer(group, fileName)
         if len(ownMainLayers) > 0:
-            print("true")
             self.orderLayers(group)
         for child in group.children():
             child.setCustomProperty("showFeatureCount", True)
@@ -384,7 +333,7 @@ class QGISRedUtils:
             vlayer = QgsVectorLayer(os.path.join(self.ProjectDirectory, layerName + ext), showName, "ogr")
             if not ext == ".dbf":
                 if results:
-                    self.setResultStyle(vlayer)
+                    self.setResultStyle(vlayer, originalName)
                 elif sectors:
                     self.setSectorsStyle(vlayer)
                 elif issues:
@@ -502,7 +451,7 @@ class QGISRedUtils:
             group.removeChildNode(node)
 
     def orderResultLayers(self, group):
-        layers = [tree_layer.layer() for tree_layer in group.findLayers()]  # Only in group
+        layers = [treeLayer.layer() for treeLayer in group.findLayers()]
         for layer in layers:
             if not layer.geometryType() == 0:  # Point
                 clonedLayer = layer.clone()
@@ -561,37 +510,62 @@ class QGISRedUtils:
         if os.path.exists(qmlPath):
                 layer.loadNamedStyle(qmlPath)
 
-    def setResultStyle(self, layer):
-        stylePath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "defaults", "layerStyles")
+    def setResultStyle(self, layer, name=""):
+        # Convert result layer name to QML filename (e.g., "Link_Flow" -> "LinkFlow")
+        qmlName = name.replace("_", "") if name else ""
         
-        # default style
+        layerStylesPath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "layerStyles")
+        defaultStylePath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "defaults", "layerStyles")
+        
+        # Search order: project folder -> layerStyles -> defaults/layerStyles
+        if qmlName:
+            # project style
+            projectStylePath = os.path.join(self.ProjectDirectory, "layerStyles")
+            qmlPath = os.path.join(projectStylePath, qmlName + ".qml")
+            if os.path.exists(qmlPath):
+                layer.loadNamedStyle(qmlPath)
+                return
+            
+            # global layerStyles
+            qmlPath = os.path.join(layerStylesPath, qmlName + ".qml")
+            if os.path.exists(qmlPath):
+                layer.loadNamedStyle(qmlPath)
+                return
+            
+            # default .bak style
+            qmlPath = os.path.join(defaultStylePath, qmlName + ".qml.bak")
+            if os.path.exists(qmlPath):
+                layer.loadNamedStyle(qmlPath)
+                return
+        
+        #TODO -> remove this fallback
+        # Fallback to generic node/link results style
         if layer.geometryType() == 0:  # Point
-            qmlBasePath = os.path.join(stylePath, "nodeResults.qml.bak")
+            qmlBasePath = os.path.join(defaultStylePath, "nodeResults.qml.bak")
         else:
-            qmlBasePath = os.path.join(stylePath, "linkResults.qml.bak")
+            qmlBasePath = os.path.join(defaultStylePath, "linkResults.qml.bak")
         if os.path.exists(qmlBasePath):
             f = open(qmlBasePath, "r")
             contents = f.read()
             f.close()
             qmlPath = ""
             if layer.geometryType() == 0:  # Point
-                svgPath = os.path.join(stylePath, "tanksResults.svg")
+                svgPath = os.path.join(defaultStylePath, "tanksResults.svg")
                 contents = contents.replace("tanks.svg", svgPath)
-                svgPath = os.path.join(stylePath, "reservoirsResults.svg")
+                svgPath = os.path.join(defaultStylePath, "reservoirsResults.svg")
                 contents = contents.replace("reservoirs.svg", svgPath)
-                qmlPath = os.path.join(stylePath, "nodeResults.qml")
+                qmlPath = os.path.join(defaultStylePath, "nodeResults.qml")
             else:
-                svgPath = os.path.join(stylePath, "pumps.svg")
+                svgPath = os.path.join(defaultStylePath, "pumps.svg")
                 contents = contents.replace("pumps.svg", svgPath)
-                svgPath = os.path.join(stylePath, "valves.svg")
+                svgPath = os.path.join(defaultStylePath, "valves.svg")
                 contents = contents.replace("valves.svg", svgPath)
-                svgPath = os.path.join(stylePath, "arrow.svg")
+                svgPath = os.path.join(defaultStylePath, "arrow.svg")
                 contents = contents.replace("arrow.svg", svgPath)
-                qmlPath = os.path.join(stylePath, "linkResults.qml")
+                qmlPath = os.path.join(defaultStylePath, "linkResults.qml")
             f = open(qmlPath, "w+")
             f.write(contents)
             f.close()
-            # ret = layer.loadNamedStyle(qmlPath)
             layer.loadNamedStyle(qmlPath)
             os.remove(qmlPath)
 
@@ -604,22 +578,22 @@ class QGISRedUtils:
             field = "SubNet"
             fni = layer.fields().indexFromName(field)
 
-        unique_values = layer.dataProvider().uniqueValues(fni)
-        unique_values = sorted(unique_values)
+        uniqueValues = layer.dataProvider().uniqueValues(fni)
+        uniqueValues = sorted(uniqueValues)
 
         # define categories
         categories = []
-        for unique_value in unique_values:
+        for uniqueValue in uniqueValues:
             # initialize the default symbol for this geometry type
             symbol = QgsSymbol.defaultSymbol(layer.geometryType())
 
             # configure a symbol layer
-            symbol_layer = None
+            symbolLayer = None
             if layer.geometryType() == 0:  # Point
-                layer_style = dict()
-                layer_style["color"] = "%d, %d, %d" % (randrange(0, 256), randrange(0, 256), randrange(0, 256))
-                layer_style["size"] = str(2)
-                symbol_layer = QgsSimpleMarkerSymbolLayer.create(layer_style)
+                layerStyle = dict()
+                layerStyle["color"] = "%d, %d, %d" % (randrange(0, 256), randrange(0, 256), randrange(0, 256))
+                layerStyle["size"] = str(2)
+                symbolLayer = QgsSimpleMarkerSymbolLayer.create(layerStyle)
             else:
                 symbol = QgsLineSymbol().createSimple({})
                 symbol.deleteSymbolLayer(0)
@@ -634,11 +608,11 @@ class QGISRedUtils:
                 symbol.appendSymbolLayer(lineSymbol)
 
             # replace default symbol layer with the configured one
-            if symbol_layer is not None:
-                symbol.changeSymbolLayer(0, symbol_layer)
+            if symbolLayer is not None:
+                symbol.changeSymbolLayer(0, symbolLayer)
 
             # create renderer object
-            category = QgsRendererCategory(unique_value, symbol, str(unique_value))
+            category = QgsRendererCategory(uniqueValue, symbol, str(uniqueValue))
             # entry for the list of category items
             categories.append(category)
 
@@ -653,21 +627,21 @@ class QGISRedUtils:
         # get unique values
         field = "ArcType"
         fni = layer.fields().indexFromName(field)
-        unique_values = layer.dataProvider().uniqueValues(fni)
+        uniqueValues = layer.dataProvider().uniqueValues(fni)
 
         # define categories
         categories = []
-        for unique_value in unique_values:
+        for uniqueValue in uniqueValues:
             # initialize the default symbol for this geometry type
             symbol = QgsSymbol.defaultSymbol(layer.geometryType())
 
             # configure a symbol layer
-            symbol_layer = None
+            symbolLayer = None
             if layer.geometryType() == 0:  # Point
-                layer_style = dict()
-                layer_style["color"] = "%d, %d, %d" % (randrange(0, 256), randrange(0, 256), randrange(0, 256))
-                layer_style["size"] = str(2)
-                symbol_layer = QgsSimpleMarkerSymbolLayer.create(layer_style)
+                layerStyle = dict()
+                layerStyle["color"] = "%d, %d, %d" % (randrange(0, 256), randrange(0, 256), randrange(0, 256))
+                layerStyle["size"] = str(2)
+                symbolLayer = QgsSimpleMarkerSymbolLayer.create(layerStyle)
             else:
                 symbol = QgsLineSymbol().createSimple({})
                 symbol.deleteSymbolLayer(0)
@@ -679,7 +653,7 @@ class QGISRedUtils:
                     lineSymbol.setWidthUnit(2)  # Pixels
                 lineSymbol.setWidth(3)
                 lineSymbol.setColor(QColor(178, 47, 60))
-                if "Branch" in unique_value:
+                if "Branch" in uniqueValue:
                     lineSymbol.setColor(QColor(22, 139, 251))
                 else:
                     lineSymbol.setPenStyle(3)
@@ -687,11 +661,11 @@ class QGISRedUtils:
                 symbol.appendSymbolLayer(lineSymbol)
 
             # replace default symbol layer with the configured one
-            if symbol_layer is not None:
-                symbol.changeSymbolLayer(0, symbol_layer)
+            if symbolLayer is not None:
+                symbol.changeSymbolLayer(0, symbolLayer)
 
             # create renderer object
-            category = QgsRendererCategory(unique_value, symbol, str(unique_value))
+            category = QgsRendererCategory(uniqueValue, symbol, str(uniqueValue))
             # entry for the list of category items
             categories.append(category)
 
@@ -777,8 +751,8 @@ class QGISRedUtils:
         if os.path.exists(metadataFile):
             # Read data as text plain to include the encoding
             data = ""
-            with open(metadataFile, "r", encoding="latin-1") as content_file:
-                data = content_file.read()
+            with open(metadataFile, "r", encoding="latin-1") as contentFile:
+                data = contentFile.read()
             # Parse data as XML
             root = ElementTree.fromstring(data)
             # Get data from nodes
@@ -896,20 +870,20 @@ class QGISRedUtils:
                     self.setStyle(layer, layerName.lower())
 
     def saveFilesInZip(self, zipPath):
-        file_paths = []
+        filePaths = []
         for f in os.listdir(self.ProjectDirectory):
             filepath = os.path.join(self.ProjectDirectory, f)
             if os.path.isfile(filepath):
-                file_paths.append(self.getUniformedPath(filepath))
+                filePaths.append(self.getUniformedPath(filepath))
 
-        with ZipFile(zipPath, "w") as zip:
-            for file in file_paths:
+        with ZipFile(zipPath, "w") as zipFile:
+            for file in filePaths:
                 if self.getUniformedPath(self.ProjectDirectory) + "\\" + self.NetworkName + "_" in file:
-                    zip.write(file, file.replace(self.getUniformedPath(self.ProjectDirectory), ""))
+                    zipFile.write(file, file.replace(self.getUniformedPath(self.ProjectDirectory), ""))
 
     def unzipFile(self, zipfile, directory):
-        with ZipFile(zipfile, "r") as zip_ref:
-            zip_ref.extractall(directory)
+        with ZipFile(zipfile, "r") as zipRef:
+            zipRef.extractall(directory)
 
     def saveBackup(self):
         dirpath = os.path.join(self.ProjectDirectory, "backups")
@@ -970,30 +944,25 @@ class QGISRedUtils:
     def getUnits(self):
         units, ok = QgsProject.instance().readEntry("QGISRed", "project_units", "LPS")
 
-        # International Units
-        international_units = ["LPS", "LPM", "MLD", "CMH", "CMD"]
-        # American Units 
-        american_units = ["CFS", "GPM", "MGD", "IMGD", "AFD"]
+        internationalUnits = ["LPS", "LPM", "MLD", "CMH", "CMD"]
+        americanUnits = ["CFS", "GPM", "MGD", "IMGD", "AFD"]
 
-        print("units: ", units)
-        if units in american_units:
+        if units in americanUnits:
             return 'US'
-        elif units in international_units:
+        elif units in internationalUnits:
             return 'SI'
         else:
-            # Default to SI units
             return 'SI'
 
     def loadUnitDefinitions(self):
-        """Load unit definitions from JSON file."""
         if QGISRedUtils._unit_definitions is not None:
             return QGISRedUtils._unit_definitions
-        
+
         jsonPath = os.path.join(
             os.path.dirname(os.path.dirname(__file__)),
             "defaults", "qgisred_units.json"
         )
-        
+
         if os.path.exists(jsonPath):
             try:
                 with open(jsonPath, 'r', encoding='utf-8') as f:
@@ -1003,322 +972,356 @@ class QGISRedUtils:
                 QGISRedUtils._unit_definitions = {}
         else:
             QGISRedUtils._unit_definitions = {}
-        
+
         return QGISRedUtils._unit_definitions
 
     def getUnitAbbreviationForLayer(self, layerIdentifier):
         if not layerIdentifier:
             return ""
-        
-        unitSystem = self.getUnits()  # Returns 'SI' or 'US'
+
+        unitSystem = self.getUnits()
         unitDefs = self.loadUnitDefinitions()
-        
-        # Search through unit_definitions for matching identifier
+
         for category, layers in unitDefs.items():
             if layerIdentifier in layers:
                 unitInfo = layers[layerIdentifier].get(unitSystem)
                 if unitInfo:
                     return unitInfo.get("abbr", "")
-        
+
         return ""
 
     def getLayerSupportsCategorized(self, layerIdentifier):
-        """Check if a layer supports categorized rendering based on qgisred_units.json."""
         if not layerIdentifier:
             return False
-        
+
         unitDefs = self.loadUnitDefinitions()
-        
-        # Search through unit_definitions for matching identifier
+
         for category, layers in unitDefs.items():
             if layerIdentifier in layers:
                 return layers[layerIdentifier].get("supports_categorized", False)
-        
+
         return False
 
-    def apply_categorized_renderer(self, layer, field, qml_file):
-        material_field_index = layer.fields().indexFromName(field)
-        
-        if material_field_index == -1:
+    def applyCategorizedRenderer(self, layer, field, qmlFile):
+        fieldIndex = layer.fields().indexFromName(field)
+
+        if fieldIndex == -1:
             raise ValueError(self.tr(f'{field} field not found in layer {layer.name()}'))
 
-        unique_values = layer.uniqueValues(material_field_index)
+        uniqueValues = layer.uniqueValues(fieldIndex)
         categories = []
 
-        style_uri = qml_file
-        existing_categories = {}
-        if style_uri and os.path.exists(style_uri):
-            temp_layer = QgsVectorLayer(layer.source(), layer.name(), layer.providerType())
-            temp_layer.loadNamedStyle(qml_file)
-            renderer = temp_layer.renderer()
-            
+        existingCategories = {}
+        if qmlFile and os.path.exists(qmlFile):
+            tempLayer = QgsVectorLayer(layer.source(), layer.name(), layer.providerType())
+            tempLayer.loadNamedStyle(qmlFile)
+            renderer = tempLayer.renderer()
+
             if isinstance(renderer, QgsCategorizedSymbolRenderer):
                 for cat in renderer.categories():
-                    existing_categories[cat.value()] = cat.symbol().color()
-        
-        non_null_values = [value for value in unique_values if value != NULL]
-        null_values = [value for value in unique_values if value == NULL]
+                    existingCategories[cat.value()] = cat.symbol().color()
 
-        for value in non_null_values:
+        nonNullValues = [value for value in uniqueValues if value != NULL]
+        nullValues = [value for value in uniqueValues if value == NULL]
+
+        for value in nonNullValues:
             symbol = QgsSymbol.defaultSymbol(layer.geometryType())
-            if value in existing_categories:
-                symbol.setColor(existing_categories[value])
+            if value in existingCategories:
+                symbol.setColor(existingCategories[value])
             else:
-                random_color = QColor.fromRgb(
+                randomColor = QColor.fromRgb(
                     random.randint(0, 255),
                     random.randint(0, 255),
                     random.randint(0, 255)
                 )
-                symbol.setColor(random_color)
+                symbol.setColor(randomColor)
             symbol.setWidth(0.6)
             category = QgsRendererCategory(value, symbol, str(value))
             categories.append(category)
 
-        if null_values:
+        if nullValues:
             symbol = QgsSymbol.defaultSymbol(layer.geometryType())
-            dark_gray = QColor.fromRgb(192, 192, 192)
-            symbol.setColor(dark_gray)
+            darkGray = QColor.fromRgb(192, 192, 192)
+            symbol.setColor(darkGray)
             symbol.setWidth(0.6)
-            category = QgsRendererCategory(null_values[0], symbol, str("#NA"))
+            category = QgsRendererCategory(nullValues[0], symbol, str("#NA"))
             categories.append(category)
 
         renderer = QgsCategorizedSymbolRenderer(field, categories)
         layer.setRenderer(renderer)
-        layer.saveNamedStyle(qml_file)
+        layer.saveNamedStyle(qmlFile)
 
-    def hide_fields(self, layer, fieldname):
+    def hideFields(self, layer, fieldname):
         config = layer.attributeTableConfig()
         columns = config.columns()
-        
-        fields_to_keep = ['Id', fieldname]
-        
-        for column in columns:
-            column.hidden = column.name not in fields_to_keep
-        
-        config.setColumns(columns)
-        
-        layer_cache = QgsVectorLayerCache(layer, layer.featureCount())
 
-        source_model = QgsAttributeTableModel(layer_cache)
-        source_model.loadLayer()
-        
-        attribute_table_view = QgsAttributeTableView()
-        attribute_table_filter_model = QgsAttributeTableFilterModel(iface.mapCanvas(), source_model)
-        
+        fieldsToKeep = ['Id', fieldname]
+
+        for column in columns:
+            column.hidden = column.name not in fieldsToKeep
+
+        config.setColumns(columns)
+
+        layerCache = QgsVectorLayerCache(layer, layer.featureCount())
+
+        sourceModel = QgsAttributeTableModel(layerCache)
+        sourceModel.loadLayer()
+
+        attributeTableView = QgsAttributeTableView()
+        attributeTableFilterModel = QgsAttributeTableFilterModel(iface.mapCanvas(), sourceModel)
+
         layer.setAttributeTableConfig(config)
-        attribute_table_filter_model.setAttributeTableConfig(config)
-        attribute_table_view.setAttributeTableConfig(config)
+        attributeTableFilterModel.setAttributeTableConfig(config)
+        attributeTableView.setAttributeTableConfig(config)
+
+    """Layer Identifiers"""
 
     def setLayerIdentifier(self, layer, layerType):
         identifier = f"qgisred_{layerType.lower()}"
         layer.setCustomProperty("qgisred_identifier", identifier)
-        layer_metadata = QgsLayerMetadata()
-        layer_metadata.setIdentifier(identifier)
-        layer.setMetadata(layer_metadata)
+        layerMeta = QgsLayerMetadata()
+        layerMeta.setIdentifier(identifier)
+        layer.setMetadata(layerMeta)
+
+    def getOriginalNameFromLayerName(self, layerName):
+        layersByName = QgsProject.instance().mapLayersByName(layerName)
+
+        if not layersByName:
+            return layerName
+
+        qgsVectorLayer = layersByName[0]
+        layerIdentifier = qgsVectorLayer.customProperty("qgisred_identifier")
+
+        if not layerIdentifier:
+            return layerName
+
+        return self.identifierToElementName.get(layerIdentifier, layerName)
+
+    def assignLayerIdentifiers(self):
+        layersByPath = {self.getLayerPath(layer): layer for layer in self.getLayers()}
+        baseDir = self.ProjectDirectory
+        networkPrefix = f"{self.NetworkName}_"
+
+        for elementName, identifier in self.elementIdentifiers.items():
+            expectedPath = self.generatePath(baseDir, f"{networkPrefix}{elementName}.shp")
+            if layer := layersByPath.get(expectedPath):
+                if not layer.customProperty("qgisred_identifier"):
+                    self.setLayerIdentifier(layer, identifier)
+
+    def enforceGroupIdentifiers(self, parent=None):
+        if parent is None:
+            parent = QgsProject.instance().layerTreeRoot()
+
+        for child in parent.children():
+            if isinstance(child, QgsLayerTreeGroup):
+                groupName = child.name()
+
+                matchingIdentifier = None
+                for identifier, mappedName in self.identifierToGroupName.items():
+                    if groupName == mappedName:
+                        matchingIdentifier = identifier
+                        break
+
+                if matchingIdentifier:
+                    existingIdentifier = child.customProperty("qgisred_identifier")
+                    if not existingIdentifier or existingIdentifier != matchingIdentifier:
+                        child.setCustomProperty("qgisred_identifier", matchingIdentifier)
+
+                self.enforceGroupIdentifiers(child)
+
+    def enforceLayerIdentifiers(self):
+        layers = self.getLayers()
+
+        for layer in layers:
+            layerName = layer.name()
+
+            matchingIdentifier = None
+            for identifier, mappedName in self.identifierToElementName.items():
+                if layerName == mappedName:
+                    matchingIdentifier = identifier
+                    break
+
+            if matchingIdentifier:
+                existingIdentifier = layer.customProperty("qgisred_identifier")
+                if not existingIdentifier or existingIdentifier != matchingIdentifier:
+                    layer.setCustomProperty("qgisred_identifier", matchingIdentifier)
+                    layerMeta = QgsLayerMetadata()
+                    layerMeta.setIdentifier(matchingIdentifier)
+                    layer.setMetadata(layerMeta)
+
+    def enforceAllIdentifiers(self):
+        self.enforceGroupIdentifiers()
+        self.enforceLayerIdentifiers()
+
+    """QLR Operations"""
 
     def getQLRFolder(self):
-        qlr_folder = os.path.join(self.getGISRedFolder(), "qlr")
-        if not os.path.exists(qlr_folder):
-            os.makedirs(qlr_folder)
-        return qlr_folder
+        qlrFolder = os.path.join(self.getGISRedFolder(), "qlr")
+        if not os.path.exists(qlrFolder):
+            os.makedirs(qlrFolder)
+        return qlrFolder
 
     def saveProjectAsQLR(self):
-        # Get network-scoped QLR folder
-        qlr_folder = os.path.join(self.getQLRFolder(), self.NetworkName)
-        if not os.path.exists(qlr_folder):
-            os.makedirs(qlr_folder)
-        
-        saved_count = 0
+        qlrFolder = os.path.join(self.getQLRFolder(), self.NetworkName)
+        if not os.path.exists(qlrFolder):
+            os.makedirs(qlrFolder)
+
+        savedCount = 0
         layers = self.getLayers()
         root = QgsProject.instance().layerTreeRoot()
-        
-        # Dictionary to store layer metadata
-        layer_metadata = {}
-        
+        layerMeta = {}
+
         for layer in layers:
-            # Filter only layers with qgisred_identifier custom property
             identifier = layer.customProperty("qgisred_identifier")
             if not identifier:
                 continue
-                
-            # Find the layer's tree node and parent group
-            layer_node = root.findLayer(layer.id())
-            if not layer_node:
+
+            layerNode = root.findLayer(layer.id())
+            if not layerNode:
                 continue
-            
-            # Get parent group info
-            parent = layer_node.parent()
-            group_path = []
+
+            parent = layerNode.parent()
+            groupPath = []
             current = parent
             while current and current != root:
-                group_path.insert(0, current.name())
+                groupPath.insert(0, current.name())
                 current = current.parent()
-            
-            # Get position in parent
+
             position = 0
             if parent:
                 for i, child in enumerate(parent.children()):
-                    if child == layer_node:
+                    if child == layerNode:
                         position = i
                         break
-            
-            # Store metadata
-            layer_metadata[identifier] = {
-                "group_path": group_path,
+
+            layerMeta[identifier] = {
+                "group_path": groupPath,
                 "position": position,
                 "name": layer.name()
             }
-            
-            # Export single layer QLR with identifier as filename
-            qlr_filename = f"{identifier}.qlr"
-            qlr_path = os.path.join(qlr_folder, qlr_filename)
-            
+
+            qlrFilename = f"{identifier}.qlr"
+            qlrPath = os.path.join(qlrFolder, qlrFilename)
+
             try:
-                success = QgsLayerDefinition.exportLayerDefinition(
-                    qlr_path, 
-                    [layer_node]
-                )
+                success = QgsLayerDefinition.exportLayerDefinition(qlrPath, [layerNode])
                 if success:
-                    saved_count += 1
+                    savedCount += 1
             except Exception:
                 continue
-        
-        # Save metadata file
-        if saved_count > 0:
-            import json
-            metadata_path = os.path.join(qlr_folder, "layer_metadata.json")
-            with open(metadata_path, 'w') as f:
-                json.dump(layer_metadata, f, indent=2)
-        
-        return (saved_count > 0, qlr_folder)
+
+        if savedCount > 0:
+            metadataPath = os.path.join(qlrFolder, "layer_metadata.json")
+            with open(metadataPath, 'w') as f:
+                json.dump(layerMeta, f, indent=2)
+
+        return (savedCount > 0, qlrFolder)
 
     def loadProjectFromQLR(self):
-        # Build the same folder path used in save
-        qlr_folder = os.path.join(self.getQLRFolder(), self.NetworkName)
-        
-        # Check if folder exists and has QLR files
-        if not os.path.exists(qlr_folder):
+        qlrFolder = os.path.join(self.getQLRFolder(), self.NetworkName)
+
+        if not os.path.exists(qlrFolder):
             return False
-        
-        qlr_files = [f for f in os.listdir(qlr_folder) if f.endswith('.qlr')]
-        if not qlr_files:
+
+        qlrFiles = [f for f in os.listdir(qlrFolder) if f.endswith('.qlr')]
+        if not qlrFiles:
             return False
-        
-        # Load metadata
-        layer_metadata = {}
-        metadata_path = os.path.join(qlr_folder, "layer_metadata.json")
-        if os.path.exists(metadata_path):
-            import json
-            with open(metadata_path, 'r') as f:
-                layer_metadata = json.load(f)
-        
-        # Remove currently loaded plugin layers first
+
+        layerMeta = {}
+        metadataPath = os.path.join(qlrFolder, "layer_metadata.json")
+        if os.path.exists(metadataPath):
+            with open(metadataPath, 'r') as f:
+                layerMeta = json.load(f)
+
         self.removePluginLayers()
-        
-        # Prepare to track loaded layers for repositioning
-        loaded_layers = []
+
+        loadedLayers = []
         root = QgsProject.instance().layerTreeRoot()
-        
-        # First pass: Load all QLR files temporarily to root
-        for qlr_file in qlr_files:
-            qlr_path = os.path.join(qlr_folder, qlr_file)
-            identifier = qlr_file.replace('.qlr', '')
-            
+
+        for qlrFile in qlrFiles:
+            qlrPath = os.path.join(qlrFolder, qlrFile)
+            identifier = qlrFile.replace('.qlr', '')
+
             try:
-                # Load to a temporary location
                 success = QgsLayerDefinition().loadLayerDefinition(
-                    qlr_path,
+                    qlrPath,
                     QgsProject.instance(),
                     root
                 )
                 if success:
-                    # Find the newly loaded layer
                     for layer in self.getLayers():
                         if layer.customProperty("qgisred_identifier") == identifier:
-                            loaded_layers.append((layer, identifier))
+                            loadedLayers.append((layer, identifier))
                             break
             except Exception:
                 continue
-        
-        # Second pass: Move layers to correct groups and positions
-        for layer, identifier in loaded_layers:
-            metadata = layer_metadata.get(identifier, {})
-            group_path = metadata.get("group_path", [])
+
+        for layer, identifier in loadedLayers:
+            metadata = layerMeta.get(identifier, {})
+            groupPath = metadata.get("group_path", [])
             position = metadata.get("position", 0)
-            
-            # Find or create the target group
-            target_group = root
-            for group_name in group_path:
-                existing_group = target_group.findGroup(group_name)
-                if existing_group:
-                    target_group = existing_group
+
+            targetGroup = root
+            for groupName in groupPath:
+                existingGroup = targetGroup.findGroup(groupName)
+                if existingGroup:
+                    targetGroup = existingGroup
                 else:
-                    target_group = target_group.insertGroup(0, group_name)
-            
-            # Find the layer's current node
-            layer_node = root.findLayer(layer.id())
-            if layer_node and target_group != root:
-                # Clone the node to the target group at the correct position
-                cloned_node = layer_node.clone()
-                
-                # Insert at the correct position (clamped to valid range)
-                num_children = len(target_group.children())
-                insert_pos = min(position, num_children)
-                target_group.insertChildNode(insert_pos, cloned_node)
-                
-                # Remove the original node from root
-                if layer_node.parent():
-                    layer_node.parent().removeChildNode(layer_node)
-        
-        return len(loaded_layers) > 0
+                    targetGroup = targetGroup.insertGroup(0, groupName)
+
+            layerNode = root.findLayer(layer.id())
+            if layerNode and targetGroup != root:
+                clonedNode = layerNode.clone()
+                numChildren = len(targetGroup.children())
+                insertPos = min(position, numChildren)
+                targetGroup.insertChildNode(insertPos, clonedNode)
+
+                if layerNode.parent():
+                    layerNode.parent().removeChildNode(layerNode)
+
+        return len(loadedLayers) > 0
 
     def deleteProjectQLR(self):
-        # Build the network-specific folder path
-        qlr_folder = os.path.join(self.getQLRFolder(), self.NetworkName)
-        
-        if not os.path.exists(qlr_folder):
+        qlrFolder = os.path.join(self.getQLRFolder(), self.NetworkName)
+
+        if not os.path.exists(qlrFolder):
             return False
-        
-        deleted_any = False
-        
-        # Remove all QLR files and metadata
-        for filename in os.listdir(qlr_folder):
+
+        deletedAny = False
+
+        for filename in os.listdir(qlrFolder):
             if filename.endswith('.qlr') or filename == 'layer_metadata.json':
                 try:
-                    os.remove(os.path.join(qlr_folder, filename))
-                    deleted_any = True
+                    os.remove(os.path.join(qlrFolder, filename))
+                    deletedAny = True
                 except Exception:
                     pass
-        
-        # Remove the now-empty network subfolder
+
         try:
-            if not os.listdir(qlr_folder):
-                os.rmdir(qlr_folder)
+            if not os.listdir(qlrFolder):
+                os.rmdir(qlrFolder)
         except Exception:
             pass
-        
-        return deleted_any
+
+        return deletedAny
+
+    """Plugin Layers"""
 
     def removePluginLayers(self):
         project = QgsProject.instance()
         root = project.layerTreeRoot()
-        layers_to_remove = []
-        
-        # Collect all layer nodes with qgisred_identifier
+        layersToRemove = []
+
         for layer in self.getLayers():
             if layer.customProperty("qgisred_identifier"):
-                layer_node = root.findLayer(layer.id())
-                if layer_node and layer_node.parent():
-                    # Remove from tree
-                    layer_node.parent().removeChildNode(layer_node)
-                # Add to removal list
-                layers_to_remove.append(layer.id())
-        
-        # Remove the layers from the project
-        for layer_id in layers_to_remove:
-            project.removeMapLayer(layer_id)
-        
-        # Refresh canvas if available
+                layerNode = root.findLayer(layer.id())
+                if layerNode and layerNode.parent():
+                    layerNode.parent().removeChildNode(layerNode)
+                layersToRemove.append(layer.id())
+
+        for layerId in layersToRemove:
+            project.removeMapLayer(layerId)
+
         if self.iface:
             self.iface.mapCanvas().refresh()
 
@@ -1331,125 +1334,36 @@ class QGISRedUtils:
             if isinstance(node, QgsLayerTreeLayer):
                 layer = node.layer()
                 if layer and layer.featureCount() == 0 and layer.name() not in exceptions:
-                    layer_id = layer.id()
-                    project.removeMapLayer(layer_id)
+                    layerId = layer.id()
+                    project.removeMapLayer(layerId)
 
         if self.iface:
             self.iface.mapCanvas().refresh()
-    
-    def getOriginalNameFromLayerName(self, layerName):
-        layersByName = QgsProject.instance().mapLayersByName(layerName)
-        
-        if not layersByName:
-            return layerName
 
-        qgsVectorLayer = layersByName[0]
-        
-        layerIdentifier = qgsVectorLayer.customProperty("qgisred_identifier")
-        print('identifier : ', layerIdentifier)
+    def getThematicMapsLayers(self):
+        root = QgsProject.instance().layerTreeRoot()
+        thematicGroup = self.findGroupRecursive(root, "Thematic Maps")
 
-        if not layerIdentifier:
-            return layerName
-        
-        return self.identifierToElementName.get(layerIdentifier, layerName)
+        if thematicGroup:
+            return [treeLayer.layer() for treeLayer in thematicGroup.findLayers()]
+        return []
 
-    def assignLayerIdentifiers(self):
-        # Create a dictionary of layers keyed by their paths
-        layersByPath = {self.getLayerPath(layer): layer for layer in self.getLayers()}
-
-        # Pre-compute common path components
-        baseDir = self.ProjectDirectory
-        networkPrefix = f"{self.NetworkName}_"
-
-        # Process each element type
-        for elementName, identifier in self.elementIdentifiers.items():
-            # Construct the expected layer path
-            expectedPath = self.generatePath(baseDir, f"{networkPrefix}{elementName}.shp")
-
-            # Check if layer exists and needs identifier assignment
-            if layer := layersByPath.get(expectedPath):
-                if not layer.customProperty("qgisred_identifier"):
-                    self.setLayerIdentifier(layer, identifier)
-
-    def enforceGroupIdentifiers(self, parent=None):
-        """Recursively enforce qgisred_identifier on all groups that match identifierToGroupName"""
-        if parent is None:
-            parent = QgsProject.instance().layerTreeRoot()
-
-        for child in parent.children():
-            if isinstance(child, QgsLayerTreeGroup):
-                groupName = child.name()
-
-                # Check if this group name matches any in our identifier mappings
-                matchingIdentifier = None
-                for identifier, mappedName in self.identifierToGroupName.items():
-                    if groupName == mappedName:
-                        matchingIdentifier = identifier
-                        break
-
-                # If we found a matching identifier, check and apply if missing
-                if matchingIdentifier:
-                    existingIdentifier = child.customProperty("qgisred_identifier")
-                    if not existingIdentifier or existingIdentifier != matchingIdentifier:
-                        child.setCustomProperty("qgisred_identifier", matchingIdentifier)
-
-                # Recursively process subgroups
-                self.enforceGroupIdentifiers(child)
-
-    def enforceLayerIdentifiers(self):
-        """Enforce qgisred_identifier on all layers that match identifierToElementName"""
-        layers = self.getLayers()
-
-        for layer in layers:
-            layerName = layer.name()
-
-            # Check if this layer name matches any in our identifier mappings
-            matchingIdentifier = None
-            for identifier, mappedName in self.identifierToElementName.items():
-                if layerName == mappedName:
-                    matchingIdentifier = identifier
-                    break
-
-            # If we found a matching identifier, check and apply if missing
-            if matchingIdentifier:
-                existingIdentifier = layer.customProperty("qgisred_identifier")
-                if not existingIdentifier or existingIdentifier != matchingIdentifier:
-                    layer.setCustomProperty("qgisred_identifier", matchingIdentifier)
-                    # Also update layer metadata
-                    layer_metadata = QgsLayerMetadata()
-                    layer_metadata.setIdentifier(matchingIdentifier)
-                    layer.setMetadata(layer_metadata)
-
-    def enforceAllIdentifiers(self):
-        """Enforce qgisred_identifier on all groups and layers after opening a project"""
-        self.enforceGroupIdentifiers()
-        self.enforceLayerIdentifiers()
+    """Project Files"""
 
     def addProjectToGplFile(self, gplFile, networkName='', projectDirectory='', rawEntryLine=None):
         projectDirectory = self.getUniformedPath(projectDirectory)
         newEntry = rawEntryLine or f"{networkName};{projectDirectory}"
         newEntry = newEntry.strip()
-        
-        # Read existing entries, preserving order
+
         existingEntries = []
         if os.path.exists(gplFile):
             with open(gplFile, "r") as f:
                 for line in f:
                     line = line.strip()
-                    if line and line != newEntry:  # Skip empty lines and duplicates
+                    if line and line != newEntry:
                         existingEntries.append(line)
-        
-        # Write new entry at the beginning, followed by existing entries
+
         with open(gplFile, "w") as f:
             f.write(newEntry + "\n")
             for entry in existingEntries:
                 f.write(entry + "\n")
-
-    def getThematicMapsLayers(self):
-        # Get and return all layers from Thematic Maps group, wherever it's located
-        root = QgsProject.instance().layerTreeRoot()
-        thematicGroup = self.findGroupRecursive(root, "Thematic Maps")
-        
-        if thematicGroup:
-            return [tree_layer.layer() for tree_layer in thematicGroup.findLayers()]
-        return []

@@ -451,28 +451,97 @@ class QGISRedPaletteEmulator(QObject):
             "qcolor": self.rgbToQColor(firstColor)
         }]
 
-    def computeInterpolatedColors(self, totalClasses):
+    def computeInterpolatedColors(self, totalClasses: int) -> List[dict]:
         paletteSize = len(self.colors)
+
+        if totalClasses < paletteSize:
+            return self.downsampleColors(totalClasses)
+
+        if totalClasses == paletteSize:
+            return [self.createColorResult(i + 1, c) for i, c in enumerate(self.colors)]
+
+        # Distribute intervals based on visual distance
+        segmentCounts = self.distributeIntervals(totalClasses)
+        return self.generateSegmentedColors(segmentCounts)
+
+    def downsampleColors(self, totalClasses: int) -> List[dict]:
+        paletteSize = len(self.colors)
+        selectedColors = []
+        for i in range(totalClasses):
+            # Deterministic sampling, first/last preserved
+            idx = int(round(i * (paletteSize - 1) / (totalClasses - 1)))
+            selectedColors.append(self.colors[idx])
+        return [self.createColorResult(i + 1, c) for i, c in enumerate(selectedColors)]
+
+    def distributeIntervals(self, totalClasses: int) -> List[int]:
+        paletteSize = len(self.colors)
+        segments = paletteSize - 1
+        intervals = totalClasses - 1
+        
+        distances, totalDistance = self.calculateSegmentDistances()
+        
+        if totalDistance == 0:
+            # Even distribution loop
+            segmentCounts = [intervals // segments] * segments
+            for i in range(intervals % segments):
+                segmentCounts[i] += 1
+            return segmentCounts
+
+        # Largest Remainder Method
+        segmentCounts = []
+        remainders = []
+        currentSum = 0
+
+        for dist in distances:
+            count = int(dist / totalDistance * intervals)
+            segmentCounts.append(count)
+            remainders.append((dist / totalDistance * intervals) - count)
+            currentSum += count
+
+        missing = intervals - currentSum
+        sorted_indices = sorted(range(len(remainders)), key=lambda k: remainders[k], reverse=True)
+            
+        for i in range(missing):
+            segmentCounts[sorted_indices[i]] += 1
+            
+        return segmentCounts
+
+    def calculateSegmentDistances(self) -> Tuple[List[float], float]:
+        distances = []
+        total = 0.0
+        for i in range(len(self.colors) - 1):
+            c1 = self.colors[i]
+            c2 = self.colors[i+1]
+            dist = abs(c1[0]-c2[0]) + abs(c1[1]-c2[1]) + abs(c1[2]-c2[2])
+            distances.append(dist)
+            total += dist
+        return distances, total
+
+    def generateSegmentedColors(self, segmentCounts: List[int]) -> List[dict]:
         results = []
+        currentClassIdx = 1
+        segments = len(segmentCounts)
 
-        for classIdx in range(totalClasses):
-            if totalClasses == 1:
-                position = 0.0
-            else:
-                position = classIdx / (totalClasses - 1) * (paletteSize - 1)
+        for i in range(segments):
+            segIntervals = segmentCounts[i]
+            startColor = self.colors[i]
+            endColor = self.colors[i + 1]
 
-            lowerIdx = int(position)
-            upperIdx = min(lowerIdx + 1, paletteSize - 1)
-            fraction = position - lowerIdx
+            # Skip first point for subsequent segments (avoid duplicate anchors)
+            startStep = 1 if i > 0 else 0
 
-            interpolatedRgb = self.linearInterpolate(
-                self.colors[lowerIdx],
-                self.colors[upperIdx],
-                fraction
-            )
+            for step in range(startStep, segIntervals + 1):
+                if step == 0:
+                    currentRgb = startColor
+                elif step == segIntervals:
+                    currentRgb = endColor
+                else:
+                    t = step / segIntervals
+                    currentRgb = self.linearInterpolate(startColor, endColor, t)
 
-            results.append(self.createColorResult(classIdx + 1, interpolatedRgb))
-
+                results.append(self.createColorResult(currentClassIdx, currentRgb))
+                currentClassIdx += 1
+        
         return results
 
     def linearInterpolate(self, color1, color2, factor):
