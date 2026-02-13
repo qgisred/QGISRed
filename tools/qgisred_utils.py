@@ -4,13 +4,22 @@ from PyQt5.QtCore import QFileInfo
 from PyQt5.QtWidgets import QMessageBox, QFileDialog
 from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer, QgsTask, QgsApplication, QgsLayerMetadata
 from qgis.core import QgsSvgMarkerSymbolLayer, QgsSymbol, QgsSingleSymbolRenderer, Qgis
-from qgis.core import QgsLineSymbol, QgsSimpleLineSymbolLayer, QgsProperty
+from qgis.core import QgsLineSymbol, QgsSimpleLineSymbolLayer, QgsProperty, QgsLayerDefinition
 from qgis.core import QgsMarkerSymbol, QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayer
 from qgis.core import QgsRendererCategory, QgsCategorizedSymbolRenderer, QgsCoordinateReferenceSystem, QgsVectorLayerCache
 from qgis.gui import QgsAttributeTableFilterModel, QgsAttributeTableModel, QgsAttributeTableView
 from qgis.core import QgsSymbolLayer, NULL
 from qgis.utils import iface
 from qgis.core import QgsSingleSymbolRenderer, QgsSymbol,QgsSvgMarkerSymbolLayer,QgsMarkerLineSymbolLayer,QgsMarkerSymbol,QgsWkbTypes
+from qgis.core import QgsReadWriteContext
+from PyQt5.QtXml import QDomDocument
+from qgis.core import (
+    QgsProject,
+    QgsLayerTreeLayer,
+    QgsLayerDefinition,
+    QgsMessageLog,
+    Qgis
+)
 
 # Others imports
 import os
@@ -975,3 +984,68 @@ class QGISRedUtils:
         layer_metadata.setIdentifier(identifier)
         layer.setMetadata(layer_metadata)
         print(f"qgisred_{layerType.lower()}")
+
+## TODO QLR TESTS##
+    def getQLRFolder(self):
+        """Get the QLR folder path inside GISRed folder"""
+        qlr_folder = os.path.join(self.getGISRedFolder(), "qlr")
+        if not os.path.exists(qlr_folder):
+            os.makedirs(qlr_folder)
+        return qlr_folder
+
+    def saveProjectAsQLR(self):
+        """
+        Export the entire project's layer-tree (all layers/groups)
+        into ONE QLR file.
+        """
+        qlr_folder = self.getQLRFolder()
+        # Name the single QLR file (you can customize the prefix)
+        qlr_path = os.path.join(qlr_folder, f"all_layers.qlr")
+        
+        # Collect all top-level layer-tree nodes under the project root
+        root = QgsProject.instance().layerTreeRoot()
+        nodes = list(root.children())
+        
+        # Export in one call
+        error_message = ""
+        success = QgsLayerDefinition.exportLayerDefinition(qlr_path, nodes) 
+        if not success:
+            raise RuntimeError(f"Failed to export project QLR: {error_message}")  
+        return qlr_path
+
+    def loadProjectFromQLR(self):
+        """
+        Load the single QLR back into the project,
+        adding all layers under the root group.
+        """
+        qlr_folder = self.getQLRFolder()
+        qlr_path = os.path.join(qlr_folder, f"all_layers.qlr")
+        
+        if not os.path.exists(qlr_path):
+            return False
+        
+        error_message = ""
+        success = QgsLayerDefinition().loadLayerDefinition(qlr_path, QgsProject.instance(), QgsProject.instance().layerTreeRoot())
+
+        if not success:
+            raise RuntimeError(f"Failed to load project QLR: {error_message}")
+        return True
+
+    def deleteProjectQLR(self):
+        """
+        Delete the single project QLR file.
+        """
+        qlr_folder = self.getQLRFolder()
+        qlr_filename = f"all_layers.qlr"
+        qlr_path = os.path.join(qlr_folder, qlr_filename)
+        if os.path.exists(qlr_path):
+            os.remove(qlr_path)
+            return True
+        return False
+    
+    def removeTopLevelGroups(names):
+        root = QgsProject.instance().layerTreeRoot()
+        for name in names:
+            grp = root.findGroup(name)
+            if grp:
+                root.removeChildNode(grp)

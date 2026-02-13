@@ -22,11 +22,12 @@
 
 # Import QGis
 from qgis.core import QgsProject, QgsVectorLayer, QgsMapLayer, QgsLayerTreeLayer
+from qgis.core import QgsMessageLog, QgsCoordinateTransform, QgsApplication, QgsLayerTreeGroup, QgsLayerTreeNode
 from PyQt5.QtGui import QIcon, QCursor
 from PyQt5.QtWidgets import QAction, QMessageBox, QApplication, QMenu, QFileDialog, QToolButton
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
 from PyQt5.QtXml import QDomDocument
-from qgis.core import QgsMessageLog, QgsCoordinateTransform, QgsApplication, QgsLayerTreeGroup, QgsLayerTreeNode
+
 
 # Import resources
 from . import resources3x
@@ -96,7 +97,7 @@ class QGISRed:
         self.iface = iface
 
         if not platform.system() == "Windows":
-            self.iface.messageBar().pushMessage(self.tr("Error"), self.tr("QGISRed only works in Windows"), level=2, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Error"), self.tr("QGISRed only works on Windows"), level=2, duration=5)
             return
 
         # initialize plugin directory
@@ -112,23 +113,23 @@ class QGISRed:
             if qVersion() > "4.3.3":
                 QCoreApplication.installTranslator(self.translator)
 
-        self.iface.initializationCompleted.connect(self.updateChecables)
+        self.iface.initializationCompleted.connect(self.updateCheckables)
         # Declare instance attributes
         self.actions = []
-        # Toolbar
-        self.toolbar = self.iface.addToolBar("QGISRed")
-        self.toolbar.setObjectName("QGISRed")
         # Menu
         self.qgisredmenu = QMenu("&QGISRed", self.iface.mainWindow().menuBar())
         actions = self.iface.mainWindow().menuBar().actions()
         lastAction = actions[-1]
         self.iface.mainWindow().menuBar().insertMenu(lastAction, self.qgisredmenu)
+        # Toolbar
+        self.toolbar = self.iface.addToolBar("QGISRed")
+        self.toolbar.setObjectName("QGISRed")
         # Status Bar
         self.unitsButton = QToolButton()
         self.unitsButton.setToolButtonStyle(2)
-        icon = QIcon(":/plugins/QGISRed/images/qgisred32.png")
+        icon = QIcon(":/plugins/QGISRed-BID/images/qgisred32.png")
         self.unitsAction = QAction(icon, "QGISRed: LPS | H-W", None)
-        self.unitsAction.setToolTip("Click to change it")
+        self.unitsAction.setToolTip(self.tr("Click to change it"))
         self.unitsAction.triggered.connect(self.runAnalysisOptions)
         self.actions.append(self.unitsAction)
         self.unitsButton.setDefaultAction(self.unitsAction)
@@ -155,7 +156,7 @@ class QGISRed:
         callback,
         menubar,
         toolbar,
-        checable=False,
+        checkable=False,
         actionBase=None,
         dropButton=None,
         addActionToDrop=True,
@@ -170,7 +171,7 @@ class QGISRed:
         action = QAction(icon, text, parent)
         action.triggered.connect(callback)
         action.setEnabled(enabled_flag)
-        action.setCheckable(checable)
+        action.setCheckable(checkable)
 
         if status_tip is not None:
             action.setStatusTip(status_tip)
@@ -210,17 +211,17 @@ class QGISRed:
             return
 
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
-        self.addFileMenu()
+        self.addGeneralMenu()
         self.addProjectMenu()
         self.addEditMenu()
-        self.addVerificationsMenu()
+        self.addDebugMenu()
         self.addToolsMenu()
         self.addAnalysisMenu()
         self.addDigitalTwinMenu()
         self.addQueriesMenu()
 
         # About
-        icon_path = ":/plugins/QGISRed/images/iconAbout.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconAbout.png"
         self.add_action(
             icon_path,
             text=self.tr("About..."),
@@ -230,7 +231,7 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         # Report issues
-        icon_path = ":/plugins/QGISRed/images/iconGitHub.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconGitHub.png"
         self.add_action(
             icon_path,
             text=self.tr("Report issues or comments..."),
@@ -277,6 +278,7 @@ class QGISRed:
             self.issuesLayers.append(name + "_Issues")
         for name in self.complementaryLayers:
             self.issuesLayers.append(name + "_Issues")
+            
         # Open layers options
         self.hasToOpenConnectivityLayers = False
         self.hasToOpenIssuesLayers = False
@@ -306,10 +308,10 @@ class QGISRed:
 
         # remove the toolbar
         del self.toolbar
-        del self.fileToolbar
+        del self.generalToolbar
         del self.projectToolbar
         del self.editionToolbar
-        del self.verificationsToolbar
+        del self.debugToolbar
         del self.toolsToolbar
         del self.analysisToolbar
         del self.dtToolbar
@@ -319,14 +321,14 @@ class QGISRed:
         self.iface.mainWindow().statusBar().removeWidget(self.unitsButton)
 
         # remove menus
-        if self.fileMenu:
-            self.fileMenu.menuAction().setVisible(False)
+        if self.generalMenu:
+            self.generalMenu.menuAction().setVisible(False)
         if self.projectMenu:
             self.projectMenu.menuAction().setVisible(False)
         if self.editionMenu:
             self.editionMenu.menuAction().setVisible(False)
-        if self.verificationsMenu:
-            self.verificationsMenu.menuAction().setVisible(False)
+        if self.debugMenu:
+            self.debugMenu.menuAction().setVisible(False)
         if self.toolsMenu:
             self.toolsMenu.menuAction().setVisible(False)
         if self.analysisMenu:
@@ -340,74 +342,74 @@ class QGISRed:
 
     """Create menus"""
 
-    def addFileMenu(self):
+    def addGeneralMenu(self):
         #    #Menu
-        self.fileMenu = self.qgisredmenu.addMenu(self.tr("Global"))
-        self.fileMenu.setIcon(QIcon(":/plugins/QGISRed/images/qgisred32.png"))
+        self.generalMenu = self.qgisredmenu.addMenu(self.tr("General"))
+        self.generalMenu.setIcon(QIcon(":/plugins/QGISRed-BID/images/iconGeneralMenu.png"))
         #    #Toolbar
-        self.fileToolbar = self.iface.addToolBar(self.tr("QGISRed Global"))
-        self.fileToolbar.setObjectName(self.tr("QGISRed Global"))
-        self.fileToolbar.visibilityChanged.connect(self.changeFileToolbarVisibility)
-        self.fileToolbar.setVisible(False)
+        self.generalToolbar = self.iface.addToolBar(self.tr("QGISRed General"))
+        self.generalToolbar.setObjectName(self.tr("QGISRed General"))
+        self.generalToolbar.visibilityChanged.connect(self.changeGeneralToolbarVisibility)
+        self.generalToolbar.setVisible(False)
         #    #Buttons
-        fileDropButton = QToolButton()
-        icon_path = ":/plugins/QGISRed/images/qgisred32.png"
+        generalDropButton = QToolButton()
+        icon_path = ":/plugins/QGISRed-BID/images/iconGeneralMenu.png"
         self.add_action(
             icon_path,
-            text=self.tr("File"),
-            callback=self.runFileToolbar,
-            menubar=self.fileMenu,
+            text=self.tr("General"),
+            callback=self.runGeneralToolbar,
+            menubar=self.generalMenu,
             add_to_menu=False,
             toolbar=self.toolbar,
-            dropButton=fileDropButton,
+            dropButton=generalDropButton,
             addActionToDrop=False,
-            checable=True,
+            checkable=True,
             add_to_toolbar=False,
             parent=self.iface.mainWindow(),
         )
-        self.fileDropButton = fileDropButton
+        self.generalDropButton = generalDropButton
 
-        icon_path = ":/plugins/QGISRed/images/iconProjectManager.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconUserManager.png"
         self.add_action(
             icon_path,
             text=self.tr("Project manager"),
             callback=self.runProjectManager,
-            menubar=self.fileMenu,
-            toolbar=self.fileToolbar,
-            actionBase=fileDropButton,
+            menubar=self.generalMenu,
+            toolbar=self.generalToolbar,
+            actionBase=generalDropButton,
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconData.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconOpenProject.png"
         self.add_action(
             icon_path,
             text=self.tr("Open project"),
             callback=self.runCanOpenProject,
-            menubar=self.fileMenu,
-            toolbar=self.fileToolbar,
-            actionBase=fileDropButton,
+            menubar=self.generalMenu,
+            toolbar=self.generalToolbar,
+            actionBase=generalDropButton,
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconLayers.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconCreateProject.png"
         self.add_action(
             icon_path,
             text=self.tr("Create project"),
             callback=self.runCanCreateProject,
-            menubar=self.fileMenu,
-            toolbar=self.fileToolbar,
-            actionBase=fileDropButton,
+            menubar=self.generalMenu,
+            toolbar=self.generalToolbar,
+            actionBase=generalDropButton,
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconImport.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconImport.png"
         self.add_action(
             icon_path,
             text=self.tr("Import project"),
             callback=self.runCanImportData,
-            menubar=self.fileMenu,
-            toolbar=self.fileToolbar,
-            actionBase=fileDropButton,
+            menubar=self.generalMenu,
+            toolbar=self.generalToolbar,
+            actionBase=generalDropButton,
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
@@ -415,7 +417,7 @@ class QGISRed:
     def addProjectMenu(self):
         #    #Menu
         self.projectMenu = self.qgisredmenu.addMenu(self.tr("Project"))
-        self.projectMenu.setIcon(QIcon(":/plugins/QGISRed/images/iconProjectMenu.png"))
+        self.projectMenu.setIcon(QIcon(":/plugins/QGISRed-BID/images/iconProjectMenu.png"))
         #    #Toolbar
         self.projectToolbar = self.iface.addToolBar(self.tr("QGISRed Project"))
         self.projectToolbar.setObjectName(self.tr("QGISRed Project"))
@@ -423,7 +425,7 @@ class QGISRed:
         self.projectToolbar.setVisible(False)
         #    #Buttons
         projectDropButton = QToolButton()
-        icon_path = ":/plugins/QGISRed/images/iconProjectMenu.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconProjectMenu.png"
         self.add_action(
             icon_path,
             text=self.tr("Project"),
@@ -432,14 +434,14 @@ class QGISRed:
             add_to_menu=False,
             toolbar=self.toolbar,
             dropButton=projectDropButton,
-            checable=True,
+            checkable=True,
             addActionToDrop=False,
             add_to_toolbar=False,
             parent=self.iface.mainWindow(),
         )
         self.projectDropButton = projectDropButton
 
-        icon_path = ":/plugins/QGISRed/images/iconSummary.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconSummary.png"
         self.add_action(
             icon_path,
             text=self.tr("Summary"),
@@ -450,7 +452,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconLayerManagement.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconLayerManagement.png"
         self.add_action(
             icon_path,
             text=self.tr("Layer manager"),
@@ -461,7 +463,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconAddData.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconAddData.png"
         self.add_action(
             icon_path,
             text=self.tr("Add data by import"),
@@ -475,7 +477,7 @@ class QGISRed:
         projectDropButton.menu().addSeparator()
         self.projectToolbar.addSeparator()
         self.projectMenu.addSeparator()
-        icon_path = ":/plugins/QGISRed/images/iconSettings.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconSettings.png"
         self.add_action(
             icon_path,
             text=self.tr("Project settings"),
@@ -486,7 +488,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconDefaultValues.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconDefaultValues.png"
         self.add_action(
             icon_path,
             text=self.tr("Project default values"),
@@ -497,7 +499,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconMaterials.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconMaterials.png"
         self.add_action(
             icon_path,
             text=self.tr("Project materials"),
@@ -511,7 +513,7 @@ class QGISRed:
         projectDropButton.menu().addSeparator()
         self.projectToolbar.addSeparator()
         self.projectMenu.addSeparator()
-        icon_path = ":/plugins/QGISRed/images/iconSave.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconSave.png"
         self.add_action(
             icon_path,
             text=self.tr("Save project"),
@@ -522,7 +524,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconLock.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconLock.png"
         self.add_action(
             icon_path,
             text=self.tr("Project backup"),
@@ -533,7 +535,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconCloseProject.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconCloseProject.png"
         self.add_action(
             icon_path,
             text=self.tr("Close project"),
@@ -548,7 +550,7 @@ class QGISRed:
     def addEditMenu(self):
         #    #Menu
         self.editionMenu = self.qgisredmenu.addMenu(self.tr("Edition"))
-        self.editionMenu.setIcon(QIcon(":/plugins/QGISRed/images/iconEdit.png"))
+        self.editionMenu.setIcon(QIcon(":/plugins/QGISRed-BID/images/iconEditMenu.png"))
         #    #Toolbar
         self.editionToolbar = self.iface.addToolBar(self.tr("QGISRed Edition"))
         self.editionToolbar.setObjectName(self.tr("QGISRed Edition"))
@@ -557,14 +559,14 @@ class QGISRed:
 
         #    #Buttons
         editDropButton = QToolButton()
-        icon_path = ":/plugins/QGISRed/images/iconEdit.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconEditMenu.png"
         self.add_action(
             icon_path,
             text=self.tr("Edition"),
             callback=self.runEditionToolbar,
             menubar=self.editionMenu,
             add_to_menu=False,
-            checable=True,
+            checkable=True,
             toolbar=self.toolbar,
             dropButton=editDropButton,
             addActionToDrop=False,
@@ -573,7 +575,7 @@ class QGISRed:
         )
         self.editDropButton = editDropButton
 
-        icon_path = ":/plugins/QGISRed/images/iconAddPipe.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconAddPipe.png"
         self.addPipeButton = self.add_action(
             icon_path,
             text=self.tr("Add pipe"),
@@ -582,10 +584,10 @@ class QGISRed:
             toolbar=self.editionToolbar,
             actionBase=editDropButton,
             add_to_toolbar=True,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconAddTank.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconAddTank.png"
         self.addTankButton = self.add_action(
             icon_path,
             text=self.tr("Add tank"),
@@ -594,10 +596,10 @@ class QGISRed:
             toolbar=self.editionToolbar,
             actionBase=editDropButton,
             add_to_toolbar=True,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconAddReservoir.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconAddReservoir.png"
         self.addReservoirButton = self.add_action(
             icon_path,
             text=self.tr("Add reservoir"),
@@ -606,10 +608,10 @@ class QGISRed:
             toolbar=self.editionToolbar,
             actionBase=editDropButton,
             add_to_toolbar=True,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconAddValve.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconAddValve.png"
         self.insertValveButton = self.add_action(
             icon_path,
             text=self.tr("Insert valve in pipe"),
@@ -618,10 +620,10 @@ class QGISRed:
             toolbar=self.editionToolbar,
             actionBase=editDropButton,
             add_to_toolbar=True,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconAddPump.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconAddPump.png"
         self.insertPumpButton = self.add_action(
             icon_path,
             text=self.tr("Insert pump in pipe"),
@@ -630,13 +632,13 @@ class QGISRed:
             toolbar=self.editionToolbar,
             actionBase=editDropButton,
             add_to_toolbar=True,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         editDropButton.menu().addSeparator()
         self.editionToolbar.addSeparator()
         self.editionMenu.addSeparator()
-        icon_path = ":/plugins/QGISRed/images/iconSelection.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconSelection.png"
         self.selectElementsButton = self.add_action(
             icon_path,
             text=self.tr("Select multiple elements"),
@@ -645,10 +647,10 @@ class QGISRed:
             toolbar=self.editionToolbar,
             actionBase=editDropButton,
             add_to_toolbar=True,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconMoveElements.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconMoveElements.png"
         self.moveElementsButton = self.add_action(
             icon_path,
             text=self.tr("Move nodes"),
@@ -657,10 +659,10 @@ class QGISRed:
             toolbar=self.editionToolbar,
             actionBase=editDropButton,
             add_to_toolbar=True,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconMoveVertexs.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconMoveVertices.png"
         self.moveVertexsButton = self.add_action(
             icon_path,
             text=self.tr("Edit link vertices"),
@@ -669,10 +671,10 @@ class QGISRed:
             toolbar=self.editionToolbar,
             actionBase=editDropButton,
             add_to_toolbar=True,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconReverseLink.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconReverseLink.png"
         self.reverseLinkButton = self.add_action(
             icon_path,
             text=self.tr("Reverse elements"),
@@ -681,10 +683,10 @@ class QGISRed:
             toolbar=self.editionToolbar,
             actionBase=editDropButton,
             add_to_toolbar=True,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconSplitPipe.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconSplitPipe.png"
         self.splitPipeButton = self.add_action(
             icon_path,
             text=self.tr("Split/Join pipes"),
@@ -693,10 +695,10 @@ class QGISRed:
             toolbar=self.editionToolbar,
             actionBase=editDropButton,
             add_to_toolbar=True,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconMergeSplitJunction.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconMergeSplitJunction.png"
         self.mergeSplitJunctionButton = self.add_action(
             icon_path,
             text=self.tr("Merge/Dissolve junctions"),
@@ -705,10 +707,10 @@ class QGISRed:
             toolbar=self.editionToolbar,
             actionBase=editDropButton,
             add_to_toolbar=True,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconCreateRevTconn.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconCreateRevTconn.png"
         self.createReverseTconButton = self.add_action(
             icon_path,
             text=self.tr("Create/Remove T connections"),
@@ -717,10 +719,10 @@ class QGISRed:
             toolbar=self.editionToolbar,
             actionBase=editDropButton,
             add_to_toolbar=True,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconCreateRevCrossings.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconCreateRevCrossings.png"
         self.createReverseCrossButton = self.add_action(
             icon_path,
             text=self.tr("Create/Remove crossings"),
@@ -729,10 +731,10 @@ class QGISRed:
             toolbar=self.editionToolbar,
             actionBase=editDropButton,
             add_to_toolbar=True,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconMoveValvePump.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconMoveValvePump.png"
         self.moveValvePumpButton = self.add_action(
             icon_path,
             text=self.tr("Move valves/pumps"),
@@ -741,10 +743,10 @@ class QGISRed:
             toolbar=self.editionToolbar,
             actionBase=editDropButton,
             add_to_toolbar=True,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconWand.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconWand.png"
         self.changeStatusButton = self.add_action(
             icon_path,
             text=self.tr("Change element status"),
@@ -753,10 +755,10 @@ class QGISRed:
             toolbar=self.editionToolbar,
             actionBase=editDropButton,
             add_to_toolbar=True,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconDeleteElements.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconDeleteElements.png"
         self.removeElementsButton = self.add_action(
             icon_path,
             text=self.tr("Delete elements"),
@@ -765,13 +767,13 @@ class QGISRed:
             toolbar=self.editionToolbar,
             actionBase=editDropButton,
             add_to_toolbar=True,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         editDropButton.menu().addSeparator()
         self.editionToolbar.addSeparator()
         self.editionMenu.addSeparator()
-        icon_path = ":/plugins/QGISRed/images/iconEdit.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconEditProperties.png"
         self.editElementButton = self.add_action(
             icon_path,
             text=self.tr("Edit element properties"),
@@ -780,10 +782,10 @@ class QGISRed:
             toolbar=self.editionToolbar,
             actionBase=editDropButton,
             add_to_toolbar=True,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconLinePlot.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconLinePlot.png"
         self.add_action(
             icon_path,
             text=self.tr("Edit patterns and curves"),
@@ -794,7 +796,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconRules.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconRules.png"
         self.add_action(
             icon_path,
             text=self.tr("Edit controls"),
@@ -806,170 +808,170 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
 
-    def addVerificationsMenu(self):
+    def addDebugMenu(self):
         #    #Menu
-        self.verificationsMenu = self.qgisredmenu.addMenu(self.tr("Verifications"))
-        self.verificationsMenu.setIcon(QIcon(":/plugins/QGISRed/images/iconCommit.png"))
+        self.debugMenu = self.qgisredmenu.addMenu(self.tr("Debug"))
+        self.debugMenu.setIcon(QIcon(":/plugins/QGISRed-BID/images/iconDebugMenu.png"))
         #    #Toolbar
-        self.verificationsToolbar = self.iface.addToolBar(self.tr("QGISRed Verifications"))
-        self.verificationsToolbar.setObjectName(self.tr("QGISRed Verifications"))
-        self.verificationsToolbar.visibilityChanged.connect(self.changeVerificationsToolbarVisibility)
-        self.verificationsToolbar.setVisible(False)
+        self.debugToolbar = self.iface.addToolBar(self.tr("QGISRed Debug"))
+        self.debugToolbar.setObjectName(self.tr("QGISRed Debug"))
+        self.debugToolbar.visibilityChanged.connect(self.changeDebugToolbarVisibility)
+        self.debugToolbar.setVisible(False)
         #    #Buttons
-        verificationsDropButton = QToolButton()
-        icon_path = ":/plugins/QGISRed/images/iconCommit.png"
+        debugDropButton = QToolButton()
+        icon_path = ":/plugins/QGISRed-BID/images/iconDebugMenu.png"
         self.add_action(
             icon_path,
-            text=self.tr("Verifications"),
-            callback=self.runVerificationsToolbar,
-            menubar=self.verificationsMenu,
+            text=self.tr("Debug"),
+            callback=self.runDebugToolbar,
+            menubar=self.debugMenu,
             add_to_menu=False,
-            checable=True,
+            checkable=True,
             toolbar=self.toolbar,
-            dropButton=verificationsDropButton,
+            dropButton=debugDropButton,
             addActionToDrop=False,
             add_to_toolbar=False,
             parent=self.iface.mainWindow(),
         )
-        self.verificationsDropButton = verificationsDropButton
+        self.debugDropButton = debugDropButton
 
-        icon_path = ":/plugins/QGISRed/images/iconCommit.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconCommit.png"
         self.add_action(
             icon_path,
             text=self.tr("Check && Commit data"),
             callback=self.runCommit,
-            menubar=self.verificationsMenu,
-            toolbar=self.verificationsToolbar,
-            actionBase=verificationsDropButton,
+            menubar=self.debugMenu,
+            toolbar=self.debugToolbar,
+            actionBase=debugDropButton,
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconOverloadC.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconOverloadC.png"
         self.add_action(
             icon_path,
             text=self.tr("Remove overlapping elements"),
             callback=self.runCheckOverlappingElements,
-            menubar=self.verificationsMenu,
-            toolbar=self.verificationsToolbar,
-            actionBase=verificationsDropButton,
+            menubar=self.debugMenu,
+            toolbar=self.debugToolbar,
+            actionBase=debugDropButton,
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconVerticesC.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconVerticesC.png"
         self.add_action(
             icon_path,
             text=self.tr("Simplify link vertices"),
             callback=self.runSimplifyVertices,
-            menubar=self.verificationsMenu,
-            toolbar=self.verificationsToolbar,
-            actionBase=verificationsDropButton,
+            menubar=self.debugMenu,
+            toolbar=self.debugToolbar,
+            actionBase=debugDropButton,
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconJoinC.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconJoinC.png"
         self.add_action(
             icon_path,
             text=self.tr("Join consecutive pipes (diameter, material and year)"),
             callback=self.runCheckJoinPipes,
-            menubar=self.verificationsMenu,
-            toolbar=self.verificationsToolbar,
-            actionBase=verificationsDropButton,
+            menubar=self.debugMenu,
+            toolbar=self.debugToolbar,
+            actionBase=debugDropButton,
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconTconnectionsC.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconTconnectionsC.png"
         self.add_action(
             icon_path,
             text=self.tr("Create T Connections"),
             callback=self.runCheckTConncetions,
-            menubar=self.verificationsMenu,
-            toolbar=self.verificationsToolbar,
-            actionBase=verificationsDropButton,
+            menubar=self.debugMenu,
+            toolbar=self.debugToolbar,
+            actionBase=debugDropButton,
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconConnectivityM.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconConnectivityM.png"
         dropButton = QToolButton()
         self.add_action(
             icon_path,
             text=self.tr("Check connectivity"),
             callback=self.runCheckConnectivityM,
-            menubar=self.verificationsMenu,
-            toolbar=self.verificationsToolbar,
-            actionBase=verificationsDropButton,
+            menubar=self.debugMenu,
+            toolbar=self.debugToolbar,
+            actionBase=debugDropButton,
             dropButton=dropButton,
             add_to_toolbar=False,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconConnectivityC.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconConnectivityC.png"
         self.add_action(
             icon_path,
             text=self.tr("Delete issolated subzones"),
             callback=self.runCheckConnectivityC,
-            menubar=self.verificationsMenu,
-            toolbar=self.verificationsToolbar,
+            menubar=self.debugMenu,
+            toolbar=self.debugToolbar,
             actionBase=dropButton,
             add_to_toolbar=False,
             parent=self.iface.mainWindow(),
         )
         dropButton.menu().addSeparator()
-        self.verificationsToolbar.addSeparator()
-        self.verificationsMenu.addSeparator()
-        icon_path = ":/plugins/QGISRed/images/iconLengthC.png"
+        self.debugToolbar.addSeparator()
+        self.debugMenu.addSeparator()
+        icon_path = ":/plugins/QGISRed-BID/images/iconLengthC.png"
         self.add_action(
             icon_path,
             text=self.tr("Check pipe lengths"),
             callback=self.runCheckLengths,
-            menubar=self.verificationsMenu,
-            toolbar=self.verificationsToolbar,
-            actionBase=verificationsDropButton,
+            menubar=self.debugMenu,
+            toolbar=self.debugToolbar,
+            actionBase=debugDropButton,
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconDiameters.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconDiameters.png"
         self.add_action(
             icon_path,
             text=self.tr("Check diameters"),
             callback=self.runCheckDiameters,
-            menubar=self.verificationsMenu,
-            toolbar=self.verificationsToolbar,
-            actionBase=verificationsDropButton,
+            menubar=self.debugMenu,
+            toolbar=self.debugToolbar,
+            actionBase=debugDropButton,
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconMaterial.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconMaterial.png"
         self.add_action(
             icon_path,
             text=self.tr("Check pipe materials"),
             callback=self.runCheckMaterials,
-            menubar=self.verificationsMenu,
-            toolbar=self.verificationsToolbar,
-            actionBase=verificationsDropButton,
+            menubar=self.debugMenu,
+            toolbar=self.debugToolbar,
+            actionBase=debugDropButton,
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconDate.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconDate.png"
         self.add_action(
             icon_path,
             text=self.tr("Check pipe installation dates"),
             callback=self.runCheckInstallationDates,
-            menubar=self.verificationsMenu,
-            toolbar=self.verificationsToolbar,
-            actionBase=verificationsDropButton,
+            menubar=self.debugMenu,
+            toolbar=self.debugToolbar,
+            actionBase=debugDropButton,
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
         dropButton.menu().addSeparator()
-        self.verificationsToolbar.addSeparator()
-        self.verificationsMenu.addSeparator()
-        icon_path = ":/plugins/QGISRed/images/iconHydraulic.png"
+        self.debugToolbar.addSeparator()
+        self.debugMenu.addSeparator()
+        icon_path = ":/plugins/QGISRed-BID/images/iconHydraulic.png"
         self.add_action(
             icon_path,
             text=self.tr("Check hydraulic sectors"),
             callback=self.runHydraulicSectors,
-            menubar=self.verificationsMenu,
-            toolbar=self.verificationsToolbar,
-            actionBase=verificationsDropButton,
+            menubar=self.debugMenu,
+            toolbar=self.debugToolbar,
+            actionBase=debugDropButton,
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
@@ -977,7 +979,7 @@ class QGISRed:
     def addToolsMenu(self):
         #    #Menu
         self.toolsMenu = self.qgisredmenu.addMenu(self.tr("Tools"))
-        self.toolsMenu.setIcon(QIcon(":/plugins/QGISRed/images/iconTools.png"))
+        self.toolsMenu.setIcon(QIcon(":/plugins/QGISRed-BID/images/iconToolsMenu.png"))
         #    #Toolbar
         self.toolsToolbar = self.iface.addToolBar(self.tr("QGISRed Tools"))
         self.toolsToolbar.setObjectName(self.tr("QGISRed Tools"))
@@ -985,14 +987,14 @@ class QGISRed:
         self.toolsToolbar.setVisible(False)
         #    #Buttons
         toolDropButton = QToolButton()
-        icon_path = ":/plugins/QGISRed/images/iconTools.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconToolsMenu.png"
         self.add_action(
             icon_path,
             text=self.tr("Tools"),
             callback=self.runToolsToolbar,
             menubar=self.toolsMenu,
             add_to_menu=False,
-            checable=True,
+            checkable=True,
             toolbar=self.toolbar,
             dropButton=toolDropButton,
             addActionToDrop=False,
@@ -1001,7 +1003,7 @@ class QGISRed:
         )
         self.toolsDropButton = toolDropButton
 
-        icon_path = ":/plugins/QGISRed/images/iconCalculateLength.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconCalculateLength.png"
         self.add_action(
             icon_path,
             text=self.tr("Automatically Calculate Pipe Lengths"),
@@ -1012,7 +1014,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconInterpolate.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconInterpolate.png"
         self.add_action(
             icon_path,
             text=self.tr("Interpolate elevation from .asc files"),
@@ -1023,7 +1025,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconRoughness.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconRoughness.png"
         self.add_action(
             icon_path,
             text=self.tr("Set roughness coefficient (from Material and Date)"),
@@ -1034,7 +1036,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconRoughnessConvert.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconRoughnessConvert.png"
         self.add_action(
             icon_path,
             text=self.tr("Convert roughness coefficient"),
@@ -1048,7 +1050,7 @@ class QGISRed:
         toolDropButton.menu().addSeparator()
         self.toolsToolbar.addSeparator()
         self.toolsMenu.addSeparator()
-        icon_path = ":/plugins/QGISRed/images/iconDemands.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconDemands.png"
         self.add_action(
             icon_path,
             text=self.tr("Nodal Demand Builder"),
@@ -1059,7 +1061,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconScenario.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconScenario.png"
         self.add_action(
             icon_path,
             text=self.tr("Scenario Builder"),
@@ -1070,7 +1072,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconIsolatedSegments.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconIsolatedSegments.png"
         self.isolatedSegmentsButton = self.add_action(
             icon_path,
             text=self.tr("Isolated Segments"),
@@ -1079,13 +1081,13 @@ class QGISRed:
             toolbar=self.toolsToolbar,
             actionBase=toolDropButton,
             add_to_toolbar=True,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         toolDropButton.menu().addSeparator()
         self.toolsToolbar.addSeparator()
         self.toolsMenu.addSeparator()
-        icon_path = ":/plugins/QGISRed/images/iconDemandSector.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconDemandSector.png"
         self.add_action(
             icon_path,
             text=self.tr("Obtain demand sectors"),
@@ -1096,7 +1098,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconTree.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconTree.png"
         self.add_action(
             icon_path,
             text=self.tr("Minimum Spanning Tree"),
@@ -1111,7 +1113,7 @@ class QGISRed:
     def addAnalysisMenu(self):
         #    #Menu
         self.analysisMenu = self.qgisredmenu.addMenu(self.tr("Analysis"))
-        self.analysisMenu.setIcon(QIcon(":/plugins/QGISRed/images/iconFlash.png"))
+        self.analysisMenu.setIcon(QIcon(":/plugins/QGISRed-BID/images/iconAnalysisMenu.png"))
         #    #Toolbar
         self.analysisToolbar = self.iface.addToolBar(self.tr("QGISRed Analysis"))
         self.analysisToolbar.setObjectName(self.tr("QGISRed Analysis"))
@@ -1119,7 +1121,7 @@ class QGISRed:
         self.analysisToolbar.setVisible(False)
         #    #Buttons
         analysisDropButton = QToolButton()
-        icon_path = ":/plugins/QGISRed/images/iconFlash.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconAnalysisMenu.png"
         self.add_action(
             icon_path,
             text=self.tr("Analysis"),
@@ -1128,14 +1130,14 @@ class QGISRed:
             add_to_menu=False,
             toolbar=self.toolbar,
             dropButton=analysisDropButton,
-            checable=True,
+            checkable=True,
             addActionToDrop=False,
             add_to_toolbar=False,
             parent=self.iface.mainWindow(),
         )
         self.analysisDropButton = analysisDropButton
 
-        icon_path = ":/plugins/QGISRed/images/iconHydraulicOptions.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconHydraulicOptions.png"
         self.add_action(
             icon_path,
             text=self.tr("Analysis options"),
@@ -1146,7 +1148,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconFlash.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconRun.png"
         self.add_action(
             icon_path,
             text=self.tr("Run model"),
@@ -1157,7 +1159,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconResults.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconResults.png"
         self.add_action(
             icon_path,
             text=self.tr("Results browser"),
@@ -1168,7 +1170,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconExportEpanet.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconExportEpanet.png"
         self.add_action(
             icon_path,
             text=self.tr("Export to Epanet"),
@@ -1183,7 +1185,7 @@ class QGISRed:
     def addDigitalTwinMenu(self):
         #    #Menu
         self.dtMenu = self.qgisredmenu.addMenu(self.tr("Digital Twin"))
-        self.dtMenu.setIcon(QIcon(":/plugins/QGISRed/images/iconDigitalTwin.png"))
+        self.dtMenu.setIcon(QIcon(":/plugins/QGISRed-BID/images/iconDigitalTwinMenu.png"))
         #    #Toolbar
         self.dtToolbar = self.iface.addToolBar(self.tr("QGISRed Digital Twin"))
         self.dtToolbar.setObjectName(self.tr("QGISRed Digital Twin"))
@@ -1191,14 +1193,14 @@ class QGISRed:
         self.dtToolbar.setVisible(False)
         #    #Buttons
         dtDropButton = QToolButton()
-        icon_path = ":/plugins/QGISRed/images/iconDigitalTwin.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconDigitalTwinMenu.png"
         self.add_action(
             icon_path,
             text=self.tr("Digital Twin"),
             callback=self.runDtToolbar,
             menubar=self.dtMenu,
             add_to_menu=False,
-            checable=True,
+            checkable=True,
             toolbar=self.toolbar,
             dropButton=dtDropButton,
             addActionToDrop=False,
@@ -1207,7 +1209,7 @@ class QGISRed:
         )
         self.dtDropButton = dtDropButton
 
-        icon_path = ":/plugins/QGISRed/images/iconAddConnection.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconAddConnection.png"
         self.addServConnButton = self.add_action(
             icon_path,
             text=self.tr("Add service connection"),
@@ -1216,11 +1218,11 @@ class QGISRed:
             toolbar=self.dtToolbar,
             actionBase=dtDropButton,
             add_to_toolbar=True,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
 
-        icon_path = ":/plugins/QGISRed/images/iconAddIsolationValve.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconAddIsolationValve.png"
         self.addIsolationValveButton = self.add_action(
             icon_path,
             text=self.tr("Add isolation valve"),
@@ -1229,13 +1231,13 @@ class QGISRed:
             toolbar=self.dtToolbar,
             actionBase=dtDropButton,
             add_to_toolbar=True,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
 
         self.currentMeter = "Undefined"
         self.addMeterDropButton = QToolButton()
-        icon_path = ":/plugins/QGISRed/images/iconAddDefaultMeter.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconAddDefaultMeter.png"
         self.add_action(
             icon_path,
             text=self.tr("Add meter"),
@@ -1246,11 +1248,11 @@ class QGISRed:
             actionBase=dtDropButton,
             addActionToDrop=False,
             add_to_toolbar=False,
-            checable=True,
+            checkable=True,
             dropButton=self.addMeterDropButton,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconAddAutometer.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconAddAutometer.png"
         self.addAutoMeterButton = self.add_action(
             icon_path,
             text=self.tr("Add automatic meter"),
@@ -1259,11 +1261,11 @@ class QGISRed:
             toolbar=self.dtToolbar,
             actionBase=self.addMeterDropButton,
             add_to_toolbar=False,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         self.addMeterDropButton.setDefaultAction(self.addAutoMeterButton)
-        icon_path = ":/plugins/QGISRed/images/iconAddManometer.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconAddManometer.png"
         self.addManometerButton = self.add_action(
             icon_path,
             text=self.tr("Add manometer"),
@@ -1272,10 +1274,10 @@ class QGISRed:
             toolbar=self.dtToolbar,
             actionBase=self.addMeterDropButton,
             add_to_toolbar=False,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconAddFlowmeter.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconAddFlowmeter.png"
         self.addFlowmeterButton = self.add_action(
             icon_path,
             text=self.tr("Add flowmeter"),
@@ -1284,10 +1286,10 @@ class QGISRed:
             toolbar=self.dtToolbar,
             actionBase=self.addMeterDropButton,
             add_to_toolbar=False,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconAddCountermeter.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconAddCountermeter.png"
         self.addCountermeterButton = self.add_action(
             icon_path,
             text=self.tr("Add countermeter"),
@@ -1296,10 +1298,10 @@ class QGISRed:
             toolbar=self.dtToolbar,
             actionBase=self.addMeterDropButton,
             add_to_toolbar=False,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconAddLevelSensor.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconAddLevelSensor.png"
         self.addLevelSensorButton = self.add_action(
             icon_path,
             text=self.tr("Add level sensor"),
@@ -1308,10 +1310,10 @@ class QGISRed:
             toolbar=self.dtToolbar,
             actionBase=self.addMeterDropButton,
             add_to_toolbar=False,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconAddDiffManometer.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconAddDiffManometer.png"
         self.addDifferentialManometerButton = self.add_action(
             icon_path,
             text=self.tr("Add differential manometer"),
@@ -1320,10 +1322,10 @@ class QGISRed:
             toolbar=self.dtToolbar,
             actionBase=self.addMeterDropButton,
             add_to_toolbar=False,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconAddQualitySensor.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconAddQualitySensor.png"
         self.addQualitySensorButton = self.add_action(
             icon_path,
             text=self.tr("Add quality sensor"),
@@ -1332,10 +1334,10 @@ class QGISRed:
             toolbar=self.dtToolbar,
             actionBase=self.addMeterDropButton,
             add_to_toolbar=False,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconAddEnergySensor.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconAddEnergySensor.png"
         self.addEnergySensorButton = self.add_action(
             icon_path,
             text=self.tr("Add energy sensor"),
@@ -1344,10 +1346,10 @@ class QGISRed:
             toolbar=self.dtToolbar,
             actionBase=self.addMeterDropButton,
             add_to_toolbar=False,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconAddStatusSensor.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconAddStatusSensor.png"
         self.addStatusSensorButton = self.add_action(
             icon_path,
             text=self.tr("Add status sensor"),
@@ -1356,10 +1358,10 @@ class QGISRed:
             toolbar=self.dtToolbar,
             actionBase=self.addMeterDropButton,
             add_to_toolbar=False,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconAddValveOpening.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconAddValveOpening.png"
         self.addValveOpeningButton = self.add_action(
             icon_path,
             text=self.tr("Add valve opening"),
@@ -1368,10 +1370,10 @@ class QGISRed:
             toolbar=self.dtToolbar,
             actionBase=self.addMeterDropButton,
             add_to_toolbar=False,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconAddTachometer.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconAddTachometer.png"
         self.addTachometerButton = self.add_action(
             icon_path,
             text=self.tr("Add tachometer"),
@@ -1380,13 +1382,13 @@ class QGISRed:
             toolbar=self.dtToolbar,
             actionBase=self.addMeterDropButton,
             add_to_toolbar=False,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
         dtDropButton.menu().addSeparator()
         self.dtMenu.addSeparator()
         self.dtToolbar.addSeparator()
-        icon_path = ":/plugins/QGISRed/images/iconSetReadings.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconSetReadings.png"
         self.add_action(
             icon_path,
             text=self.tr("Load meter readings"),
@@ -1397,7 +1399,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconLoadScada.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconLoadScada.png"
         self.add_action(
             icon_path,
             text=self.tr("Load field data"),
@@ -1408,7 +1410,10 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed/images/iconStatus.png"
+        dtDropButton.menu().addSeparator()
+        self.dtMenu.addSeparator()
+        self.dtToolbar.addSeparator()
+        icon_path = ":/plugins/QGISRed-BID/images/iconStatus.png"
         self.add_action(
             icon_path,
             text=self.tr("Set pipe's initial status from isolation valves"),
@@ -1419,10 +1424,8 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        dtDropButton.menu().addSeparator()
-        self.dtMenu.addSeparator()
-        self.dtToolbar.addSeparator()
-        icon_path = ":/plugins/QGISRed/images/iconConnections.png"
+
+        icon_path = ":/plugins/QGISRed-BID/images/iconConnections.png"
         self.add_action(
             icon_path,
             text=self.tr("Convert service connections into pipes/nodes"),
@@ -1433,6 +1436,32 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
+
+        """ dtDropButton.menu().addSeparator()
+        self.dtMenu.addSeparator()
+        self.dtToolbar.addSeparator()
+        self.add_action(
+            icon_path=None,
+            text=self.tr("Calibrate Model"),
+            callback=self.runAddConnections,
+            menubar=self.dtMenu,
+            toolbar=self.dtToolbar,
+            actionBase=dtDropButton,
+            add_to_toolbar=True,
+            parent=self.iface.mainWindow(),
+        )
+        """
+        """  self.add_action(
+            icon_path=None,
+            text=self.tr("State Estimation"),
+            callback=self.runAddConnections,
+            menubar=self.dtMenu,
+            toolbar=self.dtToolbar,
+            actionBase=dtDropButton,
+            add_to_toolbar=True,
+            parent=self.iface.mainWindow(),
+        ) """
+
         # icon_path = ':/plugins/QGISRed/images/iconHydrants.png'
         # self.add_action(icon_path, text=self.tr(u'Add hydrants to the model'), callback=self.runAddHydrants,
         #                 menubar=self.dtMenu, toolbar=self.dtToolbar,
@@ -1446,7 +1475,7 @@ class QGISRed:
     def addQueriesMenu(self):
         #    #Menu
         self.queriesMenu = self.qgisredmenu.addMenu(self.tr("Queries"))
-        self.queriesMenu.setIcon(QIcon(":/plugins/QGISRed/images/iconConnections.png"))
+        self.queriesMenu.setIcon(QIcon(":/plugins/QGISRed-BID/images/iconQueriesMenu.png"))
         #    #Toolbar
         self.queriesToolbar = self.iface.addToolBar(self.tr("QGISRed Queries"))
         self.queriesToolbar.setObjectName(self.tr("QGISRed Queries"))
@@ -1454,7 +1483,7 @@ class QGISRed:
         self.queriesToolbar.setVisible(False)
         #    #Buttons
         queriesDropButton = QToolButton()
-        icon_path = ":/plugins/QGISRed/images/iconQueries.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconQueriesMenu.png"
         self.add_action(
             icon_path,
             text=self.tr("Queries"),
@@ -1463,14 +1492,14 @@ class QGISRed:
             add_to_menu=False,
             toolbar=self.toolbar,
             dropButton=queriesDropButton,
-            checable=True,
+            checkable=True,
             addActionToDrop=False,
             add_to_toolbar=False,
             parent=self.iface.mainWindow(),
         )
         self.queriesDropButton = queriesDropButton
         # Find Elements by ID
-        icon_path = ":/plugins/QGISRed/images/iconFindElements.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconFindElements.png"
         self.openFindElementsDialog = self.add_action(
             icon_path,
             text=self.tr("Find Elements by ID..."),
@@ -1479,12 +1508,12 @@ class QGISRed:
             toolbar=self.queriesToolbar,
             actionBase=queriesDropButton,
             add_to_toolbar=True,
-            checable=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
 
         # # Elements Properties
-        icon_path = ":/plugins/QGISRed/images/iconElementsProperties.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconElementsProperties.png"
         self.openElementsPropertyDialog = self.add_action(
             icon_path,
             text=self.tr("Element Properties..."),
@@ -1492,12 +1521,12 @@ class QGISRed:
             menubar=self.queriesMenu,
             toolbar=self.queriesToolbar,
             actionBase=queriesDropButton,
-            checable=True,
+            checkable=True,
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
         # Thematic Maps
-        icon_path = ":/plugins/QGISRed/images/iconThematicMaps.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconThematicMaps.png"
         self.openThematicMapsDialog = self.add_action(
             icon_path,
             text=self.tr("Thematic Maps..."),
@@ -1509,7 +1538,7 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         # # Queries by Attributes
-        icon_path = ":/plugins/QGISRed/images/iconLiveQueries.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconQueryByAttributes.png"
         self.openLiveQueriesDialog = self.add_action(
             icon_path,
             text=self.tr("Queries by Attributes..."),
@@ -1521,7 +1550,7 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         # # Statistics & Plots
-        icon_path = ":/plugins/QGISRed/images/iconStatisticsAndPlots.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconStatisticsAndPlots.png"
         self.openStatisticsAndPlotsDialog = self.add_action(
             icon_path,
             text=self.tr("Statistics && Plots..."),
@@ -1839,6 +1868,7 @@ class QGISRed:
         utils.removeLayers(self.ownFiles, ".dbf")
         utils.removeLayers(self.especificComplementaryLayers)
         utils.removeLayers(self.issuesLayers)
+        utils.removeTopLevelGroups(["Inputs", "Queries", "Results"])
         if task is not None:
             return {"task": task.definition()}
 
@@ -1910,31 +1940,36 @@ class QGISRed:
         self.updateMetadata()
 
     def openElementLayers(self, task, net="", folder=""):
-        if not self.opendedLayers:
-            if not net == "" and not folder == "":
-                self.NetworkName = net
-                self.ProjectDirectory = folder
+        """
+        Open the project's main and complementary input layers,
+        using a single QLR export if available.
+        """
+        # Allow overriding project/network if provided
+        if not net == "" and not folder == "":
+            self.NetworkName = net
+            self.ProjectDirectory = folder
 
-            self.opendedLayers = True
-            # Open layers
-            utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-            inputGroup = self.getInputGroup()
+        # Prepare for opening
+        self.opendedLayers = False
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        inputGroup = self.getInputGroup()
+
+        # Try loading the entire project QLR in one shot
+        if not utils.loadProjectFromQLR():
+            # If no single QLR exists or loading failed, open layers individually
+            for layer_name in self.ownMainLayers + self.especificComplementaryLayers:
+                utils.openElementsLayers(inputGroup, [layer_name])
+
+        # Reset any scenario‑specific list
+        self.especificComplementaryLayers = []
+
+        # Always remove the one project‑level QLR file if it was created
+        utils.deleteProjectQLR()
+
+        # Continue any pending task
+        if task is not None:
+            return {"task": task.definition()}
             
-            # Filter empty layers before opening them (except for Pipes)
-            #filtered_main_layers = self.filterEmptyLayers(self.ownMainLayers)
-            #filtered_complementary_layers = self.filterEmptyLayers(self.especificComplementaryLayers)
-            
-            utils.openElementsLayers(inputGroup, self.ownMainLayers)
-            utils.openElementsLayers(inputGroup, self.especificComplementaryLayers) #TODO
-
-            self.especificComplementaryLayers = []
-
-            self.updateMetadata()
-
-            self.setSelectedFeaturesById()
-            if task is not None:
-                return {"task": task.definition()}
-                
     def filterEmptyLayers(self, layer_list):
         """Filter out empty layers (except for Pipes)"""
         filtered_layers = []
@@ -2057,7 +2092,9 @@ class QGISRed:
     """Others"""
 
     def processCsharpResult(self, b, message):
-        self.stored_query_layers = self.storeQueryLayers()
+        QGISRedUtils().saveProjectAsQLR()
+
+        #self.stored_query_layers = self.storeQueryLayers()
         
         # Action
         self.hasToOpenNewLayers = False
@@ -2119,7 +2156,10 @@ class QGISRed:
         if hasattr(self, 'stored_all_layers'):
             self.clearInputGroup()
             self.restoreAllLayers(self.stored_all_layers) #TODO
-        
+
+        # QGISRedUtils().importLayerQLRs()
+        # QGISRedUtils().deleteQLRFiles()
+
         if resMessage == "True":
             pass
         else:
@@ -2407,14 +2447,15 @@ class QGISRed:
         xform = QgsCoordinateTransform(projectCrs, pipesCrs, QgsProject.instance())
         return xform.transform(point)
 
-    """Main methods"""
+    """MAIN METHODS"""
+
     """Toolbars"""
 
-    def runFileToolbar(self):
-        self.fileToolbar.setVisible(not self.fileToolbar.isVisible())
+    def runGeneralToolbar(self):
+        self.generalToolbar.setVisible(not self.generalToolbar.isVisible())
 
-    def changeFileToolbarVisibility(self, status):
-        self.fileDropButton.setChecked(status)
+    def changeGeneralToolbarVisibility(self, status):
+        self.generalDropButton.setChecked(status)
 
     def runProjectToolbar(self):
         self.projectToolbar.setVisible(not self.projectToolbar.isVisible())
@@ -2428,11 +2469,11 @@ class QGISRed:
     def changeEditionToolbarVisibility(self, status):
         self.editDropButton.setChecked(status)
 
-    def runVerificationsToolbar(self):
-        self.verificationsToolbar.setVisible(not self.verificationsToolbar.isVisible())
+    def runDebugToolbar(self):
+        self.debugToolbar.setVisible(not self.debugToolbar.isVisible())
 
-    def changeVerificationsToolbarVisibility(self, status):
-        self.verificationsDropButton.setChecked(status)
+    def changeDebugToolbarVisibility(self, status):
+        self.debugDropButton.setChecked(status)
 
     def runToolsToolbar(self):
         self.toolsToolbar.setVisible(not self.toolsToolbar.isVisible())
@@ -2461,11 +2502,11 @@ class QGISRed:
     def runExperimentalToolbar(self):
         self.experimentalToolbar.setVisible(not self.experimentalToolbar.isVisible())
 
-    def updateChecables(self):
-        self.fileDropButton.setChecked(self.fileToolbar.isVisible())
+    def updateCheckables(self):
+        self.generalDropButton.setChecked(self.generalToolbar.isVisible())
         self.projectDropButton.setChecked(self.projectToolbar.isVisible())
         self.editDropButton.setChecked(self.editionToolbar.isVisible())
-        self.verificationsDropButton.setChecked(self.verificationsToolbar.isVisible())
+        self.debugDropButton.setChecked(self.debugToolbar.isVisible())
         self.toolsDropButton.setChecked(self.toolsToolbar.isVisible())
         self.analysisDropButton.setChecked(self.analysisToolbar.isVisible())
         self.dtDropButton.setChecked(self.dtToolbar.isVisible())
@@ -2479,7 +2520,7 @@ class QGISRed:
     def runReportIssues(self):
         webbrowser.open("https://github.com/neslerel/QGISRed/issues")
 
-    """File"""
+    """General"""
 
     def runProjectManager(self):
         if not self.checkDependencies():
@@ -3511,7 +3552,7 @@ class QGISRed:
 
         self.processCsharpResult(resMessage, "")
 
-    """Verifications"""
+    """Debug"""
 
     def runCommit(self):
         if not self.checkDependencies():
@@ -4473,12 +4514,23 @@ class QGISRed:
         if task is not None:
             return {"task": task.definition()}
 
-    # ==============================================================
-    #                        START: QUERIES FIND ELEMENTS
-    # --------------------------------------------------------------
-    # ==============================================================
-    #                        START: QUERIES FIND ELEMENTS
-    # --------------------------------------------------------------
+    # ======================================
+    #              NEW BUTTONS - BID
+    # --------------------------------------
+
+    def runThematicMaps(self):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        dlg = QGISRedThematicMapsDialog()
+        # Run the dialog event loop
+        dlg.exec_()
     
     def runFindElements(self): 
         if not self.checkDependencies():
@@ -4596,31 +4648,6 @@ class QGISRed:
                 print(f"Error creating map tool: {str(e)}")
                 self.openElementsPropertyDialog.setChecked(False)
 
-
-# ==============================================================
-#                        END: QUERIES FIND ELEMENTS
-# --------------------------------------------------------------
-
-# ==============================================================
-#                        START: QUERIES ELEMENTS PROPERTIES
-# --------------------------------------------------------------
-    # ==============================================================
-    #                        END: QUERIES ELEMENTS PROPERTIES
-    # --------------------------------------------------------------
-
-    # ==============================================================
-    #                        START: COMMON FE AND EP
-    # --------------------------------------------------------------
-
-
-    # ==============================================================
-    #                        END: COMMON FE AND EP
-    # --------------------------------------------------------------
-
-
-    # ==============================================================
-    #                        START: QUERIES LIVE QUERIES
-    # --------------------------------------------------------------
     def runQueriesByAttributes(self):
         if not self.checkDependencies():
             return
@@ -4635,16 +4662,10 @@ class QGISRed:
         self.queriesByAttributesDock = QGISRedQueriesByAttributesDock(self.iface)
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.queriesByAttributesDock)
         # self.queriesByAttributesDock.show()
-        # self.queriesByAttributesDock.raise_()   
-    # ==============================================================
-    #                        END: QUERIES LIVE QUERIES
-    # --------------------------------------------------------------
-
-    # ==============================================================
-    #                        START: QUERIES THEMATIC MAPS
-    # --------------------------------------------------------------
-
-    def runThematicMaps(self):
+        # self.queriesByAttributesDock.raise_() 
+        #   
+    
+    def runStatisticsAndPlots(self):
         if not self.checkDependencies():
             return
         # Validations
@@ -4654,10 +4675,14 @@ class QGISRed:
         if self.isLayerOnEdition():
             return
 
-        dlg = QGISRedThematicMapsDialog()
+        #dlg = QGISRedFindElementsDialog()
         # Run the dialog event loop
-        dlg.exec_()
-
+        #dlg.exec_()
+    
+    # ======================================  
+    #          Auxiliar procedures - BID
+    # --------------------------------------
+    
     def findQueryGroup(self):
         netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
         if netGroup is None:
@@ -4818,30 +4843,8 @@ class QGISRed:
         query_layer.dataProvider().forceReload()
         query_layer.triggerRepaint()
 
-    # ==============================================================
-    #                        END: QUERIES THEMATIC MAPS
-    # --------------------------------------------------------------
-
-    # ==============================================================
-    #                        START: QUERIES STATISTICS AND PLOTS
-    # --------------------------------------------------------------
-    def runStatisticsAndPlots(self):
-        if not self.checkDependencies():
-            return
-        # Validations
-        self.defineCurrentProject()
-        if not self.isValidProject():
-            return
-        if self.isLayerOnEdition():
-            return
-
-        #dlg = QGISRedFindElementsDialog()
-        # Run the dialog event loop
-        #dlg.exec_()
-    # ==============================================================
-    #                        END: QUERIES STATISTICS AND PLOTS
-    # --------------------------------------------------------------
-
+    
+   
     ## TEMP COMMENT ISSUE 41 AND 42 TODO REMOVE
     def storeAllLayers(self):
         """Store information about all layers to be restored later.
