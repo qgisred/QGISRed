@@ -1071,5 +1071,5 @@ class QGISRedUtils:
         entries.add(newEntry.strip())
         
         with open(gplFile, "w") as f:
-            for entry in sorted(entries):
+            for entry in entries:
                 f.write(entry + "\n")

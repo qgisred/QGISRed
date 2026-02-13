@@ -27,6 +27,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
     ProjectDirectory = ""
     ProcessDone = False
     gplFile = ""
+    utils = None
     ownMainLayers = ["Pipes", "Junctions", "Demands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
     complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves", "AirReleaseValves", "ServiceConnections", "Meters"]
     layerExtensions = [".shp", ".dbf", ".shx", ".prj", ".qpj"]
@@ -87,6 +88,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         self.ProcessDone = False
         self.NetworkName = netw
         self.ProjectDirectory = direct
+        self.utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
 
         # Rows:
         self.fillTable()
@@ -161,8 +163,10 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                             self.twProjectList.item(rowPosition, column).setFont(font)
 
         f.close()
+        f = open(self.gplFile, "w")
         for x in validLines:
-            QGISRedUtils().addProjectToGplFile(self.gplFile, rawEntryLine=x)
+            self.utils.writeFile(f, x)
+        f.close()
 
     def addProjectToTable(self, folder, net):
         folder = self.getUniformedPath(folder)
@@ -172,7 +176,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         if isPipes:
             if not isMetadata:
                 self.updateMetadata(net, folder)
-            QGISRedUtils().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
+            self.utils.addProjectToGplFile(self.gplFile, net, folder)
             self.fillTable()
             self.twProjectList.setCurrentCell(self.twProjectList.rowCount() - 1, 1)
             self.twProjectList.setFocus()
@@ -203,16 +207,16 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             return {"task": task.definition()}
 
     def getUniformedPath(self, path):
-        return QGISRedUtils().getUniformedPath(path)
+        return self.utils.getUniformedPath(path)
 
     def getLayerPath(self, layer):
-        return QGISRedUtils().getLayerPath(layer)
+        return self.utils.getLayerPath(layer)
 
     def generatePath(self, folder, fileName):
-        return QGISRedUtils().generatePath(folder, fileName)
+        return self.utils.generatePath(folder, fileName)
 
     def getLayers(self):
-        return QGISRedUtils().getLayers()
+        return self.utils.getLayers()
 
     def removeFilesFromFolder(self, folder, networkName):
         folder = self.getUniformedPath(folder)
@@ -277,13 +281,14 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             self.twProjectList.setCurrentCell(destRow, 1)
             self.twProjectList.setFocus()
 
+            f = open(self.gplFile, "w")
             rowIndex = 0
             while rowIndex < rows:
                 name = str(self.twProjectList.item(rowIndex, 0).text())
                 directory = str(self.twProjectList.item(rowIndex, 3).text())
-                QGISRedUtils().addProjectToGplFile(self.gplFile, name, directory)
-
+                self.utils.writeFile(f, name + ";" + directory + "\n")
                 rowIndex = rowIndex + 1
+            f.close()
         else:
             self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Please, select a row project to move."), level=1, duration=5)
 
@@ -326,11 +331,13 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 f = open(self.gplFile, "r")
                 lines = f.readlines()
                 f.close()
+                f = open(self.gplFile, "w")
                 i = 0
                 for line in lines:
                     if not i == rowIndex:
-                        QGISRedUtils().addProjectToGplFile(self.gplFile, rawEntryLine=line)
+                        self.utils.writeFile(f, line)
                     i = i + 1
+                f.close()
             self.fillTable()
         else:
             word = "unload"
@@ -367,7 +374,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 return
             valid = self.parent.isOpenedProject()
             if valid:
-                QGISRedUtils().runTask("open project", self.clearQGisProject, self.openProjectProcess, True)
+                self.utils.runTask("open project", self.clearQGisProject, self.openProjectProcess, True)
         else:
             self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("You need to select a project to open it."), level=1, duration=5)
 
@@ -388,7 +395,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         else:
             valid = self.parent.isOpenedProject()
             if valid:
-                QGISRedUtils().runTask("create project", self.clearQGisProject, self.createProjectProcess)
+                self.utils.runTask("create project", self.clearQGisProject, self.createProjectProcess)
 
     def createProjectProcess(self, exception=None, result=None):
         dlg = QGISRedCreateProjectDialog()
@@ -408,7 +415,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         else:
             valid = self.parent.isOpenedProject()
             if valid:
-                QGISRedUtils().runTask("import project", self.clearQGisProject, self.importDataProcess)
+                self.utils.runTask("import project", self.clearQGisProject, self.importDataProcess)
 
     def importDataProcess(self, exception=None, result=None):
         dlg = QGISRedImportDialog()
@@ -512,13 +519,15 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             f = open(self.gplFile, "r")
             lines = f.readlines()
             f.close()
+            f = open(self.gplFile, "w")
             i = 0
             for line in lines:
                 if not i == rowIndex:
-                    QGISRedUtils().addProjectToGplFile(self.gplFile, rawEntryLine=line)
+                    self.utils.writeFile(f, line)
                 else:
-                    QGISRedUtils().addProjectToGplFile(self.gplFile, newName, projectPath)
+                    self.utils.writeFile(f, newName + ";" + projectPath)
                 i = i + 1
+            f.close()
 
             self.iface.messageBar().pushMessage("QGISRed", self.tr("Project name has been renamed to ") + newName, level=0, duration=5)
         else:

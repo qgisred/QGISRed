@@ -46,6 +46,7 @@ from .ui.qgisred_loadproject_dialog import QGISRedImportProjectDialog
 from .ui.qgisred_thematicmaps_dialog import QGISRedThematicMapsDialog
 from .ui.qgisred_element_explorer_dock import QGISRedElementExplorerDock
 from .ui.qgisred_queriesbyattributes_dock import QGISRedQueriesByAttributesDock
+from .ui.qgisred_legends_dialog import QGISRedLegendsDialog
 from .tools.qgisred_utils import QGISRedUtils
 from .tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from .tools.qgisred_moveNodes import QGISRedMoveNodesTool
@@ -512,6 +513,17 @@ class QGISRed:
             icon_path,
             text=self.tr("Project materials"),
             callback=self.runMaterials,
+            menubar=self.projectMenu,
+            toolbar=self.projectToolbar,
+            actionBase=projectDropButton,
+            add_to_toolbar=True,
+            parent=self.iface.mainWindow(),
+        )
+        icon_path = ":/plugins/QGISRed-BID/images/iconThematicMaps.png"
+        self.add_action(
+            icon_path,
+            text=self.tr("Legends"),
+            callback=self.runLegends,
             menubar=self.projectMenu,
             toolbar=self.projectToolbar,
             actionBase=projectDropButton,
@@ -4700,3 +4712,17 @@ class QGISRed:
         #dlg = QGISRedFindElementsDialog()
         # Run the dialog event loop
         #dlg.exec_()
+
+    def runLegends(self):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        dlg = QGISRedLegendsDialog()
+        # Run the dialog event loop
+        dlg.exec_()
