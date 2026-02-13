@@ -98,185 +98,162 @@ QDockWidget::title {
              <enum>QLayout::SetDefaultConstraint</enum>
             </property>
             <item row="0" column="0">
-             <widget class="QDockWidget" name="findElementsDock">
-              <property name="features">
-               <set>QDockWidget::NoDockWidgetFeatures</set>
+             <layout class="QVBoxLayout" name="findElementsLayout">
+              <property name="spacing">
+               <number>2</number>
               </property>
-              <property name="windowTitle">
-               <string>Find Elements by ID</string>
+              <property name="leftMargin">
+               <number>0</number>
               </property>
-              <widget class="QWidget" name="dockWidgetContents_2">
-               <layout class="QVBoxLayout" name="verticalLayout_4">
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="label_3">
+                <property name="text">
+                 <string>Element Type</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="cbElementType">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_4">
+                <property name="text">
+                 <string>Element ID:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="leElementMask">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="placeholderText">
+                 <string>Element ID Mask</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="cbElementId">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="placeholderText">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_2">
                 <property name="spacing">
                  <number>2</number>
                 </property>
-                <property name="leftMargin">
-                 <number>2</number>
-                </property>
-                <property name="topMargin">
-                 <number>2</number>
-                </property>
-                <property name="rightMargin">
-                 <number>2</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>2</number>
-                </property>
                 <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_5">
-                  <property name="spacing">
-                   <number>2</number>
+                 <widget class="QPushButton" name="btFind">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
                   </property>
-                  <property name="leftMargin">
-                   <number>0</number>
+                  <property name="text">
+                   <string>Find</string>
                   </property>
-                  <property name="topMargin">
-                   <number>0</number>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btReload">
+                  <property name="text">
+                   <string>Reload</string>
                   </property>
-                  <property name="rightMargin">
-                   <number>0</number>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btClear">
+                  <property name="text">
+                   <string>Clear</string>
                   </property>
-                  <property name="bottomMargin">
-                   <number>0</number>
-                  </property>
-                  <item>
-                   <widget class="QLabel" name="label_3">
-                    <property name="text">
-                     <string>Element Type</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QComboBox" name="cbElementType">
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="label_4">
-                    <property name="text">
-                     <string>Element ID:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLineEdit" name="leElementMask">
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                    <property name="placeholderText">
-                     <string>Element ID Mask</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QComboBox" name="cbElementId">
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                    <property name="placeholderText">
-                     <string/>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_2">
-                    <property name="spacing">
-                     <number>2</number>
-                    </property>
-                    <item>
-                     <widget class="QPushButton" name="btFind">
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <property name="text">
-                       <string>Find</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="btReload">
-                      <property name="text">
-                       <string>Reload</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="btClear">
-                      <property name="text">
-                       <string>Clear</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <widget class="Line" name="line">
-                    <property name="orientation">
-                     <enum>Qt::Horizontal</enum>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="labelFoundElement">
-                    <property name="text">
-                     <string>-</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="labelAdjacentNodeLinks">
-                    <property name="text">
-                     <string>Connected Elements</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QListWidget" name="listWidget">
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                    <property name="minimumSize">
-                     <size>
-                      <width>0</width>
-                      <height>60</height>
-                     </size>
-                    </property>
-                    <property name="maximumSize">
-                     <size>
-                      <width>16777215</width>
-                      <height>70</height>
-                     </size>
-                    </property>
-                    <property name="font">
-                     <font>
-                      <family>MS Shell Dlg 2</family>
-                      <pointsize>8</pointsize>
-                     </font>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
+                 </widget>
                 </item>
                </layout>
-              </widget>
-             </widget>
+              </item>
+              <item>
+               <widget class="Line" name="line">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="lineWidth">
+                 <number>0</number>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="labelFoundElement">
+                <property name="text">
+                 <string>-</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="labelAdjacentNodeLinks">
+                <property name="text">
+                 <string>Connected Elements</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QListWidget" name="listWidget">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>60</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>70</height>
+                 </size>
+                </property>
+                <property name="font">
+                 <font>
+                  <family>MS Shell Dlg 2</family>
+                  <pointsize>8</pointsize>
+                 </font>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
            </layout>
           </widget>
@@ -291,259 +268,230 @@ QDockWidget::title {
            </property>
            <layout class="QGridLayout" name="gridLayout_2">
             <item row="0" column="0">
-             <widget class="QDockWidget" name="elementPropertiesDock">
-              <property name="features">
-               <set>QDockWidget::NoDockWidgetFeatures</set>
+             <layout class="QVBoxLayout" name="elementPropertiesLayout">
+              <property name="spacing">
+               <number>2</number>
               </property>
-              <property name="windowTitle">
-               <string>Element Properties</string>
+              <property name="leftMargin">
+               <number>0</number>
               </property>
-              <widget class="QWidget" name="dockWidgetContents_3">
-               <layout class="QHBoxLayout" name="horizontalLayout">
-                <property name="spacing">
-                 <number>2</number>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="labelFoundElementProperty">
+                <property name="font">
+                 <font>
+                  <pointsize>8</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
                 </property>
-                <property name="leftMargin">
-                 <number>2</number>
+                <property name="text">
+                 <string/>
                 </property>
-                <property name="topMargin">
-                 <number>2</number>
+               </widget>
+              </item>
+              <item>
+               <widget class="QTabWidget" name="tabWidget">
+                <property name="enabled">
+                 <bool>true</bool>
                 </property>
-                <property name="rightMargin">
-                 <number>2</number>
+                <property name="styleSheet">
+                 <string notr="true">QTabBar::tab { font-weight: bold; min-width: 80px; }</string>
                 </property>
-                <property name="bottomMargin">
-                 <number>2</number>
+                <property name="currentIndex">
+                 <number>0</number>
                 </property>
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_6">
+                <property name="documentMode">
+                 <bool>false</bool>
+                </property>
+                <property name="tabsClosable">
+                 <bool>false</bool>
+                </property>
+                <property name="movable">
+                 <bool>false</bool>
+                </property>
+                <property name="tabBarAutoHide">
+                 <bool>false</bool>
+                </property>
+                <widget class="QWidget" name="tabData">
+                 <attribute name="title">
+                  <string>Data</string>
+                 </attribute>
+                 <layout class="QVBoxLayout" name="verticalLayout_7">
                   <property name="spacing">
                    <number>2</number>
                   </property>
                   <property name="leftMargin">
-                   <number>0</number>
+                   <number>2</number>
                   </property>
                   <property name="topMargin">
-                   <number>0</number>
+                   <number>2</number>
                   </property>
                   <property name="rightMargin">
-                   <number>0</number>
+                   <number>2</number>
                   </property>
                   <property name="bottomMargin">
-                   <number>0</number>
+                   <number>2</number>
                   </property>
                   <item>
-                   <widget class="QLabel" name="labelFoundElementProperty">
+                   <widget class="QTableWidget" name="dataTableWidget">
                     <property name="font">
                      <font>
+                      <family>MS Shell Dlg 2</family>
                       <pointsize>8</pointsize>
-                      <weight>50</weight>
-                      <bold>false</bold>
                      </font>
                     </property>
-                    <property name="text">
-                     <string/>
+                    <property name="horizontalScrollBarPolicy">
+                     <enum>Qt::ScrollBarAlwaysOff</enum>
                     </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QTabWidget" name="tabWidget">
-                    <property name="enabled">
-                     <bool>true</bool>
+                    <property name="sizeAdjustPolicy">
+                     <enum>QAbstractScrollArea::AdjustToContents</enum>
                     </property>
-                    <property name="styleSheet">
-                     <string notr="true">QTabBar::tab { font-weight: bold; min-width: 80px; }</string>
-                    </property>
-                    <property name="currentIndex">
+                    <property name="columnCount">
                      <number>0</number>
                     </property>
-                    <property name="documentMode">
-                     <bool>false</bool>
-                    </property>
-                    <property name="tabsClosable">
-                     <bool>false</bool>
-                    </property>
-                    <property name="movable">
-                     <bool>false</bool>
-                    </property>
-                    <property name="tabBarAutoHide">
-                     <bool>false</bool>
-                    </property>
-                    <widget class="QWidget" name="tabData">
-                     <attribute name="title">
-                      <string>Data</string>
-                     </attribute>
-                     <layout class="QVBoxLayout" name="verticalLayout_7">
-                      <property name="spacing">
-                       <number>2</number>
-                      </property>
-                      <property name="leftMargin">
-                       <number>2</number>
-                      </property>
-                      <property name="topMargin">
-                       <number>2</number>
-                      </property>
-                      <property name="rightMargin">
-                       <number>2</number>
-                      </property>
-                      <property name="bottomMargin">
-                       <number>2</number>
-                      </property>
-                      <item>
-                       <widget class="QTableWidget" name="dataTableWidget">
-                        <property name="font">
-                         <font>
-                          <family>MS Shell Dlg 2</family>
-                          <pointsize>8</pointsize>
-                         </font>
-                        </property>
-                        <property name="horizontalScrollBarPolicy">
-                         <enum>Qt::ScrollBarAlwaysOff</enum>
-                        </property>
-                        <property name="sizeAdjustPolicy">
-                         <enum>QAbstractScrollArea::AdjustToContents</enum>
-                        </property>
-                        <property name="columnCount">
-                         <number>0</number>
-                        </property>
-                       </widget>
-                      </item>
-                     </layout>
-                    </widget>
-                    <widget class="QWidget" name="tabResults">
-                     <attribute name="title">
-                      <string>Results</string>
-                     </attribute>
-                     <layout class="QHBoxLayout" name="horizontalLayout_4">
-                      <property name="spacing">
-                       <number>2</number>
-                      </property>
-                      <property name="leftMargin">
-                       <number>2</number>
-                      </property>
-                      <property name="topMargin">
-                       <number>2</number>
-                      </property>
-                      <property name="rightMargin">
-                       <number>2</number>
-                      </property>
-                      <property name="bottomMargin">
-                       <number>2</number>
-                      </property>
-                      <item>
-                       <layout class="QFormLayout" name="formLayout_2">
-                        <property name="horizontalSpacing">
-                         <number>2</number>
-                        </property>
-                        <property name="verticalSpacing">
-                         <number>2</number>
-                        </property>
-                        <item row="1" column="1">
-                         <widget class="QSlider" name="horizontalSlider_2">
-                          <property name="orientation">
-                           <enum>Qt::Horizontal</enum>
-                          </property>
-                         </widget>
-                        </item>
-                        <item row="2" column="1">
-                         <widget class="QTableWidget" name="tableWidget_2"/>
-                        </item>
-                        <item row="0" column="1">
-                         <widget class="QLabel" name="label_2">
-                          <property name="sizePolicy">
-                           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                           </sizepolicy>
-                          </property>
-                          <property name="text">
-                           <string>Day 1, 15:10</string>
-                          </property>
-                          <property name="textFormat">
-                           <enum>Qt::PlainText</enum>
-                          </property>
-                          <property name="alignment">
-                           <set>Qt::AlignCenter</set>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </item>
-                     </layout>
-                    </widget>
-                    <widget class="QWidget" name="tabCurves">
-                     <attribute name="title">
-                      <string>Curves</string>
-                     </attribute>
-                     <layout class="QVBoxLayout" name="verticalLayout_8">
-                      <property name="spacing">
-                       <number>2</number>
-                      </property>
-                      <property name="leftMargin">
-                       <number>2</number>
-                      </property>
-                      <property name="topMargin">
-                       <number>2</number>
-                      </property>
-                      <property name="rightMargin">
-                       <number>2</number>
-                      </property>
-                      <property name="bottomMargin">
-                       <number>2</number>
-                      </property>
-                     </layout>
-                    </widget>
-                    <widget class="QWidget" name="tabPatterns">
-                     <attribute name="title">
-                      <string>Patterns</string>
-                     </attribute>
-                     <layout class="QVBoxLayout" name="verticalLayout_9">
-                      <property name="spacing">
-                       <number>2</number>
-                      </property>
-                      <property name="leftMargin">
-                       <number>2</number>
-                      </property>
-                      <property name="topMargin">
-                       <number>2</number>
-                      </property>
-                      <property name="rightMargin">
-                       <number>2</number>
-                      </property>
-                      <property name="bottomMargin">
-                       <number>2</number>
-                      </property>
-                     </layout>
-                    </widget>
-                    <widget class="QWidget" name="tabControls">
-                     <attribute name="title">
-                      <string>Controls</string>
-                     </attribute>
-                     <layout class="QVBoxLayout" name="verticalLayout_10">
-                      <property name="spacing">
-                       <number>2</number>
-                      </property>
-                      <property name="leftMargin">
-                       <number>2</number>
-                      </property>
-                      <property name="topMargin">
-                       <number>2</number>
-                      </property>
-                      <property name="rightMargin">
-                       <number>2</number>
-                      </property>
-                      <property name="bottomMargin">
-                       <number>2</number>
-                      </property>
-                     </layout>
-                    </widget>
                    </widget>
                   </item>
                  </layout>
-                </item>
-               </layout>
-              </widget>
-             </widget>
+                </widget>
+                <widget class="QWidget" name="tabResults">
+                 <attribute name="title">
+                  <string>Results</string>
+                 </attribute>
+                 <layout class="QHBoxLayout" name="horizontalLayout_4">
+                  <property name="spacing">
+                   <number>2</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>2</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>2</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>2</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>2</number>
+                  </property>
+                  <item>
+                   <layout class="QFormLayout" name="formLayout_2">
+                    <property name="horizontalSpacing">
+                     <number>2</number>
+                    </property>
+                    <property name="verticalSpacing">
+                     <number>2</number>
+                    </property>
+                    <item row="1" column="1">
+                     <widget class="QSlider" name="horizontalSlider_2">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="2" column="1">
+                     <widget class="QTableWidget" name="tableWidget_2"/>
+                    </item>
+                    <item row="0" column="1">
+                     <widget class="QLabel" name="label_2">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string>Day 1, 15:10</string>
+                      </property>
+                      <property name="textFormat">
+                       <enum>Qt::PlainText</enum>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </widget>
+                <widget class="QWidget" name="tabCurves">
+                 <attribute name="title">
+                  <string>Curves</string>
+                 </attribute>
+                 <layout class="QVBoxLayout" name="verticalLayout_8">
+                  <property name="spacing">
+                   <number>2</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>2</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>2</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>2</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>2</number>
+                  </property>
+                 </layout>
+                </widget>
+                <widget class="QWidget" name="tabPatterns">
+                 <attribute name="title">
+                  <string>Patterns</string>
+                 </attribute>
+                 <layout class="QVBoxLayout" name="verticalLayout_9">
+                  <property name="spacing">
+                   <number>2</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>2</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>2</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>2</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>2</number>
+                  </property>
+                 </layout>
+                </widget>
+                <widget class="QWidget" name="tabControls">
+                 <attribute name="title">
+                  <string>Controls</string>
+                 </attribute>
+                 <layout class="QVBoxLayout" name="verticalLayout_10">
+                  <property name="spacing">
+                   <number>2</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>2</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>2</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>2</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>2</number>
+                  </property>
+                 </layout>
+                </widget>
+               </widget>
+              </item>
+             </layout>
             </item>
            </layout>
           </widget>

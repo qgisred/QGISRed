@@ -1,13 +1,101 @@
 # -*- coding: utf-8 -*-
 import os
+from PyQt5.QtCore import Qt, QParallelAnimationGroup, QPropertyAnimation, QAbstractAnimation, pyqtSlot, pyqtSignal, QEvent
 from PyQt5.QtGui import QIcon, QFont, QColor
-from PyQt5.QtWidgets import QDockWidget, QWidget, QHBoxLayout, QLabel, QToolButton, QMessageBox, QLineEdit
-from PyQt5.QtWidgets import QListWidgetItem, QTableWidgetItem, QHeaderView, QStyle, QAbstractItemView, QFrame 
-from PyQt5.QtCore import Qt, pyqtSlot, pyqtSignal, QEvent  
+from PyQt5.QtWidgets import (QDockWidget, QWidget, QHBoxLayout, QLabel, QToolButton, QMessageBox, QLineEdit,
+                             QListWidgetItem, QTableWidgetItem, QHeaderView, QStyle, QAbstractItemView,
+                             QFrame, QGridLayout, QSizePolicy, QScrollArea)
 from qgis.PyQt import uic
-from qgis.core import QgsProject, QgsVectorLayer, QgsSettings, QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsLayerMetadata
+from qgis.core import (QgsProject, QgsVectorLayer, QgsSettings, QgsGeometry, QgsPointXY,
+                       QgsRectangle, QgsFeature, QgsLayerMetadata)
 from qgis.utils import iface
 from qgis.gui import QgsHighlight
+
+# In your Spoiler class, add a new signal and a slot to emit the current state:
+class Spoiler(QWidget):
+    toggledState = pyqtSignal(bool)  # True: expanded, False: collapsed
+
+    def __init__(self, parent=None, title='', animationDuration=10):
+        super(Spoiler, self).__init__(parent)
+        self.animationDuration = animationDuration
+
+        # Create components
+        self.toggleAnimation = QParallelAnimationGroup()
+        self.contentArea = QScrollArea()
+        self.headerLine = QFrame()
+        self.toggleButton = QToolButton()
+        self.mainLayout = QGridLayout()
+
+        # Setup toggle button
+        self.toggleButton.setStyleSheet("QToolButton { border: none; }")
+        self.toggleButton.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+        self.toggleButton.setArrowType(Qt.RightArrow)
+        self.toggleButton.setText(title)
+        self.toggleButton.setCheckable(True)
+        self.toggleButton.setChecked(False)
+
+        # Setup header line
+        self.headerLine.setFrameShape(QFrame.HLine)
+        self.headerLine.setFrameShadow(QFrame.Sunken)
+        self.headerLine.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
+
+        # Setup content area
+        self.contentArea.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.contentArea.setMaximumHeight(0)
+        self.contentArea.setMinimumHeight(0)
+
+        # Setup animations for collapsing/expanding
+        self.toggleAnimation.addAnimation(QPropertyAnimation(self, b"minimumHeight"))
+        self.toggleAnimation.addAnimation(QPropertyAnimation(self, b"maximumHeight"))
+        self.toggleAnimation.addAnimation(QPropertyAnimation(self.contentArea, b"maximumHeight"))
+
+        # Connect finished signal to our custom slot
+        self.toggleAnimation.finished.connect(self.onAnimationFinished)
+
+        # Build layout
+        self.mainLayout.setVerticalSpacing(0)
+        self.mainLayout.setContentsMargins(0, 0, 0, 0)
+        row = 0
+        self.mainLayout.addWidget(self.toggleButton, row, 0, 1, 1, Qt.AlignLeft)
+        self.mainLayout.addWidget(self.headerLine, row, 2, 1, 1)
+        row += 1
+        self.mainLayout.addWidget(self.contentArea, row, 0, 1, 3)
+        self.setLayout(self.mainLayout)
+
+        # Connect the toggle button to start the animation
+        self.toggleButton.clicked.connect(self.startAnimation)
+
+    def startAnimation(self, checked):
+        arrow_type = Qt.DownArrow if checked else Qt.RightArrow
+        self.toggleButton.setArrowType(arrow_type)
+        direction = QAbstractAnimation.Forward if checked else QAbstractAnimation.Backward
+        self.toggleAnimation.setDirection(direction)
+        self.toggleAnimation.start()
+
+    def onAnimationFinished(self):
+        # Once the animation is complete, emit the current state.
+        self.toggledState.emit(self.toggleButton.isChecked())
+
+    def setContentLayout(self, contentLayout):
+        self.contentArea.setLayout(contentLayout)
+        collapsedHeight = self.sizeHint().height() - self.contentArea.maximumHeight()
+        contentHeight = contentLayout.sizeHint().height()
+        for i in range(self.toggleAnimation.animationCount()-1):
+            anim = self.toggleAnimation.animationAt(i)
+            anim.setDuration(self.animationDuration)
+            anim.setStartValue(collapsedHeight)
+            anim.setEndValue(collapsedHeight + contentHeight)
+        contentAnimation = self.toggleAnimation.animationAt(self.toggleAnimation.animationCount()-1)
+        contentAnimation.setDuration(self.animationDuration)
+        contentAnimation.setStartValue(0)
+        contentAnimation.setEndValue(contentHeight)
+
+    def setExpanded(self, expanded):
+        """Programmatically expand or collapse the spoiler."""
+        if self.toggleButton.isChecked() == expanded:
+            return  # Already in desired state.
+        self.toggleButton.setChecked(expanded)
+        self.startAnimation(expanded)
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_unified_find_properties.ui"))
 
@@ -49,6 +137,7 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         self.find_elements_visible = show_find_elements
         self.element_properties_visible = show_element_properties
 
+        # (Other initialization code such as element types, dictionaries, etc.)
         self.element_types = [
             self.tr('Pipes'),
             self.tr('Junctions'),
@@ -116,8 +205,34 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
             self.labelFoundElement.setWordWrap(True)
             self.labelFoundElement.setText("")
         
-        # self.frameFindElements.setVisible(show_find_elements)
-        # self.frameElementProperties.setVisible(show_element_properties)
+        # Replace the original frames with spoiler widgets:
+        # --- For Find Elements ---
+        if hasattr(self, 'frameFindElements'):
+            parentLayout = self.frameFindElements.parentWidget().layout()
+            if parentLayout:
+                parentLayout.removeWidget(self.frameFindElements)
+            # Create a spoiler widget with the title "Find Elements"
+            self.spoilerFindElements = Spoiler(title="Find Elements by Id")
+            # Transfer the existing layout from the original frame to the spoiler
+            self.spoilerFindElements.setContentLayout(self.frameFindElements.layout())
+            # Add the spoiler widget to the same parent layout
+            if parentLayout:
+                parentLayout.addWidget(self.spoilerFindElements)
+            # Replace the reference with the spoiler widget
+            self.frameFindElements = self.spoilerFindElements
+
+        # --- For Element Properties ---
+        if hasattr(self, 'frameElementProperties'):
+            parentLayout = self.frameElementProperties.parentWidget().layout()
+            if parentLayout:
+                parentLayout.removeWidget(self.frameElementProperties)
+            self.spoilerElementProperties = Spoiler(title="Element Properties")
+            self.spoilerElementProperties.setContentLayout(self.frameElementProperties.layout())
+            if parentLayout:
+                parentLayout.addWidget(self.spoilerElementProperties)
+            self.frameElementProperties = self.spoilerElementProperties
+
+        self.trackSpoilerEvents()
 
         self.setDockStyle()
         self.setupConnections()
@@ -131,13 +246,30 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         self.placeConnectedElements()
 
         settings = QgsSettings()
-        
         if settings.contains("QGISRed/ElementsExplorer/geometry"):
             self.restoreGeometry(settings.value("QGISRed/ElementsExplorer/geometry"))
-        
         if settings.contains("QGISRed/ElementsExplorer/floating"):
             self.setFloating(settings.value("QGISRed/ElementsExplorer/floating", type=bool))
         print("Exiting __init__")
+
+    def trackSpoilerEvents(self):
+        self.spoilerFindElements.toggledState.connect(self.onSpoilerFindElementsToggled)
+        self.spoilerElementProperties.toggledState.connect(self.onSpoilerElementPropertiesToggled)
+
+    def onSpoilerFindElementsToggled(self, expanded):
+        if expanded:
+            print("spoilerFindElements expanded")
+        else:
+            print("spoilerFindElements collapsed")
+        # You can add any additional behavior here.
+
+    def onSpoilerElementPropertiesToggled(self, expanded):
+        if expanded:
+            #self.spoilerFindElements.setExpanded(False)
+            print("spoilerElementProperties expanded")
+        else:
+            print("spoilerElementProperties collapsed")
+        # Additional handling can be placed here.
 
     def setupEventFilters(self):
         print("Entering setupEventFilters")
@@ -188,8 +320,8 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
 
     def setDockStyle(self):
         print("Entering setDockStyle")
-        self.initFindElementsCustomTitleBar()
-        self.initElementPropertiesCustomTitleBar()
+        #self.initFindElementsCustomTitleBar()
+        #self.initElementPropertiesCustomTitleBar()
 
         icon_name = 'iconFindElements.png' if 'Find' in self.__class__.__name__ else 'iconElementsProperties.png'
         icon_path = os.path.join(os.path.dirname(__file__), '..', 'images', icon_name)
@@ -436,7 +568,7 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         # self.findButton.setCheckable(True)
         #layout.addWidget(self.findButton)
         
-        self.elementPropertiesDock.setTitleBarWidget(titleBar)
+        self.frameElementProperties.setTitleBarWidget(titleBar)
 
         #self.findButton.setChecked(not self.frameFindElements.isVisible())
         print("Exiting initElementPropertiesCustomTitleBar")
@@ -510,62 +642,10 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         print("Exiting toggleElementPropertiesVisibility")
 
     def removeConnectedElementsFromLayouts(self):
-        print("Entering removeConnectedElementsFromLayouts")
-        for widget in [self.labelFoundElement, self.labelAdjacentNodeLinks, self.listWidget]:
-            if widget:
-                widget.setParent(None)
-                widget.hide()
-
-        for dock in [self.findElementsDock, self.elementPropertiesDock]:
-            content = dock.widget()
-            if content:
-                main_layout = content.layout()
-                if main_layout:
-                    inner_layout = main_layout.itemAt(0).layout()
-                    if main_layout and inner_layout:
-                        for widget in [self.labelFoundElement, self.labelAdjacentNodeLinks, self.listWidget]:
-                            item = main_layout.takeAt(main_layout.indexOf(widget))
-                            if item:
-                                item.widget().setParent(None)
-        print("Exiting removeConnectedElementsFromLayouts")
-
+        ...
+    
     def placeConnectedElements(self):
-        print("Entering placeConnectedElements")
-        self.removeConnectedElementsFromLayouts()
-
-        if self.element_properties_visible:
-            ep_content = self.elementPropertiesDock.widget()
-            ep_layout = ep_content.layout().itemAt(0).layout()
-
-            for widget in [self.labelFoundElement, self.labelAdjacentNodeLinks, self.listWidget]:
-                widget.setParent(ep_content)
-                widget.show()
-
-            ep_layout.insertWidget(0, self.labelFoundElement)
-            ep_layout.insertWidget(1, self.labelAdjacentNodeLinks)
-            ep_layout.insertWidget(2, self.listWidget)
-
-        else:
-            fe_content = self.findElementsDock.widget()
-            fe_layout = fe_content.layout().itemAt(0).layout()
-
-            line = fe_content.findChild(QFrame, "line")
-            line_index = fe_layout.indexOf(line) if line else -1
-
-            for widget in [self.labelFoundElement, self.labelAdjacentNodeLinks, self.listWidget]:
-                widget.setParent(fe_content)
-                widget.show()
-
-            if line_index >= 0:
-                fe_layout.insertWidget(line_index + 1, self.labelFoundElement)
-                fe_layout.insertWidget(line_index + 2, self.labelAdjacentNodeLinks)
-                fe_layout.insertWidget(line_index + 3, self.listWidget)
-                line.show()
-            else:
-                fe_layout.addWidget(self.labelFoundElement)
-                fe_layout.addWidget(self.labelAdjacentNodeLinks)
-                fe_layout.addWidget(self.listWidget)
-        print("Exiting placeConnectedElements")
+        ...
 
     def setComponentVisibility(self, show_find_elements, show_element_properties):
         print("Entering setComponentVisibility")
@@ -628,8 +708,8 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
             for layer_node in inputs_group.findLayers():
                 self.connectLayerSignals(layer_node)
         
-        self.findElementsDock.visibilityChanged.connect(self.onDockVisibilityChanged)
-        self.elementPropertiesDock.visibilityChanged.connect(self.onDockVisibilityChanged)
+        # self.frameFindElements.visibilityChanged.connect(self.onDockVisibilityChanged)
+        # self.frameElementProperties.visibilityChanged.connect(self.onDockVisibilityChanged)
         print("Exiting setupConnections")
 
     @pyqtSlot(bool)
