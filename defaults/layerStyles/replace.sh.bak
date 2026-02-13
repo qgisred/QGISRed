@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Loop through all items in the current directory
+for file in *; do
+  # Check if the item is a regular file and not this script itself
+  if [ -f "$file" ] && [ "$file" != "add-bak.sh" ]; then
+    # Rename the file by adding .bak to its name
+    mv "$file" "${file}.bak"
+    echo "Renamed '$file' to '${file}.bak'"
+  fi
+done
+
+echo "Done!"

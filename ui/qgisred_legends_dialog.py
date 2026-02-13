@@ -47,7 +47,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.currentFieldName = None
         self.currentLayer = None
         self.pluginFolder = os.path.dirname(os.path.dirname(__file__))
-        self.isEditing = False  # For future implementation
+        self.isEditing = True #False  # For future implementation
         
         # Store original renderer for cancel operations
         self.originalRenderer = None
@@ -886,8 +886,23 @@ class QGISRedLegendsDialog(QDialog, formClass):
             QMessageBox.warning(self, "No Layer", "Please select a layer first.")
             return
             
-        # Get project directory
+        # Get layer identifier
+        layerIdentifier = self.currentLayer.customProperty("qgisred_identifier")
+        if not layerIdentifier:
+            QMessageBox.warning(self, "No Identifier", "Layer does not have a QGISRed identifier.")
+            return
+        
+        # Get element name from identifier using utils
         utils = QGISRedUtils()
+        elementName = utils.identifierToElementName.get(layerIdentifier)
+        if not elementName:
+            QMessageBox.warning(self, "Unknown Layer Type", "Unable to determine layer type.")
+            return
+        
+        # Convert element name to lowercase filename format (e.g., "Pipes" -> "pipes")
+        #fileName = elementName.replace(" ", "").lower()
+        
+        # Get project directory
         projectDir = utils.ProjectDirectory
         if not projectDir:
             projectPath = QgsProject.instance().fileName()
@@ -898,16 +913,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 return
         
         # Create layerStyles subfolder if it doesn't exist
-        stylesDir = os.path.join(projectDir, "layerStyles")
+        stylesDir = os.path.join(projectDir, "layerStyles")  # Note: matches the folder name in utils
         if not os.path.exists(stylesDir):
             os.makedirs(stylesDir)
         
-        # Generate filename based on layer identifier
-        layerIdentifier = self.currentLayer.customProperty("qgisred_identifier")
-        if not layerIdentifier:
-            layerIdentifier = self.currentLayer.name().lower().replace(" ", "_")
-        
-        qmlPath = os.path.join(stylesDir, f"{layerIdentifier}.qml")
+        qmlPath = os.path.join(stylesDir, f"{elementName}.qml")
         
         # Check if file exists
         if os.path.exists(qmlPath):
@@ -933,24 +943,35 @@ class QGISRedLegendsDialog(QDialog, formClass):
             f"Saved project style to: {qmlPath}", 
             "QGISRed", Qgis.Info
         )
-    
+
     def saveGlobalStyle(self):
         """Save the current style as global default."""
         if not self.currentLayer:
             QMessageBox.warning(self, "No Layer", "Please select a layer first.")
             return
         
+        # Get layer identifier
+        layerIdentifier = self.currentLayer.customProperty("qgisred_identifier")
+        if not layerIdentifier:
+            QMessageBox.warning(self, "No Identifier", "Layer does not have a QGISRed identifier.")
+            return
+        
+        # Get element name from identifier using utils
+        utils = QGISRedUtils()
+        elementName = utils.identifierToElementName.get(layerIdentifier)
+        if not elementName:
+            QMessageBox.warning(self, "Unknown Layer Type", "Unable to determine layer type.")
+            return
+        
+        # Convert element name to lowercase filename format (e.g., "Pipes" -> "pipes")
+        #fileName = elementName.replace(" ", "").lower()
+        
         # Get plugin layerStyles folder
         stylesDir = os.path.join(self.pluginFolder, "layerStyles")
         if not os.path.exists(stylesDir):
             os.makedirs(stylesDir)
         
-        # Generate filename
-        layerIdentifier = self.currentLayer.customProperty("qgisred_identifier")
-        if not layerIdentifier:
-            layerIdentifier = self.currentLayer.name().lower().replace(" ", "_")
-        
-        qmlPath = os.path.join(stylesDir, f"{layerIdentifier}.qml")
+        qmlPath = os.path.join(stylesDir, f"{elementName}.qml")
         
         # Check if file exists
         if os.path.exists(qmlPath):
@@ -976,22 +997,33 @@ class QGISRedLegendsDialog(QDialog, formClass):
             f"Saved global style to: {qmlPath}", 
             "QGISRed", Qgis.Info
         )
-    
+
     def loadDefaultStyle(self):
         """Load the default style."""
         if not self.currentLayer:
             QMessageBox.warning(self, "No Layer", "Please select a layer first.")
             return
         
-        # Get default styles folder
-        defaultsDir = os.path.join(self.pluginFolder, "layerStyles", "Defaults")
-        
-        # Generate filename
+        # Get layer identifier
         layerIdentifier = self.currentLayer.customProperty("qgisred_identifier")
         if not layerIdentifier:
-            layerIdentifier = self.currentLayer.name().lower().replace(" ", "_")
+            QMessageBox.warning(self, "No Identifier", "Layer does not have a QGISRed identifier.")
+            return
         
-        qmlPath = os.path.join(defaultsDir, f"{layerIdentifier}.qml.back")
+        # Get element name from identifier using utils
+        utils = QGISRedUtils()
+        elementName = utils.identifierToElementName.get(layerIdentifier)
+        if not elementName:
+            QMessageBox.warning(self, "Unknown Layer Type", "Unable to determine layer type.")
+            return
+        
+        # Convert element name to lowercase filename format (e.g., "Pipes" -> "pipes")
+        fileName = elementName #.replace(" ", "").lower()
+        
+        # Get default styles folder
+        defaultsDir = os.path.join(self.pluginFolder, "defaults", "layerStyles")
+        
+        qmlPath = os.path.join(defaultsDir, f"{fileName}.qml.bak")
         
         if not os.path.exists(qmlPath):
             QMessageBox.warning(
@@ -1001,33 +1033,50 @@ class QGISRedLegendsDialog(QDialog, formClass):
             )
             return
         
-        # Apply style directly to layer (as per document - no Apply button in first implementation)
+        # Apply style directly to layer
         self.currentLayer.loadNamedStyle(qmlPath)
         self.currentLayer.triggerRepaint()
         
         # Refresh the display
         self.onLayerChanged(self.currentLayer)
         
+        QMessageBox.information(
+            self, 
+            "Default Style Loaded", 
+            f"Default style loaded successfully."
+        )
+        
         QgsMessageLog.logMessage(
             f"Loaded default style from: {qmlPath}", 
             "QGISRed", Qgis.Info
         )
-    
+
     def loadGlobalStyle(self):
         """Load the global style."""
         if not self.currentLayer:
             QMessageBox.warning(self, "No Layer", "Please select a layer first.")
             return
         
+        # Get layer identifier
+        layerIdentifier = self.currentLayer.customProperty("qgisred_identifier")
+        if not layerIdentifier:
+            QMessageBox.warning(self, "No Identifier", "Layer does not have a QGISRed identifier.")
+            return
+        
+        # Get element name from identifier using utils
+        utils = QGISRedUtils()
+        elementName = utils.identifierToElementName.get(layerIdentifier)
+        if not elementName:
+            QMessageBox.warning(self, "Unknown Layer Type", "Unable to determine layer type.")
+            return
+        
+        # Convert element name to lowercase filename format (e.g., "Pipes" -> "pipes")
+        fileName = elementName #.replace(" ", "").lower()
+        
         # Get plugin layerStyles folder
         stylesDir = os.path.join(self.pluginFolder, "layerStyles")
         
-        # Generate filename
-        layerIdentifier = self.currentLayer.customProperty("qgisred_identifier")
-        if not layerIdentifier:
-            layerIdentifier = self.currentLayer.name().lower().replace(" ", "_")
-        
-        qmlPath = os.path.join(stylesDir, f"{layerIdentifier}.qml")
+        qmlPath = os.path.join(stylesDir, f"{fileName}.qml")
         
         if not os.path.exists(qmlPath):
             QMessageBox.warning(
@@ -1044,11 +1093,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
         # Refresh the display
         self.onLayerChanged(self.currentLayer)
         
+        QMessageBox.information(
+            self, 
+            "Global Style Loaded", 
+            f"Global style loaded successfully."
+        )
+        
         QgsMessageLog.logMessage(
             f"Loaded global style from: {qmlPath}", 
             "QGISRed", Qgis.Info
         )
-    
+        
     def cancelAndClose(self):
         """Cancel changes and close dialog."""
         # Restore original renderer if it was changed
