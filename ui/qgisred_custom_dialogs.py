@@ -96,7 +96,8 @@ class SymbolEditDialog(QDialog):
 
 class SymbolColorSelector(QgsSymbolButton):
     """
-    Looks like a QgsSymbolButton; on click, opens the QGIS color dialog (QgsColorDialog).
+    Internal color selector component used by SymbolColorSelectorWithCheckbox.
+    Opens the QGIS color dialog (QgsColorDialog) on click.
     After choosing a color, the preview updates to reflect the selected color.
 
     Signals:
@@ -126,7 +127,7 @@ class SymbolColorSelector(QgsSymbolButton):
             QToolButton::menu-indicator { image: none; width: 0px; }
             QToolButton { padding-right: 4px; background-color: white; border: none; }
         """)
-        
+
         # Explicitly remove any drop shadow effect
         try:
             self.setGraphicsEffect(None)
@@ -227,7 +228,7 @@ class SymbolColorSelector(QgsSymbolButton):
             # Block mouse wheel events to prevent accidental size changes
             if event.type() == QEvent.Wheel:
                 return True  # Consume the event
-            
+
             if event.type() in (QEvent.MouseButtonPress, QEvent.MouseButtonRelease):
                 if event.type() == QEvent.MouseButtonPress and event.button() == Qt.LeftButton:
                     self.openColorDialog()
@@ -261,14 +262,14 @@ class SymbolColorSelectorWithCheckbox(QWidget):
         
         # Create layout
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(2, 2, 2, 2)  # Small margins for table cells
-        layout.setSpacing(4)
-        
+        layout.setContentsMargins(0, 0, 0, 0)  # Minimal margins for compact size
+        layout.setSpacing(2)  # Reduced spacing
+
         # Create checkbox
         self.checkbox = QCheckBox(checkboxLabel, self)
         self.checkbox.setChecked(checked)
         self.checkbox.toggled.connect(self._onCheckboxToggled)
-        
+
         # Create the symbol color selector
         self.colorSelector = SymbolColorSelector(
             parent=self,
@@ -278,13 +279,13 @@ class SymbolColorSelectorWithCheckbox(QWidget):
             dialogTitle=dialogTitle
         )
         self.colorSelector.colorChanged.connect(self.colorChanged.emit)
-        
-        # Set fixed size for the color selector to ensure it's visible
-        self.colorSelector.setFixedSize(50, 24)
-        
-        # Add to layout
-        layout.addWidget(self.checkbox)
-        layout.addWidget(self.colorSelector)
+
+        # Set smaller fixed size for more compact appearance
+        self.colorSelector.setFixedSize(30, 20)
+
+        # Add to layout with vertical and horizontal centering
+        layout.addWidget(self.checkbox, 0, Qt.AlignVCenter | Qt.AlignHCenter)
+        layout.addWidget(self.colorSelector, 0, Qt.AlignVCenter | Qt.AlignHCenter)
         # Don't add stretch in table cells - it causes the color selector to disappear
     
     def _onCheckboxToggled(self, checked: bool):

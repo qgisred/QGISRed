@@ -10,16 +10,17 @@ from PyQt5.QtWidgets import QDialog, QMessageBox, QTableWidgetItem, QHeaderView,
 
 from PyQt5 import sip
 from qgis.PyQt import uic
-from qgis.PyQt.QtCore import QVariant, Qt
+from qgis.PyQt.QtCore import QVariant, Qt, QTimer
 
 # QGIS imports
 from qgis.core import QgsProject, QgsVectorLayer, QgsMessageLog, Qgis, QgsGraduatedSymbolRenderer
 from qgis.core import QgsCategorizedSymbolRenderer, QgsRendererRange, QgsRendererCategory, QgsSymbol
 from qgis.core import QgsLayerTreeGroup, QgsLayerTreeLayer
+from qgis.core import QgsGradientColorRamp, QgsClassificationJenks, QgsClassificationPrettyBreaks
 
 # Local imports
 from ..tools.qgisred_utils import QGISRedUtils
-from .qgisred_custom_dialogs import RangeEditDialog, SymbolColorSelector, SymbolColorSelectorWithCheckbox, SymbolEditDialog
+from .qgisred_custom_dialogs import RangeEditDialog, SymbolColorSelectorWithCheckbox, SymbolEditDialog
 
 formClass, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_legends_dialog.ui"))
 
@@ -40,16 +41,21 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.currentLayer = None
         self.pluginFolder = os.path.dirname(os.path.dirname(__file__))
         self.isEditing = True #False  # For future implementation
-        
+
         # Store original renderer for cancel operations
         self.originalRenderer = None
-        
+
         # Track available unique values for categorical legends
         self.availableUniqueValues = []
         self.usedUniqueValues = []
+
+        # Track double-click state for btClassPlus
+        self.btClassPlusClickTimer = None
+        self.btClassPlusAddBefore = False
         
         self.config()
         self.setupTableView()
+        self.populateClassificationModes()
 
         self.populateGroups()
         self.onGroupChanged()
@@ -101,7 +107,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         # Set column 0 (Symbol with checkbox) to Fixed
         header.setSectionResizeMode(0, QHeaderView.Fixed)
-        self.tableView.setColumnWidth(0, 80)
+        self.tableView.setColumnWidth(0, 50)
 
         # Set column 1 (Size) to Fixed size
         header.setSectionResizeMode(1, QHeaderView.Fixed)
@@ -147,6 +153,34 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 color: white;
             }
         """)
+
+    def populateClassificationModes(self):
+        """Populate cbMode with available QGIS classification methods."""
+        self.cbMode.blockSignals(True)
+        self.cbMode.clear()
+
+        # Add blank option for manual mode (no automatic classification)
+        self.cbMode.addItem("", None)
+
+        # Manually add the standard QGIS classification methods
+        # These are the most commonly used methods in QGIS
+        methods = [
+            ("EqualInterval", "Equal Interval"),
+            ("Quantile", "Quantile (Equal Count)"),
+            ("Jenks", "Natural Breaks (Jenks)"),
+            ("StdDev", "Standard Deviation"),
+            ("Pretty", "Pretty Breaks")
+        ]
+
+        for methodId, displayName in methods:
+            self.cbMode.addItem(displayName, methodId)
+
+        self.cbMode.blockSignals(False)
+
+        QgsMessageLog.logMessage(
+            f"Populated classification modes with {self.cbMode.count()} options",
+            "QGISRed", Qgis.Info
+        )
     
     def connectSignals(self):
         """Connect all widget signals."""
@@ -156,10 +190,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.btApplyLegend.clicked.connect(self.applyLegend)
         self.btCancelLegend.clicked.connect(self.cancelAndClose)
 
-        # Classification buttons (numeric only)
-        self.btIntervals.clicked.connect(self.classifyEqualInterval)
-        self.btQuantiles.clicked.connect(self.classifyQuantiles)
-        self.btBreaks.clicked.connect(self.classifyNaturalBreaks)
+        # Classification mode selector (numeric only)
+        self.cbMode.currentIndexChanged.connect(self.onModeChanged)
 
         # Class management buttons
         self.btClassPlus.clicked.connect(self.addClass)
@@ -222,17 +254,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def populateGroups(self):
         """
-        Fill cbGroups with only specific groups defined in ALLOWED_GROUPS.
+        Fill cbGroups with only specific groups defined in ALLOWED_GROUP_IDENTIFIERS.
         Shows only the group name (not full path). Stores the group's unique path in itemData.
         Excludes root.
         """
-        # Define which groups to include - easily add or remove groups here
-        ALLOWED_GROUPS = [
-            "Thematic Maps",
-            # "Another Group",  # Uncomment to add more groups
-            # "Yet Another Group",
+        # Define which groups to include by their qgisred_identifier custom property
+        # Easily add or remove identifiers here
+        ALLOWED_GROUP_IDENTIFIERS = [
+            "qgisred_thematicmaps",
+            # "qgisred_results",  # Uncomment to add more groups
+            # "qgisred_queries",
         ]
-        
+
         root = QgsProject.instance().layerTreeRoot()
         self.cbGroups.blockSignals(True)
         self.cbGroups.clear()
@@ -246,10 +279,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return False
 
         def walk(group: QgsLayerTreeGroup, pathParts):
-            # Only add if we have a path (skip root) and group name is in allowed list
+            # Only add if we have a path (skip root) and group identifier is in allowed list
             if pathParts and groupHasLayers(group):
-                # Check if the current group name is in the allowed list
-                if pathParts[-1] in ALLOWED_GROUPS:
+                # Check if the current group has a matching qgisred_identifier
+                groupIdentifier = group.customProperty("qgisred_identifier")
+                if groupIdentifier in ALLOWED_GROUP_IDENTIFIERS:
                     pathStr = " / ".join(pathParts)
                     displayName = pathParts[-1]
                     self.cbGroups.addItem(displayName, pathStr)
@@ -350,8 +384,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
         colorWidget = self.tableView.cellWidget(row, 0)
         if isinstance(colorWidget, SymbolColorSelectorWithCheckbox):
             currentColor = colorWidget.colorSelector.color()
-        elif isinstance(colorWidget, SymbolColorSelector):
-            currentColor = colorWidget.color()
         else:
             currentColor = QColor(128, 128, 128)
 
@@ -377,9 +409,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if isinstance(colorWidget, SymbolColorSelectorWithCheckbox):
                 colorWidget.colorSelector.setColor(newColor)
                 colorWidget.colorSelector.updateSymbolSize(newSize, isWidth)
-            elif isinstance(colorWidget, SymbolColorSelector):
-                colorWidget.setColor(newColor)
-                colorWidget.updateSymbolSize(newSize, isWidth)
 
             # Update size field
             if isinstance(sizeWidget, QLineEdit):
@@ -465,13 +494,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         colorWidget = self.tableView.cellWidget(row, 0)
 
         # Extract the actual color selector if it's wrapped
-        actualColorSelector = None
         if isinstance(colorWidget, SymbolColorSelectorWithCheckbox):
             actualColorSelector = colorWidget.colorSelector
-        elif isinstance(colorWidget, SymbolColorSelector):
-            actualColorSelector = colorWidget
-
-        if not actualColorSelector:
+        else:
             return
 
         # Update symbol size
@@ -488,15 +513,16 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def initializeUiVisibility(self):
         """Initialize the visibility of UI elements at startup."""
         # Hide all classification-related buttons initially
-        self.btIntervals.setVisible(False)
-        self.btQuantiles.setVisible(False)
-        self.btBreaks.setVisible(False)
         self.btClassPlus.setVisible(False)
         self.btClassMinus.setVisible(False)
         self.btUp.setVisible(False)
         self.btDown.setVisible(False)
         self.labelClass.setVisible(False)  # "Classes" label
         self.leClassCount.setVisible(False)  # Class count field
+
+        # Hide mode selector initially (shown only for numeric fields)
+        self.cbMode.setVisible(False)
+        self.labelMode.setVisible(False)
 
         # Hide label initially
         self.labelFrameLegends.setVisible(False)
@@ -563,10 +589,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         isCategorical = (self.currentFieldType == self.FIELD_TYPE_CATEGORICAL)
         hasField = isNumeric or isCategorical
 
-        # Classification method buttons - visible only for numeric
-        self.btIntervals.setVisible(isNumeric)
-        self.btQuantiles.setVisible(isNumeric)
-        self.btBreaks.setVisible(isNumeric)
+        # Classification mode selector - visible only for numeric
+        self.cbMode.setVisible(isNumeric)
+        self.labelMode.setVisible(isNumeric)
 
         # Class management buttons - visible for both numeric and categorical
         self.btClassPlus.setVisible(hasField)
@@ -614,6 +639,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
             # Update UI based on detected field type
             self.updateUIBasedOnFieldType()
+
+            # Reset mode selector to blank (manual mode) for numeric fields
+            if self.currentFieldType == self.FIELD_TYPE_NUMERIC:
+                self.cbMode.blockSignals(True)
+                self.cbMode.setCurrentIndex(0)  # Select blank option
+                self.cbMode.blockSignals(False)
 
             # Populate the table view
             if self.currentFieldType == self.FIELD_TYPE_NUMERIC:
@@ -726,22 +757,26 @@ class QGISRedLegendsDialog(QDialog, formClass):
         for i, rangeItem in enumerate(ranges):
             self.tableView.insertRow(i)
 
-            # Color (SymbolColorSelector without checkbox for numeric)
-            colorWidget = SymbolColorSelector(
+            # Get visibility state from range's render state
+            isVisible = rangeItem.renderState()
+
+            # Color (SymbolColorSelectorWithCheckbox for numeric)
+            colorWidget = SymbolColorSelectorWithCheckbox(
                 parent=self.tableView,
                 geometryHint=geomHint,
                 initialColor=rangeItem.symbol().color(),
-                allowAlpha=True,
-                dialogTitle=self.tr("Pick class color")
+                checked=isVisible,
+                checkboxLabel=""
             )
-            colorWidget.setEnabled(self.isEditing)
-            
+            colorWidget.colorSelector.setEnabled(self.isEditing)
+
             # Set initial symbol size from renderer
             if self.currentLayer.geometryType() == 1:  # Line
                 colorWidget.updateSymbolSize(rangeItem.symbol().width(), isWidth=True)
             else:  # Point or Polygon
                 colorWidget.updateSymbolSize(rangeItem.symbol().size(), isWidth=False)
-            
+
+            self.connectCheckboxSignal(colorWidget)
             self.tableView.setCellWidget(i, 0, colorWidget)
 
             # Size (line width or point size; polygons treated like point size as per legacy behavior)
@@ -983,8 +1018,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
             elif widget1:
                 if isinstance(widget1, SymbolColorSelectorWithCheckbox):
                     row1Data.append(('color_with_checkbox', widget1.color(), widget1.isChecked()))
-                elif isinstance(widget1, SymbolColorSelector):
-                    row1Data.append(('color', widget1.color()))
                 elif isinstance(widget1, QLineEdit):
                     row1Data.append(('text', widget1.text(), widget1.isReadOnly()))
                 elif isinstance(widget1, QComboBox):
@@ -1000,8 +1033,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
             elif widget2:
                 if isinstance(widget2, SymbolColorSelectorWithCheckbox):
                     row2Data.append(('color_with_checkbox', widget2.color(), widget2.isChecked()))
-                elif isinstance(widget2, SymbolColorSelector):
-                    row2Data.append(('color', widget2.color()))
                 elif isinstance(widget2, QLineEdit):
                     row2Data.append(('text', widget2.text(), widget2.isReadOnly()))
                 elif isinstance(widget2, QComboBox):
@@ -1026,12 +1057,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
                     self.tableView.setItem(row1, col, item)
                 elif dataType == 'color_with_checkbox':
                     widget = SymbolColorSelectorWithCheckbox(parent=self.tableView, geometryHint=self.getGeometryHint(), initialColor=data[0], checked=data[1])
-                    widget.setEnabled(self.isEditing)
+                    widget.colorSelector.setEnabled(self.isEditing)
                     self.connectCheckboxSignal(widget)
-                    self.tableView.setCellWidget(row1, col, widget)
-                elif dataType == 'color':
-                    widget = SymbolColorSelector(parent=self.tableView, geometryHint=self.getGeometryHint(), initialColor=data[0])
-                    widget.setEnabled(self.isEditing)
                     self.tableView.setCellWidget(row1, col, widget)
                 elif dataType == 'text':
                     widget = QLineEdit(data[0])
@@ -1056,12 +1083,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
                     self.tableView.setItem(row2, col, item)
                 elif dataType == 'color_with_checkbox':
                     widget = SymbolColorSelectorWithCheckbox(parent=self.tableView, geometryHint=self.getGeometryHint(), initialColor=data[0], checked=data[1])
-                    widget.setEnabled(self.isEditing)
+                    widget.colorSelector.setEnabled(self.isEditing)
                     self.connectCheckboxSignal(widget)
-                    self.tableView.setCellWidget(row2, col, widget)
-                elif dataType == 'color':
-                    widget = SymbolColorSelector(parent=self.tableView, geometryHint=self.getGeometryHint(), initialColor=data[0])
-                    widget.setEnabled(self.isEditing)
                     self.tableView.setCellWidget(row2, col, widget)
                 elif dataType == 'text':
                     widget = QLineEdit(data[0])
@@ -1079,43 +1102,112 @@ class QGISRedLegendsDialog(QDialog, formClass):
                     self.tableView.setCellWidget(row2, col, widget)
 
     def addClass(self):
-        """Add a new class to the legend with random colors."""
+        """Add a new class to the legend with random colors.
+        For numeric classes: single-click adds after selected row, double-click adds before.
+        """
         if not self.currentLayer:
             QMessageBox.warning(self, "No Layer", "Please select a layer first.")
             return
 
         if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
             self.addCategoricalClass()
+            self.updateButtonStates()
         else:
-            self.addNumericClass()
+            # Handle double-click detection for numeric classes
+            if self.btClassPlusClickTimer is not None and self.btClassPlusClickTimer.isActive():
+                # This is a double-click - add before
+                self.btClassPlusClickTimer.stop()
+                self.btClassPlusClickTimer = None
+                self.btClassPlusAddBefore = True
+                self.addNumericClass()
+                self.btClassPlusAddBefore = False
+                # If a classification mode is selected, reapply it with the new class count
+                methodId = self.cbMode.currentData()
+                if methodId is not None:
+                    self.applyClassificationMethod(methodId)
+                self.updateButtonStates()
+            else:
+                # This is a single-click - wait to see if another click comes
+                self.btClassPlusClickTimer = QTimer()
+                self.btClassPlusClickTimer.setSingleShot(True)
+                self.btClassPlusClickTimer.timeout.connect(self.onClassPlusSingleClick)
+                self.btClassPlusClickTimer.start(400)  # 250ms double-click interval
+                return  # Don't add yet, wait for timer
 
+    def onClassPlusSingleClick(self):
+        """Handle single-click on btClassPlus (add after selected row)."""
+        self.btClassPlusClickTimer = None
+        self.btClassPlusAddBefore = False
+        self.addNumericClass()
+        # If a classification mode is selected, reapply it with the new class count
+        if self.currentFieldType == self.FIELD_TYPE_NUMERIC:
+            methodId = self.cbMode.currentData()
+            if methodId is not None:
+                self.applyClassificationMethod(methodId)
         self.updateButtonStates()
 
     def addNumericClass(self):
-        """Add a new numeric class with random color."""
+        """Add a new numeric class with random color.
+        Position depends on selection and btClassPlusAddBefore flag:
+        - If btClassPlusAddBefore is True (double-click): insert before selected row
+        - If btClassPlusAddBefore is False (single-click): insert after selected row
+        - If no selection: add at end
+        """
         geomHint = self.getGeometryHint()
-        rowCount = self.tableView.rowCount()
-        self.tableView.insertRow(rowCount)
+
+        # Determine insertion position based on selection
+        selectedRows = self.getSelectedRows()
+        if selectedRows and len(selectedRows) == 1:
+            selectedRow = selectedRows[0]
+            if self.btClassPlusAddBefore:
+                # Double-click: insert before selected row
+                insertRow = selectedRow
+            else:
+                # Single-click: insert after selected row
+                insertRow = selectedRow + 1
+        else:
+            # No selection or multiple selections: add at end
+            insertRow = self.tableView.rowCount()
+
+        self.tableView.insertRow(insertRow)
 
         randomColor = self.generateRandomColor()
 
-        colorWidget = SymbolColorSelector(parent=self.tableView, geometryHint=geomHint, initialColor=randomColor)
-        colorWidget.setEnabled(self.isEditing)
-        self.tableView.setCellWidget(rowCount, 0, colorWidget)
+        colorWidget = SymbolColorSelectorWithCheckbox(
+            parent=self.tableView,
+            geometryHint=geomHint,
+            initialColor=randomColor,
+            checked=True,  # New classes default to visible
+            checkboxLabel=""
+        )
+        colorWidget.colorSelector.setEnabled(self.isEditing)
+        self.connectCheckboxSignal(colorWidget)
+        self.tableView.setCellWidget(insertRow, 0, colorWidget)
 
         sizeEdit = QLineEdit("1.0")
         sizeEdit.setAlignment(Qt.AlignCenter)
         sizeEdit.setEnabled(self.isEditing)
-        self.tableView.setCellWidget(rowCount, 1, sizeEdit)
+        self.tableView.setCellWidget(insertRow, 1, sizeEdit)
 
         valueItem = QTableWidgetItem("0.0 - 0.0")
-        self.tableView.setItem(rowCount, 2, valueItem)
+        self.tableView.setItem(insertRow, 2, valueItem)
 
         legendEdit = QLineEdit("New Class")
         legendEdit.setEnabled(self.isEditing)
-        self.tableView.setCellWidget(rowCount, 3, legendEdit)
+        self.tableView.setCellWidget(insertRow, 3, legendEdit)
 
-        QgsMessageLog.logMessage("Added new numeric class with random color", "QGISRed", Qgis.Info)
+        # Clear selection and select the newly added row
+        self.tableView.clearSelection()
+        self.tableView.selectRow(insertRow)
+
+        positionMsg = "at end"
+        if selectedRows and len(selectedRows) == 1:
+            if self.btClassPlusAddBefore:
+                positionMsg = f"before row {selectedRows[0]}"
+            else:
+                positionMsg = f"after row {selectedRows[0]}"
+
+        QgsMessageLog.logMessage(f"Added new numeric class {positionMsg} with random color", "QGISRed", Qgis.Info)
         self.updateClassCount()
     
     def addCategoricalClass(self):
@@ -1198,6 +1290,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.removeCategoricalClasses()
         else:
             self.removeNumericClasses()
+            # If a classification mode is selected, reapply it with the new class count
+            if self.currentFieldType == self.FIELD_TYPE_NUMERIC:
+                methodId = self.cbMode.currentData()
+                if methodId is not None:
+                    self.applyClassificationMethod(methodId)
 
         self.updateButtonStates()
     
@@ -1279,124 +1376,197 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         self.updateClassCount()
     
-    def classifyEqualInterval(self):
-        """Apply equal interval classification (numeric only)."""
+    def onModeChanged(self):
+        """Handle classification mode change."""
         if self.currentFieldType != self.FIELD_TYPE_NUMERIC or not self.currentLayer:
             return
-        
-        # Get min/max values from field
-        fieldName = self.currentFieldName
-        if not fieldName:
+
+        # Get the selected method ID
+        methodId = self.cbMode.currentData()
+
+        if methodId is None:
+            # Blank option selected - manual mode, no automatic reclassification
+            QgsMessageLog.logMessage(
+                "Manual mode selected - no automatic classification",
+                "QGISRed", Qgis.Info
+            )
             return
-            
-        # Calculate statistics
-        fieldIdx = self.currentLayer.fields().indexOf(fieldName)
-        if fieldIdx < 0:
+
+        # Apply the selected classification method
+        self.applyClassificationMethod(methodId)
+
+    def applyClassificationMethod(self, methodId):
+        """Apply a classification method to the current numeric layer.
+
+        Args:
+            methodId: The QGIS classification method ID (e.g., 'EqualInterval', 'Quantile', 'Jenks')
+        """
+        if not self.currentLayer or not self.currentFieldName:
             return
-            
-        minVal = self.currentLayer.minimumValue(fieldIdx)
-        maxVal = self.currentLayer.maximumValue(fieldIdx)
-        
-        if minVal is None or maxVal is None:
-            return
-            
-        # Get number of classes from table
+
+        # Get number of classes from current table
         numClasses = self.tableView.rowCount()
         if numClasses < 2:
             numClasses = 5  # Default
-            
-        # Calculate equal intervals
-        interval = (maxVal - minVal) / numClasses
-        
-        # Update table with new ranges
-        for i in range(numClasses):
-            lower = minVal + (i * interval)
-            upper = minVal + ((i + 1) * interval)
-            
-            # Update value column
-            valueText = f"{lower:.2f} - {upper:.2f}"
-            if self.tableView.item(i, 2):
-                self.tableView.item(i, 2).setText(valueText)
-            
-            # Update legend if empty
-            legendWidget = self.tableView.cellWidget(i, 3)
-            if isinstance(legendWidget, QLineEdit) and not legendWidget.text():
-                legendWidget.setText(valueText)
-        
-        QgsMessageLog.logMessage(
-            f"Applied equal interval classification with {numClasses} classes", 
-            "QGISRed", Qgis.Info
-        )
-    
-    def classifyQuantiles(self):
-        """Apply quantile classification (numeric only)."""
-        if self.currentFieldType != self.FIELD_TYPE_NUMERIC or not self.currentLayer:
+
+        # Get field index
+        fieldIdx = self.currentLayer.fields().indexOf(self.currentFieldName)
+        if fieldIdx < 0:
             return
-            
-        fieldName = self.currentFieldName
-        if not fieldName:
-            return
-            
-        # Get all values
+
+        # Get all values from the field
         values = []
         for feature in self.currentLayer.getFeatures():
-            val = feature[fieldName]
+            val = feature[self.currentFieldName]
             if val is not None:
-                values.append(val)
-        
+                try:
+                    values.append(float(val))
+                except (ValueError, TypeError):
+                    pass
+
         if not values:
+            QgsMessageLog.logMessage(
+                "No valid numeric values found in field",
+                "QGISRed", Qgis.Warning
+            )
             return
-            
+
         values.sort()
-        
-        # Get number of classes
-        numClasses = self.tableView.rowCount()
-        if numClasses < 2:
-            numClasses = 5
-            
-        # Calculate quantiles
-        quantileSize = len(values) / numClasses
-        
-        # Update table with quantile ranges
+        minVal = min(values)
+        maxVal = max(values)
+
+        # Calculate class breaks based on the selected method
+        breaks = []
+        try:
+            if methodId == "EqualInterval":
+                # Equal Interval
+                interval = (maxVal - minVal) / numClasses
+                breaks = [minVal + (i * interval) for i in range(numClasses + 1)]
+
+            elif methodId == "Quantile":
+                # Quantile (Equal Count)
+                breaks = [minVal]
+                for i in range(1, numClasses):
+                    idx = int((i / numClasses) * len(values))
+                    if idx < len(values):
+                        breaks.append(values[idx])
+                breaks.append(maxVal)
+
+            elif methodId == "Jenks":
+                # Natural Breaks - Use QGIS's implementation
+                method = QgsClassificationJenks()
+                method.setLabelFormat("%1 - %2")
+                classes = method.classes(self.currentLayer, self.currentFieldName, numClasses)
+                breaks = [minVal] + [cls.upperBound() for cls in classes]
+
+            elif methodId == "StdDev":
+                # Standard Deviation
+                import statistics
+                mean = statistics.mean(values)
+                stddev = statistics.stdev(values) if len(values) > 1 else 0
+
+                # Create breaks at mean ± stddev intervals
+                breaks = [minVal]
+                halfClasses = numClasses // 2
+                for i in range(-halfClasses, halfClasses + 1):
+                    val = mean + (i * stddev)
+                    if minVal < val < maxVal:
+                        breaks.append(val)
+                breaks.append(maxVal)
+                breaks = sorted(set(breaks))[:numClasses + 1]
+
+            elif methodId == "Pretty":
+                # Pretty Breaks - Use QGIS's implementation
+                method = QgsClassificationPrettyBreaks()
+                method.setLabelFormat("%1 - %2")
+                classes = method.classes(self.currentLayer, self.currentFieldName, numClasses)
+                breaks = [minVal] + [cls.upperBound() for cls in classes]
+
+            else:
+                QgsMessageLog.logMessage(
+                    f"Unknown classification method: {methodId}",
+                    "QGISRed", Qgis.Warning
+                )
+                return
+
+        except Exception as e:
+            QgsMessageLog.logMessage(
+                f"Error calculating breaks: {str(e)}",
+                "QGISRed", Qgis.Warning
+            )
+            return
+
+        # Ensure we have the right number of breaks
+        if len(breaks) < numClasses + 1:
+            QgsMessageLog.logMessage(
+                f"Not enough breaks generated: {len(breaks)} < {numClasses + 1}",
+                "QGISRed", Qgis.Warning
+            )
+            return
+
+        # Create Blue to Red gradient color ramp
+        blueColor = QColor(0, 0, 255)  # Blue for low values
+        redColor = QColor(255, 0, 0)   # Red for high values
+        colorRamp = QgsGradientColorRamp(blueColor, redColor)
+
+        # Update table with new ranges and colors
+        currentRowCount = self.tableView.rowCount()
+        neededRowCount = numClasses
+
+        # Adjust row count if needed
+        if neededRowCount > currentRowCount:
+            # Add rows
+            for i in range(currentRowCount, neededRowCount):
+                self.addNumericClass()
+        elif neededRowCount < currentRowCount:
+            # Remove rows from the end
+            for i in range(currentRowCount - 1, neededRowCount - 1, -1):
+                self.tableView.removeRow(i)
+
+        # Apply classification to table rows
         for i in range(numClasses):
-            lowerIdx = int(i * quantileSize)
-            upperIdx = int((i + 1) * quantileSize) - 1
-            
-            if upperIdx >= len(values):
-                upperIdx = len(values) - 1
-                
-            lower = values[lowerIdx]
-            upper = values[upperIdx]
-            
+            lower = breaks[i]
+            upper = breaks[i + 1]
+
             # Update value column
             valueText = f"{lower:.2f} - {upper:.2f}"
             if self.tableView.item(i, 2):
                 self.tableView.item(i, 2).setText(valueText)
-            
-            # Update legend if empty
+            else:
+                valueItem = QTableWidgetItem(valueText)
+                valueItem.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                self.tableView.setItem(i, 2, valueItem)
+
+            # Calculate color from gradient (0.0 to 1.0 across the range)
+            ratio = i / max(1, numClasses - 1)
+            color = colorRamp.color(ratio)
+
+            # Update color widget
+            colorWidget = self.tableView.cellWidget(i, 0)
+            if isinstance(colorWidget, SymbolColorSelectorWithCheckbox):
+                colorWidget.setColor(color)
+
+            # Update legend text
             legendWidget = self.tableView.cellWidget(i, 3)
-            if isinstance(legendWidget, QLineEdit) and not legendWidget.text():
+            if isinstance(legendWidget, QLineEdit):
                 legendWidget.setText(valueText)
-        
+
+        self.updateClassCount()
+
+        # Get method display name
+        methodNames = {
+            "EqualInterval": "Equal Interval",
+            "Quantile": "Quantile",
+            "Jenks": "Natural Breaks (Jenks)",
+            "StdDev": "Standard Deviation",
+            "Pretty": "Pretty Breaks"
+        }
+        methodName = methodNames.get(methodId, methodId)
+
         QgsMessageLog.logMessage(
-            f"Applied quantile classification with {numClasses} classes", 
+            f"Applied {methodName} classification with {numClasses} classes",
             "QGISRed", Qgis.Info
         )
-    
-    def classifyNaturalBreaks(self):
-        """Apply natural breaks (Jenks) classification (numeric only)."""
-        if self.currentFieldType != self.FIELD_TYPE_NUMERIC or not self.currentLayer:
-            return
-        
-        # This would require implementing Jenks natural breaks algorithm
-        # For now, just log the action
-        QgsMessageLog.logMessage(
-            "Natural breaks classification not fully implemented yet", 
-            "QGISRed", Qgis.Warning
-        )
-        
-        # Could use QgsClassificationJenks from QGIS API
-        # Implementation would be similar to quantiles but using Jenks algorithm
     
     def applyLegend(self):
         """Apply the legend from the table to the layer."""
@@ -1432,11 +1602,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
             lower = float(parts[0])
             upper = float(parts[1])
 
-            # Color and visibility from checkbox widget (numeric fields use SymbolColorSelector without checkbox)
+            # Color and visibility from checkbox widget
             colorWidget = self.tableView.cellWidget(row, 0)
-            isVisible = True  # Default to visible for numeric fields (no checkbox currently)
-            if isinstance(colorWidget, SymbolColorSelector):
+            isVisible = True  # Default to visible
+            if isinstance(colorWidget, SymbolColorSelectorWithCheckbox):
                 color = colorWidget.color()
+                isVisible = colorWidget.isChecked()  # Checkbox controls visibility
             else:
                 color = QColor(128, 128, 128)
 
