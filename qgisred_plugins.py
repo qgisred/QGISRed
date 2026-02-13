@@ -98,6 +98,7 @@ class QGISRed:
         # Save reference to the QGIS interface
         self.iface = iface
         self.storeQLRSucess = False
+        self.isUnloading = False  # Flag to prevent DLL calls during shutdown
 
         if not platform.system() == "Windows":
             self.iface.messageBar().pushMessage(self.tr("Error"), self.tr("QGISRed only works on Windows"), level=2, duration=5)
@@ -302,6 +303,45 @@ class QGISRed:
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
+        # Set flag to prevent DLL calls during shutdown
+        self.isUnloading = True
+
+        # Invalidate the DLL instance immediately
+        self.gisredDll = None
+
+        # Deactivate all map tools to prevent callbacks during shutdown
+        try:
+            if hasattr(self, 'myMapTools'):
+                for tool_name, tool in list(self.myMapTools.items()):
+                    try:
+                        if tool is not None:
+                            if self.iface.mapCanvas().mapTool() is tool:
+                                self.iface.mapCanvas().unsetMapTool(tool)
+                            tool.deactivate()
+                    except Exception:
+                        pass
+                self.myMapTools.clear()
+        except Exception:
+            pass
+
+        # Disconnect signal handlers to prevent callbacks during cleanup
+        try:
+            QgsProject.instance().projectSaved.disconnect(self.runSaveProject)
+        except Exception:
+            pass
+        try:
+            QgsProject.instance().cleared.disconnect(self.runClearedProject)
+        except Exception:
+            pass
+        try:
+            QgsProject.instance().layersRemoved.disconnect(self.runLegendChanged)
+        except Exception:
+            pass
+        try:
+            QgsProject.instance().readProject.disconnect(self.runOpenedQgisProject)
+        except Exception:
+            pass
+
         QGISRedUtils().removeFolder(self.tempFolder)
 
         if QGISRedUtils.DllTempoFolder is not None:
@@ -309,8 +349,15 @@ class QGISRed:
                 file.write(QGISRedUtils.DllTempoFolder + "\n")
 
         if self.ResultDockwidget is not None:
-            self.ResultDockwidget.close()
-            self.iface.removeDockWidget(self.ResultDockwidget)
+            try:
+                self.ResultDockwidget.visibilityChanged.disconnect(self.activeInputGroup)
+            except Exception:
+                pass
+            try:
+                self.ResultDockwidget.close()
+                self.iface.removeDockWidget(self.ResultDockwidget)
+            except Exception:
+                pass
             self.ResultDockwidget = None
 
         for action in self.actions:
@@ -1999,13 +2046,11 @@ class QGISRed:
             proccessPerformed = False
             for layer_name in self.ownMainLayers + self.especificComplementaryLayers:
                 if not utils.isLayerOpened(layer_name):
-                    print("layer_not_opened : ", layer_name)
                     utils.openElementsLayers(inputGroup, [layer_name])
                     proccessPerformed = True
             if not proccessPerformed:
                 utils.openElementsLayers(inputGroup, self.ownMainLayers + self.especificComplementaryLayers, processOnly=True)
         else:
-            print("ABD")
             for layer_name in self.ownMainLayers + self.especificComplementaryLayers:
                 utils.openElementsLayers(inputGroup, [layer_name])
 
@@ -2048,15 +2093,21 @@ class QGISRed:
     """Groups"""
 
     def activeInputGroup(self):
+        # Guard against calls during shutdown
+        if self.isUnloading:
+            return
         if self.ResultDockwidget is None:
             return
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        group = utils.getOrCreateGroup("Inputs")
-        if group is not None:
-            group.setItemVisibilityChecked(not self.ResultDockwidget.isVisible())
-        group = utils.getOrCreateGroup("Results")
-        if group is not None:
-            group.setItemVisibilityChecked(self.ResultDockwidget.isVisible())
+        try:
+            utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+            group = utils.getOrCreateGroup("Inputs")
+            if group is not None:
+                group.setItemVisibilityChecked(not self.ResultDockwidget.isVisible())
+            group = utils.getOrCreateGroup("Results")
+            if group is not None:
+                group.setItemVisibilityChecked(self.ResultDockwidget.isVisible())
+        except Exception:
+            pass
 
     def getInputGroup(self):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
@@ -2109,158 +2160,67 @@ class QGISRed:
     def processCsharpResult(self, b, message):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         self.storeQLRSucess, _ = utils.saveProjectAsQLR()
-        print("reahed hred frist step")
         # Action
         self.hasToOpenNewLayers = False
         self.hasToOpenIssuesLayers = False
         if b == "True":
-            print("1.a")
             if not message == "":
                 self.iface.messageBar().pushMessage(self.tr("Information"), self.tr(message), level=3, duration=5)
         elif b == "False" or b == "Cancelled":
-            print("1.b")
             pass
         elif b == "commit":
-            print("a")
             self.hasToOpenNewLayers = True
         elif b == "shps":
-            print("b")
             self.hasToOpenIssuesLayers = True
         elif b == "commit/shps":
-            print("c")
             self.hasToOpenNewLayers = True
             self.hasToOpenIssuesLayers = True
         else:
-            print("d")
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
         self.removingLayers = True
         self.extent = QGISRedUtils().getProjectExtent()
         if self.hasToOpenNewLayers and self.hasToOpenIssuesLayers:
-            print("1")
             QGISRedUtils().runTask("update plus issue layers", self.removeLayersAndIssuesLayers, self.runOpenTemporaryFiles)
         elif self.hasToOpenNewLayers:
-            print("2")
             QGISRedUtils().runTask("update layers", self.removeLayers, self.runOpenTemporaryFiles)
         elif self.hasToOpenIssuesLayers:
-            print("3")
             QGISRedUtils().runTask("update issue layers", self.removeIssuesLayers, self.runOpenTemporaryFiles)
 
     def runOpenTemporaryFiles(self, exception=None, result=None):
-        print("=== Starting runOpenTemporaryFiles ===")
-        print(f"hasToOpenIssuesLayers: {self.hasToOpenIssuesLayers}")
-        print(f"hasToOpenNewLayers: {self.hasToOpenNewLayers}")
-        print(f"hasToOpenConnectivityLayers: {self.hasToOpenConnectivityLayers}")
-        print(f"hasToOpenSectorLayers: {self.hasToOpenSectorLayers}")
-        
         if self.hasToOpenIssuesLayers:
-            print("Removing issues layers files...")
             self.removeIssuesLayersFiles()
 
-        print("Setting wait cursor...")
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        
-        print(f"Replacing temporal files - ProjectDirectory: {self.ProjectDirectory}, tempFolder: {self.tempFolder}")
+
         resMessage = GISRed.ReplaceTemporalFiles(self.ProjectDirectory, self.tempFolder)
-        print(f"ReplaceTemporalFiles result: {resMessage}")
-        
-        print(f"Reading units - NetworkName: {self.NetworkName}")
+
         self.readUnits(self.ProjectDirectory, self.NetworkName)
 
         if self.hasToOpenNewLayers:
-            print("Opening new layers...")
             self.opendedLayers = False
             QGISRedUtils().runTask("update layers", self.openElementLayers, self.setExtent)
             self.openNewLayers = False
-            print("New layers opened")
 
         if self.hasToOpenIssuesLayers:
-            print("Opening issues layers...")
             self.openIssuesLayers()
             self.hasToOpenIssuesLayers = False
-            print("Issues layers opened")
 
         if self.hasToOpenConnectivityLayers:
-            print("Opening connectivity layers...")
             self.openConnectivityLayer()
             self.hasToOpenConnectivityLayers = False
-            print("Connectivity layers opened")
 
         if self.hasToOpenSectorLayers:
-            print("Opening sector layers...")
             self.openSectorLayers()
             self.hasToOpenSectorLayers = False
-            print("Sector layers opened")
-                
-        print("Restoring cursor...")
+
         QApplication.restoreOverrideCursor()
         self.removingLayers = False
-        print("removingLayers set to False")
 
         if resMessage == "True":
-            print("Success: resMessage is 'True'")
             pass
         else:
-            print(f"Error occurred: {resMessage}")
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
-        
-        print("=== Finished runOpenTemporaryFiles ===")
-
-    #REMOVE
-    # def restoreAllLayersFiltered(self, all_layers):
-    #     """Restore all layers from the stored information, filtering empty layers."""
-    #     if not all_layers:
-    #         return
-        
-    #     # Restore input layers
-    #     if 'Inputs' in all_layers:
-    #         input_group = self.getInputGroup()
-    #         if input_group:
-    #             input_layers = all_layers['Inputs']
-    #             # Filter out empty layers before restoring
-    #             filtered_input_layers = []
-    #             for layer_info in input_layers:
-    #                 layer_name = layer_info.get('name', '')
-    #                 source = layer_info.get('source', '')
-    #                 if source:
-    #                     is_pipe_layer = 'pipes' in layer_name.lower()
-                        
-    #                     # Only include if pipe layer or has features
-    #                     if is_pipe_layer or self.layerHasFeatures(source):
-    #                         filtered_input_layers.append(layer_info)
-                            
-    #             self._restoreLayers(filtered_input_layers, input_group)
-        
-    #     # Restore other layer groups (queries, results, etc.)
-    #     if 'Queries' in all_layers:
-    #         self.restoreQueryLayers(all_layers['Queries'])
-        
-    #     if 'Results' in all_layers:
-    #         root = QgsProject.instance().layerTreeRoot()
-    #         results_group = root.findGroup("Results")
-    #         if not results_group:
-    #             results_group = root.addGroup("Results")
-    #         self._restoreLayers(all_layers['Results'], results_group)
-        
-    #     if 'Root' in all_layers:
-    #         root = QgsProject.instance().layerTreeRoot()
-    #         self._restoreLayers(all_layers['Root'], root)
-
-    # def layerHasFeatures(self, source_path):
-    #     """Check if a layer has features."""
-    #     try:
-    #         layer = QgsVectorLayer(source_path, "temp", "ogr")
-    #         if layer.isValid():
-    #             return layer.featureCount() > 0
-    #         return False
-    #     except:
-    #         return False
-
-    # def clearInputGroup(self):
-    #     inputGroup = self.getInputGroup()
-    #     if inputGroup:
-    #         for child in list(inputGroup.children()):
-    #             inputGroup.removeChildNode(child)
 
     def getComplementaryLayersOpened(self):
         complementary = []
@@ -2772,6 +2732,8 @@ class QGISRed:
         self.iface.messageBar().pushMessage("QGISRed", self.tr("Backup stored in: " + path), level=0, duration=5)
 
     def runOpenedQgisProject(self):
+        # Reset the unloading flag since we're opening a new project
+        self.isUnloading = False
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
             return
@@ -2800,9 +2762,37 @@ class QGISRed:
             self.updateMetadata()
 
     def runClearedProject(self):
+        # Set flag to prevent DLL calls during shutdown
+        self.isUnloading = True
+
+        # Invalidate the DLL instance
         self.gisredDll = None
+
+        # Deactivate all map tools to prevent callbacks during cleanup
+        try:
+            if hasattr(self, 'myMapTools'):
+                for tool_name, tool in list(self.myMapTools.items()):
+                    try:
+                        if tool is not None:
+                            if self.iface.mapCanvas().mapTool() is tool:
+                                self.iface.mapCanvas().unsetMapTool(tool)
+                            tool.deactivate()
+                    except Exception:
+                        pass
+                self.myMapTools.clear()
+        except Exception:
+            pass
+
+        # Disconnect and close the results dock widget
         if self.ResultDockwidget is not None:
-            self.ResultDockwidget.close()
+            try:
+                self.ResultDockwidget.visibilityChanged.disconnect(self.activeInputGroup)
+            except Exception:
+                pass
+            try:
+                self.ResultDockwidget.close()
+            except Exception:
+                pass
 
     def runAnalysisOptions(self):
         if not self.checkDependencies():
@@ -3008,6 +2998,9 @@ class QGISRed:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
     def runLegendChanged(self):
+        # Guard against calls during shutdown
+        if self.isUnloading:
+            return
         if not self.removingLayers:
             # Validations
             self.defineCurrentProject()
@@ -3545,6 +3538,9 @@ class QGISRed:
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runProperties(self, point):
+        # Guard against calls during shutdown
+        if self.isUnloading:
+            return
         if not self.checkDependencies():
             return
         # Validations
@@ -4589,9 +4585,8 @@ class QGISRed:
         dlg.config(self.iface, self.ProjectDirectory, self.NetworkName)
         dlg.exec_()
     
-    def runFindElements(self): 
+    def runFindElements(self):
         if not self.checkDependencies():
-            print("Dependencies check failed.")
             self.openFindElementsDialog.setChecked(False)
             return
 
@@ -4610,14 +4605,14 @@ class QGISRed:
                 try:
                     self.myMapTools[tool].clearHighlights()
                 except Exception:
-                    print("Failed to clear tool highlights.")
+                    pass
 
             if existingDock:
                 try:
                     existingDock.clearHighlights()
                     existingDock.updateCollapsibleWidgetsState(collapseFindElements=True)
                 except Exception:
-                    print("Failed to clear dock highlights.")
+                    pass
 
             self.openFindElementsDialog.setChecked(False)
         else:
@@ -4642,7 +4637,7 @@ class QGISRed:
                     dock.onLayerTreeChanged()
                     dock.setDefaultValue()
                     dock.updateCollapsibleWidgetsState(collapseFindElements=False, collapseConnectedElements=True)
-                except Exception as e:
+                except Exception:
                     self.openFindElementsDialog.setChecked(False)
                     return
 
@@ -4655,8 +4650,7 @@ class QGISRed:
                 )
                 self.myMapTools[tool].setCursor(Qt.WhatsThisCursor)
                 self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
-            except Exception as e:
-                print(f"Error creating map tool: {str(e)}")
+            except Exception:
                 self.openFindElementsDialog.setChecked(False)
 
     def runElementsProperty(self): 
@@ -4679,14 +4673,14 @@ class QGISRed:
                 try:
                     self.myMapTools[tool].clearHighlights()
                 except Exception:
-                    print("Failed to clear tool highlights.")
+                    pass
 
             if existingDock:
                 try:
                     existingDock.clearHighlights()
                     existingDock.updateCollapsibleWidgetsState(collapseElementProperties=True)
                 except Exception:
-                    print("Failed to clear dock highlights.")
+                    pass
 
             self.openElementsPropertyDialog.setChecked(False)
         else:
@@ -4701,8 +4695,7 @@ class QGISRed:
                 )
                 self.myMapTools[tool].setCursor(Qt.WhatsThisCursor)
                 self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
-            except Exception as e:
-                print(f"Error creating map tool: {str(e)}")
+            except Exception:
                 self.openElementsPropertyDialog.setChecked(False)
 
     def runQueriesByAttributes(self):

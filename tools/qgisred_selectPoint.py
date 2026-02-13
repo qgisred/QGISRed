@@ -44,6 +44,9 @@ class QGISRedSelectPointTool(QgsMapTool):
         self.resetProperties()
 
     def activate(self):
+        # Guard against calls during shutdown
+        if hasattr(self.parent, 'isUnloading') and self.parent.isUnloading:
+            return
         QgsMapTool.activate(self)
         pencil_cursor = QCursor(QPixmap(":/plugins/QGISRed/images/pencil.svg"), 0, 0)
         self.canvas.setCursor(pencil_cursor)
@@ -88,6 +91,9 @@ class QGISRedSelectPointTool(QgsMapTool):
     """Events"""
 
     def canvasReleaseEvent(self, event):
+        # Guard against calls during shutdown
+        if hasattr(self.parent, 'isUnloading') and self.parent.isUnloading:
+            return
         if event.button() == Qt.LeftButton:
             if self.objectSnapped is None:
                 self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("A not valid point was selected"), level=1, duration=5)
