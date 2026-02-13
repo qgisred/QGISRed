@@ -4312,8 +4312,13 @@ class QGISRed:
 
     # Queries and Thematic Maps
     def runThematicMaps(self):
-        print("Thematic Maps Clicked")
         if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
             return
 
         dlg = QGISRedThematicMapsDialog()

@@ -13,8 +13,8 @@
   <property name="windowTitle">
    <string>Thematic Maps</string>
   </property>
-  <property name="autoFillBackground">
-   <bool>false</bool>
+  <property name="styleSheet">
+   <string>background-color: white;</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -31,91 +31,91 @@
         <height>627</height>
        </rect>
       </property>
+      <property name="styleSheet">
+       <string>background-color: white;</string>
+      </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
-        <widget class="QGroupBox" name="pipesGroupBox">
+        <widget class="QGroupBox" name="gbPipes">
+         <property name="styleSheet">
+          <string>background-color: white;</string>
+         </property>
          <property name="title">
           <string>Pipes ranged by</string>
          </property>
-         <property name="checkable">
-          <bool>false</bool>
-         </property>
-         <property name="checked">
-          <bool>false</bool>
-         </property>
          <layout class="QGridLayout" name="gridLayout">
           <item row="0" column="2">
-           <widget class="QCheckBox" name="checkBox_50">
+           <widget class="QCheckBox" name="cbPipesRoughness">
             <property name="text">
              <string>Roughness</string>
             </property>
            </widget>
           </item>
           <item row="1" column="2">
-           <widget class="QCheckBox" name="checkBox_55">
+           <widget class="QCheckBox" name="cbPipesAge">
             <property name="text">
              <string>Age</string>
             </property>
            </widget>
           </item>
           <item row="0" column="3">
-           <widget class="QCheckBox" name="checkBox_51">
+           <widget class="QCheckBox" name="cbPipesLossCoeff">
             <property name="text">
              <string>Loss Coeff</string>
             </property>
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QCheckBox" name="checkBox_49">
+           <widget class="QCheckBox" name="cbPipesMaterial">
             <property name="text">
              <string>Material</string>
             </property>
            </widget>
           </item>
           <item row="1" column="3">
-           <widget class="QCheckBox" name="checkBox_54">
+           <widget class="QCheckBox" name="cbPipesInitStatus">
             <property name="text">
              <string>Init Status</string>
             </property>
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QCheckBox" name="checkBox_52">
+           <widget class="QCheckBox" name="cbPipesLength">
             <property name="text">
              <string>Length</string>
             </property>
            </widget>
           </item>
           <item row="0" column="0">
-           <widget class="QCheckBox" name="checkBox_48">
+           <widget class="QCheckBox" name="cbPipesDiameter">
             <property name="text">
              <string>Diameter</string>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QCheckBox" name="checkBox_53">
+           <widget class="QCheckBox" name="cbPipesInstallationDate">
             <property name="text">
              <string>Installation Date</string>
             </property>
            </widget>
           </item>
           <item row="2" column="0">
-           <widget class="QCheckBox" name="checkBox_56">
+           <widget class="QCheckBox" name="cbPipesBulkCoeff">
             <property name="text">
              <string>Bulk coeff</string>
             </property>
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QCheckBox" name="checkBox_57">
+           <widget class="QCheckBox" name="cbPipesWallCoeff">
             <property name="text">
              <string>Wall coeff</string>
             </property>
            </widget>
           </item>
           <item row="2" column="2">
-           <widget class="QCheckBox" name="checkBox_58">
+           <widget class="QCheckBox" name="cbPipesTag">
             <property name="text">
              <string>Tag</string>
             </property>
@@ -125,54 +125,51 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="junctionsGroupBox">
+        <widget class="QGroupBox" name="gbJunctions">
+         <property name="styleSheet">
+          <string>background-color: white;</string>
+         </property>
          <property name="title">
           <string>Junctions ranged by</string>
          </property>
-         <property name="checkable">
-          <bool>false</bool>
-         </property>
-         <property name="checked">
-          <bool>false</bool>
-         </property>
          <layout class="QGridLayout" name="gridLayout_2">
           <item row="0" column="3">
-           <widget class="QCheckBox" name="checkBox_12">
+           <widget class="QCheckBox" name="cbJunctionsEmitterCoeff">
             <property name="text">
              <string>Emitter Coefficient</string>
             </property>
            </widget>
           </item>
           <item row="0" column="2">
-           <widget class="QCheckBox" name="checkBox_16">
+           <widget class="QCheckBox" name="cbJunctionsPatternDemand">
             <property name="text">
              <string>Pattern demand</string>
             </property>
            </widget>
           </item>
           <item row="0" column="0">
-           <widget class="QCheckBox" name="checkBox_11">
+           <widget class="QCheckBox" name="cbJunctionsElevation">
             <property name="text">
              <string>Elevation</string>
             </property>
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QCheckBox" name="checkBox_13">
+           <widget class="QCheckBox" name="cbJunctionsBaseDemand">
             <property name="text">
              <string>Base demand</string>
             </property>
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QCheckBox" name="checkBox_15">
+           <widget class="QCheckBox" name="cbJunctionsInitialQuality">
             <property name="text">
              <string>Initial Quality</string>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QCheckBox" name="checkBox_14">
+           <widget class="QCheckBox" name="cbJunctionsTag">
             <property name="text">
              <string>Tag</string>
             </property>
@@ -182,54 +179,51 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_3">
+        <widget class="QGroupBox" name="gbValves">
+         <property name="styleSheet">
+          <string>background-color: white;</string>
+         </property>
          <property name="title">
           <string>Valves ranged by</string>
          </property>
-         <property name="checkable">
-          <bool>false</bool>
-         </property>
-         <property name="checked">
-          <bool>false</bool>
-         </property>
          <layout class="QGridLayout" name="gridLayout_3">
           <item row="0" column="1">
-           <widget class="QCheckBox" name="checkBox_26">
+           <widget class="QCheckBox" name="cbValvesDiameter">
             <property name="text">
              <string>Diameter</string>
             </property>
            </widget>
           </item>
           <item row="0" column="0">
-           <widget class="QCheckBox" name="checkBox_25">
+           <widget class="QCheckBox" name="cbValvesType">
             <property name="text">
              <string>Type</string>
             </property>
            </widget>
           </item>
           <item row="0" column="2">
-           <widget class="QCheckBox" name="checkBox_28">
+           <widget class="QCheckBox" name="cbValvesSetting">
             <property name="text">
              <string>Setting</string>
             </property>
            </widget>
           </item>
           <item row="0" column="3">
-           <widget class="QCheckBox" name="checkBox_27">
+           <widget class="QCheckBox" name="cbValvesInitialStatus">
             <property name="text">
              <string>Initial Status</string>
             </property>
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QCheckBox" name="checkBox_29">
+           <widget class="QCheckBox" name="cbValvesLossCoeff">
             <property name="text">
              <string>Loss coeff</string>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QCheckBox" name="checkBox_30">
+           <widget class="QCheckBox" name="cbValvesTag">
             <property name="text">
              <string>Tag</string>
             </property>
@@ -239,68 +233,65 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_4">
+        <widget class="QGroupBox" name="gbPumps">
+         <property name="styleSheet">
+          <string>background-color: white;</string>
+         </property>
          <property name="title">
           <string>Pumps ranged by</string>
          </property>
-         <property name="checkable">
-          <bool>false</bool>
-         </property>
-         <property name="checked">
-          <bool>false</bool>
-         </property>
          <layout class="QGridLayout" name="gridLayout_4">
           <item row="0" column="0">
-           <widget class="QCheckBox" name="checkBox_23">
+           <widget class="QCheckBox" name="cbPumpsType">
             <property name="text">
              <string>Type</string>
             </property>
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QCheckBox" name="checkBox_17">
+           <widget class="QCheckBox" name="cbPumpsPumpCurve">
             <property name="text">
              <string>Pump curve</string>
             </property>
            </widget>
           </item>
           <item row="0" column="2">
-           <widget class="QCheckBox" name="checkBox_20">
+           <widget class="QCheckBox" name="cbPumpsPower">
             <property name="text">
              <string>Power</string>
             </property>
            </widget>
           </item>
           <item row="0" column="3">
-           <widget class="QCheckBox" name="checkBox_18">
+           <widget class="QCheckBox" name="cbPumpsInitialStatus">
             <property name="text">
              <string>Initial Status</string>
             </property>
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QCheckBox" name="checkBox_19">
+           <widget class="QCheckBox" name="cbPumpsSpeed">
             <property name="text">
              <string>Speed</string>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QCheckBox" name="checkBox_22">
+           <widget class="QCheckBox" name="cbPumpsEfficiencyCurve">
             <property name="text">
              <string>Efficiency Curve</string>
             </property>
            </widget>
           </item>
           <item row="1" column="2">
-           <widget class="QCheckBox" name="checkBox_21">
+           <widget class="QCheckBox" name="cbPumpsEnergyPrice">
             <property name="text">
              <string>Energy price</string>
             </property>
            </widget>
           </item>
           <item row="1" column="3">
-           <widget class="QCheckBox" name="checkBox_24">
+           <widget class="QCheckBox" name="cbPumpsTag">
             <property name="text">
              <string>Tag</string>
             </property>
@@ -310,68 +301,65 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_5">
+        <widget class="QGroupBox" name="gbTanks">
+         <property name="styleSheet">
+          <string>background-color: white;</string>
+         </property>
          <property name="title">
           <string>Tanks ranged by</string>
          </property>
-         <property name="checkable">
-          <bool>false</bool>
-         </property>
-         <property name="checked">
-          <bool>false</bool>
-         </property>
          <layout class="QGridLayout" name="gridLayout_5">
           <item row="0" column="3">
-           <widget class="QCheckBox" name="checkBox_39">
+           <widget class="QCheckBox" name="cbTanksLevel">
             <property name="text">
              <string>Level</string>
             </property>
            </widget>
           </item>
           <item row="0" column="0">
-           <widget class="QCheckBox" name="checkBox_31">
+           <widget class="QCheckBox" name="cbTanksElevation">
             <property name="text">
              <string>Elevation</string>
             </property>
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QCheckBox" name="checkBox_34">
+           <widget class="QCheckBox" name="cbTanksDiameter">
             <property name="text">
              <string>Diameter</string>
             </property>
            </widget>
           </item>
           <item row="0" column="2">
-           <widget class="QCheckBox" name="checkBox_32">
+           <widget class="QCheckBox" name="cbTanksVolume">
             <property name="text">
              <string>Volume</string>
             </property>
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QCheckBox" name="checkBox_36">
+           <widget class="QCheckBox" name="cbTanksInitialQuality">
             <property name="text">
              <string>Initial Quality</string>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QCheckBox" name="checkBox_9">
+           <widget class="QCheckBox" name="cbTanksBulkCoeff">
             <property name="text">
              <string>Bulk coeff</string>
             </property>
            </widget>
           </item>
           <item row="1" column="2">
-           <widget class="QCheckBox" name="checkBox_35">
+           <widget class="QCheckBox" name="cbTanksMixingModel">
             <property name="text">
              <string>Mixing Model</string>
             </property>
            </widget>
           </item>
           <item row="1" column="3">
-           <widget class="QCheckBox" name="checkBox_38">
+           <widget class="QCheckBox" name="cbTanksTag">
             <property name="text">
              <string>Tag</string>
             </property>
@@ -381,40 +369,37 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_6">
+        <widget class="QGroupBox" name="gbReservoirs">
+         <property name="styleSheet">
+          <string>background-color: white;</string>
+         </property>
          <property name="title">
           <string>Reservoirs ranged by</string>
          </property>
-         <property name="checkable">
-          <bool>false</bool>
-         </property>
-         <property name="checked">
-          <bool>false</bool>
-         </property>
          <layout class="QGridLayout" name="gridLayout_6">
           <item row="0" column="1">
-           <widget class="QCheckBox" name="checkBox_37">
+           <widget class="QCheckBox" name="cbReservoirsHeadPattern">
             <property name="text">
              <string>Head Pattern</string>
             </property>
            </widget>
           </item>
           <item row="0" column="2">
-           <widget class="QCheckBox" name="checkBox_6">
+           <widget class="QCheckBox" name="cbReservoirsInitialQuality">
             <property name="text">
              <string>Initial Quality</string>
             </property>
            </widget>
           </item>
           <item row="0" column="0">
-           <widget class="QCheckBox" name="checkBox_33">
+           <widget class="QCheckBox" name="cbReservoirsTotalHead">
             <property name="text">
              <string>Total Head</string>
             </property>
            </widget>
           </item>
           <item row="0" column="3">
-           <widget class="QCheckBox" name="checkBox_7">
+           <widget class="QCheckBox" name="cbReservoirsTag">
             <property name="text">
              <string>Tag</string>
             </property>
@@ -432,21 +417,21 @@
            </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>40</width>
-             <height>20</height>
+             <width>0</width>
+             <height>0</height>
             </size>
            </property>
           </spacer>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_2">
+          <widget class="QPushButton" name="btAccept">
            <property name="text">
             <string>Accept</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton">
+          <widget class="QPushButton" name="btCancel">
            <property name="text">
             <string>Cancel</string>
            </property>
