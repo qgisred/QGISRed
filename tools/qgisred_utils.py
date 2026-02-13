@@ -42,6 +42,20 @@ class QGISRedUtils:
         self.ProjectDirectory = directory
         self.NetworkName = networkName
 
+        self.elementIdentifiers = {
+            'Pipes': 'qgisred_pipes',
+            'Junctions': 'qgisred_junctions',
+            'Demands': 'qgisred_demands',
+            'Reservoirs': 'qgisred_reservoirs',
+            'Tanks': 'qgisred_tanks',
+            'Pumps': 'qgisred_pumps',
+            'Valves': 'qgisred_valves',
+            'Sources': 'qgisred_sources',
+            'Service Connections': 'qgisred_serviceconnections',
+            'Isolation Valves': 'qgisred_isolationvalves',
+            'Meters': 'qgisred_meters'
+        }
+
     """Layers"""
 
     def getLayers(self):
@@ -75,8 +89,8 @@ class QGISRedUtils:
             if ind != 0:
                 original = original[:ind] + " " + original[ind:]
 
-        # if "Demands" in original:
-        #     original = "Demands"
+        if "Demands" in original:
+            original = "Multiple Demands"
         return original
 
     """Open Layers"""
@@ -183,6 +197,8 @@ class QGISRedUtils:
             "Washout Valves", "Air Release Valves", "Sources", "Reservoirs",
             "Tanks", "Demands", "Junctions", "Pumps", "Valves", "Pipes"
         ]
+
+        self.elementIdentifiers 
 
         name_to_node = {}
         for child in group.children():

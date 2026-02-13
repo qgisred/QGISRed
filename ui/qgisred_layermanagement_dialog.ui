@@ -256,7 +256,7 @@
                 </property>
                 <property name="font">
                  <font>
-                  <weight>75</weight>
+                  <weight>50</weight>
                   <bold>false</bold>
                  </font>
                 </property>
@@ -408,12 +408,12 @@
                 </property>
                 <property name="font">
                  <font>
-                  <weight>75</weight>
+                  <weight>50</weight>
                   <bold>false</bold>
                  </font>
                 </property>
                 <property name="text">
-                 <string>Demands</string>
+                 <string>Multiple Demands</string>
                 </property>
                 <property name="checkable">
                  <bool>true</bool>

@@ -33,7 +33,7 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         self.btReservoirs.clicked.connect(lambda: self.createElement("Reservoirs"))
         self.btValves.clicked.connect(lambda: self.createElement("Valves"))
         self.btPumps.clicked.connect(lambda: self.createElement("Pumps"))
-        self.btDemands.clicked.connect(lambda: self.createElement("MultipleDemands", True))
+        self.btDemands.clicked.connect(lambda: self.createElement("Demands", True))
         self.btSources.clicked.connect(lambda: self.createElement("Sources", True))
         self.btIsolatedValves.clicked.connect(lambda: self.createElement("IsolationValves", True))
         self.btConnections.clicked.connect(lambda: self.createElement("ServiceConnections", True))
@@ -158,7 +158,7 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
 
     def createComplementaryList(self):
         if self.cbDemands.isChecked():
-            self.layers.append("MultipleDemands")
+            self.layers.append("Demands")
         if self.cbSources.isChecked():
             self.layers.append("Sources")
 
