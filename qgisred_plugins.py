@@ -74,7 +74,7 @@ class QGISRed:
     ResultDockwidget = None
     ProjectDirectory = ""
     NetworkName = ""
-    ownMainLayers = ["Pipes", "Junctions", "Demands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
+    ownMainLayers = ["Pipes", "Junctions", "MultipleDemands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
     ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns", "Materials", "Signals"]
     especificComplementaryLayers = []
     complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves", "AirReleaseValves", "ServiceConnections", "Meters"]
@@ -2218,7 +2218,7 @@ class QGISRed:
         for layer in layers:
             for layerName in mylayersNames:
                 layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp")
-                if layerName == "Sources" or layerName == "Demands":
+                if layerName == "Sources" or layerName == "MultipleDemands": #TODO
                     continue
                 if self.getLayerPath(layer) == layerPath:
                     fids = []
@@ -2285,7 +2285,7 @@ class QGISRed:
             openedLayerPath = self.getLayerPath(layer)
             for layerName in mylayersNames:
                 layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp")
-                if layerName == "Sources" or layerName == "Demands":
+                if layerName == "Sources" or layerName == "MultipleDemands":
                     continue
                 if openedLayerPath == layerPath:
                     if layerName in self.selectedFids:

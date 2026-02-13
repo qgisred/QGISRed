@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtWidgets import QDialog, QApplication
 from PyQt5.QtCore import Qt
-from qgis.core import QgsCoordinateReferenceSystem
+from qgis.core import QgsCoordinateReferenceSystem, QgsVectorLayer
 from qgis.PyQt import uic
 from qgis.gui import QgsProjectionSelectionDialog as QgsGenericProjectionSelector
 
@@ -33,12 +33,9 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         self.btReservoirs.clicked.connect(lambda: self.createElement("Reservoirs"))
         self.btValves.clicked.connect(lambda: self.createElement("Valves"))
         self.btPumps.clicked.connect(lambda: self.createElement("Pumps"))
-        self.btDemands.clicked.connect(lambda: self.createElement("Demands", True))
+        self.btDemands.clicked.connect(lambda: self.createElement("MultipleDemands", True))
         self.btSources.clicked.connect(lambda: self.createElement("Sources", True))
         self.btIsolatedValves.clicked.connect(lambda: self.createElement("IsolationValves", True))
-        self.btHydrants.clicked.connect(lambda: self.createElement("Hydrants", True))
-        self.btPurgeValves.clicked.connect(lambda: self.createElement("WashoutValves", True))
-        self.btAirReleases.clicked.connect(lambda: self.createElement("AirReleaseValves", True))
         self.btConnections.clicked.connect(lambda: self.createElement("ServiceConnections", True))
         self.btMeters.clicked.connect(lambda: self.createElement("Meters", True))
 
@@ -65,56 +62,55 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         self.btReservoirs.setVisible(not self.NetworkName + "_Reservoirs.shp" in dirList)
         self.btValves.setVisible(not self.NetworkName + "_Valves.shp" in dirList)
         self.btPumps.setVisible(not self.NetworkName + "_Pumps.shp" in dirList)
-        self.btDemands.setVisible(not self.NetworkName + "_Demands.shp" in dirList)
+        self.btDemands.setVisible(not self.NetworkName + "_MultipleDemands.shp" in dirList)
         self.btSources.setVisible(not self.NetworkName + "_Sources.shp" in dirList)
         self.btIsolatedValves.setVisible(not self.NetworkName + "_IsolationValves.shp" in dirList)
-        self.btHydrants.setVisible(not self.NetworkName + "_Hydrants.shp" in dirList)
-        self.btPurgeValves.setVisible(not self.NetworkName + "_WashoutValves.shp" in dirList)
-        self.btAirReleases.setVisible(not self.NetworkName + "_AirReleaseValves.shp" in dirList)
         self.btConnections.setVisible(not self.NetworkName + "_ServiceConnections.shp" in dirList)
         self.btMeters.setVisible(not self.NetworkName + "_Meters.shp" in dirList)
 
         # Enables
         self.cbIsolatedValves.setEnabled(self.NetworkName + "_IsolationValves.shp" in dirList)
-        self.cbHydrants.setEnabled(self.NetworkName + "_Hydrants.shp" in dirList)
-        self.cbPurgeValves.setEnabled(self.NetworkName + "_WashoutValves.shp" in dirList)
-        self.cbAirReleases.setEnabled(self.NetworkName + "_AirReleaseValves.shp" in dirList)
         self.cbConnections.setEnabled(self.NetworkName + "_ServiceConnections.shp" in dirList)
         self.cbMeters.setEnabled(self.NetworkName + "_Meters.shp" in dirList)
 
         # Los básicos: Enables and checked
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        # Pipes remains exception: cannot be deselected
         hasLayer = utils.isLayerOpened("Pipes")
         self.cbPipes.setChecked(hasLayer)
         self.cbPipes.setEnabled(self.NetworkName + "_Pipes.shp" in dirList and not hasLayer)
+
+        # For all other basic elements, always enable the checkbox (allowing the user to deselect to remove the layer)
         hasLayer = utils.isLayerOpened("Junctions")
         self.cbJunctions.setChecked(hasLayer)
-        self.cbJunctions.setEnabled(self.NetworkName + "_Junctions.shp" in dirList and not hasLayer)
+        self.cbJunctions.setEnabled(self.NetworkName + "_Junctions.shp" in dirList)
+
         hasLayer = utils.isLayerOpened("Tanks")
         self.cbTanks.setChecked(hasLayer)
-        self.cbTanks.setEnabled(self.NetworkName + "_Tanks.shp" in dirList and not hasLayer)
+        self.cbTanks.setEnabled(self.NetworkName + "_Tanks.shp" in dirList)
+
         hasLayer = utils.isLayerOpened("Reservoirs")
         self.cbReservoirs.setChecked(hasLayer)
-        self.cbReservoirs.setEnabled(self.NetworkName + "_Reservoirs.shp" in dirList and not hasLayer)
+        self.cbReservoirs.setEnabled(self.NetworkName + "_Reservoirs.shp" in dirList)
+
         hasLayer = utils.isLayerOpened("Valves")
         self.cbValves.setChecked(hasLayer)
-        self.cbValves.setEnabled(self.NetworkName + "_Valves.shp" in dirList and not hasLayer)
+        self.cbValves.setEnabled(self.NetworkName + "_Valves.shp" in dirList)
+
         hasLayer = utils.isLayerOpened("Pumps")
         self.cbPumps.setChecked(hasLayer)
-        self.cbPumps.setEnabled(self.NetworkName + "_Pumps.shp" in dirList and not hasLayer)
+        self.cbPumps.setEnabled(self.NetworkName + "_Pumps.shp" in dirList)
 
-        hasLayer = utils.isLayerOpened("Demands")
+        hasLayer = utils.isLayerOpened("MultipleDemands")
         self.cbDemands.setChecked(hasLayer)
-        self.cbDemands.setEnabled(self.NetworkName + "_Demands.shp" in dirList and not hasLayer)
+        self.cbDemands.setEnabled(self.NetworkName + "_MultipleDemands.shp" in dirList)
+
         hasLayer = utils.isLayerOpened("Sources")
         self.cbSources.setChecked(hasLayer)
-        self.cbSources.setEnabled(self.NetworkName + "_Sources.shp" in dirList and not hasLayer)
+        self.cbSources.setEnabled(self.NetworkName + "_Sources.shp" in dirList)
 
         # Checked
         self.cbIsolatedValves.setChecked(utils.isLayerOpened("IsolationValves"))
-        self.cbHydrants.setChecked(utils.isLayerOpened("Hydrants"))
-        self.cbPurgeValves.setChecked(utils.isLayerOpened("WashoutValves"))
-        self.cbAirReleases.setChecked(utils.isLayerOpened("AirReleaseValves"))
         self.cbConnections.setChecked(utils.isLayerOpened("ServiceConnections"))
         self.cbMeters.setChecked(utils.isLayerOpened("Meters"))
 
@@ -160,18 +156,12 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
 
     def createComplementaryList(self):
         if self.cbDemands.isChecked():
-            self.layers.append("Demands")
+            self.layers.append("MultipleDemands")
         if self.cbSources.isChecked():
             self.layers.append("Sources")
 
         if self.cbIsolatedValves.isChecked():
             self.layers.append("Isolation Valves")
-        if self.cbHydrants.isChecked():
-            self.layers.append("Hydrants")
-        if self.cbPurgeValves.isChecked():
-            self.layers.append("Washout Valves")
-        if self.cbAirReleases.isChecked():
-            self.layers.append("AirRelease Valves")
         if self.cbConnections.isChecked():
             self.layers.append("Service Connections")
         if self.cbMeters.isChecked():
@@ -197,8 +187,37 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         self.layers = []
         self.createElementsList()
         self.createComplementaryList()
+        
+        # Filter out empty layers (except for Pipes)
+        filtered_layers = self.filterEmptyLayers(self.layers)
+        
         epsg = None
         if not self.crs.srsid() == self.originalCrs.srsid():
             epsg = self.crs.authid().replace("EPSG:", "")
-        self.parent.openRemoveSpecificLayers(self.layers, epsg)
+        self.parent.openRemoveSpecificLayers(filtered_layers, epsg)
         self.close()
+
+    def filterEmptyLayers(self, layer_list):
+        filtered_layers = []
+        
+        name_mapping = {
+            "Isolation Valves": "IsolationValves",
+            "Service Connections": "ServiceConnections"
+        }
+        
+        for layer_name in layer_list:
+            file_name = name_mapping.get(layer_name, layer_name)
+            
+            layer_path = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + file_name + ".shp")
+            try:
+                layer = QgsVectorLayer(layer_path, file_name, "ogr")
+                if layer.isValid():
+                    is_pipe_layer = file_name.lower() == "pipes"
+                    
+                    if is_pipe_layer or layer.featureCount() > 0:
+                        filtered_layers.append(layer_name)
+                del layer
+            except Exception:
+                pass
+        
+        return filtered_layers

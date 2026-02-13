@@ -15,8 +15,8 @@ from ..tools.qgisred_utils import QGISRedUtils
 
 
 class QGISRedMoveNodesTool(QgsMapTool):
-    ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs", "Demands", "Sources"]
-    myNodeLayers = ["Junctions", "Tanks", "Reservoirs", "Demands", "Sources"]
+    ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs", "MultipleDemands", "Sources"]
+    myNodeLayers = ["Junctions", "Tanks", "Reservoirs", "MultipleDemands", "Sources"]
 
     def __init__(self, button, iface, projectDirectory, netwName):
         QgsMapTool.__init__(self, iface.mapCanvas())

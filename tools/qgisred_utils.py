@@ -65,7 +65,7 @@ class QGISRedUtils:
             if ind != 0:
                 original = original[:ind] + " " + original[ind:]
 
-        if "Demands" in original:
+        if "MultipleDemands" in original:
             original = "Multiple Demands"
         return original
 
@@ -98,25 +98,46 @@ class QGISRedUtils:
         layerName = self.NetworkName + "_" + name
         if os.path.exists(os.path.join(self.ProjectDirectory, layerName + ext)):
             vlayer = QgsVectorLayer(os.path.join(self.ProjectDirectory, layerName + ext), showName, "ogr")
-            if not ext == ".dbf":
-                if results:
-                    self.setResultStyle(vlayer)
-                elif sectors:
-                    self.setSectorsStyle(vlayer)
-                elif issues:
-                    pass
-                else:
-                    self.setStyle(vlayer, name.lower())
-            QgsProject.instance().addMapLayer(vlayer, group is None)
-            self.setLayerIdentifier(vlayer, name) 
-            if group is not None:
-                if toEnd:
-                    group.addChildNode(QgsLayerTreeLayer(vlayer))
-                else:
-                    group.insertChildNode(0, QgsLayerTreeLayer(vlayer))
+            
+            if vlayer.isValid():
+                is_pipe_layer = name.lower() == "pipes"
+                
+                existing_identifier = vlayer.customProperty("qgisred_identifier", "")
+                if existing_identifier:
+                    is_pipe_layer = is_pipe_layer or "qgisred_main_pipes" in existing_identifier.lower()
+                
+                # Only add the layer if it's a pipe layer OR has features
+                if is_pipe_layer or vlayer.featureCount() > 0:
+                    if not ext == ".dbf":
+                        if results:
+                            self.setResultStyle(vlayer)
+                        elif sectors:
+                            self.setSectorsStyle(vlayer)
+                        elif issues:
+                            pass
+                        else:
+                            self.setStyle(vlayer, name.lower())
+                    
+                    QgsProject.instance().addMapLayer(vlayer, group is None)
+                    self.setLayerIdentifier(vlayer, name) 
+                    
+                    if group is not None:
+                        if toEnd:
+                            group.addChildNode(QgsLayerTreeLayer(vlayer))
+                        else:
+                            group.insertChildNode(0, QgsLayerTreeLayer(vlayer))
+                    
+                    if results:
+                        layerId = vlayer.id()
+                        del vlayer
+                        resultLayer = QgsProject.instance().mapLayer(layerId)
+                        if resultLayer:
+                            self.orderResultLayers(group)
+                    else:
+                        del vlayer
+                    return
+            
             del vlayer
-            if results:
-                self.orderResultLayers(group)
 
     def openTreeLayer(self, group, name, treeName, link=False):
         layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + name + "_Tree_" + treeName + ".shp")
@@ -168,7 +189,7 @@ class QGISRedUtils:
             "Sources.shp",
             "Reservoirs.shp",
             "Tanks.shp",
-            "Demands.shp",
+            "MultipleDemands.shp",
             "Junctions.shp",
             "Pumps.shp",
             "Valves.shp",
@@ -271,7 +292,7 @@ class QGISRedUtils:
                 svg_style["name"] = svgPath
                 size = "7"
                 svg_style["size"] = size
-                if name == "demands":
+                if name == "multipledemands":
                     svg_style["fill"] = "#9a1313"
                 symbol_layer = QgsSvgMarkerSymbolLayer.create(svg_style)
                 symbol = QgsSymbol.defaultSymbol(layer.geometryType())
@@ -584,7 +605,7 @@ class QGISRedUtils:
                             if not qgisPath == "":
                                 QgsProject.instance().read(qgisPath)
                         else:
-                            layers = ["Pipes", "Junctions", "Demands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
+                            layers = ["Pipes", "Junctions", "MultipleDemands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
                             self.openGroupLayers("Inputs", layers)
                     return
             for groups in root.findall("./ThirdParty/QGISRed/Groups"):
@@ -818,10 +839,10 @@ class QGISRedUtils:
         attribute_table_view.setAttributeTableConfig(config)
 
     def setLayerIdentifier(self, layer, layerType):
-        identifier = f"qgisred_main_{layerType.lower()}"
+        identifier = f"qgisred_{layerType.lower()}"
         layer.setId(identifier)
         layer.setCustomProperty("qgisred_identifier", identifier)
         layer_metadata = QgsLayerMetadata()
         layer_metadata.setIdentifier(identifier)
         layer.setMetadata(layer_metadata)
-        print(f"qgisred_main_{layerType.lower()}")
+        print(f"qgisred_{layerType.lower()}")
