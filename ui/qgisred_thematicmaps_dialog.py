@@ -117,12 +117,19 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         return None
 
     def get_project_units(self):
-        units_enum = QgsProject.instance().crs().mapUnits()
-        print("units_enum : ", units_enum)
-        if units_enum == QgsUnitTypes.DistanceMeters:
-            return 'meters'
-        elif units_enum == QgsUnitTypes.DistanceFeet:
+        units, ok = QgsProject.instance().readEntry("QGISRed", "project_units", "LPS")
+
+        # International Units
+        international_units = ["LPS", "LPM", "MLD", "CMH", "CMD"]
+
+        # American Units 
+        american_units = ["CFS", "GPM", "MGD", "IMGD", "AFD"]
+
+        print("units: ", units)
+        if units in american_units:
             return 'feet'
+        elif units in international_units:
+            return 'meters'
         else:
             # Default to meters
             return 'meters'

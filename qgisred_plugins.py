@@ -1750,6 +1750,9 @@ class QGISRed:
             if attrs[1] == "HEADLOSS":
                 headloss = attrs[2]
 
+        QgsProject.instance().writeEntry("QGISRed", "project_units", units)
+        QgsProject.instance().writeEntry("QGISRed", "project_headloss", headloss)
+
         self.unitsAction.setText("QGISRed: " + units + " | " + headloss)
         del dbf
 
