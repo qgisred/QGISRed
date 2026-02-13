@@ -168,7 +168,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
     def restoreElementsCb(self):
         self.Scenario = self.cbScenarios.currentText()
-        resultPath = os.path.join(self.ProjectDirectory, "Results")
         self.setLayersNames(True)
         layers = self.getLayers()
 
@@ -178,11 +177,13 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.cbFlowDirections.setVisible(False)
 
         for nameLayer in self.LabelsToOpRe:
-            layerResult = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp")
+            layer_identifier = f"qgisred_result_{nameLayer.lower()}"
+            
             for layer in layers:
-                openLayerPath = self.getLayerPath(layer)
-                if openLayerPath == layerResult:
+                layer_id = layer.customProperty("qgisred_identifier")
+                if layer_id == layer_identifier:
                     self.setSelectedItemInLinkNodeComboboxes(nameLayer)
+                    break
         self.Computing = False
 
     """Create Lists"""
@@ -281,15 +282,15 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         self.Scenario = self.cbScenarios.currentText()
         resultPath = os.path.join(self.ProjectDirectory, "Results")
-
         layers = self.getLayers()
 
         self.lbTime.setText(self.TimeLabels[columnNumber])
         for nameLayer in self.LabelsToOpRe:
-            resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp")
+            layer_identifier = f"qgisred_result_{nameLayer.lower()}"
+            
             for layer in layers:
-                openedLayerPath = self.getLayerPath(layer)
-                if openedLayerPath == resultLayerPath:
+                layer_id = layer.customProperty("qgisred_identifier")
+                if layer_id == layer_identifier:
                     field_names = [field.name() for field in layer.fields()]
                     field = field_names[columnNumber + 2]
                     self.setGraduadedPalette(layer, field, setRender, nameLayer)
@@ -297,6 +298,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     name = nameLayer.replace("Link_", "").replace("Node_", "") + ': [% "T' + str(columnNumber) + '" %]'
                     layer.setMapTipTemplate(name)
                     self.setLayerLabels(layer, "T" + str(columnNumber))
+                    break
 
     def setLayerLabels(self, layer, fieldName):
         firstCondition = layer.geometryType() == 0 and self.cbNodeLabels.isChecked()
@@ -653,18 +655,19 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
     def nodeLabelsClicked(self):
         self.setNodesLayersNames()
-        resultPath = os.path.join(self.ProjectDirectory, "Results")
         layers = self.getLayers()
         for nameLayer in self.LabelsToOpRe:
-            resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp")
+            layer_identifier = f"qgisred_result_{nameLayer.lower()}"
+            
             for layer in layers:
-                openedLayerPath = self.getLayerPath(layer)
-                if openedLayerPath == resultLayerPath:
+                layer_id = layer.customProperty("qgisred_identifier")
+                if layer_id == layer_identifier:
                     if self.cbNodeLabels.isChecked():
                         self.setLayerLabels(layer, "T" + str(self.cbTimes.currentIndex()))
                     else:
                         layer.setLabelsEnabled(False)
                         layer.triggerRepaint()
+                    break
 
     def linkLabelsClicked(self):
         self.setLinksLayersNames()

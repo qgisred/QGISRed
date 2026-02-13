@@ -2304,17 +2304,21 @@ class QGISRed:
     def zoomToElementFromProperties(self, layerName, elementId):
         layers = self.getLayers()
         layer = None
+        
+        layer_identifier = f"qgisred_{layerName.lower()}"
+        
         for la in layers:
-            path = QGISRedUtils.getLayerPath(self, la)
-            if self.NetworkName + "_" + layerName in path:
+            if la.customProperty("qgisred_identifier") == layer_identifier:
                 layer = la
-
-        features = layer.getFeatures('"Id"=\'' + elementId + "'")
-        for feat in features:
-            box = feat.geometry().boundingBox()
-            self.iface.mapCanvas().setExtent(box)
-            self.iface.mapCanvas().refresh()
-            return
+                break
+                
+        if layer:
+            features = layer.getFeatures('"Id"=\'' + elementId + "'")
+            for feat in features:
+                box = feat.geometry().boundingBox()
+                self.iface.mapCanvas().setExtent(box)
+                self.iface.mapCanvas().refresh()
+                return
 
     def doNothing(self, task=None):
         if task is not None:
@@ -4897,7 +4901,10 @@ class QGISRed:
         
         # Restore query layers using existing method
         if 'Queries' in all_layers:
-            self.restoreQueryLayers(all_layers['Queries'])
+            root = QgsProject.instance().layerTreeRoot()
+            queries_group = root.findGroup("Queries")
+            if queries_group:
+                self.restoreQueryLayers(all_layers['Queries'])
         
         # Restore results layers
         if 'Results' in all_layers:

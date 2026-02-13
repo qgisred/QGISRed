@@ -134,9 +134,10 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
 
     def isInLegend(self, layerName):
         openedLayers = self.getLayers()
+        layer_identifier = f"qgisred_input_{layerName.lower()}"
+        
         for layer in openedLayers:
-            layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp")
-            if self.getLayerPath(layer) == layerPath:
+            if layer.customProperty("qgisred_identifier") == layer_identifier:
                 return True
         return False
 
