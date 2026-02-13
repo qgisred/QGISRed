@@ -50,15 +50,15 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         
         self.tabWidget.setTabVisible(1, False)
         
-        current_width = self.width()
+        currentWidth = self.width()
         self.adjustSize()
-        self.resize(current_width, self.height())
+        self.resize(currentWidth, self.height())
 
     def setDialogStyle(self):
-        icon_path = os.path.join(os.path.dirname(__file__), '..', 'images', 'iconThematicMaps.png')
-        self.setWindowIcon(QIcon(icon_path))
+        iconPath = os.path.join(os.path.dirname(__file__), '..', 'images', 'iconThematicMaps.png')
+        self.setWindowIcon(QIcon(iconPath))
 
-        group_boxes = [
+        groupBoxes = [
             self.gbPipes,
             self.gbJunctions,
             self.gbValves,
@@ -70,77 +70,77 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             self.gbMeters
         ]
 
-        for group_box in group_boxes:
-            self.setGroupBoxStyle(group_box)
+        for groupBox in groupBoxes:
+            self.setGroupBoxStyle(groupBox)
 
-    def setGroupBoxStyle(self, group_box):
-        group_box.setStyleSheet("font-weight: bold;")
-        for widget in group_box.findChildren(QWidget):
+    def setGroupBoxStyle(self, groupBox):
+        groupBox.setStyleSheet("font-weight: bold;")
+        for widget in groupBox.findChildren(QWidget):
             widget.setStyleSheet("font-weight: normal;")
 
     def accept(self):
-        root_group = self.get_root_group()
-        inputs_group = self.find_group_by_name(root_group, 'Inputs')
-        if inputs_group is None:
+        rootGroup = self.getRootGroup()
+        inputsGroup = self.findGroupByName(rootGroup, 'Inputs')
+        if inputsGroup is None:
             QMessageBox.critical(self, 'Error', 'Inputs group not found.')
             return
 
-        selected_queries = self.get_selected_queries()
-        current_valid_identifiers = set(
+        selectedQueries = self.getSelectedQueries()
+        currentValidIdentifiers = set(
             f"qgisred_query_{query['field'].lower()}_{query['tooltip_prefix'].lower()}"
-            for query in selected_queries
+            for query in selectedQueries
         )
-        to_remove_identifiers = self.initial_valid_identifiers - current_valid_identifiers
+        toRemoveIdentifiers = self.initialValidIdentifiers - currentValidIdentifiers
 
-        if not selected_queries and not to_remove_identifiers:
+        if not selectedQueries and not toRemoveIdentifiers:
             super().accept()
             return
 
-        self.remove_query_layers_by_identifiers(to_remove_identifiers)
+        self.removeQueryLayersByIdentifiers(toRemoveIdentifiers)
 
-        queries_group = self.find_group_by_name(root_group, 'Queries')
-        if queries_group and not queries_group.children():
-            parent = queries_group.parent()
+        queriesGroup = self.findGroupByName(rootGroup, 'Queries')
+        if queriesGroup and not queriesGroup.children():
+            parent = queriesGroup.parent()
             if parent:
-                parent.removeChildNode(queries_group)
+                parent.removeChildNode(queriesGroup)
 
-        if selected_queries:
-            queries_group = self.get_or_create_queries_group(root_group, inputs_group)
-            pipes_layer = self.find_layer_in_group(inputs_group, 'Pipes')
-            if pipes_layer is None:
+        if selectedQueries:
+            queriesGroup = self.getOrCreateQueriesGroup(rootGroup, inputsGroup)
+            pipesLayer = self.findLayerInGroup(inputsGroup, 'Pipes')
+            if pipesLayer is None:
                 return
 
-            new_queries = [
-                query for query in selected_queries
+            newQueries = [
+                query for query in selectedQueries
                 if f"qgisred_query_{query['field'].lower()}_{query['tooltip_prefix'].lower()}" 
-                in (current_valid_identifiers - self.initial_valid_identifiers)
+                in (currentValidIdentifiers - self.initialValidIdentifiers)
             ]
 
-            for query in reversed(new_queries):
-                self.process_query(query, pipes_layer, queries_group)
+            for query in reversed(newQueries):
+                self.processQuery(query, pipesLayer, queriesGroup)
 
         super().accept()
 
-    def remove_query_layers_by_identifiers(self, identifiers_to_remove):
-        if not identifiers_to_remove:
+    def removeQueryLayersByIdentifiers(self, identifiersToRemove):
+        if not identifiersToRemove:
             return
         root = QgsProject.instance().layerTreeRoot()
-        queries_group = self.find_group_by_name(root, 'Queries')
-        if queries_group:
-            self.recursiveremove_by_identifiers(queries_group, identifiers_to_remove)
+        queriesGroup = self.findGroupByName(root, 'Queries')
+        if queriesGroup:
+            self.recursiveRemoveByIdentifiers(queriesGroup, identifiersToRemove)
 
-    def recursiveremove_by_identifiers(self, group, identifiers):
+    def recursiveRemoveByIdentifiers(self, group, identifiers):
         for child in list(group.children()):
             if isinstance(child, QgsLayerTreeLayer):
                 layer = child.layer()
                 if layer:
-                    layer_id = layer.customProperty("qgisred_identifier")
-                    if layer_id in identifiers:
+                    layerId = layer.customProperty("qgisred_identifier")
+                    if layerId in identifiers:
                         QgsProject.instance().removeMapLayer(layer.id())
             elif isinstance(child, QgsLayerTreeGroup):
-                self.recursiveremove_by_identifiers(child, identifiers)
+                self.recursiveRemoveByIdentifiers(child, identifiers)
 
-    def get_root_group(self):
+    def getRootGroup(self):
         project = QgsProject.instance()
         root = project.layerTreeRoot()
         if isinstance(root, QgsLayerTreeGroup):
@@ -148,206 +148,206 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         else:
             return root.rootGroup()
 
-    def find_group_by_name(self, parent_group, group_name):
-        return parent_group.findGroup(group_name)
+    def findGroupByName(self, parentGroup, groupName):
+        return parentGroup.findGroup(groupName)
 
-    def get_or_create_queries_group(self, root_group, inputs_group):
-        inputs_parent = inputs_group.parent()
-        if inputs_parent is None:
-            inputs_parent = root_group
+    def getOrCreateQueriesGroup(self, rootGroup, inputsGroup):
+        inputsParent = inputsGroup.parent()
+        if inputsParent is None:
+            inputsParent = rootGroup
 
-        queries_group = self.find_group_by_name(root_group, 'Queries')
-        if queries_group is None:
-            inputs_group_index = inputs_parent.children().index(inputs_group)
-            queries_group = inputs_parent.insertGroup(inputs_group_index, 'Queries')
+        queriesGroup = self.findGroupByName(rootGroup, 'Queries')
+        if queriesGroup is None:
+            inputsGroupIndex = inputsParent.children().index(inputsGroup)
+            queriesGroup = inputsParent.insertGroup(inputsGroupIndex, 'Queries')
         else:
-            if queries_group.parent() != inputs_parent:
-                old_parent = queries_group.parent()
-                old_parent.removeChildNode(queries_group)
-                inputs_parent.insertChildNode(0, queries_group)
-        return queries_group
+            if queriesGroup.parent() != inputsParent:
+                oldParent = queriesGroup.parent()
+                oldParent.removeChildNode(queriesGroup)
+                inputsParent.insertChildNode(0, queriesGroup)
+        return queriesGroup
 
-    def find_layer_in_group(self, group, layer_name):
+    def findLayerInGroup(self, group, layerName):
         for child in group.children():
-            if child.nodeType() == QgsLayerTreeNode.NodeLayer and child.name() == layer_name and child.checkedLayers():
+            if child.nodeType() == QgsLayerTreeNode.NodeLayer and child.name() == layerName and child.checkedLayers():
                 return child.checkedLayers()[0]
-            elif isinstance(child, QgsLayerTreeLayer) and child.name() == layer_name:
+            elif isinstance(child, QgsLayerTreeLayer) and child.name() == layerName:
                 return child.layer()
             elif isinstance(child, QgsLayerTreeGroup):
-                layer = self.find_layer_in_group(child, layer_name)
+                layer = self.findLayerInGroup(child, layerName)
                 if layer is not None:
                     return layer
         return None
 
-    def process_query(self, query, main_layer, queries_group):
-        layer_name = query['layer_name']
+    def processQuery(self, query, mainLayer, queriesGroup):
+        layerName = query['layer_name']
         field = query['field']
-        qml_file = query['qml_file']
-        tooltip_prefix = query['tooltip_prefix']
+        qmlFile = query['qml_file']
+        tooltipPrefix = query['tooltip_prefix']
         
         # Generate a unique identifier for the layer
-        layer_identifier = f"qgisred_query_{field.lower()}_{tooltip_prefix.lower()}"
+        layerIdentifier = f"qgisred_query_{field.lower()}_{tooltipPrefix.lower()}"
         
         # Find existing layer by identifier instead of name
-        existing_layer, layer_position = self.find_layer_by_identifier(queries_group, layer_identifier)
-        parent_group = queries_group
-        layer_position = 0
+        existingLayer, layerPosition = self.findLayerByIdentifier(queriesGroup, layerIdentifier)
+        parentGroup = queriesGroup
+        layerPosition = 0
         
-        if existing_layer is not None:
+        if existingLayer is not None:
             try:
-                parent_group = existing_layer.parent()
+                parentGroup = existingLayer.parent()
                 
-                layer_id = None
-                if isinstance(existing_layer, QgsLayerTreeLayer) and existing_layer.layer():
-                    layer_id = existing_layer.layer().id()
-                elif existing_layer.nodeType() == QgsLayerTreeNode.NodeLayer and existing_layer.checkedLayers():
-                    layer_id = existing_layer.checkedLayers()[0].id()
+                layerId = None
+                if isinstance(existingLayer, QgsLayerTreeLayer) and existingLayer.layer():
+                    layerId = existingLayer.layer().id()
+                elif existingLayer.nodeType() == QgsLayerTreeNode.NodeLayer and existingLayer.checkedLayers():
+                    layerId = existingLayer.checkedLayers()[0].id()
                     
-                if layer_id and QgsProject.instance().mapLayer(layer_id):
-                    QgsProject.instance().removeMapLayer(layer_id)
+                if layerId and QgsProject.instance().mapLayer(layerId):
+                    QgsProject.instance().removeMapLayer(layerId)
                     
-                if parent_group and not sip.isdeleted(parent_group):
-                    parent_group.removeChildNode(existing_layer)
+                if parentGroup and not sip.isdeleted(parentGroup):
+                    parentGroup.removeChildNode(existingLayer)
                     
             except Exception as e:
                 print(f"Error removing layer: {e}")
         
-        derived_layer = self.create_derived_layer(main_layer, layer_name, field)
+        derivedLayer = self.createDerivedLayer(mainLayer, layerName, field)
         
-        derived_layer.setCustomProperty("query_field", field)
+        derivedLayer.setCustomProperty("query_field", field)
         
-        qml_path = self.load_qml_style(derived_layer, qml_file)
-        derived_layer.setLabelsEnabled(False)
+        qmlPath = self.loadQmlStyle(derivedLayer, qmlFile)
+        derivedLayer.setLabelsEnabled(False)
         
         if field == 'Material':
-            QGISRedUtils().apply_categorized_renderer(derived_layer, field, qml_path)
+            QGISRedUtils().apply_categorized_renderer(derivedLayer, field, qmlPath)
 
-        derived_layer.setCustomProperty("qgisred_identifier", layer_identifier)
+        derivedLayer.setCustomProperty("qgisred_identifier", layerIdentifier)
         
-        QgsProject.instance().addMapLayer(derived_layer, False)
-        QGISRedUtils().hide_fields(derived_layer, field)
+        QgsProject.instance().addMapLayer(derivedLayer, False)
+        QGISRedUtils().hide_fields(derivedLayer, field)
 
-        if parent_group and not sip.isdeleted(parent_group):
-            layer_tree_layer = parent_group.insertLayer(layer_position, derived_layer)
-            layer_tree_layer.setCustomProperty("showFeatureCount", True)
+        if parentGroup and not sip.isdeleted(parentGroup):
+            layerTreeLayer = parentGroup.insertLayer(layerPosition, derivedLayer)
+            layerTreeLayer.setCustomProperty("showFeatureCount", True)
 
-        main_layer.dataChanged.connect(lambda: self.sync_layers(main_layer, derived_layer))
-        main_layer.styleChanged.connect(lambda: self.sync_layers(main_layer, derived_layer))
-        derived_layer.dataChanged.connect(lambda: derived_layer.triggerRepaint())
-        derived_layer.setReadOnly(True)
+        mainLayer.dataChanged.connect(lambda: self.syncLayers(mainLayer, derivedLayer))
+        mainLayer.styleChanged.connect(lambda: self.syncLayers(mainLayer, derivedLayer))
+        derivedLayer.dataChanged.connect(lambda: derivedLayer.triggerRepaint())
+        derivedLayer.setReadOnly(True)
 
-        return derived_layer
+        return derivedLayer
     
-    def find_layer_by_identifier(self, parent_group, identifier):
-        if not parent_group:
+    def findLayerByIdentifier(self, parentGroup, identifier):
+        if not parentGroup:
             return None, None
             
-        for i, child in enumerate(parent_group.children()):
+        for i, child in enumerate(parentGroup.children()):
             if isinstance(child, QgsLayerTreeLayer):
-                layer_identifier = child.customProperty("qgisred_identifier")
-                if layer_identifier == identifier:
+                layerIdentifier = child.customProperty("qgisred_identifier")
+                if layerIdentifier == identifier:
                     return child, i
             elif isinstance(child, QgsLayerTreeGroup):
-                found_layer, found_position = self.find_layer_by_identifier(child, identifier)
-                if found_layer is not None:
-                    return found_layer, found_position
+                foundLayer, foundPosition = self.findLayerByIdentifier(child, identifier)
+                if foundLayer is not None:
+                    return foundLayer, foundPosition
         
         return None, None
     
-    def sync_layers(self, main_layer, derived_layer):
-        derived_layer.dataProvider().forceReload()
-        new_renderer = main_layer.renderer().clone()
-        derived_layer.setRenderer(new_renderer)
-        derived_layer.triggerRepaint()
+    def syncLayers(self, mainLayer, derivedLayer):
+        derivedLayer.dataProvider().forceReload()
+        newRenderer = mainLayer.renderer().clone()
+        derivedLayer.setRenderer(newRenderer)
+        derivedLayer.triggerRepaint()
 
-    def check_existing_layer(self, queries_group, layer_name, layer_path=None):
-        existing_layer = None
-        for child in queries_group.children():
-            if isinstance(child, QgsLayerTreeLayer) and child.name() == layer_name:
-                existing_layer = child
+    def checkExistingLayer(self, queriesGroup, layerName, layerPath=None):
+        existingLayer = None
+        for child in queriesGroup.children():
+            if isinstance(child, QgsLayerTreeLayer) and child.name() == layerName:
+                existingLayer = child
                 break
         
-        if existing_layer is not None:
-            if layer_path and os.path.exists(layer_path):
-                QgsVectorFileWriter.deleteShapeFile(layer_path)
+        if existingLayer is not None:
+            if layerPath and os.path.exists(layerPath):
+                QgsVectorFileWriter.deleteShapeFile(layerPath)
             
-            QgsProject.instance().removeMapLayer(existing_layer.id())
+            QgsProject.instance().removeMapLayer(existingLayer.id())
             return True
         
         return False
 
-    def create_derived_layer(self, source_layer, new_layer_name, field):
-        uri = source_layer.source()
+    def createDerivedLayer(self, sourceLayer, newLayerName, field):
+        uri = sourceLayer.source()
         
-        geometry_type = source_layer.geometryType()
-        provider_type = source_layer.providerType()
+        geometryType = sourceLayer.geometryType()
+        providerType = sourceLayer.providerType()
         
-        derived_layer = QgsVectorLayer(uri, new_layer_name, provider_type)
+        derivedLayer = QgsVectorLayer(uri, newLayerName, providerType)
         
-        if not derived_layer.isValid():
-            raise Exception(f"Failed to create derived layer from {source_layer.name()}")
+        if not derivedLayer.isValid():
+            raise Exception(f"Failed to create derived layer from {sourceLayer.name()}")
 
-        derived_layer.setCrs(source_layer.crs())
+        derivedLayer.setCrs(sourceLayer.crs())
         
-        return derived_layer
+        return derivedLayer
 
-    def load_qml_style(self, layer, qml_file):
-        qml_path = os.path.join(os.path.dirname(__file__), '..', 'layerStyles', qml_file)
-        if os.path.exists(qml_path):
-            layer.loadNamedStyle(qml_path)
-            layer.setCustomProperty("styleURI", qml_path)
+    def loadQmlStyle(self, layer, qmlFile):
+        qmlPath = os.path.join(os.path.dirname(__file__), '..', 'layerStyles', qmlFile)
+        if os.path.exists(qmlPath):
+            layer.loadNamedStyle(qmlPath)
+            layer.setCustomProperty("styleURI", qmlPath)
             layer.triggerRepaint()
-        return qml_path
+        return qmlPath
     
-    def assign_labels(self, layer, field, ):
+    def assignLabels(self, layer, field, ):
         layer.setLabelsEnabled(True)
         labeling = layer.labeling()
         if labeling is not None:
-            label_settings = labeling.clone()
-            label_settings.fieldName = field
-            layer.setLabeling(label_settings)
+            labelSettings = labeling.clone()
+            labelSettings.fieldName = field
+            layer.setLabeling(labelSettings)
 
-    def sync_symbology(self, main_layer, derived_layer):
-        if derived_layer and main_layer:
-            new_renderer = main_layer.renderer().clone()
-            derived_layer.setRenderer(new_renderer)
-            derived_layer.triggerRepaint()
+    def syncSymbology(self, mainLayer, derivedLayer):
+        if derivedLayer and mainLayer:
+            newRenderer = mainLayer.renderer().clone()
+            derivedLayer.setRenderer(newRenderer)
+            derivedLayer.triggerRepaint()
 
-    def set_labels_with_null_handling(self, layer, field_name, qml_file_path): 
+    def setLabelsWithNullHandling(self, layer, fieldName, qmlFilePath): 
         if not layer or not isinstance(layer, QgsVectorLayer):
             return
 
         # Create the label expression using coalesce to handle NULL values
         expression = f"""
                     CASE
-                        WHEN "{field_name}" IS NULL THEN '#NA'
-                        ELSE "{field_name}"
+                        WHEN "{fieldName}" IS NULL THEN '#NA'
+                        ELSE "{fieldName}"
                     END
         """
         # Set up label settings
-        label_settings = QgsPalLayerSettings()
-        label_settings.fieldName = expression
-        label_settings.isExpression = True
-        label_settings.placement= QgsPalLayerSettings.OverPoint
+        labelSettings = QgsPalLayerSettings()
+        labelSettings.fieldName = expression
+        labelSettings.isExpression = True
+        labelSettings.placement= QgsPalLayerSettings.OverPoint
         # Apply labeling to the layer
-        labeling = QgsVectorLayerSimpleLabeling(label_settings)
+        labeling = QgsVectorLayerSimpleLabeling(labelSettings)
         layer.setLabeling(labeling)
 
         layer.triggerRepaint()
     
     def updateCheckboxStates(self):
         root = QgsProject.instance().layerTreeRoot()
-        queries_group = self.find_group_by_name(root, 'Queries')
+        queriesGroup = self.findGroupByName(root, 'Queries')
 
-        checkbox_mapping = self.create_identifier_checkbox_mapping()
-        if queries_group:
-            self.check_layers_recursive_by_identifier(queries_group, checkbox_mapping)
+        checkboxMapping = self.createIdentifierCheckboxMapping()
+        if queriesGroup:
+            self.checkLayersRecursiveByIdentifier(queriesGroup, checkboxMapping)
         
-        self.initial_valid_identifiers = self.collect_existing_identifiers(queries_group) if queries_group else set()
+        self.initialValidIdentifiers = self.collectExistingIdentifiers(queriesGroup) if queriesGroup else set()
 
-    def collect_existing_identifiers(self, group):
+    def collectExistingIdentifiers(self, group):
         identifiers = set()
-        def recursive_collect(g):
+        def recursiveCollect(g):
             for child in g.children():
                 if isinstance(child, QgsLayerTreeLayer):
                     layer = child.layer()
@@ -356,11 +356,11 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                         if identifier:
                             identifiers.add(identifier)
                 elif isinstance(child, QgsLayerTreeGroup):
-                    recursive_collect(child)  # FIXED: Pass 'child' instead of 'g'
-        recursive_collect(group)
+                    recursiveCollect(child)  # FIXED: Pass 'child' instead of 'g'
+        recursiveCollect(group)
         return identifiers
 
-    def create_identifier_checkbox_mapping(self):
+    def createIdentifierCheckboxMapping(self):
         mapping = {}
         
         # Tanks mappings
@@ -439,7 +439,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         
         return mapping
 
-    def check_layers_recursive_by_identifier(self, group, identifier_mapping):
+    def checkLayersRecursiveByIdentifier(self, group, identifierMapping):
         if not group:
             return
 
@@ -447,24 +447,24 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             if isinstance(child, QgsLayerTreeLayer):
                 layer = child.layer()
                 if layer:
-                    layer_identifier = layer.customProperty("qgisred_identifier")
-                    if layer_identifier in identifier_mapping:
-                        checkbox = identifier_mapping[layer_identifier]
+                    layerIdentifier = layer.customProperty("qgisred_identifier")
+                    if layerIdentifier in identifierMapping:
+                        checkbox = identifierMapping[layerIdentifier]
                         checkbox.setChecked(True)
                         checkbox.setToolTip("Query already exists.")
             elif child.nodeType() == QgsLayerTreeNode.NodeLayer:
                 layers = child.checkedLayers()
                 if layers:
                     layer = layers[0]
-                    layer_identifier = layer.customProperty("qgisred_identifier")
-                    if layer_identifier in identifier_mapping:
-                        checkbox = identifier_mapping[layer_identifier]
+                    layerIdentifier = layer.customProperty("qgisred_identifier")
+                    if layerIdentifier in identifierMapping:
+                        checkbox = identifierMapping[layerIdentifier]
                         checkbox.setChecked(True)
                         checkbox.setToolTip("Query already exists.")
             elif isinstance(child, QgsLayerTreeGroup):
-                self.check_layers_recursive_by_identifier(child, identifier_mapping)
+                self.checkLayersRecursiveByIdentifier(child, identifierMapping)
 
-    def get_selected_queries(self):
+    def getSelectedQueries(self):
         units = QGISRedUtils().getUnits()
         queries = []
 

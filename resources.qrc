@@ -70,7 +70,7 @@
         <file>images/iconLoadFieldData.png</file>
         <file>images/iconLock.png</file>
         <file>images/iconCheckMaterials.png</file>
-        <file>images/iconMaterials.png</file>
+        <file>images/iconMaterialsTable.png</file>
         <file>images/iconMergeSplitJunctions.png</file>
         <file>images/iconMoveNodes.png</file>
         <file>images/iconMoveElements.png</file>
@@ -95,7 +95,7 @@
         <file>images/iconMultipleSelection.png</file>
 		<file>images/iconLoadMeterReadings.png</file>
         <file>images/iconSettings.png</file>
-        <file>images/iconSplitJoinPipe.png</file>
+        <file>images/iconSplitJoinPipes.png</file>
         <file>images/iconStatisticsAndPlots.png</file>
         <file>images/iconStatisticsArrowDown.png</file>
         <file>images/iconStatisticsArrowUp.png</file>

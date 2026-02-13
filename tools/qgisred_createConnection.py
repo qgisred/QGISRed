@@ -10,6 +10,7 @@ except:
     except:
         pass
 
+
 class QGISRedCreateConnectionTool(QgsMapTool):
     def __init__(self, button, iface, projectDirectory, netwName, method):
         QgsMapTool.__init__(self, iface.mapCanvas())
@@ -89,17 +90,12 @@ class QGISRedCreateConnectionTool(QgsMapTool):
         for p in points:
             myPoints1.append(QgsPoint(p.x(), p.y()))
         myPoints1.remove(myPoints1[-1])
-
         if self.rubberBand1 is not None:
             self.iface.mapCanvas().scene().removeItem(self.rubberBand1)
-
-        if Qgis.QGIS_VERSION_INT >= 33000:
-            # QGIS 3.30 or newer
+        try:  # From QGis 3.30
             self.rubberBand1 = QgsRubberBand(self.iface.mapCanvas(), Qgis.GeometryType.Line)
-        else:
-            # Older QGIS versions (< 3.30) only accept bool (False for line)
+        except:
             self.rubberBand1 = QgsRubberBand(self.iface.mapCanvas(), False)
-
         self.rubberBand1.setToGeometry(QgsGeometry.fromPolyline(myPoints1), None)
         self.rubberBand1.setColor(QColor(240, 40, 40))
         self.rubberBand1.setWidth(1)

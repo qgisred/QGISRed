@@ -499,7 +499,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed-BID/images/iconMaterials.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconMaterialsTable.png"
         self.add_action(
             icon_path,
             text=self.tr("Project materials"),
@@ -686,7 +686,7 @@ class QGISRed:
             checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/plugins/QGISRed-BID/images/iconSplitJoinPipe.png"
+        icon_path = ":/plugins/QGISRed-BID/images/iconSplitJoinPipes.png"
         self.splitPipeButton = self.add_action(
             icon_path,
             text=self.tr("Split/Join pipes"),

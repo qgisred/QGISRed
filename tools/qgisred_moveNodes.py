@@ -1,7 +1,7 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QCursor, QColor
 from qgis.core import QgsPointXY, QgsPoint, QgsFeatureRequest, QgsFeature, QgsGeometry, QgsProject, QgsVector
-from qgis.core import QgsVectorLayerEditUtils, QgsSnappingConfig, QgsTolerance, QgsWkbTypes
+from qgis.core import QgsVectorLayerEditUtils, QgsSnappingConfig, QgsTolerance
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSnappingUtils
 try:
     from qgis.gui import Qgis
@@ -164,7 +164,7 @@ class QGISRedMoveNodesTool(QgsMapTool):
             for p in points:
                 myPoints.append(QgsPoint(p.x(), p.y()))
         try:  # From QGis 3.30
-            self.rubberBand = QgsRubberBand(self.iface.mapCanvas(), QgsWkbTypes.GeometryType.Line)
+            self.rubberBand = QgsRubberBand(self.iface.mapCanvas(), Qgis.GeometryType.Line)
         except:
             self.rubberBand = QgsRubberBand(self.iface.mapCanvas(), False)
         self.rubberBand.setToGeometry(QgsGeometry.fromPolyline(myPoints), None)

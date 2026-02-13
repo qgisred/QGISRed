@@ -179,8 +179,8 @@ class QGISRedUtils:
             return
 
         mylayersNames = [
-            "Meters", "ServiceConnections", "IsolationValves", "Hydrants",
-            "WashoutValves", "AirReleaseValves", "Sources", "Reservoirs",
+            "Meters", "Service Connections", "Isolation Valves", "Hydrants",
+            "Washout Valves", "Air Release Valves", "Sources", "Reservoirs",
             "Tanks", "Demands", "Junctions", "Pumps", "Valves", "Pipes"
         ]
 
