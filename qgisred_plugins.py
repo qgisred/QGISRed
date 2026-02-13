@@ -21,7 +21,7 @@
 """
 
 # Import QGis
-from qgis.core import QgsProject, QgsVectorLayer, QgsMapLayer, QgsLayerTreeLayer
+from qgis.core import QgsProject, QgsVectorLayer, QgsMapLayer
 from qgis.core import QgsMessageLog, QgsCoordinateTransform, QgsApplication, QgsLayerTreeGroup, QgsLayerTreeNode
 from PyQt5.QtGui import QIcon, QCursor
 from PyQt5.QtWidgets import QAction, QMessageBox, QApplication, QMenu, QFileDialog, QToolButton
@@ -1185,6 +1185,17 @@ class QGISRed:
             icon_path,
             text=self.tr("Results browser"),
             callback=self.runShowResultsDock,
+            menubar=self.analysisMenu,
+            toolbar=self.analysisToolbar,
+            actionBase=analysisDropButton,
+            add_to_toolbar=True,
+            parent=self.iface.mainWindow(),
+        )
+        icon_path = ":/plugins/QGISRed-BID/images/iconRunModel.png"
+        self.add_action(
+            icon_path,
+            text=self.tr("Status report"),
+            callback=self.runOpenStatusReport,
             menubar=self.analysisMenu,
             toolbar=self.analysisToolbar,
             actionBase=analysisDropButton,
@@ -2764,24 +2775,30 @@ class QGISRed:
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
             return
-        
+
         self.readUnits(self.ProjectDirectory, self.NetworkName)
-        
+
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.assignLayerIdentifiers()
 
         QGISRedUtils().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
-        
-        layers = self.getLayers()
-        
-        root = QgsProject.instance().layerTreeRoot()
-        inputs_group = root.findGroup("Inputs")
-        
-        if inputs_group:
-            input_layers = []
-            for child in inputs_group.children():
-                if isinstance(child, QgsLayerTreeLayer):
-                    input_layers.append(child.layer())
+
+        # [FIX] Refresh Input Layers
+        # Instead of manually iterating styles, we trigger the standard update chain.
+        # This removes the layers QGIS loaded (which might have broken SVG paths)
+        # and re-opens them using the plugin's logic (which applies the correct styles).
+        self.removingLayers = True
+        self.opendedLayers = False
+        self.extent = QGISRedUtils().getProjectExtent()
+
+        # We use the existing task chain: removeLayers -> openElementLayers
+        # This ensures consistency with how layers are handled after editing properties.
+        QGISRedUtils().runTask("refresh_project_layers", self.removeLayers, self.openElementLayersWrapper)
+
+    def openElementLayersWrapper(self, exception=None, result=None):
+        """Wrapper to call openElementLayers and then setExtent"""
+        self.opendedLayers = False
+        QGISRedUtils().runTask("update layers", self.openElementLayers, self.setExtent)
 
     def runSaveProject(self):
         self.defineCurrentProject()
@@ -2943,6 +2960,25 @@ class QGISRed:
             self.runModel()
         else:
             self.ResultDockwidget.show()
+
+    def runOpenStatusReport(self):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+
+        # TODO Open project folder (as per note: file location still needs to be identified)
+        try:
+            os.startfile(self.ProjectDirectory)
+        except Exception as e:
+            self.iface.messageBar().pushMessage(
+                self.tr("Error"),
+                self.tr("Could not open project folder: ") + str(e),
+                level=2,
+                duration=5
+            )
 
     def runExportInp(self):
         if not self.checkDependencies():

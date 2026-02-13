@@ -10,8 +10,9 @@ import statistics
 from PyQt5.QtGui import QIcon, QColor
 from PyQt5.QtWidgets import (QDialog, QMessageBox, QHeaderView,
                              QComboBox, QLineEdit, QAbstractItemView,
-                             QCheckBox, QDoubleSpinBox)
-from PyQt5.QtCore import QVariant, Qt, QTimer, QObject, QEvent
+                             QCheckBox, QDoubleSpinBox, QApplication)
+from PyQt5.QtCore import (QVariant, Qt, QTimer, QObject, QEvent,
+                          QItemSelectionModel, QItemSelection)
 from qgis.PyQt import uic
 
 # QGIS imports
@@ -33,7 +34,8 @@ formClass, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_l
 
 class RowSelectionFilter(QObject):
     """
-    Event filter to ensure clicking a cell widget selects the underlying table row.
+    Event filter to ensure clicking a cell widget selects the underlying table row
+    while respecting Ctrl/Shift modifiers for multi-selection.
     """
     def __init__(self, table):
         super(RowSelectionFilter, self).__init__(table)
@@ -44,7 +46,29 @@ class RowSelectionFilter(QObject):
             # Find the widget's position in the table
             index = self.table.indexAt(widget.pos())
             if index.isValid():
-                self.table.selectRow(index.row())
+                selectionModel = self.table.selectionModel()
+                modifiers = QApplication.keyboardModifiers()
+
+                # Define selection behavior based on modifiers
+                if modifiers & Qt.ControlModifier:
+                    command = QItemSelectionModel.Toggle
+                elif modifiers & Qt.ShiftModifier:
+                    # Treat focus on widget with Shift as adding to selection
+                    command = QItemSelectionModel.Select
+                else:
+                    command = QItemSelectionModel.ClearAndSelect
+
+                # Create a selection range covering the entire row (all columns)
+                topLeft = self.table.model().index(index.row(), 0)
+                bottomRight = self.table.model().index(index.row(), self.table.columnCount() - 1)
+                selection = QItemSelection(topLeft, bottomRight)
+
+                # Apply selection
+                selectionModel.select(selection, command)
+
+                # Update current index so Shift+Click range selection logic works nicely later
+                self.table.setCurrentIndex(index)
+
                 # Ensure the selection color shows immediately
                 self.table.viewport().update()
         return False
@@ -53,7 +77,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
     FIELD_TYPE_NUMERIC = 'numeric'
     FIELD_TYPE_CATEGORICAL = 'categorical'
     FIELD_TYPE_UNKNOWN = 'unknown'
-    ALLOWED_GROUP_IDENTIFIERS = ["qgisred_thematicmaps"]
+    # Task 4.3: Add 'qgisred_results' to allowed groups
+    ALLOWED_GROUP_IDENTIFIERS = ["qgisred_thematicmaps", "qgisred_results"]
 
     def __init__(self, parent=None):
         """Constructor."""
@@ -77,7 +102,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.btClassPlusClickTimer = None
         self.btClassPlusAddBefore = False
         self.layerTreeViewConnection = None
+        self.layerTreeRoot = None  # NEW: Store reference to layer tree root
         self.style = None  # QGISRed style database
+
+        # NEW: Track the last successfully selected layer ID
+        self.lastValidLayerId = None
 
         # Plugin context properties (set via config method)
         self.parent = None
@@ -115,12 +144,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
         # Install event filter on dialog to detect clicks outside table
         self.installEventFilter(self)
 
+        # TASK 5.1: Install event filter on Plus button for Right-Click detection
+        self.btClassPlus.installEventFilter(self)
+
     def configWindow(self):
         """Configure window appearance."""
         iconPath = os.path.join(os.path.dirname(__file__), '..', 'images', 'iconThematicMaps.png')
         self.setWindowIcon(QIcon(iconPath))
         self.setWindowTitle("QGISRed Legend Editor")
-        self.setWindowFlags(Qt.Window | Qt.WindowStaysOnTopHint)
+        self.setWindowFlags(Qt.Window | Qt.WindowStaysOnTopHint | Qt.WindowCloseButtonHint)
 
         self.btClassPlus.setIcon(QIcon(":/images/themes/default/symbologyAdd.svg"))
         self.btClassMinus.setIcon(QIcon(":/images/themes/default/symbologyRemove.svg"))
@@ -282,12 +314,24 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.btLoadGlobal.clicked.connect(self.loadGlobalStyle)
         self.btLoadProject.clicked.connect(self.loadProjectStyle)
         self.tableView.cellDoubleClicked.connect(self.onCellDoubleClicked)
+
+        # CHANGED: Use itemSelectionChanged to handle state updates.
+        # REMOVED: itemClicked connection (native behavior handles selection better).
         self.tableView.itemSelectionChanged.connect(self.updateButtonStates)
-        self.tableView.itemClicked.connect(lambda item: self.tableView.selectRow(item.row()) if item else None)
 
         # Connect to layer tree view to track layer selection changes
         if iface and iface.layerTreeView():
             self.layerTreeViewConnection = iface.layerTreeView().currentLayerChanged.connect(self.onQgisLayerSelectionChanged)
+
+        # --- NEW: Project and Tree Signals ---
+        # Watch for global visibility changes (recursive from root)
+        self.layerTreeRoot = QgsProject.instance().layerTreeRoot()
+        self.layerTreeRoot.visibilityChanged.connect(self.onTreeNodeVisibilityChanged)
+
+        # Watch for layer additions and removals
+        QgsProject.instance().layersWillBeRemoved.connect(self.onLayersWillBeRemoved)
+        QgsProject.instance().layersAdded.connect(self.onProjectLayersChanged)
+        QgsProject.instance().layersRemoved.connect(self.onProjectLayersChanged)
 
     def loadInitialState(self):
         """Preselect group/layer and set initial state."""
@@ -330,19 +374,38 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def onGroupChanged(self):
         """Filter layer combo when group selection changes."""
+        # 1. Get layers valid for this group (must be visible and correct type)
         allowed = self.getRenderableLayersInSelectedGroup()
         allLayers = list(QgsProject.instance().mapLayers().values())
         excepted = [l for l in allLayers if l not in allowed]
 
+        # 2. Prepare the dropdown
         self.cbLegendLayer.blockSignals(True)
         self.cbLegendLayer.setExceptedLayerList(excepted)
 
-        if allowed:
-            self.cbLegendLayer.setLayer(allowed[0])
-        else:
-            # Explicitly set to None if no renderable layers exist in this group
-            self.cbLegendLayer.setLayer(None)
+        # 3. Intelligent Selection Logic (Task 4.2 Fix)
+        current_layer = self.cbLegendLayer.currentLayer()
+        target_layer = None
 
+        # Priority A: If the memory (lastValidLayerId) is now available, restore it.
+        # This handles the case: Layer A selected -> Hidden (dropdown changes) -> Shown (Restore Layer A)
+        if self.lastValidLayerId:
+            for lyr in allowed:
+                if lyr.id() == self.lastValidLayerId:
+                    target_layer = lyr
+                    break
+
+        # Priority B: If current selection is still valid, keep it.
+        # (Only if we didn't find the 'restored' layer, or if the restored layer IS the current one)
+        if target_layer is None and current_layer and current_layer in allowed:
+            target_layer = current_layer
+
+        # Priority C: Default to the first available layer
+        if target_layer is None and allowed:
+            target_layer = allowed[0]
+
+        # Apply selection
+        self.cbLegendLayer.setLayer(target_layer)
         self.cbLegendLayer.blockSignals(False)
 
         # Trigger UI update
@@ -372,6 +435,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def onLayerChanged(self, layer):
         """Handle layer selection change."""
         if layer and isinstance(layer, QgsVectorLayer):
+            # NEW: Update memory of the last valid selection
+            self.lastValidLayerId = layer.id()
+
             self.currentLayer = layer
             self.originalRenderer = layer.renderer().clone() if layer.renderer() else None
             self.currentFieldType, self.currentFieldName = self.detectFieldType(layer)
@@ -398,6 +464,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 self.clearTable()
             self.updateButtonStates()
         else:
+            # Note: We DO NOT clear self.lastValidLayerId here.
+            # We want to remember what was selected before it became None (hidden).
             self.resetToEmptyState()
 
     def onModeChanged(self):
@@ -419,6 +487,61 @@ class QGISRedLegendsDialog(QDialog, formClass):
         """Route double click to specific editors."""
         if column == 2 and self.currentFieldType == self.FIELD_TYPE_NUMERIC:
             self.openRangeEditor(row)
+
+    def onTreeNodeVisibilityChanged(self, node):
+        """
+        Handle visibility changes in the layer tree.
+        Triggered when any node (Group or Layer) is checked/unchecked.
+        """
+        # Save state
+        currentGroupPath = self.cbGroups.currentData()
+
+        # 1. Refresh Groups (handles cases where a Group was hidden/shown)
+        self.populateGroups()
+
+        # 2. Restore Group Selection if it still exists
+        if currentGroupPath:
+            # Check if the path still exists in the refreshed combo
+            index = self.cbGroups.findData(currentGroupPath)
+            if index != -1:
+                self.setGroupByPath(currentGroupPath)
+            elif self.cbGroups.count() > 0:
+                self.cbGroups.setCurrentIndex(0)
+
+        # 3. Refresh Layer List and trigger Restoration Logic
+        # This calls onGroupChanged, which now contains the logic to
+        # check self.lastValidLayerId and restore selection if the layer became visible.
+        self.onGroupChanged()
+
+    def onLayersWillBeRemoved(self, layerIds):
+        """
+        Handle layer deletion *before* it happens to prevent crashes.
+        """
+        # Check if the currently selected layer is about to be deleted
+        if self.currentLayer and self.currentLayer.id() in layerIds:
+            # Explicitly clear the reference to prevent accessing a deleted C++ object
+            self.currentLayer = None
+            self.cbLegendLayer.blockSignals(True)
+            self.cbLegendLayer.setLayer(None)
+            self.cbLegendLayer.blockSignals(False)
+            self.resetToEmptyState()
+
+    def onProjectLayersChanged(self, layers):
+        """
+        Handle layers added or removed (after the removal is complete).
+        """
+        # Save the currently selected group path so we can try to restore it
+        currentGroupPath = self.cbGroups.currentData()
+
+        # Re-populate the groups combo (in case a group was added/removed or emptied)
+        self.populateGroups()
+
+        # Try to restore the previous group selection
+        if currentGroupPath:
+            self.setGroupByPath(currentGroupPath)
+
+        # Trigger update of the layer list
+        self.onGroupChanged()
 
     # --- Advanced Size & Color UI Logic ---
 
@@ -689,19 +812,29 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         for name, path, _ in groups:
             self.cbGroups.addItem(name, path)
+
         self.cbGroups.blockSignals(False)
 
-        # If cbGroups is empty (no valid groups found),
-        # explicitly clear the dependent layer combo and reset the UI.
+        # Fix 4.1: Strictly handle empty state
         if self.cbGroups.count() == 0:
+            # Force empty index
+            self.cbGroups.setCurrentIndex(-1)
+
+            # Explicitly clear dependent layer combo
             self.cbLegendLayer.blockSignals(True)
-            # Except all layers to ensure the combo appears empty
             self.cbLegendLayer.setExceptedLayerList(list(QgsProject.instance().mapLayers().values()))
             self.cbLegendLayer.setLayer(None)
             self.cbLegendLayer.blockSignals(False)
 
-            # Force the UI to update to the 'no layer' state
+            # Disable the main frame since no valid selection exists
+            self.frameLegends.setEnabled(False)
+            self.labelFrameLegends.setText(self.tr("Legend"))
+
+            # Clear internal state
             self.onLayerChanged(None)
+
+        # Note: If count > 0, the previous selection logic (preselectGroupAndLayer)
+        # or the user's interaction will handle the selection.
 
     def collectGroupsRecursive(self, parent, pathParts, results):
         """Recursively collect allowed groups."""
@@ -1005,25 +1138,63 @@ class QGISRedLegendsDialog(QDialog, formClass):
     # --- Table Manipulation ---
 
     def addClass(self):
-        """Handle add class button click with double-click detection."""
+        """
+        Handle add class button click.
+        TASK 5.1: Left Click (Single) -> Add Below.
+        TASK 5.2: Double Click -> Classify All (Categorical Only).
+        """
         if not self.currentLayer: return
-        
+
+        # If timer is running, this is the second click (Double Click)
         if self.btClassPlusClickTimer and self.btClassPlusClickTimer.isActive():
             self.btClassPlusClickTimer.stop()
             self.btClassPlusClickTimer = None
-            self.btClassPlusAddBefore = True
-            self.executeAddClass()
-            self.btClassPlusAddBefore = False
+
+            # TASK 5.2: Double Click triggers Classify All for Categorical
+            if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
+                self.classifyAll()
+            else:
+                # For numeric, treat double click as adding another class below
+                self.btClassPlusAddBefore = False
+                self.executeAddClass()
         else:
+            # First click: Start timer to wait for potential second click
             self.btClassPlusClickTimer = QTimer()
             self.btClassPlusClickTimer.setSingleShot(True)
             self.btClassPlusClickTimer.timeout.connect(self._onSingleClickAdd)
-            self.btClassPlusClickTimer.start(400)
+            # 250ms is standard system double-click interval
+            self.btClassPlusClickTimer.start(250)
 
     def _onSingleClickAdd(self):
+        """Timer timeout: It was just a single click."""
         self.btClassPlusClickTimer = None
-        self.btClassPlusAddBefore = False
+        self.btClassPlusAddBefore = False  # Default: Add Below
         self.executeAddClass()
+
+    def classifyAll(self):
+        """TASK 5.2: Add all available unique values at once."""
+        if not self.availableUniqueValues:
+            QMessageBox.information(self, "Info", "All values are already classified.")
+            return
+
+        # Disable updates for performance
+        self.tableView.setUpdatesEnabled(False)
+        self.tableView.blockSignals(True)
+
+        try:
+            # Loop while there are still values available
+            # addCategoricalClass modifies self.availableUniqueValues internally
+            while self.availableUniqueValues:
+                self.addCategoricalClass()
+        finally:
+            self.tableView.blockSignals(False)
+            self.tableView.setUpdatesEnabled(True)
+
+            # Final UI refresh
+            self.updateClassCount()
+            self.updateButtonStates()
+            self.applyColorLogic()
+            self.applySizeLogic()
 
     def executeAddClass(self):
         """Route add logic."""
@@ -1031,29 +1202,50 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.addCategoricalClass()
         else:
             self.addNumericClass()
-            # Don't re-apply classification method - let manual changes stand
-            # Classification is only applied when user changes the mode dropdown
+
+            # --- FIX START: Re-apply Automatic Classification ---
+            # If the mode is NOT Manual (and not Fixed Interval, though that button is usually disabled),
+            # we should re-calculate the breaks for the new class count (N+1).
+            modeId = self.cbMode.currentData()
+            if modeId and modeId != "Manual" and modeId != "FixedInterval":
+                self.applyClassificationMethod(modeId)
+            # --- FIX END ---
+
         self.updateButtonStates()
 
-        # NEW: Re-apply generic logic
+        # Re-apply generic logic
         self.applyColorLogic()
         self.applySizeLogic()
 
     def addNumericClass(self):
         """Add numeric range."""
         sel = self.getSelectedRows()
-        row = sel[0] if sel and len(sel) == 1 else self.tableView.rowCount()
-        if sel and not self.btClassPlusAddBefore: row += 1 # After selection
-        
+
+        # --- FIX START: Handle Multi-Selection ---
+        # If multiple rows are selected, we treat it as "Append to End"
+        # rather than trying to insert relative to the selection.
+        if len(sel) > 1:
+            self.tableView.clearSelection()
+            sel = []  # Clear this so it falls through to the 'Append' logic below
+        # --- FIX END ---
+
+        # Calculate insertion index
+        if sel and len(sel) == 1:
+            row = sel[0]
+            if not self.btClassPlusAddBefore:
+                row += 1 # Insert After selection
+        else:
+            row = self.tableView.rowCount() # Append to end
+
         lower, upper = self.calculateInitialRangeForNewRow(row)
         self.tableView.insertRow(row)
-        
+
         sym = QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
         sym.setColor(self.generateRandomColor())
-        
+
         self.setRowWidgets(row, sym, True, f"{lower:.2f} - {upper:.2f}", f"{lower:.2f} - {upper:.2f}", self.getGeometryHint())
         self.updateAdjacentRowsAfterInsertion(row, lower, upper)
-        
+
         self.tableView.clearSelection()
         self.tableView.selectRow(row)
         self.updateClassCount()
@@ -1620,23 +1812,55 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def updateButtonStates(self):
         if not self.currentLayer: return
-        sel = len(self.getSelectedRows())
-        isCat = self.currentFieldType == self.FIELD_TYPE_CATEGORICAL
-        isFixed = self.currentFieldType == self.FIELD_TYPE_NUMERIC and self.cbMode.currentData() == "FixedInterval"
 
-        # Respect FixedInterval mode - buttons should stay disabled
-        if isFixed:
-            self.btClassPlus.setEnabled(False)
-            self.btClassMinus.setEnabled(False)
-        elif isCat:
-            self.btClassPlus.setEnabled(len(self.availableUniqueValues) > 0 or not self.hasOtherValuesCategory())
-            self.btClassMinus.setEnabled(sel >= 1)
-            self.btUp.setEnabled(sel == 1 and self.getSelectedRows()[0] > 0)
-            self.btDown.setEnabled(sel == 1 and self.getSelectedRows()[0] < self.tableView.rowCount() - 1)
-        else:
-            # Numeric mode (not FixedInterval)
+        selected_rows = self.getSelectedRows()
+        sel_count = len(selected_rows)
+
+        isCat = self.currentFieldType == self.FIELD_TYPE_CATEGORICAL
+
+        # Check specific numeric modes
+        modeId = self.cbMode.currentData()
+        # TASK 5.3: Distinguish Manual vs Automatic numeric modes
+        isManualNumeric = (self.currentFieldType == self.FIELD_TYPE_NUMERIC and (modeId is None or modeId == "Manual"))
+        isAutoNumeric = (self.currentFieldType == self.FIELD_TYPE_NUMERIC and not isManualNumeric)
+
+        # 1. Logic for 'Add' button
+        if isCat:
+            # Categorical logic: Disable on multi-selection
+            if sel_count > 1:
+                self.btClassPlus.setEnabled(False)
+            else:
+                self.btClassPlus.setEnabled(len(self.availableUniqueValues) > 0 or not self.hasOtherValuesCategory())
+
+        elif isAutoNumeric:
+            # TASK 5.3: Keep Plus Button Active in Automatic Modes
+            # Always enable add button in automatic modes (Equal, Jenks, Fixed Interval, etc)
+            # Adding a class triggers re-calculation of the algorithm
             self.btClassPlus.setEnabled(True)
-            self.btClassMinus.setEnabled(sel >= 1)
+
+        else:  # Manual Numeric
+            # Disable if multiple rows selected (cannot determine where to insert easily)
+            self.btClassPlus.setEnabled(sel_count <= 1)
+
+        # 2. Logic for removal button
+        # Fixed Interval disables removal (maintains original behavior)
+        if modeId == "FixedInterval":
+            self.btClassMinus.setEnabled(False)
+        else:
+            self.btClassMinus.setEnabled(sel_count >= 1)
+
+        # 3. Logic for Reordering (Only allowed for Categorical with single selection)
+        if isCat:
+            can_move = (sel_count == 1)
+            if can_move:
+                row_idx = selected_rows[0]
+                self.btUp.setEnabled(row_idx > 0)
+                self.btDown.setEnabled(row_idx < self.tableView.rowCount() - 1)
+            else:
+                self.btUp.setEnabled(False)
+                self.btDown.setEnabled(False)
+        else:
+            # Numeric mode doesn't allow manual reordering (values are sorted by definition)
             self.btUp.setEnabled(False)
             self.btDown.setEnabled(False)
 
@@ -1674,7 +1898,27 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.reject()
 
     def eventFilter(self, obj, event):
-        """Handle clicks outside the table to clear selection."""
+        """Handle clicks outside the table to clear selection and right-click on Plus button."""
+
+        # Logic for Right-Click on '+' Button
+        if obj == self.btClassPlus and event.type() == QEvent.MouseButtonPress:
+            if event.button() == Qt.RightButton:
+                if self.btClassPlus.isEnabled():
+
+                    # --- FIX START: Check Field Type ---
+                    if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
+                        # If Categorical, Right-Click triggers Classify All (Add all unique values)
+                        self.classifyAll()
+                    else:
+                        # If Numeric, maintain the original "Add Above" logic
+                        self.btClassPlusAddBefore = True  # Set flag to add ABOVE
+                        self.executeAddClass()
+                        self.btClassPlusAddBefore = False  # Reset flag
+                    # --- FIX END ---
+
+                    return True  # Consume event
+
+        # Handle clicks outside the table to clear selection
         if obj == self and event.type() == QEvent.MouseButtonPress:
             # Check if the click is outside the tableView
             clickPos = event.pos()
@@ -1682,6 +1926,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if not tableGeometry.contains(clickPos):
                 # Click is outside the table, clear selection
                 self.tableView.clearSelection()
+
         return super().eventFilter(obj, event)
 
     def closeEvent(self, event):
@@ -1692,6 +1937,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 iface.layerTreeView().currentLayerChanged.disconnect(self.onQgisLayerSelectionChanged)
             except:
                 pass
+
+        # --- NEW: Disconnect Project/Tree signals ---
+        try:
+            if hasattr(self, 'layerTreeRoot') and self.layerTreeRoot:
+                self.layerTreeRoot.visibilityChanged.disconnect(self.onTreeNodeVisibilityChanged)
+            QgsProject.instance().layersWillBeRemoved.disconnect(self.onLayersWillBeRemoved)
+            QgsProject.instance().layersAdded.disconnect(self.onProjectLayersChanged)
+            QgsProject.instance().layersRemoved.disconnect(self.onProjectLayersChanged)
+        except:
+            pass
+        # --------------------------------------------
 
         # Clean up parent reference to allow garbage collection
         if self.parent and hasattr(self.parent, 'legendsDialog'):
