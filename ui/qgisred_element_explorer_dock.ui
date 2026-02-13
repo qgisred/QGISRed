@@ -38,7 +38,7 @@
          <x>0</x>
          <y>0</y>
          <width>280</width>
-         <height>516</height>
+         <height>522</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -263,7 +263,7 @@
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
-                 <height>80</height>
+                 <height>16777215</height>
                 </size>
                </property>
                <property name="title">
@@ -317,6 +317,19 @@
               </widget>
              </item>
              <item>
+              <widget class="Line" name="line_3">
+               <property name="enabled">
+                <bool>true</bool>
+               </property>
+               <property name="lineWidth">
+                <number>0</number>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QTabWidget" name="tabWidget">
                <property name="enabled">
                 <bool>true</bool>
@@ -325,7 +338,7 @@
                 <string notr="true">QTabBar::tab { font-weight: bold; min-width: 80px; }</string>
                </property>
                <property name="currentIndex">
-                <number>0</number>
+                <number>1</number>
                </property>
                <property name="documentMode">
                 <bool>false</bool>
