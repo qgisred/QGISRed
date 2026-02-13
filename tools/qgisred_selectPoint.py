@@ -1,5 +1,5 @@
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QColor, QCursor, QPixmap
 from qgis.core import QgsPointXY, QgsProject, QgsSnappingConfig, QgsTolerance
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsMapCanvasSnappingUtils
 
@@ -24,7 +24,7 @@ class QGISRedSelectPointTool(QgsMapTool):
         self.startMarker.setIconType(QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
         if self.type == 2 or self.type == 4:
             try:
-                self.startMarker.setIconType(QgsVertexMarker.ICON_TRIANGLE)  # or ICON_CROSS, ICON_X
+                self.startMarker.setIconType(QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
             except:
                 self.startMarker.setIconType(QgsVertexMarker.ICON_X)  # or ICON_CROSS, ICON_X
         self.startMarker.setPenWidth(3)
@@ -45,6 +45,8 @@ class QGISRedSelectPointTool(QgsMapTool):
 
     def activate(self):
         QgsMapTool.activate(self)
+        pencil_cursor = QCursor(QPixmap(":/plugins/QGISRed/images/pencil.svg"), 0, 0)
+        self.canvas.setCursor(pencil_cursor)
         type = 1
         if self.type == 2 or self.type == 4:
             type = 2

@@ -97,5 +97,6 @@
         <file>images/iconFilter.png</file>
         <file>images/iconProjectMenu.png</file>
         <file>images/cursor.png</file>
+        <file>images/pencil.svg</file>
     </qresource>
 </RCC>

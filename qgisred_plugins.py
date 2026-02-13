@@ -4476,6 +4476,7 @@ class QGISRed:
                     self.openFindElementsDialog, 
                     useElementPropertiesDock=useElementProperties
                 )
+                self.myMapTools[tool].setCursor(Qt.WhatsThisCursor)
                 self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
             except Exception as e:
                 print(f"Error creating map tool: {str(e)}")
@@ -4522,6 +4523,7 @@ class QGISRed:
                     self.openElementsPropertyDialog, 
                     useElementPropertiesDock=True
                 )
+                self.myMapTools[tool].setCursor(Qt.WhatsThisCursor)
                 self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
             except Exception as e:
                 print(f"Error creating map tool: {str(e)}")

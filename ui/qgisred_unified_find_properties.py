@@ -208,7 +208,15 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
             self.labelFoundElement.setFont(font)
             self.labelFoundElement.setWordWrap(True)
             self.labelFoundElement.setText("")
-        
+
+        if hasattr(self, 'labelFoundElementTag'):
+            self.labelFoundElementTag.setWordWrap(True)
+            self.labelFoundElementTag.setText("")
+
+        if hasattr(self, 'labelFoundElementDescription'):
+            self.labelFoundElementDescription.setWordWrap(True)
+            self.labelFoundElementDescription.setText("")
+
         # Replace the original frames with spoiler widgets:
         # --- For Find Elements ---
         if hasattr(self, 'frameFindElements'):
@@ -355,7 +363,8 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                 layout.removeWidget(self.spoilerConnectedElements)
         # Add to the Find Elements layout.
         findLayout.addWidget(self.spoilerConnectedElements)
-        findLayout.parentWidget().adjustSize()
+        #findLayout.parentWidget().adjustSize()
+        #self.resizeToMinimumHeight()
 
     def moveConnectedElementsToElementProperties(self):
         findLayout = self.getFindElementsLayout()
@@ -366,7 +375,8 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                 layout.removeWidget(self.spoilerConnectedElements)
         # Add to the Element Properties layout.
         epLayout.addWidget(self.spoilerConnectedElements)
-        epLayout.parentWidget().adjustSize()
+        #epLayout.parentWidget().adjustSize()
+        #self.resizeToMinimumHeight()
 
     # def eventFilter(self, obj, event):
     #     if event.type() == QEvent.FocusIn:
@@ -394,11 +404,10 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         print("Exiting reestablishIdentifyTool")
 
     def resizeToMinimumHeight(self):
-        print("Entering resizeToMinimumHeight")
         self.layout().activate()
         self.adjustSize()
         self.setFixedHeight(self.sizeHint().height())
-        print("Exiting resizeToMinimumHeight")
+
 
     def setDockStyle(self):
         print("Entering setDockStyle")
@@ -755,7 +764,7 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         # self.frameElementProperties.setVisible(show_element_properties)
         
         self.placeConnectedElements()
-        self.resizeToMinimumHeight() 
+        #self.resizeToMinimumHeight() 
 
         # Close the dock only if both components are hidden and the dock is not floating
         if not show_find_elements and not show_element_properties and not self.isFloating():
