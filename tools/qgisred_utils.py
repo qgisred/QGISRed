@@ -10,6 +10,7 @@ from qgis.core import QgsRendererCategory, QgsCategorizedSymbolRenderer, QgsCoor
 from qgis.gui import QgsAttributeTableFilterModel, QgsAttributeTableModel, QgsAttributeTableView
 from qgis.core import QgsSymbolLayer, NULL
 from qgis.utils import iface
+from qgis.core import QgsSingleSymbolRenderer, QgsSymbol,QgsSvgMarkerSymbolLayer,QgsMarkerLineSymbolLayer,QgsMarkerSymbol,QgsWkbTypes
 
 # Others imports
 import os
@@ -457,71 +458,111 @@ class QGISRedUtils:
                 layer.setRenderer(renderer)
 
     def applySvgMarker(self, layer):
-        identifier = layer.customProperty("qgisred_identifier")
-        if not identifier or identifier not in ["qgisred_tanks", "qgisred_valves", "qgisred_pumps", "qgisred_reservoirs"]:
-            layer_name = layer.name().lower()
-            type_keywords = {
-                "tank": "qgisred_tanks",
-                "valve": "qgisred_valves",
-                "pump": "qgisred_pumps",
-                "reservoir": "qgisred_reservoirs"
-            }
-            identifier = None
-            for keyword, id_value in type_keywords.items():
-                if keyword in layer_name:
-                    identifier = id_value
-                    break
-            if not identifier:
-                file_path = self.getLayerPath(layer)
-                base_name = os.path.basename(file_path).lower()
-                for keyword, id_value in type_keywords.items():
-                    if keyword in base_name:
-                        identifier = id_value
-                        break
-            if not identifier and layer.geometryType() == 0:
-                field_names = [field.name().lower() for field in layer.fields()]
-                for keyword, id_value in type_keywords.items():
-                    if any(keyword in field_name for field_name in field_names):
-                        identifier = id_value
-                        break
-            if identifier:
-                layer.setCustomProperty("qgisred_identifier", identifier)
-        if identifier in ["qgisred_tanks", "qgisred_valves", "qgisred_pumps", "qgisred_reservoirs"]:
-            marker_mapping = {
-                "qgisred_tanks": "tanks.svg",
-                "qgisred_pumps": "pumps.svg",
-                "qgisred_valves": "valves.svg",
-                "qgisred_reservoirs": "reservoirs.svg"
-            }
-            stylePath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "layerStyles")
-            svg_path = os.path.join(stylePath, marker_mapping[identifier])
-            if os.path.exists(svg_path):
-                svg_style = {"name": svg_path, "size": "4"}
-                if layer.geometryType() == 0:
-                    svg_layer = QgsSvgMarkerSymbolLayer.create(svg_style)
-                    if svg_layer is None:
-                        return False
-                    symbol = QgsSymbol.defaultSymbol(layer.geometryType())
-                    symbol.changeSymbolLayer(0, svg_layer)
-                elif layer.geometryType() == 1:
-                    subsymbol = QgsMarkerSymbol()
-                    svg_marker = QgsSvgMarkerSymbolLayer.create(svg_style)
-                    if svg_marker is None:
-                        return False
-                    subsymbol.changeSymbolLayer(0, svg_marker)
-                    marker_line = QgsMarkerLineSymbolLayer()
-                    marker_line.setSubSymbol(subsymbol)
-                    marker_line.setPlacement(QgsMarkerLineSymbolLayer.Placement.Vertex)
-                    symbol = QgsSymbol.defaultSymbol(layer.geometryType())
-                    symbol.appendSymbolLayer(marker_line)
-                else:
-                    return False
-                renderer = QgsSingleSymbolRenderer(symbol)
-                layer.setRenderer(renderer)
-                layer.triggerRepaint()
-                return True
-        return False
+        identifier = layer.customProperty("qgisred_identifier") \
+                    or self._detect_identifier(layer)
+        if identifier not in self._marker_mapping:
+            return False
 
+        layer.setCustomProperty("qgisred_identifier", identifier)
+
+        svg_path = self._svg_path(identifier)
+        if not os.path.exists(svg_path):
+            return False
+
+        updated = self._apply_svg_to_symbol(layer, svg_path)
+        return updated
+
+    def _detect_identifier(self, layer):
+        mapping = {
+            "tank": "qgisred_tanks",
+            "valve": "qgisred_valves",
+            "pump": "qgisred_pumps",
+            "reservoir": "qgisred_reservoirs"
+        }
+
+        name = layer.name().lower()
+        for kw, ident in mapping.items():
+            if kw in name:
+                return ident
+
+        base = os.path.basename(self.getLayerPath(layer)).lower()
+        for kw, ident in mapping.items():
+            if kw in base:
+                return ident
+
+        if layer.geometryType() == QgsWkbTypes.PointGeometry:
+            fields = [f.name().lower() for f in layer.fields()]
+            for kw, ident in mapping.items():
+                if any(kw in fld for fld in fields):
+                    return ident
+
+        return None
+
+    @property
+    def _marker_mapping(self):
+        return {
+            "qgisred_tanks": "tanks.svg",
+            "qgisred_pumps": "pumps.svg",
+            "qgisred_valves": "valves.svg",
+            "qgisred_reservoirs": "reservoirs.svg"
+        }
+
+    def _svg_path(self, identifier):
+        base = os.path.dirname(os.path.dirname(__file__))
+        style_dir = os.path.join(base, "layerStyles")
+        return os.path.join(style_dir, self._marker_mapping[identifier])
+
+    def _apply_svg_to_symbol(self, layer, svg_path):
+        renderer = layer.renderer()
+        if not isinstance(renderer, QgsSingleSymbolRenderer):
+            renderer = QgsSingleSymbolRenderer(
+                QgsSymbol.defaultSymbol(layer.geometryType())
+            )
+            layer.setRenderer(renderer)
+
+        symbol = renderer.symbol()
+        size = 4.0
+        updated = False
+
+        def replace_or_append(symbol_obj, layer_cls, create_kwargs=None):
+            nonlocal updated
+            for i in range(symbol_obj.symbolLayerCount()):
+                sl = symbol_obj.symbolLayer(i)
+                if isinstance(sl, layer_cls):
+                    sl.setPath(svg_path)
+                    sl.setSize(size)
+                    updated = True
+                    return
+            svg_layer = QgsSvgMarkerSymbolLayer.create({"name": svg_path, "size": str(size)})
+            if svg_layer:
+                symbol_obj.changeSymbolLayer(0, svg_layer)
+                updated = True
+
+        geom = layer.geometryType()
+        if geom == QgsWkbTypes.PointGeometry:
+            replace_or_append(symbol, QgsSvgMarkerSymbolLayer)
+        elif geom == QgsWkbTypes.LineGeometry:
+            for i in range(symbol.symbolLayerCount()):
+                sl = symbol.symbolLayer(i)
+                if isinstance(sl, QgsMarkerLineSymbolLayer):
+                    sub = sl.subSymbol()
+                    replace_or_append(sub, QgsSvgMarkerSymbolLayer)
+                    break
+            else:
+                svg = QgsSvgMarkerSymbolLayer.create({"name": svg_path, "size": str(size)})
+                subsym = QgsMarkerSymbol()
+                subsym.changeSymbolLayer(0, svg)
+                ml = QgsMarkerLineSymbolLayer()
+                ml.setSubSymbol(subsym)
+                ml.setPlacement(QgsMarkerLineSymbolLayer.Placement.Vertex)
+                symbol.appendSymbolLayer(ml)
+                updated = True
+
+        if updated:
+            layer.triggerRepaint()
+            iface.layerTreeView().refreshLayerSymbology(layer.id())
+
+        return updated
 
     def setIssuesStyle(self, layer, name):
         """Apply style to issues layers"""

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>408</width>
-    <height>574</height>
+    <width>300</width>
+    <height>395</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -15,6 +15,12 @@
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>300</width>
+    <height>395</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Queries by Attributes</string>
@@ -34,8 +40,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>390</width>
-         <height>534</height>
+         <width>265</width>
+         <height>565</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -70,6 +76,32 @@
             </property>
            </spacer>
           </item>
+          <item>
+           <widget class="QPushButton" name="btImport">
+            <property name="maximumSize">
+             <size>
+              <width>30</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btExport">
+            <property name="maximumSize">
+             <size>
+              <width>30</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
         <item>
@@ -101,15 +133,6 @@
              </item>
              <item>
               <layout class="QGridLayout" name="gridLayout">
-               <item row="2" column="1">
-                <widget class="QComboBox" name="cbCondition"/>
-               </item>
-               <item row="2" column="0">
-                <widget class="QComboBox" name="cbProperty"/>
-               </item>
-               <item row="2" column="2">
-                <widget class="QComboBox" name="cbValue"/>
-               </item>
                <item row="1" column="1">
                 <widget class="QLabel" name="label_3">
                  <property name="text">
@@ -120,20 +143,36 @@
                  </property>
                 </widget>
                </item>
-               <item row="1" column="2">
-                <widget class="QLabel" name="label_5">
-                 <property name="text">
-                  <string>Value</string>
-                 </property>
-                 <property name="buddy">
-                  <cstring>cbValue</cstring>
-                 </property>
-                </widget>
+               <item row="2" column="1">
+                <widget class="QComboBox" name="cbCondition"/>
                </item>
                <item row="1" column="0">
                 <widget class="QLabel" name="mSymbologyExportLabel">
                  <property name="text">
                   <string>Property</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="2">
+                <widget class="QLabel" name="label_5">
+                 <property name="text">
+                  <string>Value</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0">
+                <widget class="QComboBox" name="cbProperty"/>
+               </item>
+               <item row="2" column="2">
+                <widget class="QgsFilterLineEdit" name="cbValue">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="qgisRelation" stdset="0">
+                  <string notr="true"/>
                  </property>
                 </widget>
                </item>
@@ -143,6 +182,12 @@
               <layout class="QHBoxLayout" name="horizontalLayout_5">
                <item>
                 <widget class="QPushButton" name="btAdd">
+                 <property name="minimumSize">
+                  <size>
+                   <width>30</width>
+                   <height>0</height>
+                  </size>
+                 </property>
                  <property name="text">
                   <string>Add</string>
                  </property>
@@ -150,6 +195,12 @@
                </item>
                <item>
                 <widget class="QPushButton" name="btSubtract">
+                 <property name="minimumSize">
+                  <size>
+                   <width>30</width>
+                   <height>0</height>
+                  </size>
+                 </property>
                  <property name="text">
                   <string>Subtract</string>
                  </property>
@@ -157,6 +208,12 @@
                </item>
                <item>
                 <widget class="QPushButton" name="btReplace">
+                 <property name="minimumSize">
+                  <size>
+                   <width>30</width>
+                   <height>0</height>
+                  </size>
+                 </property>
                  <property name="text">
                   <string>Replace</string>
                  </property>
@@ -164,6 +221,12 @@
                </item>
                <item>
                 <widget class="QPushButton" name="btClear">
+                 <property name="minimumSize">
+                  <size>
+                   <width>30</width>
+                   <height>0</height>
+                  </size>
+                 </property>
                  <property name="text">
                   <string>Clear</string>
                  </property>
@@ -185,11 +248,105 @@
               </widget>
              </item>
              <item>
-              <widget class="QTableWidget" name="tableWidgetCriteria">
-               <property name="gridStyle">
-                <enum>Qt::NoPen</enum>
-               </property>
-              </widget>
+              <layout class="QHBoxLayout" name="horizontalLayout_4">
+               <item>
+                <widget class="QTableWidget" name="tableWidgetCriteria">
+                 <property name="font">
+                  <font>
+                   <family>MS Shell Dlg 2</family>
+                  </font>
+                 </property>
+                 <property name="gridStyle">
+                  <enum>Qt::SolidLine</enum>
+                 </property>
+                 <property name="sortingEnabled">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_3">
+                 <item>
+                  <widget class="QPushButton" name="btCriteriaUp">
+                   <property name="maximumSize">
+                    <size>
+                     <width>20</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btCriteriaDown">
+                   <property name="maximumSize">
+                    <size>
+                     <width>20</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btCriteriaClear">
+                   <property name="maximumSize">
+                    <size>
+                     <width>20</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btCriteriaSwitch">
+                   <property name="maximumSize">
+                    <size>
+                     <width>20</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btCriteriaEdit">
+                   <property name="maximumSize">
+                    <size>
+                     <width>20</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="verticalSpacer_2">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>40</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+              </layout>
              </item>
             </layout>
            </item>
@@ -215,6 +372,9 @@
            <widget class="QPushButton" name="btSubmit">
             <property name="text">
              <string>Submit</string>
+            </property>
+            <property name="checkable">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
@@ -243,12 +403,29 @@
                <item>
                 <widget class="QLabel" name="labelStatisticsProperty">
                  <property name="text">
-                  <string>[Property]</string>
+                  <string>Property</string>
                  </property>
                 </widget>
                </item>
                <item>
-                <widget class="QComboBox" name="cbStatisticsFor"/>
+                <widget class="QComboBox" name="cbStatisticsFor">
+                 <property name="enabled">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btExcel">
+                 <property name="maximumSize">
+                  <size>
+                   <width>30</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
                </item>
               </layout>
              </item>
@@ -257,33 +434,18 @@
                <item>
                 <widget class="QLabel" name="labelStatisticsPropertyFor">
                  <property name="text">
-                  <string>Statistics of [Lengths] for selected Elements</string>
+                  <string/>
                  </property>
                 </widget>
                </item>
                <item>
-                <widget class="QTableWidget" name="tableWidgetStatistics"/>
-               </item>
-               <item>
-                <layout class="QVBoxLayout" name="verticalLayout_7">
-                 <item>
-                  <widget class="QLabel" name="labelSlider">
-                   <property name="text">
-                    <string>Day 1, 15:10 -&gt; So propriedades de calculos [Ocultar]</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QSlider" name="slider">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
+                <widget class="QTableWidget" name="tableWidgetStatistics">
+                 <property name="font">
+                  <font>
+                   <family>MS Shell Dlg 2</family>
+                  </font>
+                 </property>
+                </widget>
                </item>
               </layout>
              </item>
@@ -318,6 +480,11 @@
    <extends>QGroupBox</extends>
    <header>qgis.gui</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QgsFilterLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>qgis.gui</header>
   </customwidget>
   <customwidget>
    <class>QgsScrollArea</class>

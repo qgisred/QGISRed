@@ -98,5 +98,15 @@
         <file>images/iconProjectMenu.png</file>
         <file>images/cursor.png</file>
         <file>images/pencil.svg</file>
+        <file>images/iconStatisticsImport.png</file>
+        <file>images/iconStatisticsExport.png</file>
+        <file>images/iconStatisticsArrowUp.png</file>
+        <file>images/iconStatisticsArrowDown.png</file>
+        <file>images/iconStatisticsDelete.png</file>
+        <file>images/iconStatisticsEdit.png</file>
+        <file>images/iconStatisticsExcel.png</file>
+        <file>images/iconSwitch.png</file>
+        <file>images/iconSwitchEnabled.png</file>
+        <file>images/iconSwitchDisabled.png</file>
     </qresource>
 </RCC>
