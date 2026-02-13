@@ -356,7 +356,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                         if identifier:
                             identifiers.add(identifier)
                 elif isinstance(child, QgsLayerTreeGroup):
-                    recursive_collect(g)
+                    recursive_collect(child)  # FIXED: Pass 'child' instead of 'g'
         recursive_collect(group)
         return identifiers
 

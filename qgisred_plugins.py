@@ -1921,8 +1921,8 @@ class QGISRed:
             inputGroup = self.getInputGroup()
             
             # Filter empty layers before opening them (except for Pipes)
-            filtered_main_layers = self.filterEmptyLayers(self.ownMainLayers)
-            filtered_complementary_layers = self.filterEmptyLayers(self.especificComplementaryLayers)
+            #filtered_main_layers = self.filterEmptyLayers(self.ownMainLayers)
+            #filtered_complementary_layers = self.filterEmptyLayers(self.especificComplementaryLayers)
             
             utils.openElementsLayers(inputGroup, self.ownMainLayers)
             utils.openElementsLayers(inputGroup, self.especificComplementaryLayers) #TODO
@@ -2057,8 +2057,7 @@ class QGISRed:
     """Others"""
 
     def processCsharpResult(self, b, message):
-        # Save the state of all layers before making changes
-        self.stored_all_layers = self.storeAllLayers()
+        self.stored_query_layers = self.storeQueryLayers()
         
         # Action
         self.hasToOpenNewLayers = False

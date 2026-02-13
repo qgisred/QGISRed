@@ -137,7 +137,8 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         layer_identifier = f"qgisred_input_{layerName.lower()}"
         
         for layer in openedLayers:
-            if layer.customProperty("qgisred_identifier") == layer_identifier:
+            layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp")
+            if self.getLayerPath(layer) == layerPath:
                 return True
         return False
 
