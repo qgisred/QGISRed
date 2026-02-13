@@ -120,7 +120,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             queries.append({
                 'layer_name': 'Pipe Diameters',
                 'field': 'Diameter',
-                'qml_file': f'pipes_diameters_{units}.qml.bak',
+                'qml_file': f'pipe_diameters_{units}.qml',
                 'file_name': f'diameter_{units}',
                 'tooltip_prefix': 'Diam'
             })
@@ -129,7 +129,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             queries.append({
                 'layer_name': 'Pipe Lengths',
                 'field': 'Length',
-                'qml_file': f'pipes_lengths_{units}.qml.bak',
+                'qml_file': f'pipe_lengths_{units}.qml',
                 'file_name': f'length_{units}',
                 'tooltip_prefix': 'Len'
             })
@@ -138,7 +138,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             queries.append({
                 'layer_name': 'Pipe Materials',
                 'field': 'Material',
-                'qml_file': 'pipes_materials.qml.bak',
+                'qml_file': 'pipe_materials.qml',
                 'file_name': 'material',
                 'tooltip_prefix': 'Mat '
             })
@@ -152,9 +152,19 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         tooltip_prefix = query['tooltip_prefix']
         file_name = query['file_name']
         
-        self.check_existing_layer(queries_group, layer_name)
+        existing_layer = None
+        layer_position = 0
+        for i, child in enumerate(queries_group.children()):
+            if isinstance(child, QgsLayerTreeLayer) and child.name() == layer_name:
+                existing_layer = child
+                layer_position = i
+                break
+        
+        if existing_layer is not None:
+            QgsProject.instance().removeMapLayer(existing_layer.layerId())
+        
         derived_layer = self.create_derived_layer(main_layer, layer_name, field)
-    
+        
         self.load_qml_style(derived_layer, qml_file)
         derived_layer.setLabelsEnabled(False)
 
@@ -166,14 +176,15 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         self.hide_fields(derived_layer, field)
         
         if queries_group:
-            layer_tree_layer = queries_group.insertLayer(0, derived_layer)
+            # Insert at original position if replacing, otherwise at position 0
+            layer_tree_layer = queries_group.insertLayer(layer_position, derived_layer)
             layer_tree_layer.setCustomProperty("showFeatureCount", True)
 
         main_layer.dataChanged.connect(lambda: self.sync_layers(main_layer, derived_layer))
         main_layer.styleChanged.connect(lambda: self.sync_layers(main_layer, derived_layer))
         derived_layer.dataChanged.connect(lambda: derived_layer.triggerRepaint())
         
-        #derived_layer.setReadOnly(True)
+        derived_layer.setReadOnly(True)
         
         return derived_layer
 

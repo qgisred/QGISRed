@@ -4361,7 +4361,8 @@ class QGISRed:
                             'name': layer.name(),
                             'source': layer.source(),
                             'style_string': style_string,
-                            'checked': checked 
+                            'checked': checked,
+                            'labels_enabled': layer.labelsEnabled()
                         })
         
         return query_layers
@@ -4385,6 +4386,9 @@ class QGISRed:
                 if is_random_color_layer:
                     QGISRedUtils().apply_categorized_renderer(new_layer, 'Material')
 
+                if 'labels_enabled' in query_info:
+                    new_layer.setLabelsEnabled(query_info['labels_enabled'])
+
                 new_layer.setReadOnly(True)
 
                 QgsProject.instance().addMapLayer(new_layer, False)
@@ -4392,7 +4396,6 @@ class QGISRed:
                 layer_tree_layer = queries_group.addLayer(new_layer)
                 layer_tree_layer.setCustomProperty("showFeatureCount", True)
                 
-                # Set the visibility status
                 if 'checked' in query_info:
                     layer_tree_layer.setItemVisibilityChecked(query_info['checked'])
 
@@ -4400,7 +4403,8 @@ class QGISRed:
 
                 if input_layer:
                     input_layer.dataChanged.connect(
-                        lambda: self.syncQueryLayer(input_layer, new_layer)
+                        lambda input_layer=input_layer, new_layer=new_layer: 
+                        self.syncQueryLayer(input_layer, new_layer)
                     )
 
     def findSourceLayer(self, inputs_group, query_layer):
