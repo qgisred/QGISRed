@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtWidgets import QDialog, QWidget, QMessageBox
 from PyQt5.QtGui import QIcon, QColor
+from qgis.PyQt.QtCore import QVariant
 from qgis.PyQt import uic
 import os
 import random
@@ -13,8 +14,11 @@ from qgis.core import (
     QgsCategorizedSymbolRenderer,
     QgsRendererCategory,
     QgsLayerTreeNode,
-    QgsUnitTypes, 
-    QgsSymbol
+    QgsUnitTypes,
+    QgsSymbol,
+    QgsField,
+    QgsExpression,
+    edit
 )
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_thematicmaps_dialog.ui"))
@@ -69,7 +73,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         for query in queries:
             self.process_query(query, pipes_layer, queries_group)
 
-        #Close dialog
+        # Close dialog
         super(QGISRedThematicMapsDialog, self).accept()
 
     def get_root_group(self):
@@ -101,7 +105,9 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
 
     def find_layer_in_group(self, group, layer_name):
         for child in group.children():
-            if isinstance(child, QgsLayerTreeLayer) and child.name() == layer_name:
+            if child.nodeType() == QgsLayerTreeNode.NodeLayer and child.name() == layer_name and child.checkedLayers():
+                return child.checkedLayers()[0]
+            elif isinstance(child, QgsLayerTreeLayer) and child.name() == layer_name:
                 return child.layer()
             elif isinstance(child, QgsLayerTreeGroup):
                 layer = self.find_layer_in_group(child, layer_name)
@@ -116,7 +122,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         elif units_enum == QgsUnitTypes.DistanceFeet:
             return 'feet'
         else:
-            #Default to meters
+            # Default to meters
             return 'meters'
 
     def get_selected_queries(self):
@@ -155,7 +161,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         qml_file = query['qml_file']
         tooltip_prefix = query['tooltip_prefix']
 
-        #Remove existing layer if present
+        # Remove existing layer if present
         existing_layer = None
         for child in queries_group.children():
             if isinstance(child, QgsLayerTreeLayer) and child.name() == layer_name:
@@ -166,21 +172,33 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             queries_group.removeChildNode(existing_layer)
 
         new_layer = QgsVectorLayer(pipes_layer.source(), layer_name, pipes_layer.providerType())
-
         project = QgsProject.instance()
         project.addMapLayer(new_layer, False)
-        queries_group.addLayer(new_layer)
+
+        new_layer.updateFields()
 
         if field == 'Material':
             self.apply_categorized_renderer(new_layer, field)
         else:
             self.load_qml_style(new_layer, qml_file)
 
+        # Add the virtual field 'Year'
+        instal_date_index = new_layer.fields().indexFromName('InstalDate')
+        if instal_date_index != -1:
+            print("Diff")
+            with edit(new_layer):
+                expression = QgsExpression('substr("InstalDate", 1, 4)')
+                new_layer.addExpressionField(expression.expression(), QgsField('Year', QVariant.String))
+
+        layer_tree_layer = queries_group.addLayer(new_layer)
+
         self.assign_labels(new_layer, field)
 
-        #Assign map tooltips
+        # Assign map tooltips
         html_map_tip = f'<html><body><p>{tooltip_prefix} [% "{field}" %]</p></body></html>'
         new_layer.setMapTipTemplate(html_map_tip)
+
+        layer_tree_layer.setCustomProperty("showFeatureCount", True)
 
     def apply_categorized_renderer(self, layer, field):
         material_field_index = layer.fields().indexFromName(field)
