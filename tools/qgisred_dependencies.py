@@ -326,6 +326,17 @@ class QGISRedDependencies:
         mydll.Compute.restype = c_char_p
         b = mydll.Compute(projectFolder, networkName)
         return QGISRedDependencies.toString(b)
+    
+    @staticmethod
+    def OpenStatusReport(projectFolder, networkName):
+        projectFolder = QGISRedDependencies.encode(projectFolder)
+        networkName = QGISRedDependencies.encode(networkName)
+
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
+        mydll.OpenStatusReport.argtypes = (c_char_p, c_char_p)
+        mydll.OpenStatusReport.restype = c_char_p
+        b = mydll.OpenStatusReport(projectFolder, networkName)
+        return QGISRedDependencies.toString(b)
 
     @staticmethod
     def ConvertRoughness(projectFolder, networkName, tempFolder, linkIds):

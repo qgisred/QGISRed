@@ -32,6 +32,7 @@ import platform
 from zipfile import ZipFile
 from random import randrange
 from xml.etree import ElementTree
+import json
 
 
 class QGISRedUtils:
@@ -59,28 +60,8 @@ class QGISRedUtils:
         'qgisred_isolatedsegments': 'IsolatedSegments'
     }
 
-    unit_definitions = {
-        "Pipes": {
-            "qgisred_query_diameter_diam": {
-                "property": "Diameter",
-                "field": "Diam",
-                "SI": {"name": "Millimeters", "abbr": "mm"},
-                "US": {"name": "Inches", "abbr": "in"}
-            },
-            "qgisred_query_length_len": {
-                "property": "Length",
-                "field": "Len",
-                "SI": {"name": "Meters", "abbr": "m"},
-                "US": {"name": "Feet", "abbr": "ft"}
-            },
-            "qgisred_query_material_mat": {
-                "property": "Material",
-                "field": "Mat",
-                "SI": None,
-                "US": None
-            }
-        }
-    }
+    # Unit definitions loaded from JSON file
+    _unit_definitions = None
 
     def __init__(self, directory="", networkName="", iface=None):
         self.iface = iface
@@ -1094,6 +1075,58 @@ class QGISRedUtils:
         else:
             # Default to SI units
             return 'SI'
+
+    def loadUnitDefinitions(self):
+        """Load unit definitions from JSON file."""
+        if QGISRedUtils._unit_definitions is not None:
+            return QGISRedUtils._unit_definitions
+        
+        jsonPath = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)), 
+            "defaults", "layerStyles", "qgisred_units.json"
+        )
+        
+        if os.path.exists(jsonPath):
+            try:
+                with open(jsonPath, 'r', encoding='utf-8') as f:
+                    QGISRedUtils._unit_definitions = json.load(f)
+            except Exception as e:
+                QgsMessageLog.logMessage(f"Error loading unit definitions: {e}", "QGISRed", Qgis.Warning)
+                QGISRedUtils._unit_definitions = {}
+        else:
+            QGISRedUtils._unit_definitions = {}
+        
+        return QGISRedUtils._unit_definitions
+
+    def getUnitAbbreviationForLayer(self, layerIdentifier):
+        if not layerIdentifier:
+            return ""
+        
+        unitSystem = self.getUnits()  # Returns 'SI' or 'US'
+        unitDefs = self.loadUnitDefinitions()
+        
+        # Search through unit_definitions for matching identifier
+        for category, layers in unitDefs.items():
+            if layerIdentifier in layers:
+                unitInfo = layers[layerIdentifier].get(unitSystem)
+                if unitInfo:
+                    return unitInfo.get("abbr", "")
+        
+        return ""
+
+    def getLayerSupportsCategorized(self, layerIdentifier):
+        """Check if a layer supports categorized rendering based on qgisred_units.json."""
+        if not layerIdentifier:
+            return False
+        
+        unitDefs = self.loadUnitDefinitions()
+        
+        # Search through unit_definitions for matching identifier
+        for category, layers in unitDefs.items():
+            if layerIdentifier in layers:
+                return layers[layerIdentifier].get("supports_categorized", False)
+        
+        return False
 
     def apply_categorized_renderer(self, layer, field, qml_file):
         material_field_index = layer.fields().indexFromName(field)

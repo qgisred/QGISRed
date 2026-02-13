@@ -2968,17 +2968,23 @@ class QGISRed:
         self.defineCurrentProject()
         if not self.isValidProject():
             return
+        if self.isLayerOnEdition():
+            return
 
-        # TODO Open project folder (as per note: file location still needs to be identified)
-        try:
-            os.startfile(self.ProjectDirectory)
-        except Exception as e:
+        # Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.OpenStatusReport(self.ProjectDirectory, self.NetworkName)
+        QApplication.restoreOverrideCursor()
+
+        # Message
+        if resMessage == "True":
+            pass
+        elif resMessage == "False":
             self.iface.messageBar().pushMessage(
-                self.tr("Error"),
-                self.tr("Could not open project folder: ") + str(e),
-                level=2,
-                duration=5
+                self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5
             )
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
     def runExportInp(self):
         if not self.checkDependencies():

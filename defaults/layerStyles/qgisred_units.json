@@ -1,0 +1,1037 @@
+{
+    "Pipes": {
+        "qgisred_query_pipes_length": {
+            "property": "Length",
+            "SI": {
+                "name": "Meters",
+                "abbr": "m"
+            },
+            "US": {
+                "name": "Feet",
+                "abbr": "ft"
+            }
+        },
+        "qgisred_query_pipes_diameter": {
+            "property": "Diameter",
+            "SI": {
+                "name": "Millimeters",
+                "abbr": "mm"
+            },
+            "US": {
+                "name": "Inches",
+                "abbr": "in"
+            }
+        },
+        "qgisred_query_pipes_roughness": {
+            "property": "Roughness",
+            "SI": {
+                "name": "Millimeters",
+                "abbr": "mm"
+            },
+            "US": {
+                "name": "Millifeet",
+                "abbr": "mft"
+            }
+        },
+        "qgisred_query_pipes_losscoeff": {
+            "property": "Loss Coefficient",
+            "SI": {
+                "name": "Unitless",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "Unitless",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_pipes_material": {
+            "property": "Material",
+            "SI": null,
+            "US": null
+        },
+        "qgisred_query_pipes_installdate": {
+            "property": "Installation Date",
+            "SI": {
+                "name": "Year",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "Year",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_pipes_age": {
+            "property": "Age",
+            "SI": {
+                "name": "Years",
+                "abbr": "yr"
+            },
+            "US": {
+                "name": "Years",
+                "abbr": "yr"
+            }
+        },
+        "qgisred_query_pipes_initstatus": {
+            "property": "Initial Status",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_pipes_bulkcoeff": {
+            "property": "Bulk Coefficient",
+            "SI": {
+                "name": "1/day",
+                "abbr": "1/day"
+            },
+            "US": {
+                "name": "1/day",
+                "abbr": "1/day"
+            },
+            "notes": "1st order"
+        },
+        "qgisred_query_pipes_wallcoeff": {
+            "property": "Wall Coefficient",
+            "SI": {
+                "name": "1/day",
+                "abbr": "1/day"
+            },
+            "US": {
+                "name": "1/day",
+                "abbr": "1/day"
+            },
+            "notes": "1st order (0 order uses massunits/L/day)"
+        },
+        "qgisred_query_pipes_tag": {
+            "property": "Tag",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        }
+    },
+    "Tanks": {
+        "qgisred_query_tanks_elevation": {
+            "property": "Elevation",
+            "SI": {
+                "name": "Meters",
+                "abbr": "m"
+            },
+            "US": {
+                "name": "Feet",
+                "abbr": "ft"
+            }
+        },
+        "qgisred_query_tanks_level": {
+            "property": "Level",
+            "SI": {
+                "name": "Meters",
+                "abbr": "m"
+            },
+            "US": {
+                "name": "Feet",
+                "abbr": "ft"
+            }
+        },
+        "qgisred_query_tanks_diameter": {
+            "property": "Diameter",
+            "SI": {
+                "name": "Meters",
+                "abbr": "m"
+            },
+            "US": {
+                "name": "Feet",
+                "abbr": "ft"
+            }
+        },
+        "qgisred_query_tanks_volume": {
+            "property": "Volume",
+            "SI": {
+                "name": "Cubic meters",
+                "abbr": "m³"
+            },
+            "US": {
+                "name": "Cubic feet",
+                "abbr": "ft³"
+            }
+        },
+        "qgisred_query_tanks_volumecurve": {
+            "property": "Volume Curve",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_tanks_overflow": {
+            "property": "Overflow",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_tanks_mixmodel": {
+            "property": "Mixing Model",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_tanks_mixingfraction": {
+            "property": "Mixing Fraction",
+            "SI": {
+                "name": "Unitless",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "Unitless",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_tanks_bulkcoeff": {
+            "property": "Bulk Coefficient",
+            "SI": {
+                "name": "1/day",
+                "abbr": "1/day"
+            },
+            "US": {
+                "name": "1/day",
+                "abbr": "1/day"
+            },
+            "notes": "1st order"
+        },
+        "qgisred_query_tanks_initquality": {
+            "property": "Initial Quality",
+            "SI": {
+                "name": "mass/Liter",
+                "abbr": "massunits/L"
+            },
+            "US": {
+                "name": "mass/Liter",
+                "abbr": "massunits/L"
+            },
+            "notes": "according Project mass units"
+        },
+        "qgisred_query_tanks_tag": {
+            "property": "Tag",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        }
+    },
+    "Reservoirs": {
+        "qgisred_query_reservoirs_totalhead": {
+            "property": "Total Head",
+            "SI": {
+                "name": "Meters",
+                "abbr": "m"
+            },
+            "US": {
+                "name": "Feet",
+                "abbr": "ft"
+            }
+        },
+        "qgisred_query_reservoirs_headpattern": {
+            "property": "Head Pattern",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_reservoirs_initquality": {
+            "property": "Initial Quality",
+            "SI": {
+                "name": "mass/Liter",
+                "abbr": "massunits/L"
+            },
+            "US": {
+                "name": "mass/Liter",
+                "abbr": "massunits/L"
+            },
+            "notes": "according Project mass units"
+        },
+        "qgisred_query_reservoirs_tag": {
+            "property": "Tag",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        }
+    },
+    "Junctions": {
+        "qgisred_query_junctions_elevation": {
+            "property": "Elevation",
+            "SI": {
+                "name": "Meters",
+                "abbr": "m"
+            },
+            "US": {
+                "name": "Feet",
+                "abbr": "ft"
+            }
+        },
+        "qgisred_query_junctions_basedemand": {
+            "property": "Base Demand",
+            "SI": {
+                "name": "Same as Flow",
+                "abbr": ""
+            },
+            "US": {
+                "name": "Same as Flow",
+                "abbr": ""
+            },
+            "notes": "Same as Flow"
+        },
+        "qgisred_query_junctions_patterndemand": {
+            "property": "Pattern Demand",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_junctions_emittercoeff": {
+            "property": "Emitter Coefficient",
+            "SI": {
+                "name": "Flow units /sqr(m)",
+                "abbr": "flowunits/√m"
+            },
+            "US": {
+                "name": "Flow units /sqr(psi)",
+                "abbr": "flowunits/√psi"
+            },
+            "notes": "according Project Flow Units"
+        },
+        "qgisred_query_junctions_initquality": {
+            "property": "Initial Quality",
+            "SI": {
+                "name": "mass/Liter",
+                "abbr": "massunits/L"
+            },
+            "US": {
+                "name": "mass/Liter",
+                "abbr": "massunits/L"
+            },
+            "notes": "according Project mass units"
+        },
+        "qgisred_query_junctions_tag": {
+            "property": "Tag",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        }
+    },
+    "Valves": {
+        "qgisred_query_valves_type": {
+            "property": "Type",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_valves_diameter": {
+            "property": "Diameter",
+            "SI": {
+                "name": "Millimeters",
+                "abbr": "mm"
+            },
+            "US": {
+                "name": "Inches",
+                "abbr": "in"
+            }
+        },
+        "qgisred_query_valves_setting": {
+            "property": "Setting",
+            "SI": {
+                "name": "Meters or Flow units",
+                "abbr": "m or flow units"
+            },
+            "US": {
+                "name": "Psi or Flow units",
+                "abbr": "psi or flow units"
+            },
+            "notes": "according TypeValve and Project Flow units"
+        },
+        "qgisred_query_valves_headlosscurve": {
+            "property": "HeadLoss Curve",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_valves_losscoeff": {
+            "property": "Loss Coefficient",
+            "SI": {
+                "name": "Unitless",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "Unitless",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_valves_initstatus": {
+            "property": "Initial Status",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_valves_tag": {
+            "property": "Tag",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        }
+    },
+    "Pumps": {
+        "qgisred_query_pumps_headcurve": {
+            "property": "Head Curve",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_pumps_power": {
+            "property": "Power",
+            "SI": {
+                "name": "Kilowatts",
+                "abbr": "kW"
+            },
+            "US": {
+                "name": "Horse Power",
+                "abbr": "HP"
+            }
+        },
+        "qgisred_query_pumps_speed": {
+            "property": "Speed",
+            "SI": {
+                "name": "Unitless",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "Unitless",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_pumps_speedpattern": {
+            "property": "Speed Pattern",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_pumps_initstatus": {
+            "property": "Initial Status",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_pumps_efficiency": {
+            "property": "Efficiency",
+            "SI": {
+                "name": "Percent",
+                "abbr": "%"
+            },
+            "US": {
+                "name": "Percent",
+                "abbr": "%"
+            }
+        },
+        "qgisred_query_pumps_effcurve": {
+            "property": "Efficiency Curve",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_pumps_energyprice": {
+            "property": "Energy Price",
+            "SI": {
+                "name": "Currency /kWh",
+                "abbr": "Currency /kWh"
+            },
+            "US": {
+                "name": "Currency /kWh",
+                "abbr": "Currency /kWh"
+            },
+            "notes": "according Project currency"
+        },
+        "qgisred_query_pumps_pricepattern": {
+            "property": "Price Pattern",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_pumps_tag": {
+            "property": "Tag",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_pumps_pumpcurve": {
+            "property": "Pump Curve",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_pumps_type": {
+            "property": "Type",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        }
+    },
+    "Sources": {
+        "qgisred_query_sources_massinjection": {
+            "property": "Mass Injection",
+            "SI": {
+                "name": "Mass/minute",
+                "abbr": "massunits/min"
+            },
+            "US": {
+                "name": "Mass/minute",
+                "abbr": "massunits/min"
+            },
+            "notes": "according Project mass units"
+        }
+    },
+    "ServiceConnection": {
+        "qgisred_query_serviceconnection_length": {
+            "property": "Length",
+            "SI": {
+                "name": "Meters",
+                "abbr": "m"
+            },
+            "US": {
+                "name": "Feet",
+                "abbr": "ft"
+            }
+        },
+        "qgisred_query_serviceconnection_diameter": {
+            "property": "Diameter",
+            "SI": {
+                "name": "Millimeters",
+                "abbr": "mm"
+            },
+            "US": {
+                "name": "Inches",
+                "abbr": "in"
+            }
+        },
+        "qgisred_query_serviceconnection_roughness": {
+            "property": "Roughness",
+            "SI": {
+                "name": "Millimeters",
+                "abbr": "mm"
+            },
+            "US": {
+                "name": "Millifeet",
+                "abbr": "mft"
+            }
+        },
+        "qgisred_query_serviceconnection_material": {
+            "property": "Material",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_serviceconnection_installdate": {
+            "property": "Installation Date",
+            "SI": {
+                "name": "Year",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "Year",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_serviceconnection_age": {
+            "property": "Age",
+            "SI": {
+                "name": "Years",
+                "abbr": "yr"
+            },
+            "US": {
+                "name": "Years",
+                "abbr": "yr"
+            }
+        },
+        "qgisred_query_serviceconnection_basedemand": {
+            "property": "Base Demand",
+            "SI": {
+                "name": "Same as Flow",
+                "abbr": ""
+            },
+            "US": {
+                "name": "Same as Flow",
+                "abbr": ""
+            },
+            "notes": "Same as Flow"
+        },
+        "qgisred_query_serviceconnection_patterndemand": {
+            "property": "Pattern Demand",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_serviceconnection_reliability": {
+            "property": "Reliability",
+            "SI": {
+                "name": "Unitless",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "Unitless",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_serviceconnection_isactive": {
+            "property": "IsActive",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_serviceconnection_tag": {
+            "property": "Tag",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        }
+    },
+    "IsolationValves": {
+        "qgisred_query_isolationvalves_diameter": {
+            "property": "Diameter",
+            "SI": {
+                "name": "Millimeters",
+                "abbr": "mm"
+            },
+            "US": {
+                "name": "Inches",
+                "abbr": "in"
+            }
+        },
+        "qgisred_query_isolationvalves_losscoeff": {
+            "property": "Loss Coefficient",
+            "SI": {
+                "name": "Unitless",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "Unitless",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_isolationvalves_status": {
+            "property": "Status",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_isolationvalves_available": {
+            "property": "Available",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_isolationvalves_installdate": {
+            "property": "Installation Date",
+            "SI": {
+                "name": "Year",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "Year",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_isolationvalves_age": {
+            "property": "Age",
+            "SI": {
+                "name": "Years",
+                "abbr": "yr"
+            },
+            "US": {
+                "name": "Years",
+                "abbr": "yr"
+            }
+        },
+        "qgisred_query_isolationvalves_tag": {
+            "property": "Tag",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        }
+    },
+    "Meters": {
+        "qgisred_query_meters_type": {
+            "property": "Type",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_meters_isactive": {
+            "property": "IsActive",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_meters_installdate": {
+            "property": "Installation Date",
+            "SI": {
+                "name": "Year",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "Year",
+                "abbr": "-"
+            }
+        },
+        "qgisred_query_meters_age": {
+            "property": "Age",
+            "SI": {
+                "name": "Years",
+                "abbr": "yr"
+            },
+            "US": {
+                "name": "Years",
+                "abbr": "yr"
+            }
+        },
+        "qgisred_query_meters_tag": {
+            "property": "Tag",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        }
+    },
+    "Nodes": {
+        "qgisred_results_node_pressure": {
+            "property": "Pressure",
+            "SI": {
+                "name": "Meters water column",
+                "abbr": "m"
+            },
+            "US": {
+                "name": "Pounds/ sq in",
+                "abbr": "psi"
+            }
+        },
+        "qgisred_results_node_head": {
+            "property": "Head",
+            "SI": {
+                "name": "Meters",
+                "abbr": "m"
+            },
+            "US": {
+                "name": "Feet",
+                "abbr": "ft"
+            }
+        },
+        "qgisred_results_node_demand": {
+            "property": "Demand",
+            "SI": {
+                "name": "Same as Flow",
+                "abbr": ""
+            },
+            "US": {
+                "name": "Same as Flow",
+                "abbr": ""
+            },
+            "notes": "Same as Flow"
+        },
+        "qgisred_results_node_quality": {
+            "property": "Quality",
+            "SI": {
+                "name": "mass/Liter",
+                "abbr": "massunits/L"
+            },
+            "US": {
+                "name": "mass/Liter",
+                "abbr": "massunits/L"
+            },
+            "notes": "according Project mass units"
+        },
+        "qgisred_results_node_waterage": {
+            "property": "Waterage",
+            "SI": {
+                "name": "Hours",
+                "abbr": "hr"
+            },
+            "US": {
+                "name": "Hours",
+                "abbr": "hr"
+            }
+        },
+        "qgisred_results_node_trace": {
+            "property": "Trace",
+            "SI": {
+                "name": "Percent",
+                "abbr": "%"
+            },
+            "US": {
+                "name": "Percent",
+                "abbr": "%"
+            }
+        }
+    },
+    "Links": {
+        "qgisred_results_link_flow": {
+            "property": "Flow",
+            "SI": {
+                "name": "liters/sec",
+                "abbr": "lps"
+            },
+            "US": {
+                "name": "Cubic feet/sec",
+                "abbr": "cfs"
+            },
+            "notes": "according Project Flow Units (SI alternatives: lpm, mld, cmh, cmd; US alternatives: gpm, mgd, imgd, afd)"
+        },
+        "qgisred_results_link_velocity": {
+            "property": "Velocity",
+            "SI": {
+                "name": "Meters/second",
+                "abbr": "m/s"
+            },
+            "US": {
+                "name": "feet/second",
+                "abbr": "ft/s"
+            }
+        },
+        "qgisred_results_link_frictionfactor": {
+            "property": "Friction factor",
+            "SI": {
+                "name": "Unitless",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "Unitless",
+                "abbr": "-"
+            }
+        },
+        "qgisred_results_link_headloss": {
+            "property": "HeadLoss",
+            "SI": {
+                "name": "Meters water column",
+                "abbr": "m"
+            },
+            "US": {
+                "name": "Feet",
+                "abbr": "ft"
+            }
+        },
+        "qgisred_results_link_unitheadloss": {
+            "property": "Unit HeadLoss",
+            "SI": {
+                "name": "Meters per 1000 m",
+                "abbr": "m/Km"
+            },
+            "US": {
+                "name": "Feet per 1000 ft",
+                "abbr": "ft/Kft"
+            }
+        },
+        "qgisred_results_link_energy": {
+            "property": "Energy",
+            "SI": {
+                "name": "Kilowatt - hours",
+                "abbr": "kWh"
+            },
+            "US": {
+                "name": "Kilowatt - hours",
+                "abbr": "kWh"
+            }
+        },
+        "qgisred_results_link_status": {
+            "property": "Status",
+            "SI": {
+                "name": "-",
+                "abbr": "-"
+            },
+            "US": {
+                "name": "-",
+                "abbr": "-"
+            }
+        },
+        "qgisred_results_link_quality": {
+            "property": "Quality",
+            "SI": {
+                "name": "mass/L",
+                "abbr": "massunits/L"
+            },
+            "US": {
+                "name": "mass/L",
+                "abbr": "massunits/L"
+            },
+            "notes": "according Project mass units"
+        },
+        "qgisred_results_link_waterage": {
+            "property": "Waterage",
+            "SI": {
+                "name": "Hours",
+                "abbr": "hr"
+            },
+            "US": {
+                "name": "Hours",
+                "abbr": "hr"
+            }
+        },
+        "qgisred_results_link_trace": {
+            "property": "Trace",
+            "SI": {
+                "name": "Percentage",
+                "abbr": "%"
+            },
+            "US": {
+                "name": "Percentage",
+                "abbr": "%"
+            }
+        }
+    }
+}

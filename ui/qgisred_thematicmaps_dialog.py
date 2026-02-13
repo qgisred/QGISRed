@@ -96,7 +96,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
 
         selectedQueries = self.getSelectedQueries()
         currentValidIdentifiers = set(
-            f"qgisred_query_{query['field'].lower()}_{query['tooltip_prefix'].lower()}"
+            f"qgisred_query_{query['layer_type'].lower()}_{query['field'].lower()}"
             for query in selectedQueries
         )
         toRemoveIdentifiers = self.initialValidIdentifiers - currentValidIdentifiers
@@ -131,7 +131,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
 
             newQueries = [
                 query for query in selectedQueries
-                if f"qgisred_query_{query['field'].lower()}_{query['tooltip_prefix'].lower()}" 
+                if f"qgisred_query_{query['layer_type'].lower()}_{query['field'].lower()}" 
                 in (currentValidIdentifiers - self.initialValidIdentifiers)
             ]
 
@@ -224,8 +224,9 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         qmlFile = query['qml_file']
         tooltipPrefix = query['tooltip_prefix']
         
-        # Generate a unique identifier for the layer
-        layerIdentifier = f"qgisred_query_{field.lower()}_{tooltipPrefix.lower()}"
+        # Generate a unique identifier for the layer (includes layer type for uniqueness)
+        layerType = query.get('layer_type', 'unknown').lower()
+        layerIdentifier = f"qgisred_query_{layerType}_{field.lower()}"
         
         # Find existing layer by identifier instead of name
         existingLayer, layerPosition = self.findLayerByIdentifier(queriesGroup, layerIdentifier)
@@ -410,76 +411,76 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         
         # Tanks mappings
         mapping.update({
-            'qgisred_query_elevation_elev': self.cbTanksElevation,
-            'qgisred_query_diameter_diam': self.cbTanksDiameter,
-            'qgisred_query_volume_vol': self.cbTanksVolume,
-            'qgisred_query_level_level': self.cbTanksLevel,
-            'qgisred_query_initquality_quality': self.cbTanksInitialQuality,
-            'qgisred_query_bulkcoeff_bulk': self.cbTanksBulkCoeff,
-            'qgisred_query_mixmodel_mix': self.cbTanksMixingModel,
-            'qgisred_query_tag_tag': self.cbTanksTag
+            'qgisred_query_tanks_elevation': self.cbTanksElevation,
+            'qgisred_query_tanks_diameter': self.cbTanksDiameter,
+            'qgisred_query_tanks_volume': self.cbTanksVolume,
+            'qgisred_query_tanks_level': self.cbTanksLevel,
+            'qgisred_query_tanks_initquality': self.cbTanksInitialQuality,
+            'qgisred_query_tanks_bulkcoeff': self.cbTanksBulkCoeff,
+            'qgisred_query_tanks_mixmodel': self.cbTanksMixingModel,
+            'qgisred_query_tanks_tag': self.cbTanksTag
         })
 
         # Reservoirs mappings
         mapping.update({
-            'qgisred_query_totalhead_head': self.cbReservoirsTotalHead,
-            'qgisred_query_headpattern_pattern': self.cbReservoirsHeadPattern,
-            'qgisred_query_initquality_quality': self.cbReservoirsInitialQuality,
-            'qgisred_query_tag_tag': self.cbReservoirsTag
+            'qgisred_query_reservoirs_totalhead': self.cbReservoirsTotalHead,
+            'qgisred_query_reservoirs_headpattern': self.cbReservoirsHeadPattern,
+            'qgisred_query_reservoirs_initquality': self.cbReservoirsInitialQuality,
+            'qgisred_query_reservoirs_tag': self.cbReservoirsTag
         })
 
         # Junctions mappings
         mapping.update({
-            'qgisred_query_elevation_elev': self.cbJunctionsElevation,
-            'qgisred_query_basedemand_demand': self.cbJunctionsBaseDemand,
-            'qgisred_query_patterndemand_pattern': self.cbJunctionsPatternDemand,
-            'qgisred_query_emittercoeff_emitter': self.cbJunctionsEmitterCoeff,
-            'qgisred_query_initquality_quality': self.cbJunctionsInitialQuality,
-            'qgisred_query_tag_tag': self.cbJunctionsTag
+            'qgisred_query_junctions_elevation': self.cbJunctionsElevation,
+            'qgisred_query_junctions_basedemand': self.cbJunctionsBaseDemand,
+            'qgisred_query_junctions_patterndemand': self.cbJunctionsPatternDemand,
+            'qgisred_query_junctions_emittercoeff': self.cbJunctionsEmitterCoeff,
+            'qgisred_query_junctions_initquality': self.cbJunctionsInitialQuality,
+            'qgisred_query_junctions_tag': self.cbJunctionsTag
         })
 
         # Valves mappings
         mapping.update({
-            'qgisred_query_type_type': self.cbValvesType,
-            'qgisred_query_diameter_diam': self.cbValvesDiameter,
-            'qgisred_query_setting_set': self.cbValvesSetting,
-            'qgisred_query_initstatus_status': self.cbValvesInitialStatus,
-            'qgisred_query_losscoeff_loss': self.cbValvesLossCoeff,
-            'qgisred_query_tag_tag': self.cbValvesTag
+            'qgisred_query_valves_type': self.cbValvesType,
+            'qgisred_query_valves_diameter': self.cbValvesDiameter,
+            'qgisred_query_valves_setting': self.cbValvesSetting,
+            'qgisred_query_valves_initstatus': self.cbValvesInitialStatus,
+            'qgisred_query_valves_losscoeff': self.cbValvesLossCoeff,
+            'qgisred_query_valves_tag': self.cbValvesTag
         })
 
         # Pumps mappings
         mapping.update({
-            'qgisred_query_type_type': self.cbPumpsType,
-            'qgisred_query_pumpcurve_curve': self.cbPumpsPumpCurve,
-            'qgisred_query_power_power': self.cbPumpsPower,
-            'qgisred_query_initstatus_status': self.cbPumpsInitialStatus,
-            'qgisred_query_speed_speed': self.cbPumpsSpeed,
-            'qgisred_query_effcurve_eff': self.cbPumpsEfficiencyCurve,
-            'qgisred_query_energyprice_price': self.cbPumpsEnergyPrice,
-            'qgisred_query_tag_tag': self.cbPumpsTag
+            'qgisred_query_pumps_type': self.cbPumpsType,
+            'qgisred_query_pumps_pumpcurve': self.cbPumpsPumpCurve,
+            'qgisred_query_pumps_power': self.cbPumpsPower,
+            'qgisred_query_pumps_initstatus': self.cbPumpsInitialStatus,
+            'qgisred_query_pumps_speed': self.cbPumpsSpeed,
+            'qgisred_query_pumps_effcurve': self.cbPumpsEfficiencyCurve,
+            'qgisred_query_pumps_energyprice': self.cbPumpsEnergyPrice,
+            'qgisred_query_pumps_tag': self.cbPumpsTag
         })
 
         # Service Connection, Isolation Valves, and Meters mappings
         mapping.update({
-            'qgisred_query_temporary_temp': self.cbPipesDiameter_3,  # Service Connection
-            'qgisred_query_temporary_temp': self.cbTanksElevation_3,  # Isolation Valves
-            'qgisred_query_temporary_temp': self.cbReservoirsTotalHead_3  # Meters
+            'qgisred_query_serviceconnection_temporary': self.cbPipesDiameter_3,  # Service Connection
+            'qgisred_query_isolationvalves_temporary': self.cbTanksElevation_3,  # Isolation Valves
+            'qgisred_query_meters_temporary': self.cbReservoirsTotalHead_3  # Meters
         })
 
         # Pipes mappings
         mapping.update({
-            'qgisred_query_diameter_diam': self.cbPipesDiameter,
-            'qgisred_query_length_len': self.cbPipesLength,
-            'qgisred_query_material_mat': self.cbPipesMaterial,
-            'qgisred_query_roughness_rough': self.cbPipesRoughness,
-            'qgisred_query_age_age': self.cbPipesAge,
-            'qgisred_query_losscoeff_loss': self.cbPipesLossCoeff,
-            'qgisred_query_initstatus_status': self.cbPipesInitStatus,
-            'qgisred_query_installdate_inst': self.cbPipesInstallationDate,
-            'qgisred_query_bulkcoeff_bulk': self.cbPipesBulkCoeff,
-            'qgisred_query_wallcoeff_wall': self.cbPipesWallCoeff,
-            'qgisred_query_tag_tag': self.cbPipesTag
+            'qgisred_query_pipes_diameter': self.cbPipesDiameter,
+            'qgisred_query_pipes_length': self.cbPipesLength,
+            'qgisred_query_pipes_material': self.cbPipesMaterial,
+            'qgisred_query_pipes_roughness': self.cbPipesRoughness,
+            'qgisred_query_pipes_age': self.cbPipesAge,
+            'qgisred_query_pipes_losscoeff': self.cbPipesLossCoeff,
+            'qgisred_query_pipes_initstatus': self.cbPipesInitStatus,
+            'qgisred_query_pipes_installdate': self.cbPipesInstallationDate,
+            'qgisred_query_pipes_bulkcoeff': self.cbPipesBulkCoeff,
+            'qgisred_query_pipes_wallcoeff': self.cbPipesWallCoeff,
+            'qgisred_query_pipes_tag': self.cbPipesTag
         })
         
         return mapping
@@ -518,6 +519,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbTanksElevation.isChecked():
             queries.append({
                 'layer_name': 'Tank Elevations',
+                'layer_type': 'Tanks',
                 'field': 'Elevation',
                 'qml_file': f'tank_elevations_{units}.qml',
                 'file_name': f'elevation_{units}',
@@ -527,6 +529,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbTanksDiameter.isChecked():
             queries.append({
                 'layer_name': 'Tank Diameters',
+                'layer_type': 'Tanks',
                 'field': 'Diameter',
                 'qml_file': f'tank_diameters_{units}.qml',
                 'file_name': f'diameter_{units}',
@@ -536,6 +539,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbTanksVolume.isChecked():
             queries.append({
                 'layer_name': 'Tank Volumes',
+                'layer_type': 'Tanks',
                 'field': 'Volume',
                 'qml_file': f'tank_volumes_{units}.qml',
                 'file_name': f'volume_{units}',
@@ -545,6 +549,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbTanksLevel.isChecked():
             queries.append({
                 'layer_name': 'Tank Levels',
+                'layer_type': 'Tanks',
                 'field': 'Level',
                 'qml_file': f'tank_levels_{units}.qml',
                 'file_name': f'level_{units}',
@@ -554,6 +559,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbTanksInitialQuality.isChecked():
             queries.append({
                 'layer_name': 'Tank Initial Quality',
+                'layer_type': 'Tanks',
                 'field': 'InitQuality',
                 'qml_file': 'tank_init_quality.qml',
                 'file_name': 'init_quality',
@@ -563,6 +569,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbTanksBulkCoeff.isChecked():
             queries.append({
                 'layer_name': 'Tank Bulk Coefficient',
+                'layer_type': 'Tanks',
                 'field': 'BulkCoeff',
                 'qml_file': 'tank_bulk_coeff.qml',
                 'file_name': 'bulk_coeff',
@@ -572,6 +579,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbTanksMixingModel.isChecked():
             queries.append({
                 'layer_name': 'Tank Mixing Models',
+                'layer_type': 'Tanks',
                 'field': 'MixModel',
                 'qml_file': 'tank_mixing_model.qml',
                 'file_name': 'mixing_model',
@@ -581,6 +589,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbTanksTag.isChecked():
             queries.append({
                 'layer_name': 'Tank Tags',
+                'layer_type': 'Tanks',
                 'field': 'Tag',
                 'qml_file': 'tank_tags.qml',
                 'file_name': 'tags',
@@ -591,6 +600,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbReservoirsTotalHead.isChecked():
             queries.append({
                 'layer_name': 'Reservoir Total Head',
+                'layer_type': 'Reservoirs',
                 'field': 'TotalHead',
                 'qml_file': f'reservoir_total_head_{units}.qml',
                 'file_name': f'total_head_{units}',
@@ -600,6 +610,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbReservoirsHeadPattern.isChecked():
             queries.append({
                 'layer_name': 'Reservoir Head Patterns',
+                'layer_type': 'Reservoirs',
                 'field': 'HeadPattern',
                 'qml_file': 'reservoir_head_pattern.qml',
                 'file_name': 'head_pattern',
@@ -609,6 +620,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbReservoirsInitialQuality.isChecked():
             queries.append({
                 'layer_name': 'Reservoir Initial Quality',
+                'layer_type': 'Reservoirs',
                 'field': 'InitQuality',
                 'qml_file': 'reservoir_init_quality.qml',
                 'file_name': 'init_quality',
@@ -618,6 +630,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbReservoirsTag.isChecked():
             queries.append({
                 'layer_name': 'Reservoir Tags',
+                'layer_type': 'Reservoirs',
                 'field': 'Tag',
                 'qml_file': 'reservoir_tags.qml',
                 'file_name': 'tags',
@@ -628,6 +641,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbJunctionsElevation.isChecked():
             queries.append({
                 'layer_name': 'Junction Elevations',
+                'layer_type': 'Junctions',
                 'field': 'Elevation',
                 'qml_file': f'junction_elevation_{units}.qml',
                 'file_name': f'elevation_{units}',
@@ -637,6 +651,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbJunctionsBaseDemand.isChecked():
             queries.append({
                 'layer_name': 'Junction Base Demands',
+                'layer_type': 'Junctions',
                 'field': 'BaseDemand',
                 'qml_file': 'junction_base_demand.qml',
                 'file_name': 'base_demand',
@@ -646,6 +661,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbJunctionsPatternDemand.isChecked():
             queries.append({
                 'layer_name': 'Junction Pattern Demands',
+                'layer_type': 'Junctions',
                 'field': 'PatternDemand',
                 'qml_file': 'junction_pattern_demand.qml',
                 'file_name': 'pattern_demand',
@@ -655,6 +671,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbJunctionsEmitterCoeff.isChecked():
             queries.append({
                 'layer_name': 'Junction Emitter Coefficients',
+                'layer_type': 'Junctions',
                 'field': 'EmitterCoeff',
                 'qml_file': 'junction_emitter_coeff.qml',
                 'file_name': 'emitter_coeff',
@@ -664,6 +681,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbJunctionsInitialQuality.isChecked():
             queries.append({
                 'layer_name': 'Junction Initial Quality',
+                'layer_type': 'Junctions',
                 'field': 'InitQuality',
                 'qml_file': 'junction_init_quality.qml',
                 'file_name': 'init_quality',
@@ -673,6 +691,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbJunctionsTag.isChecked():
             queries.append({
                 'layer_name': 'Junction Tags',
+                'layer_type': 'Junctions',
                 'field': 'Tag',
                 'qml_file': 'junction_tags.qml',
                 'file_name': 'tags',
@@ -684,6 +703,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbValvesType.isChecked():
             queries.append({
                 'layer_name': 'Valve Types',
+                'layer_type': 'Valves',
                 'field': 'Type',
                 'qml_file': 'valve_types.qml',
                 'file_name': 'type',
@@ -693,6 +713,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbValvesDiameter.isChecked():
             queries.append({
                 'layer_name': 'Valve Diameters',
+                'layer_type': 'Valves',
                 'field': 'Diameter',
                 'qml_file': f'valve_diameters_{units}.qml',
                 'file_name': f'diameter_{units}',
@@ -702,6 +723,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbValvesSetting.isChecked():
             queries.append({
                 'layer_name': 'Valve Settings',
+                'layer_type': 'Valves',
                 'field': 'Setting',
                 'qml_file': 'valve_settings.qml',
                 'file_name': 'setting',
@@ -711,6 +733,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbValvesInitialStatus.isChecked():
             queries.append({
                 'layer_name': 'Valve Initial Status',
+                'layer_type': 'Valves',
                 'field': 'InitStatus',
                 'qml_file': 'valve_init_status.qml',
                 'file_name': 'init_status',
@@ -720,6 +743,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbValvesLossCoeff.isChecked():
             queries.append({
                 'layer_name': 'Valve Loss Coefficients',
+                'layer_type': 'Valves',
                 'field': 'LossCoeff',
                 'qml_file': 'valve_loss_coeff.qml',
                 'file_name': 'loss_coeff',
@@ -729,6 +753,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbValvesTag.isChecked():
             queries.append({
                 'layer_name': 'Valve Tags',
+                'layer_type': 'Valves',
                 'field': 'Tag',
                 'qml_file': 'valve_tags.qml',
                 'file_name': 'tags',
@@ -739,6 +764,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbPumpsType.isChecked():
             queries.append({
                 'layer_name': 'Pump Types',
+                'layer_type': 'Pumps',
                 'field': 'Type',
                 'qml_file': 'pump_types.qml',
                 'file_name': 'type',
@@ -748,6 +774,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbPumpsPumpCurve.isChecked():
             queries.append({
                 'layer_name': 'Pump Curves',
+                'layer_type': 'Pumps',
                 'field': 'PumpCurve',
                 'qml_file': 'pump_curves.qml',
                 'file_name': 'pump_curve',
@@ -757,6 +784,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbPumpsPower.isChecked():
             queries.append({
                 'layer_name': 'Pump Power',
+                'layer_type': 'Pumps',
                 'field': 'Power',
                 'qml_file': 'pump_power.qml',
                 'file_name': 'power',
@@ -766,6 +794,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbPumpsInitialStatus.isChecked():
             queries.append({
                 'layer_name': 'Pump Initial Status',
+                'layer_type': 'Pumps',
                 'field': 'InitStatus',
                 'qml_file': 'pump_init_status.qml',
                 'file_name': 'init_status',
@@ -775,6 +804,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbPumpsSpeed.isChecked():
             queries.append({
                 'layer_name': 'Pump Speed',
+                'layer_type': 'Pumps',
                 'field': 'Speed',
                 'qml_file': 'pump_speed.qml',
                 'file_name': 'speed',
@@ -784,6 +814,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbPumpsEfficiencyCurve.isChecked():
             queries.append({
                 'layer_name': 'Pump Efficiency Curves',
+                'layer_type': 'Pumps',
                 'field': 'EffCurve',
                 'qml_file': 'pump_efficiency_curves.qml',
                 'file_name': 'efficiency_curve',
@@ -793,6 +824,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbPumpsEnergyPrice.isChecked():
             queries.append({
                 'layer_name': 'Pump Energy Price',
+                'layer_type': 'Pumps',
                 'field': 'EnergyPrice',
                 'qml_file': 'pump_energy_price.qml',
                 'file_name': 'energy_price',
@@ -802,6 +834,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbPumpsTag.isChecked():
             queries.append({
                 'layer_name': 'Pump Tags',
+                'layer_type': 'Pumps',
                 'field': 'Tag',
                 'qml_file': 'pump_tags.qml',
                 'file_name': 'tags',
@@ -812,6 +845,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbPipesDiameter_3.isChecked():
             queries.append({
                 'layer_name': 'Service Connection',
+                'layer_type': 'ServiceConnection',
                 'field': 'Temporary',
                 'qml_file': 'service_connection.qml',
                 'file_name': 'temporary',
@@ -822,6 +856,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbTanksElevation_3.isChecked():
             queries.append({
                 'layer_name': 'Isolation Valves',
+                'layer_type': 'IsolationValves',
                 'field': 'Temporary',
                 'qml_file': 'isolation_valves.qml',
                 'file_name': 'temporary',
@@ -832,6 +867,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbReservoirsTotalHead_3.isChecked():
             queries.append({
                 'layer_name': 'Meters',
+                'layer_type': 'Meters',
                 'field': 'Temporary',
                 'qml_file': 'meters.qml',
                 'file_name': 'temporary',
@@ -842,6 +878,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbPipesDiameter.isChecked():
             queries.append({
                 'layer_name': 'Pipe Diameters',
+                'layer_type': 'Pipes',
                 'field': 'Diameter',
                 'qml_file': f'PipeDiameters{units}.qml',
                 'file_name': f'diameter_{units}',
@@ -851,6 +888,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbPipesLength.isChecked():
             queries.append({
                 'layer_name': 'Pipe Lengths',
+                'layer_type': 'Pipes',
                 'field': 'Length',
                 'qml_file': f'PipeLengths{units}.qml',
                 'file_name': f'length_{units}',
@@ -860,6 +898,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbPipesMaterial.isChecked():
             queries.append({
                 'layer_name': 'Pipe Materials',
+                'layer_type': 'Pipes',
                 'field': 'Material',
                 'qml_file': 'PipeMaterials.qml',
                 'file_name': 'material',
@@ -869,6 +908,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbPipesRoughness.isChecked():
             queries.append({
                 'layer_name': 'Pipe Roughness',
+                'layer_type': 'Pipes',
                 'field': 'Roughness',
                 'qml_file': 'pipe_roughness.qml',
                 'file_name': 'roughness',
@@ -878,6 +918,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbPipesAge.isChecked():
             queries.append({
                 'layer_name': 'Pipe Age',
+                'layer_type': 'Pipes',
                 'field': 'Age',
                 'qml_file': 'pipe_age.qml',
                 'file_name': 'age',
@@ -887,6 +928,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbPipesLossCoeff.isChecked():
             queries.append({
                 'layer_name': 'Pipe Loss Coefficient',
+                'layer_type': 'Pipes',
                 'field': 'LossCoeff',
                 'qml_file': 'pipe_loss_coeff.qml',
                 'file_name': 'loss_coeff',
@@ -896,6 +938,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbPipesInitStatus.isChecked():
             queries.append({
                 'layer_name': 'Pipe Initial Status',
+                'layer_type': 'Pipes',
                 'field': 'InitStatus',
                 'qml_file': 'pipe_init_status.qml',
                 'file_name': 'init_status',
@@ -905,6 +948,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbPipesInstallationDate.isChecked():
             queries.append({
                 'layer_name': 'Pipe Installation Date',
+                'layer_type': 'Pipes',
                 'field': 'InstallDate',
                 'qml_file': 'pipe_install_date.qml',
                 'file_name': 'install_date',
@@ -914,6 +958,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbPipesBulkCoeff.isChecked():
             queries.append({
                 'layer_name': 'Pipe Bulk Coefficient',
+                'layer_type': 'Pipes',
                 'field': 'BulkCoeff',
                 'qml_file': 'pipe_bulk_coeff.qml',
                 'file_name': 'bulk_coeff',
@@ -923,6 +968,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbPipesWallCoeff.isChecked():
             queries.append({
                 'layer_name': 'Pipe Wall Coefficient',
+                'layer_type': 'Pipes',
                 'field': 'WallCoeff',
                 'qml_file': 'pipe_wall_coeff.qml',
                 'file_name': 'wall_coeff',
@@ -932,6 +978,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if self.cbPipesTag.isChecked():
             queries.append({
                 'layer_name': 'Pipe Tags',
+                'layer_type': 'Pipes',
                 'field': 'Tag',
                 'qml_file': 'pipe_tags.qml',
                 'file_name': 'tags',

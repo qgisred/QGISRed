@@ -11,9 +11,17 @@ from qgis.gui import QgsSymbolButton, QgsColorDialog
 from qgis.core import QgsMarkerSymbol, QgsLineSymbol, QgsFillSymbol, QgsSymbol
 
 class RangeEditDialog(QDialog):
-    def __init__(self, lowerValue, upperValue, parent=None):
-        """Constructor."""
+    def __init__(self, lowerValue, upperValue, parent=None, unitAbbr=""):
+        """Constructor.
+        
+        Args:
+            lowerValue: Initial lower bound value
+            upperValue: Initial upper bound value
+            parent: Parent widget
+            unitAbbr: Unit abbreviation to display (e.g., 'mm', 'm')
+        """
         super().__init__(parent)
+        self.unitAbbr = unitAbbr
         self.setWindowTitle(self.tr("Edit Range"))
         self.initUi(lowerValue, upperValue)
 
@@ -21,15 +29,23 @@ class RangeEditDialog(QDialog):
         """Initialize UI components."""
         layout = QVBoxLayout(self)
         
-        layout.addWidget(QLabel(self.tr("Lower Value:")))
+        # Build label with optional unit suffix
+        lowerLabel = self.tr("Lower Value:")
+        upperLabel = self.tr("Upper Value:")
+        if self.unitAbbr:
+            lowerLabel = self.tr(f"Lower Value ({self.unitAbbr}):")
+            upperLabel = self.tr(f"Upper Value ({self.unitAbbr}):")
+        
+        layout.addWidget(QLabel(lowerLabel))
         self.lowerSpinBox = self.createSpinBox(lower)
         layout.addWidget(self.lowerSpinBox)
 
-        layout.addWidget(QLabel(self.tr("Upper Value:")))
+        layout.addWidget(QLabel(upperLabel))
         self.upperSpinBox = self.createSpinBox(upper)
         layout.addWidget(self.upperSpinBox)
 
         self.setupButtons(layout)
+
 
     def createSpinBox(self, value):
         """Factory method for consistent spinboxes."""

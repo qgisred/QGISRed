@@ -125,6 +125,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         # Create utils instance
         self.utils = QGISRedUtils(direct, netw, ifac)
 
+        # Refresh current layer to populate legend types now that utils is available
+        if self.cbLegendLayer.currentLayer():
+            self.onLayerChanged(self.cbLegendLayer.currentLayer())
+
     def initUi(self):
         """Initialize UI components."""
         self.configWindow()
@@ -254,6 +258,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.cbGroups.setStyleSheet(editableComboStyle)
         self.cbLegendLayer.setStyleSheet(editableComboStyle)
         self.cbMode.setStyleSheet(editableComboStyle)
+        self.cbLegendsType.setStyleSheet(editableComboStyle)
         self.cbSizes.setStyleSheet(editableComboStyle)
         self.cbColors.setStyleSheet(editableComboStyle)
         self.cbColorRampPalette.setStyleSheet(editableComboStyle)
@@ -304,6 +309,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.btApplyLegend.clicked.connect(self.applyLegend)
         self.btCancelLegend.clicked.connect(self.cancelAndClose)
         self.cbMode.currentIndexChanged.connect(self.onModeChanged)
+        self.cbLegendsType.currentIndexChanged.connect(self.onLegendTypeChanged)
         self.spinIntervalRange.valueChanged.connect(self.onIntervalRangeChanged)
         self.btClassPlus.clicked.connect(self.addClass)
         self.btClassMinus.clicked.connect(self.removeClass)
@@ -341,6 +347,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.labelFrameLegends.setText(self.tr("Legend"))
         if self.cbLegendLayer.currentLayer():
             self.onLayerChanged(self.cbLegendLayer.currentLayer())
+            # Populate legend types based on the current layer's support
+            self.populateLegendTypes(self.cbLegendLayer.currentLayer())
         self.updateClassCount()
 
     # --- Event Handlers ---
@@ -471,14 +479,16 @@ class QGISRedLegendsDialog(QDialog, formClass):
             else:
                 self.labelFrameLegends.setText(baseTitle)
 
-            # Update Legend Type Combobox
+            # Populate legend types based on layer support
+            self.populateLegendTypes(layer)
+
+            # Update Legend Type Combobox to current renderer
             rType = layer.renderer().type()
             index = self.cbLegendsType.findData(rType)
             if index != -1:
+                self.cbLegendsType.blockSignals(True)
                 self.cbLegendsType.setCurrentIndex(index)
-            else:
-                # Fallback or leave as is? Likely singleSymbol if unknown or not in list
-                pass
+                self.cbLegendsType.blockSignals(False)
 
             self.resetAllModesToManual()
             self.updateUiBasedOnFieldType()
@@ -509,6 +519,169 @@ class QGISRedLegendsDialog(QDialog, formClass):
         """Handle spin box change for fixed interval."""
         if self.cbMode.currentData() == "FixedInterval":
             self.applyClassificationMethod("FixedInterval")
+
+    def onLegendTypeChanged(self):
+        """Handle legend type change (Graduated <-> Categorized)."""
+        if not self.currentLayer or not self.currentFieldName:
+            return
+        
+        newType = self.cbLegendsType.currentData()
+        currentType = self.currentLayer.renderer().type() if self.currentLayer.renderer() else None
+        
+        # If type hasn't actually changed, do nothing
+        if newType == currentType:
+            return
+        
+        field = self.currentFieldName
+        
+        if newType == "categorizedSymbol":
+            # Check unique value count before converting to categorized
+            fieldIdx = self.currentLayer.fields().indexOf(field)
+            if fieldIdx >= 0:
+                uniqueValues = self.currentLayer.uniqueValues(fieldIdx)
+                uniqueCount = len([v for v in uniqueValues if v is not None and str(v) != 'NULL'])
+                
+                if uniqueCount > 100:
+                    reply = QMessageBox.warning(
+                        self,
+                        self.tr("High Class Count Warning"),
+                        self.tr(f"The field '{field}' has {uniqueCount} unique values.\n\n"
+                                f"Creating a categorized legend with this many classes may "
+                                f"affect performance and readability.\n\n"
+                                f"Do you want to proceed?"),
+                        QMessageBox.Yes | QMessageBox.No,
+                        QMessageBox.No
+                    )
+                    
+                    if reply == QMessageBox.No:
+                        # Revert combo box to current renderer type
+                        self.cbLegendsType.blockSignals(True)
+                        idx = self.cbLegendsType.findData(currentType)
+                        if idx >= 0:
+                            self.cbLegendsType.setCurrentIndex(idx)
+                        self.cbLegendsType.blockSignals(False)
+                        return
+            
+            # Convert to categorized: use unique values from the field
+            self.convertToCategorized(field)
+            # Force field type to CATEGORICAL for categorized renderer
+            self.currentFieldType = self.FIELD_TYPE_CATEGORICAL
+            self.currentFieldName = field
+        elif newType == "graduatedSymbol":
+            # Convert to graduated: create default ranges
+            self.convertToGraduated(field)
+            # Update field type from renderer
+            self.currentFieldType, self.currentFieldName = self.detectFieldType(self.currentLayer)
+        else:
+            # Update field type from renderer
+            self.currentFieldType, self.currentFieldName = self.detectFieldType(self.currentLayer)
+        
+        self.resetAllModesToManual()
+        self.updateUiBasedOnFieldType()
+        
+        # Repopulate the table based on explicit type
+        if self.currentFieldType == self.FIELD_TYPE_NUMERIC:
+            self.populateNumericLegend()
+        elif self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
+            self.populateCategoricalLegend()
+        else:
+            self.clearTable()
+        
+        self.updateButtonStates()
+        self.currentLayer.triggerRepaint()
+
+    def convertToCategorized(self, field):
+        """Convert current layer to categorized renderer using unique field values."""
+        layer = self.currentLayer
+        fieldIdx = layer.fields().indexOf(field)
+        if fieldIdx < 0:
+            return
+        
+        uniqueValues = sorted(layer.uniqueValues(fieldIdx))
+        categories = []
+        
+        # Get unit abbreviation if available
+        unitAbbr = ""
+        if self.utils:
+            layerIdentifier = layer.customProperty("qgisred_identifier")
+            if layerIdentifier:
+                unitAbbr = self.utils.getUnitAbbreviationForLayer(layerIdentifier)
+        
+        for value in uniqueValues:
+            if value is None or str(value) == 'NULL':
+                continue
+            symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+            # Generate a random color for each category
+            color = QColor.fromHsv(
+                random.randint(0, 359),
+                random.randint(150, 255),
+                random.randint(150, 255)
+            )
+            symbol.setColor(color)
+            if layer.geometryType() == 1:  # Line
+                symbol.setWidth(0.6)
+            else:
+                symbol.setSize(2.5)
+            
+            # Create label with unit abbreviation if available
+            label = str(value)
+            if unitAbbr:
+                label = f"{value} {unitAbbr}"
+            
+            category = QgsRendererCategory(value, symbol, label)
+            categories.append(category)
+        
+        renderer = QgsCategorizedSymbolRenderer(field, categories)
+        layer.setRenderer(renderer)
+
+    def convertToGraduated(self, field):
+        """Convert current layer to graduated renderer using equal intervals."""
+        layer = self.currentLayer
+        fieldIdx = layer.fields().indexOf(field)
+        if fieldIdx < 0:
+            return
+        
+        # Get min/max values
+        minVal = layer.minimumValue(fieldIdx)
+        maxVal = layer.maximumValue(fieldIdx)
+        
+        if minVal is None or maxVal is None:
+            return
+        
+        # Create 5 classes by default
+        numClasses = 5
+        interval = (maxVal - minVal) / numClasses
+        ranges = []
+        
+        # Create a color ramp (blue to red)
+        startColor = QColor(0, 255, 0)  # Green
+        endColor = QColor(255, 0, 0)    # Red
+        
+        for i in range(numClasses):
+            lower = minVal + (i * interval)
+            upper = minVal + ((i + 1) * interval)
+            
+            # Interpolate color
+            t = i / max(1, numClasses - 1)
+            color = QColor(
+                int(startColor.red() + t * (endColor.red() - startColor.red())),
+                int(startColor.green() + t * (endColor.green() - startColor.green())),
+                int(startColor.blue() + t * (endColor.blue() - startColor.blue()))
+            )
+            
+            symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+            symbol.setColor(color)
+            if layer.geometryType() == 1:  # Line
+                symbol.setWidth(0.6)
+            else:
+                symbol.setSize(2.5)
+            
+            label = f"{lower:.1f} - {upper:.1f}"
+            rangeObj = QgsRendererRange(lower, upper, symbol, label)
+            ranges.append(rangeObj)
+        
+        renderer = QgsGraduatedSymbolRenderer(field, ranges)
+        layer.setRenderer(renderer)
 
     def onCellDoubleClicked(self, row, column):
         """Route double click to specific editors."""
@@ -978,15 +1151,40 @@ class QGISRedLegendsDialog(QDialog, formClass):
         for id, name in modes: self.cbMode.addItem(self.tr(name), id)
         self.cbMode.blockSignals(False)
 
-    def populateLegendTypes(self):
-        """Populate legend type combo box."""
+    def populateLegendTypes(self, layer=None):
+        """Populate legend type combo box based on layer support."""
         self.cbLegendsType.blockSignals(True)
         self.cbLegendsType.clear()
         
-        # Add basic types
-        self.cbLegendsType.addItem(self.tr("Single Symbol"), "singleSymbol")
-        self.cbLegendsType.addItem(self.tr("Categorized"), "categorizedSymbol")
-        self.cbLegendsType.addItem(self.tr("Graduated"), "graduatedSymbol")
+        if not layer:
+            # Default: show all types
+            self.cbLegendsType.addItem(self.tr("Single Symbol"), "singleSymbol")
+            self.cbLegendsType.addItem(self.tr("Categorized"), "categorizedSymbol")
+            self.cbLegendsType.addItem(self.tr("Graduated"), "graduatedSymbol")
+        else:
+            # Get layer identifier and check support
+            layerIdentifier = layer.customProperty("qgisred_identifier")
+            currentRendererType = layer.renderer().type() if layer.renderer() else "singleSymbol"
+            
+            # Check if layer supports categorized
+            supportsCategorized = False
+            if self.utils:
+                supportsCategorized = self.utils.getLayerSupportsCategorized(layerIdentifier)
+            
+            if supportsCategorized:
+                print("Supports")
+                # Layer supports both graduated and categorized (like diameter)
+                self.cbLegendsType.addItem(self.tr("Graduated"), "graduatedSymbol")
+                self.cbLegendsType.addItem(self.tr("Categorized"), "categorizedSymbol")
+            elif currentRendererType == "categorizedSymbol":
+                # Categorized-only layer (like material)
+                self.cbLegendsType.addItem(self.tr("Categorized"), "categorizedSymbol")
+            elif currentRendererType == "graduatedSymbol":
+                # Graduated-only layer (like length)
+                self.cbLegendsType.addItem(self.tr("Graduated"), "graduatedSymbol")
+            else:
+                # Default fallback: show current type
+                self.cbLegendsType.addItem(self.tr("Single Symbol"), "singleSymbol")
         
         self.cbLegendsType.blockSignals(False)
 
@@ -1198,9 +1396,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
                 self.classifyAll()
             else:
-                # For numeric, treat double click as adding another class below
-                self.btClassPlusAddBefore = False
-                self.executeAddClass()
+                # For numeric, ignore double-click to prevent adding two classes
+                return
         else:
             # First click: Start timer to wait for potential second click
             self.btClassPlusClickTimer = QTimer()
@@ -1298,7 +1495,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         self.tableView.clearSelection()
         self.tableView.selectRow(row)
+        self.tableView.selectRow(row)
         self.updateClassCount()
+        
+        # Refresh all legend labels to apply correct rounding for the new number of classes
+        self.refreshAllLegendLabels()
 
     def addCategoricalClass(self):
         """Add categorical value."""
@@ -1330,7 +1531,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         sym.setColor(self.generateRandomColor())
         
         disp = str(val)
-        self.setRowWidgets(row, sym, True, disp, disp, self.getGeometryHint(), isReadOnlyVal=True)
+        # Add unit abbreviation to legend if available
+        unitAbbr = self.getCurrentLayerUnitAbbr()
+        legendText = f"{val} {unitAbbr}" if unitAbbr else disp
+        self.setRowWidgets(row, sym, True, disp, legendText, self.getGeometryHint(), isReadOnlyVal=True)
         
         self.tableView.clearSelection()
         self.tableView.selectRow(row)
@@ -1358,6 +1562,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
             # Don't re-apply classification method - let manual changes stand
 
         self.updateClassCount()
+        
+        # Refresh all legend labels to apply correct rounding for the new number of classes
+        self.refreshAllLegendLabels()
+        
         self.updateButtonStates()
 
         # NEW: Re-apply generic logic
@@ -1515,10 +1723,104 @@ class QGISRedLegendsDialog(QDialog, formClass):
         vw = self.tableView.cellWidget(row, 2)
         if isinstance(vw, QLineEdit):
             vw.setText(txt)
-        # Update legend if it matched old range
+        
+        # Update legend text
+        self.updateLegendsValues(row, l, u)
+
+    def updateLegendsValues(self, row, lower, upper):
+        """Update legend text for a row based on its position (first, middle, or last)."""
         lw = self.tableView.cellWidget(row, 3)
-        if isinstance(lw, QLineEdit) and lw.text().replace(" ","") == f"{curr[0]:.2f}-{curr[1]:.2f}".replace(" ",""):
-            lw.setText(txt)
+        if not isinstance(lw, QLineEdit):
+            return
+            
+        unitAbbr = self.getCurrentLayerUnitAbbr()
+        totalRows = self.tableView.rowCount()
+        
+        # Calculate optimal rounding precision based on all values in the table
+        vals = self.getNumericValues()
+        if vals and len(vals) > 0:
+            minV, maxV = min(vals), max(vals)
+            try:
+                m = self.calculateLegendRoundingPrecision(minV, maxV, totalRows)
+                # Convert m to number of decimal places (negative m means more decimals)
+                decimalPlaces = max(0, -m)
+            except ValueError:
+                decimalPlaces = 2  # Fallback to 2 decimal places
+        else:
+            decimalPlaces = 2  # Default fallback
+        
+        # Create format string based on calculated decimal places
+        fmt = f"{{:.{decimalPlaces}f}}"
+        
+        if row == 0:
+            # First row: "< {upper} {units}"
+            if unitAbbr:
+                newLegendTxt = f"< {fmt.format(upper)} {unitAbbr}"
+            else:
+                newLegendTxt = f"< {fmt.format(upper)}"
+        elif row == totalRows - 1:
+            # Last row: "> {lower} {units}"
+            if unitAbbr:
+                newLegendTxt = f"> {fmt.format(lower)} {unitAbbr}"
+            else:
+                newLegendTxt = f"> {fmt.format(lower)}"
+        else:
+            # Middle rows: "{lower} < {upper} {units}"
+            if unitAbbr:
+                newLegendTxt = f"{fmt.format(lower)} < {fmt.format(upper)} {unitAbbr}"
+            else:
+                newLegendTxt = f"{fmt.format(lower)} < {fmt.format(upper)}"
+        lw.setText(newLegendTxt)
+
+    def refreshAllLegendLabels(self):
+        """Re-calculate and apply optimal rounding to all legend rows."""
+        for r in range(self.tableView.rowCount()):
+            vals = self.getRangeValues(r)
+            if vals:
+                self.updateLegendsValues(r, vals[0], vals[1])
+
+    def getCurrentLayerUnitAbbr(self):
+        """Get unit abbreviation for current layer from utils."""
+        if not self.currentLayer or not self.utils:
+            return ""
+        layerIdent = self.currentLayer.customProperty("qgisred_identifier")
+        if layerIdent:
+            return self.utils.getUnitAbbreviationForLayer(layerIdent)
+        return ""
+
+    def calculateLegendRoundingPrecision(self, minValue, maxValue, intervals=10):
+        """
+        Calculate the optimal rounding precision for legend values.
+        
+        Args:
+            minValue: Minimum value of the field
+            maxValue: Maximum value of the field
+            intervals: Number of classes/intervals (default: 10)
+            
+        Returns:
+            int: The rounding precision exponent 'm'. 
+                 - m = 0 means round to integers
+                 - m = -1 means 1 decimal place
+                 - m = -2 means 2 decimal places
+                 - m = 1 means round to tens
+                 - m = 2 means round to hundreds
+                 
+        Raises:
+            ValueError: If intervals <= 0 or maxValue < minValue
+        """
+        if intervals <= 0:
+            raise ValueError("intervals must be > 0")
+        if maxValue < minValue:
+            raise ValueError("maxValue must be >= minValue")
+
+        increment = (maxValue - minValue) / intervals
+        meanAbs = (abs(minValue) + abs(maxValue)) / 2.0
+
+        m1 = math.floor(math.log10(meanAbs) - 2 + 0.5) if meanAbs > 0 else 0
+        m2 = math.floor(math.log10(increment)) if increment > 0 else 0
+        m = min(m1, m2)
+        
+        return m
 
     def calculateOptimalInterval(self):
         """Calculate nice interval for ~5 classes."""
@@ -1586,16 +1888,46 @@ class QGISRedLegendsDialog(QDialog, formClass):
         while self.tableView.rowCount() < num: self.addNumericClass()
         while self.tableView.rowCount() > num: self.tableView.removeRow(self.tableView.rowCount()-1)
 
-        # Apply
+        # Calculate optimal rounding precision for legend formatting
+        try:
+            m = self.calculateLegendRoundingPrecision(minV, maxV, num)
+            decimalPlaces = max(0, -m)
+        except ValueError:
+            decimalPlaces = 2  # Fallback
+        
+        fmt = f"{{:.{decimalPlaces}f}}"
+        unitAbbr = self.getCurrentLayerUnitAbbr()
+
+        # Apply breaks and update legends with rounding precision
         for i in range(num):
             l, u = breaks[i], breaks[i+1]
-            txt = f"{l:.2f} - {u:.2f}"
+            txt = f"{fmt.format(l)} - {fmt.format(u)}"
             vw = self.tableView.cellWidget(i, 2)
             if isinstance(vw, QLineEdit):
                 vw.setText(txt)
 
+            # Format legend based on position (first, middle, last)
             lw = self.tableView.cellWidget(i, 3)
-            if isinstance(lw, QLineEdit): lw.setText(txt)
+            if isinstance(lw, QLineEdit):
+                if i == 0:
+                    # First row: "< {upper} {units}"
+                    if unitAbbr:
+                        legendTxt = f"< {fmt.format(u)} {unitAbbr}"
+                    else:
+                        legendTxt = f"< {fmt.format(u)}"
+                elif i == num - 1:
+                    # Last row: "> {lower} {units}"
+                    if unitAbbr:
+                        legendTxt = f"> {fmt.format(l)} {unitAbbr}"
+                    else:
+                        legendTxt = f"> {fmt.format(l)}"
+                else:
+                    # Middle rows: "{lower} < {upper} {units}"
+                    if unitAbbr:
+                        legendTxt = f"{fmt.format(l)} < {fmt.format(u)} {unitAbbr}"
+                    else:
+                        legendTxt = f"{fmt.format(l)} < {fmt.format(u)}"
+                lw.setText(legendTxt)
 
         self.updateClassCount()
 
@@ -1616,10 +1948,24 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def openRangeEditor(self, row):
         """Open range dialog."""
+        # Check if we are in Manual mode
+        modeId = self.cbMode.currentData()
+        if modeId and modeId != "Manual":
+            # Optional: Show a message or just silently return
+            # QMessageBox.information(self, "Mode Restriction", "Please switch to 'Manual' mode to edit range values values.")
+            return
+
         curr = self.getRangeValues(row)
         if not curr: return
         
-        dlg = RangeEditDialog(curr[0], curr[1], self)
+        # Get unit abbreviation for current layer (supports diameters and lengths)
+        unitAbbr = ""
+        if self.currentLayer and self.utils:
+            layerIdent = self.currentLayer.customProperty("qgisred_identifier")
+            if layerIdent:
+                unitAbbr = self.utils.getUnitAbbreviationForLayer(layerIdent)
+        
+        dlg = RangeEditDialog(curr[0], curr[1], self, unitAbbr=unitAbbr)
         if dlg.exec_():
             nl, nu = dlg.getValues()
 
