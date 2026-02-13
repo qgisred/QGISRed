@@ -9,7 +9,8 @@
             "US": {
                 "name": "Feet",
                 "abbr": "ft"
-            }
+            },
+            "supports_categorized": true
         },
         "qgisred_query_pipes_diameter": {
             "property": "Diameter",
@@ -20,7 +21,8 @@
             "US": {
                 "name": "Inches",
                 "abbr": "in"
-            }
+            },
+            "supports_categorized": true
         },
         "qgisred_query_pipes_roughness": {
             "property": "Roughness",

@@ -899,6 +899,7 @@ class QGISRedUtils:
 
                     if os.path.exists(qgisPath):   
                         QgsProject.instance().read(qgisPath)
+                        self.applyStylesToInputLayers()
                     else:
                         request = QMessageBox.question(
                             self.iface.mainWindow(),
@@ -913,6 +914,7 @@ class QGISRedUtils:
                             qgisPath = f[0]
                             if not qgisPath == "":
                                 QgsProject.instance().read(qgisPath)
+                                self.applyStylesToInputLayers()
                         else:
                             layers = ["Pipes", "Junctions", "Demands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
                             self.openGroupLayers("Inputs", layers)
@@ -986,6 +988,17 @@ class QGISRedUtils:
         if groupName == "Inputs":
             for child in treeGroup.children():
                 child.setCustomProperty("showFeatureCount", True)
+
+    def applyStylesToInputLayers(self):
+        inputGroup = self.getInputGroup()
+        if inputGroup is None:
+            return
+        for child in inputGroup.children():
+            if isinstance(child, QgsLayerTreeLayer):
+                layer = child.layer()
+                if layer:
+                    layerName = layer.name().replace(" ", "")
+                    self.setStyle(layer, layerName.lower())
 
     def saveFilesInZip(self, zipPath):
         file_paths = []

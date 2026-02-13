@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   id="svg9"
+   height="154mm"
+   width="154mm"
+   version="1.0"
+   sodipodi:docname="tanks.svg"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)">
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     id="namedview8"
+     showgrid="false"
+     inkscape:zoom="1.0326323"
+     inkscape:cx="299.24911"
+     inkscape:cy="274.57265"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg9" />
+  <metadata
+     id="metadata13">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs3">
+    <pattern
+       y="0"
+       x="0"
+       height="6"
+       width="6"
+       patternUnits="userSpaceOnUse"
+       id="EMFhbasepattern" />
+  </defs>
+  <path
+     id="path5"
+     d="  M 78.399419,174.47871   L 78.399419,181.59865   L 78.399419,446.39669   L 503.43627,446.39669   L 503.43627,174.47871   z "
+     style="fill:#78b3dc;fill-rule:nonzero;fill-opacity:1;stroke:none" />
+  <path
+     id="path7"
+     d="  M 62.719535,83.919378   C 48.959637,84.159377 37.919719,95.519292 38.079718,109.27919   L 38.079718,464.95656   C 36.639729,473.0365 39.19971,481.43643 45.039666,487.27639   C 50.879623,493.27635 59.279561,495.99633 67.599499,494.55634   L 517.59617,495.67633   C 523.51612,496.55632 529.59608,495.27633 534.63604,491.99636   C 543.43597,486.6364 548.07594,476.39647 546.23595,466.23655   L 546.23595,110.47918   C 546.39595,96.399286 534.95604,84.879371 520.79614,85.119369   C 507.03624,85.359368 495.99633,96.639284 496.23632,110.47918   L 496.23632,164.07878   L 88.079348,163.03879   L 88.079348,109.27919   C 88.319346,95.199295 76.799431,83.75938 62.719535,83.919378   z  M 88.079348,188.31861   L 496.23632,189.3586   L 496.23632,445.5967   L 88.079348,444.55671   z  M 348.71742,213.91842   L 233.35827,214.23841   C 226.31832,214.15841 220.63837,219.83837 220.63837,226.87832   C 220.63837,233.91827 226.39832,239.59823 233.43827,239.51823   L 348.79742,239.19823   C 355.83736,239.27823 361.51732,233.59827 361.51732,226.55832   C 361.51732,219.51837 355.75736,213.83842 348.71742,213.91842   z "
+     stroke-width="param(outline-width) 0"
+     stroke-opacity="param(outline-opacity)"
+     stroke="param(outline) #FFF"
+     fill-opacity="param(fill-opacity)"
+     fill="param(fill) #000" />
+</svg>

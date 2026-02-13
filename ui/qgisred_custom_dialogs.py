@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
 # Third-party imports
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QColor, QPixmap, QPainter, QIcon
 from PyQt5.QtWidgets import (QDialog, QDialogButtonBox, QDoubleSpinBox, QLabel, 
                              QVBoxLayout, QWidget, QHBoxLayout, QCheckBox, 
-                             QToolButton)
-from PyQt5.QtCore import pyqtSignal, Qt, QEvent
+                             QToolButton, QPushButton, QMenu, QAction)
+from PyQt5.QtCore import pyqtSignal, Qt, QEvent, QSize
 
 from qgis.gui import QgsSymbolButton, QgsColorDialog
-from qgis.core import QgsMarkerSymbol, QgsLineSymbol, QgsFillSymbol, QgsSymbol
+from qgis.core import QgsMarkerSymbol, QgsLineSymbol, QgsFillSymbol, QgsSymbol, QgsColorRamp
 
 class RangeEditDialog(QDialog):
     def __init__(self, lowerValue, upperValue, parent=None, unitAbbr=""):
@@ -219,3 +219,213 @@ class SymbolColorSelectorWithCheckbox(QWidget):
     def setAllowAlpha(self, val): self.colorSelector.setAllowAlpha(val)
     def updateSymbolSize(self, s, w=False): self.colorSelector.updateSymbolSize(s, w)
     def setCheckboxLabel(self, val): self.checkbox.setText(val)
+
+
+class QGISRedColorRampSelector(QWidget):
+    """
+    Custom color ramp selector widget that displays only user-defined color ramps.
+    Provides a button with gradient preview and dropdown menu for ramp selection.
+    """
+    
+    colorRampChanged = pyqtSignal(QgsColorRamp)
+    
+    def __init__(self, parent=None):
+        """Initialize the custom color ramp selector widget."""
+        super(QGISRedColorRampSelector, self).__init__(parent)
+        
+        # Internal storage
+        self._ramps = {}  # {name: QgsColorRamp}
+        self._currentRampName = None
+        
+        # Setup UI
+        self._initUi()
+    
+    def _initUi(self):
+        """Initialize the user interface."""
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Create button with dropdown arrow
+        self._button = QPushButton(self)
+        self._button.setMinimumHeight(24)
+        self._button.clicked.connect(self._showRampMenu)
+        
+        layout.addWidget(self._button)
+        
+        # Initial display
+        self._updateButtonDisplay()
+    
+    def addColorRamp(self, name, ramp):
+        """
+        Add a color ramp to the selector.
+        
+        Args:
+            name: Name/identifier for the ramp
+            ramp: QgsColorRamp instance
+        """
+        if not isinstance(ramp, QgsColorRamp):
+            return
+        
+        # Clone the ramp to avoid external modifications
+        self._ramps[name] = ramp.clone()
+        
+        # Set as current if this is the first ramp
+        if self._currentRampName is None:
+            self.setCurrentRamp(name)
+    
+    def addColorRamps(self, ramps):
+        """
+        Add multiple color ramps at once.
+        
+        Args:
+            ramps: Dictionary of {name: QgsColorRamp}
+        """
+        for name, ramp in ramps.items():
+            self.addColorRamp(name, ramp)
+    
+    def clearRamps(self):
+        """Remove all color ramps."""
+        self._ramps.clear()
+        self._currentRampName = None
+        self._updateButtonDisplay()
+    
+    def removeRamp(self, name):
+        """
+        Remove a specific color ramp.
+        
+        Args:
+            name: Name of the ramp to remove
+        """
+        if name in self._ramps:
+            del self._ramps[name]
+            
+            # If we removed the current ramp, select another
+            if self._currentRampName == name:
+                if self._ramps:
+                    self.setCurrentRamp(list(self._ramps.keys())[0])
+                else:
+                    self._currentRampName = None
+                    self._updateButtonDisplay()
+    
+    def setCurrentRamp(self, name):
+        """
+        Set the current ramp by name.
+        
+        Args:
+            name: Name of the ramp to select
+        """
+        if name in self._ramps:
+            self._currentRampName = name
+            self._updateButtonDisplay()
+            
+            # Emit signal
+            ramp = self.currentRamp()
+            if ramp:
+                self.colorRampChanged.emit(ramp)
+    
+    def currentRampName(self):
+        """Get the name of the currently selected ramp."""
+        return self._currentRampName
+    
+    def currentRamp(self):
+        """Get the currently selected QgsColorRamp instance."""
+        if self._currentRampName and self._currentRampName in self._ramps:
+            return self._ramps[self._currentRampName].clone()
+        return None
+    
+    def _showRampMenu(self):
+        """Display dropdown menu with available color ramps."""
+        if not self._ramps:
+            return
+        
+        menu = QMenu(self)
+        
+        # Sort ramp names alphabetically
+        for name in sorted(self._ramps.keys()):
+            ramp = self._ramps[name]
+            
+            # Create gradient preview icon
+            icon = self._createRampIcon(ramp, 50, 16)
+            
+            # Create menu action
+            action = QAction(icon, name, self)
+            action.triggered.connect(lambda checked, n=name: self.setCurrentRamp(n))
+            
+            # Mark current selection
+            if name == self._currentRampName:
+                action.setCheckable(True)
+                action.setChecked(True)
+            
+            menu.addAction(action)
+        
+        # Show menu below button
+        menu.exec_(self._button.mapToGlobal(self._button.rect().bottomLeft()))
+    
+    def _updateButtonDisplay(self):
+        """Update button display with current ramp gradient."""
+        if self._currentRampName and self._currentRampName in self._ramps:
+            ramp = self._ramps[self._currentRampName]
+            
+            # Get button size
+            width = max(100, self._button.width())
+            height = max(20, self._button.height() - 4)
+            
+            # Create gradient preview
+            pixmap = self._renderGradientPreview(ramp, width, height)
+            
+            # Set as button icon
+            self._button.setIcon(QIcon(pixmap))
+            self._button.setIconSize(QSize(width, height))
+            self._button.setText("")  # Clear text to show only gradient
+        else:
+            # No ramp selected - show placeholder
+            self._button.setIcon(QIcon())
+            self._button.setText("No ramp")
+    
+    def _renderGradientPreview(self, ramp, width, height):
+        """
+        Render a color ramp as a horizontal gradient.
+        
+        Args:
+            ramp: QgsColorRamp instance
+            width: Pixmap width in pixels
+            height: Pixmap height in pixels
+            
+        Returns:
+            QPixmap with gradient preview
+        """
+        pixmap = QPixmap(width, height)
+        pixmap.fill(QColor(255, 255, 255))
+        
+        painter = QPainter(pixmap)
+        
+        # Draw gradient by sampling the ramp
+        for x in range(width):
+            # Calculate position (0.0 to 1.0)
+            t = x / max(1, width - 1)
+            
+            # Get color from ramp
+            color = ramp.color(t)
+            
+            # Draw vertical line
+            painter.setPen(color)
+            painter.drawLine(x, 0, x, height)
+        
+        painter.end()
+        
+        return pixmap
+    
+    def _createRampIcon(self, ramp, width, height):
+        """
+        Create a QIcon with gradient preview for menu items.
+        
+        Args:
+            ramp: QgsColorRamp instance
+            width: Icon width in pixels
+            height: Icon height in pixels
+            
+        Returns:
+            QIcon with gradient preview
+        """
+        pixmap = self._renderGradientPreview(ramp, width, height)
+        return QIcon(pixmap)

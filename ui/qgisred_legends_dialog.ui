@@ -70,7 +70,7 @@
         <x>0</x>
         <y>0</y>
         <width>631</width>
-        <height>454</height>
+        <height>456</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -560,7 +560,11 @@
                   </layout>
                  </item>
                  <item>
-                  <widget class="QComboBox" name="cbColorRampPalette"/>
+                  <layout class="QHBoxLayout" name="palletesHorizontalLayout">
+                   <item>
+                    <widget class="QComboBox" name="cbColorRampPalette"/>
+                   </item>
+                  </layout>
                  </item>
                  <item>
                   <widget class="Line" name="line_7">
@@ -597,6 +601,19 @@
                        <width>60</width>
                        <height>16777215</height>
                       </size>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="btClassifyAll">
+                     <property name="maximumSize">
+                      <size>
+                       <width>20</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string/>
                      </property>
                     </widget>
                    </item>

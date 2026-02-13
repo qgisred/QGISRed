@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   id="svg9"
+   height="154mm"
+   width="154mm"
+   version="1.0">
+  <metadata
+     id="metadata13">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs3">
+    <pattern
+       y="0"
+       x="0"
+       height="6"
+       width="6"
+       patternUnits="userSpaceOnUse"
+       id="EMFhbasepattern" />
+  </defs>
+  <path
+     id="path5"
+     d="  M 289.67785,155.03885   C 215.27841,155.03885 154.63885,215.5984 154.63885,289.99785   C 154.63885,364.3973 215.27841,425.03685 289.67785,425.03685   C 364.0773,425.03685 424.63685,364.3973 424.63685,289.99785   C 424.63685,215.5984 364.0773,155.03885 289.67785,155.03885   z "
+     style="fill:#ffffff;fill-rule:nonzero;fill-opacity:1;stroke:none" />
+  <path
+     id="path7"
+     d="  M 289.99785,123.99908   C 198.55853,123.99908 123.99908,198.55853 123.99908,289.99785   C 123.99908,381.43717 198.55853,455.99662 289.99785,455.99662   C 381.43717,455.99662 455.99662,381.43717 455.99662,289.99785   C 455.99662,198.55853 381.43717,123.99908 289.99785,123.99908   z  M 289.99785,155.99884   C 364.2373,155.99884 423.99686,215.7584 423.99686,289.99785   C 423.99686,364.2373 364.2373,423.99686 289.99785,423.99686   C 215.7584,423.99686 155.99884,364.2373 155.99884,289.99785   C 155.99884,215.7584 215.7584,155.99884 289.99785,155.99884   z  M 228.63831,172.95872   C 224.95833,173.03872 221.67836,175.9187 221.59836,179.99867   L 220.95836,289.03786   L 220.39837,397.99705   C 220.31837,403.51701 226.23832,406.95699 230.95829,404.23701   L 325.67759,350.31741   L 420.39689,296.31781   C 423.19687,294.71782 424.55686,291.51784 423.75686,288.39786   C 423.27686,286.55788 422.07687,284.95789 420.47689,283.9979   L 326.39758,228.9583   L 232.31828,173.91871   C 231.11829,173.27872 229.8383,172.95872 228.63831,172.95872   z "
+     fill="param(fill) #000"
+     fill-opacity="param(fill-opacity)"
+     stroke="param(outline) #FFF"
+     stroke-opacity="param(outline-opacity)"
+     stroke-width="param(outline-width) 0"
+     inkscape:connector-curvature="0" />
+</svg>

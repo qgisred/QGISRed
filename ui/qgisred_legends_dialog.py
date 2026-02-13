@@ -10,7 +10,8 @@ import statistics
 from PyQt5.QtGui import QIcon, QColor
 from PyQt5.QtWidgets import (QDialog, QMessageBox, QHeaderView,
                              QComboBox, QLineEdit, QAbstractItemView,
-                             QCheckBox, QDoubleSpinBox, QApplication)
+                             QCheckBox, QDoubleSpinBox, QApplication, QProgressDialog,
+                             QWidget, QHBoxLayout)
 from PyQt5.QtCore import (QVariant, Qt, QTimer, QObject, QEvent,
                           QItemSelectionModel, QItemSelection)
 from qgis.PyQt import uic
@@ -22,12 +23,12 @@ from qgis.core import (QgsProject, QgsVectorLayer, QgsMessageLog, Qgis,
                        QgsLayerTreeGroup, QgsLayerTreeLayer, QgsGradientColorRamp,
                        QgsClassificationJenks, QgsClassificationPrettyBreaks,
                        QgsStyle, QgsPresetSchemeColorRamp, QgsColorRamp)
-from qgis.gui import QgsColorButton
+from qgis.gui import QgsColorButton, QgsColorRampButton
 from qgis.utils import iface
 
 # Local imports
 from ..tools.qgisred_utils import QGISRedUtils
-from .qgisred_custom_dialogs import RangeEditDialog, SymbolColorSelectorWithCheckbox
+from .qgisred_custom_dialogs import RangeEditDialog, SymbolColorSelector
 
 # Load UI
 formClass, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_legends_dialog.ui"))
@@ -77,6 +78,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
     FIELD_TYPE_NUMERIC = 'numeric'
     FIELD_TYPE_CATEGORICAL = 'categorical'
     FIELD_TYPE_UNKNOWN = 'unknown'
+    
+    # Class Count Limits
+    WARN_CLASSES = 50
+    MAX_CLASSES = 1000
+
     # Task 4.3: Add 'qgisred_results' to allowed groups
     ALLOWED_GROUP_IDENTIFIERS = ["qgisred_thematicmaps", "qgisred_results", "qgisred_demandsectors"]
 
@@ -137,11 +143,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.populateLegendTypes()
         self.populateGroups()
         self.setupClassCountField()
+        self.setupClassifyAllButton()
 
         # NEW: Setup Advanced Color and Size UI
         self.setupAdvancedUi()
         self.loadStyleDatabase()
         self.applyConsistentStyling()
+        self.setupTooltips()
 
         self.labelIntervalRange.setVisible(False)
         self.spinIntervalRange.setVisible(False)
@@ -165,27 +173,31 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def setupTableView(self):
         """Configure table columns and visual style."""
-        self.tableView.setColumnCount(4)
-        self.tableView.setHorizontalHeaderLabels(["Symbol", "Size", "Value", "Legend"])
+        self.tableView.setColumnCount(5)
+        self.tableView.setHorizontalHeaderLabels(["", "Color", "Size", "Value", "Legend"])
 
         # Initialize Event Filter for row selection logic
         self.rowSelectionFilter = RowSelectionFilter(self.tableView)
 
         header = self.tableView.horizontalHeader()
 
-        # 0: Symbol (Fixed Icon size)
+        # 0: Checkbox (Fixed small width, unnamed column)
         header.setSectionResizeMode(0, QHeaderView.Fixed)
-        self.tableView.setColumnWidth(0, 50)
+        self.tableView.setColumnWidth(0, 30)
 
-        # 1: Size (Fixed small width)
+        # 1: Symbol/Color (Fixed Icon size)
         header.setSectionResizeMode(1, QHeaderView.Fixed)
-        self.tableView.setColumnWidth(1, 60)
+        self.tableView.setColumnWidth(1, 40)
 
-        # 2: Value (Stretch - takes up available space)
-        header.setSectionResizeMode(2, QHeaderView.Stretch)
+        # 2: Size (Fixed small width)
+        header.setSectionResizeMode(2, QHeaderView.Fixed)
+        self.tableView.setColumnWidth(2, 60)
 
-        # 3: Legend (Stretch - takes up available space)
+        # 3: Value (Stretch - takes up available space)
         header.setSectionResizeMode(3, QHeaderView.Stretch)
+
+        # 4: Legend (Stretch - takes up available space)
+        header.setSectionResizeMode(4, QHeaderView.Stretch)
 
         self.tableView.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.tableView.setSelectionMode(QAbstractItemView.ExtendedSelection)
@@ -244,8 +256,29 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.btRefreshColors.setIcon(QIcon(":/images/themes/default/mActionRefresh.svg"))
         self.btRefreshColors.clicked.connect(self.applyColorLogic)
 
+        self.setupColorRampButton()
+
         self.onSizeModeChanged()
         self.onColorModeChanged()
+
+    def setupColorRampButton(self):
+        """Initialize and add QgsColorRampButton to the UI."""
+        self.btnColorRamp = QgsColorRampButton(self)
+        self.btnColorRamp.setMaximumWidth(100)
+        self.btnColorRamp.setVisible(False)
+        # Use existing layout created in UI
+        self.palletesHorizontalLayout.addWidget(self.btnColorRamp)
+        # Reflect only behavior
+        #self.btnColorRamp.setEnabled(False)
+        self.cbColorRampPalette.currentIndexChanged.connect(self.syncColorRampButton)
+
+    def setupClassifyAllButton(self):
+        # Ensure icon exists or fallback
+        iconPath = os.path.join(os.path.dirname(__file__), '..', 'images', 'iconClassifyAll.png')
+        self.btClassifyAll.setIcon(QIcon(iconPath))
+
+        self.btClassifyAll.setToolTip(self.tr("Classify All Unique Values"))
+        self.btClassifyAll.clicked.connect(self.classifyAll)
 
     def applyConsistentStyling(self):
         """Apply consistent white backgrounds to all editable widgets and standardize appearance."""
@@ -272,6 +305,34 @@ class QGISRedLegendsDialog(QDialog, formClass):
         # Apply to checkboxes
         #self.ckSizeInvert.setStyleSheet(editableCheckBoxStyle)
         #self.ckColorInvert.setStyleSheet(editableCheckBoxStyle)
+
+    def setupTooltips(self):
+        """Setup tooltips for all buttons with translation support."""
+        # Navigation buttons
+        self.btUp.setToolTip(self.tr("Move selected class up"))
+        self.btDown.setToolTip(self.tr("Move selected class down"))
+        
+        # Class management buttons (dynamic tooltips set in updateUiBasedOnFieldType)
+        self.btClassMinus.setToolTip(self.tr("Remove selected class(es)"))
+        
+        # Classification button
+        self.btClassifyAll.setToolTip(self.tr("Add all unique values as separate classes"))
+        
+        # Color refresh button
+        if hasattr(self, 'btRefreshColors'):
+            self.btRefreshColors.setToolTip(self.tr("Refresh color ramp"))
+        
+        # Style management buttons
+        self.btLoadDefault.setToolTip(self.tr("Load default style for this layer"))
+        self.btLoadGlobal.setToolTip(self.tr("Load style from global database"))
+        self.btSaveGlobal.setToolTip(self.tr("Save current style to global database"))
+        self.btLoadProject.setToolTip(self.tr("Load style from project database"))
+        self.btSaveProject.setToolTip(self.tr("Save current style to project database"))
+        
+        # Action buttons
+        self.btApplyLegend.setToolTip(self.tr("Apply changes to layer"))
+        self.btCancelLegend.setToolTip(self.tr("Cancel and close dialog"))
+
 
     def loadStyleDatabase(self):
         """Loads the proprietary QGISRed style database."""
@@ -541,12 +602,28 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 uniqueValues = self.currentLayer.uniqueValues(fieldIdx)
                 uniqueCount = len([v for v in uniqueValues if v is not None and str(v) != 'NULL'])
                 
-                if uniqueCount > 100:
-                    reply = QMessageBox.warning(
+                if uniqueCount > self.MAX_CLASSES:
+                    QMessageBox.critical(
+                        self,
+                        self.tr("Too Many Classes"),
+                        self.tr(f"The field '{field}' has {uniqueCount} unique values.\n"
+                                f"The maximum allowed is {self.MAX_CLASSES}.\n"
+                                f"Please filter the data or choose a different field.")
+                    )
+                    # Revert combo box
+                    self.cbLegendsType.blockSignals(True)
+                    idx = self.cbLegendsType.findData(currentType)
+                    if idx >= 0:
+                        self.cbLegendsType.setCurrentIndex(idx)
+                    self.cbLegendsType.blockSignals(False)
+                    return
+
+                if uniqueCount > self.WARN_CLASSES:
+                    reply = QMessageBox.question(
                         self,
                         self.tr("High Class Count Warning"),
-                        self.tr(f"The field '{field}' has {uniqueCount} unique values.\n\n"
-                                f"Creating a categorized legend with this many classes may "
+                        self.tr(f"The field '{field}' has {uniqueCount} unique values.\n"
+                                f"Creating a categorized legend with more than {self.WARN_CLASSES} classes may "
                                 f"affect performance and readability.\n\n"
                                 f"Do you want to proceed?"),
                         QMessageBox.Yes | QMessageBox.No,
@@ -759,12 +836,25 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.ckSizeInvert.setVisible(mode != "Manual" and mode != "Equal")
         self.applySizeLogic()
 
+
+
+    def syncColorRampButton(self):
+        """Update QgsColorRampButton to match selected ramp/palette."""
+        ramp = self.cbColorRampPalette.currentData()
+        if isinstance(ramp, QgsColorRamp):
+            self.btnColorRamp.setColorRamp(ramp)
+        # Ensure correct visibility/state
+        
     def onColorModeChanged(self):
         """Handle color mode change."""
         mode = self.cbColors.currentText()
         self.btColorEqual.setVisible(mode == "Equal")
-        self.cbColorRampPalette.setVisible(mode in ["Ramp", "Palette"])
-        self.ckColorInvert.setVisible(mode in ["Ramp", "Palette"])
+        
+        isRampOrPalette = mode in ["Ramp", "Palette"]
+        self.cbColorRampPalette.setVisible(isRampOrPalette)
+        self.btnColorRamp.setVisible(isRampOrPalette)
+        
+        self.ckColorInvert.setVisible(isRampOrPalette)
         self.btRefreshColors.setVisible(mode == "Random")
 
         if mode == "Ramp":
@@ -773,6 +863,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.populatePalettes()
 
         self.applyColorLogic()
+        self.syncColorRampButton()
 
     def populateRamps(self):
         """Populate color ramps from style database."""
@@ -864,8 +955,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         # Apply to Table
         isLine = self.getGeometryHint() == "line"
         for r in range(rows):
-            sw = self.tableView.cellWidget(r, 1)  # Size Widget
-            cw = self.tableView.cellWidget(r, 0)  # Color/Symbol Widget
+            sw = self.tableView.cellWidget(r, 2)  # Size Widget (column 2)
+            colorContainer = self.tableView.cellWidget(r, 1)  # Color container (column 1)
+            cw = colorContainer.findChild(SymbolColorSelector) if colorContainer else None
             if sw:
                 sw.blockSignals(True)
                 sw.setText(f"{sizes[r]:.2f}")
@@ -912,7 +1004,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         # Update Table
         for r in range(rows):
-            cw = self.tableView.cellWidget(r, 0)
+            colorContainer = self.tableView.cellWidget(r, 1)  # Color container (column 1)
+            cw = colorContainer.findChild(SymbolColorSelector) if colorContainer else None
             if cw:
                 cw.setColor(colors[r])
 
@@ -1231,6 +1324,22 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.btUp.setVisible(isCat)
         self.btDown.setVisible(isCat)
         self.labelFrameLegends.setVisible(isNum or isCat)
+        
+        self.btClassifyAll.setVisible(isCat)
+        
+        # Update tooltip based on layer type
+        if isCat:
+            self.btClassPlus.setToolTip(
+                self.tr("Right-click: Add a new item above the current selection\n"
+                        "Left-click: Add a new item below the current selection\n"
+                        "Double-click: Add \"Other values\" option")
+            )
+        elif isNum:
+            self.btClassPlus.setToolTip(
+                self.tr("Right-click: Add a new item above the current selection\n"
+                        "Left-click: Add a new item below the current selection")
+            )
+
 
         if isCat: self.updateAddClassButtonState()
 
@@ -1320,25 +1429,47 @@ class QGISRedLegendsDialog(QDialog, formClass):
             }
         """
 
-        # Color
-        cw = SymbolColorSelectorWithCheckbox(self.tableView, geom, symbol.color(), visible, "")
-        cw.colorSelector.setEnabled(self.isEditing)
+        # Column 0: Checkbox (visibility toggle)
+        ckw = QCheckBox(self.tableView)
+        ckw.setChecked(visible)
+        ckw.installEventFilter(self.rowSelectionFilter)
+        # Create a container widget to center the checkbox (matching original style)
+        containerWidget = QWidget(self.tableView)
+        containerLayout = QHBoxLayout(containerWidget)
+        containerLayout.setContentsMargins(0, 0, 0, 0)
+        containerLayout.setSpacing(2)
+        containerLayout.addWidget(ckw, 0, Qt.AlignVCenter | Qt.AlignHCenter)
+        containerWidget.setAutoFillBackground(False)
+        self.tableView.setCellWidget(row, 0, containerWidget)
+
+        # Column 1: Color/Symbol (centered, double-click to open dialog)
+        cw = SymbolColorSelector(self.tableView, geom, symbol.color(), True, "Pick color", doubleClickOnly=True)
+        cw.setEnabled(self.isEditing)
         size = symbol.width() if geom == "line" else symbol.size()
         cw.updateSymbolSize(size, geom == "line")
-        # Ensure custom widget background doesn't block selection
         cw.setAutoFillBackground(False)
-        self.tableView.setCellWidget(row, 0, cw)
+        cw.setFixedSize(30, 20)
+        # Create a container to center the color widget horizontally
+        colorContainer = QWidget(self.tableView)
+        colorLayout = QHBoxLayout(colorContainer)
+        colorLayout.setContentsMargins(0, 0, 0, 0)
+        colorLayout.setSpacing(0)
+        colorLayout.addStretch()
+        colorLayout.addWidget(cw)
+        colorLayout.addStretch()
+        colorContainer.setAutoFillBackground(False)
+        self.tableView.setCellWidget(row, 1, colorContainer)
 
-        # Size
+        # Column 2: Size
         sw = QLineEdit(str(size))
         sw.setEnabled(self.isEditing)
         sw.setAlignment(Qt.AlignCenter)
         sw.setStyleSheet(baseStyle)
-        sw.installEventFilter(self.rowSelectionFilter)  # Install filter
+        sw.installEventFilter(self.rowSelectionFilter)
         sw.textChanged.connect(lambda t, r=row: self.onSizeChanged(r, t))
-        self.tableView.setCellWidget(row, 1, sw)
+        self.tableView.setCellWidget(row, 2, sw)
 
-        # Value
+        # Column 3: Value
         vw = QLineEdit(valText)
         vw.setReadOnly(True)
         vw.setAlignment(Qt.AlignCenter)
@@ -1350,15 +1481,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
             vw.setStyleSheet(baseStyle)
             vw.mouseDoubleClickEvent = lambda _event, r=row: self.openRangeEditor(r)
 
-        vw.installEventFilter(self.rowSelectionFilter)  # Install filter
-        self.tableView.setCellWidget(row, 2, vw)
+        vw.installEventFilter(self.rowSelectionFilter)
+        self.tableView.setCellWidget(row, 3, vw)
 
-        # Legend
+        # Column 4: Legend
         lw = QLineEdit(legendText)
         lw.setEnabled(self.isEditing)
         lw.setStyleSheet(baseStyle)
-        lw.installEventFilter(self.rowSelectionFilter)  # Install filter
-        self.tableView.setCellWidget(row, 3, lw)
+        lw.installEventFilter(self.rowSelectionFilter)
+        self.tableView.setCellWidget(row, 4, lw)
 
     def getUniqueValuesFromLayer(self):
         """Fetch unique values for categorical field."""
@@ -1394,7 +1525,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
             # TASK 5.2: Double Click triggers Classify All for Categorical
             if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
-                self.classifyAll()
+                self.ensureOtherValuesCategory()
             else:
                 # For numeric, ignore double-click to prevent adding two classes
                 return
@@ -1414,19 +1545,51 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def classifyAll(self):
         """TASK 5.2: Add all available unique values at once."""
-        if not self.availableUniqueValues:
-            QMessageBox.information(self, "Info", "All values are already classified.")
+        unique_count_to_add = len(self.availableUniqueValues)
+        if unique_count_to_add == 0:
+            QMessageBox.information(self, self.tr("Info"), self.tr("All values are already classified."))
             return
+
+        # Check Limits
+        current_count = self.tableView.rowCount()
+        # "Other" category might be removed, but let's be conservative with the count check
+        total_potential = current_count + unique_count_to_add
+        
+        if total_potential > self.MAX_CLASSES:
+             QMessageBox.critical(
+                self,
+                self.tr("Limit Exceeded"),
+                self.tr(f"Adding {unique_count_to_add} classes would result in {total_potential} total classes,\n"
+                        f"which exceeds the maximum limit of {self.MAX_CLASSES}.")
+            )
+             return
 
         # Disable updates for performance
         self.tableView.setUpdatesEnabled(False)
         self.tableView.blockSignals(True)
 
+        progress = None
+        use_progress = unique_count_to_add > self.WARN_CLASSES
+
+        if use_progress:
+            progress = QProgressDialog(self.tr("Adding classes..."), self.tr("Cancel"), 0, unique_count_to_add, self)
+            progress.setWindowModality(Qt.WindowModal)
+            progress.setMinimumDuration(0)
+            progress.setValue(0)
+
         try:
             # Loop while there are still values available
             # addCategoricalClass modifies self.availableUniqueValues internally
+            count = 0
             while self.availableUniqueValues:
                 self.addCategoricalClass()
+                count += 1
+                
+                if use_progress:
+                    progress.setValue(count)
+                    QApplication.processEvents()
+                    if progress.wasCanceled():
+                        break
 
             for r in reversed(range(self.tableView.rowCount())):
                 w = self.tableView.cellWidget(r, 3)
@@ -1434,6 +1597,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
                     self.tableView.removeRow(r)
 
         finally:
+            if progress:
+                progress.close()
+            
             self.tableView.blockSignals(False)
             self.tableView.setUpdatesEnabled(True)
 
@@ -1466,6 +1632,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def addNumericClass(self):
         """Add numeric range."""
+        if self.tableView.rowCount() >= self.MAX_CLASSES:
+             QMessageBox.critical(self, self.tr("Limit Exceeded"), self.tr(f"Maximum of {self.MAX_CLASSES} classes reached."))
+             return
+
         sel = self.getSelectedRows()
 
         # --- FIX START: Handle Multi-Selection ---
@@ -1503,11 +1673,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def addCategoricalClass(self):
         """Add categorical value."""
+        if self.tableView.rowCount() >= self.MAX_CLASSES:
+             QMessageBox.critical(self, self.tr("Limit Exceeded"), self.tr(f"Maximum of {self.MAX_CLASSES} classes reached."))
+             return
+
         if not self.availableUniqueValues:
-            if not self.hasOtherValuesCategory():
-                self.ensureOtherValuesCategory()
-            else:
-                QMessageBox.information(self, "Info", "All values used.")
+            QMessageBox.information(self, "Info", "All values used.")
             return
 
         val = self.availableUniqueValues.pop(0)
@@ -1547,7 +1718,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
             for r in rows:
-                w = self.tableView.cellWidget(r, 2)
+                w = self.tableView.cellWidget(r, 3)
                 if isinstance(w, QLineEdit):
                     val = w.text()
                     if val != self.tr("Other Values") and val in self.usedUniqueValues:
@@ -1597,13 +1768,32 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def _getRowData(self, row):
         """Extract all widget data from a row."""
         data = []
-        for c in range(4):
+        for c in range(5):  # Now we have 5 columns (0-4)
             w = self.tableView.cellWidget(row, c)
-            if isinstance(w, SymbolColorSelectorWithCheckbox):
-                data.append(('cw', w.color(), w.isChecked(), w.colorSelector.symbolSize))
+            if c == 0:
+                # Column 0: Container with checkbox
+                if w:
+                    checkbox = w.findChild(QCheckBox)
+                    if checkbox:
+                        data.append(('ck', checkbox.isChecked()))
+                    else:
+                        data.append(None)
+                else:
+                    data.append(None)
+            elif c == 1:
+                # Column 1: Container with SymbolColorSelector
+                if w:
+                    colorSelector = w.findChild(SymbolColorSelector)
+                    if colorSelector:
+                        data.append(('cs', colorSelector.color(), colorSelector.symbolSize, colorSelector.geometryHint()))
+                    else:
+                        data.append(None)
+                else:
+                    data.append(None)
             elif isinstance(w, QLineEdit):
-                # For column 2 (Value), check if it has double-click handler (numeric) or not (categorical)
-                hasDoubleClick = c == 2 and hasattr(w, 'mouseDoubleClickEvent') and w.mouseDoubleClickEvent.__name__ == '<lambda>'
+                # Columns 2, 3, 4: Line edits
+                # For column 3 (Value), check if it has double-click handler (numeric) or not (categorical)
+                hasDoubleClick = c == 3 and hasattr(w, 'mouseDoubleClickEvent') and w.mouseDoubleClickEvent.__name__ == '<lambda>'
                 data.append(('le', w.text(), w.isReadOnly(), hasDoubleClick))
             else:
                 data.append(None)
@@ -1638,19 +1828,51 @@ class QGISRedLegendsDialog(QDialog, formClass):
         for c, d in enumerate(data):
             if not d: continue
             dtype = d[0]
-            if dtype == 'cw':
-                cw = SymbolColorSelectorWithCheckbox(self.tableView, geom, d[1], d[2], "")
-                cw.colorSelector.setEnabled(self.isEditing)
-                cw.updateSymbolSize(d[3], geom=="line")
-                cw.setAutoFillBackground(False)  # Ensure custom widget background doesn't block selection
-                self.tableView.setCellWidget(row, c, cw)
+
+            if dtype == 'ck':
+                # Column 0: Checkbox in container
+                ckw = QCheckBox(self.tableView)
+                ckw.setChecked(d[1])
+                ckw.installEventFilter(self.rowSelectionFilter)
+                containerWidget = QWidget(self.tableView)
+                containerLayout = QHBoxLayout(containerWidget)
+                containerLayout.setContentsMargins(0, 0, 0, 0)
+                containerLayout.setSpacing(2)
+                containerLayout.addWidget(ckw, 0, Qt.AlignVCenter | Qt.AlignHCenter)
+                containerWidget.setAutoFillBackground(False)
+                self.tableView.setCellWidget(row, c, containerWidget)
+
+            elif dtype == 'cs':
+                # Column 1: SymbolColorSelector in container
+                color = d[1]
+                symbolSize = d[2]
+                geomHint = d[3]
+
+                cw = SymbolColorSelector(self.tableView, geomHint, color, True, "Pick color", doubleClickOnly=True)
+                cw.setEnabled(self.isEditing)
+                cw.updateSymbolSize(symbolSize, geomHint == "line")
+                cw.setAutoFillBackground(False)
+                cw.setFixedSize(30, 20)
+
+                colorContainer = QWidget(self.tableView)
+                colorLayout = QHBoxLayout(colorContainer)
+                colorLayout.setContentsMargins(0, 0, 0, 0)
+                colorLayout.setSpacing(0)
+                colorLayout.addStretch()
+                colorLayout.addWidget(cw)
+                colorLayout.addStretch()
+                colorContainer.setAutoFillBackground(False)
+                self.tableView.setCellWidget(row, c, colorContainer)
+
             elif dtype == 'le':
+                # Columns 2, 3, 4: Line edits
                 le = QLineEdit(d[1])
                 le.setEnabled(self.isEditing)
                 hasDoubleClick = d[3] if len(d) > 3 else False
-                if d[2]:
+
+                if d[2]:  # isReadOnly
                     le.setReadOnly(True)
-                    if c == 2:  # Value column
+                    if c == 3:  # Value column
                         le.setAlignment(Qt.AlignCenter)
                         if hasDoubleClick:  # Numeric - editable via double-click
                             le.setStyleSheet(baseStyle)
@@ -1662,7 +1884,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 else:
                     # Editable columns (Size and Legend) - standardized transparent background
                     le.setStyleSheet(baseStyle)
-                if c == 1:
+
+                if c == 2:  # Size column
                     le.setAlignment(Qt.AlignCenter)
                     le.textChanged.connect(lambda t, r=row: self.onSizeChanged(r, t))
 
@@ -1693,7 +1916,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def getRangeValues(self, row):
         """Parse range string from table."""
-        widget = self.tableView.cellWidget(row, 2)
+        widget = self.tableView.cellWidget(row, 3)  # Value Widget (column 3)
         if not isinstance(widget, QLineEdit): return None
         try:
             parts = widget.text().split(' - ')
@@ -1720,7 +1943,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if newUpper is not None: u = newUpper
 
         txt = f"{l:.2f} - {u:.2f}"
-        vw = self.tableView.cellWidget(row, 2)
+        vw = self.tableView.cellWidget(row, 3)  # Value Widget (column 3)
         if isinstance(vw, QLineEdit):
             vw.setText(txt)
         
@@ -1729,7 +1952,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def updateLegendsValues(self, row, lower, upper):
         """Update legend text for a row based on its position (first, middle, or last)."""
-        lw = self.tableView.cellWidget(row, 3)
+        lw = self.tableView.cellWidget(row, 4)  # Legend Widget (column 4)
         if not isinstance(lw, QLineEdit):
             return
             
@@ -1902,12 +2125,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
         for i in range(num):
             l, u = breaks[i], breaks[i+1]
             txt = f"{fmt.format(l)} - {fmt.format(u)}"
-            vw = self.tableView.cellWidget(i, 2)
+            vw = self.tableView.cellWidget(i, 3)  # Value Widget (column 3)
             if isinstance(vw, QLineEdit):
                 vw.setText(txt)
 
             # Format legend based on position (first, middle, last)
-            lw = self.tableView.cellWidget(i, 3)
+            lw = self.tableView.cellWidget(i, 4)  # Legend Widget (column 4)
             if isinstance(lw, QLineEdit):
                 if i == 0:
                     # First row: "< {upper} {units}"
@@ -1999,8 +2222,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         """Live update of preview size."""
         try:
             s = float(text)
-            cw = self.tableView.cellWidget(row, 0)
-            if isinstance(cw, SymbolColorSelectorWithCheckbox):
+            colorContainer = self.tableView.cellWidget(row, 1)  # Color container (column 1)
+            cw = colorContainer.findChild(SymbolColorSelector) if colorContainer else None
+            if cw:
                 cw.updateSymbolSize(s, self.currentLayer.geometryType() == 1)
         except: pass
 
@@ -2015,12 +2239,19 @@ class QGISRedLegendsDialog(QDialog, formClass):
             for r in range(self.tableView.rowCount()):
                 vals = self.getRangeValues(r)
                 if not vals: continue
-                cw = self.tableView.cellWidget(r, 0)
-                lw = self.tableView.cellWidget(r, 3)
-                sw = self.tableView.cellWidget(r, 1)
+                ckContainer = self.tableView.cellWidget(r, 0)  # Checkbox container (column 0)
+                colorContainer = self.tableView.cellWidget(r, 1)  # Color container (column 1)
+                lw = self.tableView.cellWidget(r, 4)  # Legend Widget (column 4)
+                sw = self.tableView.cellWidget(r, 2)  # Size Widget (column 2)
+                
+                # Get checkbox from container
+                ckw = ckContainer.findChild(QCheckBox) if ckContainer else None
+                # Get color widget from container
+                cw = colorContainer.findChild(SymbolColorSelector) if colorContainer else None
                 
                 sym = QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
-                sym.setColor(cw.color())
+                if cw:
+                    sym.setColor(cw.color())
                 try:
                     s = float(sw.text())
                     if self.currentLayer.geometryType() == 1: sym.setWidth(s)
@@ -2028,7 +2259,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 except: pass
                 
                 rng = QgsRendererRange(vals[0], vals[1], sym, lw.text())
-                rng.setRenderState(cw.isChecked())
+                rng.setRenderState(ckw.isChecked() if ckw else True)
                 ranges.append(rng)
             
             if ranges: self.currentLayer.setRenderer(QgsGraduatedSymbolRenderer(self.currentFieldName, ranges))
@@ -2036,10 +2267,16 @@ class QGISRedLegendsDialog(QDialog, formClass):
         elif self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
             cats = []
             for r in range(self.tableView.rowCount()):
-                cw = self.tableView.cellWidget(r, 0)
-                lw = self.tableView.cellWidget(r, 3)
-                vw = self.tableView.cellWidget(r, 2)
-                sw = self.tableView.cellWidget(r, 1)
+                ckContainer = self.tableView.cellWidget(r, 0)  # Checkbox container (column 0)
+                colorContainer = self.tableView.cellWidget(r, 1)  # Color container (column 1)
+                lw = self.tableView.cellWidget(r, 4)  # Legend Widget (column 4)
+                vw = self.tableView.cellWidget(r, 3)  # Value Widget (column 3)
+                sw = self.tableView.cellWidget(r, 2)  # Size Widget (column 2)
+                
+                # Get checkbox from container
+                ckw = ckContainer.findChild(QCheckBox) if ckContainer else None
+                # Get color widget from container
+                cw = colorContainer.findChild(SymbolColorSelector) if colorContainer else None
                 
                 val = vw.text() if isinstance(vw, QLineEdit) else ""
                 label = lw.text()
@@ -2049,7 +2286,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 elif val == "" and label in [self.tr("Other Values"), "Other Values"]: realVal = ""
                 
                 sym = QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
-                sym.setColor(cw.color())
+                if cw:
+                    sym.setColor(cw.color())
                 try:
                     s = float(sw.text())
                     if self.currentLayer.geometryType() == 1: sym.setWidth(s)
@@ -2057,7 +2295,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 except: pass
                 
                 cat = QgsRendererCategory(realVal, sym, label)
-                cat.setRenderState(cw.isChecked())
+                cat.setRenderState(ckw.isChecked() if ckw else True)
                 cats.append(cat)
                 
             if cats: self.currentLayer.setRenderer(QgsCategorizedSymbolRenderer(self.currentFieldName, cats))
@@ -2267,7 +2505,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def hasOtherValuesCategory(self):
         for r in range(self.tableView.rowCount()):
-            w = self.tableView.cellWidget(r, 3)
+            w = self.tableView.cellWidget(r, 4)  # Legend Widget (column 4)
             if isinstance(w, QLineEdit) and w.text() in [self.tr("Other Values"), "Other Values"]: return True
         return False
 
