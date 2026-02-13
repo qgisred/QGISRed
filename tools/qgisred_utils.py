@@ -59,49 +59,25 @@ class QGISRedUtils:
         'qgisred_isolatedsegments': 'IsolatedSegments'
     }
 
-    # Base Dictionary Structure for Unit Management
-    # Hierarchy: Element Type -> Magnitude -> Unit System -> List of Available Units
     unit_definitions = {
-        "Project": {
-            "Flow": {
-                "SI": [
-                    {"name": "Liters per Second", "abbr": "LPS"},
-                    {"name": "Liters per Minute", "abbr": "LPM"},
-                    {"name": "Million Liters per Day", "abbr": "MLD"},
-                    {"name": "Cubic Meters per Hour", "abbr": "CMH"},
-                    {"name": "Cubic Meters per Day", "abbr": "CMD"}
-                ],
-                "US": [
-                    {"name": "Cubic Feet per Second", "abbr": "CFS"},
-                    {"name": "Gallons per Minute", "abbr": "GPM"},
-                    {"name": "Million Gallons per Day", "abbr": "MGD"},
-                    {"name": "Imperial Million Gallons per Day", "abbr": "IMGD"},
-                    {"name": "Acre-Feet per Day", "abbr": "AFD"}
-                ]
-            }
-        },
         "Pipes": {
-            "Diameter": {
-                "SI": [{"name": "Millimeters", "abbr": "mm"}],
-                "US": [{"name": "Inches", "abbr": "in"}]
+            "qgisred_query_diameter_diam": {
+                "property": "Diameter",
+                "field": "Diam",
+                "SI": {"name": "Millimeters", "abbr": "mm"},
+                "US": {"name": "Inches", "abbr": "in"}
             },
-            "Length": {
-                "SI": [{"name": "Meters", "abbr": "m"}],
-                "US": [{"name": "Feet", "abbr": "ft"}]
+            "qgisred_query_length_len": {
+                "property": "Length",
+                "field": "Len",
+                "SI": {"name": "Meters", "abbr": "m"},
+                "US": {"name": "Feet", "abbr": "ft"}
             },
-            "Velocity": {
-                "SI": [{"name": "Meters per Second", "abbr": "m/s"}],
-                "US": [{"name": "Feet per Second", "abbr": "fps"}]
-            }
-        },
-        "Nodes": { # Junctions, Tanks, Reservoirs
-            "Pressure": {
-                "SI": [{"name": "Meters", "abbr": "m"}],
-                "US": [{"name": "Pounds per Square Inch", "abbr": "psi"}]
-            },
-            "Elevation": {
-                "SI": [{"name": "Meters", "abbr": "m"}],
-                "US": [{"name": "Feet", "abbr": "ft"}]
+            "qgisred_query_material_mat": {
+                "property": "Material",
+                "field": "Mat",
+                "SI": None,
+                "US": None
             }
         }
     }
@@ -601,7 +577,6 @@ class QGISRedUtils:
 
         # default style
         defaultStylePath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "defaults", "layerStyles")
-        defaultsPath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "defaults")
         qmlPath = os.path.join(defaultStylePath, name + ".qml.bak")
         if os.path.exists(qmlPath):
             if name == "meters":
@@ -609,25 +584,25 @@ class QGISRedUtils:
                 contents = f.read()
                 f.close()
                 newQmlPath = ""
-                svgPath = os.path.join(defaultsPath, "meterCount.svg")
+                svgPath = os.path.join(defaultStylePath, "meterCount.svg")
                 contents = contents.replace("meterCount.svg", svgPath)
-                svgPath = os.path.join(defaultsPath, "meterDiff.svg")
+                svgPath = os.path.join(defaultStylePath, "meterDiff.svg")
                 contents = contents.replace("meterDiff.svg", svgPath)
-                svgPath = os.path.join(defaultsPath, "meterEnergy.svg")
+                svgPath = os.path.join(defaultStylePath, "meterEnergy.svg")
                 contents = contents.replace("meterEnergy.svg", svgPath)
-                svgPath = os.path.join(defaultsPath, "meterFlow.svg")
+                svgPath = os.path.join(defaultStylePath, "meterFlow.svg")
                 contents = contents.replace("meterFlow.svg", svgPath)
-                svgPath = os.path.join(defaultsPath, "meterLevel.svg")
+                svgPath = os.path.join(defaultStylePath, "meterLevel.svg")
                 contents = contents.replace("meterLevel.svg", svgPath)
-                svgPath = os.path.join(defaultsPath, "meterMan.svg")
+                svgPath = os.path.join(defaultStylePath, "meterMan.svg")
                 contents = contents.replace("meterMan.svg", svgPath)
-                svgPath = os.path.join(defaultsPath, "meterOpen.svg")
+                svgPath = os.path.join(defaultStylePath, "meterOpen.svg")
                 contents = contents.replace("meterOpen.svg", svgPath)
-                svgPath = os.path.join(defaultsPath, "meterQuality.svg")
+                svgPath = os.path.join(defaultStylePath, "meterQuality.svg")
                 contents = contents.replace("meterQuality.svg", svgPath)
-                svgPath = os.path.join(defaultsPath, "meterStatus.svg")
+                svgPath = os.path.join(defaultStylePath, "meterStatus.svg")
                 contents = contents.replace("meterStatus.svg", svgPath)
-                svgPath = os.path.join(defaultsPath, "meterTacho.svg")
+                svgPath = os.path.join(defaultStylePath, "meterTacho.svg")
                 contents = contents.replace("meterTacho.svg", svgPath)
                 newQmlPath = os.path.join(stylePath, "meters.qml")
                 f = open(newQmlPath, "w+")

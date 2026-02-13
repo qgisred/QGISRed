@@ -130,6 +130,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.configWindow()
         self.setupTableView()
         self.populateClassificationModes()
+        self.populateLegendTypes()
         self.populateGroups()
         self.setupClassCountField()
 
@@ -466,9 +467,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
             units = self.getLayerUnits()
 
             if units:
-                self.labelFrameLegends.setText(f"{baseTitle} | Units: {units}")
+                self.labelFrameLegends.setText(f"{baseTitle} | {units} units")
             else:
                 self.labelFrameLegends.setText(baseTitle)
+
+            # Update Legend Type Combobox
+            rType = layer.renderer().type()
+            index = self.cbLegendsType.findData(rType)
+            if index != -1:
+                self.cbLegendsType.setCurrentIndex(index)
+            else:
+                # Fallback or leave as is? Likely singleSymbol if unknown or not in list
+                pass
 
             self.resetAllModesToManual()
             self.updateUiBasedOnFieldType()
@@ -967,6 +977,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
                  ("StdDev", "Standard Deviation"), ("Pretty", "Pretty Breaks")]
         for id, name in modes: self.cbMode.addItem(self.tr(name), id)
         self.cbMode.blockSignals(False)
+
+    def populateLegendTypes(self):
+        """Populate legend type combo box."""
+        self.cbLegendsType.blockSignals(True)
+        self.cbLegendsType.clear()
+        
+        # Add basic types
+        self.cbLegendsType.addItem(self.tr("Single Symbol"), "singleSymbol")
+        self.cbLegendsType.addItem(self.tr("Categorized"), "categorizedSymbol")
+        self.cbLegendsType.addItem(self.tr("Graduated"), "graduatedSymbol")
+        
+        self.cbLegendsType.blockSignals(False)
 
     def detectFieldType(self, layer):
         """Determine if layer uses numeric or categorical renderer."""
@@ -1600,35 +1622,32 @@ class QGISRedLegendsDialog(QDialog, formClass):
         dlg = RangeEditDialog(curr[0], curr[1], self)
         if dlg.exec_():
             nl, nu = dlg.getValues()
-            nl, nu, clamped = self.validateAndClampRange(row, nl, nu)
-            if clamped:
-                QMessageBox.warning(self, "Adjusted", "Range adjusted for contiguity.")
+
+            # Sanity check for the range itself
+            if nl >= nu:
+                QMessageBox.warning(self, "Invalid Range", "Min value must be less than Max value.")
+                return
+
+            # Check overflow against previous row
+            if row > 0:
+                prev = self.getRangeValues(row - 1)
+                if prev and nl < prev[0]:
+                    QMessageBox.warning(self, "Range Overflow", f"New minimum ({nl}) is smaller than the previous row's minimum ({prev[0]}).\nCannot apply changes.")
+                    return
+
+            # Check overflow against next row
+            if row < self.tableView.rowCount() - 1:
+                nxt = self.getRangeValues(row + 1)
+                if nxt and nu > nxt[1]:
+                    QMessageBox.warning(self, "Range Overflow", f"New maximum ({nu}) is larger than the next row's maximum ({nxt[1]}).\nCannot apply changes.")
+                    return
+
+            # If we passed checks, apply update
             self.updateRangeValue(row, nl, nu)
             
-            # Update neighbors
+            # Update neighbors to maintain contiguity
             if row > 0: self.updateRangeValue(row - 1, None, nl)
             if row < self.tableView.rowCount() - 1: self.updateRangeValue(row + 1, nu, None)
-
-    def validateAndClampRange(self, row, nl, nu):
-        """Ensure ranges stay ordered and contiguous."""
-        clamped = False
-        if nl >= nu:
-            nu = nl + 0.01
-            clamped = True
-        
-        if row > 0:
-            prev = self.getRangeValues(row - 1)
-            if prev and nl < prev[0]:
-                nl = prev[0]
-                clamped = True
-        
-        if row < self.tableView.rowCount() - 1:
-            nxt = self.getRangeValues(row + 1)
-            if nxt and nu > nxt[1]:
-                nu = nxt[1]
-                clamped = True
-                
-        return nl, nu, clamped
 
     def onSizeChanged(self, row, text):
         """Live update of preview size."""

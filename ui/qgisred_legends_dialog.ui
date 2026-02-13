@@ -69,8 +69,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>635</width>
-        <height>438</height>
+        <width>631</width>
+        <height>454</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -161,11 +161,38 @@
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="labelFrameLegends">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout_16">
+         <item>
+          <widget class="QLabel" name="labelFrameLegends">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="labelLegendsType">
+           <property name="maximumSize">
+            <size>
+             <width>50</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Type:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="cbLegendsType">
+           <property name="maximumSize">
+            <size>
+             <width>150</width>
+             <height>16777215</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <widget class="QFrame" name="frameLegends">
@@ -402,7 +429,7 @@
                    <item>
                     <widget class="QDoubleSpinBox" name="spinSizeMin">
                      <property name="prefix">
-                      <string> </string>
+                      <string/>
                      </property>
                      <property name="singleStep">
                       <double>0.100000000000000</double>
