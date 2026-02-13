@@ -5007,113 +5007,55 @@ class QGISRed:
             self._restoreLayers(all_layers['Root'], root)
 
     def _restoreLayers(self, layers_info, parent_group):
-        """Restore layers to a specific group."""
-        
-        # Keep track of layers we've already processed to avoid duplication
         processed_layers = set()
-        
-        # Restore layers
         for layer_info in layers_info:
-            # Create a new layer or get an existing one
             layer_id = layer_info.get('id', '')
-            
-            # Skip if we've already processed this layer
             if layer_id in processed_layers:
                 continue
-                    
             processed_layers.add(layer_id)
             existing_layer = QgsProject.instance().mapLayer(layer_id)
-            
-            # Check if this layer already exists in the group structure
-            layer_already_in_group = False
-            for child in parent_group.findLayers():
-                if child.layerId() == layer_id:
-                    layer_already_in_group = True
-                    break
-                    
-            if layer_already_in_group:
-                continue  # Skip this layer, it's already in the group
-                    
-            if existing_layer:
-                new_layer = existing_layer
-            else:
-                new_layer = QgsVectorLayer(layer_info['source'], layer_info['name'], layer_info['provider'])
-            
-            if new_layer.isValid():
-                # Check if this is an input layer, and filter empty layers (except pipes)
-                is_input_layer = parent_group.name() == "Inputs"
-                is_pipe_layer = 'pipes' in layer_info['name'].lower()
-                
-                # Skip empty non-pipe input layers
-                # if is_input_layer and not is_pipe_layer and new_layer.featureCount() == 0: TODO
-                #     continue
-                    
-                # Apply style
-                if layer_info.get('style_string') and os.path.exists(layer_info['style_string']):
-                    new_layer.loadNamedStyle(layer_info['style_string'])
-                    # Remove temporary style file
-                    if tempfile._get_default_tempdir() in layer_info['style_string']:
-                        try:
-                            os.remove(layer_info['style_string'])
-                        except:
-                            pass
-                
-                # Apply custom properties
-                for key, value in layer_info.get('custom_properties', {}).items():
-                    new_layer.setCustomProperty(key, value)
-                
-                # Apply labels
-                if layer_info.get('labels_enabled'):
-                    new_layer.setLabelsEnabled(layer_info['labels_enabled'])
-                
-                # Add layer to project if it's new
-                if not existing_layer:
-                    QgsProject.instance().addMapLayer(new_layer, False)
-                
-                # Handle nested groups
-                group_path = layer_info.get('group_path', [])
-                group_positions = layer_info.get('group_positions', [])
-                
-                target_group = parent_group
-                if group_path:
-                    target_group = self.ensureGroupHierarchy(parent_group, group_path, group_positions)
-                
-                # Create layer tree layer only if it doesn't already exist in the target group
-                layer_already_in_target = False
-                for child in target_group.children():
-                    if isinstance(child, QgsLayerTreeLayer) and child.layer() and child.layer().id() == new_layer.id():
-                        layer_already_in_target = True
-                        break
-                        
-                if not layer_already_in_target:
-                    layer_tree_layer = QgsLayerTreeLayer(new_layer)
-                    layer_tree_layer.setCustomProperty("showFeatureCount", True)
-                    
-                    # Set visibility and expansion
-                    if 'checked' in layer_info:
-                        layer_tree_layer.setItemVisibilityChecked(layer_info['checked'])
-                    
-                    if 'expanded' in layer_info:
-                        layer_tree_layer.setExpanded(layer_info['expanded'])
-                    
-                    # Add to group at correct position
-                    layer_position = layer_info.get('layer_position', None)
-                    if layer_position is not None and layer_position <= len(target_group.children()):
-                        target_group.insertChildNode(layer_position, layer_tree_layer)
-                    else:
-                        target_group.addChildNode(layer_tree_layer)
-                
-                # Handle special case for query layers
-                field_name = layer_info.get('field_name', '')
-                if field_name:
-                    QGISRedUtils().hide_fields(new_layer, field_name)
-                    
-                    if field_name in getattr(self, 'random_color_queries', []):
-                        QGISRedUtils().apply_categorized_renderer(new_layer, field_name, layer_info.get('style_string', ''))
-                    
-                    # Connect to source layer if needed
-                    input_layer = self.findSourceLayer(self.getInputGroup(), new_layer)
-                    if input_layer:
-                        input_layer.dataChanged.connect(
-                            lambda src=input_layer, tgt=new_layer: self.syncQueryLayer(src, tgt)
-                        )
+            new_layer = existing_layer or QgsVectorLayer(layer_info['source'], layer_info['name'], layer_info['provider'])
+            if not new_layer.isValid():
+                continue
+            # Apply style
+            style_file = layer_info.get('style_string')
+            if style_file and os.path.exists(style_file):
+                new_layer.loadNamedStyle(style_file)
+                if tempfile._get_default_tempdir() in style_file:
+                    try: os.remove(style_file)
+                    except: pass
+            # Apply custom properties
+            for key, value in layer_info.get('custom_properties', {}).items():
+                new_layer.setCustomProperty(key, value)
+            # Apply labels (honor stored True or False)
+            if 'labels_enabled' in layer_info:
+                new_layer.setLabelsEnabled(layer_info['labels_enabled'])
+            # Add layer if needed
+            if not existing_layer:
+                QgsProject.instance().addMapLayer(new_layer, False)
+            # Ensure group path
+            group_path = layer_info.get('group_path', [])
+            group_positions = layer_info.get('group_positions', [])
+            target_group = parent_group
+            if group_path:
+                target_group = self.ensureGroupHierarchy(parent_group, group_path, group_positions)
+            # Add to legend
+            layer_already_in_group = any(
+                isinstance(child, QgsLayerTreeLayer) and child.layer().id() == new_layer.id()
+                for child in target_group.children()
+            )
+            if not layer_already_in_group:
+                layer_tree_layer = QgsLayerTreeLayer(new_layer)
+                layer_tree_layer.setCustomProperty("showFeatureCount", True)
+                # Visibility
+                if 'checked' in layer_info:
+                    layer_tree_layer.setItemVisibilityChecked(layer_info['checked'])
+                # Expansion
+                if 'expanded' in layer_info:
+                    layer_tree_layer.setExpanded(layer_info['expanded'])
+                # Insert at position
+                pos = layer_info.get('layer_position')
+                if pos is not None and pos <= len(target_group.children()):
+                    target_group.insertChildNode(pos, layer_tree_layer)
+                else:
+                    target_group.addChildNode(layer_tree_layer)

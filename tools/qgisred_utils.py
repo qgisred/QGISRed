@@ -458,22 +458,19 @@ class QGISRedUtils:
 
     def applySvgMarker(self, layer):
         identifier = layer.customProperty("qgisred_identifier")
-        
         if not identifier or identifier not in ["qgisred_tanks", "qgisred_valves", "qgisred_pumps", "qgisred_reservoirs"]:
             layer_name = layer.name().lower()
             type_keywords = {
                 "tank": "qgisred_tanks",
-                "valve": "qgisred_valves", 
+                "valve": "qgisred_valves",
                 "pump": "qgisred_pumps",
                 "reservoir": "qgisred_reservoirs"
             }
-            
             identifier = None
             for keyword, id_value in type_keywords.items():
                 if keyword in layer_name:
                     identifier = id_value
                     break
-                    
             if not identifier:
                 file_path = self.getLayerPath(layer)
                 base_name = os.path.basename(file_path).lower()
@@ -481,17 +478,14 @@ class QGISRedUtils:
                     if keyword in base_name:
                         identifier = id_value
                         break
-            
             if not identifier and layer.geometryType() == 0:
                 field_names = [field.name().lower() for field in layer.fields()]
                 for keyword, id_value in type_keywords.items():
                     if any(keyword in field_name for field_name in field_names):
                         identifier = id_value
                         break
-            
             if identifier:
                 layer.setCustomProperty("qgisred_identifier", identifier)
-        
         if identifier in ["qgisred_tanks", "qgisred_valves", "qgisred_pumps", "qgisred_reservoirs"]:
             marker_mapping = {
                 "qgisred_tanks": "tanks.svg",
@@ -499,31 +493,34 @@ class QGISRedUtils:
                 "qgisred_valves": "valves.svg",
                 "qgisred_reservoirs": "reservoirs.svg"
             }
-
             stylePath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "layerStyles")
-            svg_file = marker_mapping[identifier]
-            svg_path = os.path.join(stylePath, svg_file)
-
+            svg_path = os.path.join(stylePath, marker_mapping[identifier])
             if os.path.exists(svg_path):
-                svg_style = {
-                    "name": svg_path,
-                    "size": "4"
-                }
-                
-                symbol_layer = QgsSvgMarkerSymbolLayer.create(svg_style)
-                if symbol_layer is None:
+                svg_style = {"name": svg_path, "size": "4"}
+                if layer.geometryType() == 0:
+                    svg_layer = QgsSvgMarkerSymbolLayer.create(svg_style)
+                    if svg_layer is None:
+                        return False
+                    symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+                    symbol.changeSymbolLayer(0, svg_layer)
+                elif layer.geometryType() == 1:
+                    subsymbol = QgsMarkerSymbol()
+                    svg_marker = QgsSvgMarkerSymbolLayer.create(svg_style)
+                    if svg_marker is None:
+                        return False
+                    subsymbol.changeSymbolLayer(0, svg_marker)
+                    marker_line = QgsMarkerLineSymbolLayer()
+                    marker_line.setSubSymbol(subsymbol)
+                    marker_line.setPlacement(QgsMarkerLineSymbolLayer.Placement.Vertex)
+                    symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+                    symbol.appendSymbolLayer(marker_line)
+                else:
                     return False
-
-                symbol = QgsSymbol.defaultSymbol(layer.geometryType())
-                symbol.changeSymbolLayer(0, symbol_layer)
-                
                 renderer = QgsSingleSymbolRenderer(symbol)
                 layer.setRenderer(renderer)
                 layer.triggerRepaint()
                 return True
-
         return False
-
 
 
     def setIssuesStyle(self, layer, name):
