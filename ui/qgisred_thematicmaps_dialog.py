@@ -29,6 +29,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         self.setDialogStyle()
         self.btAccept.clicked.connect(self.accept)
         self.btCancel.clicked.connect(self.reject)
+        self.updateCheckboxStates()
 
     def setDialogStyle(self):
         icon_path = os.path.join(os.path.dirname(__file__), '..', 'images', 'iconThematicMaps.png')
@@ -264,6 +265,77 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
 
         layer.triggerRepaint()
     
+    def updateCheckboxStates(self):
+        root = QgsProject.instance().layerTreeRoot()
+        queries_group = self.find_group_by_name(root, 'Queries')
+        
+        if not queries_group:
+            return
+
+        checkbox_mapping = {
+            'Tank Elevations': self.cbTanksElevation,
+            'Tank Diameters': self.cbTanksDiameter,
+            'Tank Volumes': self.cbTanksVolume,
+            'Tank Levels': self.cbTanksLevel,
+            'Tank Initial Quality': self.cbTanksInitialQuality,
+            'Tank Bulk Coefficient': self.cbTanksBulkCoeff,
+            'Tank Mixing Models': self.cbTanksMixingModel,
+            'Tank Tags': self.cbTanksTag,
+            'Reservoir Total Head': self.cbReservoirsTotalHead,
+            'Reservoir Head Patterns': self.cbReservoirsHeadPattern,
+            'Reservoir Initial Quality': self.cbReservoirsInitialQuality,
+            'Reservoir Tags': self.cbReservoirsTag,
+            'Junction Elevations': self.cbJunctionsElevation,
+            'Junction Base Demands': self.cbJunctionsBaseDemand,
+            'Junction Pattern Demands': self.cbJunctionsPatternDemand,
+            'Junction Emitter Coefficients': self.cbJunctionsEmitterCoeff,
+            'Junction Initial Quality': self.cbJunctionsInitialQuality,
+            'Junction Tags': self.cbJunctionsTag,
+            'Valve Types': self.cbValvesType,
+            'Valve Diameters': self.cbValvesDiameter,
+            'Valve Settings': self.cbValvesSetting,
+            'Valve Initial Status': self.cbValvesInitialStatus,
+            'Valve Loss Coefficients': self.cbValvesLossCoeff,
+            'Valve Tags': self.cbValvesTag,
+            'Pump Types': self.cbPumpsType,
+            'Pump Curves': self.cbPumpsPumpCurve,
+            'Pump Power': self.cbPumpsPower,
+            'Pump Initial Status': self.cbPumpsInitialStatus,
+            'Pump Speed': self.cbPumpsSpeed,
+            'Pump Efficiency Curves': self.cbPumpsEfficiencyCurve,
+            'Pump Energy Price': self.cbPumpsEnergyPrice,
+            'Pump Tags': self.cbPumpsTag,
+            'Service Connection': self.cbPipesDiameter_3,
+            'Isolation Valves': self.cbTanksElevation_3,
+            'Meters': self.cbReservoirsTotalHead_3,
+            'Pipe Diameters': self.cbPipesDiameter,
+            'Pipe Lengths': self.cbPipesLength,
+            'Pipe Materials': self.cbPipesMaterial,
+            'Pipe Roughness': self.cbPipesRoughness,
+            'Pipe Age': self.cbPipesAge,
+            'Pipe Loss Coefficient': self.cbPipesLossCoeff,
+            'Pipe Initial Status': self.cbPipesInitStatus,
+            'Pipe Installation Date': self.cbPipesInstallationDate,
+            'Pipe Bulk Coefficient': self.cbPipesBulkCoeff,
+            'Pipe Wall Coefficient': self.cbPipesWallCoeff,
+            'Pipe Tags': self.cbPipesTag
+        }
+
+        self.check_layers_recursive(queries_group, checkbox_mapping)
+
+    def check_layers_recursive(self, group, checkbox_mapping):
+        if not group:
+            return
+
+        for child in group.children():
+            if isinstance(child, QgsLayerTreeLayer):
+                layer_name = child.name()
+                if layer_name in checkbox_mapping:
+                    checkbox = checkbox_mapping[layer_name]
+                    checkbox.setEnabled(False)
+                    checkbox.setToolTip("Query already exists.")
+            elif isinstance(child, QgsLayerTreeGroup):
+                self.check_layers_recursive(child, checkbox_mapping)
 
     def get_selected_queries(self):
         units = QGISRedUtils().getUnits()

@@ -4421,6 +4421,7 @@ class QGISRed:
                     new_layer.setLabelsEnabled(query_info['labels_enabled'])
 
                 new_layer.setCustomProperty("query_field", query_info['field_name'])
+                new_layer.setReadOnly(True)
                 QgsProject.instance().addMapLayer(new_layer, False)
 
                 group_path = query_info.get('group_path', [])
@@ -4431,7 +4432,7 @@ class QGISRed:
 
                 layer_tree_layer = QgsLayerTreeLayer(new_layer)
                 layer_tree_layer.setCustomProperty("showFeatureCount", True)
-                layer_tree_layer.setReadOnly(True)
+                #layer_tree_layer.setReadOnly(True)
 
                 if 'checked' in query_info:
                     layer_tree_layer.setItemVisibilityChecked(query_info['checked'])

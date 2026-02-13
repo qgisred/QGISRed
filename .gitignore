@@ -4,3 +4,4 @@
 .vscode
 /ui/__pycache__
 /layerStyles/*.qml
+*.qml
