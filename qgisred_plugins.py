@@ -44,6 +44,7 @@ from .ui.qgisred_toolConnectivity_dialog import QGISRedConnectivityToolDialog
 from .ui.qgisred_loadproject_dialog import QGISRedImportProjectDialog
 from .ui.qgisred_thematicmaps_dialog import QGISRedThematicMapsDialog
 from .ui.qgisred_findElements_dock import QGISRedFindElementsDock
+from .ui.qgisred_elementproperties_dock import QGISRedElementsPropertyDock
 from .tools.qgisred_utils import QGISRedUtils
 from .tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from .tools.qgisred_moveNodes import QGISRedMoveNodesTool
@@ -52,6 +53,7 @@ from .tools.qgisred_createPipe import QGISRedCreatePipeTool
 from .tools.qgisred_createConnection import QGISRedCreateConnectionTool
 from .tools.qgisred_editLinksGeometry import QGISRedEditLinksGeometryTool
 from .tools.qgisred_selectPoint import QGISRedSelectPointTool
+from .tools.qgisred_identifyFeature import QGISRedIdentifyFeature
 
 # Others imports
 import os
@@ -413,7 +415,7 @@ class QGISRed:
     def addProjectMenu(self):
         #    #Menu
         self.projectMenu = self.qgisredmenu.addMenu(self.tr("Project"))
-        self.projectMenu.setIcon(QIcon(":/plugins/QGISRed/images/iconLayerManagement.png"))
+        self.projectMenu.setIcon(QIcon(":/plugins/QGISRed/images/iconProjectMenu.png"))
         #    #Toolbar
         self.projectToolbar = self.iface.addToolBar(self.tr("QGISRed Project"))
         self.projectToolbar.setObjectName(self.tr("QGISRed Project"))
@@ -421,7 +423,7 @@ class QGISRed:
         self.projectToolbar.setVisible(False)
         #    #Buttons
         projectDropButton = QToolButton()
-        icon_path = ":/plugins/QGISRed/images/iconLayerManagement.png"
+        icon_path = ":/plugins/QGISRed/images/iconProjectMenu.png"
         self.add_action(
             icon_path,
             text=self.tr("Project"),
@@ -1467,11 +1469,11 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         self.queriesDropButton = queriesDropButton
-        # Find Elements by ID
+        # Find Elemets by ID
         icon_path = ":/plugins/QGISRed/images/iconFindElements.png"
         self.openFindElementsDialog = self.add_action(
             icon_path,
-            text=self.tr("Find Elements by ID"),
+            text=self.tr("Find Elemets by ID..."),
             callback=self.runFindElements,
             menubar=self.queriesMenu,
             toolbar=self.queriesToolbar,
@@ -1481,13 +1483,14 @@ class QGISRed:
         )
         # # Elements Properties
         icon_path = ":/plugins/QGISRed/images/iconElementsProperties.png"
-        self.openElementsPropertiesDialog = self.add_action(
+        self.openElementsPropertyDialog = self.add_action(
             icon_path,
-            text=self.tr("Element Data"),
-            callback=self.runElementsProperties,
+            text=self.tr("Element Properties..."),
+            callback=self.runElementsProperty,
             menubar=self.queriesMenu,
             toolbar=self.queriesToolbar,
             actionBase=queriesDropButton,
+            checable=True,
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
@@ -1503,11 +1506,11 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        # # Live Queries
+        # # Queries by Attributes
         icon_path = ":/plugins/QGISRed/images/iconLiveQueries.png"
         self.openLiveQueriesDialog = self.add_action(
             icon_path,
-            text=self.tr("Live Queries"),
+            text=self.tr("Queries by Attributes..."),
             callback=self.runLiveQueries,
             menubar=self.queriesMenu,
             toolbar=self.queriesToolbar,
@@ -1519,7 +1522,7 @@ class QGISRed:
         icon_path = ":/plugins/QGISRed/images/iconStatisticsAndPlots.png"
         self.openStatisticsAndPlotsDialog = self.add_action(
             icon_path,
-            text=self.tr("Statistics and Plots"),
+            text=self.tr("Statistics && Plots..."),
             callback=self.runStatisticsAndPlots,
             menubar=self.queriesMenu,
             toolbar=self.queriesToolbar,
@@ -4415,19 +4418,31 @@ class QGISRed:
     # ==============================================================
     #                        START: QUERIES ELEMENTS PROPERTIES
     # --------------------------------------------------------------
-    def runElementsProperties(self):
+    def runElementsProperty(self):
         if not self.checkDependencies():
+            self.openElementsPropertyDialog.setChecked(False)
             return
-        # Validations
+        
         self.defineCurrentProject()
-        if not self.isValidProject():
-            return
-        if self.isLayerOnEdition():
+        if not self.isValidProject() or self.isLayerOnEdition():
+            self.openElementsPropertyDialog.setChecked(False)
             return
 
-        #dlg = QGISRedFindElementsDialog()
-        # Run the dialog event loop
-        #dlg.exec_()
+        # Check if the current map tool is already the identify tool.
+        currentTool = self.iface.mapCanvas().mapTool()
+        if isinstance(currentTool, QGISRedIdentifyFeature):
+            self.iface.mapCanvas().unsetMapTool(currentTool)
+            existing_docks = self.iface.mainWindow().findChildren(QGISRedElementsPropertyDock)
+            if existing_docks:
+                dock = existing_docks[0]
+                dock.close()
+            self.openElementsPropertyDialog.setChecked(False)
+            return
+
+        # Otherwise, set the identify tool.
+        self.identifyTool = QGISRedIdentifyFeature(self.iface.mapCanvas(), self.openElementsPropertyDialog)
+        self.iface.mapCanvas().setMapTool(self.identifyTool)
+
     # ==============================================================
     #                        END: QUERIES ELEMENTS PROPERTIES
     # --------------------------------------------------------------

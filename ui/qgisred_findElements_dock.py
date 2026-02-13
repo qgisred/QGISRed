@@ -972,3 +972,43 @@ class QGISRedFindElementsDock(QDockWidget, FORM_CLASS):
     def onProjectChanged(self):
         self.clearAll()
         self.onLayerTreeChanged()
+
+    ## Methods related to external class QGISRedElementProperties class 
+    def findFeature(self, layer, feature):
+        element_type_text = layer.name()
+        self.cbElementType.setCurrentText(element_type_text)
+        
+        self.updateElementIds()
+        
+        feature_id_text = self.getFeatureIdValue(feature, layer, special_naming=True)
+        index = self.cbElementId.findText(feature_id_text)
+        if index >= 0:
+            self.cbElementId.setCurrentIndex(index)
+
+        self.clearHighlights()
+        self.clearAllLayerSelections()
+        self.listWidget.clear()
+
+        self.updateFoundElementLabel(feature_id_text, layer)
+
+        highlight = QgsHighlight(iface.mapCanvas(), feature.geometry(), layer)
+        highlight.setColor(QColor("red"))
+        highlight.setWidth(5)
+        highlight.show()
+        self.main_highlight = highlight
+
+        self.adjustMapView(feature)
+
+        identifier = layer.customProperty("qgisred_identifier")
+        if self.isLineElement(layer):
+            self.findAdjacentNodesByGeometry(feature)
+        elif identifier == "qgisred_meters":
+            self.findMeterAdjacency(feature, layer)
+        elif identifier == "qgisred_isolationvalves":
+            self.findIsolationValveAdjacency(feature, layer)
+        elif identifier == "qgisred_serviceconnections":
+            self.findServiceConnectionAdjacency(feature, layer)
+        else:
+            self.findAdjacentLinksByGeometry(feature, layer)
+        
+        self.sortListWidgetItems()

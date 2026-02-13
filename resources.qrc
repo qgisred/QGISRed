@@ -95,5 +95,6 @@
         <file>images/iconLiveQueries.png</file>
         <file>images/iconStatisticsAndPlots.png</file>
         <file>images/iconFilter.png</file>
+        <file>images/iconProjectMenu.png</file>
     </qresource>
 </RCC>
