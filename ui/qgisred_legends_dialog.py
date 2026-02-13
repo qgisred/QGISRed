@@ -28,6 +28,7 @@ from qgis.gui import QgsColorButton
 
 # Local imports
 from ..tools.qgisred_utils import QGISRedUtils
+from .qgisred_custom_dialogs import RangeEditDialog
 
 formClass, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_legends_dialog.ui"))
 
@@ -131,7 +132,77 @@ class QGISRedLegendsDialog(QDialog, formClass):
         
         # Table item changed for single checkbox selection
         self.tableView.itemChanged.connect(self.onTableItemChanged)
+
+        # Connect cell click for editing numeric ranges
+        self.tableView.cellClicked.connect(self.onValueCellClicked)
     
+    def onValueCellClicked(self, row, column):
+        """Handle click on a value cell for numeric fields to open an edit dialog."""
+        if self.currentFieldType != self.FIELD_TYPE_NUMERIC or column != 3:
+            return
+
+        valueItem = self.tableView.item(row, column)
+        if not valueItem:
+            return
+
+        originalValueText = valueItem.text()
+        try:
+            lowerStr, upperStr = originalValueText.split(' - ')
+            lowerVal = float(lowerStr)
+            upperVal = float(upperStr)
+        except (ValueError, IndexError):
+            QgsMessageLog.logMessage(f"Could not parse range value: {originalValueText}", "QGISRed", Qgis.Warning)
+            return
+
+        dialog = RangeEditDialog(lowerVal, upperVal, self)
+        if dialog.exec_():
+            newLower, newUpper = dialog.getValues()
+
+            if newLower >= newUpper:
+                QMessageBox.warning(self, self.tr("Invalid Range"), self.tr("Lower value must be less than upper value."))
+                return
+
+            # Update the current row's value item
+            newValueText = f"{newLower:.2f} - {newUpper:.2f}"
+            valueItem.setText(newValueText)
+            
+            # Update the current row's legend widget if it matches the old value
+            legendWidget = self.tableView.cellWidget(row, 4)
+            if isinstance(legendWidget, QLineEdit) and legendWidget.text() == originalValueText:
+                legendWidget.setText(newValueText)
+
+            # Adjust the PREVIOUS row, if it exists
+            if row > 0:
+                prevItem = self.tableView.item(row - 1, 3)
+                if prevItem:
+                    try:
+                        prevText = prevItem.text()
+                        prevLowerStr, _ = prevText.split(' - ')
+                        newPrevText = f"{float(prevLowerStr):.2f} - {newLower:.2f}"
+                        prevItem.setText(newPrevText)
+
+                        prevLegendWidget = self.tableView.cellWidget(row - 1, 4)
+                        if isinstance(prevLegendWidget, QLineEdit) and prevLegendWidget.text() == prevText:
+                            prevLegendWidget.setText(newPrevText)
+                    except (ValueError, IndexError):
+                        QgsMessageLog.logMessage(f"Could not parse and adjust previous range: {prevItem.text()}", "QGISRed", Qgis.Warning)
+
+            # Adjust the NEXT row, if it exists
+            if row < self.tableView.rowCount() - 1:
+                nextItem = self.tableView.item(row + 1, 3)
+                if nextItem:
+                    try:
+                        nextText = nextItem.text()
+                        _, nextUpperStr = nextText.split(' - ')
+                        newNextText = f"{newUpper:.2f} - {float(nextUpperStr):.2f}"
+                        nextItem.setText(newNextText)
+
+                        nextLegendWidget = self.tableView.cellWidget(row + 1, 4)
+                        if isinstance(nextLegendWidget, QLineEdit) and nextLegendWidget.text() == nextText:
+                            nextLegendWidget.setText(newNextText)
+                    except (ValueError, IndexError):
+                        QgsMessageLog.logMessage(f"Could not parse and adjust next range: {nextItem.text()}", "QGISRed", Qgis.Warning)
+
     def initializeUiVisibility(self):
         """Initialize the visibility of UI elements at startup."""
         # Hide all classification-related buttons initially
