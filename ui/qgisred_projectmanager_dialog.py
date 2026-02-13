@@ -401,7 +401,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         if ok:
             self.NetworkName = name
             self.ProjectDirectory = project
-            
+
             # Move opened project to top of the list
             openedEntry = name + ";" + project
             existingEntries = []
@@ -411,15 +411,16 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                         line = line.strip()
                         if line and line != openedEntry:
                             existingEntries.append(line)
-            
+
             # Write opened project at the beginning
             with open(self.gplFile, "w") as f:
                 f.write(openedEntry + "\n")
                 for entry in existingEntries:
                     f.write(entry + "\n")
-            
+
             utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
             utils.openProjectInQgis()
+            utils.enforceAllIdentifiers()
             self.close()
             self.ProcessDone = True
             self.parent.readUnits()

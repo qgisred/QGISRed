@@ -64,6 +64,17 @@ class QGISRedUtils:
         self.ProjectDirectory = directory
         self.NetworkName = networkName
 
+        self.identifierToGroupName = {
+            'qgisred_inputs': 'Inputs',
+            'qgisred_results': 'Results',
+            'qgisred_queries': 'Queries',
+            'qgisred_thematicmaps': 'Thematic Maps',
+            'qgisred_connectivity': 'Connectivity',
+            'qgisred_hydraulicsectors': 'HydraulicSectors',
+            'qgisred_demandsectors': 'Demand Sectors',
+            'qgisred_isolatedsegments': 'IsolatedSegments'
+        }
+
         self.elementIdentifiers = {
             'Pipes': 'pipes',
             'Junctions': 'junctions',
@@ -1373,20 +1384,74 @@ class QGISRedUtils:
     def assignLayerIdentifiers(self):
         # Create a dictionary of layers keyed by their paths
         layersByPath = {self.getLayerPath(layer): layer for layer in self.getLayers()}
-        
+
         # Pre-compute common path components
         baseDir = self.ProjectDirectory
         networkPrefix = f"{self.NetworkName}_"
-        
+
         # Process each element type
         for elementName, identifier in self.elementIdentifiers.items():
             # Construct the expected layer path
             expectedPath = self.generatePath(baseDir, f"{networkPrefix}{elementName}.shp")
-            
+
             # Check if layer exists and needs identifier assignment
             if layer := layersByPath.get(expectedPath):
                 if not layer.customProperty("qgisred_identifier"):
                     self.setLayerIdentifier(layer, identifier)
+
+    def enforceGroupIdentifiers(self, parent=None):
+        """Recursively enforce qgisred_identifier on all groups that match identifierToGroupName"""
+        if parent is None:
+            parent = QgsProject.instance().layerTreeRoot()
+
+        for child in parent.children():
+            if isinstance(child, QgsLayerTreeGroup):
+                groupName = child.name()
+
+                # Check if this group name matches any in our identifier mappings
+                matchingIdentifier = None
+                for identifier, mappedName in self.identifierToGroupName.items():
+                    if groupName == mappedName:
+                        matchingIdentifier = identifier
+                        break
+
+                # If we found a matching identifier, check and apply if missing
+                if matchingIdentifier:
+                    existingIdentifier = child.customProperty("qgisred_identifier")
+                    if not existingIdentifier or existingIdentifier != matchingIdentifier:
+                        child.setCustomProperty("qgisred_identifier", matchingIdentifier)
+
+                # Recursively process subgroups
+                self.enforceGroupIdentifiers(child)
+
+    def enforceLayerIdentifiers(self):
+        """Enforce qgisred_identifier on all layers that match identifierToElementName"""
+        layers = self.getLayers()
+
+        for layer in layers:
+            layerName = layer.name()
+
+            # Check if this layer name matches any in our identifier mappings
+            matchingIdentifier = None
+            for identifier, mappedName in self.identifierToElementName.items():
+                if layerName == mappedName:
+                    matchingIdentifier = identifier
+                    break
+
+            # If we found a matching identifier, check and apply if missing
+            if matchingIdentifier:
+                existingIdentifier = layer.customProperty("qgisred_identifier")
+                if not existingIdentifier or existingIdentifier != matchingIdentifier:
+                    layer.setCustomProperty("qgisred_identifier", matchingIdentifier)
+                    # Also update layer metadata
+                    layer_metadata = QgsLayerMetadata()
+                    layer_metadata.setIdentifier(matchingIdentifier)
+                    layer.setMetadata(layer_metadata)
+
+    def enforceAllIdentifiers(self):
+        """Enforce qgisred_identifier on all groups and layers after opening a project"""
+        self.enforceGroupIdentifiers()
+        self.enforceLayerIdentifiers()
 
     def addProjectToGplFile(self, gplFile, networkName='', projectDirectory='', rawEntryLine=None):
         projectDirectory = self.getUniformedPath(projectDirectory)

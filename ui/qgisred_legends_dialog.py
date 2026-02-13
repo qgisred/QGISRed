@@ -17,6 +17,7 @@ from qgis.core import QgsProject, QgsVectorLayer, QgsMessageLog, Qgis, QgsGradua
 from qgis.core import QgsCategorizedSymbolRenderer, QgsRendererRange, QgsRendererCategory, QgsSymbol
 from qgis.core import QgsLayerTreeGroup, QgsLayerTreeLayer
 from qgis.core import QgsGradientColorRamp, QgsClassificationJenks, QgsClassificationPrettyBreaks
+from qgis.utils import iface
 
 # Local imports
 from ..tools.qgisred_utils import QGISRedUtils
@@ -58,7 +59,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.populateClassificationModes()
 
         self.populateGroups()
-        self.onGroupChanged()
+
+        # Preselect group and layer based on active layer or first visible
+        self.preselectGroupAndLayer()
 
         # Set initial UI state
         self.frameLegends.setEnabled(bool(self.cbLegendLayer.currentLayer()))
@@ -263,6 +266,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def populateGroups(self):
         """
         Fill cbGroups with only specific groups defined in ALLOWED_GROUP_IDENTIFIERS.
+        Shows only visible groups that have at least one visible direct child layer.
+        Groups are ordered as they appear in the layer panel (top to bottom).
         Shows only the group name (not full path). Stores the group's unique path in itemData.
         Excludes root.
         """
@@ -278,40 +283,125 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.cbGroups.blockSignals(True)
         self.cbGroups.clear()
 
-        def groupHasLayers(group: QgsLayerTreeGroup) -> bool:
+        def groupHasVisibleDirectLayers(group: QgsLayerTreeGroup) -> bool:
+            """Check if group has at least one visible direct child layer."""
             for child in group.children():
                 if isinstance(child, QgsLayerTreeLayer):
-                    return True
-                if isinstance(child, QgsLayerTreeGroup) and groupHasLayers(child):
-                    return True
+                    if child.isVisible():
+                        return True
             return False
 
-        def walk(group: QgsLayerTreeGroup, pathParts):
-            # Only add if we have a path (skip root) and group identifier is in allowed list
-            if pathParts and groupHasLayers(group):
-                # Check if the current group has a matching qgisred_identifier
-                groupIdentifier = group.customProperty("qgisred_identifier")
-                if groupIdentifier in ALLOWED_GROUP_IDENTIFIERS:
-                    pathStr = " / ".join(pathParts)
-                    displayName = pathParts[-1]
-                    self.cbGroups.addItem(displayName, pathStr)
-            for child in group.children():
+        # Collect all groups in layer panel order (breadth-first traversal)
+        groupsToAdd = []
+
+        def collectGroups(parentGroup: QgsLayerTreeGroup, pathParts):
+            """Recursively collect groups in layer panel order."""
+            for child in parentGroup.children():
                 if isinstance(child, QgsLayerTreeGroup):
-                    walk(child, pathParts + [child.name()])
+                    childPath = pathParts + [child.name()]
+                    # Check if this group should be included
+                    if child.isVisible():
+                        groupIdentifier = child.customProperty("qgisred_identifier")
+                        if groupIdentifier in ALLOWED_GROUP_IDENTIFIERS:
+                            if groupHasVisibleDirectLayers(child):
+                                pathStr = " / ".join(childPath)
+                                displayName = childPath[-1]
+                                groupsToAdd.append((displayName, pathStr, child))
+                    # Continue recursing into subgroups
+                    collectGroups(child, childPath)
 
-        # Start walking from root
-        walk(root, [])
+        # Start collecting from root
+        collectGroups(root, [])
 
-        # pick first item if available
-        if self.cbGroups.count() > 0:
-            self.cbGroups.setCurrentIndex(0)
+        # Add groups to combo box in the order they were collected
+        for displayName, pathStr, group in groupsToAdd:
+            self.cbGroups.addItem(displayName, pathStr)
 
         self.cbGroups.blockSignals(False)
-    
+
+    def preselectGroupAndLayer(self):
+        """
+        Preselect group and layer based on active layer in QGIS layer panel.
+        If there's an active layer, select its group and the layer itself.
+        Otherwise, select the first visible group and its first visible layer.
+        """
+        if self.cbGroups.count() == 0:
+            return
+
+        activeLayer = None
+
+        # Try to get the currently selected layer from the layer tree view
+        if iface and iface.layerTreeView():
+            selectedLayers = iface.layerTreeView().selectedLayers()
+            if selectedLayers:
+                activeLayer = QgsProject.instance().layerTreeRoot().findLayer(selectedLayers[0])
+
+        targetGroupPath = None
+        targetLayer = None
+
+        if activeLayer and activeLayer.layer():
+            # Found an active layer, find its parent group
+            parent = activeLayer.parent()
+            while parent and not isinstance(parent, QgsLayerTreeGroup):
+                parent = parent.parent()
+
+            if parent and isinstance(parent, QgsLayerTreeGroup):
+                # Check if this group is in our combo box
+                groupPath = self.getGroupPath(parent)
+                for i in range(self.cbGroups.count()):
+                    if self.cbGroups.itemData(i) == groupPath:
+                        targetGroupPath = groupPath
+                        targetLayer = activeLayer.layer()
+                        break
+
+        # If no active layer found or its group is not in combo, select first visible group
+        if targetGroupPath is None:
+            if self.cbGroups.count() > 0:
+                targetGroupPath = self.cbGroups.itemData(0)
+
+        # Select the target group
+        if targetGroupPath:
+            for i in range(self.cbGroups.count()):
+                if self.cbGroups.itemData(i) == targetGroupPath:
+                    self.cbGroups.blockSignals(True)
+                    self.cbGroups.setCurrentIndex(i)
+                    self.cbGroups.blockSignals(False)
+                    break
+
+            # Trigger group change to populate layers
+            self.onGroupChanged()
+
+            # Select the target layer or first visible layer
+            if targetLayer:
+                # Try to select the target layer
+                layerToSelect = targetLayer
+            else:
+                # Select first visible layer in the group
+                renderableLayers = self.getRenderableLayersInSelectedGroup()
+                layerToSelect = renderableLayers[0] if renderableLayers else None
+
+            if layerToSelect:
+                self.cbLegendLayer.blockSignals(True)
+                self.cbLegendLayer.setLayer(layerToSelect)
+                self.cbLegendLayer.blockSignals(False)
+
+    def getGroupPath(self, group: QgsLayerTreeGroup) -> str:
+        """
+        Get the full path of a group as 'Parent / Child' format.
+        """
+        pathParts = []
+        current = group
+        while current and not current.parent() is None:
+            if isinstance(current, QgsLayerTreeGroup):
+                pathParts.insert(0, current.name())
+            current = current.parent()
+        return " / ".join(pathParts)
+
     def getRenderableLayersInSelectedGroup(self):
         """
-        Return only the layers that are DIRECTLY in the selected group (not in subgroups)
+        Return only the visible layers that are DIRECTLY in the selected group (not in subgroups)
         and have a Graduated or Categorized renderer.
+        Layers are returned in the order they appear in the layer panel.
         """
         selectedPath = self.cbGroups.currentData()
         if not selectedPath:
@@ -320,7 +410,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         # Find the group by its path
         root = QgsProject.instance().layerTreeRoot()
         pathParts = [part.strip() for part in selectedPath.split("/")]
-        
+
         targetGroup = root
         for partName in pathParts:
             found = False
@@ -332,15 +422,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if not found:
                 return []
 
-        # Collect only DIRECT layer children (not in subgroups)
+        # Collect only DIRECT layer children (not in subgroups) that are visible
+        # Maintain layer panel order by iterating children in order
         renderableLayers = []
         for child in targetGroup.children():
             if isinstance(child, QgsLayerTreeLayer):
-                layer = child.layer()
-                if layer and isinstance(layer, QgsVectorLayer):
-                    renderer = layer.renderer()
-                    if renderer and renderer.type() in ("graduatedSymbol", "categorizedSymbol"):
-                        renderableLayers.append(layer)
+                # Only include visible layers
+                if child.isVisible():
+                    layer = child.layer()
+                    if layer and isinstance(layer, QgsVectorLayer):
+                        renderer = layer.renderer()
+                        if renderer and renderer.type() in ("graduatedSymbol", "categorizedSymbol"):
+                            renderableLayers.append(layer)
 
         return renderableLayers
 
@@ -739,7 +832,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def updateClassCount(self):
         """Update the class count display."""
         count = self.tableView.rowCount()
-        self.leClassCount.setText(str(count))
+        self.leClassCount.setValue(count)
 
     def initializeUiVisibility(self):
         """Initialize the visibility of UI elements at startup."""
@@ -834,11 +927,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.labelIntervalRange.setVisible(isNumeric and isFixedInterval)
         self.spinIntervalRange.setVisible(isNumeric and isFixedInterval)
 
-        # Class management buttons - visible for categorical, and for numeric only when NOT in Fixed Interval mode
-        self.btClassPlus.setVisible((isCategorical) or (isNumeric and not isFixedInterval))
-        self.btClassMinus.setVisible((isCategorical) or (isNumeric and not isFixedInterval))
-        self.labelClass.setVisible((isCategorical) or (isNumeric and not isFixedInterval))
-        self.leClassCount.setVisible((isCategorical) or (isNumeric and not isFixedInterval))
+        # Class management buttons - visible for categorical and all numeric modes
+        self.btClassPlus.setVisible(isCategorical or isNumeric)
+        self.btClassMinus.setVisible(isCategorical or isNumeric)
+
+        # Disable plus/minus buttons in Fixed Interval mode (interval controls the class count)
+        if isNumeric and isFixedInterval:
+            self.btClassPlus.setEnabled(False)
+            self.btClassMinus.setEnabled(False)
+
+        # Class count - visible for categorical and all numeric modes (including Fixed Interval)
+        self.labelClass.setVisible(isCategorical or isNumeric)
+        self.leClassCount.setVisible(isCategorical or isNumeric)
 
         # Up/Down buttons - visible only for categorical
         self.btUp.setVisible(isCategorical)
@@ -950,11 +1050,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         return valuesList
     
     def initializeCategoricalLegend(self):
-        """Initialize an empty categorical legend with "Other Values" as default."""
+        """Initialize an empty categorical legend without any categories."""
         self.clearTable()
-
-        # Add "Other Values" as the default category
-        self.ensureOtherValuesCategory()
 
         # Get all unique values
         allUniqueValues = self.getUniqueValuesFromLayer()
@@ -962,7 +1059,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.usedUniqueValues = []
 
         QgsMessageLog.logMessage(
-            "Initialized categorical legend with 'Other Values' category",
+            "Initialized empty categorical legend",
             "QGISRed", Qgis.Info
         )
 
@@ -973,11 +1070,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
         """Enable or disable the Add Class button based on available values."""
         if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
             hasAvailableValues = len(self.availableUniqueValues) > 0
-            self.btClassPlus.setEnabled(hasAvailableValues)
-            
-            if not hasAvailableValues:
+            hasOtherValues = self.hasOtherValuesCategory()
+            # Enable if there are available values OR if "Other Values" doesn't exist yet
+            self.btClassPlus.setEnabled(hasAvailableValues or not hasOtherValues)
+
+            if not hasAvailableValues and hasOtherValues:
                 QgsMessageLog.logMessage(
-                    "All unique values have been used - Add Class button disabled",
+                    "All unique values have been used and 'Other Values' exists - Add Class button disabled",
                     "QGISRed", Qgis.Info
                 )
     
@@ -1174,13 +1273,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
             legendEdit = QLineEdit(otherValuesCategory.label())
             legendEdit.setEnabled(self.isEditing)
             self.tableView.setCellWidget(rowIndex, 3, legendEdit)
-        else:
-            self.ensureOtherValuesCategory()
 
         self.availableUniqueValues = [v for v in allUniqueValues if v not in self.usedUniqueValues]
 
         QgsMessageLog.logMessage(
-            f"Populated categorical legend with {self.tableView.rowCount()} classes (including Other Values)",
+            f"Populated categorical legend with {self.tableView.rowCount()} classes",
             "QGISRed", Qgis.Info
         )
 
@@ -1494,7 +1591,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         if nextValue is None:
             displayValue = "NULL"
-            legendText = self.tr("(null)")
+            legendText = self.tr("Null")
         else:
             displayValue = str(nextValue)
             legendText = str(nextValue)
@@ -1672,7 +1769,77 @@ class QGISRedLegendsDialog(QDialog, formClass):
         )
 
         self.updateClassCount()
-    
+
+    def calculateOptimalInterval(self):
+        """Calculate optimal interval for Fixed Interval mode to result in approximately 5 classes.
+
+        This method gets the min/max values from the field and calculates an interval
+        that will create approximately 5 classes (default target).
+        """
+        if not self.currentLayer or not self.currentFieldName:
+            return
+
+        # Target number of classes (default)
+        targetClasses = 5
+
+        # Get all values from the field
+        values = []
+        for feature in self.currentLayer.getFeatures():
+            val = feature[self.currentFieldName]
+            if val is not None:
+                try:
+                    values.append(float(val))
+                except (ValueError, TypeError):
+                    pass
+
+        if not values:
+            QgsMessageLog.logMessage(
+                "No valid numeric values found in field",
+                "QGISRed", Qgis.Warning
+            )
+            return
+
+        minVal = min(values)
+        maxVal = max(values)
+        dataRange = maxVal - minVal
+
+        if dataRange == 0:
+            # All values are the same, use a default interval
+            self.spinIntervalRange.blockSignals(True)
+            self.spinIntervalRange.setValue(1.0)
+            self.spinIntervalRange.blockSignals(False)
+            return
+
+        # Calculate interval for target number of classes
+        optimalInterval = dataRange / targetClasses
+
+        # Round to a "nice" number (power of 10, or 2*10^n, or 5*10^n)
+        import math
+        magnitude = math.floor(math.log10(optimalInterval))
+        mantissa = optimalInterval / (10 ** magnitude)
+
+        # Round mantissa to nice values: 1, 2, 5, or 10
+        if mantissa <= 1.5:
+            niceMantissa = 1
+        elif mantissa <= 3:
+            niceMantissa = 2
+        elif mantissa <= 7:
+            niceMantissa = 5
+        else:
+            niceMantissa = 10
+
+        niceInterval = niceMantissa * (10 ** magnitude)
+
+        # Set the spin box value without triggering the signal
+        self.spinIntervalRange.blockSignals(True)
+        self.spinIntervalRange.setValue(niceInterval)
+        self.spinIntervalRange.blockSignals(False)
+
+        QgsMessageLog.logMessage(
+            f"Calculated optimal interval: {niceInterval:.6f} (range: {dataRange:.2f}, target classes: {targetClasses})",
+            "QGISRed", Qgis.Info
+        )
+
     def onModeChanged(self):
         """Handle classification mode change."""
         if self.currentFieldType != self.FIELD_TYPE_NUMERIC or not self.currentLayer:
@@ -1691,6 +1858,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 "QGISRed", Qgis.Info
             )
             return
+
+        # If Fixed Interval mode, calculate optimal interval before applying
+        if methodId == "FixedInterval":
+            self.calculateOptimalInterval()
 
         # Apply the selected classification method
         self.applyClassificationMethod(methodId)

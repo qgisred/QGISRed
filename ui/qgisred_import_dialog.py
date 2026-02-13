@@ -1276,3 +1276,4 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             # Open files
             utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
             utils.openProjectInQgis()
+            utils.enforceAllIdentifiers()

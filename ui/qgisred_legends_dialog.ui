@@ -19,6 +19,9 @@
   <property name="windowTitle">
    <string>QGISRed Legend Editor</string>
   </property>
+  <property name="modal">
+   <bool>false</bool>
+  </property>
   <layout class="QHBoxLayout" name="horizontalLayout_2">
    <property name="spacing">
     <number>0</number>
@@ -60,8 +63,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>578</width>
-        <height>358</height>
+        <width>564</width>
+        <height>360</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -193,15 +196,15 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QSpinBox" name="spinIntervalRange">
+                 <widget class="QDoubleSpinBox" name="spinIntervalRange">
                   <property name="maximumSize">
                    <size>
                     <width>60</width>
                     <height>16777215</height>
                    </size>
                   </property>
-                  <property name="value">
-                   <number>5</number>
+                  <property name="maximum">
+                   <double>9999999999999999583119736832.000000000000000</double>
                   </property>
                  </widget>
                 </item>
@@ -249,21 +252,18 @@
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_6">
                   <item>
-                   <widget class="QLineEdit" name="leClassCount">
+                   <widget class="QSpinBox" name="leClassCount">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
                     <property name="maximumSize">
                      <size>
                       <width>60</width>
                       <height>16777215</height>
                      </size>
-                    </property>
-                    <property name="text">
-                     <string>0</string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignCenter</set>
-                    </property>
-                    <property name="readOnly">
-                     <bool>true</bool>
                     </property>
                    </widget>
                   </item>
