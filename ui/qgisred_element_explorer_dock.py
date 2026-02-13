@@ -275,7 +275,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.adjustSize()
 
     def setDockStyle(self):
-        iconName = 'iconFindElements.png' if 'Find' in self.__class__.__name__ else 'iconElementsProperties.png'
+        iconName = 'iconFindElements.png' if 'Find' in self.__class__.__name__ else 'iconElementProperties.png'
         iconPath = os.path.join(os.path.dirname(__file__), '..', 'images', iconName)
         self.setWindowIcon(QIcon(iconPath))
         

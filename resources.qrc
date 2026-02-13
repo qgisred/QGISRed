@@ -26,76 +26,76 @@
         <file>images/iconAddValve.png</file>
         <file>images/iconAddValveOpening.png</file>
         <file>images/iconAnalysisMenu.png</file>
-        <file>images/iconCalculateLength.png</file>
+        <file>images/iconCalculatePipeLengths.png</file>
         <file>images/iconCloseProject.png</file>
-        <file>images/iconCommit.png</file>
-        <file>images/iconConnections.png</file>
-        <file>images/iconConnectivityC.png</file>
-        <file>images/iconConnectivityM.png</file> 
+        <file>images/iconCheckAndCommit.png</file>
+        <file>images/iconIncorporateConnectionsToModel.png</file>
+        <file>images/iconDeleteIsolatedAreas.png</file>
+        <file>images/iconCheckConnectivity.png</file> 
         <file>images/iconCreateProject.png</file>
-        <file>images/iconCreateRevCrossings.png</file>
-        <file>images/iconCreateRevTconn.png</file>
+        <file>images/iconCreateRemoveCrossings.png</file>
+        <file>images/iconCreateRemoveTConnections.png</file>
         <file>images/iconData.png</file>
-        <file>images/iconDate.png</file>
+        <file>images/iconCheckInstalationDates.png</file>
         <file>images/iconDebugMenu.png</file>
         <file>images/iconDefaultValues.png</file>
         <file>images/iconDelete.png</file>
         <file>images/iconDeleteElements.png</file>
-        <file>images/iconDemands.png</file>
-        <file>images/iconDemandSector.png</file>
-        <file>images/iconDiameters.png</file>
+        <file>images/iconDemandBuilder.png</file>
+        <file>images/iconDemandSectors.png</file>
+        <file>images/iconCheckDiameters.png</file>
         <file>images/iconDigitalTwinMenu.png</file>
         <file>images/iconEditConnection.png</file>
         <file>images/iconEditMenu.png</file>
         <file>images/iconEditProperties.png</file>
-        <file>images/iconElementsProperties.png</file>
+        <file>images/iconElementProperties.png</file>
         <file>images/iconExport.png</file>
-        <file>images/iconExportEpanet.png</file>
+        <file>images/iconExportToEpanet.png</file>
         <file>images/iconFilter.png</file>
         <file>images/iconFindElements.png</file>
         <file>images/iconGeneralMenu.png</file>
         <file>images/iconGitHub.png</file>
         <file>images/iconHydrants.png</file>
-        <file>images/iconHydraulic.png</file>
-        <file>images/iconHydraulicOptions.png</file>
+        <file>images/iconCheckHydraulicSectors.png</file>
+        <file>images/iconAnalysisOptions.png</file>
         <file>images/iconImport.png</file>
-        <file>images/iconInterpolate.png</file>
+        <file>images/iconInterpolateNodeElevations.png</file>
         <file>images/iconIsolatedSegments.png</file>
-        <file>images/iconJoinC.png</file>
+        <file>images/iconJoinPipes.png</file>
         <file>images/iconJoinM.png</file>
         <file>images/iconLayerManagement.png</file>
-        <file>images/iconLengthC.png</file>
+        <file>images/iconCheckPipeLengths.png</file>
         <file>images/iconLengthM.png</file>
-        <file>images/iconLinePlot.png</file>
-        <file>images/iconLoadScada.png</file>
+        <file>images/iconPatternsAndCurves.png</file>
+        <file>images/iconLoadFieldData.png</file>
         <file>images/iconLock.png</file>
-        <file>images/iconMaterial.png</file>
+        <file>images/iconCheckMaterials.png</file>
         <file>images/iconMaterials.png</file>
-        <file>images/iconMergeSplitJunction.png</file>
+        <file>images/iconMergeSplitJunctions.png</file>
+        <file>images/iconMoveNodes.png</file>
         <file>images/iconMoveElements.png</file>
-        <file>images/iconMoveValvePump.png</file>
-        <file>images/iconMoveVertices.png</file>
+        <file>images/iconEditVertices.png</file>
         <file>images/iconOpenProject.png</file>
-        <file>images/iconOverloadC.png</file>
+        <file>images/iconRemoveOverlappings.png</file>
         <file>images/iconOverloadM.png</file>
         <file>images/iconProjectManager.png</file>
         <file>images/iconProjectMenu.png</file>
         <file>images/iconPurges.png</file>
         <file>images/iconQueriesMenu.png</file>
         <file>images/iconQueryByAttributes.png</file>
-        <file>images/iconResults.png</file>
-        <file>images/iconReverseLink.png</file>
-        <file>images/iconRoughness.png</file>
-		<file>images/iconRoughnessConvert.png</file>
-        <file>images/iconRules.png</file>
-        <file>images/iconRun.png</file>
+        <file>images/iconResultsBrowser.png</file>
+        <file>images/iconReverseElements.png</file>
+        <file>images/iconSetRoughnessFromMaterialDate.png</file>
+		<file>images/iconConvertRoughnessCoeff.png</file>
+        <file>images/iconControlsAndRules.png</file>
+        <file>images/iconRunModel.png</file>
         <file>images/iconSave.png</file>
         <file>images/iconSave.png</file>
-        <file>images/iconScenario.png</file>
-        <file>images/iconSelection.png</file>
-		<file>images/iconSetReadings.png</file>
+        <file>images/iconScenarioBuilder.png</file>
+        <file>images/iconMultipleSelection.png</file>
+		<file>images/iconLoadMeterReadings.png</file>
         <file>images/iconSettings.png</file>
-        <file>images/iconSplitPipe.png</file>
+        <file>images/iconSplitJoinPipe.png</file>
         <file>images/iconStatisticsAndPlots.png</file>
         <file>images/iconStatisticsArrowDown.png</file>
         <file>images/iconStatisticsArrowUp.png</file>
@@ -104,20 +104,20 @@
         <file>images/iconStatisticsExcel.png</file>
         <file>images/iconStatisticsExport.png</file>
         <file>images/iconStatisticsImport.png</file>
-        <file>images/iconStatus.png</file>
+        <file>images/iconSetPipeStatusFromValves.png</file>
         <file>images/iconSummary.png</file>
         <file>images/iconSwitch.png</file>
         <file>images/iconSwitchDisabled.png</file>
         <file>images/iconSwitchEnabled.png</file>
-        <file>images/iconTconnectionsC.png</file>
+        <file>images/iconCreateTConnections.png</file>
         <file>images/iconTconnectionsM.png</file>
         <file>images/iconThematicMaps.png</file>
         <file>images/iconToolsMenu.png</file>
-        <file>images/iconTree.png</file>
+        <file>images/iconGraphTree.png</file>
         <file>images/iconUserManager.png</file>
-        <file>images/iconVerticesC.png</file>
+        <file>images/iconSimplifyVertices.png</file>
         <file>images/iconVerticesM.png</file>
-        <file>images/iconWand.png</file>  
+        <file>images/iconChangeStatus.png</file>  
         <file>images/pencil.svg</file>
         <file>images/qgisred.png</file>
         <file>images/qgisred32.png</file>
