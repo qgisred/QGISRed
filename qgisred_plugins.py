@@ -21,7 +21,7 @@
 """
 
 # Import QGis
-from qgis.core import QgsProject, QgsVectorLayer, QgsMapLayer
+from qgis.core import QgsProject, QgsVectorLayer, QgsMapLayer, QgsLayerTreeLayer
 from PyQt5.QtGui import QIcon, QCursor
 from PyQt5.QtWidgets import QAction, QMessageBox, QApplication, QMenu, QFileDialog, QToolButton
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
@@ -2541,19 +2541,30 @@ class QGISRed:
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
             return
+        
         self.readUnits(self.ProjectDirectory, self.NetworkName)
-        # Add to the project manager list
+        
         file = open(self.gplFile, "a+")
         QGISRedUtils().writeFile(file, self.NetworkName + ";" + self.ProjectDirectory + "\n")
         file.close()
-        # Reload input styles
+        
         layers = self.getLayers()
-        for name in self.ownMainLayers:
-            layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp")
-            for layer in layers:
-                openedLayerPath = self.getLayerPath(layer)
-                if openedLayerPath == layerPath:
-                    QGISRedUtils.setStyle(None, layer, name.lower())
+        
+        root = QgsProject.instance().layerTreeRoot()
+        inputs_group = root.findGroup("Inputs")
+        
+        if inputs_group:
+            input_layers = []
+            for child in inputs_group.children():
+                if isinstance(child, QgsLayerTreeLayer):
+                    input_layers.append(child.layer())
+
+            for name in self.ownMainLayers:
+                layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp")
+                for layer in layers:
+                    openedLayerPath = self.getLayerPath(layer)
+                    if openedLayerPath == layerPath and layer in input_layers:
+                        QGISRedUtils.setStyle(None, layer, name.lower())
 
     def runSaveProject(self):
         self.defineCurrentProject()

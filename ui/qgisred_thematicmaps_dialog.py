@@ -143,7 +143,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             queries.append({
                 'layer_name': 'Pipe Diameters',
                 'field': 'Diameter',
-                'qml_file': f'pipes_diameter_{units}.qml.bak',
+                'qml_file': f'pipes_diameters_{units}.qml.bak',
                 'file_name': f'diameter_{units}',
                 'tooltip_prefix': 'Diam'
             })
@@ -152,7 +152,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             queries.append({
                 'layer_name': 'Pipe Lengths',
                 'field': 'Length',
-                'qml_file': f'pipes_length_{units}.qml.bak',
+                'qml_file': f'pipes_lengths_{units}.qml.bak',
                 'file_name': f'length_{units}',
                 'tooltip_prefix': 'Len'
             })
@@ -161,7 +161,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             queries.append({
                 'layer_name': 'Pipe Materials',
                 'field': 'Material',
-                'qml_file': '',
+                'qml_file': 'pipes_materials.qml.bak',
                 'file_name': 'material',
                 'tooltip_prefix': 'Mat '
             })
@@ -178,25 +178,38 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         self.check_existing_layer(queries_group, layer_name)
         derived_layer = self.create_derived_layer(main_layer, layer_name)
         
-        if field == 'Material':
-            self.apply_categorized_renderer(derived_layer, field)
-        else:
-            self.load_qml_style(derived_layer, qml_file)
+        self.load_qml_style(derived_layer, qml_file)
+        derived_layer.setLabelsEnabled(False)
 
         QgsProject.instance().addMapLayer(derived_layer, False) 
         
         if queries_group:
             layer_tree_layer = queries_group.addLayer(derived_layer)
+            layer_tree_layer.setCustomProperty("showFeatureCount", True)
 
-        derived_layer.dataChanged.connect(
-            lambda: derived_layer.triggerRepaint()
-        )
+        # derived_layer.dataChanged.connect(
+        #     lambda: derived_layer.triggerRepaint()
+        # )
 
-        main_layer.dataChanged.connect(
-            lambda: derived_layer.triggerRepaint()
-        )
+        # main_layer.dataChanged.connect(
+        #     lambda: derived_layer.triggerRepaint()
+        # )
+        
+        # return derived_layer
+
+        # Conectar sinais para sincronização
+        main_layer.dataChanged.connect(lambda: self.sync_layers(main_layer, derived_layer))
+        main_layer.styleChanged.connect(lambda: self.sync_layers(main_layer, derived_layer))
+        derived_layer.dataChanged.connect(lambda: derived_layer.triggerRepaint())
         
         return derived_layer
+
+    def sync_layers(self, main_layer, derived_layer):
+        # Sincroniza dados e estilo
+        derived_layer.dataProvider().forceReload()
+        new_renderer = main_layer.renderer().clone()
+        derived_layer.setRenderer(new_renderer)
+        derived_layer.triggerRepaint()
 
     def check_existing_layer(self, queries_group, layer_name, layer_path=None):
         existing_layer = None
@@ -259,7 +272,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             layer.loadNamedStyle(qml_path)
             layer.triggerRepaint()
 
-    def assign_labels(self, layer, field):
+    def assign_labels(self, layer, field, ):
         layer.setLabelsEnabled(True)
         labeling = layer.labeling()
         if labeling is not None:
