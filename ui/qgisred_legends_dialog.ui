@@ -70,7 +70,7 @@
         <x>0</x>
         <y>0</y>
         <width>631</width>
-        <height>456</height>
+        <height>436</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -560,11 +560,7 @@
                   </layout>
                  </item>
                  <item>
-                  <layout class="QHBoxLayout" name="palletesHorizontalLayout">
-                   <item>
-                    <widget class="QComboBox" name="cbColorRampPalette"/>
-                   </item>
-                  </layout>
+                  <layout class="QHBoxLayout" name="palletesHorizontalLayout"/>
                  </item>
                  <item>
                   <widget class="Line" name="line_7">

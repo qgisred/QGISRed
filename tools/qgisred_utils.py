@@ -1095,8 +1095,8 @@ class QGISRedUtils:
             return QGISRedUtils._unit_definitions
         
         jsonPath = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)), 
-            "defaults", "layerStyles", "qgisred_units.json"
+            os.path.dirname(os.path.dirname(__file__)),
+            "defaults", "qgisred_units.json"
         )
         
         if os.path.exists(jsonPath):

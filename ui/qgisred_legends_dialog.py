@@ -10,10 +10,10 @@ import statistics
 from PyQt5.QtGui import QIcon, QColor
 from PyQt5.QtWidgets import (QDialog, QMessageBox, QHeaderView,
                              QComboBox, QLineEdit, QAbstractItemView,
-                             QCheckBox, QDoubleSpinBox, QApplication, QProgressDialog,
+                             QCheckBox, QDoubleSpinBox, QSpinBox, QApplication, QProgressDialog,
                              QWidget, QHBoxLayout)
 from PyQt5.QtCore import (QVariant, Qt, QTimer, QObject, QEvent,
-                          QItemSelectionModel, QItemSelection)
+                          QItemSelectionModel, QItemSelection, QPoint)
 from qgis.PyQt import uic
 
 # QGIS imports
@@ -28,7 +28,7 @@ from qgis.utils import iface
 
 # Local imports
 from ..tools.qgisred_utils import QGISRedUtils
-from .qgisred_custom_dialogs import RangeEditDialog, SymbolColorSelector
+from .qgisred_custom_dialogs import QGISRedRangeEditDialog, QGISRedSymbolColorSelector, QGISRedColorRampSelector
 
 # Load UI
 formClass, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_legends_dialog.ui"))
@@ -43,9 +43,10 @@ class RowSelectionFilter(QObject):
         self.table = table
 
     def eventFilter(self, widget, event):
-        if event.type() == QEvent.FocusIn:
-            # Find the widget's position in the table
-            index = self.table.indexAt(widget.pos())
+        if event.type() == QEvent.FocusIn or (event.type() == QEvent.MouseButtonPress and event.button() == Qt.LeftButton):
+            # Find the widget's position in the table using mapTo for robustness (handles nested widgets)
+            pos = widget.mapTo(self.table.viewport(), QPoint(0, 0))
+            index = self.table.indexAt(pos)
             if index.isValid():
                 selectionModel = self.table.selectionModel()
                 modifiers = QApplication.keyboardModifiers()
@@ -232,10 +233,72 @@ class QGISRedLegendsDialog(QDialog, formClass):
         """)
 
     def setupClassCountField(self):
-        """Configure read-only class count field."""
-        self.leClassCount.setReadOnly(True)
-        self.leClassCount.setButtonSymbols(QDoubleSpinBox.NoButtons)
-        self.leClassCount.setStyleSheet("QSpinBox { background-color: #F0F0F0; color: #808080; }")
+        """Configure class count field with conditional editability."""
+        self.leClassCount.setMinimum(1)
+        self.leClassCount.setMaximum(self.MAX_CLASSES)
+        self.leClassCount.valueChanged.connect(self.onClassCountChanged)
+        self.setClassCountEditable(False)
+
+    def setClassCountEditable(self, editable):
+        """Set class count spinbox editability and appearance."""
+        if editable:
+            self.leClassCount.setReadOnly(False)
+            self.leClassCount.setButtonSymbols(QSpinBox.UpDownArrows)
+            self.leClassCount.setStyleSheet("QSpinBox { background-color: white; color: #2b2b2b; }")
+        else:
+            self.leClassCount.setReadOnly(True)
+            self.leClassCount.setButtonSymbols(QSpinBox.NoButtons)
+            self.leClassCount.setStyleSheet("QSpinBox { background-color: #F0F0F0; color: #808080; }")
+
+    def modeHasVariableClassCount(self):
+        """Determine if the current mode allows variable class count."""
+        if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
+            return True
+        
+        modeId = self.cbMode.currentData()
+        fixedModes = ["FixedInterval", "StdDev"]
+        return modeId not in fixedModes
+
+    def onClassCountChanged(self, newValue):
+        """Handle spin box value change to add/remove classes."""
+        if not self.currentLayer:
+            return
+        
+        if not self.modeHasVariableClassCount():
+            return
+        
+        currentCount = self.tableView.rowCount()
+        if newValue == currentCount:
+            return
+        
+        self.leClassCount.blockSignals(True)
+        
+        if self.currentFieldType == self.FIELD_TYPE_NUMERIC:
+            if newValue > currentCount:
+                while self.tableView.rowCount() < newValue:
+                    self.addNumericClass()
+            elif newValue < currentCount:
+                while self.tableView.rowCount() > newValue and self.tableView.rowCount() > 1:
+                    self.tableView.removeRow(self.tableView.rowCount() - 1)
+            
+            self.leClassCount.setValue(self.tableView.rowCount())
+            self.leClassCount.blockSignals(False)
+            
+            modeId = self.cbMode.currentData()
+            if modeId and modeId not in [None, "Manual"]:
+                self.applyClassificationMethod(modeId)
+        
+        elif self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
+            if newValue > currentCount:
+                while self.tableView.rowCount() < newValue and self.availableUniqueValues:
+                    self.addCategoricalClass()
+            elif newValue < currentCount:
+                while self.tableView.rowCount() > newValue and self.tableView.rowCount() > 0:
+                    self._removeCategoricalRow(self.tableView.rowCount() - 1)
+            
+            self.leClassCount.setValue(self.tableView.rowCount())
+            self.leClassCount.blockSignals(False)
+            self.updateClassCountLimits()
 
     def setupAdvancedUi(self):
         self.cbSizes.addItems(["Manual", "Equal", "Linear", "Quadratic", "Exponential"])
@@ -249,7 +312,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.cbColors.currentIndexChanged.connect(self.onColorModeChanged)
         self.btColorEqual.setColor(QColor("red"))
         self.btColorEqual.colorChanged.connect(self.applyColorLogic)
-        self.cbColorRampPalette.currentIndexChanged.connect(self.applyColorLogic)
         self.ckColorInvert.toggled.connect(self.applyColorLogic)
 
         # Setup refresh colors button
@@ -262,15 +324,20 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.onColorModeChanged()
 
     def setupColorRampButton(self):
-        """Initialize and add QgsColorRampButton to the UI."""
-        self.btnColorRamp = QgsColorRampButton(self)
-        self.btnColorRamp.setMaximumWidth(100)
+        """Initialize and add QGISRedColorRampSelector to the UI."""
+        self.btnColorRamp = QGISRedColorRampSelector(self)
         self.btnColorRamp.setVisible(False)
-        # Use existing layout created in UI
+        # Add with horizontal centering using stretch spacers
+        self.palletesHorizontalLayout.addStretch(1)
         self.palletesHorizontalLayout.addWidget(self.btnColorRamp)
-        # Reflect only behavior
-        #self.btnColorRamp.setEnabled(False)
-        self.cbColorRampPalette.currentIndexChanged.connect(self.syncColorRampButton)
+        self.palletesHorizontalLayout.addStretch(1)
+        # Connect signal to handle ramp changes
+        self.btnColorRamp.colorRampChanged.connect(self.onCustomColorRampChanged)
+    
+    def onCustomColorRampChanged(self, ramp):
+        """Handle color ramp change from custom selector."""
+        # Apply the selected ramp to the current color logic
+        self.applyColorLogic()
 
     def setupClassifyAllButton(self):
         # Ensure icon exists or fallback
@@ -294,7 +361,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.cbLegendsType.setStyleSheet(editableComboStyle)
         self.cbSizes.setStyleSheet(editableComboStyle)
         self.cbColors.setStyleSheet(editableComboStyle)
-        self.cbColorRampPalette.setStyleSheet(editableComboStyle)
 
         # Apply to spin boxes
         self.spinIntervalRange.setStyleSheet(editableSpinBoxStyle)
@@ -391,15 +457,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if iface and iface.layerTreeView():
             self.layerTreeViewConnection = iface.layerTreeView().currentLayerChanged.connect(self.onQgisLayerSelectionChanged)
 
-        # --- NEW: Project and Tree Signals ---
-        # Watch for global visibility changes (recursive from root)
-        self.layerTreeRoot = QgsProject.instance().layerTreeRoot()
-        self.layerTreeRoot.visibilityChanged.connect(self.onTreeNodeVisibilityChanged)
+        # # --- NEW: Project and Tree Signals ---
+        # # Watch for global visibility changes (recursive from root)
+        # self.layerTreeRoot = QgsProject.instance().layerTreeRoot()
+        # self.layerTreeRoot.visibilityChanged.connect(self.onTreeNodeVisibilityChanged)
 
-        # Watch for layer additions and removals
-        QgsProject.instance().layersWillBeRemoved.connect(self.onLayersWillBeRemoved)
-        QgsProject.instance().layersAdded.connect(self.onProjectLayersChanged)
-        QgsProject.instance().layersRemoved.connect(self.onProjectLayersChanged)
+        # # Watch for layer additions and removals
+        # QgsProject.instance().layersWillBeRemoved.connect(self.onLayersWillBeRemoved)
+        # QgsProject.instance().layersAdded.connect(self.onProjectLayersChanged)
+        # QgsProject.instance().layersRemoved.connect(self.onProjectLayersChanged)
 
     def loadInitialState(self):
         """Preselect group/layer and set initial state."""
@@ -839,11 +905,27 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
 
     def syncColorRampButton(self):
-        """Update QgsColorRampButton to match selected ramp/palette."""
-        ramp = self.cbColorRampPalette.currentData()
-        if isinstance(ramp, QgsColorRamp):
-            self.btnColorRamp.setColorRamp(ramp)
-        # Ensure correct visibility/state
+        """Update CustomColorRampSelector with ramps from style database."""
+        # Clear existing ramps
+        self.btnColorRamp.clearRamps()
+        
+        mode = self.cbColors.currentText()
+        
+        if mode == "Ramp":
+            # Load gradient ramps
+            ramps = self.loadGradientRampsFromStyle()
+        elif mode == "Palette":
+            # Load palette ramps
+            ramps = self.loadPaletteRampsFromStyle()
+        else:
+            return
+        
+        # Add ramps to the custom selector
+        if ramps:
+            self.btnColorRamp.addColorRamps(ramps)
+            # Set first ramp as default
+            first_name = list(ramps.keys())[0]
+            self.btnColorRamp.setCurrentRamp(first_name)
         
     def onColorModeChanged(self):
         """Handle color mode change."""
@@ -851,45 +933,39 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.btColorEqual.setVisible(mode == "Equal")
         
         isRampOrPalette = mode in ["Ramp", "Palette"]
-        self.cbColorRampPalette.setVisible(isRampOrPalette)
         self.btnColorRamp.setVisible(isRampOrPalette)
         
         self.ckColorInvert.setVisible(isRampOrPalette)
         self.btRefreshColors.setVisible(mode == "Random")
 
-        if mode == "Ramp":
-            self.populateRamps()
-        elif mode == "Palette":
-            self.populatePalettes()
+        if isRampOrPalette:
+            self.syncColorRampButton()
 
         self.applyColorLogic()
-        self.syncColorRampButton()
 
-    def populateRamps(self):
-        """Populate color ramps from style database."""
-        self.cbColorRampPalette.blockSignals(True)
-        self.cbColorRampPalette.clear()
-
+    def loadGradientRampsFromStyle(self):
+        """Load gradient color ramps from style database."""
+        ramps = {}
+        
         if self.style:
             # Load Gradient Ramps from Style
             names = self.style.colorRampNames()
             for name in names:
                 ramp = self.style.colorRamp(name)
                 if isinstance(ramp, QgsGradientColorRamp):
-                    self.cbColorRampPalette.addItem(name, ramp)
+                    ramps[name] = ramp
 
-        # If no ramps found, add default gradient
-        if self.cbColorRampPalette.count() == 0:
-            defaultRamp = QgsGradientColorRamp(QColor(0, 0, 255), QColor(255, 0, 0))
-            self.cbColorRampPalette.addItem("Default (Blue to Red)", defaultRamp)
+        # If no ramps found, add 2 fallback gradients
+        if not ramps:
+            ramps["Default (Blue to Red)"] = QgsGradientColorRamp(QColor(0, 0, 255), QColor(255, 0, 0))
+            ramps["Default (Green to Yellow)"] = QgsGradientColorRamp(QColor(0, 128, 0), QColor(255, 255, 0))
 
-        self.cbColorRampPalette.blockSignals(False)
+        return ramps
 
-    def populatePalettes(self):
-        """Populate color palettes from style database."""
-        self.cbColorRampPalette.blockSignals(True)
-        self.cbColorRampPalette.clear()
-
+    def loadPaletteRampsFromStyle(self):
+        """Load palette color schemes from style database."""
+        ramps = {}
+        
         if self.style:
             # Load Preset Schemes (Palettes)
             names = self.style.colorRampNames()
@@ -897,17 +973,19 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 ramp = self.style.colorRamp(name)
                 # QGIS treats Palettes as PresetSchemeColorRamp
                 if isinstance(ramp, QgsPresetSchemeColorRamp):
-                    self.cbColorRampPalette.addItem(name, ramp)
+                    ramps[name] = ramp
 
-        # If no palettes found, create a default one
-        if self.cbColorRampPalette.count() == 0:
-            # Create a simple default palette
-            defaultColors = [QColor(255, 0, 0), QColor(0, 255, 0), QColor(0, 0, 255),
-                           QColor(255, 255, 0), QColor(255, 0, 255), QColor(0, 255, 255)]
-            defaultPalette = QgsPresetSchemeColorRamp(defaultColors)
-            self.cbColorRampPalette.addItem("Default Palette", defaultPalette)
+        # If no palettes found, create 2 fallback palettes
+        if not ramps:
+            primaryColors = [QColor(255, 0, 0), QColor(0, 255, 0), QColor(0, 0, 255),
+                             QColor(255, 255, 0), QColor(255, 0, 255), QColor(0, 255, 255)]
+            ramps["Primary Colors"] = QgsPresetSchemeColorRamp(primaryColors)
+            
+            warmColors = [QColor(255, 87, 51), QColor(255, 140, 0), QColor(255, 195, 0),
+                          QColor(220, 60, 60), QColor(255, 165, 79), QColor(238, 130, 98)]
+            ramps["Warm Colors"] = QgsPresetSchemeColorRamp(warmColors)
 
-        self.cbColorRampPalette.blockSignals(False)
+        return ramps
 
     # --- Mathematical Algorithms ---
 
@@ -957,7 +1035,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         for r in range(rows):
             sw = self.tableView.cellWidget(r, 2)  # Size Widget (column 2)
             colorContainer = self.tableView.cellWidget(r, 1)  # Color container (column 1)
-            cw = colorContainer.findChild(SymbolColorSelector) if colorContainer else None
+            cw = colorContainer.findChild(QGISRedSymbolColorSelector) if colorContainer else None
             if sw:
                 sw.blockSignals(True)
                 sw.setText(f"{sizes[r]:.2f}")
@@ -985,14 +1063,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
             colors = [self.generateRandomColor() for _ in range(rows)]
 
         elif mode == "Ramp":
-            ramp = self.cbColorRampPalette.currentData()
+            ramp = self.btnColorRamp.currentRamp()
             if isinstance(ramp, QgsGradientColorRamp):
                 colors = self.algorithmRamp(ramp, rows)
             else:
                 colors = [self.generateRandomColor() for _ in range(rows)]
 
         elif mode == "Palette":
-            palette = self.cbColorRampPalette.currentData()
+            palette = self.btnColorRamp.currentRamp()
             if isinstance(palette, QgsPresetSchemeColorRamp):
                 colors = self.algorithmPalette(palette, rows)
             else:
@@ -1005,7 +1083,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         # Update Table
         for r in range(rows):
             colorContainer = self.tableView.cellWidget(r, 1)  # Color container (column 1)
-            cw = colorContainer.findChild(SymbolColorSelector) if colorContainer else None
+            cw = colorContainer.findChild(QGISRedSymbolColorSelector) if colorContainer else None
             if cw:
                 cw.setColor(colors[r])
 
@@ -1327,6 +1405,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
         
         self.btClassifyAll.setVisible(isCat)
         
+        # Toggle class count editability based on mode
+        if isCat:
+            self.setClassCountEditable(True)
+            self.updateClassCountLimits()
+        else:
+            self.setClassCountEditable(isNum and self.modeHasVariableClassCount())
+        
         # Update tooltip based on layer type
         if isCat:
             self.btClassPlus.setToolTip(
@@ -1403,6 +1488,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.availableUniqueValues = [v for v in self.availableUniqueValues if v not in self.usedUniqueValues]
         self.updateClassCount()
         self.updateButtonStates()
+        self.updateClassCountLimits()
 
     def setRowWidgets(self, row, symbol, visible, valText, legendText, geom, isReadOnlyVal=False):
         """Helper to create and set widgets for a row."""
@@ -1443,7 +1529,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.tableView.setCellWidget(row, 0, containerWidget)
 
         # Column 1: Color/Symbol (centered, double-click to open dialog)
-        cw = SymbolColorSelector(self.tableView, geom, symbol.color(), True, "Pick color", doubleClickOnly=True)
+        cw = QGISRedSymbolColorSelector(self.tableView, geom, symbol.color(), True, "Pick color", doubleClickOnly=True)
         cw.setEnabled(self.isEditing)
         size = symbol.width() if geom == "line" else symbol.size()
         cw.updateSymbolSize(size, geom == "line")
@@ -1454,11 +1540,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
         colorLayout = QHBoxLayout(colorContainer)
         colorLayout.setContentsMargins(0, 0, 0, 0)
         colorLayout.setSpacing(0)
+        cw.installEventFilter(self.rowSelectionFilter)
         colorLayout.addStretch()
-        colorLayout.addWidget(cw)
+        colorLayout.addWidget(cw, 0, Qt.AlignVCenter)
         colorLayout.addStretch()
         colorContainer.setAutoFillBackground(False)
         self.tableView.setCellWidget(row, 1, colorContainer)
+        colorContainer.installEventFilter(self.rowSelectionFilter)
 
         # Column 2: Size
         sw = QLineEdit(str(size))
@@ -1655,10 +1743,21 @@ class QGISRedLegendsDialog(QDialog, formClass):
             row = self.tableView.rowCount() # Append to end
 
         lower, upper = self.calculateInitialRangeForNewRow(row)
+        
+        # Determine color based on mode settings
+        modeId = self.cbMode.currentData()
+        colorMode = self.cbColors.currentText() if hasattr(self, 'cbColors') else "Manual"
+        
+        # Use smart color when both intervals and colors are in Manual mode
+        if (modeId == "Manual" or modeId is None) and colorMode == "Manual":
+            newColor = self.getSmartColorForNewRow(row)
+        else:
+            newColor = self.generateRandomColor()
+        
         self.tableView.insertRow(row)
 
         sym = QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
-        sym.setColor(self.generateRandomColor())
+        sym.setColor(newColor)
 
         self.setRowWidgets(row, sym, True, f"{lower:.2f} - {upper:.2f}", f"{lower:.2f} - {upper:.2f}", self.getGeometryHint())
         self.updateAdjacentRowsAfterInsertion(row, lower, upper)
@@ -1710,6 +1809,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.tableView.clearSelection()
         self.tableView.selectRow(row)
         self.updateClassCount()
+        self.updateButtonStates()
+        self.updateClassCountLimits()
 
     def removeClass(self):
         """Remove selected classes."""
@@ -1742,6 +1843,38 @@ class QGISRedLegendsDialog(QDialog, formClass):
         # NEW: Re-apply generic logic
         self.applyColorLogic()
         self.applySizeLogic()
+        
+        # Update spinbox limits for categorized layers
+        if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
+            self.updateClassCountLimits()
+
+    def _removeCategoricalRow(self, row):
+        """Remove a single categorical row and return its value to available pool."""
+        w = self.tableView.cellWidget(row, 3)
+        if isinstance(w, QLineEdit):
+            val = w.text()
+            if val != self.tr("Other Values") and val in self.usedUniqueValues:
+                self.usedUniqueValues.remove(val)
+                self.availableUniqueValues.append(val)
+        self.tableView.removeRow(row)
+        self.availableUniqueValues.sort()
+        self.updateButtonStates()
+
+    def updateClassCountLimits(self):
+        """Update spinbox limits for categorized layers based on available unique values."""
+        if self.currentFieldType != self.FIELD_TYPE_CATEGORICAL:
+            return
+        
+        currentCount = self.tableView.rowCount()
+        maxPossible = currentCount + len(self.availableUniqueValues)
+        
+        if not self.hasOtherValuesCategory():
+            maxPossible += 1
+        
+        self.leClassCount.blockSignals(True)
+        self.leClassCount.setMinimum(0)
+        self.leClassCount.setMaximum(maxPossible)
+        self.leClassCount.blockSignals(False)
 
     def moveClassUp(self):
         self._moveRow(-1)
@@ -1781,9 +1914,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 else:
                     data.append(None)
             elif c == 1:
-                # Column 1: Container with SymbolColorSelector
+                # Column 1: Container with QGISRedSymbolColorSelector
                 if w:
-                    colorSelector = w.findChild(SymbolColorSelector)
+                    colorSelector = w.findChild(QGISRedSymbolColorSelector)
                     if colorSelector:
                         data.append(('cs', colorSelector.color(), colorSelector.symbolSize, colorSelector.geometryHint()))
                     else:
@@ -1843,12 +1976,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 self.tableView.setCellWidget(row, c, containerWidget)
 
             elif dtype == 'cs':
-                # Column 1: SymbolColorSelector in container
+                # Column 1: QGISRedSymbolColorSelector in container
                 color = d[1]
                 symbolSize = d[2]
                 geomHint = d[3]
 
-                cw = SymbolColorSelector(self.tableView, geomHint, color, True, "Pick color", doubleClickOnly=True)
+                cw = QGISRedSymbolColorSelector(self.tableView, geomHint, color, True, "Pick color", doubleClickOnly=True)
                 cw.setEnabled(self.isEditing)
                 cw.updateSymbolSize(symbolSize, geomHint == "line")
                 cw.setAutoFillBackground(False)
@@ -2188,7 +2321,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if layerIdent:
                 unitAbbr = self.utils.getUnitAbbreviationForLayer(layerIdent)
         
-        dlg = RangeEditDialog(curr[0], curr[1], self, unitAbbr=unitAbbr)
+        dlg = QGISRedRangeEditDialog(curr[0], curr[1], self, unitAbbr=unitAbbr)
         if dlg.exec_():
             nl, nu = dlg.getValues()
 
@@ -2223,7 +2356,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         try:
             s = float(text)
             colorContainer = self.tableView.cellWidget(row, 1)  # Color container (column 1)
-            cw = colorContainer.findChild(SymbolColorSelector) if colorContainer else None
+            cw = colorContainer.findChild(QGISRedSymbolColorSelector) if colorContainer else None
             if cw:
                 cw.updateSymbolSize(s, self.currentLayer.geometryType() == 1)
         except: pass
@@ -2247,7 +2380,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 # Get checkbox from container
                 ckw = ckContainer.findChild(QCheckBox) if ckContainer else None
                 # Get color widget from container
-                cw = colorContainer.findChild(SymbolColorSelector) if colorContainer else None
+                cw = colorContainer.findChild(QGISRedSymbolColorSelector) if colorContainer else None
                 
                 sym = QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
                 if cw:
@@ -2276,7 +2409,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 # Get checkbox from container
                 ckw = ckContainer.findChild(QCheckBox) if ckContainer else None
                 # Get color widget from container
-                cw = colorContainer.findChild(SymbolColorSelector) if colorContainer else None
+                cw = colorContainer.findChild(QGISRedSymbolColorSelector) if colorContainer else None
                 
                 val = vw.text() if isinstance(vw, QLineEdit) else ""
                 label = lw.text()
@@ -2438,6 +2571,67 @@ class QGISRedLegendsDialog(QDialog, formClass):
         c = QColor()
         c.setHsl(random.randint(0, 359), random.randint(178, 255), random.randint(102, 178))
         return c
+
+    def getRowColor(self, row):
+        """Get the color from a specific row's color widget."""
+        if row < 0 or row >= self.tableView.rowCount():
+            return None
+        colorContainer = self.tableView.cellWidget(row, 1)
+        if colorContainer:
+            cw = colorContainer.findChild(QGISRedSymbolColorSelector)
+            if cw:
+                return cw.color()
+        return None
+
+    def calculateIntermediateColor(self, color1, color2):
+        """Calculate the intermediate color between two colors."""
+        r = (color1.red() + color2.red()) // 2
+        g = (color1.green() + color2.green()) // 2
+        b = (color1.blue() + color2.blue()) // 2
+        return QColor(r, g, b)
+
+    def getSmartColorForNewRow(self, insertionRow):
+        """
+        Determine the color for a new row based on its position when both
+        intervals and colors are in manual mode.
+        
+        Rules:
+        - If inserting between two classes: use intermediate color of neighbors
+        - If inserting at end (last class): use color of current last class
+        - If inserting at first position:
+            - If 0 or 1 existing classes: random color
+            - If 2+ existing classes: use color of current first class
+        """
+        rowCount = self.tableView.rowCount()
+        
+        # Empty table or single row - use random
+        if rowCount <= 1:
+            return self.generateRandomColor()
+        
+        # Inserting at position 0 (first)
+        if insertionRow == 0:
+            # Use the color of the current first row (which will become second)
+            firstColor = self.getRowColor(0)
+            return firstColor if firstColor else self.generateRandomColor()
+        
+        # Inserting at end (after all existing rows)
+        if insertionRow >= rowCount:
+            # Use the color of the current last row
+            lastColor = self.getRowColor(rowCount - 1)
+            return lastColor if lastColor else self.generateRandomColor()
+        
+        # Inserting between two existing rows
+        prevColor = self.getRowColor(insertionRow - 1)
+        nextColor = self.getRowColor(insertionRow)
+        
+        if prevColor and nextColor:
+            return self.calculateIntermediateColor(prevColor, nextColor)
+        elif prevColor:
+            return prevColor
+        elif nextColor:
+            return nextColor
+        else:
+            return self.generateRandomColor()
 
     def getSelectedRows(self):
         return [i.row() for i in self.tableView.selectionModel().selectedRows()]

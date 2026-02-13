@@ -21,7 +21,7 @@
 """
 
 # Import QGis
-from qgis.core import QgsProject, QgsVectorLayer, QgsMapLayer
+from qgis.core import QgsProject, QgsVectorLayer, QgsMapLayer, QgsLayerTreeLayer
 from qgis.core import QgsMessageLog, QgsCoordinateTransform, QgsApplication, QgsLayerTreeGroup, QgsLayerTreeNode
 from PyQt5.QtGui import QIcon, QCursor
 from PyQt5.QtWidgets import QAction, QMessageBox, QApplication, QMenu, QFileDialog, QToolButton
@@ -2775,30 +2775,24 @@ class QGISRed:
         self.defineCurrentProject()
         if self.ProjectDirectory == self.TemporalFolder:
             return
-
+        
         self.readUnits(self.ProjectDirectory, self.NetworkName)
-
+        
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.assignLayerIdentifiers()
 
         QGISRedUtils().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
-
-        # [FIX] Refresh Input Layers
-        # Instead of manually iterating styles, we trigger the standard update chain.
-        # This removes the layers QGIS loaded (which might have broken SVG paths)
-        # and re-opens them using the plugin's logic (which applies the correct styles).
-        self.removingLayers = True
-        self.opendedLayers = False
-        self.extent = QGISRedUtils().getProjectExtent()
-
-        # We use the existing task chain: removeLayers -> openElementLayers
-        # This ensures consistency with how layers are handled after editing properties.
-        QGISRedUtils().runTask("refresh_project_layers", self.removeLayers, self.openElementLayersWrapper)
-
-    def openElementLayersWrapper(self, exception=None, result=None):
-        """Wrapper to call openElementLayers and then setExtent"""
-        self.opendedLayers = False
-        QGISRedUtils().runTask("update layers", self.openElementLayers, self.setExtent)
+        
+        layers = self.getLayers()
+        
+        root = QgsProject.instance().layerTreeRoot()
+        inputs_group = root.findGroup("Inputs")
+        
+        if inputs_group:
+            input_layers = []
+            for child in inputs_group.children():
+                if isinstance(child, QgsLayerTreeLayer):
+                    input_layers.append(child.layer())
 
     def runSaveProject(self):
         self.defineCurrentProject()
