@@ -162,6 +162,9 @@ class QGISRedUtils:
     def getLayers(self):
         return [tree_layer.layer() for tree_layer in QgsProject.instance().layerTreeRoot().findLayers()]
 
+    def getProjectDirectory(self):
+        return self.ProjectDirectory
+
     def getProjectCrs(self):
         layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_Pipes.shp")
         for layer in self.getLayers():

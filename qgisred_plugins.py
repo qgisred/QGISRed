@@ -4707,6 +4707,7 @@ class QGISRed:
 
         # Store reference to prevent garbage collection
         self.legendsDialog = QGISRedLegendsDialog()
+        self.legendsDialog.config(self.iface, self.ProjectDirectory, self.NetworkName, self)
         # Show the dialog as non-modal (semi-modal)
         self.legendsDialog.show()
         self.legendsDialog.raise_()

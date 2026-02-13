@@ -63,6 +63,28 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.layerTreeViewConnection = None
         self.style = None  # QGISRed style database
 
+        # Resize handling for frameless window
+        self.resizing = False
+        self.resizeEdge = None
+        self.resizeMargin = 5
+
+        # Plugin context properties (set via config method)
+        self.parent = None
+        self.iface = None
+        self.ProjectDirectory = ""
+        self.NetworkName = ""
+        self.utils = None
+
+    def config(self, ifac, direct, netw, parent):
+        """Configure dialog with parent plugin context."""
+        self.parent = parent
+        self.iface = ifac
+        self.ProjectDirectory = direct
+        self.NetworkName = netw
+
+        # Create utils instance
+        self.utils = QGISRedUtils(direct, netw, ifac)
+
     def initUi(self):
         """Initialize UI components."""
         self.configWindow()
@@ -74,6 +96,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         # NEW: Setup Advanced Color and Size UI
         self.setupAdvancedUi()
         self.loadStyleDatabase()
+        self.applyConsistentStyling()
 
         self.labelIntervalRange.setVisible(False)
         self.spinIntervalRange.setVisible(False)
@@ -84,6 +107,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         iconPath = os.path.join(os.path.dirname(__file__), '..', 'images', 'iconThematicMaps.png')
         self.setWindowIcon(QIcon(iconPath))
         self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        self.setMouseTracking(True)
         self.setupCustomTitleBar()
         self.btClassPlus.setIcon(QIcon(":/images/themes/default/symbologyAdd.svg"))
         self.btClassMinus.setIcon(QIcon(":/images/themes/default/symbologyRemove.svg"))
@@ -101,6 +125,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
         titleLabel.setFont(titleFont)
         titleLabel.setStyleSheet("color: rgb(25, 64, 75); background-color: transparent;")
 
+        minimizeButton = QPushButton("_", titleBar)
+        minimizeButton.setFixedSize(30, 30)
+        minimizeButton.setStyleSheet("QPushButton { background-color: transparent; color: rgb(25, 64, 75); font-weight: bold; border: none; padding-bottom: 5px; } QPushButton:hover { background-color: rgb(195, 195, 195); }")
+        minimizeButton.clicked.connect(self.showMinimized)
+
         closeButton = QPushButton("X", titleBar)
         closeButton.setFixedSize(30, 30)
         closeButton.setStyleSheet("QPushButton { background-color: transparent; color: rgb(25, 64, 75); font-weight: bold; border: none; } QPushButton:hover { background-color: rgb(195, 195, 195); }")
@@ -110,18 +139,19 @@ class QGISRedLegendsDialog(QDialog, formClass):
         layout.setContentsMargins(10, 0, 5, 0)
         layout.addWidget(titleLabel)
         layout.addStretch()
+        layout.addWidget(minimizeButton)
         layout.addWidget(closeButton)
 
         mainLayout = self.layout()
         oldContent = mainLayout.itemAt(0).widget()
         mainLayout.removeWidget(oldContent)
-        
+
         newContainer = QVBoxLayout()
         newContainer.setContentsMargins(0, 0, 0, 0)
         newContainer.setSpacing(0)
         newContainer.addWidget(titleBar)
         newContainer.addWidget(oldContent)
-        
+
         wrapper = QWidget()
         wrapper.setLayout(newContainer)
         mainLayout.addWidget(wrapper)
@@ -142,13 +172,22 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.tableView.setColumnWidth(0, 50)
         self.tableView.setColumnWidth(1, 60)
         self.tableView.setColumnWidth(2, 120)
-        
+
         self.tableView.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.tableView.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.tableView.setAlternatingRowColors(False)
         self.tableView.verticalHeader().setVisible(False)
         self.tableView.setShowGrid(True)
-        self.tableView.setStyleSheet("QTableWidget { background-color: white; border: none; selection-background-color: #3399ff; selection-color: white; gridline-color: #e0e0e0; } QTableWidget::item { border: none; }")
+        # Standardized table styling with consistent grid lines for all columns
+        self.tableView.setStyleSheet("""
+            QTableWidget {
+                background-color: white;
+                border: 1px solid #d0d0d0;
+                selection-background-color: #3399ff;
+                selection-color: white;
+                gridline-color: #d0d0d0;
+            }
+        """)
 
     def setupClassCountField(self):
         """Configure read-only class count field."""
@@ -169,9 +208,38 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.btColorEqual.colorChanged.connect(self.applyColorLogic)
         self.cbColorRampPalette.currentIndexChanged.connect(self.applyColorLogic)
         self.ckColorInvert.toggled.connect(self.applyColorLogic)
-        
+
+        # Setup refresh colors button
+        self.btRefreshColors.setIcon(QIcon(":/images/themes/default/mActionRefresh.svg"))
+        self.btRefreshColors.clicked.connect(self.applyColorLogic)
+
         self.onSizeModeChanged()
         self.onColorModeChanged()
+
+    def applyConsistentStyling(self):
+        """Apply consistent white backgrounds to all editable widgets and standardize appearance."""
+        # Define standard styles
+        editableComboStyle = "QComboBox { background-color: white; }"
+        editableSpinBoxStyle = "QSpinBox { background-color: white; } QDoubleSpinBox { background-color: white; }"
+        editableCheckBoxStyle = "QCheckBox { background-color: white; }"
+
+        # Apply to combo boxes
+        self.cbGroups.setStyleSheet(editableComboStyle)
+        self.cbLegendLayer.setStyleSheet(editableComboStyle)
+        self.cbMode.setStyleSheet(editableComboStyle)
+        self.cbSizes.setStyleSheet(editableComboStyle)
+        self.cbColors.setStyleSheet(editableComboStyle)
+        self.cbColorRampPalette.setStyleSheet(editableComboStyle)
+
+        # Apply to spin boxes
+        self.spinIntervalRange.setStyleSheet(editableSpinBoxStyle)
+        self.spinSizeEqual.setStyleSheet(editableSpinBoxStyle)
+        self.spinSizeMin.setStyleSheet(editableSpinBoxStyle)
+        self.spinSizeMax.setStyleSheet(editableSpinBoxStyle)
+
+        # Apply to checkboxes
+        self.ckSizeInvert.setStyleSheet(editableCheckBoxStyle)
+        self.ckColorInvert.setStyleSheet(editableCheckBoxStyle)
 
     def loadStyleDatabase(self):
         """Loads the proprietary QGISRed style database."""
@@ -218,6 +286,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.btSaveGlobal.clicked.connect(self.saveGlobalStyle)
         self.btLoadDefault.clicked.connect(self.loadDefaultStyle)
         self.btLoadGlobal.clicked.connect(self.loadGlobalStyle)
+        self.btLoadProject.clicked.connect(self.loadProjectStyle)
         self.tableView.cellDoubleClicked.connect(self.onCellDoubleClicked)
         self.tableView.itemSelectionChanged.connect(self.updateButtonStates)
         self.tableView.itemClicked.connect(lambda item: self.tableView.selectRow(item.row()) if item else None)
@@ -288,21 +357,41 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.cbLegendLayer.blockSignals(False)
         self.onLayerChanged(self.cbLegendLayer.currentLayer())
 
+    def resetAllModesToManual(self):
+        """Reset classification, size, and color modes to Manual."""
+        # Reset classification mode
+        self.cbMode.blockSignals(True)
+        self.cbMode.setCurrentIndex(0)  # Manual
+        self.cbMode.blockSignals(False)
+
+        # Reset size mode
+        self.cbSizes.blockSignals(True)
+        self.cbSizes.setCurrentIndex(0)  # Manual
+        self.cbSizes.blockSignals(False)
+
+        # Reset color mode
+        self.cbColors.blockSignals(True)
+        self.cbColors.setCurrentIndex(0)  # Manual
+        self.cbColors.blockSignals(False)
+
+        # Trigger UI updates for size and color modes
+        self.onSizeModeChanged()
+        self.onColorModeChanged()
+
     def onLayerChanged(self, layer):
         """Handle layer selection change."""
         if layer and isinstance(layer, QgsVectorLayer):
             self.currentLayer = layer
             self.originalRenderer = layer.renderer().clone() if layer.renderer() else None
             self.currentFieldType, self.currentFieldName = self.detectFieldType(layer)
-            
+
             self.frameLegends.setEnabled(True)
             self.labelFrameLegends.setText(self.tr(f"Legend for {layer.name()}"))
+
+            self.resetAllModesToManual()
             self.updateUiBasedOnFieldType()
-            
+
             if self.currentFieldType == self.FIELD_TYPE_NUMERIC:
-                self.cbMode.blockSignals(True)
-                self.cbMode.setCurrentIndex(0)
-                self.cbMode.blockSignals(False)
                 self.populateNumericLegend()
             elif self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
                 self.populateCategoricalLegend()
@@ -349,6 +438,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.btColorEqual.setVisible(mode == "Equal")
         self.cbColorRampPalette.setVisible(mode in ["Ramp", "Palette"])
         self.ckColorInvert.setVisible(mode in ["Ramp", "Palette"])
+        self.btRefreshColors.setVisible(mode == "Random")
 
         if mode == "Ramp":
             self.populateRamps()
@@ -827,28 +917,30 @@ class QGISRedLegendsDialog(QDialog, formClass):
         size = symbol.width() if geom == "line" else symbol.size()
         cw.updateSymbolSize(size, geom == "line")
         self.tableView.setCellWidget(row, 0, cw)
-        
-        # Size
+
+        # Size - standardized white background with consistent border
         sw = QLineEdit(str(size))
         sw.setEnabled(self.isEditing)
         sw.setAlignment(Qt.AlignCenter)
+        sw.setStyleSheet("QLineEdit { background-color: white; border: none; padding: 2px; }")
         sw.textChanged.connect(lambda t, r=row: self.onSizeChanged(r, t))
         self.tableView.setCellWidget(row, 1, sw)
-        
-        # Value
+
+        # Value - standardized styling with consistent borders
         vw = QLineEdit(valText)
         vw.setReadOnly(True)
         vw.setAlignment(Qt.AlignCenter)
         if isReadOnlyVal:
-            vw.setStyleSheet("QLineEdit { background-color: white; color: #808080; border: 1px inset #696969; }")
+            vw.setStyleSheet("QLineEdit { background-color: white; color: #808080; border: none; padding: 2px; }")
         else:
-            vw.setStyleSheet("QLineEdit { background-color: white; color: #404040; border: 1px inset #696969; }")
+            vw.setStyleSheet("QLineEdit { background-color: white; color: #404040; border: none; padding: 2px; }")
             vw.mouseDoubleClickEvent = lambda _event, r=row: self.openRangeEditor(r)
         self.tableView.setCellWidget(row, 2, vw)
 
-        # Legend
+        # Legend - standardized white background with consistent border
         lw = QLineEdit(legendText)
         lw.setEnabled(self.isEditing)
+        lw.setStyleSheet("QLineEdit { background-color: white; border: none; padding: 2px; }")
         self.tableView.setCellWidget(row, 3, lw)
 
     def getUniqueValuesFromLayer(self):
@@ -1045,12 +1137,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
                     if c == 2:  # Value column
                         le.setAlignment(Qt.AlignCenter)
                         if hasDoubleClick:  # Numeric - editable via double-click
-                            le.setStyleSheet("QLineEdit { background-color: white; color: #404040; border: 1px solid #e0e0e0; }")
+                            le.setStyleSheet("QLineEdit { background-color: white; color: #404040; border: none; padding: 2px; }")
                             le.mouseDoubleClickEvent = lambda _event, r=row: self.openRangeEditor(r)
                         else:  # Categorical - truly read-only
-                            le.setStyleSheet("QLineEdit { background-color: white; color: #808080; border: 1px solid #e0e0e0; }")
+                            le.setStyleSheet("QLineEdit { background-color: white; color: #808080; border: none; padding: 2px; }")
                     else:  # Other read-only columns
-                        le.setStyleSheet("QLineEdit { background-color: #F8F8F8; color: #808080; }")
+                        le.setStyleSheet("QLineEdit { background-color: white; border: none; padding: 2px; }")
+                else:
+                    # Editable columns (Size and Legend) - standardized white background
+                    le.setStyleSheet("QLineEdit { background-color: white; border: none; padding: 2px; }")
                 if c == 1:
                     le.setAlignment(Qt.AlignCenter)
                     le.textChanged.connect(lambda t, r=row: self.onSizeChanged(r, t))
@@ -1329,25 +1424,38 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not self.currentLayer: return
         ident = self.currentLayer.customProperty("qgisred_identifier")
         if not ident: return
-        
-        name = QGISRedUtils().identifierToElementName.get(ident)
+
+        # Use utils instance instead of creating new QGISRedUtils
+        if self.utils:
+            name = self.utils.identifierToElementName.get(ident)
+        else:
+            name = QGISRedUtils().identifierToElementName.get(ident)
         if not name: return
-        
+
         fname = name.replace(" ", "") + ".qml"
-        
+
         if globalStyle:
             folder = os.path.join(self.pluginFolder, "layerStyles")
         else:
-            proj = QgsProject.instance().fileName()
-            folder = os.path.join(os.path.dirname(proj), "layerStyles") if proj else None
-            
+            # Use utils to get project directory
+            if self.utils:
+                projectDir = self.utils.getProjectDirectory()
+            else:
+                projectDir = self.ProjectDirectory
+
+            if not projectDir:
+                QMessageBox.warning(self, "No Project", "Project directory not set.")
+                return
+
+            folder = os.path.join(projectDir, "layerStyles")
+
         if not folder: return
         if not os.path.exists(folder): os.makedirs(folder)
-        
+
         path = os.path.join(folder, fname)
         if os.path.exists(path):
             if QMessageBox.question(self, "Overwrite", "Overwrite style?", QMessageBox.Yes|QMessageBox.No) != QMessageBox.Yes: return
-            
+
         self.currentLayer.saveNamedStyle(path)
         QMessageBox.information(self, "Saved", f"Style saved to {path}")
 
@@ -1357,10 +1465,53 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def loadGlobalStyle(self):
         self._loadStyle(isDefault=False)
 
+    def loadProjectStyle(self):
+        """Load style from project-specific location."""
+        if not self.currentLayer:
+            return
+        ident = self.currentLayer.customProperty("qgisred_identifier")
+
+        # Use utils instance instead of creating new QGISRedUtils
+        if self.utils:
+            name = self.utils.identifierToElementName.get(ident)
+        else:
+            name = QGISRedUtils().identifierToElementName.get(ident)
+        if not name:
+            return
+
+        fname = name.replace(" ", "") + ".qml"
+
+        # Use utils to get project directory
+        if self.utils:
+            projectDir = self.utils.getProjectDirectory()
+        else:
+            projectDir = self.ProjectDirectory
+
+        if not projectDir:
+            QMessageBox.warning(self, "No Project", "Project directory not set.")
+            return
+
+        folder = os.path.join(projectDir, "layerStyles")
+        path = os.path.join(folder, fname)
+
+        if not os.path.exists(path):
+            QMessageBox.warning(self, "Not Found", f"Style file not found: {path}")
+            return
+
+        self.currentLayer.loadNamedStyle(path)
+        self.currentLayer.triggerRepaint()
+        self.onLayerChanged(self.currentLayer)
+        QMessageBox.information(self, "Loaded", f"Style loaded from {path}")
+
     def _loadStyle(self, isDefault):
         if not self.currentLayer: return
         ident = self.currentLayer.customProperty("qgisred_identifier")
-        name = QGISRedUtils().identifierToElementName.get(ident)
+
+        # Use utils instance instead of creating new QGISRedUtils
+        if self.utils:
+            name = self.utils.identifierToElementName.get(ident)
+        else:
+            name = QGISRedUtils().identifierToElementName.get(ident)
         if not name: return
         
         fname = name.replace(" ", "") + ".qml" + (".bak" if isDefault else "")
@@ -1434,3 +1585,101 @@ class QGISRedLegendsDialog(QDialog, formClass):
             except:
                 pass
         super().closeEvent(event)
+
+    # --- Custom Resize Functionality for Frameless Window ---
+
+    def getResizeEdge(self, pos):
+        """Determine which edge/corner is at the given position."""
+        rect = self.rect()
+        margin = self.resizeMargin
+
+        onLeft = pos.x() <= margin
+        onRight = pos.x() >= rect.width() - margin
+        onTop = pos.y() <= margin
+        onBottom = pos.y() >= rect.height() - margin
+
+        if onTop and onLeft:
+            return 'top-left'
+        elif onTop and onRight:
+            return 'top-right'
+        elif onBottom and onLeft:
+            return 'bottom-left'
+        elif onBottom and onRight:
+            return 'bottom-right'
+        elif onTop:
+            return 'top'
+        elif onBottom:
+            return 'bottom'
+        elif onLeft:
+            return 'left'
+        elif onRight:
+            return 'right'
+        return None
+
+    def updateCursor(self, edge):
+        """Update cursor shape based on resize edge."""
+        if edge in ['top', 'bottom']:
+            self.setCursor(Qt.SizeVerCursor)
+        elif edge in ['left', 'right']:
+            self.setCursor(Qt.SizeHorCursor)
+        elif edge in ['top-left', 'bottom-right']:
+            self.setCursor(Qt.SizeFDiagCursor)
+        elif edge in ['top-right', 'bottom-left']:
+            self.setCursor(Qt.SizeBDiagCursor)
+        else:
+            self.setCursor(Qt.ArrowCursor)
+
+    def mousePressEvent(self, event):
+        """Handle mouse press for resizing."""
+        if event.button() == Qt.LeftButton:
+            self.resizeEdge = self.getResizeEdge(event.pos())
+            if self.resizeEdge:
+                self.resizing = True
+                self.dragPosition = event.globalPos()
+                event.accept()
+                return
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        """Handle mouse move for resizing or cursor update."""
+        if self.resizing and self.resizeEdge:
+            delta = event.globalPos() - self.dragPosition
+            self.dragPosition = event.globalPos()
+
+            geo = self.geometry()
+            minWidth = self.minimumWidth() or 400
+            minHeight = self.minimumHeight() or 300
+
+            if 'left' in self.resizeEdge:
+                newWidth = geo.width() - delta.x()
+                if newWidth >= minWidth:
+                    geo.setLeft(geo.left() + delta.x())
+            if 'right' in self.resizeEdge:
+                newWidth = geo.width() + delta.x()
+                if newWidth >= minWidth:
+                    geo.setWidth(newWidth)
+            if 'top' in self.resizeEdge:
+                newHeight = geo.height() - delta.y()
+                if newHeight >= minHeight:
+                    geo.setTop(geo.top() + delta.y())
+            if 'bottom' in self.resizeEdge:
+                newHeight = geo.height() + delta.y()
+                if newHeight >= minHeight:
+                    geo.setHeight(newHeight)
+
+            self.setGeometry(geo)
+            event.accept()
+        else:
+            # Update cursor based on position
+            edge = self.getResizeEdge(event.pos())
+            self.updateCursor(edge)
+            super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        """Handle mouse release to stop resizing."""
+        if event.button() == Qt.LeftButton and self.resizing:
+            self.resizing = False
+            self.resizeEdge = None
+            event.accept()
+            return
+        super().mouseReleaseEvent(event)
