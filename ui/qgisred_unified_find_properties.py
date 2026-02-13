@@ -23,13 +23,13 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         print("Entering getInstance")
         if cls._instance is None:
             cls._instance = cls(canvas, parent, show_find_elements, show_element_properties)
-        else:
-            if hasattr(cls._instance, 'frameElementProperties') and cls._instance.frameElementProperties is not None:
-                if cls._instance.frameElementProperties.isVisible() != show_element_properties:
-                    cls._instance.frameElementProperties.setVisible(show_element_properties)
-            if hasattr(cls._instance, 'frameFindElements') and cls._instance.frameFindElements is not None:
-                if show_find_elements and not cls._instance.frameFindElements.isVisible():
-                    cls._instance.frameFindElements.setVisible(True)
+        # else:
+        #     if hasattr(cls._instance, 'frameElementProperties') and cls._instance.frameElementProperties is not None:
+        #         if cls._instance.frameElementProperties.isVisible() != show_element_properties:
+        #             cls._instance.frameElementProperties.setVisible(show_element_properties)
+        #     if hasattr(cls._instance, 'frameFindElements') and cls._instance.frameFindElements is not None:
+        #         if show_find_elements and not cls._instance.frameFindElements.isVisible():
+        #             cls._instance.frameFindElements.setVisible(True)
         print("Exiting getInstance")
         return cls._instance
 
@@ -116,8 +116,8 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
             self.labelFoundElement.setWordWrap(True)
             self.labelFoundElement.setText("")
         
-        self.frameFindElements.setVisible(show_find_elements)
-        self.frameElementProperties.setVisible(show_element_properties)
+        # self.frameFindElements.setVisible(show_find_elements)
+        # self.frameElementProperties.setVisible(show_element_properties)
 
         self.setDockStyle()
         self.setupConnections()
@@ -568,8 +568,8 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         # self.findButton.setChecked(show_find_elements)
         # self.epButton.setChecked(show_element_properties)
         
-        self.frameFindElements.setVisible(show_find_elements)
-        self.frameElementProperties.setVisible(show_element_properties)
+        # self.frameFindElements.setVisible(show_find_elements)
+        # self.frameElementProperties.setVisible(show_element_properties)
         
         self.placeConnectedElements()
         self.resizeToMinimumHeight() 

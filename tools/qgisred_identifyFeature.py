@@ -11,7 +11,7 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
     elementPropertiesDockVisibilityChanged = pyqtSignal(bool)
     dockFocusChanged = pyqtSignal(bool)
 
-    def __init__(self, canvas, button, toggle_action=None, use_element_properties_dock=False):
+    def __init__(self, canvas, button, toggle_action=None, use_element_properties_dock=True):
         print("QGISRedIdentifyFeature.__init__: Initializing")
         super().__init__(canvas)
         self.canvas = canvas
@@ -60,12 +60,11 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
         self.dock = QGISRedElementsExplorerDock.getInstance(
             self.canvas, 
             iface.mainWindow(),
-            show_find_elements=False,
-            show_element_properties=self.use_element_properties_dock
+            show_find_elements=True,
+            show_element_properties=True
         )
 
 
-        
         if self.dock is None:
             print("showFeatureInDock: No dock available")
             return
@@ -80,19 +79,19 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
         print("showFeatureInDock: Finding feature in dock")
         self.dock.findFeature(layer, feature)
         
-        if hasattr(self.dock, 'dockFocusChanged'):
-            print("connected")
-            self.dock.dockFocusChanged.connect(self.setIdentifyFeatureAsMapTool)
+        # if hasattr(self.dock, 'dockFocusChanged'):
+        #     print("connected")
+        #     self.dock.dockFocusChanged.connect(self.setIdentifyFeatureAsMapTool)
 
-        if hasattr(self.dock, 'dockVisibilityChanged'):
-            print("showFeatureInDock: Connecting dockVisibilityChanged signal")
-            self.dock.dockVisibilityChanged.connect(self.deactivate)
+        # if hasattr(self.dock, 'dockVisibilityChanged'):
+        #     print("showFeatureInDock: Connecting dockVisibilityChanged signal")
+        #     self.dock.dockVisibilityChanged.connect(self.deactivate)
         
-        if hasattr(self.dock, 'elementPropertiesDockVisibilityChanged'):
-            self.dock.elementPropertiesDockVisibilityChanged.connect(self.setUseElementProperties)
+        # if hasattr(self.dock, 'elementPropertiesDockVisibilityChanged'):
+        #     self.dock.elementPropertiesDockVisibilityChanged.connect(self.setUseElementProperties)
 
-        if hasattr(self.dock, 'findElementsDockVisibilityChanged'):
-            self.dock.findElementsDockVisibilityChanged.connect(self.setFindElementsVisibility)
+        # if hasattr(self.dock, 'findElementsDockVisibilityChanged'):
+        #     self.dock.findElementsDockVisibilityChanged.connect(self.setFindElementsVisibility)
     
         # if hasattr(self.dock, 'dockFocusChanged'):
         #     print("showFeatureInDock: Connecting dockVisibilityChanged signal")
@@ -251,10 +250,9 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
             self.deactivate()
 
     def setUseElementProperties(self, value):
-        ...
         # print("setUseElementProperties: Setting use_element_properties_dock to", value)
         # self.elementPropertiesDockVisibilityChanged.emit(value)
-        # self.use_element_properties_dock = value
+        self.use_element_properties_dock = value
 
     def setFindElementsVisibility(self, value):
         self.findElementsDockVisibilityChanged.emit(value)
