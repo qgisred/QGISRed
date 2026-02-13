@@ -185,7 +185,6 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         # Add the virtual field 'Year'
         instal_date_index = new_layer.fields().indexFromName('InstalDate')
         if instal_date_index != -1:
-            print("Diff")
             with edit(new_layer):
                 expression = QgsExpression('substr("InstalDate", 1, 4)')
                 new_layer.addExpressionField(expression.expression(), QgsField('Year', QVariant.String))
