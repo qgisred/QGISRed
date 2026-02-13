@@ -7,11 +7,10 @@ import math
 import statistics
 
 # Third-party imports
-from PyQt5.QtGui import QIcon, QColor, QFont
+from PyQt5.QtGui import QIcon, QColor
 from PyQt5.QtWidgets import (QDialog, QMessageBox, QHeaderView,
-                             QComboBox, QLineEdit, QAbstractItemView, QLabel,
-                             QWidget, QHBoxLayout, QPushButton, QVBoxLayout,
-                             QCheckBox, QDoubleSpinBox, QGraphicsDropShadowEffect, QSizeGrip)
+                             QComboBox, QLineEdit, QAbstractItemView,
+                             QCheckBox, QDoubleSpinBox)
 from PyQt5.QtCore import QVariant, Qt, QTimer, QObject, QEvent
 from qgis.PyQt import uic
 
@@ -77,14 +76,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.usedUniqueValues = []
         self.btClassPlusClickTimer = None
         self.btClassPlusAddBefore = False
-        self.dragPosition = None
         self.layerTreeViewConnection = None
         self.style = None  # QGISRed style database
-
-        # Resize handling for frameless window
-        self.resizing = False
-        self.resizeEdge = None
-        self.resizeMargin = 10  # Increased from 5 to 10 for easier grabbing
 
         # Plugin context properties (set via config method)
         self.parent = None
@@ -119,78 +112,19 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.labelIntervalRange.setVisible(False)
         self.spinIntervalRange.setVisible(False)
 
+        # Install event filter on dialog to detect clicks outside table
+        self.installEventFilter(self)
+
     def configWindow(self):
-        """Configure window appearance and custom title bar."""
+        """Configure window appearance."""
         iconPath = os.path.join(os.path.dirname(__file__), '..', 'images', 'iconThematicMaps.png')
         self.setWindowIcon(QIcon(iconPath))
-        self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
-        self.setMouseTracking(True)
+        self.setWindowTitle("QGISRed Legend Editor")
+        self.setWindowFlags(Qt.Window | Qt.WindowStaysOnTopHint)
 
-        # Enhanced border with rounded corners
-        self.setStyleSheet("""
-            QDialog {
-                border: 2px solid rgb(120, 120, 120);
-                background-color: rgb(240, 240, 240);
-                border-radius: 4px;
-            }
-        """)
-
-        self.setupCustomTitleBar()
         self.btClassPlus.setIcon(QIcon(":/images/themes/default/symbologyAdd.svg"))
         self.btClassMinus.setIcon(QIcon(":/images/themes/default/symbologyRemove.svg"))
 
-    def setupCustomTitleBar(self):
-        """Build custom title bar."""
-        titleBar = QWidget(self)
-        titleBar.setStyleSheet("background-color: rgb(215, 215, 215);")
-        titleBar.setMaximumHeight(30)
-
-        titleLabel = QLabel("QGISRed Legend Editor", titleBar)
-        titleFont = QFont()
-        titleFont.setBold(True)
-        titleFont.setPointSize(9)
-        titleLabel.setFont(titleFont)
-        titleLabel.setStyleSheet("color: rgb(25, 64, 75); background-color: transparent;")
-
-        minimizeButton = QPushButton("_", titleBar)
-        minimizeButton.setFixedSize(30, 30)
-        minimizeButton.setStyleSheet("QPushButton { background-color: transparent; color: rgb(25, 64, 75); font-weight: bold; border: none; padding-bottom: 5px; } QPushButton:hover { background-color: rgb(195, 195, 195); }")
-        minimizeButton.clicked.connect(self.showMinimized)
-
-        closeButton = QPushButton("X", titleBar)
-        closeButton.setFixedSize(30, 30)
-        closeButton.setStyleSheet("QPushButton { background-color: transparent; color: rgb(25, 64, 75); font-weight: bold; border: none; } QPushButton:hover { background-color: rgb(195, 195, 195); }")
-        closeButton.clicked.connect(self.close)
-
-        layout = QHBoxLayout(titleBar)
-        layout.setContentsMargins(10, 0, 5, 0)
-        layout.addWidget(titleLabel)
-        layout.addStretch()
-        layout.addWidget(minimizeButton)
-        layout.addWidget(closeButton)
-
-        mainLayout = self.layout()
-        oldContent = mainLayout.itemAt(0).widget()
-        mainLayout.removeWidget(oldContent)
-
-        newContainer = QVBoxLayout()
-        newContainer.setContentsMargins(0, 0, 0, 0)
-        newContainer.setSpacing(0)
-        newContainer.addWidget(titleBar)
-        newContainer.addWidget(oldContent)
-
-        wrapper = QWidget()
-        wrapper.setLayout(newContainer)
-        mainLayout.addWidget(wrapper)
-
-        self.titleBar = titleBar
-        self.titleBar.mousePressEvent = self.titleBarMousePressEvent
-        self.titleBar.mouseMoveEvent = self.titleBarMouseMoveEvent
-
-        # Add size grip for visual resize cue
-        self.sizeGrip = QSizeGrip(self)
-        self.sizeGrip.setStyleSheet("background-color: transparent; width: 20px; height: 20px;")
-        self.sizeGrip.setVisible(True)
 
     def setupTableView(self):
         """Configure table columns and visual style."""
@@ -251,7 +185,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def setupClassCountField(self):
         """Configure read-only class count field."""
         self.leClassCount.setReadOnly(True)
-        self.leClassCount.setStyleSheet("QLineEdit { background-color: #F0F0F0; color: #808080; }")
+        self.leClassCount.setButtonSymbols(QDoubleSpinBox.NoButtons)
+        self.leClassCount.setStyleSheet("QSpinBox { background-color: #F0F0F0; color: #808080; }")
 
     def setupAdvancedUi(self):
         self.cbSizes.addItems(["Manual", "Equal", "Linear", "Quadratic", "Exponential"])
@@ -364,16 +299,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.updateClassCount()
 
     # --- Event Handlers ---
-
-    def titleBarMousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
-            self.dragPosition = event.globalPos() - self.frameGeometry().topLeft()
-            event.accept()
-
-    def titleBarMouseMoveEvent(self, event):
-        if event.buttons() == Qt.LeftButton and self.dragPosition:
-            self.move(event.globalPos() - self.dragPosition)
-            event.accept()
 
     def onQgisLayerSelectionChanged(self, layer):
         """Handle layer selection change from QGIS layer tree."""
@@ -1748,6 +1673,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.currentLayer.triggerRepaint()
         self.reject()
 
+    def eventFilter(self, obj, event):
+        """Handle clicks outside the table to clear selection."""
+        if obj == self and event.type() == QEvent.MouseButtonPress:
+            # Check if the click is outside the tableView
+            clickPos = event.pos()
+            tableGeometry = self.tableView.geometry()
+            if not tableGeometry.contains(clickPos):
+                # Click is outside the table, clear selection
+                self.tableView.clearSelection()
+        return super().eventFilter(obj, event)
+
     def closeEvent(self, event):
         """Clean up connections when dialog is closed."""
         # Disconnect layer tree view signal
@@ -1762,111 +1698,3 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.parent.legendsDialog = None
 
         super().closeEvent(event)
-
-    # --- Custom Resize Functionality for Frameless Window ---
-
-    def getResizeEdge(self, pos):
-        """Determine which edge/corner is at the given position."""
-        rect = self.rect()
-        margin = self.resizeMargin
-
-        onLeft = pos.x() <= margin
-        onRight = pos.x() >= rect.width() - margin
-        onTop = pos.y() <= margin
-        onBottom = pos.y() >= rect.height() - margin
-
-        if onTop and onLeft:
-            return 'top-left'
-        elif onTop and onRight:
-            return 'top-right'
-        elif onBottom and onLeft:
-            return 'bottom-left'
-        elif onBottom and onRight:
-            return 'bottom-right'
-        elif onTop:
-            return 'top'
-        elif onBottom:
-            return 'bottom'
-        elif onLeft:
-            return 'left'
-        elif onRight:
-            return 'right'
-        return None
-
-    def updateCursor(self, edge):
-        """Update cursor shape based on resize edge."""
-        if edge in ['top', 'bottom']:
-            self.setCursor(Qt.SizeVerCursor)
-        elif edge in ['left', 'right']:
-            self.setCursor(Qt.SizeHorCursor)
-        elif edge in ['top-left', 'bottom-right']:
-            self.setCursor(Qt.SizeFDiagCursor)
-        elif edge in ['top-right', 'bottom-left']:
-            self.setCursor(Qt.SizeBDiagCursor)
-        else:
-            self.setCursor(Qt.ArrowCursor)
-
-    def mousePressEvent(self, event):
-        """Handle mouse press for resizing."""
-        if event.button() == Qt.LeftButton:
-            self.resizeEdge = self.getResizeEdge(event.pos())
-            if self.resizeEdge:
-                self.resizing = True
-                self.dragPosition = event.globalPos()
-                event.accept()
-                return
-        super().mousePressEvent(event)
-
-    def mouseMoveEvent(self, event):
-        """Handle mouse move for resizing or cursor update."""
-        if self.resizing and self.resizeEdge:
-            delta = event.globalPos() - self.dragPosition
-            self.dragPosition = event.globalPos()
-
-            geo = self.geometry()
-            minWidth = self.minimumWidth() or 400
-            minHeight = self.minimumHeight() or 300
-
-            if 'left' in self.resizeEdge:
-                newWidth = geo.width() - delta.x()
-                if newWidth >= minWidth:
-                    geo.setLeft(geo.left() + delta.x())
-            if 'right' in self.resizeEdge:
-                newWidth = geo.width() + delta.x()
-                if newWidth >= minWidth:
-                    geo.setWidth(newWidth)
-            if 'top' in self.resizeEdge:
-                newHeight = geo.height() - delta.y()
-                if newHeight >= minHeight:
-                    geo.setTop(geo.top() + delta.y())
-            if 'bottom' in self.resizeEdge:
-                newHeight = geo.height() + delta.y()
-                if newHeight >= minHeight:
-                    geo.setHeight(newHeight)
-
-            self.setGeometry(geo)
-            event.accept()
-        else:
-            # Update cursor based on position
-            edge = self.getResizeEdge(event.pos())
-            self.updateCursor(edge)
-            super().mouseMoveEvent(event)
-
-    def mouseReleaseEvent(self, event):
-        """Handle mouse release to stop resizing."""
-        if event.button() == Qt.LeftButton and self.resizing:
-            self.resizing = False
-            self.resizeEdge = None
-            event.accept()
-            return
-        super().mouseReleaseEvent(event)
-
-    def resizeEvent(self, event):
-        """Handle resize events to keep size grip positioned correctly."""
-        # Ensure the grip stays in the bottom-right corner
-        if hasattr(self, 'sizeGrip'):
-            rect = self.rect()
-            self.sizeGrip.move(rect.right() - self.sizeGrip.width(),
-                               rect.bottom() - self.sizeGrip.height())
-            self.sizeGrip.raise_()
-        super().resizeEvent(event)

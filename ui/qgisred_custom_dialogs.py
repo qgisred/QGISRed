@@ -54,12 +54,13 @@ class RangeEditDialog(QDialog):
 class SymbolColorSelector(QgsSymbolButton):
     colorChanged = pyqtSignal(QColor)
 
-    def __init__(self, parent=None, geometryHint="fill", initialColor=None, allowAlpha=True, dialogTitle="Pick color"):
+    def __init__(self, parent=None, geometryHint="fill", initialColor=None, allowAlpha=True, dialogTitle="Pick color", doubleClickOnly=False):
         """Constructor."""
         super().__init__(parent)
         self._geometryHint = self.clampGeometry(geometryHint)
         self._allowAlpha = bool(allowAlpha)
         self._dialogTitle = dialogTitle
+        self._doubleClickOnly = doubleClickOnly
         self._color = QColor(initialColor) if (initialColor and initialColor.isValid()) else QColor(19, 125, 220, 255)
         self.symbolSize = 0.0 # Track internal size state
 
@@ -72,7 +73,7 @@ class SymbolColorSelector(QgsSymbolButton):
         self.setPopupMode(QToolButton.DelayedPopup)
         self.setStyleSheet("""
             QToolButton::menu-indicator { image: none; width: 0px; }
-            QToolButton { padding-right: 4px; background-color: white; border: none; }
+            QToolButton { padding-right: 4px; background-color: transparent; border: none; }
         """)
         self.setToolTip(self.tr("Click to pick a color."))
         try: self.setGraphicsEffect(None)
@@ -144,9 +145,19 @@ class SymbolColorSelector(QgsSymbolButton):
         """Intercept click events to show simple color dialog."""
         if obj is self:
             if event.type() == QEvent.Wheel: return True
-            if event.type() == QEvent.MouseButtonPress and event.button() == Qt.LeftButton:
-                self.openColorDialog()
-                return True
+            
+            if self._doubleClickOnly:
+                # In double-click mode, ignore single clicks but accept double clicks
+                if event.type() == QEvent.MouseButtonPress and event.button() == Qt.LeftButton:
+                    return True # Consume single click
+                if event.type() == QEvent.MouseButtonDblClick and event.button() == Qt.LeftButton:
+                    self.openColorDialog()
+                    return True
+            else:
+                # Default behavior: Open on single click
+                if event.type() == QEvent.MouseButtonPress and event.button() == Qt.LeftButton:
+                    self.openColorDialog()
+                    return True
         return super().eventFilter(obj, event)
 
     def openColorDialog(self):
@@ -174,7 +185,8 @@ class SymbolColorSelectorWithCheckbox(QWidget):
         self.checkbox.setChecked(checked)
         self.checkbox.toggled.connect(self.enabledChanged.emit)
 
-        self.colorSelector = SymbolColorSelector(self, geom, color, alpha, title)
+        # Enable double-click only mode for the color selector
+        self.colorSelector = SymbolColorSelector(self, geom, color, alpha, title, doubleClickOnly=True)
         self.colorSelector.colorChanged.connect(self.colorChanged.emit)
         self.colorSelector.setFixedSize(30, 20)
 
