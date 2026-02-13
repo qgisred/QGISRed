@@ -90,7 +90,7 @@ class QGISRedElementsPropertyDock(QDockWidget, FORM_CLASS):
         findButton = QToolButton(titleBar)
         icon_find = QIcon(os.path.join(os.path.dirname(__file__), '..', 'images', 'iconFindElements.png'))
         findButton.setIcon(icon_find)
-        findButton.setToolTip("Find Elemets by ID")
+        findButton.setToolTip("Find Elements by ID")
         findButton.clicked.connect(self.openFindElemetsDock)
         layout.addWidget(findButton)
 

@@ -30,6 +30,29 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         self.btAccept.clicked.connect(self.accept)
         self.btCancel.clicked.connect(self.reject)
         self.updateCheckboxStates()
+        self.tempElementsHide()
+
+    def tempElementsHide(self):
+        self.gbJunctions.hide()
+        self.gbValves.hide()
+        self.gbPumps.hide()
+        self.gbTanks.hide()
+        self.gbReservoirs.hide()
+
+        self.cbPipesRoughness.hide()
+        self.cbPipesAge.hide()
+        self.cbPipesLossCoeff.hide()
+        self.cbPipesInitStatus.hide()
+        self.cbPipesInstallationDate.hide()
+        self.cbPipesBulkCoeff.hide()
+        self.cbPipesWallCoeff.hide()
+        self.cbPipesTag.hide()
+        
+        self.tabWidget.setTabVisible(1, False)
+        
+        current_width = self.width()
+        self.adjustSize()
+        self.resize(current_width, self.height())
 
     def setDialogStyle(self):
         icon_path = os.path.join(os.path.dirname(__file__), '..', 'images', 'iconThematicMaps.png')
@@ -57,25 +80,65 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
 
     def accept(self):
         root_group = self.get_root_group()
-
         inputs_group = self.find_group_by_name(root_group, 'Inputs')
         if inputs_group is None:
             QMessageBox.critical(self, 'Error', 'Inputs group not found.')
             return
 
-        queries_group = self.get_or_create_queries_group(root_group, inputs_group)
+        selected_queries = self.get_selected_queries()
+        current_valid_identifiers = set(
+            f"qgisred_query_{query['field'].lower()}_{query['tooltip_prefix'].lower()}"
+            for query in selected_queries
+        )
+        to_remove_identifiers = self.initial_valid_identifiers - current_valid_identifiers
 
-        pipes_layer = self.find_layer_in_group(inputs_group, 'Pipes')
-        if pipes_layer is None:
+        if not selected_queries and not to_remove_identifiers:
+            super().accept()
             return
 
-        queries = self.get_selected_queries()
+        self.remove_query_layers_by_identifiers(to_remove_identifiers)
 
-        for query in reversed(queries):
-            self.process_query(query, pipes_layer, queries_group)
+        queries_group = self.find_group_by_name(root_group, 'Queries')
+        if queries_group and not queries_group.children():
+            parent = queries_group.parent()
+            if parent:
+                parent.removeChildNode(queries_group)
 
-        # Close dialog
-        super(QGISRedThematicMapsDialog, self).accept()
+        if selected_queries:
+            queries_group = self.get_or_create_queries_group(root_group, inputs_group)
+            pipes_layer = self.find_layer_in_group(inputs_group, 'Pipes')
+            if pipes_layer is None:
+                return
+
+            new_queries = [
+                query for query in selected_queries
+                if f"qgisred_query_{query['field'].lower()}_{query['tooltip_prefix'].lower()}" 
+                in (current_valid_identifiers - self.initial_valid_identifiers)
+            ]
+
+            for query in reversed(new_queries):
+                self.process_query(query, pipes_layer, queries_group)
+
+        super().accept()
+
+    def remove_query_layers_by_identifiers(self, identifiers_to_remove):
+        if not identifiers_to_remove:
+            return
+        root = QgsProject.instance().layerTreeRoot()
+        queries_group = self.find_group_by_name(root, 'Queries')
+        if queries_group:
+            self.recursiveremove_by_identifiers(queries_group, identifiers_to_remove)
+
+    def recursiveremove_by_identifiers(self, group, identifiers):
+        for child in list(group.children()):
+            if isinstance(child, QgsLayerTreeLayer):
+                layer = child.layer()
+                if layer:
+                    layer_id = layer.customProperty("qgisred_identifier")
+                    if layer_id in identifiers:
+                        QgsProject.instance().removeMapLayer(layer.id())
+            elif isinstance(child, QgsLayerTreeGroup):
+                self.recursiveremove_by_identifiers(child, identifiers)
 
     def get_root_group(self):
         project = QgsProject.instance()
@@ -274,12 +337,28 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
     
     def updateCheckboxStates(self):
         root = QgsProject.instance().layerTreeRoot()
-        inputs_group = self.find_group_by_name(root, 'Inputs')
-        queries_group = self.get_or_create_queries_group(root, inputs_group)
+        queries_group = self.find_group_by_name(root, 'Queries')
 
         checkbox_mapping = self.create_identifier_checkbox_mapping()
+        if queries_group:
+            self.check_layers_recursive_by_identifier(queries_group, checkbox_mapping)
         
-        self.check_layers_recursive_by_identifier(queries_group, checkbox_mapping)
+        self.initial_valid_identifiers = self.collect_existing_identifiers(queries_group) if queries_group else set()
+
+    def collect_existing_identifiers(self, group):
+        identifiers = set()
+        def recursive_collect(g):
+            for child in g.children():
+                if isinstance(child, QgsLayerTreeLayer):
+                    layer = child.layer()
+                    if layer:
+                        identifier = layer.customProperty("qgisred_identifier")
+                        if identifier:
+                            identifiers.add(identifier)
+                elif isinstance(child, QgsLayerTreeGroup):
+                    recursive_collect(g)
+        recursive_collect(group)
+        return identifiers
 
     def create_identifier_checkbox_mapping(self):
         mapping = {}
@@ -361,24 +440,27 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         return mapping
 
     def check_layers_recursive_by_identifier(self, group, identifier_mapping):
-        """Check layers using identifiers instead of names."""
         if not group:
             return
 
         for child in group.children():
-            if child.nodeType() == QgsLayerTreeNode.NodeLayer and child.checkedLayers():
-                layer = child.checkedLayers()[0]
-                layer_identifier = layer.customProperty("qgisred_identifier")
-                if layer_identifier in identifier_mapping:
-                    checkbox = identifier_mapping[layer_identifier]
-                    checkbox.setEnabled(False)
-                    checkbox.setToolTip("Query already exists.")
             if isinstance(child, QgsLayerTreeLayer):
-                layer_identifier = child.customProperty("qgisred_identifier")
-                if layer_identifier in identifier_mapping:
-                    checkbox = identifier_mapping[layer_identifier]
-                    checkbox.setEnabled(False)
-                    checkbox.setToolTip("Query already exists.")
+                layer = child.layer()
+                if layer:
+                    layer_identifier = layer.customProperty("qgisred_identifier")
+                    if layer_identifier in identifier_mapping:
+                        checkbox = identifier_mapping[layer_identifier]
+                        checkbox.setChecked(True)
+                        checkbox.setToolTip("Query already exists.")
+            elif child.nodeType() == QgsLayerTreeNode.NodeLayer:
+                layers = child.checkedLayers()
+                if layers:
+                    layer = layers[0]
+                    layer_identifier = layer.customProperty("qgisred_identifier")
+                    if layer_identifier in identifier_mapping:
+                        checkbox = identifier_mapping[layer_identifier]
+                        checkbox.setChecked(True)
+                        checkbox.setToolTip("Query already exists.")
             elif isinstance(child, QgsLayerTreeGroup):
                 self.check_layers_recursive_by_identifier(child, identifier_mapping)
 

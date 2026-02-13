@@ -17,7 +17,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Find Elemets by ID</string>
+   <string>Find Elements by ID</string>
   </property>
   <property name="modal">
    <bool>false</bool>

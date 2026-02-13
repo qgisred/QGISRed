@@ -1469,11 +1469,11 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         self.queriesDropButton = queriesDropButton
-        # Find Elemets by ID
+        # Find Elements by ID
         icon_path = ":/plugins/QGISRed/images/iconFindElements.png"
         self.openFindElementsDialog = self.add_action(
             icon_path,
-            text=self.tr("Find Elemets by ID..."),
+            text=self.tr("Find Elements by ID..."),
             callback=self.runFindElements,
             menubar=self.queriesMenu,
             toolbar=self.queriesToolbar,
@@ -1498,7 +1498,7 @@ class QGISRed:
         icon_path = ":/plugins/QGISRed/images/iconThematicMaps.png"
         self.openThematicMapsDialog = self.add_action(
             icon_path,
-            text=self.tr("Thematic Maps"),
+            text=self.tr("Thematic Maps..."),
             callback=self.runThematicMaps,
             menubar=self.queriesMenu,
             toolbar=self.queriesToolbar,
