@@ -3,6 +3,7 @@ from qgis.gui import QgsMapToolIdentify, QgsHighlight
 from qgis.utils import iface
 from qgis.core import QgsProject, QgsVectorLayer
 from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtGui import QCursor
 
 class QGISRedIdentifyFeature(QgsMapToolIdentify):
     _instance = None
@@ -21,6 +22,7 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
         self.currentHighlight = None
         self.dock = None
         self.ignoreNextRelease = False
+        self.setCursor(QCursor(Qt.CrossCursor))
         self.setupConnections()
 
     # -----------------------
@@ -149,11 +151,28 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
     # -----------------------
     # Additional Methods
     # -----------------------
+    # def clearHighlights(self):
+    #     if self.currentHighlight is not None:
+    #         print("clearHighlights: Clearing current highlight")
+    #         self.currentHighlight.hide()
+    #         self.currentHighlight = None
+
     def clearHighlights(self):
         if self.currentHighlight is not None:
             print("clearHighlights: Clearing current highlight")
             self.currentHighlight.hide()
             self.currentHighlight = None
+
+        canvas = iface.mapCanvas()
+        scene = canvas.scene()
+        for item in scene.items():
+            if isinstance(item, QgsHighlight):
+                item.hide()
+                scene.removeItem(item)
+                del item
+        canvas.refresh()
+        print("Exiting clearHighlights")
+        self.clearSelections()
 
     def closeDock(self):
         if self.dock:

@@ -132,8 +132,7 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         self.setupEventFilters() 
         self.setObjectName(self.__class__.__name__)
         self.setFloating(False)
-        if parent:
-            parent.addDockWidget(Qt.LeftDockWidgetArea, self)
+        iface.addDockWidget(Qt.RightDockWidgetArea, self)
 
         self.canvas = canvas
         self.find_elements_visible = show_find_elements
@@ -251,10 +250,10 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         self.placeConnectedElements()
 
         settings = QgsSettings()
-        if settings.contains("QGISRed/ElementsExplorer/geometry"):
-            self.restoreGeometry(settings.value("QGISRed/ElementsExplorer/geometry"))
-        if settings.contains("QGISRed/ElementsExplorer/floating"):
-            self.setFloating(settings.value("QGISRed/ElementsExplorer/floating", type=bool))
+        # if settings.contains("QGISRed/ElementsExplorer/geometry"):
+        #     self.restoreGeometry(settings.value("QGISRed/ElementsExplorer/geometry"))
+        # if settings.contains("QGISRed/ElementsExplorer/floating"):
+        #     self.setFloating(settings.value("QGISRed/ElementsExplorer/floating", type=bool))
         print("Exiting __init__")
 
     def trackSpoilerEvents(self):
@@ -373,7 +372,9 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         epLayout.insertWidget(index, self.labelAdjacentNodeLinks)
         epLayout.insertWidget(index, self.labelFoundElement)
         print("Moved widgets into Element Properties layout.")
-    
+
+        epLayout.parentWidget().adjustSize()
+        findLayout.parentWidget().adjustSize()
 
     def moveWidgetsToFindElements(self):
         """
@@ -402,6 +403,9 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         findLayout.insertWidget(index + 2, self.labelAdjacentNodeLinks)
         findLayout.insertWidget(index + 3, self.listWidget)
         print("Moved widgets back into Find Elements layout.")
+
+        self.frameFindElements.parentWidget().adjustSize()
+        findLayout.parentWidget().adjustSize()
 
     # def eventFilter(self, obj, event):
     #     if event.type() == QEvent.FocusIn:
@@ -536,6 +540,10 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         self.spoilerFindElements.setExpanded(False)
         self.spoilerElementProperties.setExpanded(False)
         
+        # Reset the singleton instance
+        if hasattr(self.__class__, '_instance') and self.__class__._instance == self:
+            self.__class__._instance = None
+
         super(self.__class__, self).closeEvent(event)
         print("Exiting closeEvent")
 
