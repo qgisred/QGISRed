@@ -6,19 +6,46 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>651</width>
-    <height>647</height>
+    <width>476</width>
+    <height>582</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>Thematic Maps</string>
   </property>
-  <property name="styleSheet">
-   <string>background-color: white;</string>
-  </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QHBoxLayout" name="horizontalLayout_2">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
    <item>
     <widget class="QScrollArea" name="scrollArea">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="sizeAdjustPolicy">
+      <enum>QAbstractScrollArea::AdjustToContents</enum>
+     </property>
      <property name="widgetResizable">
       <bool>true</bool>
      </property>
@@ -27,19 +54,13 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>631</width>
-        <height>627</height>
+        <width>474</width>
+        <height>580</height>
        </rect>
-      </property>
-      <property name="styleSheet">
-       <string>background-color: white;</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
         <widget class="QGroupBox" name="gbPipes">
-         <property name="styleSheet">
-          <string>background-color: white;</string>
-         </property>
          <property name="title">
           <string>Pipes ranged by</string>
          </property>
@@ -75,7 +96,7 @@
           <item row="1" column="3">
            <widget class="QCheckBox" name="cbPipesInitStatus">
             <property name="text">
-             <string>Init Status</string>
+             <string>Initial Status</string>
             </property>
            </widget>
           </item>
@@ -126,9 +147,6 @@
        </item>
        <item>
         <widget class="QGroupBox" name="gbJunctions">
-         <property name="styleSheet">
-          <string>background-color: white;</string>
-         </property>
          <property name="title">
           <string>Junctions ranged by</string>
          </property>
@@ -136,7 +154,7 @@
           <item row="0" column="3">
            <widget class="QCheckBox" name="cbJunctionsEmitterCoeff">
             <property name="text">
-             <string>Emitter Coefficient</string>
+             <string>Emitter Coeff</string>
             </property>
            </widget>
           </item>
@@ -180,11 +198,20 @@
        </item>
        <item>
         <widget class="QGroupBox" name="gbValves">
-         <property name="styleSheet">
-          <string>background-color: white;</string>
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="acceptDrops">
+          <bool>false</bool>
+         </property>
+         <property name="autoFillBackground">
+          <bool>false</bool>
          </property>
          <property name="title">
           <string>Valves ranged by</string>
+         </property>
+         <property name="flat">
+          <bool>false</bool>
          </property>
          <layout class="QGridLayout" name="gridLayout_3">
           <item row="0" column="1">
@@ -234,9 +261,6 @@
        </item>
        <item>
         <widget class="QGroupBox" name="gbPumps">
-         <property name="styleSheet">
-          <string>background-color: white;</string>
-         </property>
          <property name="title">
           <string>Pumps ranged by</string>
          </property>
@@ -302,9 +326,6 @@
        </item>
        <item>
         <widget class="QGroupBox" name="gbTanks">
-         <property name="styleSheet">
-          <string>background-color: white;</string>
-         </property>
          <property name="title">
           <string>Tanks ranged by</string>
          </property>
@@ -370,8 +391,11 @@
        </item>
        <item>
         <widget class="QGroupBox" name="gbReservoirs">
-         <property name="styleSheet">
-          <string>background-color: white;</string>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
          <property name="title">
           <string>Reservoirs ranged by</string>
