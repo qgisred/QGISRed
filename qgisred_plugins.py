@@ -1930,7 +1930,8 @@ class QGISRed:
     def removeSectorLayers(self, task):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayers(["Links_" + self.Sectors, "Nodes_" + self.Sectors])
-        self.removeEmptyQuerySubGroup("Sectors")
+        sectorGroupName = self.getSectorGroupName()
+        self.removeEmptyQuerySubGroup(sectorGroupName)
         if task is not None:
             return {"task": task.definition()}
 
@@ -2030,17 +2031,16 @@ class QGISRed:
         utils.openLayer(connGroup, "Links_Connectivity")
 
     def openSectorLayers(self):
-        # Open layers
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         if os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_Links_" + self.Sectors + ".shp")):
-            # Group
-            hydrGroup = QgsProject.instance().layerTreeRoot().findGroup("Sectors")
-            if hydrGroup is None:
+            sectorGroupName = self.getSectorGroupName()
+            sectorGroup = QgsProject.instance().layerTreeRoot().findGroup(sectorGroupName)
+            if sectorGroup is None:
                 queryGroup = self.getQueryGroup()
-                hydrGroup = queryGroup.insertGroup(0, "Sectors")
+                sectorGroup = queryGroup.insertGroup(0, sectorGroupName)
 
-            utils.openLayer(hydrGroup, "Links_" + self.Sectors, sectors=True)
-            utils.openLayer(hydrGroup, "Nodes_" + self.Sectors, sectors=True)
+            utils.openLayer(sectorGroup, "Links_" + self.Sectors, sectors=True)
+            utils.openLayer(sectorGroup, "Nodes_" + self.Sectors, sectors=True)
 
     """Groups"""
 
@@ -2092,6 +2092,14 @@ class QGISRed:
             if issuesGroup is not None:
                 if len(issuesGroup.findLayers()) == 0:
                     netGroup.removeChildNode(issuesGroup)
+
+    def getSectorGroupName(self):
+        if self.Sectors == "HydraulicSectors":
+            return "Hydraulic Sectors"
+        elif self.Sectors == "DemandSectors":
+            return "Demand Sectors"
+        else:
+            return "Sectors"
 
     def removeEmptyQuerySubGroup(self, name):
         netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)

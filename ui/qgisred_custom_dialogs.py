@@ -95,6 +95,27 @@ class SymbolColorSelector(QgsSymbolButton):
         self.applySymbol()
         self.colorChanged.emit(QColor(self._color))
 
+    def updateSymbolSize(self, size: float, isWidth: bool = False):
+        """Update the symbol size/width and refresh the preview."""
+        if size <= 0:
+            return
+
+        currentSymbol = self.symbol()
+        if not currentSymbol:
+            return
+
+        # Clone the current symbol to modify it
+        newSymbol = currentSymbol.clone()
+
+        if isWidth:
+            # For lines
+            newSymbol.setWidth(size)
+        else:
+            # For markers and fills
+            newSymbol.setSize(size)
+
+        self.setSymbol(newSymbol)
+
     # --- Internals ---
     def rgbaString(self, c: QColor) -> str:
         return f"{c.red()},{c.green()},{c.blue()},{c.alpha()}"
