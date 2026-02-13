@@ -153,18 +153,32 @@ class QGISRedUtils:
         if "Demands" in original:
             original = "Multiple Demands"
         return original
+    
+    def findGroupRecursive(self, parent, groupName):
+        for child in parent.children():
+            if isinstance(child, QgsLayerTreeGroup) and child.name() == groupName:
+                return child
+            elif isinstance(child, QgsLayerTreeGroup):
+                result = self.findGroupRecursive(child, groupName)
+                if result:
+                    return result
+        return None
 
     def getInputGroup(self):
-        # Same method in qgisred_newproject_dialog and qgisred_results_dock
-        inputGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
+        root = QgsProject.instance().layerTreeRoot()
+        
+        # Try to find existing Inputs group anywhere in the tree
+        inputGroup = self.findGroupRecursive(root, "Inputs")
+        
         if inputGroup is None:
-            netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
+            # If not found, create it under network group
+            netGroup = self.findGroupRecursive(root, self.NetworkName)
             if netGroup is None:
-                root = QgsProject.instance().layerTreeRoot()
                 netGroup = root.insertGroup(0, self.NetworkName)
             inputGroup = netGroup.addGroup("Inputs")
+        
         return inputGroup
-    
+
     """Open Layers"""
 
     def isLayerOpened(self, layerName):
@@ -1238,3 +1252,12 @@ class QGISRedUtils:
         with open(gplFile, "w") as f:
             for entry in entries:
                 f.write(entry + "\n")
+
+    def getThematicMapsLayers(self):
+        # Get and return all layers from Thematic Maps group, wherever it's located
+        root = QgsProject.instance().layerTreeRoot()
+        thematicGroup = self.findGroupRecursive(root, "Thematic Maps")
+        
+        if thematicGroup:
+            return [tree_layer.layer() for tree_layer in thematicGroup.findLayers()]
+        return []

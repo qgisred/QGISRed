@@ -1,26 +1,10 @@
 # Third-party imports
-from PyQt5.QtGui import QIcon, QColor
-from PyQt5.QtWidgets import (QDialog, QMessageBox, QWidget, QTableWidget, QTableWidgetItem, 
-                             QHeaderView, QComboBox, QLineEdit, QPushButton,
-                             QCheckBox, QHBoxLayout, QAbstractItemView, QDialogButtonBox, 
-                             QDoubleSpinBox, QLabel, QVBoxLayout)
-
-# Third-party imports
-from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QWidget, QHBoxLayout
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QDoubleSpinBox, QLabel, QVBoxLayout
+from PyQt5.QtCore import pyqtSignal, Qt, QEvent
 
-# QGIS imports
-from qgis.core import QgsFillSymbol
-from qgis.gui import QgsSymbolButton, QgsColorButton
-
-# Third-party imports
-from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QWidget, QHBoxLayout
-
-# QGIS imports
-from qgis.core import QgsSymbol, QgsFillSymbol, QgsMarkerSymbol, QgsLineSymbol
-from qgis.gui import QgsSymbolButton, QgsColorButton
+from qgis.gui import QgsSymbolButton, QgsColorDialog
+from qgis.core import QgsMarkerSymbol, QgsLineSymbol, QgsFillSymbol, QgsSymbol
 
 class RangeEditDialog(QDialog):
     """A simple dialog for editing a numeric range (lower and upper bounds)."""
@@ -51,44 +35,6 @@ class RangeEditDialog(QDialog):
     def getValues(self):
         """Returns the current values of the spin boxes."""
         return self.lowerSpinBox.value(), self.upperSpinBox.value()
-    
-# --- NEW: helpers + SymbolColorSelector -------------------------------------------------
-from PyQt5.QtCore import Qt, pyqtSignal, QEvent
-from PyQt5.QtGui import QColor
-from qgis.gui import QgsSymbolButton, QgsColorDialog
-from qgis.core import QgsMarkerSymbol, QgsLineSymbol, QgsFillSymbol, QgsSymbol
-
-def rgbaString(c: QColor) -> str:
-    return f"{c.red()},{c.green()},{c.blue()},{c.alpha()}"
-
-def clampGeometry(geom: str) -> str:
-    g = (geom or "").strip().lower()
-    if g in ("point", "marker", "pts"):
-        return "marker"
-    if g in ("line", "polyline", "ln"):
-        return "line"
-    return "fill"
-
-def symbolFromColor(geometryHint: str, color: QColor) -> QgsSymbol:
-    rgba = rgbaString(color)
-    if geometryHint == "marker":
-        return QgsMarkerSymbol.createSimple({
-            "name": "circle",
-            "color": rgba,
-            "outline_color": "0,0,0,255",
-            "outline_width": "0.2"
-        })
-    elif geometryHint == "line":
-        return QgsLineSymbol.createSimple({
-            "color": rgba,
-            "width": "0.8"
-        })
-    else:
-        return QgsFillSymbol.createSimple({
-            "color": rgba,
-            "outline_color": "60,60,60,255",
-            "outline_width": "0.3"
-        })
 
 class SymbolColorSelector(QgsSymbolButton):
     """
@@ -109,7 +55,7 @@ class SymbolColorSelector(QgsSymbolButton):
         dialogTitle: str = "Pick color"
     ):
         super().__init__(parent)
-        self._geometryHint = clampGeometry(geometryHint)
+        self._geometryHint = self.clampGeometry(geometryHint)
         self._allowAlpha = bool(allowAlpha)
         self._dialogTitle = dialogTitle
         self._color = QColor(initialColor) if initialColor.isValid() else QColor(19, 125, 220, 255)
@@ -124,9 +70,8 @@ class SymbolColorSelector(QgsSymbolButton):
         self.setToolTip("Click to pick a color; preview updates immediately.")
         self.installEventFilter(self)
 
-    # --- Public API ---
     def setGeometryHint(self, geometryHint: str):
-        self._geometryHint = clampGeometry(geometryHint)
+        self._geometryHint = self.clampGeometry(geometryHint)
         self.applySymbol()
 
     def geometryHint(self) -> str:
@@ -148,8 +93,40 @@ class SymbolColorSelector(QgsSymbolButton):
         self.colorChanged.emit(QColor(self._color))
 
     # --- Internals ---
+    def rgbaString(self, c: QColor) -> str:
+        return f"{c.red()},{c.green()},{c.blue()},{c.alpha()}"
+
+    def clampGeometry(self, geom: str) -> str:
+        g = (geom or "").strip().lower()
+        if g in ("point", "marker", "pts"):
+            return "marker"
+        if g in ("line", "polyline", "ln"):
+            return "line"
+        return "fill"
+
+    def symbolFromColor(self, geometryHint: str, color: QColor) -> QgsSymbol:
+        rgba = self.rgbaString(color)
+        if geometryHint == "marker":
+            return QgsMarkerSymbol.createSimple({
+                "name": "circle",
+                "color": rgba,
+                "outline_color": "0,0,0,255",
+                "outline_width": "0.2"
+            })
+        elif geometryHint == "line":
+            return QgsLineSymbol.createSimple({
+                "color": rgba,
+                "width": "0.8"
+            })
+        else:
+            return QgsFillSymbol.createSimple({
+                "color": rgba,
+                "outline_color": "60,60,60,255",
+                "outline_width": "0.3"
+            })
+
     def applySymbol(self):
-        sym = symbolFromColor(self._geometryHint, self._color)
+        sym = self.symbolFromColor(self._geometryHint, self._color)
         self.setSymbol(sym)
 
     def openColorDialog(self):
@@ -165,4 +142,3 @@ class SymbolColorSelector(QgsSymbolButton):
                     self.openColorDialog()
                 return True
         return super().eventFilter(obj, event)
-# ----------------------------------------------------------------------------------------
