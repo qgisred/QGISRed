@@ -18,7 +18,7 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>206</width>
+    <width>281</width>
     <height>600</height>
    </size>
   </property>
@@ -208,6 +208,13 @@ QDockWidget::title {
                      </widget>
                     </item>
                     <item>
+                     <widget class="QPushButton" name="btReload">
+                      <property name="text">
+                       <string>Reload</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
                      <widget class="QPushButton" name="btClear">
                       <property name="text">
                        <string>Clear</string>
@@ -389,6 +396,9 @@ QDockWidget::title {
                           <family>MS Shell Dlg 2</family>
                           <pointsize>8</pointsize>
                          </font>
+                        </property>
+                        <property name="horizontalScrollBarPolicy">
+                         <enum>Qt::ScrollBarAlwaysOff</enum>
                         </property>
                         <property name="sizeAdjustPolicy">
                          <enum>QAbstractScrollArea::AdjustToContents</enum>

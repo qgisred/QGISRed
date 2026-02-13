@@ -95,7 +95,7 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         self.adjacent_highlights = []
         self.main_highlight = None
         self.current_selected_highlight = None
-        
+        self.dictOfElementIDs = {}
         self.currentLayer = None
         self.currentFeature = None
         
@@ -154,12 +154,22 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                     self.installEventFilterRecursive(child)
         print("Exiting installEventFilterRecursive")
 
+    # def eventFilter(self, obj, event):
+    #     if event.type() == QEvent.FocusIn:
+    #         if obj != self and self.isAncestorOf(obj):
+    #             self.reestablishIdentifyTool()
+    #             self.onLayerTreeChanged()
+    #     return super(QGISRedElementsExplorerDock, self).eventFilter(obj, event)
+    
     def eventFilter(self, obj, event):
         if event.type() == QEvent.FocusIn:
+            # Only process focus events from non-listWidget children
             if obj != self and self.isAncestorOf(obj):
                 self.reestablishIdentifyTool()
+                # if obj != self.listWidget:
+                #     self.initializeElementTypes()  # Update element types
         return super(QGISRedElementsExplorerDock, self).eventFilter(obj, event)
-    
+
     def reestablishIdentifyTool(self):
         print("Entering reestablishIdentifyTool")
         from ..tools.qgisred_identifyFeature import QGISRedIdentifyFeature
@@ -601,7 +611,8 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         self.listWidget.itemClicked.connect(self.onListItemSingleClicked)
         self.listWidget.itemDoubleClicked.connect(self.onListItemDoubleClicked)
         self.btClear.clicked.connect(self.clearAll)
-        self.cbElementId.currentIndexChanged.connect(self.onElementIdChanged)
+        self.cbElementId.currentIndexChanged.connect(self.onElementIdChanged)           
+        self.btReload.clicked.connect(self.initializeElementTypes)
 
         project = QgsProject.instance()
         project.layersAdded.connect(self.onLayerTreeChanged)
@@ -757,7 +768,7 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         print("Exiting findOverlappingFeatures")
         return overlapping_features
     
-    def loadFeature(self, layer, feature):
+    def loadFeature(self, layer, feature, feature_id_text = ""):
         print("Entering loadFeature")
         if not layer or not feature:
             print("Exiting loadFeature")
@@ -768,25 +779,27 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         layer.selectByIds([feature.id()])
         self.populatedataTableWidget()
 
-        base_title = f"{self.singular_forms.get(layer.name(), layer.name())} {feature.attribute('Id')}"
-        suffix_source = ""
-        suffix_demand = ""
+        #base_title = feature_id_text #f"{self.singular_forms.get(layer.name(), layer.name())} {feature.attribute('Id')}"
+        # suffix_source = ""
+        # suffix_demand = ""
 
-        id_property = layer.customProperty("qgisred_identifier")
-        if id_property in ["qgisred_junctions", "qgisred_reservoirs", "qgisred_tanks"]:
-            source_features = self.findOverlappingFeatures(feature, "qgisred_sources")
-            if source_features:
-                suffix_source = "(Source)"
-                for src_feat in source_features:
-                    self.appendFeatureProperties(src_feat, "Source")
-            if id_property == "qgisred_junctions":
-                demand_features = self.findOverlappingFeatures(feature, "qgisred_demands")
-                if demand_features:
-                    suffix_demand = "(Mult.Dem)"
-                    for dem_feat in demand_features:
-                        self.appendFeatureProperties(dem_feat, "Mult.Dem")
+        # id_property = layer.customProperty("qgisred_identifier")
+        # if id_property in ["qgisred_junctions", "qgisred_reservoirs", "qgisred_tanks"]:
+        #     source_features = self.findOverlappingFeatures(feature, "qgisred_sources")
+        #     if source_features:
+        #         suffix_source = "(Source)"
+        #         for src_feat in source_features:
+        #             self.appendFeatureProperties(src_feat, "Source")
+        #     if id_property == "qgisred_junctions":
+        #         demand_features = self.findOverlappingFeatures(feature, "qgisred_demands")
+        #         if demand_features:
+        #             suffix_demand = "(Mult.Dem)"
+        #             for dem_feat in demand_features:
+        #                 self.appendFeatureProperties(dem_feat, "Mult.Dem")
 
-        self.labelFoundElement.setText(f"{base_title} {suffix_source}{suffix_demand}")
+        #self.labelFoundElement.setText(f"{base_title} {suffix_source}{suffix_demand}")
+        self.labelFoundElement.setText(f"{feature_id_text}")
+        
         self.labelFoundElement.setStyleSheet("font-weight: bold; font-size: 12pt;")
         print("Exiting loadFeature")
 
@@ -830,11 +843,41 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         print("Exiting initializeCustomLayerProperties")
 
     def initializeElementTypes(self):
+        """
+        Clears the element type combobox, adds the available element types,
+        and builds the cache of element IDs for each type.
+        """
         print("Entering initializeElementTypes")
         self.cbElementType.clear()
         available_types = self.getAvailableElementTypes()
         self.cbElementType.addItems(available_types)
+        # Build (or rebuild) the cache of element IDs for each available type.
+        self.initializeElementIdsCache()
         print("Exiting initializeElementTypes")
+
+
+    def initializeElementIdsCache(self):
+        """
+        Precompute and cache the list of IDs for each available element type.
+        This method creates a dictionary mapping each element type (as shown
+        in the combobox) to a sorted list of unique IDs from its associated layer.
+        """
+        print("Entering initializeElementIdsCache")
+        # self.dictOfElementIDs = {}
+        # Use the available element types from the project
+        available_types = self.getAvailableElementTypes()
+        for element_type in available_types:
+            layer = self.getLayerForElementType(element_type)
+            ids = []
+            if layer:
+                for feature in layer.getFeatures():
+                    id_val = self.getFeatureIdValue(feature, layer, True)
+                    if id_val:
+                        ids.append(id_val)
+                self.dictOfElementIDs[element_type] = sorted(set(ids))
+            else:
+                self.dictOfElementIDs[element_type] = []
+        print("Exiting initializeElementIdsCache")
 
     def setDefaultValue(self):
         print("Entering setDefaultValue")
@@ -906,7 +949,7 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         self.currentLayer = found_feature_layer
         self.currentFeature = found_feature
 
-        self.updateFoundElementLabel(selected_id, found_feature_layer)
+        finalTitleText = self.updateFoundElementLabel(selected_id, found_feature_layer)
         highlight = QgsHighlight(iface.mapCanvas(), found_feature.geometry(), layer)
         highlight.setColor(QColor("red"))
         highlight.setWidth(5)
@@ -926,41 +969,53 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         else:
             self.findAdjacentLinksByGeometry(found_feature, layer)
         self.sortListWidgetItems()
-        self.loadFeature(layer, found_feature)
+        self.loadFeature(layer, found_feature, finalTitleText)
         print("Exiting findElement")
 
     @pyqtSlot()
     def updateElementIds(self):
+        """
+        Updates the element ID combobox based on the currently selected element type.
+        Instead of iterating over the layer's features each time, it retrieves the IDs
+        from the precomputed cache.
+        """
         print("Entering updateElementIds")
         self.cbElementId.clear()
-        self.original_ids.clear()
         self.labelFoundElement.setText("")
-
-        layer = self.getLayerForElementType(self.cbElementType.currentText())
-        if layer:
-            for f in layer.getFeatures():
-                id_val = self.getFeatureIdValue(f, layer, True)
-                if id_val:
-                    self.original_ids.append(id_val)
-            self.original_ids = sorted(set(self.original_ids))
-
-        if self.leElementMask.text():
-            self.filterElementIds()
+        
+        selected_type = self.cbElementType.currentText()
+        # Retrieve the cached list of IDs for the selected element type.
+        ids = self.dictOfElementIDs.get(selected_type, [])
+        
+        # Check if a filter mask is applied.
+        mask = self.leElementMask.text().strip()
+        if mask:
+            filtered_ids = [id for id in ids if mask.lower() in id.lower()]
+            self.cbElementId.addItems(filtered_ids)
         else:
-            self.cbElementId.addItems(self.original_ids)
+            self.cbElementId.addItems(ids)
         print("Exiting updateElementIds")
+
 
     @pyqtSlot()
     def filterElementIds(self):
+        """
+        Filters the element IDs shown in the combobox based on the text entered in the mask.
+        The filtering is done on the cached list of IDs for the current element type.
+        """
         print("Entering filterElementIds")
         mask = self.leElementMask.text().strip()
         self.cbElementId.clear()
+        selected_type = self.cbElementType.currentText()
+        # Retrieve the cached list of IDs for filtering.
+        ids = self.dictOfElementIDs.get(selected_type, [])
         if mask:
-            filtered_items = [self.tr(item) for item in self.original_ids if mask.lower() in item.lower()]
+            filtered_ids = [id for id in ids if mask.lower() in id.lower()]
         else:
-            filtered_items = self.original_ids
-        self.cbElementId.addItems(filtered_items)
+            filtered_ids = ids
+        self.cbElementId.addItems(filtered_ids)
         print("Exiting filterElementIds")
+
 
     def onListItemSingleClicked(self, item):
         print("Entering onListItemSingleClicked")
@@ -1210,6 +1265,7 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
 
     def updateFoundElementLabel(self, selected_id, layer=None):
         print("Entering updateFoundElementLabel")
+        
         if not selected_id:
             self.labelFoundElement.setText("")
             print("Exiting updateFoundElementLabel")
@@ -1248,11 +1304,15 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                             break
             singular_node_type = self.singular_forms.get(node_layer.name(), node_layer.name())
             suffix_str = " ".join(suffixes)
-            self.labelFoundElement.setText(self.tr(f"{singular_node_type} {selected_id} {suffix_str}".strip()))
+            finalText = self.tr(f"{singular_node_type} {selected_id} {suffix_str}".strip())
+            self.labelFoundElement.setText(finalText)
         else:
             element_type = self.cbElementType.currentText()
             singular_element_type = self.singular_forms.get(element_type, element_type)
-            self.labelFoundElement.setText(self.tr(f"{singular_element_type} {selected_id}"))
+            finalText = self.tr(f"{singular_element_type} {selected_id}")
+            self.labelFoundElement.setText(finalText)
+
+        return finalText
         print("Exiting updateFoundElementLabel")
 
     def findNodeLayer(self, node_id):
@@ -1639,7 +1699,7 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         self.clearAllLayerSelections()
         self.listWidget.clear()
 
-        self.updateFoundElementLabel(feature_id_text, layer)
+        finalTitleText = self.updateFoundElementLabel(feature_id_text, layer)
 
         highlight = QgsHighlight(iface.mapCanvas(), feature.geometry(), layer)
         highlight.setColor(QColor("red"))
@@ -1663,5 +1723,5 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         
         self.sortListWidgetItems()
 
-        self.loadFeature(layer, feature)
+        self.loadFeature(layer, feature, finalTitleText)
         print("Exiting findFeature")
