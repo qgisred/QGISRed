@@ -7,13 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>315</width>
-    <height>400</height>
+    <height>436</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>315</width>
-    <height>400</height>
+    <height>390</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -37,8 +37,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>280</width>
-         <height>522</height>
+         <width>297</width>
+         <height>396</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -48,7 +48,7 @@
            <string>Find Elements by Id</string>
           </property>
           <property name="collapsed">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_6">
            <item>
@@ -204,13 +204,13 @@
            <string>Element Properties</string>
           </property>
           <property name="collapsed">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
            <item>
             <layout class="QVBoxLayout" name="elementPropertiesLayout">
              <property name="spacing">
-              <number>2</number>
+              <number>5</number>
              </property>
              <property name="leftMargin">
               <number>0</number>
@@ -317,6 +317,19 @@
               </widget>
              </item>
              <item>
+              <widget class="Line" name="line_4">
+               <property name="enabled">
+                <bool>true</bool>
+               </property>
+               <property name="lineWidth">
+                <number>0</number>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="Line" name="line_3">
                <property name="enabled">
                 <bool>true</bool>
@@ -338,7 +351,7 @@
                 <string notr="true">QTabBar::tab { font-weight: bold; min-width: 80px; }</string>
                </property>
                <property name="currentIndex">
-                <number>1</number>
+                <number>0</number>
                </property>
                <property name="documentMode">
                 <bool>false</bool>

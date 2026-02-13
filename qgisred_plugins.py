@@ -4424,6 +4424,7 @@ class QGISRed:
             useElementProperties = False
             if existingDock:
                 useElementProperties = not existingDock.mElementPropertiesGroupBox.isCollapsed()
+                existingDock.updateCollapsibleWidgetsState(collapseFindElements=False)
                 existingDock.initializeElementTypes()
             else:
                 try:
@@ -4440,6 +4441,8 @@ class QGISRed:
                     dock.activateWindow()
                     dock.onLayerTreeChanged()
                     dock.setDefaultValue()
+                    dock.updateCollapsibleWidgetsState(collapseFindElements=False)
+                    dock.moveWidgetsToFindElements()
                 except Exception as e:
                     print(f"Error creating dock: {str(e)}")
                     self.openFindElementsDialog.setChecked(False)
@@ -4449,7 +4452,8 @@ class QGISRed:
                 self.myMapTools[tool] = QGISRedIdentifyFeature(
                     self.iface.mapCanvas(), 
                     self.openFindElementsDialog, 
-                    useElementPropertiesDock=useElementProperties
+                    useElementPropertiesDock=useElementProperties,
+                    dock=dock
                 )
                 self.myMapTools[tool].setCursor(Qt.WhatsThisCursor)
                 self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
@@ -4489,6 +4493,8 @@ class QGISRed:
             self.openElementsPropertyDialog.setChecked(False)
         else:
             if existingDock:
+                existingDock.updateCollapsibleWidgetsState(collapseElementProperties=False)
+                existingDock.moveWidgetsToElementProperties()
                 existingDock.initializeElementTypes()
             try:
                 self.myMapTools[tool] = QGISRedIdentifyFeature(

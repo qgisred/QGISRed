@@ -16,6 +16,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     findElementsDockVisibilityChanged = pyqtSignal(bool)
     elementPropertiesDockVisibilityChanged = pyqtSignal(bool)
     dockFocusChanged = pyqtSignal(bool)
+    dockClosed = pyqtSignal(bool)
 
     # ------------------------------
     # Initialization and Setup Methods
@@ -132,6 +133,19 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     def trackCollapsibleWidgetsEvents(self):
         self.mElementPropertiesGroupBox.collapsedStateChanged.connect(self.onElementPropertiesToggled)
         self.mFindElementsGroupBox.collapsedStateChanged.connect(self.onFindElementsToggled)
+
+    def updateCollapsibleWidgetsState(self, collapseElementProperties=None, collapseFindElements=None):
+        self.mElementPropertiesGroupBox.blockSignals(True)
+        self.mFindElementsGroupBox.blockSignals(True)    
+
+        if collapseElementProperties is not None:
+            self.mElementPropertiesGroupBox.setCollapsed(collapseElementProperties)
+
+        if collapseFindElements is not None:
+            self.mFindElementsGroupBox.setCollapsed(collapseFindElements)
+
+        self.mElementPropertiesGroupBox.blockSignals(False)
+        self.mFindElementsGroupBox.blockSignals(False)   
 
     # ------------------------------
     # Collapsible Widgets Handlers
@@ -420,9 +434,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.clearHighlights()
         self.clearAllLayerSelections()
 
-        if hasattr(self.__class__, '_instance') and self.__class__._instance == self:
-            self.__class__._instance = None
+        self.__class__._instance = None
 
+        self.dockClosed.emit(True)
         super(self.__class__, self).closeEvent(event)
 
     # ------------------------------
