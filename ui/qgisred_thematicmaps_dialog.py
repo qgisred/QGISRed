@@ -1,26 +1,28 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtWidgets import QDialog, QWidget, QMessageBox
 from PyQt5.QtGui import QIcon, QColor
-from qgis.PyQt.QtCore import QVariant
+from PyQt5.QtCore import QObject, QVariant
+
 from qgis.PyQt import uic
-import os
-import random
 
 from qgis.core import (
     QgsProject,
+    QgsVectorLayer,
     QgsLayerTreeGroup,
     QgsLayerTreeLayer,
-    QgsVectorLayer,
+    QgsLayerTreeNode,
     QgsCategorizedSymbolRenderer,
     QgsRendererCategory,
-    QgsLayerTreeNode,
     QgsUnitTypes,
     QgsSymbol,
     QgsField,
     QgsExpression,
-    edit,
-    QgsVectorFileWriter
+    QgsVectorFileWriter,
+    edit
 )
+
+import os
+import random
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_thematicmaps_dialog.ui"))
 
@@ -121,18 +123,17 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
 
         # International Units
         international_units = ["LPS", "LPM", "MLD", "CMH", "CMD"]
-
         # American Units 
         american_units = ["CFS", "GPM", "MGD", "IMGD", "AFD"]
 
         print("units: ", units)
         if units in american_units:
-            return 'feet'
+            return 'US'
         elif units in international_units:
-            return 'meters'
+            return 'SI'
         else:
             # Default to meters
-            return 'meters'
+            return 'SI'
 
     def get_selected_queries(self):
         units = self.get_project_units()
@@ -142,7 +143,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             queries.append({
                 'layer_name': 'Pipe Diameters',
                 'field': 'Diameter',
-                'qml_file': f'pipesDiameter_{units}.qml.bak',
+                'qml_file': f'pipes_diameter_{units}.qml.bak',
                 'file_name': f'diameter_{units}',
                 'tooltip_prefix': 'Diam'
             })
@@ -151,7 +152,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             queries.append({
                 'layer_name': 'Pipe Lengths',
                 'field': 'Length',
-                'qml_file': f'pipesLength_{units}.qml.bak',
+                'qml_file': f'pipes_length_{units}.qml.bak',
                 'file_name': f'length_{units}',
                 'tooltip_prefix': 'Len'
             })
@@ -160,7 +161,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             queries.append({
                 'layer_name': 'Pipe Materials',
                 'field': 'Material',
-                'qml_file': 'pipesMaterials.qml.bak',
+                'qml_file': '',
                 'file_name': 'material',
                 'tooltip_prefix': 'Mat '
             })
@@ -173,76 +174,60 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         qml_file = query['qml_file']
         tooltip_prefix = query['tooltip_prefix']
         file_name = query['file_name']
-
-        main_layer_path = main_layer.source()
-        main_layer_dir = os.path.dirname(main_layer_path)
-        main_layer_dir = os.path.normpath(main_layer_dir)
-        main_layer_basename = os.path.splitext(os.path.basename(main_layer_path))[0]
-
-        new_layer_filename = f"{main_layer_basename}_query_{file_name}.shp"
-        new_layer_path = os.path.join(main_layer_dir, new_layer_filename)
-        new_layer_path = os.path.normpath(new_layer_path)
         
-        # Remove existing layer if present
+        self.check_existing_layer(queries_group, layer_name)
+        derived_layer = self.create_derived_layer(main_layer, layer_name)
+        
+        if field == 'Material':
+            self.apply_categorized_renderer(derived_layer, field)
+        else:
+            self.load_qml_style(derived_layer, qml_file)
+
+        QgsProject.instance().addMapLayer(derived_layer, False) 
+        
+        if queries_group:
+            layer_tree_layer = queries_group.addLayer(derived_layer)
+
+        derived_layer.dataChanged.connect(
+            lambda: derived_layer.triggerRepaint()
+        )
+
+        main_layer.dataChanged.connect(
+            lambda: derived_layer.triggerRepaint()
+        )
+        
+        return derived_layer
+
+    def check_existing_layer(self, queries_group, layer_name, layer_path=None):
         existing_layer = None
         for child in queries_group.children():
             if isinstance(child, QgsLayerTreeLayer) and child.name() == layer_name:
                 existing_layer = child
                 break
-
+        
         if existing_layer is not None:
-            if os.path.exists(new_layer_path):
-                QgsVectorFileWriter.deleteShapeFile(new_layer_path)
+            if layer_path and os.path.exists(layer_path):
+                QgsVectorFileWriter.deleteShapeFile(layer_path)
+            
+            QgsProject.instance().removeMapLayer(existing_layer.layerId())
+            return True
+        
+        return False
 
-        fields = main_layer.fields()
-        crs = main_layer.crs()
-        geometry_type = main_layer.wkbType()
+    def create_derived_layer(self, source_layer, new_layer_name):
+        uri = source_layer.source()
+        
+        geometry_type = source_layer.geometryType()
+        provider_type = source_layer.providerType()
+        
+        derived_layer = QgsVectorLayer(uri, new_layer_name, provider_type)
+        
+        if not derived_layer.isValid():
+            raise Exception(f"Failed to create derived layer from {source_layer.name()}")
 
-        writer = QgsVectorFileWriter(
-            new_layer_path,
-            'UTF-8',
-            fields,
-            geometry_type,
-            crs,
-            'ESRI Shapefile'
-        )
-
-        if writer.hasError() != QgsVectorFileWriter.NoError:
-            return
-
-        features = main_layer.getFeatures()
-        for feature in features:
-            writer.addFeature(feature)
-
-        del writer
-
-        new_layer = QgsVectorLayer(new_layer_path, layer_name, 'ogr')
-        if not new_layer.isValid():
-            return
-
-        project = QgsProject.instance()
-        project.addMapLayer(new_layer, False)
-
-        if field == 'Material':
-            self.apply_categorized_renderer(new_layer, field)
-        else:
-            self.load_qml_style(new_layer, qml_file)
-
-        # Add the virtual field 'Year'
-        # instal_date_index = new_layer.fields().indexFromName('InstalDate')
-        # if instal_date_index != -1:
-        #     with edit(new_layer):
-        #         expression = QgsExpression('substr("InstalDate", 1, 4)')
-        #         new_layer.addExpressionField(expression.expression(), QgsField('Year', QVariant.String))
-
-        layer_tree_layer = queries_group.addLayer(new_layer)
-
-        self.assign_labels(new_layer, field)
-
-        html_map_tip = f'<html><body><p>{tooltip_prefix} [% "{field}" %] </p></body></html>'
-        new_layer.setMapTipTemplate(html_map_tip)
-
-        layer_tree_layer.setCustomProperty("showFeatureCount", True)
+        derived_layer.setCrs(source_layer.crs())
+        
+        return derived_layer
 
     def apply_categorized_renderer(self, layer, field):
         material_field_index = layer.fields().indexFromName(field)
@@ -281,3 +266,9 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             label_settings = labeling.clone()
             label_settings.fieldName = field
             layer.setLabeling(label_settings)
+
+    def sync_symbology(self, main_layer, derived_layer):
+        if derived_layer and main_layer:
+            new_renderer = main_layer.renderer().clone()
+            derived_layer.setRenderer(new_renderer)
+            derived_layer.triggerRepaint()
