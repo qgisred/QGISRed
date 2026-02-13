@@ -393,17 +393,17 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         layout.addWidget(self.titleLabel)
         layout.addStretch()
 
-        self.epButton = QToolButton(titleBar)
-        icon_ep = QIcon(os.path.join(os.path.dirname(__file__), '..', 'images', 'iconElementsProperties.png'))
-        self.epButton.setIcon(icon_ep)
-        self.epButton.setToolTip("Element Properties")
-        self.epButton.clicked.connect(self.toggleElementPropertiesDock)
-        self.epButton.setCheckable(True)
-        layout.addWidget(self.epButton)
+        # self.epButton = QToolButton(titleBar)
+        # icon_ep = QIcon(os.path.join(os.path.dirname(__file__), '..', 'images', 'iconElementsProperties.png'))
+        # self.epButton.setIcon(icon_ep)
+        # self.epButton.setToolTip("Element Properties")
+        # self.epButton.clicked.connect(self.toggleElementPropertiesDock)
+        # self.epButton.setCheckable(True)
+        #layout.addWidget(self.epButton)
 
         self.findElementsDock.setTitleBarWidget(titleBar)
 
-        self.epButton.setChecked(not self.frameElementProperties.isVisible())
+        #self.epButton.setChecked(not self.frameElementProperties.isVisible())
         print("Exiting initFindElementsCustomTitleBar")
         
     def initElementPropertiesCustomTitleBar(self):
@@ -418,17 +418,17 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         layout.addWidget(self.titleLabel)
         layout.addStretch()
 
-        self.findButton = QToolButton(titleBar)
-        icon_find = QIcon(os.path.join(os.path.dirname(__file__), '..', 'images', 'iconFindElements.png'))
-        self.findButton.setIcon(icon_find)
-        self.findButton.setToolTip("Find Elements by ID")
-        self.findButton.clicked.connect(self.toggleFindElementsDock)
-        self.findButton.setCheckable(True)
-        layout.addWidget(self.findButton)
+        # self.findButton = QToolButton(titleBar)
+        # icon_find = QIcon(os.path.join(os.path.dirname(__file__), '..', 'images', 'iconFindElements.png'))
+        # self.findButton.setIcon(icon_find)
+        # self.findButton.setToolTip("Find Elements by ID")
+        # self.findButton.clicked.connect(self.toggleFindElementsDock)
+        # self.findButton.setCheckable(True)
+        #layout.addWidget(self.findButton)
         
         self.elementPropertiesDock.setTitleBarWidget(titleBar)
 
-        self.findButton.setChecked(not self.frameFindElements.isVisible())
+        #self.findButton.setChecked(not self.frameFindElements.isVisible())
         print("Exiting initElementPropertiesCustomTitleBar")
 
     @pyqtSlot()
@@ -565,8 +565,8 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         self.findElementsDockVisibilityChanged.emit(show_find_elements)
         self.elementPropertiesDockVisibilityChanged.emit(show_element_properties)
 
-        self.findButton.setChecked(show_find_elements)
-        self.epButton.setChecked(show_element_properties)
+        # self.findButton.setChecked(show_find_elements)
+        # self.epButton.setChecked(show_element_properties)
         
         self.frameFindElements.setVisible(show_find_elements)
         self.frameElementProperties.setVisible(show_element_properties)

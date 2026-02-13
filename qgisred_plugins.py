@@ -1479,10 +1479,11 @@ class QGISRed:
             menubar=self.queriesMenu,
             toolbar=self.queriesToolbar,
             actionBase=queriesDropButton,
-            checable=True,
             add_to_toolbar=True,
+            checable=True,
             parent=self.iface.mainWindow(),
         )
+
         # # Elements Properties
         icon_path = ":/plugins/QGISRed/images/iconElementsProperties.png"
         self.openElementsPropertyDialog = self.add_action(
@@ -4391,7 +4392,7 @@ class QGISRed:
     #                        START: QUERIES FIND ELEMENTS
     # --------------------------------------------------------------
 
-    def runFindElements(self):
+    def runFindElements(self): 
         if not self.checkDependencies():
             self.openFindElementsDialog.setChecked(False)
             return
@@ -4401,54 +4402,158 @@ class QGISRed:
         if not self.isValidProject() or self.isLayerOnEdition():
             self.openFindElementsDialog.setChecked(False)
             return
-
-        existing_dock = QGISRedElementsExplorerDock._instance
         
-        if not self.openFindElementsDialog.isChecked():
+        existingDock = QGISRedElementsExplorerDock._instance
+
+        tool = "identifyFeature"
+        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.openFindElementsDialog.setChecked(False)
 
-            if existing_dock:
-                existing_dock.frameFindElements.close()
-                elementPropertiesOpened = existing_dock.frameElementProperties.isVisible()
-            else:
-                elementPropertiesOpened = False
-
-            if hasattr(self, "identifyTool"):
-                if not elementPropertiesOpened:
-                    self.iface.mapCanvas().unsetMapTool(self.identifyTool)
+            if existingDock:
+                if not existingDock.frameElementProperties.isVisible():
+                    existingDock.close()
                 else:
-                    self.identifyTool.setUseElementProperties(True)
+                    existingDock.frameFindElements.setVisible(False)
+        else:
+            useElementProperties = self.openElementsPropertyDialog.isChecked()
+            print(useElementProperties)
+            if existingDock:
+                if not existingDock.frameElementProperties.isVisible() and useElementProperties:
+                    existingDock.frameElementProperties.show()
+            else:
+                dock = QGISRedElementsExplorerDock.getInstance(
+                    self.iface.mapCanvas(),
+                    self.iface.mainWindow(),
+                    show_find_elements=True,
+                    show_element_properties=useElementProperties
+                )
+
+                self.iface.addDockWidget(Qt.RightDockWidgetArea, dock)
+                dock.show()
+                dock.raise_()
+                dock.activateWindow()
+                dock.onLayerTreeChanged()
+                dock.setDefaultValue()
+
+            self.myMapTools[tool] = QGISRedIdentifyFeature( self.iface.mapCanvas(), self.openFindElementsDialog, use_element_properties_dock=useElementProperties, isPaired = True )
+            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
+            
+
+    def runElementsProperty(self): 
+        if not self.checkDependencies():
+            self.openElementsPropertyDialog.setChecked(False)
+            return
+
+        self.defineCurrentProject()
+        
+        if not self.isValidProject() or self.isLayerOnEdition():
+            self.openElementsPropertyDialog.setChecked(False)
             return
         
-        if not existing_dock:
-            element_properties_visible = False
-            dock = QGISRedElementsExplorerDock.getInstance(
-                self.iface.mapCanvas(),
-                self.iface.mainWindow(),
-                show_find_elements=True,
-                show_element_properties=False
-            )
-            self.connectExplorerSignals(dock)
-            self.iface.addDockWidget(Qt.RightDockWidgetArea, dock)
-            
-            dock.show()
-            dock.raise_()
-            dock.activateWindow()
+        existingDock = QGISRedElementsExplorerDock._instance
 
-            if hasattr(dock, 'onLayerTreeChanged'):
-                dock.onLayerTreeChanged()
-            if hasattr(dock, 'setDefaultValue'):
-                dock.setDefaultValue()
+        tool = "identifyFeatureElementProperties"
+        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
+            self.openElementsPropertyDialog.setChecked(False)
+
+            if existingDock:
+                if not existingDock.frameFindElements.isVisible():
+                    existingDock.close()
+                else:
+                    existingDock.frameElementProperties.setVisible(False)
         else:
-            element_properties_visible = True
-            existing_dock.toggleFindElementsDockVisibility()
+            #useElementProperties = self.openElementsPropertyDialog.isChecked()
+            #print(useElementProperties)
+            if existingDock:
+                if not existingDock.frameElementProperties.isVisible():
+                    existingDock.frameElementProperties.show()
+            #else:
+                # dock = QGISRedElementsExplorerDock.getInstance(
+                #     self.iface.mapCanvas(),
+                #     self.iface.mainWindow(),
+                #     show_find_elements=True,
+                #     show_element_properties=True
+                # )
 
-        self.identifyTool = QGISRedIdentifyFeature(
-            self.iface.mapCanvas(), 
-            use_element_properties_dock=element_properties_visible
-        )
+                # self.iface.addDockWidget(Qt.RightDockWidgetArea, dock)
+                # dock.show()
+                # dock.raise_()
+                # dock.activateWindow()
+                # dock.onLayerTreeChanged()
+                # dock.setDefaultValue()
 
-        self.iface.mapCanvas().setMapTool(self.identifyTool)
+            self.myMapTools[tool] = QGISRedIdentifyFeature( self.iface.mapCanvas(), self.openElementsPropertyDialog, use_element_properties_dock=True, isPaired = True )
+            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
+
+        # tool = "identifyFeature"
+        # if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+        #     self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
+        #     self.openElementsPropertyDialog.setChecked(False)
+        # else:
+        #     self.myMapTools[tool] = QGISRedIdentifyFeature( self.iface.mapCanvas(), self.openElementsPropertyDialog, use_element_properties_dock=False )
+        #     #self.myMapTools[tool].setCursor(Qt.WhatsThisCursor)
+        #     self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
+
+    # def runFindElements(self):
+    #     if not self.checkDependencies():
+    #         self.openFindElementsDialog.setChecked(False)
+    #         return
+
+    #     self.defineCurrentProject()
+        
+    #     if not self.isValidProject() or self.isLayerOnEdition():
+    #         self.openFindElementsDialog.setChecked(False)
+    #         return
+
+    #     existing_dock = QGISRedElementsExplorerDock._instance
+        
+    #     if not self.openFindElementsDialog.isChecked():
+    #         self.openFindElementsDialog.setChecked(False)
+
+    #         if existing_dock:
+    #             existing_dock.frameFindElements.close()
+    #             elementPropertiesOpened = existing_dock.frameElementProperties.isVisible()
+    #         else:
+    #             elementPropertiesOpened = False
+
+    #         if hasattr(self, "identifyTool"):
+    #             if not elementPropertiesOpened:
+    #                 self.iface.mapCanvas().unsetMapTool(self.identifyTool)
+    #             else:
+    #                 self.identifyTool.setUseElementProperties(True)
+    #         return
+        
+    #     if not existing_dock:
+    #         element_properties_visible = False
+    #         dock = QGISRedElementsExplorerDock.getInstance(
+    #             self.iface.mapCanvas(),
+    #             self.iface.mainWindow(),
+    #             show_find_elements=True,
+    #             show_element_properties=False
+    #         )
+    #         self.connectExplorerSignals(dock)
+    #         self.iface.addDockWidget(Qt.RightDockWidgetArea, dock)
+            
+    #         dock.show()
+    #         dock.raise_()
+    #         dock.activateWindow()
+
+    #         if hasattr(dock, 'onLayerTreeChanged'):
+    #             dock.onLayerTreeChanged()
+    #         if hasattr(dock, 'setDefaultValue'):
+    #             dock.setDefaultValue()
+    #     else:
+    #         element_properties_visible = True
+    #         existing_dock.toggleFindElementsDockVisibility()
+
+    #     self.identifyTool = QGISRedIdentifyFeature(
+    #         self.iface.mapCanvas(), 
+    #         use_element_properties_dock=element_properties_visible
+    #     )
+
+    #     self.iface.mapCanvas().setMapTool(self.identifyTool)
 
 # ==============================================================
 #                        END: QUERIES FIND ELEMENTS
@@ -4457,41 +4562,41 @@ class QGISRed:
 # ==============================================================
 #                        START: QUERIES ELEMENTS PROPERTIES
 # --------------------------------------------------------------
-    def runElementsProperty(self):
-        if not self.checkDependencies():
-            self.openElementsPropertyDialog.setChecked(False)
-            return
+    # def runElementsProperty(self):
+        # if not self.checkDependencies():
+        #     self.openElementsPropertyDialog.setChecked(False)
+        #     return
 
-        self.defineCurrentProject()
-        if not self.isValidProject() or self.isLayerOnEdition():
-            self.openElementsPropertyDialog.setChecked(False)
-            return
+        # self.defineCurrentProject()
+        # if not self.isValidProject() or self.isLayerOnEdition():
+        #     self.openElementsPropertyDialog.setChecked(False)
+        #     return
 
-        existing_dock = QGISRedElementsExplorerDock._instance
+        # existing_dock = QGISRedElementsExplorerDock._instance
             
-        if not self.openElementsPropertyDialog.isChecked():
-            self.openElementsPropertyDialog.setChecked(False)
+        # if not self.openElementsPropertyDialog.isChecked():
+        #     self.openElementsPropertyDialog.setChecked(False)
 
-            if existing_dock:
-                existing_dock.frameElementProperties.show()
-                find_elements_open = existing_dock.frameFindElements.isVisible()
-            else:
-                find_elements_open = False
+        #     if existing_dock:
+        #         existing_dock.frameElementProperties.show()
+        #         find_elements_open = existing_dock.frameFindElements.isVisible()
+        #     else:
+        #         find_elements_open = False
 
-            if hasattr(self, "identifyTool"):
-                if not find_elements_open:
-                    self.iface.mapCanvas().unsetMapTool(self.identifyTool)
-                else:
-                    self.identifyTool.setUseElementProperties(False)
-            return
+        #     if hasattr(self, "identifyTool"):
+        #         if not find_elements_open:
+        #             self.iface.mapCanvas().unsetMapTool(self.identifyTool)
+        #         else:
+        #             self.identifyTool.setUseElementProperties(False)
+        #     return
         
-        self.identifyTool = QGISRedIdentifyFeature(
-            self.iface.mapCanvas(), 
-            use_element_properties_dock=True
-        )
+        # self.identifyTool = QGISRedIdentifyFeature(
+        #     self.iface.mapCanvas(), 
+        #     use_element_properties_dock=True
+        # )
 
-        self.connectExplorerSignals(self.identifyTool)
-        self.iface.mapCanvas().setMapTool(self.identifyTool)
+        # self.connectExplorerSignals(self.identifyTool)
+        # self.iface.mapCanvas().setMapTool(self.identifyTool)
 
     # ==============================================================
     #                        END: QUERIES ELEMENTS PROPERTIES
@@ -4501,34 +4606,34 @@ class QGISRed:
     #                        START: COMMON FE AND EP
     # --------------------------------------------------------------
 
-    def connectExplorerSignals(self, explorer_dock):
-        if hasattr(explorer_dock, 'dockVisibilityChanged'):
-            explorer_dock.dockVisibilityChanged.connect(self.onExplorerVisibilityChanged)
+    # def connectExplorerSignals(self, explorer_dock):
+    #     if hasattr(explorer_dock, 'dockVisibilityChanged'):
+    #         explorer_dock.dockVisibilityChanged.connect(self.onExplorerVisibilityChanged)
         
-        if hasattr(explorer_dock, 'findElementsDockVisibilityChanged'):
-            explorer_dock.findElementsDockVisibilityChanged.connect(self.onFindElementsDockVisibilityChanged)
+    #     if hasattr(explorer_dock, 'findElementsDockVisibilityChanged'):
+    #         explorer_dock.findElementsDockVisibilityChanged.connect(self.onFindElementsDockVisibilityChanged)
         
-        if hasattr(explorer_dock, 'elementPropertiesDockVisibilityChanged'):
-            explorer_dock.elementPropertiesDockVisibilityChanged.connect(self.onElementPropertiesDockVisibilityChanged)
+    #     if hasattr(explorer_dock, 'elementPropertiesDockVisibilityChanged'):
+    #         explorer_dock.elementPropertiesDockVisibilityChanged.connect(self.onElementPropertiesDockVisibilityChanged)
 
-    def onExplorerVisibilityChanged(self, visible):
-        if not visible:
-            if hasattr(self, 'openFindElementsDialog'):
-                self.openFindElementsDialog.setChecked(False)
+    # def onExplorerVisibilityChanged(self, visible):
+    #     if not visible:
+    #         if hasattr(self, 'openFindElementsDialog'):
+    #             self.openFindElementsDialog.setChecked(False)
             
-            if hasattr(self, 'openElementsPropertyDialog'):
-                if self.openElementsPropertyDialog.isChecked():
-                    self.identifyTool.setUseElementProperties(True)
-                else:
-                    self.iface.mapCanvas().unsetMapTool(self.identifyTool)
+    #         if hasattr(self, 'openElementsPropertyDialog'):
+    #             if self.openElementsPropertyDialog.isChecked():
+    #                 self.identifyTool.setUseElementProperties(True)
+    #             else:
+    #                 self.iface.mapCanvas().unsetMapTool(self.identifyTool)
 
-    def onFindElementsDockVisibilityChanged(self, visible):
-        if hasattr(self, 'openFindElementsDialog'):
-            self.openFindElementsDialog.setChecked(visible)
+    # def onFindElementsDockVisibilityChanged(self, visible):
+    #     if hasattr(self, 'openFindElementsDialog'):
+    #         self.openFindElementsDialog.setChecked(visible)
 
-    def onElementPropertiesDockVisibilityChanged(self, visible):
-        if hasattr(self, 'openElementsPropertyDialog'):
-            self.openElementsPropertyDialog.setChecked(visible)
+    # def onElementPropertiesDockVisibilityChanged(self, visible):
+    #     if hasattr(self, 'openElementsPropertyDialog'):
+    #         self.openElementsPropertyDialog.setChecked(visible)
 
     # ==============================================================
     #                        END: COMMON FE AND EP

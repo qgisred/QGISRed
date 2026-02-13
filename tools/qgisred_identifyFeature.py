@@ -11,10 +11,11 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
     elementPropertiesDockVisibilityChanged = pyqtSignal(bool)
     dockFocusChanged = pyqtSignal(bool)
 
-    def __init__(self, canvas, toggle_action=None, use_element_properties_dock=True):
+    def __init__(self, canvas, button, toggle_action=None, use_element_properties_dock=False):
         print("QGISRedIdentifyFeature.__init__: Initializing")
         super().__init__(canvas)
         self.canvas = canvas
+        self.setAction(button)
         self.toggle_action = toggle_action
         self.use_element_properties_dock = use_element_properties_dock
         self.currentHighlight = None
@@ -241,6 +242,8 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
         self.disconnectProjectSignals()
         self.setActionUnchecked()
 
+        QgsMapToolIdentify.deactivate(self)
+
     def keyReleaseEvent(self, e):
         print("keyReleaseEvent: Key released:", e.key())
         if e.key() == Qt.Key_Escape:
@@ -248,9 +251,10 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
             self.deactivate()
 
     def setUseElementProperties(self, value):
-        print("setUseElementProperties: Setting use_element_properties_dock to", value)
-        self.elementPropertiesDockVisibilityChanged.emit(value)
-        self.use_element_properties_dock = value
+        ...
+        # print("setUseElementProperties: Setting use_element_properties_dock to", value)
+        # self.elementPropertiesDockVisibilityChanged.emit(value)
+        # self.use_element_properties_dock = value
 
     def setFindElementsVisibility(self, value):
         self.findElementsDockVisibilityChanged.emit(value)
