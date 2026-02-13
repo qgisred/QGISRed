@@ -69,6 +69,7 @@
         <file>images/iconOverloadC.png</file>
         <file>images/iconProjectManager.png</file>
         <file>images/iconPurges.png</file>
+        <file>images/iconQueries.png</file>
         <file>images/iconResults.png</file>
         <file>images/iconReverseLink.png</file>
         <file>images/iconRoughness.png</file>
@@ -83,6 +84,7 @@
         <file>images/iconStatus.png</file>
         <file>images/iconSummary.png</file>
         <file>images/iconTconnectionsC.png</file>
+        <file>images/iconThematicMaps.png</file>
         <file>images/iconTools.png</file>
         <file>images/iconTree.png</file>
         <file>images/iconVerticesC.png</file>

@@ -41,6 +41,7 @@ from .ui.qgisred_toolLength_dialog import QGISRedLengthToolDialog
 from .ui.qgisred_toolConnections_dialog import QGISRedServiceConnectionsToolDialog
 from .ui.qgisred_toolConnectivity_dialog import QGISRedConnectivityToolDialog
 from .ui.qgisred_loadproject_dialog import QGISRedImportProjectDialog
+from .ui.qgisred_queriesThematicmaps_dialog import QGISRedThematicMapsDialog
 from .tools.qgisred_utils import QGISRedUtils
 from .tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from .tools.qgisred_moveNodes import QGISRedMoveNodesTool
@@ -212,6 +213,7 @@ class QGISRed:
         self.addToolsMenu()
         self.addAnalysisMenu()
         self.addDigitalTwinMenu()
+        self.addQueriesMenu()
 
         # About
         icon_path = ":/plugins/QGISRed/images/iconAbout.png"
@@ -307,6 +309,7 @@ class QGISRed:
         del self.toolsToolbar
         del self.analysisToolbar
         del self.dtToolbar
+        del self.queriesToolbar
 
         # remove statusbar label
         self.iface.mainWindow().statusBar().removeWidget(self.unitsButton)
@@ -326,6 +329,8 @@ class QGISRed:
             self.analysisMenu.menuAction().setVisible(False)
         if self.dtMenu:
             self.dtMenu.menuAction().setVisible(False)
+        if self.queriesMenu:
+            self.queriesMenu.menuAction().setVisible(False)
         if self.qgisredmenu:
             self.qgisredmenu.menuAction().setVisible(False)
 
@@ -1433,6 +1438,45 @@ class QGISRed:
         #                 menubar=self.dtMenu, toolbar=self.dtToolbar,
         #                 actionBase=dtDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
         pass
+    
+    def addQueriesMenu(self):
+        #    #Menu
+        self.queriesMenu = self.qgisredmenu.addMenu(self.tr("Queries"))
+        self.queriesMenu.setIcon(QIcon(":/plugins/QGISRed/images/iconConnections.png"))
+        #    #Toolbar
+        self.queriesToolbar = self.iface.addToolBar(self.tr("QGISRed Queries"))
+        self.queriesToolbar.setObjectName(self.tr("QGISRed Queries"))
+        self.queriesToolbar.visibilityChanged.connect(self.changeQueriesToolbarVisibility)
+        self.queriesToolbar.setVisible(False)
+        #    #Buttons
+        queriesDropButton = QToolButton()
+        icon_path = ":/plugins/QGISRed/images/iconQueries.png"
+        self.add_action(
+            icon_path,
+            text=self.tr("Queries"),
+            callback=self.runQueriesToolbar,
+            menubar=self.queriesMenu,
+            add_to_menu=False,
+            toolbar=self.toolbar,
+            dropButton=queriesDropButton,
+            checable=True,
+            addActionToDrop=False,
+            add_to_toolbar=False,
+            parent=self.iface.mainWindow(),
+        )
+        self.queriesDropButton = queriesDropButton
+        # #Thematic Maps
+        icon_path = ":/plugins/QGISRed/images/iconThematicMaps.png"
+        self.openThematicMapsDialog = self.add_action(
+            icon_path,
+            text=self.tr("Thematic Maps"),
+            callback=self.runThematicMaps,
+            menubar=self.queriesMenu,
+            toolbar=self.queriesToolbar,
+            actionBase=queriesDropButton,
+            add_to_toolbar=True,
+            parent=self.iface.mainWindow(),
+        )
 
     """Version & DLLs"""
 
@@ -2256,6 +2300,12 @@ class QGISRed:
     def changeDtToolbarVisibility(self, status):
         self.dtDropButton.setChecked(status)
 
+    def runQueriesToolbar(self):
+        self.queriesToolbar.setVisible(not self.queriesToolbar.isVisible())
+
+    def changeQueriesToolbarVisibility(self, status):
+        self.queriesDropButton.setChecked(status)
+
     def runExperimentalToolbar(self):
         self.experimentalToolbar.setVisible(not self.experimentalToolbar.isVisible())
 
@@ -2267,6 +2317,7 @@ class QGISRed:
         self.toolsDropButton.setChecked(self.toolsToolbar.isVisible())
         self.analysisDropButton.setChecked(self.analysisToolbar.isVisible())
         self.dtDropButton.setChecked(self.dtToolbar.isVisible())
+        self.queriesDropButton.setChecked(self.queriesToolbar.isVisible())
 
     def runAbout(self):
         # show the dialog
@@ -4258,3 +4309,13 @@ class QGISRed:
         self.removeEmptyQuerySubGroup("Tree")
         if task is not None:
             return {"task": task.definition()}
+
+    # Queries and Thematic Maps
+    def runThematicMaps(self):
+        print("Thematic Maps Clicked")
+        if not self.checkDependencies():
+            return
+
+        dlg = QGISRedThematicMapsDialog()
+        # Run the dialog event loop
+        dlg.exec_()
