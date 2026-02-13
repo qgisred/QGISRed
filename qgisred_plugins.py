@@ -4346,74 +4346,61 @@ class QGISRed:
         dlg.exec_()
 
     def storeQueryLayers(self):
-        self.random_color_queries = ['material']
+        self.random_color_queries = ['Material'] 
         query_layers = []
         queries_group = self.getQueryGroup()
-        
+
         if queries_group:
             self._storeLayersRecursive(queries_group, query_layers, group_path=[], group_positions=[])
         
-        for layer in query_layers:
-            pass
         return query_layers
+
+    def _process_layer(self, layer, child, parent_group, group_path, group_positions):
+        if not layer:
+            return None
+            
+        layer_position = parent_group.children().index(child)
+        subgroup_path = group_path.copy()
+        subgroup_positions = group_positions.copy()
+        
+        field_name = next(
+            (query for query in self.random_color_queries 
+            if query.lower() in layer.name().lower()),
+            None
+        )
+        
+        return {
+            'name': layer.name(),
+            'source': layer.source(),
+            'style_string': layer.customProperty("styleURI"),
+            'checked': child.itemVisibilityChecked(),
+            'labels_enabled': layer.labelsEnabled(),
+            'expanded': child.isExpanded(),
+            'group_path': subgroup_path,
+            'group_positions': subgroup_positions,
+            'layer_position': layer_position,
+            'field_name': field_name
+        }
 
     def _storeLayersRecursive(self, parent_group, query_layers, group_path, group_positions):
         for child in parent_group.children():
             if isinstance(child, QgsLayerTreeLayer):
-                layer = child.layer()
-                if layer:
-                    style_string = layer.customProperty("styleURI")
-                    checked = child.itemVisibilityChecked()
-                    expanded = child.isExpanded()
-                    subgroup_path = group_path.copy()
-                    subgroup_positions = group_positions.copy()
-                    layer_position = parent_group.children().index(child)
-                    layer_details = {
-                        'name': layer.name(),
-                        'source': layer.source(),
-                        'style_string': style_string,
-                        'checked': checked,
-                        'labels_enabled': layer.labelsEnabled(),
-                        'expanded': expanded,
-                        'group_path': subgroup_path,
-                        'group_positions': subgroup_positions,
-                        'layer_position': layer_position,
-                    }
+                layer_details = self._process_layer(child.layer(), child, parent_group, 
+                                                group_path, group_positions)
+                if layer_details:
                     query_layers.append(layer_details)
-            elif child.nodeType() == QgsLayerTreeNode.NodeLayer: 
-                layer = child.checkedLayers()[0] 
-                if layer:
-                    style_string = layer.customProperty("styleURI")
-                    checked = child.itemVisibilityChecked()
-                    expanded = child.isExpanded()
-                    subgroup_path = group_path.copy()
-                    subgroup_positions = group_positions.copy()
-                    layer_position = parent_group.children().index(child)
-                    layer_details = {
-                        'name': layer.name(),
-                        'source': layer.source(),
-                        'style_string': style_string,
-                        'checked': checked,
-                        'labels_enabled': layer.labelsEnabled(),
-                        'expanded': expanded,
-                        'group_path': subgroup_path,
-                        'group_positions': subgroup_positions,
-                        'layer_position': layer_position,
-                    }
+                
+            elif child.nodeType() == QgsLayerTreeNode.NodeLayer:
+                layer = child.checkedLayers()[0] if child.checkedLayers() else None
+                layer_details = self._process_layer(layer, child, parent_group, 
+                                                group_path, group_positions)
+                if layer_details:
                     query_layers.append(layer_details)
+                
             elif child.nodeType() == QgsLayerTreeNode.NodeGroup:
-                new_group_path = group_path.copy()
-                new_group_positions = group_positions.copy()
-                new_group_path.append(child.name())
-                group_position = parent_group.children().index(child)
-                new_group_positions.append(group_position)
+                new_group_path = group_path + [child.name()]
+                new_group_positions = group_positions + [parent_group.children().index(child)]
                 self._storeLayersRecursive(child, query_layers, new_group_path, new_group_positions)
-
-    def getSubgroupPosition(self, parent_group, subgroup_name):
-        for index, child in enumerate(parent_group.children()):
-            if isinstance(child, QgsLayerTreeGroup) and child.name() == subgroup_name:
-                return index
-        return None
 
     def restoreQueryLayers(self, query_layers):
         if not query_layers:
@@ -4430,8 +4417,12 @@ class QGISRed:
             if new_layer.isValid():
                 if 'style_string' in query_info and query_info['style_string']:
                     new_layer.loadNamedStyle(query_info['style_string'])
+
                     new_layer.setCustomProperty("styleURI", query_info['style_string'])
 
+                    if query_info.get('field_name'):
+                        QGISRedUtils().apply_categorized_renderer(new_layer, query_info['field_name'], query_info['style_string'])
+                        
                 if 'labels_enabled' in query_info:
                     new_layer.setLabelsEnabled(query_info['labels_enabled'])
 
@@ -4464,7 +4455,13 @@ class QGISRed:
                         lambda input_layer=input_layer, new_layer=new_layer: 
                         self.syncQueryLayer(input_layer, new_layer)
                     )
-                    
+
+    def getSubgroupPosition(self, parent_group, subgroup_name):
+        for index, child in enumerate(parent_group.children()):
+            if isinstance(child, QgsLayerTreeGroup) and child.name() == subgroup_name:
+                return index
+        return None
+             
     def ensureGroupHierarchy(self, parent_group, group_path, group_positions):
         current_group = parent_group
 

@@ -739,21 +739,22 @@ class QGISRedUtils:
             # Default to SI units
             return 'SI'
 
-    def apply_categorized_renderer(self, layer, field):
+    def apply_categorized_renderer(self, layer, field, qml_file):
         material_field_index = layer.fields().indexFromName(field)
+        
         if material_field_index == -1:
             raise ValueError(f'{field} field not found in layer {layer.name()}')
 
         unique_values = layer.uniqueValues(material_field_index)
         categories = []
 
-        # Load existing categories from the .qml file if it exists
-        style_uri = layer.customProperty("styleURI")
+        style_uri = qml_file
         existing_categories = {}
         if style_uri and os.path.exists(style_uri):
             temp_layer = QgsVectorLayer(layer.source(), layer.name(), layer.providerType())
-            temp_layer.loadNamedStyle(style_uri)
+            temp_layer.loadNamedStyle(qml_file)
             renderer = temp_layer.renderer()
+            
             if isinstance(renderer, QgsCategorizedSymbolRenderer):
                 for cat in renderer.categories():
                     existing_categories[cat.value()] = cat.symbol().color()
@@ -763,7 +764,6 @@ class QGISRedUtils:
 
         for value in non_null_values:
             symbol = QgsSymbol.defaultSymbol(layer.geometryType())
-            # Use existing color if available
             if value in existing_categories:
                 symbol.setColor(existing_categories[value])
             else:
@@ -778,14 +778,14 @@ class QGISRedUtils:
             categories.append(category)
 
         if null_values:
-            for null_value in null_values:
-                symbol = QgsSymbol.defaultSymbol(layer.geometryType())
-                dark_gray = QColor.fromRgb(192, 192, 192)  # Dark gray color for NULL values
-                symbol.setColor(dark_gray)
-                symbol.setWidth(0.6)
-                category = QgsRendererCategory(null_value, symbol, str("#NA"))
-                categories.append(category)
-                break
+            symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+            dark_gray = QColor.fromRgb(192, 192, 192)
+            symbol.setColor(dark_gray)
+            symbol.setWidth(0.6)
+            category = QgsRendererCategory(null_values[0], symbol, str("#NA"))
+            categories.append(category)
 
         renderer = QgsCategorizedSymbolRenderer(field, categories)
         layer.setRenderer(renderer)
+
+        layer.saveNamedStyle(qml_file)

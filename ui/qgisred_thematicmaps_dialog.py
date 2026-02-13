@@ -7,6 +7,7 @@ import os
 from PyQt5.QtCore import QObject
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QDialog, QMessageBox, QWidget
+from PyQt5 import sip
 from qgis.PyQt import uic
 
 # QGIS imports
@@ -119,44 +120,67 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         field = query['field']
         qml_file = query['qml_file']
         tooltip_prefix = query['tooltip_prefix']
-        file_name = query['file_name']
         
-        existing_layer = None
+        existing_layer, layer_position = self.find_layer_recursively(queries_group, layer_name)
+        parent_group = queries_group
         layer_position = 0
-        for i, child in enumerate(queries_group.children()):
-            if isinstance(child, QgsLayerTreeLayer) and child.name() == layer_name:
-                existing_layer = child
-                layer_position = i
-                break
         
         if existing_layer is not None:
-            QgsProject.instance().removeMapLayer(existing_layer.layerId())
+            try:
+                parent_group = existing_layer.parent()
+                
+                layer_id = None
+                if isinstance(existing_layer, QgsLayerTreeLayer) and existing_layer.layer():
+                    layer_id = existing_layer.layer().id()
+                elif existing_layer.nodeType() == QgsLayerTreeNode.NodeLayer and existing_layer.checkedLayers():
+                    layer_id = existing_layer.checkedLayers()[0].id()
+                    
+                if layer_id and QgsProject.instance().mapLayer(layer_id):
+                    QgsProject.instance().removeMapLayer(layer_id)
+                    
+                if parent_group and not sip.isdeleted(parent_group):
+                    parent_group.removeChildNode(existing_layer)
+                    
+            except Exception as e:
+                print(f"Error removing layer: {e}")
         
         derived_layer = self.create_derived_layer(main_layer, layer_name, field)
         
-        self.load_qml_style(derived_layer, qml_file)
+        qml_path = self.load_qml_style(derived_layer, qml_file)
         derived_layer.setLabelsEnabled(False)
 
         if field == 'Material':
-            QGISRedUtils().apply_categorized_renderer(derived_layer, field)
+            QGISRedUtils().apply_categorized_renderer(derived_layer, field, qml_path)
 
-        QgsProject.instance().addMapLayer(derived_layer, False) 
-        
+        QgsProject.instance().addMapLayer(derived_layer, False)
         self.hide_fields(derived_layer, field)
         
-        if queries_group:
-            # Insert at original position if replacing, otherwise at position 0
-            layer_tree_layer = queries_group.insertLayer(layer_position, derived_layer)
+        if parent_group and not sip.isdeleted(parent_group):
+            layer_tree_layer = parent_group.insertLayer(layer_position, derived_layer)
             layer_tree_layer.setCustomProperty("showFeatureCount", True)
 
         main_layer.dataChanged.connect(lambda: self.sync_layers(main_layer, derived_layer))
         main_layer.styleChanged.connect(lambda: self.sync_layers(main_layer, derived_layer))
         derived_layer.dataChanged.connect(lambda: derived_layer.triggerRepaint())
-        
         derived_layer.setReadOnly(True)
         
         return derived_layer
 
+    def find_layer_recursively(self, parent_group, layer_name):
+        if not parent_group:
+            return None, None
+            
+        for i, child in enumerate(parent_group.children()):
+            if isinstance(child, QgsLayerTreeLayer):
+                if child.name() == layer_name:
+                    return child, i
+            elif isinstance(child, QgsLayerTreeGroup):
+                found_layer, found_position = self.find_layer_recursively(child, layer_name)
+                if found_layer is not None:
+                    return found_layer, found_position
+        
+        return None, None
+    
     def sync_layers(self, main_layer, derived_layer):
         derived_layer.dataProvider().forceReload()
         new_renderer = main_layer.renderer().clone()
@@ -174,7 +198,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             if layer_path and os.path.exists(layer_path):
                 QgsVectorFileWriter.deleteShapeFile(layer_path)
             
-            QgsProject.instance().removeMapLayer(existing_layer.layerId())
+            QgsProject.instance().removeMapLayer(existing_layer.id())
             return True
         
         return False
@@ -197,10 +221,11 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
     def load_qml_style(self, layer, qml_file):
         qml_path = os.path.join(os.path.dirname(__file__), '..', 'layerStyles', qml_file)
         if os.path.exists(qml_path):
-            layer.setCustomProperty("styleURI", qml_path)
             layer.loadNamedStyle(qml_path)
+            layer.setCustomProperty("styleURI", qml_path)
             layer.triggerRepaint()
-
+        return qml_path
+    
     def assign_labels(self, layer, field, ):
         layer.setLabelsEnabled(True)
         labeling = layer.labeling()
