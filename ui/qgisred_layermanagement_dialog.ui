@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>QGISRed: Layer Management</string>
+   <string>QGISRed: Layer Manager</string>
   </property>
   <property name="windowIcon">
    <iconset>

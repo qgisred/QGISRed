@@ -43,6 +43,7 @@ from .ui.qgisred_toolConnections_dialog import QGISRedServiceConnectionsToolDial
 from .ui.qgisred_toolConnectivity_dialog import QGISRedConnectivityToolDialog
 from .ui.qgisred_loadproject_dialog import QGISRedImportProjectDialog
 from .ui.qgisred_thematicmaps_dialog import QGISRedThematicMapsDialog
+from .ui.qgisred_findElements_dock import QGISRedFindElementsDock
 from .tools.qgisred_utils import QGISRedUtils
 from .tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from .tools.qgisred_moveNodes import QGISRedMoveNodesTool
@@ -450,7 +451,7 @@ class QGISRed:
         icon_path = ":/plugins/QGISRed/images/iconLayerManagement.png"
         self.add_action(
             icon_path,
-            text=self.tr("Layer management"),
+            text=self.tr("Layer manager"),
             callback=self.runEditProject,
             menubar=self.projectMenu,
             toolbar=self.projectToolbar,
@@ -1466,12 +1467,60 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         self.queriesDropButton = queriesDropButton
-        # #Thematic Maps
+        # Find Elements by ID
+        icon_path = ":/plugins/QGISRed/images/iconFindElements.png"
+        self.openFindElementsDialog = self.add_action(
+            icon_path,
+            text=self.tr("Find Elements by ID"),
+            callback=self.runFindElements,
+            menubar=self.queriesMenu,
+            toolbar=self.queriesToolbar,
+            actionBase=queriesDropButton,
+            add_to_toolbar=True,
+            parent=self.iface.mainWindow(),
+        )
+        # # Elements Properties
+        icon_path = ":/plugins/QGISRed/images/iconElementsProperties.png"
+        self.openElementsPropertiesDialog = self.add_action(
+            icon_path,
+            text=self.tr("Element Data"),
+            callback=self.runElementsProperties,
+            menubar=self.queriesMenu,
+            toolbar=self.queriesToolbar,
+            actionBase=queriesDropButton,
+            add_to_toolbar=True,
+            parent=self.iface.mainWindow(),
+        )
+        # Thematic Maps
         icon_path = ":/plugins/QGISRed/images/iconThematicMaps.png"
         self.openThematicMapsDialog = self.add_action(
             icon_path,
             text=self.tr("Thematic Maps"),
             callback=self.runThematicMaps,
+            menubar=self.queriesMenu,
+            toolbar=self.queriesToolbar,
+            actionBase=queriesDropButton,
+            add_to_toolbar=True,
+            parent=self.iface.mainWindow(),
+        )
+        # # Live Queries
+        icon_path = ":/plugins/QGISRed/images/iconLiveQueries.png"
+        self.openLiveQueriesDialog = self.add_action(
+            icon_path,
+            text=self.tr("Live Queries"),
+            callback=self.runLiveQueries,
+            menubar=self.queriesMenu,
+            toolbar=self.queriesToolbar,
+            actionBase=queriesDropButton,
+            add_to_toolbar=True,
+            parent=self.iface.mainWindow(),
+        )
+        # # Statistics & Plots
+        icon_path = ":/plugins/QGISRed/images/iconStatisticsAndPlots.png"
+        self.openStatisticsAndPlotsDialog = self.add_action(
+            icon_path,
+            text=self.tr("Statistics and Plots"),
+            callback=self.runStatisticsAndPlots,
             menubar=self.queriesMenu,
             toolbar=self.queriesToolbar,
             actionBase=queriesDropButton,
@@ -4330,7 +4379,83 @@ class QGISRed:
         if task is not None:
             return {"task": task.definition()}
 
-    # Queries and Thematic Maps
+    # ==============================================================
+    #                        START: QUERIES FIND ELEMENTS
+    # --------------------------------------------------------------
+
+    def runFindElements(self):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        # Check if the dock widget already exists
+        existing_docks = self.iface.mainWindow().findChildren(QGISRedFindElementsDock)
+        if existing_docks:
+            dock = existing_docks[0]
+            self.iface.addDockWidget(Qt.RightDockWidgetArea, dock)
+            dock.show()
+            dock.raise_()
+            dock.activateWindow()
+            dock.onLayerTreeChanged()
+            dock.setDefaultValue()
+        else:
+            self.dock = QGISRedFindElementsDock()
+            self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dock)
+            self.dock.show()
+
+    # ==============================================================
+    #                        END: QUERIES FIND ELEMENTS
+    # --------------------------------------------------------------
+
+    # ==============================================================
+    #                        START: QUERIES ELEMENTS PROPERTIES
+    # --------------------------------------------------------------
+    def runElementsProperties(self):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        #dlg = QGISRedFindElementsDialog()
+        # Run the dialog event loop
+        #dlg.exec_()
+    # ==============================================================
+    #                        END: QUERIES ELEMENTS PROPERTIES
+    # --------------------------------------------------------------
+
+    # ==============================================================
+    #                        START: QUERIES LIVE QUERIES
+    # --------------------------------------------------------------
+    def runLiveQueries(self):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        #dlg = QGISRedFindElementsDialog()
+        # Run the dialog event loop
+        #dlg.exec_()
+    # ==============================================================
+    #                        END: QUERIES LIVE QUERIES
+    # --------------------------------------------------------------
+
+    # ==============================================================
+    #                        START: QUERIES THEMATIC MAPS
+    # --------------------------------------------------------------
+
     def runThematicMaps(self):
         if not self.checkDependencies():
             return
@@ -4421,8 +4546,8 @@ class QGISRed:
                 if 'labels_enabled' in query_info:
                     new_layer.setLabelsEnabled(query_info['labels_enabled'])
 
-                new_layer.setCustomProperty("query_field", query_info['field_name'])
                 new_layer.setCustomProperty("qgisred_identifier", query_info['identifier'])
+                new_layer.setCustomProperty("query_field", query_info['field_name'])
                 new_layer.setReadOnly(True)
                 QgsProject.instance().addMapLayer(new_layer, False)
 
@@ -4496,3 +4621,27 @@ class QGISRed:
     def syncQueryLayer(self, source_layer, query_layer):
         query_layer.dataProvider().forceReload()
         query_layer.triggerRepaint()
+
+    # ==============================================================
+    #                        END: QUERIES THEMATIC MAPS
+    # --------------------------------------------------------------
+
+    # ==============================================================
+    #                        START: QUERIES STATISTICS AND PLOTS
+    # --------------------------------------------------------------
+    def runStatisticsAndPlots(self):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        #dlg = QGISRedFindElementsDialog()
+        # Run the dialog event loop
+        #dlg.exec_()
+    # ==============================================================
+    #                        END: QUERIES STATISTICS AND PLOTS
+    # --------------------------------------------------------------
