@@ -41,88 +41,92 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         self.btMeters.clicked.connect(lambda: self.createElement("Meters", True))
         
         # Initialize layer name mapping
-        self.layer_name_mapping = {}
-        self.element_to_display_name = {}
+        self.layerNameMapping = {}
+        self.elementToDisplayName = {}
+
+        self.elements = {
+            'Pipes': ('qgisred_pipes', self.cbPipes),
+            'Junctions': ('qgisred_junctions', self.cbJunctions),
+            'Tanks': ('qgisred_tanks', self.cbTanks),
+            'Reservoirs': ('qgisred_reservoirs', self.cbReservoirs),
+            'Valves': ('qgisred_valves', self.cbValves),
+            'Pumps': ('qgisred_pumps', self.cbPumps),
+            'Demands': ('qgisred_demands', self.cbDemands),
+            'Sources': ('qgisred_sources', self.cbSources),
+            'IsolationValves': ('qgisred_isolationvalves', self.cbIsolatedValves),
+            'ServiceConnections': ('qgisred_serviceconnections', self.cbConnections),
+            'Meters': ('qgisred_meters', self.cbMeters)
+        }
 
     def config(self, ifac, direct, netw, parent):
         self.iface = ifac
         self.parent = parent
 
-        utils = QGISRedUtils(direct, netw, ifac)
-        self.crs = utils.getProjectCrs()
+        self.utils = QGISRedUtils(direct, netw, ifac)
+        self.crs = self.utils.getProjectCrs()
         self.originalCrs = self.crs
         self.tbCRS.setText(self.crs.description())
 
         self.NetworkName = netw
         self.ProjectDirectory = direct
         
-        # Build layer name mapping from Inputs group
+        # Map display name with QGISRed processing names
         self.buildLayerNameMapping()
-        
+
         # Set properties with updated names
         self.setProperties()
 
-    def buildLayerNameMapping(self):
-        self.layer_name_mapping.clear()
-        self.element_to_display_name.clear()
-        
-        element_identifiers = {
-            'Pipes': 'qgisred_pipes',
-            'Junctions': 'qgisred_junctions',
-            'Tanks': 'qgisred_tanks',
-            'Reservoirs': 'qgisred_reservoirs',
-            'Valves': 'qgisred_valves',
-            'Pumps': 'qgisred_pumps',
-            'Demands': 'qgisred_demands',
-            'Sources': 'qgisred_sources',
-            'IsolationValves': 'qgisred_isolationvalves',
-            'ServiceConnections': 'qgisred_serviceconnections',
-            'Meters': 'qgisred_meters'
-        }
-        
-        root = QgsProject.instance().layerTreeRoot()
-        input_group = root.findGroup("Inputs")
-        
-        if not input_group:
-            for element_type in element_identifiers:
-                self.element_to_display_name[element_type] = self.getLayerNameToLegend(element_type)
+    def processInputGroupLayers(self, action):
+        inputGroup = self.utils.getInputGroup()
+        if not inputGroup:
             return
-        
-        input_layers = []
-        for child in input_group.children():
-            if hasattr(child, 'layer'):
-                layer = child.layer()
-                if layer:
-                    input_layers.append(layer)
-        
-        for layer in input_layers:
-            layer_identifier = layer.customProperty("qgisred_identifier")
-            
-            if layer_identifier:
-                for element_type, identifier in element_identifiers.items():
-                    if identifier == layer_identifier:
-                        actual_name = layer.name()
-                        self.layer_name_mapping[element_type] = actual_name
-                        self.element_to_display_name[element_type] = actual_name
-                        break
-        
-        for element_type in element_identifiers:
-            if element_type not in self.element_to_display_name:
-                self.element_to_display_name[element_type] = self.getLayerNameToLegend(element_type)
 
-    def updateCheckboxText(self, checkbox, element_type):
-        display_name = self.element_to_display_name.get(element_type, self.getLayerNameToLegend(element_type))
+        for child in inputGroup.children():
+            if hasattr(child, 'layer') and child.layer():
+                layer = child.layer()
+                layerIdentifier = layer.customProperty("qgisred_identifier")
+                
+                if not layerIdentifier:
+                    continue
+
+                for elementType, (identifier, _) in self.elements.items():
+                    if identifier == layerIdentifier:
+                        action(layer, elementType)
+                        break
+
+    def buildLayerNameMapping(self):
+        self.layerNameMapping.clear()
+        self.elementToDisplayName.clear()
+        
+        # Set default display names from checkbox text
+        for elementType, (_, checkbox) in self.elements.items():
+            checkboxText = checkbox.text().split("Id:")[0].strip()
+            self.elementToDisplayName[elementType] = checkboxText
+        
+        def updateMappings(layer, element_type):
+            actual_name = layer.name()
+            self.layerNameMapping[element_type] = actual_name
+            self.elementToDisplayName[element_type] = actual_name
+
+        self.processInputGroupLayers(updateMappings)
+
+    def updateCheckboxText(self, checkbox, elementType):
+        # Only update the text if the element type is in the layerNameMapping (i.e., the layer exists)
+        if elementType not in self.layerNameMapping:
+            return
+
+        displayName = self.elementToDisplayName.get(elementType, self.getLayerNameToLegend(elementType))
         # Preserve the ID format if it exists in the original text
-        current_text = checkbox.text()
-        if "Id:" in current_text:
+        currentText = checkbox.text()
+        if "Id:" in currentText:
             # Extract ID part and combine with new name
-            id_part = current_text.split("Id:")[1].strip() if "Id:" in current_text else ""
-            if id_part:
-                checkbox.setText(f"{display_name} Id: {id_part}")
+            idPart = currentText.split("Id:")[1].strip() if "Id:" in currentText else ""
+            if idPart:
+                checkbox.setText(f"{displayName} Id: {idPart}")
             else:
-                checkbox.setText(display_name)
+                checkbox.setText(displayName)
         else:
-            checkbox.setText(display_name)
+            checkbox.setText(displayName)
 
     def setProperties(self):
         dirList = os.listdir(self.ProjectDirectory)
@@ -158,9 +162,6 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         self.cbConnections.setEnabled(self.NetworkName + "_ServiceConnections.shp" in dirList)
         self.cbMeters.setEnabled(self.NetworkName + "_Meters.shp" in dirList)
 
-        # Los básicos: Enables and checked
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        
         # Check if layers are opened using their identifiers
         # Pipes remains exception: cannot be deselected
         hasLayer = self.isLayerOpenedByIdentifier("Pipes")
@@ -201,35 +202,22 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         self.cbConnections.setChecked(self.isLayerOpenedByIdentifier("ServiceConnections"))
         self.cbMeters.setChecked(self.isLayerOpenedByIdentifier("Meters"))
 
-    def isLayerOpenedByIdentifier(self, element_type):
-        element_identifiers = {
-            'Pipes': 'qgisred_pipes',
-            'Junctions': 'qgisred_junctions',
-            'Tanks': 'qgisred_tanks',
-            'Reservoirs': 'qgisred_reservoirs',
-            'Valves': 'qgisred_valves',
-            'Pumps': 'qgisred_pumps',
-            'Demands': 'qgisred_demands',
-            'Sources': 'qgisred_sources',
-            'IsolationValves': 'qgisred_isolationvalves',
-            'ServiceConnections': 'qgisred_serviceconnections',
-            'Meters': 'qgisred_meters'
-        }
-        
-        target_identifier = element_identifiers.get(element_type)
-        if not target_identifier:
+    def isLayerOpenedByIdentifier(self, elementType):
+        # Get the identifier for this element type
+        if elementType not in self.elements:
             return False
         
+        targetIdentifier = self.elements[elementType][0]
+        
         # Check all layers for the identifier
-        layers = QGISRedUtils().getLayers()
+        layers = self.utils.getLayers()
         for layer in layers:
-            layer_identifier = layer.customProperty("qgisred_identifier")
-            if layer_identifier == target_identifier:
+            layerIdentifier = layer.customProperty("qgisred_identifier")
+            if layerIdentifier == targetIdentifier:
                 return True
         
         # Fallback to checking by path for backward compatibility
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        return utils.isLayerOpened(element_type)
+        return self.utils.isLayerOpened(elementType)
 
     def selectCRS(self):
         projSelector = QgsGenericProjectionSelector()
@@ -241,13 +229,13 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
                 self.tbCRS.setText(self.crs.description())
 
     def getLayerPath(self, layer):
-        return QGISRedUtils().getLayerPath(layer)
+        return self.utils.getLayerPath(layer)
 
     def generatePath(self, folder, fileName):
-        return QGISRedUtils().generatePath(folder, fileName)
+        return self.utils.generatePath(folder, fileName)
 
     def getLayers(self):
-        return QGISRedUtils().getLayers()
+        return self.utils.getLayers()
 
     def getLayerNameToLegend(self, original):
         upperIndex = []
@@ -268,9 +256,8 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         
         for layer in openedLayers:
             # Should translate here
-            originalName = QGISRedUtils().getOriginalNameFromLayerName(layerName)
-            layerPath = self.generatePath(self.ProjectDirectory, 
-                                        self.NetworkName + "_" + originalName + ".shp")
+            originalName = self.utils.getOriginalNameFromLayerName(layerName)
+            layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + originalName + ".shp")
             if self.getLayerPath(layer) == layerPath:
                 return True
         return False
@@ -318,6 +305,15 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
             self.iface.messageBar().pushMessage("Error", resMessage, level=2, duration=5)
         self.close()
 
+    def renameLayersInInputsGroup(self):
+        def renameAction(layer, element_type):
+            if element_type in self.elementToDisplayName:
+                newName = self.elementToDisplayName[element_type]
+                if layer.name() != newName:
+                    layer.setName(newName)
+
+        self.processInputGroupLayers(renameAction)
+
     def accept(self):
         self.layers = []
         self.createElementsList()
@@ -327,4 +323,6 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         if not self.crs.srsid() == self.originalCrs.srsid():
             epsg = self.crs.authid().replace("EPSG:", "")
         self.parent.openRemoveSpecificLayers(self.layers, epsg)
+
+        self.renameLayersInInputsGroup()
         self.close()

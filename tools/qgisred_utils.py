@@ -57,6 +57,7 @@ class QGISRedUtils:
         }
 
         self.identifierToElementName = {
+            # Existing main network layers
             'qgisred_pipes': 'Pipes',
             'qgisred_junctions': 'Junctions', 
             'qgisred_demands': 'Demands',
@@ -67,7 +68,52 @@ class QGISRedUtils:
             'qgisred_sources': 'Sources',
             'qgisred_serviceconnections': 'Service Connections',
             'qgisred_isolationvalves': 'Isolation Valves',
-            'qgisred_meters': 'Meters'
+            'qgisred_meters': 'Meters',
+            
+            # Result layers
+            'qgisred_link_flow': 'Link Flow',
+            'qgisred_link_velocity': 'Link Velocity',
+            'qgisred_link_headloss': 'Link HeadLoss',
+            'qgisred_link_unitheadloss': 'Link UnitHeadLoss',
+            'qgisred_link_status': 'Link Status',
+            'qgisred_link_quality': 'Link Quality',
+            'qgisred_node_pressure': 'Node Pressure',
+            'qgisred_node_head': 'Node Head',
+            'qgisred_node_demand': 'Node Demand',
+            'qgisred_node_quality': 'Node Quality',
+            
+            # Connectivity layers
+            'qgisred_links_connectivity': 'Links Connectivity',
+            
+            # Sector layers
+            'qgisred_links_hydraulicsectors': 'Links_ HydraulicSectors',
+            'qgisred_nodes_hydraulicsectors': 'Nodes_ HydraulicSectors',
+            'qgisred_links_demandsectors': 'Links_ Demand Sectors',
+            'qgisred_nodes_demandsectors': 'Nodes_ Demand Sectors',
+            
+            # Isolated segments layers
+            'qgisred_isolatedsegments_links': 'IsolatedSegments Links',
+            'qgisred_isolatedsegments_nodes': 'IsolatedSegments Nodes',
+            
+            # Issues layers
+            'qgisred_pipes_issues': 'Pipes Issues',
+            'qgisred_junctions_issues': 'Junctions Issues',
+            'qgisred_demands_issues': 'Demands Issues',
+            'qgisred_valves_issues': 'Valves Issues',
+            'qgisred_pumps_issues': 'Pumps Issues',
+            'qgisred_tanks_issues': 'Tanks Issues',
+            'qgisred_reservoirs_issues': 'Reservoirs Issues',
+            'qgisred_sources_issues': 'Sources Issues',
+            'qgisred_isolationvalves_issues': 'Isolation Valves Issues',
+            'qgisred_hydrants_issues': 'Hydrants Issues',
+            'qgisred_washoutvalves_issues': 'WashoutValves Issues',
+            'qgisred_airreleasevalves_issues': 'AirReleaseValves Issues',
+            'qgisred_serviceconnections_issues': 'Service Connections Issues',
+            'qgisred_meters_issues': 'Meters Issues',
+            
+            # Tree layers
+            'qgisred_links': 'Links',
+            'qgisred_nodes': 'Nodes',
         }
         
 
@@ -108,6 +154,17 @@ class QGISRedUtils:
             original = "Multiple Demands"
         return original
 
+    def getInputGroup(self):
+        # Same method in qgisred_newproject_dialog and qgisred_results_dock
+        inputGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
+        if inputGroup is None:
+            netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
+            if netGroup is None:
+                root = QgsProject.instance().layerTreeRoot()
+                netGroup = root.insertGroup(0, self.NetworkName)
+            inputGroup = netGroup.addGroup("Inputs")
+        return inputGroup
+    
     """Open Layers"""
 
     def isLayerOpened(self, layerName):
@@ -176,6 +233,7 @@ class QGISRedUtils:
             if link:
                 self.setTreeStyle(vlayer)
             QgsProject.instance().addMapLayer(vlayer, group is None)
+            self.setLayerIdentifier(vlayer, name) 
             if group is not None:
                 group.insertChildNode(0, QgsLayerTreeLayer(vlayer))
             del vlayer
@@ -187,6 +245,7 @@ class QGISRedUtils:
             vlayer = QgsVectorLayer(layerPath, name, "ogr")
             self.setIsolatedSegmentsStyle(vlayer)
             QgsProject.instance().addMapLayer(vlayer, group is None)
+            self.setLayerIdentifier(vlayer, name)
             if group is not None:
                 group.insertChildNode(0, QgsLayerTreeLayer(vlayer))
             del vlayer
@@ -220,7 +279,6 @@ class QGISRedUtils:
 
     """Order Layers"""
     def orderLayers(self, group):
-        print("REACHED HERE")
         if group is None:
             return
         
@@ -895,7 +953,6 @@ class QGISRedUtils:
         layer_metadata = QgsLayerMetadata()
         layer_metadata.setIdentifier(identifier)
         layer.setMetadata(layer_metadata)
-        print(f"qgisred_{layerType.lower()}")
 
     def getQLRFolder(self):
         qlr_folder = os.path.join(self.getGISRedFolder(), "qlr")
