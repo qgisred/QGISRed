@@ -101,8 +101,12 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
 
     def find_layer_in_group(self, group, layer_name):
         for child in group.children():
-            if child.nodeType() == QgsLayerTreeNode.NodeLayer and child.name() == layer_name:
-                return child.checkedLayers()[0]
+            if isinstance(child, QgsLayerTreeLayer) and child.name() == layer_name:
+                return child.layer()
+            elif isinstance(child, QgsLayerTreeGroup):
+                layer = self.find_layer_in_group(child, layer_name)
+                if layer is not None:
+                    return layer
         return None
 
     def get_project_units(self):
@@ -195,6 +199,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                 random.randint(0, 255)
             )
             symbol.setColor(random_color)
+            symbol.setWidth(0.6)
             category = QgsRendererCategory(value, symbol, str(value))
             categories.append(category)
 
