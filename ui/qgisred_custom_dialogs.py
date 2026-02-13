@@ -2,6 +2,7 @@
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QDoubleSpinBox, QLabel, QVBoxLayout
 from PyQt5.QtCore import pyqtSignal, Qt, QEvent
+from PyQt5.QtWidgets import QToolButton
 
 from qgis.gui import QgsSymbolButton, QgsColorDialog
 from qgis.core import QgsMarkerSymbol, QgsLineSymbol, QgsFillSymbol, QgsSymbol
@@ -62,12 +63,14 @@ class SymbolColorSelector(QgsSymbolButton):
 
         self.applySymbol()
 
-        try:
-            self.setSymbolSize(18)
-        except Exception:
-            pass
+        # Remove ▼ QgsSymbolButton Menu
+        self.setPopupMode(QToolButton.DelayedPopup)
+        self.setStyleSheet("""
+            QToolButton::menu-indicator { image: none; width: 0px; }
+            QToolButton { padding-right: 4px; }  /* optional: tighten right padding */
+        """)
 
-        self.setToolTip("Click to pick a color; preview updates immediately.")
+        self.setToolTip(self.tr("Click to pick a color."))
         self.installEventFilter(self)
 
     def setGeometryHint(self, geometryHint: str):

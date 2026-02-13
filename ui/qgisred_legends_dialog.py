@@ -65,25 +65,30 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.setWindowIcon(QIcon(iconPath))
     
     def setupTableView(self):
-        self.tableView.setColumnCount(5)  # Checkbox, Color, Size, Value, Legend
-        self.tableView.setHorizontalHeaderLabels(["", "Color", "Size", "Value", "Legend"])
+        self.tableView.setColumnCount(5)  # Checkbox, Symbol, Size, Value, Legend
+        self.tableView.setHorizontalHeaderLabels(["", "Symbol", "Size", "Value", "Legend"])
 
         # Get the horizontal header
         header = self.tableView.horizontalHeader()
         
         # Set column 0 (checkbox) to Fixed size
         header.setSectionResizeMode(0, QHeaderView.Fixed)
-        self.tableView.setColumnWidth(0, 40)
+        self.tableView.setColumnWidth(0, 15)
         
         # Set column 1 (Color) to Stretch
-        header.setSectionResizeMode(1, QHeaderView.Stretch)
-        
+        header.setSectionResizeMode(1, QHeaderView.Fixed)
+        self.tableView.setColumnWidth(1, 60)
+
         # Set column 2 (Size) to Fixed size
         header.setSectionResizeMode(2, QHeaderView.Fixed)
         self.tableView.setColumnWidth(2, 60)
         
+        # Set column 2 (Size) to Fixed size
+        header.setSectionResizeMode(3, QHeaderView.Fixed)
+        self.tableView.setColumnWidth(3, 100)
+
         # Set columns 3-4 (Value, Legend) to Stretch
-        for col in range(3, 5):
+        for col in range(4, 5):
             header.setSectionResizeMode(col, QHeaderView.Stretch)
         
         # Hide checkbox column initially (only for categorical with up/down buttons)
@@ -941,8 +946,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
             QMessageBox.warning(self, "Unknown Layer Type", "Unable to determine layer type.")
             return
         
-        # Convert element name to lowercase filename format (e.g., "Pipes" -> "pipes")
-        #fileName = elementName.replace(" ", "").lower()
+        # Remove spaces from element name: Isolation Valves -> IsolationValves
+        fileName = elementName.replace(" ", "")
         
         # Get project directory
         projectDir = utils.ProjectDirectory
@@ -959,8 +964,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not os.path.exists(stylesDir):
             os.makedirs(stylesDir)
         
-        qmlPath = os.path.join(stylesDir, f"{elementName}.qml")
-        
+        qmlPath = os.path.join(stylesDir, f"{fileName}.qml")
+
         # Check if file exists
         if os.path.exists(qmlPath):
             reply = QMessageBox.question(
@@ -1005,16 +1010,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
             QMessageBox.warning(self, "Unknown Layer Type", "Unable to determine layer type.")
             return
         
-        # Convert element name to lowercase filename format (e.g., "Pipes" -> "pipes")
-        #fileName = elementName.replace(" ", "").lower()
+        fileName = elementName.replace(" ", "")
         
         # Get plugin layerStyles folder
         stylesDir = os.path.join(self.pluginFolder, "layerStyles")
         if not os.path.exists(stylesDir):
             os.makedirs(stylesDir)
         
-        qmlPath = os.path.join(stylesDir, f"{elementName}.qml")
-        
+        qmlPath = os.path.join(stylesDir, f"{fileName}.qml")
+
         # Check if file exists
         if os.path.exists(qmlPath):
             reply = QMessageBox.question(
@@ -1059,14 +1063,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
             QMessageBox.warning(self, "Unknown Layer Type", "Unable to determine layer type.")
             return
         
-        # Convert element name to lowercase filename format (e.g., "Pipes" -> "pipes")
-        fileName = elementName #.replace(" ", "").lower()
+        fileName = elementName.replace(" ", "")
         
         # Get default styles folder
         defaultsDir = os.path.join(self.pluginFolder, "defaults", "layerStyles")
         
         qmlPath = os.path.join(defaultsDir, f"{fileName}.qml.bak")
-        
+
         if not os.path.exists(qmlPath):
             QMessageBox.warning(
                 self, 
@@ -1112,14 +1115,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
             QMessageBox.warning(self, "Unknown Layer Type", "Unable to determine layer type.")
             return
         
-        # Convert element name to lowercase filename format (e.g., "Pipes" -> "pipes")
-        fileName = elementName #.replace(" ", "").lower()
+        fileName = elementName.replace(" ", "")
         
         # Get plugin layerStyles folder
         stylesDir = os.path.join(self.pluginFolder, "layerStyles")
         
         qmlPath = os.path.join(stylesDir, f"{fileName}.qml")
-        
+
         if not os.path.exists(qmlPath):
             QMessageBox.warning(
                 self, 

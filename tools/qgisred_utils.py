@@ -56,6 +56,8 @@ class QGISRedUtils:
             'Meters': 'meters'
         }
 
+        units = self.getUnits()
+
         self.identifierToElementName = {
             # Existing main network layers
             'qgisred_pipes': 'Pipes',
@@ -114,6 +116,11 @@ class QGISRedUtils:
             # Tree layers
             'qgisred_links': 'Links',
             'qgisred_nodes': 'Nodes',
+
+            # Thematic Maps Layers
+            'qgisred_query_diameter_diam': f'Pipe Diameters {units}',
+            'qgisred_query_length_len': f'Pipe Lengths {units}',
+            'qgisred_query_material_mat': 'Pipe Materials',
         }
         
 
