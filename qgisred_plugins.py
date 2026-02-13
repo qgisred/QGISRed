@@ -25,6 +25,7 @@ from qgis.core import QgsProject, QgsVectorLayer, QgsMapLayer, QgsLayerTreeLayer
 from PyQt5.QtGui import QIcon, QCursor
 from PyQt5.QtWidgets import QAction, QMessageBox, QApplication, QMenu, QFileDialog, QToolButton
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
+from PyQt5.QtXml import QDomDocument
 from qgis.core import QgsMessageLog, QgsCoordinateTransform, QgsApplication
 
 # Import resources
@@ -1979,6 +1980,7 @@ class QGISRed:
             self.removeIssuesLayersFiles()
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
+        
         resMessage = GISRed.ReplaceTemporalFiles(self.ProjectDirectory, self.tempFolder)
         self.readUnits(self.ProjectDirectory, self.NetworkName)
 
@@ -1998,16 +2000,20 @@ class QGISRed:
         if self.hasToOpenSectorLayers:
             self.openSectorLayers()
             self.hasToOpenSectorLayers = False
+                
         QApplication.restoreOverrideCursor()
         self.removingLayers = False
 
-        # Message
+        self.restoreQueryLayers(self.stored_query_layers)
+
         if resMessage == "True":
             pass
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
     def processCsharpResult(self, b, message):
+        self.stored_query_layers = self.storeQueryLayers()
+
         # Action
         self.hasToOpenNewLayers = False
         self.hasToOpenIssuesLayers = False
@@ -4338,3 +4344,82 @@ class QGISRed:
         dlg = QGISRedThematicMapsDialog()
         # Run the dialog event loop
         dlg.exec_()
+
+    def storeQueryLayers(self):
+        query_layers = []
+        queries_group = self.getQueryGroup()
+        
+        if queries_group:
+            for child in queries_group.children():
+                if isinstance(child, QgsLayerTreeLayer):
+                    layer = child.layer()
+                    if layer:
+                        style_string = layer.customProperty("styleURI")
+<<<<<<< Updated upstream
+                        query_layers.append({
+                            'name': layer.name(),
+                            'source': layer.source(),
+                            'style_string': style_string
+=======
+                        checked = child.isVisible()
+                        query_layers.append({
+                            'name': layer.name(),
+                            'source': layer.source(),
+                            'style_string': style_string,
+                            'checked': checked 
+>>>>>>> Stashed changes
+                        })
+        
+        return query_layers
+
+    def restoreQueryLayers(self, query_layers):
+        if not query_layers:
+            return
+
+        queries_group = self.getQueryGroup()
+        inputs_group = self.getInputGroup()
+
+        for query_info in query_layers:
+            new_layer = QgsVectorLayer(query_info['source'], query_info['name'], 'ogr')
+
+            if new_layer.isValid():
+                if 'style_string' in query_info and query_info['style_string']:
+                    style_success = new_layer.loadNamedStyle(query_info['style_string'])
+                    new_layer.setCustomProperty("styleURI", query_info['style_string'])
+<<<<<<< Updated upstream
+                    
+=======
+
+                new_layer.setReadOnly(True)
+
+>>>>>>> Stashed changes
+                QgsProject.instance().addMapLayer(new_layer, False)
+
+                layer_tree_layer = queries_group.addLayer(new_layer)
+                layer_tree_layer.setCustomProperty("showFeatureCount", True)
+<<<<<<< Updated upstream
+=======
+                
+                # Set the visibility status
+                if 'checked' in query_info:
+                    layer_tree_layer.setItemVisibilityChecked(query_info['checked'])
+>>>>>>> Stashed changes
+
+                input_layer = self.findSourceLayer(inputs_group, new_layer)
+
+                if input_layer:
+                    input_layer.dataChanged.connect(
+                        lambda: self.syncQueryLayer(input_layer, new_layer)
+                    )
+
+    def findSourceLayer(self, inputs_group, query_layer):
+        for child in inputs_group.children():
+            if isinstance(child, QgsLayerTreeLayer):
+                layer = child.layer()
+                if layer and layer.geometryType() == query_layer.geometryType():
+                    return layer
+        return None
+
+    def syncQueryLayer(self, source_layer, query_layer):
+        query_layer.dataProvider().forceReload()
+        query_layer.triggerRepaint()

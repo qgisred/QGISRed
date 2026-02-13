@@ -720,3 +720,20 @@ class QGISRedUtils:
         else:
             process(None)
             postprocess()
+
+    def getUnits(self):
+        units, ok = QgsProject.instance().readEntry("QGISRed", "project_units", "LPS")
+
+        # International Units
+        international_units = ["LPS", "LPM", "MLD", "CMH", "CMD"]
+        # American Units 
+        american_units = ["CFS", "GPM", "MGD", "IMGD", "AFD"]
+
+        print("units: ", units)
+        if units in american_units:
+            return 'US'
+        elif units in international_units:
+            return 'SI'
+        else:
+            # Default to SI units
+            return 'SI'
