@@ -43,18 +43,33 @@ class QGISRedUtils:
         self.NetworkName = networkName
 
         self.elementIdentifiers = {
-            'Pipes': 'qgisred_pipes',
-            'Junctions': 'qgisred_junctions',
-            'Demands': 'qgisred_demands',
-            'Reservoirs': 'qgisred_reservoirs',
-            'Tanks': 'qgisred_tanks',
-            'Pumps': 'qgisred_pumps',
-            'Valves': 'qgisred_valves',
-            'Sources': 'qgisred_sources',
-            'Service Connections': 'qgisred_serviceconnections',
-            'Isolation Valves': 'qgisred_isolationvalves',
-            'Meters': 'qgisred_meters'
+            'Pipes': 'pipes',
+            'Junctions': 'junctions', 
+            'Tanks': 'tanks',
+            'Reservoirs': 'reservoirs',
+            'Valves': 'valves',
+            'Pumps': 'pumps',
+            'Demands': 'demands',
+            'Sources': 'sources',
+            'IsolationValves': 'isolationvalves',
+            'ServiceConnections': 'serviceconnections',
+            'Meters': 'meters'
         }
+
+        self.identifierToElementName = {
+            'qgisred_pipes': 'Pipes',
+            'qgisred_junctions': 'Junctions', 
+            'qgisred_demands': 'Demands',
+            'qgisred_reservoirs': 'Reservoirs',
+            'qgisred_tanks': 'Tanks',
+            'qgisred_pumps': 'Pumps',
+            'qgisred_valves': 'Valves',
+            'qgisred_sources': 'Sources',
+            'qgisred_serviceconnections': 'Service Connections',
+            'qgisred_isolationvalves': 'Isolation Valves',
+            'qgisred_meters': 'Meters'
+        }
+        
 
     """Layers"""
 
@@ -97,7 +112,8 @@ class QGISRedUtils:
 
     def isLayerOpened(self, layerName):
         layers = self.getLayers()
-        layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp")
+        originalLayerName = self.getOriginalNameFromLayerName(layerName)
+        layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + originalLayerName + ".shp")
 
         for layer in layers:
             openedLayerPath = self.getLayerPath(layer)
@@ -105,9 +121,11 @@ class QGISRedUtils:
                 return True
         return False
 
-    def openElementsLayers(self, group, ownMainLayers):
-        for fileName in ownMainLayers:
-            self.openLayer(group, fileName)
+    def openElementsLayers(self, group, ownMainLayers,processOnly=False):
+        print("reached 2")
+        if not processOnly:
+            for fileName in ownMainLayers:
+                self.openLayer(group, fileName)
         if len(ownMainLayers) > 0:
             print("true")
             self.orderLayers(group)
@@ -178,38 +196,52 @@ class QGISRedUtils:
 
     def removeLayer(self, name, ext=".shp"):
         layers = self.getLayers()
-        layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + name + ext)
+        originalLayerName = self.getOriginalNameFromLayerName(name)
+        layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + originalLayerName + ext)
+
+        inputGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
+        if inputGroup:
+            inputLayers = [child.layer() for child in inputGroup.findLayers()]
+            layers = [layer for layer in layers if layer in inputLayers]
 
         for layer in layers:
             openedLayerPath = self.getLayerPath(layer)
             if openedLayerPath == layerPath:
                 QgsProject.instance().removeMapLayer(layer.id())
-        self.iface.mapCanvas().refresh()
-        del layers
 
     """Order Layers"""
     def orderLayers(self, group):
+        print("REACHED HERE")
         if group is None:
             return
-
-        mylayersNames = [
-            "Meters", "Service Connections", "Isolation Valves", "Hydrants",
-            "Washout Valves", "Air Release Valves", "Sources", "Reservoirs",
-            "Tanks", "Demands", "Junctions", "Pumps", "Valves", "Pipes"
+        
+        desiredOrderIdentifiers = [
+            'qgisred_meters',
+            'qgisred_serviceconnections', 
+            'qgisred_isolationvalves',
+            'qgisred_sources',
+            'qgisred_reservoirs',
+            'qgisred_tanks',
+            'qgisred_demands',
+            'qgisred_junctions',
+            'qgisred_pumps',
+            'qgisred_valves',
+            'qgisred_pipes'
         ]
 
-        self.elementIdentifiers 
-
-        name_to_node = {}
+        identifierToNode = {}
         for child in group.children():
             if isinstance(child, QgsLayerTreeLayer):
-                name_to_node[child.name()] = child  # legend name
+                layer = child.layer()
+                if layer:
+                    identifier = layer.customProperty("qgisred_identifier")
+                    if identifier:
+                        identifierToNode[identifier] = child
 
-        for base_name in reversed(mylayersNames):
-            pretty = self.getLayerNameToLegend(base_name)
-            node = name_to_node.get(pretty) or name_to_node.get(base_name)
+        for targetIdentifier in reversed(desiredOrderIdentifiers):
+            node = identifierToNode.get(targetIdentifier)
             if not node:
-                continue 
+                continue
 
             cloned = node.clone()
             group.insertChildNode(0, cloned)
@@ -243,363 +275,212 @@ class QGISRedUtils:
     """Styles"""
 
     def setStyle(self, layer, name):
-        if self is None:
-            temp_instance = QGISRedUtils()
-            return temp_instance.setStyle(layer, name)
-    
         if name == "":
             return
         stylePath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "layerStyles")
 
-        # First, try to load the standard QML style file
-        qmlPath = os.path.join(stylePath, name + ".qml")
+        # user style
+        qmlPath = os.path.join(stylePath, name + "_user.qml")
         if os.path.exists(qmlPath):
             layer.loadNamedStyle(qmlPath)
-            #self.applySvgMarker(layer)
             return
 
-        # Next, try user customized style
-        userQmlPath = os.path.join(stylePath, name + "_user.qml")
-        if os.path.exists(userQmlPath):
-            layer.loadNamedStyle(userQmlPath)
-            #self.applySvgMarker(layer)
-            return
-
-        # Fall back to backup style if available
-        backupQmlPath = os.path.join(stylePath, name + ".qml.bak")
-        if os.path.exists(backupQmlPath):
+        # default style
+        qmlPath = os.path.join(stylePath, name + ".qml.bak")
+        if os.path.exists(qmlPath):
             if name == "meters":
-                # Special handling for meters with SVG replacements
-                # f = open(backupQmlPath, "r")
-                # contents = f.read()
-                # f.close()
-                # newQmlPath = ""
-                # svgPath = os.path.join(stylePath, "meterCount.svg")
-                # contents = contents.replace("meterCount.svg", svgPath)
-                # svgPath = os.path.join(stylePath, "meterDiff.svg")
-                # contents = contents.replace("meterDiff.svg", svgPath)
-                # svgPath = os.path.join(stylePath, "meterEnergy.svg")
-                # contents = contents.replace("meterEnergy.svg", svgPath)
-                # svgPath = os.path.join(stylePath, "meterFlow.svg")
-                # contents = contents.replace("meterFlow.svg", svgPath)
-                # svgPath = os.path.join(stylePath, "meterLevel.svg")
-                # contents = contents.replace("meterLevel.svg", svgPath)
-                # svgPath = os.path.join(stylePath, "meterMan.svg")
-                # contents = contents.replace("meterMan.svg", svgPath)
-                # svgPath = os.path.join(stylePath, "meterOpen.svg")
-                # contents = contents.replace("meterOpen.svg", svgPath)
-                # svgPath = os.path.join(stylePath, "meterQuality.svg")
-                # contents = contents.replace("meterQuality.svg", svgPath)
-                # svgPath = os.path.join(stylePath, "meterStatus.svg")
-                # contents = contents.replace("meterStatus.svg", svgPath)
-                # svgPath = os.path.join(stylePath, "meterTacho.svg")
-                # contents = contents.replace("meterTacho.svg", svgPath)
-                # newQmlPath = os.path.join(stylePath, "meters.qml")
-                # f = open(newQmlPath, "w+")
-                # f.write(contents)
-                # f.close()
-                layer.loadNamedStyle(newQmlPath)
-                #self.applySvgMarker(layer)
-                os.remove(newQmlPath)
-            else:
-                layer.loadNamedStyle(backupQmlPath)
-                #self.applySvgMarker(layer)
-            return
-
-        # # If no QML files are available, use SVG-based styling
-        # svgPath = os.path.join(stylePath, name + ".svg")
-        # if os.path.exists(svgPath):
-        #     if layer.geometryType() == 0:  # Point
-        #         svg_style = dict()
-        #         svg_style["name"] = svgPath
-        #         size = "7"
-        #         svg_style["size"] = size
-        #         if name == "multipledemands":
-        #             svg_style["fill"] = "#9a1313"
-        #         symbol_layer = QgsSvgMarkerSymbolLayer.create(svg_style)
-        #         symbol = QgsSymbol.defaultSymbol(layer.geometryType())
-        #         symbol.changeSymbolLayer(0, symbol_layer)
-        #         renderer = QgsSingleSymbolRenderer(symbol)
-        #     else:  # Line
-        #         symbol = QgsLineSymbol().createSimple({})
-        #         symbol.deleteSymbolLayer(0)
-        #         # Line
-        #         lineSymbol = QgsSimpleLineSymbolLayer()
-        #         try:  # From QGis 3.30
-        #             lineSymbol.setWidthUnit(Qgis.RenderUnit.RenderPixels)  # Pixels
-        #         except:
-        #             lineSymbol.setWidthUnit(2)  # Pixels
-        #         lineSymbol.setWidth(1.5)
-        #         symbol.appendSymbolLayer(lineSymbol)
-        #         # Line Color
-        #         pipesColor = "if(IniStatus is NULL, '#0f1291',if(IniStatus !='CLOSED', '#0f1291','#ff0f13'))"
-        #         valvesColor = "if(IniStatus is NULL, '#85b66f',if(IniStatus is 'CLOSED', '#ff0f13', if(IniStatus !='ACTIVE', '#85b66f','#ff9900')))"
-        #         pumpsColor = "if(IniStatus is NULL, '#85b66f',if(IniStatus !='CLOSED', '#85b66f','#ff0f13'))"
-        #         prop = QgsProperty()
-        #         tip= ""
-        #         if name == "pipes":
-        #             tip = "[Pipe]"
-        #             prop.setExpressionString(pipesColor)
-        #         if name == "valves":
-        #             tip = "[Valve]"
-        #             prop.setExpressionString(valvesColor)
-        #         if name == "pumps":
-        #             tip = "[Pump]"
-        #             prop.setExpressionString(pumpsColor)
-        #         symbol.symbolLayer(0).setDataDefinedProperty(QgsSymbolLayer.PropertyStrokeColor, prop)
-        #         # Custom dash
-        #         prop2 = QgsProperty()
-        #         prop2.setExpressionString("if(IniStatus = 'CLOSED', '5;2', '5000;0')")
-        #         symbol.symbolLayer(0).setDataDefinedProperty(QgsSymbolLayer.PropertyCustomDash, prop2)
-        #         # Symbol
-        #         marker = QgsMarkerSymbol.createSimple({})
-        #         marker.deleteSymbolLayer(0)
-        #         svg_props = dict()
-        #         svg_props["name"] = svgPath
-        #         size = 5
-        #         if name == "pipes":
-        #             size = 0
-        #         svg_props["size"] = str(size)
-        #         svg_props["offset"] = "-0.5,-0.5"
-        #         svg_props["offset_unit"] = "Pixel"
-        #         markerSymbol = QgsSvgMarkerSymbolLayer.create(svg_props)
-        #         # SVG marker Color
-        #         markerSymbol.setDataDefinedProperty(QgsSymbolLayer.PropertyFillColor, prop)
-        #         marker.appendSymbolLayer(markerSymbol)
-        #         # Final Symbol
-        #         finalMarker = QgsMarkerLineSymbolLayer()
-            #     finalMarker.setSubSymbol(marker)
-            #     finalMarker.setPlacement(QgsMarkerLineSymbolLayer.CentralPoint)
-            #     symbol.appendSymbolLayer(finalMarker)
-            #     if name == "pipes":
-            #         prop = QgsProperty()
-            #         prop.setExpressionString("if(IniStatus is NULL, 0,if(IniStatus !='CV', 0,5))")
-            #         finalMarker.setDataDefinedProperty(QgsSymbolLayer.PropertyWidth, prop)  # 9 = PropertyWidth
-            #     renderer = QgsSingleSymbolRenderer(symbol)
-            #     layer.setMapTipTemplate(tip + " [% \"Id\" %]")    
-
-            # layer.setRenderer(renderer)
-            
-        def setResultStyle(self, layer):
-            stylePath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "layerStyles")
-
-            # default style
-            if layer.geometryType() == 0:  # Point
-                qmlBasePath = os.path.join(stylePath, "nodeResults.qml.bak")
-            else:
-                qmlBasePath = os.path.join(stylePath, "linkResults.qml.bak")
-            if os.path.exists(qmlBasePath):
-                f = open(qmlBasePath, "r")
+                f = open(qmlPath, "r")
                 contents = f.read()
                 f.close()
-                qmlPath = ""
-                if layer.geometryType() == 0:  # Point
-                    svgPath = os.path.join(stylePath, "tanksResults.svg")
-                    contents = contents.replace("tanks.svg", svgPath)
-                    svgPath = os.path.join(stylePath, "reservoirsResults.svg")
-                    contents = contents.replace("reservoirs.svg", svgPath)
-                    qmlPath = os.path.join(stylePath, "nodeResults.qml")
-                else:
-                    svgPath = os.path.join(stylePath, "pumps.svg")
-                    contents = contents.replace("pumps.svg", svgPath)
-                    svgPath = os.path.join(stylePath, "valves.svg")
-                    contents = contents.replace("valves.svg", svgPath)
-                    svgPath = os.path.join(stylePath, "arrow.svg")
-                    contents = contents.replace("arrow.svg", svgPath)
-                    qmlPath = os.path.join(stylePath, "linkResults.qml")
-                f = open(qmlPath, "w+")
+                newQmlPath = ""
+                svgPath = os.path.join(stylePath, "meterCount.svg")
+                contents = contents.replace("meterCount.svg", svgPath)
+                svgPath = os.path.join(stylePath, "meterDiff.svg")
+                contents = contents.replace("meterDiff.svg", svgPath)
+                svgPath = os.path.join(stylePath, "meterEnergy.svg")
+                contents = contents.replace("meterEnergy.svg", svgPath)
+                svgPath = os.path.join(stylePath, "meterFlow.svg")
+                contents = contents.replace("meterFlow.svg", svgPath)
+                svgPath = os.path.join(stylePath, "meterLevel.svg")
+                contents = contents.replace("meterLevel.svg", svgPath)
+                svgPath = os.path.join(stylePath, "meterMan.svg")
+                contents = contents.replace("meterMan.svg", svgPath)
+                svgPath = os.path.join(stylePath, "meterOpen.svg")
+                contents = contents.replace("meterOpen.svg", svgPath)
+                svgPath = os.path.join(stylePath, "meterQuality.svg")
+                contents = contents.replace("meterQuality.svg", svgPath)
+                svgPath = os.path.join(stylePath, "meterStatus.svg")
+                contents = contents.replace("meterStatus.svg", svgPath)
+                svgPath = os.path.join(stylePath, "meterTacho.svg")
+                contents = contents.replace("meterTacho.svg", svgPath)
+                newQmlPath = os.path.join(stylePath, "meters.qml")
+                f = open(newQmlPath, "w+")
                 f.write(contents)
                 f.close()
-                # ret = layer.loadNamedStyle(qmlPath)
+                layer.loadNamedStyle(newQmlPath)
+                os.remove(newQmlPath)
+            else:
                 layer.loadNamedStyle(qmlPath)
-                os.remove(qmlPath)
+        svgPath = os.path.join(stylePath, name + ".svg")
+        if os.path.exists(svgPath):
+            if layer.geometryType() == 0:  # Point
+                svg_style = dict()
+                svg_style["name"] = svgPath
+                size = "7"
+                svg_style["size"] = size
+                if name == "demands":
+                    svg_style["fill"] = "#9a1313"
+                symbol_layer = QgsSvgMarkerSymbolLayer.create(svg_style)
+                symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+                symbol.changeSymbolLayer(0, symbol_layer)
+                renderer = QgsSingleSymbolRenderer(symbol)
+            else:  # Line
+                symbol = QgsLineSymbol().createSimple({})
+                symbol.deleteSymbolLayer(0)
+                # Line
+                lineSymbol = QgsSimpleLineSymbolLayer()
+                try:  # From QGis 3.30
+                    lineSymbol.setWidthUnit(Qgis.RenderUnit.RenderPixels)  # Pixels
+                except:
+                    lineSymbol.setWidthUnit(2)  # Pixels
+                lineSymbol.setWidth(1.5)
+                symbol.appendSymbolLayer(lineSymbol)
+                # Line Color
+                pipesColor = "if(IniStatus is NULL, '#0f1291',if(IniStatus !='CLOSED', '#0f1291','#ff0f13'))"
+                valvesColor = "if(IniStatus is NULL, '#85b66f',if(IniStatus is 'CLOSED', '#ff0f13', if(IniStatus !='ACTIVE', '#85b66f','#ff9900')))"
+                pumpsColor = "if(IniStatus is NULL, '#85b66f',if(IniStatus !='CLOSED', '#85b66f','#ff0f13'))"
+                prop = QgsProperty()
+                tip= ""
+                if name == "pipes":
+                    tip = "[Pipe]"
+                    prop.setExpressionString(pipesColor)
+                if name == "valves":
+                    tip = "[Valve]"
+                    prop.setExpressionString(valvesColor)
+                if name == "pumps":
+                    tip = "[Pump]"
+                    prop.setExpressionString(pumpsColor)
+                symbol.symbolLayer(0).setDataDefinedProperty(QgsSymbolLayer.PropertyStrokeColor, prop)
+                # Custom dash
+                prop2 = QgsProperty()
+                prop2.setExpressionString("if(IniStatus = 'CLOSED', '5;2', '5000;0')")
+                symbol.symbolLayer(0).setDataDefinedProperty(QgsSymbolLayer.PropertyCustomDash, prop2)
+                # Symbol
+                marker = QgsMarkerSymbol.createSimple({})
+                marker.deleteSymbolLayer(0)
+                svg_props = dict()
+                svg_props["name"] = svgPath
+                size = 5
+                if name == "pipes":
+                    size = 0
+                svg_props["size"] = str(size)
+                svg_props["offset"] = "-0.5,-0.5"
+                svg_props["offset_unit"] = "Pixel"
+                markerSymbol = QgsSvgMarkerSymbolLayer.create(svg_props)
+                # SVG marker Color
+                markerSymbol.setDataDefinedProperty(QgsSymbolLayer.PropertyFillColor, prop)
+                marker.appendSymbolLayer(markerSymbol)
+                # Final Symbol
+                finalMarker = QgsMarkerLineSymbolLayer()
+                finalMarker.setSubSymbol(marker)
+                finalMarker.setPlacement(QgsMarkerLineSymbolLayer.CentralPoint)
+                symbol.appendSymbolLayer(finalMarker)
+                if name == "pipes":
+                    prop = QgsProperty()
+                    prop.setExpressionString("if(IniStatus is NULL, 0,if(IniStatus !='CV', 0,5))")
+                    finalMarker.setDataDefinedProperty(QgsSymbolLayer.PropertyWidth, prop)  # 9 = PropertyWidth
+                renderer = QgsSingleSymbolRenderer(symbol)
+                layer.setMapTipTemplate(tip + " [% \"Id\" %]")    
 
-        def setSectorsStyle(self, layer):
-            # get unique values
-            field = "Class"
+            layer.setRenderer(renderer)
+
+    def setResultStyle(self, layer):
+        stylePath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "layerStyles")
+
+        # default style
+        if layer.geometryType() == 0:  # Point
+            qmlBasePath = os.path.join(stylePath, "nodeResults.qml.bak")
+        else:
+            qmlBasePath = os.path.join(stylePath, "linkResults.qml.bak")
+        if os.path.exists(qmlBasePath):
+            f = open(qmlBasePath, "r")
+            contents = f.read()
+            f.close()
+            qmlPath = ""
+            if layer.geometryType() == 0:  # Point
+                svgPath = os.path.join(stylePath, "tanksResults.svg")
+                contents = contents.replace("tanks.svg", svgPath)
+                svgPath = os.path.join(stylePath, "reservoirsResults.svg")
+                contents = contents.replace("reservoirs.svg", svgPath)
+                qmlPath = os.path.join(stylePath, "nodeResults.qml")
+            else:
+                svgPath = os.path.join(stylePath, "pumps.svg")
+                contents = contents.replace("pumps.svg", svgPath)
+                svgPath = os.path.join(stylePath, "valves.svg")
+                contents = contents.replace("valves.svg", svgPath)
+                svgPath = os.path.join(stylePath, "arrow.svg")
+                contents = contents.replace("arrow.svg", svgPath)
+                qmlPath = os.path.join(stylePath, "linkResults.qml")
+            f = open(qmlPath, "w+")
+            f.write(contents)
+            f.close()
+            # ret = layer.loadNamedStyle(qmlPath)
+            layer.loadNamedStyle(qmlPath)
+            os.remove(qmlPath)
+
+    def setSectorsStyle(self, layer):
+        # get unique values
+        field = "Class"
+        fni = layer.fields().indexFromName(field)
+
+        if fni == -1:  # Hydraulic sectors
+            field = "SubNet"
             fni = layer.fields().indexFromName(field)
 
-            if fni == -1:  # Hydraulic sectors
-                field = "SubNet"
-                fni = layer.fields().indexFromName(field)
+        unique_values = layer.dataProvider().uniqueValues(fni)
+        unique_values = sorted(unique_values)
 
-            unique_values = layer.dataProvider().uniqueValues(fni)
-            unique_values = sorted(unique_values)
+        # define categories
+        categories = []
+        for unique_value in unique_values:
+            # initialize the default symbol for this geometry type
+            symbol = QgsSymbol.defaultSymbol(layer.geometryType())
 
-            # define categories
-            categories = []
-            for unique_value in unique_values:
-                # initialize the default symbol for this geometry type
-                symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+            # configure a symbol layer
+            symbol_layer = None
+            if layer.geometryType() == 0:  # Point
+                layer_style = dict()
+                layer_style["color"] = "%d, %d, %d" % (randrange(0, 256), randrange(0, 256), randrange(0, 256))
+                layer_style["size"] = str(2)
+                symbol_layer = QgsSimpleMarkerSymbolLayer.create(layer_style)
+            else:
+                symbol = QgsLineSymbol().createSimple({})
+                symbol.deleteSymbolLayer(0)
+                # Line
+                lineSymbol = QgsSimpleLineSymbolLayer()
+                try:  # From QGis 3.30
+                    lineSymbol.setWidthUnit(Qgis.RenderUnit.RenderPixels)  # Pixels
+                except:
+                    lineSymbol.setWidthUnit(2)  # Pixels
+                lineSymbol.setWidth(2)
+                lineSymbol.setColor(QColor(randrange(0, 256), randrange(0, 256), randrange(0, 256)))
+                symbol.appendSymbolLayer(lineSymbol)
 
-                # configure a symbol layer
-                symbol_layer = None
-                if layer.geometryType() == 0:  # Point
-                    layer_style = dict()
-                    layer_style["color"] = "%d, %d, %d" % (randrange(0, 256), randrange(0, 256), randrange(0, 256))
-                    layer_style["size"] = str(2)
-                    symbol_layer = QgsSimpleMarkerSymbolLayer.create(layer_style)
-                else:
-                    symbol = QgsLineSymbol().createSimple({})
-                    symbol.deleteSymbolLayer(0)
-                    # Line
-                    lineSymbol = QgsSimpleLineSymbolLayer()
-                    try:  # From QGis 3.30
-                        lineSymbol.setWidthUnit(Qgis.RenderUnit.RenderPixels)  # Pixels
-                    except:
-                        lineSymbol.setWidthUnit(2)  # Pixels
-                    lineSymbol.setWidth(2)
-                    lineSymbol.setColor(QColor(randrange(0, 256), randrange(0, 256), randrange(0, 256)))
-                    symbol.appendSymbolLayer(lineSymbol)
-
-                # replace default symbol layer with the configured one
-                if symbol_layer is not None:
-                    symbol.changeSymbolLayer(0, symbol_layer)
-
-                # create renderer object
-                category = QgsRendererCategory(unique_value, symbol, str(unique_value))
-                # entry for the list of category items
-                categories.append(category)
+            # replace default symbol layer with the configured one
+            if symbol_layer is not None:
+                symbol.changeSymbolLayer(0, symbol_layer)
 
             # create renderer object
-            renderer = QgsCategorizedSymbolRenderer(field, categories)
+            category = QgsRendererCategory(unique_value, symbol, str(unique_value))
+            # entry for the list of category items
+            categories.append(category)
 
-            # assign the created renderer to the layer
-            if renderer is not None:
-                layer.setRenderer(renderer)
+        # create renderer object
+        renderer = QgsCategorizedSymbolRenderer(field, categories)
 
-    # def applySvgMarker(self, layer):
-    #     identifier = layer.customProperty("qgisred_identifier") \
-    #                 or self._detect_identifier(layer)
-    #     if identifier not in self._marker_mapping:
-    #         return False
-
-    #     layer.setCustomProperty("qgisred_identifier", identifier)
-
-    #     svg_path = self._svg_path(identifier)
-    #     if not os.path.exists(svg_path):
-    #         return False
-
-    #     updated = self._apply_svg_to_symbol(layer, svg_path)
-    #     return updated
-
-    # def _detect_identifier(self, layer):
-    #     mapping = {
-    #         "tank": "qgisred_tanks",
-    #         "valve": "qgisred_valves",
-    #         "pump": "qgisred_pumps",
-    #         "reservoir": "qgisred_reservoirs"
-    #     }
-
-    #     name = layer.name().lower()
-    #     for kw, ident in mapping.items():
-    #         if kw in name:
-    #             return ident
-
-    #     base = os.path.basename(self.getLayerPath(layer)).lower()
-    #     for kw, ident in mapping.items():
-    #         if kw in base:
-    #             return ident
-
-    #     if layer.geometryType() == QgsWkbTypes.PointGeometry:
-    #         fields = [f.name().lower() for f in layer.fields()]
-    #         for kw, ident in mapping.items():
-    #             if any(kw in fld for fld in fields):
-    #                 return ident
-
-    #     return None
-
-    # @property
-    # def _marker_mapping(self):
-    #     return {
-    #         "qgisred_tanks": "tanks.svg",
-    #         "qgisred_pumps": "pumps.svg",
-    #         "qgisred_valves": "valves.svg",
-    #         "qgisred_reservoirs": "reservoirs.svg"
-    #     }
-
-    # def _svg_path(self, identifier):
-    #     base = os.path.dirname(os.path.dirname(__file__))
-    #     style_dir = os.path.join(base, "layerStyles")
-    #     return os.path.join(style_dir, self._marker_mapping[identifier])
-
-    # def _apply_svg_to_symbol(self, layer, svg_path):
-    #     renderer = layer.renderer()
-    #     if not isinstance(renderer, QgsSingleSymbolRenderer):
-    #         renderer = QgsSingleSymbolRenderer(
-    #             QgsSymbol.defaultSymbol(layer.geometryType())
-    #         )
-    #         layer.setRenderer(renderer)
-
-    #     symbol = renderer.symbol()
-    #     size = 4.0
-    #     updated = False
-
-    #     def replace_or_append(symbol_obj, layer_cls, create_kwargs=None):
-    #         nonlocal updated
-    #         for i in range(symbol_obj.symbolLayerCount()):
-    #             sl = symbol_obj.symbolLayer(i)
-    #             if isinstance(sl, layer_cls):
-    #                 sl.setPath(svg_path)
-    #                 sl.setSize(size)
-    #                 updated = True
-    #                 return
-    #         svg_layer = QgsSvgMarkerSymbolLayer.create({"name": svg_path, "size": str(size)})
-    #         if svg_layer:
-    #             symbol_obj.changeSymbolLayer(0, svg_layer)
-    #             updated = True
-
-    #     geom = layer.geometryType()
-    #     if geom == QgsWkbTypes.PointGeometry:
-    #         replace_or_append(symbol, QgsSvgMarkerSymbolLayer)
-    #     elif geom == QgsWkbTypes.LineGeometry:
-    #         for i in range(symbol.symbolLayerCount()):
-    #             sl = symbol.symbolLayer(i)
-    #             if isinstance(sl, QgsMarkerLineSymbolLayer):
-    #                 sub = sl.subSymbol()
-    #                 replace_or_append(sub, QgsSvgMarkerSymbolLayer)
-    #                 break
-    #         else:
-    #             svg = QgsSvgMarkerSymbolLayer.create({"name": svg_path, "size": str(size)})
-    #             subsym = QgsMarkerSymbol()
-    #             subsym.changeSymbolLayer(0, svg)
-    #             ml = QgsMarkerLineSymbolLayer()
-    #             ml.setSubSymbol(subsym)
-    #             ml.setPlacement(QgsMarkerLineSymbolLayer.Placement.Vertex)
-    #             symbol.appendSymbolLayer(ml)
-    #             updated = True
-
-    #     if updated:
-    #         layer.triggerRepaint()
-    #         iface.layerTreeView().refreshLayerSymbology(layer.id())
-
-    #     return updated
-
-    def setIssuesStyle(self, layer, name):
-        """Apply style to issues layers"""
-        if name == "":
-            return
-        
-        stylePath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "layerStyles")
-        
-        # Try to load the issues QML style file
-        qmlPath = os.path.join(stylePath, name + "_issues.qml")
-        if os.path.exists(qmlPath):
-            layer.loadNamedStyle(qmlPath)
-            return
-        
-        # If no specific issues QML, create a default style
-        if layer.geometryType() == 0:  # Point features
-            symbol = QgsMarkerSymbol.createSimple({'name': 'circle', 'color': 'red', 'size': '3'})
-            renderer = QgsSingleSymbolRenderer(symbol)
+        # assign the created renderer to the layer
+        if renderer is not None:
             layer.setRenderer(renderer)
-        else:  # Line features
-            symbol = QgsLineSymbol.createSimple({'color': 'red', 'width': '1.5'})
-            renderer = QgsSingleSymbolRenderer(symbol)
-            layer.setRenderer(renderer)
-        
-        # Set layer opacity for better visibility
-        layer.setOpacity(0.7)
 
     def setTreeStyle(self, layer):
         # get unique values
@@ -685,6 +566,7 @@ class QGISRedUtils:
             # ret = layer.loadNamedStyle(qmlPath)
             layer.loadNamedStyle(qmlPath)
             os.remove(qmlPath)
+
 
     """Others"""
 
@@ -1060,12 +942,6 @@ class QGISRedUtils:
         if self.iface:
             self.iface.mapCanvas().refresh()
 
-    # def isLayerOpened(self, layer_name):
-    #     for layer in QgsProject.instance().mapLayers().values():
-    #         if layer.name() == layer_name:
-    #             return True
-    #     return False
-
     def removeEmptyLayersInGroup(self, group, exceptions=None):
         if exceptions is None:
             exceptions = ["Pipes"]
@@ -1080,3 +956,37 @@ class QGISRedUtils:
 
         if self.iface:
             self.iface.mapCanvas().refresh()
+    
+    def getOriginalNameFromLayerName(self, layerName):
+        layersByName = QgsProject.instance().mapLayersByName(layerName)
+        
+        if not layersByName:
+            return layerName
+
+        qgsVectorLayer = layersByName[0]
+        
+        layerIdentifier = qgsVectorLayer.customProperty("qgisred_identifier")
+        print('identifier : ', layerIdentifier)
+
+        if not layerIdentifier:
+            return layerName
+        
+        return self.identifierToElementName.get(layerIdentifier, layerName)
+
+    def assignLayerIdentifiers(self):
+        # Create a dictionary of layers keyed by their paths
+        layersByPath = {self.getLayerPath(layer): layer for layer in self.getLayers()}
+        
+        # Pre-compute common path components
+        baseDir = self.ProjectDirectory
+        networkPrefix = f"{self.NetworkName}_"
+        
+        # Process each element type
+        for elementName, identifier in self.elementIdentifiers.items():
+            # Construct the expected layer path
+            expectedPath = self.generatePath(baseDir, f"{networkPrefix}{elementName}.shp")
+            
+            # Check if layer exists and needs identifier assignment
+            if layer := layersByPath.get(expectedPath):
+                if not layer.customProperty("qgisred_identifier"):
+                    self.setLayerIdentifier(layer, identifier)

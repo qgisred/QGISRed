@@ -1956,13 +1956,19 @@ class QGISRed:
         inputGroup = self.getInputGroup()
 
         if self.storeQLRSucess:
+            print("AAB")
             utils.loadProjectFromQLR()
             inputGroup = self.getInputGroup()
+            proccessPerformed = False
             for layer_name in self.ownMainLayers + self.especificComplementaryLayers:
                 if not utils.isLayerOpened(layer_name):
                     print("layer_not_opened : ", layer_name)
                     utils.openElementsLayers(inputGroup, [layer_name])
+                    proccessPerformed = True
+            if not proccessPerformed:
+                utils.openElementsLayers(inputGroup, self.ownMainLayers + self.especificComplementaryLayers, processOnly=True)
         else:
+            print("ABD")
             for layer_name in self.ownMainLayers + self.especificComplementaryLayers:
                 utils.openElementsLayers(inputGroup, [layer_name])
 
@@ -2079,67 +2085,102 @@ class QGISRed:
     def processCsharpResult(self, b, message):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         self.storeQLRSucess, _ = utils.saveProjectAsQLR()
-
+        print("reahed hred frist step")
         # Action
         self.hasToOpenNewLayers = False
         self.hasToOpenIssuesLayers = False
         if b == "True":
+            print("1.a")
             if not message == "":
                 self.iface.messageBar().pushMessage(self.tr("Information"), self.tr(message), level=3, duration=5)
         elif b == "False" or b == "Cancelled":
+            print("1.b")
             pass
         elif b == "commit":
+            print("a")
             self.hasToOpenNewLayers = True
         elif b == "shps":
+            print("b")
             self.hasToOpenIssuesLayers = True
         elif b == "commit/shps":
+            print("c")
             self.hasToOpenNewLayers = True
             self.hasToOpenIssuesLayers = True
         else:
+            print("d")
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
         self.removingLayers = True
         self.extent = QGISRedUtils().getProjectExtent()
         if self.hasToOpenNewLayers and self.hasToOpenIssuesLayers:
+            print("1")
             QGISRedUtils().runTask("update plus issue layers", self.removeLayersAndIssuesLayers, self.runOpenTemporaryFiles)
         elif self.hasToOpenNewLayers:
+            print("2")
             QGISRedUtils().runTask("update layers", self.removeLayers, self.runOpenTemporaryFiles)
         elif self.hasToOpenIssuesLayers:
+            print("3")
             QGISRedUtils().runTask("update issue layers", self.removeIssuesLayers, self.runOpenTemporaryFiles)
 
     def runOpenTemporaryFiles(self, exception=None, result=None):
+        print("=== Starting runOpenTemporaryFiles ===")
+        print(f"hasToOpenIssuesLayers: {self.hasToOpenIssuesLayers}")
+        print(f"hasToOpenNewLayers: {self.hasToOpenNewLayers}")
+        print(f"hasToOpenConnectivityLayers: {self.hasToOpenConnectivityLayers}")
+        print(f"hasToOpenSectorLayers: {self.hasToOpenSectorLayers}")
+        
         if self.hasToOpenIssuesLayers:
+            print("Removing issues layers files...")
             self.removeIssuesLayersFiles()
 
+        print("Setting wait cursor...")
         QApplication.setOverrideCursor(Qt.WaitCursor)
         
+        print(f"Replacing temporal files - ProjectDirectory: {self.ProjectDirectory}, tempFolder: {self.tempFolder}")
         resMessage = GISRed.ReplaceTemporalFiles(self.ProjectDirectory, self.tempFolder)
+        print(f"ReplaceTemporalFiles result: {resMessage}")
+        
+        print(f"Reading units - NetworkName: {self.NetworkName}")
         self.readUnits(self.ProjectDirectory, self.NetworkName)
 
         if self.hasToOpenNewLayers:
+            print("Opening new layers...")
             self.opendedLayers = False
             QGISRedUtils().runTask("update layers", self.openElementLayers, self.setExtent)
             self.openNewLayers = False
+            print("New layers opened")
 
         if self.hasToOpenIssuesLayers:
+            print("Opening issues layers...")
             self.openIssuesLayers()
             self.hasToOpenIssuesLayers = False
+            print("Issues layers opened")
 
         if self.hasToOpenConnectivityLayers:
+            print("Opening connectivity layers...")
             self.openConnectivityLayer()
             self.hasToOpenConnectivityLayers = False
+            print("Connectivity layers opened")
 
         if self.hasToOpenSectorLayers:
+            print("Opening sector layers...")
             self.openSectorLayers()
             self.hasToOpenSectorLayers = False
+            print("Sector layers opened")
                 
+        print("Restoring cursor...")
         QApplication.restoreOverrideCursor()
         self.removingLayers = False
+        print("removingLayers set to False")
 
         if resMessage == "True":
+            print("Success: resMessage is 'True'")
             pass
         else:
+            print(f"Error occurred: {resMessage}")
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+        
+        print("=== Finished runOpenTemporaryFiles ===")
 
     #REMOVE
     # def restoreAllLayersFiltered(self, all_layers):
@@ -2711,6 +2752,9 @@ class QGISRed:
         
         self.readUnits(self.ProjectDirectory, self.NetworkName)
         
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.assignLayerIdentifiers()
+
         file = open(self.gplFile, "a+")
         QGISRedUtils().writeFile(file, self.NetworkName + ";" + self.ProjectDirectory + "\n")
         file.close()
@@ -2725,13 +2769,6 @@ class QGISRed:
             for child in inputs_group.children():
                 if isinstance(child, QgsLayerTreeLayer):
                     input_layers.append(child.layer())
-
-            # for name in self.ownMainLayers:
-            #     layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp")
-            #     for layer in layers:
-            #         openedLayerPath = self.getLayerPath(layer)
-            #         if openedLayerPath == layerPath and layer in input_layers:
-            #             QGISRedUtils.setStyle(None, layer, name.lower())
 
     def runSaveProject(self):
         self.defineCurrentProject()
