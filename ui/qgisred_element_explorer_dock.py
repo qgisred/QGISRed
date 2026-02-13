@@ -141,6 +141,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.mFindElementsGroupBox.setCollapsed(True)
         self.trackCollapsibleWidgetsEvents()
         
+        self.topLevelChanged.connect(self.onTopLevelChanged)
+
     def trackCollapsibleWidgetsEvents(self):
         self.mElementPropertiesGroupBox.collapsedStateChanged.connect(self.onElementPropertiesToggled)
         self.mFindElementsGroupBox.collapsedStateChanged.connect(self.onFindElementsToggled)
@@ -169,6 +171,10 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         self.mElementPropertiesGroupBox.blockSignals(False)
         self.mFindElementsGroupBox.blockSignals(False)
+
+    def onTopLevelChanged(self, floating):
+        if floating:
+            QTimer.singleShot(50, self.resizeToMinimumHeight)
 
     # ------------------------------
     # Collapsible Widgets Handlers
@@ -267,7 +273,6 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     def resizeToMinimumHeight(self):
         self.layout().activate()
         self.adjustSize()
-        self.setFixedHeight(self.sizeHint().height())
 
     def setDockStyle(self):
         iconName = 'iconFindElements.png' if 'Find' in self.__class__.__name__ else 'iconElementsProperties.png'
