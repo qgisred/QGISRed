@@ -1,11 +1,12 @@
 # Third-party imports
 from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QDoubleSpinBox, QLabel, QVBoxLayout
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QDoubleSpinBox, QLabel, QVBoxLayout, QWidget, QHBoxLayout, QCheckBox
 from PyQt5.QtCore import pyqtSignal, Qt, QEvent
 from PyQt5.QtWidgets import QToolButton
 
 from qgis.gui import QgsSymbolButton, QgsColorDialog
 from qgis.core import QgsMarkerSymbol, QgsLineSymbol, QgsFillSymbol, QgsSymbol
+
 
 class RangeEditDialog(QDialog):
     """A simple dialog for editing a numeric range (lower and upper bounds)."""
@@ -37,6 +38,62 @@ class RangeEditDialog(QDialog):
         """Returns the current values of the spin boxes."""
         return self.lowerSpinBox.value(), self.upperSpinBox.value()
 
+
+class SymbolEditDialog(QDialog):
+    """Dialog for editing symbol color and size together."""
+    def __init__(self, initialColor, initialSize, isWidth=False, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle(self.tr("Edit Symbol"))
+        layout = QVBoxLayout(self)
+
+        # Color selection
+        colorLayout = QHBoxLayout()
+        colorLayout.addWidget(QLabel(self.tr("Color:")))
+        self.colorButton = QToolButton()
+        self.colorButton.setFixedSize(60, 30)
+        self.currentColor = QColor(initialColor)
+        self.updateColorButton()
+        self.colorButton.clicked.connect(self.pickColor)
+        colorLayout.addWidget(self.colorButton)
+        colorLayout.addStretch()
+        layout.addLayout(colorLayout)
+
+        # Size/Width field
+        sizeLabel = self.tr("Width:") if isWidth else self.tr("Size:")
+        layout.addWidget(QLabel(sizeLabel))
+        self.sizeSpinBox = QDoubleSpinBox()
+        self.sizeSpinBox.setRange(0.1, 100.0)
+        self.sizeSpinBox.setDecimals(2)
+        self.sizeSpinBox.setValue(initialSize)
+        layout.addWidget(self.sizeSpinBox)
+
+        # Buttons
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+
+    def updateColorButton(self):
+        """Update the color button appearance."""
+        self.colorButton.setStyleSheet(f"""
+            QToolButton {{
+                background-color: rgb({self.currentColor.red()}, {self.currentColor.green()}, {self.currentColor.blue()});
+                border: 1px solid #999;
+            }}
+        """)
+
+    def pickColor(self):
+        """Open color picker dialog."""
+        chosen = QgsColorDialog.getColor(self.currentColor, self, self.tr("Pick Color"), True)
+        if chosen.isValid():
+            self.currentColor = chosen
+            self.updateColorButton()
+
+    def getValues(self):
+        """Returns (color, size) tuple."""
+        return self.currentColor, self.sizeSpinBox.value()
+
+
 class SymbolColorSelector(QgsSymbolButton):
     """
     Looks like a QgsSymbolButton; on click, opens the QGIS color dialog (QgsColorDialog).
@@ -63,12 +120,18 @@ class SymbolColorSelector(QgsSymbolButton):
 
         self.applySymbol()
 
-        # Remove ▼ QgsSymbolButton Menu
+        # Remove ▼ QgsSymbolButton Menu and remove shadow property
         self.setPopupMode(QToolButton.DelayedPopup)
         self.setStyleSheet("""
             QToolButton::menu-indicator { image: none; width: 0px; }
-            QToolButton { padding-right: 4px; }  /* optional: tighten right padding */
+            QToolButton { padding-right: 4px; background-color: white; border: none; }
         """)
+        
+        # Explicitly remove any drop shadow effect
+        try:
+            self.setGraphicsEffect(None)
+        except:
+            pass
 
         self.setToolTip(self.tr("Click to pick a color."))
         self.installEventFilter(self)
@@ -161,8 +224,104 @@ class SymbolColorSelector(QgsSymbolButton):
     # --- Event filter replaces default click to open color dialog ---
     def eventFilter(self, obj, event):
         if obj is self:
+            # Block mouse wheel events to prevent accidental size changes
+            if event.type() == QEvent.Wheel:
+                return True  # Consume the event
+            
             if event.type() in (QEvent.MouseButtonPress, QEvent.MouseButtonRelease):
                 if event.type() == QEvent.MouseButtonPress and event.button() == Qt.LeftButton:
                     self.openColorDialog()
                 return True
         return super().eventFilter(obj, event)
+
+
+class SymbolColorSelectorWithCheckbox(QWidget):
+    """
+    A widget combining a checkbox and SymbolColorSelector.
+    Mimics QGIS's native symbology interface with enable/disable checkbox.
+    
+    Signals:
+        colorChanged(QColor)
+        enabledChanged(bool)
+    """
+    colorChanged = pyqtSignal(QColor)
+    enabledChanged = pyqtSignal(bool)
+    
+    def __init__(
+        self,
+        parent=None,
+        geometryHint: str = "fill",
+        initialColor: QColor = QColor(19, 125, 220, 255),
+        allowAlpha: bool = True,
+        dialogTitle: str = "Pick color",
+        checked: bool = True,
+        checkboxLabel: str = ""
+    ):
+        super().__init__(parent)
+        
+        # Create layout
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(2, 2, 2, 2)  # Small margins for table cells
+        layout.setSpacing(4)
+        
+        # Create checkbox
+        self.checkbox = QCheckBox(checkboxLabel, self)
+        self.checkbox.setChecked(checked)
+        self.checkbox.toggled.connect(self._onCheckboxToggled)
+        
+        # Create the symbol color selector
+        self.colorSelector = SymbolColorSelector(
+            parent=self,
+            geometryHint=geometryHint,
+            initialColor=initialColor,
+            allowAlpha=allowAlpha,
+            dialogTitle=dialogTitle
+        )
+        self.colorSelector.colorChanged.connect(self.colorChanged.emit)
+        
+        # Set fixed size for the color selector to ensure it's visible
+        self.colorSelector.setFixedSize(50, 24)
+        
+        # Add to layout
+        layout.addWidget(self.checkbox)
+        layout.addWidget(self.colorSelector)
+        # Don't add stretch in table cells - it causes the color selector to disappear
+    
+    def _onCheckboxToggled(self, checked: bool):
+        self.enabledChanged.emit(checked)
+    
+    def isChecked(self) -> bool:
+        """Returns whether the checkbox is checked."""
+        return self.checkbox.isChecked()
+    
+    def setChecked(self, checked: bool):
+        """Set the checkbox state."""
+        self.checkbox.setChecked(checked)
+    
+    def color(self) -> QColor:
+        """Returns the current color."""
+        return self.colorSelector.color()
+    
+    def setColor(self, color: QColor):
+        """Set the color."""
+        self.colorSelector.setColor(color)
+    
+    def setGeometryHint(self, geometryHint: str):
+        """Set the geometry hint (marker, line, or fill)."""
+        self.colorSelector.setGeometryHint(geometryHint)
+    
+    def geometryHint(self) -> str:
+        """Returns the current geometry hint."""
+        return self.colorSelector.geometryHint()
+    
+    def setAllowAlpha(self, allowAlpha: bool):
+        """Set whether alpha channel is allowed."""
+        self.colorSelector.setAllowAlpha(allowAlpha)
+    
+    def updateSymbolSize(self, size: float, isWidth: bool = False):
+        """Update the symbol size/width and refresh the preview."""
+        self.colorSelector.updateSymbolSize(size, isWidth)
+    
+    def setCheckboxLabel(self, label: str):
+        """Set the checkbox label text."""
+        self.checkbox.setText(label)
