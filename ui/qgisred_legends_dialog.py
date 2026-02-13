@@ -11,7 +11,7 @@ from PyQt5.QtGui import QIcon, QColor, QFont
 from PyQt5.QtWidgets import (QDialog, QMessageBox, QHeaderView,
                              QComboBox, QLineEdit, QAbstractItemView, QLabel,
                              QWidget, QHBoxLayout, QPushButton, QVBoxLayout,
-                             QCheckBox, QDoubleSpinBox)
+                             QCheckBox, QDoubleSpinBox, QGraphicsDropShadowEffect, QSizeGrip)
 from PyQt5.QtCore import QVariant, Qt, QTimer, QObject, QEvent
 from qgis.PyQt import uic
 
@@ -84,7 +84,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         # Resize handling for frameless window
         self.resizing = False
         self.resizeEdge = None
-        self.resizeMargin = 5
+        self.resizeMargin = 10  # Increased from 5 to 10 for easier grabbing
 
         # Plugin context properties (set via config method)
         self.parent = None
@@ -123,14 +123,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
         """Configure window appearance and custom title bar."""
         iconPath = os.path.join(os.path.dirname(__file__), '..', 'images', 'iconThematicMaps.png')
         self.setWindowIcon(QIcon(iconPath))
-        self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
+        self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setMouseTracking(True)
 
-        # Add a border frame using stylesheet
+        # Enhanced border with rounded corners
         self.setStyleSheet("""
             QDialog {
-                border: 1px solid rgb(160, 160, 160);
+                border: 2px solid rgb(120, 120, 120);
                 background-color: rgb(240, 240, 240);
+                border-radius: 4px;
             }
         """)
 
@@ -185,6 +186,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.titleBar = titleBar
         self.titleBar.mousePressEvent = self.titleBarMousePressEvent
         self.titleBar.mouseMoveEvent = self.titleBarMouseMoveEvent
+
+        # Add size grip for visual resize cue
+        self.sizeGrip = QSizeGrip(self)
+        self.sizeGrip.setStyleSheet("background-color: transparent; width: 20px; height: 20px;")
+        self.sizeGrip.setVisible(True)
 
     def setupTableView(self):
         """Configure table columns and visual style."""
@@ -402,12 +408,19 @@ class QGISRedLegendsDialog(QDialog, formClass):
         allowed = self.getRenderableLayersInSelectedGroup()
         allLayers = list(QgsProject.instance().mapLayers().values())
         excepted = [l for l in allLayers if l not in allowed]
-        
+
         self.cbLegendLayer.blockSignals(True)
         self.cbLegendLayer.setExceptedLayerList(excepted)
+
         if allowed:
             self.cbLegendLayer.setLayer(allowed[0])
+        else:
+            # Explicitly set to None if no renderable layers exist in this group
+            self.cbLegendLayer.setLayer(None)
+
         self.cbLegendLayer.blockSignals(False)
+
+        # Trigger UI update
         self.onLayerChanged(self.cbLegendLayer.currentLayer())
 
     def resetAllModesToManual(self):
@@ -439,7 +452,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.currentFieldType, self.currentFieldName = self.detectFieldType(layer)
 
             self.frameLegends.setEnabled(True)
-            self.labelFrameLegends.setText(self.tr(f"Legend for {layer.name()}"))
+
+            # Get Units and update Label
+            baseTitle = self.tr(f"Legend for {layer.name()}")
+            units = self.getLayerUnits()
+
+            if units:
+                self.labelFrameLegends.setText(f"{baseTitle} | Units: {units}")
+            else:
+                self.labelFrameLegends.setText(baseTitle)
 
             self.resetAllModesToManual()
             self.updateUiBasedOnFieldType()
@@ -737,13 +758,25 @@ class QGISRedLegendsDialog(QDialog, formClass):
         """Populate group selector from QGIS layer tree."""
         self.cbGroups.blockSignals(True)
         self.cbGroups.clear()
-        
+
         groups = []
         self.collectGroupsRecursive(QgsProject.instance().layerTreeRoot(), [], groups)
-        
+
         for name, path, _ in groups:
             self.cbGroups.addItem(name, path)
         self.cbGroups.blockSignals(False)
+
+        # If cbGroups is empty (no valid groups found),
+        # explicitly clear the dependent layer combo and reset the UI.
+        if self.cbGroups.count() == 0:
+            self.cbLegendLayer.blockSignals(True)
+            # Except all layers to ensure the combo appears empty
+            self.cbLegendLayer.setExceptedLayerList(list(QgsProject.instance().mapLayers().values()))
+            self.cbLegendLayer.setLayer(None)
+            self.cbLegendLayer.blockSignals(False)
+
+            # Force the UI to update to the 'no layer' state
+            self.onLayerChanged(None)
 
     def collectGroupsRecursive(self, parent, pathParts, results):
         """Recursively collect allowed groups."""
@@ -1632,6 +1665,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     # --- Utilities ---
 
+    def getLayerUnits(self):
+        """
+        Helper to retrieve units from QGISRedUtils (returns 'SI' or 'US').
+        """
+        if not self.utils:
+            return ""
+
+        try:
+            return self.utils.getUnits()
+        except:
+            return ""
+
     def getGeometryHint(self):
         if not self.currentLayer: return "fill"
         gt = self.currentLayer.geometryType()
@@ -1711,6 +1756,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 iface.layerTreeView().currentLayerChanged.disconnect(self.onQgisLayerSelectionChanged)
             except:
                 pass
+
+        # Clean up parent reference to allow garbage collection
+        if self.parent and hasattr(self.parent, 'legendsDialog'):
+            self.parent.legendsDialog = None
+
         super().closeEvent(event)
 
     # --- Custom Resize Functionality for Frameless Window ---
@@ -1810,3 +1860,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
             event.accept()
             return
         super().mouseReleaseEvent(event)
+
+    def resizeEvent(self, event):
+        """Handle resize events to keep size grip positioned correctly."""
+        # Ensure the grip stays in the bottom-right corner
+        if hasattr(self, 'sizeGrip'):
+            rect = self.rect()
+            self.sizeGrip.move(rect.right() - self.sizeGrip.width(),
+                               rect.bottom() - self.sizeGrip.height())
+            self.sizeGrip.raise_()
+        super().resizeEvent(event)
