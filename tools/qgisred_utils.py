@@ -962,28 +962,39 @@ class QGISRedUtils:
 
     def saveProjectAsQLR(self):
         qlr_folder = self.getQLRFolder()
-        qlr_path = os.path.join(qlr_folder, f"all_layers.qlr")
+        # Use network-specific filename
+        qlr_path = os.path.join(qlr_folder, f"{self.NetworkName}_layers.qlr")
         
         root = QgsProject.instance().layerTreeRoot()
-        nodes = list(root.children())
+        # Find the specific network group
+        networkGroup = root.findGroup(self.NetworkName)
         
-        if not QgsProject.instance().mapLayers():
+        if not networkGroup:
+            return False, None
+        
+        # Get all nodes from the network group
+        nodes = list(networkGroup.children())
+        
+        if not nodes:
             return False, None
 
         error_message = ""
-        success = QgsLayerDefinition.exportLayerDefinition(qlr_path, nodes) 
+        success = QgsLayerDefinition.exportLayerDefinition(qlr_path, [networkGroup]) 
         if not success:
             return False, qlr_path
         return True, qlr_path
 
     def loadProjectFromQLR(self):
         qlr_folder = self.getQLRFolder()
-        qlr_path = os.path.join(qlr_folder, f"all_layers.qlr")
+        # Use network-specific filename
+        qlr_path = os.path.join(qlr_folder, f"{self.NetworkName}_layers.qlr")
         
         if not os.path.exists(qlr_path):
             return False
         
-        self.removeTopLevelGroups()
+        # Only remove the network group, not all groups
+        self.removeNetworkGroup()
+        
         error_message = ""
         success = QgsLayerDefinition().loadLayerDefinition(qlr_path, QgsProject.instance(), QgsProject.instance().layerTreeRoot())
 
@@ -993,20 +1004,36 @@ class QGISRedUtils:
 
     def deleteProjectQLR(self):
         qlr_folder = self.getQLRFolder()
-        qlr_filename = f"all_layers.qlr"
+        # Use network-specific filename
+        qlr_filename = f"{self.NetworkName}_layers.qlr"
         qlr_path = os.path.join(qlr_folder, qlr_filename)
         if os.path.exists(qlr_path):
             os.remove(qlr_path)
             return True
         return False
-    
-    def removeTopLevelGroups(self, names=None):
+
+    def removeNetworkGroup(self):
+        """Remove only the network group and its layers"""
         proj = QgsProject.instance()
         root = proj.layerTreeRoot()
-
-        root.removeAllChildren()
-        proj.removeAllMapLayers()
-
+        
+        # Find the network group
+        networkGroup = root.findGroup(self.NetworkName)
+        
+        if networkGroup:
+            # Collect all layer IDs from this group before removing
+            layerIds = []
+            for node in networkGroup.findLayers():
+                if node.layer():
+                    layerIds.append(node.layer().id())
+            
+            # Remove the group
+            root.removeChildNode(networkGroup)
+            
+            # Remove the layers from the project
+            for layerId in layerIds:
+                proj.removeMapLayer(layerId)
+        
         if self.iface:
             self.iface.mapCanvas().refresh()
 

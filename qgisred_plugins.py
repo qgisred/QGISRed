@@ -1981,7 +1981,6 @@ class QGISRed:
         inputGroup = self.getInputGroup()
 
         if self.storeQLRSucess:
-            print("AAB")
             utils.loadProjectFromQLR()
             inputGroup = self.getInputGroup()
             proccessPerformed = False
