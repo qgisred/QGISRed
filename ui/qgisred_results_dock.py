@@ -64,7 +64,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     def isCurrentProject(self):
         currentNetwork = ""
         currentDirectory = ""
-        message = "The current project has been changed. Please, try again."
+        message = self.tr("The current project has been changed. Please, try again.")
 
         layers = self.getLayers()
         layerName = "Pipes"
@@ -77,11 +77,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 if self.NetworkName == currentNetwork and self.ProjectDirectory == currentDirectory:
                     return True
                 else:
-                    self.iface.messageBar().pushMessage("Warning", message, level=1, duration=5)
+                    self.iface.messageBar().pushMessage(self.tr("Warning"), message, level=1, duration=5)
                     self.close()
                     return False
 
-        self.iface.messageBar().pushMessage("Warning", message, level=1, duration=5)
+        self.iface.messageBar().pushMessage(self.tr("Warning"), message, level=1, duration=5)
         self.close()
         return False
 
@@ -113,6 +113,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             utils.openLayer(group, file, results=True)
 
     def removeResults(self, task):
+        print("test")
         resultPath = os.path.join(self.ProjectDirectory, "Results")
         utils = QGISRedUtils(resultPath, self.NetworkName + "_" + self.Scenario, self.iface)
         utils.removeLayers(self.LabelsToOpRe)
@@ -723,7 +724,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.Scenario = self.cbScenarios.currentText()
         resultPath = os.path.join(os.path.join(self.ProjectDirectory, "Results"), self.NetworkName + "_" + self.Scenario)
         if not os.path.exists(resultPath):
-            self.iface.messageBar().pushMessage("Warning", "No scenario results are available", level=1, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No scenario results are available"), level=1, duration=5)
             return
 
         value = self.cbTimes.currentIndex()
@@ -789,7 +790,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.Scenario = self.cbScenarios.currentText()
         resultPath = os.path.join(os.path.join(self.ProjectDirectory, "Results"), self.NetworkName + "_" + self.Scenario)
         if not os.path.exists(resultPath):
-            self.iface.messageBar().pushMessage("Warning", "No scenario results are available", level=1, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No scenario results are available"), level=1, duration=5)
             return False
 
         if restore:
@@ -841,7 +842,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         # Message
         if resMessage == "False":
-            self.iface.messageBar().pushMessage("Warning", self.tr("Some issues occurred in the process"), level=1, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
         elif resMessage.startswith("[TimeLabels]"):
             self.openBaseResults(resMessage.replace("[TimeLabels]", ""))
             self.show()
@@ -851,7 +852,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 group.setItemVisibilityChecked(False)
             return
         else:
-            self.iface.messageBar().pushMessage("Error", resMessage, level=2, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
         # If some error, close the dock
         self.close()
@@ -921,7 +922,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     def openAllResults(self):
         resultPath = os.path.join(os.path.join(self.ProjectDirectory, "Results"), self.NetworkName + "_" + self.Scenario)
         if not os.path.exists(resultPath):
-            self.iface.messageBar().pushMessage("Warning", "No scenario results are available", level=1, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No scenario results are available"), level=1, duration=5)
             return
 
         if not self.setVariables():
@@ -960,9 +961,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if resMessage == "True":
             pass  # self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=5)
         elif resMessage == "False":
-            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
         else:
-            self.iface.messageBar().pushMessage("Error", resMessage, level=2, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
     def openResult(self):
         found = True
@@ -987,9 +988,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if resMessage == "True":
             pass  # self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=5)
         elif resMessage == "False":
-            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
         else:
-            self.iface.messageBar().pushMessage("Error", resMessage, level=2, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
     def saveScenario(self):
         if not self.isCurrentProject():
@@ -997,15 +998,15 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         # Validations
         isBaseScenario = self.cbScenarios.currentText() == "Base"
         if not isBaseScenario:
-            self.iface.messageBar().pushMessage("Warning", "Only 'Base' scenario could be saved", level=1, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Only 'Base' scenario could be saved"), level=1, duration=5)
             return
         newScenario = self.tbScenarioName.text().strip()
         if newScenario == "":
-            self.iface.messageBar().pushMessage("Warning", "Scenario name is not valid", level=1, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Scenario name is not valid"), level=1, duration=5)
             return
         for i in range(self.cbScenarios.count()):
             if self.cbScenarios.itemText(i).lower() == newScenario.lower():
-                self.iface.messageBar().pushMessage("Warning", "Scenario name is already used", level=1, duration=5)
+                self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Scenario name is already used"), level=1, duration=5)
                 return
 
         # Save options
@@ -1026,7 +1027,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.Comments[newScenario] = self.tbComments.toPlainText().strip().strip("\n")
             self.writeScenario(newScenario, self.TimeLabels, self.Comments[newScenario])
         except Exception:
-            self.iface.messageBar().pushMessage("Error", "Scenario could not be saved", level=2, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Error"), self.tr("Scenario could not be saved"), level=2, duration=5)
             return
         self.Scenario = "Base"
         self.saveCurrentRender()

@@ -174,9 +174,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         if isPipes:
             if not isMetadata:
                 self.updateMetadata(net, folder)
-            file = open(self.gplFile, "a+")
-            QGISRedUtils().writeFile(file, net + ";" + folder + "\n")
-            file.close()
+            QGISRedUtils().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
             self.fillTable()
             self.twProjectList.setCurrentCell(self.twProjectList.rowCount() - 1, 1)
             self.twProjectList.setFocus()
@@ -290,7 +288,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 rowIndex = rowIndex + 1
             f.close()
         else:
-            self.iface.messageBar().pushMessage("Warning", "Please, select a row project to move.", level=1, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Please, select a row project to move."), level=1, duration=5)
 
     def quitProject(self, remove=False):
         ok, projectNetwork, projectPath, rowIndex = self.getSelectedRowInfo()
@@ -301,7 +299,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 word = "unloaded"
                 if remove:
                     word = "removed"
-                self.iface.messageBar().pushMessage("Warning", "Current project can not be " + word + ".", level=1, duration=5)
+                self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Current project can not be ") + word + ".", level=1, duration=5)
                 return
 
             if remove:
@@ -344,7 +342,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             if remove:
                 word = "remove"
             self.iface.messageBar().pushMessage(
-                "Warning", "You need to select a project to " + word + " it.", level=1, duration=5
+                self.tr("Warning"), self.tr(f"You need to select a project to {word} it."), level=1, duration=5
             )
 
     def getSelectedRowInfo(self):
@@ -370,13 +368,13 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             isSameProject = self.getUniformedPath(self.ProjectDirectory) == project
             isSameNet = self.NetworkName == name
             if isSameProject and isSameNet:
-                self.iface.messageBar().pushMessage("Warning", "Selected project is currently opened.", level=1, duration=5)
+                self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Selected project is currently opened."), level=1, duration=5)
                 return
             valid = self.parent.isOpenedProject()
             if valid:
                 QGISRedUtils().runTask("open project", self.clearQGisProject, self.openProjectProcess, True)
         else:
-            self.iface.messageBar().pushMessage("Warning", "You need to select a project to open it.", level=1, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("You need to select a project to open it."), level=1, duration=5)
 
     def openProjectProcess(self, exception=None, result=None):
         ok, name, project, _ = self.getSelectedRowInfo()
@@ -444,10 +442,10 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
 
             utils = QGISRedUtils(project, name, self.iface)
             utils.saveFilesInZip(zipPath)
-            self.iface.messageBar().pushMessage("QGISRed", "Zip file stored in: " + zipPath, level=0, duration=5)
+            self.iface.messageBar().pushMessage("QGISRed", self.tr("Zip file stored in: ") + zipPath, level=0, duration=5)
             return
         else:
-            self.iface.messageBar().pushMessage("Warning", "You need to select a project to export it.", level=1, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("You need to select a project to export it."), level=1, duration=5)
 
     def cloneProject(self):
         ok, mainName, mainFolder, _ = self.getSelectedRowInfo()
@@ -480,7 +478,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
 
                 self.addProjectToTable(dlg.ProjectDirectory, dlg.NetworkName)
         else:
-            self.iface.messageBar().pushMessage("Warning", "You need to select a project to clone.", level=1, duration=5)
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("You need to select a project to clone."), level=1, duration=5)
 
     def removeProject(self):
         self.quitProject(True)
@@ -502,7 +500,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             isSameProject = self.getUniformedPath(self.ProjectDirectory) == projectPath
             isSameNet = self.NetworkName == projectNetwork
             if isSameProject and isSameNet:
-                self.iface.messageBar().pushMessage("Warning", "Current project can not be renamed.", level=1, duration=5)
+                self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Current project can not be renamed."), level=1, duration=5)
                 return
             dlg = QGISRedRenameProjectDialog(None, projectNetwork, projectPath)
             # Run the dialog event loop
@@ -529,10 +527,10 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 i = i + 1
             f.close()
 
-            self.iface.messageBar().pushMessage("QGISRed", "Project name has been renamed to " + newName, level=0, duration=5)
+            self.iface.messageBar().pushMessage("QGISRed", self.tr("Project name has been renamed to ") + newName, level=0, duration=5)
         else:
             self.iface.messageBar().pushMessage(
-                "Warning", "You need to select a project to change its name.", level=1, duration=5
+                self.tr("Warning"), self.tr("You need to select a project to change its name."), level=1, duration=5
             )
 
     def openFolder(self):
@@ -542,5 +540,5 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 mainFolder = str(self.twProjectList.item(row.row(), 3).text())
                 os.startfile(mainFolder)
         else:
-            message = "You need to select a project to open its folder."
-            self.iface.messageBar().pushMessage("Warning", message, level=1, duration=5)
+            message = self.tr("You need to select a project to open its folder.")
+            self.iface.messageBar().pushMessage(self.tr("Warning"), message, level=1, duration=5)

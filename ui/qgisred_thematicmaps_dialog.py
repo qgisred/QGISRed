@@ -82,7 +82,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         rootGroup = self.getRootGroup()
         inputsGroup = self.findGroupByName(rootGroup, 'Inputs')
         if inputsGroup is None:
-            QMessageBox.critical(self, 'Error', 'Inputs group not found.')
+            QMessageBox.critical(self, self.tr('Error'),'Inputs ' + self.tr('group not found.'))
             return
 
         selectedQueries = self.getSelectedQueries()
@@ -285,7 +285,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         derivedLayer = QgsVectorLayer(uri, newLayerName, providerType)
         
         if not derivedLayer.isValid():
-            raise Exception(f"Failed to create derived layer from {sourceLayer.name()}")
+            raise Exception(self.tr(f"Failed to create derived layer from {sourceLayer.name()}"))
 
         derivedLayer.setCrs(sourceLayer.crs())
         
@@ -451,7 +451,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                     if layerIdentifier in identifierMapping:
                         checkbox = identifierMapping[layerIdentifier]
                         checkbox.setChecked(True)
-                        checkbox.setToolTip("Query already exists.")
+                        checkbox.setToolTip(self.tr("Query already exists."))
             elif child.nodeType() == QgsLayerTreeNode.NodeLayer:
                 layers = child.checkedLayers()
                 if layers:
@@ -460,7 +460,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                     if layerIdentifier in identifierMapping:
                         checkbox = identifierMapping[layerIdentifier]
                         checkbox.setChecked(True)
-                        checkbox.setToolTip("Query already exists.")
+                        checkbox.setToolTip(self.tr("Query already exists."))
             elif isinstance(child, QgsLayerTreeGroup):
                 self.checkLayersRecursiveByIdentifier(child, identifierMapping)
 

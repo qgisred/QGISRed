@@ -14,6 +14,16 @@ class QGISRedDependencies:
         return mydll
 
     @staticmethod
+    def SetCulture(culture):
+        culture = QGISRedDependencies.encode(culture)
+        
+        mydll = WinDLL(QGISRedUtils().getCurrentDll())
+        mydll.AddConnection.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.AddConnection.restype = c_char_p
+        b = mydll.SetCulture(culture)
+        return QGISRedDependencies.toString(b)
+
+    @staticmethod
     def AddConnection(projectFolder, networkName, tempFolder, pipePoints):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)

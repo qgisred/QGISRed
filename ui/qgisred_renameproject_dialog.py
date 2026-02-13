@@ -24,14 +24,14 @@ class QGISRedRenameProjectDialog(QDialog, FORM_CLASS):
     def accept(self):
         self.NetworkName = self.tbNetworkName.text().strip()
         if self.NetworkName == "":
-            self.lbMessage.setText("Not valid New Project Name")
+            self.lbMessage.setText(self.tr("Not valid New Project Name"))
             return
         if self.NetworkName == self.OldNetworkName:
-            self.lbMessage.setText("Project name can not be the same that the original")
+            self.lbMessage.setText(self.tr("Project name can not be the same that the original"))
             return
 
         if os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_Pipes.shp")):
-            self.lbMessage.setText("There is already a project with this name in the project folder.")
+            self.lbMessage.setText(self.tr("There is already a project with this name in the project folder."))
             return
 
         self.ProcessDone = True

@@ -69,15 +69,15 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
     def validationsCreateProject(self):
         self.NetworkName = self.tbNetworkName.text()
         if len(self.NetworkName) == 0:
-            self.iface.messageBar().pushMessage("Validations", "The project name is not valid", level=1)
+            self.iface.messageBar().pushMessage(self.tr("Validations"), self.tr("The project name is not valid"), level=1)
             return False
         self.ProjectDirectory = self.tbProjectDirectory.text()
         if len(self.ProjectDirectory) == 0:
-            self.iface.messageBar().pushMessage("Validations", "The project folder is not valid", level=1)
+            self.iface.messageBar().pushMessage(self.tr("Validations"), self.tr("The project folder is not valid"), level=1)
             return False
         else:
             if not os.path.exists(self.ProjectDirectory):
-                self.iface.messageBar().pushMessage("Validations", "The project folder does not exist", level=1)
+                self.iface.messageBar().pushMessage(self.tr("Validations"), self.tr("The project folder does not exist"), level=1)
                 return False
             else:
                 if self.cbCreateSubfolder.isChecked():
@@ -103,8 +103,8 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
                     ]
                     for layer in layers:
                         if self.NetworkName + "_" + layer + ".shp" in dirList:
-                            message = "The selected folder has some files with the same project name."
-                            self.iface.messageBar().pushMessage("Validations", message, level=1)
+                            message = self.tr("The selected folder has some files with the same project name.")
+                            self.iface.messageBar().pushMessage(self.tr("Validations"), message, level=1)
                             return False
 
         if self.cbCreateSubfolder.isChecked() and not os.path.exists(self.ProjectDirectory):
@@ -129,17 +129,14 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
 
             # Message
             if resMessage == "True":
-                self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=5)
+                self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Process successfully completed"), level=3, duration=5)
                 # Project manager list
-                file = open(self.gplFile, "a+")
-                QGISRedUtils().writeFile(file, self.NetworkName + ";" + self.ProjectDirectory + "\n")
-                file.close()
-
+                QGISRedUtils().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
                 # open layers
                 self.parent.openElementLayers(None, self.NetworkName, self.ProjectDirectory)
             elif resMessage == "False":
-                self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
+                self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
             else:
-                self.iface.messageBar().pushMessage("Error", resMessage, level=2, duration=5)
+                self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
             self.close()

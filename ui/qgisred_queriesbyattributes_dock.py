@@ -393,7 +393,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
     def runQuery(self):
         property = self.cbProperty.currentText()
         #self.labelStatisticsProperty.setText(property)
-        self.labelStatisticsPropertyFor.setText(f"Statistics of {property} for selected Elements")
+        self.labelStatisticsPropertyFor.setText(self.tr(f"Statistics of {property} for selected Elements"))
         self.calculateStatistics()
 
     def calculateStatistics(self):

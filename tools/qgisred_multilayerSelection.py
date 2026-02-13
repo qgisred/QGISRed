@@ -159,7 +159,7 @@ class QGISRedMultiLayerSelection(QgsMapTool):
                             "qgis:selectbylocation", {"INPUT": layer, "PREDICATE": [0], "INTERSECT": poligon, "METHOD": 0}
                         )  # Set
             except Exception:
-                self.iface.messageBar().pushMessage("Warning", "Polygon not valid for selecting elements", level=1, duration=5)
+                self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Polygon not valid for selecting elements"), level=1, duration=5)
             self.reset()
             poligon = None
             return

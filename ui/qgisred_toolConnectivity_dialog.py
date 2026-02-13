@@ -23,12 +23,12 @@ class QGISRedConnectivityToolDialog(QDialog, FORM_CLASS):
     def accept(self):
         self.Lines = self.tbLines.text()
         if self.Lines == "":
-            self.lbMessage.setText("Not valid number for lines")
+            self.lbMessage.setText(self.tr("Not valid number for lines"))
             return
         try:
             _ = float(self.Lines)
         except Exception:
-            self.lbMessage.setText("Not numeric number of lines")
+            self.lbMessage.setText(self.tr("Not numeric number of lines"))
             return
         self.ProcessDone = True
         self.close()

@@ -222,9 +222,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             return False
 
         # Write .gql file
-        file = open(self.gplFile, "a+")
-        QGISRedUtils().writeFile(file, self.NetworkName + ";" + self.ProjectDirectory + "\n")
-        file.close()
+        QGISRedUtils().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
         return True
 
     def getInputGroup(self):
@@ -279,9 +277,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             self.parent.NetworkName = self.NetworkName
 
             # Write .gql file
-            file = open(self.gplFile, "a+")
-            QGISRedUtils().writeFile(file, self.NetworkName + ";" + self.ProjectDirectory + "\n")
-            file.close()
+            QGISRedUtils().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
 
             # Open files
             self.parent.processCsharpResult(resMessage, "")
@@ -1281,9 +1277,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             self.parent.NetworkName = self.NetworkName
 
             # Write .gql file
-            file = open(self.gplFile, "a+")
-            QGISRedUtils().writeFile(file, self.NetworkName + ";" + self.ProjectDirectory + "\n")
-            file.close()
+            QGISRedUtils().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
 
             # Open files
             utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
