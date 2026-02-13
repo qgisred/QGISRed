@@ -78,7 +78,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     FIELD_TYPE_CATEGORICAL = 'categorical'
     FIELD_TYPE_UNKNOWN = 'unknown'
     # Task 4.3: Add 'qgisred_results' to allowed groups
-    ALLOWED_GROUP_IDENTIFIERS = ["qgisred_thematicmaps", "qgisred_results"]
+    ALLOWED_GROUP_IDENTIFIERS = ["qgisred_thematicmaps", "qgisred_results", "qgisred_demandsectors"]
 
     def __init__(self, parent=None):
         """Constructor."""
@@ -354,6 +354,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not layerNode:
             return
 
+        # --- FIX START: Check visibility before proceeding ---
+        # If the clicked layer is not visible, do nothing.
+        # This preserves the current state of the dialog instead of blanking it out.
+        if not layerNode.isVisible():
+            return
+        # --- FIX END ---
+
         groupPath = self.findGroupPathForLayer(layerNode)
         if not groupPath:
             return
@@ -383,20 +390,30 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.cbLegendLayer.blockSignals(True)
         self.cbLegendLayer.setExceptedLayerList(excepted)
 
-        # 3. Intelligent Selection Logic (Task 4.2 Fix)
+        # 3. Intelligent Selection Logic
         current_layer = self.cbLegendLayer.currentLayer()
         target_layer = None
 
+        # --- NEW PRIORITY: Check for Active Layer First ---
+        # If the user has a layer selected in the TOC, and that layer is visible
+        # and belongs to this group, prioritize it.
+        active_node = self.getActiveLayerFromTree()
+        if active_node:
+            active_lyr = active_node.layer()
+            # Check if this active layer is in our allowed list (visible & in current group)
+            if active_lyr in allowed:
+                target_layer = active_lyr
+
         # Priority A: If the memory (lastValidLayerId) is now available, restore it.
-        # This handles the case: Layer A selected -> Hidden (dropdown changes) -> Shown (Restore Layer A)
-        if self.lastValidLayerId:
+        # (Only if we didn't find an active layer above)
+        if target_layer is None and self.lastValidLayerId:
             for lyr in allowed:
                 if lyr.id() == self.lastValidLayerId:
                     target_layer = lyr
                     break
 
         # Priority B: If current selection is still valid, keep it.
-        # (Only if we didn't find the 'restored' layer, or if the restored layer IS the current one)
+        # (Only if we didn't find the 'active' or 'restored' layer)
         if target_layer is None and current_layer and current_layer in allowed:
             target_layer = current_layer
 
@@ -548,9 +565,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def onSizeModeChanged(self):
         """Handle size mode change."""
         mode = self.cbSizes.currentText()
-        self.spinSizeEqual.setVisible(mode == "Equal")
-        self.spinSizeMin.setVisible(mode in ["Linear", "Quadratic", "Exponential"])
-        self.spinSizeMax.setVisible(mode in ["Linear", "Quadratic", "Exponential"])
+        showEqual = mode == "Equal"
+        showMinMax = mode in ["Linear", "Quadratic", "Exponential"]
+        self.spinSizeEqual.setVisible(showEqual)
+        self.labelSizeValue.setVisible(showEqual)
+        self.spinSizeMin.setVisible(showMinMax)
+        self.spinSizeMax.setVisible(showMinMax)
+        self.labelSpinMin.setVisible(showMinMax)
+        self.labelSpinMax.setVisible(showMinMax)
         self.ckSizeInvert.setVisible(mode != "Manual" and mode != "Equal")
         self.applySizeLogic()
 
@@ -1186,6 +1208,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
             # addCategoricalClass modifies self.availableUniqueValues internally
             while self.availableUniqueValues:
                 self.addCategoricalClass()
+
+            for r in reversed(range(self.tableView.rowCount())):
+                w = self.tableView.cellWidget(r, 3)
+                if isinstance(w, QLineEdit) and w.text() in [self.tr("Other Values"), "Other Values"]:
+                    self.tableView.removeRow(r)
+
         finally:
             self.tableView.blockSignals(False)
             self.tableView.setUpdatesEnabled(True)
@@ -1770,15 +1798,19 @@ class QGISRedLegendsDialog(QDialog, formClass):
         else:
             name = QGISRedUtils().identifierToElementName.get(ident)
         if not name: return
-        
+
         fname = name.replace(" ", "") + ".qml" + (".bak" if isDefault else "")
         sub = os.path.join("defaults", "layerStyles") if isDefault else "layerStyles"
         path = os.path.join(self.pluginFolder, sub, fname)
-        
-        if not os.path.exists(path): return
+
+        if not os.path.exists(path):
+            QMessageBox.warning(self, "Not Found", f"Style file not found: {path}")
+            return
+
         self.currentLayer.loadNamedStyle(path)
         self.currentLayer.triggerRepaint()
         self.onLayerChanged(self.currentLayer)
+        QMessageBox.information(self, "Loaded", f"Style loaded from {path}")
 
     # --- Utilities ---
 
@@ -1904,17 +1936,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if obj == self.btClassPlus and event.type() == QEvent.MouseButtonPress:
             if event.button() == Qt.RightButton:
                 if self.btClassPlus.isEnabled():
+                    # TASK 5.1 & User Request:
+                    # Right Click + Row Selected = Add class ABOVE (for both Numeric and Categorical)
+                    # Note: "Classify All" for Categorical is now handled via Double-Click in addClass()
 
-                    # --- FIX START: Check Field Type ---
-                    if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
-                        # If Categorical, Right-Click triggers Classify All (Add all unique values)
-                        self.classifyAll()
-                    else:
-                        # If Numeric, maintain the original "Add Above" logic
-                        self.btClassPlusAddBefore = True  # Set flag to add ABOVE
-                        self.executeAddClass()
-                        self.btClassPlusAddBefore = False  # Reset flag
-                    # --- FIX END ---
+                    self.btClassPlusAddBefore = True  # Set flag to add ABOVE
+                    self.executeAddClass()            # Execute addition (routes to addCategoricalClass or addNumericClass)
+                    self.btClassPlusAddBefore = False # Reset flag
 
                     return True  # Consume event
 

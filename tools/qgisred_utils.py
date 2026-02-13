@@ -482,12 +482,15 @@ class QGISRedUtils:
         for layerName in layers:
             self.removeLayer(layerName, ext)
 
+    def isThematicMapsLayer(self, layer):
+        identifier = layer.customProperty("qgisred_identifier")
+        return identifier and identifier.startswith("qgisred_query_")
+
     def removeLayer(self, name, ext=".shp"):
         layers = self.getLayers()
         originalLayerName = self.getOriginalNameFromLayerName(name)
         layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + originalLayerName + ext)
 
-        # Check in Inputs, Queries, and Results groups
         groupLayers = []
         root = QgsProject.instance().layerTreeRoot()
         for groupName in ["Inputs", "Queries", "Results"]:
@@ -499,6 +502,8 @@ class QGISRedUtils:
             layers = [layer for layer in layers if layer in groupLayers]
 
         for layer in layers:
+            if self.isThematicMapsLayer(layer):
+                continue
             openedLayerPath = self.getLayerPath(layer)
             if openedLayerPath == layerPath:
                 QgsProject.instance().removeMapLayer(layer.id())
@@ -596,6 +601,7 @@ class QGISRedUtils:
 
         # default style
         defaultStylePath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "defaults", "layerStyles")
+        defaultsPath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "defaults")
         qmlPath = os.path.join(defaultStylePath, name + ".qml.bak")
         if os.path.exists(qmlPath):
             if name == "meters":
@@ -603,25 +609,25 @@ class QGISRedUtils:
                 contents = f.read()
                 f.close()
                 newQmlPath = ""
-                svgPath = os.path.join(stylePath, "meterCount.svg")
+                svgPath = os.path.join(defaultsPath, "meterCount.svg")
                 contents = contents.replace("meterCount.svg", svgPath)
-                svgPath = os.path.join(stylePath, "meterDiff.svg")
+                svgPath = os.path.join(defaultsPath, "meterDiff.svg")
                 contents = contents.replace("meterDiff.svg", svgPath)
-                svgPath = os.path.join(stylePath, "meterEnergy.svg")
+                svgPath = os.path.join(defaultsPath, "meterEnergy.svg")
                 contents = contents.replace("meterEnergy.svg", svgPath)
-                svgPath = os.path.join(stylePath, "meterFlow.svg")
+                svgPath = os.path.join(defaultsPath, "meterFlow.svg")
                 contents = contents.replace("meterFlow.svg", svgPath)
-                svgPath = os.path.join(stylePath, "meterLevel.svg")
+                svgPath = os.path.join(defaultsPath, "meterLevel.svg")
                 contents = contents.replace("meterLevel.svg", svgPath)
-                svgPath = os.path.join(stylePath, "meterMan.svg")
+                svgPath = os.path.join(defaultsPath, "meterMan.svg")
                 contents = contents.replace("meterMan.svg", svgPath)
-                svgPath = os.path.join(stylePath, "meterOpen.svg")
+                svgPath = os.path.join(defaultsPath, "meterOpen.svg")
                 contents = contents.replace("meterOpen.svg", svgPath)
-                svgPath = os.path.join(stylePath, "meterQuality.svg")
+                svgPath = os.path.join(defaultsPath, "meterQuality.svg")
                 contents = contents.replace("meterQuality.svg", svgPath)
-                svgPath = os.path.join(stylePath, "meterStatus.svg")
+                svgPath = os.path.join(defaultsPath, "meterStatus.svg")
                 contents = contents.replace("meterStatus.svg", svgPath)
-                svgPath = os.path.join(stylePath, "meterTacho.svg")
+                svgPath = os.path.join(defaultsPath, "meterTacho.svg")
                 contents = contents.replace("meterTacho.svg", svgPath)
                 newQmlPath = os.path.join(stylePath, "meters.qml")
                 f = open(newQmlPath, "w+")

@@ -68,9 +68,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-38</y>
-        <width>634</width>
-        <height>436</height>
+        <y>0</y>
+        <width>635</width>
+        <height>438</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -352,27 +352,57 @@
                   </layout>
                  </item>
                  <item>
-                  <widget class="QDoubleSpinBox" name="spinSizeEqual">
-                   <property name="prefix">
-                    <string>Value: </string>
-                   </property>
-                   <property name="maximum">
-                    <double>20.000000000000000</double>
-                   </property>
-                   <property name="singleStep">
-                    <double>0.100000000000000</double>
-                   </property>
-                   <property name="value">
-                    <double>1.000000000000000</double>
-                   </property>
-                  </widget>
+                  <layout class="QHBoxLayout" name="horizontalLayout_9">
+                   <item>
+                    <widget class="QLabel" name="labelSizeValue">
+                     <property name="maximumSize">
+                      <size>
+                       <width>40</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>Value:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QDoubleSpinBox" name="spinSizeEqual">
+                     <property name="prefix">
+                      <string/>
+                     </property>
+                     <property name="maximum">
+                      <double>20.000000000000000</double>
+                     </property>
+                     <property name="singleStep">
+                      <double>0.100000000000000</double>
+                     </property>
+                     <property name="value">
+                      <double>1.000000000000000</double>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
                  </item>
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_14">
                    <item>
+                    <widget class="QLabel" name="labelSpinMin">
+                     <property name="maximumSize">
+                      <size>
+                       <width>30</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>Min:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
                     <widget class="QDoubleSpinBox" name="spinSizeMin">
                      <property name="prefix">
-                      <string>Min: </string>
+                      <string> </string>
                      </property>
                      <property name="singleStep">
                       <double>0.100000000000000</double>
@@ -383,9 +413,22 @@
                     </widget>
                    </item>
                    <item>
+                    <widget class="QLabel" name="labelSpinMax">
+                     <property name="maximumSize">
+                      <size>
+                       <width>30</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>Max:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
                     <widget class="QDoubleSpinBox" name="spinSizeMax">
                      <property name="prefix">
-                      <string>Max: </string>
+                      <string/>
                      </property>
                      <property name="maximum">
                       <double>20.000000000000000</double>
