@@ -109,6 +109,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         group = resultGroup.findGroup(scenario)
         if group is None:
             group = resultGroup.addGroup(scenario)
+            QGISRedUtils.setGroupIdentifier(group, scenario)
         for file in self.LabelsToOpRe:
             utils.openLayer(group, file, results=True)
 
@@ -138,6 +139,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 root = QgsProject.instance().layerTreeRoot()
                 netGroup = root.addGroup(self.NetworkName)
             resultGroup = netGroup.insertGroup(0, "Results")
+            QGISRedUtils.setGroupIdentifier(resultGroup, "Results")
         resultGroup.setItemVisibilityChecked(True)
         return resultGroup
 

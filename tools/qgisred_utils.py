@@ -34,7 +34,6 @@ from random import randrange
 from xml.etree import ElementTree
 import json
 
-
 class QGISRedUtils:
     DllTempoFolder = None
 

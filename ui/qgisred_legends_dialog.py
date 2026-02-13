@@ -14,7 +14,7 @@ from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsVectorLayer, QgsMessageLog, Qgis, QgsGraduatedSymbolRenderer
 from qgis.core import QgsCategorizedSymbolRenderer, QgsRendererRange, QgsRendererCategory, QgsSymbol
 from qgis.core import QgsLayerTreeGroup, QgsLayerTreeLayer, QgsGradientColorRamp, QgsClassificationJenks
-from qgis.core import QgsClassificationPrettyBreaks, QgsStyle, QgsPresetSchemeColorRamp
+from qgis.core import QgsClassificationPrettyBreaks, QgsStyle, QgsPresetSchemeColorRamp, QgsProperty, QgsSymbolLayer
 from qgis.utils import iface
 
 from ..tools.qgisred_utils import QGISRedUtils
@@ -672,32 +672,28 @@ class QGISRedLegendsDialog(QDialog, formClass):
             else:
                 rangeAverageValues.append(0.0)
 
-        if rangeAverageValues:
-            globalValueMin = min(rangeAverageValues)
-            lastClassRange = self.getRangeValues(rows - 1)
-            if lastClassRange:
-                globalValueMax = lastClassRange[0]
-            else:
-                globalValueMax = max(rangeAverageValues)
-        else:
-            globalValueMin = 0.0
-            globalValueMax = 1.0
+        _, globalValueMax = self.getLayerMinMax()
 
         sizes = []
-        for averageValue in rangeAverageValues:
-            calculatedSize = self.computeProportionalSize(minSize, maxSize, globalValueMin, globalValueMax, averageValue)
-            sizes.append(calculatedSize)
+        for index, averageValue in enumerate(rangeAverageValues):
+            if index == 0:
+                sizes.append(minSize)
+            elif index == rows - 1:
+                sizes.append(maxSize)
+            else:
+                calculatedSize = self.computeProportionalSize(minSize, maxSize, globalValueMax, averageValue)
+                sizes.append(calculatedSize)
 
         if self.ckSizeInvert.isChecked():
             sizes.reverse()
 
         return sizes
 
-    def computeProportionalSize(self, minSize, maxSize, globalValueMin, globalValueMax, averageValue):
-        if globalValueMax == globalValueMin:
+    def computeProportionalSize(self, minSize, maxSize, globalValueMax, averageValue):
+        if globalValueMax == 0:
             return minSize
 
-        normalizedPosition = (averageValue - globalValueMin) / (globalValueMax - globalValueMin)
+        normalizedPosition = averageValue / globalValueMax
         normalizedPosition = max(0.0, min(1.0, normalizedPosition))
 
         return minSize + normalizedPosition * (maxSize - minSize)
@@ -998,7 +994,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
                     child.isVisible()
                     and identifier in self.ALLOWED_GROUP_IDENTIFIERS
                 ):
-                    if self.groupHasVisibleLayers(child):
+                    isResultsGroup = identifier == "qgisred_results" # Results group bypasses empty layer check (layers are in subgroups)
+                    if isResultsGroup or self.groupHasVisibleLayers(child):
                         results.append((currentPath[-1], " / ".join(currentPath), child))
 
                 self.collectGroupsRecursive(child, currentPath, results)
@@ -1018,7 +1015,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not group:
             return []
 
+        # Check if this is a qgisred_results group to enable recursive layer collection
+        identifier = group.customProperty("qgisred_identifier")
+        isResultsGroup = identifier == "qgisred_results"
+
         layers = []
+        self.collectRenderableLayersRecursive(group, layers, isResultsGroup)
+
+        return layers
+
+    def collectRenderableLayersRecursive(self, group, layers, recurseIntoSubgroups):
+        """Collects renderable layers from a group, optionally recursing into subgroups."""
         for child in group.children():
             if isinstance(child, QgsLayerTreeLayer) and child.isVisible():
                 layer = child.layer()
@@ -1029,8 +1036,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
                     in ("graduatedSymbol", "categorizedSymbol")
                 ):
                     layers.append(layer)
-
-        return layers
+            elif isinstance(child, QgsLayerTreeGroup) and recurseIntoSubgroups:
+                # Recursively collect layers from nested subgroups
+                self.collectRenderableLayersRecursive(child, layers, recurseIntoSubgroups)
 
     def findGroupByPath(self, pathStr):
         current = QgsProject.instance().layerTreeRoot()
@@ -2413,6 +2421,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def applyNumericLegend(self):
         ranges = []
+        isProportionalMode = self.cbSizes.currentText() == "Proportional to Value"
 
         for row in range(self.tableView.rowCount()):
             values = self.getRangeValues(row)
@@ -2441,6 +2450,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
             except:
                 pass
 
+            if isProportionalMode:
+                self.applyProportionalSizeExpression(symbol)
+
             rangeObj = QgsRendererRange(
                 values[0], values[1], symbol, legendWidget.text()
             )
@@ -2449,6 +2461,31 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         if ranges:
             self.currentLayer.setRenderer(QgsGraduatedSymbolRenderer(self.currentFieldName, ranges))
+
+    def applyProportionalSizeExpression(self, symbol):
+        minSize = self.spinSizeMin.value()
+        maxSize = self.spinSizeMax.value()
+        _, globalValueMax = self.getLayerMinMax()
+
+        if globalValueMax == 0:
+            return
+
+        fieldName = self.currentFieldName
+        isLine = self.currentLayer.geometryType() == 1
+
+        if self.ckSizeInvert.isChecked():
+            expression = f'{maxSize} - ("{fieldName}" / {globalValueMax}) * ({maxSize} - {minSize})'
+        else:
+            expression = f'{minSize} + ("{fieldName}" / {globalValueMax}) * ({maxSize} - {minSize})'
+
+        sizeProperty = QgsProperty.fromExpression(expression)
+
+        for i in range(symbol.symbolLayerCount()):
+            symbolLayer = symbol.symbolLayer(i)
+            if isLine:
+                symbolLayer.setDataDefinedProperty(QgsSymbolLayer.PropertyStrokeWidth, sizeProperty)
+            else:
+                symbolLayer.setDataDefinedProperty(QgsSymbolLayer.PropertySize, sizeProperty)
 
     def applyCategoricalLegend(self):
         categories = []
