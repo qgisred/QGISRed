@@ -4373,7 +4373,8 @@ class QGISRed:
             'group_path': subgroup_path,
             'group_positions': subgroup_positions,
             'layer_position': layer_position,
-            'field_name': layer.customProperty("query_field")
+            'field_name': layer.customProperty("query_field"),
+            'identifier': layer.customProperty("qgisred_identifier")
         }
 
     def _storeLayersRecursive(self, parent_group, query_layers, group_path, group_positions):
@@ -4421,6 +4422,7 @@ class QGISRed:
                     new_layer.setLabelsEnabled(query_info['labels_enabled'])
 
                 new_layer.setCustomProperty("query_field", query_info['field_name'])
+                new_layer.setCustomProperty("qgisred_identifier", query_info['identifier'])
                 new_layer.setReadOnly(True)
                 QgsProject.instance().addMapLayer(new_layer, False)
 
@@ -4432,7 +4434,6 @@ class QGISRed:
 
                 layer_tree_layer = QgsLayerTreeLayer(new_layer)
                 layer_tree_layer.setCustomProperty("showFeatureCount", True)
-                #layer_tree_layer.setReadOnly(True)
 
                 if 'checked' in query_info:
                     layer_tree_layer.setItemVisibilityChecked(query_info['checked'])

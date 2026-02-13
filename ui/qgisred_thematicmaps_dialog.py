@@ -122,7 +122,11 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         qml_file = query['qml_file']
         tooltip_prefix = query['tooltip_prefix']
         
-        existing_layer, layer_position = self.find_layer_recursively(queries_group, layer_name)
+        # Generate a unique identifier for the layer
+        layer_identifier = f"qgisred_query_{field.lower()}_{tooltip_prefix.lower()}"
+        
+        # Find existing layer by identifier instead of name
+        existing_layer, layer_position = self.find_layer_by_identifier(queries_group, layer_identifier)
         parent_group = queries_group
         layer_position = 0
         
@@ -147,38 +151,41 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         
         derived_layer = self.create_derived_layer(main_layer, layer_name, field)
         
+        derived_layer.setCustomProperty("query_field", field)
+        
         qml_path = self.load_qml_style(derived_layer, qml_file)
         derived_layer.setLabelsEnabled(False)
-        derived_layer.setCustomProperty("query_field", field)
         
         if field == 'Material':
             QGISRedUtils().apply_categorized_renderer(derived_layer, field, qml_path)
-            #self.set_labels_with_null_handling(derived_layer, field, qml_path)
 
+        derived_layer.setCustomProperty("qgisred_identifier", layer_identifier)
+        
         QgsProject.instance().addMapLayer(derived_layer, False)
         QGISRedUtils().hide_fields(derived_layer, field)
 
         if parent_group and not sip.isdeleted(parent_group):
             layer_tree_layer = parent_group.insertLayer(layer_position, derived_layer)
             layer_tree_layer.setCustomProperty("showFeatureCount", True)
-        
+
         main_layer.dataChanged.connect(lambda: self.sync_layers(main_layer, derived_layer))
         main_layer.styleChanged.connect(lambda: self.sync_layers(main_layer, derived_layer))
         derived_layer.dataChanged.connect(lambda: derived_layer.triggerRepaint())
         derived_layer.setReadOnly(True)
 
         return derived_layer
-
-    def find_layer_recursively(self, parent_group, layer_name):
+    
+    def find_layer_by_identifier(self, parent_group, identifier):
         if not parent_group:
             return None, None
             
         for i, child in enumerate(parent_group.children()):
             if isinstance(child, QgsLayerTreeLayer):
-                if child.name() == layer_name:
+                layer_identifier = child.customProperty("qgisred_identifier")
+                if layer_identifier == identifier:
                     return child, i
             elif isinstance(child, QgsLayerTreeGroup):
-                found_layer, found_position = self.find_layer_recursively(child, layer_name)
+                found_layer, found_position = self.find_layer_by_identifier(child, identifier)
                 if found_layer is not None:
                     return found_layer, found_position
         
@@ -267,75 +274,113 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
     
     def updateCheckboxStates(self):
         root = QgsProject.instance().layerTreeRoot()
-        queries_group = self.find_group_by_name(root, 'Queries')
+        inputs_group = self.find_group_by_name(root, 'Inputs')
+        queries_group = self.get_or_create_queries_group(root, inputs_group)
+
+        checkbox_mapping = self.create_identifier_checkbox_mapping()
         
-        if not queries_group:
-            return
+        self.check_layers_recursive_by_identifier(queries_group, checkbox_mapping)
 
-        checkbox_mapping = {
-            'Tank Elevations': self.cbTanksElevation,
-            'Tank Diameters': self.cbTanksDiameter,
-            'Tank Volumes': self.cbTanksVolume,
-            'Tank Levels': self.cbTanksLevel,
-            'Tank Initial Quality': self.cbTanksInitialQuality,
-            'Tank Bulk Coefficient': self.cbTanksBulkCoeff,
-            'Tank Mixing Models': self.cbTanksMixingModel,
-            'Tank Tags': self.cbTanksTag,
-            'Reservoir Total Head': self.cbReservoirsTotalHead,
-            'Reservoir Head Patterns': self.cbReservoirsHeadPattern,
-            'Reservoir Initial Quality': self.cbReservoirsInitialQuality,
-            'Reservoir Tags': self.cbReservoirsTag,
-            'Junction Elevations': self.cbJunctionsElevation,
-            'Junction Base Demands': self.cbJunctionsBaseDemand,
-            'Junction Pattern Demands': self.cbJunctionsPatternDemand,
-            'Junction Emitter Coefficients': self.cbJunctionsEmitterCoeff,
-            'Junction Initial Quality': self.cbJunctionsInitialQuality,
-            'Junction Tags': self.cbJunctionsTag,
-            'Valve Types': self.cbValvesType,
-            'Valve Diameters': self.cbValvesDiameter,
-            'Valve Settings': self.cbValvesSetting,
-            'Valve Initial Status': self.cbValvesInitialStatus,
-            'Valve Loss Coefficients': self.cbValvesLossCoeff,
-            'Valve Tags': self.cbValvesTag,
-            'Pump Types': self.cbPumpsType,
-            'Pump Curves': self.cbPumpsPumpCurve,
-            'Pump Power': self.cbPumpsPower,
-            'Pump Initial Status': self.cbPumpsInitialStatus,
-            'Pump Speed': self.cbPumpsSpeed,
-            'Pump Efficiency Curves': self.cbPumpsEfficiencyCurve,
-            'Pump Energy Price': self.cbPumpsEnergyPrice,
-            'Pump Tags': self.cbPumpsTag,
-            'Service Connection': self.cbPipesDiameter_3,
-            'Isolation Valves': self.cbTanksElevation_3,
-            'Meters': self.cbReservoirsTotalHead_3,
-            'Pipe Diameters': self.cbPipesDiameter,
-            'Pipe Lengths': self.cbPipesLength,
-            'Pipe Materials': self.cbPipesMaterial,
-            'Pipe Roughness': self.cbPipesRoughness,
-            'Pipe Age': self.cbPipesAge,
-            'Pipe Loss Coefficient': self.cbPipesLossCoeff,
-            'Pipe Initial Status': self.cbPipesInitStatus,
-            'Pipe Installation Date': self.cbPipesInstallationDate,
-            'Pipe Bulk Coefficient': self.cbPipesBulkCoeff,
-            'Pipe Wall Coefficient': self.cbPipesWallCoeff,
-            'Pipe Tags': self.cbPipesTag
-        }
+    def create_identifier_checkbox_mapping(self):
+        mapping = {}
+        
+        # Tanks mappings
+        mapping.update({
+            'qgisred_query_elevation_elev': self.cbTanksElevation,
+            'qgisred_query_diameter_diam': self.cbTanksDiameter,
+            'qgisred_query_volume_vol': self.cbTanksVolume,
+            'qgisred_query_level_level': self.cbTanksLevel,
+            'qgisred_query_initquality_quality': self.cbTanksInitialQuality,
+            'qgisred_query_bulkcoeff_bulk': self.cbTanksBulkCoeff,
+            'qgisred_query_mixmodel_mix': self.cbTanksMixingModel,
+            'qgisred_query_tag_tag': self.cbTanksTag
+        })
 
-        self.check_layers_recursive(queries_group, checkbox_mapping)
+        # Reservoirs mappings
+        mapping.update({
+            'qgisred_query_totalhead_head': self.cbReservoirsTotalHead,
+            'qgisred_query_headpattern_pattern': self.cbReservoirsHeadPattern,
+            'qgisred_query_initquality_quality': self.cbReservoirsInitialQuality,
+            'qgisred_query_tag_tag': self.cbReservoirsTag
+        })
 
-    def check_layers_recursive(self, group, checkbox_mapping):
+        # Junctions mappings
+        mapping.update({
+            'qgisred_query_elevation_elev': self.cbJunctionsElevation,
+            'qgisred_query_basedemand_demand': self.cbJunctionsBaseDemand,
+            'qgisred_query_patterndemand_pattern': self.cbJunctionsPatternDemand,
+            'qgisred_query_emittercoeff_emitter': self.cbJunctionsEmitterCoeff,
+            'qgisred_query_initquality_quality': self.cbJunctionsInitialQuality,
+            'qgisred_query_tag_tag': self.cbJunctionsTag
+        })
+
+        # Valves mappings
+        mapping.update({
+            'qgisred_query_type_type': self.cbValvesType,
+            'qgisred_query_diameter_diam': self.cbValvesDiameter,
+            'qgisred_query_setting_set': self.cbValvesSetting,
+            'qgisred_query_initstatus_status': self.cbValvesInitialStatus,
+            'qgisred_query_losscoeff_loss': self.cbValvesLossCoeff,
+            'qgisred_query_tag_tag': self.cbValvesTag
+        })
+
+        # Pumps mappings
+        mapping.update({
+            'qgisred_query_type_type': self.cbPumpsType,
+            'qgisred_query_pumpcurve_curve': self.cbPumpsPumpCurve,
+            'qgisred_query_power_power': self.cbPumpsPower,
+            'qgisred_query_initstatus_status': self.cbPumpsInitialStatus,
+            'qgisred_query_speed_speed': self.cbPumpsSpeed,
+            'qgisred_query_effcurve_eff': self.cbPumpsEfficiencyCurve,
+            'qgisred_query_energyprice_price': self.cbPumpsEnergyPrice,
+            'qgisred_query_tag_tag': self.cbPumpsTag
+        })
+
+        # Service Connection, Isolation Valves, and Meters mappings
+        mapping.update({
+            'qgisred_query_temporary_temp': self.cbPipesDiameter_3,  # Service Connection
+            'qgisred_query_temporary_temp': self.cbTanksElevation_3,  # Isolation Valves
+            'qgisred_query_temporary_temp': self.cbReservoirsTotalHead_3  # Meters
+        })
+
+        # Pipes mappings
+        mapping.update({
+            'qgisred_query_diameter_diam': self.cbPipesDiameter,
+            'qgisred_query_length_len': self.cbPipesLength,
+            'qgisred_query_material_mat': self.cbPipesMaterial,
+            'qgisred_query_roughness_rough': self.cbPipesRoughness,
+            'qgisred_query_age_age': self.cbPipesAge,
+            'qgisred_query_losscoeff_loss': self.cbPipesLossCoeff,
+            'qgisred_query_initstatus_status': self.cbPipesInitStatus,
+            'qgisred_query_installdate_inst': self.cbPipesInstallationDate,
+            'qgisred_query_bulkcoeff_bulk': self.cbPipesBulkCoeff,
+            'qgisred_query_wallcoeff_wall': self.cbPipesWallCoeff,
+            'qgisred_query_tag_tag': self.cbPipesTag
+        })
+        
+        return mapping
+
+    def check_layers_recursive_by_identifier(self, group, identifier_mapping):
+        """Check layers using identifiers instead of names."""
         if not group:
             return
 
         for child in group.children():
+            if child.nodeType() == QgsLayerTreeNode.NodeLayer and child.checkedLayers():
+                layer = child.checkedLayers()[0]
+                layer_identifier = layer.customProperty("qgisred_identifier")
+                if layer_identifier in identifier_mapping:
+                    checkbox = identifier_mapping[layer_identifier]
+                    checkbox.setEnabled(False)
+                    checkbox.setToolTip("Query already exists.")
             if isinstance(child, QgsLayerTreeLayer):
-                layer_name = child.name()
-                if layer_name in checkbox_mapping:
-                    checkbox = checkbox_mapping[layer_name]
+                layer_identifier = child.customProperty("qgisred_identifier")
+                if layer_identifier in identifier_mapping:
+                    checkbox = identifier_mapping[layer_identifier]
                     checkbox.setEnabled(False)
                     checkbox.setToolTip("Query already exists.")
             elif isinstance(child, QgsLayerTreeGroup):
-                self.check_layers_recursive(child, checkbox_mapping)
+                self.check_layers_recursive_by_identifier(child, identifier_mapping)
 
     def get_selected_queries(self):
         units = QGISRedUtils().getUnits()
