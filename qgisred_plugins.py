@@ -2022,23 +2022,15 @@ class QGISRed:
         utils.openIssuesLayers(issuesGroup, self.issuesLayers)
 
     def openConnectivityLayer(self):
-        # Group
-        connGroup = QgsProject.instance().layerTreeRoot().findGroup("Connectivity")
-        if connGroup is None:
-            queryGroup = self.getQueryGroup()
-            connGroup = queryGroup.insertGroup(0, "Connectivity")
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        connGroup = utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Connectivity"])
         utils.openLayer(connGroup, "Links_Connectivity")
 
     def openSectorLayers(self):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         if os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_Links_" + self.Sectors + ".shp")):
             sectorGroupName = self.getSectorGroupName()
-            sectorGroup = QgsProject.instance().layerTreeRoot().findGroup(sectorGroupName)
-            if sectorGroup is None:
-                queryGroup = self.getQueryGroup()
-                sectorGroup = queryGroup.insertGroup(0, sectorGroupName)
-
+            sectorGroup = utils.getOrCreateNestedGroup([self.NetworkName, "Queries", sectorGroupName])
             utils.openLayer(sectorGroup, "Links_" + self.Sectors, sectors=True)
             utils.openLayer(sectorGroup, "Nodes_" + self.Sectors, sectors=True)
 
@@ -2047,51 +2039,35 @@ class QGISRed:
     def activeInputGroup(self):
         if self.ResultDockwidget is None:
             return
-        group = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        group = utils.getOrCreateGroup("Inputs")
         if group is not None:
             group.setItemVisibilityChecked(not self.ResultDockwidget.isVisible())
-        group = QgsProject.instance().layerTreeRoot().findGroup("Results")
+        group = utils.getOrCreateGroup("Results")
         if group is not None:
             group.setItemVisibilityChecked(self.ResultDockwidget.isVisible())
 
     def getInputGroup(self):
-        # Same method in qgisred_newproject_dialog and qgisred_results_dock
-        inputGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
-        if inputGroup is None:
-            netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
-            if netGroup is None:
-                root = QgsProject.instance().layerTreeRoot()
-                netGroup = root.insertGroup(0, self.NetworkName)
-            inputGroup = netGroup.addGroup("Inputs")
-        return inputGroup
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        return utils.getOrCreateGroup("Inputs")
 
     def getQueryGroup(self):
-        queryGroup = QgsProject.instance().layerTreeRoot().findGroup("Queries")
-        if queryGroup is None:
-            netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
-            if netGroup is None:
-                root = QgsProject.instance().layerTreeRoot()
-                netGroup = root.addGroup(self.NetworkName)
-            queryGroup = netGroup.insertGroup(0, "Queries")
-        return queryGroup
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        return utils.getOrCreateGroup("Queries")
 
     def getIssuesGroup(self):
-        inputGroup = QgsProject.instance().layerTreeRoot().findGroup("Issues")
-        if inputGroup is None:
-            netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
-            if netGroup is None:
-                root = QgsProject.instance().layerTreeRoot()
-                netGroup = root.addGroup(self.NetworkName)
-            inputGroup = netGroup.insertGroup(0, "Issues")
-        return inputGroup
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        return utils.getOrCreateGroup("Issues")
 
     def removeEmptyIssuesGroup(self):
-        netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
-        if netGroup is not None:
-            issuesGroup = netGroup.findGroup("Issues")
-            if issuesGroup is not None:
-                if len(issuesGroup.findLayers()) == 0:
-                    netGroup.removeChildNode(issuesGroup)
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        root = QgsProject.instance().layerTreeRoot()
+        issuesGroup = utils._findGroupByNameRecursive(root, "Issues")
+        if issuesGroup is not None:
+            if len(issuesGroup.findLayers()) == 0:
+                parent = issuesGroup.parent()
+                if parent is not None:
+                    parent.removeChildNode(issuesGroup)
 
     def getSectorGroupName(self):
         if self.Sectors == "HydraulicSectors":
@@ -2102,16 +2078,20 @@ class QGISRed:
             return "Sectors"
 
     def removeEmptyQuerySubGroup(self, name):
-        netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
-        if netGroup is not None:
-            queryGroup = netGroup.findGroup("Queries")
-            if queryGroup is not None:
-                querySubGroup = queryGroup.findGroup(name)
-                if querySubGroup is not None:
-                    if len(querySubGroup.findLayers()) == 0:
-                        queryGroup.removeChildNode(querySubGroup)
-                if len(queryGroup.findLayers()) == 0:
-                    netGroup.removeChildNode(queryGroup)
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        root = QgsProject.instance().layerTreeRoot()
+        querySubGroup = utils._findGroupByNameRecursive(root, name)
+        if querySubGroup is not None:
+            if len(querySubGroup.findLayers()) == 0:
+                parent = querySubGroup.parent()
+                if parent is not None:
+                    parent.removeChildNode(querySubGroup)
+        queryGroup = utils._findGroupByNameRecursive(root, "Queries")
+        if queryGroup is not None:
+            if len(queryGroup.findLayers()) == 0 and len(queryGroup.children()) == 0:
+                parent = queryGroup.parent()
+                if parent is not None:
+                    parent.removeChildNode(queryGroup)
 
     """Others"""
 
@@ -4026,11 +4006,8 @@ class QGISRed:
         utils.openIsolatedSegmentsLayer(isoaltedSegmentsGroup, "Nodes")
 
     def getIsolatedSegmentsGroup(self):
-        group = QgsProject.instance().layerTreeRoot().findGroup("Isolated Segments")
-        if group is None:
-            queryGroup = self.getQueryGroup()
-            group = queryGroup.insertGroup(0, "Isolated Segments")
-        return group
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        return utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Isolated Segments"])
 
     def removeIsolatedSegmentsLayers(self, task):
         path = os.path.join(self.ProjectDirectory, "Queries")
@@ -4545,11 +4522,8 @@ class QGISRed:
             group.setItemVisibilityChecked(False)
 
     def getTreeGroup(self):
-        treeGroup = QgsProject.instance().layerTreeRoot().findGroup("Tree: " + self.treeName)
-        if treeGroup is None:
-            queryGroup = self.getQueryGroup()
-            treeGroup = queryGroup.insertGroup(0, "Tree: " + self.treeName)
-        return treeGroup
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        return utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Tree: " + self.treeName])
 
     def removeTreeLayers(self, task):
         treePath = os.path.join(self.ProjectDirectory, "Trees")
@@ -4575,7 +4549,7 @@ class QGISRed:
             return
 
         dlg = QGISRedThematicMapsDialog()
-        # Run the dialog event loop
+        dlg.config(self.iface, self.ProjectDirectory, self.NetworkName)
         dlg.exec_()
     
     def runFindElements(self): 

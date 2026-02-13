@@ -108,7 +108,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         resultGroup = self.getResultGroup()
         group = resultGroup.findGroup(scenario)
         if group is None:
-            group = resultGroup.addGroup(scenario)
+            group = resultGroup.insertGroup(0, scenario)
         for file in self.LabelsToOpRe:
             utils.openLayer(group, file, results=True)
 
@@ -121,24 +121,12 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             return {"task": task.definition()}
 
     def getInputGroup(self):
-        # Same method in qgisred_newproject_dialog and qgisred_plugins
-        inputGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
-        if inputGroup is None:
-            netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
-            if netGroup is None:
-                root = QgsProject.instance().layerTreeRoot()
-                netGroup = root.insertGroup(0, self.NetworkName)
-            inputGroup = netGroup.addGroup("Inputs")
-        return inputGroup
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        return utils.getOrCreateGroup("Inputs")
 
     def getResultGroup(self):
-        resultGroup = QgsProject.instance().layerTreeRoot().findGroup("Results")
-        if resultGroup is None:
-            netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
-            if netGroup is None:
-                root = QgsProject.instance().layerTreeRoot()
-                netGroup = root.addGroup(self.NetworkName)
-            resultGroup = netGroup.insertGroup(0, "Results")
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        resultGroup = utils.getOrCreateGroup("Results")
         resultGroup.setItemVisibilityChecked(True)
         return resultGroup
 

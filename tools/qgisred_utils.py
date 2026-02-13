@@ -37,6 +37,28 @@ from xml.etree import ElementTree
 class QGISRedUtils:
     DllTempoFolder = None
 
+    groupIdentifiers = {
+        'Inputs': 'qgisred_inputs',
+        'Results': 'qgisred_results',
+        'Queries': 'qgisred_queries',
+        'Thematic Maps': 'qgisred_thematicmaps',
+        'Connectivity': 'qgisred_connectivity',
+        'HydraulicSectors': 'qgisred_hydraulicsectors',
+        'Demand Sectors': 'qgisred_demandsectors',
+        'IsolatedSegments': 'qgisred_isolatedsegments'
+    }
+
+    identifierToGroupName = {
+        'qgisred_inputs': 'Inputs',
+        'qgisred_results': 'Results',
+        'qgisred_queries': 'Queries',
+        'qgisred_thematicmaps': 'Thematic Maps',
+        'qgisred_connectivity': 'Connectivity',
+        'qgisred_hydraulicsectors': 'HydraulicSectors',
+        'qgisred_demandsectors': 'Demand Sectors',
+        'qgisred_isolatedsegments': 'IsolatedSegments'
+    }
+
     def __init__(self, directory="", networkName="", iface=None):
         self.iface = iface
         self.ProjectDirectory = directory
@@ -44,7 +66,7 @@ class QGISRedUtils:
 
         self.elementIdentifiers = {
             'Pipes': 'pipes',
-            'Junctions': 'junctions', 
+            'Junctions': 'junctions',
             'Tanks': 'tanks',
             'Reservoirs': 'reservoirs',
             'Valves': 'valves',
@@ -173,18 +195,140 @@ class QGISRedUtils:
 
     def getInputGroup(self):
         root = QgsProject.instance().layerTreeRoot()
-        
-        # Try to find existing Inputs group anywhere in the tree
         inputGroup = self.findGroupRecursive(root, "Inputs")
-        
         if inputGroup is None:
-            # If not found, create it under network group
             netGroup = self.findGroupRecursive(root, self.NetworkName)
             if netGroup is None:
                 netGroup = root.insertGroup(0, self.NetworkName)
-            inputGroup = netGroup.addGroup("Inputs")
-        
+            inputGroup = netGroup.insertGroup(0, "Inputs")
         return inputGroup
+
+    @classmethod
+    def findGroupByIdentifier(cls, identifier):
+        root = QgsProject.instance().layerTreeRoot()
+        return cls._findGroupByIdentifierRecursive(root, identifier)
+
+    @classmethod
+    def _findGroupByIdentifierRecursive(cls, parent, identifier):
+        for child in parent.children():
+            if isinstance(child, QgsLayerTreeGroup):
+                groupId = child.customProperty("qgisred_identifier")
+                if groupId == identifier:
+                    return child
+                result = cls._findGroupByIdentifierRecursive(child, identifier)
+                if result:
+                    return result
+        return None
+
+    @classmethod
+    def setGroupIdentifier(cls, group, keyOrName):
+        if not group:
+            return
+        normalizedName = keyOrName.lower().replace(" ", "")
+        identifier = f"qgisred_{normalizedName}"
+        existingId = group.customProperty("qgisred_identifier")
+        if existingId != identifier:
+            group.setCustomProperty("qgisred_identifier", identifier)
+            if keyOrName not in cls.groupIdentifiers:
+                cls.groupIdentifiers[keyOrName] = identifier
+            if identifier not in cls.identifierToGroupName:
+                cls.identifierToGroupName[identifier] = keyOrName
+
+    def getOrCreateGroup(self, groupName):
+        root = QgsProject.instance().layerTreeRoot()
+        identifier = self.groupIdentifiers.get(groupName)
+        if identifier:
+            group = self.findGroupByIdentifier(identifier)
+            if group:
+                return group
+        group = self._findGroupByNameRecursive(root, groupName)
+        if group:
+            self.setGroupIdentifier(group, groupName)
+            return group
+        netGroup = None
+        if self.NetworkName:
+            netGroup = self._findGroupByNameRecursive(root, self.NetworkName)
+            if not netGroup:
+                netGroup = root.insertGroup(0, self.NetworkName)
+                self.setGroupIdentifier(netGroup, self.NetworkName)
+        parent = netGroup if netGroup else root
+        newGroup = parent.insertGroup(0, groupName)
+        self.setGroupIdentifier(newGroup, groupName)
+        return newGroup
+
+    @classmethod
+    def _findGroupByNameRecursive(cls, parent, groupName):
+        for child in parent.children():
+            if isinstance(child, QgsLayerTreeGroup):
+                if child.name() == groupName:
+                    return child
+                result = cls._findGroupByNameRecursive(child, groupName)
+                if result:
+                    return result
+        return None
+
+    def getOrCreateNestedGroup(self, path):
+        if not path or len(path) == 0:
+            return QgsProject.instance().layerTreeRoot()
+        root = QgsProject.instance().layerTreeRoot()
+        currentParent = root
+        for i, groupName in enumerate(path):
+            foundGroup = None
+            identifier = self.groupIdentifiers.get(groupName)
+            if identifier:
+                for child in currentParent.children():
+                    if isinstance(child, QgsLayerTreeGroup):
+                        if child.customProperty("qgisred_identifier") == identifier:
+                            foundGroup = child
+                            break
+            if not foundGroup:
+                for child in currentParent.children():
+                    if isinstance(child, QgsLayerTreeGroup) and child.name() == groupName:
+                        foundGroup = child
+                        break
+            if not foundGroup:
+                foundGroup = currentParent.insertGroup(0, groupName)
+                self.setGroupIdentifier(foundGroup, groupName)
+            else:
+                self.setGroupIdentifier(foundGroup, groupName)
+            currentParent = foundGroup
+        return currentParent
+
+    def getOrCreateNetworkGroup(self):
+        root = QgsProject.instance().layerTreeRoot()
+        identifier = self.groupIdentifiers.get(self.NetworkName)
+        if identifier:
+            group = self.findGroupByIdentifier(identifier)
+            if group:
+                return group
+        group = self._findGroupByNameRecursive(root, self.NetworkName)
+        if group:
+            self.setGroupIdentifier(group, self.NetworkName)
+            return group
+        networkGroup = root.insertGroup(0, self.NetworkName)
+        self.setGroupIdentifier(networkGroup, self.NetworkName)
+        return networkGroup
+
+    @classmethod
+    def assignGroupIdentifiers(cls):
+        root = QgsProject.instance().layerTreeRoot()
+        cls._assignGroupIdentifiersRecursive(root)
+
+    @classmethod
+    def _assignGroupIdentifiersRecursive(cls, parent):
+        for child in parent.children():
+            if isinstance(child, QgsLayerTreeGroup):
+                existingId = child.customProperty("qgisred_identifier")
+                if not existingId:
+                    groupName = child.name()
+                    cls.setGroupIdentifier(child, groupName)
+                else:
+                    groupName = child.name()
+                    if groupName not in cls.groupIdentifiers:
+                        cls.groupIdentifiers[groupName] = existingId
+                    if existingId not in cls.identifierToGroupName:
+                        cls.identifierToGroupName[existingId] = groupName
+                cls._assignGroupIdentifiersRecursive(child)
 
     """Open Layers"""
 
@@ -773,8 +917,8 @@ class QGISRedUtils:
                         if "[" in lines[i]:
                             groupName = str(lines[i].strip("[").strip("\r\n").strip("]")).replace(self.NetworkName + " ", "")
                             root = QgsProject.instance().layerTreeRoot()
-                            netGroup = root.addGroup(self.NetworkName)
-                            group = netGroup.addGroup(groupName)
+                            netGroup = root.insertGroup(0, self.NetworkName)
+                            group = netGroup.insertGroup(0, groupName)
                         else:
                             layerPath = lines[i].strip("\r\n")
                             if not os.path.exists(layerPath):
@@ -797,8 +941,8 @@ class QGISRedUtils:
 
     def openGroupLayers(self, groupName, layerNames):
         root = QgsProject.instance().layerTreeRoot()
-        netGroup = root.addGroup(self.NetworkName)
-        treeGroup = netGroup.addGroup(groupName)
+        netGroup = root.insertGroup(0, self.NetworkName)
+        treeGroup = netGroup.insertGroup(0, groupName)
         for lay in layerNames:
             layerName = lay
             layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp")
@@ -1126,8 +1270,7 @@ class QGISRedUtils:
                 if existing_group:
                     target_group = existing_group
                 else:
-                    # Create group if it doesn't exist
-                    target_group = target_group.addGroup(group_name)
+                    target_group = target_group.insertGroup(0, group_name)
             
             # Find the layer's current node
             layer_node = root.findLayer(layer.id())

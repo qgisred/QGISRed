@@ -84,21 +84,21 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.setupButtonIcons()
 
 
-    def setupButtonIcons(self):
-        self.btImport.setIcon(QIcon(":/plugins/QGISRed/images/iconStatisticsImport.png"))
-        self.btExport.setIcon(QIcon(":/plugins/QGISRed/images/iconStatisticsExport.png"))
+    def setupButtonIcons(self): #TODO rename to QGISRed folder instead of BID on deploy
+        self.btImport.setIcon(QIcon(":/plugins/QGISRed-BID/images/iconStatisticsImport.png"))
+        self.btExport.setIcon(QIcon(":/plugins/QGISRed-BID/images/iconStatisticsExport.png"))
 
-        self.btCriteriaUp.setIcon(QIcon(":/plugins/QGISRed/images/iconStatisticsArrowUp.png"))
-        self.btCriteriaDown.setIcon(QIcon(":/plugins/QGISRed/images/iconStatisticsArrowDown.png"))
-        self.btCriteriaClear.setIcon(QIcon(":/plugins/QGISRed/images/iconStatisticsDelete.png"))
-        self.btCriteriaEdit.setIcon(QIcon(":/plugins/QGISRed/images/iconStatisticsEdit.png"))
+        self.btCriteriaUp.setIcon(QIcon(":/plugins/QGISRed-BID/images/iconStatisticsArrowUp.png"))
+        self.btCriteriaDown.setIcon(QIcon(":/plugins/QGISRed-BID/images/iconStatisticsArrowDown.png"))
+        self.btCriteriaClear.setIcon(QIcon(":/plugins/QGISRed-BID-BID/images/iconStatisticsDelete.png"))
+        self.btCriteriaEdit.setIcon(QIcon(":/plugins/QGISRed-BID/images/iconStatisticsEdit.png"))
 
-        self.iconSwitchEnabled  = QIcon(":/plugins/QGISRed/images/iconSwitchEnabled.png")
-        self.iconSwitchDisabled = QIcon(":/plugins/QGISRed/images/iconSwitchDisabled.png")
+        self.iconSwitchEnabled  = QIcon(":/plugins/QGISRed-BID/images/iconSwitchEnabled.png")
+        self.iconSwitchDisabled = QIcon(":/plugins/QGISRed-BID/images/iconSwitchDisabled.png")
 
         self.btCriteriaSwitch.setIcon(self.iconSwitchEnabled)
 
-        self.btExcel.setIcon(QIcon(":/plugins/QGISRed/images/iconStatisticsExcel.png"))
+        self.btExcel.setIcon(QIcon(":/plugins/QGISRed-BID/images/iconStatisticsExcel.png"))
 
     def setupConnections(self):
         # element / property updates

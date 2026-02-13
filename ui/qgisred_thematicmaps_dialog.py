@@ -22,6 +22,10 @@ from ..tools.qgisred_utils import QGISRedUtils
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_thematicmaps_dialog.ui"))
 
 class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
+    iface = None
+    NetworkName = ""
+    ProjectDirectory = ""
+
     def __init__(self, parent=None):
         """Constructor."""
         super(QGISRedThematicMapsDialog, self).__init__(parent)
@@ -31,6 +35,11 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         self.btCancel.clicked.connect(self.reject)
         self.updateCheckboxStates()
         self.tempElementsHide()
+
+    def config(self, iface, projectDirectory, networkName):
+        self.iface = iface
+        self.ProjectDirectory = projectDirectory
+        self.NetworkName = networkName
 
     def tempElementsHide(self):
         self.gbJunctions.hide()
@@ -180,26 +189,12 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         inputsParent = inputsGroup.parent()
         if inputsParent is None:
             inputsParent = rootGroup
-
-        # Ensure 'Queries' exists directly under inputsParent
-        queriesGroup = self.findGroupByName(inputsParent, 'Queries')
-        if queriesGroup is None or queriesGroup.parent() != inputsParent:
-            if queriesGroup is not None and queriesGroup.parent():
-                # move existing Queries under inputsParent
-                oldParent = queriesGroup.parent()
-                oldParent.removeChildNode(queriesGroup)
-                inputsParent.insertChildNode(0, queriesGroup)
-            else:
-                inputsGroupIndex = inputsParent.children().index(inputsGroup)
-                queriesGroup = inputsParent.insertGroup(inputsGroupIndex, 'Queries')
-
-        # Ensure 'Thematic Maps' exists inside 'Queries'
-        thematicGroup = self.findGroupByName(queriesGroup, 'Thematic Maps')
-        if thematicGroup is None:
-            thematicGroup = queriesGroup.insertGroup(0, 'Thematic Maps')
-
-        # Return the subgroup where queries should be inserted
-        return thematicGroup
+        networkName = inputsParent.name() if inputsParent != rootGroup else ""
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        if networkName:
+            return utils.getOrCreateNestedGroup([networkName, "Queries", "Thematic Maps"])
+        else:
+            return utils.getOrCreateNestedGroup(["Queries", "Thematic Maps"])
 
     def findLayerInGroup(self, group, layerName=None, custom_property=None):
         for child in group.children():

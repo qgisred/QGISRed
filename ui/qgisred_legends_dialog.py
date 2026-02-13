@@ -120,8 +120,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         # Remove alternating row colors
         self.tableView.setAlternatingRowColors(False)
-        # Set edit trigger to only double-click (not single click)
-        self.tableView.setEditTriggers(QAbstractItemView.DoubleClicked)
+        # Set edit trigger to require editing current item (click to select, click again to edit)
+        self.tableView.setEditTriggers(QAbstractItemView.EditKeyPressed | QAbstractItemView.SelectedClicked)
 
         # Hide vertical header (row indexes)
         self.tableView.verticalHeader().setVisible(False)
@@ -129,16 +129,22 @@ class QGISRedLegendsDialog(QDialog, formClass):
         # Remove grid lines
         self.tableView.setShowGrid(False)
 
-        # Set white background and remove borders
+        # Set white background, remove borders, and style selection
         self.tableView.setStyleSheet("""
             QTableWidget {
                 background-color: white;
                 gridline-color: transparent;
                 border: none;
+                selection-background-color: #3399ff;
+                selection-color: white;
             }
             QTableWidget::item {
                 border: none;
                 background-color: white;
+            }
+            QTableWidget::item:selected {
+                background-color: #3399ff;
+                color: white;
             }
         """)
     
