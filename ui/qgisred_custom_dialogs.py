@@ -594,3 +594,161 @@ class QGISRedPaletteEmulator(QObject):
 
     def getHexList(self) -> List[str]:
         return [color["hex"] for color in self.generatedColors]
+
+class QGISRedSizePaletteEmulator(QObject):
+    """Generates interpolated sizes for N classes from a customizable palette of anchor sizes.
+
+    The algorithm distributes anchor sizes across the requested number of classes,
+    keeping the first anchor size as the first class size and the last anchor
+    size as the last class size. Intermediate sizes are linearly interpolated
+    between adjacent anchor sizes.
+    """
+
+    paletteChanged = pyqtSignal()
+    sizesGenerated = pyqtSignal(list)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.anchorSizes = []
+        self.generatedSizes = []
+
+    def setPaletteFromSizes(self, sizes: List[float]):
+        """Initialize anchor sizes from a list of size values."""
+        if sizes and len(sizes) >= 2:
+            self.anchorSizes = [float(s) for s in sizes]
+            self.paletteChanged.emit()
+
+    def getPaletteCount(self) -> int:
+        """Return number of anchor sizes."""
+        return len(self.anchorSizes)
+
+    def reset(self):
+        """Clear the palette."""
+        self.anchorSizes = []
+        self.generatedSizes = []
+        self.paletteChanged.emit()
+
+    def isValidPalette(self) -> bool:
+        """Check if palette has at least 2 anchor sizes."""
+        return len(self.anchorSizes) >= 2
+
+    def generate(self, totalClasses: int) -> List[float]:
+        """Generate interpolated sizes for the specified number of classes."""
+        if not self.isValidPalette():
+            return []
+
+        if totalClasses < 1:
+            return []
+
+        if totalClasses == 1:
+            self.generatedSizes = [self.anchorSizes[0]]
+            self.sizesGenerated.emit(self.generatedSizes)
+            return self.generatedSizes
+
+        self.generatedSizes = self.computeInterpolatedSizes(totalClasses)
+        self.sizesGenerated.emit(self.generatedSizes)
+
+        return self.generatedSizes
+
+    def computeInterpolatedSizes(self, totalClasses: int) -> List[float]:
+        """Compute interpolated sizes based on anchor palette."""
+        paletteSize = len(self.anchorSizes)
+
+        if totalClasses < paletteSize:
+            return self.downsampleSizes(totalClasses)
+
+        if totalClasses == paletteSize:
+            return list(self.anchorSizes)
+
+        # Distribute intervals across segments
+        segmentCounts = self.distributeIntervals(totalClasses)
+        return self.generateSegmentedSizes(segmentCounts)
+
+    def downsampleSizes(self, totalClasses: int) -> List[float]:
+        """Select sizes when fewer classes than anchors."""
+        paletteSize = len(self.anchorSizes)
+        selectedSizes = []
+        for i in range(totalClasses):
+            # Deterministic sampling, first/last preserved
+            idx = int(round(i * (paletteSize - 1) / (totalClasses - 1)))
+            selectedSizes.append(self.anchorSizes[idx])
+        return selectedSizes
+
+    def distributeIntervals(self, totalClasses: int) -> List[int]:
+        """Distribute intervals across segments proportionally."""
+        paletteSize = len(self.anchorSizes)
+        segments = paletteSize - 1
+        intervals = totalClasses - 1
+
+        distances, totalDistance = self.calculateSegmentDistances()
+
+        if totalDistance == 0:
+            # Even distribution
+            segmentCounts = [intervals // segments] * segments
+            for i in range(intervals % segments):
+                segmentCounts[i] += 1
+            return segmentCounts
+
+        # Largest Remainder Method
+        segmentCounts = []
+        remainders = []
+        currentSum = 0
+
+        for dist in distances:
+            count = int(dist / totalDistance * intervals)
+            segmentCounts.append(count)
+            remainders.append((dist / totalDistance * intervals) - count)
+            currentSum += count
+
+        missing = intervals - currentSum
+        sorted_indices = sorted(range(len(remainders)), key=lambda k: remainders[k], reverse=True)
+
+        for i in range(missing):
+            segmentCounts[sorted_indices[i]] += 1
+
+        return segmentCounts
+
+    def calculateSegmentDistances(self) -> Tuple[List[float], float]:
+        """Calculate distances between adjacent anchor sizes."""
+        distances = []
+        total = 0.0
+        for i in range(len(self.anchorSizes) - 1):
+            dist = abs(self.anchorSizes[i + 1] - self.anchorSizes[i])
+            distances.append(dist)
+            total += dist
+        return distances, total
+
+    def generateSegmentedSizes(self, segmentCounts: List[int]) -> List[float]:
+        """Generate sizes by interpolating within each segment."""
+        results = []
+        segments = len(segmentCounts)
+
+        for i in range(segments):
+            segIntervals = segmentCounts[i]
+            startSize = self.anchorSizes[i]
+            endSize = self.anchorSizes[i + 1]
+
+            # Skip first point for subsequent segments (avoid duplicate anchors)
+            startStep = 1 if i > 0 else 0
+
+            for step in range(startStep, segIntervals + 1):
+                if step == 0:
+                    currentSize = startSize
+                elif step == segIntervals:
+                    currentSize = endSize
+                else:
+                    t = step / segIntervals
+                    currentSize = self.linearInterpolate(startSize, endSize, t)
+
+                results.append(currentSize)
+
+        return results
+
+    def linearInterpolate(self, size1: float, size2: float, factor: float) -> float:
+        """Linearly interpolate between two sizes."""
+        return size1 + (size2 - size1) * factor
+
+    def getSizeList(self) -> List[float]:
+        """Return the list of generated sizes."""
+        return list(self.generatedSizes)

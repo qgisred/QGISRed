@@ -20,7 +20,7 @@ from qgis.utils import iface
 from ..tools.qgisred_utils import QGISRedUtils
 from .qgisred_custom_dialogs import QGISRedRangeEditDialog, QGISRedSymbolColorSelector
 from .qgisred_custom_dialogs import QGISRedColorRampSelector, QGISRedRowSelectionFilter
-from .qgisred_custom_dialogs import QGISRedPaletteEmulator
+from .qgisred_custom_dialogs import QGISRedPaletteEmulator, QGISRedSizePaletteEmulator
 
 formClass, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_legends_dialog.ui"))
 
@@ -72,7 +72,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.networkName = ""
         self.utils = None
         self.paletteEmulator = QGISRedPaletteEmulator(self)
+        self.sizePaletteEmulator = QGISRedSizePaletteEmulator(self)
         self.previousClassificationMode = None
+        self.previousSizeMode = None
 
     def config(self, qgisInterface, projectDirectory, networkName, parentPlugin):
         self.parentPlugin = parentPlugin
@@ -444,6 +446,16 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if len(currentColors) >= 2:
                 self.paletteEmulator.setPaletteFromQColors(currentColors)
 
+        # Capture anchor sizes when transitioning TO automatic interval mode while size mode is manual
+        sizeMode = self.cbSizes.currentText() if hasattr(self, "cbSizes") else "Manual"
+        wasManualIntervalMode = self.previousClassificationMode is None or self.previousClassificationMode == "Manual"
+        isNowAutomaticIntervalMode = methodId is not None and methodId != "Manual"
+
+        if wasManualIntervalMode and isNowAutomaticIntervalMode and sizeMode == "Manual":
+            currentSizes = self.collectCurrentTableSizes()
+            if len(currentSizes) >= 2:
+                self.sizePaletteEmulator.setPaletteFromSizes(currentSizes)
+
         self.previousClassificationMode = methodId
 
         if not methodId:
@@ -574,7 +586,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.applyClassificationMethod(modeId)
         else:
             self.handleColorLogicOnClassChange()
-            self.applySizeLogic()
+            self.handleSizeLogicOnClassChange()
 
     def adjustCategoricalClassCount(self, newValue, currentCount):
         if newValue > currentCount:
@@ -589,7 +601,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.leClassCount.setValue(self.tableView.rowCount())
         self.updateClassCountLimits()
         self.handleColorLogicOnClassChange()
-        self.applySizeLogic()
+        self.handleSizeLogicOnClassChange()
 
     def onCellDoubleClicked(self, row, column):
         if column == 2 and self.currentFieldType == self.FIELD_TYPE_NUMERIC:
@@ -616,6 +628,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.labelSpinMin.setVisible(showMinMax)
         self.labelSpinMax.setVisible(showMinMax)
         self.ckSizeInvert.setVisible(mode != "Manual" and mode != "Equal")
+
+        # Capture anchor sizes when transitioning TO manual while interval mode is automatic
+        modeId = self.cbMode.currentData()
+        isAutomaticIntervalMode = modeId is not None and modeId != "Manual"
+        wasAutomaticSizeMode = self.previousSizeMode is not None and self.previousSizeMode != "Manual"
+
+        if mode == "Manual" and wasAutomaticSizeMode and isAutomaticIntervalMode:
+            currentSizes = self.collectCurrentTableSizes()
+            if len(currentSizes) >= 2:
+                self.sizePaletteEmulator.setPaletteFromSizes(currentSizes)
+
+        self.previousSizeMode = mode
 
         self.applySizeLogic()
 
@@ -868,6 +892,19 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 colors.append(color)
         return colors
 
+    def collectCurrentTableSizes(self):
+        """Collects all current sizes from the table rows."""
+        sizes = []
+        for row in range(self.tableView.rowCount()):
+            sizeWidget = self.tableView.cellWidget(row, 2)
+            if sizeWidget and isinstance(sizeWidget, QLineEdit):
+                try:
+                    size = float(sizeWidget.text())
+                    sizes.append(size)
+                except (ValueError, TypeError):
+                    sizes.append(0.0)
+        return sizes
+
     def handleColorLogicOnClassChange(self):
         """Handles color logic when adding or removing classes.
 
@@ -890,6 +927,28 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return
 
         self.applyColorLogic()
+
+    def handleSizeLogicOnClassChange(self):
+        """Handles size logic when adding or removing classes.
+
+        When in automatic interval mode with manual sizes, regenerates
+        the size palette emulation based on anchor sizes and applies it.
+        Otherwise, falls back to standard size logic.
+        """
+        sizeMode = self.cbSizes.currentText() if hasattr(self, "cbSizes") else "Manual"
+        modeId = self.cbMode.currentData()
+        isAutomaticIntervalMode = modeId is not None and modeId != "Manual"
+
+        if isAutomaticIntervalMode and sizeMode == "Manual":
+            if self.sizePaletteEmulator.isValidPalette():
+                rows = self.tableView.rowCount()
+                if rows > 0:
+                    sizes = self.sizePaletteEmulator.generate(rows)
+                    if sizes:
+                        self.applySizesToTable(sizes)
+            return
+
+        self.applySizeLogic()
 
     def algorithmPalette(self, paletteRamp, numClasses):
         """Interpolates colors from a discrete palette for the specified number of classes."""
@@ -1537,7 +1596,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         self.updateButtonStates()
         self.handleColorLogicOnClassChange()
-        self.applySizeLogic()
+        self.handleSizeLogicOnClassChange()
 
     def addNumericClass(self):
         if self.tableView.rowCount() >= self.MAX_CLASSES:
@@ -1726,7 +1785,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.updateClassCount()
             self.updateButtonStates()
             self.handleColorLogicOnClassChange()
-            self.applySizeLogic()
+            self.handleSizeLogicOnClassChange()
 
     def removeOtherValuesRows(self):
         for row in reversed(range(self.tableView.rowCount())):
@@ -1762,7 +1821,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.refreshAllLegendLabels()
         self.updateButtonStates()
         self.handleColorLogicOnClassChange()
-        self.applySizeLogic()
+        self.handleSizeLogicOnClassChange()
 
         if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
             self.updateClassCountLimits()
@@ -2197,7 +2256,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         self.updateClassCount()
         self.applyColorLogic(previousColors=previousColors)
-        self.applySizeLogic()
+        self.handleSizeLogicOnClassChange()
 
     def calculateBreaksForMethod(self, methodId, values, numClasses, minValue, maxValue):
         if methodId == "EqualInterval":
@@ -2381,6 +2440,16 @@ class QGISRedLegendsDialog(QDialog, formClass):
             colorWidget = colorContainer.findChild(QGISRedSymbolColorSelector) if colorContainer else None
             if colorWidget:
                 colorWidget.updateSymbolSize(size, self.currentLayer.geometryType() == 1)
+
+            # Update size palette when in automatic interval mode with manual sizes
+            sizeMode = self.cbSizes.currentText() if hasattr(self, "cbSizes") else "Manual"
+            modeId = self.cbMode.currentData()
+            isAutomaticIntervalMode = modeId is not None and modeId != "Manual"
+
+            if isAutomaticIntervalMode and sizeMode == "Manual":
+                currentSizes = self.collectCurrentTableSizes()
+                if len(currentSizes) >= 2:
+                    self.sizePaletteEmulator.setPaletteFromSizes(currentSizes)
         except:
             pass
 
