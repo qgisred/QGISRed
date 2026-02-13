@@ -2028,6 +2028,37 @@ class QGISRed:
 
     """Others"""
 
+    def processCsharpResult(self, b, message):
+        # Save the state of all layers before making changes
+        self.stored_all_layers = self.storeAllLayers()
+        
+        # Action
+        self.hasToOpenNewLayers = False
+        self.hasToOpenIssuesLayers = False
+        if b == "True":
+            if not message == "":
+                self.iface.messageBar().pushMessage(self.tr("Information"), self.tr(message), level=3, duration=5)
+        elif b == "False" or b == "Cancelled":
+            pass
+        elif b == "commit":
+            self.hasToOpenNewLayers = True
+        elif b == "shps":
+            self.hasToOpenIssuesLayers = True
+        elif b == "commit/shps":
+            self.hasToOpenNewLayers = True
+            self.hasToOpenIssuesLayers = True
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
+
+        self.removingLayers = True
+        self.extent = QGISRedUtils().getProjectExtent()
+        if self.hasToOpenNewLayers and self.hasToOpenIssuesLayers:
+            QGISRedUtils().runTask("update plus issue layers", self.removeLayersAndIssuesLayers, self.runOpenTemporaryFiles)
+        elif self.hasToOpenNewLayers:
+            QGISRedUtils().runTask("update layers", self.removeLayers, self.runOpenTemporaryFiles)
+        elif self.hasToOpenIssuesLayers:
+            QGISRedUtils().runTask("update issue layers", self.removeIssuesLayers, self.runOpenTemporaryFiles)
+
     def runOpenTemporaryFiles(self, exception=None, result=None):
         if self.hasToOpenIssuesLayers:
             self.removeIssuesLayersFiles()
@@ -2057,42 +2088,21 @@ class QGISRed:
         QApplication.restoreOverrideCursor()
         self.removingLayers = False
 
-        self.restoreQueryLayers(self.stored_query_layers)
-
+        # Restore all layers from the stored state
+        if hasattr(self, 'stored_all_layers'):
+            self.clearInputGroup()
+            self.restoreAllLayers(self.stored_all_layers)
+        
         if resMessage == "True":
             pass
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
-    def processCsharpResult(self, b, message):
-        self.stored_query_layers = self.storeQueryLayers()
-
-        # Action
-        self.hasToOpenNewLayers = False
-        self.hasToOpenIssuesLayers = False
-        if b == "True":
-            if not message == "":
-                self.iface.messageBar().pushMessage(self.tr("Information"), self.tr(message), level=3, duration=5)
-        elif b == "False" or b == "Cancelled":
-            pass
-        elif b == "commit":
-            self.hasToOpenNewLayers = True
-        elif b == "shps":
-            self.hasToOpenIssuesLayers = True
-        elif b == "commit/shps":
-            self.hasToOpenNewLayers = True
-            self.hasToOpenIssuesLayers = True
-        else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
-
-        self.removingLayers = True
-        self.extent = QGISRedUtils().getProjectExtent()
-        if self.hasToOpenNewLayers and self.hasToOpenIssuesLayers:
-            QGISRedUtils().runTask("update plus issue layers", self.removeLayersAndIssuesLayers, self.runOpenTemporaryFiles)
-        elif self.hasToOpenNewLayers:
-            QGISRedUtils().runTask("update layers", self.removeLayers, self.runOpenTemporaryFiles)
-        elif self.hasToOpenIssuesLayers:
-            QGISRedUtils().runTask("update issue layers", self.removeIssuesLayers, self.runOpenTemporaryFiles)
+    def clearInputGroup(self):
+        inputGroup = self.getInputGroup()
+        if inputGroup:
+            for child in list(inputGroup.children()):
+                inputGroup.removeChildNode(child)
 
     def getComplementaryLayersOpened(self):
         complementary = []
@@ -4741,3 +4751,267 @@ class QGISRed:
     # ==============================================================
     #                        END: QUERIES STATISTICS AND PLOTS
     # --------------------------------------------------------------
+
+    ## TEMP COMMENT ISSUE 41 AND 42 TODO REMOVE
+    def storeAllLayers(self):
+        """Store information about all layers to be restored later.
+        Returns a dictionary with groups as keys and layer info as values.
+        """
+        all_layers = {}
+        root = QgsProject.instance().layerTreeRoot()
+        
+        # Store info for the main layers (Inputs)
+        input_group = self.getInputGroup()
+        if input_group:
+            all_layers['Inputs'] = self._storeLayers(input_group)
+        
+        # Store info for the query layers
+        query_layers = self.storeQueryLayers()
+        if query_layers:
+            all_layers['Queries'] = query_layers
+        
+        # Store info for the results layers
+        results_group = root.findGroup("Results")
+        if results_group:
+            all_layers['Results'] = self._storeLayers(results_group)
+        
+        # Store any other root-level layers
+        root_layers = []
+        for child in root.children():
+            if isinstance(child, QgsLayerTreeLayer):
+                layer = child.layer()
+                if layer:
+                    root_layers.append(self._storeLayerInfo(layer, child, root))
+        
+        if root_layers:
+            all_layers['Root'] = root_layers
+        
+        return all_layers
+
+    def _storeLayers(self, group):
+        """Store information about layers in a specific group."""
+        layers_info = []
+        for child in group.children():
+            if isinstance(child, QgsLayerTreeLayer):
+                layer = child.layer()
+                if layer:
+                    layers_info.append(self._storeLayerInfo(layer, child, group))
+            elif child.nodeType() == QgsLayerTreeNode.NodeGroup:
+                # Process nested groups
+                nested_layers = self._storeLayers(child)
+                if nested_layers:
+                    # Add group path to each layer info
+                    for layer_info in nested_layers:
+                        layer_info['group_path'] = [child.name()] + layer_info.get('group_path', [])
+                        layer_info['group_positions'] = [group.children().index(child)] + layer_info.get('group_positions', [])
+                    layers_info.extend(nested_layers)
+        
+        return layers_info
+
+    def _storeLayerInfo(self, layer, tree_layer, parent_group):
+        """Store comprehensive information about a single layer."""
+        layer_position = parent_group.children().index(tree_layer)
+        
+        # Get style information
+        style_string = ""
+        temp_style_file = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names()) + ".qml"
+        if layer.saveNamedStyle(temp_style_file):
+            style_string = temp_style_file
+        
+        # Store layer metadata if available
+        metadata = {}
+        layer_metadata = layer.metadata()
+        if layer_metadata:
+            metadata = {
+                'title': layer_metadata.title(),
+                'abstract': layer_metadata.abstract(),
+                'keywords': layer_metadata.keywords()
+            }
+        
+        # Get custom properties
+        custom_properties = {}
+        for key in layer.customPropertyKeys():
+            custom_properties[key] = layer.customProperty(key)
+        
+        # Get symbology information
+        symbology_info = {}
+        renderer = layer.renderer()
+        if renderer:
+            symbology_info['type'] = renderer.type()
+            if hasattr(renderer, 'symbol'):
+                symbology_info['symbol_type'] = renderer.symbol().type()
+            
+            if hasattr(renderer, 'categories'):
+                categories = []
+                for cat in renderer.categories():
+                    categories.append({
+                        'value': cat.value(),
+                        'label': cat.label(),
+                        'color': cat.symbol().color().name() if hasattr(cat.symbol(), 'color') else None
+                    })
+                symbology_info['categories'] = categories
+        
+        # Get joins information
+        joins = []
+        for join in layer.vectorJoins():
+            joins.append({
+                'join_layer_id': join.joinLayerId(),
+                'join_field_name': join.joinFieldName(),
+                'target_field_name': join.targetFieldName(),
+                'prefix': join.prefix()
+            })
+        
+        # Build the layer info dictionary
+        return {
+            'id': layer.id(),
+            'name': layer.name(),
+            'source': layer.source(),
+            'provider': layer.providerType(),
+            'style_string': style_string,
+            'checked': tree_layer.itemVisibilityChecked(),
+            'expanded': tree_layer.isExpanded(),
+            'layer_position': layer_position,
+            'geometry_type': layer.geometryType() if hasattr(layer, 'geometryType') else None,
+            'crs': layer.crs().authid() if hasattr(layer, 'crs') else None,
+            'labels_enabled': layer.labelsEnabled() if hasattr(layer, 'labelsEnabled') else False,
+            'metadata': metadata,
+            'custom_properties': custom_properties,
+            'symbology': symbology_info,
+            'joins': joins,
+            'group_path': [],
+            'group_positions': [],
+            'field_name': layer.customProperty("query_field", ""),
+            'identifier': layer.customProperty("qgisred_identifier", "")
+        }
+
+    def restoreAllLayers(self, all_layers):
+        """Restore all layers from the stored information."""
+        if not all_layers:
+            return
+        
+        # Restore input layers
+        if 'Inputs' in all_layers:
+            input_group = self.getInputGroup()
+            if input_group:
+                self._restoreLayers(all_layers['Inputs'], input_group)
+        
+        # Restore query layers using existing method
+        if 'Queries' in all_layers:
+            self.restoreQueryLayers(all_layers['Queries'])
+        
+        # Restore results layers
+        if 'Results' in all_layers:
+            root = QgsProject.instance().layerTreeRoot()
+            results_group = root.findGroup("Results")
+            if not results_group:
+                results_group = root.addGroup("Results")
+            self._restoreLayers(all_layers['Results'], results_group)
+        
+        # Restore root-level layers
+        if 'Root' in all_layers:
+            root = QgsProject.instance().layerTreeRoot()
+            self._restoreLayers(all_layers['Root'], root)
+
+    def _restoreLayers(self, layers_info, parent_group):
+        """Restore layers to a specific group."""
+        
+        # Keep track of layers we've already processed to avoid duplication
+        processed_layers = set()
+        
+        # Restore layers
+        for layer_info in layers_info:
+            # Create a new layer or get an existing one
+            layer_id = layer_info.get('id', '')
+            
+            # Skip if we've already processed this layer
+            if layer_id in processed_layers:
+                continue
+                
+            processed_layers.add(layer_id)
+            existing_layer = QgsProject.instance().mapLayer(layer_id)
+            
+            # Check if this layer already exists in the group structure
+            layer_already_in_group = False
+            for child in parent_group.findLayers():
+                if child.layerId() == layer_id:
+                    layer_already_in_group = True
+                    break
+                    
+            if layer_already_in_group:
+                continue  # Skip this layer, it's already in the group
+                
+            if existing_layer:
+                new_layer = existing_layer
+            else:
+                new_layer = QgsVectorLayer(layer_info['source'], layer_info['name'], layer_info['provider'])
+            
+            if new_layer.isValid():
+                # Apply style
+                if layer_info.get('style_string') and os.path.exists(layer_info['style_string']):
+                    new_layer.loadNamedStyle(layer_info['style_string'])
+                    # Remove temporary style file
+                    if tempfile._get_default_tempdir() in layer_info['style_string']:
+                        try:
+                            os.remove(layer_info['style_string'])
+                        except:
+                            pass
+                
+                # Apply custom properties
+                for key, value in layer_info.get('custom_properties', {}).items():
+                    new_layer.setCustomProperty(key, value)
+                
+                # Apply labels
+                if layer_info.get('labels_enabled'):
+                    new_layer.setLabelsEnabled(layer_info['labels_enabled'])
+                
+                # Add layer to project if it's new
+                if not existing_layer:
+                    QgsProject.instance().addMapLayer(new_layer, False)
+                
+                # Handle nested groups
+                group_path = layer_info.get('group_path', [])
+                group_positions = layer_info.get('group_positions', [])
+                
+                target_group = parent_group
+                if group_path:
+                    target_group = self.ensureGroupHierarchy(parent_group, group_path, group_positions)
+                
+                # Create layer tree layer only if it doesn't already exist in the target group
+                layer_already_in_target = False
+                for child in target_group.children():
+                    if isinstance(child, QgsLayerTreeLayer) and child.layer() and child.layer().id() == new_layer.id():
+                        layer_already_in_target = True
+                        break
+                        
+                if not layer_already_in_target:
+                    layer_tree_layer = QgsLayerTreeLayer(new_layer)
+                    layer_tree_layer.setCustomProperty("showFeatureCount", True)
+                    
+                    # Set visibility and expansion
+                    if 'checked' in layer_info:
+                        layer_tree_layer.setItemVisibilityChecked(layer_info['checked'])
+                    
+                    if 'expanded' in layer_info:
+                        layer_tree_layer.setExpanded(layer_info['expanded'])
+                    
+                    # Add to group at correct position
+                    layer_position = layer_info.get('layer_position', None)
+                    if layer_position is not None and layer_position <= len(target_group.children()):
+                        target_group.insertChildNode(layer_position, layer_tree_layer)
+                    else:
+                        target_group.addChildNode(layer_tree_layer)
+                
+                # Handle special case for query layers
+                field_name = layer_info.get('field_name', '')
+                if field_name:
+                    QGISRedUtils().hide_fields(new_layer, field_name)
+                    
+                    if field_name in getattr(self, 'random_color_queries', []):
+                        QGISRedUtils().apply_categorized_renderer(new_layer, field_name, layer_info.get('style_string', ''))
+                    
+                    # Connect to source layer if needed
+                    input_layer = self.findSourceLayer(self.getInputGroup(), new_layer)
+                    if input_layer:
+                        input_layer.dataChanged.connect(
+                            lambda src=input_layer, tgt=new_layer: self.syncQueryLayer(src, tgt)
+                        )
