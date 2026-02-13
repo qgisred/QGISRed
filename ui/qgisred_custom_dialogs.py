@@ -7,6 +7,7 @@ from PyQt5.QtCore import pyqtSignal, Qt, QEvent, QSize, QObject, QPoint, QItemSe
 
 from qgis.gui import QgsSymbolButton, QgsColorDialog
 from qgis.core import QgsMarkerSymbol, QgsLineSymbol, QgsFillSymbol, QgsColorRamp
+from typing import List, Tuple
 
 class QGISRedRangeEditDialog(QDialog):
     def __init__(self, lowerValue, upperValue, parent=None, unitAbbreviation=""):
@@ -138,7 +139,7 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
     def applySizeScaling(self, symbol):
         if self.geometryType == self.lineType:
             symbol.setWidth(self.currentSymbolSize)
-        else:
+        elif self.geometryType == self.markerType:
             symbol.setSize(self.currentSymbolSize)
 
     def updateSymbolSize(self, newSize, isLine=False):
@@ -350,3 +351,177 @@ class QGISRedRowSelectionFilter(QObject):
         firstColumn = model.index(rowIndex, 0)
         lastColumn = model.index(rowIndex, self.targetTable.columnCount() - 1)
         return QItemSelection(firstColumn, lastColumn)
+
+class QGISRedPaletteEmulator(QObject):
+    """Generates interpolated colors for N classes from a customizable palette.
+
+    The algorithm distributes palette colors across the requested number of classes,
+    keeping the first palette color as the first class color and the last palette
+    color as the last class color. Intermediate colors are interpolated between
+    adjacent palette colors.
+    """
+
+    paletteChanged = pyqtSignal()
+    colorsGenerated = pyqtSignal(list)
+
+    basePalette = [
+        (255, 0, 0),
+        (0, 255, 0),
+        (0, 0, 255),
+        (255, 0, 255),
+        (0, 255, 255),
+        (255, 255, 0),
+    ]
+
+    def __init__(self, parent=None, customPrefix: List[Tuple[int, int, int]] = None, useBase: bool = True):
+        super().__init__(parent)
+
+        self.colors = []
+        self.generatedColors = []
+
+        self.initializePalette(customPrefix, useBase)
+
+    def initializePalette(self, customPrefix, useBase):
+        self.colors = []
+
+        if customPrefix:
+            self.colors.extend(customPrefix)
+        if useBase:
+            self.colors.extend(self.basePalette)
+
+    def prepend(self, newColors: List[Tuple[int, int, int]]):
+        self.colors = list(newColors) + self.colors
+        self.paletteChanged.emit()
+
+    def append(self, newColors: List[Tuple[int, int, int]]):
+        self.colors.extend(newColors)
+        self.paletteChanged.emit()
+
+    def insert(self, position: int, color: Tuple[int, int, int]):
+        self.colors.insert(position, color)
+        self.paletteChanged.emit()
+
+    def remove(self, position: int):
+        if len(self.colors) > 2:
+            self.colors.pop(position)
+            self.paletteChanged.emit()
+
+    def reset(self):
+        self.colors = list(self.basePalette)
+        self.paletteChanged.emit()
+
+    def setPalette(self, newPalette: List[Tuple[int, int, int]]):
+        if len(newPalette) >= 2:
+            self.colors = list(newPalette)
+            self.paletteChanged.emit()
+
+    def setPaletteFromQColors(self, qcolors: List[QColor]):
+        if len(qcolors) >= 2:
+            self.colors = [(c.red(), c.green(), c.blue()) for c in qcolors if c and c.isValid()]
+            if len(self.colors) >= 2:
+                self.paletteChanged.emit()
+
+    def getPaletteCount(self):
+        return len(self.colors)
+
+    def generate(self, totalClasses: int) -> List[dict]:
+        if not self.isValidPalette():
+            return []
+
+        if totalClasses < 1:
+            return []
+
+        if totalClasses == 1:
+            return self.createSingleClassResult()
+
+        self.generatedColors = self.computeInterpolatedColors(totalClasses)
+        self.colorsGenerated.emit(self.generatedColors)
+
+        return self.generatedColors
+
+    def isValidPalette(self):
+        return len(self.colors) >= 2
+
+    def createSingleClassResult(self):
+        firstColor = self.colors[0]
+        return [{
+            "classIndex": 1,
+            "rgb": firstColor,
+            "hex": self.rgbToHex(firstColor),
+            "qcolor": self.rgbToQColor(firstColor)
+        }]
+
+    def computeInterpolatedColors(self, totalClasses):
+        paletteSize = len(self.colors)
+        results = []
+
+        for classIdx in range(totalClasses):
+            if totalClasses == 1:
+                position = 0.0
+            else:
+                position = classIdx / (totalClasses - 1) * (paletteSize - 1)
+
+            lowerIdx = int(position)
+            upperIdx = min(lowerIdx + 1, paletteSize - 1)
+            fraction = position - lowerIdx
+
+            interpolatedRgb = self.linearInterpolate(
+                self.colors[lowerIdx],
+                self.colors[upperIdx],
+                fraction
+            )
+
+            results.append(self.createColorResult(classIdx + 1, interpolatedRgb))
+
+        return results
+
+    def linearInterpolate(self, color1, color2, factor):
+        red = int(color1[0] + (color2[0] - color1[0]) * factor)
+        green = int(color1[1] + (color2[1] - color1[1]) * factor)
+        blue = int(color1[2] + (color2[2] - color1[2]) * factor)
+
+        return (
+            self.clampColorValue(red),
+            self.clampColorValue(green),
+            self.clampColorValue(blue)
+        )
+
+    def clampColorValue(self, value):
+        return max(0, min(255, value))
+
+    def createColorResult(self, classIndex, rgb):
+        return {
+            "classIndex": classIndex,
+            "rgb": rgb,
+            "hex": self.rgbToHex(rgb),
+            "qcolor": self.rgbToQColor(rgb)
+        }
+
+    def rgbToHex(self, rgb: Tuple[int, int, int]) -> str:
+        return f"#{rgb[0]:02X}{rgb[1]:02X}{rgb[2]:02X}"
+
+    def rgbToQColor(self, rgb: Tuple[int, int, int]) -> QColor:
+        return QColor(rgb[0], rgb[1], rgb[2])
+
+    def hexToRgb(self, hexColor: str) -> Tuple[int, int, int]:
+        cleanHex = hexColor.lstrip('#')
+        return tuple(int(cleanHex[i:i+2], 16) for i in (0, 2, 4))
+
+    def getColorAtIndex(self, index: int) -> dict:
+        if not self.generatedColors:
+            return None
+
+        adjustedIndex = index - 1
+        if 0 <= adjustedIndex < len(self.generatedColors):
+            return self.generatedColors[adjustedIndex]
+
+        return None
+
+    def getQColorList(self) -> List[QColor]:
+        return [color["qcolor"] for color in self.generatedColors]
+
+    def getRgbList(self) -> List[Tuple[int, int, int]]:
+        return [color["rgb"] for color in self.generatedColors]
+
+    def getHexList(self) -> List[str]:
+        return [color["hex"] for color in self.generatedColors]
