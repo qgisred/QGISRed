@@ -1101,7 +1101,7 @@ class QGISRed:
         icon_path = ":/plugins/QGISRed-BID/images/iconTree.png"
         self.add_action(
             icon_path,
-            text=self.tr("Minimum Spanning Tree"),
+            text=self.tr("Tree Graph"),
             callback=self.runTree,
             menubar=self.toolsMenu,
             toolbar=self.toolsToolbar,
@@ -1235,8 +1235,18 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
 
+        # Create submenu for the main menu
+        self.meterSubMenu = self.dtMenu.addMenu(self.tr("Add Meter"))
+        self.meterSubMenu.setIcon(QIcon(":/plugins/QGISRed-BID/images/iconAddDefaultMeter.png"))
+        
+        # Create a separate submenu for the toolbar dropdown
+        self.meterSubMenuToolbar = QMenu(self.tr("Add Meter"), self.iface.mainWindow())
+        act_toolbar_meter = self.dtDropButton.menu().addMenu(self.meterSubMenuToolbar)
+        act_toolbar_meter.setIcon(QIcon(":/plugins/QGISRed-BID/images/iconAddDefaultMeter.png"))
+
         self.currentMeter = "Undefined"
         self.addMeterDropButton = QToolButton()
+        self.addMeterDropButton.setPopupMode(QToolButton.InstantPopup)  # Optional: open menu on click
         icon_path = ":/plugins/QGISRed-BID/images/iconAddDefaultMeter.png"
         self.add_action(
             icon_path,
@@ -1245,19 +1255,20 @@ class QGISRed:
             add_to_menu=False,
             menubar=None,
             toolbar=self.dtToolbar,
-            actionBase=dtDropButton,
+            actionBase=None,  # Changed: no flat action in dtDropButton menu
             addActionToDrop=False,
             add_to_toolbar=False,
             checkable=True,
             dropButton=self.addMeterDropButton,
             parent=self.iface.mainWindow(),
         )
+        
         icon_path = ":/plugins/QGISRed-BID/images/iconAddAutometer.png"
         self.addAutoMeterButton = self.add_action(
             icon_path,
             text=self.tr("Add automatic meter"),
             callback=self.runSelectAutoMeterPoint,
-            menubar=self.dtMenu,
+            menubar=self.meterSubMenu,
             toolbar=self.dtToolbar,
             actionBase=self.addMeterDropButton,
             add_to_toolbar=False,
@@ -1265,129 +1276,157 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         self.addMeterDropButton.setDefaultAction(self.addAutoMeterButton)
+        
         icon_path = ":/plugins/QGISRed-BID/images/iconAddManometer.png"
         self.addManometerButton = self.add_action(
             icon_path,
             text=self.tr("Add manometer"),
             callback=self.runSelectManometerPoint,
-            menubar=self.dtMenu,
+            menubar=self.meterSubMenu,
             toolbar=self.dtToolbar,
             actionBase=self.addMeterDropButton,
             add_to_toolbar=False,
             checkable=True,
             parent=self.iface.mainWindow(),
         )
+        
         icon_path = ":/plugins/QGISRed-BID/images/iconAddFlowmeter.png"
         self.addFlowmeterButton = self.add_action(
             icon_path,
             text=self.tr("Add flowmeter"),
             callback=self.runSelectFlowmeterPoint,
-            menubar=self.dtMenu,
+            menubar=self.meterSubMenu,
             toolbar=self.dtToolbar,
             actionBase=self.addMeterDropButton,
             add_to_toolbar=False,
             checkable=True,
             parent=self.iface.mainWindow(),
         )
+        
         icon_path = ":/plugins/QGISRed-BID/images/iconAddCountermeter.png"
         self.addCountermeterButton = self.add_action(
             icon_path,
             text=self.tr("Add countermeter"),
             callback=self.runSelectCountermeterPoint,
-            menubar=self.dtMenu,
+            menubar=self.meterSubMenu,
             toolbar=self.dtToolbar,
             actionBase=self.addMeterDropButton,
             add_to_toolbar=False,
             checkable=True,
             parent=self.iface.mainWindow(),
         )
+        
         icon_path = ":/plugins/QGISRed-BID/images/iconAddLevelSensor.png"
         self.addLevelSensorButton = self.add_action(
             icon_path,
             text=self.tr("Add level sensor"),
             callback=self.runSelectLevelSensorPoint,
-            menubar=self.dtMenu,
+            menubar=self.meterSubMenu,
             toolbar=self.dtToolbar,
             actionBase=self.addMeterDropButton,
             add_to_toolbar=False,
             checkable=True,
             parent=self.iface.mainWindow(),
         )
+        
         icon_path = ":/plugins/QGISRed-BID/images/iconAddDiffManometer.png"
         self.addDifferentialManometerButton = self.add_action(
             icon_path,
             text=self.tr("Add differential manometer"),
             callback=self.runSelectDifferentialManometerPoint,
-            menubar=self.dtMenu,
+            menubar=self.meterSubMenu,
             toolbar=self.dtToolbar,
             actionBase=self.addMeterDropButton,
             add_to_toolbar=False,
             checkable=True,
             parent=self.iface.mainWindow(),
         )
+        
         icon_path = ":/plugins/QGISRed-BID/images/iconAddQualitySensor.png"
         self.addQualitySensorButton = self.add_action(
             icon_path,
             text=self.tr("Add quality sensor"),
             callback=self.runSelectQualitySensorPoint,
-            menubar=self.dtMenu,
+            menubar=self.meterSubMenu,
             toolbar=self.dtToolbar,
             actionBase=self.addMeterDropButton,
             add_to_toolbar=False,
             checkable=True,
             parent=self.iface.mainWindow(),
         )
+        
         icon_path = ":/plugins/QGISRed-BID/images/iconAddEnergySensor.png"
         self.addEnergySensorButton = self.add_action(
             icon_path,
             text=self.tr("Add energy sensor"),
             callback=self.runSelectEnergySensorPoint,
-            menubar=self.dtMenu,
+            menubar=self.meterSubMenu,
             toolbar=self.dtToolbar,
             actionBase=self.addMeterDropButton,
             add_to_toolbar=False,
             checkable=True,
             parent=self.iface.mainWindow(),
         )
+        
         icon_path = ":/plugins/QGISRed-BID/images/iconAddStatusSensor.png"
         self.addStatusSensorButton = self.add_action(
             icon_path,
             text=self.tr("Add status sensor"),
             callback=self.runSelectStatusSensorPoint,
-            menubar=self.dtMenu,
+            menubar=self.meterSubMenu,
             toolbar=self.dtToolbar,
             actionBase=self.addMeterDropButton,
             add_to_toolbar=False,
             checkable=True,
             parent=self.iface.mainWindow(),
         )
+        
         icon_path = ":/plugins/QGISRed-BID/images/iconAddValveOpening.png"
         self.addValveOpeningButton = self.add_action(
             icon_path,
             text=self.tr("Add valve opening"),
             callback=self.runSelectValveOpeningPoint,
-            menubar=self.dtMenu,
+            menubar=self.meterSubMenu,
             toolbar=self.dtToolbar,
             actionBase=self.addMeterDropButton,
             add_to_toolbar=False,
             checkable=True,
             parent=self.iface.mainWindow(),
         )
+        
         icon_path = ":/plugins/QGISRed-BID/images/iconAddTachometer.png"
         self.addTachometerButton = self.add_action(
             icon_path,
             text=self.tr("Add tachometer"),
             callback=self.runSelectTachometerPoint,
-            menubar=self.dtMenu,
+            menubar=self.meterSubMenu,
             toolbar=self.dtToolbar,
             actionBase=self.addMeterDropButton,
             add_to_toolbar=False,
             checkable=True,
             parent=self.iface.mainWindow(),
         )
+        
+        # Add all meter actions to the toolbar submenu
+        for a in [
+            self.addAutoMeterButton,
+            self.addManometerButton,
+            self.addFlowmeterButton,
+            self.addCountermeterButton,
+            self.addLevelSensorButton,
+            self.addDifferentialManometerButton,
+            self.addQualitySensorButton,
+            self.addEnergySensorButton,
+            self.addStatusSensorButton,
+            self.addValveOpeningButton,
+            self.addTachometerButton,
+        ]:
+            self.meterSubMenuToolbar.addAction(a)
+        
         dtDropButton.menu().addSeparator()
         self.dtMenu.addSeparator()
         self.dtToolbar.addSeparator()
+        
         icon_path = ":/plugins/QGISRed-BID/images/iconSetReadings.png"
         self.add_action(
             icon_path,
@@ -1399,6 +1438,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
+        
         icon_path = ":/plugins/QGISRed-BID/images/iconLoadScada.png"
         self.add_action(
             icon_path,
@@ -1410,9 +1450,11 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
+        
         dtDropButton.menu().addSeparator()
         self.dtMenu.addSeparator()
         self.dtToolbar.addSeparator()
+        
         icon_path = ":/plugins/QGISRed-BID/images/iconStatus.png"
         self.add_action(
             icon_path,
@@ -1437,41 +1479,6 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
 
-        """ dtDropButton.menu().addSeparator()
-        self.dtMenu.addSeparator()
-        self.dtToolbar.addSeparator()
-        self.add_action(
-            icon_path=None,
-            text=self.tr("Calibrate Model"),
-            callback=self.runAddConnections,
-            menubar=self.dtMenu,
-            toolbar=self.dtToolbar,
-            actionBase=dtDropButton,
-            add_to_toolbar=True,
-            parent=self.iface.mainWindow(),
-        )
-        """
-        """  self.add_action(
-            icon_path=None,
-            text=self.tr("State Estimation"),
-            callback=self.runAddConnections,
-            menubar=self.dtMenu,
-            toolbar=self.dtToolbar,
-            actionBase=dtDropButton,
-            add_to_toolbar=True,
-            parent=self.iface.mainWindow(),
-        ) """
-
-        # icon_path = ':/plugins/QGISRed/images/iconHydrants.png'
-        # self.add_action(icon_path, text=self.tr(u'Add hydrants to the model'), callback=self.runAddHydrants,
-        #                 menubar=self.dtMenu, toolbar=self.dtToolbar,
-        #                 actionBase=dtDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
-        # icon_path = ':/plugins/QGISRed/images/iconPurges.png'
-        # self.add_action(icon_path, text=self.tr(u'Add washout valves to the model'), callback=self.runAddPurgeValves,
-        #                 menubar=self.dtMenu, toolbar=self.dtToolbar,
-        #                 actionBase=dtDropButton, add_to_toolbar=True, parent=self.iface.mainWindow())
-        pass
-    
     def addQueriesMenu(self):
         #    #Menu
         self.queriesMenu = self.qgisredmenu.addMenu(self.tr("Queries"))
@@ -1902,7 +1909,6 @@ class QGISRed:
             return {"task": task.definition()}
 
     """Open Layers"""
-
     def openRemoveSpecificLayers(self, layers, epsg):
         self.especificComplementaryLayers = self.complementaryLayers
         self.extent = QGISRedUtils().getProjectExtent()
@@ -1939,10 +1945,6 @@ class QGISRed:
         self.updateMetadata()
 
     def openElementLayers(self, task, net="", folder=""):
-        """
-        Open the project's main and complementary input layers,
-        using a single QLR export if available.
-        """
         # Allow overriding project/network if provided
         if not net == "" and not folder == "":
             self.NetworkName = net
@@ -1970,7 +1972,6 @@ class QGISRed:
         # Always remove the one project‑level QLR file if it was created
         utils.deleteProjectQLR()
         utils.removeEmptyLayersInGroup(inputGroup)
-        #utils.orderLayers(inputGroup)
 
         # Continue any pending task
         if task is not None:
@@ -2135,73 +2136,66 @@ class QGISRed:
         QApplication.restoreOverrideCursor()
         self.removingLayers = False
 
-        # Restore all layers from the stored state, but filter empty layers
-        if hasattr(self, 'stored_all_layers'):
-            self.clearInputGroup()
-            self.restoreAllLayers(self.stored_all_layers) #TODO
-
-        # QGISRedUtils().importLayerQLRs()
-        # QGISRedUtils().deleteQLRFiles()
-
         if resMessage == "True":
             pass
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
-    def restoreAllLayersFiltered(self, all_layers):
-        """Restore all layers from the stored information, filtering empty layers."""
-        if not all_layers:
-            return
+    #REMOVE
+    # def restoreAllLayersFiltered(self, all_layers):
+    #     """Restore all layers from the stored information, filtering empty layers."""
+    #     if not all_layers:
+    #         return
         
-        # Restore input layers
-        if 'Inputs' in all_layers:
-            input_group = self.getInputGroup()
-            if input_group:
-                input_layers = all_layers['Inputs']
-                # Filter out empty layers before restoring
-                filtered_input_layers = []
-                for layer_info in input_layers:
-                    layer_name = layer_info.get('name', '')
-                    source = layer_info.get('source', '')
-                    if source:
-                        is_pipe_layer = 'pipes' in layer_name.lower()
+    #     # Restore input layers
+    #     if 'Inputs' in all_layers:
+    #         input_group = self.getInputGroup()
+    #         if input_group:
+    #             input_layers = all_layers['Inputs']
+    #             # Filter out empty layers before restoring
+    #             filtered_input_layers = []
+    #             for layer_info in input_layers:
+    #                 layer_name = layer_info.get('name', '')
+    #                 source = layer_info.get('source', '')
+    #                 if source:
+    #                     is_pipe_layer = 'pipes' in layer_name.lower()
                         
-                        # Only include if pipe layer or has features
-                        if is_pipe_layer or self.layerHasFeatures(source):
-                            filtered_input_layers.append(layer_info)
+    #                     # Only include if pipe layer or has features
+    #                     if is_pipe_layer or self.layerHasFeatures(source):
+    #                         filtered_input_layers.append(layer_info)
                             
-                self._restoreLayers(filtered_input_layers, input_group)
+    #             self._restoreLayers(filtered_input_layers, input_group)
         
-        # Restore other layer groups (queries, results, etc.)
-        if 'Queries' in all_layers:
-            self.restoreQueryLayers(all_layers['Queries'])
+    #     # Restore other layer groups (queries, results, etc.)
+    #     if 'Queries' in all_layers:
+    #         self.restoreQueryLayers(all_layers['Queries'])
         
-        if 'Results' in all_layers:
-            root = QgsProject.instance().layerTreeRoot()
-            results_group = root.findGroup("Results")
-            if not results_group:
-                results_group = root.addGroup("Results")
-            self._restoreLayers(all_layers['Results'], results_group)
+    #     if 'Results' in all_layers:
+    #         root = QgsProject.instance().layerTreeRoot()
+    #         results_group = root.findGroup("Results")
+    #         if not results_group:
+    #             results_group = root.addGroup("Results")
+    #         self._restoreLayers(all_layers['Results'], results_group)
         
-        if 'Root' in all_layers:
-            root = QgsProject.instance().layerTreeRoot()
-            self._restoreLayers(all_layers['Root'], root)
+    #     if 'Root' in all_layers:
+    #         root = QgsProject.instance().layerTreeRoot()
+    #         self._restoreLayers(all_layers['Root'], root)
 
-    def layerHasFeatures(self, source_path):
-        """Check if a layer has features."""
-        try:
-            layer = QgsVectorLayer(source_path, "temp", "ogr")
-            if layer.isValid():
-                return layer.featureCount() > 0
-            return False
-        except:
-            return False
+    # def layerHasFeatures(self, source_path):
+    #     """Check if a layer has features."""
+    #     try:
+    #         layer = QgsVectorLayer(source_path, "temp", "ogr")
+    #         if layer.isValid():
+    #             return layer.featureCount() > 0
+    #         return False
+    #     except:
+    #         return False
 
-    def clearInputGroup(self):
-        inputGroup = self.getInputGroup()
-        if inputGroup:
-            for child in list(inputGroup.children()):
-                inputGroup.removeChildNode(child)
+    # def clearInputGroup(self):
+    #     inputGroup = self.getInputGroup()
+    #     if inputGroup:
+    #         for child in list(inputGroup.children()):
+    #             inputGroup.removeChildNode(child)
 
     def getComplementaryLayersOpened(self):
         complementary = []
@@ -2732,12 +2726,12 @@ class QGISRed:
                 if isinstance(child, QgsLayerTreeLayer):
                     input_layers.append(child.layer())
 
-            for name in self.ownMainLayers:
-                layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp")
-                for layer in layers:
-                    openedLayerPath = self.getLayerPath(layer)
-                    if openedLayerPath == layerPath and layer in input_layers:
-                        QGISRedUtils.setStyle(None, layer, name.lower())
+            # for name in self.ownMainLayers:
+            #     layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp")
+            #     for layer in layers:
+            #         openedLayerPath = self.getLayerPath(layer)
+            #         if openedLayerPath == layerPath and layer in input_layers:
+            #             QGISRedUtils.setStyle(None, layer, name.lower())
 
     def runSaveProject(self):
         self.defineCurrentProject()
@@ -4099,7 +4093,7 @@ class QGISRed:
         if self.hasToOpenSectorLayers:
             QGISRedUtils().runTask("update sectors", self.removeSectorLayers, self.runOpenTemporaryFiles)
 
-    """Digital Twin"""
+    """"""
 
     def runPaintServiceConnection(self):
         # Validations
@@ -4403,7 +4397,7 @@ class QGISRed:
 
         self.processCsharpResult(resMessage, "No Washout Valves to include in the model")
 
-    """Minimum Spanning Tree"""
+    """Tree Graph"""
 
     def runTree(self, point):
         if not self.checkDependencies():
@@ -4666,332 +4660,331 @@ class QGISRed:
     #          Auxiliar procedures - BID
     # --------------------------------------
     
-    def findQueryGroup(self):
-        netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
-        if netGroup is None:
-            return None
+    # def findQueryGroup(self):
+    #     netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
+    #     if netGroup is None:
+    #         return None
         
-        queryGroup = netGroup.findGroup("Queries")
-        return queryGroup
+    #     queryGroup = netGroup.findGroup("Queries")
+    #     return queryGroup
 
-    def storeQueryLayers(self):
-        self.random_color_queries = ['Material'] 
-        query_layers = []
-        queries_group = self.findQueryGroup()
+    # def storeQueryLayers(self):
+    #     self.random_color_queries = ['Material'] 
+    #     query_layers = []
+    #     queries_group = self.findQueryGroup()
 
-        if queries_group:
-            self._storeLayersRecursive(queries_group, query_layers, group_path=[], group_positions=[])
+    #     if queries_group:
+    #         self._storeLayersRecursive(queries_group, query_layers, group_path=[], group_positions=[])
         
-        return query_layers
+    #     return query_layers
 
-    def _process_layer(self, layer, child, parent_group, group_path, group_positions):
-        if not layer:
-            return None
+    # def _process_layer(self, layer, child, parent_group, group_path, group_positions):
+    #     if not layer:
+    #         return None
             
-        layer_position = parent_group.children().index(child)
-        subgroup_path = group_path.copy()
-        subgroup_positions = group_positions.copy()
+    #     layer_position = parent_group.children().index(child)
+    #     subgroup_path = group_path.copy()
+    #     subgroup_positions = group_positions.copy()
         
-        return {
-            'name': layer.name(),
-            'source': layer.source(),
-            'style_string': layer.customProperty("styleURI"),
-            'checked': child.itemVisibilityChecked(),
-            'labels_enabled': layer.labelsEnabled(),
-            'expanded': child.isExpanded(),
-            'group_path': subgroup_path,
-            'group_positions': subgroup_positions,
-            'layer_position': layer_position,
-            'field_name': layer.customProperty("query_field"),
-            'identifier': layer.customProperty("qgisred_identifier")
-        }
+    #     return {
+    #         'name': layer.name(),
+    #         'source': layer.source(),
+    #         'style_string': layer.customProperty("styleURI"),
+    #         'checked': child.itemVisibilityChecked(),
+    #         'labels_enabled': layer.labelsEnabled(),
+    #         'expanded': child.isExpanded(),
+    #         'group_path': subgroup_path,
+    #         'group_positions': subgroup_positions,
+    #         'layer_position': layer_position,
+    #         'field_name': layer.customProperty("query_field"),
+    #         'identifier': layer.customProperty("qgisred_identifier")
+    #     }
 
-    def _storeLayersRecursive(self, parent_group, query_layers, group_path, group_positions):
-        for child in parent_group.children():
-            if isinstance(child, QgsLayerTreeLayer):
-                layer_details = self._process_layer(child.layer(), child, parent_group, 
-                                                group_path, group_positions)
-                if layer_details:
-                    query_layers.append(layer_details)
+    # def _storeLayersRecursive(self, parent_group, query_layers, group_path, group_positions):
+    #     for child in parent_group.children():
+    #         if isinstance(child, QgsLayerTreeLayer):
+    #             layer_details = self._process_layer(child.layer(), child, parent_group, 
+    #                                             group_path, group_positions)
+    #             if layer_details:
+    #                 query_layers.append(layer_details)
                 
-            elif child.nodeType() == QgsLayerTreeNode.NodeLayer:
-                layer = child.checkedLayers()[0] if child.checkedLayers() else None
-                layer_details = self._process_layer(layer, child, parent_group, 
-                                                group_path, group_positions)
-                if layer_details:
-                    query_layers.append(layer_details)
+    #         elif child.nodeType() == QgsLayerTreeNode.NodeLayer:
+    #             layer = child.checkedLayers()[0] if child.checkedLayers() else None
+    #             layer_details = self._process_layer(layer, child, parent_group, 
+    #                                             group_path, group_positions)
+    #             if layer_details:
+    #                 query_layers.append(layer_details)
                 
-            elif child.nodeType() == QgsLayerTreeNode.NodeGroup:
-                new_group_path = group_path + [child.name()]
-                new_group_positions = group_positions + [parent_group.children().index(child)]
-                self._storeLayersRecursive(child, query_layers, new_group_path, new_group_positions)
+    #         elif child.nodeType() == QgsLayerTreeNode.NodeGroup:
+    #             new_group_path = group_path + [child.name()]
+    #             new_group_positions = group_positions + [parent_group.children().index(child)]
+    #             self._storeLayersRecursive(child, query_layers, new_group_path, new_group_positions)
 
-    def restoreQueryLayers(self, query_layers):
-        if not query_layers:
-            return
+    # def restoreQueryLayers(self, query_layers):
+    #     if not query_layers:
+    #         return
 
-        queries_group = self.getQueryGroup()
+    #     queries_group = self.getQueryGroup()
 
-        for child in queries_group.children():
-            queries_group.removeChildNode(child)
+    #     for child in queries_group.children():
+    #         queries_group.removeChildNode(child)
 
-        for query_info in query_layers:
-            new_layer = QgsVectorLayer(query_info['source'], query_info['name'], 'ogr')
+    #     for query_info in query_layers:
+    #         new_layer = QgsVectorLayer(query_info['source'], query_info['name'], 'ogr')
 
-            if new_layer.isValid():
-                if 'style_string' in query_info and query_info['style_string']:
-                    new_layer.loadNamedStyle(query_info['style_string'])
+    #         if new_layer.isValid():
+    #             if 'style_string' in query_info and query_info['style_string']:
+    #                 new_layer.loadNamedStyle(query_info['style_string'])
 
-                    new_layer.setCustomProperty("styleURI", query_info['style_string'])
+    #                 new_layer.setCustomProperty("styleURI", query_info['style_string'])
                     
-                    if query_info['field_name'] in self.random_color_queries:
-                        QGISRedUtils().apply_categorized_renderer(new_layer, query_info['field_name'], query_info['style_string'])
+    #                 if query_info['field_name'] in self.random_color_queries:
+    #                     QGISRedUtils().apply_categorized_renderer(new_layer, query_info['field_name'], query_info['style_string'])
                         
-                if 'labels_enabled' in query_info:
-                    new_layer.setLabelsEnabled(query_info['labels_enabled'])
+    #             if 'labels_enabled' in query_info:
+    #                 new_layer.setLabelsEnabled(query_info['labels_enabled'])
 
-                new_layer.setCustomProperty("qgisred_identifier", query_info['identifier'])
-                new_layer.setCustomProperty("query_field", query_info['field_name'])
-                new_layer.setReadOnly(True)
-                QgsProject.instance().addMapLayer(new_layer, False)
+    #             new_layer.setCustomProperty("qgisred_identifier", query_info['identifier'])
+    #             new_layer.setCustomProperty("query_field", query_info['field_name'])
+    #             new_layer.setReadOnly(True)
+    #             QgsProject.instance().addMapLayer(new_layer, False)
 
-                group_path = query_info.get('group_path', [])
-                group_positions = query_info.get('group_positions', [])
-                layer_position = query_info.get('layer_position', None)
+    #             group_path = query_info.get('group_path', [])
+    #             group_positions = query_info.get('group_positions', [])
+    #             layer_position = query_info.get('layer_position', None)
 
-                parent_group = self.ensureGroupHierarchy(queries_group, group_path, group_positions)
+    #             parent_group = self.ensureGroupHierarchy(queries_group, group_path, group_positions)
 
-                layer_tree_layer = QgsLayerTreeLayer(new_layer)
-                layer_tree_layer.setCustomProperty("showFeatureCount", True)
+    #             layer_tree_layer = QgsLayerTreeLayer(new_layer)
+    #             layer_tree_layer.setCustomProperty("showFeatureCount", True)
 
-                if 'checked' in query_info:
-                    layer_tree_layer.setItemVisibilityChecked(query_info['checked'])
+    #             if 'checked' in query_info:
+    #                 layer_tree_layer.setItemVisibilityChecked(query_info['checked'])
 
-                if 'expanded' in query_info:
-                    layer_tree_layer.setExpanded(query_info['expanded'])
+    #             if 'expanded' in query_info:
+    #                 layer_tree_layer.setExpanded(query_info['expanded'])
 
-                if layer_position is not None and layer_position <= len(parent_group.children()):
-                    parent_group.insertChildNode(layer_position, layer_tree_layer)
-                else:
-                    parent_group.addChildNode(layer_tree_layer)
+    #             if layer_position is not None and layer_position <= len(parent_group.children()):
+    #                 parent_group.insertChildNode(layer_position, layer_tree_layer)
+    #             else:
+    #                 parent_group.addChildNode(layer_tree_layer)
 
-                QGISRedUtils().hide_fields(new_layer, query_info['field_name'])
+    #             QGISRedUtils().hide_fields(new_layer, query_info['field_name'])
 
-                input_layer = self.findSourceLayer(self.getInputGroup(), new_layer)
-                if input_layer:
-                    input_layer.dataChanged.connect(
-                        lambda input_layer=input_layer, new_layer=new_layer: 
-                        self.syncQueryLayer(input_layer, new_layer)
-                    )
+    #             input_layer = self.findSourceLayer(self.getInputGroup(), new_layer)
+    #             if input_layer:
+    #                 input_layer.dataChanged.connect(
+    #                     lambda input_layer=input_layer, new_layer=new_layer: 
+    #                     self.syncQueryLayer(input_layer, new_layer)
+    #                 )
 
-    def getSubgroupPosition(self, parent_group, subgroup_name):
-        for index, child in enumerate(parent_group.children()):
-            if isinstance(child, QgsLayerTreeGroup) and child.name() == subgroup_name:
-                return index
-        return None
+    # def getSubgroupPosition(self, parent_group, subgroup_name):
+    #     for index, child in enumerate(parent_group.children()):
+    #         if isinstance(child, QgsLayerTreeGroup) and child.name() == subgroup_name:
+    #             return index
+    #     return None
              
-    def ensureGroupHierarchy(self, parent_group, group_path, group_positions):
-        current_group = parent_group
+    # def ensureGroupHierarchy(self, parent_group, group_path, group_positions):
+    #     current_group = parent_group
 
-        for idx, group_name in enumerate(group_path):
-            position = group_positions[idx] if idx < len(group_positions) else None
+    #     for idx, group_name in enumerate(group_path):
+    #         position = group_positions[idx] if idx < len(group_positions) else None
             
-            existing_group = None
-            for child in current_group.children():
-                if isinstance(child, QgsLayerTreeGroup) and child.name() == group_name:
-                    existing_group = child
-                    break
+    #         existing_group = None
+    #         for child in current_group.children():
+    #             if isinstance(child, QgsLayerTreeGroup) and child.name() == group_name:
+    #                 existing_group = child
+    #                 break
 
-            if existing_group:
-                current_group = existing_group
-            else:
-                new_group = QgsLayerTreeGroup(group_name)
-                if position is not None and position <= len(current_group.children()):
-                    current_group.insertChildNode(position, new_group)
-                else:
-                    current_group.addChildNode(new_group)
-                current_group = new_group
+    #         if existing_group:
+    #             current_group = existing_group
+    #         else:
+    #             new_group = QgsLayerTreeGroup(group_name)
+    #             if position is not None and position <= len(current_group.children()):
+    #                 current_group.insertChildNode(position, new_group)
+    #             else:
+    #                 current_group.addChildNode(new_group)
+    #             current_group = new_group
 
-        return current_group
+    #     return current_group
 
-    def findSourceLayer(self, inputs_group, query_layer):
-        for child in inputs_group.children():
-            if isinstance(child, QgsLayerTreeLayer):
-                layer = child.layer()
-                if layer and layer.geometryType() == query_layer.geometryType():
-                    return layer
-        return None
+    # def findSourceLayer(self, inputs_group, query_layer):
+    #     for child in inputs_group.children():
+    #         if isinstance(child, QgsLayerTreeLayer):
+    #             layer = child.layer()
+    #             if layer and layer.geometryType() == query_layer.geometryType():
+    #                 return layer
+    #     return None
 
-    def syncQueryLayer(self, source_layer, query_layer):
-        query_layer.dataProvider().forceReload()
-        query_layer.triggerRepaint()
+    # def syncQueryLayer(self, source_layer, query_layer):
+    #     query_layer.dataProvider().forceReload()
+    #     query_layer.triggerRepaint()
 
-    
    
-    ## TEMP COMMENT ISSUE 41 AND 42 TODO REMOVE
-    def storeAllLayers(self):
-        """Store information about all layers to be restored later.
-        Returns a dictionary with groups as keys and layer info as values.
-        """
-        all_layers = {}
-        root = QgsProject.instance().layerTreeRoot()
+    # ## TEMP COMMENT ISSUE 41 AND 42 TODO REMOVE
+    # def storeAllLayers(self):
+    #     """Store information about all layers to be restored later.
+    #     Returns a dictionary with groups as keys and layer info as values.
+    #     """
+    #     all_layers = {}
+    #     root = QgsProject.instance().layerTreeRoot()
         
-        # Store info for the main layers (Inputs)
-        input_group = self.getInputGroup()
-        if input_group:
-            all_layers['Inputs'] = self._storeLayers(input_group)
+    #     # Store info for the main layers (Inputs)
+    #     input_group = self.getInputGroup()
+    #     if input_group:
+    #         all_layers['Inputs'] = self._storeLayers(input_group)
         
-        # Store info for the query layers
-        query_layers = self.storeQueryLayers()
-        if query_layers:
-            all_layers['Queries'] = query_layers
+    #     # Store info for the query layers
+    #     query_layers = self.storeQueryLayers()
+    #     if query_layers:
+    #         all_layers['Queries'] = query_layers
         
-        # Store info for the results layers
-        results_group = root.findGroup("Results")
-        if results_group:
-            all_layers['Results'] = self._storeLayers(results_group)
+    #     # Store info for the results layers
+    #     results_group = root.findGroup("Results")
+    #     if results_group:
+    #         all_layers['Results'] = self._storeLayers(results_group)
         
-        # Store any other root-level layers
-        root_layers = []
-        for child in root.children():
-            if isinstance(child, QgsLayerTreeLayer):
-                layer = child.layer()
-                if layer:
-                    root_layers.append(self._storeLayerInfo(layer, child, root))
+    #     # Store any other root-level layers
+    #     root_layers = []
+    #     for child in root.children():
+    #         if isinstance(child, QgsLayerTreeLayer):
+    #             layer = child.layer()
+    #             if layer:
+    #                 root_layers.append(self._storeLayerInfo(layer, child, root))
         
-        if root_layers:
-            all_layers['Root'] = root_layers
+    #     if root_layers:
+    #         all_layers['Root'] = root_layers
         
-        return all_layers
+    #     return all_layers
 
-    def _storeLayers(self, group):
-        """Store information about layers in a specific group."""
-        layers_info = []
-        for child in group.children():
-            if isinstance(child, QgsLayerTreeLayer):
-                layer = child.layer()
-                if layer:
-                    layers_info.append(self._storeLayerInfo(layer, child, group))
-            elif child.nodeType() == QgsLayerTreeNode.NodeGroup:
-                # Process nested groups
-                nested_layers = self._storeLayers(child)
-                if nested_layers:
-                    # Add group path to each layer info
-                    for layer_info in nested_layers:
-                        layer_info['group_path'] = [child.name()] + layer_info.get('group_path', [])
-                        layer_info['group_positions'] = [group.children().index(child)] + layer_info.get('group_positions', [])
-                    layers_info.extend(nested_layers)
+    # def _storeLayers(self, group):
+    #     """Store information about layers in a specific group."""
+    #     layers_info = []
+    #     for child in group.children():
+    #         if isinstance(child, QgsLayerTreeLayer):
+    #             layer = child.layer()
+    #             if layer:
+    #                 layers_info.append(self._storeLayerInfo(layer, child, group))
+    #         elif child.nodeType() == QgsLayerTreeNode.NodeGroup:
+    #             # Process nested groups
+    #             nested_layers = self._storeLayers(child)
+    #             if nested_layers:
+    #                 # Add group path to each layer info
+    #                 for layer_info in nested_layers:
+    #                     layer_info['group_path'] = [child.name()] + layer_info.get('group_path', [])
+    #                     layer_info['group_positions'] = [group.children().index(child)] + layer_info.get('group_positions', [])
+    #                 layers_info.extend(nested_layers)
         
-        return layers_info
+    #     return layers_info
 
-    def _storeLayerInfo(self, layer, tree_layer, parent_group):
-        """Store comprehensive information about a single layer."""
-        layer_position = parent_group.children().index(tree_layer)
+    # def _storeLayerInfo(self, layer, tree_layer, parent_group):
+    #     """Store comprehensive information about a single layer."""
+    #     layer_position = parent_group.children().index(tree_layer)
         
-        # Get style information
-        style_string = ""
-        temp_style_file = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names()) + ".qml"
-        if layer.saveNamedStyle(temp_style_file):
-            style_string = temp_style_file
+    #     # Get style information
+    #     style_string = ""
+    #     temp_style_file = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names()) + ".qml"
+    #     if layer.saveNamedStyle(temp_style_file):
+    #         style_string = temp_style_file
         
-        # Store layer metadata if available
-        metadata = {}
-        layer_metadata = layer.metadata()
-        if layer_metadata:
-            metadata = {
-                'title': layer_metadata.title(),
-                'abstract': layer_metadata.abstract(),
-                'keywords': layer_metadata.keywords()
-            }
+    #     # Store layer metadata if available
+    #     metadata = {}
+    #     layer_metadata = layer.metadata()
+    #     if layer_metadata:
+    #         metadata = {
+    #             'title': layer_metadata.title(),
+    #             'abstract': layer_metadata.abstract(),
+    #             'keywords': layer_metadata.keywords()
+    #         }
         
-        # Get custom properties
-        custom_properties = {}
-        for key in layer.customPropertyKeys():
-            custom_properties[key] = layer.customProperty(key)
+    #     # Get custom properties
+    #     custom_properties = {}
+    #     for key in layer.customPropertyKeys():
+    #         custom_properties[key] = layer.customProperty(key)
         
-        # Get symbology information
-        symbology_info = {}
-        renderer = layer.renderer()
-        if renderer:
-            symbology_info['type'] = renderer.type()
-            if hasattr(renderer, 'symbol'):
-                symbology_info['symbol_type'] = renderer.symbol().type()
+    #     # Get symbology information
+    #     symbology_info = {}
+    #     renderer = layer.renderer()
+    #     if renderer:
+    #         symbology_info['type'] = renderer.type()
+    #         if hasattr(renderer, 'symbol'):
+    #             symbology_info['symbol_type'] = renderer.symbol().type()
             
-            if hasattr(renderer, 'categories'):
-                categories = []
-                for cat in renderer.categories():
-                    categories.append({
-                        'value': cat.value(),
-                        'label': cat.label(),
-                        'color': cat.symbol().color().name() if hasattr(cat.symbol(), 'color') else None
-                    })
-                symbology_info['categories'] = categories
+    #         if hasattr(renderer, 'categories'):
+    #             categories = []
+    #             for cat in renderer.categories():
+    #                 categories.append({
+    #                     'value': cat.value(),
+    #                     'label': cat.label(),
+    #                     'color': cat.symbol().color().name() if hasattr(cat.symbol(), 'color') else None
+    #                 })
+    #             symbology_info['categories'] = categories
         
-        # Get joins information
-        joins = []
-        for join in layer.vectorJoins():
-            joins.append({
-                'join_layer_id': join.joinLayerId(),
-                'join_field_name': join.joinFieldName(),
-                'target_field_name': join.targetFieldName(),
-                'prefix': join.prefix()
-            })
+    #     # Get joins information
+    #     joins = []
+    #     for join in layer.vectorJoins():
+    #         joins.append({
+    #             'join_layer_id': join.joinLayerId(),
+    #             'join_field_name': join.joinFieldName(),
+    #             'target_field_name': join.targetFieldName(),
+    #             'prefix': join.prefix()
+    #         })
         
-        # Build the layer info dictionary
-        return {
-            'id': layer.id(),
-            'name': layer.name(),
-            'source': layer.source(),
-            'provider': layer.providerType(),
-            'style_string': style_string,
-            'checked': tree_layer.itemVisibilityChecked(),
-            'expanded': tree_layer.isExpanded(),
-            'layer_position': layer_position,
-            'geometry_type': layer.geometryType() if hasattr(layer, 'geometryType') else None,
-            'crs': layer.crs().authid() if hasattr(layer, 'crs') else None,
-            'labels_enabled': layer.labelsEnabled() if hasattr(layer, 'labelsEnabled') else False,
-            'metadata': metadata,
-            'custom_properties': custom_properties,
-            'symbology': symbology_info,
-            'joins': joins,
-            'group_path': [],
-            'group_positions': [],
-            'field_name': layer.customProperty("query_field", ""),
-            'identifier': layer.customProperty("qgisred_identifier", "")
-        }
+    #     # Build the layer info dictionary
+    #     return {
+    #         'id': layer.id(),
+    #         'name': layer.name(),
+    #         'source': layer.source(),
+    #         'provider': layer.providerType(),
+    #         'style_string': style_string,
+    #         'checked': tree_layer.itemVisibilityChecked(),
+    #         'expanded': tree_layer.isExpanded(),
+    #         'layer_position': layer_position,
+    #         'geometry_type': layer.geometryType() if hasattr(layer, 'geometryType') else None,
+    #         'crs': layer.crs().authid() if hasattr(layer, 'crs') else None,
+    #         'labels_enabled': layer.labelsEnabled() if hasattr(layer, 'labelsEnabled') else False,
+    #         'metadata': metadata,
+    #         'custom_properties': custom_properties,
+    #         'symbology': symbology_info,
+    #         'joins': joins,
+    #         'group_path': [],
+    #         'group_positions': [],
+    #         'field_name': layer.customProperty("query_field", ""),
+    #         'identifier': layer.customProperty("qgisred_identifier", "")
+    #     }
 
-    def restoreAllLayers(self, all_layers):
-        """Restore all layers from the stored information."""
-        if not all_layers:
-            return
+    # def restoreAllLayers(self, all_layers):
+    #     """Restore all layers from the stored information."""
+    #     if not all_layers:
+    #         return
         
-        # Restore input layers
-        if 'Inputs' in all_layers:
-            input_group = self.getInputGroup()
-            if input_group:
-                self._restoreLayers(all_layers['Inputs'], input_group)
+    #     # Restore input layers
+    #     if 'Inputs' in all_layers:
+    #         input_group = self.getInputGroup()
+    #         if input_group:
+    #             self._restoreLayers(all_layers['Inputs'], input_group)
         
-        # Restore query layers using existing method
-        if 'Queries' in all_layers:
-            root = QgsProject.instance().layerTreeRoot()
-            queries_group = root.findGroup("Queries")
-            if queries_group:
-                self.restoreQueryLayers(all_layers['Queries'])
+    #     # Restore query layers using existing method
+    #     if 'Queries' in all_layers:
+    #         root = QgsProject.instance().layerTreeRoot()
+    #         queries_group = root.findGroup("Queries")
+    #         if queries_group:
+    #             self.restoreQueryLayers(all_layers['Queries'])
         
-        # Restore results layers
-        if 'Results' in all_layers:
-            root = QgsProject.instance().layerTreeRoot()
-            results_group = root.findGroup("Results")
-            if not results_group:
-                results_group = root.addGroup("Results")
-            self._restoreLayers(all_layers['Results'], results_group)
+    #     # Restore results layers
+    #     if 'Results' in all_layers:
+    #         root = QgsProject.instance().layerTreeRoot()
+    #         results_group = root.findGroup("Results")
+    #         if not results_group:
+    #             results_group = root.addGroup("Results")
+    #         self._restoreLayers(all_layers['Results'], results_group)
         
-        # Restore root-level layers
-        if 'Root' in all_layers:
-            root = QgsProject.instance().layerTreeRoot()
-            self._restoreLayers(all_layers['Root'], root)
+    #     # Restore root-level layers
+    #     if 'Root' in all_layers:
+    #         root = QgsProject.instance().layerTreeRoot()
+    #         self._restoreLayers(all_layers['Root'], root)
 
-    def _restoreLayers(self, layers_info, parent_group):
+    # def _restoreLayers(self, layers_info, parent_group):
         processed_layers = set()
         for layer_info in layers_info:
             layer_id = layer_info.get('id', '')

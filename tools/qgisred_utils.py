@@ -175,28 +175,29 @@ class QGISRedUtils:
 
     """Order Layers"""
     def orderLayers(self, group):
+        if group is None:
+            return
+
         mylayersNames = [
             "Meters", "ServiceConnections", "IsolationValves", "Hydrants",
             "WashoutValves", "AirReleaseValves", "Sources", "Reservoirs",
             "Tanks", "Demands", "Junctions", "Pumps", "Valves", "Pipes"
         ]
-        layersToDelete = []
-        layers = self.getLayers()
-        
-        for layerName in mylayersNames:
-            layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + layerName)
 
-            for layer in layers:
-                openedLayerPath = self.getLayerPath(layer)
-                if openedLayerPath == layerPath:
-                    layerCloned = layer.clone()
-                    layersToDelete.append(layer.id())
-                    QgsProject.instance().addMapLayer(layerCloned, group is None)
-                    if group is not None:
-                        group.addChildNode(QgsLayerTreeLayer(layerCloned))
+        name_to_node = {}
+        for child in group.children():
+            if isinstance(child, QgsLayerTreeLayer):
+                name_to_node[child.name()] = child  # legend name
 
-        if len(layersToDelete) > 0:
-            QgsProject.instance().removeMapLayers(layersToDelete)
+        for base_name in reversed(mylayersNames):
+            pretty = self.getLayerNameToLegend(base_name)
+            node = name_to_node.get(pretty) or name_to_node.get(base_name)
+            if not node:
+                continue 
+
+            cloned = node.clone()
+            group.insertChildNode(0, cloned)
+            group.removeChildNode(node)
 
     def orderResultLayers(self, group):
         layers = [tree_layer.layer() for tree_layer in group.findLayers()]  # Only in group

@@ -88,8 +88,12 @@
                 </property>
                 <property name="font">
                  <font>
+                  <family>MS Shell Dlg 2</family>
                   <weight>75</weight>
+                  <italic>false</italic>
                   <bold>true</bold>
+                  <underline>false</underline>
+                  <strikeout>false</strikeout>
                  </font>
                 </property>
                 <property name="text">
@@ -250,6 +254,12 @@
                 <property name="enabled">
                  <bool>false</bool>
                 </property>
+                <property name="font">
+                 <font>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
                 <property name="text">
                  <string>Junctions</string>
                 </property>
@@ -395,6 +405,12 @@
                <widget class="QCheckBox" name="cbDemands">
                 <property name="enabled">
                  <bool>true</bool>
+                </property>
+                <property name="font">
+                 <font>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
                 </property>
                 <property name="text">
                  <string>Demands</string>
