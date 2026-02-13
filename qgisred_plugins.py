@@ -4624,7 +4624,7 @@ class QGISRed:
             useElementProperties = False
             if existingDock:
                 useElementProperties = not existingDock.mElementPropertiesGroupBox.isCollapsed()
-                existingDock.updateCollapsibleWidgetsState(collapseFindElements=False)
+                existingDock.updateCollapsibleWidgetsState(collapseFindElements=False, collapseConnectedElements=True)
                 existingDock.initializeElementTypes()
             else:
                 try:
@@ -4641,7 +4641,7 @@ class QGISRed:
                     dock.activateWindow()
                     dock.onLayerTreeChanged()
                     dock.setDefaultValue()
-                    dock.updateCollapsibleWidgetsState(collapseFindElements=False)
+                    dock.updateCollapsibleWidgetsState(collapseFindElements=False, collapseConnectedElements=True)
                 except Exception as e:
                     self.openFindElementsDialog.setChecked(False)
                     return
@@ -4691,7 +4691,7 @@ class QGISRed:
             self.openElementsPropertyDialog.setChecked(False)
         else:
             if existingDock:
-                existingDock.updateCollapsibleWidgetsState(collapseElementProperties=False)
+                existingDock.updateCollapsibleWidgetsState(collapseElementProperties=False, collapseConnectedElements=True)
                 existingDock.initializeElementTypes()
             try:
                 self.myMapTools[tool] = QGISRedIdentifyFeature(

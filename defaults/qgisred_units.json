@@ -1035,5 +1035,131 @@
                 "abbr": "%"
             }
         }
+    },
+    "FieldPrettyNames": {
+        "Common": {
+            "Id": "Identifier",
+            "Tag": "Tag",
+            "Descrip": "Description"
+        },
+        "Pipes": {
+            "Id": "Identifier",
+            "Length": "Length",
+            "Diameter": "Diameter",
+            "RoughCoeff": "Roughness Coefficient",
+            "LossCoeff": "Loss Coefficient",
+            "Material": "Material",
+            "InstalDate": "Installation Date",
+            "IniStatus": "Initial Status",
+            "BulkCoeff": "Bulk Coefficient",
+            "WallCoeff": "Wall Coefficient",
+            "Tag": "Tag",
+            "Descrip": "Description"
+        },
+        "Junctions": {
+            "Id": "Identifier",
+            "Elevation": "Elevation",
+            "BaseDem": "Base Demand",
+            "IdPattDem": "Demand Pattern",
+            "EmittCoef": "Emitter Coefficient",
+            "IniQuality": "Initial Quality",
+            "Tag": "Tag",
+            "Descrip": "Description"
+        },
+        "Tanks": {
+            "Id": "Identifier",
+            "Elevation": "Elevation",
+            "IniLevel": "Initial Level",
+            "MinLevel": "Minimum Level",
+            "MaxLevel": "Maximum Level",
+            "Diameter": "Diameter",
+            "MinVolume": "Minimum Volume",
+            "IdVolCurve": "Volume Curve",
+            "Overflow": "Overflow",
+            "MixingMod": "Mixing Model",
+            "MixingFrac": "Mixing Fraction",
+            "ReactCoef": "Reaction Coefficient",
+            "IniQuality": "Initial Quality",
+            "Tag": "Tag",
+            "Descrip": "Description"
+        },
+        "Reservoirs": {
+            "Id": "Identifier",
+            "TotalHead": "Total Head",
+            "IdHeadPatt": "Head Pattern",
+            "IniQuality": "Initial Quality",
+            "Tag": "Tag",
+            "Descrip": "Description"
+        },
+        "Valves": {
+            "Id": "Identifier",
+            "Diameter": "Diameter",
+            "Type": "Type",
+            "Setting": "Setting",
+            "IdHeadLoss": "HeadLoss Curve",
+            "LossCoeff": "Loss Coefficient",
+            "IniStatus": "Initial Status",
+            "Tag": "Tag",
+            "Descrip": "Description"
+        },
+        "Pumps": {
+            "Id": "Identifier",
+            "IdHFCurve": "Head Curve",
+            "Power": "Power",
+            "Speed": "Speed",
+            "IdSpeedPat": "Speed Pattern",
+            "IniStatus": "Initial Status",
+            "IdEffiCur": "Efficiency Curve",
+            "EnergyPric": "Energy Price",
+            "IdPricePat": "Price Pattern",
+            "Tag": "Tag",
+            "Descrip": "Description"
+        },
+        "Sources": {
+            "BaseValue": "Base Value",
+            "Type": "Type",
+            "IdPattern": "Pattern"
+        },
+        "Meters": {
+            "Id": "Identifier",
+            "Type": "Type",
+            "IsActive": "Is Active",
+            "InstDate": "Installation Date",
+            "Tag": "Tag",
+            "Descrip": "Description"
+        },
+        "Demands": {
+            "Id": "Identifier",
+            "NodeId": "Node Identifier",
+            "BaseDemand": "Base Demand",
+            "IdPattern": "Demand Pattern",
+            "Category": "Category",
+            "Tag": "Tag",
+            "Descrip": "Description"
+        },
+        "ServiceConnections": {
+            "Id": "Identifier",
+            "Length": "Length",
+            "Diameter": "Diameter",
+            "RoughCoeff": "Roughness Coefficient",
+            "Material": "Material",
+            "InstalDate": "Installation Date",
+            "BaseDem": "Base Demand",
+            "IdPattDem": "Demand Pattern",
+            "Reliability": "Reliability",
+            "IsActive": "Is Active",
+            "Tag": "Tag",
+            "Descrip": "Description"
+        },
+        "IsolationValves": {
+            "Id": "Identifier",
+            "Diameter": "Diameter",
+            "LossCoeff": "Loss Coefficient",
+            "Status": "Status",
+            "Available": "Available",
+            "InstDate": "Installation Date",
+            "Tag": "Tag",
+            "Descrip": "Description"
+        }
     }
 }

@@ -7,6 +7,7 @@ from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsVectorLayer, QgsSettings, QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsLayerMetadata, QgsSpatialIndex, Qgis
 from qgis.utils import iface
 from qgis.gui import QgsHighlight
+from ..tools.qgisred_utils import QGISRedUtils
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_element_explorer_dock.ui"))
 
@@ -143,6 +144,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         self.mElementPropertiesGroupBox.setCollapsed(True)
         self.mFindElementsGroupBox.setCollapsed(True)
+        self.mConnectedElementsGroupBox.setCollapsed(True)
         self.trackCollapsibleWidgetsEvents()
         
         self.topLevelChanged.connect(self.onTopLevelChanged)
@@ -151,9 +153,10 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.mElementPropertiesGroupBox.collapsedStateChanged.connect(self.onElementPropertiesToggled)
         self.mFindElementsGroupBox.collapsedStateChanged.connect(self.onFindElementsToggled)
 
-    def updateCollapsibleWidgetsState(self, collapseElementProperties=None, collapseFindElements=None):
+    def updateCollapsibleWidgetsState(self, collapseElementProperties=None, collapseFindElements=None, collapseConnectedElements=None):
         self.mElementPropertiesGroupBox.blockSignals(True)
         self.mFindElementsGroupBox.blockSignals(True)
+        self.mConnectedElementsGroupBox.blockSignals(True)
 
         if collapseElementProperties is not None:
             self.mElementPropertiesGroupBox.setCollapsed(collapseElementProperties)
@@ -161,20 +164,23 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         if collapseFindElements is not None:
             self.mFindElementsGroupBox.setCollapsed(collapseFindElements)
 
+        if collapseConnectedElements is not None:
+            self.mConnectedElementsGroupBox.setCollapsed(collapseConnectedElements)
+
         ep_collapsed = self.mElementPropertiesGroupBox.isCollapsed()
         fe_collapsed = self.mFindElementsGroupBox.isCollapsed()
 
-        if ep_collapsed and fe_collapsed:
-            self.close()
-            return
-        
+        # Panel should NOT close automatically when frames collapse
+        # It should only close when the X button is clicked
+
         if not fe_collapsed and ep_collapsed:
             self.moveWidgetsToFindElements()
-        else:
+        elif not ep_collapsed:
             self.moveWidgetsToElementProperties()
 
         self.mElementPropertiesGroupBox.blockSignals(False)
         self.mFindElementsGroupBox.blockSignals(False)
+        self.mConnectedElementsGroupBox.blockSignals(False)
 
     def onTopLevelChanged(self, floating):
         if floating:
@@ -244,6 +250,70 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         # Reset the scroll area position to the top
         if hasattr(self, 'scrollArea'):
             self.scrollArea.ensureVisible(0, 0, 0, 0)
+
+    def scrollToTop(self):
+        """Scroll the panel to show the top (Find Elements section)"""
+        if hasattr(self, 'scrollArea'):
+            self.scrollArea.verticalScrollBar().setValue(0)
+
+    def scrollToElementProperties(self):
+        """Scroll the panel to make the Element Properties section visible"""
+        if hasattr(self, 'scrollArea') and hasattr(self, 'mElementPropertiesGroupBox'):
+            # Ensure the element properties group box is visible
+            self.scrollArea.ensureWidgetVisible(self.mElementPropertiesGroupBox)
+
+    def refreshCurrentElement(self):
+        """Refresh the current element's data without changing collapsed state or scroll position.
+        This is useful after C# library operations that may have changed the element's data.
+        """
+        if not self.currentLayer or not self.currentFeature:
+            return False
+
+        # Save scroll position
+        scrollValue = self.scrollArea.verticalScrollBar().value() if hasattr(self, 'scrollArea') else 0
+
+        # Re-query the feature from the layer to get fresh data
+        try:
+            featureId = self.currentFeature.id()
+            freshFeature = self.currentLayer.getFeature(featureId)
+            if not freshFeature.isValid():
+                return False
+
+            # Update the feature reference
+            self.currentFeature = freshFeature
+
+            # Re-populate the data table
+            self.populateDataTableWidget()
+
+            # Update labels if they exist
+            if hasattr(self, 'labelFoundElementTag') and freshFeature.fields().indexFromName("Tag") != -1:
+                featureTag = freshFeature.attribute("Tag")
+                if featureTag and str(featureTag).strip() != "":
+                    self.labelFoundElementTag.setText(str(featureTag))
+                    self.labelFoundElementTag.show()
+                    self.isTagVisible = True
+                else:
+                    self.labelFoundElementTag.hide()
+                    self.isTagVisible = False
+
+            if hasattr(self, 'labelFoundElementDescription') and freshFeature.fields().indexFromName("Descrip") != -1:
+                featureDescription = freshFeature.attribute("Descrip")
+                if featureDescription and str(featureDescription).strip() != "":
+                    self.labelFoundElementDescription.setText(str(featureDescription))
+                    self.labelFoundElementDescription.show()
+                    self.isDescVisible = True
+                else:
+                    self.labelFoundElementDescription.hide()
+                    self.isDescVisible = False
+
+            # Restore scroll position
+            if hasattr(self, 'scrollArea'):
+                self.scrollArea.verticalScrollBar().setValue(scrollValue)
+
+            return True
+        except Exception as e:
+            print(f"Error refreshing current element: {str(e)}")
+            return False
 
     # ------------------------------
     # Event Filter Setup
@@ -775,6 +845,12 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.clearAllLayerSelections()
         self.listWidget.clear()
 
+        # Check if any layers are available
+        availableLayers, sourceGroup = self.getAvailableLayersForExplorer(checkVisibility=True)
+        if not availableLayers:
+            self.showLayerVisibilityWarning()
+            return
+
         selectedType = self.cbElementType.currentText()
         selectedId = self.extractNodeId(self.cbElementId.currentText())
         elementIdentifier = self.elementIdentifiers.get(selectedType)
@@ -796,6 +872,10 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                         foundFeature = feature
                         foundFeatureLayer = layer
                         break
+
+        # If not found in Inputs, try Results group
+        if not foundFeature and sourceGroup == "Inputs":
+            foundFeature, foundFeatureLayer = self.findElementInResultsGroup(selectedId)
 
         if not foundFeature:
             QMessageBox.information(self, self.tr("Info"), self.tr("Feature not found"))
@@ -871,7 +951,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             elementIdentifier = self.getIdentifierFromLayerName(singularType)
 
         matchingLayers = [
-            layer for layer in self.getCheckedInputGroupLayers()
+            layer for layer in self.getAllInputGroupLayers()
             if layer.customProperty("qgisred_identifier") == elementIdentifier
         ]
         for layer in matchingLayers:
@@ -910,36 +990,123 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.dataTableWidget.clearContents()
         self.dataTableWidget.setShowGrid(False)
         self.dataTableWidget.setStyleSheet("QTableWidget::item { padding: 1px; }")
-        
+
         self.dataTableWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        
+
         fields = self.currentLayer.fields()
         attributes = self.currentFeature.attributes()
         numFields = len(fields)
         self.dataTableWidget.setRowCount(numFields)
-        self.setDataTableWidgetColumns()
 
         header = self.dataTableWidget.horizontalHeader()
-        header.setSectionResizeMode(QHeaderView.Interactive)
         header.setStyleSheet("QHeaderView::section { font-weight: bold; }")
-        
+        self.setDataTableWidgetColumns()
+
         self.dataTableWidget.verticalHeader().setDefaultSectionSize(20)
-        
-        totalWidth = self.dataTableWidget.viewport().width() + 20 
-        self.dataTableWidget.setColumnWidth(0, totalWidth // 2)
-        self.dataTableWidget.setColumnWidth(1, totalWidth // 2)
-        
         self.dataTableWidget.verticalHeader().setVisible(False)
-        
+
+        # Get the layer identifier for pretty name lookup
+        layerIdentifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else None
+        utils = QGISRedUtils()
+
+        # Get headloss formula for roughness unit handling
+        headloss, _ = QgsProject.instance().readEntry("QGISRed", "project_headloss", "H-W")
+        unitSystem = utils.getUnits()  # Returns 'SI' or 'US'
+
         for row, field in enumerate(fields):
-            fieldItem = QTableWidgetItem(field.name())
-            valueItem = QTableWidgetItem(str(attributes[row]))
+            fieldName = field.name()
+            # Get pretty name for the field
+            prettyName = utils.getFieldPrettyName(layerIdentifier, fieldName)
+            fieldItem = QTableWidgetItem(prettyName)
+            fieldItem.setToolTip(prettyName)
+
+            # Get raw value and format display value
+            rawValue = attributes[row]
+            displayValue = str(rawValue) if rawValue is not None else ""
+
+            # Handle Energy Price with $ prefix
+            if fieldName in ["EnergyPric", "EnergyPrice"]:
+                if rawValue is not None and str(rawValue).strip() != "":
+                    try:
+                        displayValue = f"${rawValue}"
+                    except (ValueError, TypeError):
+                        pass
+
+            valueItem = QTableWidgetItem(displayValue)
+            # Center-align the Value column
+            valueItem.setTextAlignment(Qt.AlignCenter)
+            # Add tooltip with exact/complete value
+            valueItem.setToolTip(str(rawValue) if rawValue is not None else "")
+
+            # Get unit for the field with special handling for roughness
+            fieldUnit = self.getFieldUnitWithHeadlossLogic(utils, layerIdentifier, fieldName, headloss, unitSystem)
+            unitItem = QTableWidgetItem(fieldUnit if fieldUnit and fieldUnit != "-" and len(fieldUnit) > 1 else "")
+            unitItem.setTextAlignment(Qt.AlignCenter)
+            # Add tooltip with full unit name
+            unitFullName = self.getFieldUnitFullNameWithHeadlossLogic(utils, layerIdentifier, fieldName, headloss, unitSystem)
+            if unitFullName:
+                unitItem.setToolTip(unitFullName)
+
+            # Info column - placeholder for contextual icons
+            infoItem = QTableWidgetItem("")
+            infoItem.setTextAlignment(Qt.AlignCenter)
+
             self.dataTableWidget.setItem(row, 0, fieldItem)
             self.dataTableWidget.setItem(row, 1, valueItem)
+            self.dataTableWidget.setItem(row, 2, unitItem)
+            self.dataTableWidget.setItem(row, 3, infoItem)
+
+    def getFieldUnitWithHeadlossLogic(self, utils, layerIdentifier, fieldName, headloss, unitSystem):
+        """Get field unit with special handling for roughness based on headloss formula."""
+        # Check if this is a roughness field
+        roughnessFields = ["RoughCoeff", "Roughness", "roughcoeff", "roughness"]
+
+        if fieldName in roughnessFields:
+            # Roughness units only apply when headloss is Darcy-Weisbach (D-W)
+            if headloss == "D-W":
+                if unitSystem == "SI":
+                    return "mm"
+                else:  # US units
+                    return "millifeet"
+            else:
+                # For H-W (Hazen-Williams) and C-M (Chezy-Manning), roughness is dimensionless
+                return ""
+
+        # For all other fields, use the standard unit lookup
+        return utils.getFieldUnit(layerIdentifier, fieldName)
+
+    def getFieldUnitFullNameWithHeadlossLogic(self, utils, layerIdentifier, fieldName, headloss, unitSystem):
+        """Get full unit name with special handling for roughness based on headloss formula (for tooltips)."""
+        # Check if this is a roughness field
+        roughnessFields = ["RoughCoeff", "Roughness", "roughcoeff", "roughness"]
+
+        if fieldName in roughnessFields:
+            # Roughness units only apply when headloss is Darcy-Weisbach (D-W)
+            if headloss == "D-W":
+                if unitSystem == "SI":
+                    return "Millimeters"
+                else:  # US units
+                    return "Millifeet"
+            else:
+                # For H-W (Hazen-Williams) and C-M (Chezy-Manning), roughness is dimensionless
+                return "Dimensionless"
+
+        # For all other fields, use the standard unit lookup
+        return utils.getFieldUnitFullName(layerIdentifier, fieldName)
 
     def setDataTableWidgetColumns(self):
-        self.dataTableWidget.setColumnCount(2)
-        self.dataTableWidget.setHorizontalHeaderLabels(["Property", "Value"])
+        self.dataTableWidget.setColumnCount(4)
+        self.dataTableWidget.setHorizontalHeaderLabels([self.tr("Property"), self.tr("Value"), self.tr("Units"), self.tr("")])
+
+        header = self.dataTableWidget.horizontalHeader()
+        # Units and Info columns: fixed small width
+        header.setSectionResizeMode(2, QHeaderView.Fixed)
+        header.setSectionResizeMode(3, QHeaderView.Fixed)
+        self.dataTableWidget.setColumnWidth(2, 40)
+        self.dataTableWidget.setColumnWidth(3, 40)
+        # Property and Value columns: stretch to fill remaining space
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.Stretch)
 
     def loadFeature(self, layer, feature, featureIdText=""):
         if not layer or not feature:
@@ -1107,7 +1274,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.nodeLayerSpatialIndices.clear()
         supportedIds = ["qgisred_junctions", "qgisred_reservoirs", "qgisred_tanks"]
 
-        for layer in self.getCheckedInputGroupLayers():
+        for layer in self.getAllInputGroupLayers():
             identifier = layer.customProperty("qgisred_identifier", "")
             if identifier in supportedIds:
                 # Create spatial index for this layer
@@ -1161,7 +1328,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         return layerFound
 
     def getLayerByIdentifier(self, identifier):
-        for layer in self.getCheckedInputGroupLayers():
+        for layer in self.getAllInputGroupLayers():
             if layer.customProperty("qgisred_identifier") == identifier:
                 return layer
         return None
@@ -1315,7 +1482,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         return finalText
 
     def findNodeLayer(self, nodeId):
-        for layer in self.getCheckedInputGroupLayers():
+        for layer in self.getAllInputGroupLayers():
             identifier = layer.customProperty("qgisred_identifier", "")
             if identifier in self.nodeLayers:
                 if identifier in self.sourcesAndDemands:
@@ -1334,7 +1501,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         tolerance = 1e-6
         if supportedOnly:
             supportedIds = ["qgisred_junctions", "qgisred_reservoirs", "qgisred_tanks"]
-            for nodeLayer in self.getCheckedInputGroupLayers():
+            for nodeLayer in self.getAllInputGroupLayers():
                 if nodeLayer == currentLayer:
                     continue
                 nodeIdentifier = nodeLayer.customProperty("qgisred_identifier", "")
@@ -1349,7 +1516,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                         return nodeFeature, nodeLayer
             return None, None
         else:
-            for nodeLayer in self.getCheckedInputGroupLayers():
+            for nodeLayer in self.getAllInputGroupLayers():
                 if nodeLayer == currentLayer:
                     continue
                 nodeIdentifier = nodeLayer.customProperty("qgisred_identifier", "")
@@ -1366,19 +1533,55 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     def findSourceOrDemandForNodeId(self, nodeId):
         nodeLayer, nodeFeat = self.findNodeLayer(nodeId)
         if not nodeLayer or not nodeFeat:
-            return None, None 
+            return None, None
         nodeGeom = nodeFeat.geometry()
         if nodeGeom.isEmpty():
-            return None, None 
-        for layer in self.getCheckedInputGroupLayers():
+            return None, None
+        for layer in self.getAllInputGroupLayers():
             identifier = layer.customProperty("qgisred_identifier", "")
-            if identifier in self.sourcesAndDemands: 
+            if identifier in self.sourcesAndDemands:
                 for feat in layer.getFeatures():
                     featGeom = feat.geometry()
                     if featGeom.isEmpty():
                         continue
                     if self.areOverlappedPoints(nodeGeom, featGeom):
                         return feat, layer
+        return None, None
+
+    def findElementInResultsGroup(self, elementId):
+        """
+        Search for an element by ID in the Results group layers.
+        Results group typically contains nodes and lines layers without type separation.
+
+        Args:
+            elementId: The ID of the element to find.
+
+        Returns:
+            tuple: (feature, layer) if found, (None, None) otherwise.
+        """
+        resultsLayers = self.getAllResultsGroupLayers()
+        if not resultsLayers:
+            return None, None
+
+        for layer in resultsLayers:
+            # Results layers may have different field names for ID
+            idFieldNames = ["Id", "ID", "id", "fid", "FID"]
+            idFieldIndex = -1
+
+            for fieldName in idFieldNames:
+                idx = layer.fields().indexFromName(fieldName)
+                if idx >= 0:
+                    idFieldIndex = idx
+                    break
+
+            if idFieldIndex < 0:
+                continue
+
+            for feature in layer.getFeatures():
+                featureId = feature.attribute(idFieldIndex)
+                if featureId is not None and str(featureId) == str(elementId):
+                    return feature, layer
+
         return None, None
 
     def isLineElement(self, layer):
@@ -1410,7 +1613,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
     def addServiceConnectionAdjacencies(self, currentGeom, tolerance):
         serviceLayers = [
-            layer for layer in self.getCheckedInputGroupLayers()
+            layer for layer in self.getAllInputGroupLayers()
             if layer.customProperty("qgisred_identifier") == "qgisred_serviceconnections"
         ]
         for layer in serviceLayers:
@@ -1425,7 +1628,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
     def addIsolationValveAdjacencies(self, currentGeom, tolerance):
         isolationLayers = [
-            layer for layer in self.getCheckedInputGroupLayers()
+            layer for layer in self.getAllInputGroupLayers()
             if layer.customProperty("qgisred_identifier") == "qgisred_isolationvalves"
         ]
         for layer in isolationLayers:
@@ -1453,7 +1656,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         tolerance = 1e-6
         foundNodes = []
         nodeLayers = [
-            layer for layer in self.getCheckedInputGroupLayers()
+            layer for layer in self.getAllInputGroupLayers()
             if layer.customProperty("qgisred_identifier") in (self.nodeLayers + self.specialLayers)
         ]
         for nodeLayer in nodeLayers:
@@ -1496,12 +1699,15 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         nodeGeom = nodeFeature.geometry()
         if nodeGeom.isEmpty():
             return
+        # Check if the geometry is a point type (geometryType() == 0 for Point)
+        if nodeGeom.type() != 0:  # Not a point geometry
+            return
         nodePoint = QgsPointXY(nodeGeom.asPoint())
         nodeG = QgsGeometry.fromPointXY(nodePoint)
         tolerance = 1e-9
         foundLinks = []
         linkLayers = [
-            lyr for lyr in self.getCheckedInputGroupLayers()
+            lyr for lyr in self.getAllInputGroupLayers()
             if lyr.customProperty("qgisred_identifier") in (self.linkLayers + ["qgisred_meters"])
         ]
         for linkLayer in linkLayers:
@@ -1570,7 +1776,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 return
         for pt in endpoints:
             ptGeom = QgsGeometry.fromPointXY(pt)
-            for lyr in self.getCheckedInputGroupLayers():
+            for lyr in self.getAllInputGroupLayers():
                 if lyr.customProperty("qgisred_identifier") == "qgisred_pipes":
                     for f in lyr.getFeatures():
                         pipeGeom = f.geometry()
@@ -1595,7 +1801,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             nodeFullName = singularName + ' ' + nodeItemText
             self.addAdjacencyItem(nodeFullName, nodeLayer.customProperty("qgisred_identifier"))
             return
-        for lyr in self.getCheckedInputGroupLayers():
+        for lyr in self.getAllInputGroupLayers():
             if lyr.customProperty("qgisred_identifier") == "qgisred_pipes":
                 for f in lyr.getFeatures():
                     pipeGeom = f.geometry()
@@ -1620,7 +1826,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             nodeItemText = singularName + ' ' + nodeId
             self.addAdjacencyItem(nodeItemText, nodeLayer.customProperty("qgisred_identifier"))
             return
-        for lyr in self.getCheckedInputGroupLayers():
+        for lyr in self.getAllInputGroupLayers():
             if lyr.customProperty("qgisred_identifier") != "qgisred_meters":
                 for f in lyr.getFeatures():
                     linkGeom = f.geometry()
@@ -1634,13 +1840,24 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                         return
 
     def findFeature(self, layer, feature):
+        # Safety check - verify layer and feature are valid
+        if not layer or not feature:
+            self.showLayerVisibilityWarning()
+            return
+
+        # Check if layers are available
+        availableLayers, _ = self.getAvailableLayersForExplorer(checkVisibility=True)
+        if not availableLayers:
+            self.showLayerVisibilityWarning()
+            return
+
         elementTypeText = layer.name()
         self.cbElementType.setCurrentText(elementTypeText)
-        
+
         self.updateElementIds()
-        
+
         featureIdText = self.getFeatureIdValue(feature, layer, specialNaming=True)
-        
+
         index = self.cbElementId.findText(featureIdText)
         if index >= 0:
             self.cbElementId.setCurrentIndex(index)
@@ -1680,3 +1897,95 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         if not inputsGroup:
             return []
         return inputsGroup.checkedLayers()
+
+    def getAllInputGroupLayers(self):
+        """Get all layers from Inputs group regardless of visibility/checked state."""
+        inputsGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
+        if not inputsGroup:
+            return []
+        layers = []
+        for layerNode in inputsGroup.findLayers():
+            layer = layerNode.layer()
+            if layer and isinstance(layer, QgsVectorLayer):
+                layers.append(layer)
+        return layers
+
+    def getAllResultsGroupLayers(self):
+        """Get all layers from Results group regardless of visibility/checked state."""
+        resultsGroup = QgsProject.instance().layerTreeRoot().findGroup("Results")
+        if not resultsGroup:
+            return []
+        layers = []
+        for layerNode in resultsGroup.findLayers():
+            layer = layerNode.layer()
+            if layer and isinstance(layer, QgsVectorLayer):
+                layers.append(layer)
+        return layers
+
+    def getCheckedResultsGroupLayers(self):
+        """Get checked/visible layers from Results group."""
+        resultsGroup = QgsProject.instance().layerTreeRoot().findGroup("Results")
+        if not resultsGroup:
+            return []
+        return resultsGroup.checkedLayers()
+
+    def isResultsDataAvailable(self):
+        """Check if results subfolder and results data block exist."""
+        projectPath = QgsProject.instance().readPath("./")
+        if not projectPath or projectPath == "./":
+            return False
+
+        resultsPath = os.path.join(projectPath, "Results")
+        if not os.path.exists(resultsPath):
+            return False
+
+        # Check if Results group has any layers
+        resultsLayers = self.getAllResultsGroupLayers()
+        return len(resultsLayers) > 0
+
+    def getAvailableLayersForExplorer(self, checkVisibility=True):
+        """
+        Get available layers for the Element Explorer.
+        First tries Inputs group, falls back to Results group if Inputs layers are not visible.
+
+        Args:
+            checkVisibility: If True, only returns layers from groups that have visible/checked layers.
+
+        Returns:
+            tuple: (layers_list, source_group_name) or ([], None) if no layers available
+        """
+        root = QgsProject.instance().layerTreeRoot()
+
+        # First, try Inputs group
+        inputsGroup = root.findGroup("Inputs")
+        if inputsGroup:
+            if checkVisibility:
+                checkedInputs = self.getCheckedInputGroupLayers()
+                if checkedInputs:
+                    return self.getAllInputGroupLayers(), "Inputs"
+            else:
+                inputLayers = self.getAllInputGroupLayers()
+                if inputLayers:
+                    return inputLayers, "Inputs"
+
+        # If Inputs not available/visible, try Results group
+        resultsGroup = root.findGroup("Results")
+        if resultsGroup:
+            if checkVisibility:
+                checkedResults = self.getCheckedResultsGroupLayers()
+                if checkedResults:
+                    return self.getAllResultsGroupLayers(), "Results"
+            else:
+                resultsLayers = self.getAllResultsGroupLayers()
+                if resultsLayers:
+                    return resultsLayers, "Results"
+
+        return [], None
+
+    def showLayerVisibilityWarning(self):
+        """Show warning message when no layers are visible in either Inputs or Results groups."""
+        QMessageBox.warning(
+            self,
+            self.tr("Layers Not Visible"),
+            self.tr("The layers in the Inputs or Results group must be visible in order to select an element.")
+        )

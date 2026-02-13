@@ -173,12 +173,12 @@
           <widget class="QLabel" name="labelLegendsType">
            <property name="maximumSize">
             <size>
-             <width>50</width>
+             <width>65</width>
              <height>16777215</height>
             </size>
            </property>
            <property name="text">
-            <string>Type:</string>
+            <string>Legend Type:</string>
            </property>
           </widget>
          </item>
@@ -384,7 +384,7 @@
                     <widget class="QLabel" name="labelSizeValue">
                      <property name="maximumSize">
                       <size>
-                       <width>40</width>
+                       <width>50</width>
                        <height>16777215</height>
                       </size>
                      </property>
@@ -395,6 +395,12 @@
                    </item>
                    <item>
                     <widget class="QDoubleSpinBox" name="spinSizeEqual">
+                     <property name="minimumSize">
+                      <size>
+                       <width>150</width>
+                       <height>0</height>
+                      </size>
+                     </property>
                      <property name="prefix">
                       <string/>
                      </property>

@@ -1002,6 +1002,104 @@ class QGISRedUtils:
 
         return False
 
+    def getFieldPrettyName(self, elementCategory, fieldName):
+        """Get the pretty display name for a field from FieldPrettyNames in qgisred_units.json."""
+        if not fieldName:
+            return fieldName
+
+        fieldPrettyNames = self.loadUnitDefinitions().get("FieldPrettyNames", {})
+        category = self.identifierToElementName.get(elementCategory, elementCategory)
+        category = category.replace(" ", "") if category else None
+
+        if category and category in fieldPrettyNames:
+            if fieldName in fieldPrettyNames[category]:
+                return fieldPrettyNames[category][fieldName]
+
+        return fieldPrettyNames.get("Common", {}).get(fieldName, fieldName)
+
+    def getFieldRawName(self, elementCategory, prettyName):
+        """Get the raw field name from a pretty display name."""
+        if not prettyName:
+            return prettyName
+
+        fieldPrettyNames = self.loadUnitDefinitions().get("FieldPrettyNames", {})
+        category = self.identifierToElementName.get(elementCategory, elementCategory)
+        category = category.replace(" ", "") if category else None
+
+        if category and category in fieldPrettyNames:
+            for rawName, displayName in fieldPrettyNames[category].items():
+                if displayName == prettyName:
+                    return rawName
+
+        for rawName, displayName in fieldPrettyNames.get("Common", {}).items():
+            if displayName == prettyName:
+                return rawName
+
+        return prettyName
+
+    def getFieldUnit(self, elementCategory, fieldName):
+        """Get the unit abbreviation for a field based on element category and field name."""
+        if not fieldName:
+            return ""
+
+        unitSystem = self.getUnits()
+        unitDefs = self.loadUnitDefinitions()
+
+        # Convert identifier to category name
+        category = self.identifierToElementName.get(elementCategory, elementCategory)
+        category = category.replace(" ", "") if category else None
+
+        if not category or category not in unitDefs:
+            return ""
+
+        categoryUnits = unitDefs[category]
+
+        # Get pretty name for the field
+        prettyName = self.getFieldPrettyName(elementCategory, fieldName)
+
+        # Search for matching property
+        for _, unitInfo in categoryUnits.items():
+            if not isinstance(unitInfo, dict):
+                continue
+            propertyName = unitInfo.get("property", "")
+            if not propertyName:
+                continue
+
+            # Try exact match with field name
+            if propertyName.lower() == fieldName.lower():
+                unitData = unitInfo.get(unitSystem)
+                if unitData:
+                    return unitData.get("abbr", "")
+
+            # Try exact match with pretty name
+            if propertyName.lower() == prettyName.lower():
+                unitData = unitInfo.get(unitSystem)
+                if unitData:
+                    return unitData.get("abbr", "")
+
+            # Try prefix match (property is prefix of pretty name)
+            if prettyName.lower().startswith(propertyName.lower()):
+                unitData = unitInfo.get(unitSystem)
+                if unitData:
+                    return unitData.get("abbr", "")
+
+        return ""
+
+    def getAllFieldPrettyNames(self, elementCategory=None):
+        """Get all field pretty name mappings for a category, merged with Common."""
+        fieldPrettyNames = self.loadUnitDefinitions().get("FieldPrettyNames", {})
+
+        if elementCategory is None:
+            return fieldPrettyNames
+
+        category = self.identifierToElementName.get(elementCategory, elementCategory)
+        category = category.replace(" ", "") if category else None
+        result = dict(fieldPrettyNames.get("Common", {}))
+        if category and category in fieldPrettyNames:
+            result.update(fieldPrettyNames[category])
+
+        return result
+
     def applyCategorizedRenderer(self, layer, field, qmlFile):
         fieldIndex = layer.fields().indexFromName(field)
 
