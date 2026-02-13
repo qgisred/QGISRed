@@ -188,15 +188,16 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         self.layers = []
         self.createElementsList()
         self.createComplementaryList()
-        
+
         # Filter out empty layers (except for Pipes)
-        filtered_layers = self.filterEmptyLayers(self.layers)
-        
+        #filtered_layers = self.filterEmptyLayers(self.layers)
+
         epsg = None
         if not self.crs.srsid() == self.originalCrs.srsid():
             epsg = self.crs.authid().replace("EPSG:", "")
-        self.parent.openRemoveSpecificLayers(filtered_layers, epsg)
+        self.parent.openRemoveSpecificLayers(self.layers, epsg)
         self.close()
+
 
     def filterEmptyLayers(self, layer_list):
         filtered_layers = []
@@ -215,8 +216,9 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
                 if layer.isValid():
                     is_pipe_layer = file_name.lower() == "pipes"
                     
-                    if is_pipe_layer or layer.featureCount() > 0:
-                        filtered_layers.append(layer_name)
+                    # if is_pipe_layer or layer.featureCount() > 0:
+                    #     filtered_layers.append(layer_name)
+                    filtered_layers.append(layer_name)
                 del layer
             except Exception:
                 pass

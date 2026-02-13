@@ -1918,8 +1918,13 @@ class QGISRed:
             # Open layers
             utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
             inputGroup = self.getInputGroup()
+            
+            # Filter empty layers before opening them (except for Pipes)
+            filtered_main_layers = self.filterEmptyLayers(self.ownMainLayers)
+            filtered_complementary_layers = self.filterEmptyLayers(self.especificComplementaryLayers)
+            
             utils.openElementsLayers(inputGroup, self.ownMainLayers)
-            utils.openElementsLayers(inputGroup, self.especificComplementaryLayers)
+            utils.openElementsLayers(inputGroup, self.especificComplementaryLayers) #TODO
 
             self.especificComplementaryLayers = []
 
@@ -1928,6 +1933,28 @@ class QGISRed:
             self.setSelectedFeaturesById()
             if task is not None:
                 return {"task": task.definition()}
+                
+    def filterEmptyLayers(self, layer_list):
+        """Filter out empty layers (except for Pipes)"""
+        filtered_layers = []
+        
+        for layer_name in layer_list:
+            # Check if file exists
+            layer_path = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + layer_name + ".shp")
+            if os.path.exists(layer_path):
+                try:
+                    layer = QgsVectorLayer(layer_path, layer_name, "ogr")
+                    if layer.isValid():
+                        is_pipe_layer = layer_name.lower() == "pipes"
+                        
+                        # Only add layer if it's a pipe layer OR has features
+                        if is_pipe_layer or layer.featureCount() > 0:
+                            filtered_layers.append(layer_name)
+                    del layer
+                except Exception:
+                    pass
+        
+        return filtered_layers
     
     def openInputLayers(self, projectDir, networkName):
         # Open layers
@@ -2088,15 +2115,64 @@ class QGISRed:
         QApplication.restoreOverrideCursor()
         self.removingLayers = False
 
-        # Restore all layers from the stored state
+        # Restore all layers from the stored state, but filter empty layers
         if hasattr(self, 'stored_all_layers'):
             self.clearInputGroup()
-            self.restoreAllLayers(self.stored_all_layers)
+            self.restoreAllLayers(self.stored_all_layers) #TODO
         
         if resMessage == "True":
             pass
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+
+    def restoreAllLayersFiltered(self, all_layers):
+        """Restore all layers from the stored information, filtering empty layers."""
+        if not all_layers:
+            return
+        
+        # Restore input layers
+        if 'Inputs' in all_layers:
+            input_group = self.getInputGroup()
+            if input_group:
+                input_layers = all_layers['Inputs']
+                # Filter out empty layers before restoring
+                filtered_input_layers = []
+                for layer_info in input_layers:
+                    layer_name = layer_info.get('name', '')
+                    source = layer_info.get('source', '')
+                    if source:
+                        is_pipe_layer = 'pipes' in layer_name.lower()
+                        
+                        # Only include if pipe layer or has features
+                        if is_pipe_layer or self.layerHasFeatures(source):
+                            filtered_input_layers.append(layer_info)
+                            
+                self._restoreLayers(filtered_input_layers, input_group)
+        
+        # Restore other layer groups (queries, results, etc.)
+        if 'Queries' in all_layers:
+            self.restoreQueryLayers(all_layers['Queries'])
+        
+        if 'Results' in all_layers:
+            root = QgsProject.instance().layerTreeRoot()
+            results_group = root.findGroup("Results")
+            if not results_group:
+                results_group = root.addGroup("Results")
+            self._restoreLayers(all_layers['Results'], results_group)
+        
+        if 'Root' in all_layers:
+            root = QgsProject.instance().layerTreeRoot()
+            self._restoreLayers(all_layers['Root'], root)
+
+    def layerHasFeatures(self, source_path):
+        """Check if a layer has features."""
+        try:
+            layer = QgsVectorLayer(source_path, "temp", "ogr")
+            if layer.isValid():
+                return layer.featureCount() > 0
+            return False
+        except:
+            return False
 
     def clearInputGroup(self):
         inputGroup = self.getInputGroup()
@@ -4933,7 +5009,7 @@ class QGISRed:
             # Skip if we've already processed this layer
             if layer_id in processed_layers:
                 continue
-                
+                    
             processed_layers.add(layer_id)
             existing_layer = QgsProject.instance().mapLayer(layer_id)
             
@@ -4946,13 +5022,21 @@ class QGISRed:
                     
             if layer_already_in_group:
                 continue  # Skip this layer, it's already in the group
-                
+                    
             if existing_layer:
                 new_layer = existing_layer
             else:
                 new_layer = QgsVectorLayer(layer_info['source'], layer_info['name'], layer_info['provider'])
             
             if new_layer.isValid():
+                # Check if this is an input layer, and filter empty layers (except pipes)
+                is_input_layer = parent_group.name() == "Inputs"
+                is_pipe_layer = 'pipes' in layer_info['name'].lower()
+                
+                # Skip empty non-pipe input layers
+                # if is_input_layer and not is_pipe_layer and new_layer.featureCount() == 0: TODO
+                #     continue
+                    
                 # Apply style
                 if layer_info.get('style_string') and os.path.exists(layer_info['style_string']):
                     new_layer.loadNamedStyle(layer_info['style_string'])

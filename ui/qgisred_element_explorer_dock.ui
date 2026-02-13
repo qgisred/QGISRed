@@ -6,13 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>331</width>
-    <height>433</height>
+    <width>250</width>
+    <height>390</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>315</width>
+    <width>250</width>
     <height>390</height>
    </size>
   </property>
@@ -37,8 +37,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>313</width>
-         <height>393</height>
+         <width>232</width>
+         <height>350</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -138,10 +138,16 @@
                <item>
                 <widget class="QPushButton" name="btFind">
                  <property name="sizePolicy">
-                  <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                    <horstretch>0</horstretch>
                    <verstretch>0</verstretch>
                   </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>20</width>
+                   <height>0</height>
+                  </size>
                  </property>
                  <property name="text">
                   <string>Find</string>
@@ -150,6 +156,18 @@
                </item>
                <item>
                 <widget class="QPushButton" name="btReload">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>25</width>
+                   <height>0</height>
+                  </size>
+                 </property>
                  <property name="text">
                   <string>Reload</string>
                  </property>
@@ -157,6 +175,18 @@
                </item>
                <item>
                 <widget class="QPushButton" name="btClear">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>25</width>
+                   <height>0</height>
+                  </size>
+                 </property>
                  <property name="text">
                   <string>Clear</string>
                  </property>
