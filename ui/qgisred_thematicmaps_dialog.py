@@ -331,7 +331,11 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         return derivedLayer
 
     def loadQmlStyle(self, layer, qmlFile):
-        qmlPath = os.path.join(os.path.dirname(__file__), '..', 'layerStyles', qmlFile)
+        # Convert qmlFile to .qml.bak format if not already
+        if not qmlFile.endswith('.qml.bak'):
+            qmlFile = qmlFile.replace('.qml', '.qml.bak')
+
+        qmlPath = os.path.join(os.path.dirname(__file__), '..', 'defaults', 'layerStyles', qmlFile)
         if os.path.exists(qmlPath):
             layer.loadNamedStyle(qmlPath)
             layer.setCustomProperty("styleURI", qmlPath)

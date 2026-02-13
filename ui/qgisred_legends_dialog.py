@@ -76,6 +76,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.setupClassCountField()
         self.updateClassCount()
 
+        # Initialize interval range controls visibility
+        self.labelIntervalRange.setVisible(False)
+        self.spinIntervalRange.setVisible(False)
+
         # Connect table selection changed signal
         self.tableView.itemSelectionChanged.connect(self.updateButtonStates)
 
@@ -160,16 +164,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.cbMode.clear()
 
         # Add blank option for manual mode (no automatic classification)
-        self.cbMode.addItem("", None)
+        self.cbMode.addItem("Manual", None)
 
         # Manually add the standard QGIS classification methods
         # These are the most commonly used methods in QGIS
         methods = [
-            ("EqualInterval", "Equal Interval"),
-            ("Quantile", "Quantile (Equal Count)"),
-            ("Jenks", "Natural Breaks (Jenks)"),
-            ("StdDev", "Standard Deviation"),
-            ("Pretty", "Pretty Breaks")
+            ("EqualInterval", self.tr("Equal Interval")),
+            ("FixedInterval", self.tr("Fixed Interval")),
+            ("Quantile", self.tr("Quantile (Equal Count)")),
+            ("Jenks", self.tr("Natural Breaks (Jenks)")),
+            ("StdDev", self.tr("Standard Deviation")),
+            ("Pretty", self.tr("Pretty Breaks"))
         ]
 
         for methodId, displayName in methods:
@@ -192,6 +197,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         # Classification mode selector (numeric only)
         self.cbMode.currentIndexChanged.connect(self.onModeChanged)
+
+        # Interval range spin box (for Fixed Interval mode)
+        self.spinIntervalRange.valueChanged.connect(self.onIntervalRangeChanged)
 
         # Class management buttons
         self.btClassPlus.clicked.connect(self.addClass)
@@ -433,14 +441,20 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if dialog.exec_():
             newLower, newUpper = dialog.getValues()
 
-            if newLower >= newUpper:
-                QMessageBox.warning(self, self.tr("Invalid Range"), self.tr("Lower value must be less than upper value."))
-                return
+            # Validate and clamp to maintain monotonicity
+            clampedLower, clampedUpper, wasClamped = self.validateAndClampRange(row, newLower, newUpper)
+
+            if wasClamped:
+                QMessageBox.warning(
+                    self,
+                    self.tr("Range Adjusted"),
+                    self.tr(f"Range was adjusted to [{clampedLower:.2f}, {clampedUpper:.2f}] to maintain ordered, consecutive ranges.")
+                )
 
             # Update the current row's value item
-            newValueText = f"{newLower:.2f} - {newUpper:.2f}"
+            newValueText = f"{clampedLower:.2f} - {clampedUpper:.2f}"
             valueItem.setText(newValueText)
-            
+
             # Update the current row's legend widget if it matches the old value
             legendWidget = self.tableView.cellWidget(row, 3)
             if isinstance(legendWidget, QLineEdit) and legendWidget.text() == originalValueText:
@@ -453,7 +467,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                     try:
                         prevText = prevItem.text()
                         prevLowerStr, _ = prevText.split(' - ')
-                        newPrevText = f"{float(prevLowerStr):.2f} - {newLower:.2f}"
+                        newPrevText = f"{float(prevLowerStr):.2f} - {clampedLower:.2f}"
                         prevItem.setText(newPrevText)
 
                         prevLegendWidget = self.tableView.cellWidget(row - 1, 3)
@@ -469,7 +483,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                     try:
                         nextText = nextItem.text()
                         _, nextUpperStr = nextText.split(' - ')
-                        newNextText = f"{newUpper:.2f} - {float(nextUpperStr):.2f}"
+                        newNextText = f"{clampedUpper:.2f} - {float(nextUpperStr):.2f}"
                         nextItem.setText(newNextText)
 
                         nextLegendWidget = self.tableView.cellWidget(row + 1, 3)
@@ -477,6 +491,223 @@ class QGISRedLegendsDialog(QDialog, formClass):
                             nextLegendWidget.setText(newNextText)
                     except (ValueError, IndexError):
                         QgsMessageLog.logMessage(f"Could not parse and adjust next range: {nextItem.text()}", "QGISRed", Qgis.Warning)
+
+    def calculateInitialRangeForNewRow(self, insertRow):
+        """Calculate initial range values for a new row to maintain contiguity.
+
+        Args:
+            insertRow: Position where new row will be inserted (before insertRow is called)
+
+        Returns:
+            tuple: (newLower, newUpper)
+        """
+        # If inserting at the beginning (insertRow == 0)
+        if insertRow == 0:
+            if self.tableView.rowCount() > 0:
+                # Get the first existing row's range
+                firstItem = self.tableView.item(0, 2)
+                if firstItem:
+                    try:
+                        firstText = firstItem.text()
+                        firstLower, firstUpper = firstText.split(' - ')
+                        firstLower = float(firstLower)
+                        # New range ends where first row begins, spans 1 unit by default
+                        return firstLower - 1.0, firstLower
+                    except (ValueError, IndexError):
+                        pass
+            # Default if no existing rows or parsing failed
+            return 0.0, 1.0
+
+        # If inserting at the end
+        if insertRow >= self.tableView.rowCount():
+            if self.tableView.rowCount() > 0:
+                # Get the last existing row's range
+                lastItem = self.tableView.item(self.tableView.rowCount() - 1, 2)
+                if lastItem:
+                    try:
+                        lastText = lastItem.text()
+                        lastLower, lastUpper = lastText.split(' - ')
+                        lastUpper = float(lastUpper)
+                        # New range starts where last row ends, spans 1 unit by default
+                        return lastUpper, lastUpper + 1.0
+                    except (ValueError, IndexError):
+                        pass
+            return 0.0, 1.0
+
+        # Inserting in the middle - split the gap between previous and next row
+        prevItem = self.tableView.item(insertRow - 1, 2)
+        nextItem = self.tableView.item(insertRow, 2)  # This will become insertRow + 1 after insertion
+
+        if prevItem and nextItem:
+            try:
+                prevText = prevItem.text()
+                _, prevUpper = prevText.split(' - ')
+                prevUpper = float(prevUpper)
+
+                nextText = nextItem.text()
+                nextLower, _ = nextText.split(' - ')
+                nextLower = float(nextLower)
+
+                # Split the gap in half
+                midpoint = (prevUpper + nextLower) / 2.0
+                return prevUpper, midpoint
+            except (ValueError, IndexError):
+                pass
+
+        # Fallback
+        return 0.0, 1.0
+
+    def updateAdjacentRowsAfterInsertion(self, insertedRow, newLower, newUpper):
+        """Update adjacent rows to maintain contiguity after inserting a new row.
+
+        Args:
+            insertedRow: The row that was just inserted
+            newLower: Lower bound of the inserted row
+            newUpper: Upper bound of the inserted row
+        """
+        # Update previous row's upper bound to match new row's lower bound
+        if insertedRow > 0:
+            prevItem = self.tableView.item(insertedRow - 1, 2)
+            if prevItem:
+                try:
+                    prevText = prevItem.text()
+                    prevLower, _ = prevText.split(' - ')
+                    newPrevText = f"{float(prevLower):.2f} - {newLower:.2f}"
+                    prevItem.setText(newPrevText)
+
+                    # Update legend if it matches the old value
+                    prevLegendWidget = self.tableView.cellWidget(insertedRow - 1, 3)
+                    if isinstance(prevLegendWidget, QLineEdit) and prevLegendWidget.text() == prevText:
+                        prevLegendWidget.setText(newPrevText)
+                except (ValueError, IndexError):
+                    QgsMessageLog.logMessage(
+                        f"Could not update previous row after insertion",
+                        "QGISRed", Qgis.Warning
+                    )
+
+        # Update next row's lower bound to match new row's upper bound
+        if insertedRow < self.tableView.rowCount() - 1:
+            nextItem = self.tableView.item(insertedRow + 1, 2)
+            if nextItem:
+                try:
+                    nextText = nextItem.text()
+                    _, nextUpper = nextText.split(' - ')
+                    newNextText = f"{newUpper:.2f} - {float(nextUpper):.2f}"
+                    nextItem.setText(newNextText)
+
+                    # Update legend if it matches the old value
+                    nextLegendWidget = self.tableView.cellWidget(insertedRow + 1, 3)
+                    if isinstance(nextLegendWidget, QLineEdit) and nextLegendWidget.text() == nextText:
+                        nextLegendWidget.setText(newNextText)
+                except (ValueError, IndexError):
+                    QgsMessageLog.logMessage(
+                        f"Could not update next row after insertion",
+                        "QGISRed", Qgis.Warning
+                    )
+
+    def mergeAdjacentRowsAfterDeletion(self, deletedRowPosition):
+        """Merge adjacent rows after deletion to maintain contiguity.
+
+        Args:
+            deletedRowPosition: The position where row(s) were deleted
+        """
+        # After deletion, we need to connect the row before the deleted position
+        # with the row at the deleted position (which moved up)
+
+        # If there's a row before and a row after the deletion point, merge them
+        if deletedRowPosition > 0 and deletedRowPosition < self.tableView.rowCount():
+            prevItem = self.tableView.item(deletedRowPosition - 1, 2)
+            currentItem = self.tableView.item(deletedRowPosition, 2)
+
+            if prevItem and currentItem:
+                try:
+                    prevText = prevItem.text()
+                    prevLower, _ = prevText.split(' - ')
+
+                    currentText = currentItem.text()
+                    currentLower, currentUpper = currentText.split(' - ')
+
+                    # Update previous row's upper to match current row's lower
+                    newPrevText = f"{float(prevLower):.2f} - {float(currentLower):.2f}"
+                    prevItem.setText(newPrevText)
+
+                    # Update legend if it matches the old value
+                    prevLegendWidget = self.tableView.cellWidget(deletedRowPosition - 1, 3)
+                    if isinstance(prevLegendWidget, QLineEdit) and prevLegendWidget.text() == prevText:
+                        prevLegendWidget.setText(newPrevText)
+
+                except (ValueError, IndexError):
+                    QgsMessageLog.logMessage(
+                        f"Could not merge rows after deletion",
+                        "QGISRed", Qgis.Warning
+                    )
+
+    def validateAndClampRange(self, row, newLower, newUpper):
+        """Validate and clamp a range to maintain monotonicity and contiguity.
+
+        Args:
+            row: The row index being edited
+            newLower: Proposed lower bound
+            newUpper: Proposed upper bound
+
+        Returns:
+            tuple: (clampedLower, clampedUpper, wasClamped)
+        """
+        wasClamped = False
+        clampedLower = newLower
+        clampedUpper = newUpper
+
+        # Ensure min < max
+        if clampedLower >= clampedUpper:
+            # Keep them ordered with a small gap
+            clampedUpper = clampedLower + 0.01
+            wasClamped = True
+
+        # Get constraints from previous row
+        if row > 0:
+            prevItem = self.tableView.item(row - 1, 2)
+            if prevItem:
+                try:
+                    prevText = prevItem.text()
+                    prevLowerStr, _ = prevText.split(' - ')
+                    prevLower = float(prevLowerStr)
+
+                    # Enforce: newLower >= prevLower
+                    if clampedLower < prevLower:
+                        clampedLower = prevLower
+                        wasClamped = True
+
+                    # If we adjusted lower, ensure upper is still greater
+                    if clampedLower >= clampedUpper:
+                        clampedUpper = clampedLower + 0.01
+                        wasClamped = True
+
+                except (ValueError, IndexError):
+                    pass
+
+        # Get constraints from next row
+        if row < self.tableView.rowCount() - 1:
+            nextItem = self.tableView.item(row + 1, 2)
+            if nextItem:
+                try:
+                    nextText = nextItem.text()
+                    _, nextUpperStr = nextText.split(' - ')
+                    nextUpper = float(nextUpperStr)
+
+                    # Enforce: newUpper <= nextUpper
+                    if clampedUpper > nextUpper:
+                        clampedUpper = nextUpper
+                        wasClamped = True
+
+                    # If we adjusted upper, ensure lower is still less
+                    if clampedLower >= clampedUpper:
+                        clampedLower = clampedUpper - 0.01
+                        wasClamped = True
+
+                except (ValueError, IndexError):
+                    pass
+
+        return clampedLower, clampedUpper, wasClamped
 
     def onSizeChanged(self, row, text):
         """Handle size field changes and update symbol preview."""
@@ -589,15 +820,25 @@ class QGISRedLegendsDialog(QDialog, formClass):
         isCategorical = (self.currentFieldType == self.FIELD_TYPE_CATEGORICAL)
         hasField = isNumeric or isCategorical
 
+        # Check if Fixed Interval mode is active
+        isFixedInterval = False
+        if isNumeric:
+            methodId = self.cbMode.currentData()
+            isFixedInterval = (methodId == "FixedInterval")
+
         # Classification mode selector - visible only for numeric
         self.cbMode.setVisible(isNumeric)
         self.labelMode.setVisible(isNumeric)
 
-        # Class management buttons - visible for both numeric and categorical
-        self.btClassPlus.setVisible(hasField)
-        self.btClassMinus.setVisible(hasField)
-        self.labelClass.setVisible(hasField)
-        self.leClassCount.setVisible(hasField)
+        # Interval range controls - visible only for numeric Fixed Interval mode
+        self.labelIntervalRange.setVisible(isNumeric and isFixedInterval)
+        self.spinIntervalRange.setVisible(isNumeric and isFixedInterval)
+
+        # Class management buttons - visible for categorical, and for numeric only when NOT in Fixed Interval mode
+        self.btClassPlus.setVisible((isCategorical) or (isNumeric and not isFixedInterval))
+        self.btClassMinus.setVisible((isCategorical) or (isNumeric and not isFixedInterval))
+        self.labelClass.setVisible((isCategorical) or (isNumeric and not isFixedInterval))
+        self.leClassCount.setVisible((isCategorical) or (isNumeric and not isFixedInterval))
 
         # Up/Down buttons - visible only for categorical
         self.btUp.setVisible(isCategorical)
@@ -619,7 +860,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.updateAddClassButtonState()
 
         QgsMessageLog.logMessage(
-            f"UI updated for field type: {self.currentFieldType}",
+            f"UI updated for field type: {self.currentFieldType}, Fixed Interval: {isFixedInterval}",
             "QGISRed", Qgis.Info
         )
     
@@ -1103,47 +1344,52 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def addClass(self):
         """Add a new class to the legend with random colors.
-        For numeric classes: single-click adds after selected row, double-click adds before.
+        Single-click adds after selected row, double-click adds before.
         """
         if not self.currentLayer:
             QMessageBox.warning(self, "No Layer", "Please select a layer first.")
             return
 
-        if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
-            self.addCategoricalClass()
-            self.updateButtonStates()
-        else:
-            # Handle double-click detection for numeric classes
-            if self.btClassPlusClickTimer is not None and self.btClassPlusClickTimer.isActive():
-                # This is a double-click - add before
-                self.btClassPlusClickTimer.stop()
-                self.btClassPlusClickTimer = None
-                self.btClassPlusAddBefore = True
+        # Handle double-click detection for both numeric and categorical classes
+        if self.btClassPlusClickTimer is not None and self.btClassPlusClickTimer.isActive():
+            # This is a double-click - add before
+            self.btClassPlusClickTimer.stop()
+            self.btClassPlusClickTimer = None
+            self.btClassPlusAddBefore = True
+
+            if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
+                self.addCategoricalClass()
+            else:
                 self.addNumericClass()
-                self.btClassPlusAddBefore = False
                 # If a classification mode is selected, reapply it with the new class count
                 methodId = self.cbMode.currentData()
                 if methodId is not None:
                     self.applyClassificationMethod(methodId)
-                self.updateButtonStates()
-            else:
-                # This is a single-click - wait to see if another click comes
-                self.btClassPlusClickTimer = QTimer()
-                self.btClassPlusClickTimer.setSingleShot(True)
-                self.btClassPlusClickTimer.timeout.connect(self.onClassPlusSingleClick)
-                self.btClassPlusClickTimer.start(400)  # 250ms double-click interval
-                return  # Don't add yet, wait for timer
+
+            self.btClassPlusAddBefore = False
+            self.updateButtonStates()
+        else:
+            # This is a single-click - wait to see if another click comes
+            self.btClassPlusClickTimer = QTimer()
+            self.btClassPlusClickTimer.setSingleShot(True)
+            self.btClassPlusClickTimer.timeout.connect(self.onClassPlusSingleClick)
+            self.btClassPlusClickTimer.start(400)  # 400ms double-click interval
+            return  # Don't add yet, wait for timer
 
     def onClassPlusSingleClick(self):
         """Handle single-click on btClassPlus (add after selected row)."""
         self.btClassPlusClickTimer = None
         self.btClassPlusAddBefore = False
-        self.addNumericClass()
-        # If a classification mode is selected, reapply it with the new class count
-        if self.currentFieldType == self.FIELD_TYPE_NUMERIC:
+
+        if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
+            self.addCategoricalClass()
+        else:
+            self.addNumericClass()
+            # If a classification mode is selected, reapply it with the new class count
             methodId = self.cbMode.currentData()
             if methodId is not None:
                 self.applyClassificationMethod(methodId)
+
         self.updateButtonStates()
 
     def addNumericClass(self):
@@ -1152,6 +1398,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         - If btClassPlusAddBefore is True (double-click): insert before selected row
         - If btClassPlusAddBefore is False (single-click): insert after selected row
         - If no selection: add at end
+
+        New row ranges are calculated to maintain contiguity with neighbors.
         """
         geomHint = self.getGeometryHint()
 
@@ -1168,6 +1416,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         else:
             # No selection or multiple selections: add at end
             insertRow = self.tableView.rowCount()
+
+        # Calculate initial range values based on neighbors
+        newLower, newUpper = self.calculateInitialRangeForNewRow(insertRow)
 
         self.tableView.insertRow(insertRow)
 
@@ -1189,12 +1440,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
         sizeEdit.setEnabled(self.isEditing)
         self.tableView.setCellWidget(insertRow, 1, sizeEdit)
 
-        valueItem = QTableWidgetItem("0.0 - 0.0")
+        valueText = f"{newLower:.2f} - {newUpper:.2f}"
+        valueItem = QTableWidgetItem(valueText)
+        valueItem.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
         self.tableView.setItem(insertRow, 2, valueItem)
 
-        legendEdit = QLineEdit("New Class")
+        legendEdit = QLineEdit(valueText)
         legendEdit.setEnabled(self.isEditing)
         self.tableView.setCellWidget(insertRow, 3, legendEdit)
+
+        # Update adjacent rows to maintain contiguity
+        self.updateAdjacentRowsAfterInsertion(insertRow, newLower, newUpper)
 
         # Clear selection and select the newly added row
         self.tableView.clearSelection()
@@ -1212,7 +1468,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
     
     def addCategoricalClass(self):
         """Add a new categorical class from available unique values.
-        Order: First add all unique values (NULL first if present), then Other Values."""
+        Position depends on selection and btClassPlusAddBefore flag:
+        - If btClassPlusAddBefore is True (double-click): insert before selected row
+        - If btClassPlusAddBefore is False (single-click): insert after selected row
+        - If no selection: add before "Other Values" if it exists, otherwise at end
+        """
         # Check if there are available unique values to add
         if not self.availableUniqueValues:
             # No more unique values, only add "Other Values" if it doesn't exist
@@ -1239,14 +1499,31 @@ class QGISRedLegendsDialog(QDialog, formClass):
             displayValue = str(nextValue)
             legendText = str(nextValue)
 
-        # Insert before "Other Values" if it exists, otherwise at the end
-        if self.hasOtherValuesCategory():
-            rowCount = self.tableView.rowCount() - 1
+        # Determine insertion position based on selection and btClassPlusAddBefore flag
+        selectedRows = self.getSelectedRows()
+        if selectedRows and len(selectedRows) == 1:
+            selectedRow = selectedRows[0]
+            # Check if selected row is "Other Values" - if so, insert before it
+            legendWidget = self.tableView.cellWidget(selectedRow, 3)
+            if isinstance(legendWidget, QLineEdit) and legendWidget.text() in [self.tr("Other Values"), "Other Values"]:
+                # Selected row is "Other Values", insert before it
+                insertRow = selectedRow
+            elif self.btClassPlusAddBefore:
+                # Double-click: insert before selected row
+                insertRow = selectedRow
+            else:
+                # Single-click: insert after selected row, but before "Other Values" if it comes after
+                insertRow = selectedRow + 1
+                # If "Other Values" is at the position where we want to insert, that's fine
         else:
-            rowCount = self.tableView.rowCount()
+            # No selection or multiple selections: insert before "Other Values" if it exists, otherwise at end
+            if self.hasOtherValuesCategory():
+                insertRow = self.tableView.rowCount() - 1
+            else:
+                insertRow = self.tableView.rowCount()
 
         geomHint = self.getGeometryHint()
-        self.tableView.insertRow(rowCount)
+        self.tableView.insertRow(insertRow)
 
         randomColor = self.generateRandomColor()
 
@@ -1259,24 +1536,35 @@ class QGISRedLegendsDialog(QDialog, formClass):
         )
         colorWidget.colorSelector.setEnabled(self.isEditing)
         self.connectCheckboxSignal(colorWidget)
-        self.tableView.setCellWidget(rowCount, 0, colorWidget)
+        self.tableView.setCellWidget(insertRow, 0, colorWidget)
 
         sizeEdit = QLineEdit("1.0")
         sizeEdit.setAlignment(Qt.AlignCenter)
         sizeEdit.setEnabled(self.isEditing)
-        self.tableView.setCellWidget(rowCount, 1, sizeEdit)
+        self.tableView.setCellWidget(insertRow, 1, sizeEdit)
 
         valueEdit = QLineEdit(displayValue)
         valueEdit.setReadOnly(True)
         valueEdit.setStyleSheet("QLineEdit { background-color: #F8F8F8; color: #808080; }")
-        self.tableView.setCellWidget(rowCount, 2, valueEdit)
+        self.tableView.setCellWidget(insertRow, 2, valueEdit)
 
         legendEdit = QLineEdit(legendText)
         legendEdit.setEnabled(self.isEditing)
-        self.tableView.setCellWidget(rowCount, 3, legendEdit)
+        self.tableView.setCellWidget(insertRow, 3, legendEdit)
+
+        # Clear selection and select the newly added row
+        self.tableView.clearSelection()
+        self.tableView.selectRow(insertRow)
+
+        positionMsg = "before 'Other Values'"
+        if selectedRows and len(selectedRows) == 1:
+            if self.btClassPlusAddBefore:
+                positionMsg = f"before row {selectedRows[0]}"
+            else:
+                positionMsg = f"after row {selectedRows[0]}"
 
         QgsMessageLog.logMessage(
-            f"Added categorical class with value '{displayValue}' and random color",
+            f"Added categorical class with value '{displayValue}' {positionMsg} with random color",
             "QGISRed", Qgis.Info
         )
 
@@ -1299,7 +1587,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.updateButtonStates()
     
     def removeNumericClasses(self):
-        """Remove selected numeric classes (supports multi-selection)."""
+        """Remove selected numeric classes (supports multi-selection).
+        After deletion, adjacent rows are merged to maintain contiguity."""
         selectedRows = []
         for index in self.tableView.selectionModel().selectedRows():
             selectedRows.append(index.row())
@@ -1312,10 +1601,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
             )
             return
 
+        # Store the lowest selected row to know where to merge after deletion
+        lowestSelectedRow = min(selectedRows)
         selectedRows.sort(reverse=True)
 
+        # Remove rows from bottom to top to preserve indices
         for row in selectedRows:
             self.tableView.removeRow(row)
+
+        # After deletion, merge the gap between the row before and after the deleted range
+        # The row that needs updating is at position lowestSelectedRow - 1 (if it exists)
+        # and lowestSelectedRow (which is now the row after the deleted range)
+        self.mergeAdjacentRowsAfterDeletion(lowestSelectedRow)
 
         QgsMessageLog.logMessage(
             f"Removed {len(selectedRows)} numeric class(es)",
@@ -1381,6 +1678,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if self.currentFieldType != self.FIELD_TYPE_NUMERIC or not self.currentLayer:
             return
 
+        # Update UI visibility based on the selected mode
+        self.updateUIBasedOnFieldType()
+
         # Get the selected method ID
         methodId = self.cbMode.currentData()
 
@@ -1393,6 +1693,23 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return
 
         # Apply the selected classification method
+        self.applyClassificationMethod(methodId)
+
+    def onIntervalRangeChanged(self):
+        """Handle interval range value change for Fixed Interval mode."""
+        if self.currentFieldType != self.FIELD_TYPE_NUMERIC or not self.currentLayer:
+            return
+
+        # Check if we're in Fixed Interval mode
+        methodId = self.cbMode.currentData()
+        if methodId != "FixedInterval":
+            return
+
+        # Reapply Fixed Interval classification with the new interval value
+        QgsMessageLog.logMessage(
+            f"Interval range changed to {self.spinIntervalRange.value()}, reclassifying...",
+            "QGISRed", Qgis.Info
+        )
         self.applyClassificationMethod(methodId)
 
     def applyClassificationMethod(self, methodId):
@@ -1442,6 +1759,29 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 # Equal Interval
                 interval = (maxVal - minVal) / numClasses
                 breaks = [minVal + (i * interval) for i in range(numClasses + 1)]
+
+            elif methodId == "FixedInterval":
+                # Fixed Interval - Use the interval range from spinIntervalRange
+                intervalSize = self.spinIntervalRange.value()
+
+                # Calculate number of classes needed to cover the range
+                numClasses = int((maxVal - minVal) / intervalSize) + 1
+
+                # Generate breaks using the fixed interval
+                breaks = []
+                currentValue = minVal
+                while currentValue <= maxVal:
+                    breaks.append(currentValue)
+                    currentValue += intervalSize
+
+                # Ensure the last break covers maxVal
+                if breaks[-1] < maxVal:
+                    breaks.append(breaks[-1] + intervalSize)
+
+                QgsMessageLog.logMessage(
+                    f"Fixed Interval: interval={intervalSize}, classes={numClasses}, min={minVal:.2f}, max={maxVal:.2f}",
+                    "QGISRed", Qgis.Info
+                )
 
             elif methodId == "Quantile":
                 # Quantile (Equal Count)
@@ -1556,6 +1896,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         # Get method display name
         methodNames = {
             "EqualInterval": "Equal Interval",
+            "FixedInterval": "Fixed Interval",
             "Quantile": "Quantile",
             "Jenks": "Natural Breaks (Jenks)",
             "StdDev": "Standard Deviation",
