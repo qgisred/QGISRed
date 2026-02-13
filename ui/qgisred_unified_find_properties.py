@@ -11,9 +11,8 @@ from qgis.core import (QgsProject, QgsVectorLayer, QgsSettings, QgsGeometry, Qgs
 from qgis.utils import iface
 from qgis.gui import QgsHighlight
 
-# In your Spoiler class, add a new signal and a slot to emit the current state:
 class Spoiler(QWidget):
-    toggledState = pyqtSignal(bool)  # True: expanded, False: collapsed
+    toggledState = pyqtSignal(bool)
 
     def __init__(self, parent=None, title='', animationDuration=10):
         super(Spoiler, self).__init__(parent)
@@ -27,7 +26,8 @@ class Spoiler(QWidget):
         self.mainLayout = QGridLayout()
 
         # Setup toggle button
-        self.toggleButton.setStyleSheet("QToolButton { border: none; }")
+        #self.toggleButton.setStyleSheet("QToolButton { border: none; }")
+        self.toggleButton.setStyleSheet("QToolButton { border: none; font-weight: bold; font-size: 9pt; }")
         self.toggleButton.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
         self.toggleButton.setArrowType(Qt.RightArrow)
         self.toggleButton.setText(title)
@@ -90,10 +90,12 @@ class Spoiler(QWidget):
         contentAnimation.setStartValue(0)
         contentAnimation.setEndValue(contentHeight)
 
+    def isExpanded(self):
+        return self.toggleButton.isChecked()
+    
     def setExpanded(self, expanded):
-        """Programmatically expand or collapse the spoiler."""
         if self.toggleButton.isChecked() == expanded:
-            return  # Already in desired state.
+            return
         self.toggleButton.setChecked(expanded)
         self.startAnimation(expanded)
 
@@ -187,7 +189,10 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         self.dictOfElementIDs = {}
         self.currentLayer = None
         self.currentFeature = None
-        
+
+        self.spoilerElementProperties = None 
+        self.spoilerFindElements = None
+
         self.link_layers = ["qgisred_pipes", "qgisred_pumps", "qgisred_valves"]
         self.node_layers = ["qgisred_reservoirs", "qgisred_tanks", "qgisred_junctions", 
                             "qgisred_sources", "qgisred_demands", "qgisred_meters", "qgisred_isolationvalves"]
@@ -256,20 +261,36 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         self.spoilerFindElements.toggledState.connect(self.onSpoilerFindElementsToggled)
         self.spoilerElementProperties.toggledState.connect(self.onSpoilerElementPropertiesToggled)
 
+    def onSpoilerElementPropertiesToggled(self, expanded):
+        if expanded:
+            print("spoilerElementProperties expanded")
+            self.moveWidgetsToElementProperties()
+        else:
+            print("spoilerElementProperties collapsed")
+            # If the Find Elements spoiler is still expanded, move the widgets back there.
+            if self.spoilerFindElements.toggleButton.isChecked():
+                self.moveWidgetsToFindElements()
+
     def onSpoilerFindElementsToggled(self, expanded):
         if expanded:
             print("spoilerFindElements expanded")
         else:
             print("spoilerFindElements collapsed")
-        # You can add any additional behavior here.
+        # If Element Properties is not expanded, ensure widgets are in the Find Elements layout.
+        if not self.spoilerElementProperties.toggleButton.isChecked():
+            self.moveWidgetsToFindElements()
 
-    def onSpoilerElementPropertiesToggled(self, expanded):
-        if expanded:
-            #self.spoilerFindElements.setExpanded(False)
-            print("spoilerElementProperties expanded")
-        else:
-            print("spoilerElementProperties collapsed")
-        # Additional handling can be placed here.
+    def collapseFindElements(self):
+        self.spoilerElementProperties.setExpanded(False)
+
+    def collapseElementProperties(self):
+        self.spoilerElementProperties.setExpanded(False)
+
+    def expandElementProperties(self):
+        self.spoilerFindElements.setExpanded(True)
+    
+    def expandFindElements(self):
+        self.spoilerElementProperties.setExpanded(True)
 
     def setupEventFilters(self):
         print("Entering setupEventFilters")
@@ -285,6 +306,102 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                 if isinstance(child, QWidget):
                     self.installEventFilterRecursive(child)
         print("Exiting installEventFilterRecursive")
+
+    def getFindElementsLayout(self):
+        # Retrieve the inner QVBoxLayout from the Find Elements spoiler.
+        gridLayout = self.frameFindElements.contentArea.layout()
+        if gridLayout.count() > 0:
+            # Assumes the first item in the grid is a QVBoxLayout.
+            return gridLayout.itemAt(0).layout()
+        return gridLayout
+
+    def getElementPropertiesLayout(self):
+        # Retrieve the inner QVBoxLayout from the Element Properties spoiler.
+        gridLayout = self.frameElementProperties.contentArea.layout()
+        if gridLayout.count() > 0:
+            return gridLayout.itemAt(0).layout()
+        return gridLayout
+
+
+    def removeWidgetsFromLayouts(self, widgets, layouts):
+        """Remove each widget from the provided layouts if present."""
+        for layout in layouts:
+            for widget in widgets:
+                # If the widget exists in the layout, remove it.
+                if layout.indexOf(widget) != -1:
+                    layout.removeWidget(widget)
+
+    def moveWidgetsToElementProperties(self):
+        """
+        Moves self.labelFoundElement, self.labelAdjacentNodeLinks, and self.listWidget
+        into the Element Properties spoiler above a horizontal line (self.lineEp).
+        """
+        findLayout = self.getFindElementsLayout()
+        epLayout = self.getElementPropertiesLayout()
+
+        # Remove the widgets from both layouts
+        self.removeWidgetsFromLayouts(
+            [self.labelFoundElement, self.labelAdjacentNodeLinks, self.listWidget],
+            [findLayout, epLayout]
+        )
+
+        # Ensure self.lineEp exists in epLayout
+        if not hasattr(self, 'lineEp'):
+            self.lineEp = QFrame()
+            self.lineEp.setFrameShape(QFrame.HLine)
+            self.lineEp.setFrameShadow(QFrame.Sunken)
+        # If self.lineEp isn’t already added, add it at the bottom.
+        found = False
+        for i in range(epLayout.count()):
+            if epLayout.itemAt(i).widget() == self.lineEp:
+                found = True
+                break
+        if not found:
+            epLayout.addWidget(self.lineEp)
+
+        # Find the index of self.lineEp in epLayout
+        index = -1
+        for i in range(epLayout.count()):
+            if epLayout.itemAt(i).widget() == self.lineEp:
+                index = i
+                break
+        if index == -1:
+            index = epLayout.count()
+
+        # Insert the three widgets above self.lineEp.
+        epLayout.insertWidget(index, self.listWidget)
+        epLayout.insertWidget(index, self.labelAdjacentNodeLinks)
+        epLayout.insertWidget(index, self.labelFoundElement)
+        print("Moved widgets into Element Properties layout.")
+    
+
+    def moveWidgetsToFindElements(self):
+        """
+        Moves self.labelFoundElement, self.labelAdjacentNodeLinks, and self.listWidget
+        back into the Find Elements spoiler below self.line.
+        """
+        findLayout = self.getFindElementsLayout()
+        epLayout = self.getElementPropertiesLayout()
+
+        self.removeWidgetsFromLayouts(
+            [self.labelFoundElement, self.labelAdjacentNodeLinks, self.listWidget],
+            [findLayout, epLayout]
+        )
+
+        # Find the index of self.line in the find elements layout.
+        index = -1
+        for i in range(findLayout.count()):
+            if findLayout.itemAt(i).widget() == self.line:
+                index = i
+                break
+        if index == -1:
+            index = findLayout.count()
+
+        # Insert widgets after self.line.
+        findLayout.insertWidget(index + 1, self.labelFoundElement)
+        findLayout.insertWidget(index + 2, self.labelAdjacentNodeLinks)
+        findLayout.insertWidget(index + 3, self.listWidget)
+        print("Moved widgets back into Find Elements layout.")
 
     # def eventFilter(self, obj, event):
     #     if event.type() == QEvent.FocusIn:
@@ -416,6 +533,9 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         
         self.clearHighlights()
         self.clearAllLayerSelections()
+        self.spoilerFindElements.setExpanded(False)
+        self.spoilerElementProperties.setExpanded(False)
+        
         super(self.__class__, self).closeEvent(event)
         print("Exiting closeEvent")
 

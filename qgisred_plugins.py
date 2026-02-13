@@ -1475,7 +1475,7 @@ class QGISRed:
         self.openFindElementsDialog = self.add_action(
             icon_path,
             text=self.tr("Find Elements by ID..."),
-            callback=self.tempRunEE,
+            callback=self.runFindElements,
             menubar=self.queriesMenu,
             toolbar=self.queriesToolbar,
             actionBase=queriesDropButton,
@@ -4408,7 +4408,7 @@ class QGISRed:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.openFindElementsDialog.setChecked(False)
         else:
-            self.myMapTools[tool] = QGISRedIdentifyFeature( self.iface.mapCanvas(), self.openFindElementsDialog, use_element_properties_dock=True )
+            self.myMapTools[tool] = QGISRedIdentifyFeature( self.iface.mapCanvas(), self.openFindElementsDialog, useElementPropertiesDock=True )
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
     
     def runFindElements(self): 
@@ -4426,21 +4426,21 @@ class QGISRed:
 
         tool = "identifyFeature"
         if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            if existingDock:
+                if not existingDock.spoilerFindElements.isExpanded() or self.myMapTools[tool].useElementPropertiesDock is False:
+                    print("reach here: ")
+                    #existingDock.close()
+                # else:
+                #     existingDock.spoilerFindElements.setExpanded(True)
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.openFindElementsDialog.setChecked(False)
-
-            if existingDock:
-                if not existingDock.frameElementProperties.isVisible() or self.myMapTools[tool].use_element_properties_dock is False:
-                    print("reach here: ")
-                    existingDock.close()
-                else:
-                    existingDock.frameFindElements.setVisible(False)
         else:
-            useElementProperties = self.openElementsPropertyDialog.isChecked()
+            useElementProperties = False
             print(useElementProperties)
             if existingDock:
-                if not existingDock.frameElementProperties.isVisible() and useElementProperties:
-                    existingDock.frameElementProperties.show()
+                useElementProperties = existingDock.spoilerElementProperties.isExpanded()
+                if not existingDock.spoilerFindElements.isExpanded() and useElementProperties:
+                    existingDock.spoilerElementProperties.setExpanded(True)
             else:
                 dock = QGISRedElementsExplorerDock.getInstance(
                     self.iface.mapCanvas(),
@@ -4455,15 +4455,13 @@ class QGISRed:
                 dock.activateWindow()
                 dock.onLayerTreeChanged()
                 dock.setDefaultValue()
+                dock.spoilerFindElements.setExpanded(True)
 
-            self.myMapTools[tool] = QGISRedIdentifyFeature( self.iface.mapCanvas(), self.openFindElementsDialog, use_element_properties_dock=useElementProperties )
+            self.myMapTools[tool] = QGISRedIdentifyFeature( self.iface.mapCanvas(), self.openFindElementsDialog, useElementPropertiesDock=useElementProperties )
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
             
 
     def runElementsProperty(self): 
-        ...
-        return
-    
         if not self.checkDependencies():
             self.openElementsPropertyDialog.setChecked(False)
             return
@@ -4479,22 +4477,23 @@ class QGISRed:
         tool = "identifyFeatureElementProperties"
         if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
             if existingDock:
-                if not existingDock.frameFindElements.isVisible():
-                    existingDock.close()
-                else:
-                    existingDock.frameElementProperties.setVisible(False)
-                    self.openElementsPropertyDialog.setChecked(False)
-                    self.myMapTools[tool].setUseElementProperties(False)
-                    return 
+                if not existingDock.spoilerFindElements.isExpanded():
+                    print("reached")
+                    #existingDock.close()
+                # else:
+                #     existingDock.spoilerElementProperties.setVisible(False)
+                #     #self.openElementsPropertyDialog.setChecked(False)
+                #     self.myMapTools[tool].setUseElementProperties(False)
+                #     return 
                 
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.openElementsPropertyDialog.setChecked(False)
         else:
             if existingDock:
-                if not existingDock.frameElementProperties.isVisible():
-                    existingDock.frameElementProperties.show()
+                if not existingDock.spoilerElementProperties.isExpanded():
+                    existingDock.spoilerElementProperties.setExpanded(True)
 
-            self.myMapTools[tool] = QGISRedIdentifyFeature( self.iface.mapCanvas(), self.openElementsPropertyDialog, use_element_properties_dock=True )
+            self.myMapTools[tool] = QGISRedIdentifyFeature( self.iface.mapCanvas(), self.openElementsPropertyDialog, useElementPropertiesDock=True )
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
 # ==============================================================

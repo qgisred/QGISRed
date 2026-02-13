@@ -201,7 +201,7 @@ QDockWidget::title {
               <item>
                <widget class="Line" name="line">
                 <property name="enabled">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="lineWidth">
                  <number>0</number>
@@ -285,16 +285,15 @@ QDockWidget::title {
                <number>0</number>
               </property>
               <item>
-               <widget class="QLabel" name="labelFoundElementProperty">
-                <property name="font">
-                 <font>
-                  <pointsize>8</pointsize>
-                  <weight>50</weight>
-                  <bold>false</bold>
-                 </font>
+               <widget class="Line" name="lineEp">
+                <property name="enabled">
+                 <bool>true</bool>
                 </property>
-                <property name="text">
-                 <string/>
+                <property name="lineWidth">
+                 <number>0</number>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
                 </property>
                </widget>
               </item>
