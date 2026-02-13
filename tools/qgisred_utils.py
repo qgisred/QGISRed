@@ -75,8 +75,8 @@ class QGISRedUtils:
             if ind != 0:
                 original = original[:ind] + " " + original[ind:]
 
-        if "MultipleDemands" in original:
-            original = "Multiple Demands"
+        # if "MultipleDemands" in original:
+        #     original = "Multiple Demands"
         return original
 
     """Open Layers"""
@@ -1006,11 +1006,14 @@ class QGISRedUtils:
         root = QgsProject.instance().layerTreeRoot()
         nodes = list(root.children())
         
+        if not QgsProject.instance().mapLayers():
+            return False
+
         # Export in one call
         error_message = ""
         success = QgsLayerDefinition.exportLayerDefinition(qlr_path, nodes) 
         if not success:
-            raise RuntimeError(f"Failed to export project QLR: {error_message}")  
+            raise RuntimeError(f"Failed to export project QLR: {error_message}") 
         return qlr_path
 
     def loadProjectFromQLR(self):

@@ -1955,10 +1955,19 @@ class QGISRed:
         inputGroup = self.getInputGroup()
 
         # Try loading the entire project QLR in one shot
-        if not utils.loadProjectFromQLR():
-            # If no single QLR exists or loading failed, open layers individually
+        if (self.storeQLRSucess):
+            print("Here1")
+            utils.loadProjectFromQLR()
+            self.storeQLRSucess = False
+        else:
+            print("Here2")
             for layer_name in self.ownMainLayers + self.especificComplementaryLayers:
                 utils.openElementsLayers(inputGroup, [layer_name])
+        #     # If no single QLR exists or loading failed, open layers individually
+        #     for layer_name in self.ownMainLayers + self.especificComplementaryLayers:
+        #         utils.openElementsLayers(inputGroup, [layer_name])
+        # for layer_name in self.ownMainLayers + self.especificComplementaryLayers:
+        #     utils.openElementsLayers(inputGroup, [layer_name])
 
         # Reset any scenario‑specific list
         self.especificComplementaryLayers = []
@@ -2092,7 +2101,7 @@ class QGISRed:
     """Others"""
 
     def processCsharpResult(self, b, message):
-        QGISRedUtils().saveProjectAsQLR()
+        self.storeQLRSucess = QGISRedUtils().saveProjectAsQLR()
 
         #self.stored_query_layers = self.storeQueryLayers()
         
