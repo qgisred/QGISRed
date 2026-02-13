@@ -18,7 +18,8 @@ from qgis.core import (
     QgsSymbol,
     QgsField,
     QgsExpression,
-    edit
+    edit,
+    QgsVectorFileWriter
 )
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_thematicmaps_dialog.ui"))
@@ -135,6 +136,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                 'layer_name': 'Pipe Diameters',
                 'field': 'Diameter',
                 'qml_file': f'pipesDiameter_{units}.qml.bak',
+                'file_name': f'diameter_{units}',
                 'tooltip_prefix': 'Diam'
             })
 
@@ -143,6 +145,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                 'layer_name': 'Pipe Lengths',
                 'field': 'Length',
                 'qml_file': f'pipesLength_{units}.qml.bak',
+                'file_name': f'length_{units}',
                 'tooltip_prefix': 'Len'
             })
 
@@ -151,17 +154,28 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                 'layer_name': 'Pipe Materials',
                 'field': 'Material',
                 'qml_file': 'pipesMaterials.qml.bak',
+                'file_name': 'material',
                 'tooltip_prefix': 'Mat '
             })
 
         return queries
 
-    def process_query(self, query, pipes_layer, queries_group):
+    def process_query(self, query, main_layer, queries_group):
         layer_name = query['layer_name']
         field = query['field']
         qml_file = query['qml_file']
         tooltip_prefix = query['tooltip_prefix']
+        file_name = query['file_name']
 
+        main_layer_path = main_layer.source()
+        main_layer_dir = os.path.dirname(main_layer_path)
+        main_layer_dir = os.path.normpath(main_layer_dir)
+        main_layer_basename = os.path.splitext(os.path.basename(main_layer_path))[0]
+
+        new_layer_filename = f"{main_layer_basename}_query_{file_name}.shp"
+        new_layer_path = os.path.join(main_layer_dir, new_layer_filename)
+        new_layer_path = os.path.normpath(new_layer_path)
+        
         # Remove existing layer if present
         existing_layer = None
         for child in queries_group.children():
@@ -170,20 +184,42 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                 break
 
         if existing_layer is not None:
-            queries_group.removeChildNode(existing_layer)
+            if os.path.exists(new_layer_path):
+                QgsVectorFileWriter.deleteShapeFile(new_layer_path)
 
-        new_layer = QgsVectorLayer(pipes_layer.source(), layer_name, pipes_layer.providerType())
+        fields = main_layer.fields()
+        crs = main_layer.crs()
+        geometry_type = main_layer.wkbType()
+
+        writer = QgsVectorFileWriter(
+            new_layer_path,
+            'UTF-8',
+            fields,
+            geometry_type,
+            crs,
+            'ESRI Shapefile'
+        )
+
+        if writer.hasError() != QgsVectorFileWriter.NoError:
+            return
+
+        features = main_layer.getFeatures()
+        for feature in features:
+            writer.addFeature(feature)
+
+        del writer
+
+        new_layer = QgsVectorLayer(new_layer_path, layer_name, 'ogr')
+        if not new_layer.isValid():
+            return
+
         project = QgsProject.instance()
         project.addMapLayer(new_layer, False)
 
-        new_layer.updateFields()
-
-        # if field == 'Material':
-        #     self.apply_categorized_renderer(new_layer, field)
-        # else:
-        #     self.load_qml_style(new_layer, qml_file)
-
-        self.load_qml_style(new_layer, qml_file)
+        if field == 'Material':
+            self.apply_categorized_renderer(new_layer, field)
+        else:
+            self.load_qml_style(new_layer, qml_file)
 
         # Add the virtual field 'Year'
         # instal_date_index = new_layer.fields().indexFromName('InstalDate')
@@ -196,8 +232,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
 
         self.assign_labels(new_layer, field)
 
-        # Assign map tooltips
-        html_map_tip = f'<html><body><p> {tooltip_prefix} [% "{field}" %] </p></body></html>'
+        html_map_tip = f'<html><body><p>{tooltip_prefix} [% "{field}" %] </p></body></html>'
         new_layer.setMapTipTemplate(html_map_tip)
 
         layer_tree_layer.setCustomProperty("showFeatureCount", True)
