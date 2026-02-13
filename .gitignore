@@ -3,3 +3,4 @@
 /tools/__pycache__/*.pyc
 .vscode
 /ui/__pycache__
+/layerStyles/*.qml

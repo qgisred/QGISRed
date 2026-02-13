@@ -6,8 +6,10 @@ from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer, QgsTask, Qg
 from qgis.core import QgsSvgMarkerSymbolLayer, QgsSymbol, QgsSingleSymbolRenderer, Qgis
 from qgis.core import QgsLineSymbol, QgsSimpleLineSymbolLayer, QgsProperty
 from qgis.core import QgsMarkerSymbol, QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayer
-from qgis.core import QgsRendererCategory, QgsCategorizedSymbolRenderer, QgsCoordinateReferenceSystem
+from qgis.core import QgsRendererCategory, QgsCategorizedSymbolRenderer, QgsCoordinateReferenceSystem, QgsVectorLayerCache
+from qgis.gui import QgsAttributeTableFilterModel, QgsAttributeTableModel, QgsAttributeTableView
 from qgis.core import QgsSymbolLayer, NULL
+from qgis.utils import iface
 
 # Others imports
 import os
@@ -787,5 +789,27 @@ class QGISRedUtils:
 
         renderer = QgsCategorizedSymbolRenderer(field, categories)
         layer.setRenderer(renderer)
-
         layer.saveNamedStyle(qml_file)
+
+    def hide_fields(self, layer, fieldname):
+        config = layer.attributeTableConfig()
+        columns = config.columns()
+        
+        fields_to_keep = ['Id', fieldname]
+        
+        for column in columns:
+            column.hidden = column.name not in fields_to_keep
+        
+        config.setColumns(columns)
+        
+        layer_cache = QgsVectorLayerCache(layer, layer.featureCount())
+
+        source_model = QgsAttributeTableModel(layer_cache)
+        source_model.loadLayer()
+        
+        attribute_table_view = QgsAttributeTableView()
+        attribute_table_filter_model = QgsAttributeTableFilterModel(iface.mapCanvas(), source_model)
+        
+        layer.setAttributeTableConfig(config)
+        attribute_table_filter_model.setAttributeTableConfig(config)
+        attribute_table_view.setAttributeTableConfig(config)

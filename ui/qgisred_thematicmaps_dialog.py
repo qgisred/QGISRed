@@ -4,16 +4,16 @@
 import os
 
 # Third-party imports
-from PyQt5.QtCore import QObject
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QDialog, QMessageBox, QWidget
 from PyQt5 import sip
 from qgis.PyQt import uic
+from qgis.PyQt.QtCore import QVariant
 
 # QGIS imports
-from qgis.core import QgsAttributeTableConfig, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsLayerTreeNode, QgsProject
-from qgis.core import QgsVectorFileWriter, QgsVectorLayer, QgsVectorLayerCache
-from qgis.gui import QgsAttributeTableFilterModel, QgsAttributeTableModel, QgsAttributeTableView
+from qgis.core import QgsLayerTreeGroup, QgsLayerTreeLayer, QgsLayerTreeNode, QgsProject
+from qgis.core import QgsVectorFileWriter, QgsVectorLayer
+from qgis.core import QgsProject, QgsVectorLayer, QgsPalLayerSettings, QgsVectorLayerSimpleLabeling, QgsTextFormat
 from qgis.utils import iface
 
 # Local imports
@@ -148,22 +148,24 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         
         qml_path = self.load_qml_style(derived_layer, qml_file)
         derived_layer.setLabelsEnabled(False)
-
+        derived_layer.setCustomProperty("query_field", field)
+        
         if field == 'Material':
             QGISRedUtils().apply_categorized_renderer(derived_layer, field, qml_path)
+            #self.set_labels_with_null_handling(derived_layer, field, qml_path)
 
         QgsProject.instance().addMapLayer(derived_layer, False)
-        self.hide_fields(derived_layer, field)
-        
+        QGISRedUtils().hide_fields(derived_layer, field)
+
         if parent_group and not sip.isdeleted(parent_group):
             layer_tree_layer = parent_group.insertLayer(layer_position, derived_layer)
             layer_tree_layer.setCustomProperty("showFeatureCount", True)
-
+        
         main_layer.dataChanged.connect(lambda: self.sync_layers(main_layer, derived_layer))
         main_layer.styleChanged.connect(lambda: self.sync_layers(main_layer, derived_layer))
         derived_layer.dataChanged.connect(lambda: derived_layer.triggerRepaint())
         derived_layer.setReadOnly(True)
-        
+
         return derived_layer
 
     def find_layer_recursively(self, parent_group, layer_name):
@@ -240,28 +242,28 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             derived_layer.setRenderer(new_renderer)
             derived_layer.triggerRepaint()
 
-    def hide_fields(self, layer, fieldname):
-        config = layer.attributeTableConfig()
-        columns = config.columns()
-        
-        fields_to_keep = ['Id', fieldname]
-        
-        for column in columns:
-            column.hidden = column.name not in fields_to_keep
-        
-        config.setColumns(columns)
-        
-        layer_cache = QgsVectorLayerCache(layer, layer.featureCount())
+    def set_labels_with_null_handling(self, layer, field_name, qml_file_path): 
+        if not layer or not isinstance(layer, QgsVectorLayer):
+            return
 
-        source_model = QgsAttributeTableModel(layer_cache)
-        source_model.loadLayer()
-        
-        attribute_table_view = QgsAttributeTableView()
-        attribute_table_filter_model = QgsAttributeTableFilterModel(iface.mapCanvas(), source_model)
-        
-        layer.setAttributeTableConfig(config)
-        attribute_table_filter_model.setAttributeTableConfig(config)
-        attribute_table_view.setAttributeTableConfig(config)
+        # Create the label expression using coalesce to handle NULL values
+        expression = f"""
+                    CASE
+                        WHEN "{field_name}" IS NULL THEN '#NA'
+                        ELSE "{field_name}"
+                    END
+        """
+        # Set up label settings
+        label_settings = QgsPalLayerSettings()
+        label_settings.fieldName = expression
+        label_settings.isExpression = True
+        label_settings.placement= QgsPalLayerSettings.OverPoint
+        # Apply labeling to the layer
+        labeling = QgsVectorLayerSimpleLabeling(label_settings)
+        layer.setLabeling(labeling)
+
+        layer.triggerRepaint()
+    
 
     def get_selected_queries(self):
         units = QGISRedUtils().getUnits()

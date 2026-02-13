@@ -4363,12 +4363,6 @@ class QGISRed:
         subgroup_path = group_path.copy()
         subgroup_positions = group_positions.copy()
         
-        field_name = next(
-            (query for query in self.random_color_queries 
-            if query.lower() in layer.name().lower()),
-            None
-        )
-        
         return {
             'name': layer.name(),
             'source': layer.source(),
@@ -4379,7 +4373,7 @@ class QGISRed:
             'group_path': subgroup_path,
             'group_positions': subgroup_positions,
             'layer_position': layer_position,
-            'field_name': field_name
+            'field_name': layer.customProperty("query_field")
         }
 
     def _storeLayersRecursive(self, parent_group, query_layers, group_path, group_positions):
@@ -4419,14 +4413,14 @@ class QGISRed:
                     new_layer.loadNamedStyle(query_info['style_string'])
 
                     new_layer.setCustomProperty("styleURI", query_info['style_string'])
-
-                    if query_info.get('field_name'):
+                    
+                    if query_info['field_name'] in self.random_color_queries:
                         QGISRedUtils().apply_categorized_renderer(new_layer, query_info['field_name'], query_info['style_string'])
                         
                 if 'labels_enabled' in query_info:
                     new_layer.setLabelsEnabled(query_info['labels_enabled'])
 
-                new_layer.setReadOnly(True)
+                new_layer.setCustomProperty("query_field", query_info['field_name'])
                 QgsProject.instance().addMapLayer(new_layer, False)
 
                 group_path = query_info.get('group_path', [])
@@ -4437,6 +4431,7 @@ class QGISRed:
 
                 layer_tree_layer = QgsLayerTreeLayer(new_layer)
                 layer_tree_layer.setCustomProperty("showFeatureCount", True)
+                layer_tree_layer.setReadOnly(True)
 
                 if 'checked' in query_info:
                     layer_tree_layer.setItemVisibilityChecked(query_info['checked'])
@@ -4448,6 +4443,8 @@ class QGISRed:
                     parent_group.insertChildNode(layer_position, layer_tree_layer)
                 else:
                     parent_group.addChildNode(layer_tree_layer)
+
+                QGISRedUtils().hide_fields(new_layer, query_info['field_name'])
 
                 input_layer = self.findSourceLayer(self.getInputGroup(), new_layer)
                 if input_layer:
