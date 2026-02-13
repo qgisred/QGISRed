@@ -23,7 +23,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
     InpFile = ""
     ZipFile = ""
     gplFile = ""
-    ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs", "MultipleDemands", "Sources"]
+    ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs", "Demands", "Sources"]
     ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns"]
 
     def __init__(self, parent=None):

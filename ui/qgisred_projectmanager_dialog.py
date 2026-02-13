@@ -27,7 +27,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
     ProjectDirectory = ""
     ProcessDone = False
     gplFile = ""
-    ownMainLayers = ["Pipes", "Junctions", "MultipleDemands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
+    ownMainLayers = ["Pipes", "Junctions", "Demands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
     complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves", "AirReleaseValves", "ServiceConnections", "Meters"]
     layerExtensions = [".shp", ".dbf", ".shx", ".prj", ".qpj"]
     ownFiles = [

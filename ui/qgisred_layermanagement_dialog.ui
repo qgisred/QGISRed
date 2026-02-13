@@ -86,6 +86,12 @@
                 <property name="enabled">
                  <bool>false</bool>
                 </property>
+                <property name="font">
+                 <font>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
                 <property name="text">
                  <string>Pipes</string>
                 </property>
@@ -391,7 +397,7 @@
                  <bool>true</bool>
                 </property>
                 <property name="text">
-                 <string>Multiple Demands</string>
+                 <string>Demands</string>
                 </property>
                 <property name="checkable">
                  <bool>true</bool>
@@ -416,7 +422,7 @@
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Create Multiple Demands Layer</string>
+                 <string>Create Demands Layer</string>
                 </property>
                 <property name="text">
                  <string>+</string>

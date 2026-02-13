@@ -76,7 +76,7 @@ class QGISRed:
     ResultDockwidget = None
     ProjectDirectory = ""
     NetworkName = ""
-    ownMainLayers = ["Pipes", "Junctions", "MultipleDemands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
+    ownMainLayers = ["Pipes", "Junctions", "Demands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
     ownFiles = ["DefaultValues", "Options", "Rules", "Controls", "Curves", "Patterns", "Materials", "Signals"]
     especificComplementaryLayers = []
     complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves", "AirReleaseValves", "ServiceConnections", "Meters"]
@@ -516,7 +516,7 @@ class QGISRed:
         icon_path = ":/plugins/QGISRed-BID/images/iconSave.png"
         self.add_action(
             icon_path,
-            text=self.tr("Save project"),
+            text=self.tr("Save map"),
             callback=self.runSaveActionProject,
             menubar=self.projectMenu,
             toolbar=self.projectToolbar,
@@ -1868,7 +1868,6 @@ class QGISRed:
         utils.removeLayers(self.ownFiles, ".dbf")
         utils.removeLayers(self.especificComplementaryLayers)
         utils.removeLayers(self.issuesLayers)
-        #utils.removeTopLevelGroups(["Inputs", "Queries", "Results"])
         if task is not None:
             return {"task": task.definition()}
 
@@ -1954,52 +1953,28 @@ class QGISRed:
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         inputGroup = self.getInputGroup()
 
-        # Try loading the entire project QLR in one shot
-        if (self.storeQLRSucess):
-            print("Here1")
+        if self.storeQLRSucess:
             utils.loadProjectFromQLR()
-            self.storeQLRSucess = False
+            inputGroup = self.getInputGroup()
+            for layer_name in self.ownMainLayers + self.especificComplementaryLayers:
+                if not utils.isLayerOpened(layer_name):
+                    print("layer_not_opened : ", layer_name)
+                    utils.openElementsLayers(inputGroup, [layer_name])
         else:
-            print("Here2")
             for layer_name in self.ownMainLayers + self.especificComplementaryLayers:
                 utils.openElementsLayers(inputGroup, [layer_name])
-        #     # If no single QLR exists or loading failed, open layers individually
-        #     for layer_name in self.ownMainLayers + self.especificComplementaryLayers:
-        #         utils.openElementsLayers(inputGroup, [layer_name])
-        # for layer_name in self.ownMainLayers + self.especificComplementaryLayers:
-        #     utils.openElementsLayers(inputGroup, [layer_name])
 
         # Reset any scenario‑specific list
         self.especificComplementaryLayers = []
 
         # Always remove the one project‑level QLR file if it was created
         utils.deleteProjectQLR()
-        
+        utils.removeEmptyLayersInGroup(inputGroup)
+        #utils.orderLayers(inputGroup)
+
         # Continue any pending task
         if task is not None:
             return {"task": task.definition()}
-            
-    def filterEmptyLayers(self, layer_list):
-        """Filter out empty layers (except for Pipes)"""
-        filtered_layers = []
-        
-        for layer_name in layer_list:
-            # Check if file exists
-            layer_path = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + layer_name + ".shp")
-            if os.path.exists(layer_path):
-                try:
-                    layer = QgsVectorLayer(layer_path, layer_name, "ogr")
-                    if layer.isValid():
-                        is_pipe_layer = layer_name.lower() == "pipes"
-                        
-                        # Only add layer if it's a pipe layer OR has features
-                        if is_pipe_layer or layer.featureCount() > 0:
-                            filtered_layers.append(layer_name)
-                    del layer
-                except Exception:
-                    pass
-        
-        return filtered_layers
     
     def openInputLayers(self, projectDir, networkName):
         # Open layers
@@ -2101,10 +2076,9 @@ class QGISRed:
     """Others"""
 
     def processCsharpResult(self, b, message):
-        self.storeQLRSucess = QGISRedUtils().saveProjectAsQLR()
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        self.storeQLRSucess, _ = utils.saveProjectAsQLR()
 
-        #self.stored_query_layers = self.storeQueryLayers()
-        
         # Action
         self.hasToOpenNewLayers = False
         self.hasToOpenIssuesLayers = False
@@ -2353,7 +2327,7 @@ class QGISRed:
         for layer in layers:
             for layerName in mylayersNames:
                 layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp")
-                if layerName == "Sources" or layerName == "MultipleDemands": #TODO
+                if layerName == "Sources" or layerName == "Demands": #TODO
                     continue
                 if self.getLayerPath(layer) == layerPath:
                     fids = []
@@ -2420,7 +2394,7 @@ class QGISRed:
             openedLayerPath = self.getLayerPath(layer)
             for layerName in mylayersNames:
                 layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp")
-                if layerName == "Sources" or layerName == "MultipleDemands":
+                if layerName == "Sources" or layerName == "Demands":
                     continue
                 if openedLayerPath == layerPath:
                     if layerName in self.selectedFids:

@@ -29,7 +29,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.elementIdentifiers = {
             'Pipes': 'qgisred_pipes',
             'Junctions': 'qgisred_junctions',
-            'Multiple Demands': 'qgisred_demands',
+            'Demands': 'qgisred_demands',
             'Reservoirs': 'qgisred_reservoirs',
             'Tanks': 'qgisred_tanks',
             'Pumps': 'qgisred_pumps',

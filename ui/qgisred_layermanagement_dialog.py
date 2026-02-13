@@ -62,7 +62,7 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         self.btReservoirs.setVisible(not self.NetworkName + "_Reservoirs.shp" in dirList)
         self.btValves.setVisible(not self.NetworkName + "_Valves.shp" in dirList)
         self.btPumps.setVisible(not self.NetworkName + "_Pumps.shp" in dirList)
-        self.btDemands.setVisible(not self.NetworkName + "_MultipleDemands.shp" in dirList)
+        self.btDemands.setVisible(not self.NetworkName + "_Demands.shp" in dirList)
         self.btSources.setVisible(not self.NetworkName + "_Sources.shp" in dirList)
         self.btIsolatedValves.setVisible(not self.NetworkName + "_IsolationValves.shp" in dirList)
         self.btConnections.setVisible(not self.NetworkName + "_ServiceConnections.shp" in dirList)
@@ -101,9 +101,9 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         self.cbPumps.setChecked(hasLayer)
         self.cbPumps.setEnabled(self.NetworkName + "_Pumps.shp" in dirList)
 
-        hasLayer = utils.isLayerOpened("MultipleDemands")
+        hasLayer = utils.isLayerOpened("Demands")
         self.cbDemands.setChecked(hasLayer)
-        self.cbDemands.setEnabled(self.NetworkName + "_MultipleDemands.shp" in dirList)
+        self.cbDemands.setEnabled(self.NetworkName + "_Demands.shp" in dirList)
 
         hasLayer = utils.isLayerOpened("Sources")
         self.cbSources.setChecked(hasLayer)
@@ -190,38 +190,8 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         self.createElementsList()
         self.createComplementaryList()
 
-        # Filter out empty layers (except for Pipes)
-        #filtered_layers = self.filterEmptyLayers(self.layers)
-
         epsg = None
         if not self.crs.srsid() == self.originalCrs.srsid():
             epsg = self.crs.authid().replace("EPSG:", "")
         self.parent.openRemoveSpecificLayers(self.layers, epsg)
         self.close()
-
-
-    def filterEmptyLayers(self, layer_list):
-        filtered_layers = []
-        
-        name_mapping = {
-            "Isolation Valves": "IsolationValves",
-            "Service Connections": "ServiceConnections"
-        }
-        
-        for layer_name in layer_list:
-            file_name = name_mapping.get(layer_name, layer_name)
-            
-            layer_path = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + file_name + ".shp")
-            try:
-                layer = QgsVectorLayer(layer_path, file_name, "ogr")
-                if layer.isValid():
-                    is_pipe_layer = file_name.lower() == "pipes"
-                    
-                    # if is_pipe_layer or layer.featureCount() > 0:
-                    #     filtered_layers.append(layer_name)
-                    filtered_layers.append(layer_name)
-                del layer
-            except Exception:
-                pass
-        
-        return filtered_layers

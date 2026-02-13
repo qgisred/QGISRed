@@ -49,7 +49,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.elementTypes = [
             self.tr('Pipes'),
             self.tr('Junctions'),
-            self.tr('Multiple Demands'),
+            self.tr('Demands'),
             self.tr('Reservoirs'),
             self.tr('Tanks'),
             self.tr('Pumps'),
@@ -63,7 +63,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.elementIdentifiers = {
             'Pipes': 'qgisred_pipes', 
             'Junctions': 'qgisred_junctions',
-            'Multiple Demands': 'qgisred_demands',
+            'Demands': 'qgisred_demands',
             'Reservoirs': 'qgisred_reservoirs',
             'Tanks': 'qgisred_tanks',
             'Pumps': 'qgisred_pumps',
@@ -77,7 +77,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.singularForms = {
             self.tr("Pipes"): self.tr("Pipe"),
             self.tr("Junctions"): self.tr("Junction"),
-            self.tr("Multiple Demands"): self.tr("Multiple Demand"),
+            self.tr("Demands"): self.tr("Demand"),
             self.tr("Reservoirs"): self.tr("Reservoir"),
             self.tr("Tanks"): self.tr("Tank"),
             self.tr("Pumps"): self.tr("Pump"),
