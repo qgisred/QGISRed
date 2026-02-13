@@ -161,10 +161,8 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                             self.twProjectList.item(rowPosition, column).setFont(font)
 
         f.close()
-        f = open(self.gplFile, "w")
         for x in validLines:
-            QGISRedUtils().writeFile(f, x)
-        f.close()
+            QGISRedUtils().addProjectToGplFile(self.gplFile, rawEntryLine=x)
 
     def addProjectToTable(self, folder, net):
         folder = self.getUniformedPath(folder)
@@ -279,14 +277,13 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             self.twProjectList.setCurrentCell(destRow, 1)
             self.twProjectList.setFocus()
 
-            f = open(self.gplFile, "w")
             rowIndex = 0
             while rowIndex < rows:
                 name = str(self.twProjectList.item(rowIndex, 0).text())
                 directory = str(self.twProjectList.item(rowIndex, 3).text())
-                QGISRedUtils().writeFile(f, name + ";" + directory + "\n")
+                QGISRedUtils().addProjectToGplFile(self.gplFile, name, directory)
+
                 rowIndex = rowIndex + 1
-            f.close()
         else:
             self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Please, select a row project to move."), level=1, duration=5)
 
@@ -329,13 +326,11 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 f = open(self.gplFile, "r")
                 lines = f.readlines()
                 f.close()
-                f = open(self.gplFile, "w")
                 i = 0
                 for line in lines:
                     if not i == rowIndex:
-                        QGISRedUtils().writeFile(f, line)
+                        QGISRedUtils().addProjectToGplFile(self.gplFile, rawEntryLine=line)
                     i = i + 1
-                f.close()
             self.fillTable()
         else:
             word = "unload"
@@ -517,15 +512,13 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             f = open(self.gplFile, "r")
             lines = f.readlines()
             f.close()
-            f = open(self.gplFile, "w")
             i = 0
             for line in lines:
                 if not i == rowIndex:
-                    QGISRedUtils().writeFile(f, line)
+                    QGISRedUtils().addProjectToGplFile(self.gplFile, rawEntryLine=line)
                 else:
-                    QGISRedUtils().writeFile(f, newName + ";" + projectPath)
+                    QGISRedUtils().addProjectToGplFile(self.gplFile, newName, projectPath)
                 i = i + 1
-            f.close()
 
             self.iface.messageBar().pushMessage("QGISRed", self.tr("Project name has been renamed to ") + newName, level=0, duration=5)
         else:

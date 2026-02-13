@@ -999,25 +999,17 @@ class QGISRedUtils:
                 if not layer.customProperty("qgisred_identifier"):
                     self.setLayerIdentifier(layer, identifier)
 
-    def addProjectToGplFile(self, gplFile, networkName, projectDirectory):
+    def addProjectToGplFile(self, gplFile, networkName='', projectDirectory='', rawEntryLine=None):
         projectDirectory = self.getUniformedPath(projectDirectory)
+        newEntry = rawEntryLine or f"{networkName};{projectDirectory}"
         
-        if not os.path.exists(gplFile):
-            f = open(gplFile, "w+")
-            f.close()
+        entries = set()
+        if os.path.exists(gplFile):
+            with open(gplFile, "r") as f:
+                entries = {line.strip() for line in f if line.strip()}
         
-        existing_entries = set()
-        with open(gplFile, "r") as f:
-            for line in f:
-                line = line.strip()
-                if ";" in line:
-                    parts = line.split(";", 1)
-                    if len(parts) == 2:
-                        name = parts[0]
-                        path = self.getUniformedPath(parts[1])
-                        existing_entries.add((name, path))
+        entries.add(newEntry.strip())
         
-        new_entry = (networkName, projectDirectory)
-        if new_entry not in existing_entries:
-            with open(gplFile, "a") as f:
-                self.writeFile(f, networkName + ";" + projectDirectory + "\n")
+        with open(gplFile, "w") as f:
+            for entry in sorted(entries):
+                f.write(entry + "\n")
