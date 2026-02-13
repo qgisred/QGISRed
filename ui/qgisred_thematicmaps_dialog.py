@@ -1,56 +1,22 @@
 # -*- coding: utf-8 -*-
-from PyQt5.QtWidgets import QDialog, QWidget, QMessageBox
-from PyQt5.QtGui import QIcon, QColor
-from PyQt5.QtCore import QObject, QVariant
+
+# Standard library imports
+import os
+
+# Third-party imports
+from PyQt5.QtCore import QObject
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QDialog, QMessageBox, QWidget
 from qgis.PyQt import uic
-<<<<<<< Updated upstream
-from ..tools.qgisred_utils import QGISRedUtils
-=======
->>>>>>> Stashed changes
 
-# QGIS core imports
-from qgis.core import (
-    QgsProject,
-    QgsVectorLayer,
-    QgsLayerTreeGroup,
-    QgsLayerTreeLayer,
-    QgsLayerTreeNode,
-    QgsCategorizedSymbolRenderer,
-    QgsRendererCategory,
-    QgsUnitTypes,
-    QgsSymbol,
-    QgsField,
-    QgsExpression,
-    QgsVectorFileWriter,
-<<<<<<< Updated upstream
-    edit
-)
-
-=======
-    QgsAttributeTableConfig,
-    QgsVectorLayerCache,
-    QgsEditorWidgetSetup,
-    edit,
-    NULL
-)
-
-# QGIS GUI imports
-from qgis.gui import (
-    QgsAttributeTableView,
-    QgsAttributeTableFilterModel,
-    QgsAttributeTableModel
-)
-
-# QGIS utils import
+# QGIS imports
+from qgis.core import QgsAttributeTableConfig, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsLayerTreeNode, QgsProject
+from qgis.core import QgsVectorFileWriter, QgsVectorLayer, QgsVectorLayerCache
+from qgis.gui import QgsAttributeTableFilterModel, QgsAttributeTableModel, QgsAttributeTableView
 from qgis.utils import iface
 
 # Local imports
 from ..tools.qgisred_utils import QGISRedUtils
-
-# Standard library imports
->>>>>>> Stashed changes
-import os
-import random
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_thematicmaps_dialog.ui"))
 
@@ -101,7 +67,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
 
         queries = self.get_selected_queries()
 
-        for query in queries:
+        for query in reversed(queries):
             self.process_query(query, pipes_layer, queries_group)
 
         # Close dialog
@@ -187,42 +153,28 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         file_name = query['file_name']
         
         self.check_existing_layer(queries_group, layer_name)
-<<<<<<< Updated upstream
-        derived_layer = self.create_derived_layer(main_layer, layer_name)
-        
-=======
         derived_layer = self.create_derived_layer(main_layer, layer_name, field)
     
->>>>>>> Stashed changes
         self.load_qml_style(derived_layer, qml_file)
         derived_layer.setLabelsEnabled(False)
 
         if field == 'Material':
-            self.apply_categorized_renderer(derived_layer, field)
+            QGISRedUtils().apply_categorized_renderer(derived_layer, field)
 
-<<<<<<< Updated upstream
-
-        QgsProject.instance().addMapLayer(derived_layer, False) 
-        
-=======
         QgsProject.instance().addMapLayer(derived_layer, False) 
         
         self.hide_fields(derived_layer, field)
         
->>>>>>> Stashed changes
         if queries_group:
-            layer_tree_layer = queries_group.addLayer(derived_layer)
+            layer_tree_layer = queries_group.insertLayer(0, derived_layer)
             layer_tree_layer.setCustomProperty("showFeatureCount", True)
 
         main_layer.dataChanged.connect(lambda: self.sync_layers(main_layer, derived_layer))
         main_layer.styleChanged.connect(lambda: self.sync_layers(main_layer, derived_layer))
         derived_layer.dataChanged.connect(lambda: derived_layer.triggerRepaint())
         
-<<<<<<< Updated upstream
-=======
         #derived_layer.setReadOnly(True)
         
->>>>>>> Stashed changes
         return derived_layer
 
     def sync_layers(self, main_layer, derived_layer):
@@ -247,11 +199,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         
         return False
 
-<<<<<<< Updated upstream
-    def create_derived_layer(self, source_layer, new_layer_name):
-=======
     def create_derived_layer(self, source_layer, new_layer_name, field):
->>>>>>> Stashed changes
         uri = source_layer.source()
         
         geometry_type = source_layer.geometryType()
@@ -265,52 +213,6 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         derived_layer.setCrs(source_layer.crs())
         
         return derived_layer
-<<<<<<< Updated upstream
-
-    def apply_categorized_renderer(self, layer, field):
-=======
-        
-    def apply_categorized_renderer(self, layer, field): 
->>>>>>> Stashed changes
-        material_field_index = layer.fields().indexFromName(field)
-        if material_field_index == -1:
-            QMessageBox.critical(self, 'Error', f'{field} field not found in Pipes layer.')
-            return
-
-        unique_values = layer.uniqueValues(material_field_index)
-        categories = []
-
-        non_null_values = [value for value in unique_values if value != NULL]
-        null_values = [value for value in unique_values if value == NULL]
-
-        for value in non_null_values:
-            symbol = QgsSymbol.defaultSymbol(layer.geometryType())
-            random_color = QColor.fromRgb(
-                random.randint(0, 255),
-                random.randint(0, 255),
-                random.randint(0, 255)
-            )
-            symbol.setColor(random_color)
-            symbol.setWidth(0.6)
-            category = QgsRendererCategory(value, symbol, str(value))
-            categories.append(category)
-
-        if null_values:
-            for null_value in null_values:
-                symbol = QgsSymbol.defaultSymbol(layer.geometryType())
-                random_color = QColor.fromRgb(
-                    random.randint(0, 255),
-                    random.randint(0, 255),
-                    random.randint(0, 255)
-                )
-                symbol.setColor(random_color)
-                symbol.setWidth(0.6)
-                category = QgsRendererCategory(null_value, symbol, str("#NA"))
-                categories.append(category)
-                break
-
-        renderer = QgsCategorizedSymbolRenderer(field, categories)
-        layer.setRenderer(renderer)
 
     def load_qml_style(self, layer, qml_file):
         qml_path = os.path.join(os.path.dirname(__file__), '..', 'layerStyles', qml_file)
@@ -331,9 +233,6 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if derived_layer and main_layer:
             new_renderer = main_layer.renderer().clone()
             derived_layer.setRenderer(new_renderer)
-<<<<<<< Updated upstream
-            derived_layer.triggerRepaint()
-=======
             derived_layer.triggerRepaint()
 
     def hide_fields(self, layer, fieldname):
@@ -358,4 +257,3 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         layer.setAttributeTableConfig(config)
         attribute_table_filter_model.setAttributeTableConfig(config)
         attribute_table_view.setAttributeTableConfig(config)
->>>>>>> Stashed changes
