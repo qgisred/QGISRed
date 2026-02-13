@@ -53,6 +53,20 @@
      <number>6</number>
     </property>
     <item>
+     <widget class="QLabel" name="labelFoundElement">
+      <property name="font">
+       <font>
+        <pointsize>8</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </item>
+    <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="styleSheet">
        <string notr="true">QTabBar::tab { font-weight: bold; min-width: 80px; }</string>

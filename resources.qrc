@@ -96,5 +96,6 @@
         <file>images/iconStatisticsAndPlots.png</file>
         <file>images/iconFilter.png</file>
         <file>images/iconProjectMenu.png</file>
+        <file>images/cursor.png</file>
     </qresource>
 </RCC>

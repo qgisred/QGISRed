@@ -2,42 +2,51 @@
 import os
 from PyQt5.QtGui import QIcon, QFont, QColor
 from PyQt5.QtWidgets import QDockWidget, QWidget, QHBoxLayout, QLabel, QToolButton, QMessageBox, QLineEdit
-from PyQt5.QtWidgets import QListWidgetItem, QTableWidgetItem, QHeaderView, QStyle, QAbstractItemView
-from PyQt5.QtCore import Qt, QEvent, pyqtSlot
+from PyQt5.QtWidgets import QListWidgetItem, QTableWidgetItem, QHeaderView, QStyle, QAbstractItemView, QFrame 
+from PyQt5.QtCore import Qt, pyqtSlot, pyqtSignal, QEvent  
 from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsVectorLayer, QgsSettings, QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsLayerMetadata
 from qgis.utils import iface
 from qgis.gui import QgsHighlight
 
-from ..tools.qgisred_utils import QGISRedUtils
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_unified_find_properties.ui"))
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_findElements_dock.ui"))
-
-class QGISRedFindElementsDock(QDockWidget, FORM_CLASS):
+class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
     _instance = None
+    dockVisibilityChanged = pyqtSignal(bool)
+    findElementsDockVisibilityChanged = pyqtSignal(bool)
+    elementPropertiesDockVisibilityChanged = pyqtSignal(bool)
+    dockFocusChanged = pyqtSignal(bool)
 
-    # -------------------------------------------------------------------------
-    # Singleton & Initialization / Setup
-    # -------------------------------------------------------------------------
     @classmethod
-    def getInstance(cls, parent=None):
+    def getInstance(cls, canvas, parent=None, show_find_elements=True, show_element_properties=True):
         if cls._instance is None:
-            cls._instance = cls(parent)
+            cls._instance = cls(canvas, parent, show_find_elements, show_element_properties)
+        else:
+            if hasattr(cls._instance, 'frameElementProperties') and cls._instance.frameElementProperties is not None:
+                if cls._instance.frameElementProperties.isVisible() != show_element_properties:
+                    cls._instance.frameElementProperties.setVisible(show_element_properties)
+            if hasattr(cls._instance, 'frameFindElements') and cls._instance.frameFindElements is not None:
+                if show_find_elements and not cls._instance.frameFindElements.isVisible():
+                    cls._instance.frameFindElements.setVisible(True)
         return cls._instance
 
-    def __init__(self, canvas, parent=None):
-        if QGISRedFindElementsDock._instance is not None:
-            raise Exception("QGISRedFindElementsDock is a singleton! Use getInstance() instead.")
-        super(QGISRedFindElementsDock, self).__init__(parent)
+
+    def __init__(self, canvas, parent=None, show_find_elements=True, show_element_properties=True):
+        if self._instance is not None:
+            raise Exception(f"{self.__class__.__name__} is a singleton! Use getInstance() instead.")
+        super(self.__class__, self).__init__(parent)
         self.setupUi(self)
-        self.listWidget.installEventFilter(self)
-        self.setObjectName("QGISRedFindElementsDock")
+        self.setupEventFilters() 
+        self.setObjectName(self.__class__.__name__)
         self.setFloating(False)
         if parent:
             parent.addDockWidget(Qt.LeftDockWidgetArea, self)
 
         self.canvas = canvas
-        # Element types, identifiers, and singular forms
+        self.find_elements_visible = show_find_elements
+        self.element_properties_visible = show_element_properties
+
         self.element_types = [
             self.tr('Pipes'),
             self.tr('Junctions'),
@@ -51,6 +60,7 @@ class QGISRedFindElementsDock(QDockWidget, FORM_CLASS):
             self.tr('Isolation Valves'),
             self.tr('Meters')
         ]
+        
         self.element_identifiers = {
             'Pipes': 'qgisred_pipes', 
             'Junctions': 'qgisred_junctions',
@@ -64,6 +74,7 @@ class QGISRedFindElementsDock(QDockWidget, FORM_CLASS):
             'Isolation Valves': 'qgisred_isolationvalves',
             'Meters': 'qgisred_meters'
         }
+        
         self.singular_forms = {
             self.tr("Pipes"): self.tr("Pipe"),
             self.tr("Junctions"): self.tr("Junction"),
@@ -77,50 +88,666 @@ class QGISRedFindElementsDock(QDockWidget, FORM_CLASS):
             self.tr("Isolation Valves"): self.tr("Isolation Valve"),
             self.tr("Meters"): self.tr("Meter")
         }
-
-        # Used for caching element IDs and highlight objects
+        
         self.original_ids = []
         self.adjacent_highlights = []
         self.main_highlight = None
-        self.current_selected_highlight = None 
-
+        self.current_selected_highlight = None
+        
         self.currentLayer = None
         self.currentFeature = None
-        # Layer groups for adjacency purposes
+        
         self.link_layers = ["qgisred_pipes", "qgisred_pumps", "qgisred_valves"]
         self.node_layers = ["qgisred_reservoirs", "qgisred_tanks", "qgisred_junctions", 
                             "qgisred_sources", "qgisred_demands", "qgisred_meters", "qgisred_isolationvalves"]
         self.special_layers = ["qgisred_serviceconnections"]
         self.sources_and_demands = ["qgisred_sources", "qgisred_demands"]
+        
+        if hasattr(self, 'listWidget'):
+            self.listWidget.installEventFilter(self)
+        
+        if hasattr(self, 'labelFoundElement'):
+            font = QFont()
+            font.setPointSize(12)
+            font.setBold(True)
+            self.labelFoundElement.setFont(font)
+            self.labelFoundElement.setWordWrap(True)
+            self.labelFoundElement.setText("")
+        
+        self.frameFindElements.setVisible(show_find_elements)
+        self.frameElementProperties.setVisible(show_element_properties)
 
         self.setDockStyle()
-        font = QFont()
-        font.setPointSize(12)
-        font.setBold(True)
-        self.labelFoundElement.setFont(font)
-        self.labelFoundElement.setWordWrap(True)
-
         self.setupConnections()
-        self.initializeCustomLayerProperties()
-        self.initializeElementTypes()
-        self.labelFoundElement.setText("")
+        
+        if hasattr(self, 'initializeCustomLayerProperties'):
+            self.initializeCustomLayerProperties()
+        
+        if hasattr(self, 'initializeElementTypes'):
+            self.initializeElementTypes()
+
+        self.placeConnectedElements()
 
         settings = QgsSettings()
-        if settings.contains("QGISRed/FindElements/geometry"):
-            self.restoreGeometry(settings.value("QGISRed/FindElements/geometry"))
+        
+        if settings.contains("QGISRed/ElementsExplorer/geometry"):
+            self.restoreGeometry(settings.value("QGISRed/ElementsExplorer/geometry"))
+        
+        if settings.contains("QGISRed/ElementsExplorer/floating"):
+            self.setFloating(settings.value("QGISRed/ElementsExplorer/floating", type=bool))
 
-    def sizeHint(self):
-        return self.minimumSize()
+    def setupEventFilters(self):
+        main_widget = self.widget()
+        self.installEventFilterRecursive(main_widget)
+
+    def installEventFilterRecursive(self, widget):
+        if widget:
+            widget.installEventFilter(self)
+            for child in widget.children():
+                if isinstance(child, QWidget):
+                    self.installEventFilterRecursive(child)
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.FocusIn:
+            if obj != self and self.isAncestorOf(obj):
+                self.reestablishIdentifyTool()
+                #self.onLayerTreeChanged()
+        return super(QGISRedElementsExplorerDock, self).eventFilter(obj, event)
+    
+    def reestablishIdentifyTool(self):
+        from ..tools.qgisred_identifyFeature import QGISRedIdentifyFeature
+        
+        current_tool = self.canvas.mapTool()
+        if not isinstance(current_tool, QGISRedIdentifyFeature):
+            self.dockFocusChanged.emit(True)
+
+    # def focusInEvent(self, event):
+    #     super(QGISRedElementsExplorerDock, self).focusInEvent(event)
+    #     self.reestablishIdentifyTool()
+        
+    #     self.onLayerTreeChanged()
+
+    # def focusOutEvent(self, event):
+    #     super(QGISRedElementsExplorerDock, self).focusOutEvent(event)
+        
+    #     self.dockFocusChanged.emit(False)
+
+    def resizeToMinimumHeight(self):
+        self.layout().activate()
+        self.adjustSize()
+        self.setFixedHeight(self.sizeHint().height())
 
     def setDockStyle(self):
-        self.initCustomTitleBar()
-        icon_path = os.path.join(os.path.dirname(__file__), '..', 'images', 'iconFindElements.png')
-        self.setWindowIcon(QIcon(icon_path))
-        search_icon = QIcon(os.path.join(os.path.dirname(__file__), '..', 'images', 'iconFilter.png'))
-        self.leElementMask.addAction(search_icon, QLineEdit.LeadingPosition)
-        self.cbElementType.setStyleSheet("QComboBox { background-color: white; }")
-        self.cbElementId.setStyleSheet("QComboBox { background-color: white; }")
+        self.initFindElementsCustomTitleBar()
+        self.initElementPropertiesCustomTitleBar()
 
+        icon_name = 'iconFindElements.png' if 'Find' in self.__class__.__name__ else 'iconElementsProperties.png'
+        icon_path = os.path.join(os.path.dirname(__file__), '..', 'images', icon_name)
+        self.setWindowIcon(QIcon(icon_path))
+        
+        if hasattr(self, 'leElementMask'):
+            search_icon = QIcon(os.path.join(os.path.dirname(__file__), '..', 'images', 'iconFilter.png'))
+            self.leElementMask.addAction(search_icon, QLineEdit.LeadingPosition)
+        
+        if hasattr(self, 'cbElementType'):
+            self.cbElementType.setStyleSheet("QComboBox { background-color: white; }")
+        if hasattr(self, 'cbElementId'):
+            self.cbElementId.setStyleSheet("QComboBox { background-color: white; }")
+
+        self.tempHideOtherTabs()
+
+    #TODO Delete later after other tabs construction
+    def tempHideOtherTabs(self):
+        self.tabWidget.setTabVisible(1, False)
+        self.tabWidget.setTabVisible(2, False)
+        self.tabWidget.setTabVisible(3, False)
+        self.tabWidget.setTabVisible(4, False)
+
+    def clearAll(self):
+        self.clearHighlights()
+        self.clearAllLayerSelections()
+
+        if hasattr(self, 'leElementMask'):
+            self.leElementMask.clear()
+        if hasattr(self, 'cbElementId') and self.cbElementId.count() > 0:
+            self.cbElementId.setCurrentIndex(0)
+        if hasattr(self, 'labelFoundElement'):
+            self.labelFoundElement.setText("")
+        if hasattr(self, 'listWidget'):
+            self.listWidget.clear()
+        if hasattr(self, 'dataTableWidget'):
+            self.dataTableWidget.clear()
+
+    def clearAllLayerSelections(self):
+        for lyr in QgsProject.instance().mapLayers().values():
+            if isinstance(lyr, QgsVectorLayer):
+                lyr.removeSelection()
+
+    def clearHighlights(self):
+        if self.main_highlight:
+            self.main_highlight.hide()
+            self.main_highlight = None
+        for h in self.adjacent_highlights:
+            h.hide()
+        self.adjacent_highlights.clear()
+        if self.current_selected_highlight:
+            self.current_selected_highlight.hide()
+            self.current_selected_highlight = None
+
+        canvas = iface.mapCanvas()
+        scene = canvas.scene()
+        for item in scene.items():
+            if isinstance(item, QgsHighlight):
+                item.hide()
+                scene.removeItem(item)
+                del item
+        canvas.refresh()
+    
+    def closeEvent(self, event):
+        self.dockVisibilityChanged.emit(False)
+        settings = QgsSettings()
+        settings.setValue("QGISRed/ElementsExplorer/geometry", self.saveGeometry())
+        settings.setValue("QGISRed/ElementsExplorer/floating", self.isFloating())
+
+        #Disconnect signals if available
+        root = QgsProject.instance().layerTreeRoot()
+        inputs_group = root.findGroup("Inputs")
+        if inputs_group and hasattr(self, 'onLayerTreeChanged'):
+            try:
+                inputs_group.addedChildren.disconnect(self.onLayerTreeChanged)
+                inputs_group.removedChildren.disconnect(self.onLayerTreeChanged)
+                for layer_node in inputs_group.findLayers():
+                    if hasattr(self, 'disconnectLayerSignals'):
+                        self.disconnectLayerSignals(layer_node.layer())
+            except Exception:
+                pass
+        
+        self.clearHighlights()
+        self.clearAllLayerSelections()
+        #self.__class__._instance = None
+        
+        super(self.__class__, self).closeEvent(event)
+
+    def getCheckedInputGroupLayers(self):
+        inputs_group = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
+        if not inputs_group:
+            return []
+        checked_layers = inputs_group.checkedLayers()
+        ordered_layers = sorted(
+            checked_layers,
+            key=lambda lyr: self.element_types.index(lyr.name()) if lyr.name() in self.element_types else 999
+        )
+        return ordered_layers
+
+    def onProjectClosed(self):
+        self.clearHighlights()
+        self.clearAllLayerSelections()
+    
+    def onProjectChanged(self):
+        self.clearAll()
+        self.onLayerTreeChanged()
+
+    def connectLayerSignals(self, layer_node):
+        try:
+            layer_node.nameChanged.connect(self.onLayerTreeChanged)
+            if layer_node.layer():
+                layer = layer_node.layer()
+                layer.dataChanged.connect(self.onLayerTreeChanged)
+                layer.featureAdded.connect(self.updateElementIds)
+                layer.featureDeleted.connect(self.updateElementIds)
+                layer.visibilityChanged.connect(self.onLayerTreeChanged)
+        except Exception:
+            pass
+
+    def disconnectLayerSignals(self, layer):
+        try:
+            if hasattr(layer, 'nameChanged'):
+                try:
+                    layer.nameChanged.disconnect(self.onLayerTreeChanged)
+                except Exception:
+                    pass
+            if hasattr(layer, 'dataChanged'):
+                try:
+                    layer.dataChanged.disconnect(self.onLayerTreeChanged)
+                except Exception:
+                    pass
+            if hasattr(layer, 'visibilityChanged'):
+                try:
+                    layer.visibilityChanged.disconnect(self.onLayerTreeChanged)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+    
+    def onLayerTreeChanged(self):
+        current_type = self.cbElementType.currentText()
+        current_id = self.extractNodeId(self.cbElementId.currentText())
+        self.initializeCustomLayerProperties()
+        self.initializeElementTypes()
+        type_index = self.cbElementType.findText(current_type)
+        if type_index >= 0:
+            self.cbElementType.setCurrentIndex(type_index)
+            id_index = self.cbElementId.findText(current_id)
+            if id_index >= 0:
+                self.cbElementId.setCurrentIndex(id_index)
+
+    def initElementsExplorerCustomTitleBar(self):
+        titleBar = QWidget(self)
+        layout = QHBoxLayout(titleBar)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        self.explorerTitleLabel = QLabel("Elements Explorer", titleBar)
+        self.explorerTitleLabel.setStyleSheet("font-size: 10pt;")
+        layout.addWidget(self.explorerTitleLabel)
+        
+        layout.addStretch()
+        
+        self.floatButton = QToolButton(titleBar)
+        float_icon = self.style().standardIcon(QStyle.SP_TitleBarNormalButton)
+        self.floatButton.setIcon(float_icon)
+        self.floatButton.setToolTip("Toggle Floating")
+        self.floatButton.clicked.connect(self.toggleFloating)
+        layout.addWidget(self.floatButton)
+        
+        self.closeButton = QToolButton(titleBar)
+        close_icon = self.style().standardIcon(QStyle.SP_TitleBarCloseButton)
+        self.closeButton.setIcon(close_icon)
+        self.closeButton.setToolTip("Close")
+        self.closeButton.clicked.connect(self.close)
+        layout.addWidget(self.closeButton)
+        
+        self.setTitleBarWidget(titleBar)
+
+    def initFindElementsCustomTitleBar(self):
+        titleBar = QWidget(self)
+        layout = QHBoxLayout(titleBar)
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        self.titleLabel = QLabel("Find Elements by Id", titleBar)
+        self.titleLabel.setStyleSheet("font-weight: bold; color: darkblue; font-size: 9pt;")
+        layout.addWidget(self.titleLabel)
+        layout.addStretch()
+
+        self.epButton = QToolButton(titleBar)
+        icon_ep = QIcon(os.path.join(os.path.dirname(__file__), '..', 'images', 'iconElementsProperties.png'))
+        self.epButton.setIcon(icon_ep)
+        self.epButton.setToolTip("Element Properties")
+        self.epButton.clicked.connect(self.openElementPropertiesDock)
+        self.epButton.clicked.connect(self.toggleElementPropertiesDock)
+        self.epButton.setCheckable(True)
+        layout.addWidget(self.epButton)
+
+        self.findElementsDock.setTitleBarWidget(titleBar)
+
+        self.epButton.setChecked(not self.frameElementProperties.isVisible())
+        
+    def initElementPropertiesCustomTitleBar(self):
+        titleBar = QWidget(self)
+        layout = QHBoxLayout(titleBar)
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        self.titleLabel = QLabel(self.windowTitle(), titleBar)
+        self.titleLabel.setStyleSheet("font-weight: bold; color: darkblue; font-size: 9pt;")
+        self.titleLabel.setText("Element Properties")
+        layout.addWidget(self.titleLabel)
+        layout.addStretch()
+
+        self.findButton = QToolButton(titleBar)
+        icon_find = QIcon(os.path.join(os.path.dirname(__file__), '..', 'images', 'iconFindElements.png'))
+        self.findButton.setIcon(icon_find)
+        self.findButton.setToolTip("Find Elements by ID")
+        self.findButton.clicked.connect(self.openFindElementsDock)
+        self.findButton.clicked.connect(self.toggleFindElementsDock)
+        self.findButton.setCheckable(True)
+        layout.addWidget(self.findButton)
+        
+        self.elementPropertiesDock.setTitleBarWidget(titleBar)
+
+        self.findButton.setChecked(not self.frameFindElements.isVisible())
+
+    @pyqtSlot()
+    def toggleElementPropertiesDock(self):
+        visibility = not self.frameElementProperties.isVisible()
+        self.frameElementProperties.setVisible(visibility)
+        self.elementPropertiesDockVisibilityChanged.emit(visibility)
+
+    @pyqtSlot()
+    def toggleFindElementsDock(self):
+        current_visibility = self.frameFindElements.isVisible()
+        self.findElementsDockVisibilityChanged.emit(current_visibility)
+
+    @pyqtSlot()
+    def toggleElementPropertiesDock(self):
+        current_visibility = self.frameElementProperties.isVisible()
+        self.elementPropertiesDockVisibilityChanged.emit(current_visibility)
+
+
+    @pyqtSlot()
+    def openElementPropertiesDock(self):
+        if not self._instance:
+            self.setComponentVisibility(False, True)
+        elif not self.element_properties_visible:
+            self.setComponentVisibility(self.find_elements_visible, True)
+        elif self.find_elements_visible and self.element_properties_visible:
+            self.setComponentVisibility(True, False)
+        else:
+            self.close()
+
+    @pyqtSlot()
+    def openFindElementsDock(self):
+        if not self._instance:
+            self.setComponentVisibility(True, False)
+        elif not self.find_elements_visible:
+            self.setComponentVisibility(True, self.element_properties_visible)
+        elif self.find_elements_visible and not self.element_properties_visible:
+            self.close()
+        else:
+            self.setComponentVisibility(False, True)
+
+    def toggleFindElementsDockVisibility(self):
+        self.find_elements_visible = not self.find_elements_visible
+        if self.find_elements_visible:
+            self.frameFindElements.show()
+        else:
+            self.frameFindElements.hide()
+        
+        if not self.find_elements_visible and not self.element_properties_visible:
+            self.close()
+        else:
+            self.placeConnectedElements()
+
+    def toggleElementPropertiesVisibility(self):
+        self.element_properties_visible = not self.element_properties_visible
+        if self.element_properties_visible:
+            self.frameElementProperties.show()
+        else:
+            self.frameElementProperties.hide()
+        
+        if not self.find_elements_visible and not self.element_properties_visible:
+            self.close()
+        else:
+            self.placeConnectedElements()
+    def removeConnectedElementsFromLayouts(self):
+        for widget in [self.labelFoundElement, self.labelAdjacentNodeLinks, self.listWidget]:
+            if widget:
+                widget.setParent(None)
+                widget.hide()
+
+        for dock in [self.findElementsDock, self.elementPropertiesDock]:
+            content = dock.widget()
+            if content:
+                main_layout = content.layout()
+                if main_layout:
+                    inner_layout = main_layout.itemAt(0).layout()
+                    if main_layout and inner_layout:
+                        for widget in [self.labelFoundElement, self.labelAdjacentNodeLinks, self.listWidget]:
+                            item = main_layout.takeAt(main_layout.indexOf(widget))
+                            if item:
+                                item.widget().setParent(None)
+
+    def placeConnectedElements(self):
+        self.removeConnectedElementsFromLayouts()
+
+        if self.element_properties_visible:
+            ep_content = self.elementPropertiesDock.widget()
+            ep_layout = ep_content.layout().itemAt(0).layout()
+
+            for widget in [self.labelFoundElement, self.labelAdjacentNodeLinks, self.listWidget]:
+                widget.setParent(ep_content)
+                widget.show()
+
+            ep_layout.insertWidget(0, self.labelFoundElement)
+            ep_layout.insertWidget(1, self.labelAdjacentNodeLinks)
+            ep_layout.insertWidget(2, self.listWidget)
+
+        else:
+            fe_content = self.findElementsDock.widget()
+            fe_layout = fe_content.layout().itemAt(0).layout()
+
+            line = fe_content.findChild(QFrame, "line")
+            line_index = fe_layout.indexOf(line) if line else -1
+
+            for widget in [self.labelFoundElement, self.labelAdjacentNodeLinks, self.listWidget]:
+                widget.setParent(fe_content)
+                widget.show()
+
+            if line_index >= 0:
+                fe_layout.insertWidget(line_index + 1, self.labelFoundElement)
+                fe_layout.insertWidget(line_index + 2, self.labelAdjacentNodeLinks)
+                fe_layout.insertWidget(line_index + 3, self.listWidget)
+                line.show()
+            else:
+                fe_layout.addWidget(self.labelFoundElement)
+                fe_layout.addWidget(self.labelAdjacentNodeLinks)
+                fe_layout.addWidget(self.listWidget)
+
+    def setComponentVisibility(self, show_find_elements, show_element_properties):
+        self.find_elements_visible = show_find_elements
+        self.element_properties_visible = show_element_properties
+        
+        self.findElementsDockVisibilityChanged.emit(show_find_elements)
+        self.elementPropertiesDockVisibilityChanged.emit(show_element_properties)
+
+        self.findButton.setChecked(show_find_elements)
+        self.epButton.setChecked(show_element_properties)
+        
+        self.frameFindElements.setVisible(show_find_elements)
+        self.frameElementProperties.setVisible(show_element_properties)
+        
+        self.placeConnectedElements()
+        self.resizeToMinimumHeight() 
+
+        # Close the dock only if both components are hidden and the dock is not floating
+        if not show_find_elements and not show_element_properties and not self.isFloating():
+            self.close()
+
+    def openIdentifyForFindDock(self):
+        from ..tools.qgisred_identifyFeature import QGISRedIdentifyFeature
+        self.identifyTool = QGISRedIdentifyFeature(self.canvas, useFindDock=True)
+        self.canvas.setMapTool(self.identifyTool)
+
+#------- Common Functions -----------------
+    @pyqtSlot()
+    def toggleFloating(self):
+        self.setFloating(not self.isFloating())
+
+    def setupConnections(self):
+        self.cbElementType.currentIndexChanged.connect(self.updateElementIds)
+        self.leElementMask.textChanged.connect(self.filterElementIds)
+        self.btFind.clicked.connect(self.onFindButtonClicked)
+        self.listWidget.itemClicked.connect(self.onListItemSingleClicked)
+        self.listWidget.itemDoubleClicked.connect(self.onListItemDoubleClicked)
+        self.btClear.clicked.connect(self.clearAll)
+        self.cbElementId.currentIndexChanged.connect(self.onElementIdChanged)
+
+        project = QgsProject.instance()
+        project.layersAdded.connect(self.onLayerTreeChanged)
+        project.layersRemoved.connect(self.onLayerTreeChanged)
+        project.readProject.connect(self.onProjectChanged)
+        project.cleared.connect(self.onProjectChanged)
+
+        root = project.layerTreeRoot()
+        inputs_group = root.findGroup("Inputs")
+        if inputs_group:
+            inputs_group.addedChildren.connect(self.onLayerTreeChanged)
+            inputs_group.removedChildren.connect(self.onLayerTreeChanged)
+            for layer_node in inputs_group.findLayers():
+                self.connectLayerSignals(layer_node)
+        
+        self.findElementsDock.visibilityChanged.connect(self.onDockVisibilityChanged)
+        self.elementPropertiesDock.visibilityChanged.connect(self.onDockVisibilityChanged)
+
+#------- Common Functions -----------------
+    @pyqtSlot(bool)
+    def onDockVisibilityChanged(self, visible):
+        find_dock_visible = self.frameFindElements.isVisible() 
+        element_properties_visible = self.frameElementProperties.isVisible()
+
+        if not find_dock_visible and not element_properties_visible:
+            self.close()
+            return
+        
+        self.setComponentVisibility(find_dock_visible, element_properties_visible)
+        self.findElementsDockVisibilityChanged.emit(find_dock_visible)
+        self.elementPropertiesDockVisibilityChanged.emit(element_properties_visible)
+        self.resizeToMinimumHeight() 
+        
+#------- Element Properties -----------------
+    def populatedataTableWidget(self):
+        if not hasattr(self, 'dataTableWidget'):
+            return
+        
+        self.dataTableWidget.clearContents()
+        self.dataTableWidget.setShowGrid(False)
+        self.dataTableWidget.setStyleSheet("QTableWidget::item { padding: 1px; }")
+        
+        self.dataTableWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        
+        fields = self.currentLayer.fields()
+        attributes = self.currentFeature.attributes()
+        num_fields = len(fields)
+        self.dataTableWidget.setRowCount(num_fields)
+        self.dataTableWidget.setColumnCount(2)
+        self.dataTableWidget.setHorizontalHeaderLabels(["Property", "Value"])
+        
+        header = self.dataTableWidget.horizontalHeader()
+        header.setSectionResizeMode(QHeaderView.Interactive)
+        header.setStyleSheet("QHeaderView::section { font-weight: bold; }")
+        
+        self.dataTableWidget.verticalHeader().setDefaultSectionSize(20)
+        
+        total_width = self.dataTableWidget.viewport().width() + 20 
+        self.dataTableWidget.setColumnWidth(0, total_width // 2)
+        self.dataTableWidget.setColumnWidth(1, total_width // 2)
+        
+        self.dataTableWidget.verticalHeader().setVisible(False)
+        
+        for row, field in enumerate(fields):
+            field_item = QTableWidgetItem(field.name())
+            value_item = QTableWidgetItem(str(attributes[row]))
+            self.dataTableWidget.setItem(row, 0, field_item)
+            self.dataTableWidget.setItem(row, 1, value_item)
+
+    #TODO Only data tab for now, rest is hidden
+    def setupTabs(self, visible_tabs):
+        ...
+        # tabs_info = {
+        #     "tabData": self.tabData,
+        #     "tabResults": self.tabResults,
+        #     "tabCurves": self.tabCurves,
+        #     "tabPatterns": self.tabPatterns,
+        #     "tabControls": self.tabControls
+        # }
+        # for tab_name, tab_widget in tabs_info.items():
+        #     if tab_widget is None:
+        #         continue
+        #     tab_index = self.tabWidget.indexOf(tab_widget)
+        #     if tab_index == -1:
+        #         continue
+        #     if tab_name == "tabResults": # hide results tab for now
+        #         self.tabWidget.setTabVisible(tab_index, False)
+        #     else:
+        #         self.tabWidget.setTabVisible(tab_index, tab_name in visible_tabs)
+
+    def handleJunctions(self, layer, feature, tabs):
+        self.setupTabs(tabs)
+        self.loadFeature(layer, feature)
+
+    def handlePipes(self, layer, feature, tabs):
+        self.setupTabs(tabs)
+        self.loadFeature(layer, feature)
+
+    def handlePumps(self, layer, feature, tabs):
+        self.setupTabs(tabs)
+        self.loadFeature(layer, feature)
+
+    def handleReservoirs(self, layer, feature, tabs):
+        self.setupTabs(tabs)
+        self.loadFeature(layer, feature)
+
+    def handleTanks(self, layer, feature, tabs):
+        self.setupTabs(tabs)
+        self.loadFeature(layer, feature)
+
+    def handleValves(self, layer, feature, tabs):
+        self.setupTabs(tabs)
+        self.loadFeature(layer, feature)
+    
+    def handleMeters(self, layer, feature, tabs):
+        self.setupTabs(tabs)
+        self.loadFeature(layer, feature)
+
+    def handleIsolationValves(self, layer, feature, tabs):
+        self.setupTabs(tabs)
+        self.loadFeature(layer, feature)
+
+    def handleServiceConnections(self, layer, feature, tabs):
+        self.setupTabs(tabs)
+        self.loadFeature(layer, feature)
+    
+    def findOverlappingFeatures(self, target_feature, search_identifier):
+        overlapping_features = []
+        target_geom = target_feature.geometry()
+        
+        for layer in self.getCheckedInputGroupLayers():
+            if layer.customProperty("qgisred_identifier") == search_identifier:
+                for feat in layer.getFeatures():
+                    if target_geom.intersects(feat.geometry()):
+                        overlapping_features.append(feat)
+        return overlapping_features
+    
+    #TODO ADAPT TO NEW CLASS
+    def loadFeature(self, layer, feature):
+        if not layer or not feature:
+            return
+
+        self.currentLayer = layer
+        self.currentFeature = feature
+        layer.selectByIds([feature.id()])
+        self.populatedataTableWidget()
+
+        base_title = f"{self.singular_forms.get(layer.name(), layer.name())} {feature.attribute('Id')}"
+        suffix_source = ""
+        suffix_demand = ""
+
+        id_property = layer.customProperty("qgisred_identifier")
+        if id_property in ["qgisred_junctions", "qgisred_reservoirs", "qgisred_tanks"]:
+            source_features = self.findOverlappingFeatures(feature, "qgisred_sources")
+            if source_features:
+                suffix_source = "(Source)"
+                for src_feat in source_features:
+                    self.appendFeatureProperties(src_feat, "Source")
+            if id_property == "qgisred_junctions":
+                demand_features = self.findOverlappingFeatures(feature, "qgisred_demands")
+                if demand_features:
+                    suffix_demand = "(Mult.Dem)"
+                    for dem_feat in demand_features:
+                        self.appendFeatureProperties(dem_feat, "Mult.Dem")
+
+        self.labelFoundElement.setText(f"{base_title} {suffix_source}{suffix_demand}")
+        self.labelFoundElement.setStyleSheet("font-weight: bold; font-size: 12pt;")
+
+    def appendFeatureProperties(self, feature, label_suffix=""):
+        if not hasattr(self, 'dataTableWidget'):
+            return
+        fields = feature.fields()
+        attributes = feature.attributes()
+        current_row_count = self.dataTableWidget.rowCount()
+        new_row_count = current_row_count + len(fields)
+        self.dataTableWidget.setRowCount(new_row_count)
+        for i, field in enumerate(fields):
+            # Append the label suffix to the field name.
+            field_name = f"{field.name()} ({label_suffix})"
+            field_item = QTableWidgetItem(field_name)
+            value_item = QTableWidgetItem(str(attributes[i]))
+            self.dataTableWidget.setItem(current_row_count + i, 0, field_item)
+            self.dataTableWidget.setItem(current_row_count + i, 1, value_item)
+
+
+#------- Element Properties -----------------
+
+
+#------- Find Elements -----------------
     def initializeCustomLayerProperties(self):
         inputs_group = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
         if not inputs_group:
@@ -153,48 +780,11 @@ class QGISRedFindElementsDock(QDockWidget, FORM_CLASS):
         self.cbElementType.setCurrentText(pipes_layer_name)
         self.updateElementIds()
 
-    # -------------------------------------------------------------------------
-    # Event Filter and Signal Connections
-    # -------------------------------------------------------------------------
-    def eventFilter(self, obj, event):
-        if obj == self.listWidget and (
-            event.type() == QEvent.FocusOut or 
-            (event.type() == QEvent.KeyPress and event.key() == Qt.Key_Escape)
-        ):
-            self.listWidget.clearSelection()
-            self.listWidget.setCurrentRow(-1)
-        return super(QGISRedFindElementsDock, self).eventFilter(obj, event)
-
-    def setupConnections(self):
-        self.cbElementType.currentIndexChanged.connect(self.updateElementIds)
-        self.leElementMask.textChanged.connect(self.filterElementIds)
-        self.btFind.clicked.connect(self.onFindButtonClicked)
-        self.listWidget.itemClicked.connect(self.onListItemSingleClicked)
-        self.listWidget.itemDoubleClicked.connect(self.onListItemDoubleClicked)
-        self.btClear.clicked.connect(self.clearAll)
-        self.cbElementId.currentIndexChanged.connect(self.onElementIdChanged)
-
-        project = QgsProject.instance()
-        project.layersAdded.connect(self.onLayerTreeChanged)
-        project.layersRemoved.connect(self.onLayerTreeChanged)
-        project.readProject.connect(self.onProjectChanged)
-        project.cleared.connect(self.onProjectChanged)
-
-        root = project.layerTreeRoot()
-        inputs_group = root.findGroup("Inputs")
-        if inputs_group:
-            inputs_group.addedChildren.connect(self.onLayerTreeChanged)
-            inputs_group.removedChildren.connect(self.onLayerTreeChanged)
-            for layer_node in inputs_group.findLayers():
-                self.connectLayerSignals(layer_node)
-
-    # -------------------------------------------------------------------------
-    # Public/User-Facing Methods
-    # -------------------------------------------------------------------------
     @pyqtSlot(int)
     def onElementIdChanged(self, index):
         self.labelFoundElement.setText("")
         self.listWidget.clear()
+        self.dataTableWidget.clear()
 
     @pyqtSlot()
     def onFindButtonClicked(self):
@@ -258,6 +848,7 @@ class QGISRedFindElementsDock(QDockWidget, FORM_CLASS):
         else:
             self.findAdjacentLinksByGeometry(found_feature, layer)
         self.sortListWidgetItems()
+        self.loadFeature(layer, feature)
 
     @pyqtSlot()
     def updateElementIds(self):
@@ -287,14 +878,6 @@ class QGISRedFindElementsDock(QDockWidget, FORM_CLASS):
         else:
             filtered_items = self.original_ids
         self.cbElementId.addItems(filtered_items)
-
-    def clearAll(self):
-        self.clearHighlights()
-        self.clearAllLayerSelections()
-        self.leElementMask.clear()
-        self.cbElementId.setCurrentIndex(0)
-        self.labelFoundElement.setText("")
-        self.listWidget.clear()
 
     def onListItemSingleClicked(self, item):
         if self.current_selected_highlight:
@@ -345,57 +928,7 @@ class QGISRedFindElementsDock(QDockWidget, FORM_CLASS):
         if index >= 0:
             self.cbElementId.setCurrentIndex(index)
         self.findElement()
-
-    def closeEvent(self, event):
-        root = QgsProject.instance().layerTreeRoot()
-        inputs_group = root.findGroup("Inputs")
-        if inputs_group:
-            try:
-                inputs_group.addedChildren.disconnect(self.onLayerTreeChanged)
-                inputs_group.removedChildren.disconnect(self.onLayerTreeChanged)
-                for layer_node in inputs_group.findLayers():
-                    self.disconnectLayerSignals(layer_node.layer())
-            except Exception:
-                pass
-        settings = QgsSettings()
-        settings.setValue("QGISRed/FindElements/geometry", self.saveGeometry())
-        self.clearHighlights()
-        self.clearAllLayerSelections()
-        QGISRedFindElementsDock._instance = None
-        super(QGISRedFindElementsDock, self).closeEvent(event)
-
-    def onProjectClosed(self):
-        self.clearHighlights()
-        self.clearAllLayerSelections()
-
-    # -------------------------------------------------------------------------
-    # Highlight and Map View Adjustment Methods
-    # -------------------------------------------------------------------------
-    def clearHighlights(self):
-        if self.main_highlight:
-            self.main_highlight.hide()
-            self.main_highlight = None
-        for h in self.adjacent_highlights:
-            h.hide()
-        self.adjacent_highlights.clear()
-        if self.current_selected_highlight:
-            self.current_selected_highlight.hide()
-            self.current_selected_highlight = None
-
-        canvas = iface.mapCanvas()
-        scene = canvas.scene()
-        for item in scene.items():
-            if isinstance(item, QgsHighlight):
-                item.hide()
-                scene.removeItem(item)
-                del item
-        canvas.refresh()
-
-    def clearAllLayerSelections(self):
-        for lyr in QgsProject.instance().mapLayers().values():
-            if isinstance(lyr, QgsVectorLayer):
-                lyr.removeSelection()
-
+    
     def adjustMapView(self, feature):
         canvas = iface.mapCanvas()
         current_extent = canvas.extent()
@@ -428,7 +961,7 @@ class QGISRedFindElementsDock(QDockWidget, FORM_CLASS):
         new_extent = self.applyMinimalPan(new_extent, feature_extent)
         canvas.setExtent(new_extent)
         canvas.refresh()
-
+    
     def recenterExtent(self, new_width, new_height, center_x, center_y):
         half_w = new_width / 2.0
         half_h = new_height / 2.0
@@ -460,9 +993,6 @@ class QGISRedFindElementsDock(QDockWidget, FORM_CLASS):
             new_extent.setYMaximum(new_extent.yMaximum() - shift)
         return new_extent
 
-    # -------------------------------------------------------------------------
-    # Helper Methods: Layers, IDs, and Geometry
-    # -------------------------------------------------------------------------
     def getAvailableElementTypes(self):
         inputs_group = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
         if not inputs_group:
@@ -678,10 +1208,7 @@ class QGISRedFindElementsDock(QDockWidget, FORM_CLASS):
 
     def isLineElement(self, layer):
         return layer.customProperty("qgisred_identifier") in self.link_layers
-    
-    # -------------------------------------------------------------------------
-    # Adjacency Methods
-    # -------------------------------------------------------------------------
+
     def addAdjacencyItem(self, item_text, identifier):
         new_item = QListWidgetItem(self.tr(item_text))
         new_item.setData(Qt.UserRole, identifier)
@@ -930,191 +1457,47 @@ class QGISRedFindElementsDock(QDockWidget, FORM_CLASS):
                         self.addAdjacencyItem(full_name, lyr.customProperty("qgisred_identifier"))
                         return
 
-    # -------------------------------------------------------------------------
-    # Signal Connection Helpers
-    # -------------------------------------------------------------------------
-    def connectLayerSignals(self, layer_node):
-        try:
-            layer_node.nameChanged.connect(self.onLayerTreeChanged)
-            if layer_node.layer():
-                layer = layer_node.layer()
-                layer.dataChanged.connect(self.onLayerTreeChanged)
-                layer.featureAdded.connect(self.updateElementIds)
-                layer.featureDeleted.connect(self.updateElementIds)
-                layer.visibilityChanged.connect(self.onLayerTreeChanged)
-        except Exception:
-            pass
-
-    def disconnectLayerSignals(self, layer):
-        try:
-            if hasattr(layer, 'nameChanged'):
-                try:
-                    layer.nameChanged.disconnect(self.onLayerTreeChanged)
-                except Exception:
-                    pass
-            if hasattr(layer, 'dataChanged'):
-                try:
-                    layer.dataChanged.disconnect(self.onLayerTreeChanged)
-                except Exception:
-                    pass
-            if hasattr(layer, 'visibilityChanged'):
-                try:
-                    layer.visibilityChanged.disconnect(self.onLayerTreeChanged)
-                except Exception:
-                    pass
-        except Exception:
-            pass
-
-    def onLayerTreeChanged(self):
-        current_type = self.cbElementType.currentText()
-        current_id = self.extractNodeId(self.cbElementId.currentText())
-        self.initializeCustomLayerProperties()
-        self.initializeElementTypes()
-        type_index = self.cbElementType.findText(current_type)
-        if type_index >= 0:
-            self.cbElementType.setCurrentIndex(type_index)
-            id_index = self.cbElementId.findText(current_id)
-            if id_index >= 0:
-                self.cbElementId.setCurrentIndex(id_index)
-    
-    def onProjectChanged(self):
-        self.clearAll()
-        self.onLayerTreeChanged()
-
-    ## Methods related to external class QGISRedElementProperties class 
     def findFeature(self, layer, feature):
-        print("DEBUG: findFeature called with layer:", layer.name(), "and feature id:", feature.id())
-        
         element_type_text = layer.name()
-        print("DEBUG: element_type_text set to:", element_type_text)
         self.cbElementType.setCurrentText(element_type_text)
         
-        print("DEBUG: Calling updateElementIds()")
         self.updateElementIds()
         
         feature_id_text = self.getFeatureIdValue(feature, layer, special_naming=True)
-        print("DEBUG: feature_id_text obtained:", feature_id_text)
         
         index = self.cbElementId.findText(feature_id_text)
-        print("DEBUG: Index found in cbElementId for feature_id_text:", index)
         if index >= 0:
             self.cbElementId.setCurrentIndex(index)
-            print("DEBUG: cbElementId index set to:", index)
-        else:
-            print("DEBUG: feature_id_text not found in cbElementId")
-        
-        print("DEBUG: Clearing highlights, layer selections, and listWidget")
+
         self.clearHighlights()
         self.clearAllLayerSelections()
         self.listWidget.clear()
 
-        print("DEBUG: Updating found element label with feature_id_text:", feature_id_text)
         self.updateFoundElementLabel(feature_id_text, layer)
 
-        print("DEBUG: Creating highlight for the feature")
         highlight = QgsHighlight(iface.mapCanvas(), feature.geometry(), layer)
         highlight.setColor(QColor("red"))
         highlight.setWidth(5)
         highlight.show()
         self.main_highlight = highlight
-        print("DEBUG: Highlight created and shown")
-        
-        print("DEBUG: Adjusting map view to feature")
+
         self.adjustMapView(feature)
         
         identifier = layer.customProperty("qgisred_identifier")
-        print("DEBUG: Identifier from layer:", identifier)
         if self.isLineElement(layer):
-            print("DEBUG: Layer is a line element; calling findAdjacentNodesByGeometry")
             self.findAdjacentNodesByGeometry(feature)
         elif identifier == "qgisred_meters":
-            print("DEBUG: Identifier is 'qgisred_meters'; calling findMeterAdjacency")
             self.findMeterAdjacency(feature, layer)
         elif identifier == "qgisred_isolationvalves":
-            print("DEBUG: Identifier is 'qgisred_isolationvalves'; calling findIsolationValveAdjacency")
             self.findIsolationValveAdjacency(feature, layer)
         elif identifier == "qgisred_serviceconnections":
-            print("DEBUG: Identifier is 'qgisred_serviceconnections'; calling findServiceConnectionAdjacency")
             self.findServiceConnectionAdjacency(feature, layer)
         else:
-            print("DEBUG: Calling findAdjacentLinksByGeometry")
             self.findAdjacentLinksByGeometry(feature, layer)
         
-        print("DEBUG: Sorting list widget items")
         self.sortListWidgetItems()
-        print("DEBUG: findFeature complete")
 
+        self.loadFeature(layer, feature)
 
-    def initCustomTitleBar(self):
-        titleBar = QWidget(self)
-        layout = QHBoxLayout(titleBar)
-        layout.setContentsMargins(5, 0, 5, 0)
+#------- Find Elements -----------------
 
-        self.titleLabel = QLabel("Find Elements by Id", titleBar)
-        layout.addWidget(self.titleLabel)
-        layout.addStretch()
-
-        # New Identify Button
-        self.identifyButton = QToolButton(titleBar)
-        icon_identify = QIcon(os.path.join(os.path.dirname(__file__), '..', 'images', "cursor.png"))
-        self.identifyButton.setIcon(icon_identify)
-        self.identifyButton.setToolTip("Identify Feature")
-        self.identifyButton.clicked.connect(self.openIdentifyForFindDock)
-        layout.addWidget(self.identifyButton)
-
-        epButton = QToolButton(titleBar)
-        icon_ep = QIcon(os.path.join(os.path.dirname(__file__), '..', 'images', 'iconElementsProperties.png'))
-        epButton.setIcon(icon_ep)
-        epButton.setToolTip("Element Properties")
-        epButton.clicked.connect(self.openElementPropertiesDock)
-        layout.addWidget(epButton)
-
-        self.floatButton = QToolButton(titleBar)
-        float_icon = self.style().standardIcon(QStyle.SP_TitleBarNormalButton)
-        self.floatButton.setIcon(float_icon)
-        self.floatButton.setToolTip("Float")
-        self.floatButton.clicked.connect(self.toggleFloating)
-        layout.addWidget(self.floatButton)
-
-        # Close button for this dock
-        self.closeButton = QToolButton(titleBar)
-        close_icon = self.style().standardIcon(QStyle.SP_TitleBarCloseButton)
-        self.closeButton.setIcon(close_icon)
-        self.closeButton.setToolTip("Close")
-        self.closeButton.clicked.connect(self.close)
-        layout.addWidget(self.closeButton)
-
-        self.setTitleBarWidget(titleBar)
-    
-    def openIdentifyForFindDock(self):
-        from ..tools.qgisred_identifyFeature import QGISRedIdentifyFeature
-        self.identifyTool = QGISRedIdentifyFeature(self.canvas, useFindDock=True)
-        self.canvas.setMapTool(self.identifyTool)
-
-    @pyqtSlot()
-    def openElementPropertiesDock(self):
-        from .qgisred_elementproperties_dock import QGISRedElementsPropertyDock
-        from ..tools.qgisred_identifyFeature import QGISRedIdentifyFeature
-
-        existing_docks = self.canvas.findChildren(QGISRedElementsPropertyDock)
-        self.identifyTool = QGISRedIdentifyFeature(self.canvas)
-        if existing_docks:
-            dock = existing_docks[0]
-            if dock.isVisible():
-                dock.close()
-            else:
-                iface.addDockWidget(Qt.RightDockWidgetArea, dock)
-                dock.show()
-                dock.raise_()
-                dock.loadFeature(self.currentLayer, self.currentFeature)
-                self.canvas.setMapTool(self.identifyTool)
-        else:
-            dock = QGISRedElementsPropertyDock.getInstance()
-            iface.addDockWidget(Qt.RightDockWidgetArea, dock)
-            dock.loadFeature(self.currentLayer, self.currentFeature)
-            dock.show()
-            self.canvas.setMapTool(self.identifyTool)
-
-    @pyqtSlot()
-    def toggleFloating(self):
-        self.setFloating(not self.isFloating())
