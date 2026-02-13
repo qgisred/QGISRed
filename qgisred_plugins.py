@@ -1868,7 +1868,7 @@ class QGISRed:
         utils.removeLayers(self.ownFiles, ".dbf")
         utils.removeLayers(self.especificComplementaryLayers)
         utils.removeLayers(self.issuesLayers)
-        utils.removeTopLevelGroups(["Inputs", "Queries", "Results"])
+        #utils.removeTopLevelGroups(["Inputs", "Queries", "Results"])
         if task is not None:
             return {"task": task.definition()}
 
@@ -1965,7 +1965,7 @@ class QGISRed:
 
         # Always remove the one project‑level QLR file if it was created
         utils.deleteProjectQLR()
-
+        
         # Continue any pending task
         if task is not None:
             return {"task": task.definition()}

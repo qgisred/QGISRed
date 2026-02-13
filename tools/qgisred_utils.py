@@ -1024,6 +1024,7 @@ class QGISRedUtils:
         if not os.path.exists(qlr_path):
             return False
         
+        self.removeTopLevelGroups()
         error_message = ""
         success = QgsLayerDefinition().loadLayerDefinition(qlr_path, QgsProject.instance(), QgsProject.instance().layerTreeRoot())
 
@@ -1043,9 +1044,22 @@ class QGISRedUtils:
             return True
         return False
     
-    def removeTopLevelGroups(names):
-        root = QgsProject.instance().layerTreeRoot()
-        for name in names:
-            grp = root.findGroup(name)
-            if grp:
-                root.removeChildNode(grp)
+    def removeTopLevelGroups(self, names=None):
+        """
+        Remove every top‐level group and layer from the project,
+        then unregister all map layers and refresh the canvas.
+        """
+        # 1. Get project instance and its layer‐tree root
+        proj = QgsProject.instance()
+        root = proj.layerTreeRoot()
+
+        # 2. Remove all layer‐tree nodes (both groups and standalone layers)
+        root.removeAllChildren()
+
+        # 3. Unregister all map layers from the project registry
+        proj.removeAllMapLayers()
+
+        # 4. Redraw the canvas so nothing remains visible
+        if self.iface:
+            self.iface.mapCanvas().refresh()
+

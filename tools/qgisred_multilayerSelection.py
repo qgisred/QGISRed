@@ -1,7 +1,7 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QApplication
-from qgis.core import QgsPointXY, QgsPoint, QgsGeometry, QgsFeature, QgsRectangle, QgsVectorLayer, QgsMapLayer
+from qgis.core import QgsPointXY, QgsPoint, QgsGeometry, QgsFeature, QgsRectangle, QgsVectorLayer, QgsMapLayer, QgsWkbTypes
 from qgis.gui import QgsMapTool, QgsRubberBand
 from qgis.utils import Qgis
 try:
@@ -22,7 +22,7 @@ class QGISRedMultiLayerSelection(QgsMapTool):
         self.iface = iface
         self.setAction(action)
         try:  # From QGis 3.30
-            self.myRubberBand = QgsRubberBand(self.canvas, QgisGui.GeometryType.Polygon)  # 3= Polygon
+            self.myRubberBand = QgsRubberBand(self.canvas, QgsWkbTypes.GeometryType.Polygon)  # 3= Polygon
         except:
             self.myRubberBand = QgsRubberBand(self.canvas, 3)  # 3= Polygon
         mFillColor = QColor(255, 0, 0, 100)
@@ -50,7 +50,7 @@ class QGISRedMultiLayerSelection(QgsMapTool):
         self.finalPoint = None
         self.isSelecting = False
         try:  # From QGis 3.30
-            self.myRubberBand.reset(QgisGui.GeometryType.Polygon)  # 3= Polygon
+            self.myRubberBand.reset(QgsWkbTypes.GeometryType.Polygon)  # 3= Polygon
         except:
             self.myRubberBand.reset(3)
 
@@ -79,7 +79,7 @@ class QGISRedMultiLayerSelection(QgsMapTool):
         if self.rubberBand1 is not None:
             self.iface.mapCanvas().scene().removeItem(self.rubberBand1)
         try:  # From QGis 3.30
-            self.rubberBand1 = QgsRubberBand(self.canvas, QgisGui.GeometryType.Polygon)  # 3= Polygon
+            self.rubberBand1 = QgsRubberBand(self.canvas, QgsWkbTypes.GeometryType.Polygon)  # 3= Polygon
         except:
             self.rubberBand1 = QgsRubberBand(self.canvas, 3)  # 3= Polygon
         self.rubberBand1.setToGeometry(QgsGeometry.fromPolyline(myPoints1), None)
@@ -94,7 +94,7 @@ class QGISRedMultiLayerSelection(QgsMapTool):
         if self.rubberBand2 is not None:
             self.iface.mapCanvas().scene().removeItem(self.rubberBand2)
         try:  # From QGis 3.30
-            self.rubberBand2 = QgsRubberBand(self.canvas, QgisGui.GeometryType.Polygon)  # 3= Polygon
+            self.rubberBand2 = QgsRubberBand(self.canvas, QgsWkbTypes.GeometryType.Polygon)  # 3= Polygon
         except:
             self.rubberBand2 = QgsRubberBand(self.canvas, 3)  # 3= Polygon
         self.rubberBand2.setToGeometry(QgsGeometry.fromPolyline(myPoints2), None)
@@ -104,7 +104,7 @@ class QGISRedMultiLayerSelection(QgsMapTool):
 
     def showRectangle(self, initialPoint, finalPoint):
         try:  # From QGis 3.30
-            self.myRubberBand.reset(QgisGui.GeometryType.Polygon)  # 3= Polygon
+            self.myRubberBand.reset(QgsWkbTypes.GeometryType.Polygon)  # 3= Polygon
         except:
             self.myRubberBand.reset(3)
         if initialPoint.x() == finalPoint.x() or initialPoint.y() == finalPoint.y():
