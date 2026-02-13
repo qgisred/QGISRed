@@ -76,6 +76,129 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.previousClassificationMode = None
         self.previousSizeMode = None
 
+    # ============================================================
+    # RESULTS LAYER DETECTION AND VALUE EXTRACTION
+    # ============================================================
+
+    def isResultsLayer(self):
+        """Check if the current layer is a results layer."""
+        if not self.currentLayer:
+            return False
+        identifier = self.currentLayer.customProperty("qgisred_identifier")
+        if not identifier:
+            return False
+        return identifier.startswith("qgisred_link_") or identifier.startswith("qgisred_node_")
+
+    def isLinkResultLayer(self):
+        """Check if current layer is a Link result layer."""
+        if not self.currentLayer:
+            return False
+        identifier = self.currentLayer.customProperty("qgisred_identifier")
+        return identifier and identifier.startswith("qgisred_link_")
+
+    def isNodeResultLayer(self):
+        """Check if current layer is a Node result layer."""
+        if not self.currentLayer:
+            return False
+        identifier = self.currentLayer.customProperty("qgisred_identifier")
+        return identifier and identifier.startswith("qgisred_node_")
+
+    def getResultFieldMapping(self):
+        """Map layer identifier to field name in the 'All' shapefile."""
+        mapping = {
+            "qgisred_link_flow": "Flow",
+            "qgisred_link_velocity": "Velocity",
+            "qgisred_link_headloss": "HeadLoss",
+            "qgisred_link_unitheadloss": "UnitHeadLo",
+            "qgisred_link_status": "Status",
+            "qgisred_link_quality": "Quality",
+            "qgisred_node_demand": "Demand",
+            "qgisred_node_head": "Head",
+            "qgisred_node_pressure": "Pressure",
+            "qgisred_node_quality": "Quality",
+        }
+        if not self.currentLayer:
+            return None
+        identifier = self.currentLayer.customProperty("qgisred_identifier")
+        return mapping.get(identifier)
+
+    def getResultsAllShapefilePath(self):
+        """Get path to the corresponding 'All' shapefile for results layers."""
+        if not self.projectDirectory or not self.networkName:
+            return None
+
+        resultsDir = os.path.join(self.projectDirectory, "Results")
+
+        if self.isLinkResultLayer():
+            return os.path.join(resultsDir, f"{self.networkName}_Base_Link_All.shp")
+        elif self.isNodeResultLayer():
+            return os.path.join(resultsDir, f"{self.networkName}_Base_Node_All.shp")
+        return None
+
+    def loadResultsAllLayer(self):
+        """Load the 'All' shapefile as a temporary QgsVectorLayer."""
+        shapefilePath = self.getResultsAllShapefilePath()
+        if not shapefilePath or not os.path.exists(shapefilePath):
+            return None
+
+        layer = QgsVectorLayer(shapefilePath, "temp_results_all", "ogr")
+        return layer if layer.isValid() else None
+
+    def getResultsNumericValues(self):
+        """Get numeric values from the 'All' shapefile for results layers."""
+        allLayer = self.loadResultsAllLayer()
+        if not allLayer:
+            return []
+
+        fieldName = self.getResultFieldMapping()
+        if not fieldName:
+            del allLayer
+            return []
+
+        fieldIdx = allLayer.fields().indexOf(fieldName)
+        if fieldIdx < 0:
+            del allLayer
+            return []
+
+        values = []
+        for feature in allLayer.getFeatures():
+            try:
+                val = float(feature[fieldName])
+                values.append(val)
+            except:
+                pass
+
+        del allLayer
+        return sorted(values)
+
+    def getResultsUniqueValues(self):
+        """Get unique values from the 'All' shapefile for categorical results."""
+        allLayer = self.loadResultsAllLayer()
+        if not allLayer:
+            return []
+
+        fieldName = self.getResultFieldMapping()
+        if not fieldName:
+            del allLayer
+            return []
+
+        fieldIdx = allLayer.fields().indexOf(fieldName)
+        if fieldIdx < 0:
+            del allLayer
+            return []
+
+        values = set()
+        for feature in allLayer.getFeatures():
+            value = feature[fieldName]
+            values.add(str(value) if value is not None else "NULL")
+
+        specialValues = ["NULL", "#NA"]
+        regularValues = [v for v in values if v not in specialValues]
+        foundSpecials = [v for v in specialValues if v in values]
+
+        del allLayer
+        return sorted(regularValues) + foundSpecials
+
     def config(self, qgisInterface, projectDirectory, networkName, parentPlugin):
         self.parentPlugin = parentPlugin
         self.qgisInterface = qgisInterface
@@ -572,6 +695,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.leClassCount.blockSignals(False)
 
     def adjustNumericClassCount(self, newValue, currentCount):
+        isRemoval = newValue < currentCount
+
         if newValue > currentCount:
             while self.tableView.rowCount() < newValue:
                 self.addNumericClass()
@@ -586,9 +711,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.applyClassificationMethod(modeId)
         else:
             self.handleColorLogicOnClassChange()
-            self.handleSizeLogicOnClassChange()
+            self.handleSizeLogicOnClassChange(isRemoval=isRemoval)
 
     def adjustCategoricalClassCount(self, newValue, currentCount):
+        isRemoval = newValue < currentCount
+
         if newValue > currentCount:
             while (
                 self.tableView.rowCount() < newValue and self.availableUniqueValues
@@ -601,7 +728,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.leClassCount.setValue(self.tableView.rowCount())
         self.updateClassCountLimits()
         self.handleColorLogicOnClassChange()
-        self.handleSizeLogicOnClassChange()
+        self.handleSizeLogicOnClassChange(isRemoval=isRemoval)
 
     def onCellDoubleClicked(self, row, column):
         if column == 2 and self.currentFieldType == self.FIELD_TYPE_NUMERIC:
@@ -928,11 +1055,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         self.applyColorLogic()
 
-    def handleSizeLogicOnClassChange(self):
+    def handleSizeLogicOnClassChange(self, isRemoval=False):
         """Handles size logic when adding or removing classes.
 
-        When in automatic interval mode with manual sizes, regenerates
-        the size palette emulation based on anchor sizes and applies it.
+        When in automatic interval mode with manual sizes:
+        - For removal: Updates the palette anchors with current sizes (don't regenerate)
+        - For addition: Generates interpolated sizes from existing palette
         Otherwise, falls back to standard size logic.
         """
         sizeMode = self.cbSizes.currentText() if hasattr(self, "cbSizes") else "Manual"
@@ -940,12 +1068,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
         isAutomaticIntervalMode = modeId is not None and modeId != "Manual"
 
         if isAutomaticIntervalMode and sizeMode == "Manual":
-            if self.sizePaletteEmulator.isValidPalette():
-                rows = self.tableView.rowCount()
-                if rows > 0:
-                    sizes = self.sizePaletteEmulator.generate(rows)
-                    if sizes:
-                        self.applySizesToTable(sizes)
+            if isRemoval:
+                currentSizes = self.collectCurrentTableSizes()
+                if len(currentSizes) >= 2:
+                    self.sizePaletteEmulator.setPaletteFromSizes(currentSizes)
+            else:
+                if self.sizePaletteEmulator.isValidPalette():
+                    rows = self.tableView.rowCount()
+                    if rows > 0:
+                        sizes = self.sizePaletteEmulator.generate(rows)
+                        if sizes:
+                            self.applySizesToTable(sizes)
             return
 
         self.applySizeLogic()
@@ -1455,10 +1588,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.tableView.setCellWidget(row, 0, container)
 
     def setColorWidget(self, row, symbol, geometryHint):
+        # For marker symbols, symbol.color() doesn't reliably return fill color
+        # Get color from symbol layer instead
+        if symbol.symbolLayerCount() > 0:
+            color = symbol.symbolLayer(0).color()
+        else:
+            color = symbol.color()
+
         colorSelector = QGISRedSymbolColorSelector(
             self.tableView,
             geometryHint,
-            symbol.color(),
+            color,
             True,
             "Pick color",
             doubleClickOnly=True,
@@ -1544,6 +1684,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not self.currentLayer or not self.currentFieldName:
             return []
 
+        # For results layers, get values from the All shapefile
+        if self.isResultsLayer():
+            resultsValues = self.getResultsUniqueValues()
+            if resultsValues:
+                return resultsValues
+
+        # Original implementation for non-results layers
         fieldIdx = self.currentLayer.fields().indexOf(self.currentFieldName)
         if fieldIdx < 0:
             return []
@@ -1613,17 +1760,31 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         modeId = self.cbMode.currentData()
         colorMode = self.cbColors.currentText() if hasattr(self, "cbColors") else "Manual"
+        sizeMode = self.cbSizes.currentText() if hasattr(self, "cbSizes") else "Manual"
+        isManualMode = modeId is None or modeId == "Manual"
 
-        if (modeId == "Manual" or modeId is None) and colorMode == "Manual":
+        if isManualMode and colorMode == "Manual":
             newColor = self.getSmartColorForNewRow(insertionRow)
         else:
             newColor = self.generateRandomColor()
+
+        if isManualMode and sizeMode == "Manual":
+            smartSize = self.getSmartSizeForNewRow(insertionRow)
+        else:
+            smartSize = None
 
         self.tableView.insertRow(insertionRow)
 
         symbol = QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
         symbol.setColor(newColor)
-        self.setDefaultSymbolSize(symbol)
+
+        if smartSize is not None:
+            if self.currentLayer.geometryType() == 1:
+                symbol.setWidth(smartSize)
+            else:
+                symbol.setSize(smartSize)
+        else:
+            self.setDefaultSymbolSize(symbol)
 
         valueText = f"{lower:.2f} - {upper:.2f}"
         self.setRowWidgets(
@@ -1636,6 +1797,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         )
 
         self.updateAdjacentRowsAfterInsertion(insertionRow, lower, upper)
+
+        if isManualMode and sizeMode == "Manual":
+            self.smoothEdgeSizeAfterInsertion(insertionRow)
 
         self.tableView.clearSelection()
         self.tableView.selectRow(insertionRow)
@@ -1821,7 +1985,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.refreshAllLegendLabels()
         self.updateButtonStates()
         self.handleColorLogicOnClassChange()
-        self.handleSizeLogicOnClassChange()
+        self.handleSizeLogicOnClassChange(isRemoval=True)
 
         if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
             self.updateClassCountLimits()
@@ -2301,6 +2465,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
         return breaks
 
     def calculateJenksBreaks(self, numClasses, minValue):
+        # For results layers, use values from All shapefile
+        if self.isResultsLayer():
+            allLayer = self.loadResultsAllLayer()
+            fieldName = self.getResultFieldMapping()
+            if allLayer and fieldName:
+                classifier = QgsClassificationJenks()
+                classifier.setLabelFormat("%1 - %2")
+                classes = classifier.classes(allLayer, fieldName, numClasses)
+                del allLayer
+                return [minValue] + [cls.upperBound() for cls in classes]
+
+        # Original implementation for non-results layers
         classifier = QgsClassificationJenks()
         classifier.setLabelFormat("%1 - %2")
         classes = classifier.classes(self.currentLayer, self.currentFieldName, numClasses)
@@ -2319,6 +2495,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
         return sorted(list(set(breaks)))
 
     def calculatePrettyBreaks(self, numClasses, minValue):
+        # For results layers, use values from All shapefile
+        if self.isResultsLayer():
+            allLayer = self.loadResultsAllLayer()
+            fieldName = self.getResultFieldMapping()
+            if allLayer and fieldName:
+                classifier = QgsClassificationPrettyBreaks()
+                classes = classifier.classes(allLayer, fieldName, numClasses)
+                del allLayer
+                return [minValue] + [cls.upperBound() for cls in classes]
+
+        # Original implementation for non-results layers
         classifier = QgsClassificationPrettyBreaks()
         classes = classifier.classes(self.currentLayer, self.currentFieldName, numClasses)
         return [minValue] + [cls.upperBound() for cls in classes]
@@ -2363,6 +2550,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not self.currentLayer or not self.currentFieldName:
             return []
 
+        # For results layers, get values from the All shapefile
+        if self.isResultsLayer():
+            resultsValues = self.getResultsNumericValues()
+            if resultsValues:
+                return resultsValues
+
+        # Original implementation for non-results layers
         values = []
         for feature in self.currentLayer.getFeatures():
             try:
@@ -2537,6 +2731,26 @@ class QGISRedLegendsDialog(QDialog, formClass):
         else:
             symbol.setSize(2.5)
 
+    def applyColorToSymbol(self, symbol, color):
+        """Applies color to all layers of a symbol, preserving its structure."""
+        for i in range(symbol.symbolLayerCount()):
+            symbolLayer = symbol.symbolLayer(i)
+            symbolLayer.setColor(color)
+            # Also set stroke color for fill symbols to maintain consistency
+            if hasattr(symbolLayer, 'setStrokeColor'):
+                symbolLayer.setStrokeColor(color)
+            # Handle sub-symbols (e.g., marker line's marker symbol)
+            if hasattr(symbolLayer, 'subSymbol') and symbolLayer.subSymbol():
+                self.applyColorToSymbol(symbolLayer.subSymbol(), color)
+
+    def applySizeToSymbol(self, symbol, size):
+        """Applies size to a symbol, preserving its structure."""
+        isLine = self.currentLayer.geometryType() == 1
+        if isLine:
+            symbol.setWidth(size)
+        else:
+            symbol.setSize(size)
+
     def getUnitAbbrForLayer(self):
         if self.utils:
             layerIdentifier = self.currentLayer.customProperty("qgisred_identifier")
@@ -2570,6 +2784,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         ranges = []
         isProportionalMode = self.cbSizes.currentText() == "Proportional to Value"
 
+        # Get existing renderer to clone symbols from (preserving complex symbol structures)
+        existingRenderer = self.currentLayer.renderer()
+        existingRanges = existingRenderer.ranges() if isinstance(existingRenderer, QgsGraduatedSymbolRenderer) else []
+
         for row in range(self.tableView.rowCount()):
             values = self.getRangeValues(row)
             if not values:
@@ -2583,17 +2801,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
             checkbox = checkboxContainer.findChild(QCheckBox) if checkboxContainer else None
             colorWidget = colorContainer.findChild(QGISRedSymbolColorSelector) if colorContainer else None
 
-            symbol = QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
+            # Clone existing symbol to preserve complex structure, fallback to default
+            if row < len(existingRanges) and existingRanges[row].symbol():
+                symbol = existingRanges[row].symbol().clone()
+            else:
+                symbol = QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
 
             if colorWidget:
-                symbol.setColor(colorWidget.activeColor)
+                self.applyColorToSymbol(symbol, colorWidget.activeColor)
 
             try:
                 size = float(sizeWidget.text())
-                if self.currentLayer.geometryType() == 1:
-                    symbol.setWidth(size)
-                else:
-                    symbol.setSize(size)
+                self.applySizeToSymbol(symbol, size)
             except:
                 pass
 
@@ -2637,6 +2856,16 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def applyCategoricalLegend(self):
         categories = []
 
+        # Get existing renderer to clone symbols from (preserving complex symbol structures)
+        existingRenderer = self.currentLayer.renderer()
+        existingCategories = existingRenderer.categories() if isinstance(existingRenderer, QgsCategorizedSymbolRenderer) else []
+
+        # Build a map of value -> symbol for quick lookup
+        existingSymbolMap = {}
+        for cat in existingCategories:
+            catValue = str(cat.value()) if cat.value() is not None else "NULL"
+            existingSymbolMap[catValue] = cat.symbol()
+
         for row in range(self.tableView.rowCount()):
             checkboxContainer = self.tableView.cellWidget(row, 0)
             colorContainer = self.tableView.cellWidget(row, 1)
@@ -2652,17 +2881,19 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
             realValue = self.determineRealCategoricalValue(value, label)
 
-            symbol = QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
+            # Clone existing symbol to preserve complex structure, fallback to default
+            lookupKey = value if value not in [self.tr("Other Values"), "Other Values"] else ""
+            if lookupKey in existingSymbolMap and existingSymbolMap[lookupKey]:
+                symbol = existingSymbolMap[lookupKey].clone()
+            else:
+                symbol = QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
 
             if colorWidget:
-                symbol.setColor(colorWidget.activeColor)
+                self.applyColorToSymbol(symbol, colorWidget.activeColor)
 
             try:
                 size = float(sizeWidget.text())
-                if self.currentLayer.geometryType() == 1:
-                    symbol.setWidth(size)
-                else:
-                    symbol.setSize(size)
+                self.applySizeToSymbol(symbol, size)
             except:
                 pass
 
@@ -3044,6 +3275,48 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if colorWidget:
                 colorWidget.setSelectorColor(color)
 
+    def getRowSize(self, row):
+        """Gets the size value from a table row."""
+        if row < 0 or row >= self.tableView.rowCount():
+            return None
+
+        sizeWidget = self.tableView.cellWidget(row, 2)
+        if sizeWidget and isinstance(sizeWidget, QLineEdit):
+            try:
+                return float(sizeWidget.text())
+            except (ValueError, TypeError):
+                return None
+        return None
+
+    def setRowSize(self, row, size):
+        """Sets the size value for a table row."""
+        if row < 0 or row >= self.tableView.rowCount():
+            return
+
+        sizeWidget = self.tableView.cellWidget(row, 2)
+        if sizeWidget and isinstance(sizeWidget, QLineEdit):
+            sizeWidget.blockSignals(True)
+            sizeWidget.setText(f"{size:.2f}")
+            sizeWidget.blockSignals(False)
+
+            colorContainer = self.tableView.cellWidget(row, 1)
+            colorWidget = colorContainer.findChild(QGISRedSymbolColorSelector) if colorContainer else None
+            if colorWidget:
+                colorWidget.updateSymbolSize(size, self.getGeometryHint() == "line")
+
+    def getDefaultSize(self):
+        """Returns the default size based on geometry type."""
+        if not self.currentLayer:
+            return 0.4
+
+        geometryType = self.currentLayer.geometryType()
+        if geometryType == 0:
+            return 3.0
+        elif geometryType == 1:
+            return 0.4
+        else:
+            return 1.5
+
     def calculateIntermediateColor(self, color1, color2):
         return QColor(
             (color1.red() + color2.red()) // 2,
@@ -3091,6 +3364,37 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         return self.generateRandomColor()
 
+    def getSmartSizeForNewRow(self, insertionRow):
+        """Determines intelligent size for new row based on position and existing sizes."""
+        rowCount = self.tableView.rowCount()
+
+        if rowCount == 0:
+            return self.getDefaultSize()
+
+        if rowCount == 1:
+            existingSize = self.getRowSize(0)
+            return existingSize if existingSize is not None else self.getDefaultSize()
+
+        if insertionRow == 0:
+            firstSize = self.getRowSize(0)
+            return firstSize if firstSize is not None else self.getDefaultSize()
+
+        if insertionRow >= rowCount:
+            lastSize = self.getRowSize(rowCount - 1)
+            return lastSize if lastSize is not None else self.getDefaultSize()
+
+        prevSize = self.getRowSize(insertionRow - 1)
+        nextSize = self.getRowSize(insertionRow)
+
+        if prevSize is not None and nextSize is not None:
+            return (prevSize + nextSize) / 2.0
+        if prevSize is not None:
+            return prevSize
+        if nextSize is not None:
+            return nextSize
+
+        return self.getDefaultSize()
+
     def smoothEdgeColorAfterInsertion(self, insertedRow):
         """Applies edge color smoothing after insertion when there are 3+ classes."""
         rowCount = self.tableView.rowCount()
@@ -3121,6 +3425,36 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if newLastColor and antepenultimateColor:
             interpolatedColor = self.calculateIntermediateColor(newLastColor, antepenultimateColor)
             self.setRowColor(rowCount - 2, interpolatedColor)
+
+    def smoothEdgeSizeAfterInsertion(self, insertedRow):
+        """Applies edge size smoothing after insertion when there are 3+ classes."""
+        rowCount = self.tableView.rowCount()
+
+        if rowCount < 3:
+            return
+
+        if insertedRow == 0:
+            self.smoothFirstRowSizeInsertion(rowCount)
+        elif insertedRow == rowCount - 1:
+            self.smoothLastRowSizeInsertion(rowCount)
+
+    def smoothFirstRowSizeInsertion(self, rowCount):
+        """Interpolate old first (now second) between new first and last."""
+        newFirstSize = self.getRowSize(0)
+        lastSize = self.getRowSize(rowCount - 1)
+
+        if newFirstSize is not None and lastSize is not None:
+            interpolatedSize = (newFirstSize + lastSize) / 2.0
+            self.setRowSize(1, interpolatedSize)
+
+    def smoothLastRowSizeInsertion(self, rowCount):
+        """Interpolate old last (now second-to-last) between first and new last."""
+        firstSize = self.getRowSize(0)
+        newLastSize = self.getRowSize(rowCount - 1)
+
+        if firstSize is not None and newLastSize is not None:
+            interpolatedSize = (firstSize + newLastSize) / 2.0
+            self.setRowSize(rowCount - 2, interpolatedSize)
 
     def getSelectedRows(self):
         return [idx.row() for idx in self.tableView.selectionModel().selectedRows()]
@@ -3171,10 +3505,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     # ============================================================
 
     def cancelAndClose(self):
-        if self.currentLayer and self.originalRenderer and self.isEditing:
-            self.currentLayer.setRenderer(self.originalRenderer.clone())
-            self.currentLayer.triggerRepaint()
-        self.reject()
+        self.close()
 
     def eventFilter(self, obj, event):
         if obj == self.btClassPlus and event.type() == QEvent.MouseButtonPress:

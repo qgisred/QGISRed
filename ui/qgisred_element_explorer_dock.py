@@ -1075,7 +1075,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         # For all other fields, use the standard unit lookup
         return utils.getFieldUnit(layerIdentifier, fieldName)
 
-    def getFieldUnitFullNameWithHeadlossLogic(self, utils, layerIdentifier, fieldName, headloss, unitSystem):
+    def getFieldUnitFullNameWithHeadlossLogic(self, _utils, _layerIdentifier, fieldName, headloss, unitSystem):
         """Get full unit name with special handling for roughness based on headloss formula (for tooltips)."""
         # Check if this is a roughness field
         roughnessFields = ["RoughCoeff", "Roughness", "roughcoeff", "roughness"]
@@ -1091,19 +1091,21 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 # For H-W (Hazen-Williams) and C-M (Chezy-Manning), roughness is dimensionless
                 return "Dimensionless"
 
-        # For all other fields, use the standard unit lookup
-        return utils.getFieldUnitFullName(layerIdentifier, fieldName)
+        # For all other fields, return empty string (full name method not available)
+        return ""
 
     def setDataTableWidgetColumns(self):
         self.dataTableWidget.setColumnCount(4)
         self.dataTableWidget.setHorizontalHeaderLabels([self.tr("Property"), self.tr("Value"), self.tr("Units"), self.tr("")])
 
         header = self.dataTableWidget.horizontalHeader()
+        # Allow smaller column sizes (default minimum is ~20px)
+        header.setMinimumSectionSize(10)
         # Units and Info columns: fixed small width
         header.setSectionResizeMode(2, QHeaderView.Fixed)
         header.setSectionResizeMode(3, QHeaderView.Fixed)
         self.dataTableWidget.setColumnWidth(2, 40)
-        self.dataTableWidget.setColumnWidth(3, 40)
+        self.dataTableWidget.setColumnWidth(3, 15)
         # Property and Value columns: stretch to fill remaining space
         header.setSectionResizeMode(0, QHeaderView.Stretch)
         header.setSectionResizeMode(1, QHeaderView.Stretch)
