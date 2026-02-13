@@ -747,17 +747,32 @@ class QGISRedUtils:
         unique_values = layer.uniqueValues(material_field_index)
         categories = []
 
+        # Load existing categories from the .qml file if it exists
+        style_uri = layer.customProperty("styleURI")
+        existing_categories = {}
+        if style_uri and os.path.exists(style_uri):
+            temp_layer = QgsVectorLayer(layer.source(), layer.name(), layer.providerType())
+            temp_layer.loadNamedStyle(style_uri)
+            renderer = temp_layer.renderer()
+            if isinstance(renderer, QgsCategorizedSymbolRenderer):
+                for cat in renderer.categories():
+                    existing_categories[cat.value()] = cat.symbol().color()
+        
         non_null_values = [value for value in unique_values if value != NULL]
         null_values = [value for value in unique_values if value == NULL]
 
         for value in non_null_values:
             symbol = QgsSymbol.defaultSymbol(layer.geometryType())
-            random_color = QColor.fromRgb(
-                random.randint(0, 255),
-                random.randint(0, 255),
-                random.randint(0, 255)
-            )
-            symbol.setColor(random_color)
+            # Use existing color if available
+            if value in existing_categories:
+                symbol.setColor(existing_categories[value])
+            else:
+                random_color = QColor.fromRgb(
+                    random.randint(0, 255),
+                    random.randint(0, 255),
+                    random.randint(0, 255)
+                )
+                symbol.setColor(random_color)
             symbol.setWidth(0.6)
             category = QgsRendererCategory(value, symbol, str(value))
             categories.append(category)
@@ -770,7 +785,7 @@ class QGISRedUtils:
                 symbol.setWidth(0.6)
                 category = QgsRendererCategory(null_value, symbol, str("#NA"))
                 categories.append(category)
-                break 
+                break
 
         renderer = QgsCategorizedSymbolRenderer(field, categories)
         layer.setRenderer(renderer)
