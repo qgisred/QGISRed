@@ -4392,33 +4392,33 @@ class QGISRed:
     
     def runFindElements(self): 
         if not self.checkDependencies():
+            print("Dependencies check failed.")
             self.openFindElementsDialog.setChecked(False)
             return
 
         self.defineCurrentProject()
-        
+
         if not self.isValidProject() or self.isLayerOnEdition():
             self.openFindElementsDialog.setChecked(False)
             return
-        
+
         existingDock = QGISRedElementExplorerDock._instance
-        
+
         tool = "identifyFeature"
         if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
             if self.myMapTools[tool]:
+                self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
                 try:
                     self.myMapTools[tool].clearHighlights()
                 except Exception:
-                    pass
-                
-            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
-            
+                    print("Failed to clear tool highlights.")
+
             if existingDock:
                 try:
                     existingDock.clearHighlights()
                 except Exception:
-                    pass
-                    
+                    print("Failed to clear dock highlights.")
+
             self.openFindElementsDialog.setChecked(False)
         else:
             useElementProperties = False
@@ -4442,9 +4442,7 @@ class QGISRed:
                     dock.onLayerTreeChanged()
                     dock.setDefaultValue()
                     dock.updateCollapsibleWidgetsState(collapseFindElements=False)
-                    dock.moveWidgetsToFindElements()
                 except Exception as e:
-                    print(f"Error creating dock: {str(e)}")
                     self.openFindElementsDialog.setChecked(False)
                     return
 
@@ -4453,48 +4451,46 @@ class QGISRed:
                     self.iface.mapCanvas(), 
                     self.openFindElementsDialog, 
                     useElementPropertiesDock=useElementProperties,
-                    dock=dock
+                    dock=dock if 'dock' in locals() else existingDock
                 )
                 self.myMapTools[tool].setCursor(Qt.WhatsThisCursor)
                 self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
             except Exception as e:
                 print(f"Error creating map tool: {str(e)}")
                 self.openFindElementsDialog.setChecked(False)
-            
+
     def runElementsProperty(self): 
         if not self.checkDependencies():
             self.openElementsPropertyDialog.setChecked(False)
             return
 
         self.defineCurrentProject()
-        
+
         if not self.isValidProject() or self.isLayerOnEdition():
             self.openElementsPropertyDialog.setChecked(False)
             return
-        
+
         existingDock = QGISRedElementExplorerDock._instance
 
         tool = "identifyFeatureElementProperties"
         if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
             if self.myMapTools[tool]:
+                self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
                 try:
                     self.myMapTools[tool].clearHighlights()
                 except Exception:
-                    pass
-                    
-            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
-            
+                    print("Failed to clear tool highlights.")
+
             if existingDock:
                 try:
                     existingDock.clearHighlights()
                 except Exception:
-                    pass
-                    
+                    print("Failed to clear dock highlights.")
+
             self.openElementsPropertyDialog.setChecked(False)
         else:
             if existingDock:
                 existingDock.updateCollapsibleWidgetsState(collapseElementProperties=False)
-                existingDock.moveWidgetsToElementProperties()
                 existingDock.initializeElementTypes()
             try:
                 self.myMapTools[tool] = QGISRedIdentifyFeature(
@@ -4507,6 +4503,7 @@ class QGISRed:
             except Exception as e:
                 print(f"Error creating map tool: {str(e)}")
                 self.openElementsPropertyDialog.setChecked(False)
+
 
 # ==============================================================
 #                        END: QUERIES FIND ELEMENTS

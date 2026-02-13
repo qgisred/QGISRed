@@ -1,11 +1,16 @@
 from .qgisred_utils import QGISRedUtils
 from ctypes import c_char_p, WinDLL
+import os
 
 
 class QGISRedDependencies:
     @staticmethod
     def CreateInstance():
-        mydll = WinDLL(QGISRedUtils().getCurrentDll())
+        dll_path = QGISRedUtils().getCurrentDll()
+        if not os.path.exists(dll_path):
+            QGISRedUtils().copyDependencies() # Attempt to restore the DLL file
+            dll_path = QGISRedUtils().getCurrentDll()
+        mydll = WinDLL(dll_path)
         return mydll
 
     @staticmethod

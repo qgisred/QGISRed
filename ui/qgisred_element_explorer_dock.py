@@ -114,10 +114,12 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         if hasattr(self, 'labelFoundElementTag'):
             self.labelFoundElementTag.setWordWrap(True)
             self.labelFoundElementTag.setText("")
+            self.labelFoundElementTag.hide()
 
         if hasattr(self, 'labelFoundElementDescription'):
             self.labelFoundElementDescription.setWordWrap(True)
             self.labelFoundElementDescription.setText("")
+            self.labelFoundElementDescription.hide()
 
         self.setDockStyle()
         self.setupConnections()
@@ -144,8 +146,14 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         if collapseFindElements is not None:
             self.mFindElementsGroupBox.setCollapsed(collapseFindElements)
 
+        if not self.mFindElementsGroupBox.isCollapsed() and self.mElementPropertiesGroupBox.isCollapsed():
+            print("HEY")
+            self.moveWidgetsToFindElements()
+        else:
+            self.moveWidgetsToElementProperties()
+
         self.mElementPropertiesGroupBox.blockSignals(False)
-        self.mFindElementsGroupBox.blockSignals(False)   
+        self.mFindElementsGroupBox.blockSignals(False)
 
     # ------------------------------
     # Collapsible Widgets Handlers
@@ -164,55 +172,42 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 self.moveWidgetsToFindElements()
 
     def moveWidgetsToElementProperties(self):
-        widgets = [
-            self.labelFoundElement,
-            self.labelFoundElementTag,
-            self.labelFoundElementDescription,
-            self.mConnectedElementsGroupBox
-        ]
-        
+        widgets = [self.labelFoundElement, self.mConnectedElementsGroupBox]
+
+        if self.labelFoundElementTag.isVisible() and self.labelFoundElementDescription.isVisible():
+            widgets = [self.labelFoundElement, self.labelFoundElementTag, self.labelFoundElementDescription, self.mConnectedElementsGroupBox]
+
+
         for widget in widgets:
             currentParent = widget.parent()
             if currentParent and currentParent.layout():
                 currentParent.layout().removeWidget(widget)
-        
+
         targetLayout = self.elementPropertiesLayout
         line = self.lineEp
-        
         index = targetLayout.indexOf(line)
-        
-        targetLayout.insertWidget(index + 1, widgets[0])
-        targetLayout.insertWidget(index + 2, widgets[1])
-        targetLayout.insertWidget(index + 3, widgets[2])
-        targetLayout.insertWidget(index + 4, widgets[3])
-        
-        for widget in widgets:
+
+        for i, widget in enumerate(widgets):
+            targetLayout.insertWidget(index + 1 + i, widget)
             widget.show()
 
     def moveWidgetsToFindElements(self):
-        widgets = [
-            self.labelFoundElement,
-            self.labelFoundElementTag,
-            self.labelFoundElementDescription,
-            self.mConnectedElementsGroupBox
-        ]
-        
+        widgets = [self.labelFoundElement, self.mConnectedElementsGroupBox]
+
+        if self.labelFoundElementTag.isVisible() and self.labelFoundElementDescription.isVisible():
+            widgets = [self.labelFoundElement, self.labelFoundElementTag, self.labelFoundElementDescription, self.mConnectedElementsGroupBox]
+
         for widget in widgets:
             currentParent = widget.parent()
             if currentParent and currentParent.layout():
                 currentParent.layout().removeWidget(widget)
-        
+
         targetLayout = self.findElementsLayout
         line = self.line
-        
         index = targetLayout.indexOf(line)
-        
-        targetLayout.insertWidget(index + 1, widgets[0])
-        targetLayout.insertWidget(index + 2, widgets[1])
-        targetLayout.insertWidget(index + 3, widgets[2])
-        targetLayout.insertWidget(index + 4, widgets[3])
-        
-        for widget in widgets:
+
+        for i, widget in enumerate(widgets):
+            targetLayout.insertWidget(index + 1 + i, widget)
             widget.show()
 
     # ------------------------------
@@ -518,6 +513,10 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     @pyqtSlot(int)
     def onElementIdChanged(self, index):
         self.labelFoundElement.setText("")
+        self.labelFoundElementTag.setText("")
+        self.labelFoundElementTag.hide()
+        self.labelFoundElementDescription.setText("")
+        self.labelFoundElementDescription.hide()
         self.listWidget.clear()
         self.dataTableWidget.clear()
         self.setDataTableWidgetColumns()
@@ -722,8 +721,19 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         self.labelFoundElement.setText(f"{featureIdText}")
         self.labelFoundElement.setStyleSheet("font-weight: bold; font-size: 12pt;")
-        self.labelFoundElementTag.setText(f"{featureTag}")
-        self.labelFoundElementDescription.setText(f"{featureDescription}")
+
+        if featureTag and str(featureTag).strip() != "":
+            self.labelFoundElementTag.setText(str(featureTag))
+            self.labelFoundElementTag.show()
+        else:
+            self.labelFoundElementTag.hide()
+
+        if featureDescription and str(featureDescription).strip() != "":
+            self.labelFoundElementDescription.setText(str(featureDescription))
+            self.labelFoundElementDescription.show()
+        else:
+            self.labelFoundElementDescription.hide()
+
 
     def appendFeatureProperties(self, feature, labelSuffix=""):
         if not hasattr(self, 'dataTableWidget'):
