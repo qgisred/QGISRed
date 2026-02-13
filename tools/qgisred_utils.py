@@ -1248,16 +1248,21 @@ class QGISRedUtils:
     def addProjectToGplFile(self, gplFile, networkName='', projectDirectory='', rawEntryLine=None):
         projectDirectory = self.getUniformedPath(projectDirectory)
         newEntry = rawEntryLine or f"{networkName};{projectDirectory}"
+        newEntry = newEntry.strip()
         
-        entries = set()
+        # Read existing entries, preserving order
+        existingEntries = []
         if os.path.exists(gplFile):
             with open(gplFile, "r") as f:
-                entries = {line.strip() for line in f if line.strip()}
+                for line in f:
+                    line = line.strip()
+                    if line and line != newEntry:  # Skip empty lines and duplicates
+                        existingEntries.append(line)
         
-        entries.add(newEntry.strip())
-        
+        # Write new entry at the beginning, followed by existing entries
         with open(gplFile, "w") as f:
-            for entry in entries:
+            f.write(newEntry + "\n")
+            for entry in existingEntries:
                 f.write(entry + "\n")
 
     def getThematicMapsLayers(self):

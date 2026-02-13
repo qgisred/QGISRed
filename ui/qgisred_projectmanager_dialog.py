@@ -104,11 +104,13 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         validLines = []
         f = open(self.gplFile, "r")
 
+        # Preserve order while removing duplicates
         notDuplicateLines = []
         seen = set()
         for value in f:
-            if value not in seen:
-                notDuplicateLines.append(value)
+            value = value.strip()  # Remove trailing whitespace/newlines early
+            if value and value not in seen:  # Check for non-empty and not duplicate
+                notDuplicateLines.append(value + "\n")  # Re-add newline for consistency
                 seen.add(value)
 
         for x in notDuplicateLines:
@@ -122,7 +124,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 metadataFile = os.path.realpath(os.path.join(values[1], values[0] + "_Metadata.txt"))
                 pipeFile = os.path.realpath(os.path.join(values[1], values[0] + "_Pipes.shp"))
                 if os.path.exists(metadataFile) and os.path.exists(pipeFile):
-                    validLines.append(x)
+                    validLines.append(x.rstrip("\n"))  # Store without newline for clean writing
                     data = ""
                     with open(metadataFile, "r", encoding="latin-1") as content_file:
                         data = content_file.read()
@@ -136,7 +138,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 else:
                     metadataFile = os.path.realpath(os.path.join(values[1], values[0] + ".gqp"))  # old file
                     if os.path.exists(metadataFile) and os.path.exists(pipeFile):
-                        validLines.append(x)
+                        validLines.append(x.rstrip("\n"))  # Store without newline for clean writing
                         f2 = open(metadataFile, "r")
                         lines = f2.readlines()
                         if len(lines) >= 2:
@@ -148,10 +150,10 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                     self.twProjectList.insertRow(rowPosition)
                     self.twProjectList.setItem(rowPosition, 0, QTableWidgetItem(values[0]))
                     dateL = QTableWidgetItem()
-                    dateL.setData(0,QDateTime.fromString(dateLast, 'dd/MM/yyyy HH:mm:ss'))
+                    dateL.setData(0, QDateTime.fromString(dateLast, 'dd/MM/yyyy HH:mm:ss'))
                     self.twProjectList.setItem(rowPosition, 1, dateL)
                     dateC = QTableWidgetItem()
-                    dateC.setData(0,QDateTime.fromString(dateCreate, 'dd/MM/yyyy HH:mm:ss'))
+                    dateC.setData(0, QDateTime.fromString(dateCreate, 'dd/MM/yyyy HH:mm:ss'))
                     self.twProjectList.setItem(rowPosition, 2, dateC)
                     self.twProjectList.setItem(rowPosition, 3, QTableWidgetItem(values[1]))
 
@@ -163,9 +165,10 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                             self.twProjectList.item(rowPosition, column).setFont(font)
 
         f.close()
+        # Rewrite file with valid lines only, preserving order
         f = open(self.gplFile, "w")
         for x in validLines:
-            self.utils.writeFile(f, x)
+            f.write(x + "\n")
         f.close()
 
     def addProjectToTable(self, folder, net):
@@ -176,9 +179,24 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         if isPipes:
             if not isMetadata:
                 self.updateMetadata(net, folder)
-            self.utils.addProjectToGplFile(self.gplFile, net, folder)
+            
+            # Add project to beginning of gpl file
+            newEntry = net + ";" + folder
+            
+            # Read existing entries
+            existingEntries = []
+            if os.path.exists(self.gplFile):
+                with open(self.gplFile, "r") as f:
+                    existingEntries = [line.strip() for line in f if line.strip() and line.strip() != newEntry]
+            
+            # Write new entry at the beginning, followed by existing entries
+            with open(self.gplFile, "w") as f:
+                f.write(newEntry + "\n")
+                for entry in existingEntries:
+                    f.write(entry + "\n")
+            
             self.fillTable()
-            self.twProjectList.setCurrentCell(self.twProjectList.rowCount() - 1, 1)
+            self.twProjectList.setCurrentCell(0, 1)  # Select first row (newly added)
             self.twProjectList.setFocus()
         else:
             message = "'" + net + "' project is not found in selected folder"
@@ -383,6 +401,23 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         if ok:
             self.NetworkName = name
             self.ProjectDirectory = project
+            
+            # Move opened project to top of the list
+            openedEntry = name + ";" + project
+            existingEntries = []
+            if os.path.exists(self.gplFile):
+                with open(self.gplFile, "r") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and line != openedEntry:
+                            existingEntries.append(line)
+            
+            # Write opened project at the beginning
+            with open(self.gplFile, "w") as f:
+                f.write(openedEntry + "\n")
+                for entry in existingEntries:
+                    f.write(entry + "\n")
+            
             utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
             utils.openProjectInQgis()
             self.close()
