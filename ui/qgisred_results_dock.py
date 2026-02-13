@@ -108,12 +108,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         resultGroup = self.getResultGroup()
         group = resultGroup.findGroup(scenario)
         if group is None:
-            group = resultGroup.insertGroup(0, scenario)
+            group = resultGroup.addGroup(scenario)
         for file in self.LabelsToOpRe:
             utils.openLayer(group, file, results=True)
 
     def removeResults(self, task):
-        print("test")
         resultPath = os.path.join(self.ProjectDirectory, "Results")
         utils = QGISRedUtils(resultPath, self.NetworkName + "_" + self.Scenario, self.iface)
         utils.removeLayers(self.LabelsToOpRe)
@@ -121,12 +120,24 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             return {"task": task.definition()}
 
     def getInputGroup(self):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        return utils.getOrCreateGroup("Inputs")
+        # Same method in qgisred_newproject_dialog and qgisred_plugins
+        inputGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
+        if inputGroup is None:
+            netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
+            if netGroup is None:
+                root = QgsProject.instance().layerTreeRoot()
+                netGroup = root.insertGroup(0, self.NetworkName)
+            inputGroup = netGroup.addGroup("Inputs")
+        return inputGroup
 
     def getResultGroup(self):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        resultGroup = utils.getOrCreateGroup("Results")
+        resultGroup = QgsProject.instance().layerTreeRoot().findGroup("Results")
+        if resultGroup is None:
+            netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
+            if netGroup is None:
+                root = QgsProject.instance().layerTreeRoot()
+                netGroup = root.addGroup(self.NetworkName)
+            resultGroup = netGroup.insertGroup(0, "Results")
         resultGroup.setItemVisibilityChecked(True)
         return resultGroup
 
@@ -168,7 +179,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         for nameLayer in self.LabelsToOpRe:
             layerResult = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp")
-
             for layer in layers:
                 openLayerPath = self.getLayerPath(layer)
                 if openLayerPath == layerResult:
@@ -201,7 +211,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.Variables = self.Variables + "Quality_Node;"
 
         if self.Variables == "":
-            self.iface.messageBar().pushMessage("Validations", "No variable results selected", level=1)
+            self.iface.messageBar().pushMessage(self.tr("Validations"), self.tr("No variable results selected"), level=1)
             return False
         return True
 
@@ -271,12 +281,12 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         self.Scenario = self.cbScenarios.currentText()
         resultPath = os.path.join(self.ProjectDirectory, "Results")
+
         layers = self.getLayers()
 
         self.lbTime.setText(self.TimeLabels[columnNumber])
         for nameLayer in self.LabelsToOpRe:
             resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp")
-
             for layer in layers:
                 openedLayerPath = self.getLayerPath(layer)
                 if openedLayerPath == resultLayerPath:
@@ -647,7 +657,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         layers = self.getLayers()
         for nameLayer in self.LabelsToOpRe:
             resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp")
-
             for layer in layers:
                 openedLayerPath = self.getLayerPath(layer)
                 if openedLayerPath == resultLayerPath:
@@ -738,7 +747,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.btEndTime.setVisible(False)
             self.cbTimes.setVisible(False)
             self.timeSlider.setVisible(False)
-            self.cbTimes.addItem("Permanent")
+            self.cbTimes.addItem(self.tr("Permanent"))
         else:
             self.lbLabel5.setVisible(True)
             self.btLessTime.setVisible(True)
@@ -830,7 +839,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         # Message
         if resMessage == "False":
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
+            self.iface.messageBar().pushMessage("Warning", self.tr("Some issues occurred in the process"), level=1, duration=5)
         elif resMessage.startswith("[TimeLabels]"):
             self.openBaseResults(resMessage.replace("[TimeLabels]", ""))
             self.show()
@@ -840,7 +849,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 group.setItemVisibilityChecked(False)
             return
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.iface.messageBar().pushMessage("Error", resMessage, level=2, duration=5)
 
         # If some error, close the dock
         self.close()
@@ -864,8 +873,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.TimeLabels = []
         self.cbTimes.clear()
         if len(mylist) == 1:
-            self.TimeLabels.append("Permanent")
-            self.cbTimes.addItem("Permanent")
+            self.TimeLabels.append(self.tr("Permanent"))
+            self.cbTimes.addItem(self.tr("Permanent"))
         else:
             for item in mylist:
                 self.TimeLabels.append(self.insert(self.insert(item, " ", 6), " ", 3))
@@ -878,7 +887,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.lbTime.setText(self.TimeLabels[0])
 
         # Comments
-        self.Comments["Base"] = "Last results computed"
+        self.Comments["Base"] = self.tr("Last results computed")
         self.lbComments.setText(self.Comments["Base"])
 
         # Write Scenario
@@ -947,7 +956,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         # Message
         if resMessage == "True":
-            pass  # self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=5)
+            pass  # self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Process successfully completed"), level=3, duration=5)
         elif resMessage == "False":
             self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
         else:
@@ -974,7 +983,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         # Message
         if resMessage == "True":
-            pass  # self.iface.messageBar().pushMessage("Information", "Process successfully completed", level=3, duration=5)
+            pass  # self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Process successfully completed"), level=3, duration=5)
         elif resMessage == "False":
             self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
         else:
