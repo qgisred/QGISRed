@@ -390,6 +390,12 @@ QDockWidget::title {
                           <pointsize>8</pointsize>
                          </font>
                         </property>
+                        <property name="sizeAdjustPolicy">
+                         <enum>QAbstractScrollArea::AdjustToContents</enum>
+                        </property>
+                        <property name="columnCount">
+                         <number>0</number>
+                        </property>
                        </widget>
                       </item>
                      </layout>

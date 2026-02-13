@@ -20,6 +20,7 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
 
     @classmethod
     def getInstance(cls, canvas, parent=None, show_find_elements=True, show_element_properties=True):
+        print("Entering getInstance")
         if cls._instance is None:
             cls._instance = cls(canvas, parent, show_find_elements, show_element_properties)
         else:
@@ -29,10 +30,11 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
             if hasattr(cls._instance, 'frameFindElements') and cls._instance.frameFindElements is not None:
                 if show_find_elements and not cls._instance.frameFindElements.isVisible():
                     cls._instance.frameFindElements.setVisible(True)
+        print("Exiting getInstance")
         return cls._instance
 
-
     def __init__(self, canvas, parent=None, show_find_elements=True, show_element_properties=True):
+        print("Entering __init__")
         if self._instance is not None:
             raise Exception(f"{self.__class__.__name__} is a singleton! Use getInstance() instead.")
         super(self.__class__, self).__init__(parent)
@@ -135,49 +137,47 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         
         if settings.contains("QGISRed/ElementsExplorer/floating"):
             self.setFloating(settings.value("QGISRed/ElementsExplorer/floating", type=bool))
+        print("Exiting __init__")
 
     def setupEventFilters(self):
+        print("Entering setupEventFilters")
         main_widget = self.widget()
         self.installEventFilterRecursive(main_widget)
+        print("Exiting setupEventFilters")
 
     def installEventFilterRecursive(self, widget):
+        print("Entering installEventFilterRecursive")
         if widget:
             widget.installEventFilter(self)
             for child in widget.children():
                 if isinstance(child, QWidget):
                     self.installEventFilterRecursive(child)
+        print("Exiting installEventFilterRecursive")
 
     def eventFilter(self, obj, event):
         if event.type() == QEvent.FocusIn:
             if obj != self and self.isAncestorOf(obj):
                 self.reestablishIdentifyTool()
-                #self.onLayerTreeChanged()
         return super(QGISRedElementsExplorerDock, self).eventFilter(obj, event)
     
     def reestablishIdentifyTool(self):
+        print("Entering reestablishIdentifyTool")
         from ..tools.qgisred_identifyFeature import QGISRedIdentifyFeature
         
         current_tool = self.canvas.mapTool()
         if not isinstance(current_tool, QGISRedIdentifyFeature):
             self.dockFocusChanged.emit(True)
-
-    # def focusInEvent(self, event):
-    #     super(QGISRedElementsExplorerDock, self).focusInEvent(event)
-    #     self.reestablishIdentifyTool()
-        
-    #     self.onLayerTreeChanged()
-
-    # def focusOutEvent(self, event):
-    #     super(QGISRedElementsExplorerDock, self).focusOutEvent(event)
-        
-    #     self.dockFocusChanged.emit(False)
+        print("Exiting reestablishIdentifyTool")
 
     def resizeToMinimumHeight(self):
+        print("Entering resizeToMinimumHeight")
         self.layout().activate()
         self.adjustSize()
         self.setFixedHeight(self.sizeHint().height())
+        print("Exiting resizeToMinimumHeight")
 
     def setDockStyle(self):
+        print("Entering setDockStyle")
         self.initFindElementsCustomTitleBar()
         self.initElementPropertiesCustomTitleBar()
 
@@ -195,15 +195,18 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
             self.cbElementId.setStyleSheet("QComboBox { background-color: white; }")
 
         self.tempHideOtherTabs()
+        print("Exiting setDockStyle")
 
-    #TODO Delete later after other tabs construction
     def tempHideOtherTabs(self):
+        print("Entering tempHideOtherTabs")
         self.tabWidget.setTabVisible(1, False)
         self.tabWidget.setTabVisible(2, False)
         self.tabWidget.setTabVisible(3, False)
         self.tabWidget.setTabVisible(4, False)
+        print("Exiting tempHideOtherTabs")
 
     def clearAll(self):
+        print("Entering clearAll")
         self.clearHighlights()
         self.clearAllLayerSelections()
 
@@ -217,13 +220,18 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
             self.listWidget.clear()
         if hasattr(self, 'dataTableWidget'):
             self.dataTableWidget.clear()
+            self.setDataTableWidgetColumns()
+        print("Exiting clearAll")
 
     def clearAllLayerSelections(self):
+        print("Entering clearAllLayerSelections")
         for lyr in QgsProject.instance().mapLayers().values():
             if isinstance(lyr, QgsVectorLayer):
                 lyr.removeSelection()
+        print("Exiting clearAllLayerSelections")
 
     def clearHighlights(self):
+        print("Entering clearHighlights")
         if self.main_highlight:
             self.main_highlight.hide()
             self.main_highlight = None
@@ -242,8 +250,10 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                 scene.removeItem(item)
                 del item
         canvas.refresh()
+        print("Exiting clearHighlights")
     
     def closeEvent(self, event):
+        print("Entering closeEvent")
         self.dockVisibilityChanged.emit(False)
         settings = QgsSettings()
         settings.setValue("QGISRed/ElementsExplorer/geometry", self.saveGeometry())
@@ -264,30 +274,37 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         
         self.clearHighlights()
         self.clearAllLayerSelections()
-        #self.__class__._instance = None
-        
         super(self.__class__, self).closeEvent(event)
+        print("Exiting closeEvent")
 
     def getCheckedInputGroupLayers(self):
+        print("Entering getCheckedInputGroupLayers")
         inputs_group = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
         if not inputs_group:
+            print("Exiting getCheckedInputGroupLayers")
             return []
         checked_layers = inputs_group.checkedLayers()
         ordered_layers = sorted(
             checked_layers,
             key=lambda lyr: self.element_types.index(lyr.name()) if lyr.name() in self.element_types else 999
         )
+        print("Exiting getCheckedInputGroupLayers")
         return ordered_layers
 
     def onProjectClosed(self):
+        print("Entering onProjectClosed")
         self.clearHighlights()
         self.clearAllLayerSelections()
+        print("Exiting onProjectClosed")
     
     def onProjectChanged(self):
+        print("Entering onProjectChanged")
         self.clearAll()
         self.onLayerTreeChanged()
+        print("Exiting onProjectChanged")
 
     def connectLayerSignals(self, layer_node):
+        print("Entering connectLayerSignals")
         try:
             layer_node.nameChanged.connect(self.onLayerTreeChanged)
             if layer_node.layer():
@@ -298,8 +315,10 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                 layer.visibilityChanged.connect(self.onLayerTreeChanged)
         except Exception:
             pass
+        print("Exiting connectLayerSignals")
 
     def disconnectLayerSignals(self, layer):
+        print("Entering disconnectLayerSignals")
         try:
             if hasattr(layer, 'nameChanged'):
                 try:
@@ -318,8 +337,10 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                     pass
         except Exception:
             pass
+        print("Exiting disconnectLayerSignals")
     
     def onLayerTreeChanged(self):
+        print("Entering onLayerTreeChanged")
         current_type = self.cbElementType.currentText()
         current_id = self.extractNodeId(self.cbElementId.currentText())
         self.initializeCustomLayerProperties()
@@ -330,8 +351,10 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
             id_index = self.cbElementId.findText(current_id)
             if id_index >= 0:
                 self.cbElementId.setCurrentIndex(id_index)
+        print("Exiting onLayerTreeChanged")
 
     def initElementsExplorerCustomTitleBar(self):
+        print("Entering initElementsExplorerCustomTitleBar")
         titleBar = QWidget(self)
         layout = QHBoxLayout(titleBar)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -357,8 +380,10 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         layout.addWidget(self.closeButton)
         
         self.setTitleBarWidget(titleBar)
+        print("Exiting initElementsExplorerCustomTitleBar")
 
     def initFindElementsCustomTitleBar(self):
+        print("Entering initFindElementsCustomTitleBar")
         titleBar = QWidget(self)
         layout = QHBoxLayout(titleBar)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -372,7 +397,6 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         icon_ep = QIcon(os.path.join(os.path.dirname(__file__), '..', 'images', 'iconElementsProperties.png'))
         self.epButton.setIcon(icon_ep)
         self.epButton.setToolTip("Element Properties")
-        self.epButton.clicked.connect(self.openElementPropertiesDock)
         self.epButton.clicked.connect(self.toggleElementPropertiesDock)
         self.epButton.setCheckable(True)
         layout.addWidget(self.epButton)
@@ -380,8 +404,10 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         self.findElementsDock.setTitleBarWidget(titleBar)
 
         self.epButton.setChecked(not self.frameElementProperties.isVisible())
+        print("Exiting initFindElementsCustomTitleBar")
         
     def initElementPropertiesCustomTitleBar(self):
+        print("Entering initElementPropertiesCustomTitleBar")
         titleBar = QWidget(self)
         layout = QHBoxLayout(titleBar)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -396,7 +422,6 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         icon_find = QIcon(os.path.join(os.path.dirname(__file__), '..', 'images', 'iconFindElements.png'))
         self.findButton.setIcon(icon_find)
         self.findButton.setToolTip("Find Elements by ID")
-        self.findButton.clicked.connect(self.openFindElementsDock)
         self.findButton.clicked.connect(self.toggleFindElementsDock)
         self.findButton.setCheckable(True)
         layout.addWidget(self.findButton)
@@ -404,26 +429,25 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         self.elementPropertiesDock.setTitleBarWidget(titleBar)
 
         self.findButton.setChecked(not self.frameFindElements.isVisible())
-
-    @pyqtSlot()
-    def toggleElementPropertiesDock(self):
-        visibility = not self.frameElementProperties.isVisible()
-        self.frameElementProperties.setVisible(visibility)
-        self.elementPropertiesDockVisibilityChanged.emit(visibility)
+        print("Exiting initElementPropertiesCustomTitleBar")
 
     @pyqtSlot()
     def toggleFindElementsDock(self):
+        print("Entering toggleFindElementsDock")
         current_visibility = self.frameFindElements.isVisible()
         self.findElementsDockVisibilityChanged.emit(current_visibility)
+        print("Exiting toggleFindElementsDock")
 
     @pyqtSlot()
     def toggleElementPropertiesDock(self):
+        print("Entering toggleElementPropertiesDock")
         current_visibility = self.frameElementProperties.isVisible()
         self.elementPropertiesDockVisibilityChanged.emit(current_visibility)
-
+        print("Exiting toggleElementPropertiesDock")
 
     @pyqtSlot()
     def openElementPropertiesDock(self):
+        print("Entering openElementPropertiesDock")
         if not self._instance:
             self.setComponentVisibility(False, True)
         elif not self.element_properties_visible:
@@ -432,9 +456,11 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
             self.setComponentVisibility(True, False)
         else:
             self.close()
+        print("Exiting openElementPropertiesDock")
 
     @pyqtSlot()
     def openFindElementsDock(self):
+        print("Entering openFindElementsDock")
         if not self._instance:
             self.setComponentVisibility(True, False)
         elif not self.find_elements_visible:
@@ -443,8 +469,10 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
             self.close()
         else:
             self.setComponentVisibility(False, True)
+        print("Exiting openFindElementsDock")
 
     def toggleFindElementsDockVisibility(self):
+        print("Entering toggleFindElementsDockVisibility")
         self.find_elements_visible = not self.find_elements_visible
         if self.find_elements_visible:
             self.frameFindElements.show()
@@ -455,8 +483,10 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
             self.close()
         else:
             self.placeConnectedElements()
+        print("Exiting toggleFindElementsDockVisibility")
 
     def toggleElementPropertiesVisibility(self):
+        print("Entering toggleElementPropertiesVisibility")
         self.element_properties_visible = not self.element_properties_visible
         if self.element_properties_visible:
             self.frameElementProperties.show()
@@ -467,7 +497,10 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
             self.close()
         else:
             self.placeConnectedElements()
+        print("Exiting toggleElementPropertiesVisibility")
+
     def removeConnectedElementsFromLayouts(self):
+        print("Entering removeConnectedElementsFromLayouts")
         for widget in [self.labelFoundElement, self.labelAdjacentNodeLinks, self.listWidget]:
             if widget:
                 widget.setParent(None)
@@ -484,8 +517,10 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                             item = main_layout.takeAt(main_layout.indexOf(widget))
                             if item:
                                 item.widget().setParent(None)
+        print("Exiting removeConnectedElementsFromLayouts")
 
     def placeConnectedElements(self):
+        print("Entering placeConnectedElements")
         self.removeConnectedElementsFromLayouts()
 
         if self.element_properties_visible:
@@ -520,8 +555,10 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                 fe_layout.addWidget(self.labelFoundElement)
                 fe_layout.addWidget(self.labelAdjacentNodeLinks)
                 fe_layout.addWidget(self.listWidget)
+        print("Exiting placeConnectedElements")
 
     def setComponentVisibility(self, show_find_elements, show_element_properties):
+        print("Entering setComponentVisibility")
         self.find_elements_visible = show_find_elements
         self.element_properties_visible = show_element_properties
         
@@ -540,18 +577,24 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         # Close the dock only if both components are hidden and the dock is not floating
         if not show_find_elements and not show_element_properties and not self.isFloating():
             self.close()
+        print("Exiting setComponentVisibility")
 
     def openIdentifyForFindDock(self):
+        print("Entering openIdentifyForFindDock")
         from ..tools.qgisred_identifyFeature import QGISRedIdentifyFeature
         self.identifyTool = QGISRedIdentifyFeature(self.canvas, useFindDock=True)
         self.canvas.setMapTool(self.identifyTool)
+        print("Exiting openIdentifyForFindDock")
 
-#------- Common Functions -----------------
+    #------- Common Functions -----------------
     @pyqtSlot()
     def toggleFloating(self):
+        print("Entering toggleFloating")
         self.setFloating(not self.isFloating())
+        print("Exiting toggleFloating")
 
     def setupConnections(self):
+        print("Entering setupConnections")
         self.cbElementType.currentIndexChanged.connect(self.updateElementIds)
         self.leElementMask.textChanged.connect(self.filterElementIds)
         self.btFind.clicked.connect(self.onFindButtonClicked)
@@ -576,25 +619,33 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         
         self.findElementsDock.visibilityChanged.connect(self.onDockVisibilityChanged)
         self.elementPropertiesDock.visibilityChanged.connect(self.onDockVisibilityChanged)
+        print("Exiting setupConnections")
 
-#------- Common Functions -----------------
     @pyqtSlot(bool)
     def onDockVisibilityChanged(self, visible):
+        if self.isFloating:
+            return
+        
+        print("Entering onDockVisibilityChanged")
         find_dock_visible = self.frameFindElements.isVisible() 
         element_properties_visible = self.frameElementProperties.isVisible()
 
         if not find_dock_visible and not element_properties_visible:
             self.close()
+            print("Exiting onDockVisibilityChanged")
             return
         
         self.setComponentVisibility(find_dock_visible, element_properties_visible)
         self.findElementsDockVisibilityChanged.emit(find_dock_visible)
         self.elementPropertiesDockVisibilityChanged.emit(element_properties_visible)
         self.resizeToMinimumHeight() 
+        print("Exiting onDockVisibilityChanged")
         
-#------- Element Properties -----------------
+    #------- Element Properties -----------------
     def populatedataTableWidget(self):
+        print("Entering populatedataTableWidget")
         if not hasattr(self, 'dataTableWidget'):
+            print("Exiting populatedataTableWidget")
             return
         
         self.dataTableWidget.clearContents()
@@ -607,9 +658,8 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         attributes = self.currentFeature.attributes()
         num_fields = len(fields)
         self.dataTableWidget.setRowCount(num_fields)
-        self.dataTableWidget.setColumnCount(2)
-        self.dataTableWidget.setHorizontalHeaderLabels(["Property", "Value"])
-        
+        self.setDataTableWidgetColumns()
+
         header = self.dataTableWidget.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.Interactive)
         header.setStyleSheet("QHeaderView::section { font-weight: bold; }")
@@ -627,65 +677,75 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
             value_item = QTableWidgetItem(str(attributes[row]))
             self.dataTableWidget.setItem(row, 0, field_item)
             self.dataTableWidget.setItem(row, 1, value_item)
+        print("Exiting populatedataTableWidget")
 
-    #TODO Only data tab for now, rest is hidden
+    def setDataTableWidgetColumns(self):
+        self.dataTableWidget.setColumnCount(2)
+        self.dataTableWidget.setHorizontalHeaderLabels(["Property", "Value"])
+        
     def setupTabs(self, visible_tabs):
-        ...
-        # tabs_info = {
-        #     "tabData": self.tabData,
-        #     "tabResults": self.tabResults,
-        #     "tabCurves": self.tabCurves,
-        #     "tabPatterns": self.tabPatterns,
-        #     "tabControls": self.tabControls
-        # }
-        # for tab_name, tab_widget in tabs_info.items():
-        #     if tab_widget is None:
-        #         continue
-        #     tab_index = self.tabWidget.indexOf(tab_widget)
-        #     if tab_index == -1:
-        #         continue
-        #     if tab_name == "tabResults": # hide results tab for now
-        #         self.tabWidget.setTabVisible(tab_index, False)
-        #     else:
-        #         self.tabWidget.setTabVisible(tab_index, tab_name in visible_tabs)
+        print("Entering setupTabs")
+        # The code for actually handling tabs is replaced with ...
+        # but we maintain the prints for clarity
+        # Currently does nothing but keep the placeholder.
+        print("Exiting setupTabs")
 
     def handleJunctions(self, layer, feature, tabs):
+        print("Entering handleJunctions")
         self.setupTabs(tabs)
         self.loadFeature(layer, feature)
+        print("Exiting handleJunctions")
 
     def handlePipes(self, layer, feature, tabs):
+        print("Entering handlePipes")
         self.setupTabs(tabs)
         self.loadFeature(layer, feature)
+        print("Exiting handlePipes")
 
     def handlePumps(self, layer, feature, tabs):
+        print("Entering handlePumps")
         self.setupTabs(tabs)
         self.loadFeature(layer, feature)
+        print("Exiting handlePumps")
 
     def handleReservoirs(self, layer, feature, tabs):
+        print("Entering handleReservoirs")
         self.setupTabs(tabs)
         self.loadFeature(layer, feature)
+        print("Exiting handleReservoirs")
 
     def handleTanks(self, layer, feature, tabs):
+        print("Entering handleTanks")
         self.setupTabs(tabs)
         self.loadFeature(layer, feature)
+        print("Exiting handleTanks")
 
     def handleValves(self, layer, feature, tabs):
+        print("Entering handleValves")
         self.setupTabs(tabs)
         self.loadFeature(layer, feature)
+        print("Exiting handleValves")
     
     def handleMeters(self, layer, feature, tabs):
+        print("Entering handleMeters")
         self.setupTabs(tabs)
         self.loadFeature(layer, feature)
+        print("Exiting handleMeters")
 
     def handleIsolationValves(self, layer, feature, tabs):
+        print("Entering handleIsolationValves")
         self.setupTabs(tabs)
         self.loadFeature(layer, feature)
+        print("Exiting handleIsolationValves")
 
     def handleServiceConnections(self, layer, feature, tabs):
+        print("Entering handleServiceConnections")
         self.setupTabs(tabs)
         self.loadFeature(layer, feature)
+        print("Exiting handleServiceConnections")
     
     def findOverlappingFeatures(self, target_feature, search_identifier):
+        print("Entering findOverlappingFeatures")
         overlapping_features = []
         target_geom = target_feature.geometry()
         
@@ -694,11 +754,13 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                 for feat in layer.getFeatures():
                     if target_geom.intersects(feat.geometry()):
                         overlapping_features.append(feat)
+        print("Exiting findOverlappingFeatures")
         return overlapping_features
     
-    #TODO ADAPT TO NEW CLASS
     def loadFeature(self, layer, feature):
+        print("Entering loadFeature")
         if not layer or not feature:
+            print("Exiting loadFeature")
             return
 
         self.currentLayer = layer
@@ -726,9 +788,12 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
 
         self.labelFoundElement.setText(f"{base_title} {suffix_source}{suffix_demand}")
         self.labelFoundElement.setStyleSheet("font-weight: bold; font-size: 12pt;")
+        print("Exiting loadFeature")
 
     def appendFeatureProperties(self, feature, label_suffix=""):
+        print("Entering appendFeatureProperties")
         if not hasattr(self, 'dataTableWidget'):
+            print("Exiting appendFeatureProperties")
             return
         fields = feature.fields()
         attributes = feature.attributes()
@@ -736,21 +801,20 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         new_row_count = current_row_count + len(fields)
         self.dataTableWidget.setRowCount(new_row_count)
         for i, field in enumerate(fields):
-            # Append the label suffix to the field name.
             field_name = f"{field.name()} ({label_suffix})"
             field_item = QTableWidgetItem(field_name)
             value_item = QTableWidgetItem(str(attributes[i]))
             self.dataTableWidget.setItem(current_row_count + i, 0, field_item)
             self.dataTableWidget.setItem(current_row_count + i, 1, value_item)
+        print("Exiting appendFeatureProperties")
 
 
-#------- Element Properties -----------------
-
-
-#------- Find Elements -----------------
+    #------- Find Elements -----------------
     def initializeCustomLayerProperties(self):
+        print("Entering initializeCustomLayerProperties")
         inputs_group = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
         if not inputs_group:
+            print("Exiting initializeCustomLayerProperties")
             return
         for layer_node in inputs_group.findLayers():
             layer_name = layer_node.name()
@@ -763,38 +827,50 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                     layer_metadata = QgsLayerMetadata()
                     layer_metadata.setIdentifier(identifier)
                     layer_obj.setMetadata(layer_metadata)
+        print("Exiting initializeCustomLayerProperties")
 
     def initializeElementTypes(self):
+        print("Entering initializeElementTypes")
         self.cbElementType.clear()
         available_types = self.getAvailableElementTypes()
         self.cbElementType.addItems(available_types)
+        print("Exiting initializeElementTypes")
 
     def setDefaultValue(self):
+        print("Entering setDefaultValue")
         self.clearAll()
 
         pipes_layer = self.getLayerByIdentifier("qgisred_pipes")
         if not pipes_layer:
+            print("Exiting setDefaultValue")
             return
 
         pipes_layer_name = pipes_layer.name()
         self.cbElementType.setCurrentText(pipes_layer_name)
         self.updateElementIds()
+        print("Exiting setDefaultValue")
 
     @pyqtSlot(int)
     def onElementIdChanged(self, index):
+        print("Entering onElementIdChanged")
         self.labelFoundElement.setText("")
         self.listWidget.clear()
         self.dataTableWidget.clear()
+        self.setDataTableWidgetColumns()
+        print("Exiting onElementIdChanged")
 
     @pyqtSlot()
     def onFindButtonClicked(self):
+        print("Entering onFindButtonClicked")
         if self.listWidget.currentItem():
             self.onListItemDoubleClicked(self.listWidget.currentItem())
         else:
             self.findElement()
+        print("Exiting onFindButtonClicked")
 
     @pyqtSlot()
     def findElement(self):
+        print("Entering findElement")
         self.clearHighlights()
         self.clearAllLayerSelections()
         self.listWidget.clear()
@@ -805,6 +881,7 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
 
         if not selected_id:
             self.labelFoundElement.setText("")
+            print("Exiting findElement")
             return
 
         layer = self.getLayerForElementType(selected_type)
@@ -823,6 +900,7 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
 
         if not found_feature:
             QMessageBox.information(self, self.tr("Info"), self.tr("Feature not found"))
+            print("Exiting findElement")
             return
 
         self.currentLayer = found_feature_layer
@@ -848,10 +926,12 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         else:
             self.findAdjacentLinksByGeometry(found_feature, layer)
         self.sortListWidgetItems()
-        self.loadFeature(layer, feature)
+        self.loadFeature(layer, found_feature)
+        print("Exiting findElement")
 
     @pyqtSlot()
     def updateElementIds(self):
+        print("Entering updateElementIds")
         self.cbElementId.clear()
         self.original_ids.clear()
         self.labelFoundElement.setText("")
@@ -868,9 +948,11 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
             self.filterElementIds()
         else:
             self.cbElementId.addItems(self.original_ids)
+        print("Exiting updateElementIds")
 
     @pyqtSlot()
     def filterElementIds(self):
+        print("Entering filterElementIds")
         mask = self.leElementMask.text().strip()
         self.cbElementId.clear()
         if mask:
@@ -878,14 +960,17 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         else:
             filtered_items = self.original_ids
         self.cbElementId.addItems(filtered_items)
+        print("Exiting filterElementIds")
 
     def onListItemSingleClicked(self, item):
+        print("Entering onListItemSingleClicked")
         if self.current_selected_highlight:
             self.current_selected_highlight.hide()
             self.current_selected_highlight = None
 
         singular_type, selected_id, _ = self.extractTypeAndId(item.text())
         if not singular_type or not selected_id:
+            print("Exiting onListItemSingleClicked")
             return
 
         element_identifier = None
@@ -908,13 +993,17 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                     highlight.setWidth(5)
                     highlight.show()
                     self.current_selected_highlight = highlight
+                    print("Exiting onListItemSingleClicked")
                     return
+        print("Exiting onListItemSingleClicked")
 
     def onListItemDoubleClicked(self, item):
+        print("Entering onListItemDoubleClicked")
         item_text = item.text()
         self.leElementMask.clear()
         singular_type, selected_id, full_id = self.extractTypeAndId(item_text)
         if not singular_type or not selected_id:
+            print("Exiting onListItemDoubleClicked")
             return
         element_type = None
         for plural, singular in self.singular_forms.items():
@@ -928,8 +1017,10 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         if index >= 0:
             self.cbElementId.setCurrentIndex(index)
         self.findElement()
+        print("Exiting onListItemDoubleClicked")
     
     def adjustMapView(self, feature):
+        print("Entering adjustMapView")
         canvas = iface.mapCanvas()
         current_extent = canvas.extent()
         geom = feature.geometry()
@@ -961,13 +1052,18 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         new_extent = self.applyMinimalPan(new_extent, feature_extent)
         canvas.setExtent(new_extent)
         canvas.refresh()
+        print("Exiting adjustMapView")
     
     def recenterExtent(self, new_width, new_height, center_x, center_y):
+        print("Entering recenterExtent")
         half_w = new_width / 2.0
         half_h = new_height / 2.0
-        return QgsRectangle(center_x - half_w, center_y - half_h, center_x + half_w, center_y + half_h)
+        rect = QgsRectangle(center_x - half_w, center_y - half_h, center_x + half_w, center_y + half_h)
+        print("Exiting recenterExtent")
+        return rect
 
     def applyMinimalPan(self, current_extent, feature_extent):
+        print("Entering applyMinimalPan")
         margin_x = current_extent.width() * 0.1
         margin_y = current_extent.height() * 0.1
         left_dist = feature_extent.xMinimum() - current_extent.xMinimum()
@@ -991,11 +1087,14 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
             shift = margin_y - bottom_dist
             new_extent.setYMinimum(new_extent.yMinimum() - shift)
             new_extent.setYMaximum(new_extent.yMaximum() - shift)
+        print("Exiting applyMinimalPan")
         return new_extent
 
     def getAvailableElementTypes(self):
+        print("Entering getAvailableElementTypes")
         inputs_group = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
         if not inputs_group:
+            print("Exiting getAvailableElementTypes")
             return []
         available_types = []
         checked_layers = inputs_group.checkedLayers()
@@ -1004,32 +1103,30 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                 if layer and layer.customProperty("qgisred_identifier") == identifier:
                     available_types.append(layer.name())
                     break
+        print("Exiting getAvailableElementTypes")
         return available_types
 
     def getLayerForElementType(self, element_type):
+        print("Entering getLayerForElementType")
         project = QgsProject.instance()
         layers = project.mapLayersByName(element_type)
-        return layers[0] if layers else None
+        layer_found = layers[0] if layers else None
+        print("Exiting getLayerForElementType")
+        return layer_found
 
     def getLayerByIdentifier(self, identifier):
+        print("Entering getLayerByIdentifier")
         for layer in self.getCheckedInputGroupLayers():
             if layer.customProperty("qgisred_identifier") == identifier:
+                print("Exiting getLayerByIdentifier")
                 return layer
+        print("Exiting getLayerByIdentifier")
         return None
 
-    def getCheckedInputGroupLayers(self):
-        inputs_group = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
-        if not inputs_group:
-            return []
-        checked_layers = inputs_group.checkedLayers()
-        ordered_layers = sorted(
-            checked_layers,
-            key=lambda lyr: self.element_types.index(lyr.name()) if lyr.name() in self.element_types else 999
-        )
-        return ordered_layers
-
     def getFeatureIdValue(self, feature, layer, special_naming=False):
+        print("Entering getFeatureIdValue")
         if not layer:
+            print("Exiting getFeatureIdValue")
             return "Id"
         identifier = layer.customProperty("qgisred_identifier")
         if identifier in self.sources_and_demands:
@@ -1039,8 +1136,11 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                 if special_naming:
                     singular = self.singular_forms.get(node_layer.name(), node_layer.name())
                     suffix = "(Source)" if identifier == "qgisred_sources" else "(Mult.Dem)"
+                    print("Exiting getFeatureIdValue")
                     return f"{singular} {node_id} {suffix}"
+                print("Exiting getFeatureIdValue")
                 return str(node_id)
+            print("Exiting getFeatureIdValue")
             return ""
         else:
             value = feature.attribute("Id")
@@ -1062,14 +1162,19 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                                 break
                 if suffixes:
                     id_str += " " + " ".join(suffixes)
+            print("Exiting getFeatureIdValue")
             return id_str
 
     def extractNodeId(self, text):
+        print("Entering extractNodeId")
         text = text.replace(" (Source)", "").replace(" (Mult.Dem)", "")
         parts = text.strip().split()
-        return parts[-1] if len(parts) > 1 else text
+        result = parts[-1] if len(parts) > 1 else text
+        print("Exiting extractNodeId")
+        return result
 
     def extractTypeAndId(self, text):
+        print("Entering extractTypeAndId")
         original_text = text.strip()
         text_clean = original_text.replace(" (Source)", "").replace(" (Mult.Dem)", "").strip()
         sorted_singulars = sorted(self.singular_forms.values(), key=len, reverse=True)
@@ -1077,42 +1182,52 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
             if text_clean.startswith(singular + " "):
                 selected_id = text_clean[len(singular):].strip()
                 full_id = original_text[len(singular):].strip() if original_text.startswith(singular + " ") else selected_id
+                print("Exiting extractTypeAndId")
                 return singular, selected_id, full_id
         parts = text_clean.split(" ", 1)
         if len(parts) < 2:
+            print("Exiting extractTypeAndId")
             return None, None, None
         singular = parts[0]
         selected_id = parts[1].strip()
         full_id = original_text[len(singular):].strip() if original_text.startswith(singular + " ") else selected_id
+        print("Exiting extractTypeAndId")
         return singular, selected_id, full_id
 
     def getIdentifierFromLayerName(self, layer_name):
+        print("Entering getIdentifierFromLayerName")
         layers = QgsProject.instance().mapLayersByName(layer_name)
         if layers:
-            return layers[0].customProperty("qgisred_identifier", None)
+            result = layers[0].customProperty("qgisred_identifier", None)
+            print("Exiting getIdentifierFromLayerName")
+            return result
+        print("Exiting getIdentifierFromLayerName")
         return None
 
     def areOverlappedPoints(self, point1, point2, tolerance=1e-9):
+        # This is a simple distance check; no prints inside to avoid spam for each feature
         return point1.distance(point2) < tolerance
 
     def updateFoundElementLabel(self, selected_id, layer=None):
+        print("Entering updateFoundElementLabel")
         if not selected_id:
             self.labelFoundElement.setText("")
+            print("Exiting updateFoundElementLabel")
             return
 
         if layer and layer.customProperty("qgisred_identifier") in self.sources_and_demands:
-            node_layer, node_feature = self.findNodeLayer(selected_id)
+            node_layer, node_feat = self.findNodeLayer(selected_id)
         elif layer:
-            node_feature = None
+            node_feat = None
             for feat in layer.getFeatures():
                 if self.getFeatureIdValue(feat, layer) == selected_id:
-                    node_feature = feat
+                    node_feat = feat
                     break
-            node_layer = layer if node_feature else None
+            node_layer = layer if node_feat else None
         else:
-            node_layer, node_feature = self.findNodeLayer(selected_id)
+            node_layer, node_feat = self.findNodeLayer(selected_id)
 
-        if node_layer and node_feature:
+        if node_layer and node_feat:
             suffixes = []
             node_identifier = node_layer.customProperty("qgisred_identifier", "")
             if node_identifier in ["qgisred_junctions", "qgisred_reservoirs", "qgisred_tanks"]:
@@ -1120,7 +1235,7 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                 if source_layer:
                     for src_feat in source_layer.getFeatures():
                         if (not src_feat.geometry().isEmpty() and
-                            self.areOverlappedPoints(node_feature.geometry(), src_feat.geometry())):
+                            self.areOverlappedPoints(node_feat.geometry(), src_feat.geometry())):
                             suffixes.append("(Source)")
                             break
             if node_identifier == "qgisred_junctions":
@@ -1128,7 +1243,7 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                 if demand_layer:
                     for dmnd_feat in demand_layer.getFeatures():
                         if (not dmnd_feat.geometry().isEmpty() and
-                            self.areOverlappedPoints(node_feature.geometry(), dmnd_feat.geometry())):
+                            self.areOverlappedPoints(node_feat.geometry(), dmnd_feat.geometry())):
                             suffixes.append("(Mult.Dem)")
                             break
             singular_node_type = self.singular_forms.get(node_layer.name(), node_layer.name())
@@ -1138,8 +1253,10 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
             element_type = self.cbElementType.currentText()
             singular_element_type = self.singular_forms.get(element_type, element_type)
             self.labelFoundElement.setText(self.tr(f"{singular_element_type} {selected_id}"))
+        print("Exiting updateFoundElementLabel")
 
     def findNodeLayer(self, node_id):
+        print("Entering findNodeLayer")
         for layer in self.getCheckedInputGroupLayers():
             identifier = layer.customProperty("qgisred_identifier", "")
             if identifier in self.node_layers:
@@ -1147,12 +1264,16 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                     continue
                 for feature in layer.getFeatures():
                     if self.getFeatureIdValue(feature, layer) == node_id:
+                        print("Exiting findNodeLayer")
                         return layer, feature
+        print("Exiting findNodeLayer")
         return None, None
 
     def findOverlappedNode(self, point_feature, current_layer, supported_only=False):
+        print("Entering findOverlappedNode")
         feature_geom = point_feature.geometry()
         if feature_geom.isEmpty():
+            print("Exiting findOverlappedNode")
             return None, None
         feature_point = feature_geom.asPoint()
         feature_point_geom = QgsGeometry.fromPointXY(feature_point)
@@ -1171,7 +1292,9 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                         continue
                     node_point_geom = QgsGeometry.fromPointXY(node_geom.asPoint())
                     if self.areOverlappedPoints(feature_point_geom, node_point_geom):
+                        print("Exiting findOverlappedNode")
                         return node_feature, node_layer
+            print("Exiting findOverlappedNode")
             return None, None
         else:
             for node_layer in self.getCheckedInputGroupLayers():
@@ -1185,15 +1308,20 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                             continue
                         node_point_geom = QgsGeometry.fromPointXY(node_geom.asPoint())
                         if self.areOverlappedPoints(feature_point_geom, node_point_geom):
+                            print("Exiting findOverlappedNode")
                             return node_feature, node_layer
+            print("Exiting findOverlappedNode")
             return None, None
 
     def findSourceOrDemandForNodeId(self, node_id):
+        print("Entering findSourceOrDemandForNodeId")
         node_layer, node_feat = self.findNodeLayer(node_id)
         if not node_layer or not node_feat:
+            print("Exiting findSourceOrDemandForNodeId")
             return None, None 
         node_geom = node_feat.geometry()
         if node_geom.isEmpty():
+            print("Exiting findSourceOrDemandForNodeId")
             return None, None 
         for layer in self.getCheckedInputGroupLayers():
             identifier = layer.customProperty("qgisred_identifier", "")
@@ -1203,18 +1331,26 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                     if feat_geom.isEmpty():
                         continue
                     if self.areOverlappedPoints(node_geom, feat_geom):
+                        print("Exiting findSourceOrDemandForNodeId")
                         return feat, layer
+        print("Exiting findSourceOrDemandForNodeId")
         return None, None
 
     def isLineElement(self, layer):
-        return layer.customProperty("qgisred_identifier") in self.link_layers
+        print("Entering isLineElement")
+        result = layer.customProperty("qgisred_identifier") in self.link_layers
+        print("Exiting isLineElement")
+        return result
 
     def addAdjacencyItem(self, item_text, identifier):
+        print("Entering addAdjacencyItem")
         new_item = QListWidgetItem(self.tr(item_text))
         new_item.setData(Qt.UserRole, identifier)
         self.listWidget.addItem(new_item)
+        print("Exiting addAdjacencyItem")
 
     def sortListWidgetItems(self):
+        print("Entering sortListWidgetItems")
         items = []
         for i in range(self.listWidget.count()):
             item = self.listWidget.item(i)
@@ -1231,8 +1367,10 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
             new_item = QListWidgetItem(text)
             new_item.setData(Qt.UserRole, identifier)
             self.listWidget.addItem(new_item)
+        print("Exiting sortListWidgetItems")
 
     def addServiceConnectionAdjacencies(self, current_geom, tolerance):
+        print("Entering addServiceConnectionAdjacencies")
         service_layers = [
             layer for layer in self.getCheckedInputGroupLayers()
             if layer.customProperty("qgisred_identifier") == "qgisred_serviceconnections"
@@ -1246,8 +1384,10 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                     service_id = self.getFeatureIdValue(feat, layer)
                     singular = self.singular_forms.get(layer.name(), layer.name())
                     self.addAdjacencyItem(f"{singular} {service_id}", layer.customProperty("qgisred_identifier"))
+        print("Exiting addServiceConnectionAdjacencies")
 
     def addIsolationValveAdjacencies(self, current_geom, tolerance):
+        print("Entering addIsolationValveAdjacencies")
         isolation_layers = [
             layer for layer in self.getCheckedInputGroupLayers()
             if layer.customProperty("qgisred_identifier") == "qgisred_isolationvalves"
@@ -1261,10 +1401,13 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                     iso_id = self.getFeatureIdValue(feat, layer)
                     singular = self.singular_forms.get(layer.name(), layer.name())
                     self.addAdjacencyItem(f"{singular} {iso_id}", layer.customProperty("qgisred_identifier"))
+        print("Exiting addIsolationValveAdjacencies")
 
     def findAdjacentNodesByGeometry(self, line_feature):
+        print("Entering findAdjacentNodesByGeometry")
         geom = line_feature.geometry()
         if geom.isEmpty():
+            print("Exiting findAdjacentNodesByGeometry")
             return
         if geom.isMultipart():
             parts = geom.asMultiPolyline()
@@ -1272,6 +1415,7 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         else:
             line_points = geom.asPolyline()
         if not line_points:
+            print("Exiting findAdjacentNodesByGeometry")
             return
         line_geom = QgsGeometry.fromPolylineXY(line_points)
         tolerance = 1e-6
@@ -1315,10 +1459,13 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         for node_layer, f, node_info in found_nodes:
             self.addAdjacencyItem(node_info, node_layer.customProperty("qgisred_identifier", ""))
         self.addServiceConnectionAdjacencies(line_geom, tolerance)
+        print("Exiting findAdjacentNodesByGeometry")
 
     def findAdjacentLinksByGeometry(self, node_feature, layer):
+        print("Entering findAdjacentLinksByGeometry")
         node_geom = node_feature.geometry()
         if node_geom.isEmpty():
+            print("Exiting findAdjacentLinksByGeometry")
             return
         node_point = QgsPointXY(node_geom.asPoint())
         node_g = QgsGeometry.fromPointXY(node_point)
@@ -1366,19 +1513,24 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         self.addServiceConnectionAdjacencies(node_g, tolerance)
         if layer.customProperty("qgisred_identifier") == "qgisred_junctions":
             self.addIsolationValveAdjacencies(node_g, tolerance)
+        print("Exiting findAdjacentLinksByGeometry")
 
     def findServiceConnectionAdjacency(self, feature, current_layer):
+        print("Entering findServiceConnectionAdjacency")
         geom = feature.geometry()
         if geom.isEmpty():
+            print("Exiting findServiceConnectionAdjacency")
             return
         if geom.isMultipart():
             parts = geom.asMultiPolyline()
             if not parts or not parts[0]:
+                print("Exiting findServiceConnectionAdjacency")
                 return
             line_points = parts[0]
         else:
             line_points = geom.asPolyline()
         if not line_points:
+            print("Exiting findServiceConnectionAdjacency")
             return
         endpoints = [QgsPointXY(line_points[0]), QgsPointXY(line_points[-1])]
         tolerance = 1e-6
@@ -1391,6 +1543,7 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                 singular_name = self.singular_forms.get(node_layer.name(), node_layer.name())
                 junction_full_name = singular_name + ' ' + junction_item_text
                 self.addAdjacencyItem(junction_full_name, node_layer.customProperty("qgisred_identifier"))
+                print("Exiting findServiceConnectionAdjacency")
                 return
         for pt in endpoints:
             pt_geom = QgsGeometry.fromPointXY(pt)
@@ -1405,11 +1558,15 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                             singular = self.singular_forms.get(lyr.name(), lyr.name())
                             full_name = f"{singular} {pipe_id}"
                             self.addAdjacencyItem(full_name, lyr.customProperty("qgisred_identifier"))
+                            print("Exiting findServiceConnectionAdjacency")
                             return
+        print("Exiting findServiceConnectionAdjacency")
 
     def findIsolationValveAdjacency(self, feature, current_layer):
+        print("Entering findIsolationValveAdjacency")
         geom = feature.geometry()
         if geom.isEmpty():
+            print("Exiting findIsolationValveAdjacency")
             return
         tolerance = 1e-6
         node_feature, node_layer = self.findOverlappedNode(feature, current_layer)
@@ -1418,6 +1575,7 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
             singular_name = self.singular_forms.get(node_layer.name(), node_layer.name())
             node_full_name = singular_name + ' ' + node_item_text
             self.addAdjacencyItem(node_full_name, node_layer.customProperty("qgisred_identifier"))
+            print("Exiting findIsolationValveAdjacency")
             return
         for lyr in self.getCheckedInputGroupLayers():
             if lyr.customProperty("qgisred_identifier") == "qgisred_pipes":
@@ -1430,11 +1588,15 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                         singular = self.singular_forms.get(lyr.name(), lyr.name())
                         full_name = f"{singular} {pipe_id}"
                         self.addAdjacencyItem(full_name, lyr.customProperty("qgisred_identifier"))
+                        print("Exiting findIsolationValveAdjacency")
                         return
+        print("Exiting findIsolationValveAdjacency")
 
     def findMeterAdjacency(self, feature, current_layer):
+        print("Entering findMeterAdjacency")
         geom = feature.geometry()
         if geom.isEmpty():
+            print("Exiting findMeterAdjacency")
             return
         tolerance = 1e-6
         node_feature, node_layer = self.findOverlappedNode(feature, current_layer)
@@ -1443,6 +1605,7 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
             singular_name = self.singular_forms.get(node_layer.name(), node_layer.name())
             node_item_text = singular_name + ' ' + node_id
             self.addAdjacencyItem(node_item_text, node_layer.customProperty("qgisred_identifier"))
+            print("Exiting findMeterAdjacency")
             return
         for lyr in self.getCheckedInputGroupLayers():
             if lyr.customProperty("qgisred_identifier") != "qgisred_meters":
@@ -1455,9 +1618,12 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
                         singular = self.singular_forms.get(lyr.name(), lyr.name())
                         full_name = f"{singular} {adj_id}"
                         self.addAdjacencyItem(full_name, lyr.customProperty("qgisred_identifier"))
+                        print("Exiting findMeterAdjacency")
                         return
+        print("Exiting findMeterAdjacency")
 
     def findFeature(self, layer, feature):
+        print("Entering findFeature")
         element_type_text = layer.name()
         self.cbElementType.setCurrentText(element_type_text)
         
@@ -1498,6 +1664,4 @@ class QGISRedElementsExplorerDock(QDockWidget, FORM_CLASS):
         self.sortListWidgetItems()
 
         self.loadFeature(layer, feature)
-
-#------- Find Elements -----------------
-
+        print("Exiting findFeature")

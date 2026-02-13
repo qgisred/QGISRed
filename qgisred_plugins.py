@@ -4392,46 +4392,35 @@ class QGISRed:
     # --------------------------------------------------------------
 
     def runFindElements(self):
-        print("runFindElements: Entering method")
         if not self.checkDependencies():
-            print("runFindElements: checkDependencies() failed")
             self.openFindElementsDialog.setChecked(False)
             return
 
-        print("runFindElements: Defining current project")
         self.defineCurrentProject()
         
         if not self.isValidProject() or self.isLayerOnEdition():
-            print("runFindElements: Invalid project or layer is in edition")
             self.openFindElementsDialog.setChecked(False)
             return
 
         existing_dock = QGISRedElementsExplorerDock._instance
         
         if not self.openFindElementsDialog.isChecked():
-            print("runFindElements: openFindElementsDialog is not checked")
             self.openFindElementsDialog.setChecked(False)
 
             if existing_dock:
-                print("runFindElements: Existing dock found; closing frameFindElements")
                 existing_dock.frameFindElements.close()
                 elementPropertiesOpened = existing_dock.frameElementProperties.isVisible()
-                print("runFindElements: elementPropertiesOpened =", elementPropertiesOpened)
             else:
-                print("runFindElements: No existing dock found")
                 elementPropertiesOpened = False
 
             if hasattr(self, "identifyTool"):
                 if not elementPropertiesOpened:
-                    print("runFindElements: Unsetting identifyTool because elementProperties is not open")
                     self.iface.mapCanvas().unsetMapTool(self.identifyTool)
                 else:
-                    print("runFindElements: Setting identifyTool to use element properties")
                     self.identifyTool.setUseElementProperties(True)
             return
         
         if not existing_dock:
-            print("runFindElements: No existing dock, creating a new one")
             element_properties_visible = False
             dock = QGISRedElementsExplorerDock.getInstance(
                 self.iface.mapCanvas(),
@@ -4439,9 +4428,7 @@ class QGISRed:
                 show_find_elements=True,
                 show_element_properties=False
             )
-            print("runFindElements: Connecting explorer signals")
             self.connectExplorerSignals(dock)
-            print("runFindElements: Adding dock widget")
             self.iface.addDockWidget(Qt.RightDockWidgetArea, dock)
             
             dock.show()
@@ -4449,23 +4436,18 @@ class QGISRed:
             dock.activateWindow()
 
             if hasattr(dock, 'onLayerTreeChanged'):
-                print("runFindElements: Calling dock.onLayerTreeChanged()")
                 dock.onLayerTreeChanged()
             if hasattr(dock, 'setDefaultValue'):
-                print("runFindElements: Calling dock.setDefaultValue()")
                 dock.setDefaultValue()
         else:
-            print("runFindElements: Existing dock found, toggling find elements dock visibility")
             element_properties_visible = True
             existing_dock.toggleFindElementsDockVisibility()
 
-        print("runFindElements: Creating new identifyTool with use_element_properties_dock =", element_properties_visible)
         self.identifyTool = QGISRedIdentifyFeature(
             self.iface.mapCanvas(), 
             use_element_properties_dock=element_properties_visible
         )
 
-        print("runFindElements: Setting map tool to identifyTool")
         self.iface.mapCanvas().setMapTool(self.identifyTool)
 
 # ==============================================================
@@ -4476,55 +4458,40 @@ class QGISRed:
 #                        START: QUERIES ELEMENTS PROPERTIES
 # --------------------------------------------------------------
     def runElementsProperty(self):
-        print("runElementsProperty: Entering method")
         if not self.checkDependencies():
-            print("runElementsProperty: checkDependencies() failed")
             self.openElementsPropertyDialog.setChecked(False)
             return
 
-        print("runElementsProperty: Defining current project")
         self.defineCurrentProject()
         if not self.isValidProject() or self.isLayerOnEdition():
-            print("runElementsProperty: Invalid project or layer is in edition")
             self.openElementsPropertyDialog.setChecked(False)
             return
 
         existing_dock = QGISRedElementsExplorerDock._instance
             
         if not self.openElementsPropertyDialog.isChecked():
-            print("runElementsProperty: openElementsPropertyDialog is not checked")
             self.openElementsPropertyDialog.setChecked(False)
 
             if existing_dock:
-                print("runElementsProperty: Existing dock found; closing frameElementProperties")
-                existing_dock.frameElementProperties.close()
+                existing_dock.frameElementProperties.show()
                 find_elements_open = existing_dock.frameFindElements.isVisible()
-                print("runElementsProperty: find_elements_open =", find_elements_open)
             else:
-                print("runElementsProperty: No existing dock found")
                 find_elements_open = False
 
             if hasattr(self, "identifyTool"):
                 if not find_elements_open:
-                    print("runElementsProperty: Unsetting identifyTool because find elements is not open")
                     self.iface.mapCanvas().unsetMapTool(self.identifyTool)
                 else:
-                    print("runElementsProperty: Setting identifyTool to NOT use element properties")
-                    print("REACH HERE")
                     self.identifyTool.setUseElementProperties(False)
             return
         
-        print("runElementsProperty: Creating new identifyTool with use_element_properties_dock=True")
         self.identifyTool = QGISRedIdentifyFeature(
             self.iface.mapCanvas(), 
             use_element_properties_dock=True
         )
 
         self.connectExplorerSignals(self.identifyTool)
-
-        print("runElementsProperty: Setting map tool to identifyTool")
         self.iface.mapCanvas().setMapTool(self.identifyTool)
-
 
     # ==============================================================
     #                        END: QUERIES ELEMENTS PROPERTIES
@@ -4545,9 +4512,7 @@ class QGISRed:
             explorer_dock.elementPropertiesDockVisibilityChanged.connect(self.onElementPropertiesDockVisibilityChanged)
 
     def onExplorerVisibilityChanged(self, visible):
-        if visible:
-            pass
-        else:
+        if not visible:
             if hasattr(self, 'openFindElementsDialog'):
                 self.openFindElementsDialog.setChecked(False)
             
@@ -4559,12 +4524,10 @@ class QGISRed:
 
     def onFindElementsDockVisibilityChanged(self, visible):
         if hasattr(self, 'openFindElementsDialog'):
-            print("onFindElementsDockVisibilityChanged visible", visible )
             self.openFindElementsDialog.setChecked(visible)
 
     def onElementPropertiesDockVisibilityChanged(self, visible):
         if hasattr(self, 'openElementsPropertyDialog'):
-            print("onElementPropertiesDockVisibilityChanged visible", visible )
             self.openElementsPropertyDialog.setChecked(visible)
 
     # ==============================================================
