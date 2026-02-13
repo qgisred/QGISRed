@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-from PyQt5.QtCore import Qt, pyqtSlot, pyqtSignal, QEvent
+from PyQt5.QtCore import Qt, pyqtSlot, pyqtSignal, QEvent, QTimer
 from PyQt5.QtGui import QIcon, QFont, QColor
 from PyQt5.QtWidgets import QDockWidget, QWidget, QMessageBox, QLineEdit, QListWidgetItem, QTableWidgetItem, QHeaderView, QAbstractItemView, QFrame
 from qgis.PyQt import uic
@@ -23,7 +23,12 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     # ------------------------------
     @classmethod
     def getInstance(cls, canvas, parent=None, showFindElements=True, showElementProperties=True):
-        if cls._instance is None:
+        if cls._instance is None or not cls._instance.isVisible():
+            if cls._instance is not None:
+                try:
+                    cls._instance.deleteLater()
+                except RuntimeError:
+                    pass
             cls._instance = cls(canvas, parent, showFindElements, showElementProperties)
         return cls._instance
 
@@ -115,11 +120,13 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.labelFoundElementTag.setWordWrap(True)
             self.labelFoundElementTag.setText("")
             self.labelFoundElementTag.hide()
+            self.isTagVisible = False
 
         if hasattr(self, 'labelFoundElementDescription'):
             self.labelFoundElementDescription.setWordWrap(True)
             self.labelFoundElementDescription.setText("")
             self.labelFoundElementDescription.hide()
+            self.isDescVisible = False
 
         self.setDockStyle()
         self.setupConnections()
@@ -130,15 +137,17 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         if hasattr(self, 'initializeElementTypes'):
             self.initializeElementTypes()
 
+        self.mElementPropertiesGroupBox.setCollapsed(True)
+        self.mFindElementsGroupBox.setCollapsed(True)
         self.trackCollapsibleWidgetsEvents()
-
+        
     def trackCollapsibleWidgetsEvents(self):
         self.mElementPropertiesGroupBox.collapsedStateChanged.connect(self.onElementPropertiesToggled)
         self.mFindElementsGroupBox.collapsedStateChanged.connect(self.onFindElementsToggled)
 
     def updateCollapsibleWidgetsState(self, collapseElementProperties=None, collapseFindElements=None):
         self.mElementPropertiesGroupBox.blockSignals(True)
-        self.mFindElementsGroupBox.blockSignals(True)    
+        self.mFindElementsGroupBox.blockSignals(True)
 
         if collapseElementProperties is not None:
             self.mElementPropertiesGroupBox.setCollapsed(collapseElementProperties)
@@ -146,8 +155,14 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         if collapseFindElements is not None:
             self.mFindElementsGroupBox.setCollapsed(collapseFindElements)
 
-        if not self.mFindElementsGroupBox.isCollapsed() and self.mElementPropertiesGroupBox.isCollapsed():
-            print("HEY")
+        ep_collapsed = self.mElementPropertiesGroupBox.isCollapsed()
+        fe_collapsed = self.mFindElementsGroupBox.isCollapsed()
+
+        if ep_collapsed and fe_collapsed:
+            self.close()
+            return
+        
+        if not fe_collapsed and ep_collapsed:
             self.moveWidgetsToFindElements()
         else:
             self.moveWidgetsToElementProperties()
@@ -172,11 +187,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 self.moveWidgetsToFindElements()
 
     def moveWidgetsToElementProperties(self):
-        widgets = [self.labelFoundElement, self.mConnectedElementsGroupBox]
-
-        if self.labelFoundElementTag.isVisible() and self.labelFoundElementDescription.isVisible():
-            widgets = [self.labelFoundElement, self.labelFoundElementTag, self.labelFoundElementDescription, self.mConnectedElementsGroupBox]
-
+        widgets = [self.labelFoundElement, self.labelFoundElementTag, self.labelFoundElementDescription, self.mConnectedElementsGroupBox]
 
         for widget in widgets:
             currentParent = widget.parent()
@@ -191,11 +202,14 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             targetLayout.insertWidget(index + 1 + i, widget)
             widget.show()
 
-    def moveWidgetsToFindElements(self):
-        widgets = [self.labelFoundElement, self.mConnectedElementsGroupBox]
+        self.labelFoundElementTag.setVisible(self.isTagVisible)
+        self.labelFoundElementDescription.setVisible(self.isDescVisible)
 
-        if self.labelFoundElementTag.isVisible() and self.labelFoundElementDescription.isVisible():
-            widgets = [self.labelFoundElement, self.labelFoundElementTag, self.labelFoundElementDescription, self.mConnectedElementsGroupBox]
+        if self.isFloating():
+            QTimer.singleShot(50, self.resetScrollPosition)
+
+    def moveWidgetsToFindElements(self):
+        widgets = [self.labelFoundElement, self.labelFoundElementTag, self.labelFoundElementDescription, self.mConnectedElementsGroupBox]
 
         for widget in widgets:
             currentParent = widget.parent()
@@ -209,6 +223,17 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         for i, widget in enumerate(widgets):
             targetLayout.insertWidget(index + 1 + i, widget)
             widget.show()
+
+        self.labelFoundElementTag.setVisible(self.isTagVisible)
+        self.labelFoundElementDescription.setVisible(self.isDescVisible)
+
+        if self.isFloating():
+            QTimer.singleShot(50, self.resetScrollPosition)
+
+    def resetScrollPosition(self):
+        # Reset the scroll area position to the top
+        if hasattr(self, 'scrollArea'):
+            self.scrollArea.ensureVisible(0, 0, 0, 0)
 
     # ------------------------------
     # Event Filter Setup
@@ -409,30 +434,75 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         canvas.refresh()
 
     def closeEvent(self, event):
-        self.dockVisibilityChanged.emit(False)
-        settings = QgsSettings()
-        settings.setValue("QGISRed/ElementsExplorer/geometry", self.saveGeometry())
-        settings.setValue("QGISRed/ElementsExplorer/floating", self.isFloating())
+        try:
+            self.dockVisibilityChanged.emit(False)
+            self.dockClosed.emit(True)
+            
+            settings = QgsSettings()
+            settings.setValue("QGISRed/ElementsExplorer/geometry", self.saveGeometry())
+            settings.setValue("QGISRed/ElementsExplorer/floating", self.isFloating())
 
-        root = QgsProject.instance().layerTreeRoot()
-        inputsGroup = root.findGroup("Inputs")
-        if inputsGroup and hasattr(self, 'onLayerTreeChanged'):
-            try:
-                inputsGroup.addedChildren.disconnect(self.onLayerTreeChanged)
-                inputsGroup.removedChildren.disconnect(self.onLayerTreeChanged)
+            # ----- Disconnect all signals -----
+            # Project signals
+            project = QgsProject.instance()
+            self.safeDisconnect(project.layersAdded, self.onLayerTreeChanged)
+            self.safeDisconnect(project.layersRemoved, self.onLayerTreeChanged)
+            self.safeDisconnect(project.readProject, self.onProjectChanged)
+            self.safeDisconnect(project.cleared, self.onProjectChanged)
+            
+            # Layer tree signals
+            root = project.layerTreeRoot()
+            inputsGroup = root.findGroup("Inputs")
+            if inputsGroup:
+                self.safeDisconnect(inputsGroup.addedChildren, self.onLayerTreeChanged)
+                self.safeDisconnect(inputsGroup.removedChildren, self.onLayerTreeChanged)
                 for layerNode in inputsGroup.findLayers():
-                    if hasattr(self, 'disconnectLayerSignals'):
-                        self.disconnectLayerSignals(layerNode.layer())
-            except Exception:
-                pass
-        
-        self.clearHighlights()
-        self.clearAllLayerSelections()
+                    self.disconnectLayerSignals(layerNode.layer())
+            
+            self.safeDisconnect(self.cbElementType.currentIndexChanged, self.updateElementIds)
+            self.safeDisconnect(self.leElementMask.textChanged, self.filterElementIds)
+            self.safeDisconnect(self.btFind.clicked, self.onFindButtonClicked)
+            self.safeDisconnect(self.listWidget.itemClicked, self.onListItemSingleClicked)
+            self.safeDisconnect(self.listWidget.itemDoubleClicked, self.onListItemDoubleClicked)
+            self.safeDisconnect(self.btClear.clicked, self.clearAll)
+            self.safeDisconnect(self.cbElementId.currentIndexChanged, self.onElementIdChanged)
+            self.safeDisconnect(self.btReload.clicked, self.initializeElementTypes)
+            
+            self.safeDisconnect(self.mElementPropertiesGroupBox.collapsedStateChanged, self.onElementPropertiesToggled)
+            self.safeDisconnect(self.mFindElementsGroupBox.collapsedStateChanged, self.onFindElementsToggled)
+            
+            self.removeEventFiltersRecursive(self.widget())
+            self.clearHighlights()
+            self.clearAllLayerSelections()
+            
+            self.canvas = None
+            self.identifyTool = None
+            self.currentLayer = None
+            self.currentFeature = None
+            self.mainHighlight = None
+            self.adjacentHighlights = []
+            self.currentSelectedHighlight = None
+            self.dictOfElementIds = {}
 
-        self.__class__._instance = None
+            self.__class__._instance = None
+            super(QDockWidget, self).closeEvent(event)
+            self.deleteLater()
+        except Exception as e:
+            self.__class__._instance = None
+            super(QDockWidget, self).closeEvent(event)
 
-        self.dockClosed.emit(True)
-        super(self.__class__, self).closeEvent(event)
+    def safeDisconnect(self, signal, slot):
+        try:
+            signal.disconnect(slot)
+        except (TypeError, RuntimeError):
+            pass
+
+    def removeEventFiltersRecursive(self, widget):
+        if widget:
+            widget.removeEventFilter(self)
+            for child in widget.children():
+                if isinstance(child, QWidget):
+                    self.removeEventFiltersRecursive(child)
 
     # ------------------------------
     # Layer and Project Event Methods
@@ -515,8 +585,10 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.labelFoundElement.setText("")
         self.labelFoundElementTag.setText("")
         self.labelFoundElementTag.hide()
+        self.isTagVisible = False
         self.labelFoundElementDescription.setText("")
         self.labelFoundElementDescription.hide()
+        self.isDescVisible = False
         self.listWidget.clear()
         self.dataTableWidget.clear()
         self.setDataTableWidgetColumns()
@@ -725,14 +797,18 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         if featureTag and str(featureTag).strip() != "":
             self.labelFoundElementTag.setText(str(featureTag))
             self.labelFoundElementTag.show()
+            self.isTagVisible = True
         else:
             self.labelFoundElementTag.hide()
+            self.isTagVisible = False
 
         if featureDescription and str(featureDescription).strip() != "":
             self.labelFoundElementDescription.setText(str(featureDescription))
             self.labelFoundElementDescription.show()
+            self.isDescVisible = True
         else:
             self.labelFoundElementDescription.hide()
+            self.isDescVisible = False
 
 
     def appendFeatureProperties(self, feature, labelSuffix=""):

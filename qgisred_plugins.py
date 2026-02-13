@@ -4416,6 +4416,7 @@ class QGISRed:
             if existingDock:
                 try:
                     existingDock.clearHighlights()
+                    existingDock.updateCollapsibleWidgetsState(collapseFindElements=True)
                 except Exception:
                     print("Failed to clear dock highlights.")
 
@@ -4484,6 +4485,7 @@ class QGISRed:
             if existingDock:
                 try:
                     existingDock.clearHighlights()
+                    existingDock.updateCollapsibleWidgetsState(collapseElementProperties=True)
                 except Exception:
                     print("Failed to clear dock highlights.")
 
