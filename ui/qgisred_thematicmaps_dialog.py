@@ -117,6 +117,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
 
     def get_project_units(self):
         units_enum = QgsProject.instance().crs().mapUnits()
+        print("units_enum : ", units_enum)
         if units_enum == QgsUnitTypes.DistanceMeters:
             return 'meters'
         elif units_enum == QgsUnitTypes.DistanceFeet:
@@ -133,7 +134,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             queries.append({
                 'layer_name': 'Pipe Diameters',
                 'field': 'Diameter',
-                'qml_file': f'pipes_diameter_{units}.qml.bak',
+                'qml_file': f'pipesDiameter_{units}.qml.bak',
                 'tooltip_prefix': 'Diam'
             })
 
@@ -141,15 +142,15 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             queries.append({
                 'layer_name': 'Pipe Lengths',
                 'field': 'Length',
-                'qml_file': f'pipes_length_{units}.qml.bak',
-                'tooltip_prefix': 'Long'
+                'qml_file': f'pipesLength_{units}.qml.bak',
+                'tooltip_prefix': 'Len'
             })
 
         if self.cbPipesMaterial.isChecked():
             queries.append({
                 'layer_name': 'Pipe Materials',
                 'field': 'Material',
-                'qml_file': 'pipes_material.qml.bak',
+                'qml_file': 'pipesMaterials.qml.bak',
                 'tooltip_prefix': 'Mat '
             })
 
@@ -177,17 +178,19 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
 
         new_layer.updateFields()
 
-        if field == 'Material':
-            self.apply_categorized_renderer(new_layer, field)
-        else:
-            self.load_qml_style(new_layer, qml_file)
+        # if field == 'Material':
+        #     self.apply_categorized_renderer(new_layer, field)
+        # else:
+        #     self.load_qml_style(new_layer, qml_file)
+
+        self.load_qml_style(new_layer, qml_file)
 
         # Add the virtual field 'Year'
-        instal_date_index = new_layer.fields().indexFromName('InstalDate')
-        if instal_date_index != -1:
-            with edit(new_layer):
-                expression = QgsExpression('substr("InstalDate", 1, 4)')
-                new_layer.addExpressionField(expression.expression(), QgsField('Year', QVariant.String))
+        # instal_date_index = new_layer.fields().indexFromName('InstalDate')
+        # if instal_date_index != -1:
+        #     with edit(new_layer):
+        #         expression = QgsExpression('substr("InstalDate", 1, 4)')
+        #         new_layer.addExpressionField(expression.expression(), QgsField('Year', QVariant.String))
 
         layer_tree_layer = queries_group.addLayer(new_layer)
 
@@ -230,7 +233,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             layer.triggerRepaint()
 
     def assign_labels(self, layer, field):
-        layer.setLabelsEnabled(False)
+        layer.setLabelsEnabled(True)
         labeling = layer.labeling()
         if labeling is not None:
             label_settings = labeling.clone()
