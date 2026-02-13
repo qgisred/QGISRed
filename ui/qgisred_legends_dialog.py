@@ -28,7 +28,7 @@ from qgis.gui import QgsColorButton
 
 # Local imports
 from ..tools.qgisred_utils import QGISRedUtils
-from .qgisred_custom_dialogs import RangeEditDialog
+from .qgisred_custom_dialogs import RangeEditDialog, SymbolColorSelector
 
 formClass, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_legends_dialog.ui"))
 
@@ -351,97 +351,103 @@ class QGISRedLegendsDialog(QDialog, formClass):
         """Populate the legend table for numeric fields."""
         if not self.currentLayer:
             return
-            
+
         renderer = self.currentLayer.renderer()
         if not isinstance(renderer, QgsGraduatedSymbolRenderer):
             return
-            
-        # Clear existing table
+
         self.clearTable()
-        
-        # Get ranges
+
         ranges = renderer.ranges()
-        
-        # Add rows for each range
+        geomHint = self.getGeometryHint()
+
         for i, rangeItem in enumerate(ranges):
             self.tableView.insertRow(i)
-            
+
             # Checkbox (hidden for numeric)
             checkboxItem = QTableWidgetItem()
             checkboxItem.setCheckState(Qt.Unchecked)
             self.tableView.setItem(i, 0, checkboxItem)
-            
-            # Color
-            colorButton = QgsColorButton()
-            colorButton.setColor(rangeItem.symbol().color())
-            colorButton.setEnabled(self.isEditing)
-            self.tableView.setCellWidget(i, 1, colorButton)
-            
-            # Size (line width or point size)
+
+            # Color (SymbolColorSelector)
+            colorWidget = SymbolColorSelector(
+                parent=self.tableView,
+                geometryHint=geomHint,
+                initialColor=rangeItem.symbol().color(),
+                allowAlpha=True,
+                dialogTitle=self.tr("Pick class color")
+            )
+            colorWidget.setEnabled(self.isEditing)
+            self.tableView.setCellWidget(i, 1, colorWidget)
+
+            # Size (line width or point size; polygons treated like point size as per legacy behavior)
             sizeEdit = QLineEdit()
-            if self.currentLayer.geometryType() == 1:  # Line
+            if self.currentLayer.geometryType() == 1:
                 sizeEdit.setText(str(rangeItem.symbol().width()))
-            else:  # Point
+            else:
                 sizeEdit.setText(str(rangeItem.symbol().size()))
             sizeEdit.setEnabled(self.isEditing)
             self.tableView.setCellWidget(i, 2, sizeEdit)
-            
+
             # Value (range)
             valueText = f"{rangeItem.lowerValue():.2f} - {rangeItem.upperValue():.2f}"
             valueItem = QTableWidgetItem(valueText)
             valueItem.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
             self.tableView.setItem(i, 3, valueItem)
-            
+
             # Legend
             legendEdit = QLineEdit(rangeItem.label())
             legendEdit.setEnabled(self.isEditing)
             self.tableView.setCellWidget(i, 4, legendEdit)
-        
+
         QgsMessageLog.logMessage(
-            f"Populated numeric legend with {len(ranges)} classes", 
+            f"Populated numeric legend with {len(ranges)} classes",
             "QGISRed", Qgis.Info
         )
-    
+
     def populateCategoricalLegend(self):
         """Populate the legend table for categorical fields."""
         if not self.currentLayer:
             return
-            
+
         renderer = self.currentLayer.renderer()
         if not isinstance(renderer, QgsCategorizedSymbolRenderer):
             return
-            
-        # Clear existing table
+
         self.clearTable()
-        
-        # Get categories
+
         categories = renderer.categories()
-        
-        # Add rows for each category
+        geomHint = self.getGeometryHint()
+
         for i, category in enumerate(categories):
             self.tableView.insertRow(i)
-            
-            # Checkbox (for selection with up/down buttons)
+
+            # Checkbox
             checkboxItem = QTableWidgetItem()
             checkboxItem.setCheckState(Qt.Unchecked)
             self.tableView.setItem(i, 0, checkboxItem)
-            
-            # Color
-            colorButton = QgsColorButton()
-            colorButton.setColor(category.symbol().color())
-            colorButton.setEnabled(self.isEditing)
-            self.tableView.setCellWidget(i, 1, colorButton)
-            
+
+            # Color (SymbolColorSelector)
+            colorWidget = SymbolColorSelector(
+                parent=self.tableView,
+                geometryHint=geomHint,
+                initialColor=category.symbol().color(),
+                allowAlpha=True,
+                dialogTitle=self.tr("Pick category color")
+            )
+            colorWidget.setEnabled(self.isEditing)
+            self.tableView.setCellWidget(i, 1, colorWidget)
+
             # Size
             sizeEdit = QLineEdit()
-            if self.currentLayer.geometryType() == 1:  # Line
+            if self.currentLayer.geometryType() == 1:
                 sizeEdit.setText(str(category.symbol().width()))
-            else:  # Point
+            else:
                 sizeEdit.setText(str(category.symbol().size()))
             sizeEdit.setEnabled(self.isEditing)
             self.tableView.setCellWidget(i, 2, sizeEdit)
-            
-            # Value (category value) - ComboBox for editing
+
+            # Value (category value)
             if self.isEditing:
                 valueCombo = QComboBox()
                 valueCombo.addItem(str(category.value()))
@@ -450,17 +456,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 valueItem = QTableWidgetItem(str(category.value()))
                 valueItem.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
                 self.tableView.setItem(i, 3, valueItem)
-            
+
             # Legend
             legendEdit = QLineEdit(category.label())
             legendEdit.setEnabled(self.isEditing)
             self.tableView.setCellWidget(i, 4, legendEdit)
-        
+
         QgsMessageLog.logMessage(
-            f"Populated categorical legend with {len(categories)} classes", 
+            f"Populated categorical legend with {len(categories)} classes",
             "QGISRed", Qgis.Info
         )
-    
+
+
     def onTableItemChanged(self, item):
         """Handle table item changes, particularly for checkbox selection."""
         # Only handle checkbox column (column 0) for categorical legends
@@ -523,25 +530,22 @@ class QGISRedLegendsDialog(QDialog, formClass):
         """Swap two rows in the table."""
         if row1 < 0 or row2 < 0 or row1 >= self.tableView.rowCount() or row2 >= self.tableView.rowCount():
             return
-            
-        # Store data from both rows
+
         row1Data = []
         row2Data = []
-        
+
         for col in range(self.tableView.columnCount()):
-            # Get items
             item1 = self.tableView.item(row1, col)
             item2 = self.tableView.item(row2, col)
-            
-            # Get widgets
+
             widget1 = self.tableView.cellWidget(row1, col)
             widget2 = self.tableView.cellWidget(row2, col)
-            
-            # Store data
+
+            # Row 1 snapshot
             if item1:
                 row1Data.append(('item', item1.text(), item1.checkState() if col == 0 else None))
             elif widget1:
-                if isinstance(widget1, QgsColorButton):
+                if isinstance(widget1, SymbolColorSelector):
                     row1Data.append(('color', widget1.color()))
                 elif isinstance(widget1, QLineEdit):
                     row1Data.append(('text', widget1.text()))
@@ -551,11 +555,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
                     row1Data.append(None)
             else:
                 row1Data.append(None)
-                
+
+            # Row 2 snapshot
             if item2:
                 row2Data.append(('item', item2.text(), item2.checkState() if col == 0 else None))
             elif widget2:
-                if isinstance(widget2, QgsColorButton):
+                if isinstance(widget2, SymbolColorSelector):
                     row2Data.append(('color', widget2.color()))
                 elif isinstance(widget2, QLineEdit):
                     row2Data.append(('text', widget2.text()))
@@ -565,16 +570,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
                     row2Data.append(None)
             else:
                 row2Data.append(None)
-        
-        # Swap the data
+
+        # Swap
         for col in range(self.tableView.columnCount()):
-            # Clear both cells
             self.tableView.setItem(row1, col, None)
             self.tableView.setItem(row2, col, None)
             self.tableView.removeCellWidget(row1, col)
             self.tableView.removeCellWidget(row2, col)
-            
-            # Set row2 data to row1
+
+            # Move row2 -> row1
             if row2Data[col]:
                 dataType, *data = row2Data[col]
                 if dataType == 'item':
@@ -583,8 +587,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                         item.setCheckState(data[1])
                     self.tableView.setItem(row1, col, item)
                 elif dataType == 'color':
-                    widget = QgsColorButton()
-                    widget.setColor(data[0])
+                    widget = SymbolColorSelector(parent=self.tableView, geometryHint=self.getGeometryHint(), initialColor=data[0])
                     widget.setEnabled(self.isEditing)
                     self.tableView.setCellWidget(row1, col, widget)
                 elif dataType == 'text':
@@ -595,8 +598,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
                     widget = QComboBox()
                     widget.addItem(data[0])
                     self.tableView.setCellWidget(row1, col, widget)
-            
-            # Set row1 data to row2
+
+            # Move row1 -> row2
             if row1Data[col]:
                 dataType, *data = row1Data[col]
                 if dataType == 'item':
@@ -605,8 +608,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                         item.setCheckState(data[1])
                     self.tableView.setItem(row2, col, item)
                 elif dataType == 'color':
-                    widget = QgsColorButton()
-                    widget.setColor(data[0])
+                    widget = SymbolColorSelector(parent=self.tableView, geometryHint=self.getGeometryHint(), initialColor=data[0])
                     widget.setEnabled(self.isEditing)
                     self.tableView.setCellWidget(row2, col, widget)
                 elif dataType == 'text':
@@ -617,65 +619,50 @@ class QGISRedLegendsDialog(QDialog, formClass):
                     widget = QComboBox()
                     widget.addItem(data[0])
                     self.tableView.setCellWidget(row2, col, widget)
-    
+
     def addClass(self):
         """Add a new class to the legend."""
         if not self.currentLayer:
             QMessageBox.warning(self, "No Layer", "Please select a layer first.")
             return
-        
+
+        geomHint = self.getGeometryHint()
+        rowCount = self.tableView.rowCount()
+        self.tableView.insertRow(rowCount)
+
+        # Checkbox
+        checkboxItem = QTableWidgetItem()
+        checkboxItem.setCheckState(Qt.Unchecked)
+        self.tableView.setItem(rowCount, 0, checkboxItem)
+
+        # Color
+        colorWidget = SymbolColorSelector(parent=self.tableView, geometryHint=geomHint, initialColor=QColor(128, 128, 128))
+        colorWidget.setEnabled(self.isEditing)
+        self.tableView.setCellWidget(rowCount, 1, colorWidget)
+
+        # Size
+        sizeEdit = QLineEdit("1.0")
+        self.tableView.setCellWidget(rowCount, 2, sizeEdit)
+
         if self.currentFieldType == self.FIELD_TYPE_NUMERIC:
-            # Add a new numeric range
-            rowCount = self.tableView.rowCount()
-            self.tableView.insertRow(rowCount)
-            
-            # Add default widgets
-            checkboxItem = QTableWidgetItem()
-            checkboxItem.setCheckState(Qt.Unchecked)
-            self.tableView.setItem(rowCount, 0, checkboxItem)
-            
-            colorButton = QgsColorButton()
-            colorButton.setColor(QColor(128, 128, 128))
-            self.tableView.setCellWidget(rowCount, 1, colorButton)
-            
-            sizeEdit = QLineEdit("1.0")
-            self.tableView.setCellWidget(rowCount, 2, sizeEdit)
-            
+            # Value range
             valueItem = QTableWidgetItem("0.0 - 0.0")
             self.tableView.setItem(rowCount, 3, valueItem)
-            
             legendEdit = QLineEdit("New Class")
-            self.tableView.setCellWidget(rowCount, 4, legendEdit)
-            
-            QgsMessageLog.logMessage("Added new numeric class", "QGISRed", Qgis.Info)
-            
-        elif self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
-            # Check if there are values left to add
-            # TODO: Check available values from field
-            
-            rowCount = self.tableView.rowCount()
-            self.tableView.insertRow(rowCount)
-            
-            # Add default widgets
-            checkboxItem = QTableWidgetItem()
-            checkboxItem.setCheckState(Qt.Unchecked)
-            self.tableView.setItem(rowCount, 0, checkboxItem)
-            
-            colorButton = QgsColorButton()
-            colorButton.setColor(QColor(128, 128, 128))
-            self.tableView.setCellWidget(rowCount, 1, colorButton)
-            
-            sizeEdit = QLineEdit("1.0")
-            self.tableView.setCellWidget(rowCount, 2, sizeEdit)
-            
+        else:
+            # Categorical value
             valueItem = QTableWidgetItem("Other")
             self.tableView.setItem(rowCount, 3, valueItem)
-            
             legendEdit = QLineEdit("New Category")
-            self.tableView.setCellWidget(rowCount, 4, legendEdit)
-            
-            QgsMessageLog.logMessage("Added new categorical class", "QGISRed", Qgis.Info)
-    
+
+        legendEdit.setEnabled(self.isEditing)
+        self.tableView.setCellWidget(rowCount, 4, legendEdit)
+
+        QgsMessageLog.logMessage(
+            "Added new class" if self.currentFieldType == self.FIELD_TYPE_NUMERIC else "Added new categorical class",
+            "QGISRed", Qgis.Info
+        )
+
     def removeClass(self):
         """Remove selected class from the legend."""
         if not self.currentLayer:
@@ -844,113 +831,99 @@ class QGISRedLegendsDialog(QDialog, formClass):
         """Apply numeric legend from table to layer."""
         if not self.currentLayer or not self.currentFieldName:
             return
-            
-        # Create new ranges from table
+
         ranges = []
         for row in range(self.tableView.rowCount()):
-            # Get values from table
+            # Range values
             valueText = self.tableView.item(row, 3).text()
-            if " - " in valueText:
-                parts = valueText.split(" - ")
-                lower = float(parts[0])
-                upper = float(parts[1])
-            else:
+            if " - " not in valueText:
                 continue
-                
-            # Get color
+            parts = valueText.split(" - ")
+            lower = float(parts[0])
+            upper = float(parts[1])
+
+            # Color
             colorWidget = self.tableView.cellWidget(row, 1)
-            if isinstance(colorWidget, QgsColorButton):
+            if isinstance(colorWidget, SymbolColorSelector):
                 color = colorWidget.color()
             else:
                 color = QColor(128, 128, 128)
-            
-            # Get label
+
+            # Label
             legendWidget = self.tableView.cellWidget(row, 4)
-            if isinstance(legendWidget, QLineEdit):
-                label = legendWidget.text()
-            else:
-                label = valueText
-            
-            # Create symbol
+            label = legendWidget.text() if isinstance(legendWidget, QLineEdit) else valueText
+
+            # Symbol
             symbol = QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
             symbol.setColor(color)
-            
-            # Get size
+
+            # Size
             sizeWidget = self.tableView.cellWidget(row, 2)
             if isinstance(sizeWidget, QLineEdit):
                 try:
                     size = float(sizeWidget.text())
-                    if self.currentLayer.geometryType() == 1:  # Line
+                    if self.currentLayer.geometryType() == 1:
                         symbol.setWidth(size)
-                    else:  # Point
+                    else:
                         symbol.setSize(size)
-                except:
+                except Exception:
                     pass
-            
-            # Create range
-            rangeItem = QgsRendererRange(lower, upper, symbol, label)
-            ranges.append(rangeItem)
-        
-        # Create and apply renderer
+
+            ranges.append(QgsRendererRange(lower, upper, symbol, label))
+
         if ranges:
             renderer = QgsGraduatedSymbolRenderer(self.currentFieldName, ranges)
             self.currentLayer.setRenderer(renderer)
-    
+
     def applyCategoricalLegend(self):
         """Apply categorical legend from table to layer."""
         if not self.currentLayer or not self.currentFieldName:
             return
-            
-        # Create categories from table
+
         categories = []
         for row in range(self.tableView.rowCount()):
-            # Get value
+            # Value
             valueWidget = self.tableView.cellWidget(row, 3)
             if isinstance(valueWidget, QComboBox):
                 value = valueWidget.currentText()
             else:
                 valueItem = self.tableView.item(row, 3)
                 value = valueItem.text() if valueItem else ""
-            
-            # Get color
+
+            # Color
             colorWidget = self.tableView.cellWidget(row, 1)
-            if isinstance(colorWidget, QgsColorButton):
+            if isinstance(colorWidget, SymbolColorSelector):
                 color = colorWidget.color()
             else:
                 color = QColor(128, 128, 128)
-            
-            # Get label
+
+            # Label
             legendWidget = self.tableView.cellWidget(row, 4)
-            if isinstance(legendWidget, QLineEdit):
-                label = legendWidget.text()
-            else:
-                label = value
-            
-            # Create symbol
+            label = legendWidget.text() if isinstance(legendWidget, QLineEdit) else value
+
+            # Symbol
             symbol = QgsSymbol.defaultSymbol(self.currentLayer.geometryType())
             symbol.setColor(color)
-            
-            # Get size
+
+            # Size
             sizeWidget = self.tableView.cellWidget(row, 2)
             if isinstance(sizeWidget, QLineEdit):
                 try:
                     size = float(sizeWidget.text())
-                    if self.currentLayer.geometryType() == 1:  # Line
+                    if self.currentLayer.geometryType() == 1:
                         symbol.setWidth(size)
-                    else:  # Point
+                    else:
                         symbol.setSize(size)
-                except:
+                except Exception:
                     pass
-            
-            # Create category
-            category = QgsRendererCategory(value, symbol, label)
-            categories.append(category)
-        
-        # Create and apply renderer
+
+            categories.append(QgsRendererCategory(value, symbol, label))
+
         if categories:
             renderer = QgsCategorizedSymbolRenderer(self.currentFieldName, categories)
             self.currentLayer.setRenderer(renderer)
-    
+
+
     def saveProjectStyle(self):
         """Save the current style for the project."""
         if not self.currentLayer:
@@ -1183,3 +1156,16 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.currentLayer.triggerRepaint()
         
         self.reject()
+
+    def getGeometryHint(self) -> str:
+        """
+        Returns one of: 'marker', 'line', 'fill' according to currentLayer geometry.
+        """
+        if not self.currentLayer:
+            return "fill"
+        gt = self.currentLayer.geometryType()
+        if gt == 0:
+            return "marker"
+        if gt == 1:
+            return "line"
+        return "fill"
