@@ -109,7 +109,7 @@
                 <Option name="color" value="255,0,0,255,rgb:1,0,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/pumps.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/pumps.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -180,7 +180,7 @@
                 <Option name="color" value="255,0,0,255,rgb:1,0,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/valves.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/valves.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -251,7 +251,7 @@
                 <Option name="color" value="255,0,0,255,rgb:1,0,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/arrow.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/arrow.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -322,7 +322,7 @@
                 <Option name="color" value="255,0,0,255,rgb:1,0,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/arrow.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/arrow.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -440,7 +440,7 @@
                 <Option name="color" value="255,0,0,255,rgb:1,0,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/pumps.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/pumps.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -511,7 +511,7 @@
                 <Option name="color" value="255,0,0,255,rgb:1,0,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/valves.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/valves.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -582,7 +582,7 @@
                 <Option name="color" value="255,0,0,255,rgb:1,0,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/arrow.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/arrow.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -653,7 +653,7 @@
                 <Option name="color" value="255,0,0,255,rgb:1,0,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/arrow.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/arrow.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -771,7 +771,7 @@
                 <Option name="color" value="0,128,0,255,rgb:0,0.50196078431372548,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/pumps.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/pumps.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -842,7 +842,7 @@
                 <Option name="color" value="0,128,0,255,rgb:0,0.50196078431372548,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/valves.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/valves.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -913,7 +913,7 @@
                 <Option name="color" value="0,128,0,255,rgb:0,0.50196078431372548,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/arrow.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/arrow.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -984,7 +984,7 @@
                 <Option name="color" value="0,128,0,255,rgb:0,0.50196078431372548,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/arrow.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/arrow.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -1102,7 +1102,7 @@
                 <Option name="color" value="255,165,0,255,rgb:1,0.6470588235294118,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/pumps.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/pumps.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -1173,7 +1173,7 @@
                 <Option name="color" value="255,165,0,255,rgb:1,0.6470588235294118,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/valves.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/valves.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -1244,7 +1244,7 @@
                 <Option name="color" value="255,165,0,255,rgb:1,0.6470588235294118,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/arrow.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/arrow.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -1315,7 +1315,7 @@
                 <Option name="color" value="255,165,0,255,rgb:1,0.6470588235294118,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/arrow.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/arrow.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -1433,7 +1433,7 @@
                 <Option name="color" value="255,165,0,255,rgb:1,0.6470588235294118,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/pumps.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/pumps.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -1504,7 +1504,7 @@
                 <Option name="color" value="255,165,0,255,rgb:1,0.6470588235294118,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/valves.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/valves.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -1575,7 +1575,7 @@
                 <Option name="color" value="255,165,0,255,rgb:1,0.6470588235294118,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/arrow.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/arrow.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -1646,7 +1646,7 @@
                 <Option name="color" value="255,165,0,255,rgb:1,0.6470588235294118,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/arrow.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/arrow.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -1764,7 +1764,7 @@
                 <Option name="color" value="255,0,0,255,rgb:1,0,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/pumps.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/pumps.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -1835,7 +1835,7 @@
                 <Option name="color" value="255,0,0,255,rgb:1,0,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/valves.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/valves.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -1906,7 +1906,7 @@
                 <Option name="color" value="255,0,0,255,rgb:1,0,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/arrow.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/arrow.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -1977,7 +1977,7 @@
                 <Option name="color" value="255,0,0,255,rgb:1,0,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/arrow.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/arrow.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -2095,7 +2095,7 @@
                 <Option name="color" value="255,0,0,255,rgb:1,0,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/pumps.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/pumps.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -2166,7 +2166,7 @@
                 <Option name="color" value="255,0,0,255,rgb:1,0,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/valves.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/valves.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -2237,7 +2237,7 @@
                 <Option name="color" value="255,0,0,255,rgb:1,0,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/arrow.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/arrow.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -2308,7 +2308,7 @@
                 <Option name="color" value="255,0,0,255,rgb:1,0,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/arrow.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/arrow.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -2426,7 +2426,7 @@
                 <Option name="color" value="255,0,0,255,rgb:1,0,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/pumps.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/pumps.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -2497,7 +2497,7 @@
                 <Option name="color" value="255,0,0,255,rgb:1,0,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/valves.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/valves.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -2568,7 +2568,7 @@
                 <Option name="color" value="255,0,0,255,rgb:1,0,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/arrow.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/arrow.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -2639,7 +2639,7 @@
                 <Option name="color" value="255,0,0,255,rgb:1,0,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/arrow.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/arrow.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -2757,7 +2757,7 @@
                 <Option name="color" value="255,0,0,255,rgb:1,0,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/pumps.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/pumps.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -2828,7 +2828,7 @@
                 <Option name="color" value="255,0,0,255,rgb:1,0,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/valves.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/valves.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -2899,7 +2899,7 @@
                 <Option name="color" value="255,0,0,255,rgb:1,0,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/arrow.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/arrow.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -2970,7 +2970,7 @@
                 <Option name="color" value="255,0,0,255,rgb:1,0,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/arrow.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/arrow.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -3088,7 +3088,7 @@
                 <Option name="color" value="0,128,0,255,rgb:0,0.50196078431372548,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/pumps.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/pumps.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -3159,7 +3159,7 @@
                 <Option name="color" value="0,128,0,255,rgb:0,0.50196078431372548,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/valves.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/valves.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -3230,7 +3230,7 @@
                 <Option name="color" value="0,128,0,255,rgb:0,0.50196078431372548,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/arrow.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/arrow.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -3301,7 +3301,7 @@
                 <Option name="color" value="0,128,0,255,rgb:0,0.50196078431372548,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/arrow.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/arrow.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -3419,7 +3419,7 @@
                 <Option name="color" value="0,128,0,255,rgb:0,0.50196078431372548,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/pumps.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/pumps.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -3490,7 +3490,7 @@
                 <Option name="color" value="0,128,0,255,rgb:0,0.50196078431372548,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/valves.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/valves.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -3561,7 +3561,7 @@
                 <Option name="color" value="0,128,0,255,rgb:0,0.50196078431372548,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/arrow.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/arrow.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -3632,7 +3632,7 @@
                 <Option name="color" value="0,128,0,255,rgb:0,0.50196078431372548,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/arrow.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/arrow.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -3750,7 +3750,7 @@
                 <Option name="color" value="0,128,0,255,rgb:0,0.50196078431372548,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/pumps.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/pumps.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -3821,7 +3821,7 @@
                 <Option name="color" value="0,128,0,255,rgb:0,0.50196078431372548,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/valves.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/valves.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -3892,7 +3892,7 @@
                 <Option name="color" value="0,128,0,255,rgb:0,0.50196078431372548,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/arrow.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/arrow.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -3963,7 +3963,7 @@
                 <Option name="color" value="0,128,0,255,rgb:0,0.50196078431372548,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/arrow.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/arrow.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -4081,7 +4081,7 @@
                 <Option name="color" value="0,128,0,255,rgb:0,0.50196078431372548,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/pumps.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/pumps.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -4152,7 +4152,7 @@
                 <Option name="color" value="0,128,0,255,rgb:0,0.50196078431372548,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/valves.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/valves.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -4223,7 +4223,7 @@
                 <Option name="color" value="0,128,0,255,rgb:0,0.50196078431372548,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/arrow.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/arrow.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
@@ -4294,7 +4294,7 @@
                 <Option name="color" value="0,128,0,255,rgb:0,0.50196078431372548,0,1" type="QString"/>
                 <Option name="fixedAspectRatio" value="0" type="QString"/>
                 <Option name="horizontal_anchor_point" value="1" type="QString"/>
-                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed-BID/defaults/layerStyles/arrow.svg" type="QString"/>
+                <Option name="name" value="C:/Users/vmvst/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed/defaults/layerStyles/arrow.svg" type="QString"/>
                 <Option name="offset" value="0,0" type="QString"/>
                 <Option name="offset_map_unit_scale" value="3x:0,0,0,0,0,0" type="QString"/>
                 <Option name="offset_unit" value="MM" type="QString"/>
