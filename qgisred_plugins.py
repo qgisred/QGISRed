@@ -2763,7 +2763,7 @@ class QGISRed:
 
     def runClearedProject(self):
         # Set flag to prevent DLL calls during shutdown
-        self.isUnloading = True
+        self.isUnloading = False
 
         # Invalidate the DLL instance
         self.gisredDll = None
