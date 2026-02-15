@@ -48,7 +48,7 @@ class QGISRedSelectPointTool(QgsMapTool):
         if hasattr(self.parent, 'isUnloading') and self.parent.isUnloading:
             return
         QgsMapTool.activate(self)
-        pencil_cursor = QCursor(QPixmap(":/plugins/QGISRed/images/pencil.svg"), 0, 0)
+        pencil_cursor = QCursor(QPixmap(":/images/pencil.svg"), 0, 0)
         self.canvas.setCursor(pencil_cursor)
         type = 1
         if self.type == 2 or self.type == 4:

@@ -1,9 +1,4 @@
-echo off
-:: call "C:\Program Files\QGIS 3.40.1\bin\o4w_env.bat"
-:: call "C:\Program Files\QGIS 3.40.1\bin\qt5_env.bat"
-:: call "C:\Program Files\QGIS 3.40.1\bin\py3_env.bat"
-
-
 @echo on
-:: pyrcc5.bat -o resources3x.py resources.qrc
+:: If something fails, we need to ensure the python executed is the one from QGIS
+:: setting the environmental variable of the python folder in QGis installation folder
 python -m PyQt5.pyrcc_main -o resources3x.py resources.qrc

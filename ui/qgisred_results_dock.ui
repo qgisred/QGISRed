@@ -80,7 +80,7 @@
                    </property>
                    <property name="icon">
                     <iconset>
-                     <normaloff>:/plugins/QGISRed/images/iconDelete.png</normaloff>:/plugins/QGISRed/images/iconDelete.png</iconset>
+                     <normaloff>:/images/iconDelete.png</normaloff>:/images/iconDelete.png</iconset>
                    </property>
                   </widget>
                  </item>
@@ -587,7 +587,7 @@
                    </property>
                    <property name="icon">
                     <iconset>
-                     <normaloff>:/plugins/QGISRed/images/iconSave.png</normaloff>:/plugins/QGISRed/images/iconSave.png</iconset>
+                     <normaloff>:/images/iconSave.png</normaloff>:/images/iconSave.png</iconset>
                    </property>
                   </widget>
                  </item>

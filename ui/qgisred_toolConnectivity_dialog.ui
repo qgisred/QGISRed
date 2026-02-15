@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>:/plugins/QGISRed/images/iconConnectivity.png</normaloff>:/plugins/QGISRed/images/iconConnectivity.png</iconset>
+    <normaloff>:/images/iconConnectivity.png</normaloff>:/images/iconConnectivity.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
