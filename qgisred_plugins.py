@@ -293,8 +293,7 @@ class QGISRed:
         self.removingLayers = False        
 
 
-        # ui_language = QgsApplication.locale()
-        # definedCulture = GISRed.SetCulture(ui_language)
+        self.setCulture()
         # QgsMessageLog.logMessage("Culture set to " + definedCulture, "QGISRed", level=0)
 
         QgsMessageLog.logMessage(self.tr("Loaded sucssesfully"), "QGISRed", level=0)
@@ -1650,6 +1649,13 @@ class QGISRed:
 
     """Version & DLLs"""
 
+    def setCulture(self):
+        ui_language = QgsApplication.locale()
+        try:
+            GISRed.SetCulture(ui_language)
+        except Exception:
+            pass
+
     def getVersion(self, filename, what):
         class LANGANDCODEPAGE(Structure):
             _fields_ = [("wLanguage", c_uint16), ("wCodePage", c_uint16)]
@@ -1719,6 +1725,7 @@ class QGISRed:
                 valid = self.checkDependencies()
                 if valid:
                     QGISRedUtils().copyDependencies()
+                    self.setCulture()
 
         return valid
 
