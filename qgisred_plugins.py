@@ -2061,6 +2061,8 @@ class QGISRed:
         utils.deleteProjectQLR()
         utils.removeEmptyLayersInGroup(inputGroup)
 
+        self.updateMetadata()
+
         # Continue any pending task
         if task is not None:
             return {"task": task.definition()}
