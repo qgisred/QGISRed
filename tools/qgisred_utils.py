@@ -47,6 +47,8 @@ class QGISRedUtils:
         'qgisred_isolatedsegments': 'IsolatedSegments'
     }
 
+    defaultSvgPathText = "defaultSvgPath"
+
     # Unit definitions loaded from JSON file
     _unit_definitions = None
 
@@ -484,6 +486,7 @@ class QGISRedUtils:
         if name == "":
             return
         stylePath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "layerStyles")
+        pluginPath = os.path.dirname(os.path.dirname(__file__))
 
         # user style
         qmlPath = os.path.join(stylePath, name + "_user.qml")
@@ -505,10 +508,11 @@ class QGISRedUtils:
             return
 
         # default style
-        defaultStylePath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "defaults", "layerStyles")
+        defaultStylePath = os.path.join(pluginPath, "defaults", "layerStyles")
         qmlPath = os.path.join(defaultStylePath, name + ".qml.bak")
-        if os.path.exists(qmlPath):
-                layer.loadNamedStyle(qmlPath)
+        tempStylePath = self.replaceSvgPathInQml(qmlPath, self.defaultSvgPathText, pluginPath)
+        if os.path.exists(tempStylePath):
+            layer.loadNamedStyle(tempStylePath)
 
     def setResultStyle(self, layer, name=""):
         # Convert result layer name to QML filename (e.g., "Link_Flow" -> "LinkFlow")
@@ -516,7 +520,8 @@ class QGISRedUtils:
         
         layerStylesPath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "layerStyles")
         defaultStylePath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "defaults", "layerStyles")
-        
+        pluginPath = os.path.dirname(os.path.dirname(__file__))
+
         # Search order: project folder -> layerStyles -> defaults/layerStyles
         if qmlName:
             # project style
@@ -534,8 +539,9 @@ class QGISRedUtils:
             
             # default .bak style
             qmlPath = os.path.join(defaultStylePath, qmlName + ".qml.bak")
-            if os.path.exists(qmlPath):
-                layer.loadNamedStyle(qmlPath)
+            tempStylePath = self.replaceSvgPathInQml(qmlPath, self.defaultSvgPathText, pluginPath)
+            if os.path.exists(tempStylePath):
+                layer.loadNamedStyle(tempStylePath)
                 return
         
         #TODO -> remove this fallback
@@ -568,6 +574,24 @@ class QGISRedUtils:
             f.close()
             layer.loadNamedStyle(qmlPath)
             os.remove(qmlPath)
+
+    def replaceSvgPathInQml(self, qmlPath, defaultSvgPath, pluginPath):
+        if not os.path.exists(qmlPath):
+            return qmlPath
+            
+        try:
+            with open(qmlPath, 'r', encoding='utf-8', errors='ignore') as f:
+                content = f.read()
+                
+            newContent = content.replace(defaultSvgPath, pluginPath)
+            
+            tempPath = os.path.join(tempfile.gettempdir(), next(tempfile._get_candidate_names()) + ".qml")
+            with open(tempPath, 'w', encoding='utf-8') as f:
+                f.write(newContent)
+                
+            return tempPath
+        except Exception:
+            return qmlPath
 
     def setSectorsStyle(self, layer):
         # get unique values
