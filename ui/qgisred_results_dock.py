@@ -57,6 +57,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.btDeleteScenario.clicked.connect(self.deleteScenario)
 
         self.lbNotAvailable.setVisible(False)
+        self.displayingLinkField = ""
+        self.displayingNodeField = ""
 
     """Methods"""
 
@@ -145,6 +147,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     """UI Elements"""
 
     def setSelectedItemInLinkNodeComboboxes(self, nameLayer):
+        if nameLayer == "Link_All":
+            self.cbLinks.setCurrentIndex(1)
+            self.cbFlowDirections.setVisible(True)
+        if nameLayer == "Node_All":
+            self.cbNodes.setCurrentIndex(1)
         if nameLayer == "Link_Flow":
             self.cbLinks.setCurrentIndex(1)
             self.cbFlowDirections.setVisible(True)
@@ -187,7 +194,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             for layer in layers:
                 openLayerPath = self.getLayerPath(layer)
                 if openLayerPath == layerResult:
-                    self.setSelectedItemInLinkNodeComboboxes(nameLayer)
+                    if "Link" in nameLayer:
+                        self.cbLinks.setCurrentIndex(1) # Default to first result
+                        self.cbFlowDirections.setVisible(True)
+                    else:
+                        self.cbNodes.setCurrentIndex(1) # Default to first result
         self.Computing = False
 
     """Create Lists"""
@@ -222,42 +233,16 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
     def setLayersNames(self, allLayers=False):
         self.LabelsToOpRe = []
-        if self.cbLinks.currentIndex() == 1 or allLayers:
-            self.LabelsToOpRe.append("Link_Flow")
-        if self.cbLinks.currentIndex() == 2 or allLayers:
-            self.LabelsToOpRe.append("Link_Velocity")
-        if self.cbLinks.currentIndex() == 3 or allLayers:
-            self.LabelsToOpRe.append("Link_HeadLoss")
-        if self.cbLinks.currentIndex() == 4 or allLayers:
-            self.LabelsToOpRe.append("Link_UnitHeadLoss")
-        if self.cbLinks.currentIndex() == 5 or allLayers:
-            self.LabelsToOpRe.append("Link_Status")
-        if self.cbLinks.currentIndex() == 6 or allLayers:
-            self.LabelsToOpRe.append("Link_Quality")
-        if self.cbNodes.currentIndex() == 1 or allLayers:
-            self.LabelsToOpRe.append("Node_Pressure")
-        if self.cbNodes.currentIndex() == 2 or allLayers:
-            self.LabelsToOpRe.append("Node_Head")
-        if self.cbNodes.currentIndex() == 3 or allLayers:
-            self.LabelsToOpRe.append("Node_Demand")
-        if self.cbNodes.currentIndex() == 4 or allLayers:
-            self.LabelsToOpRe.append("Node_Quality")
+        if self.cbLinks.currentIndex() != 0 or allLayers:
+            self.LabelsToOpRe.append("Link_All")
+        if self.cbNodes.currentIndex() != 0 or allLayers:
+            self.LabelsToOpRe.append("Node_All")
 
     def setLinksLayersNames(self):
-        self.LabelsToOpRe = []
-        self.LabelsToOpRe.append("Link_Flow")
-        self.LabelsToOpRe.append("Link_Velocity")
-        self.LabelsToOpRe.append("Link_HeadLoss")
-        self.LabelsToOpRe.append("Link_UnitHeadLoss")
-        self.LabelsToOpRe.append("Link_Status")
-        self.LabelsToOpRe.append("Link_Quality")
+        self.LabelsToOpRe = ["Link_All"]
 
     def setNodesLayersNames(self):
-        self.LabelsToOpRe = []
-        self.LabelsToOpRe.append("Node_Pressure")
-        self.LabelsToOpRe.append("Node_Head")
-        self.LabelsToOpRe.append("Node_Demand")
-        self.LabelsToOpRe.append("Node_Quality")
+        self.LabelsToOpRe = ["Node_All"]
 
     """Symbology"""
 
@@ -267,17 +252,24 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         dictSce = self.Renders.get(self.Scenario)
         if dictSce is None:
             dictSce = {}
+            
         for nameLayer in self.LabelsToOpRe:
             resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp")
             for layer in openedLayers:
                 openedLayerPath = self.getLayerPath(layer)
                 if openedLayerPath == resultLayerPath:
+                    # Use the field that IS currently displayed on the layer
+                    var_key = self.displayingLinkField if "Link" in nameLayer else self.displayingNodeField
+                    
+                    if not var_key:
+                        continue
+                        
+                    storage_key = openedLayerPath + "|" + var_key
                     renderer = layer.renderer()
                     if renderer.type() == "graduatedSymbol":
-                        # Guarda por ruta, se pierde al cerrar QGis
-                        dictSce[openedLayerPath] = renderer.ranges()
+                        dictSce[storage_key] = renderer.ranges()
                     else:
-                        dictSce[openedLayerPath] = renderer.rootRule().clone()
+                        dictSce[storage_key] = renderer.rootRule().clone()
         self.Renders[self.Scenario] = dictSce
 
     def paintIntervalTimeResults(self, columnNumber, setRender=False):
@@ -286,26 +278,52 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         self.Scenario = self.cbScenarios.currentText()
         resultPath = os.path.join(self.ProjectDirectory, "Results")
-
         layers = self.getLayers()
-
-        self.lbTime.setText(self.TimeLabels[columnNumber])
-        for nameLayer in self.LabelsToOpRe:
+        
+        time_text = self.cbTimes.currentText()
+        self.lbTime.setText(time_text)
+        
+        for nameLayer in self.LabelsToOpRe: 
             resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp")
             for layer in layers:
                 openedLayerPath = self.getLayerPath(layer)
                 if openedLayerPath == resultLayerPath:
-                    field_names = [field.name() for field in layer.fields()]
-                    field = field_names[columnNumber + 2]
-                    self.setGraduadedPalette(layer, field, setRender, nameLayer)
-                    layer.setName(nameLayer.replace("_", " "))
-                    name = nameLayer.replace("Link_", "").replace("Node_", "") + ': [% "T' + str(columnNumber) + '" %]'
-                    layer.setMapTipTemplate(name)
-                    self.setLayerLabels(layer, "T" + str(columnNumber))
+                    # Apply filter by Time
+                    layer.setSubsetString("Time = '" + time_text + "'")
+                    
+                    field = ""
+                    disp_name = ""
+                    var_translated = ""
+                    if "Link" in nameLayer:
+                        idx = self.cbLinks.currentIndex()
+                        if idx > 0:
+                            columnNumber = [0, 3, 4, 5, 6, 7, 9][idx]
+                            field = layer.fields().at(columnNumber).name()
+                            var_translated = self.cbLinks.currentText()
+                            disp_name = var_translated + " " + self.tr("in links")
+                    else:
+                        idx = self.cbNodes.currentIndex()
+                        if idx > 0:
+                            columnNumber = [0,5,4,3,6][idx]
+                            field = layer.fields().at(columnNumber).name()
+                            var_translated = self.cbNodes.currentText()
+                            disp_name = var_translated + " " + self.tr("in nodes")
+                    
+                    if field:
+                        self.setGraduadedPalette(layer, field, setRender, nameLayer)
+                        if "Link" in nameLayer: self.displayingLinkField = field
+                        else: self.displayingNodeField = field
+
+                        if disp_name:
+                            layer.setName(disp_name)
+                        
+                        tip = var_translated + ': [% "' + field + '" %]'
+                        layer.setMapTipTemplate(tip)
+                        self.setLayerLabels(layer, field)
 
     def setLayerLabels(self, layer, fieldName):
         firstCondition = layer.geometryType() == 0 and self.cbNodeLabels.isChecked()
-        secondCondition = layer.geometryType() != 0 and self.cbLinkLabels.isChecked()
+        secondCondition = layer.geometryType() == 1 and self.cbLinkLabels.isChecked()
         if firstCondition or secondCondition:
             layer_settings = QgsPalLayerSettings()
             layer_settings.formatNumbers = True 
@@ -328,7 +346,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
     def setArrowsVisibility(self, symbol, layer, prop, field):
         try:
-            if "Link" in layer.name() and self.cbFlowDirections.isChecked():
+            if layer.geometryType() == 1 and self.cbFlowDirections.isChecked():
                 # Show arrows in pipes
                 ss = symbol.symbolLayer(3)  # arrow positive flow
                 prop.setExpressionString("if(Type='PIPE', if(" + field + ">0,3,0),0)")
@@ -349,65 +367,96 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     def setGraduadedPalette(self, layer, field, setRender, nameLayer):
         renderer = layer.renderer()
         prop = QgsProperty()
-        rawField = field  # before abs() wrapping, for arrow expressions
-
-        if "Flow" in layer.name():
+        rawField = field  # column name
+        if rawField == "UnitHeadLo":
+            rawField = field + "ss"
+        if field == "Flow":
             field = "abs(" + field + ")"
-
-        if setRender:  # Just opened a layer
-            # Has previous render saved?
-            hasRender = False
+        
+        is_status = (rawField == "Status")
+        hasRender = False
+        ranges = None
+        
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        
+        if setRender:  # Just opened a layer or changed variable
             dictRend = self.Renders.get(self.Scenario)
+            layerPath = self.getLayerPath(layer)
+            storage_key = layerPath + "|" + rawField
+            
             if dictRend is None:
-                dictRend = self.Renders.get("Base")  # default
+                dictRend = self.Renders.get("Base")
                 if dictRend is not None:
-                    ranges = dictRend.get(self.getLayerPath(layer).replace("_" + self.Scenario + "_", "_Base_"))
+                    base_storage_key = layerPath.replace("_" + self.Scenario + "_", "_Base_") + "|" + rawField
+                    ranges = dictRend.get(base_storage_key)
                     if ranges is not None:
                         hasRender = True
             else:
-                ranges = dictRend.get(self.getLayerPath(layer))
+                ranges = dictRend.get(storage_key)
                 if ranges is not None:
                     hasRender = True
                 else:
-                    dictRend = self.Renders.get("Base")  # default
-                    if dictRend is not None:
-                        ranges = dictRend.get(self.getLayerPath(layer).replace("_" + self.Scenario + "_", "_Base_"))
+                    dictRendBase = self.Renders.get("Base")
+                    if dictRendBase is not None:
+                        base_storage_key = layerPath.replace("_" + self.Scenario + "_", "_Base_") + "|" + rawField
+                        ranges = dictRendBase.get(base_storage_key)
                         if ranges is not None:
                             hasRender = True
+        # Ensure correct renderer type
+        if is_status:
+            # Check if we need to load default QML
+            if not hasRender and not isinstance(renderer, QgsRuleBasedRenderer):
+                qmlName = nameLayer.split("_")[0] + "_" + rawField 
+                utils.setResultStyle(layer, qmlName)
+                renderer = layer.renderer()
+            
+            if hasRender and isinstance(ranges, QgsRuleBasedRenderer.Rule):
+                renderer = QgsRuleBasedRenderer(ranges.clone())
+            
+            # Update specific rules filter to match our field name "Status"
+            # from the style are applied to our actual "Status" column.
+            if isinstance(renderer, QgsRuleBasedRenderer):
+                try:
+                    root_rule = renderer.rootRule()
+                    self.setFilterExpression(root_rule, 0, field, "=1")
+                    self.setFilterExpression(root_rule, 1, field, "=2")
+                    self.setFilterExpression(root_rule, 2, field, "=5")
+                    self.setFilterExpression(root_rule, 3, field, "=8")
+                    self.setFilterExpression(root_rule, 4, field, "=9")
+                    self.setFilterExpression(root_rule, 5, field, "=11")
+                    self.setFilterExpression(root_rule, 6, field, "=3")
+                    self.setFilterExpression(root_rule, 7, field, "=6")
+                    self.setFilterExpression(root_rule, 8, field, "=7")
+                    self.setFilterExpression(root_rule, 9, field, "=10")
+                    self.setFilterExpression(root_rule, 10, field, "=12")
+                    self.setFilterExpression(root_rule, 11, field, "=4")
+                    self.setFilterExpression(root_rule, 12, field, "=13")
+                except:
+                    pass
+        else:
+            # Check if we need to load default QML
+            # We load it if there's no saved render AND (it's not graduated OR it's the wrong variable)
+            wrong_variable = isinstance(renderer, QgsGraduatedSymbolRenderer) and renderer.classAttribute() != field
+            if not hasRender and (not isinstance(renderer, QgsGraduatedSymbolRenderer) or len(renderer.ranges()) == 0 or wrong_variable):
+                qmlName = nameLayer.split("_")[0] + "_" + rawField 
+                utils.setResultStyle(layer, qmlName)
+                renderer = layer.renderer()
+                
+            if hasRender and isinstance(ranges, list):
+                renderer = QgsGraduatedSymbolRenderer(field, ranges)
+            
+            if isinstance(renderer, QgsGraduatedSymbolRenderer):
+                renderer.setClassAttribute(field)
 
-            if hasRender:
-                if "Link_Status" in nameLayer:
-                    renderer = QgsRuleBasedRenderer(ranges)  # this ranges is a rootRule
-                else:
-                    renderer = QgsGraduatedSymbolRenderer(field, ranges)
-            # else: keep the QML-loaded renderer as-is
-
-        # Update classified field / filter expressions
-        if "Link_Status" in nameLayer:
-            root_rule = renderer.rootRule()
-            self.setFilterExpression(root_rule, 0, field, "=1")
-            self.setFilterExpression(root_rule, 1, field, "=2")
-            self.setFilterExpression(root_rule, 2, field, "=5")
-            self.setFilterExpression(root_rule, 3, field, "=8")
-            self.setFilterExpression(root_rule, 4, field, "=9")
-            self.setFilterExpression(root_rule, 5, field, "=11")
-            self.setFilterExpression(root_rule, 6, field, "=3")
-            self.setFilterExpression(root_rule, 7, field, "=6")
-            self.setFilterExpression(root_rule, 8, field, "=7")
-            self.setFilterExpression(root_rule, 9, field, "=10")
-            self.setFilterExpression(root_rule, 10, field, "=12")
-            self.setFilterExpression(root_rule, 11, field, "=4")
-            self.setFilterExpression(root_rule, 12, field, "=13")
-        elif isinstance(renderer, QgsGraduatedSymbolRenderer):
-            renderer.setClassAttribute(field)
-
-        # Update arrow visibility on all range symbols
-        if "Link_Status" not in nameLayer:
+        # Update arrow visibility
+        if not is_status:
             try:
+                # Arrows always use the Flow field (index 3 in layer)
+                flow_field = layer.fields().at(3).name() 
                 symbols = renderer.symbols(QgsRenderContext())
                 for symbol in symbols:
                     if symbol.type() == 1:  # line
-                        self.setArrowsVisibility(symbol, layer, prop, rawField)
+                        self.setArrowsVisibility(symbol, layer, prop, flow_field)
             except:
                 pass
 
@@ -416,7 +465,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
     def setFilterExpression(self, root_rule, index, field, expression):
         rule = root_rule.children()[index]
-        rule.setFilterExpression(field + expression)
+        rule.setFilterExpression('"' + field + '"' + expression)
 
     """Scenario"""
 
@@ -473,53 +522,55 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             return
         self.cbFlowDirections.setVisible(self.cbLinks.currentIndex() != 0)
         self.lbNotAvailable.setVisible(False)
-        result = ""
-        if self.cbLinks.currentIndex() == 1:
-            result = "Flow"
-        if self.cbLinks.currentIndex() == 2:
-            result = "Velocity"
-        if self.cbLinks.currentIndex() == 3:
-            result = "HeadLoss"
-        if self.cbLinks.currentIndex() == 4:
-            result = "UnitHeadLoss"
-        if self.cbLinks.currentIndex() == 5:
-            result = "Status"
-        if self.cbLinks.currentIndex() == 6:
-            result = "Quality"
 
         self.setLinksLayersNames()
         self.saveCurrentRender()
-        self.removeResults(None)
-        self.LabelsToOpRe = []
-        if not self.cbLinks.currentIndex() == 0:
-            self.LabelsToOpRe.append("Link_" + result)
-            self.Variables = result + "_Link"
-            self.openResult()
+        
+        if self.cbLinks.currentIndex() == 0:
+            self.removeResults(None)
+        else:
+            # If the layer is already open, just paint. If not, open and paint.
+            resultPath = os.path.join(self.ProjectDirectory, "Results")
+            # LabelsToOpRe is ["Link_All"] here
+            resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_Link_All.shp")
+            
+            is_open = False
+            for layer in self.getLayers():
+                if self.getLayerPath(layer) == resultLayerPath:
+                    is_open = True
+                    break
+            
+            if is_open:
+                self.paintIntervalTimeResults(self.cbTimes.currentIndex(), True)
+            else:
+                self.openResult()
 
     def nodesChanged(self):
         if self.Computing:
             return
         if not self.validationsOpenResult():
             return
-        result = ""
-        if self.cbNodes.currentIndex() == 1:
-            result = "Pressure"
-        if self.cbNodes.currentIndex() == 2:
-            result = "Head"
-        if self.cbNodes.currentIndex() == 3:
-            result = "Demand"
-        if self.cbNodes.currentIndex() == 4:
-            result = "Quality"
-
+        
         self.setNodesLayersNames()
         self.saveCurrentRender()
-        self.removeResults(None)
-        self.LabelsToOpRe = []
-        if not self.cbNodes.currentIndex() == 0:
-            self.LabelsToOpRe.append("Node_" + result)
-            self.Variables = result + "_Node"
-            self.saveCurrentRender()
-            self.openResult()
+        
+        if self.cbNodes.currentIndex() == 0:
+            self.removeResults(None)
+        else:
+            resultPath = os.path.join(self.ProjectDirectory, "Results")
+            # LabelsToOpRe is ["Node_All"] here
+            resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_Node_All.shp")
+            
+            is_open = False
+            for layer in self.getLayers():
+                if self.getLayerPath(layer) == resultLayerPath:
+                    is_open = True
+                    break
+            
+            if is_open:
+                self.paintIntervalTimeResults(self.cbTimes.currentIndex(), True)
+            else:
+                self.openResult()
 
     def nodeLabelsClicked(self):
         self.setNodesLayersNames()
@@ -531,7 +582,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 openedLayerPath = self.getLayerPath(layer)
                 if openedLayerPath == resultLayerPath:
                     if self.cbNodeLabels.isChecked():
-                        self.setLayerLabels(layer, "T" + str(self.cbTimes.currentIndex()))
+                        idx = self.cbNodes.currentIndex()
+                        if idx > 0:
+                            field = layer.fields().at(2 + idx).name()
+                            self.setLayerLabels(layer, field)
                     else:
                         layer.setLabelsEnabled(False)
                         layer.triggerRepaint()
@@ -546,7 +600,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 openedLayerPath = self.getLayerPath(layer)
                 if openedLayerPath == resultLayerPath:
                     if self.cbLinkLabels.isChecked():
-                        self.setLayerLabels(layer, "T" + str(self.cbTimes.currentIndex()))
+                        idx = self.cbLinks.currentIndex()
+                        if idx > 0:
+                            field = layer.fields().at(2 + idx).name()
+                            self.setLayerLabels(layer, field)
                     else:
                         layer.setLabelsEnabled(False)
                         layer.triggerRepaint()
@@ -554,15 +611,12 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     def flowDirectionsClicked(self):
         linkIndex = self.cbLinks.currentIndex()
         if linkIndex != 0:
-            if not self.validationsOpenResult(True):
+            if not self.validationsOpenResult(False):
                 return
-            linkTypes = {1: "Link_Flow", 2: "Link_Velocity", 3: "Link_HeadLoss", 4: "Link_UnitHeadLoss", 5: "Link_Status", 6: "Link_Quality"}
-            varTypes = {1: "Flow_Link", 2: "Velocity_Link", 3: "HeadLoss_Link", 4: "UnitHeadLoss_Link", 5: "Status_Link", 6: "Quality_Link"}
-            if linkIndex in linkTypes:
-                self.LabelsToOpRe.append(linkTypes[linkIndex])
-                self.Variables = varTypes[linkIndex]
-                value = self.cbTimes.currentIndex()
-                self.paintIntervalTimeResults(value, False)
+            
+            self.setLinksLayersNames() # LabelsToOpRe = ["Link_All"]
+            value = self.cbTimes.currentIndex()
+            self.paintIntervalTimeResults(value, False)
 
     def nextTime(self):
         index = self.cbTimes.currentIndex()
@@ -754,8 +808,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.cbTimes.addItem(self.tr("Permanent"))
         else:
             for item in mylist:
-                self.TimeLabels.append(self.insert(self.insert(item, " ", 6), " ", 3))
-                self.cbTimes.addItem(self.insert(self.insert(item, " ", 6), " ", 3))
+                self.TimeLabels.append(item)
+                self.cbTimes.addItem(item)
         self.LabelResults["Base"] = self.TimeLabels
         self.IndexTime["Base"] = 0
         self.cbTimes.setCurrentIndex(0)
