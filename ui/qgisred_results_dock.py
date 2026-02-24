@@ -336,7 +336,13 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             text_format.setColor(QColor(color))
             layer_settings.setFormat(text_format)
 
-            layer_settings.fieldName = fieldName
+            if fieldName == "Flow":
+                layer_settings.fieldName = 'abs("Flow")'
+                layer_settings.isExpression = True
+            else:
+                layer_settings.fieldName = fieldName
+                layer_settings.isExpression = False
+
             layer_settings.placement = QgsPalLayerSettings.Line
             layer_settings.enabled = True
             labels = QgsVectorLayerSimpleLabeling(layer_settings)
