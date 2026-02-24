@@ -449,16 +449,15 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 renderer.setClassAttribute(field)
 
         # Update arrow visibility
-        if not is_status:
-            try:
-                # Arrows always use the Flow field (index 3 in layer)
-                flow_field = layer.fields().at(3).name() 
-                symbols = renderer.symbols(QgsRenderContext())
-                for symbol in symbols:
-                    if symbol.type() == 1:  # line
-                        self.setArrowsVisibility(symbol, layer, prop, flow_field)
-            except:
-                pass
+        try:
+            # Arrows always use the Flow field (index 3 in layer)
+            flow_field = layer.fields().at(3).name() 
+            symbols = renderer.symbols(QgsRenderContext())
+            for symbol in symbols:
+                if symbol.type() == 1:  # line
+                    self.setArrowsVisibility(symbol, layer, prop, flow_field)
+        except:
+            pass
 
         layer.setRenderer(renderer)
         layer.triggerRepaint()
