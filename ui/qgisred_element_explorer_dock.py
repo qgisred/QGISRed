@@ -262,6 +262,22 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             # Ensure the element properties group box is visible
             self.scrollArea.ensureWidgetVisible(self.mElementPropertiesGroupBox)
 
+    def reHighlightCurrentElement(self):
+        """Re-apply the red highlight and selection on the current element, if any."""
+        if not self.currentLayer or not self.currentFeature:
+            return False
+        try:
+            self.clearHighlights()
+            highlight = QgsHighlight(iface.mapCanvas(), self.currentFeature.geometry(), self.currentLayer)
+            highlight.setColor(QColor("red"))
+            highlight.setWidth(5)
+            highlight.show()
+            self.mainHighlight = highlight
+            self.currentLayer.selectByIds([self.currentFeature.id()])
+            return True
+        except Exception:
+            return False
+
     def refreshCurrentElement(self):
         """Refresh the current element's data without changing collapsed state or scroll position.
         This is useful after C# library operations that may have changed the element's data.

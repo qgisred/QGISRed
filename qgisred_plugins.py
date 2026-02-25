@@ -4621,6 +4621,8 @@ class QGISRed:
                 if wasFindCollapsed:
                     existingDock.updateCollapsibleWidgetsState(collapseFindElements=False)
                     existingDock.scrollToTop()
+                # Re-apply red highlight on current element if any
+                existingDock.reHighlightCurrentElement()
             else:
                 try:
                     dock = QGISRedElementExplorerDock.getInstance(
@@ -4685,6 +4687,8 @@ class QGISRed:
                 if wasEPCollapsed:
                     existingDock.updateCollapsibleWidgetsState(collapseElementProperties=False)
                     existingDock.scrollToElementProperties()
+                # Re-apply red highlight on current element if any
+                existingDock.reHighlightCurrentElement()
             try:
                 # Clean up old tool instance before creating new one
                 oldTool = self.myMapTools.get(tool)
