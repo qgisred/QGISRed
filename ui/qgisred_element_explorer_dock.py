@@ -386,7 +386,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.tempHideOtherTabs()
 
     def tempHideOtherTabs(self):
-        self.tabWidget.setTabVisible(1, False)
+        #self.tabWidget.setTabVisible(1, False)
         self.tabWidget.setTabVisible(2, False)
         self.tabWidget.setTabVisible(3, False)
         self.tabWidget.setTabVisible(4, False)
