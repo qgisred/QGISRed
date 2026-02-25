@@ -110,6 +110,11 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.specialLayers = ["qgisred_serviceconnections"]
         self.sourcesAndDemands = ["qgisred_sources", "qgisred_demands"]
 
+        self.layerTreeChangeTimer = QTimer()
+        self.layerTreeChangeTimer.setSingleShot(True)
+        self.layerTreeChangeTimer.setInterval(100)
+        self.layerTreeChangeTimer.timeout.connect(self.doLayerTreeChanged)
+
         if hasattr(self, 'listWidget'):
             self.listWidget.installEventFilter(self)
         
@@ -571,7 +576,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             
             self.safeDisconnect(self.mElementPropertiesGroupBox.collapsedStateChanged, self.onElementPropertiesToggled)
             self.safeDisconnect(self.mFindElementsGroupBox.collapsedStateChanged, self.onFindElementsToggled)
-            
+
+            self.layerTreeChangeTimer.stop()
+
             self.removeEventFiltersRecursive(self.widget())
             self.clearHighlights()
             self.clearAllLayerSelections()
@@ -609,6 +616,11 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     # Layer and Project Event Methods
     # ------------------------------
     def onLayerTreeChanged(self):
+        # Debounce: restart the timer on each call so rapid-fire signals
+        # are coalesced into a single deferred execution.
+        self.layerTreeChangeTimer.start()
+
+    def doLayerTreeChanged(self):
         # Clear caches when layer tree changes
         self.nodeLayerSpatialIndices.clear()
         self.sourcesDemandToNodeCache.clear()
