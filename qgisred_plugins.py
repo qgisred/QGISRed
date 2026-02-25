@@ -4609,21 +4609,9 @@ class QGISRed:
 
         tool = "identifyFeature"
         if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
-            if self.myMapTools[tool]:
-                self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
-                try:
-                    self.myMapTools[tool].clearHighlights()
-                except Exception:
-                    pass
-
-            if existingDock:
-                try:
-                    existingDock.clearHighlights()
-                    existingDock.updateCollapsibleWidgetsState(collapseFindElements=True)
-                except Exception:
-                    pass
-
-            self.openFindElementsDialog.setChecked(False)
+            # Button is already active: do nothing, keep it checked
+            self.openFindElementsDialog.setChecked(True)
+            return
         else:
             useElementProperties = False
             if existingDock:
@@ -4677,21 +4665,9 @@ class QGISRed:
 
         tool = "identifyFeatureElementProperties"
         if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
-            if self.myMapTools[tool]:
-                self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
-                try:
-                    self.myMapTools[tool].clearHighlights()
-                except Exception:
-                    pass
-
-            if existingDock:
-                try:
-                    existingDock.clearHighlights()
-                    existingDock.updateCollapsibleWidgetsState(collapseElementProperties=True)
-                except Exception:
-                    pass
-
-            self.openElementsPropertyDialog.setChecked(False)
+            # Button is already active: do nothing, keep it checked
+            self.openElementsPropertyDialog.setChecked(True)
+            return
         else:
             if existingDock:
                 existingDock.updateCollapsibleWidgetsState(collapseElementProperties=False, collapseConnectedElements=True)
