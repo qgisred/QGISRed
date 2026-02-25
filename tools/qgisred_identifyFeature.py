@@ -186,13 +186,17 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
         if self.dock is None:
             self.setDock()
 
-        if not self.dock.isVisible():
+        wasHidden = not self.dock.isVisible()
+        if wasHidden:
             iface.addDockWidget(Qt.RightDockWidgetArea, self.dock)
             self.dock.show()
             self.dock.raise_()
             self.dock.activateWindow()
 
         self.dock.findFeature(layer, feature)
+
+        if wasHidden and self.useElementPropertiesDock:
+            self.dock.scrollToElementProperties()
 
     def closeDock(self):
         if self.dock:

@@ -4616,8 +4616,11 @@ class QGISRed:
             useElementProperties = False
             if existingDock:
                 useElementProperties = not existingDock.mElementPropertiesGroupBox.isCollapsed()
-                existingDock.updateCollapsibleWidgetsState(collapseFindElements=False, collapseConnectedElements=True)
-                existingDock.initializeElementTypes()
+                wasFindCollapsed = existingDock.mFindElementsGroupBox.isCollapsed()
+                # Only expand Find Elements if collapsed, don't touch Connected Elements
+                if wasFindCollapsed:
+                    existingDock.updateCollapsibleWidgetsState(collapseFindElements=False)
+                    existingDock.scrollToTop()
             else:
                 try:
                     dock = QGISRedElementExplorerDock.getInstance(
@@ -4670,8 +4673,11 @@ class QGISRed:
             return
         else:
             if existingDock:
-                existingDock.updateCollapsibleWidgetsState(collapseElementProperties=False, collapseConnectedElements=True)
-                existingDock.initializeElementTypes()
+                wasEPCollapsed = existingDock.mElementPropertiesGroupBox.isCollapsed()
+                # Only expand Element Properties if collapsed, don't touch Connected Elements
+                if wasEPCollapsed:
+                    existingDock.updateCollapsibleWidgetsState(collapseElementProperties=False)
+                    existingDock.scrollToElementProperties()
             try:
                 self.myMapTools[tool] = QGISRedIdentifyFeature(
                     self.iface.mapCanvas(), 
