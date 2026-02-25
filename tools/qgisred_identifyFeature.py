@@ -47,6 +47,11 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
     
     def setDockConnections(self):
         if self.dock is not None:
+            # Disconnect first to avoid stacking duplicate connections
+            try:
+                self.dock.dockClosed.disconnect(self.onDockClosed)
+            except (TypeError, RuntimeError):
+                pass
             self.dock.dockClosed.connect(self.onDockClosed)
 
     def onDockClosed(self, closed):
@@ -57,8 +62,10 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
 
     def resetProperties(self):
         self.firstPoint = None
-        self.startMarker.hide()
-        self.endMarker.hide()
+        if self.startMarker:
+            self.startMarker.hide()
+        if self.endMarker:
+            self.endMarker.hide()
         self.objectSnapped = None
 
     def setupConnections(self):
@@ -290,17 +297,34 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
         if self.toggleAction:
             self.toggleAction.setChecked(False)
 
+    def disconnectDockSignals(self):
+        if self.dock is not None:
+            try:
+                self.dock.dockClosed.disconnect(self.onDockClosed)
+            except (TypeError, RuntimeError):
+                pass
+
+    def removeVertexMarkers(self):
+        if self.startMarker:
+            self.canvas.scene().removeItem(self.startMarker)
+            self.startMarker = None
+        if self.endMarker:
+            self.canvas.scene().removeItem(self.endMarker)
+            self.endMarker = None
+
     def deactivate(self):
         self.clearHighlights()
-        
+
         if self.startMarker:
             self.startMarker.hide()
         if self.endMarker:
             self.endMarker.hide()
 
         self.resetProperties()
-        
+
         self.disconnectProjectSignals()
+        self.disconnectDockSignals()
+        self.removeVertexMarkers()
         self.setActionUnchecked()
-        
+
         QgsMapToolIdentify.deactivate(self)

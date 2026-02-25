@@ -4642,9 +4642,16 @@ class QGISRed:
                     return
 
             try:
+                # Clean up old tool instance before creating new one
+                oldTool = self.myMapTools.get(tool)
+                if oldTool:
+                    oldTool.disconnectDockSignals()
+                    oldTool.disconnectProjectSignals()
+                    oldTool.removeVertexMarkers()
+
                 self.myMapTools[tool] = QGISRedIdentifyFeature(
-                    self.iface.mapCanvas(), 
-                    self.openFindElementsDialog, 
+                    self.iface.mapCanvas(),
+                    self.openFindElementsDialog,
                     useElementPropertiesDock=useElementProperties,
                     dock=dock if 'dock' in locals() else existingDock
                 )
@@ -4679,9 +4686,16 @@ class QGISRed:
                     existingDock.updateCollapsibleWidgetsState(collapseElementProperties=False)
                     existingDock.scrollToElementProperties()
             try:
+                # Clean up old tool instance before creating new one
+                oldTool = self.myMapTools.get(tool)
+                if oldTool:
+                    oldTool.disconnectDockSignals()
+                    oldTool.disconnectProjectSignals()
+                    oldTool.removeVertexMarkers()
+
                 self.myMapTools[tool] = QGISRedIdentifyFeature(
-                    self.iface.mapCanvas(), 
-                    self.openElementsPropertyDialog, 
+                    self.iface.mapCanvas(),
+                    self.openElementsPropertyDialog,
                     useElementPropertiesDock=True
                 )
                 self.myMapTools[tool].setCursor(Qt.WhatsThisCursor)
