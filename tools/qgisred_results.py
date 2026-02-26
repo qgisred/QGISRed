@@ -157,8 +157,8 @@ def getOut_TimeLinksProperties(out_file_path, time_seconds):
                 "Velocity": round(float(velocities[i]), ROUNDING_PRECISION),
                 "UnitHeadloss": round(unit_headloss, ROUNDING_PRECISION),
                 "Headloss": round(headloss_calc, ROUNDING_PRECISION),
-                "Quality": round(float(qualities[i]), ROUNDING_PRECISION),
-                "Status": round(float(statuses[i]), ROUNDING_PRECISION)
+                "Status": round(float(statuses[i]), ROUNDING_PRECISION),
+                "Quality": round(float(qualities[i]), ROUNDING_PRECISION)
             }
         return results
 
