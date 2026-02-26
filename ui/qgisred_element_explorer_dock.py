@@ -710,6 +710,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.currentFeature = newFeature
             self.refreshCurrentElement()
             self.reHighlightCurrentElement()
+            self.refreshConnectedElements(newFeature, newLayer)
             self.restoreLabels(prevState['labelText'], prevState['tagText'], prevState['tagVisible'],
                                prevState['descText'], prevState['descVisible'])
         else:
@@ -1003,18 +1004,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.mainHighlight = highlight
         self.adjustMapView(foundFeature)
 
-        identifier = layer.customProperty("qgisred_identifier")
-        if self.isLineElement(layer):
-            self.findAdjacentNodesByGeometry(foundFeature)
-        elif identifier == "qgisred_meters":
-            self.findMeterAdjacency(foundFeature, layer)
-        elif identifier == "qgisred_isolationvalves":
-            self.findIsolationValveAdjacency(foundFeature, layer)
-        elif identifier == "qgisred_serviceconnections":
-            self.findServiceConnectionAdjacency(foundFeature, layer)
-        else:
-            self.findAdjacentLinksByGeometry(foundFeature, layer)
-        self.sortListWidgetItems()
+        self.refreshConnectedElements(foundFeature, layer)
         self.loadFeature(layer, foundFeature, finalTitleText)
 
     @pyqtSlot()
@@ -1753,6 +1743,21 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                     isoId = self.getFeatureIdValue(feat, layer)
                     singular = self.singularForms.get(layer.name(), layer.name())
                     self.addAdjacencyItem(f"{singular} {isoId}", layer.customProperty("qgisred_identifier"))
+
+    def refreshConnectedElements(self, feature, layer):
+        self.listWidget.clear()
+        identifier = layer.customProperty("qgisred_identifier")
+        if self.isLineElement(layer):
+            self.findAdjacentNodesByGeometry(feature)
+        elif identifier == "qgisred_meters":
+            self.findMeterAdjacency(feature, layer)
+        elif identifier == "qgisred_isolationvalves":
+            self.findIsolationValveAdjacency(feature, layer)
+        elif identifier == "qgisred_serviceconnections":
+            self.findServiceConnectionAdjacency(feature, layer)
+        else:
+            self.findAdjacentLinksByGeometry(feature, layer)
+        self.sortListWidgetItems()
 
     def findAdjacentNodesByGeometry(self, lineFeature):
         geom = lineFeature.geometry()
