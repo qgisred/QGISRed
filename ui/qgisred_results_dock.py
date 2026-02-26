@@ -103,7 +103,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     def getLayers(self):
         return QGISRedUtils().getLayers()
 
-    def openLayerResults(self, scenario):
+    def openLayerResults(self, scenario, labels=None):
+        if labels is None:
+            labels = self.LabelsToOpRe
         resultPath = os.path.join(self.ProjectDirectory, "Results")
         utils = QGISRedUtils(resultPath, self.NetworkName + "_" + scenario, self.iface)
         resultGroup = self.getResultGroup()
@@ -111,8 +113,20 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if group is None:
             group = resultGroup.addGroup(scenario)
             QGISRedUtils.setGroupIdentifier(group, scenario)
-        for file in self.LabelsToOpRe:
-            utils.openLayer(group, file, results=True)
+        
+        openedLayersPaths = [self.getLayerPath(l) for l in self.getLayers()]
+        
+        for file in labels:
+            resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + scenario + "_" + file + ".shp")
+            
+            # Ensure Shapefile exists
+            if not os.path.exists(resultLayerPath):
+                self.setVariables(True) # Force definition of all variables for extraction
+                GISRed.CreateResults(self.ProjectDirectory, self.NetworkName, scenario, self.Variables)
+            
+            # Open layer if not already open
+            if resultLayerPath not in openedLayersPaths:
+                utils.openLayer(group, file, results=True)
 
     def removeResults(self, task):
         resultPath = os.path.join(self.ProjectDirectory, "Results")
@@ -203,30 +217,30 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
     """Create Lists"""
 
-    def setVariables(self):
+    def setVariables(self, all_vars=False):
         self.Variables = ""
-        if self.cbLinks.currentIndex() == 1:
+        if self.cbLinks.currentIndex() == 1 or all_vars:
             self.Variables = self.Variables + "Flow_Link;"
-        if self.cbLinks.currentIndex() == 2:
+        if self.cbLinks.currentIndex() == 2 or all_vars:
             self.Variables = self.Variables + "Velocity_Link;"
-        if self.cbLinks.currentIndex() == 3:
+        if self.cbLinks.currentIndex() == 3 or all_vars:
             self.Variables = self.Variables + "HeadLoss_Link;"
-        if self.cbLinks.currentIndex() == 4:
+        if self.cbLinks.currentIndex() == 4 or all_vars:
             self.Variables = self.Variables + "UnitHeadLoss_Link;"
-        if self.cbLinks.currentIndex() == 5:
+        if self.cbLinks.currentIndex() == 5 or all_vars:
             self.Variables = self.Variables + "Status_Link;"
-        if self.cbLinks.currentIndex() == 6:
+        if self.cbLinks.currentIndex() == 6 or all_vars:
             self.Variables = self.Variables + "Quality_Link;"
-        if self.cbNodes.currentIndex() == 1:
+        if self.cbNodes.currentIndex() == 1 or all_vars:
             self.Variables = self.Variables + "Pressure_Node;"
-        if self.cbNodes.currentIndex() == 2:
+        if self.cbNodes.currentIndex() == 2 or all_vars:
             self.Variables = self.Variables + "Head_Node;"
-        if self.cbNodes.currentIndex() == 3:
+        if self.cbNodes.currentIndex() == 3 or all_vars:
             self.Variables = self.Variables + "Demand_Node;"
-        if self.cbNodes.currentIndex() == 4:
+        if self.cbNodes.currentIndex() == 4 or all_vars:
             self.Variables = self.Variables + "Quality_Node;"
 
-        if self.Variables == "":
+        if self.Variables == "" and not all_vars:
             self.iface.messageBar().pushMessage(self.tr("Validations"), self.tr("No variable results selected"), level=1)
             return False
         return True
@@ -263,6 +277,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     
                     if not var_key:
                         continue
+                    
+                    if var_key == "UnitHeadLo":
+                        var_key = "UnitHeadLoss"
                         
                     storage_key = openedLayerPath + "|" + var_key
                     renderer = layer.renderer()
@@ -278,48 +295,62 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         self.Scenario = self.cbScenarios.currentText()
         resultPath = os.path.join(self.ProjectDirectory, "Results")
-        layers = self.getLayers()
         
         time_text = self.cbTimes.currentText()
         self.lbTime.setText(time_text)
         
         for nameLayer in self.LabelsToOpRe: 
+            layer_to_paint = None
             resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp")
-            for layer in layers:
-                openedLayerPath = self.getLayerPath(layer)
-                if openedLayerPath == resultLayerPath:
-                    # Apply filter by Time
-                    layer.setSubsetString("Time = '" + time_text + "'")
-                    
-                    field = ""
-                    disp_name = ""
-                    var_translated = ""
-                    if "Link" in nameLayer:
-                        idx = self.cbLinks.currentIndex()
-                        if idx > 0:
-                            columnNumber = [0, 3, 4, 5, 6, 7, 9][idx]
-                            field = layer.fields().at(columnNumber).name()
-                            var_translated = self.cbLinks.currentText()
-                            disp_name = var_translated + " " + self.tr("in links")
-                    else:
-                        idx = self.cbNodes.currentIndex()
-                        if idx > 0:
-                            columnNumber = [0,5,4,3,6][idx]
-                            field = layer.fields().at(columnNumber).name()
-                            var_translated = self.cbNodes.currentText()
-                            disp_name = var_translated + " " + self.tr("in nodes")
-                    
-                    if field:
-                        self.setGraduadedPalette(layer, field, setRender, nameLayer)
-                        if "Link" in nameLayer: self.displayingLinkField = field
-                        else: self.displayingNodeField = field
+            
+            # Check if layer is already open
+            for layer in self.getLayers():
+                if self.getLayerPath(layer) == resultLayerPath:
+                    layer_to_paint = layer
+                    break
+            
+            # If the layer is not open, open it!
+            if layer_to_paint is None:
+                self.openLayerResults(self.Scenario, [nameLayer])
+                # Find it again in the updated layers list
+                for layer in self.getLayers():
+                    if self.getLayerPath(layer) == resultLayerPath:
+                        layer_to_paint = layer
+                        break
 
-                        if disp_name:
-                            layer.setName(disp_name)
-                        
-                        tip = var_translated + ': [% "' + field + '" %]'
-                        layer.setMapTipTemplate(tip)
-                        self.setLayerLabels(layer, field)
+            if layer_to_paint:
+                # Apply filter by Time
+                layer_to_paint.setSubsetString("Time = '" + time_text + "'")
+                    
+                field = ""
+                disp_name = ""
+                var_translated = ""
+                if "Link" in nameLayer:
+                    idx = self.cbLinks.currentIndex()
+                    if idx > 0:
+                        columnIndex = [0, 3, 4, 5, 6, 7, 9][idx]
+                        field = layer_to_paint.fields().at(columnIndex).name()
+                        var_translated = self.cbLinks.currentText()
+                        disp_name = var_translated + " " + self.tr("in links")
+                else:
+                    idx = self.cbNodes.currentIndex()
+                    if idx > 0:
+                        columnIndex = [0,5,4,3,6][idx]
+                        field = layer_to_paint.fields().at(columnIndex).name()
+                        var_translated = self.cbNodes.currentText()
+                        disp_name = var_translated + " " + self.tr("in nodes")
+                
+                if field:
+                    self.setGraduadedPalette(layer_to_paint, field, setRender, nameLayer)
+                    if "Link" in nameLayer: self.displayingLinkField = field
+                    else: self.displayingNodeField = field
+
+                    if disp_name:
+                        layer_to_paint.setName(disp_name)
+                    
+                    tip = var_translated + ': [% "' + field + '" %]'
+                    layer_to_paint.setMapTipTemplate(tip)
+                    self.setLayerLabels(layer_to_paint, field)
 
     def setLayerLabels(self, layer, fieldName):
         firstCondition = layer.geometryType() == 0 and self.cbNodeLabels.isChecked()
@@ -534,21 +565,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if self.cbLinks.currentIndex() == 0:
             self.removeResults(None)
         else:
-            # If the layer is already open, just paint. If not, open and paint.
-            resultPath = os.path.join(self.ProjectDirectory, "Results")
-            # LabelsToOpRe is ["Link_All"] here
-            resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_Link_All.shp")
-            
-            is_open = False
-            for layer in self.getLayers():
-                if self.getLayerPath(layer) == resultLayerPath:
-                    is_open = True
-                    break
-            
-            if is_open:
-                self.paintIntervalTimeResults(self.cbTimes.currentIndex(), True)
-            else:
-                self.openResult()
+            # paintIntervalTimeResults will detect if it's not open and open it
+            self.paintIntervalTimeResults(self.cbTimes.currentIndex(), True)
 
     def nodesChanged(self):
         if self.Computing:
@@ -562,20 +580,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if self.cbNodes.currentIndex() == 0:
             self.removeResults(None)
         else:
-            resultPath = os.path.join(self.ProjectDirectory, "Results")
-            # LabelsToOpRe is ["Node_All"] here
-            resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_Node_All.shp")
-            
-            is_open = False
-            for layer in self.getLayers():
-                if self.getLayerPath(layer) == resultLayerPath:
-                    is_open = True
-                    break
-            
-            if is_open:
-                self.paintIntervalTimeResults(self.cbTimes.currentIndex(), True)
-            else:
-                self.openResult()
+            self.paintIntervalTimeResults(self.cbTimes.currentIndex(), True)
 
     def nodeLabelsClicked(self):
         self.setNodesLayersNames()
@@ -827,6 +832,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.lbComments.setText(self.Comments["Base"])
 
         # Write Scenario
+
         self.writeScenario("Base", self.TimeLabels, self.Comments["Base"])
 
         # Configure Visibilities
@@ -853,38 +859,40 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.openAllResults()
 
     def openAllResults(self):
-        resultPath = os.path.join(os.path.join(self.ProjectDirectory, "Results"), self.NetworkName + "_" + self.Scenario)
+        resultPath = os.path.join(os.path.join(self.ProjectDirectory, "Results"), self.NetworkName + "_" + self.Scenario + ".rpt")
         if not os.path.exists(resultPath):
             self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No scenario results are available"), level=1, duration=5)
             return
 
-        if not self.setVariables():
+        if not self.setVariables(True):
             return
 
         # Process
         self.setLayersNames(True)
+
         # Task is necessary because after remove layers, DBF files are in use. With the task,
         # the remove process finishs and filer are not in use
         QGISRedUtils().runTask("update all results", self.removeResults, self.openAllResultsProcess)
 
     def openAllResultsProcess(self, exception=None, result=None):
-        self.setLayersNames()
+        # self.setLayersNames()  <-- DO NOT CALL THIS, it wipes out LabelsToOpRe if combos are 0
 
+        # Check if files exist (now handled inside openLayerResults but we keep found logic for message)
         found = True
         for file in self.LabelsToOpRe:
             f = os.path.join(self.ProjectDirectory, "Results", self.NetworkName + "_" + self.Scenario + "_" + file + ".shp")
             if not os.path.exists(f):
                 found = False
-        if not found:
-            # Process
-            QApplication.setOverrideCursor(Qt.WaitCursor)
-            resMessage = GISRed.CreateResults(self.ProjectDirectory, self.NetworkName, self.Scenario, self.Variables)
-            QApplication.restoreOverrideCursor()
-        else:
-            resMessage = "True"
+        
+        # if not found:
+        #     # Process
+        #     QApplication.setOverrideCursor(Qt.WaitCursor)
+        #     resMessage = GISRed.CreateResults(self.ProjectDirectory, self.NetworkName, self.Scenario, self.Variables)
+        #     QApplication.restoreOverrideCursor()
+        # else:
+        resMessage = "True"
 
-        # Open layers
-        self.openLayerResults(self.Scenario)
+        # paintIntervalTimeResults will handle opening if missing
         value = self.cbTimes.currentIndex()
         self.paintIntervalTimeResults(value, True)
 
@@ -912,8 +920,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         else:
             resMessage = "True"
 
-        # Open layers
-        self.openLayerResults(self.Scenario)
+        # paintIntervalTimeResults logic handles detect and open layers if not exist
         value = self.cbTimes.currentIndex()
         self.paintIntervalTimeResults(value, True)
 
