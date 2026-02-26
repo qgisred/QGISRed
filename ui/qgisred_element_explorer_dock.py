@@ -438,7 +438,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.listWidget.itemDoubleClicked.connect(self.onListItemDoubleClicked)
         self.btClear.clicked.connect(self.clearAll)
         self.cbElementId.currentIndexChanged.connect(self.onElementIdChanged)           
-        self.btReload.clicked.connect(self.initializeElementTypes)
+
 
         project = QgsProject.instance()
         project.layersAdded.connect(self.onLayerTreeChanged)
@@ -596,7 +596,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.safeDisconnect(self.listWidget.itemDoubleClicked, self.onListItemDoubleClicked)
             self.safeDisconnect(self.btClear.clicked, self.clearAll)
             self.safeDisconnect(self.cbElementId.currentIndexChanged, self.onElementIdChanged)
-            self.safeDisconnect(self.btReload.clicked, self.initializeElementTypes)
+
             
             self.safeDisconnect(self.mElementPropertiesGroupBox.collapsedStateChanged, self.onElementPropertiesToggled)
             self.safeDisconnect(self.mFindElementsGroupBox.collapsedStateChanged, self.onFindElementsToggled)
