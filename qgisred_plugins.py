@@ -4621,8 +4621,6 @@ class QGISRed:
                 if wasFindCollapsed:
                     existingDock.updateCollapsibleWidgetsState(collapseFindElements=False)
                     existingDock.scrollToTop()
-                # Re-apply red highlight on current element if any
-                existingDock.reHighlightCurrentElement()
             else:
                 try:
                     dock = QGISRedElementExplorerDock.getInstance(
@@ -4659,10 +4657,15 @@ class QGISRed:
                 )
                 self.myMapTools[tool].setCursor(Qt.WhatsThisCursor)
                 self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
+                # Re-apply highlight and refresh data after tool switch 
+                activeDock = dock if 'dock' in locals() else existingDock
+                if activeDock:
+                    activeDock.reHighlightCurrentElement()
+                    activeDock.refreshCurrentElement()
             except Exception:
                 self.openFindElementsDialog.setChecked(False)
 
-    def runElementsProperty(self): 
+    def runElementsProperty(self):
         if not self.checkDependencies():
             self.openElementsPropertyDialog.setChecked(False)
             return
@@ -4687,8 +4690,6 @@ class QGISRed:
                 if wasEPCollapsed:
                     existingDock.updateCollapsibleWidgetsState(collapseElementProperties=False)
                     existingDock.scrollToElementProperties()
-                # Re-apply red highlight on current element if any
-                existingDock.reHighlightCurrentElement()
             try:
                 # Clean up old tool instance before creating new one
                 oldTool = self.myMapTools.get(tool)
@@ -4700,10 +4701,15 @@ class QGISRed:
                 self.myMapTools[tool] = QGISRedIdentifyFeature(
                     self.iface.mapCanvas(),
                     self.openElementsPropertyDialog,
-                    useElementPropertiesDock=True
+                    useElementPropertiesDock=True,
+                    dock=existingDock
                 )
                 self.myMapTools[tool].setCursor(Qt.WhatsThisCursor)
                 self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
+                # Re-apply highlight and refresh data after tool switch (old tool's deactivate clears highlights)
+                if existingDock:
+                    existingDock.reHighlightCurrentElement()
+                    existingDock.refreshCurrentElement()
             except Exception:
                 self.openElementsPropertyDialog.setChecked(False)
 

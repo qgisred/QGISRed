@@ -36,6 +36,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         "qgisred_thematicmaps",
         "qgisred_results",
         "qgisred_demandsectors",
+        "qgisred_inputs"
     ]
 
     # ============================================================
