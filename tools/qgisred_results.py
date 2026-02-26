@@ -114,9 +114,9 @@ def getOut_TimeNodesProperties(out_file_path, time_seconds):
         results = {}
         for i in range(n):
             results[meta["node_ids"][i]] = {
-                "Demand": round(float(demands[i]), ROUNDING_PRECISION),
-                "Head": round(float(heads[i]), ROUNDING_PRECISION),
                 "Pressure": round(float(pressures[i]), ROUNDING_PRECISION),
+                "Head": round(float(heads[i]), ROUNDING_PRECISION),
+                "Demand": round(float(demands[i]), ROUNDING_PRECISION),
                 "Quality": round(float(qualities[i]), ROUNDING_PRECISION)
             }
         return results
