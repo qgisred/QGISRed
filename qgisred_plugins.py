@@ -4594,124 +4594,106 @@ class QGISRed:
         dlg.config(self.iface, self.ProjectDirectory, self.NetworkName)
         dlg.exec_()
     
-    def runFindElements(self):
+    def validateProject(self, action):
+        # Validates dependencies and project, unchecks action on failure
         if not self.checkDependencies():
-            self.openFindElementsDialog.setChecked(False)
-            return
-
+            action.setChecked(False)
+            return False
         self.defineCurrentProject()
-
         if not self.isValidProject() or self.isLayerOnEdition():
-            self.openFindElementsDialog.setChecked(False)
+            action.setChecked(False)
+            return False
+        return True
+
+    def isToolAlreadyActive(self, toolKey, action):
+        # Returns True if toolKey is already the active map tool, keeping the action checked
+        if toolKey in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[toolKey]:
+            action.setChecked(True)
+            return True
+        return False
+
+    def switchToIdentifyTool(self, toolKey, action, useElementPropertiesDock, dock):
+        # Cleans up old tool, creates a new QGISRedIdentifyFeature, and re-highlights on the dock
+        try:
+            oldTool = self.myMapTools.get(toolKey)
+            if oldTool:
+                oldTool.disconnectDockSignals()
+                oldTool.disconnectProjectSignals()
+                oldTool.removeVertexMarkers()
+
+            self.myMapTools[toolKey] = QGISRedIdentifyFeature(
+                self.iface.mapCanvas(),
+                action,
+                useElementPropertiesDock=useElementPropertiesDock,
+                dock=dock
+            )
+            self.myMapTools[toolKey].setCursor(Qt.WhatsThisCursor)
+            self.iface.mapCanvas().setMapTool(self.myMapTools[toolKey])
+            if dock:
+                dock.reHighlightCurrentElement()
+                dock.refreshCurrentElement()
+        except Exception:
+            action.setChecked(False)
+
+    def runFindElements(self):
+        if not self.validateProject(self.openFindElementsDialog):
             return
 
         existingDock = QGISRedElementExplorerDock._instance
 
         tool = "identifyFeature"
-        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
-            # Button is already active: do nothing, keep it checked
-            self.openFindElementsDialog.setChecked(True)
+        if self.isToolAlreadyActive(tool, self.openFindElementsDialog):
             return
+
+        useElementProperties = False
+        if existingDock:
+            useElementProperties = not existingDock.mElementPropertiesGroupBox.isCollapsed()
+            wasFindCollapsed = existingDock.mFindElementsGroupBox.isCollapsed()
+            # Only expand Find Elements if collapsed, don't touch Connected Elements
+            if wasFindCollapsed:
+                existingDock.updateCollapsibleWidgetsState(collapseFindElements=False)
+                existingDock.scrollToTop()
+            dock = existingDock
         else:
-            useElementProperties = False
-            if existingDock:
-                useElementProperties = not existingDock.mElementPropertiesGroupBox.isCollapsed()
-                wasFindCollapsed = existingDock.mFindElementsGroupBox.isCollapsed()
-                # Only expand Find Elements if collapsed, don't touch Connected Elements
-                if wasFindCollapsed:
-                    existingDock.updateCollapsibleWidgetsState(collapseFindElements=False)
-                    existingDock.scrollToTop()
-            else:
-                try:
-                    dock = QGISRedElementExplorerDock.getInstance(
-                        self.iface.mapCanvas(),
-                        self.iface.mainWindow(),
-                        showFindElements=True,
-                        showElementProperties=useElementProperties
-                    )
-
-                    self.iface.addDockWidget(Qt.RightDockWidgetArea, dock)
-                    dock.show()
-                    dock.raise_()
-                    dock.activateWindow()
-                    dock.onLayerTreeChanged()
-                    dock.setDefaultValue()
-                    dock.updateCollapsibleWidgetsState(collapseFindElements=False, collapseConnectedElements=True)
-                except Exception:
-                    self.openFindElementsDialog.setChecked(False)
-                    return
-
             try:
-                # Clean up old tool instance before creating new one
-                oldTool = self.myMapTools.get(tool)
-                if oldTool:
-                    oldTool.disconnectDockSignals()
-                    oldTool.disconnectProjectSignals()
-                    oldTool.removeVertexMarkers()
-
-                self.myMapTools[tool] = QGISRedIdentifyFeature(
+                dock = QGISRedElementExplorerDock.getInstance(
                     self.iface.mapCanvas(),
-                    self.openFindElementsDialog,
-                    useElementPropertiesDock=useElementProperties,
-                    dock=dock if 'dock' in locals() else existingDock
+                    self.iface.mainWindow(),
+                    showFindElements=True,
+                    showElementProperties=useElementProperties
                 )
-                self.myMapTools[tool].setCursor(Qt.WhatsThisCursor)
-                self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
-                # Re-apply highlight and refresh data after tool switch 
-                activeDock = dock if 'dock' in locals() else existingDock
-                if activeDock:
-                    activeDock.reHighlightCurrentElement()
-                    activeDock.refreshCurrentElement()
+
+                self.iface.addDockWidget(Qt.RightDockWidgetArea, dock)
+                dock.show()
+                dock.raise_()
+                dock.activateWindow()
+                dock.onLayerTreeChanged()
+                dock.setDefaultValue()
+                dock.updateCollapsibleWidgetsState(collapseFindElements=False, collapseConnectedElements=True)
             except Exception:
                 self.openFindElementsDialog.setChecked(False)
+                return
+
+        self.switchToIdentifyTool(tool, self.openFindElementsDialog, useElementProperties, dock)
 
     def runElementsProperty(self):
-        if not self.checkDependencies():
-            self.openElementsPropertyDialog.setChecked(False)
-            return
-
-        self.defineCurrentProject()
-
-        if not self.isValidProject() or self.isLayerOnEdition():
-            self.openElementsPropertyDialog.setChecked(False)
+        if not self.validateProject(self.openElementsPropertyDialog):
             return
 
         existingDock = QGISRedElementExplorerDock._instance
 
         tool = "identifyFeatureElementProperties"
-        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
-            # Button is already active: do nothing, keep it checked
-            self.openElementsPropertyDialog.setChecked(True)
+        if self.isToolAlreadyActive(tool, self.openElementsPropertyDialog):
             return
-        else:
-            if existingDock:
-                wasEPCollapsed = existingDock.mElementPropertiesGroupBox.isCollapsed()
-                # Only expand Element Properties if collapsed, don't touch Connected Elements
-                if wasEPCollapsed:
-                    existingDock.updateCollapsibleWidgetsState(collapseElementProperties=False)
-                    existingDock.scrollToElementProperties()
-            try:
-                # Clean up old tool instance before creating new one
-                oldTool = self.myMapTools.get(tool)
-                if oldTool:
-                    oldTool.disconnectDockSignals()
-                    oldTool.disconnectProjectSignals()
-                    oldTool.removeVertexMarkers()
 
-                self.myMapTools[tool] = QGISRedIdentifyFeature(
-                    self.iface.mapCanvas(),
-                    self.openElementsPropertyDialog,
-                    useElementPropertiesDock=True,
-                    dock=existingDock
-                )
-                self.myMapTools[tool].setCursor(Qt.WhatsThisCursor)
-                self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
-                # Re-apply highlight and refresh data after tool switch (old tool's deactivate clears highlights)
-                if existingDock:
-                    existingDock.reHighlightCurrentElement()
-                    existingDock.refreshCurrentElement()
-            except Exception:
-                self.openElementsPropertyDialog.setChecked(False)
+        if existingDock:
+            wasEPCollapsed = existingDock.mElementPropertiesGroupBox.isCollapsed()
+            # Only expand Element Properties if collapsed, don't touch Connected Elements
+            if wasEPCollapsed:
+                existingDock.updateCollapsibleWidgetsState(collapseElementProperties=False)
+                existingDock.scrollToElementProperties()
+
+        self.switchToIdentifyTool(tool, self.openElementsPropertyDialog, True, existingDock)
 
     def runQueriesByAttributes(self):
         if not self.checkDependencies():
