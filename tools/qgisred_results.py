@@ -14,7 +14,7 @@ def _read_ids(f, count):
         ids.append(raw_id.decode('ascii', errors='ignore').strip())
     return ids
 
-def _get_out_file_metadata(f):
+def _get_out_file_metadata(f, include_lengths=False):
     """Parses the static part of the EPANET .out file and returns metadata."""
     # --- Read Prologue ---
     prologue_fixed = f.read(15 * 4)
@@ -37,9 +37,22 @@ def _get_out_file_metadata(f):
     # Read Link IDs
     link_ids = _read_ids(f, n_links)
 
-    # Calculate results_offset (from the end of Link IDs)
-    skip_remainder = (20 * n_links) + (8 * n_tanks) + (4 * n_nodes) + (28 * n_pumps) + 4
-    f.seek(skip_remainder, 1)
+    # 1. Skip Head Node, Tail Node, and Type Code (12 per link), 
+    #    Tank Index and Surface Area (8 per tank), 
+    #    Elevation of Each Node (4 per node)
+    f.seek((12 * n_links) + (8 * n_tanks) + (4 * n_nodes), 1)
+    
+    link_lengths = None
+    if include_lengths:
+        # 2. Read Length of Each Link
+        link_lengths = struct.unpack(f'{n_links}f', f.read(4 * n_links))
+    else:
+        # Just skip them
+        f.seek(4 * n_links, 1)
+    
+    # 3. Skip Diameter of Each Link (4 per link) and Energy Section (28 per pump + 4)
+    # ... offset to epilogue logic follows ...
+    f.seek((4 * n_links) + (28 * n_pumps) + 4, 1)
     results_offset = f.tell()
 
     # Read Epilogue (last 12 bytes)
@@ -59,7 +72,8 @@ def _get_out_file_metadata(f):
         "num_periods": num_periods,
         "results_offset": results_offset,
         "node_ids": node_ids,
-        "link_ids": link_ids
+        "link_ids": link_ids,
+        "link_lengths": link_lengths
     }
 
 def _calculate_period_index(time_seconds, meta):
@@ -111,7 +125,7 @@ def getOut_TimeLinksProperties(out_file_path, time_seconds):
         return {}
 
     with open(out_file_path, 'rb') as f:
-        meta = _get_out_file_metadata(f)
+        meta = _get_out_file_metadata(f, include_lengths=True)
         if not meta:
             return {}
 
@@ -129,21 +143,20 @@ def getOut_TimeLinksProperties(out_file_path, time_seconds):
         headlosses = struct.unpack(f'{nl}f', f.read(nl * 4))
         qualities = struct.unpack(f'{nl}f', f.read(nl * 4))
         statuses = struct.unpack(f'{nl}f', f.read(nl * 4))
-        settings = struct.unpack(f'{nl}f', f.read(nl * 4))
-        react_rates = struct.unpack(f'{nl}f', f.read(nl * 4))
-        friction_factors = struct.unpack(f'{nl}f', f.read(nl * 4))
 
         results = {}
         for i in range(nl):
+            unit_headloss = float(headlosses[i])
+            length = meta["link_lengths"][i]
+            headloss_calc = (unit_headloss * length) / 1000.0
+            
             results[meta["link_ids"][i]] = {
                 "Flow": round(float(flows[i]), 4),
                 "Velocity": round(float(velocities[i]), 4),
-                "UnitHeadloss": round(float(headlosses[i]), 4),
+                "UnitHeadloss": round(unit_headloss, 4),
+                "Headloss": round(headloss_calc, 4),
                 "Quality": round(float(qualities[i]), 4),
-                "Status": round(float(statuses[i]), 4),
-                "Setting": round(float(settings[i]), 4),
-                "ReactionRate": round(float(react_rates[i]), 4),
-                "FrictionFactor": round(float(friction_factors[i]), 4)
+                "Status": round(float(statuses[i]), 4)
             }
         return results
 
@@ -193,14 +206,21 @@ def getOut_TimeLinkProperties(out_file_path, time_seconds, link_id):
         period_size = (meta["n_nodes"] * 16) + (meta["n_links"] * 32)
         base_link_offset = meta["results_offset"] + (period_index * period_size) + (meta["n_nodes"] * 16)
         
-        # 8 Variable Blocks for Links
-        var_names = ["Flow", "Velocity", "UnitHeadloss", "Quality", "Status", "Setting", "ReactionRate", "FrictionFactor"]
+        # Variable Blocks for Links
+        var_names = ["Flow", "Velocity", "UnitHeadloss", "Quality", "Status"]
         vars_found = {}
+
+        nL, nT, nN = meta["n_links"], meta["n_tanks"], meta["n_nodes"]
+        len_pos = 60 + 824 + (32 * nN) + (32 * nL) + (12 * nL + 8 * nT + 4 * nN) + (4 * link_index)
+        f.seek(len_pos)
+        length = struct.unpack('f', f.read(4))[0]
 
         for i, name in enumerate(var_names):
             f.seek(base_link_offset + (i * meta["n_links"] * 4) + (link_index * 4))
             val = struct.unpack('f', f.read(4))[0]
             vars_found[name] = round(float(val), 4)
+            if (name == "UnitHeadloss"):
+                vars_found["Headloss"] = round((float(val) * length) / 1000.0, 4)
             
         return vars_found
 
@@ -237,24 +257,37 @@ def getOut_TimesLinkProperty(out_file_path, link_id, property_name):
         return []
 
     with open(out_file_path, 'rb') as f:
-        meta = _get_out_file_metadata(f)
-        var_names = ["Flow", "Velocity", "UnitHeadloss", "Quality", "Status", "Setting", "ReactionRate", "FrictionFactor"]
-        if not meta or link_id not in meta["link_ids"] or property_name not in var_names:
+        meta = _get_out_file_metadata(f, include_lengths=(property_name == "Headloss"))
+        
+        var_names = ["Flow", "Velocity", "UnitHeadloss", "Quality", "Status"]
+        calc_headloss = False
+        effective_property = property_name
+        
+        if property_name == "Headloss":
+            calc_headloss = True
+            effective_property = "UnitHeadloss"
+            
+        if not meta or link_id not in meta["link_ids"] or effective_property not in var_names:
             return []
 
         link_index = meta["link_ids"].index(link_id)
-        var_index = var_names.index(property_name)
+        var_index = var_names.index(effective_property)
         num_periods = meta["num_periods"]
         period_size = (meta["n_nodes"] * 16) + (meta["n_links"] * 32)
         results_offset = meta["results_offset"]
         node_results_size = meta["n_nodes"] * 16
+        length = meta["link_lengths"][link_index]
         
         time_series = []
         for p in range(num_periods):
-            # Posición: Inicio periodo + resultados nodos + bloque variable link + posición link
             pos = results_offset + (p * period_size) + node_results_size + (var_index * meta["n_links"] * 4) + (link_index * 4)
             f.seek(pos)
             val = struct.unpack('f', f.read(4))[0]
-            time_series.append(round(float(val), 4))
+            
+            final_val = float(val)
+            if calc_headloss:
+                final_val = (final_val * length) / 1000.0
+                
+            time_series.append(round(final_val, 4))
             
         return time_series
