@@ -709,7 +709,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.currentLayer = newLayer
             self.currentFeature = newFeature
             self.refreshCurrentElement()
-            self.reHighlightCurrentElement()
+            if type(self.canvas.mapTool()).__name__ == "QGISRedIdentifyFeature":
+                self.reHighlightCurrentElement()
             self.refreshConnectedElements(newFeature, newLayer)
             self.restoreLabels(prevState['labelText'], prevState['tagText'], prevState['tagVisible'],
                                prevState['descText'], prevState['descVisible'])
