@@ -4731,37 +4731,6 @@ class QGISRed:
         if self.isLayerOnEdition():
             return
 
-        # Check if dialog object exists and is valid
-        if hasattr(self, 'legendsDialog') and self.legendsDialog is not None:
-            # Check if the underlying C++ object has been deleted (user clicked X)
-            try:
-                # Try to access a property to check validity
-                _ = self.legendsDialog.isVisible()
-
-                # If we are here, the dialog instance is alive.
-                # Logic to restore:
-
-                # 1. If minimized, this restores it to the previous size/location
-                if self.legendsDialog.isMinimized():
-                    self.legendsDialog.showNormal()
-
-                # 2. Ensure it is visible (if hidden)
-                self.legendsDialog.show()
-
-                # 3. Bring to front and focus
-                self.legendsDialog.raise_()
-                self.legendsDialog.activateWindow()
-                return
-
-            except RuntimeError:
-                # The dialog was destroyed but the python reference remained
-                self.legendsDialog = None
-
-        # Create new dialog if it doesn't exist or was destroyed
         self.legendsDialog = QGISRedLegendsDialog()
         self.legendsDialog.config(self.iface, self.ProjectDirectory, self.NetworkName, self)
-
-        # Show the dialog
         self.legendsDialog.show()
-        self.legendsDialog.raise_()
-        self.legendsDialog.activateWindow()
