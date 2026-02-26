@@ -1142,7 +1142,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
             # Get unit for the field with special handling for roughness
             fieldUnit = self.getFieldUnitWithHeadlossLogic(utils, layerIdentifier, fieldName, headloss, unitSystem)
-            unitItem = QTableWidgetItem(fieldUnit if fieldUnit and fieldUnit != "-" and len(fieldUnit) > 1 else "")
+            unitItem = QTableWidgetItem(fieldUnit if fieldUnit and fieldUnit != "-" else "")
             unitItem.setTextAlignment(Qt.AlignCenter)
             # Add tooltip with full unit name
             unitFullName = self.getFieldUnitFullNameWithHeadlossLogic(utils, layerIdentifier, fieldName, headloss, unitSystem)
