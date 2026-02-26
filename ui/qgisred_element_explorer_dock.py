@@ -109,6 +109,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                            "qgisred_sources", "qgisred_demands", "qgisred_meters", "qgisred_isolationvalves"]
         self.specialLayers = ["qgisred_serviceconnections"]
         self.sourcesAndDemands = ["qgisred_sources", "qgisred_demands"]
+        self.connectedLayerNodes = []
 
         self.layerTreeChangeTimer = QTimer()
         self.layerTreeChangeTimer.setSingleShot(True)
@@ -462,7 +463,20 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 layer.featureAdded.connect(self.updateElementIds)
                 layer.featureDeleted.connect(self.updateElementIds)
                 layer.visibilityChanged.connect(self.onLayerTreeChanged)
+            self.connectedLayerNodes.append(layerNode)
         except Exception:
+            pass
+
+    def disconnectLayerNode(self, layerNode):
+        try:
+            self.safeDisconnect(layerNode.nameChanged, self.onLayerTreeChanged)
+            layer = layerNode.layer()
+            if layer:
+                self.safeDisconnect(layer.dataChanged, self.onLayerTreeChanged)
+                self.safeDisconnect(layer.featureAdded, self.updateElementIds)
+                self.safeDisconnect(layer.featureDeleted, self.updateElementIds)
+                self.safeDisconnect(layer.visibilityChanged, self.onLayerTreeChanged)
+        except (RuntimeError, TypeError):
             pass
 
     def disconnectLayerSignals(self, layer):
@@ -485,18 +499,26 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         except Exception:
             pass
 
+    def reconnectLayerSignals(self):
+        # Disconnect all previously connected layer nodes
+        for layerNode in self.connectedLayerNodes:
+            self.disconnectLayerNode(layerNode)
+        self.connectedLayerNodes.clear()
+
+        # Reconnect to current Inputs group layers
+        root = QgsProject.instance().layerTreeRoot()
+        inputsGroup = root.findGroup("Inputs")
+        if inputsGroup:
+            for layerNode in inputsGroup.findLayers():
+                self.connectLayerSignals(layerNode)
+
     # ------------------------------
     # Clear and Reset Methods
     # ------------------------------
     def clearAll(self):
         self.clearHighlights()
         self.clearAllLayerSelections()
-
-        # Clear all caches
-        self.nodeLayerSpatialIndices.clear()
-        self.sourcesDemandToNodeCache.clear()
-        if hasattr(self, 'sourceDemandIdCache'):
-            self.sourceDemandIdCache.clear()
+        self.clearAllCaches()
 
         if hasattr(self, 'leElementMask'):
             self.leElementMask.clear()
@@ -557,13 +579,15 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.safeDisconnect(project.cleared, self.onProjectChanged)
             
             # Layer tree signals
+            for layerNode in self.connectedLayerNodes:
+                self.disconnectLayerNode(layerNode)
+            self.connectedLayerNodes.clear()
+
             root = project.layerTreeRoot()
             inputsGroup = root.findGroup("Inputs")
             if inputsGroup:
                 self.safeDisconnect(inputsGroup.addedChildren, self.onLayerTreeChanged)
                 self.safeDisconnect(inputsGroup.removedChildren, self.onLayerTreeChanged)
-                for layerNode in inputsGroup.findLayers():
-                    self.disconnectLayerSignals(layerNode.layer())
             
             self.safeDisconnect(self.cbElementType.currentIndexChanged, self.updateElementIds)
             self.safeDisconnect(self.leElementMask.textChanged, self.filterElementIds)
@@ -621,16 +645,39 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.layerTreeChangeTimer.start()
 
     def doLayerTreeChanged(self):
-        # Clear caches when layer tree changes
+        self.clearAllCaches()
+        self.reconnectLayerSignals()
+
+        prevState = self.saveCurrentElementState()
+
+        self.initializeCustomLayerProperties()
+        self.initializeElementTypes()
+
+        self.restoreComboBoxSelections(prevState['currentType'], prevState['currentId'])
+        self.reacquireCurrentElement(prevState)
+
+    def clearAllCaches(self):
         self.nodeLayerSpatialIndices.clear()
         self.sourcesDemandToNodeCache.clear()
         if hasattr(self, 'sourceDemandIdCache'):
             self.sourceDemandIdCache.clear()
 
+    def saveCurrentElementState(self):
         currentType = self.cbElementType.currentText()
         currentId = self.extractNodeId(self.cbElementId.currentText())
-        self.initializeCustomLayerProperties()
-        self.initializeElementTypes()
+        return {
+            'currentType': currentType,
+            'currentId': currentId,
+            'identifier': self.elementIdentifiers.get(currentType),
+            'featureIdAttr': currentId if currentId else None,
+            'labelText': self.labelFoundElement.text(),
+            'tagText': self.labelFoundElementTag.text(),
+            'tagVisible': self.isTagVisible,
+            'descText': self.labelFoundElementDescription.text(),
+            'descVisible': self.isDescVisible,
+        }
+
+    def restoreComboBoxSelections(self, currentType, currentId):
         typeIndex = self.cbElementType.findText(currentType)
         if typeIndex >= 0:
             self.cbElementType.setCurrentIndex(typeIndex)
@@ -638,17 +685,53 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             if idIndex >= 0:
                 self.cbElementId.setCurrentIndex(idIndex)
 
+    def reacquireCurrentElement(self, prevState):
+        prevIdentifier = prevState['identifier']
+        prevFeatureIdAttr = prevState['featureIdAttr']
+
+        if not prevIdentifier or prevFeatureIdAttr is None:
+            return
+
+        newLayer = self.getLayerByIdentifier(prevIdentifier)
+        if not newLayer:
+            self.currentLayer = None
+            self.currentFeature = None
+            self.clearHighlights()
+            return
+
+        newFeature = None
+        for feat in newLayer.getFeatures():
+            if feat.attribute("Id") == prevFeatureIdAttr:
+                newFeature = feat
+                break
+
+        if newFeature:
+            self.currentLayer = newLayer
+            self.currentFeature = newFeature
+            self.refreshCurrentElement()
+            self.reHighlightCurrentElement()
+            self.restoreLabels(prevState['labelText'], prevState['tagText'], prevState['tagVisible'],
+                               prevState['descText'], prevState['descVisible'])
+        else:
+            self.currentLayer = None
+            self.currentFeature = None
+            self.clearHighlights()
+
+    def restoreLabels(self, labelText, tagText, tagVisible, descText, descVisible):
+        self.labelFoundElement.setText(labelText)
+        self.labelFoundElementTag.setText(tagText)
+        self.labelFoundElementTag.setVisible(tagVisible)
+        self.isTagVisible = tagVisible
+        self.labelFoundElementDescription.setText(descText)
+        self.labelFoundElementDescription.setVisible(descVisible)
+        self.isDescVisible = descVisible
+
     def onProjectClosed(self):
         self.clearHighlights()
         self.clearAllLayerSelections()
     
     def onProjectChanged(self):
-        # Clear caches when project changes
-        self.nodeLayerSpatialIndices.clear()
-        self.sourcesDemandToNodeCache.clear()
-        if hasattr(self, 'sourceDemandIdCache'):
-            self.sourceDemandIdCache.clear()
-
+        self.clearAllCaches()
         self.clearAll()
         self.onLayerTreeChanged()
 
