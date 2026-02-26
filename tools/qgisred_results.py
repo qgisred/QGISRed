@@ -1,6 +1,8 @@
 import struct
 import os
 
+ROUNDING_PRECISION = 4
+
 def _read_ids(f, count):
     """Helper to read an array of 32-character IDs."""
     ids = []
@@ -112,10 +114,10 @@ def getOut_TimeNodesProperties(out_file_path, time_seconds):
         results = {}
         for i in range(n):
             results[meta["node_ids"][i]] = {
-                "Demand": round(float(demands[i]), 4),
-                "Head": round(float(heads[i]), 4),
-                "Pressure": round(float(pressures[i]), 4),
-                "Quality": round(float(qualities[i]), 4)
+                "Demand": round(float(demands[i]), ROUNDING_PRECISION),
+                "Head": round(float(heads[i]), ROUNDING_PRECISION),
+                "Pressure": round(float(pressures[i]), ROUNDING_PRECISION),
+                "Quality": round(float(qualities[i]), ROUNDING_PRECISION)
             }
         return results
 
@@ -151,12 +153,12 @@ def getOut_TimeLinksProperties(out_file_path, time_seconds):
             headloss_calc = (unit_headloss * length) / 1000.0
             
             results[meta["link_ids"][i]] = {
-                "Flow": round(float(flows[i]), 4),
-                "Velocity": round(float(velocities[i]), 4),
-                "UnitHeadloss": round(unit_headloss, 4),
-                "Headloss": round(headloss_calc, 4),
-                "Quality": round(float(qualities[i]), 4),
-                "Status": round(float(statuses[i]), 4)
+                "Flow": round(float(flows[i]), ROUNDING_PRECISION),
+                "Velocity": round(float(velocities[i]), ROUNDING_PRECISION),
+                "UnitHeadloss": round(unit_headloss, ROUNDING_PRECISION),
+                "Headloss": round(headloss_calc, ROUNDING_PRECISION),
+                "Quality": round(float(qualities[i]), ROUNDING_PRECISION),
+                "Status": round(float(statuses[i]), ROUNDING_PRECISION)
             }
         return results
 
@@ -185,7 +187,7 @@ def getOut_TimeNodeProperties(out_file_path, time_seconds, node_id):
         for i, name in enumerate(var_names):
             f.seek(base_node_offset + (i * meta["n_nodes"] * 4) + (node_index * 4))
             val = struct.unpack('f', f.read(4))[0]
-            vars_found[name] = round(float(val), 4)
+            vars_found[name] = round(float(val), ROUNDING_PRECISION)
             
         return vars_found
 
@@ -218,9 +220,9 @@ def getOut_TimeLinkProperties(out_file_path, time_seconds, link_id):
         for i, name in enumerate(var_names):
             f.seek(base_link_offset + (i * meta["n_links"] * 4) + (link_index * 4))
             val = struct.unpack('f', f.read(4))[0]
-            vars_found[name] = round(float(val), 4)
+            vars_found[name] = round(float(val), ROUNDING_PRECISION)
             if (name == "UnitHeadloss"):
-                vars_found["Headloss"] = round((float(val) * length) / 1000.0, 4)
+                vars_found["Headloss"] = round((float(val) * length) / 1000.0, ROUNDING_PRECISION)
             
         return vars_found
 
@@ -247,7 +249,7 @@ def getOut_TimesNodeProperty(out_file_path, node_id, property_name):
             pos = results_offset + (p * period_size) + (var_index * meta["n_nodes"] * 4) + (node_index * 4)
             f.seek(pos)
             val = struct.unpack('f', f.read(4))[0]
-            time_series.append(round(float(val), 4))
+            time_series.append(round(float(val), ROUNDING_PRECISION))
             
         return time_series
 
@@ -288,6 +290,6 @@ def getOut_TimesLinkProperty(out_file_path, link_id, property_name):
             if calc_headloss:
                 final_val = (final_val * length) / 1000.0
                 
-            time_series.append(round(final_val, 4))
+            time_series.append(round(final_val, ROUNDING_PRECISION))
             
         return time_series
