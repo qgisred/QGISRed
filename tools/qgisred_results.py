@@ -16,9 +16,18 @@ def _read_ids(f, count):
         ids.append(raw_id.decode('ascii', errors='ignore').strip())
     return ids
 
+def _read_floats(f, count):
+    """Helper to read an array of floats safely."""
+    if count <= 0:
+        return []
+    data = f.read(count * 4)
+    if len(data) < count * 4:
+        raise EOFError(f"Expected {count * 4} bytes but read only {len(data)}")
+    return struct.unpack(f'{count}f', data)
+
 def _get_out_file_metadata(f, include_lengths=False):
     """Parses the static part of the EPANET .out file and returns metadata."""
-    # --- Read Prologue ---
+
     prologue_fixed = f.read(15 * 4)
     if len(prologue_fixed) < 60:
         return None
@@ -30,39 +39,28 @@ def _get_out_file_metadata(f, include_lengths=False):
     if magic1 != 516114521:
         return None
 
-    # Skip Titles/Filenames (824 bytes)
     f.seek(824, 1)
-
-    # Read Node IDs
     node_ids = _read_ids(f, n_nodes)
-    
-    # Read Link IDs
     link_ids = _read_ids(f, n_links)
 
-    # 1. Skip Head Node, Tail Node, and Type Code (12 per link), 
-    #    Tank Index and Surface Area (8 per tank), 
-    #    Elevation of Each Node (4 per node)
     f.seek((12 * n_links) + (8 * n_tanks) + (4 * n_nodes), 1)
     
     link_lengths = None
     if include_lengths:
-        # 2. Read Length of Each Link
-        link_lengths = struct.unpack(f'{n_links}f', f.read(4 * n_links))
-    else:
-        # Just skip them
+        link_lengths = _read_floats(f, n_links)
         f.seek(4 * n_links, 1)
+    else:
+        f.seek(8 * n_links, 1)
     
-    # 3. Skip Diameter of Each Link (4 per link) and Energy Section (28 per pump + 4)
-    # ... offset to epilogue logic follows ...
-    f.seek((4 * n_links) + (28 * n_pumps) + 4, 1)
+    f.seek((28 * n_pumps) + 4, 1)
     results_offset = f.tell()
 
-    # Read Epilogue (last 12 bytes)
     f.seek(-12, 2)
     epilogue_data = f.read(12)
-    if len(epilogue_data) < 12:
-        return None
     num_periods, error_code, magic2 = struct.unpack('3i', epilogue_data)
+    
+    link_vars = 8 if version >= 20100 else 6
+    period_size = (n_nodes * 4 + n_links * link_vars) * 4
 
     return {
         "n_nodes": n_nodes,
@@ -73,6 +71,7 @@ def _get_out_file_metadata(f, include_lengths=False):
         "report_step": report_step,
         "num_periods": num_periods,
         "results_offset": results_offset,
+        "period_size": period_size,
         "node_ids": node_ids,
         "link_ids": link_ids,
         "link_lengths": link_lengths
@@ -99,17 +98,15 @@ def getOut_TimeNodesProperties(out_file_path, time_seconds):
 
         period_index = _calculate_period_index(time_seconds, meta)
         
-        # Seek to period (each period has Nodes[4] + Links[8] variables)
-        period_size = (meta["n_nodes"] * 16) + (meta["n_links"] * 32)
+        period_size = meta["period_size"]
         target_offset = meta["results_offset"] + (period_index * period_size)
         f.seek(target_offset)
 
-        # Read Node Results (4 blocks: Demand, Head, Pressure, Quality)
         n = meta["n_nodes"]
-        demands = struct.unpack(f'{n}f', f.read(n * 4))
-        heads = struct.unpack(f'{n}f', f.read(n * 4))
-        pressures = struct.unpack(f'{n}f', f.read(n * 4))
-        qualities = struct.unpack(f'{n}f', f.read(n * 4))
+        demands = _read_floats(f, n)
+        heads = _read_floats(f, n)
+        pressures = _read_floats(f, n)
+        qualities = _read_floats(f, n)
 
         results = {}
         for i in range(n):
@@ -133,18 +130,16 @@ def getOut_TimeLinksProperties(out_file_path, time_seconds):
 
         period_index = _calculate_period_index(time_seconds, meta)
 
-        # Seek to period, skip node results
-        period_size = (meta["n_nodes"] * 16) + (meta["n_links"] * 32)
+        period_size = meta["period_size"]
         target_offset = meta["results_offset"] + (period_index * period_size) + (meta["n_nodes"] * 16)
         f.seek(target_offset)
 
-        # Read Link Results (8 blocks)
         nl = meta["n_links"]
-        flows = struct.unpack(f'{nl}f', f.read(nl * 4))
-        velocities = struct.unpack(f'{nl}f', f.read(nl * 4))
-        headlosses = struct.unpack(f'{nl}f', f.read(nl * 4))
-        qualities = struct.unpack(f'{nl}f', f.read(nl * 4))
-        statuses = struct.unpack(f'{nl}f', f.read(nl * 4))
+        flows = _read_floats(f, nl)
+        velocities = _read_floats(f, nl)
+        headlosses = _read_floats(f, nl)
+        qualities = _read_floats(f, nl)
+        statuses = _read_floats(f, nl)
 
         results = {}
         for i in range(nl):
@@ -175,12 +170,9 @@ def getOut_TimeNodeProperties(out_file_path, time_seconds, node_id):
         node_index = meta["node_ids"].index(node_id)
         period_index = _calculate_period_index(time_seconds, meta)
         
-        # Base offset for this period's nodes
         period_size = (meta["n_nodes"] * 16) + (meta["n_links"] * 32)
         base_node_offset = meta["results_offset"] + (period_index * period_size)
         
-        # Each variable is a block of n_nodes * 4 bytes
-        # Variable Order: Demand, Head, Pressure, Quality
         vars_found = {}
         var_names = ["Demand", "Head", "Pressure", "Quality"]
         
@@ -204,11 +196,9 @@ def getOut_TimeLinkProperties(out_file_path, time_seconds, link_id):
         link_index = meta["link_ids"].index(link_id)
         period_index = _calculate_period_index(time_seconds, meta)
         
-        # Base offset for this period's links (after nodes)
         period_size = (meta["n_nodes"] * 16) + (meta["n_links"] * 32)
         base_link_offset = meta["results_offset"] + (period_index * period_size) + (meta["n_nodes"] * 16)
         
-        # Variable Blocks for Links
         var_names = ["Flow", "Velocity", "UnitHeadloss", "Quality", "Status"]
         vars_found = {}
 
@@ -245,7 +235,6 @@ def getOut_TimesNodeProperty(out_file_path, node_id, property_name):
         
         time_series = []
         for p in range(num_periods):
-            # Posición: Inicio periodo + bloque de variable + posición del nodo
             pos = results_offset + (p * period_size) + (var_index * meta["n_nodes"] * 4) + (node_index * 4)
             f.seek(pos)
             val = struct.unpack('f', f.read(4))[0]
