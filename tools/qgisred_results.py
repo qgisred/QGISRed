@@ -55,12 +55,17 @@ def _get_out_file_metadata(f, include_lengths=False):
     f.seek((28 * n_pumps) + 4, 1)
     results_offset = f.tell()
 
+    # Calculate results_offset from the end of file (epilogue)
+    f.seek(0, 2)
+    file_size = f.tell()
     f.seek(-12, 2)
     epilogue_data = f.read(12)
     num_periods, error_code, magic2 = struct.unpack('3i', epilogue_data)
     
-    link_vars = 8 if version >= 20100 else 6
-    period_size = (n_nodes * 4 + n_links * link_vars) * 4
+    if num_periods > 0:
+        period_size = (file_size - 12 - results_offset) // num_periods
+    else:
+        period_size = 0
 
     return {
         "n_nodes": n_nodes,
@@ -101,7 +106,6 @@ def getOut_TimeNodesProperties(out_file_path, time_seconds):
         period_size = meta["period_size"]
         target_offset = meta["results_offset"] + (period_index * period_size)
         f.seek(target_offset)
-
         n = meta["n_nodes"]
         demands = _read_floats(f, n)
         heads = _read_floats(f, n)
@@ -170,7 +174,7 @@ def getOut_TimeNodeProperties(out_file_path, time_seconds, node_id):
         node_index = meta["node_ids"].index(node_id)
         period_index = _calculate_period_index(time_seconds, meta)
         
-        period_size = (meta["n_nodes"] * 16) + (meta["n_links"] * 32)
+        period_size = meta["period_size"]
         base_node_offset = meta["results_offset"] + (period_index * period_size)
         
         vars_found = {}
@@ -196,7 +200,7 @@ def getOut_TimeLinkProperties(out_file_path, time_seconds, link_id):
         link_index = meta["link_ids"].index(link_id)
         period_index = _calculate_period_index(time_seconds, meta)
         
-        period_size = (meta["n_nodes"] * 16) + (meta["n_links"] * 32)
+        period_size = meta["period_size"]
         base_link_offset = meta["results_offset"] + (period_index * period_size) + (meta["n_nodes"] * 16)
         
         var_names = ["Flow", "Velocity", "UnitHeadloss", "Quality", "Status"]
@@ -230,7 +234,7 @@ def getOut_TimesNodeProperty(out_file_path, node_id, property_name):
         node_index = meta["node_ids"].index(node_id)
         var_index = var_names.index(property_name)
         num_periods = meta["num_periods"]
-        period_size = (meta["n_nodes"] * 16) + (meta["n_links"] * 32)
+        period_size = meta["period_size"]
         results_offset = meta["results_offset"]
         
         time_series = []
@@ -264,7 +268,7 @@ def getOut_TimesLinkProperty(out_file_path, link_id, property_name):
         link_index = meta["link_ids"].index(link_id)
         var_index = var_names.index(effective_property)
         num_periods = meta["num_periods"]
-        period_size = (meta["n_nodes"] * 16) + (meta["n_links"] * 32)
+        period_size = meta["period_size"]
         results_offset = meta["results_offset"]
         node_results_size = meta["n_nodes"] * 16
         length = meta["link_lengths"][link_index]
