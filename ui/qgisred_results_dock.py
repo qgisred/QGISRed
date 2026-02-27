@@ -276,14 +276,14 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 if "Link" in nameLayer:
                     idx = self.cbLinks.currentIndex()
                     if idx > 0:
-                        columnIndex = idx + 1
+                        columnIndex = idx + 2
                         field = layer_to_paint.fields().at(columnIndex).name()
                         var_translated = self.cbLinks.currentText()
                         disp_name = self.tr("Link {}").format(var_translated)
                 else:
                     idx = self.cbNodes.currentIndex()
                     if idx > 0:
-                        columnIndex = idx + 1
+                        columnIndex = idx + 2
                         field = layer_to_paint.fields().at(columnIndex).name()
                         var_translated = self.cbNodes.currentText()
                         disp_name = self.tr("Node {}").format(var_translated)
@@ -666,7 +666,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 if checkbox.isChecked():
                     idx = combobox.currentIndex()
                     if idx > 0:
-                        field = layer.fields().at(idx + 1).name()
+                        field = layer.fields().at(idx + 2).name()
                         self.setLayerLabels(layer, field)
                 else:
                     layer.setLabelsEnabled(False)
@@ -893,6 +893,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             variables = list(v[:10] for v in results[first_id].keys())
             existing_fields = target_layer.fields().names()
             new_fields = []
+            
+            # Ensure "Time" field exists
+            if "Time" not in existing_fields:
+                new_fields.append(QgsField("Time", QVariant.String, "", 15))
+
             for var in variables:
                 if var not in existing_fields:
                     new_fields.append(QgsField(var, QVariant.Double))
@@ -907,6 +912,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             for var in variables:
                 field_indices[var] = target_layer.fields().indexOf(var)
             
+            time_field_idx = target_layer.fields().indexOf("Time")
+            
             # Find Id field index (assuming it's called "Id")
             id_field_idx = target_layer.fields().indexOf("Id")
             if id_field_idx == -1:
@@ -919,6 +926,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 if elem_id in results:
                     elem_results = results[elem_id]
                     updates = {}
+                    if time_field_idx != -1:
+                        updates[time_field_idx] = time_text
+                    
                     for var, val in elem_results.items():
                         updates[field_indices[var[:10]]] = val
                     attribute_updates[feature.id()] = updates
