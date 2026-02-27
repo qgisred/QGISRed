@@ -244,10 +244,15 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                         
                     storage_key = openedLayerPath + "|" + var_key
                     renderer = layer.renderer()
-                    if renderer.type() == "graduatedSymbol":
-                        dictSce[storage_key] = renderer.ranges()
-                    else:
-                        dictSce[storage_key] = renderer.rootRule().clone()
+                    try:
+                        if renderer.type() == "graduatedSymbol":
+                            dictSce[storage_key] = renderer.ranges()
+                        else:
+                            dictSce[storage_key] = renderer.rootRule().clone()
+                    except:
+                        message = self.tr("Some issue occurred in the process of saving the style of the layer").format(self.tr(layerName))
+                        self.iface.messageBar().pushMessage(self.tr("Warning"), message, level=1, duration=5)
+                    
         self.Renders[self.Scenario] = dictSce
 
     def paintIntervalTimeResults(self, setRender=False):    
@@ -396,7 +401,12 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 renderer = layer.renderer()
             
             if hasRender and isinstance(ranges, QgsRuleBasedRenderer.Rule):
-                renderer = QgsRuleBasedRenderer(ranges.clone())
+                try:
+                    renderer = QgsRuleBasedRenderer(ranges.clone())
+                except:
+                    message = self.tr("Some issue occurred in the process of applying the style to the layer").format(self.tr(layerName))
+                    self.iface.messageBar().pushMessage(self.tr("Warning"), message, level=1, duration=5)
+                    return
             
             # Update specific rules filter to match our field name "Status"
             # from the style are applied to our actual "Status" column.
