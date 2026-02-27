@@ -890,13 +890,13 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
             # 2. Check and add missing fields
             first_id = next(iter(results))
-            variables = list(results[first_id].keys())
+            variables = list(v[:10] for v in results[first_id].keys())
             existing_fields = target_layer.fields().names()
             new_fields = []
             for var in variables:
                 if var not in existing_fields:
                     new_fields.append(QgsField(var, QVariant.Double))
-            
+
             if new_fields:
                 target_layer.dataProvider().addAttributes(new_fields)
                 target_layer.updateFields()
@@ -905,7 +905,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             # Get field indices
             field_indices = {}
             for var in variables:
-                field_indices[var] = target_layer.fields().indexOf(var[:10]) # truncate to 10 characters
+                field_indices[var] = target_layer.fields().indexOf(var)
             
             # Find Id field index (assuming it's called "Id")
             id_field_idx = target_layer.fields().indexOf("Id")
@@ -920,7 +920,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     elem_results = results[elem_id]
                     updates = {}
                     for var, val in elem_results.items():
-                        updates[field_indices[var]] = val
+                        updates[field_indices[var[:10]]] = val
                     attribute_updates[feature.id()] = updates
 
             # Apply updates via provider (more efficient for batch)
