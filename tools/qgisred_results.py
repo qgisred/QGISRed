@@ -154,8 +154,8 @@ def getOut_TimeLinksProperties(out_file_path, time_seconds):
             results[meta["link_ids"][i]] = {
                 "Flow": round(float(flows[i]), ROUNDING_PRECISION),
                 "Velocity": round(float(velocities[i]), ROUNDING_PRECISION),
-                "UnitHeadloss": round(unit_headloss, ROUNDING_PRECISION),
-                "Headloss": round(headloss_calc, ROUNDING_PRECISION),
+                "UnitHeadLoss": round(unit_headloss, ROUNDING_PRECISION),
+                "HeadLoss": round(headloss_calc, ROUNDING_PRECISION),
                 "Status": round(float(statuses[i]), ROUNDING_PRECISION),
                 "Quality": round(float(qualities[i]), ROUNDING_PRECISION)
             }
@@ -203,7 +203,7 @@ def getOut_TimeLinkProperties(out_file_path, time_seconds, link_id):
         period_size = meta["period_size"]
         base_link_offset = meta["results_offset"] + (period_index * period_size) + (meta["n_nodes"] * 16)
         
-        var_names = ["Flow", "Velocity", "UnitHeadloss", "Quality", "Status"]
+        var_names = ["Flow", "Velocity", "UnitHeadLoss", "Quality", "Status"]
         vars_found = {}
 
         nL, nT, nN = meta["n_links"], meta["n_tanks"], meta["n_nodes"]
@@ -215,8 +215,8 @@ def getOut_TimeLinkProperties(out_file_path, time_seconds, link_id):
             f.seek(base_link_offset + (i * meta["n_links"] * 4) + (link_index * 4))
             val = struct.unpack('f', f.read(4))[0]
             vars_found[name] = round(float(val), ROUNDING_PRECISION)
-            if (name == "UnitHeadloss"):
-                vars_found["Headloss"] = round((float(val) * length) / 1000.0, ROUNDING_PRECISION)
+            if (name == "UnitHeadLoss"):
+                vars_found["HeadLoss"] = round((float(val) * length) / 1000.0, ROUNDING_PRECISION)
             
         return vars_found
 
@@ -252,15 +252,15 @@ def getOut_TimesLinkProperty(out_file_path, link_id, property_name):
         return []
 
     with open(out_file_path, 'rb') as f:
-        meta = _get_out_file_metadata(f, include_lengths=(property_name == "Headloss"))
+        meta = _get_out_file_metadata(f, include_lengths=(property_name == "HeadLoss"))
         
-        var_names = ["Flow", "Velocity", "UnitHeadloss", "Quality", "Status"]
+        var_names = ["Flow", "Velocity", "UnitHeadLoss", "Quality", "Status"]
         calc_headloss = False
         effective_property = property_name
         
-        if property_name == "Headloss":
+        if property_name == "HeadLoss":
             calc_headloss = True
-            effective_property = "UnitHeadloss"
+            effective_property = "UnitHeadLoss"
             
         if not meta or link_id not in meta["link_ids"] or effective_property not in var_names:
             return []
