@@ -6,7 +6,7 @@
     <message>
         <location filename="../ui/qgisred_thematicmaps_dialog.ui" line="20"/>
         <source>Thematic Maps</source>
-        <translation>Mapas Temáticos</translation>
+        <translation>Mapas Temático</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_thematicmaps_dialog.ui" line="51"/>
