@@ -953,6 +953,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             # Apply updates via provider (more efficient for batch)
             if attribute_updates:
                 target_layer.dataProvider().changeAttributeValues(attribute_updates)
+                target_layer.dataProvider().dataChanged.emit()
                 target_layer.triggerRepaint()
 
     def saveScenario(self):
