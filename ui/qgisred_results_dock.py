@@ -4,7 +4,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QFont
 from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsLayerTreeGroup, QgsField
-from PyQt5.QtCore import Qt, QVariant
+from PyQt5.QtCore import Qt, QVariant, QTimer
 from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling
 from qgis.core import QgsTextFormat
 from qgis.core import QgsProperty, QgsRenderContext
@@ -49,6 +49,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.cbTimes.view().setVerticalScrollBarPolicy(0)
         self.cbTimes.currentIndexChanged.connect(self.timeChanged)
         self.timeSlider.valueChanged.connect(self.sliderChanged)
+        self.timeSlider.sliderMoved.connect(self.sliderDragging)
+        self._debounceTimer = QTimer()
+        self._debounceTimer.setSingleShot(True)
+        self._debounceTimer.timeout.connect(self._applySliderTime)
 
         self.cbLinks.currentIndexChanged.connect(self.linksChanged)
         self.cbNodes.currentIndexChanged.connect(self.nodesChanged)
@@ -579,8 +583,21 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.cbTimes.setCurrentIndex(index - 1)
 
     def sliderChanged(self):
+        if self.timeSlider.isSliderDown():
+            return
         if not self.timeSlider.value() == self.cbTimes.currentIndex():
             self.cbTimes.setCurrentIndex(self.timeSlider.value())
+
+    def sliderDragging(self, value):
+        self.lbTime.setText(self.TimeLabels[value])
+        self._debounceTimer.start(500)
+
+    def _applySliderTime(self):
+        index = self.timeSlider.value()
+        if index != self.cbTimes.currentIndex():
+            self.cbTimes.setCurrentIndex(index)
+        else:
+            self.timeChanged()
 
     def timeChanged(self):
         if self.Computing:
