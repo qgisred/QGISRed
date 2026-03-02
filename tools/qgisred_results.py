@@ -144,6 +144,9 @@ def getOut_TimeLinksProperties(out_file_path, time_seconds):
         headlosses = _read_floats(f, nl)
         qualities = _read_floats(f, nl)
         statuses = _read_floats(f, nl)
+        f.seek(nl * 4, 1) # Skip Setting
+        reaction_rates = _read_floats(f, nl)
+        friction_rates = _read_floats(f, nl)
 
         results = {}
         for i in range(nl):
@@ -156,7 +159,9 @@ def getOut_TimeLinksProperties(out_file_path, time_seconds):
                 "Velocity": round(float(velocities[i]), ROUNDING_PRECISION),
                 "HeadLoss": round(headloss_calc, ROUNDING_PRECISION),
                 "UnitHdLoss": round(unit_headloss, ROUNDING_PRECISION),
+                "FricFactor": round(float(friction_rates[i]), ROUNDING_PRECISION),
                 "Status": round(float(statuses[i]), ROUNDING_PRECISION),
+                "ReactRate": round(float(reaction_rates[i]), ROUNDING_PRECISION),
                 "Quality": round(float(qualities[i]), ROUNDING_PRECISION)
             }
         return results
@@ -203,7 +208,7 @@ def getOut_TimeLinkProperties(out_file_path, time_seconds, link_id):
         period_size = meta["period_size"]
         base_link_offset = meta["results_offset"] + (period_index * period_size) + (meta["n_nodes"] * 16)
         
-        var_names = ["Flow", "Velocity", "UnitHdLoss", "Quality", "Status"]
+        var_names = ["Flow", "Velocity", "UnitHdLoss", "Quality", "Status", "Setting", "ReactRate", "FricFactor"]
         vars_found = {}
 
         nL, nT, nN = meta["n_links"], meta["n_tanks"], meta["n_nodes"]
@@ -254,7 +259,7 @@ def getOut_TimesLinkProperty(out_file_path, link_id, property_name):
     with open(out_file_path, 'rb') as f:
         meta = _get_out_file_metadata(f, include_lengths=(property_name == "HeadLoss"))
         
-        var_names = ["Flow", "Velocity", "UnitHdLoss", "Quality", "Status"]
+        var_names = ["Flow", "Velocity", "UnitHdLoss", "Quality", "Status", "Setting", "ReactRate", "FricFactor"]
         calc_headloss = False
         effective_property = property_name
         

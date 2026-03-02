@@ -201,6 +201,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.Variables = self.Variables + "Status_Link;"
         if self.cbLinks.currentIndex() == 6 or all_vars:
             self.Variables = self.Variables + "Quality_Link;"
+        if self.cbLinks.currentIndex() == 7 or all_vars:
+            self.Variables = self.Variables + "ReactionRate_Link;"
+        if self.cbLinks.currentIndex() == 8 or all_vars:
+            self.Variables = self.Variables + "FrictionRate_Link;"
         if self.cbNodes.currentIndex() == 1 or all_vars:
             self.Variables = self.Variables + "Pressure_Node;"
         if self.cbNodes.currentIndex() == 2 or all_vars:
@@ -242,10 +246,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     
                     if not var_key:
                         continue
-                    
-                    if var_key == "UnitHeadLo":
-                        var_key = "UnitHeadLoss"
-                        
+            
                     storage_key = openedLayerPath + "|" + var_key
                     renderer = layer.renderer()
                     try:
@@ -291,7 +292,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                         field = layer_to_paint.fields().at(columnIndex).name()
                         var_translated = self.cbNodes.currentText()
                         disp_name = self.tr("Node {}").format(var_translated)
-                
+                print(field, var_translated, disp_name)
                 if field:
                     self.setGraduadedPalette(layer_to_paint, field, setRender, nameLayer)
                     
@@ -362,8 +363,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     def setGraduadedPalette(self, layer, field, setRender, nameLayer):
         renderer = layer.renderer()
         rawField = field  # column name
-        if rawField == "UnitHeadLo":
-            rawField = field + "ss"
         if field == "Flow":
             field = "abs(" + field + ")"
         

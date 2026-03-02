@@ -429,9 +429,20 @@
                    </item>
                    <item>
                     <property name="text">
+                     <string>Friction Rate</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
                      <string>Status</string>
                     </property>
                    </item>
+                   <item>
+                    <property name="text">
+                     <string>Reaction Rate</string>
+                    </property>
+                   </item>
+                   
                    <item>
                     <property name="text">
                      <string>Quality</string>
