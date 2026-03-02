@@ -3,6 +3,29 @@ import os
 
 ROUNDING_PRECISION = 4
 
+_LT_CV   = 0  
+_LT_PIPE = 1  
+_LT_PUMP = 2  
+_LT_PRV  = 3  
+_LT_PSV  = 4  
+_LT_PBV  = 5  
+_LT_FCV  = 6  
+_LT_TCV  = 7  
+_LT_GPV  = 8  
+_NT_JUNCTION  = 0
+_NT_RESERVOIR = 1
+_NT_TANK      = 2
+
+_SI_XHEAD      = 0  # Pump shut off (cannot deliver head)
+_SI_TEMPCLOSED = 1  # Temporarily closed
+_SI_CLOSED     = 2  # Closed
+_SI_OPEN       = 3  # Open
+_SI_ACTIVE     = 4  # Active (control valve modulating)
+_SI_XFLOW      = 5  # Pump exceeded max flow
+_SI_XFCV       = 6  # FCV cannot deliver set flow
+_SI_XPRESSURE  = 7  # Valve cannot sustain/reduce set pressure
+
+
 def _read_ids(f, count):
     """Helper to read an array of 32-character IDs."""
     ids = []
@@ -25,15 +48,119 @@ def _read_floats(f, count):
         raise EOFError(f"Expected {count * 4} bytes but read only {len(data)}")
     return struct.unpack(f'{count}f', data)
 
+def _read_ints(f, count):
+    """Helper to read an array of signed ints safely."""
+    if count <= 0:
+        return []
+    data = f.read(count * 4)
+    if len(data) < count * 4:
+        raise EOFError(f"Expected {count * 4} bytes but read only {len(data)}")
+    return struct.unpack(f'{count}i', data)
+
+def _resolve_link_status(indicator, link_type, Q, setting,
+                          from_head, to_head, from_pressure, to_pressure):
+    """
+    Convert a raw EPANET status indicator (0–7) to a descriptive text status.
+
+    indicator     : raw status float from binary (cast to int internally)
+    link_type     : link type code (_LT_* constant)
+    Q             : flow for this link at this time step
+    setting       : Setting field value — speed ratio (n) for pumps,
+                    Pset/Qset for valves
+    from_head     : hydraulic head at the from-node
+    to_head       : hydraulic head at the to-node
+    from_pressure : pressure at the from-node
+    to_pressure   : pressure at the to-node
+    """
+    ind = int(round(indicator))
+
+    if link_type in (_LT_CV, _LT_PIPE):
+        if ind == _SI_TEMPCLOSED:
+            return "Temp Closed"
+        elif ind == _SI_CLOSED:
+            return "Closed"
+        elif ind == _SI_OPEN:
+            return "Open"
+        else:
+            return "Closed"
+    elif link_type == _LT_PUMP:
+        if ind == _SI_XHEAD:
+            return "Closed (H>Hmax)"
+        elif ind == _SI_CLOSED:
+            return "Closed"
+        elif ind == _SI_OPEN:
+            return "Closed" if setting == 0 else "Open"
+        elif ind == _SI_XFLOW:
+            return "Open (Q>Qmax)"
+        else:
+            return "Closed"
+    else:
+        is_fcv = link_type == _LT_FCV
+        is_psv = link_type == _LT_PSV
+        is_prv = link_type == _LT_PRV
+        is_pbv = link_type == _LT_PBV
+
+        # State 13: Active (Rev Pump) — PBV, ACTIVE indicator, reverse flow
+        if is_pbv and ind == _SI_ACTIVE and Q < 0:
+            return "Active (Rev Pump)"
+
+        # State 7: Open (Q < Qset) — FCV cannot deliver set flow
+        if is_fcv and ind == _SI_XFCV:
+            return "Open (Q<Qset)"
+
+        # State 8: Closed (Q < 0) — FCV/PSV/PRV closed due to reverse flow
+        if (is_fcv or is_psv or is_prv) and ind == _SI_CLOSED and from_head < to_head:
+            return "Closed (Q<0)"
+
+        # States 9/10: PSV — upstream pressure vs Pset (= setting field)
+        if is_psv:
+            if ind == _SI_CLOSED:
+                return "Closed (Pup<Pset)"
+            elif ind == _SI_OPEN:
+                return "Open (Pup>Pset)"
+            elif ind == _SI_XPRESSURE:
+                return "Closed (Pup<Pset)" if from_pressure < setting else "Open (Pup>Pset)"
+            elif ind == _SI_ACTIVE:
+                return "Active"
+            else:
+                return "Closed"
+
+        # States 11/12: PRV — downstream pressure vs Pset (= setting field)
+        if is_prv:
+            if ind == _SI_CLOSED:
+                return "Closed (Pdw>Pset)"
+            elif ind == _SI_OPEN:
+                return "Open (Pdw<Pset)"
+            elif ind == _SI_XPRESSURE:
+                return "Closed (Pdw>Pset)" if to_pressure > setting else "Open (Pdw<Pset)"
+            elif ind == _SI_ACTIVE:
+                return "Active"
+            else:
+                return "Closed"
+
+        # FCV Closed with ACTIVE indicator when Qset == 0
+        if is_fcv and ind == _SI_ACTIVE and setting == 0:
+            return "Closed"
+
+        # General valve states (TCV, GPV, PBV non-reverse, or unmatched FCV)
+        if ind == _SI_CLOSED:
+            return "Closed"
+        elif ind == _SI_OPEN:
+            return "Open"
+        elif ind == _SI_ACTIVE:
+            return "Active"
+        else:
+            return "Closed"
+
 def _get_out_file_metadata(f, include_lengths=False):
     """Parses the static part of the EPANET .out file and returns metadata."""
 
     prologue_fixed = f.read(15 * 4)
     if len(prologue_fixed) < 60:
         return None
-    
-    (magic1, version, n_nodes, n_tanks, n_links, n_pumps, n_valves, 
-     wq_type, wq_index, flow_units, pres_units, stats_flag, 
+
+    (magic1, version, n_nodes, n_tanks, n_links, n_pumps, n_valves,
+     wq_type, wq_index, flow_units, pres_units, stats_flag,
      report_start, report_step, duration) = struct.unpack('15i', prologue_fixed)
 
     if magic1 != 516114521:
@@ -42,26 +169,37 @@ def _get_out_file_metadata(f, include_lengths=False):
     f.seek(824, 1)
     node_ids = _read_ids(f, n_nodes)
     link_ids = _read_ids(f, n_links)
+    link_from  = [x - 1 for x in _read_ints(f, n_links)]
+    link_to    = [x - 1 for x in _read_ints(f, n_links)]
 
-    f.seek((12 * n_links) + (8 * n_tanks) + (4 * n_nodes), 1)
-    
+    link_types = _read_ints(f, n_links)
+    tank_node_indices = [x - 1 for x in _read_ints(f, n_tanks)]
+    tank_areas = _read_floats(f, n_tanks)
+    f.seek(4 * n_nodes, 1)       # skip node elevations
+    node_types = [_NT_JUNCTION] * n_nodes
+    for i in range(n_tanks):
+        node_idx = tank_node_indices[i]
+        if tank_areas[i] == 0:
+            node_types[node_idx] = _NT_RESERVOIR
+        else:
+            node_types[node_idx] = _NT_TANK
+
     link_lengths = None
     if include_lengths:
         link_lengths = _read_floats(f, n_links)
         f.seek(4 * n_links, 1)
     else:
         f.seek(8 * n_links, 1)
-    
+
     f.seek((28 * n_pumps) + 4, 1)
     results_offset = f.tell()
 
-    # Calculate results_offset from the end of file (epilogue)
     f.seek(0, 2)
     file_size = f.tell()
     f.seek(-12, 2)
     epilogue_data = f.read(12)
     num_periods, error_code, magic2 = struct.unpack('3i', epilogue_data)
-    
+
     if num_periods > 0:
         period_size = (file_size - 12 - results_offset) // num_periods
     else:
@@ -79,7 +217,11 @@ def _get_out_file_metadata(f, include_lengths=False):
         "period_size": period_size,
         "node_ids": node_ids,
         "link_ids": link_ids,
-        "link_lengths": link_lengths
+        "link_lengths": link_lengths,
+        "node_types": node_types,
+        "link_types": link_types,
+        "link_from": link_from,
+        "link_to": link_to,
     }
 
 def _calculate_period_index(time_seconds, meta):
@@ -100,7 +242,7 @@ def getOut_TimeNodesProperties(out_file_path, time_seconds):
         meta = _get_out_file_metadata(f)
         if not meta:
             return {}
-
+        
         period_index = _calculate_period_index(time_seconds, meta)
         
         period_size = meta["period_size"]
@@ -134,17 +276,21 @@ def getOut_TimeLinksProperties(out_file_path, time_seconds):
 
         period_index = _calculate_period_index(time_seconds, meta)
 
-        period_size = meta["period_size"]
-        target_offset = meta["results_offset"] + (period_index * period_size) + (meta["n_nodes"] * 16)
-        f.seek(target_offset)
-
+        n = meta["n_nodes"]
         nl = meta["n_links"]
-        flows = _read_floats(f, nl)
-        velocities = _read_floats(f, nl)
-        headlosses = _read_floats(f, nl)
-        qualities = _read_floats(f, nl)
-        statuses = _read_floats(f, nl)
-        f.seek(nl * 4, 1) # Skip Setting
+        base_offset = meta["results_offset"] + (period_index * meta["period_size"])
+
+        f.seek(base_offset + n * 4)          # skip demands
+        node_heads = _read_floats(f, n)
+        node_pressures = _read_floats(f, n)
+        f.seek(n * 4, 1)                     # skip node qualities
+
+        flows          = _read_floats(f, nl)
+        velocities     = _read_floats(f, nl)
+        headlosses     = _read_floats(f, nl)
+        qualities      = _read_floats(f, nl)
+        statuses       = _read_floats(f, nl)
+        settings       = _read_floats(f, nl)
         reaction_rates = _read_floats(f, nl)
         friction_rates = _read_floats(f, nl)
 
@@ -153,14 +299,28 @@ def getOut_TimeLinksProperties(out_file_path, time_seconds):
             unit_headloss = float(headlosses[i])
             length = meta["link_lengths"][i]
             headloss_calc = (unit_headloss * length) / 1000.0
+
+            from_idx = meta["link_from"][i]
+            to_idx   = meta["link_to"][i]
             
+            status_text = _resolve_link_status(
+                indicator=float(statuses[i]),
+                link_type=meta["link_types"][i],
+                Q=float(flows[i]),
+                setting=float(settings[i]),
+                from_head=float(node_heads[from_idx]),
+                to_head=float(node_heads[to_idx]),
+                from_pressure=float(node_pressures[from_idx]),
+                to_pressure=float(node_pressures[to_idx])
+            )
+
             results[meta["link_ids"][i]] = {
                 "Flow": round(float(flows[i]), ROUNDING_PRECISION),
                 "Velocity": round(float(velocities[i]), ROUNDING_PRECISION),
                 "HeadLoss": round(headloss_calc, ROUNDING_PRECISION),
                 "UnitHdLoss": round(unit_headloss, ROUNDING_PRECISION),
                 "FricFactor": round(float(friction_rates[i]), ROUNDING_PRECISION),
-                "Status": round(float(statuses[i]), ROUNDING_PRECISION),
+                "Status": status_text,
                 "ReactRate": round(float(reaction_rates[i]), ROUNDING_PRECISION),
                 "Quality": round(float(qualities[i]), ROUNDING_PRECISION)
             }
@@ -206,8 +366,9 @@ def getOut_TimeLinkProperties(out_file_path, time_seconds, link_id):
         period_index = _calculate_period_index(time_seconds, meta)
         
         period_size = meta["period_size"]
-        base_link_offset = meta["results_offset"] + (period_index * period_size) + (meta["n_nodes"] * 16)
-        
+        base_period_offset = meta["results_offset"] + (period_index * period_size)
+        base_link_offset = base_period_offset + meta["n_nodes"] * 16
+
         var_names = ["Flow", "Velocity", "UnitHdLoss", "Quality", "Status", "Setting", "ReactRate", "FricFactor"]
         vars_found = {}
 
@@ -220,9 +381,34 @@ def getOut_TimeLinkProperties(out_file_path, time_seconds, link_id):
             f.seek(base_link_offset + (i * meta["n_links"] * 4) + (link_index * 4))
             val = struct.unpack('f', f.read(4))[0]
             vars_found[name] = round(float(val), ROUNDING_PRECISION)
-            if (name == "UnitHdLoss"):
+            if name == "UnitHdLoss":
                 vars_found["HeadLoss"] = round((float(val) * length) / 1000.0, ROUNDING_PRECISION)
-            
+
+        link_type = meta["link_types"][link_index]
+        from_idx  = meta["link_from"][link_index]
+        to_idx    = meta["link_to"][link_index]
+
+        f.seek(base_period_offset + nN * 4 + from_idx * 4)
+        from_head = struct.unpack('f', f.read(4))[0]
+        f.seek(base_period_offset + nN * 4 + to_idx * 4)
+        to_head = struct.unpack('f', f.read(4))[0]
+
+        f.seek(base_period_offset + nN * 8 + from_idx * 4)
+        from_pressure = struct.unpack('f', f.read(4))[0]
+        f.seek(base_period_offset + nN * 8 + to_idx * 4)
+        to_pressure = struct.unpack('f', f.read(4))[0]
+
+        vars_found["Status"] = _resolve_link_status(
+            indicator=vars_found["Status"],
+            link_type=link_type,
+            Q=vars_found["Flow"],
+            setting=vars_found["Setting"],
+            from_head=from_head,
+            to_head=to_head,
+            from_pressure=from_pressure,
+            to_pressure=to_pressure
+        )
+
         return vars_found
 
 def getOut_TimesNodeProperty(out_file_path, node_id, property_name):
@@ -271,23 +457,59 @@ def getOut_TimesLinkProperty(out_file_path, link_id, property_name):
             return []
 
         link_index = meta["link_ids"].index(link_id)
-        var_index = var_names.index(effective_property)
         num_periods = meta["num_periods"]
         period_size = meta["period_size"]
         results_offset = meta["results_offset"]
-        node_results_size = meta["n_nodes"] * 16
-        length = meta["link_lengths"][link_index]
-        
+        n_nodes = meta["n_nodes"]
+        n_links = meta["n_links"]
+        node_results_size = n_nodes * 16
+
+        if property_name == "Status":
+            link_type = meta["link_types"][link_index]
+            from_idx  = meta["link_from"][link_index]
+            to_idx    = meta["link_to"][link_index]
+            time_series = []
+            for p in range(num_periods):
+                base = results_offset + p * period_size
+
+                f.seek(base + node_results_size + 0 * n_links * 4 + link_index * 4)
+                Q = struct.unpack('f', f.read(4))[0]
+
+                f.seek(base + node_results_size + 5 * n_links * 4 + link_index * 4)
+                setting = struct.unpack('f', f.read(4))[0]
+
+                f.seek(base + node_results_size + 4 * n_links * 4 + link_index * 4)
+                indicator = struct.unpack('f', f.read(4))[0]
+
+                f.seek(base + n_nodes * 4 + from_idx * 4)
+                from_head = struct.unpack('f', f.read(4))[0]
+                f.seek(base + n_nodes * 4 + to_idx * 4)
+                to_head = struct.unpack('f', f.read(4))[0]
+
+                f.seek(base + n_nodes * 8 + from_idx * 4)
+                from_pressure = struct.unpack('f', f.read(4))[0]
+                f.seek(base + n_nodes * 8 + to_idx * 4)
+                to_pressure = struct.unpack('f', f.read(4))[0]
+
+                time_series.append(_resolve_link_status(
+                    indicator, link_type, Q, setting,
+                    from_head, to_head, from_pressure, to_pressure
+                ))
+            return time_series
+
+        var_index = var_names.index(effective_property)
+        length = meta["link_lengths"][link_index] if calc_headloss else 1.0
+
         time_series = []
         for p in range(num_periods):
-            pos = results_offset + (p * period_size) + node_results_size + (var_index * meta["n_links"] * 4) + (link_index * 4)
+            pos = results_offset + (p * period_size) + node_results_size + (var_index * n_links * 4) + (link_index * 4)
             f.seek(pos)
             val = struct.unpack('f', f.read(4))[0]
-            
+
             final_val = float(val)
             if calc_headloss:
                 final_val = (final_val * length) / 1000.0
-                
+
             time_series.append(round(final_val, ROUNDING_PRECISION))
-            
+
         return time_series

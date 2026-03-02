@@ -916,7 +916,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
             for var in variables:
                 if var not in existing_fields:
-                    new_fields.append(QgsField(var, QVariant.Double))
+                    if var == "Status":
+                        new_fields.append(QgsField(var, QVariant.String))
+                    else:
+                        new_fields.append(QgsField(var, QVariant.Double))
 
             if new_fields:
                 target_layer.dataProvider().addAttributes(new_fields)
