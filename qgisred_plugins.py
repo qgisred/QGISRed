@@ -303,7 +303,7 @@ class QGISRed:
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         # Set flag to prevent DLL calls during shutdown
-        self.isUnloading = True
+        self.isUnloading = False
 
         # Invalidate the DLL instance immediately
         self.gisredDll = None
