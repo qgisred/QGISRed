@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtGui import QColor
-from PyQt5.QtCore import QFileInfo
+from PyQt5.QtCore import QFileInfo, QTimer
 from PyQt5.QtWidgets import QMessageBox, QFileDialog
 from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer, QgsTask, QgsApplication, QgsLayerMetadata
 from qgis.core import QgsSymbol, Qgis, QgsLayerTreeGroup, QgsLayerDefinition
@@ -954,11 +954,10 @@ class QGISRedUtils:
 
     """Tasks"""
 
-    def runTask(self, name, process, postprocess, managing=False):
+    def runTask(self, _name, process, postprocess, managing=False):
         if managing:
-            task = QgsTask.fromFunction(name, process, on_finished=postprocess)
-            task.run()
-            QgsApplication.taskManager().addTask(task)
+            process(None)
+            QTimer.singleShot(0, postprocess)
         else:
             process(None)
             postprocess()
