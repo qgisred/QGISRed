@@ -292,7 +292,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                         field = layer_to_paint.fields().at(columnIndex).name()
                         var_translated = self.cbNodes.currentText()
                         disp_name = self.tr("Node {}").format(var_translated)
-                print(field, var_translated, disp_name)
+
                 if field:
                     self.setGraduadedPalette(layer_to_paint, field, setRender, nameLayer)
                     
