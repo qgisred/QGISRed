@@ -8,19 +8,19 @@
   </flags>
   <renderer-v2 enableorderby="0" forceraster="0" symbollevels="0" referencescale="-1" type="RuleRenderer">
     <rules key="{3f9725ad-2aa8-4976-ab60-baf81fb0cbbf}">
-      <rule symbol="0" label="Temp Closed" key="{7e7cf52c-a474-4376-9afd-176fda636df0}" filter="Time=1"/>
-      <rule symbol="1" label="Closed" key="{5f825555-74cc-43a6-93e8-6c872f116ce7}" filter="Time=2"/>
-      <rule symbol="2" label="Closed (H > Hmax)" key="{c28194b6-d906-4316-923c-194b0caf7080}" filter="Time=5"/>
-      <rule symbol="3" label="Closed (Q &lt; 0)" key="{cf215b33-686a-49c4-8e46-3488cd8e0296}" filter="Time=8"/>
-      <rule symbol="4" label="Closed (Pup &lt; Pset)" key="{c36ed915-4262-4b02-9258-b1961fcf4531}" filter="Time=9"/>
-      <rule symbol="5" label="Closed (Pdw > Pset)" key="{19f1bfd3-ae5a-480e-a06e-62f5c6a8b8b0}" filter="Time=11"/>
-      <rule symbol="6" label="Open" key="{f62d7481-8e73-414d-94ff-0b07f89e0a22}" filter="Time=3"/>
-      <rule symbol="7" label="Open (Q > Qmax)" key="{20365452-be31-47b9-b16a-c586ecad76da}" filter="Time=6"/>
-      <rule symbol="8" label="Open (Q &lt; Qset)" key="{107fcecf-2312-4b4a-aac6-5dd03ffba83f}" filter="Time=7"/>
-      <rule symbol="9" label="Open (Pup > Pset)" key="{562bb2e6-bff2-4bfb-a0e3-90658722c599}" filter="Time=10"/>
-      <rule symbol="10" label="Open (Pdw &lt; Pset)" key="{f118afd4-67df-46c0-9143-1439a20de712}" filter="Time=12"/>
-      <rule symbol="11" label="Active" key="{fb13f7af-cee3-4ef9-9e14-58aa4fc4eccb}" filter="Time=4"/>
-      <rule symbol="12" label="Active (Rev Pump)" key="{9047417d-615d-48b7-97ad-3b0e6cec371d}" filter="Time=13"/>
+      <rule key="{7e7cf52c-a474-4376-9afd-176fda636df0}" symbol="0" filter="&quot;Status&quot; = 'Temp Closed'" label="Temp Closed"/>
+      <rule key="{5f825555-74cc-43a6-93e8-6c872f116ce7}" symbol="1" filter="&quot;Status&quot; = 'Closed'" label="Closed"/>
+      <rule key="{c28194b6-d906-4316-923c-194b0caf7080}" symbol="2" filter="&quot;Status&quot; = 'Closed (H>Hmax)'" label="Closed (H > Hmax)"/>
+      <rule key="{cf215b33-686a-49c4-8e46-3488cd8e0296}" symbol="3" filter="&quot;Status&quot; = 'Closed (Q&lt;0)'" label="Closed (Q &lt; 0)"/>
+      <rule key="{c36ed915-4262-4b02-9258-b1961fcf4531}" symbol="4" filter="&quot;Status&quot; = 'Closed (Pup&lt;Pset)'" label="Closed (Pup &lt; Pset)"/>
+      <rule key="{19f1bfd3-ae5a-480e-a06e-62f5c6a8b8b0}" symbol="5" filter="&quot;Status&quot; = 'Closed (Pdw>Pset)'" label="Closed (Pdw > Pset)"/>
+      <rule key="{f62d7481-8e73-414d-94ff-0b07f89e0a22}" symbol="6" filter="&quot;Status&quot; = 'Open'" label="Open"/>
+      <rule key="{20365452-be31-47b9-b16a-c586ecad76da}" symbol="7" filter="&quot;Status&quot; = 'Open (Q>Qmax)'" label="Open (Q > Qmax)"/>
+      <rule key="{107fcecf-2312-4b4a-aac6-5dd03ffba83f}" symbol="8" filter="&quot;Status&quot; = 'Open (Q&lt;Qset)'" label="Open (Q &lt; Qset)"/>
+      <rule key="{562bb2e6-bff2-4bfb-a0e3-90658722c599}" symbol="9" filter="&quot;Status&quot; = 'Open (Pup>Pset)'" label="Open (Pup > Pset)"/>
+      <rule key="{f118afd4-67df-46c0-9143-1439a20de712}" symbol="10" filter="&quot;Status&quot; = 'Open (Pdw&lt;Pset)'" label="Open (Pdw &lt; Pset)"/>
+      <rule key="{fb13f7af-cee3-4ef9-9e14-58aa4fc4eccb}" symbol="11" filter="&quot;Status&quot; = 'Active'" label="Active"/>
+      <rule key="{9047417d-615d-48b7-97ad-3b0e6cec371d}" symbol="12" filter="&quot;Status&quot; = 'Active (Rev Pump)'" label="Active (Rev Pump)"/>
     </rules>
     <symbols>
       <symbol is_animated="0" alpha="1" clip_to_extent="1" frame_rate="10" name="0" force_rhr="0" type="line">

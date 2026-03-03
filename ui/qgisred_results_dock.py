@@ -353,27 +353,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     message = self.tr("Some issue occurred in the process of applying the style to the layer").format(self.tr(layerName))
                     self.iface.messageBar().pushMessage(self.tr("Warning"), message, level=1, duration=5)
                     return
-            
-            # Update specific rules filter to match our field name "Status"
-            # from the style are applied to our actual "Status" column.
-            if isinstance(renderer, QgsRuleBasedRenderer):
-                try:
-                    root_rule = renderer.rootRule()
-                    self.setFilterExpression(root_rule, 0, field, "Temp Closed")
-                    self.setFilterExpression(root_rule, 1, field, "Closed")
-                    self.setFilterExpression(root_rule, 2, field, "Closed (H>Hmax)")
-                    self.setFilterExpression(root_rule, 3, field, "Closed (Q<0)")
-                    self.setFilterExpression(root_rule, 4, field, "Closed (Pup<Pset)")
-                    self.setFilterExpression(root_rule, 5, field, "Closed (Pdw>Pset)")
-                    self.setFilterExpression(root_rule, 6, field, "Open")
-                    self.setFilterExpression(root_rule, 7, field, "Open (Q>Qmax)")
-                    self.setFilterExpression(root_rule, 8, field, "Open (Q<Qset)")
-                    self.setFilterExpression(root_rule, 9, field, "Open (Pup>Pset)")
-                    self.setFilterExpression(root_rule, 10, field, "Open (Pdw<Pset)")
-                    self.setFilterExpression(root_rule, 11, field, "Active")
-                    self.setFilterExpression(root_rule, 12, field, "Active (Rev Pump)")
-                except:
-                    pass
         else:
             # Check if we need to load default QML
             # We load it if there's no saved render AND (it's not graduated OR it's the wrong variable)
@@ -402,10 +381,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         layer.setRenderer(renderer)
         layer.triggerRepaint()
-
-    def setFilterExpression(self, root_rule, index, field, value):
-        rule = root_rule.children()[index]
-        rule.setFilterExpression('"' + field + '" = \'' + value + "'")
 
     """Scenario"""
 
