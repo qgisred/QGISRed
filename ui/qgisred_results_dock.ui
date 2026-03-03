@@ -48,31 +48,11 @@
           <item row="0" column="0">
            <widget class="QGroupBox" name="groupBox_2">
             <property name="title">
-             <string>Browser</string>
+             <string>Scenario Base</string>
             </property>
             <layout class="QGridLayout" name="gridLayout_7">
              <item row="0" column="0">
               <layout class="QVBoxLayout" name="verticalLayout">
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_6">
-                 <item>
-                  <widget class="QLabel" name="label_4">
-                   <property name="font">
-                    <font>
-                     <weight>75</weight>
-                     <bold>true</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>Scenario Base</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
                <item>
                 <widget class="QLabel" name="lbLabel5">
                  <property name="font">
@@ -373,27 +353,23 @@
                   </widget>
                  </item>
                  <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_3">
-                   <item>
-                    <widget class="QCheckBox" name="cbFlowDirections">
-                     <property name="font">
-                      <font>
-                       <family>MS Shell Dlg 2</family>
-                       <pointsize>8</pointsize>
-                       <weight>50</weight>
-                       <italic>true</italic>
-                       <bold>false</bold>
-                      </font>
-                     </property>
-                     <property name="styleSheet">
-                      <string notr="true">font: italic 8pt &quot;MS Shell Dlg 2&quot;;</string>
-                     </property>
-                     <property name="text">
-                      <string>Show Links directions</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
+                  <widget class="QCheckBox" name="cbFlowDirections">
+                   <property name="font">
+                    <font>
+                     <family>MS Shell Dlg 2</family>
+                     <pointsize>8</pointsize>
+                     <weight>50</weight>
+                     <italic>true</italic>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">font: italic 8pt &quot;MS Shell Dlg 2&quot;;</string>
+                   </property>
+                   <property name="text">
+                    <string>Show Links directions</string>
+                   </property>
+                  </widget>
                  </item>
                 </layout>
                </item>
