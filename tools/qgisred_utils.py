@@ -954,13 +954,9 @@ class QGISRedUtils:
 
     """Tasks"""
 
-    def runTask(self, _name, process, postprocess, managing=False):
-        if managing:
-            process(None)
-            QTimer.singleShot(0, postprocess)
-        else:
-            process(None)
-            postprocess()
+    def runTask(self, process, postprocess):
+        process()
+        QTimer.singleShot(0, postprocess)
 
     """BID"""
 

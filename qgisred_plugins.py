@@ -1892,10 +1892,8 @@ class QGISRed:
                     return False
         return True
 
-    def clearQGisProject(self, task):
+    def clearQGisProject(self):
         QgsProject.instance().clear()
-        if task is not None:
-            return {"task": task.definition()}
 
     def isValidProject(self):
         if self.ProjectDirectory == self.TemporalFolder:
@@ -1940,34 +1938,26 @@ class QGISRed:
 
     """Remove Layers"""
 
-    def removeLayers(self, task=None):
+    def removeLayers(self):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayers(self.ownMainLayers)
         utils.removeLayers(self.ownFiles, ".dbf")
         utils.removeLayers(self.especificComplementaryLayers)
-        if task is not None:
-            return {"task": task.definition()}
 
-    def removeDBFs(self, task):
+    def removeDBFs(self):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayers(self.ownFiles, ".dbf")
-        if task is not None:
-            return {"task": task.definition()}
 
-    def removeIssuesLayers(self, task):
+    def removeIssuesLayers(self):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayers(self.issuesLayers)
-        if task is not None:
-            return {"task": task.definition()}
 
-    def removeLayersAndIssuesLayers(self, task):
+    def removeLayersAndIssuesLayers(self):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayers(self.ownMainLayers)
         utils.removeLayers(self.ownFiles, ".dbf")
         utils.removeLayers(self.especificComplementaryLayers)
         utils.removeLayers(self.issuesLayers)
-        if task is not None:
-            return {"task": task.definition()}
 
     def removeIssuesLayersFiles(self):
         dirList = os.listdir(self.ProjectDirectory)
@@ -1975,30 +1965,24 @@ class QGISRed:
             if "_Issues." in fi:
                 os.remove(os.path.join(self.ProjectDirectory, fi))
 
-    def removeLayersConnectivity(self, task):
+    def removeLayersConnectivity(self):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayer("Links_Connectivity")
         self.removeEmptyQuerySubGroup("Connectivity")
-        if task is not None:
-            return {"task": task.definition()}
 
-    def removeLayersAndConnectivity(self, task):
+    def removeLayersAndConnectivity(self):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayers(self.ownMainLayers)
         utils.removeLayers(self.ownFiles, ".dbf")
         utils.removeLayers(self.especificComplementaryLayers)
         utils.removeLayer("Links_Connectivity")
         self.removeEmptyQuerySubGroup("Connectivity")
-        if task is not None:
-            return {"task": task.definition()}
 
-    def removeSectorLayers(self, task):
+    def removeSectorLayers(self):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayers(["Links_" + self.Sectors, "Nodes_" + self.Sectors])
         sectorGroupName = self.getSectorGroupName()
         self.removeEmptyQuerySubGroup(sectorGroupName)
-        if task is not None:
-            return {"task": task.definition()}
 
     """Open Layers"""
     def openRemoveSpecificLayers(self, layers, epsg):
@@ -2007,17 +1991,17 @@ class QGISRed:
         self.specificEpsg = epsg
         self.specificLayers = layers
         self.removingLayers = True
-        QGISRedUtils().runTask("update specific layers", self.removeLayers, self.openSpecificLayers)
+        QGISRedUtils().runTask(self.removeLayers, self.openSpecificLayers)
 
-    def openSpecificLayers(self, exception=None, result=None):
+    def openSpecificLayers(self):
         self.especificComplementaryLayers = []
         if self.specificEpsg is not None:
             self.runChangeCrs()
 
         self.opendedLayers = False
-        QGISRedUtils().runTask("update extent", self.openSpecificLayersProcess, self.setExtent)
+        QGISRedUtils().runTask(self.openSpecificLayersProcess, self.setExtent)
 
-    def openSpecificLayersProcess(self, task):
+    def openSpecificLayersProcess(self):
         if not self.opendedLayers:
             self.opendedLayers = True
             # Open layers
@@ -2026,8 +2010,6 @@ class QGISRed:
             utils.openElementsLayers(inputGroup, self.specificLayers)
             self.updateMetadata()
             self.removingLayers = False
-            if task is not None:
-                return {"task": task.definition()}
 
     def openElementLayer(self, nameLayer):
         # Open layers
@@ -2036,7 +2018,7 @@ class QGISRed:
         utils.openElementsLayers(inputGroup, [nameLayer])
         self.updateMetadata()
 
-    def openElementLayers(self, task, net="", folder=""):
+    def openElementLayers(self, net="", folder=""):
         # Allow overriding project/network if provided
         if not net == "" and not folder == "":
             self.NetworkName = net
@@ -2070,9 +2052,6 @@ class QGISRed:
 
         self.updateMetadata()
 
-        # Continue any pending task
-        if task is not None:
-            return {"task": task.definition()}
     
     def openInputLayers(self, projectDir, networkName):
         # Open layers
@@ -2190,13 +2169,13 @@ class QGISRed:
         self.removingLayers = True
         self.extent = QGISRedUtils().getProjectExtent()
         if self.hasToOpenNewLayers and self.hasToOpenIssuesLayers:
-            QGISRedUtils().runTask("update plus issue layers", self.removeLayersAndIssuesLayers, self.runOpenTemporaryFiles)
+            QGISRedUtils().runTask(self.removeLayersAndIssuesLayers, self.runOpenTemporaryFiles)
         elif self.hasToOpenNewLayers:
-            QGISRedUtils().runTask("update layers", self.removeLayers, self.runOpenTemporaryFiles)
+            QGISRedUtils().runTask(self.removeLayers, self.runOpenTemporaryFiles)
         elif self.hasToOpenIssuesLayers:
-            QGISRedUtils().runTask("update issue layers", self.removeIssuesLayers, self.runOpenTemporaryFiles)
+            QGISRedUtils().runTask(self.removeIssuesLayers, self.runOpenTemporaryFiles)
 
-    def runOpenTemporaryFiles(self, exception=None, result=None):
+    def runOpenTemporaryFiles(self):
         if self.hasToOpenIssuesLayers:
             self.removeIssuesLayersFiles()
 
@@ -2208,7 +2187,7 @@ class QGISRed:
 
         if self.hasToOpenNewLayers:
             self.opendedLayers = False
-            QGISRedUtils().runTask("update layers", self.openElementLayers, self.setExtent)
+            QGISRedUtils().runTask(self.openElementLayers, self.setExtent)
             self.openNewLayers = False
 
         if self.hasToOpenIssuesLayers:
@@ -2307,7 +2286,7 @@ class QGISRed:
         cursor.setShape(shape)
         self.iface.mapCanvas().setCursor(cursor)
 
-    def setExtent(self, exception=None, result=None):
+    def setExtent(self):
         if self.zoomToFullExtent:
             self.iface.mapCanvas().zoomToFullExtent()
             self.iface.mapCanvas().refresh()
@@ -2567,9 +2546,9 @@ class QGISRed:
         else:
             valid = self.isOpenedProject()
             if valid:
-                QGISRedUtils().runTask("open project", self.clearQGisProject, self.runOpenProject)
+                QGISRedUtils().runTask(self.clearQGisProject, self.runOpenProject)
 
-    def runOpenProject(self, exception=None, result=None):
+    def runOpenProject(self):
         if not self.checkDependencies():
             return
 
@@ -2610,9 +2589,9 @@ class QGISRed:
         else:
             valid = self.isOpenedProject()
             if valid:
-                QGISRedUtils().runTask("create project", self.clearQGisProject, self.runCreateProject)
+                QGISRedUtils().runTask(self.clearQGisProject, self.runCreateProject)
 
-    def runCreateProject(self, exception=None, result=None):
+    def runCreateProject(self):
         if not self.checkDependencies():
             return
 
@@ -2638,7 +2617,7 @@ class QGISRed:
         else:
             valid = self.isOpenedProject()
             if valid:
-                QGISRedUtils().runTask("import project", self.clearQGisProject, self.runImport)
+                QGISRedUtils().runTask(self.clearQGisProject, self.runImport)
 
     def runCanAddData(self):
         if not self.checkDependencies():
@@ -2652,7 +2631,7 @@ class QGISRed:
             return
         self.runImport()
 
-    def runImport(self, exception=None, result=None):
+    def runImport(self):
         if not self.checkDependencies():
             return
         self.defineCurrentProject()
@@ -2826,7 +2805,7 @@ class QGISRed:
             self.hasToOpenIssuesLayers = False
             self.extent = QGISRedUtils().getProjectExtent()
             self.removingLayers = True
-            QGISRedUtils().runTask("remove dbfs", self.removeDBFs, self.runOpenTemporaryFiles)
+            QGISRedUtils().runTask(self.removeDBFs, self.runOpenTemporaryFiles)
         elif resMessage == "commit":
             self.processCsharpResult(resMessage, "Pipe's roughness converted")
         elif resMessage == "False":
@@ -2859,7 +2838,7 @@ class QGISRed:
             self.hasToOpenIssuesLayers = False
             self.extent = QGISRedUtils().getProjectExtent()
             self.removingLayers = True
-            QGISRedUtils().runTask("remove dbfs", self.removeDBFs, self.runOpenTemporaryFiles)
+            QGISRedUtils().runTask(self.removeDBFs, self.runOpenTemporaryFiles)
         elif resMessage == "False":
             self.iface.messageBar().pushMessage(
                 self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5
@@ -2890,7 +2869,7 @@ class QGISRed:
             self.hasToOpenIssuesLayers = False
             self.extent = QGISRedUtils().getProjectExtent()
             self.removingLayers = True
-            QGISRedUtils().runTask("remove dbfs", self.removeDBFs, self.runOpenTemporaryFiles)
+            QGISRedUtils().runTask(self.removeDBFs, self.runOpenTemporaryFiles)
         elif resMessage == "False":
             self.iface.messageBar().pushMessage(
                 self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5
@@ -3769,9 +3748,9 @@ class QGISRed:
         self.removingLayers = True
         self.extent = QGISRedUtils().getProjectExtent()
         if self.hasToOpenNewLayers and self.hasToOpenConnectivityLayers:
-            QGISRedUtils().runTask("update layers and connectivity", self.removeLayersAndConnectivity, self.runOpenTemporaryFiles)
+            QGISRedUtils().runTask(self.removeLayersAndConnectivity, self.runOpenTemporaryFiles)
         elif self.hasToOpenConnectivityLayers:
-            QGISRedUtils().runTask("update connectivity", self.removeLayersConnectivity, self.runOpenTemporaryFiles)
+            QGISRedUtils().runTask(self.removeLayersConnectivity, self.runOpenTemporaryFiles)
 
     def runCheckLengths(self):
         if not self.checkDependencies():
@@ -3921,7 +3900,7 @@ class QGISRed:
         self.removingLayers = True
         self.extent = QGISRedUtils().getProjectExtent()
         if self.hasToOpenSectorLayers:
-            QGISRedUtils().runTask("update sectors", self.removeSectorLayers, self.runOpenTemporaryFiles)
+            QGISRedUtils().runTask(self.removeSectorLayers, self.runOpenTemporaryFiles)
 
     """Tools"""
 
@@ -4012,13 +3991,11 @@ class QGISRed:
             self.blockLayers(False)
             # self.treeName = resMessage.split("^")[1]
             self.removingLayers = True
-            QGISRedUtils().runTask(
-                "update isolated segments layers", self.removeIsolatedSegmentsLayers, self.runLoadIsolatedSegmentLayers
-            )
+            QGISRedUtils().runTask(self.removeIsolatedSegmentsLayers, self.runLoadIsolatedSegmentLayers)
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
-    def runLoadIsolatedSegmentLayers(self, exception=None, result=None):
+    def runLoadIsolatedSegmentLayers(self):
         # Process
         queriesFolder = os.path.join(self.ProjectDirectory, "Queries")
         try:  # create directory if does not exist
@@ -4051,13 +4028,10 @@ class QGISRed:
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         return utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Isolated Segments"])
 
-    def removeIsolatedSegmentsLayers(self, task):
+    def removeIsolatedSegmentsLayers(self):
         path = os.path.join(self.ProjectDirectory, "Queries")
         utils = QGISRedUtils(path, self.NetworkName, self.iface)
         utils.removeLayers(["IsolatedSegments_Links", "IsolatedSegments_Nodes"])
-
-        if task is not None:
-            return {"task": task.definition()}
 
     def runCalculateLengths(self):
         if not self.checkDependencies():
@@ -4179,7 +4153,7 @@ class QGISRed:
         self.removingLayers = True
         self.extent = QGISRedUtils().getProjectExtent()
         if self.hasToOpenSectorLayers:
-            QGISRedUtils().runTask("update sectors", self.removeSectorLayers, self.runOpenTemporaryFiles)
+            QGISRedUtils().runTask(self.removeSectorLayers, self.runOpenTemporaryFiles)
 
     """"""
 
@@ -4519,11 +4493,11 @@ class QGISRed:
         elif "shps" in resMessage:
             self.treeName = resMessage.split("^")[1]
             self.removingLayers = True
-            QGISRedUtils().runTask("update tree layers", self.removeTreeLayers, self.runTreeProcess)
+            QGISRedUtils().runTask(self.removeTreeLayers, self.runTreeProcess)
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
-    def runTreeProcess(self, exception=None, result=None):
+    def runTreeProcess(self):
         # Process
         treeFolder = os.path.join(self.ProjectDirectory, "Trees")
         try:  # create directory if does not exist
@@ -4567,14 +4541,11 @@ class QGISRed:
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         return utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Tree: " + self.treeName])
 
-    def removeTreeLayers(self, task):
+    def removeTreeLayers(self):
         treePath = os.path.join(self.ProjectDirectory, "Trees")
         utils = QGISRedUtils(treePath, self.NetworkName, self.iface)
         utils.removeLayers(["Links_Tree_" + self.treeName, "Nodes_Tree_" + self.treeName])
-
         self.removeEmptyQuerySubGroup("Tree")
-        if task is not None:
-            return {"task": task.definition()}
 
     # ======================================
     #              NEW BUTTONS - BID

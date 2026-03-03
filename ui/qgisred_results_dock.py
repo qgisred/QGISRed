@@ -132,12 +132,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             if resultLayerPath not in openedLayersPaths:
                 utils.openLayer(group, file, results=True)
 
-    def removeResults(self, task):
+    def removeResults(self):
         resultPath = self.getResultsPath()
         utils = QGISRedUtils(resultPath, self.NetworkName + "_" + self.Scenario, self.iface)
         utils.removeLayers(["Node", "Link"])
-        if task is not None:
-            return {"task": task.definition()}
 
     def getInputGroup(self):
         # Same method in qgisred_newproject_dialog and qgisred_plugins
@@ -747,9 +745,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.saveCurrentRender()
 
         # Remove results layers previous to simulate
-        QGISRedUtils().runTask("simulate", self.removeResults, self.simulationProcess, True)
+        QGISRedUtils().runTask(self.removeResults, self.simulationProcess)
 
-    def simulationProcess(self, exception=None, result=None):
+    def simulationProcess(self):
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
         resMessage = GISRed.Compute(self.ProjectDirectory, self.NetworkName)
@@ -844,9 +842,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         # Task is necessary because after remove layers, DBF files are in use. With the task,
         # the remove process finishs and filer are not in use
-        QGISRedUtils().runTask("update all results", self.removeResults, self.openAllResultsProcess)
+        QGISRedUtils().runTask(self.removeResults, self.openAllResultsProcess)
 
-    def openAllResultsProcess(self, exception=None, result=None):
+    def openAllResultsProcess(self):
         # Ensure result layers are opened
         self.ensureResultsLayersAreOpen()
 
@@ -1010,9 +1008,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.setLayersNames(True)
         # Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and
         # filer are not in use
-        QGISRedUtils().runTask("delete scenario", self.removeResults, self.deleteScenarioProcess)
+        QGISRedUtils().runTask(self.removeResults, self.deleteScenarioProcess)
 
-    def deleteScenarioProcess(self, exception=None, result=None):
+    def deleteScenarioProcess(self):
         # Delete Group
         resultGroup = self.getResultGroup()
         dataGroup = resultGroup.findGroup(self.Scenario)

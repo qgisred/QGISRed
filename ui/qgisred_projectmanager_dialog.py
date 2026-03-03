@@ -219,10 +219,8 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             layersNames = "[Inputs]" + layersNames.strip(";")
         self.parent.updateMetadata(layersNames, folder, net)
 
-    def clearQGisProject(self, task):
+    def clearQGisProject(self):
         QgsProject.instance().clear()
-        if task is not None:
-            return {"task": task.definition()}
 
     def getUniformedPath(self, path):
         return self.utils.getUniformedPath(path)
@@ -392,11 +390,11 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 return
             valid = self.parent.isOpenedProject()
             if valid:
-                self.utils.runTask("open project", self.clearQGisProject, self.openProjectProcess, True)
+                self.utils.runTask(self.clearQGisProject, self.openProjectProcess)
         else:
             self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("You need to select a project to open it."), level=1, duration=5)
 
-    def openProjectProcess(self, exception=None, result=None):
+    def openProjectProcess(self):
         ok, name, project, _ = self.getSelectedRowInfo()
         if ok:
             self.NetworkName = name
@@ -431,9 +429,9 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         else:
             valid = self.parent.isOpenedProject()
             if valid:
-                self.utils.runTask("create project", self.clearQGisProject, self.createProjectProcess)
+                self.utils.runTask(self.clearQGisProject, self.createProjectProcess)
 
-    def createProjectProcess(self, exception=None, result=None):
+    def createProjectProcess(self):
         dlg = QGISRedCreateProjectDialog()
         dlg.config(self.iface, "Temporal folder", "Network", self.parent)
         # Run the dialog event loop
@@ -451,9 +449,9 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         else:
             valid = self.parent.isOpenedProject()
             if valid:
-                self.utils.runTask("import project", self.clearQGisProject, self.importDataProcess)
+                self.utils.runTask(self.clearQGisProject, self.importDataProcess)
 
-    def importDataProcess(self, exception=None, result=None):
+    def importDataProcess(self):
         dlg = QGISRedImportDialog()
         dlg.config(self.iface, self.ProjectDirectory, self.NetworkName, self.parent)
         # Run the dialog event loop

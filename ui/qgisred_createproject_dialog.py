@@ -133,7 +133,7 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
                 # Project manager list
                 QGISRedUtils().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
                 # open layers
-                self.parent.openElementLayers(None, self.NetworkName, self.ProjectDirectory)
+                self.parent.openElementLayers(self.NetworkName, self.ProjectDirectory)
             elif resMessage == "False":
                 self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
             else:
