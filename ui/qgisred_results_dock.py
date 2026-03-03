@@ -26,9 +26,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     iface = None
     NetworkName = ""
     ProjectDirectory = ""
-    LabelResults = {}
-    IndexTime = {}
-    Comments = {}
     Renders = {}
     Computing = False
     TimeLabels = []
@@ -56,9 +53,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.cbLinkLabels.clicked.connect(self.linkLabelsClicked)
         self.cbNodeLabels.clicked.connect(self.nodeLabelsClicked)
         self.cbFlowDirections.clicked.connect(self.flowDirectionsClicked)
-        self.btSaveScenario.clicked.connect(self.saveScenario)
-        self.cbScenarios.currentIndexChanged.connect(self.scenarioChanged)
-        self.btDeleteScenario.clicked.connect(self.deleteScenario)
 
         self.lbNotAvailable.setVisible(False)
         self.displayingLinkField = ""
@@ -151,7 +145,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
     """UI Elements"""
     def restoreElementsCb(self):
-        self.Scenario = self.cbScenarios.currentText()
+        self.Scenario = "Base"
         resultPath = self.getResultsPath()
         layers = self.getLayers()
 
@@ -382,52 +376,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         layer.setRenderer(renderer)
         layer.triggerRepaint()
 
-    """Scenario"""
-
-    def writeScenario(self, scenario, labels, comments):
-        filePath = os.path.join(self.getResultsPath(), self.NetworkName + "_" + scenario + ".sce")
-        f = open(filePath, "w+")
-        QGISRedUtils().writeFile(f, "[TimeLabels]" + "\n")
-        lab = ""
-        for label in labels:
-            lab = lab + label + ";"
-        lab = lab.strip(";")
-        QGISRedUtils().writeFile(f, lab + "\n")
-        QGISRedUtils().writeFile(f, "[Comments]" + "\n")
-        QGISRedUtils().writeFile(f, comments + "\n")
-        f.close()
-
-    def readSavedScenarios(self):
-        resultPath = self.getResultsPath()
-        if not os.path.exists(resultPath):
-            return
-        files = os.listdir(resultPath)
-        for file in files:  # only names
-            if ".sce" in file and "_Base" not in file:
-                f = open(os.path.join(resultPath, file), "r")
-                nameSc = file.replace(self.NetworkName + "_", "").replace(".sce", "")
-                isLabel = False
-                isComments = False
-                comments = ""
-                for line in f:
-                    if "[TimeLabels]" in line:
-                        isLabel = True
-                        continue
-                    if "[Comments]" in line:
-                        isComments = True
-                        continue
-                    if isLabel:
-                        self.LabelResults[nameSc] = line.strip("\r\n").split(";")
-                        isLabel = False
-                    if isComments:
-                        comments = comments + line.strip() + "\n"
-
-                comments = comments.strip("\n").strip().strip("\n")
-                self.IndexTime[nameSc] = 0
-                self.Comments[nameSc] = comments
-                self.cbScenarios.addItem(nameSc)
-                f.close()
-
     """Clicked events"""
 
     def linksChanged(self):
@@ -527,57 +475,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         value = self.cbTimes.currentIndex()
         self.timeSlider.setValue(value)
-        self.IndexTime[self.cbScenarios.currentText()] = value
 
         self.completeResultLayers()
 
         self.paintIntervalTimeResults(False)
-
-    def scenarioChanged(self):
-        if self.Computing:
-            return
-
-        currentScenario = self.cbScenarios.currentText()
-        self.TimeLabels = self.LabelResults[currentScenario]
-        self.Computing = True
-
-        self.cbTimes.clear()
-        if len(self.TimeLabels) == 1:
-            self.lbLabel5.setVisible(False)
-            self.btLessTime.setVisible(False)
-            self.btMoreTime.setVisible(False)
-            self.btInitTime.setVisible(False)
-            self.btEndTime.setVisible(False)
-            self.cbTimes.setVisible(False)
-            self.timeSlider.setVisible(False)
-            self.cbTimes.addItem(self.tr("Permanent"))
-        else:
-            self.lbLabel5.setVisible(True)
-            self.btLessTime.setVisible(True)
-            self.btMoreTime.setVisible(True)
-            self.btInitTime.setVisible(True)
-            self.btEndTime.setVisible(True)
-            self.cbTimes.setVisible(True)
-            self.timeSlider.setVisible(True)
-            for label in self.TimeLabels:
-                self.cbTimes.addItem(label)
-            if self.IndexTime.get(currentScenario) is not None:
-                self.cbTimes.setCurrentIndex(self.IndexTime[currentScenario])
-        self.timeSlider.setMaximum(len(self.TimeLabels) - 1)
-        self.lbTime.setText(self.TimeLabels[self.IndexTime[currentScenario]])
-        self.lbComments.setText(self.Comments[currentScenario])
-        self.Computing = False
-
-        self.btDeleteScenario.setEnabled(not currentScenario == "Base")
-
-        self.Scenario = currentScenario
-        self.restoreElementsCb()
-        self.Computing = True
-        self.cbLinks.setCurrentIndex(1)
-        self.cbNodes.setCurrentIndex(1)
-        self.IndexTime[currentScenario] = self.cbTimes.currentIndex()
-        self.openAllResults()
-        self.Computing = False
 
     """Main methods"""
     def updateLabels(self, layer_type):
@@ -607,7 +508,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if not self.isCurrentProject():
             return False
 
-        self.Scenario = self.cbScenarios.currentText()
+        self.Scenario = "Base"
         resultsPath = self.getResultsPath()
         resultLayersName = ["Node", "Link"]
         for layerName in resultLayersName:
@@ -625,7 +526,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if not self.isCurrentProject():
             return
 
-        self.Scenario = self.cbScenarios.currentText()
+        self.Scenario = "Base"
         resultPath = self.getResultsPath()     
         for nameLayer in ["Node", "Link"]: 
             layer_to_paint = None
@@ -645,13 +546,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.Computing = True
         # If there is a new project, reset options
         if not (self.NetworkName == netw and self.ProjectDirectory == direct):
-            self.LabelResults = {}
-            self.IndexTime = {}
-            self.cbScenarios.clear()
-            self.cbScenarios.addItem("Base")
             self.NetworkName = netw
             self.ProjectDirectory = direct
-            self.readSavedScenarios()
 
         # Project info
         self.NetworkName = netw
@@ -692,10 +588,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.close()
 
     def openBaseResults(self, labels):
-        # Scenario
-        self.cbScenarios.setCurrentIndex(0)
-        self.btDeleteScenario.setEnabled(False)
-
         # Select comboboxes item
         if self.cbLinks.currentIndex() == 0:
             self.cbLinks.setCurrentIndex(1)
@@ -713,19 +605,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             for item in mylist:
                 self.TimeLabels.append(item)
                 self.cbTimes.addItem(item)
-        self.LabelResults["Base"] = self.TimeLabels
-        self.IndexTime["Base"] = 0
+
         self.cbTimes.setCurrentIndex(0)
         self.timeSlider.setValue(0)
         self.timeSlider.setMaximum(len(self.TimeLabels) - 1)
         self.lbTime.setText(self.TimeLabels[0])
-
-        # Comments
-        self.Comments["Base"] = self.tr("Last results computed")
-        self.lbComments.setText(self.Comments["Base"])
-
-        # Write Scenario
-        self.writeScenario("Base", self.TimeLabels, self.Comments["Base"])
 
         # Configure Visibilities
         if len(mylist) == 1:
@@ -789,7 +673,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             except Exception:
                 time_seconds = 0
 
-        self.Scenario = self.cbScenarios.currentText()
         resultPath = self.getResultsPath()
         binary_path = os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + ".out")
         if not os.path.exists(binary_path):
@@ -869,75 +752,3 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 target_layer.dataProvider().changeAttributeValues(attribute_updates)
                 target_layer.dataProvider().dataChanged.emit()
                 target_layer.triggerRepaint()
-
-    def saveScenario(self):
-        if not self.isCurrentProject():
-            return False
-        # Validations
-        isBaseScenario = self.cbScenarios.currentText() == "Base"
-        if not isBaseScenario:
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Only 'Base' scenario could be saved"), level=1, duration=5)
-            return
-        newScenario = self.tbScenarioName.text().strip()
-        if newScenario == "":
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Scenario name is not valid"), level=1, duration=5)
-            return
-        for i in range(self.cbScenarios.count()):
-            if self.cbScenarios.itemText(i).lower() == newScenario.lower():
-                self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Scenario name is already used"), level=1, duration=5)
-                return
-
-        # Save options
-        resultPath = self.getResultsPath()
-        try:
-            copyfile(
-                r"" + os.path.join(resultPath, self.NetworkName + "_Base"),
-                r"" + os.path.join(resultPath, self.NetworkName + "_" + newScenario),
-            )  # Binary
-            files = os.listdir(resultPath)
-            for file in files:  # only names
-                if self.NetworkName + "_Base_Link" in file or self.NetworkName + "_Base_Node" in file:
-                    newName = file.replace("_Base_", "_" + newScenario + "_")
-                    copyfile(r"" + os.path.join(resultPath, file), r"" + os.path.join(resultPath, newName))
-
-            self.LabelResults[newScenario] = self.TimeLabels
-            self.IndexTime[newScenario] = self.cbTimes.currentIndex()
-            self.Comments[newScenario] = self.tbComments.toPlainText().strip().strip("\n")
-            self.writeScenario(newScenario, self.TimeLabels, self.Comments[newScenario])
-        except Exception:
-            self.iface.messageBar().pushMessage(self.tr("Error"), self.tr("Scenario could not be saved"), level=2, duration=5)
-            return
-        self.Scenario = "Base"
-        self.saveCurrentRender()
-
-        self.cbScenarios.addItem(newScenario)
-        # self.cbScenarios.setCurrentIndex(self.cbScenarios.count()-1)
-        self.tbScenarioName.setText("")
-        self.tbComments.setText("")
-
-    def deleteScenario(self):
-        self.Scenario = self.cbScenarios.currentText()
-
-        # Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and
-        # filer are not in use
-        QGISRedUtils().runTask(self.removeResults, self.deleteScenarioProcess)
-
-    def deleteScenarioProcess(self):
-        # Delete Group
-        resultGroup = self.getResultGroup()
-        dataGroup = resultGroup.findGroup(self.Scenario)
-        if dataGroup is not None:
-            resultGroup.removeChildNode(dataGroup)
-        # Delete files
-        resultPath = self.getResultsPath()
-        files = os.listdir(resultPath)
-        for file in files:  # only names
-            if self.NetworkName + "_" + self.Scenario in file:
-                try:
-                    os.remove(os.path.join(resultPath, file))
-                except Exception:
-                    pass
-
-        # Delete from combobox
-        self.cbScenarios.removeItem(self.cbScenarios.currentIndex())
-        self.cbScenarios.setCurrentIndex(self.cbScenarios.count() - 1)
