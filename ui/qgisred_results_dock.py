@@ -26,15 +26,12 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     iface = None
     NetworkName = ""
     ProjectDirectory = ""
-    ownMainLayers = ["Pipes", "Valves", "Pumps", "Junctions", "Tanks", "Reservoirs"]
     LabelResults = {}
     IndexTime = {}
     Comments = {}
     Renders = {}
-    Variables = ""
     Computing = False
     TimeLabels = []
-    LabelsToOpRe = []
 
     def __init__(self, iface):
         """Constructor."""
@@ -68,31 +65,24 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.displayingNodeField = ""
 
     """Methods"""
-
     def isCurrentProject(self):
-        currentNetwork = ""
-        currentDirectory = ""
+        """Verifies if the loaded 'Pipes' layer matches the dock's project and network."""
+        # Define the expected 'Pipes' layer path for the current project context
+        expected_pipes_path = self.generatePath(self.ProjectDirectory, f"{self.NetworkName}_Pipes.shp")
+        
+        # Check if any loaded layer matches the expected path
+        is_correct_project = any(self.getLayerPath(layer) == expected_pipes_path for layer in self.getLayers())
+        
+        if is_correct_project:
+            return True
+
+        # If project mismatch, warn user and close the dock
         message = self.tr("The current project has been changed. Please, try again.")
-
-        layers = self.getLayers()
-        layerName = "Pipes"
-        for layer in layers:
-            layerUri = self.getLayerPath(layer)
-            if "_" + layerName in layerUri:
-                currentDirectory = os.path.dirname(layerUri)
-                fileNameWithoutExt = os.path.splitext(os.path.basename(layerUri))[0]
-                currentNetwork = fileNameWithoutExt.replace("_" + layerName, "")
-                if self.NetworkName == currentNetwork and self.ProjectDirectory == currentDirectory:
-                    return True
-                else:
-                    self.iface.messageBar().pushMessage(self.tr("Warning"), message, level=1, duration=5)
-                    self.close()
-                    return False
-
         self.iface.messageBar().pushMessage(self.tr("Warning"), message, level=1, duration=5)
         self.close()
         return False
 
+    """Paths"""
     def getUniformedPath(self, path):
         return QGISRedUtils().getUniformedPath(path)
 
@@ -106,7 +96,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         return os.path.join(self.ProjectDirectory, "Results")
 
     """Layers and Groups"""
-
     def getLayers(self):
         return QGISRedUtils().getLayers()
 
@@ -164,68 +153,24 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     def restoreElementsCb(self):
         self.Scenario = self.cbScenarios.currentText()
         resultPath = self.getResultsPath()
-        self.setLayersNames(True)
         layers = self.getLayers()
 
         self.Computing = True
         self.cbLinks.setCurrentIndex(0)
         self.cbNodes.setCurrentIndex(0)
 
-        for nameLayer in self.LabelsToOpRe:
+        for nameLayer in ["Node", "Link"]:
             layerResult = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp")
             for layer in layers:
                 openLayerPath = self.getLayerPath(layer)
                 if openLayerPath == layerResult:
                     if "Link" in nameLayer:
                         self.cbLinks.setCurrentIndex(1) # Default to first result
-                        self.cbFlowDirections.setVisible(True)
                     else:
                         self.cbNodes.setCurrentIndex(1) # Default to first result
         self.Computing = False
 
-    """Create Lists"""
-
-    def setVariables(self, all_vars=False):
-        self.Variables = ""
-        if self.cbLinks.currentIndex() == 1 or all_vars:
-            self.Variables = self.Variables + "Flow_Link;"
-        if self.cbLinks.currentIndex() == 2 or all_vars:
-            self.Variables = self.Variables + "Velocity_Link;"
-        if self.cbLinks.currentIndex() == 3 or all_vars:
-            self.Variables = self.Variables + "HeadLoss_Link;"
-        if self.cbLinks.currentIndex() == 4 or all_vars:
-            self.Variables = self.Variables + "UnitHeadLoss_Link;"
-        if self.cbLinks.currentIndex() == 5 or all_vars:
-            self.Variables = self.Variables + "Status_Link;"
-        if self.cbLinks.currentIndex() == 6 or all_vars:
-            self.Variables = self.Variables + "Quality_Link;"
-        if self.cbLinks.currentIndex() == 7 or all_vars:
-            self.Variables = self.Variables + "ReactionRate_Link;"
-        if self.cbLinks.currentIndex() == 8 or all_vars:
-            self.Variables = self.Variables + "FrictionRate_Link;"
-        if self.cbNodes.currentIndex() == 1 or all_vars:
-            self.Variables = self.Variables + "Pressure_Node;"
-        if self.cbNodes.currentIndex() == 2 or all_vars:
-            self.Variables = self.Variables + "Head_Node;"
-        if self.cbNodes.currentIndex() == 3 or all_vars:
-            self.Variables = self.Variables + "Demand_Node;"
-        if self.cbNodes.currentIndex() == 4 or all_vars:
-            self.Variables = self.Variables + "Quality_Node;"
-
-        if self.Variables == "" and not all_vars:
-            self.iface.messageBar().pushMessage(self.tr("Validations"), self.tr("No variable results selected"), level=1)
-            return False
-        return True
-
-    def setLayersNames(self, allLayers=False):
-        self.LabelsToOpRe = []
-        if self.cbLinks.currentIndex() != 0 or allLayers:
-            self.LabelsToOpRe.append("Link_All")
-        if self.cbNodes.currentIndex() != 0 or allLayers:
-            self.LabelsToOpRe.append("Node_All")
-
     """Symbology"""
-
     def saveCurrentRender(self):
         openedLayers = self.getLayers()
         resultPath = self.getResultsPath()
@@ -653,13 +598,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.Scenario = currentScenario
         self.restoreElementsCb()
         self.Computing = True
-        self.setLayersNames()
-        if len(self.LabelsToOpRe) == 0:
-            self.cbLinks.setCurrentIndex(1)
-            self.cbFlowDirections.setVisible(True)
-            self.cbNodes.setCurrentIndex(1)
-            self.IndexTime[currentScenario] = self.cbTimes.currentIndex()
-            self.openAllResults()
+        self.cbLinks.setCurrentIndex(1)
+        self.cbNodes.setCurrentIndex(1)
+        self.IndexTime[currentScenario] = self.cbTimes.currentIndex()
+        self.openAllResults()
         self.Computing = False
 
     """Main methods"""
@@ -837,9 +779,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if not self.validationsOpenResult():
             return
 
-        if not self.setVariables(True):
-            return
-
         # Task is necessary because after remove layers, DBF files are in use. With the task,
         # the remove process finishs and filer are not in use
         QGISRedUtils().runTask(self.removeResults, self.openAllResultsProcess)
@@ -1004,8 +943,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     def deleteScenario(self):
         self.Scenario = self.cbScenarios.currentText()
 
-        # Process
-        self.setLayersNames(True)
         # Task is necessary because after remove layers, DBF files are in use. With the task, the remove process finishs and
         # filer are not in use
         QGISRedUtils().runTask(self.removeResults, self.deleteScenarioProcess)
