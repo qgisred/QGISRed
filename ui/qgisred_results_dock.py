@@ -359,19 +359,19 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             if isinstance(renderer, QgsRuleBasedRenderer):
                 try:
                     root_rule = renderer.rootRule()
-                    self.setFilterExpression(root_rule, 0, field, "=1")
-                    self.setFilterExpression(root_rule, 1, field, "=2")
-                    self.setFilterExpression(root_rule, 2, field, "=5")
-                    self.setFilterExpression(root_rule, 3, field, "=8")
-                    self.setFilterExpression(root_rule, 4, field, "=9")
-                    self.setFilterExpression(root_rule, 5, field, "=11")
-                    self.setFilterExpression(root_rule, 6, field, "=3")
-                    self.setFilterExpression(root_rule, 7, field, "=6")
-                    self.setFilterExpression(root_rule, 8, field, "=7")
-                    self.setFilterExpression(root_rule, 9, field, "=10")
-                    self.setFilterExpression(root_rule, 10, field, "=12")
-                    self.setFilterExpression(root_rule, 11, field, "=4")
-                    self.setFilterExpression(root_rule, 12, field, "=13")
+                    self.setFilterExpression(root_rule, 0, field, "Temp Closed")
+                    self.setFilterExpression(root_rule, 1, field, "Closed")
+                    self.setFilterExpression(root_rule, 2, field, "Closed (H>Hmax)")
+                    self.setFilterExpression(root_rule, 3, field, "Closed (Q<0)")
+                    self.setFilterExpression(root_rule, 4, field, "Closed (Pup<Pset)")
+                    self.setFilterExpression(root_rule, 5, field, "Closed (Pdw>Pset)")
+                    self.setFilterExpression(root_rule, 6, field, "Open")
+                    self.setFilterExpression(root_rule, 7, field, "Open (Q>Qmax)")
+                    self.setFilterExpression(root_rule, 8, field, "Open (Q<Qset)")
+                    self.setFilterExpression(root_rule, 9, field, "Open (Pup>Pset)")
+                    self.setFilterExpression(root_rule, 10, field, "Open (Pdw<Pset)")
+                    self.setFilterExpression(root_rule, 11, field, "Active")
+                    self.setFilterExpression(root_rule, 12, field, "Active (Rev Pump)")
                 except:
                     pass
         else:
@@ -403,9 +403,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         layer.setRenderer(renderer)
         layer.triggerRepaint()
 
-    def setFilterExpression(self, root_rule, index, field, expression):
+    def setFilterExpression(self, root_rule, index, field, value):
         rule = root_rule.children()[index]
-        rule.setFilterExpression('"' + field + '"' + expression)
+        rule.setFilterExpression('"' + field + '" = \'' + value + "'")
 
     """Scenario"""
 
