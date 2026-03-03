@@ -386,16 +386,20 @@ def getOut_TimeLinkProperties(out_file_path, time_seconds, link_id):
         f.seek(len_pos)
         length = struct.unpack('f', f.read(4))[0]
 
+        pumpOrValve = (link_type == _LT_PUMP) or (link_type in _VALVE_TYPES)
+        _BLANK_NAMES = {"Velocity", "UnitHdLoss", "FricFactor", "ReactRate"}
+
         for i, name in enumerate(var_names):
             f.seek(base_link_offset + (i * meta["n_links"] * 4) + (link_index * 4))
             val = struct.unpack('f', f.read(4))[0]
-            vars_found[name] = round(float(val), ROUNDING_PRECISION)
-            if name == "UnitHdLoss":
-                if (link_type == _LT_PUMP) or (link_type in _VALVE_TYPES):
+            if pumpOrValve and name in _BLANK_NAMES:
+                vars_found[name] = None
+                if name == "UnitHdLoss":
                     vars_found["HeadLoss"] = round(float(val), ROUNDING_PRECISION)
-                else:
+            else:
+                vars_found[name] = round(float(val), ROUNDING_PRECISION)
+                if name == "UnitHdLoss":
                     vars_found["HeadLoss"] = round((float(val) * length) / 1000.0, ROUNDING_PRECISION)
-
 
         f.seek(base_period_offset + nN * 4 + from_idx * 4)
         from_head = struct.unpack('f', f.read(4))[0]
@@ -472,11 +476,15 @@ def getOut_TimesLinkProperty(out_file_path, link_id, property_name):
         n_nodes = meta["n_nodes"]
         n_links = meta["n_links"]
         node_results_size = n_nodes * 16
+        link_type = meta["link_types"][link_index]
+
+        _BLANK_PROPS = {"Velocity", "UnitHdLoss", "FricFactor", "ReactRate"}
+        if property_name in _BLANK_PROPS and ((link_type == _LT_PUMP) or (link_type in _VALVE_TYPES)):
+            return [None] * num_periods
 
         if property_name == "Status":
-            link_type = meta["link_types"][link_index]
-            from_idx  = meta["link_from"][link_index]
-            to_idx    = meta["link_to"][link_index]
+            from_idx = meta["link_from"][link_index]
+            to_idx   = meta["link_to"][link_index]
             time_series = []
             for p in range(num_periods):
                 base = results_offset + p * period_size
