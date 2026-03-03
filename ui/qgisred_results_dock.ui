@@ -305,31 +305,6 @@
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
-                   <item>
-                    <property name="text">
-                     <string>None</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>Pressure</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>Head</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>Demand</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>Quality</string>
-                    </property>
-                   </item>
                   </widget>
                  </item>
                  <item>
@@ -376,51 +351,6 @@
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
-                   <item>
-                    <property name="text">
-                     <string>None</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>Flow</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>Velocity</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>HeadLoss</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>Unit HeadLoss</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>Friction Factor</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>Status</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>Reaction Rate</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>Quality</string>
-                    </property>
-                   </item>
                   </widget>
                  </item>
                  <item>

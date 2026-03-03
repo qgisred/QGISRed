@@ -48,6 +48,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self._debounceTimer.setSingleShot(True)
         self._debounceTimer.timeout.connect(self._applySliderTime)
 
+        self._populateVariableComboboxes()
+
         self.cbLinks.currentIndexChanged.connect(self.linksChanged)
         self.cbNodes.currentIndexChanged.connect(self.nodesChanged)
         self.cbLinkLabels.clicked.connect(self.linkLabelsClicked)
@@ -59,6 +61,28 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.displayingNodeField = ""
 
     """Methods"""
+    def _populateVariableComboboxes(self):
+        node_variables = [
+            self.tr("None"),
+            self.tr("Pressure"),
+            self.tr("Head"),
+            self.tr("Demand"),
+            self.tr("Quality"),
+        ]
+        link_variables = [
+            self.tr("None"),
+            self.tr("Flow"),
+            self.tr("Velocity"),
+            self.tr("HeadLoss"),
+            self.tr("Unit HeadLoss"),
+            self.tr("Friction Factor"),
+            self.tr("Status"),
+            self.tr("Reaction Rate"),
+            self.tr("Quality"),
+        ]
+        self.cbNodes.addItems(node_variables)
+        self.cbLinks.addItems(link_variables)
+
     def isCurrentProject(self):
         """Verifies if the loaded 'Pipes' layer matches the dock's project and network."""
         # Define the expected 'Pipes' layer path for the current project context
