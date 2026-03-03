@@ -6,7 +6,7 @@
     <message>
         <location filename="../ui/qgisred_thematicmaps_dialog.ui" line="20"/>
         <source>Thematic Maps</source>
-        <translation>Mapas Temático</translation>
+        <translation>Mapas Temáticos</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_thematicmaps_dialog.ui" line="51"/>
@@ -76,12 +76,12 @@
     <message>
         <location filename="../ui/qgisred_thematicmaps_dialog.ui" line="167"/>
         <source>Junctions ranged by</source>
-        <translation>Nodos clasificados por</translation>
+        <translation>Uniones clasificadas por</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_thematicmaps_dialog.ui" line="173"/>
         <source>Emitter Coeff</source>
-        <translation>Coeficiente del emisor</translation>
+        <translation>Coeficiente emisor</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_thematicmaps_dialog.ui" line="180"/>
@@ -156,7 +156,7 @@
     <message>
         <location filename="../ui/qgisred_thematicmaps_dialog.ui" line="346"/>
         <source>Tanks ranged by</source>
-        <translation>Tanques clasificados por</translation>
+        <translation>Depósitos clasificados por</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_thematicmaps_dialog.ui" line="352"/>
@@ -181,12 +181,12 @@
     <message>
         <location filename="../ui/qgisred_thematicmaps_dialog.ui" line="423"/>
         <source>Head Pattern</source>
-        <translation>Patrón de carga</translation>
+        <translation>Patrón de nivel piezométrico</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_thematicmaps_dialog.ui" line="437"/>
         <source>Total Head</source>
-        <translation>Carga total</translation>
+        <translation>Nivel piezométrico total</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_thematicmaps_dialog.ui" line="615"/>
@@ -206,7 +206,7 @@
     <message>
         <location filename="../ui/qgisred_thematicmaps_dialog.ui" line="533"/>
         <source>Service connections ranged by</source>
-        <translation>Conexiones de servicio clasificadas por</translation>
+        <translation>Actometidas clasificadas por</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_thematicmaps_dialog.ui" line="577"/>
@@ -234,7 +234,7 @@
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.ui" line="48"/>
         <source>Find Elements by Id</source>
-        <translation>Buscar elementos por ID</translation>
+        <translation>Buscar elementos por Id</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_queriesbyattributes_dock.ui" line="51"/>
@@ -417,7 +417,7 @@
     <message>
         <location filename="../qgisred_plugins.py" line="2406"/>
         <source>Some Ids are not defined. Commit before and try again.</source>
-        <translation>Algunos ID no están definidos. Realice un commit antes y vuelva a intentarlo.</translation>
+        <translation>Algunos Ids no están definidos. Realice un commit antes y vuelva a intentarlo.</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="2713"/>
@@ -452,17 +452,17 @@
     <message>
         <location filename="../qgisred_plugins.py" line="3770"/>
         <source>No issues on diameter checking</source>
-        <translation>Sin problemas en la comprobación de diámetros</translation>
+        <translation>No ha habido en la comprobación de diámetros</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="3801"/>
         <source>No issues on materials checking</source>
-        <translation>Sin problemas en la comprobación de materiales</translation>
+        <translation>No ha habido en la comprobación de materiales</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="3832"/>
         <source>No issues on installation dates checking</source>
-        <translation>Sin problemas en la comprobación de fechas de instalación</translation>
+        <translation>No ha habido en la comprobación de fechas de instalación</translation>
     </message>
 </context>
 <context>
@@ -490,7 +490,7 @@
     <message>
         <location filename="../qgisred_plugins.py" line="235"/>
         <source>Report issues or comments...</source>
-        <translation>Informar problemas o comentarios...</translation>
+        <translation>Informar de problemas o comentarios...</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="357"/>
@@ -530,7 +530,7 @@
     <message>
         <location filename="../qgisred_plugins.py" line="423"/>
         <source>QGISRed Project</source>
-        <translation>Proyecto QGISRed</translation>
+        <translation>Proyecto de QGISRed</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="445"/>
@@ -595,7 +595,7 @@
     <message>
         <location filename="../qgisred_plugins.py" line="591"/>
         <source>Add tank</source>
-        <translation>Añadir tanque</translation>
+        <translation>Añadir depósito</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="603"/>
@@ -620,12 +620,12 @@
     <message>
         <location filename="../qgisred_plugins.py" line="654"/>
         <source>Move nodes</source>
-        <translation>Mover nodos</translation>
+        <translation>Mover nudos</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="666"/>
         <source>Edit link vertices</source>
-        <translation>Editar vértices de enlaces</translation>
+        <translation>Editar vértices de líneas</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="678"/>
@@ -640,7 +640,7 @@
     <message>
         <location filename="../qgisred_plugins.py" line="702"/>
         <source>Merge/Dissolve junctions</source>
-        <translation>Fusionar/Disolver nodos</translation>
+        <translation>Fusionar/Disolver uniones</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="714"/>
@@ -705,7 +705,7 @@
     <message>
         <location filename="../qgisred_plugins.py" line="861"/>
         <source>Simplify link vertices</source>
-        <translation>Simplificar vértices de enlaces</translation>
+        <translation>Simplificar vértices de líneas</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="872"/>
@@ -765,7 +765,7 @@
     <message>
         <location filename="../qgisred_plugins.py" line="1007"/>
         <source>Automatically Calculate Pipe Lengths</source>
-        <translation>Calcular automáticamente longitudes de tuberías</translation>
+        <translation>Calcular automáticamente las longitudes de las tuberías</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="1018"/>
@@ -850,7 +850,7 @@
     <message>
         <location filename="../qgisred_plugins.py" line="1213"/>
         <source>Add service connection</source>
-        <translation>Añadir conexión de servicio</translation>
+        <translation>Añadir acometida</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="1226"/>
@@ -1049,12 +1049,12 @@
     <message>
         <location filename="../ui/qgisred_toolConnections_dialog.ui" line="14"/>
         <source>QGISRed: Include Connections in Model</source>
-        <translation>QGISRed: Incluir conexiones en el modelo</translation>
+        <translation>QGISRed: Incluir acometidas en el modelo</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_toolConnections_dialog.ui" line="26"/>
         <source>Include service connection into the model as:</source>
-        <translation>Incluir la conexión de servicio en el modelo como:</translation>
+        <translation>Incluir la acometida en el modelo como:</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_toolConnections_dialog.ui" line="38"/>
@@ -1064,7 +1064,7 @@
     <message>
         <location filename="../ui/qgisred_toolConnections_dialog.ui" line="65"/>
         <source>Junctions</source>
-        <translation>Nodos</translation>
+        <translation>Uniones</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_toolConnections_dialog.ui" line="102"/>
@@ -1243,7 +1243,7 @@
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="79"/>
         <source>Junctions</source>
-        <translation>Nodos</translation>
+        <translation>Uniones</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="80"/>
@@ -1258,7 +1258,7 @@
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="82"/>
         <source>Tanks</source>
-        <translation>Tanques</translation>
+        <translation>Depósitos</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="83"/>
@@ -1278,7 +1278,7 @@
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="86"/>
         <source>Service Connections</source>
-        <translation>Conexiones de servicio</translation>
+        <translation>Acometidas</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="87"/>
@@ -1298,7 +1298,7 @@
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="79"/>
         <source>Junction</source>
-        <translation>Nodo</translation>
+        <translation>Unión</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="80"/>
@@ -1333,7 +1333,7 @@
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="86"/>
         <source>Service Connection</source>
-        <translation>Conexión de servicio</translation>
+        <translation>Acometida</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="87"/>
@@ -1671,17 +1671,17 @@
     <message>
         <location filename="../ui/qgisred_import_dialog.ui" line="1537"/>
         <source>Id Head Pattern</source>
-        <translation>ID de patrón de carga</translation>
+        <translation>Id de patrón de nivel piezométrico</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_import_dialog.ui" line="1591"/>
         <source>Tanks</source>
-        <translation>Tanques</translation>
+        <translation>Depósitos</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_import_dialog.ui" line="1601"/>
         <source>Tank Layer</source>
-        <translation>Capa de tanques</translation>
+        <translation>Capa de depósitos</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_import_dialog.ui" line="1674"/>
@@ -1761,12 +1761,12 @@
     <message>
         <location filename="../ui/qgisred_import_dialog.ui" line="2663"/>
         <source>Id Pump Curve</source>
-        <translation>ID de curva de bomba</translation>
+        <translation>Id de curva de bomba</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_import_dialog.ui" line="2689"/>
         <source>Id Effic. Curve</source>
-        <translation>ID de curva de eficiencia</translation>
+        <translation>Id de curva de eficiencia</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_import_dialog.ui" line="2747"/>
@@ -1776,17 +1776,17 @@
     <message>
         <location filename="../ui/qgisred_import_dialog.ui" line="2757"/>
         <source>Service Connections</source>
-        <translation>Conexiones de servicio</translation>
+        <translation>Acometidas</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_import_dialog.ui" line="2780"/>
         <source>Sevice Connection Layer</source>
-        <translation>Capa de conexiones de servicio</translation>
+        <translation>Capa de acometidas</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_import_dialog.ui" line="3113"/>
         <source>Id Demand Pattern</source>
-        <translation>ID de patrón de demanda</translation>
+        <translation>Id de patrón de demanda</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_import_dialog.ui" line="3851"/>
@@ -1796,7 +1796,7 @@
     <message>
         <location filename="../ui/qgisred_import_dialog.ui" line="3192"/>
         <source>Sevice Connection Length</source>
-        <translation>Longitud de conexión de servicio</translation>
+        <translation>Longitud de acometida</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_import_dialog.ui" line="3242"/>
@@ -2027,12 +2027,12 @@
     <message>
         <location filename="../ui/qgisred_layermanagement_dialog.ui" line="348"/>
         <source>Tanks</source>
-        <translation>Tanques</translation>
+        <translation>Depósitos</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_layermanagement_dialog.ui" line="373"/>
         <source>Create Tanks Layer</source>
-        <translation>Crear capa de tanques</translation>
+        <translation>Crear capa de depósitos</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_layermanagement_dialog.ui" line="416"/>
@@ -2062,12 +2062,12 @@
     <message>
         <location filename="../ui/qgisred_layermanagement_dialog.ui" line="552"/>
         <source>Service Connections</source>
-        <translation>Conexiones de servicio</translation>
+        <translation>Acometidas</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_layermanagement_dialog.ui" line="574"/>
         <source>Create Service Connections Layer</source>
-        <translation>Crear capa de conexiones de servicio</translation>
+        <translation>Crear capa de acometidas</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_layermanagement_dialog.ui" line="591"/>
