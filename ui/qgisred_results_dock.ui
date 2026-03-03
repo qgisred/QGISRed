@@ -429,7 +429,7 @@
                    </item>
                    <item>
                     <property name="text">
-                     <string>Friction Rate</string>
+                     <string>Friction Factor</string>
                     </property>
                    </item>
                    <item>
