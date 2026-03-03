@@ -15,6 +15,7 @@ _LT_GPV  = 8
 _NT_JUNCTION  = 0
 _NT_RESERVOIR = 1
 _NT_TANK      = 2
+_VALVE_TYPES = {_LT_PRV, _LT_PSV, _LT_PBV, _LT_FCV, _LT_TCV, _LT_GPV}
 
 _SI_XHEAD      = 0  # Pump shut off (cannot deliver head)
 _SI_TEMPCLOSED = 1  # Temporarily closed
@@ -294,14 +295,8 @@ def getOut_TimeLinksProperties(out_file_path, time_seconds):
         reaction_rates = _read_floats(f, nl)
         friction_rates = _read_floats(f, nl)
 
-        _VALVE_TYPES = {_LT_PRV, _LT_PSV, _LT_PBV, _LT_FCV, _LT_TCV, _LT_GPV}
-
         results = {}
         for i in range(nl):
-            unit_headloss = float(headlosses[i])
-            length = meta["link_lengths"][i]
-            headloss_calc = (unit_headloss * length) / 1000.0
-
             link_type = meta["link_types"][i]
             from_idx = meta["link_from"][i]
             to_idx   = meta["link_to"][i]
@@ -317,15 +312,22 @@ def getOut_TimeLinksProperties(out_file_path, time_seconds):
                 to_pressure=float(node_pressures[to_idx])
             )
 
-            blank = (link_type == _LT_PUMP) or (link_type in _VALVE_TYPES)
+            pumpOrValve = (link_type == _LT_PUMP) or (link_type in _VALVE_TYPES)
+            unit_headloss = float(headlosses[i])
+            length = meta["link_lengths"][i]
+            if pumpOrValve:
+                headloss_calc = unit_headloss
+            else:
+                headloss_calc = (unit_headloss * length) / 1000.0
+
             results[meta["link_ids"][i]] = {
                 "Flow": round(float(flows[i]), ROUNDING_PRECISION),
-                "Velocity": None if blank else round(float(velocities[i]), ROUNDING_PRECISION),
+                "Velocity": None if pumpOrValve else round(float(velocities[i]), ROUNDING_PRECISION),
                 "HeadLoss": round(headloss_calc, ROUNDING_PRECISION),
-                "UnitHdLoss": None if blank else round(unit_headloss, ROUNDING_PRECISION),
-                "FricFactor": None if blank else round(float(friction_rates[i]), ROUNDING_PRECISION),
+                "UnitHdLoss": None if pumpOrValve else round(unit_headloss, ROUNDING_PRECISION),
+                "FricFactor": None if pumpOrValve else round(float(friction_rates[i]), ROUNDING_PRECISION),
                 "Status": status_text,
-                "ReactRate": None if blank else round(float(reaction_rates[i]), ROUNDING_PRECISION),
+                "ReactRate": None if pumpOrValve else round(float(reaction_rates[i]), ROUNDING_PRECISION),
                 "Quality": round(float(qualities[i]), ROUNDING_PRECISION)
             }
         return results
@@ -369,6 +371,9 @@ def getOut_TimeLinkProperties(out_file_path, time_seconds, link_id):
         link_index = meta["link_ids"].index(link_id)
         period_index = _calculate_period_index(time_seconds, meta)
         
+        link_type = meta["link_types"][link_index]
+        from_idx  = meta["link_from"][link_index]
+        to_idx    = meta["link_to"][link_index]
         period_size = meta["period_size"]
         base_period_offset = meta["results_offset"] + (period_index * period_size)
         base_link_offset = base_period_offset + meta["n_nodes"] * 16
@@ -386,11 +391,11 @@ def getOut_TimeLinkProperties(out_file_path, time_seconds, link_id):
             val = struct.unpack('f', f.read(4))[0]
             vars_found[name] = round(float(val), ROUNDING_PRECISION)
             if name == "UnitHdLoss":
-                vars_found["HeadLoss"] = round((float(val) * length) / 1000.0, ROUNDING_PRECISION)
+                if (link_type == _LT_PUMP) or (link_type in _VALVE_TYPES):
+                    vars_found["HeadLoss"] = round(float(val), ROUNDING_PRECISION)
+                else:
+                    vars_found["HeadLoss"] = round((float(val) * length) / 1000.0, ROUNDING_PRECISION)
 
-        link_type = meta["link_types"][link_index]
-        from_idx  = meta["link_from"][link_index]
-        to_idx    = meta["link_to"][link_index]
 
         f.seek(base_period_offset + nN * 4 + from_idx * 4)
         from_head = struct.unpack('f', f.read(4))[0]
@@ -512,7 +517,10 @@ def getOut_TimesLinkProperty(out_file_path, link_id, property_name):
 
             final_val = float(val)
             if calc_headloss:
-                final_val = (final_val * length) / 1000.0
+                if (link_type == _LT_PUMP) or (link_type in _VALVE_TYPES):
+                    final_val = float(val)
+                else:
+                    final_val = (final_val * length) / 1000.0
 
             time_series.append(round(final_val, ROUNDING_PRECISION))
 
