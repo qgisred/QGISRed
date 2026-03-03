@@ -393,22 +393,6 @@
                      </property>
                     </widget>
                    </item>
-                   <item>
-                    <widget class="QLabel" name="lbNotAvailable">
-                     <property name="font">
-                      <font>
-                       <pointsize>7</pointsize>
-                       <italic>true</italic>
-                      </font>
-                     </property>
-                     <property name="text">
-                      <string>Not available. Default style changed</string>
-                     </property>
-                     <property name="wordWrap">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
                   </layout>
                  </item>
                 </layout>

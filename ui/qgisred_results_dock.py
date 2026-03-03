@@ -56,7 +56,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.cbNodeLabels.clicked.connect(self.nodeLabelsClicked)
         self.cbFlowDirections.clicked.connect(self.flowDirectionsClicked)
 
-        self.lbNotAvailable.setVisible(False)
         self.displayingLinkField = ""
         self.displayingNodeField = ""
 
@@ -117,7 +116,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     def getLayers(self):
         return QGISRedUtils().getLayers()
 
-    def openLayerResults(self, scenario):
+    def openLayerResults(self, scenario, nameLayer=None):
         resultPath = self.getResultsPath()
         utils = QGISRedUtils(resultPath, self.NetworkName + "_" + scenario, self.iface)
         resultGroup = self.getResultGroup()
@@ -125,16 +124,17 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if group is None:
             group = resultGroup.addGroup(scenario)
             QGISRedUtils.setGroupIdentifier(group, scenario)
-        
+
         openedLayersPaths = [self.getLayerPath(l) for l in self.getLayers()]
-        
-        for file in ["Node", "Link"]:
+
+        files = [nameLayer] if nameLayer else ["Node", "Link"]
+        for file in files:
             resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + scenario + "_" + file + ".shp")
             # Ensure Shapefile exists
             if not os.path.exists(resultLayerPath):
                 self.iface.messageBar().pushMessage(self.tr("Results"), self.tr("{} results not found").format(self.tr(file)), level=1)
                 continue
-           
+
             # Open layer if not already open
             if resultLayerPath not in openedLayersPaths:
                 utils.openLayer(group, file, results=True)
@@ -143,6 +143,16 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         resultPath = self.getResultsPath()
         utils = QGISRedUtils(resultPath, self.NetworkName + "_" + self.Scenario, self.iface)
         utils.removeLayers(["Node", "Link"])
+
+    def removeResultLayer(self, nameLayer):
+        """Remove a specific result layer from the QGIS legend."""
+        self.Scenario = "Base"
+        resultPath = self.getResultsPath()
+        resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp")
+        for layer in self.getLayers():
+            if self.getLayerPath(layer) == resultLayerPath:
+                QgsProject.instance().removeMapLayer(layer.id())
+                break
 
     def getInputGroup(self):
         # Same method in qgisred_newproject_dialog and qgisred_plugins
@@ -319,7 +329,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         except:
             self.cbFlowDirections.setChecked(False)
             self.cbFlowDirections.setEnabled(False)
-            self.lbNotAvailable.setVisible(True)
 
     def setGraduadedPalette(self, layer, field, setRender, nameLayer):
         renderer = layer.renderer()
@@ -405,10 +414,14 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     def linksChanged(self):
         if self.Computing:
             return
-        if not self.validationsOpenResult():
+
+        if self.cbLinks.currentIndex() == 0:
+            self.displayingLinkField = ""
+            self.removeResultLayer("Link")
             return
 
-        self.lbNotAvailable.setVisible(False)
+        if not self.validationsOpenResult():
+            return
 
         self.saveCurrentRender()
         self.ensureResultsLayersAreOpen()
@@ -417,9 +430,15 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     def nodesChanged(self):
         if self.Computing:
             return
+
+        if self.cbNodes.currentIndex() == 0:
+            self.displayingNodeField = ""
+            self.removeResultLayer("Node")
+            return
+
         if not self.validationsOpenResult():
             return
-        
+
         self.saveCurrentRender()
         self.ensureResultsLayersAreOpen()
         self.paintIntervalTimeResults(True)
@@ -551,20 +570,25 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             return
 
         self.Scenario = "Base"
-        resultPath = self.getResultsPath()     
-        for nameLayer in ["Node", "Link"]: 
+        resultPath = self.getResultsPath()
+        layer_combobox = {"Node": self.cbNodes, "Link": self.cbLinks}
+        for nameLayer in ["Node", "Link"]:
+            # Don't open a layer if its variable combobox is set to None
+            if layer_combobox[nameLayer].currentIndex() == 0:
+                continue
+
             layer_to_paint = None
             resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp")
-            
+
             # Check if layer is already open
             for layer in self.getLayers():
                 if self.getLayerPath(layer) == resultLayerPath:
                     layer_to_paint = layer
                     break
-            
+
             # If the layer is not open, open it!
             if layer_to_paint is None:
-                self.openLayerResults(self.Scenario)
+                self.openLayerResults(self.Scenario, nameLayer)
 
     def simulate(self, direct, netw):
         self.Computing = True
