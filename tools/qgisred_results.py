@@ -294,18 +294,21 @@ def getOut_TimeLinksProperties(out_file_path, time_seconds):
         reaction_rates = _read_floats(f, nl)
         friction_rates = _read_floats(f, nl)
 
+        _VALVE_TYPES = {_LT_PRV, _LT_PSV, _LT_PBV, _LT_FCV, _LT_TCV, _LT_GPV}
+
         results = {}
         for i in range(nl):
             unit_headloss = float(headlosses[i])
             length = meta["link_lengths"][i]
             headloss_calc = (unit_headloss * length) / 1000.0
 
+            link_type = meta["link_types"][i]
             from_idx = meta["link_from"][i]
             to_idx   = meta["link_to"][i]
-            
+
             status_text = _resolve_link_status(
                 indicator=float(statuses[i]),
-                link_type=meta["link_types"][i],
+                link_type=link_type,
                 Q=float(flows[i]),
                 setting=float(settings[i]),
                 from_head=float(node_heads[from_idx]),
@@ -314,14 +317,15 @@ def getOut_TimeLinksProperties(out_file_path, time_seconds):
                 to_pressure=float(node_pressures[to_idx])
             )
 
+            blank = (link_type == _LT_PUMP) or (link_type in _VALVE_TYPES)
             results[meta["link_ids"][i]] = {
                 "Flow": round(float(flows[i]), ROUNDING_PRECISION),
-                "Velocity": round(float(velocities[i]), ROUNDING_PRECISION),
+                "Velocity": None if blank else round(float(velocities[i]), ROUNDING_PRECISION),
                 "HeadLoss": round(headloss_calc, ROUNDING_PRECISION),
-                "UnitHdLoss": round(unit_headloss, ROUNDING_PRECISION),
-                "FricFactor": round(float(friction_rates[i]), ROUNDING_PRECISION),
+                "UnitHdLoss": None if blank else round(unit_headloss, ROUNDING_PRECISION),
+                "FricFactor": None if blank else round(float(friction_rates[i]), ROUNDING_PRECISION),
                 "Status": status_text,
-                "ReactRate": round(float(reaction_rates[i]), ROUNDING_PRECISION),
+                "ReactRate": None if blank else round(float(reaction_rates[i]), ROUNDING_PRECISION),
                 "Quality": round(float(qualities[i]), ROUNDING_PRECISION)
             }
         return results
