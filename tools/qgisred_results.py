@@ -26,7 +26,7 @@ _SI_XFLOW      = 5  # Pump exceeded max flow
 _SI_XFCV       = 6  # FCV cannot deliver set flow
 _SI_XPRESSURE  = 7  # Valve cannot sustain/reduce set pressure
 
-
+"""Helpers"""
 def _read_ids(f, count):
     """Helper to read an array of 32-character IDs."""
     ids = []
@@ -234,6 +234,7 @@ def _calculate_period_index(time_seconds, meta):
     period_index = int((time_seconds - meta["report_start"]) / meta["report_step"])
     return max(0, min(period_index, meta["num_periods"] - 1))
 
+"""Results"""
 def getOut_TimeNodesProperties(out_file_path, time_seconds):
     """Reads node results from an EPANET binary (.out) file for a specific time."""
     if not os.path.exists(out_file_path):
@@ -533,3 +534,126 @@ def getOut_TimesLinkProperty(out_file_path, link_id, property_name):
             time_series.append(round(final_val, ROUNDING_PRECISION))
 
         return time_series
+
+"""Statistics"""
+def getOut_StatNodesProperties(out_file_path, stat):
+    """Returns a statistic for each node property across all reporting periods.
+
+    stat: "Max" | "Min" | "Mean" | "Range" | "StdDev"
+
+    Max/Min return {"Time": int, "Value": float}.
+    Mean, Range and StdDev return {"Value": float}.
+
+    Returns:
+        dict[node_id, dict[property, dict]]
+    """
+    import math
+
+    VALID_STATS = {"Max", "Min", "Mean", "Range", "StdDev"}
+    if stat not in VALID_STATS:
+        raise ValueError(f"stat must be one of {VALID_STATS}")
+
+    if not os.path.exists(out_file_path):
+        return {}
+
+    with open(out_file_path, 'rb') as f:
+        meta = _get_out_file_metadata(f)
+        if not meta or meta["num_periods"] == 0:
+            return {}
+
+        n              = meta["n_nodes"]
+        num_periods    = meta["num_periods"]
+        report_start   = meta["report_start"]
+        report_step    = meta["report_step"]
+        results_offset = meta["results_offset"]
+        period_size    = meta["period_size"]
+        node_ids       = meta["node_ids"]
+
+        # Binary layout order: Demand=0, Head=1, Pressure=2, Quality=3
+        var_names  = ["Demand", "Head", "Pressure", "Quality"]
+        n_vars     = len(var_names)
+        node_block = n_vars * n
+        fmt        = f'{node_block}f'
+        byte_count = node_block * 4
+
+        need_max = stat in ("Max", "Range")
+        need_min = stat in ("Min", "Range")
+
+        NEG_INF = float('-inf')
+        POS_INF = float('inf')
+
+        if need_max:
+            max_vals  = [[NEG_INF] * n for _ in range(n_vars)]
+            max_times = [[-1]       * n for _ in range(n_vars)]
+        if need_min:
+            min_vals  = [[POS_INF] * n for _ in range(n_vars)]
+            min_times = [[-1]      * n for _ in range(n_vars)]
+        if stat == "Mean":
+            sums = [[0.0] * n for _ in range(n_vars)]
+        if stat == "StdDev":
+            # Welford's online algorithm: track count, mean, M2
+            wf_mean = [[0.0] * n for _ in range(n_vars)]
+            wf_M2   = [[0.0] * n for _ in range(n_vars)]
+
+        actual_periods = 0
+        for p in range(num_periods):
+            time_s = report_start + p * report_step
+            f.seek(results_offset + p * period_size)
+            raw = f.read(byte_count)
+            if len(raw) < byte_count:
+                break
+            vals = struct.unpack(fmt, raw)
+            actual_periods += 1
+
+            for vi in range(n_vars):
+                base = vi * n
+                for ni in range(n):
+                    v = vals[base + ni]
+                    if need_max:
+                        if v > max_vals[vi][ni]:
+                            max_vals[vi][ni]  = v
+                            max_times[vi][ni] = time_s
+                    if need_min:
+                        if v < min_vals[vi][ni]:
+                            min_vals[vi][ni]  = v
+                            min_times[vi][ni] = time_s
+                    if stat == "Mean":
+                        sums[vi][ni] += v
+                    if stat == "StdDev":
+                        delta = v - wf_mean[vi][ni]
+                        wf_mean[vi][ni] += delta / actual_periods
+                        wf_M2[vi][ni]   += delta * (v - wf_mean[vi][ni])
+
+        output_order = ["Pressure", "Head", "Demand", "Quality"]
+        var_idx = {name: i for i, name in enumerate(var_names)}
+
+        results = {}
+        for ni in range(n):
+            node_props = {}
+            for name in output_order:
+                vi = var_idx[name]
+                if stat == "Max":
+                    node_props[name] = {
+                        "Time":  max_times[vi][ni],
+                        "Value": round(float(max_vals[vi][ni]), ROUNDING_PRECISION)
+                    }
+                elif stat == "Min":
+                    node_props[name] = {
+                        "Time":  min_times[vi][ni],
+                        "Value": round(float(min_vals[vi][ni]), ROUNDING_PRECISION)
+                    }
+                elif stat == "Mean":
+                    node_props[name] = {
+                        "Value": round(sums[vi][ni] / actual_periods, ROUNDING_PRECISION)
+                    }
+                elif stat == "Range":
+                    node_props[name] = {
+                        "Value": round(float(max_vals[vi][ni] - min_vals[vi][ni]), ROUNDING_PRECISION)
+                    }
+                elif stat == "StdDev":
+                    variance = wf_M2[vi][ni] / actual_periods if actual_periods > 0 else 0.0
+                    node_props[name] = {
+                        "Value": round(math.sqrt(variance), ROUNDING_PRECISION)
+                    }
+            results[node_ids[ni]] = node_props
+        return results
