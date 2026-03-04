@@ -302,7 +302,7 @@
                     <string notr="true">font: italic 8pt &quot;MS Shell Dlg 2&quot;;</string>
                    </property>
                    <property name="text">
-                    <string>Show Nodes Labels</string>
+                    <string>Show Node Labels</string>
                    </property>
                   </widget>
                  </item>
@@ -348,7 +348,7 @@
                     <string notr="true">font: italic 8pt &quot;MS Shell Dlg 2&quot;;</string>
                    </property>
                    <property name="text">
-                    <string>Show Links Labels</string>
+                    <string>Show Link Labels</string>
                    </property>
                   </widget>
                  </item>
@@ -367,7 +367,7 @@
                     <string notr="true">font: italic 8pt &quot;MS Shell Dlg 2&quot;;</string>
                    </property>
                    <property name="text">
-                    <string>Show Links directions</string>
+                    <string>Show Flow Directions</string>
                    </property>
                   </widget>
                  </item>
