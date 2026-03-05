@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtWidgets import QDockWidget, QApplication
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QColor, QFont
 from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsLayerTreeGroup, QgsField
@@ -22,6 +22,9 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_
 
 
 class QGISRedResultsDock(QDockWidget, FORM_CLASS):
+    # Signals
+    timeTextChanged = pyqtSignal(str)
+
     # Common variables
     iface = None
     NetworkName = ""
@@ -231,9 +234,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     
         self.Renders[self.Scenario] = dictSce
 
-    def paintIntervalTimeResults(self, setRender=False):    
+    def paintIntervalTimeResults(self, setRender=False):
         time_text = self.cbTimes.currentText()
         self.lbTime.setText(time_text)
+        self.timeTextChanged.emit(time_text)
         
         resultPath = self.getResultsPath()
         for nameLayer in ["Node", "Link"]: 
@@ -498,6 +502,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
     def sliderDragging(self, value):
         self.lbTime.setText(self.TimeLabels[value])
+        self.timeTextChanged.emit(self.TimeLabels[value])
         self._debounceTimer.start(500)
 
     def _applySliderTime(self):
