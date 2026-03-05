@@ -8,6 +8,7 @@ from qgis.core import QgsProject, QgsVectorLayer, QgsSettings, QgsGeometry, QgsP
 from qgis.utils import iface
 from qgis.gui import QgsHighlight
 from ..tools.qgisred_utils import QGISRedUtils
+from ..tools.qgisred_results import getOut_TimeNodeProperties, getOut_TimeLinkProperties
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_element_explorer_dock.ui"))
 
@@ -105,11 +106,15 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.spoilerFindElements = None
 
         self.linkLayers = ["qgisred_pipes", "qgisred_pumps", "qgisred_valves"]
-        self.nodeLayers = ["qgisred_reservoirs", "qgisred_tanks", "qgisred_junctions", 
+        self.nodeLayers = ["qgisred_reservoirs", "qgisred_tanks", "qgisred_junctions",
                            "qgisred_sources", "qgisred_demands", "qgisred_meters", "qgisred_isolationvalves"]
         self.specialLayers = ["qgisred_serviceconnections"]
         self.sourcesAndDemands = ["qgisred_sources", "qgisred_demands"]
         self.connectedLayerNodes = []
+
+        # Results tab state
+        self.resultsDock = None
+        self.resultsCurrentTimeText = ""
 
         self.layerTreeChangeTimer = QTimer()
         self.layerTreeChangeTimer.setSingleShot(True)
@@ -385,6 +390,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.cbElementId.setStyleSheet("QComboBox { background-color: white; }")
 
         self.tempHideOtherTabs()
+        self.showResultsPlaceholder()
 
     def tempHideOtherTabs(self):
         #self.tabWidget.setTabVisible(1, False)
@@ -1220,6 +1226,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.currentFeature = feature
         layer.selectByIds([feature.id()])
         self.populateDataTableWidget()
+        self.populateResultsTable()
 
         if feature.fields().indexFromName("Tag") != -1:
             featureTag = feature.attribute("Tag")
@@ -2108,3 +2115,212 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.tr("Layers Not Visible"),
             self.tr("The layers in the Inputs or Results group must be visible in order to select an element.")
         )
+
+    # ------------------------------
+    # Results Tab
+    # ------------------------------
+    def connectResultsDock(self, resultsDock):
+        """Connect to a QGISRedResultsDock to sync results data."""
+        if self.resultsDock is resultsDock:
+            return
+        if self.resultsDock is not None:
+            self.disconnectResultsDock()
+        self.resultsDock = resultsDock
+        resultsDock.timeTextChanged.connect(self.onResultsTimeChanged)
+        resultsDock.visibilityChanged.connect(self.onResultsDockVisibilityChanged)
+        # Initial sync
+        timeText = resultsDock.lbTime.text()
+        if timeText:
+            self.onResultsTimeChanged(timeText)
+        else:
+            self.showResultsPlaceholder()
+
+    def disconnectResultsDock(self):
+        """Disconnect from the results dock and show placeholder."""
+        if self.resultsDock is not None:
+            try:
+                self.resultsDock.timeTextChanged.disconnect(self.onResultsTimeChanged)
+            except (TypeError, RuntimeError):
+                pass
+            try:
+                self.resultsDock.visibilityChanged.disconnect(self.onResultsDockVisibilityChanged)
+            except (TypeError, RuntimeError):
+                pass
+            self.resultsDock = None
+        self.resultsCurrentTimeText = ""
+        self.showResultsPlaceholder()
+
+    def onResultsDockVisibilityChanged(self, visible):
+        """Handle results dock visibility changes."""
+        if visible:
+            timeText = self.resultsDock.lbTime.text() if self.resultsDock else ""
+            if timeText:
+                self.onResultsTimeChanged(timeText)
+            else:
+                self.showResultsPlaceholder()
+        else:
+            self.showResultsPlaceholder()
+
+    def onResultsTimeChanged(self, timeText):
+        """Handle time changes from the results dock."""
+        self.resultsCurrentTimeText = timeText
+        self.labelResultsTime.setText(timeText)
+        self.populateResultsTable()
+
+    def showResultsPlaceholder(self):
+        """Show a placeholder message when no results are available."""
+        self.labelResultsTime.setText("")
+        self.tableResults.clearContents()
+        self.tableResults.setColumnCount(1)
+        self.tableResults.setRowCount(1)
+        self.tableResults.horizontalHeader().setVisible(False)
+        self.tableResults.verticalHeader().setVisible(False)
+        self.tableResults.setShowGrid(False)
+
+        item = QTableWidgetItem(self.tr("No results available. Run the model and open the Results panel to view simulation results."))
+        item.setFlags(Qt.ItemIsEnabled)
+        item.setTextAlignment(Qt.AlignCenter)
+        item.setForeground(QColor(128, 128, 128))
+        self.tableResults.setItem(0, 0, item)
+        header = self.tableResults.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        self.tableResults.setWordWrap(True)
+
+    def setResultsTableColumns(self):
+        """Configure tableResults with the same 4-column structure as dataTableWidget."""
+        self.tableResults.setColumnCount(4)
+        self.tableResults.setHorizontalHeaderLabels([self.tr("Property"), self.tr("Value"), self.tr("Units"), self.tr("")])
+        self.tableResults.horizontalHeader().setVisible(True)
+
+        header = self.tableResults.horizontalHeader()
+        header.setStyleSheet("QHeaderView::section { font-weight: bold; }")
+        header.setMinimumSectionSize(10)
+        header.setSectionResizeMode(2, QHeaderView.Fixed)
+        header.setSectionResizeMode(3, QHeaderView.Fixed)
+        self.tableResults.setColumnWidth(2, 40)
+        self.tableResults.setColumnWidth(3, 15)
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.Stretch)
+
+    def populateResultsTable(self):
+        """Populate tableResults with per-element results from the binary .out file."""
+        if not self.resultsDock or not self.resultsDock.isVisible():
+            self.showResultsPlaceholder()
+            return
+
+        if not self.currentLayer or not self.currentFeature:
+            self.showResultsPlaceholder()
+            return
+
+        identifier = self.currentLayer.customProperty("qgisred_identifier", "")
+        isNode = identifier in self.nodeLayers
+        isLink = identifier in self.linkLayers
+
+        if not isNode and not isLink:
+            self.showResultsPlaceholder()
+            return
+
+        try:
+            # Get element Id
+            elementId = str(self.currentFeature.attribute("Id"))
+
+            # Build binary path from the results dock's project info
+            projectDir = self.resultsDock.ProjectDirectory
+            networkName = self.resultsDock.NetworkName
+            binaryPath = os.path.join(projectDir, "Results", networkName + "_Base.out")
+
+            if not os.path.exists(binaryPath):
+                self.showResultsPlaceholder()
+                return
+
+            # Parse time text to seconds
+            timeSeconds = self.parseTimeTextToSeconds(self.resultsCurrentTimeText)
+
+            # Get per-element results
+            if isNode:
+                results = getOut_TimeNodeProperties(binaryPath, timeSeconds, elementId)
+                unitCategory = "Nodes"
+            else:
+                results = getOut_TimeLinkProperties(binaryPath, timeSeconds, elementId)
+                unitCategory = "Links"
+
+            if not results:
+                self.showResultsPlaceholder()
+                return
+
+            # Filter out Setting from display (internal field)
+            displayKeys = [k for k in results.keys() if k != "Setting"]
+
+            # Setup table
+            self.setResultsTableColumns()
+            self.tableResults.setShowGrid(False)
+            self.tableResults.setStyleSheet("QTableWidget::item { padding: 1px; }")
+            self.tableResults.setEditTriggers(QAbstractItemView.NoEditTriggers)
+            self.tableResults.verticalHeader().setDefaultSectionSize(20)
+            self.tableResults.verticalHeader().setVisible(False)
+            self.tableResults.setRowCount(len(displayKeys))
+
+            utils = QGISRedUtils()
+            for row, key in enumerate(displayKeys):
+                value = results[key]
+
+                # Property name
+                prettyName = self.getResultPrettyName(key)
+                propertyItem = QTableWidgetItem(prettyName)
+                propertyItem.setToolTip(prettyName)
+
+                # Value
+                if value is None:
+                    displayValue = "N/A"
+                else:
+                    displayValue = str(value)
+                valueItem = QTableWidgetItem(displayValue)
+                valueItem.setTextAlignment(Qt.AlignCenter)
+                valueItem.setToolTip(str(value) if value is not None else "N/A")
+
+                # Units
+                fieldUnit = utils.getFieldUnit(unitCategory, key)
+                unitItem = QTableWidgetItem(fieldUnit if fieldUnit and fieldUnit != "-" else "")
+                unitItem.setTextAlignment(Qt.AlignCenter)
+
+                # Info column
+                infoItem = QTableWidgetItem("")
+                infoItem.setTextAlignment(Qt.AlignCenter)
+
+                self.tableResults.setItem(row, 0, propertyItem)
+                self.tableResults.setItem(row, 1, valueItem)
+                self.tableResults.setItem(row, 2, unitItem)
+                self.tableResults.setItem(row, 3, infoItem)
+
+        except Exception:
+            self.showResultsPlaceholder()
+
+    def parseTimeTextToSeconds(self, timeText):
+        """Parse a time label string to seconds."""
+        if not timeText or timeText == self.tr("Permanent"):
+            return 0
+        try:
+            parts = timeText.split(" ")
+            days = int(parts[0].replace("d", ""))
+            hms = parts[1].split(":")
+            return days * 86400 + int(hms[0]) * 3600 + int(hms[1]) * 60 + int(hms[2])
+        except Exception:
+            return 0
+
+    def getResultPrettyName(self, key):
+        """Get a user-friendly name for a result property key."""
+        prettyNames = {
+            "Pressure": self.tr("Pressure"),
+            "Head": self.tr("Head"),
+            "Demand": self.tr("Demand"),
+            "Quality": self.tr("Quality"),
+            "Flow": self.tr("Flow"),
+            "Velocity": self.tr("Velocity"),
+            "HeadLoss": self.tr("HeadLoss"),
+            "UnitHdLoss": self.tr("Unit HeadLoss"),
+            "FricFactor": self.tr("Friction Factor"),
+            "Status": self.tr("Status"),
+            "ReactRate": self.tr("Reaction Rate"),
+        }
+        return prettyNames.get(key, key)
+    # --- End Results Tab ---
