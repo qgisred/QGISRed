@@ -1,5 +1,6 @@
 import struct
 import os
+import numpy as np
 
 ROUNDING_PRECISION = 4
 
@@ -572,28 +573,22 @@ def getOut_StatNodesProperties(out_file_path, stat):
         # Binary layout order: Demand=0, Head=1, Pressure=2, Quality=3
         var_names  = ["Demand", "Head", "Pressure", "Quality"]
         n_vars     = len(var_names)
-        node_block = n_vars * n
-        fmt        = f'{node_block}f'
-        byte_count = node_block * 4
+        byte_count = n_vars * n * 4
 
         need_max = stat in ("Maximum", "Range")
         need_min = stat in ("Minimum", "Range")
 
-        NEG_INF = float('-inf')
-        POS_INF = float('inf')
-
         if need_max:
-            max_vals  = [[NEG_INF] * n for _ in range(n_vars)]
-            max_times = [[-1]       * n for _ in range(n_vars)]
+            max_vals  = np.full((n_vars, n), -np.inf, dtype=np.float32)
+            max_times = np.full((n_vars, n), -1, dtype=np.int64)
         if need_min:
-            min_vals  = [[POS_INF] * n for _ in range(n_vars)]
-            min_times = [[-1]      * n for _ in range(n_vars)]
+            min_vals  = np.full((n_vars, n),  np.inf, dtype=np.float32)
+            min_times = np.full((n_vars, n), -1, dtype=np.int64)
         if stat == "Mean":
-            sums = [[0.0] * n for _ in range(n_vars)]
+            sums = np.zeros((n_vars, n), dtype=np.float64)
         if stat == "Standard Deviation":
-            # Welford's online algorithm: track count, mean, M2
-            wf_mean = [[0.0] * n for _ in range(n_vars)]
-            wf_M2   = [[0.0] * n for _ in range(n_vars)]
+            wf_mean = np.zeros((n_vars, n), dtype=np.float64)
+            wf_M2   = np.zeros((n_vars, n), dtype=np.float64)
 
         actual_periods = 0
         for p in range(num_periods):
@@ -602,27 +597,26 @@ def getOut_StatNodesProperties(out_file_path, stat):
             raw = f.read(byte_count)
             if len(raw) < byte_count:
                 break
-            vals = struct.unpack(fmt, raw)
             actual_periods += 1
 
-            for vi in range(n_vars):
-                base = vi * n
-                for ni in range(n):
-                    v = vals[base + ni]
-                    if need_max:
-                        if v > max_vals[vi][ni]:
-                            max_vals[vi][ni]  = v
-                            max_times[vi][ni] = time_s
-                    if need_min:
-                        if v < min_vals[vi][ni]:
-                            min_vals[vi][ni]  = v
-                            min_times[vi][ni] = time_s
-                    if stat == "Mean":
-                        sums[vi][ni] += v
-                    if stat == "Standard Deviation":
-                        delta = v - wf_mean[vi][ni]
-                        wf_mean[vi][ni] += delta / actual_periods
-                        wf_M2[vi][ni]   += delta * (v - wf_mean[vi][ni])
+            # Zero-copy parse → (n_vars, n) float32 read-only view
+            vals = np.frombuffer(raw, dtype=np.float32).reshape(n_vars, n)
+
+            if need_max:
+                mask = vals > max_vals
+                max_vals  = np.where(mask, vals, max_vals)
+                max_times[mask] = time_s
+            if need_min:
+                mask = vals < min_vals
+                min_vals  = np.where(mask, vals, min_vals)
+                min_times[mask] = time_s
+            if stat == "Mean":
+                sums += vals.astype(np.float64)
+            if stat == "Standard Deviation":
+                v_d = vals.astype(np.float64)
+                delta = v_d - wf_mean
+                wf_mean += delta / actual_periods
+                wf_M2   += delta * (v_d - wf_mean)
 
         output_order = ["Pressure", "Head", "Demand", "Quality"]
         var_idx = {name: i for i, name in enumerate(var_names)}
@@ -634,24 +628,24 @@ def getOut_StatNodesProperties(out_file_path, stat):
                 vi = var_idx[name]
                 if stat == "Maximum":
                     node_props[name] = {
-                        "Time":  max_times[vi][ni],
-                        "Value": round(float(max_vals[vi][ni]), ROUNDING_PRECISION)
+                        "Time":  int(max_times[vi, ni]),
+                        "Value": round(float(max_vals[vi, ni]), ROUNDING_PRECISION)
                     }
                 elif stat == "Minimum":
                     node_props[name] = {
-                        "Time":  min_times[vi][ni],
-                        "Value": round(float(min_vals[vi][ni]), ROUNDING_PRECISION)
+                        "Time":  int(min_times[vi, ni]),
+                        "Value": round(float(min_vals[vi, ni]), ROUNDING_PRECISION)
                     }
                 elif stat == "Mean":
                     node_props[name] = {
-                        "Value": round(sums[vi][ni] / actual_periods, ROUNDING_PRECISION)
+                        "Value": round(float(sums[vi, ni]) / actual_periods, ROUNDING_PRECISION)
                     }
                 elif stat == "Range":
                     node_props[name] = {
-                        "Value": round(float(max_vals[vi][ni] - min_vals[vi][ni]), ROUNDING_PRECISION)
+                        "Value": round(float(max_vals[vi, ni] - min_vals[vi, ni]), ROUNDING_PRECISION)
                     }
                 elif stat == "Standard Deviation":
-                    variance = wf_M2[vi][ni] / actual_periods if actual_periods > 0 else 0.0
+                    variance = float(wf_M2[vi, ni]) / actual_periods if actual_periods > 0 else 0.0
                     node_props[name] = {
                         "Value": round(math.sqrt(variance), ROUNDING_PRECISION)
                     }
@@ -700,9 +694,7 @@ def getOut_StatLinksProperties(out_file_path, stat):
         # Binary layout: Flow=0, Velocity=1, UnitHdLoss=2, Quality=3,
         #                Status=4, Setting=5, ReactRate=6, FricFactor=7
         n_bin_vars = 8
-        link_block = n_bin_vars * nl
-        fmt        = f'{link_block}f'
-        byte_count = link_block * 4
+        byte_count = n_bin_vars * nl * 4
         node_skip  = n * 16   # 4 node vars × 4 bytes
 
         # Per-link pre-computations
@@ -723,30 +715,29 @@ def getOut_StatLinksProperties(out_file_path, stat):
         ]
         _POV_DISABLED = {"Velocity", "UnitHdLoss", "FricFactor", "ReactRate"}
 
-        # disabled[name][li] = True -> property is always None for that link
-        disabled = {
-            name: ([pov[li] for li in range(nl)] if name in _POV_DISABLED else [False] * nl)
+        # disabled_np[name] — bool array (nl,): True = property always None for that link
+        pov_np       = np.array(pov, dtype=bool)
+        hl_factor_np = np.array(hl_factor, dtype=np.float32)
+        disabled_np = {
+            name: (pov_np.copy() if name in _POV_DISABLED else np.zeros(nl, dtype=bool))
             for name, _, _, _ in TRACKED
         }
 
         need_max = stat in ("Maximum", "Range")
         need_min = stat in ("Minimum", "Range")
 
-        NEG_INF = float('-inf')
-        POS_INF = float('inf')
-
         if need_max:
-            max_vals  = {name: [NEG_INF] * nl for name, _, _, _ in TRACKED}
-            max_times = {name: [-1]       * nl for name, _, _, _ in TRACKED}
+            max_vals  = {name: np.full(nl, -np.inf, dtype=np.float32) for name, _, _, _ in TRACKED}
+            max_times = {name: np.full(nl, -1, dtype=np.int64)        for name, _, _, _ in TRACKED}
         if need_min:
-            min_vals  = {name: [POS_INF] * nl for name, _, _, _ in TRACKED}
-            min_times = {name: [-1]      * nl for name, _, _, _ in TRACKED}
+            min_vals  = {name: np.full(nl,  np.inf, dtype=np.float32) for name, _, _, _ in TRACKED}
+            min_times = {name: np.full(nl, -1, dtype=np.int64)        for name, _, _, _ in TRACKED}
         if stat == "Mean":
-            sums            = {name: [0.0] * nl for name, _, _, _ in TRACKED}
-            flow_sum_signed = [0.0] * nl   # signed Flow sum for FlowSig
+            sums            = {name: np.zeros(nl, dtype=np.float64) for name, _, _, _ in TRACKED}
+            flow_sum_signed = np.zeros(nl, dtype=np.float64)
         if stat == "Standard Deviation":
-            wf_mean = {name: [0.0] * nl for name, _, _, _ in TRACKED}
-            wf_M2   = {name: [0.0] * nl for name, _, _, _ in TRACKED}
+            wf_mean = {name: np.zeros(nl, dtype=np.float64) for name, _, _, _ in TRACKED}
+            wf_M2   = {name: np.zeros(nl, dtype=np.float64) for name, _, _, _ in TRACKED}
 
         actual_periods = 0
         for p in range(num_periods):
@@ -755,36 +746,42 @@ def getOut_StatLinksProperties(out_file_path, stat):
             raw = f.read(byte_count)
             if len(raw) < byte_count:
                 break
-            vals = struct.unpack(fmt, raw)
             actual_periods += 1
 
+            # Zero-copy parse → (n_bin_vars, nl) float32 read-only view
+            vals = np.frombuffer(raw, dtype=np.float32).reshape(n_bin_vars, nl)
+
             for name, bin_idx, apply_hl, apply_abs in TRACKED:
-                dis  = disabled[name]
-                base = bin_idx * nl
-                for li in range(nl):
-                    if dis[li]:
-                        continue
-                    v = vals[base + li]
-                    if apply_hl:
-                        v *= hl_factor[li]
-                    if name == "Flow" and stat == "Mean":
-                        flow_sum_signed[li] += v
-                    if apply_abs:
-                        v = abs(v)
-                    if need_max:
-                        if v > max_vals[name][li]:
-                            max_vals[name][li]  = v
-                            max_times[name][li] = time_s
-                    if need_min:
-                        if v < min_vals[name][li]:
-                            min_vals[name][li]  = v
-                            min_times[name][li] = time_s
-                    if stat == "Mean":
-                        sums[name][li] += v
-                    if stat == "Standard Deviation":
-                        delta = v - wf_mean[name][li]
-                        wf_mean[name][li] += delta / actual_periods
-                        wf_M2[name][li]   += delta * (v - wf_mean[name][li])
+                v = vals[bin_idx]                              # read-only view (nl,)
+                if apply_hl:
+                    v = v * hl_factor_np                       # new array
+
+                dis   = disabled_np[name]                      # (nl,) bool
+                valid = ~dis
+
+                if name == "Flow" and stat == "Mean":
+                    flow_sum_signed += np.where(valid, v, 0.0)
+
+                if apply_abs:
+                    v = np.abs(v)                              # new array
+
+                if need_max:
+                    better = valid & (v > max_vals[name])
+                    max_vals[name]       = np.where(better, v, max_vals[name])
+                    max_times[name][better] = time_s
+                if need_min:
+                    better = valid & (v < min_vals[name])
+                    min_vals[name]       = np.where(better, v, min_vals[name])
+                    min_times[name][better] = time_s
+                if stat == "Mean":
+                    sums[name] += np.where(valid, v.astype(np.float64), 0.0)
+                if stat == "Standard Deviation":
+                    v_d    = v.astype(np.float64)
+                    delta  = np.where(valid, v_d - wf_mean[name], 0.0)
+                    new_m  = wf_mean[name] + delta / actual_periods
+                    wf_mean[name] = np.where(valid, new_m, wf_mean[name])
+                    delta2 = np.where(valid, v_d - wf_mean[name], 0.0)
+                    wf_M2[name]   = np.where(valid, wf_M2[name] + delta * delta2, wf_M2[name])
 
         # Output order matches getOut_TimeLinksProperties
         output_order = ["Flow", "Velocity", "HeadLoss", "UnitHdLoss", "FricFactor", "Status", "ReactRate", "Quality"]
@@ -793,32 +790,32 @@ def getOut_StatLinksProperties(out_file_path, stat):
         for li in range(nl):
             link_props = {}
             for name in output_order:
-                if name == "Status" or disabled.get(name, [False] * nl)[li]:
+                if name == "Status" or (name in disabled_np and disabled_np[name][li]):
                     continue
                 if stat == "Maximum":
                     link_props[name] = {
-                        "Time":  max_times[name][li],
+                        "Time":  int(max_times[name][li]),
                         "Value": round(float(max_vals[name][li]), ROUNDING_PRECISION)
                     }
                 elif stat == "Minimum":
                     link_props[name] = {
-                        "Time":  min_times[name][li],
+                        "Time":  int(min_times[name][li]),
                         "Value": round(float(min_vals[name][li]), ROUNDING_PRECISION)
                     }
                 elif stat == "Mean":
                     if name == "Flow":
-                        link_props["FlowUnsig"] = {"Value": round(sums["Flow"][li]     / actual_periods, ROUNDING_PRECISION)}
-                        link_props["FlowSig"]   = {"Value": round(flow_sum_signed[li] / actual_periods, ROUNDING_PRECISION)}
+                        link_props["FlowUnsig"] = {"Value": round(float(sums["Flow"][li])     / actual_periods, ROUNDING_PRECISION)}
+                        link_props["FlowSig"]   = {"Value": round(float(flow_sum_signed[li]) / actual_periods, ROUNDING_PRECISION)}
                         continue
                     link_props[name] = {
-                        "Value": round(sums[name][li] / actual_periods, ROUNDING_PRECISION)
+                        "Value": round(float(sums[name][li]) / actual_periods, ROUNDING_PRECISION)
                     }
                 elif stat == "Range":
                     link_props[name] = {
                         "Value": round(float(max_vals[name][li] - min_vals[name][li]), ROUNDING_PRECISION)
                     }
                 elif stat == "Standard Deviation":
-                    variance = wf_M2[name][li] / actual_periods if actual_periods > 0 else 0.0
+                    variance = float(wf_M2[name][li]) / actual_periods if actual_periods > 0 else 0.0
                     link_props[name] = {
                         "Value": round(math.sqrt(variance), ROUNDING_PRECISION)
                     }
