@@ -657,3 +657,171 @@ def getOut_StatNodesProperties(out_file_path, stat):
                     }
             results[node_ids[ni]] = node_props
         return results
+
+
+def getOut_StatLinksProperties(out_file_path, stat):
+    """Returns a statistic for each link property across all reporting periods.
+
+    stat: "Max" | "Min" | "Mean" | "Range" | "StdDev"
+
+    Max/Min return {"Time": int, "Value": float}.
+    Mean, Range and StdDev return {"Value": float}.
+    Status always returns None (categorical).
+    Velocity, UnitHdLoss, FricFactor and ReactRate return None for pumps/valves.
+
+    Returns:
+        dict[link_id, dict[property, dict | None]]
+    """
+    import math
+
+    VALID_STATS = {"Max", "Min", "Mean", "Range", "StdDev"}
+    if stat not in VALID_STATS:
+        raise ValueError(f"stat must be one of {VALID_STATS}")
+
+    if not os.path.exists(out_file_path):
+        return {}
+
+    with open(out_file_path, 'rb') as f:
+        meta = _get_out_file_metadata(f, include_lengths=True)
+        if not meta or meta["num_periods"] == 0:
+            return {}
+
+        n              = meta["n_nodes"]
+        nl             = meta["n_links"]
+        num_periods    = meta["num_periods"]
+        report_start   = meta["report_start"]
+        report_step    = meta["report_step"]
+        results_offset = meta["results_offset"]
+        period_size    = meta["period_size"]
+        link_ids       = meta["link_ids"]
+        link_types     = meta["link_types"]
+        link_lengths   = meta["link_lengths"]
+
+        # Binary layout: Flow=0, Velocity=1, UnitHdLoss=2, Quality=3,
+        #                Status=4, Setting=5, ReactRate=6, FricFactor=7
+        n_bin_vars = 8
+        link_block = n_bin_vars * nl
+        fmt        = f'{link_block}f'
+        byte_count = link_block * 4
+        node_skip  = n * 16   # 4 node vars × 4 bytes
+
+        # Per-link pre-computations
+        pov       = [(lt == _LT_PUMP or lt in _VALVE_TYPES) for lt in link_types]
+        hl_factor = [1.0 if pov[li] else link_lengths[li] / 1000.0 for li in range(nl)]
+
+        # Numeric tracked props: (output_name, bin_idx, apply_hl_factor, apply_abs)
+        # "Status" is excluded (categorical); "Setting" not exposed in output.
+        # Flow uses abs(v) for all stats; Mean also tracks the signed value separately.
+        TRACKED = [
+            ("Flow",       0, False, True),
+            ("Velocity",   1, False, False),
+            ("HeadLoss",   2, True,  False),   # UnitHdLoss x hl_factor
+            ("UnitHdLoss", 2, False, False),
+            ("FricFactor", 7, False, False),
+            ("ReactRate",  6, False, False),
+            ("Quality",    3, False, False),
+        ]
+        _POV_DISABLED = {"Velocity", "UnitHdLoss", "FricFactor", "ReactRate"}
+
+        # disabled[name][li] = True -> property is always None for that link
+        disabled = {
+            name: ([pov[li] for li in range(nl)] if name in _POV_DISABLED else [False] * nl)
+            for name, _, _, _ in TRACKED
+        }
+
+        need_max = stat in ("Max", "Range")
+        need_min = stat in ("Min", "Range")
+
+        NEG_INF = float('-inf')
+        POS_INF = float('inf')
+
+        if need_max:
+            max_vals  = {name: [NEG_INF] * nl for name, _, _, _ in TRACKED}
+            max_times = {name: [-1]       * nl for name, _, _, _ in TRACKED}
+        if need_min:
+            min_vals  = {name: [POS_INF] * nl for name, _, _, _ in TRACKED}
+            min_times = {name: [-1]      * nl for name, _, _, _ in TRACKED}
+        if stat == "Mean":
+            sums            = {name: [0.0] * nl for name, _, _, _ in TRACKED}
+            flow_sum_signed = [0.0] * nl   # signed Flow sum for FlowSig
+        if stat == "StdDev":
+            wf_mean = {name: [0.0] * nl for name, _, _, _ in TRACKED}
+            wf_M2   = {name: [0.0] * nl for name, _, _, _ in TRACKED}
+
+        actual_periods = 0
+        for p in range(num_periods):
+            time_s = report_start + p * report_step
+            f.seek(results_offset + p * period_size + node_skip)
+            raw = f.read(byte_count)
+            if len(raw) < byte_count:
+                break
+            vals = struct.unpack(fmt, raw)
+            actual_periods += 1
+
+            for name, bin_idx, apply_hl, apply_abs in TRACKED:
+                dis  = disabled[name]
+                base = bin_idx * nl
+                for li in range(nl):
+                    if dis[li]:
+                        continue
+                    v = vals[base + li]
+                    if apply_hl:
+                        v *= hl_factor[li]
+                    if name == "Flow" and stat == "Mean":
+                        flow_sum_signed[li] += v
+                    if apply_abs:
+                        v = abs(v)
+                    if need_max:
+                        if v > max_vals[name][li]:
+                            max_vals[name][li]  = v
+                            max_times[name][li] = time_s
+                    if need_min:
+                        if v < min_vals[name][li]:
+                            min_vals[name][li]  = v
+                            min_times[name][li] = time_s
+                    if stat == "Mean":
+                        sums[name][li] += v
+                    if stat == "StdDev":
+                        delta = v - wf_mean[name][li]
+                        wf_mean[name][li] += delta / actual_periods
+                        wf_M2[name][li]   += delta * (v - wf_mean[name][li])
+
+        # Output order matches getOut_TimeLinksProperties
+        output_order = ["Flow", "Velocity", "HeadLoss", "UnitHdLoss", "FricFactor", "Status", "ReactRate", "Quality"]
+
+        results = {}
+        for li in range(nl):
+            link_props = {}
+            for name in output_order:
+                if name == "Status" or disabled.get(name, [False] * nl)[li]:
+                    link_props[name] = None
+                    continue
+                if stat == "Max":
+                    link_props[name] = {
+                        "Time":  max_times[name][li],
+                        "Value": round(float(max_vals[name][li]), ROUNDING_PRECISION)
+                    }
+                elif stat == "Min":
+                    link_props[name] = {
+                        "Time":  min_times[name][li],
+                        "Value": round(float(min_vals[name][li]), ROUNDING_PRECISION)
+                    }
+                elif stat == "Mean":
+                    if name == "Flow":
+                        link_props["FlowSig"]   = {"Value": round(flow_sum_signed[li] / actual_periods, ROUNDING_PRECISION)}
+                        link_props["FlowUnsig"] = {"Value": round(sums["Flow"][li]     / actual_periods, ROUNDING_PRECISION)}
+                        continue
+                    link_props[name] = {
+                        "Value": round(sums[name][li] / actual_periods, ROUNDING_PRECISION)
+                    }
+                elif stat == "Range":
+                    link_props[name] = {
+                        "Value": round(float(max_vals[name][li] - min_vals[name][li]), ROUNDING_PRECISION)
+                    }
+                elif stat == "StdDev":
+                    variance = wf_M2[name][li] / actual_periods if actual_periods > 0 else 0.0
+                    link_props[name] = {
+                        "Value": round(math.sqrt(variance), ROUNDING_PRECISION)
+                    }
+            results[link_ids[li]] = link_props
+        return results
