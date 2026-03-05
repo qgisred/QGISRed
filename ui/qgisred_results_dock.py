@@ -375,18 +375,23 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     layer_to_paint.setName(disp_name)
 
                     # Configure map tip
-                    tip = var_translated + ': [% "' + field + '" %]'
+                    is_min_max_stat = self._statsMode and self.cbStatistics.currentText() in (self.tr("Maximum"), self.tr("Minimum"))
+                    time_field = time_field_name(field) if is_min_max_stat else None
+                    if time_field:
+                        tip = var_translated + ': [% "' + field + '" || \' - \' || "' + time_field + '" %]'
+                    else:
+                        tip = var_translated + ': [% "' + field + '" %]'
                     layer_to_paint.setMapTipTemplate(tip)
 
                     # Configure layer labels
-                    self.setLayerLabels(layer_to_paint, field)
+                    self.setLayerLabels(layer_to_paint, field, time_field)
 
-    def setLayerLabels(self, layer, fieldName):
+    def setLayerLabels(self, layer, fieldName, time_field=None):
         firstCondition = layer.geometryType() == 0 and self.cbNodeLabels.isChecked()
         secondCondition = layer.geometryType() == 1 and self.cbLinkLabels.isChecked()
         if firstCondition or secondCondition:
             layer_settings = QgsPalLayerSettings()
-            layer_settings.formatNumbers = True 
+            layer_settings.formatNumbers = True
             layer_settings.decimals = 2
             text_format = QgsTextFormat()
             text_format.setFont(QFont("Arial", 10))
@@ -396,7 +401,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             text_format.setColor(QColor(color))
             layer_settings.setFormat(text_format)
 
-            if fieldName == "Flow":
+            if time_field:
+                layer_settings.fieldName = f'round("{fieldName}", 2) || \' - \' || "{time_field}"'
+                layer_settings.isExpression = True
+            elif fieldName == "Flow":
                 layer_settings.fieldName = 'abs("Flow")'
                 layer_settings.isExpression = True
             else:
@@ -682,7 +690,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     idx = combobox.currentIndex()
                     if idx > 0:
                         field = layer.fields().at(idx + 2).name()
-                        self.setLayerLabels(layer, field)
+                        is_min_max_stat = self._statsMode and self.cbStatistics.currentText() in (self.tr("Maximum"), self.tr("Minimum"))
+                        time_field = time_field_name(field) if is_min_max_stat else None
+                        self.setLayerLabels(layer, field, time_field)
                 else:
                     layer.setLabelsEnabled(False)
                     layer.triggerRepaint()
