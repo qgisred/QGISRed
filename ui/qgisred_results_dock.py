@@ -74,11 +74,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.cbResultTimes.addItems([self.tr("Report times")])
         self.cbStatistics.addItems([
             self.tr("None"),
-            self.tr("Max"),
-            self.tr("Min"),
+            self.tr("Maximum"),
+            self.tr("Minimum"),
             self.tr("Range"),
             self.tr("Mean"),
-            self.tr("StdDev"),
+            self.tr("Standard Deviation"),
         ])
 
     def populateVariableComboboxes(self):
