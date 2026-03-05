@@ -2208,7 +2208,11 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.showResultsPlaceholder()
             return
 
-        if not self.currentLayer or not self.currentFeature:
+        try:
+            if not self.currentLayer or not self.currentFeature:
+                self.showResultsPlaceholder()
+                return
+        except RuntimeError:
             self.showResultsPlaceholder()
             return
 
