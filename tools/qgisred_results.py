@@ -794,7 +794,6 @@ def getOut_StatLinksProperties(out_file_path, stat):
             link_props = {}
             for name in output_order:
                 if name == "Status" or disabled.get(name, [False] * nl)[li]:
-                    link_props[name] = None
                     continue
                 if stat == "Max":
                     link_props[name] = {
@@ -808,8 +807,8 @@ def getOut_StatLinksProperties(out_file_path, stat):
                     }
                 elif stat == "Mean":
                     if name == "Flow":
-                        link_props["FlowSig"]   = {"Value": round(flow_sum_signed[li] / actual_periods, ROUNDING_PRECISION)}
                         link_props["FlowUnsig"] = {"Value": round(sums["Flow"][li]     / actual_periods, ROUNDING_PRECISION)}
+                        link_props["FlowSig"]   = {"Value": round(flow_sum_signed[li] / actual_periods, ROUNDING_PRECISION)}
                         continue
                     link_props[name] = {
                         "Value": round(sums[name][li] / actual_periods, ROUNDING_PRECISION)
