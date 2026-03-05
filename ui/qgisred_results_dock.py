@@ -24,6 +24,22 @@ from shutil import copyfile
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_results_dock.ui"))
 
 
+def seconds_to_time_str(seconds):
+    """Convert seconds to 'NNd HH:MM:SS' format."""
+    d = seconds // 86400
+    rem = seconds % 86400
+    h = rem // 3600
+    m = (rem % 3600) // 60
+    s = rem % 60
+    return f"{d:02d}d {h:02d}:{m:02d}:{s:02d}"
+
+
+def time_field_name(var_name):
+    """Return the time-companion field name for a variable: 'Time_' + uppercase letters."""
+    uppers = ''.join(c for c in var_name if c.isupper())
+    return ("Time_" + uppers)[:10]
+
+
 class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     # Signals
     timeTextChanged = pyqtSignal(str)
@@ -963,6 +979,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.clearResultFields()
 
         stat = self.cbStatistics.currentText()
+        is_min_max = stat in (self.tr("Maximum"), self.tr("Minimum"))
         resultPath = self.getResultsPath()
         binary_path = os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + ".out")
         if not os.path.exists(binary_path):
@@ -991,14 +1008,27 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             first_id = next(iter(results))
             variables = list(v[:10] for v in results[first_id].keys())
 
+            # For Min/Max, build companion time field names: "Time_" + uppercase letters of var
+            time_field_map = {}  # var_key -> time_field_name
+            if is_min_max:
+                for var in results[first_id].keys():
+                    var_key = var[:10]
+                    time_field_map[var_key] = time_field_name(var)
+
             # Always add fields (clearResultFields already removed them)
             new_fields = [QgsField("Stat", QVariant.String, "", 15)]
             for var in variables:
                 new_fields.append(QgsField(var, QVariant.Double))
+                if is_min_max and var in time_field_map:
+                    new_fields.append(QgsField(time_field_map[var], QVariant.String, "", 15))
             target_layer.dataProvider().addAttributes(new_fields)
             target_layer.updateFields()
 
             field_indices = {var: target_layer.fields().indexOf(var) for var in variables}
+            time_field_indices = {}
+            if is_min_max:
+                for var_key, tf_name in time_field_map.items():
+                    time_field_indices[var_key] = target_layer.fields().indexOf(tf_name)
             stat_field_idx = target_layer.fields().indexOf("Stat")
             id_field_idx = target_layer.fields().indexOf("Id")
             if id_field_idx == -1:
@@ -1016,6 +1046,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     var_key = var[:10]
                     if var_key in field_indices and field_indices[var_key] != -1:
                         updates[field_indices[var_key]] = val["Value"] if val is not None else None
+                        if is_min_max and var_key in time_field_indices and time_field_indices[var_key] != -1:
+                            t = val["Time"] if val is not None else None
+                            updates[time_field_indices[var_key]] = seconds_to_time_str(t) if t is not None else None
                 attribute_updates[feature.id()] = updates
 
             if attribute_updates:
