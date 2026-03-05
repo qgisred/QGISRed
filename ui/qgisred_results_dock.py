@@ -12,7 +12,10 @@ from qgis.core import QgsGraduatedSymbolRenderer, QgsRuleBasedRenderer
 
 from ..tools.qgisred_utils import QGISRedUtils
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
-from ..tools.qgisred_results import getOut_TimeNodesProperties, getOut_TimeLinksProperties
+from ..tools.qgisred_results import (
+    getOut_TimeNodesProperties, getOut_TimeLinksProperties,
+    getOut_StatNodesProperties, getOut_StatLinksProperties,
+)
 
 
 import os
@@ -47,11 +50,14 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.cbTimes.currentIndexChanged.connect(self.timeChanged)
         self.timeSlider.valueChanged.connect(self.sliderChanged)
         self.timeSlider.sliderMoved.connect(self.sliderDragging)
-        self._debounceTimer = QTimer()
-        self._debounceTimer.setSingleShot(True)
-        self._debounceTimer.timeout.connect(self._applySliderTime)
+        self.debounceTimer = QTimer()
+        self.debounceTimer.setSingleShot(True)
+        self.debounceTimer.timeout.connect(self.applySliderTime)
 
-        self._populateVariableComboboxes()
+        self.populateResultStatsComboboxes()
+        self.populateVariableComboboxes()
+
+        self.cbStatistics.currentIndexChanged.connect(self.statisticsChanged)
 
         self.cbLinks.currentIndexChanged.connect(self.linksChanged)
         self.cbNodes.currentIndexChanged.connect(self.nodesChanged)
@@ -61,9 +67,21 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         self.displayingLinkField = ""
         self.displayingNodeField = ""
+        self._statsMode = False
 
     """Methods"""
-    def _populateVariableComboboxes(self):
+    def populateResultStatsComboboxes(self):
+        self.cbResultTimes.addItems([self.tr("Report times")])
+        self.cbStatistics.addItems([
+            self.tr("None"),
+            self.tr("Max"),
+            self.tr("Min"),
+            self.tr("Range"),
+            self.tr("Mean"),
+            self.tr("StdDev"),
+        ])
+
+    def populateVariableComboboxes(self):
         node_variables = [
             self.tr("None"),
             self.tr("Pressure"),
@@ -101,6 +119,58 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.iface.messageBar().pushMessage(self.tr("Warning"), message, level=1, duration=5)
         self.close()
         return False
+    
+    def updateLinksComboboxForStat(self, stat):
+        """Adjusts cbLinks items when entering/leaving statistics mode.
+
+        In any stat mode: removes 'Status' (categorical, not meaningful).
+        In Mean mode: replaces 'Flow' with 'Flow Unsig' and inserts 'Flow Sig' below.
+        On restore (stat == 'None'): reverses all changes.
+        """
+        self.cbLinks.currentIndexChanged.disconnect(self.linksChanged)
+        try:
+            current_text = self.cbLinks.currentText()
+
+            if stat != self.tr("None"):
+                # Remove Status if present
+                status_idx = self.cbLinks.findText(self.tr("Status"))
+                if status_idx != -1:
+                    self.cbLinks.removeItem(status_idx)
+
+                if stat == self.tr("Mean"):
+                    flow_idx = self.cbLinks.findText(self.tr("Flow"))
+                    if flow_idx != -1:
+                        self.cbLinks.setItemText(flow_idx, self.tr("Flow Unsig"))
+                        self.cbLinks.insertItem(flow_idx + 1, self.tr("Flow Sig"))
+                        if current_text == self.tr("Flow"):
+                            self.cbLinks.setCurrentIndex(flow_idx)
+                else:
+                    # Entering non-Mean stat from Mean: remove Flow Sig, rename Flow Unsig → Flow
+                    flow_sig_idx = self.cbLinks.findText(self.tr("Flow Sig"))
+                    if flow_sig_idx != -1:
+                        self.cbLinks.removeItem(flow_sig_idx)
+                    flow_unsig_idx = self.cbLinks.findText(self.tr("Flow Unsig"))
+                    if flow_unsig_idx != -1:
+                        self.cbLinks.setItemText(flow_unsig_idx, self.tr("Flow"))
+                        if current_text in (self.tr("Flow Unsig"), self.tr("Flow Sig")):
+                            self.cbLinks.setCurrentIndex(flow_unsig_idx)
+            else:
+                # Restore: remove Flow Sig, rename Flow Unsig → Flow
+                flow_sig_idx = self.cbLinks.findText(self.tr("Flow Sig"))
+                if flow_sig_idx != -1:
+                    self.cbLinks.removeItem(flow_sig_idx)
+                flow_unsig_idx = self.cbLinks.findText(self.tr("Flow Unsig"))
+                if flow_unsig_idx != -1:
+                    self.cbLinks.setItemText(flow_unsig_idx, self.tr("Flow"))
+                    if current_text in (self.tr("Flow Unsig"), self.tr("Flow Sig")):
+                        self.cbLinks.setCurrentIndex(flow_unsig_idx)
+
+                # Re-insert Status between Friction Factor and Reaction Rate
+                frict_idx = self.cbLinks.findText(self.tr("Friction Factor"))
+                if frict_idx != -1 and self.cbLinks.findText(self.tr("Status")) == -1:
+                    self.cbLinks.insertItem(frict_idx + 1, self.tr("Status"))
+        finally:
+            self.cbLinks.currentIndexChanged.connect(self.linksChanged)
 
     """Paths"""
     def getUniformedPath(self, path):
@@ -221,26 +291,40 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     if not var_key:
                         continue
             
-                    storage_key = openedLayerPath + "|" + var_key
+                    mode_prefix = f"stat_{self.cbStatistics.currentText()}|" if self._statsMode else "time|"
+                    storage_key = mode_prefix + openedLayerPath + "|" + var_key
                     renderer = layer.renderer()
                     try:
                         if renderer.type() == "graduatedSymbol":
                             dictSce[storage_key] = renderer.ranges()
-                        else:
+                        elif renderer.type() == "RuleRenderer":
                             dictSce[storage_key] = renderer.rootRule().clone()
                     except:
-                        message = self.tr("Some issue occurred in the process of saving the style of the layer").format(self.tr(layerName))
+                        message = self.tr("Some issue occurred in the process of saving the style of the layer").format(self.tr(nameLayer))
                         self.iface.messageBar().pushMessage(self.tr("Warning"), message, level=1, duration=5)
                     
         self.Renders[self.Scenario] = dictSce
 
     def paintIntervalTimeResults(self, setRender=False):
-        time_text = self.cbTimes.currentText()
-        self.lbTime.setText(time_text)
-        self.timeTextChanged.emit(time_text)
-        
+        if not self._statsMode:
+            time_text = self.cbTimes.currentText()
+            self.lbTime.setText(time_text)
+            self.timeTextChanged.emit(time_text)
+
+        # Maps combobox display text → layer field name (keys use self.tr to support translations)
+        _LINK_FIELD_MAP = {
+            self.tr("Flow"): "Flow", self.tr("Flow Unsig"): "FlowUnsig", self.tr("Flow Sig"): "FlowSig",
+            self.tr("Velocity"): "Velocity", self.tr("HeadLoss"): "HeadLoss", self.tr("Unit HeadLoss"): "UnitHdLoss",
+            self.tr("Friction Factor"): "FricFactor", self.tr("Status"): "Status",
+            self.tr("Reaction Rate"): "ReactRate", self.tr("Quality"): "Quality",
+        }
+        _NODE_FIELD_MAP = {
+            self.tr("Pressure"): "Pressure", self.tr("Head"): "Head",
+            self.tr("Demand"): "Demand", self.tr("Quality"): "Quality",
+        }
+
         resultPath = self.getResultsPath()
-        for nameLayer in ["Node", "Link"]: 
+        for nameLayer in ["Node", "Link"]:
             layer_to_paint = None
             resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp")
             # Check if layer is already open
@@ -249,39 +333,35 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     layer_to_paint = layer
                     break
 
-            if layer_to_paint:                   
+            if layer_to_paint:
                 field = ""
                 disp_name = ""
                 var_translated = ""
                 if "Link" in nameLayer:
-                    idx = self.cbLinks.currentIndex()
-                    if idx > 0:
-                        columnIndex = idx + 2
-                        field = layer_to_paint.fields().at(columnIndex).name()
+                    if self.cbLinks.currentIndex() > 0:
                         var_translated = self.cbLinks.currentText()
+                        field = _LINK_FIELD_MAP.get(var_translated, "")
                         disp_name = self.tr("Link {}").format(var_translated)
                 else:
-                    idx = self.cbNodes.currentIndex()
-                    if idx > 0:
-                        columnIndex = idx + 2
-                        field = layer_to_paint.fields().at(columnIndex).name()
+                    if self.cbNodes.currentIndex() > 0:
                         var_translated = self.cbNodes.currentText()
+                        field = _NODE_FIELD_MAP.get(var_translated, "")
                         disp_name = self.tr("Node {}").format(var_translated)
 
                 if field:
                     self.setGraduadedPalette(layer_to_paint, field, setRender, nameLayer)
-                    
+
                     # Store current displayed variable
                     if "Link" in nameLayer: self.displayingLinkField = field
                     else: self.displayingNodeField = field
 
                     # Set layer name in legend
                     layer_to_paint.setName(disp_name)
-                    
+
                     # Configure map tip
                     tip = var_translated + ': [% "' + field + '" %]'
                     layer_to_paint.setMapTipTemplate(tip)
-                    
+
                     # Configure layer labels
                     self.setLayerLabels(layer_to_paint, field)
 
@@ -337,6 +417,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     def setGraduadedPalette(self, layer, field, setRender, nameLayer):
         renderer = layer.renderer()
         rawField = field  # column name
+        qmlField = "Flow" if rawField in ("FlowSig", "FlowUnsig") else rawField
         if field == "Flow":
             field = "abs(" + field + ")"
         
@@ -349,12 +430,13 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if setRender:  # Just opened a layer or changed variable
             dictRend = self.Renders.get(self.Scenario)
             layerPath = self.getLayerPath(layer)
-            storage_key = layerPath + "|" + rawField
-            
+            mode_prefix = f"stat_{self.cbStatistics.currentText()}|" if self._statsMode else "time|"
+            storage_key = mode_prefix + layerPath + "|" + rawField
+
             if dictRend is None:
                 dictRend = self.Renders.get("Base")
                 if dictRend is not None:
-                    base_storage_key = layerPath.replace("_" + self.Scenario + "_", "_Base_") + "|" + rawField
+                    base_storage_key = mode_prefix + layerPath.replace("_" + self.Scenario + "_", "_Base_") + "|" + rawField
                     ranges = dictRend.get(base_storage_key)
                     if ranges is not None:
                         hasRender = True
@@ -365,7 +447,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 else:
                     dictRendBase = self.Renders.get("Base")
                     if dictRendBase is not None:
-                        base_storage_key = layerPath.replace("_" + self.Scenario + "_", "_Base_") + "|" + rawField
+                        base_storage_key = mode_prefix + layerPath.replace("_" + self.Scenario + "_", "_Base_") + "|" + rawField
                         ranges = dictRendBase.get(base_storage_key)
                         if ranges is not None:
                             hasRender = True
@@ -389,7 +471,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             # We load it if there's no saved render AND (it's not graduated OR it's the wrong variable)
             wrong_variable = isinstance(renderer, QgsGraduatedSymbolRenderer) and renderer.classAttribute() != field
             if not hasRender and (not isinstance(renderer, QgsGraduatedSymbolRenderer) or len(renderer.ranges()) == 0 or wrong_variable):
-                qmlName = nameLayer.split("_")[0] + "_" + rawField 
+                qmlName = nameLayer.split("_")[0] + "_" + qmlField 
                 utils.setResultStyle(layer, qmlName)
                 renderer = layer.renderer()
                 
@@ -413,7 +495,42 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         layer.setRenderer(renderer)
         layer.triggerRepaint()
 
+
     """Clicked events"""
+
+    def statisticsChanged(self):
+        if self.Computing:
+            return
+
+        statistic = self.cbStatistics.currentText()
+        time_controls = [self.timeSlider, self.btInitTime, self.btLessTime, self.btMoreTime, self.btEndTime, self.cbTimes]
+
+        if statistic != self.tr("None"):
+            self.saveCurrentRender()
+            self._statsMode = True
+            self.updateLinksComboboxForStat(statistic)
+            result_times = self.cbResultTimes.currentText().lower()
+            self.lbTime.setText(f"{statistic} values for {result_times}")
+            for w in time_controls:
+                w.setEnabled(False)
+            if self.validationsOpenResult():
+                self.ensureResultsLayersAreOpen()
+                self.clearResultFields()
+                self.completeStatsLayers()
+                self.paintIntervalTimeResults(True)
+
+        else:
+            self.saveCurrentRender()
+            self._statsMode = False
+            self.updateLinksComboboxForStat(self.tr("None"))
+            self.lbTime.setText(self.cbTimes.currentText())
+            for w in time_controls:
+                w.setEnabled(True)
+            if self.validationsOpenResult():
+                self.ensureResultsLayersAreOpen()
+                self.clearResultFields()
+                self.completeResultLayers()
+                self.paintIntervalTimeResults(True)
 
     def linksChanged(self):
         if self.Computing:
@@ -503,9 +620,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     def sliderDragging(self, value):
         self.lbTime.setText(self.TimeLabels[value])
         self.timeTextChanged.emit(self.TimeLabels[value])
-        self._debounceTimer.start(500)
+        self.debounceTimer.start(500)
 
-    def _applySliderTime(self):
+    def applySliderTime(self):
         index = self.timeSlider.value()
         if index != self.cbTimes.currentIndex():
             self.cbTimes.setCurrentIndex(index)
@@ -514,6 +631,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
     def timeChanged(self):
         if self.Computing:
+            return
+        if self._statsMode:
             return
         
         if not self.validationsOpenResult():
@@ -699,13 +818,41 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         # Ensure result layers are opened
         self.ensureResultsLayersAreOpen()
 
-        # Complete dbf table with results
-        self.completeResultLayers()
-        
+        # Complete attribute table with results (stats or time-step depending on current mode)
+        self.clearResultFields()
+        if self._statsMode:
+            self.completeStatsLayers()
+        else:
+            self.completeResultLayers()
+
         self.paintIntervalTimeResults(True)
 
         # Activate map tips
         self.iface.actionMapTips().setChecked(True)
+
+    def clearResultFields(self):
+        """Removes result fields (from the first 'Time' or 'Stat' column onward) from both result layers."""
+        resultPath = self.getResultsPath()
+        openedLayers = self.getLayers()
+        for layerName in ["Node", "Link"]:
+            resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + layerName + ".shp")
+            target_layer = None
+            for layer in openedLayers:
+                if self.getLayerPath(layer) == resultLayerPath:
+                    target_layer = layer
+                    break
+            if not target_layer:
+                continue
+            candidates = [target_layer.fields().indexOf(f) for f in ("Time", "Stat")]
+            candidates = [i for i in candidates if i != -1]
+            if not candidates:
+                continue
+            start_idx = min(candidates)
+            fields_to_delete = list(range(start_idx, target_layer.fields().count()))
+            target_layer.dataProvider().deleteAttributes(fields_to_delete)
+            target_layer.updateFields()
+        self.displayingLinkField = ""
+        self.displayingNodeField = ""
 
     def completeResultLayers(self):
         """Populates the attribute tables of the result layers with data from the .out file."""
@@ -801,6 +948,76 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     attribute_updates[feature.id()] = updates
 
             # Apply updates via provider (more efficient for batch)
+            if attribute_updates:
+                target_layer.dataProvider().changeAttributeValues(attribute_updates)
+                target_layer.dataProvider().dataChanged.emit()
+                target_layer.triggerRepaint()
+
+    def completeStatsLayers(self):
+        """Populates the attribute tables of result layers with statistics from the .out file.
+        Always clears existing result fields first so the column set matches the chosen statistic.
+        """
+        if not self.isCurrentProject():
+            return
+
+        self.clearResultFields()
+
+        stat = self.cbStatistics.currentText()
+        resultPath = self.getResultsPath()
+        binary_path = os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + ".out")
+        if not os.path.exists(binary_path):
+            return
+
+        openedLayers = self.getLayers()
+        for layerName in ["Node", "Link"]:
+            resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + layerName + ".shp")
+            target_layer = None
+            for layer in openedLayers:
+                if self.getLayerPath(layer) == resultLayerPath:
+                    target_layer = layer
+                    break
+
+            if not target_layer:
+                continue
+
+            if layerName == "Node":
+                results = getOut_StatNodesProperties(binary_path, stat)
+            else:
+                results = getOut_StatLinksProperties(binary_path, stat)
+
+            if not results:
+                continue
+
+            first_id = next(iter(results))
+            variables = list(v[:10] for v in results[first_id].keys())
+
+            # Always add fields (clearResultFields already removed them)
+            new_fields = [QgsField("Stat", QVariant.String, "", 15)]
+            for var in variables:
+                new_fields.append(QgsField(var, QVariant.Double))
+            target_layer.dataProvider().addAttributes(new_fields)
+            target_layer.updateFields()
+
+            field_indices = {var: target_layer.fields().indexOf(var) for var in variables}
+            stat_field_idx = target_layer.fields().indexOf("Stat")
+            id_field_idx = target_layer.fields().indexOf("Id")
+            if id_field_idx == -1:
+                id_field_idx = 0
+
+            attribute_updates = {}
+            for feature in target_layer.getFeatures():
+                elem_id = str(feature.attributes()[id_field_idx])
+                if elem_id not in results:
+                    continue
+                updates = {}
+                if stat_field_idx != -1:
+                    updates[stat_field_idx] = stat
+                for var, val in results[elem_id].items():
+                    var_key = var[:10]
+                    if var_key in field_indices and field_indices[var_key] != -1:
+                        updates[field_indices[var_key]] = val["Value"] if val is not None else None
+                attribute_updates[feature.id()] = updates
+
             if attribute_updates:
                 target_layer.dataProvider().changeAttributeValues(attribute_updates)
                 target_layer.dataProvider().dataChanged.emit()
