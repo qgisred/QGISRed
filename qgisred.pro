@@ -42,4 +42,7 @@ FORMS = ui/qgisred_about_dialog.ui \
         ui/qgisred_toolConnectivity_dialog.ui \
         ui/qgisred_toolLength_dialog.ui
 
-TRANSLATIONS = i18n/qgisred.ts
+TRANSLATIONS = i18n/qgisred.ts \
+               i18n/qgisred_es.ts \
+               i18n/qgisred_fr.ts \
+               i18n/qgisred_pt.ts
