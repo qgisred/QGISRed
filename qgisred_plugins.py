@@ -348,6 +348,7 @@ class QGISRed:
                 file.write(QGISRedUtils.DllTempoFolder + "\n")
 
         if self.ResultDockwidget is not None:
+            self.disconnectElementExplorerFromResultsDock()
             try:
                 self.ResultDockwidget.visibilityChanged.disconnect(self.activeInputGroup)
             except Exception:
@@ -2773,6 +2774,7 @@ class QGISRed:
 
         # Disconnect and close the results dock widget
         if self.ResultDockwidget is not None:
+            self.disconnectElementExplorerFromResultsDock()
             try:
                 self.ResultDockwidget.visibilityChanged.disconnect(self.activeInputGroup)
             except Exception:
@@ -2920,6 +2922,7 @@ class QGISRed:
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.ResultDockwidget)
             self.ResultDockwidget.visibilityChanged.connect(self.activeInputGroup)
         self.ResultDockwidget.simulate(self.ProjectDirectory, self.NetworkName)
+        self.connectElementExplorerToResultsDock()
 
     def runShowResultsDock(self):
         if not self.checkDependencies():
@@ -2932,6 +2935,19 @@ class QGISRed:
             self.runModel()
         else:
             self.ResultDockwidget.show()
+            self.connectElementExplorerToResultsDock()
+
+    def connectElementExplorerToResultsDock(self):
+        """Connect the Element Explorer results tab to the Results Dock."""
+        eeDock = QGISRedElementExplorerDock._instance
+        if eeDock is not None and self.ResultDockwidget is not None:
+            eeDock.connectResultsDock(self.ResultDockwidget)
+
+    def disconnectElementExplorerFromResultsDock(self):
+        """Disconnect the Element Explorer results tab from the Results Dock."""
+        eeDock = QGISRedElementExplorerDock._instance
+        if eeDock is not None:
+            eeDock.disconnectResultsDock()
 
     def runOpenStatusReport(self):
         if not self.checkDependencies():
