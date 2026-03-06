@@ -903,7 +903,7 @@ class QGISRed:
         )
         self.debugDropButton = debugDropButton
 
-        icon_path = ":/images/iconCheckAndCommit.png"
+        icon_path = ":/images/iconDebugMenu.png"
         self.add_action(
             icon_path,
             text=self.tr("Check && Commit data"),
