@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Vértice inicial (azul tenue) -->
+  <circle cx="20" cy="44" r="6" fill="#60bcd3" opacity="0.3" />
+  <line x1="8" y1="32" x2="20" y2="44" stroke="#60bcd3" stroke-width="4" stroke-dasharray="2 2" opacity="0.3" />
+  
+  <!-- Vértice final (azul sólido) -->
+  <circle cx="44" cy="20" r="8" fill="#60bcd3" />
+  <line x1="8" y1="32" x2="44" y2="20" stroke="#60bcd3" stroke-width="6" />
+  <line x1="44" y1="20" x2="56" y2="40" stroke="#60bcd3" stroke-width="6" />
+  
+  <!-- Flecha verde de edición de vértice -->
+  <path d="M 24 36 Q 32 24 40 24" fill="none" stroke="#7fa828" stroke-width="5" stroke-linecap="round" />
+  <polygon points="40,24 34,20 36,28" fill="#7fa828" />
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Caja de selección (Azul punteado para representar área de selección) -->
+  <rect x="12" y="12" width="40" height="40" rx="4" fill="none" stroke="#60bcd3" stroke-width="3" stroke-dasharray="6 4" opacity="0.6" />
+  
+  <!-- Flecha de cursor (Verde/Blanco) moderna -->
+  <g transform="translate(18, 18)">
+    <polygon points="0,0 24,12 14,16 22,30 14,34 6,20 0,26" fill="#7fa828" stroke="#ffffff" stroke-width="2" stroke-linejoin="round" />
+  </g>
+</svg>

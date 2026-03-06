@@ -643,7 +643,7 @@ class QGISRed:
         )
         self.editDropButton = editDropButton
 
-        icon_path = ":/images/iconAddPipe.png"
+        icon_path = ":/images/iconAddPipe.svg"
         self.addPipeButton = self.add_action(
             icon_path,
             text=self.tr("Add pipe"),
@@ -655,7 +655,7 @@ class QGISRed:
             checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconAddTank.png"
+        icon_path = ":/images/iconAddTank.svg"
         self.addTankButton = self.add_action(
             icon_path,
             text=self.tr("Add tank"),
@@ -667,7 +667,7 @@ class QGISRed:
             checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconAddReservoir.png"
+        icon_path = ":/images/iconAddReservoir.svg"
         self.addReservoirButton = self.add_action(
             icon_path,
             text=self.tr("Add reservoir"),
@@ -679,7 +679,7 @@ class QGISRed:
             checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconAddValve.png"
+        icon_path = ":/images/iconAddValve.svg"
         self.insertValveButton = self.add_action(
             icon_path,
             text=self.tr("Insert valve in pipe"),
@@ -691,7 +691,7 @@ class QGISRed:
             checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconAddPump.png"
+        icon_path = ":/images/iconAddPump.svg"
         self.insertPumpButton = self.add_action(
             icon_path,
             text=self.tr("Insert pump in pipe"),
@@ -706,7 +706,7 @@ class QGISRed:
         editDropButton.menu().addSeparator()
         self.editionToolbar.addSeparator()
         self.editionMenu.addSeparator()
-        icon_path = ":/images/iconMultipleSelection.png"
+        icon_path = ":/images/iconMultipleSelection.svg"
         self.selectElementsButton = self.add_action(
             icon_path,
             text=self.tr("Select multiple elements"),
@@ -718,7 +718,7 @@ class QGISRed:
             checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconMoveNodes.png"
+        icon_path = ":/images/iconMoveNodes.svg"
         self.moveElementsButton = self.add_action(
             icon_path,
             text=self.tr("Move nodes"),
@@ -730,7 +730,7 @@ class QGISRed:
             checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconEditVertices.png"
+        icon_path = ":/images/iconEditVertices.svg"
         self.moveVertexsButton = self.add_action(
             icon_path,
             text=self.tr("Edit link vertices"),
@@ -742,7 +742,7 @@ class QGISRed:
             checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconReverseElements.png"
+        icon_path = ":/images/iconReverseElements.svg"
         self.reverseLinkButton = self.add_action(
             icon_path,
             text=self.tr("Reverse elements"),
@@ -754,7 +754,7 @@ class QGISRed:
             checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconSplitJoinPipes.png"
+        icon_path = ":/images/iconSplitJoinPipes.svg"
         self.splitPipeButton = self.add_action(
             icon_path,
             text=self.tr("Split/Join pipes"),
@@ -766,7 +766,7 @@ class QGISRed:
             checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconMergeSplitJunctions.png"
+        icon_path = ":/images/iconMergeSplitJunctions.svg"
         self.mergeSplitJunctionButton = self.add_action(
             icon_path,
             text=self.tr("Merge/Dissolve junctions"),
@@ -778,7 +778,7 @@ class QGISRed:
             checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconCreateRemoveTConnections.png"
+        icon_path = ":/images/iconCreateRemoveTConnections.svg"
         self.createReverseTconButton = self.add_action(
             icon_path,
             text=self.tr("Create/Remove T connections"),
@@ -790,7 +790,7 @@ class QGISRed:
             checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconCreateRemoveCrossings.png"
+        icon_path = ":/images/iconCreateRemoveCrossings.svg"
         self.createReverseCrossButton = self.add_action(
             icon_path,
             text=self.tr("Create/Remove crossings"),
@@ -802,7 +802,7 @@ class QGISRed:
             checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconMoveElements.png"
+        icon_path = ":/images/iconMoveElements.svg"
         self.moveValvePumpButton = self.add_action(
             icon_path,
             text=self.tr("Move valves/pumps"),
@@ -814,7 +814,7 @@ class QGISRed:
             checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconChangeStatus.png"
+        icon_path = ":/images/iconChangeStatus.svg"
         self.changeStatusButton = self.add_action(
             icon_path,
             text=self.tr("Change element status"),
@@ -826,7 +826,7 @@ class QGISRed:
             checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconDeleteElements.png"
+        icon_path = ":/images/iconDeleteElements.svg"
         self.removeElementsButton = self.add_action(
             icon_path,
             text=self.tr("Delete elements"),
@@ -853,7 +853,7 @@ class QGISRed:
             checkable=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconPatternsAndCurves.png"
+        icon_path = ":/images/iconPatternsAndCurves.svg"
         self.add_action(
             icon_path,
             text=self.tr("Edit patterns and curves..."),
@@ -864,7 +864,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconControlsAndRules.png"
+        icon_path = ":/images/iconControlsAndRules.svg"
         self.add_action(
             icon_path,
             text=self.tr("Edit controls..."),

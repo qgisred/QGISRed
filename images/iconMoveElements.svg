@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Tubería base (azul) -->
+  <line x1="12" y1="32" x2="52" y2="32" stroke="#60bcd3" stroke-width="8" stroke-linecap="round" />
+  
+  <!-- Válvula origen (tenue) -->
+  <path d="M 20 24 L 28 40 L 12 40 Z" fill="#badee7ff" />
+  
+  <!-- Válvula destino (sólida) -->
+  <path d="M 44 24 L 52 40 L 36 40 Z" fill="#60bcd3" />
+  
+  <!-- Flecha de desplazamiento (verde) -->
+  <path d="M 24 20 Q 32 12 40 20" fill="none" stroke="#7fa828" stroke-width="4" stroke-linecap="round" />
+  <polygon points="40,20 34,16 36,24" fill="#7fa828" />
+</svg>

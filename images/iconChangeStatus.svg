@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Vara (azul) -->
+  <path d="M 12 52 L 44 20" stroke="#60bcd3" stroke-width="8" stroke-linecap="round" />
+  <path d="M 44 20 L 52 12" stroke="#ffffff" stroke-width="8" stroke-linecap="round" />
+  <path d="M 44 20 L 52 12" stroke="#60bcd3" stroke-width="8" stroke-linecap="round" opacity="0.5" />
+  
+  <!-- Puntas/Estrellas mágicas (verde) -->
+  <g fill="#7fa828">
+    <path d="M 44 8 L 46 4 L 48 8 L 52 10 L 48 12 L 46 16 L 44 12 L 40 10 Z" />
+    <path d="M 54 24 L 55 21 L 56 24 L 59 25 L 56 26 L 55 29 L 54 26 L 51 25 Z" />
+    <path d="M 28 8 L 29 5 L 30 8 L 33 9 L 30 10 L 29 13 L 28 10 L 25 9 Z" />
+  </g>
+</svg>

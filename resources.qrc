@@ -16,14 +16,14 @@
         <file>images/iconAddIsolationValve.png</file>
         <file>images/iconAddLevelSensor.png</file>
         <file>images/iconAddManometer.png</file>
-        <file>images/iconAddPipe.png</file>
-        <file>images/iconAddPump.png</file>
+        <file>images/iconAddPipe.svg</file>
+        <file>images/iconAddPump.svg</file>
         <file>images/iconAddQualitySensor.png</file>
-        <file>images/iconAddReservoir.png</file>
+        <file>images/iconAddReservoir.svg</file>
         <file>images/iconAddStatusSensor.png</file>
         <file>images/iconAddTachometer.png</file>
-        <file>images/iconAddTank.png</file>
-        <file>images/iconAddValve.png</file>
+        <file>images/iconAddTank.svg</file>
+        <file>images/iconAddValve.svg</file>
         <file>images/iconAddValveOpening.png</file>
         <file>images/iconAnalysisMenu.svg</file>
         <file>images/iconCalculatePipeLengths.png</file>
@@ -32,12 +32,12 @@
         <file>images/iconDeleteIsolatedAreas.png</file>
         <file>images/iconCheckConnectivity.png</file> 
         <file>images/iconCreateProject.svg</file>
-        <file>images/iconCreateRemoveCrossings.png</file>
-        <file>images/iconCreateRemoveTConnections.png</file>
+        <file>images/iconCreateRemoveCrossings.svg</file>
+        <file>images/iconCreateRemoveTConnections.svg</file>
         <file>images/iconCheckInstalationDates.png</file>
         <file>images/iconDebugMenu.svg</file>
         <file>images/iconDefaultMenu.svg</file>
-        <file>images/iconDeleteElements.png</file>
+        <file>images/iconDeleteElements.svg</file>
         <file>images/iconDemandBuilder.png</file>
         <file>images/iconDemandSectors.png</file>
         <file>images/iconCheckDiameters.png</file>
@@ -59,15 +59,15 @@
         <file>images/iconJoinPipes.png</file>
         <file>images/iconLayerManagement.svg</file>
         <file>images/iconCheckPipeLengths.png</file>
-        <file>images/iconPatternsAndCurves.png</file>
+        <file>images/iconPatternsAndCurves.svg</file>
         <file>images/iconLoadFieldData.png</file>
         <file>images/iconBackUpProject.svg</file>
         <file>images/iconCheckMaterials.png</file>
         <file>images/iconMaterials.svg</file>
-        <file>images/iconMergeSplitJunctions.png</file>
-        <file>images/iconMoveNodes.png</file>
-        <file>images/iconMoveElements.png</file>
-        <file>images/iconEditVertices.png</file>
+        <file>images/iconMergeSplitJunctions.svg</file>
+        <file>images/iconMoveNodes.svg</file>
+        <file>images/iconMoveElements.svg</file>
+        <file>images/iconEditVertices.svg</file>
         <file>images/iconOpenProject.svg</file>
         <file>images/iconRemoveOverlappings.png</file>
         <file>images/iconProjectManager.svg</file>
@@ -75,18 +75,18 @@
         <file>images/iconQueriesMenu.svg</file>
         <file>images/iconQueryByAttributes.png</file>
         <file>images/iconResultsBrowser.png</file>
-        <file>images/iconReverseElements.png</file>
+        <file>images/iconReverseElements.svg</file>
         <file>images/iconSetRoughnessFromMaterialDate.png</file>
 		<file>images/iconConvertRoughnessCoeff.png</file>
-        <file>images/iconControlsAndRules.png</file>
+        <file>images/iconControlsAndRules.svg</file>
         <file>images/iconRunModel.png</file>
         <file>images/iconSaveProject.svg</file>
         <file>images/iconSaveProject.svg</file>
         <file>images/iconScenarioBuilder.png</file>
-        <file>images/iconMultipleSelection.png</file>
+        <file>images/iconMultipleSelection.svg</file>
 		<file>images/iconLoadMeterReadings.png</file>
         <file>images/iconProjectSettings.svg</file>
-        <file>images/iconSplitJoinPipes.png</file>
+        <file>images/iconSplitJoinPipes.svg</file>
         <file>images/iconStatisticsAndPlots.png</file>
         <file>images/iconStatisticsArrowDown.png</file>
         <file>images/iconStatisticsArrowUp.png</file>
@@ -105,7 +105,7 @@
         <file>images/iconToolsMenu.svg</file>
         <file>images/iconGraphTree.png</file>
         <file>images/iconSimplifyVertices.png</file>
-        <file>images/iconChangeStatus.png</file>  
+        <file>images/iconChangeStatus.svg</file>  
         <file>images/pencil.svg</file>
         <file>images/qgisred.png</file>
     </qresource>

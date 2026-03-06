@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Válvula tipo mariposa (dos triángulos) -->
+  <!-- Triángulo izquierdo relleno negro -->
+  <polygon points="32,32 10,18 10,46" fill="#60bcd3" stroke="#60bcd3" stroke-width="4" stroke-linejoin="round" />
+  
+  <!-- Triángulo derecho vacío con borde negro -->
+  <polygon points="32,32 54,18 54,46" fill="none" stroke="#60bcd3" stroke-width="4" stroke-linejoin="round" />
+  
+  <!-- Símbolo "+" verde intenso abajo a la derecha -->
+  
+  <g transform="translate(42, 42)">
+    <circle cx="10" cy="10" r="10" fill="#7fa828" />
+    <path d="M 6.5 10 L 13.5 10 M 10 6.5 L 10 13.5" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
+  </g>
+</svg>

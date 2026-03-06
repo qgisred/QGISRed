@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Segmento de tubería diagonal (azul) para indicar dirección -->
+  <g stroke="#60bcd3" stroke-width="8" stroke-linecap="round">
+    <line x1="16" y1="48" x2="48" y2="16" />
+  </g>
+  <circle cx="16" cy="48" r="6" fill="#60bcd3" />
+  <circle cx="48" cy="16" r="6" fill="#60bcd3" />
+  
+  <!-- Símbolo de conmutación/reversión central (Verde con círculo blanco) -->
+  <g transform="translate(32, 32)">
+    <circle cx="0" cy="0" r="14" fill="white" stroke="#7fa828" stroke-width="3" />
+    <!-- Flechas de reversión -->
+    <path d="M -8 -4 A 9 9 0 0 1 8 -4" fill="none" stroke="#7fa828" stroke-width="3" stroke-linecap="round" />
+    <polygon points="8,-4 4,-8 12,-8" fill="#7fa828" />
+    
+    <path d="M 8 4 A 9 9 0 0 1 -8 4" fill="none" stroke="#7fa828" stroke-width="3" stroke-linecap="round" />
+    <polygon points="-8,4 -4,8 -12,8" fill="#7fa828" />
+  </g>
+</svg>
