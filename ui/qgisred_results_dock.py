@@ -1052,27 +1052,37 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             first_id = next(iter(results))
             variables = list(v[:10] for v in results[first_id].keys())
 
-            # For Min/Max, build companion time field names: "Time_" + uppercase letters of var
-            time_field_map = {}  # var_key -> time_field_name
-            if is_min_max:
-                for var in results[first_id].keys():
-                    var_key = var[:10]
-                    time_field_map[var_key] = time_field_name(var)
+            # For Min/Max: time columns per layer type.
+            #   Node: Time_P_H after Head (shared Pressure+Head), Time_D, Time_Q individual
+            #   Link: Time_H after UnitHdLoss (shared Flow/Velocity/HeadLoss/UnitHdLoss),
+            #         Time_FF, Time_RR, Time_Q individual
+            _TIME_FIELD_AFTER = {
+                "Node": {"Head": "Time_P_H", "Demand": "Time_D", "Quality": "Time_Q"},
+                "Link": {"UnitHdLoss": "Time_H", "FricFactor": "Time_FF",
+                         "ReactRate": "Time_RR", "Quality": "Time_Q"},
+            }
+            _TIME_PROVIDER = {
+                "Node": {"Pressure": "Time_P_H", "Demand": "Time_D", "Quality": "Time_Q"},
+                "Link": {"Flow": "Time_H", "FricFactor": "Time_FF",
+                         "ReactRate": "Time_RR", "Quality": "Time_Q"},
+            }
+            time_field_after  = _TIME_FIELD_AFTER.get(layerName, {})
+            time_field_provider = _TIME_PROVIDER.get(layerName, {})
 
             # Always add fields (clearResultFields already removed them)
             new_fields = [QgsField("Stat", QVariant.String, "", 15)]
             for var in variables:
                 new_fields.append(QgsField(var, QVariant.Double))
-                if is_min_max and var in time_field_map:
-                    new_fields.append(QgsField(time_field_map[var], QVariant.String, "", 15))
+                if is_min_max and var in time_field_after:
+                    new_fields.append(QgsField(time_field_after[var], QVariant.String, "", 15))
             target_layer.dataProvider().addAttributes(new_fields)
             target_layer.updateFields()
 
             field_indices = {var: target_layer.fields().indexOf(var) for var in variables}
             time_field_indices = {}
             if is_min_max:
-                for var_key, tf_name in time_field_map.items():
-                    time_field_indices[var_key] = target_layer.fields().indexOf(tf_name)
+                for provider_var, tf_name in time_field_provider.items():
+                    time_field_indices[provider_var] = target_layer.fields().indexOf(tf_name)
             stat_field_idx = target_layer.fields().indexOf("Stat")
             id_field_idx = target_layer.fields().indexOf("Id")
             if id_field_idx == -1:
