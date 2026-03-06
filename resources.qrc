@@ -3,7 +3,7 @@
         <file>images/aboutRedhisp.png</file>
         <file>images/aboutIIAMA.png</file>
         <file>images/aboutUPV.png</file>
-        <file>images/iconAbout.png</file>  
+        <file>images/iconAbout.svg</file>  
         <file>images/cursor.png</file>
         <file>images/iconAddAutometer.png</file>
         <file>images/iconAddConnection.png</file>
@@ -25,7 +25,7 @@
         <file>images/iconAddTank.png</file>
         <file>images/iconAddValve.png</file>
         <file>images/iconAddValveOpening.png</file>
-        <file>images/iconAnalysisMenu.png</file>
+        <file>images/iconAnalysisMenu.svg</file>
         <file>images/iconCalculatePipeLengths.png</file>
         <file>images/iconCloseProject.png</file>
         <file>images/iconIncorporateConnectionsToModel.png</file>
@@ -35,22 +35,22 @@
         <file>images/iconCreateRemoveCrossings.png</file>
         <file>images/iconCreateRemoveTConnections.png</file>
         <file>images/iconCheckInstalationDates.png</file>
-        <file>images/iconDebugMenu.png</file>
+        <file>images/iconDebugMenu.svg</file>
         <file>images/iconDefaultValues.png</file>
         <file>images/iconDeleteElements.png</file>
         <file>images/iconDemandBuilder.png</file>
         <file>images/iconDemandSectors.png</file>
         <file>images/iconCheckDiameters.png</file>
-        <file>images/iconDigitalTwinMenu.png</file>
-        <file>images/iconEditMenu.png</file>
+        <file>images/iconDigitalTwinMenu.svg</file>
+        <file>images/iconEditMenu.svg</file>
         <file>images/iconEditProperties.png</file>
         <file>images/iconElementProperties.png</file>
         <file>images/iconExport.png</file>
         <file>images/iconExportToEpanet.png</file>
         <file>images/iconFilter.png</file>
         <file>images/iconFindElements.png</file>
-        <file>images/iconGeneralMenu.png</file>
-        <file>images/iconGitHub.png</file>
+        <file>images/iconGeneralMenu.svg</file>
+        <file>images/iconGitHub.svg</file>
         <file>images/iconCheckHydraulicSectors.png</file>
         <file>images/iconAnalysisOptions.png</file>
         <file>images/iconImport.png</file>
@@ -71,8 +71,8 @@
         <file>images/iconOpenProject.png</file>
         <file>images/iconRemoveOverlappings.png</file>
         <file>images/iconProjectManager.png</file>
-        <file>images/iconProjectMenu.png</file>
-        <file>images/iconQueriesMenu.png</file>
+        <file>images/iconProjectMenu.svg</file>
+        <file>images/iconQueriesMenu.svg</file>
         <file>images/iconQueryByAttributes.png</file>
         <file>images/iconResultsBrowser.png</file>
         <file>images/iconReverseElements.png</file>
@@ -102,20 +102,11 @@
         <file>images/iconSwitchEnabled.png</file>
         <file>images/iconCreateTConnections.png</file>
         <file>images/iconThematicMaps.png</file>
-        <file>images/iconToolsMenu.png</file>
+        <file>images/iconToolsMenu.svg</file>
         <file>images/iconGraphTree.png</file>
         <file>images/iconSimplifyVertices.png</file>
         <file>images/iconChangeStatus.png</file>  
         <file>images/pencil.svg</file>
         <file>images/qgisred.png</file>
-        <file>images/qgisred32.png</file>
-     
-
-   
-    
-
-          
-     
-     
     </qresource>
 </RCC>

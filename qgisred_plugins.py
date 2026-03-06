@@ -131,7 +131,7 @@ class QGISRed:
         # Status Bar
         self.unitsButton = QToolButton()
         self.unitsButton.setToolButtonStyle(2)
-        icon = QIcon(":/images/qgisred32.png")
+        icon = QIcon(":/images/iconGeneralMenu.svg")
         self.unitsAction = QAction(icon, "QGISRed: LPS | H-W", None)
         self.unitsAction.setToolTip(self.tr("Click to change it"))
         self.unitsAction.triggered.connect(self.runAnalysisOptions)
@@ -225,7 +225,7 @@ class QGISRed:
         self.addQueriesMenu()
 
         # About
-        icon_path = ":/images/iconAbout.png"
+        icon_path = ":/images/iconAbout.svg"
         self.add_action(
             icon_path,
             text=self.tr("About..."),
@@ -235,7 +235,7 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         # Report issues
-        icon_path = ":/images/iconGitHub.png"
+        icon_path = ":/images/iconGitHub.svg"
         self.add_action(
             icon_path,
             text=self.tr("Report issues or comments..."),
@@ -402,7 +402,7 @@ class QGISRed:
     def addGeneralMenu(self):
         #    #Menu
         self.generalMenu = self.qgisredmenu.addMenu(self.tr("General"))
-        self.generalMenu.setIcon(QIcon(":/images/iconGeneralMenu.png"))
+        self.generalMenu.setIcon(QIcon(":/images/iconGeneralMenu.svg"))
         #    #Toolbar
         self.generalToolbar = self.iface.addToolBar(self.tr("QGISRed General"))
         self.generalToolbar.setObjectName(self.tr("QGISRed General"))
@@ -410,7 +410,7 @@ class QGISRed:
         self.generalToolbar.setVisible(False)
         #    #Buttons
         generalDropButton = QToolButton()
-        icon_path = ":/images/iconGeneralMenu.png"
+        icon_path = ":/images/iconGeneralMenu.svg"
         self.add_action(
             icon_path,
             text=self.tr("General"),
@@ -474,7 +474,7 @@ class QGISRed:
     def addProjectMenu(self):
         #    #Menu
         self.projectMenu = self.qgisredmenu.addMenu(self.tr("Project"))
-        self.projectMenu.setIcon(QIcon(":/images/iconProjectMenu.png"))
+        self.projectMenu.setIcon(QIcon(":/images/iconProjectMenu.svg"))
         #    #Toolbar
         self.projectToolbar = self.iface.addToolBar(self.tr("QGISRed Project"))
         self.projectToolbar.setObjectName(self.tr("QGISRed Project"))
@@ -482,7 +482,7 @@ class QGISRed:
         self.projectToolbar.setVisible(False)
         #    #Buttons
         projectDropButton = QToolButton()
-        icon_path = ":/images/iconProjectMenu.png"
+        icon_path = ":/images/iconProjectMenu.svg"
         self.add_action(
             icon_path,
             text=self.tr("Project"),
@@ -618,7 +618,7 @@ class QGISRed:
     def addEditMenu(self):
         #    #Menu
         self.editionMenu = self.qgisredmenu.addMenu(self.tr("Edition"))
-        self.editionMenu.setIcon(QIcon(":/images/iconEditMenu.png"))
+        self.editionMenu.setIcon(QIcon(":/images/iconEditMenu.svg"))
         #    #Toolbar
         self.editionToolbar = self.iface.addToolBar(self.tr("QGISRed Edition"))
         self.editionToolbar.setObjectName(self.tr("QGISRed Edition"))
@@ -627,7 +627,7 @@ class QGISRed:
 
         #    #Buttons
         editDropButton = QToolButton()
-        icon_path = ":/images/iconEditMenu.png"
+        icon_path = ":/images/iconEditMenu.svg"
         self.add_action(
             icon_path,
             text=self.tr("Edition"),
@@ -879,7 +879,7 @@ class QGISRed:
     def addDebugMenu(self):
         #    #Menu
         self.debugMenu = self.qgisredmenu.addMenu(self.tr("Debug"))
-        self.debugMenu.setIcon(QIcon(":/images/iconDebugMenu.png"))
+        self.debugMenu.setIcon(QIcon(":/images/iconDebugMenu.svg"))
         #    #Toolbar
         self.debugToolbar = self.iface.addToolBar(self.tr("QGISRed Debug"))
         self.debugToolbar.setObjectName(self.tr("QGISRed Debug"))
@@ -887,7 +887,7 @@ class QGISRed:
         self.debugToolbar.setVisible(False)
         #    #Buttons
         debugDropButton = QToolButton()
-        icon_path = ":/images/iconDebugMenu.png"
+        icon_path = ":/images/iconDebugMenu.svg"
         self.add_action(
             icon_path,
             text=self.tr("Debug"),
@@ -903,7 +903,7 @@ class QGISRed:
         )
         self.debugDropButton = debugDropButton
 
-        icon_path = ":/images/iconDebugMenu.png"
+        icon_path = ":/images/iconDebugMenu.svg"
         self.add_action(
             icon_path,
             text=self.tr("Check && Commit data"),
@@ -1047,7 +1047,7 @@ class QGISRed:
     def addToolsMenu(self):
         #    #Menu
         self.toolsMenu = self.qgisredmenu.addMenu(self.tr("Tools"))
-        self.toolsMenu.setIcon(QIcon(":/images/iconToolsMenu.png"))
+        self.toolsMenu.setIcon(QIcon(":/images/iconToolsMenu.svg"))
         #    #Toolbar
         self.toolsToolbar = self.iface.addToolBar(self.tr("QGISRed Tools"))
         self.toolsToolbar.setObjectName(self.tr("QGISRed Tools"))
@@ -1055,7 +1055,7 @@ class QGISRed:
         self.toolsToolbar.setVisible(False)
         #    #Buttons
         toolDropButton = QToolButton()
-        icon_path = ":/images/iconToolsMenu.png"
+        icon_path = ":/images/iconToolsMenu.svg"
         self.add_action(
             icon_path,
             text=self.tr("Tools"),
@@ -1181,7 +1181,7 @@ class QGISRed:
     def addAnalysisMenu(self):
         #    #Menu
         self.analysisMenu = self.qgisredmenu.addMenu(self.tr("Analysis"))
-        self.analysisMenu.setIcon(QIcon(":/images/iconAnalysisMenu.png"))
+        self.analysisMenu.setIcon(QIcon(":/images/iconAnalysisMenu.svg"))
         #    #Toolbar
         self.analysisToolbar = self.iface.addToolBar(self.tr("QGISRed Analysis"))
         self.analysisToolbar.setObjectName(self.tr("QGISRed Analysis"))
@@ -1189,7 +1189,7 @@ class QGISRed:
         self.analysisToolbar.setVisible(False)
         #    #Buttons
         analysisDropButton = QToolButton()
-        icon_path = ":/images/iconAnalysisMenu.png"
+        icon_path = ":/images/iconAnalysisMenu.svg"
         self.add_action(
             icon_path,
             text=self.tr("Analysis"),
@@ -1264,7 +1264,7 @@ class QGISRed:
     def addDigitalTwinMenu(self):
         #    #Menu
         self.dtMenu = self.qgisredmenu.addMenu(self.tr("Digital Twin"))
-        self.dtMenu.setIcon(QIcon(":/images/iconDigitalTwinMenu.png"))
+        self.dtMenu.setIcon(QIcon(":/images/iconDigitalTwinMenu.svg"))
         #    #Toolbar
         self.dtToolbar = self.iface.addToolBar(self.tr("QGISRed Digital Twin"))
         self.dtToolbar.setObjectName(self.tr("QGISRed Digital Twin"))
@@ -1272,7 +1272,7 @@ class QGISRed:
         self.dtToolbar.setVisible(False)
         #    #Buttons
         dtDropButton = QToolButton()
-        icon_path = ":/images/iconDigitalTwinMenu.png"
+        icon_path = ":/images/iconDigitalTwinMenu.svg"
         self.add_action(
             icon_path,
             text=self.tr("Digital Twin"),
@@ -1561,7 +1561,7 @@ class QGISRed:
     def addQueriesMenu(self):
         #    #Menu
         self.queriesMenu = self.qgisredmenu.addMenu(self.tr("Queries"))
-        self.queriesMenu.setIcon(QIcon(":/images/iconQueriesMenu.png"))
+        self.queriesMenu.setIcon(QIcon(":/images/iconQueriesMenu.svg"))
         #    #Toolbar
         self.queriesToolbar = self.iface.addToolBar(self.tr("QGISRed Queries"))
         self.queriesToolbar.setObjectName(self.tr("QGISRed Queries"))
@@ -1569,7 +1569,7 @@ class QGISRed:
         self.queriesToolbar.setVisible(False)
         #    #Buttons
         queriesDropButton = QToolButton()
-        icon_path = ":/images/iconQueriesMenu.png"
+        icon_path = ":/images/iconQueriesMenu.svg"
         self.add_action(
             icon_path,
             text=self.tr("Queries"),

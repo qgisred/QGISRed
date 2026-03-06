@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>:/images/iconAbout.png</normaloff>:/images/iconAbout.png</iconset>
+    <normaloff>:/images/iconAbout.svg</normaloff>:/images/iconAbout.svg</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="1">
@@ -36,6 +36,12 @@
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
+               <property name="maximumSize">
+                <size>
+                 <width>32</width>
+                 <height>32</height>
+                </size>
+               </property>
                <property name="cursor">
                 <cursorShape>ArrowCursor</cursorShape>
                </property>
@@ -43,10 +49,10 @@
                 <string/>
                </property>
                <property name="pixmap">
-                <pixmap>:/images/qgisred32.png</pixmap>
+                <pixmap>:/images/iconGeneralMenu.svg</pixmap>
                </property>
                <property name="scaledContents">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
