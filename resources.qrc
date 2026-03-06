@@ -5,30 +5,30 @@
         <file>images/aboutUPV.png</file>
         <file>images/iconAbout.svg</file>  
         <file>images/cursor.png</file>
-        <file>images/iconAddAutometer.png</file>
-        <file>images/iconAddConnection.png</file>
-        <file>images/iconAddCountermeter.png</file>
+        <file>images/iconAddAutometer.svg</file>
+        <file>images/iconAddConnection.svg</file>
+        <file>images/iconAddCountermeter.svg</file>
         <file>images/iconAddData.svg</file>
-        <file>images/iconAddDefaultMeter.png</file>
-        <file>images/iconAddDiffManometer.png</file>
-        <file>images/iconAddEnergySensor.png</file>
-        <file>images/iconAddFlowmeter.png</file>
-        <file>images/iconAddIsolationValve.png</file>
-        <file>images/iconAddLevelSensor.png</file>
-        <file>images/iconAddManometer.png</file>
+        <file>images/iconAddDefaultMeter.svg</file>
+        <file>images/iconAddDiffManometer.svg</file>
+        <file>images/iconAddEnergySensor.svg</file>
+        <file>images/iconAddFlowmeter.svg</file>
+        <file>images/iconAddIsolationValve.svg</file>
+        <file>images/iconAddLevelSensor.svg</file>
+        <file>images/iconAddManometer.svg</file>
         <file>images/iconAddPipe.svg</file>
         <file>images/iconAddPump.svg</file>
-        <file>images/iconAddQualitySensor.png</file>
+        <file>images/iconAddQualitySensor.svg</file>
         <file>images/iconAddReservoir.svg</file>
-        <file>images/iconAddStatusSensor.png</file>
-        <file>images/iconAddTachometer.png</file>
+        <file>images/iconAddStatusSensor.svg</file>
+        <file>images/iconAddTachometer.svg</file>
         <file>images/iconAddTank.svg</file>
         <file>images/iconAddValve.svg</file>
-        <file>images/iconAddValveOpening.png</file>
+        <file>images/iconAddValveOpening.svg</file>
         <file>images/iconAnalysisMenu.svg</file>
         <file>images/iconCalculatePipeLengths.svg</file>
         <file>images/iconCloseProject.svg</file>
-        <file>images/iconIncorporateConnectionsToModel.png</file>
+        <file>images/iconIncorporateConnectionsToModel.svg</file>
         <file>images/iconDeleteIsolatedAreas.svg</file>
         <file>images/iconCheckConnectivity.svg</file> 
         <file>images/iconCreateProject.svg</file>
@@ -60,7 +60,7 @@
         <file>images/iconLayerManagement.svg</file>
         <file>images/iconCheckPipeLengths.svg</file>
         <file>images/iconPatternsAndCurves.svg</file>
-        <file>images/iconLoadFieldData.png</file>
+        <file>images/iconLoadFieldData.svg</file>
         <file>images/iconBackUpProject.svg</file>
         <file>images/iconCheckMaterials.png</file>
         <file>images/iconMaterials.svg</file>
@@ -84,7 +84,7 @@
         <file>images/iconSaveProject.svg</file>
         <file>images/iconScenarioBuilder.svg</file>
         <file>images/iconMultipleSelection.svg</file>
-		<file>images/iconLoadMeterReadings.png</file>
+		<file>images/iconLoadMeterReadings.svg</file>
         <file>images/iconProjectSettings.svg</file>
         <file>images/iconSplitJoinPipes.svg</file>
         <file>images/iconStatisticsAndPlots.png</file>
@@ -95,7 +95,7 @@
         <file>images/iconStatisticsExcel.png</file>
         <file>images/iconStatisticsExport.png</file>
         <file>images/iconStatisticsImport.png</file>
-        <file>images/iconSetPipeStatusFromValves.png</file>
+        <file>images/iconSetPipeStatusFromValves.svg</file>
         <file>images/iconSummary.svg</file>
         <file>images/iconSwitch.png</file>
         <file>images/iconSwitchDisabled.png</file>

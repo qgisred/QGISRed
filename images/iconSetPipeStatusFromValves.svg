@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Nodo de red (azul) -->
+  <circle cx="32" cy="32" r="12" fill="none" stroke="#60bcd3" stroke-width="4" />
+  <circle cx="32" cy="32" r="4" fill="#60bcd3" />
+  
+  <!-- Línea de pulso/estatus (verde) estilo monitor -->
+  <polyline points="8,40 20,40 24,20 32,50 40,30 44,40 56,40" fill="none" stroke="#7fa828" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  
+  <!-- Badge de información/status (azul pequeño) -->
+  <g transform="translate(42, 6)">
+    <circle cx="8" cy="8" r="8" fill="#60bcd3" />
+    <text x="8" y="13" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">i</text>
+  </g>
+</svg>

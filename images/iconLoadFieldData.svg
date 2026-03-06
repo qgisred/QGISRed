@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Servidor/Base de Datos (SCADA) en azul -->
+  <rect x="16" y="32" width="32" height="24" rx="4" fill="none" stroke="#60bcd3" stroke-width="4" />
+  <line x1="16" y1="40" x2="48" y2="40" stroke="#60bcd3" stroke-width="4" />
+  <line x1="16" y1="48" x2="48" y2="48" stroke="#60bcd3" stroke-width="4" />
+  
+  <!-- Luces del servidor -->
+  <circle cx="24" cy="36" r="2" fill="#60bcd3" />
+  <circle cx="24" cy="44" r="2" fill="#60bcd3" />
+  <circle cx="24" cy="52" r="2" fill="#60bcd3" />
+
+  <!-- Ondas de telemetría inalambrica arriba (verde) -->
+  <path d="M 32 24 A 4 4 0 1 1 32 23.9" fill="#7fa828" />
+  <path d="M 24 16 A 12 12 0 0 1 40 16" fill="none" stroke="#7fa828" stroke-width="4" stroke-linecap="round" />
+  <path d="M 16 8 A 22 22 0 0 1 48 8" fill="none" stroke="#7fa828" stroke-width="4" stroke-linecap="round" />
+</svg>

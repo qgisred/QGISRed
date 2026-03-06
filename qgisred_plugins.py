@@ -1288,7 +1288,7 @@ class QGISRed:
         )
         self.dtDropButton = dtDropButton
 
-        icon_path = ":/images/iconAddConnection.png"
+        icon_path = ":/images/iconAddConnection.svg"
         self.addServConnButton = self.add_action(
             icon_path,
             text=self.tr("Add service connection"),
@@ -1301,7 +1301,7 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
 
-        icon_path = ":/images/iconAddIsolationValve.png"
+        icon_path = ":/images/iconAddIsolationValve.svg"
         self.addIsolationValveButton = self.add_action(
             icon_path,
             text=self.tr("Add isolation valve"),
@@ -1316,17 +1316,17 @@ class QGISRed:
 
         # Create submenu for the main menu
         self.meterSubMenu = self.dtMenu.addMenu(self.tr("Add Meter"))
-        self.meterSubMenu.setIcon(QIcon(":/images/iconAddDefaultMeter.png"))
+        self.meterSubMenu.setIcon(QIcon(":/images/iconAddDefaultMeter.svg"))
         
         # Create a separate submenu for the toolbar dropdown
         self.meterSubMenuToolbar = QMenu(self.tr("Add Meter"), self.iface.mainWindow())
         act_toolbar_meter = self.dtDropButton.menu().addMenu(self.meterSubMenuToolbar)
-        act_toolbar_meter.setIcon(QIcon(":/images/iconAddDefaultMeter.png"))
+        act_toolbar_meter.setIcon(QIcon(":/images/iconAddDefaultMeter.svg"))
 
         self.currentMeter = "Undefined"
         self.addMeterDropButton = QToolButton()
         self.addMeterDropButton.setPopupMode(QToolButton.InstantPopup)  # Optional: open menu on click
-        icon_path = ":/images/iconAddDefaultMeter.png"
+        icon_path = ":/images/iconAddDefaultMeter.svg"
         self.add_action(
             icon_path,
             text=self.tr("Add meter"),
@@ -1342,7 +1342,7 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         
-        icon_path = ":/images/iconAddAutometer.png"
+        icon_path = ":/images/iconAddAutometer.svg"
         self.addAutoMeterButton = self.add_action(
             icon_path,
             text=self.tr("Add automatic meter"),
@@ -1356,7 +1356,7 @@ class QGISRed:
         )
         self.addMeterDropButton.setDefaultAction(self.addAutoMeterButton)
         
-        icon_path = ":/images/iconAddManometer.png"
+        icon_path = ":/images/iconAddManometer.svg"
         self.addManometerButton = self.add_action(
             icon_path,
             text=self.tr("Add manometer"),
@@ -1369,7 +1369,7 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         
-        icon_path = ":/images/iconAddFlowmeter.png"
+        icon_path = ":/images/iconAddFlowmeter.svg"
         self.addFlowmeterButton = self.add_action(
             icon_path,
             text=self.tr("Add flowmeter"),
@@ -1382,7 +1382,7 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         
-        icon_path = ":/images/iconAddCountermeter.png"
+        icon_path = ":/images/iconAddCountermeter.svg"
         self.addCountermeterButton = self.add_action(
             icon_path,
             text=self.tr("Add countermeter"),
@@ -1395,7 +1395,7 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         
-        icon_path = ":/images/iconAddLevelSensor.png"
+        icon_path = ":/images/iconAddLevelSensor.svg"
         self.addLevelSensorButton = self.add_action(
             icon_path,
             text=self.tr("Add level sensor"),
@@ -1408,7 +1408,7 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         
-        icon_path = ":/images/iconAddDiffManometer.png"
+        icon_path = ":/images/iconAddDiffManometer.svg"
         self.addDifferentialManometerButton = self.add_action(
             icon_path,
             text=self.tr("Add differential manometer"),
@@ -1421,7 +1421,7 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         
-        icon_path = ":/images/iconAddQualitySensor.png"
+        icon_path = ":/images/iconAddQualitySensor.svg"
         self.addQualitySensorButton = self.add_action(
             icon_path,
             text=self.tr("Add quality sensor"),
@@ -1434,7 +1434,7 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         
-        icon_path = ":/images/iconAddEnergySensor.png"
+        icon_path = ":/images/iconAddEnergySensor.svg"
         self.addEnergySensorButton = self.add_action(
             icon_path,
             text=self.tr("Add energy sensor"),
@@ -1447,7 +1447,7 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         
-        icon_path = ":/images/iconAddStatusSensor.png"
+        icon_path = ":/images/iconAddStatusSensor.svg"
         self.addStatusSensorButton = self.add_action(
             icon_path,
             text=self.tr("Add status sensor"),
@@ -1460,7 +1460,7 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         
-        icon_path = ":/images/iconAddValveOpening.png"
+        icon_path = ":/images/iconAddValveOpening.svg"
         self.addValveOpeningButton = self.add_action(
             icon_path,
             text=self.tr("Add valve opening"),
@@ -1473,7 +1473,7 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         
-        icon_path = ":/images/iconAddTachometer.png"
+        icon_path = ":/images/iconAddTachometer.svg"
         self.addTachometerButton = self.add_action(
             icon_path,
             text=self.tr("Add tachometer"),
@@ -1506,7 +1506,7 @@ class QGISRed:
         self.dtMenu.addSeparator()
         self.dtToolbar.addSeparator()
         
-        icon_path = ":/images/iconLoadMeterReadings.png"
+        icon_path = ":/images/iconLoadMeterReadings.svg"
         self.add_action(
             icon_path,
             text=self.tr("Load meter readings..."),
@@ -1518,7 +1518,7 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         
-        icon_path = ":/images/iconSetPipeStatusFromValves.png"
+        icon_path = ":/images/iconSetPipeStatusFromValves.svg"
         self.add_action(
             icon_path,
             text=self.tr("Set pipe's initial status from isolation valves"),
@@ -1530,7 +1530,7 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
 
-        icon_path = ":/images/iconLoadFieldData.png"
+        icon_path = ":/images/iconLoadFieldData.svg"
         self.add_action(
             icon_path,
             text=self.tr("Load field data..."),
@@ -1546,7 +1546,7 @@ class QGISRed:
         self.dtMenu.addSeparator()
         self.dtToolbar.addSeparator()
 
-        icon_path = ":/images/iconIncorporateConnectionsToModel.png"
+        icon_path = ":/images/iconIncorporateConnectionsToModel.svg"
         self.add_action(
             icon_path,
             text=self.tr("Convert service connections into pipes/nodes"),
