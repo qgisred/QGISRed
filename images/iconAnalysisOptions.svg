@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Engranaje de configuración (Azul) -->
+  <g transform="translate(32, 28)" fill="none" stroke="#60bcd3" stroke-width="4">
+    <circle cx="0" cy="0" r="18" />
+    <path d="M 0 -22 L 0 -18 M 0 18 L 0 22 M -22 0 L -18 0 M 18 0 L 22 0" stroke-linecap="round" />
+    <path d="M -16 -16 L -13 -13 M 13 13 L 16 16 M 16 -16 L 13 -13 M -13 13 L -16 16" stroke-linecap="round" />
+  </g>
+  
+  <!-- Dial / Reloj hidráulico interno (Verde) -->
+  <g transform="translate(32, 28)">
+    <circle cx="0" cy="0" r="12" fill="none" stroke="#7fa828" stroke-width="3" />
+    <line x1="0" y1="0" x2="8" y2="-6" stroke="#7fa828" stroke-width="4" stroke-linecap="round" />
+    <circle cx="0" cy="0" r="3" fill="#7fa828" />
+  </g>
+  
+  <!-- Entrada/Salida de tubería (Azul) -->
+  <line x1="8" y1="52" x2="56" y2="52" stroke="#60bcd3" stroke-width="6" stroke-linecap="round" />
+  <circle cx="32" cy="52" r="4" fill="#7fa828" />
+</svg>

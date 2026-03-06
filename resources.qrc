@@ -46,13 +46,13 @@
         <file>images/iconEditProperties.png</file>
         <file>images/iconElementProperties.png</file>
         <file>images/iconExport.png</file>
-        <file>images/iconExportToEpanet.png</file>
+        <file>images/iconExportToEpanet.svg</file>
         <file>images/iconFilter.png</file>
         <file>images/iconFindElements.png</file>
         <file>images/iconGeneralMenu.svg</file>
         <file>images/iconGitHub.svg</file>
         <file>images/iconCheckHydraulicSectors.svg</file>
-        <file>images/iconAnalysisOptions.png</file>
+        <file>images/iconAnalysisOptions.svg</file>
         <file>images/iconImportProject.svg</file>
         <file>images/iconInterpolateNodeElevations.svg</file>
         <file>images/iconIsolatedSegments.svg</file>
@@ -74,7 +74,7 @@
         <file>images/iconProjectMenu.svg</file>
         <file>images/iconQueriesMenu.svg</file>
         <file>images/iconQueryByAttributes.png</file>
-        <file>images/iconResultsBrowser.png</file>
+        <file>images/iconResultsBrowser.svg</file>
         <file>images/iconReverseElements.svg</file>
         <file>images/iconSetRoughnessFromMaterialDate.svg</file>
 		<file>images/iconConvertRoughnessCoeff.svg</file>

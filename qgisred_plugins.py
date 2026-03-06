@@ -1216,7 +1216,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconAnalysisOptions.png"
+        icon_path = ":/images/iconAnalysisOptions.svg"
         self.add_action(
             icon_path,
             text=self.tr("Analysis options..."),
@@ -1227,7 +1227,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconResultsBrowser.png"
+        icon_path = ":/images/iconResultsBrowser.svg"
         self.add_action(
             icon_path,
             text=self.tr("Results browser"),
@@ -1249,7 +1249,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconExportToEpanet.png"
+        icon_path = ":/images/iconExportToEpanet.svg"
         self.add_action(
             icon_path,
             text=self.tr("Export to Epanet"),

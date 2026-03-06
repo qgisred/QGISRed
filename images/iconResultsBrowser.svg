@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Portapapeles/Informe de resultados (azul) -->
+  <rect x="12" y="12" width="40" height="44" rx="4" fill="none" stroke="#60bcd3" stroke-width="4" />
+  <rect x="24" y="8" width="16" height="8" rx="2" fill="#60bcd3" />
+  
+  <!-- Gráfico de líneas interno (verde) -->
+  <polyline points="20,44 28,32 36,40 44,24" fill="none" stroke="#7fa828" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  
+  <!-- Badge de check verde -->
+  <g transform="translate(42, 42)">
+    <circle cx="10" cy="10" r="10" fill="#7fa828" />
+    <path d="M 6 10 L 9 13 L 14 7" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+</svg>
