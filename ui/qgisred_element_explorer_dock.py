@@ -2194,13 +2194,12 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.showResultsPlaceholder()
 
     def onResultsDockVisibilityChanged(self, visible):
-        """Handle results dock visibility changes."""
-        if visible:
-            timeText = self.resultsDock.lbTime.text() if self.resultsDock else ""
-            if timeText:
-                self.onResultsTimeChanged(timeText)
-            else:
-                self.showResultsPlaceholder()
+        if not self.resultsDock:
+            self.showResultsPlaceholder()
+            return
+        timeText = self.resultsDock.lbTime.text() if self.resultsDock else ""
+        if timeText:
+            self.onResultsTimeChanged(timeText)
         else:
             self.showResultsPlaceholder()
 
@@ -2247,7 +2246,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
     def populateResultsTable(self):
         """Populate tableResults with per-element results from the binary .out file."""
-        if not self.resultsDock or not self.resultsDock.isVisible():
+        if not self.resultsDock:
             self.showResultsPlaceholder()
             return
 
