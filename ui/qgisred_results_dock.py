@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QDockWidget, QApplication
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QColor, QFont
 from qgis.PyQt import uic
-from qgis.core import QgsProject, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsField, QgsVectorLayer
+from qgis.core import QgsProject, QgsLayerTreeGroup, QgsField
 from PyQt5.QtCore import Qt, QVariant, QTimer
 from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling
 from qgis.core import QgsTextFormat
@@ -51,7 +51,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     Renders = {}
     Computing = False
     TimeLabels = []
-    result_layer_ids = {}  # shapefile_path → layer.id(), maintained as backup for custom_prop
 
     def __init__(self, iface):
         """Constructor."""
@@ -194,14 +193,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         return QGISRedUtils().getUniformedPath(path)
 
     def getLayerPath(self, layer):
-        custom_path = layer.customProperty("qgisred_result_path")
-        if custom_path:
-            return custom_path
-        # Fallback: check dock-level dict in case custom_prop was lost
-        layer_id = layer.id()
-        for path, lid in self.result_layer_ids.items():
-            if lid == layer_id:
-                return path
         return QGISRedUtils().getLayerPath(layer)
 
     def generatePath(self, folder, fileName):
@@ -214,20 +205,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     def getLayers(self):
         return QGISRedUtils().getLayers()
 
-    def getResultLayersInGroup(self, scenario):
-        """Returns {path: layer} for all layers currently in the Results/scenario group."""
-        resultGroup = self.getResultGroup()
-        group = resultGroup.findGroup(scenario)
-        if group is None:
-            return {}
-        result = {}
-        for tree_layer in group.findLayers():
-            layer = tree_layer.layer()
-            if layer:
-                path = self.getLayerPath(layer)
-                result[path] = layer
-        return result
-
     def openLayerResults(self, scenario, nameLayer=None):
         resultPath = self.getResultsPath()
         utils = QGISRedUtils(resultPath, self.NetworkName + "_" + scenario, self.iface)
@@ -237,8 +214,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             group = resultGroup.addGroup(scenario)
             QGISRedUtils.setGroupIdentifier(group, scenario)
 
-        # Check which result layers are already open (search group directly)
-        openedLayersPaths = set(self.getResultLayersInGroup(scenario).keys())
+        openedLayersPaths = [self.getLayerPath(l) for l in self.getLayers()]
 
         files = [nameLayer] if nameLayer else ["Node", "Link"]
         for file in files:
@@ -251,51 +227,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             # Open layer if not already open
             if resultLayerPath not in openedLayersPaths:
                 utils.openLayer(group, file, results=True)
-                # Convert the newly opened OGR layer to an in-memory layer
-                for layer in self.getLayers():
-                    if QGISRedUtils().getLayerPath(layer) == resultLayerPath:
-                        self.createMemoryLayer(layer, group)
-                        break
-
-    def createMemoryLayer(self, ogr_layer, group):
-        """Replace an OGR shapefile result layer with an equivalent in-memory layer.
-
-        Stores the original shapefile path as a custom property so that getLayerPath()
-        continues to return the correct path for all downstream code.
-        """
-        original_path = QGISRedUtils().getLayerPath(ogr_layer)
-        geom_type = {0: "Point", 1: "LineString", 2: "Polygon"}.get(ogr_layer.geometryType(), "Point")
-        crs = ogr_layer.crs().authid()
-        mem_layer = QgsVectorLayer(f"{geom_type}?crs={crs}", ogr_layer.name(), "memory")
-        provider = mem_layer.dataProvider()
-        provider.addAttributes(ogr_layer.fields().toList())
-        mem_layer.updateFields()
-        provider.addFeatures(list(ogr_layer.getFeatures()))
-        mem_layer.updateExtents()
-        mem_layer.setRenderer(ogr_layer.renderer().clone())
-        mem_layer.setCustomProperty("qgisred_result_path", original_path)
-        self.result_layer_ids[original_path] = mem_layer.id()
-        ogr_layer_id = ogr_layer.id()
-        # Preserve position in group (Node above Link)
-        ogr_pos = 0
-        for i, child in enumerate(group.children()):
-            if hasattr(child, 'layer') and child.layer() and child.layer().id() == ogr_layer_id:
-                ogr_pos = i
-                break
-        QgsProject.instance().addMapLayer(mem_layer, False)
-        group.insertChildNode(ogr_pos, QgsLayerTreeLayer(mem_layer))
-        QgsProject.instance().removeMapLayer(ogr_layer_id)
-        return mem_layer
 
     def removeResults(self):
-        resultGroup = self.getResultGroup()
-        group = resultGroup.findGroup(self.Scenario)
-        if group is None:
-            return
-        layers_to_remove = [child.layer().id() for child in group.findLayers() if child.layer()]
-        for layer_id in layers_to_remove:
-            QgsProject.instance().removeMapLayer(layer_id)
-        self.result_layer_ids.clear()
+        resultPath = self.getResultsPath()
+        utils = QGISRedUtils(resultPath, self.NetworkName + "_" + self.Scenario, self.iface)
+        utils.removeLayers(["Node", "Link"])
 
     def removeResultLayer(self, nameLayer):
         """Remove a specific result layer from the QGIS legend."""
@@ -794,9 +730,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             layer_to_paint = None
             resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp")
 
-            # Check if layer is already open (search group directly)
-            group_layers = self.getResultLayersInGroup(self.Scenario)
-            layer_to_paint = group_layers.get(resultLayerPath)
+            # Check if layer is already open
+            for layer in self.getLayers():
+                if self.getLayerPath(layer) == resultLayerPath:
+                    layer_to_paint = layer
+                    break
 
             # If the layer is not open, open it!
             if layer_to_paint is None:
