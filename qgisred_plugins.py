@@ -841,7 +841,7 @@ class QGISRed:
         editDropButton.menu().addSeparator()
         self.editionToolbar.addSeparator()
         self.editionMenu.addSeparator()
-        icon_path = ":/images/iconEditProperties.png"
+        icon_path = ":/images/iconEditMenu.svg"
         self.editElementButton = self.add_action(
             icon_path,
             text=self.tr("Edit element properties..."),
@@ -1205,7 +1205,7 @@ class QGISRed:
         )
         self.analysisDropButton = analysisDropButton
 
-        icon_path = ":/images/iconRunModel.png"
+        icon_path = ":/images/iconAnalysisMenu.svg"
         self.add_action(
             icon_path,
             text=self.tr("Run model"),
@@ -1238,7 +1238,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconRunModel.png"
+        icon_path = ":/images/iconAnalysisMenu.svg"
         self.add_action(
             icon_path,
             text=self.tr("Status report"),

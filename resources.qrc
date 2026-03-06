@@ -43,7 +43,7 @@
         <file>images/iconCheckDiameters.svg</file>
         <file>images/iconDigitalTwinMenu.svg</file>
         <file>images/iconEditMenu.svg</file>
-        <file>images/iconEditProperties.png</file>
+        <file>images/iconEditMenu.svg</file>
         <file>images/iconElementProperties.png</file>
         <file>images/iconExport.png</file>
         <file>images/iconExportToEpanet.svg</file>
@@ -79,7 +79,7 @@
         <file>images/iconSetRoughnessFromMaterialDate.svg</file>
 		<file>images/iconConvertRoughnessCoeff.svg</file>
         <file>images/iconControlsAndRules.svg</file>
-        <file>images/iconRunModel.png</file>
+        <file>images/iconAnalysisMenu.svg</file>
         <file>images/iconSaveProject.svg</file>
         <file>images/iconSaveProject.svg</file>
         <file>images/iconScenarioBuilder.svg</file>
