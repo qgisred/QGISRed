@@ -529,13 +529,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.updateButtonStates()
 
     def updateFrameLegendLabel(self, layer):
-        baseTitle = self.tr(f"Legend for {layer.name()}")
+        layerName = layer.name()
+        prefix = self.tr("Legend for")
+        boldLayer = f"<b><span style='font-size:larger'>{layerName}</span></b>"
         units = self.getLayerUnits()
 
         if units:
-            self.labelFrameLegends.setText(f"{baseTitle} | {units} units")
+            self.labelFrameLegends.setText(f"{prefix} {boldLayer} | {units} units")
         else:
-            self.labelFrameLegends.setText(baseTitle)
+            self.labelFrameLegends.setText(f"{prefix} {boldLayer}")
 
     def syncLegendTypeComboBox(self, layer):
         rendererType = layer.renderer().type()
