@@ -2899,7 +2899,7 @@
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.py" line="156"/>
-        <source>Mean</source>
+        <source>Average</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

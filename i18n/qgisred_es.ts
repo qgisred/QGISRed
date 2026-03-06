@@ -2889,8 +2889,8 @@
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.py" line="156"/>
-        <source>Mean</source>
-        <translation>Media</translation>
+        <source>Average</source>
+        <translation>Promedio</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.py" line="91"/>

@@ -61,7 +61,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self._lbl_none            = self.tr("None")
         self._lbl_maximum         = self.tr("Maximum")
         self._lbl_minimum         = self.tr("Minimum")
-        self._lbl_mean            = self.tr("Mean")
+        self._lbl_average            = self.tr("Average")
         self._lbl_warning         = self.tr("Warning")
         self._lbl_permanent       = self.tr("Permanent")
         self._lbl_pressure        = self.tr("Pressure")
@@ -116,7 +116,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self._lbl_maximum,
             self._lbl_minimum,
             self.tr("Range"),
-            self._lbl_mean,
+            self._lbl_average,
             self.tr("Standard Deviation"),
         ])
 
@@ -163,7 +163,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         """Adjusts cbLinks items when entering/leaving statistics mode.
 
         In any stat mode: removes 'Status' (categorical, not meaningful).
-        In Mean mode: replaces 'Flow' with 'Flow Unsig' and inserts 'Flow Sig' below.
+        In Average mode: replaces 'Flow' with 'Flow Unsig' and inserts 'Flow Sig' below.
         On restore (stat == 'None'): reverses all changes.
         """
         self.cbLinks.currentIndexChanged.disconnect(self.linksChanged)
@@ -176,7 +176,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 if status_idx != -1:
                     self.cbLinks.removeItem(status_idx)
 
-                if stat == self._lbl_mean:
+                if stat == self._lbl_average:
                     flow_idx = self.cbLinks.findText(self._lbl_flow)
                     if flow_idx != -1:
                         self.cbLinks.setItemText(flow_idx, self._lbl_unsigned_flow)
@@ -184,7 +184,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                         if current_text == self._lbl_flow:
                             self.cbLinks.setCurrentIndex(flow_idx)
                 else:
-                    # Entering non-Mean stat from Mean: remove Signed Flow, rename Unsigned Flow → Flow
+                    # Entering non-Average stat from Average: remove Signed Flow, rename Unsigned Flow → Flow
                     flow_sig_idx = self.cbLinks.findText(self._lbl_signed_flow)
                     if flow_sig_idx != -1:
                         self.cbLinks.removeItem(flow_sig_idx)
