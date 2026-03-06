@@ -426,7 +426,7 @@ class QGISRed:
         )
         self.generalDropButton = generalDropButton
 
-        icon_path = ":/images/iconProjectManager.png"
+        icon_path = ":/images/iconProjectManager.svg"
         self.add_action(
             icon_path,
             text=self.tr("Project manager..."),
@@ -437,7 +437,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconOpenProject.png"
+        icon_path = ":/images/iconOpenProject.svg"
         self.add_action(
             icon_path,
             text=self.tr("Open project..."),
@@ -448,7 +448,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconCreateProject.png"
+        icon_path = ":/images/iconCreateProject.svg"
         self.add_action(
             icon_path,
             text=self.tr("Create project..."),
@@ -459,7 +459,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconImport.png"
+        icon_path = ":/images/iconImportProject.svg"
         self.add_action(
             icon_path,
             text=self.tr("Import project..."),
@@ -2562,7 +2562,7 @@ class QGISRed:
         self.selectedFids = {}
 
         dlg = QGISRedImportProjectDialog()
-        icon_path = ":/images/iconOpenProject.png"
+        icon_path = ":/images/iconOpenProject.svg"
         dlg.setWindowIcon(QIcon(icon_path))
         dlg.setWindowTitle("QGISRed: Open project")
         # Run the dialog event loop

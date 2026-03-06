@@ -31,7 +31,7 @@
         <file>images/iconIncorporateConnectionsToModel.png</file>
         <file>images/iconDeleteIsolatedAreas.png</file>
         <file>images/iconCheckConnectivity.png</file> 
-        <file>images/iconCreateProject.png</file>
+        <file>images/iconCreateProject.svg</file>
         <file>images/iconCreateRemoveCrossings.png</file>
         <file>images/iconCreateRemoveTConnections.png</file>
         <file>images/iconCheckInstalationDates.png</file>
@@ -53,7 +53,7 @@
         <file>images/iconGitHub.svg</file>
         <file>images/iconCheckHydraulicSectors.png</file>
         <file>images/iconAnalysisOptions.png</file>
-        <file>images/iconImport.png</file>
+        <file>images/iconImportProject.svg</file>
         <file>images/iconInterpolateNodeElevations.png</file>
         <file>images/iconIsolatedSegments.png</file>
         <file>images/iconJoinPipes.png</file>
@@ -68,9 +68,9 @@
         <file>images/iconMoveNodes.png</file>
         <file>images/iconMoveElements.png</file>
         <file>images/iconEditVertices.png</file>
-        <file>images/iconOpenProject.png</file>
+        <file>images/iconOpenProject.svg</file>
         <file>images/iconRemoveOverlappings.png</file>
-        <file>images/iconProjectManager.png</file>
+        <file>images/iconProjectManager.svg</file>
         <file>images/iconProjectMenu.svg</file>
         <file>images/iconQueriesMenu.svg</file>
         <file>images/iconQueryByAttributes.png</file>
