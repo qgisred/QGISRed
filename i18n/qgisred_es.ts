@@ -2978,7 +2978,7 @@
     <message>
         <location filename="../tools/qgisred_selectPoint.py" line="127"/>
         <source>A not valid point was selected</source>
-        <translatio>Se ha seleccionado un punto no válido</translation>
+        <translation>Se ha seleccionado un punto no válido</translation>
     </message>
 </context>
 <context>
