@@ -85,6 +85,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.displayingNodeField = ""
         self._statsMode = False
 
+        self.statsDisplayWidget.setVisible(False)
+        self.timeDisplayWidget.setVisible(True)
+
     """Methods"""
     def populateResultStatsComboboxes(self):
         self.cbResultTimes.addItems([self.tr("Report times")])
@@ -535,8 +538,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 self._statsMode = True
                 self.updateLinksComboboxForStat(statistic)
                 result_times = self.cbResultTimes.currentText().lower()
-                self.lbTime.setText(f"{statistic} values for {result_times}")
-                self.lbLabel5.setVisible(False)
+                self.lbStatName.setText(f"{statistic} values")
+                self.lbStatDesc.setText(f"for {result_times}")
+                self.timeDisplayWidget.setVisible(False)
+                self.statsDisplayWidget.setVisible(True)
                 self.timeControlsWidget.setVisible(False)
                 if self.validationsOpenResult():
                     self.ensureResultsLayersAreOpen()
@@ -548,9 +553,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 self.saveCurrentRender()
                 self._statsMode = False
                 self.updateLinksComboboxForStat(self.tr("None"))
-                self.lbTime.setText(self.cbTimes.currentText())
+                self.statsDisplayWidget.setVisible(False)
                 is_temporal = self.cbTimes.count() > 1
-                self.lbLabel5.setVisible(is_temporal)
+                self.timeDisplayWidget.setVisible(True)
+                self.lbTime.setText(self.cbTimes.currentText())
                 self.timeControlsWidget.setVisible(is_temporal)
                 if self.validationsOpenResult():
                     self.ensureResultsLayersAreOpen()
@@ -823,16 +829,13 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.cbTimes.setCurrentIndex(0)
         self.timeSlider.setValue(0)
         self.timeSlider.setMaximum(len(self.TimeLabels) - 1)
-        if not self._statsMode:
-            self.lbTime.setText(self.TimeLabels[0])
-
         # Configure Visibilities
-        if len(mylist) == 1:
-            self.lbLabel5.setVisible(False)
-            self.timeControlsWidget.setVisible(False)
-        else:
-            self.lbLabel5.setVisible(not self._statsMode)
-            self.timeControlsWidget.setVisible(not self._statsMode)
+        in_stats = self._statsMode
+        self.statsDisplayWidget.setVisible(in_stats)
+        self.timeDisplayWidget.setVisible(not in_stats)
+        if not in_stats:
+            self.lbTime.setText(self.TimeLabels[0])
+        self.timeControlsWidget.setVisible(not in_stats and len(mylist) > 1)
 
         self.Computing = False
 
