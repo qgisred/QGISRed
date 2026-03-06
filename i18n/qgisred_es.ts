@@ -2919,12 +2919,12 @@
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.py" line="332"/>
-        <source>Flow Unsig</source>
+        <source>Unsigned Flow</source>
         <translation>Caudal absoluto</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.py" line="332"/>
-        <source>Flow Sig</source>
+        <source>Signed Flow</source>
         <translation>Caudal con signo</translation>
     </message>
     <message>
