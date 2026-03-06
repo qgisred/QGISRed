@@ -193,6 +193,16 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
         if self.dock is None:
             self.setDock()
 
+        # Resolve Results/Queries layer to Inputs counterpart
+        resolvedLayer, resolvedFeature = self.dock.resolveToInputElement(layer, feature)
+        if resolvedLayer != layer:
+            layer = resolvedLayer
+            feature = resolvedFeature
+            # Re-apply highlight and selection on the resolved Inputs element
+            self.clearSelections()
+            self.selectFeature(layer, feature)
+            self.highlightFeature(layer, feature)
+
         wasHidden = not self.dock.isVisible()
         if wasHidden:
             iface.addDockWidget(Qt.RightDockWidgetArea, self.dock)
