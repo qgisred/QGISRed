@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+   <!-- Líneas de red uniendo puntos (azul punteado) -->
+  <path d="M 16 16 L 32 40 L 48 16" fill="none" stroke="#60bcd3" stroke-width="4" stroke-dasharray="4 4" opacity="0.6" />
+  
+ 
+ <!-- Mapa de puntos de red (azul) -->
+  <g >
+    <circle cx="16" cy="16" r="6" fill="#60bcd3" />
+    <circle cx="48" cy="16" r="6" fill="#60bcd3"/>
+    <circle cx="32" cy="40" r="6" fill="#7fa828"/>
+  </g>
+  
+
+  <!-- Badge de añadir/interpolar estándar (Verde circular con "+" blanco) -->
+  <g transform="translate(42, 42)">
+    <circle cx="10" cy="10" r="10" fill="#7fa828" />
+    <path d="M 6.5 10 L 13.5 10 M 10 6.5 L 10 13.5" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
+  </g>
+</svg>

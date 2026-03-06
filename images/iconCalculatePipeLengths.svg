@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Regla / Cinta métrica (azul) -->
+  <rect x="8" y="24" width="48" height="16" rx="2" fill="none" stroke="#60bcd3" stroke-width="4" />
+  <!-- Marcas de la regla -->
+  <line x1="16" y1="24" x2="16" y2="30" stroke="#60bcd3" stroke-width="2" />
+  <line x1="24" y1="24" x2="24" y2="34" stroke="#60bcd3" stroke-width="2" />
+  <line x1="32" y1="24" x2="32" y2="30" stroke="#60bcd3" stroke-width="2" />
+  <line x1="40" y1="24" x2="40" y2="34" stroke="#60bcd3" stroke-width="2" />
+  <line x1="48" y1="24" x2="48" y2="30" stroke="#60bcd3" stroke-width="2" />
+  
+  <!-- Símbolo de cálculo / "L" (verde) -->
+  <text x="32" y="52" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#7fa828" text-anchor="middle">L</text>
+  <!-- Flecha de dimensión -->
+  <path d="M 8 20 L 8 12 L 56 12 L 56 20" fill="none" stroke="#7fa828" stroke-width="3" />
+  <polygon points="8,12 14,8 14,16" fill="#7fa828" />
+  <polygon points="56,12 50,8 50,16" fill="#7fa828" />
+</svg>

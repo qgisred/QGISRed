@@ -1071,7 +1071,7 @@ class QGISRed:
         )
         self.toolsDropButton = toolDropButton
 
-        icon_path = ":/images/iconCalculatePipeLengths.png"
+        icon_path = ":/images/iconCalculatePipeLengths.svg"
         self.add_action(
             icon_path,
             text=self.tr("Automatically Calculate Pipe Lengths"),
@@ -1082,7 +1082,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconInterpolateNodeElevations.png"
+        icon_path = ":/images/iconInterpolateNodeElevations.svg"
         self.add_action(
             icon_path,
             text=self.tr("Interpolate elevation from .asc files..."),
@@ -1093,7 +1093,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconSetRoughnessFromMaterialDate.png"
+        icon_path = ":/images/iconSetRoughnessFromMaterialDate.svg"
         self.add_action(
             icon_path,
             text=self.tr("Set roughness coefficient (from Material and Date)"),
@@ -1104,7 +1104,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconConvertRoughnessCoeff.png"
+        icon_path = ":/images/iconConvertRoughnessCoeff.svg"
         self.add_action(
             icon_path,
             text=self.tr("Convert roughness coefficient"),
@@ -1118,7 +1118,7 @@ class QGISRed:
         toolDropButton.menu().addSeparator()
         self.toolsToolbar.addSeparator()
         self.toolsMenu.addSeparator()
-        icon_path = ":/images/iconDemandBuilder.png"
+        icon_path = ":/images/iconDemandBuilder.svg"
         self.add_action(
             icon_path,
             text=self.tr("Nodal Demand Builder..."),
@@ -1129,7 +1129,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconScenarioBuilder.png"
+        icon_path = ":/images/iconScenarioBuilder.svg"
         self.add_action(
             icon_path,
             text=self.tr("Scenario Builder..."),
@@ -1140,7 +1140,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconIsolatedSegments.png"
+        icon_path = ":/images/iconIsolatedSegments.svg"
         self.isolatedSegmentsButton = self.add_action(
             icon_path,
             text=self.tr("Isolated Segments"),
@@ -1155,7 +1155,7 @@ class QGISRed:
         toolDropButton.menu().addSeparator()
         self.toolsToolbar.addSeparator()
         self.toolsMenu.addSeparator()
-        icon_path = ":/images/iconDemandSectors.png"
+        icon_path = ":/images/iconDemandSectors.svg"
         self.add_action(
             icon_path,
             text=self.tr("Obtain demand sectors"),
@@ -1166,7 +1166,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconGraphTree.png"
+        icon_path = ":/images/iconGraphTree.svg"
         self.add_action(
             icon_path,
             text=self.tr("Tree Graph..."),

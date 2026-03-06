@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Red principal (azul) -->
+  <path d="M 12 12 L 32 32 L 52 12 M 32 32 L 32 52" fill="none" stroke="#60bcd3" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  <circle cx="32" cy="32" r="5" fill="#60bcd3" />
+  
+  <!-- Segmento aislado (Verde) -->
+  <line x1="44" y1="44" x2="56" y2="56" stroke="#7fa828" stroke-width="6" stroke-linecap="round" />
+  <circle cx="44" cy="44" r="5" fill="#7fa828" />
+  <circle cx="56" cy="56" r="5" fill="#7fa828" />
+
+  <!-- Badge rojo de advertencia/aislado -->
+  <g transform="translate(42, 12)">
+    <circle cx="10" cy="10" r="10" fill="#e15554" />
+    <text x="10" y="16" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">!</text>
+  </g>
+</svg>

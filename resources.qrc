@@ -26,7 +26,7 @@
         <file>images/iconAddValve.svg</file>
         <file>images/iconAddValveOpening.png</file>
         <file>images/iconAnalysisMenu.svg</file>
-        <file>images/iconCalculatePipeLengths.png</file>
+        <file>images/iconCalculatePipeLengths.svg</file>
         <file>images/iconCloseProject.svg</file>
         <file>images/iconIncorporateConnectionsToModel.png</file>
         <file>images/iconDeleteIsolatedAreas.svg</file>
@@ -38,8 +38,8 @@
         <file>images/iconDebugMenu.svg</file>
         <file>images/iconDefaultMenu.svg</file>
         <file>images/iconDeleteElements.svg</file>
-        <file>images/iconDemandBuilder.png</file>
-        <file>images/iconDemandSectors.png</file>
+        <file>images/iconDemandBuilder.svg</file>
+        <file>images/iconDemandSectors.svg</file>
         <file>images/iconCheckDiameters.svg</file>
         <file>images/iconDigitalTwinMenu.svg</file>
         <file>images/iconEditMenu.svg</file>
@@ -54,8 +54,8 @@
         <file>images/iconCheckHydraulicSectors.svg</file>
         <file>images/iconAnalysisOptions.png</file>
         <file>images/iconImportProject.svg</file>
-        <file>images/iconInterpolateNodeElevations.png</file>
-        <file>images/iconIsolatedSegments.png</file>
+        <file>images/iconInterpolateNodeElevations.svg</file>
+        <file>images/iconIsolatedSegments.svg</file>
         <file>images/iconJoinPipes.svg</file>
         <file>images/iconLayerManagement.svg</file>
         <file>images/iconCheckPipeLengths.svg</file>
@@ -76,13 +76,13 @@
         <file>images/iconQueryByAttributes.png</file>
         <file>images/iconResultsBrowser.png</file>
         <file>images/iconReverseElements.svg</file>
-        <file>images/iconSetRoughnessFromMaterialDate.png</file>
-		<file>images/iconConvertRoughnessCoeff.png</file>
+        <file>images/iconSetRoughnessFromMaterialDate.svg</file>
+		<file>images/iconConvertRoughnessCoeff.svg</file>
         <file>images/iconControlsAndRules.svg</file>
         <file>images/iconRunModel.png</file>
         <file>images/iconSaveProject.svg</file>
         <file>images/iconSaveProject.svg</file>
-        <file>images/iconScenarioBuilder.png</file>
+        <file>images/iconScenarioBuilder.svg</file>
         <file>images/iconMultipleSelection.svg</file>
 		<file>images/iconLoadMeterReadings.png</file>
         <file>images/iconProjectSettings.svg</file>
@@ -103,7 +103,7 @@
         <file>images/iconCreateTConnections.svg</file>
         <file>images/iconThematicMaps.png</file>
         <file>images/iconToolsMenu.svg</file>
-        <file>images/iconGraphTree.png</file>
+        <file>images/iconGraphTree.svg</file>
         <file>images/iconSimplifyVertices.svg</file>
         <file>images/iconChangeStatus.svg</file>  
         <file>images/pencil.svg</file>

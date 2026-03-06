@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Tubería base -->
+  <!-- Borde superior irregular/rugoso -->
+  <path d="M 8 20 L 16 16 L 24 24 L 32 16 L 40 24 L 48 16 L 56 20" fill="none" stroke="#60bcd3" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  
+  <!-- Borde inferior irregular/rugoso -->
+  <path d="M 8 44 L 16 48 L 24 40 L 32 48 L 40 40 L 48 48 L 56 44" fill="none" stroke="#60bcd3" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  
+  <!-- Indicadores de fricción/rugosidad internos (líneas onduladas) -->
+  <path d="M 16 32 C 20 28, 24 36, 28 32 C 32 28, 36 36, 40 32 C 44 28, 48 36, 52 32" fill="none" stroke="#60bcd3" stroke-width="3" opacity="0.6" stroke-linecap="round" />
+</svg>

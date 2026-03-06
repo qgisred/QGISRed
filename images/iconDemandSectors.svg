@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Grilla de red dividida por sectores -->
+  <!-- Sector 1 (Azul) -->
+  <g stroke="#60bcd3" stroke-width="3" fill="none">
+    <rect x="8" y="8" width="20" height="20" rx="2" />
+    <line x1="18" y1="8" x2="18" y2="28" />
+    <line x1="8" y1="18" x2="28" y2="18" />
+  </g>
+  
+  <!-- Sector 2 (Verde resaltado) -->
+  <g stroke="#7fa828" stroke-width="4" fill="none">
+    <rect x="36" y="8" width="20" height="20" rx="2" />
+    <line x1="46" y1="8" x2="46" y2="28" />
+    <line x1="36" y1="18" x2="56" y2="18" />
+  </g>
+  
+  <!-- Sector 3 (Azul degradado/tenue) -->
+  <g stroke="#60bcd3" stroke-width="3" fill="none" opacity="0.4">
+    <rect x="8" y="36" width="20" height="20" rx="2" />
+    <rect x="36" y="36" width="20" height="20" rx="2" />
+  </g>
+  
+  <!-- Conexiones entre sectores (Dashed azul) -->
+  <line x1="28" y1="18" x2="36" y2="18" stroke="#60bcd3" stroke-width="2" stroke-dasharray="2 2" />
+  <line x1="18" y1="28" x2="18" y2="36" stroke="#60bcd3" stroke-width="2" stroke-dasharray="2 2" />
+</svg>

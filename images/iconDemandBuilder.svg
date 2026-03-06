@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Tubería de red (Azul) -->
+  <line x1="8" y1="56" x2="56" y2="56" stroke="#60bcd3" stroke-width="6" stroke-linecap="round" />
+  <circle cx="32" cy="56" r="4" fill="#60bcd3" />
+  
+  <!-- Conexión de acometida (Verde) -->
+  <line x1="32" y1="44" x2="32" y2="56" stroke="#7fa828" stroke-width="4" stroke-linecap="round" />
+  
+  <!-- Casa de demanda (Todo rellena de Verde) -->
+  <path d="M 20 44 L 44 44 L 44 24 L 32 12 L 20 24 Z" fill="#7fa828" />
+</svg>

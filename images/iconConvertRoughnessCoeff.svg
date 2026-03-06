@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Tubería base -->
+  <!-- Borde superior irregular/rugoso -->
+  <path d="M 8 20 L 16 16 L 24 24 L 32 16 L 40 20" fill="none" stroke="#60bcd3" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  
+  <!-- Borde inferior irregular/rugoso -->
+  <path d="M 8 44 L 16 48 L 24 40 L 32 48 L 40 44" fill="none" stroke="#60bcd3" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  
+  <!-- Símbolo de transformación/conversión (Flechas en ciclo circular) -->
+  <g stroke="#7fa828" stroke-width="4" fill="none" stroke-linecap="round">
+    <!-- Flecha superior curvada -->
+    <path d="M 38 32 A 12 12 0 0 1 58 32" />
+    <polygon points="58,32 54,26 62,26" fill="#7fa828" stroke="none" />
+    
+    <!-- Flecha inferior curvada -->
+    <path d="M 58 32 A 12 12 0 0 1 38 32" />
+    <polygon points="38,32 34,38 42,38" fill="#7fa828" stroke="none" />
+  </g>
+</svg>
