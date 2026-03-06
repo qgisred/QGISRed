@@ -4630,6 +4630,7 @@ class QGISRed:
 
         tool = "identifyFeature"
         if self.isToolAlreadyActive(tool, self.openFindElementsDialog):
+            self.connectElementExplorerToResultsDock()
             return
 
         useElementProperties = False
@@ -4661,6 +4662,7 @@ class QGISRed:
                 self.openFindElementsDialog.setChecked(False)
                 return
 
+        self.connectElementExplorerToResultsDock()
         self.switchToIdentifyTool(tool, self.openFindElementsDialog, useElementProperties, dock)
 
     def runElementsProperty(self):
@@ -4671,6 +4673,7 @@ class QGISRed:
 
         tool = "identifyFeatureElementProperties"
         if self.isToolAlreadyActive(tool, self.openElementsPropertyDialog):
+            self.connectElementExplorerToResultsDock()
             return
 
         if existingDock:
@@ -4680,6 +4683,7 @@ class QGISRed:
                 existingDock.updateCollapsibleWidgetsState(collapseElementProperties=False)
                 existingDock.scrollToElementProperties()
 
+        self.connectElementExplorerToResultsDock()
         self.switchToIdentifyTool(tool, self.openElementsPropertyDialog, True, existingDock)
 
     def runQueriesByAttributes(self):
