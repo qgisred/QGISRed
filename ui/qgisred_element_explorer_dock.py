@@ -1965,6 +1965,46 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                         self.addAdjacencyItem(fullName, lyr.customProperty("qgisred_identifier"))
                         return
 
+    def resolveToInputElement(self, layer, feature):
+        """If layer is from Results or Queries group, find the corresponding Inputs element by Id."""
+        identifier = layer.customProperty("qgisred_identifier", "")
+
+        # Already an Inputs layer
+        if identifier in self.elementIdentifiers.values():
+            return layer, feature
+
+        # Determine which Inputs identifiers to search
+        searchIdentifiers = None
+        if identifier.startswith("qgisred_link_"):
+            searchIdentifiers = ["qgisred_pipes", "qgisred_pumps", "qgisred_valves"]
+        elif identifier.startswith("qgisred_node_"):
+            searchIdentifiers = ["qgisred_junctions", "qgisred_reservoirs", "qgisred_tanks"]
+        elif identifier.startswith("qgisred_query_"):
+            # Pattern: qgisred_query_{layerType}_{field} e.g. qgisred_query_pipes_diameter
+            parts = identifier.split("_", 3)  # ['qgisred', 'query', 'pipes', 'diameter']
+            if len(parts) >= 3:
+                layerType = parts[2]
+                inputIdentifier = f"qgisred_{layerType}"
+                if inputIdentifier in self.elementIdentifiers.values():
+                    searchIdentifiers = [inputIdentifier]
+
+        if not searchIdentifiers:
+            return layer, feature
+
+        # Match by Id field
+        featureId = feature.attribute("Id")
+        if featureId is None:
+            return layer, feature
+        featureIdStr = str(featureId)
+
+        for inputLayer in self.getAllInputGroupLayers():
+            if inputLayer.customProperty("qgisred_identifier") in searchIdentifiers:
+                for feat in inputLayer.getFeatures():
+                    if str(feat.attribute("Id")) == featureIdStr:
+                        return inputLayer, feat
+
+        return layer, feature
+
     def findFeature(self, layer, feature):
         # Safety check - verify layer and feature are valid
         if not layer or not feature:
@@ -1976,6 +2016,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         if not availableLayers:
             self.showLayerVisibilityWarning()
             return
+
+        # Resolve Results/Queries layer to its Inputs counterpart
+        layer, feature = self.resolveToInputElement(layer, feature)
 
         elementTypeText = layer.name()
         self.cbElementType.setCurrentText(elementTypeText)
