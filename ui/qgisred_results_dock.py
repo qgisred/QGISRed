@@ -563,6 +563,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 self.timeDisplayWidget.setVisible(False)
                 self.statsDisplayWidget.setVisible(True)
                 self.timeControlsWidget.setVisible(False)
+                if self.cbFlowDirections.isChecked():
+                    self.cbFlowDirections.setChecked(False)
+                self.cbFlowDirections.setVisible(False)
                 if self.validationsOpenResult():
                     self.ensureResultsLayersAreOpen()
                     self.clearResultFields()
@@ -576,6 +579,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 self.statsDisplayWidget.setVisible(False)
                 is_temporal = self.cbTimes.count() > 1
                 self.timeDisplayWidget.setVisible(True)
+                self.cbFlowDirections.setVisible(True)
                 self.lbTime.setText(self.cbTimes.currentText())
                 self.timeControlsWidget.setVisible(is_temporal)
                 if self.validationsOpenResult():
