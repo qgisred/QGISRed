@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QDockWidget, QApplication
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QColor, QFont
 from qgis.PyQt import uic
-from qgis.core import QgsProject, QgsLayerTreeGroup, QgsField
+from qgis.core import QgsProject, QgsLayerTreeGroup, QgsField, QgsVectorLayer
 from PyQt5.QtCore import Qt, QVariant, QTimer
 from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling
 from qgis.core import QgsTextFormat
@@ -61,7 +61,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self._lbl_none            = self.tr("None")
         self._lbl_maximum         = self.tr("Maximum")
         self._lbl_minimum         = self.tr("Minimum")
-        self._lbl_average            = self.tr("Average")
+        self._lbl_range           = self.tr("Range")
+        self._lbl_average         = self.tr("Average")
+        self._lbl_std_deviation   = self.tr("Standard Deviation")
         self._lbl_warning         = self.tr("Warning")
         self._lbl_permanent       = self.tr("Permanent")
         self._lbl_pressure        = self.tr("Pressure")
@@ -115,9 +117,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self._lbl_none,
             self._lbl_maximum,
             self._lbl_minimum,
-            self.tr("Range"),
+            self._lbl_range,
             self._lbl_average,
-            self.tr("Standard Deviation"),
+            self._lbl_std_deviation,
         ])
 
     def populateVariableComboboxes(self):
@@ -814,6 +816,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if resMessage == "False":
             self.iface.messageBar().pushMessage("Warning", self.tr("Some issues occurred in the process"), level=1, duration=5)
         elif resMessage.startswith("[TimeLabels]"):
+            self.applyStatisticFromOptions()
             self.openBaseResults(resMessage.replace("[TimeLabels]", ""))
             self.show()
             # Hide all sibling groups except Results
@@ -830,6 +833,34 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         # If some error, close the dock
         self.close()
+
+    def applyStatisticFromOptions(self):
+        options_path = os.path.join(self.ProjectDirectory, self.NetworkName + "_Options.dbf")
+        dbf = QgsVectorLayer(options_path, "Options", "ogr")
+        statistic_value = "NONE"
+        for feature in dbf.getFeatures():
+            attrs = feature.attributes()
+            if attrs[1] == "STATISTIC":
+                statistic_value = attrs[2]
+                break
+        del dbf
+
+        stat_map = {
+            "NONE": self._lbl_none,
+            "MAXIMUM": self._lbl_maximum,
+            "MINIMUM": self._lbl_minimum,
+            "RANGE": self._lbl_range,
+            "AVERAGE": self._lbl_average,
+        }
+        translated_stat = stat_map.get(statistic_value.strip().upper(), self._lbl_none)
+        idx = self.cbStatistics.findText(translated_stat)
+        if idx >= 0:
+            self.cbStatistics.setCurrentIndex(idx)
+        self._statsMode = translated_stat != self._lbl_none
+        if self._statsMode:
+            result_times = self.cbResultTimes.currentText().lower()
+            self.lbStatName.setText(f"{translated_stat} values")
+            self.lbStatDesc.setText(f"for {result_times}")
 
     def openBaseResults(self, labels):
         # Select comboboxes item
