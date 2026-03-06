@@ -467,47 +467,47 @@
     <message>
         <location filename="../qgisred_plugins.py" line="1853"/>
         <source>Some layer is in Edit Mode. Plase, commit it before continuing.</source>
-        <translation type="unfinished"></translation>
+        <translation>Alguna capa está en Modo Edición. Por favor, consolídela antes de continuar.</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="1861"/>
         <source>The project has changes. Please save them before continuing.</source>
-        <translation type="unfinished"></translation>
+        <translation>El proyecto tiene cambios. Por favor, guárdelos antes de continuar.</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="1867"/>
         <source>Do you want to close the current project and continue?</source>
-        <translation type="unfinished"></translation>
+        <translation>¿Desea cerrar el proyecto actual y continuar?</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="1882"/>
         <source>Opened layers</source>
-        <translation type="unfinished"></translation>
+        <translation>Capas abiertas</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="1882"/>
         <source>Do you want to close the current layers and continue?</source>
-        <translation type="unfinished"></translation>
+        <translation>¿Desea cerrar las capas actuales y continuar?</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="2721"/>
         <source>Backup stored in: </source>
-        <translation type="unfinished"></translation>
+        <translation>Copia de seguridad almacenada en:</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="3794"/>
         <source>No one pipe&apos;s length out of tolerance</source>
-        <translation type="unfinished"></translation>
+        <translation>Ninguna longitud de tubería fuera de la tolerancia</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="4112"/>
         <source>No issues ocurred</source>
-        <translation type="unfinished"></translation>
+        <translation>No ha habido ningún problema</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="4140"/>
         <source>Any elevation has been estimated</source>
-        <translation type="unfinished"></translation>
+        <translation>Se ha estimado cualquier cota</translation>
     </message>
 </context>
 <context>
@@ -1025,117 +1025,117 @@
     <message>
         <location filename="../qgisred_plugins.py" line="299"/>
         <source>Loaded sucssesfully</source>
-        <translation type="unfinished"></translation>
+        <translation>Cargado exitósamente</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="430"/>
         <source>Project manager...</source>
-        <translation type="unfinished"></translation>
+        <translation>Gestor de proyectos...</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="441"/>
         <source>Open project...</source>
-        <translation type="unfinished"></translation>
+        <translation>Abrir proyecto...</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="452"/>
         <source>Create project...</source>
-        <translation type="unfinished"></translation>
+        <translation>Crear proyecto...</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="463"/>
         <source>Import project...</source>
-        <translation type="unfinished"></translation>
+        <translation>Importar proyecto...</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="502"/>
         <source>Summary...</source>
-        <translation type="unfinished"></translation>
+        <translation>Resumen...</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="513"/>
         <source>Add data by import...</source>
-        <translation type="unfinished"></translation>
+        <translation>Añadir datos mediante importación...</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="524"/>
         <source>Layer manager...</source>
-        <translation type="unfinished"></translation>
+        <translation>Gestor de capas...</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="535"/>
         <source>Legend editor...</source>
-        <translation type="unfinished"></translation>
+        <translation>Editor de leyenda...</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="549"/>
         <source>Project settings...</source>
-        <translation type="unfinished"></translation>
+        <translation>Configuración del proyecto...</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="560"/>
         <source>Default values...</source>
-        <translation type="unfinished"></translation>
+        <translation>Valores predeterminados...</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="571"/>
         <source>Materials Table...</source>
-        <translation type="unfinished"></translation>
+        <translation>Tabla de Materiales...</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="845"/>
         <source>Edit element properties...</source>
-        <translation type="unfinished"></translation>
+        <translation>Editar propiedades de los elementos...</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="857"/>
         <source>Edit patterns and curves...</source>
-        <translation type="unfinished"></translation>
+        <translation>Editar patrones y curvas...</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="868"/>
         <source>Edit controls...</source>
-        <translation type="unfinished"></translation>
+        <translation>Editar controles...</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="1086"/>
         <source>Interpolate elevation from .asc files...</source>
-        <translation type="unfinished"></translation>
+        <translation>Interpolar cota desde archivos .asc...</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="1122"/>
         <source>Nodal Demand Builder...</source>
-        <translation type="unfinished"></translation>
+        <translation>Constructor de Demanda Nodal...</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="1133"/>
         <source>Scenario Builder...</source>
-        <translation type="unfinished"></translation>
+        <translation>Constructor de Escenarios...</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="1170"/>
         <source>Tree Graph...</source>
-        <translation type="unfinished"></translation>
+        <translation>Grafo de Árbol...</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="1220"/>
         <source>Analysis options...</source>
-        <translation type="unfinished"></translation>
+        <translation>Opciones de Análisis...</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="1242"/>
         <source>Status report</source>
-        <translation type="unfinished"></translation>
+        <translation>Informe de estado</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="1510"/>
         <source>Load meter readings...</source>
-        <translation type="unfinished"></translation>
+        <translation>Cargar lecturas de medidores...</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="1534"/>
         <source>Load field data...</source>
-        <translation type="unfinished"></translation>
+        <translation>Cargar datos de campo...</translation>
     </message>
 </context>
 <context>
@@ -1206,17 +1206,17 @@
     <message>
         <location filename="../ui/qgisred_cloneproject_dialog.py" line="32"/>
         <source>Not valid New Project Name</source>
-        <translation type="unfinished"></translation>
+        <translation>Nombre de Nuevo Proyecto no válido</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_cloneproject_dialog.py" line="35"/>
         <source>Not valid Project Folder</source>
-        <translation type="unfinished"></translation>
+        <translation>Carpeta de Proyectos no válida</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_cloneproject_dialog.py" line="39"/>
         <source>There is already a project with this name in the selected project folder.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ya hay un proyecto con este nombre en la carpeta de proyectos seleccionada</translation>
     </message>
 </context>
 <context>
@@ -1282,12 +1282,12 @@
     <message>
         <location filename="../ui/qgisred_toolConnectivity_dialog.py" line="26"/>
         <source>Not valid number for lines</source>
-        <translation type="unfinished"></translation>
+        <translation>Número no válido para líneas</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_toolConnectivity_dialog.py" line="31"/>
         <source>Not numeric number of lines</source>
-        <translation type="unfinished"></translation>
+        <translation>Número de líneas no numérico</translation>
     </message>
 </context>
 <context>
@@ -1420,52 +1420,52 @@
     <message>
         <location filename="../ui/qgisred_createproject_dialog.py" line="107"/>
         <source>Validations</source>
-        <translation type="unfinished"></translation>
+        <translation>Validaciones</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_createproject_dialog.py" line="72"/>
         <source>The project name is not valid</source>
-        <translation type="unfinished"></translation>
+        <translation>El nombre del proyecto no es válido</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_createproject_dialog.py" line="76"/>
         <source>The project folder is not valid</source>
-        <translation type="unfinished"></translation>
+        <translation>La carpeta de proyectos no es válida</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_createproject_dialog.py" line="80"/>
         <source>The project folder does not exist</source>
-        <translation type="unfinished"></translation>
+        <translation>La carpeta de proyectos no existe</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_createproject_dialog.py" line="106"/>
         <source>The selected folder has some files with the same project name.</source>
-        <translation type="unfinished"></translation>
+        <translation>La carpeta seleccionada tiene algunos archivos con el mismo nombre de proyecto.</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_createproject_dialog.py" line="132"/>
         <source>Information</source>
-        <translation type="unfinished">Información</translation>
+        <translation>Información</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_createproject_dialog.py" line="132"/>
         <source>Process successfully completed</source>
-        <translation type="unfinished"></translation>
+        <translation>Proceso completado exitósamente</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_createproject_dialog.py" line="138"/>
         <source>Warning</source>
-        <translation type="unfinished">Advertencia</translation>
+        <translation>Advertencia</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_createproject_dialog.py" line="138"/>
         <source>Some issues occurred in the process</source>
-        <translation type="unfinished">Se produjeron algunos problemas durante el proceso</translation>
+        <translation>Se produjeron algunos problemas durante el proceso</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_createproject_dialog.py" line="140"/>
         <source>Error</source>
-        <translation type="unfinished">Error</translation>
+        <translation>Error</translation>
     </message>
 </context>
 <context>
@@ -1603,87 +1603,87 @@
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="2192"/>
         <source>Property</source>
-        <translation type="unfinished">Propiedad</translation>
+        <translation>Propiedad</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="2192"/>
         <source>Value</source>
-        <translation type="unfinished">Valor</translation>
+        <translation>Valor</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="2192"/>
         <source>Units</source>
-        <translation type="unfinished"></translation>
+        <translation>Unidades</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="2113"/>
         <source>Layers Not Visible</source>
-        <translation type="unfinished"></translation>
+        <translation>Capas no visibles</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="2113"/>
         <source>The layers in the Inputs or Results group must be visible in order to select an element.</source>
-        <translation type="unfinished"></translation>
+        <translation>Las capas de los grupos de Entradas o Resultados debe ser visible para seleccionar un elemento.</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="2180"/>
         <source>No results available. Run the model and open the Results panel to view simulation results.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ningún resultado disponible. Ejecuta el modelo y abre el panel de Resultados para ver los resultados de la simulación.</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="2304"/>
         <source>Permanent</source>
-        <translation type="unfinished"></translation>
+        <translation>Permanente</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="2317"/>
         <source>Pressure</source>
-        <translation type="unfinished">Presión</translation>
+        <translation>Presión</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="2318"/>
         <source>Head</source>
-        <translation type="unfinished">Carga</translation>
+        <translation>Carga</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="2320"/>
         <source>Quality</source>
-        <translation type="unfinished">Calidad</translation>
+        <translation>Calidad</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="2321"/>
         <source>Flow</source>
-        <translation type="unfinished">Caudal</translation>
+        <translation>Caudal</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="2322"/>
         <source>Velocity</source>
-        <translation type="unfinished">Velocidad</translation>
+        <translation>Velocidad</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="2323"/>
         <source>HeadLoss</source>
-        <translation type="unfinished">Pérdida de carga</translation>
+        <translation>Pérdida de carga</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="2324"/>
         <source>Unit HeadLoss</source>
-        <translation type="unfinished">Pérdida de carga unitaria</translation>
+        <translation>Pérdida de carga unitaria</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="2325"/>
         <source>Friction Factor</source>
-        <translation type="unfinished"></translation>
+        <translation>Factor de Fricción</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="2326"/>
         <source>Status</source>
-        <translation type="unfinished">Estado</translation>
+        <translation>Estado</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="2327"/>
         <source>Reaction Rate</source>
-        <translation type="unfinished"></translation>
+        <translation>Tasa de Reacción</translation>
     </message>
 </context>
 <context>
@@ -2264,12 +2264,12 @@
     <message>
         <location filename="../ui/qgisred_loadproject_dialog.py" line="48"/>
         <source>Not valid Project Name</source>
-        <translation type="unfinished"></translation>
+        <translation>Nombre de Proyecto no válido</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_loadproject_dialog.py" line="51"/>
         <source>Not valid Project Folder</source>
-        <translation type="unfinished"></translation>
+        <translation>Carpeta de Proyectos no válida</translation>
     </message>
 </context>
 <context>
@@ -2460,12 +2460,12 @@
     <message>
         <location filename="../ui/qgisred_toolLength_dialog.py" line="24"/>
         <source>Not valid Tolerance</source>
-        <translation type="unfinished"></translation>
+        <translation>Tolerancia no válida</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_toolLength_dialog.py" line="29"/>
         <source>Not numeric Tolerance</source>
-        <translation type="unfinished"></translation>
+        <translation>Tolerancia no numérica</translation>
     </message>
 </context>
 <context>
@@ -2473,12 +2473,12 @@
     <message>
         <location filename="../tools/qgisred_multilayerSelection.py" line="162"/>
         <source>Warning</source>
-        <translation type="unfinished">Advertencia</translation>
+        <translation>Advertencia</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_multilayerSelection.py" line="162"/>
         <source>Polygon not valid for selecting elements</source>
-        <translation type="unfinished"></translation>
+        <translation>Polígono no válido para seleccionar elementos</translation>
     </message>
 </context>
 <context>
@@ -2571,67 +2571,67 @@
     <message>
         <location filename="../ui/qgisred_projectmanager_dialog.py" line="580"/>
         <source>Warning</source>
-        <translation type="unfinished">Advertencia</translation>
+        <translation>Advertencia</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_projectmanager_dialog.py" line="309"/>
         <source>Please, select a row project to move.</source>
-        <translation type="unfinished"></translation>
+        <translation>Por favor, seleccione un proyecto de fila para mover.</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_projectmanager_dialog.py" line="320"/>
         <source>Current project can not be </source>
-        <translation type="unfinished"></translation>
+        <translation>El proyecto actual no puede ser </translation>
     </message>
     <message>
         <location filename="../ui/qgisred_projectmanager_dialog.py" line="362"/>
         <source>You need to select a project to {word} it.</source>
-        <translation type="unfinished"></translation>
+        <translation>Necesita seleccionar un proyecto para {word}</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_projectmanager_dialog.py" line="389"/>
         <source>Selected project is currently opened.</source>
-        <translation type="unfinished"></translation>
+        <translation>El proyecto selccionado está actualmente abierto.</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_projectmanager_dialog.py" line="395"/>
         <source>You need to select a project to open it.</source>
-        <translation type="unfinished"></translation>
+        <translation>Necesita seleccionar un proyecto para abrirlo.</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_projectmanager_dialog.py" line="481"/>
         <source>Zip file stored in: </source>
-        <translation type="unfinished"></translation>
+        <translation>Archivo zip almancenado</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_projectmanager_dialog.py" line="484"/>
         <source>You need to select a project to export it.</source>
-        <translation type="unfinished"></translation>
+        <translation>Necesita seleccionar un proyecto para exportarlo.</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_projectmanager_dialog.py" line="517"/>
         <source>You need to select a project to clone.</source>
-        <translation type="unfinished"></translation>
+        <translation>Necesita seleccionar un proyecto para clonar.</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_projectmanager_dialog.py" line="539"/>
         <source>Current project can not be renamed.</source>
-        <translation type="unfinished"></translation>
+        <translation>El proyecto actual no puede ser renombrado.</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_projectmanager_dialog.py" line="566"/>
         <source>Project name has been renamed to </source>
-        <translation type="unfinished"></translation>
+        <translation>El proyecto ha sido renombrado a </translation>
     </message>
     <message>
         <location filename="../ui/qgisred_projectmanager_dialog.py" line="568"/>
         <source>You need to select a project to change its name.</source>
-        <translation type="unfinished"></translation>
+        <translation>Necesita seleccionar un proyecto para cambiar su nombre.</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_projectmanager_dialog.py" line="579"/>
         <source>You need to select a project to open its folder.</source>
-        <translation type="unfinished"></translation>
+        <translation>Necesita seleccionar un proyecto para abrir su carpeta.</translation>
     </message>
 </context>
 <context>
@@ -2639,7 +2639,7 @@
     <message>
         <location filename="../ui/qgisred_queriesbyattributes_dock.py" line="396"/>
         <source>Statistics of {property} for selected Elements</source>
-        <translation type="unfinished"></translation>
+        <translation>Estadísticas de {property} para los Elementos seleccionados</translation>
     </message>
 </context>
 <context>
@@ -2662,17 +2662,17 @@
     <message>
         <location filename="../ui/qgisred_renameproject_dialog.py" line="27"/>
         <source>Not valid New Project Name</source>
-        <translation type="unfinished"></translation>
+        <translation>Nombre de Nuevo Proyecto no válido</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_renameproject_dialog.py" line="30"/>
         <source>Project name can not be the same that the original</source>
-        <translation type="unfinished"></translation>
+        <translation>El nombre del proyecto no puede ser el mismo que el original</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_renameproject_dialog.py" line="34"/>
         <source>There is already a project with this name in the project folder.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ya hay un proyecto con este nombre en la carpeta de proyectos.</translation>
     </message>
 </context>
 <context>
@@ -2835,137 +2835,137 @@
     <message>
         <location filename="../ui/qgisred_results_dock.ui" line="51"/>
         <source>Scenario Base</source>
-        <translation type="unfinished"></translation>
+        <translation>Escenario Base</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.ui" line="69"/>
         <source>Result Times</source>
-        <translation type="unfinished"></translation>
+        <translation>Tiempos de resultado</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.ui" line="96"/>
         <source>Statistics</source>
-        <translation type="unfinished">Estadísticas</translation>
+        <translation>Estadísticas</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.ui" line="181"/>
         <source>00d 00:00:00</source>
-        <translation type="unfinished"></translation>
+        <translation>00d 00:00:00</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.ui" line="363"/>
         <source>Show Node Labels</source>
-        <translation type="unfinished"></translation>
+        <translation>Mostrar Etiquetas de Nudos</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.ui" line="409"/>
         <source>Show Link Labels</source>
-        <translation type="unfinished"></translation>
+        <translation>Mostrar Etiquetas de Líneas</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.ui" line="428"/>
         <source>Show Flow Directions</source>
-        <translation type="unfinished"></translation>
+        <translation>Mostrar Direcciones de Flujo</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.py" line="90"/>
         <source>Report times</source>
-        <translation type="unfinished"></translation>
+        <translation>Tiempos de informe</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.py" line="992"/>
         <source>Maximum</source>
-        <translation type="unfinished"></translation>
+        <translation>Máximo</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.py" line="992"/>
         <source>Minimum</source>
-        <translation type="unfinished"></translation>
+        <translation>Mínimo</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.py" line="91"/>
         <source>Range</source>
-        <translation type="unfinished"></translation>
+        <translatio>Rango</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.py" line="156"/>
         <source>Mean</source>
-        <translation type="unfinished"></translation>
+        <translation>Media</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.py" line="91"/>
         <source>Standard Deviation</source>
-        <translation type="unfinished"></translation>
+        <translation>Desviación Típica</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.py" line="334"/>
         <source>Friction Factor</source>
-        <translation type="unfinished"></translation>
+        <translation>Factor de Fricción</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.py" line="335"/>
         <source>Reaction Rate</source>
-        <translation type="unfinished"></translation>
+        <translation>Tasa de Reacción</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.py" line="134"/>
         <source>The current project has been changed. Please, try again.</source>
-        <translation type="unfinished"></translation>
+        <translation>El proyecto actual ha sido cambiado. Por favor, inténtelo de nuevo</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.py" line="712"/>
         <source>Warning</source>
-        <translation type="unfinished">Advertencia</translation>
+        <translation>Advertencia</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.py" line="332"/>
         <source>Flow Unsig</source>
-        <translation type="unfinished"></translation>
+        <translation>Caudal absoluto</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.py" line="332"/>
         <source>Flow Sig</source>
-        <translation type="unfinished"></translation>
+        <translation>Caudal con signo</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.py" line="224"/>
         <source>Results</source>
-        <translation type="unfinished">Resultados</translation>
+        <translation>Resultados</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.py" line="224"/>
         <source>{} results not found</source>
-        <translation type="unfinished"></translation>
+        <translation>Resultados {} no encontrados</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.py" line="319"/>
         <source>Some issue occurred in the process of saving the style of the layer</source>
-        <translation type="unfinished"></translation>
+        <translation>Ha habido algún problema en el proceso de guardar el estilo de la capa</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.py" line="360"/>
         <source>Link {}</source>
-        <translation type="unfinished"></translation>
+        <translation>Línea {}</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.py" line="365"/>
         <source>Node {}</source>
-        <translation type="unfinished"></translation>
+        <translation>Nudo {}</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.py" line="490"/>
         <source>Some issue occurred in the process of applying the style to the layer</source>
-        <translation type="unfinished"></translation>
+        <translation>Ha habido algún problema en el proceso de aplicar el estilo de la capa</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.py" line="711"/>
         <source>No {} results are available</source>
-        <translation type="unfinished"></translation>
+        <translation>Ningún resultado de {} está disponible</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_results_dock.py" line="890"/>
         <source>Permanent</source>
-        <translation type="unfinished"></translation>
+        <translation>Permanente</translation>
     </message>
 </context>
 <context>
@@ -2973,12 +2973,12 @@
     <message>
         <location filename="../tools/qgisred_selectPoint.py" line="127"/>
         <source>Warning</source>
-        <translation type="unfinished">Advertencia</translation>
+        <translation>Advertencia</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_selectPoint.py" line="127"/>
         <source>A not valid point was selected</source>
-        <translation type="unfinished"></translation>
+        <translation>Se ha seleccionado un punto no válido</translation>
     </message>
 </context>
 <context>
@@ -2986,22 +2986,22 @@
     <message>
         <location filename="../ui/qgisred_thematicmaps_dialog.py" line="94"/>
         <source>Error</source>
-        <translation type="unfinished">Error</translation>
+        <translation>Error</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_thematicmaps_dialog.py" line="94"/>
         <source>group not found.</source>
-        <translation type="unfinished"></translation>
+        <translation>Grupo no encontrado.</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_thematicmaps_dialog.py" line="328"/>
         <source>Failed to create derived layer from {sourceLayer.name()}</source>
-        <translation type="unfinished"></translation>
+        <translation>Error al crear la capa derivada desde {sourceLayer.name()}</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_thematicmaps_dialog.py" line="509"/>
         <source>Query already exists.</source>
-        <translation type="unfinished"></translation>
+        <translation>La consulta ya existe.</translation>
     </message>
 </context>
 <context>
@@ -3009,17 +3009,17 @@
     <message>
         <location filename="../tools/qgisred_utils.py" line="797"/>
         <source>QGISRed project</source>
-        <translation type="unfinished"></translation>
+        <translation>Proyecto de QGISRed</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_utils.py" line="797"/>
         <source>We cannot find the qgis project file. Do you want to find this file manually? If not, we will open only the layers from the Inputs group.</source>
-        <translation type="unfinished"></translation>
+        <translation>No podemos encontrar el archivo del proyecto QGIS. ¿Desea encontrar el archivo manualmente? En caso contrario, abriremos solamente las capas de los grupos de Inputs.</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_utils.py" line="1126"/>
         <source>{field} field not found in layer {layer.name()}</source>
-        <translation type="unfinished"></translation>
+        <translation>Campo {field} no encontrado en la capa {layer.name()}</translation>
     </message>
 </context>
 </TS>
