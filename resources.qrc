@@ -8,7 +8,7 @@
         <file>images/iconAddAutometer.png</file>
         <file>images/iconAddConnection.png</file>
         <file>images/iconAddCountermeter.png</file>
-        <file>images/iconAddData.png</file>
+        <file>images/iconAddData.svg</file>
         <file>images/iconAddDefaultMeter.png</file>
         <file>images/iconAddDiffManometer.png</file>
         <file>images/iconAddEnergySensor.png</file>
@@ -27,7 +27,7 @@
         <file>images/iconAddValveOpening.png</file>
         <file>images/iconAnalysisMenu.svg</file>
         <file>images/iconCalculatePipeLengths.png</file>
-        <file>images/iconCloseProject.png</file>
+        <file>images/iconCloseProject.svg</file>
         <file>images/iconIncorporateConnectionsToModel.png</file>
         <file>images/iconDeleteIsolatedAreas.png</file>
         <file>images/iconCheckConnectivity.png</file> 
@@ -36,7 +36,7 @@
         <file>images/iconCreateRemoveTConnections.png</file>
         <file>images/iconCheckInstalationDates.png</file>
         <file>images/iconDebugMenu.svg</file>
-        <file>images/iconDefaultValues.png</file>
+        <file>images/iconDefaultMenu.svg</file>
         <file>images/iconDeleteElements.png</file>
         <file>images/iconDemandBuilder.png</file>
         <file>images/iconDemandSectors.png</file>
@@ -57,13 +57,13 @@
         <file>images/iconInterpolateNodeElevations.png</file>
         <file>images/iconIsolatedSegments.png</file>
         <file>images/iconJoinPipes.png</file>
-        <file>images/iconLayerManagement.png</file>
+        <file>images/iconLayerManagement.svg</file>
         <file>images/iconCheckPipeLengths.png</file>
         <file>images/iconPatternsAndCurves.png</file>
         <file>images/iconLoadFieldData.png</file>
-        <file>images/iconLock.png</file>
+        <file>images/iconBackUpProject.svg</file>
         <file>images/iconCheckMaterials.png</file>
-        <file>images/iconMaterialsTable.png</file>
+        <file>images/iconMaterials.svg</file>
         <file>images/iconMergeSplitJunctions.png</file>
         <file>images/iconMoveNodes.png</file>
         <file>images/iconMoveElements.png</file>
@@ -80,12 +80,12 @@
 		<file>images/iconConvertRoughnessCoeff.png</file>
         <file>images/iconControlsAndRules.png</file>
         <file>images/iconRunModel.png</file>
-        <file>images/iconSave.png</file>
-        <file>images/iconSave.png</file>
+        <file>images/iconSaveProject.svg</file>
+        <file>images/iconSaveProject.svg</file>
         <file>images/iconScenarioBuilder.png</file>
         <file>images/iconMultipleSelection.png</file>
 		<file>images/iconLoadMeterReadings.png</file>
-        <file>images/iconSettings.png</file>
+        <file>images/iconProjectSettings.svg</file>
         <file>images/iconSplitJoinPipes.png</file>
         <file>images/iconStatisticsAndPlots.png</file>
         <file>images/iconStatisticsArrowDown.png</file>
@@ -96,7 +96,7 @@
         <file>images/iconStatisticsExport.png</file>
         <file>images/iconStatisticsImport.png</file>
         <file>images/iconSetPipeStatusFromValves.png</file>
-        <file>images/iconSummary.png</file>
+        <file>images/iconSummary.svg</file>
         <file>images/iconSwitch.png</file>
         <file>images/iconSwitchDisabled.png</file>
         <file>images/iconSwitchEnabled.png</file>

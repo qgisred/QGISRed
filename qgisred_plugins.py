@@ -498,7 +498,7 @@ class QGISRed:
         )
         self.projectDropButton = projectDropButton
 
-        icon_path = ":/images/iconSummary.png"
+        icon_path = ":/images/iconSummary.svg"
         self.add_action(
             icon_path,
             text=self.tr("Summary..."),
@@ -509,7 +509,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconAddData.png"
+        icon_path = ":/images/iconAddData.svg"
         self.add_action(
             icon_path,
             text=self.tr("Add data by import..."),
@@ -520,7 +520,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconLayerManagement.png"
+        icon_path = ":/images/iconLayerManagement.svg"
         self.add_action(
             icon_path,
             text=self.tr("Layer manager..."),
@@ -545,7 +545,7 @@ class QGISRed:
         projectDropButton.menu().addSeparator()
         self.projectToolbar.addSeparator()
         self.projectMenu.addSeparator()
-        icon_path = ":/images/iconSettings.png"
+        icon_path = ":/images/iconProjectSettings.svg"
         self.add_action(
             icon_path,
             text=self.tr("Project settings..."),
@@ -556,7 +556,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconDefaultValues.png"
+        icon_path = ":/images/iconDefaultMenu.svg"
         self.add_action(
             icon_path,
             text=self.tr("Default values..."),
@@ -567,7 +567,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconMaterialsTable.png"
+        icon_path = ":/images/iconMaterials.svg"
         self.add_action(
             icon_path,
             text=self.tr("Materials Table..."),
@@ -581,7 +581,7 @@ class QGISRed:
         projectDropButton.menu().addSeparator()
         self.projectToolbar.addSeparator()
         self.projectMenu.addSeparator()
-        icon_path = ":/images/iconSave.png"
+        icon_path = ":/images/iconSaveProject.svg"
         self.add_action(
             icon_path,
             text=self.tr("Save map"),
@@ -592,7 +592,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconLock.png"
+        icon_path = ":/images/iconBackUpProject.svg"
         self.add_action(
             icon_path,
             text=self.tr("Project backup"),
@@ -603,7 +603,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconCloseProject.png"
+        icon_path = ":/images/iconCloseProject.svg"
         self.add_action(
             icon_path,
             text=self.tr("Close project"),

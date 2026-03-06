@@ -85,7 +85,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
 
         if not self.NewProject:
             self.setWindowTitle("QGISRed: Add data")
-            icon_path = ":/images/iconAddData.png"
+            icon_path = ":/images/iconAddData.svg"
             self.setWindowIcon(QIcon(icon_path))
             self.lbProject.setVisible(False)
             self.tbProjectDirectory.setVisible(False)

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 68 68">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: none;
+      }
+
+      .cls-2 {
+        fill: #fff;
+      }
+
+      .cls-3 {
+        fill: #60bcd3;
+      }
+
+      .cls-4 {
+        fill: #7fa828;
+      }
+
+      .cls-5 {
+        clip-path: url(#clippath);
+      }
+    </style>
+    <clipPath id="clippath">
+      <rect class="cls-1" x="10.4" y="11.6" width="47.3" height="42.5"/>
+    </clipPath>
+  </defs>
+  <!-- Generator: Adobe Illustrator 28.6.0, SVG Export Plug-In . SVG Version: 1.2.0 Build 709)  -->
+  <g>
+    <g id="Ebene_1">
+      <g class="cls-5">
+        <path class="cls-3" d="M54.1,45.2v5.2h-3s-37.2,0-37.2,0v-27h37.2s3,0,3,0v21.7ZM57.6,50.6v-27.3c0-1.9-1.6-3.5-3.5-3.5h-2.5s-23.1,0-23.1,0v-2c0-1.9-1.6-3.5-3.5-3.5h-11.2c-1.9,0-3.5,1.6-3.5,3.5v31.2h0v1.5s0,0,0,0v.4c0,.3,0,.5.2.8.5,1.3,1.8,2.3,3.2,2.3h40.3c1.9,0,3.5-1.6,3.5-3.5"/>
+      </g>
+      <rect class="cls-2" x="28.3" y="11.6" width="14.2" height="23"/>
+      <polygon class="cls-4" points="44.8 34 35.2 46.4 25.6 34 31.3 34 31.3 14.4 35.2 14.4 39.1 14.4 39.1 34 44.8 34"/>
+    </g>
+  </g>
+</svg>
