@@ -39,13 +39,11 @@
         <file>images/iconCheckInstalationDates.png</file>
         <file>images/iconDebugMenu.png</file>
         <file>images/iconDefaultValues.png</file>
-        <file>images/iconDelete.png</file>
         <file>images/iconDeleteElements.png</file>
         <file>images/iconDemandBuilder.png</file>
         <file>images/iconDemandSectors.png</file>
         <file>images/iconCheckDiameters.png</file>
         <file>images/iconDigitalTwinMenu.png</file>
-        <file>images/iconEditConnection.png</file>
         <file>images/iconEditMenu.png</file>
         <file>images/iconEditProperties.png</file>
         <file>images/iconElementProperties.png</file>
@@ -55,17 +53,14 @@
         <file>images/iconFindElements.png</file>
         <file>images/iconGeneralMenu.png</file>
         <file>images/iconGitHub.png</file>
-        <file>images/iconHydrants.png</file>
         <file>images/iconCheckHydraulicSectors.png</file>
         <file>images/iconAnalysisOptions.png</file>
         <file>images/iconImport.png</file>
         <file>images/iconInterpolateNodeElevations.png</file>
         <file>images/iconIsolatedSegments.png</file>
         <file>images/iconJoinPipes.png</file>
-        <file>images/iconJoinM.png</file>
         <file>images/iconLayerManagement.png</file>
         <file>images/iconCheckPipeLengths.png</file>
-        <file>images/iconLengthM.png</file>
         <file>images/iconPatternsAndCurves.png</file>
         <file>images/iconLoadFieldData.png</file>
         <file>images/iconLock.png</file>
@@ -77,10 +72,8 @@
         <file>images/iconEditVertices.png</file>
         <file>images/iconOpenProject.png</file>
         <file>images/iconRemoveOverlappings.png</file>
-        <file>images/iconOverloadM.png</file>
         <file>images/iconProjectManager.png</file>
         <file>images/iconProjectMenu.png</file>
-        <file>images/iconPurges.png</file>
         <file>images/iconQueriesMenu.png</file>
         <file>images/iconQueryByAttributes.png</file>
         <file>images/iconResultsBrowser.png</file>
@@ -110,18 +103,14 @@
         <file>images/iconSwitchDisabled.png</file>
         <file>images/iconSwitchEnabled.png</file>
         <file>images/iconCreateTConnections.png</file>
-        <file>images/iconTconnectionsM.png</file>
         <file>images/iconThematicMaps.png</file>
         <file>images/iconToolsMenu.png</file>
         <file>images/iconGraphTree.png</file>
-        <file>images/iconUserManager.png</file>
         <file>images/iconSimplifyVertices.png</file>
-        <file>images/iconVerticesM.png</file>
         <file>images/iconChangeStatus.png</file>  
         <file>images/pencil.svg</file>
         <file>images/qgisred.png</file>
         <file>images/qgisred32.png</file>
-        <file>images/setReading.png</file>
      
 
    
