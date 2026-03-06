@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Eslabones de cadena interconectados (Azul) -->
+  <g fill="none" stroke="#60bcd3" stroke-width="7" stroke-linecap="round">
+    <rect x="12" y="28" width="24" height="18" rx="9" transform="rotate(-45 24 37)" />
+    <rect x="28" y="18" width="24" height="18" rx="9" transform="rotate(-45 40 27)" />
+    <path d="M 28 36 L 36 28" stroke-width="9" />
+  </g>
+  
+  <!-- Badge rojo de error/desconectado (X blanca) -->
+  <g transform="translate(42, 42)">
+    <circle cx="10" cy="10" r="10" fill="#e15554" />
+    <path d="M 7 7 L 13 13 M 13 7 L 7 13" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
+  </g>
+</svg>

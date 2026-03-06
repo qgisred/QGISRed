@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Segmento azul -->
+  <line x1="16" y1="24" x2="48" y2="52" stroke="#60bcd3" stroke-width="6" stroke-linecap="round" />
+  <circle cx="16" cy="24" r="6" fill="#60bcd3" />
+  <circle cx="48" cy="52" r="6" fill="#60bcd3" />
+  
+  <!-- Línea de dimensión verde -->
+  <line x1="24" y1="12" x2="56" y2="40" stroke="#7fa828" stroke-width="4" stroke-linecap="round" />
+  <polygon points="24,12 30,16 30,8" fill="#7fa828" transform="rotate(-45 24 12)" />
+  <polygon points="56,40 50,36 50,44" fill="#7fa828" transform="rotate(135 56 40)" />
+  
+  <!-- Letra L verde -->
+  <text x="46" y="24" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#7fa828" text-anchor="middle">L</text>
+  
+  <!-- Badge de check verde circular -->
+  <g transform="translate(6, 42)">
+    <circle cx="10" cy="10" r="10" fill="#7fa828" />
+    <path d="M 6 10 L 9 13 L 14 7" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+</svg>

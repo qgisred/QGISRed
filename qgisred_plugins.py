@@ -914,7 +914,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconRemoveOverlappings.png"
+        icon_path = ":/images/iconRemoveOverlappings.svg"
         self.add_action(
             icon_path,
             text=self.tr("Remove overlapping elements"),
@@ -925,7 +925,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconSimplifyVertices.png"
+        icon_path = ":/images/iconSimplifyVertices.svg"
         self.add_action(
             icon_path,
             text=self.tr("Simplify link vertices"),
@@ -936,7 +936,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconJoinPipes.png"
+        icon_path = ":/images/iconJoinPipes.svg"
         self.add_action(
             icon_path,
             text=self.tr("Join consecutive pipes (diameter, material and year)"),
@@ -947,7 +947,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconCreateTConnections.png"
+        icon_path = ":/images/iconCreateTConnections.svg"
         self.add_action(
             icon_path,
             text=self.tr("Create T Connections"),
@@ -958,7 +958,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconCheckConnectivity.png"
+        icon_path = ":/images/iconCheckConnectivity.svg"
         dropButton = QToolButton()
         self.add_action(
             icon_path,
@@ -971,7 +971,7 @@ class QGISRed:
             add_to_toolbar=False,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconDeleteIsolatedAreas.png"
+        icon_path = ":/images/iconDeleteIsolatedAreas.svg"
         self.add_action(
             icon_path,
             text=self.tr("Delete issolated subzones"),
@@ -985,7 +985,7 @@ class QGISRed:
         dropButton.menu().addSeparator()
         self.debugToolbar.addSeparator()
         self.debugMenu.addSeparator()
-        icon_path = ":/images/iconCheckPipeLengths.png"
+        icon_path = ":/images/iconCheckPipeLengths.svg"
         self.add_action(
             icon_path,
             text=self.tr("Check pipe lengths"),
@@ -996,7 +996,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconCheckDiameters.png"
+        icon_path = ":/images/iconCheckDiameters.svg"
         self.add_action(
             icon_path,
             text=self.tr("Check diameters"),
@@ -1018,7 +1018,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconCheckInstalationDates.png"
+        icon_path = ":/images/iconCheckInstalationDates.svg"
         self.add_action(
             icon_path,
             text=self.tr("Check pipe installation dates"),
@@ -1032,7 +1032,7 @@ class QGISRed:
         dropButton.menu().addSeparator()
         self.debugToolbar.addSeparator()
         self.debugMenu.addSeparator()
-        icon_path = ":/images/iconCheckHydraulicSectors.png"
+        icon_path = ":/images/iconCheckHydraulicSectors.svg"
         self.add_action(
             icon_path,
             text=self.tr("Check hydraulic sectors"),

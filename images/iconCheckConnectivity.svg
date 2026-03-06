@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Eslabones de cadena interconectados (Azul) -->
+  <g fill="none" stroke="#60bcd3" stroke-width="7" stroke-linecap="round">
+    <!-- Eslabón izquierdo/inferior -->
+    <rect x="12" y="28" width="24" height="18" rx="9" transform="rotate(-45 24 37)" />
+    <!-- Eslabón derecho/superior -->
+    <rect x="28" y="18" width="24" height="18" rx="9" transform="rotate(-45 40 27)" />
+    
+    <!-- Punto de unión central para reforzar la idea de link -->
+    <path d="M 28 36 L 36 28" stroke-width="9" />
+  </g>
+</svg>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Sección de la tubería (azul) -->
+  <circle cx="32" cy="32" r="22" fill="none" stroke="#60bcd3" stroke-width="6" />
+  <circle cx="32" cy="32" r="18" fill="none" stroke="#60bcd3" stroke-width="2" opacity="0.3" />
+  
+  <!-- Línea de diámetro (verde) -->
+  <line x1="14" y1="32" x2="50" y2="32" stroke="#7fa828" stroke-width="4" stroke-linecap="round" />
+  <polygon points="14,32 20,28 20,36" fill="#7fa828" />
+  <polygon points="50,32 44,28 44,36" fill="#7fa828" />
+  
+  <!-- Letra "D" -->
+  <text x="32" y="26" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#7fa828" text-anchor="middle">D</text>
+</svg>

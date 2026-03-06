@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Tubería base (azul) -->
+  <line x1="8" y1="32" x2="56" y2="32" stroke="#60bcd3" stroke-width="6" stroke-linecap="round" opacity="0.4" />
+  
+  <!-- Símbolo de Superposición / Solapamiento -->
+  <circle cx="26" cy="32" r="14" fill="#60bcd3" />
+  <circle cx="38" cy="32" r="14" fill="#7fa828" stroke="#ffffff" stroke-width="3" />
+  
+  <!-- Badge rojo de borrado/error de superposición (X blanca) -->
+  <g transform="translate(42, 42)">
+    <circle cx="10" cy="10" r="10" fill="#e15554" />
+    <path d="M 7 7 L 13 13 M 13 7 L 7 13" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
+  </g>
+</svg>

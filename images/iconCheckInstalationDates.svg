@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Calendario base (azul) -->
+  <rect x="12" y="16" width="40" height="36" rx="4" fill="none" stroke="#60bcd3" stroke-width="4" />
+  <rect x="12" y="16" width="40" height="12" rx="4" fill="#60bcd3" />
+  
+  <!-- Anillas -->
+  <line x1="22" y1="10" x2="22" y2="22" stroke="#60bcd3" stroke-width="4" stroke-linecap="round" />
+  <line x1="42" y1="10" x2="42" y2="22" stroke="#60bcd3" stroke-width="4" stroke-linecap="round" />
+  
+  <!-- Días seleccionados/clicados (verde) -->
+  <rect x="32" y="32" width="12" height="12" rx="2" fill="#7fa828" />
+  <!-- Otros días (azul tenue) -->
+  <rect x="20" y="32" width="8" height="8" rx="1" fill="#60bcd3" opacity="0.4" />
+  <rect x="20" y="44" width="8" height="8" rx="1" fill="#60bcd3" opacity="0.4" />
+</svg>

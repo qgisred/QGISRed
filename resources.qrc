@@ -29,18 +29,18 @@
         <file>images/iconCalculatePipeLengths.png</file>
         <file>images/iconCloseProject.svg</file>
         <file>images/iconIncorporateConnectionsToModel.png</file>
-        <file>images/iconDeleteIsolatedAreas.png</file>
-        <file>images/iconCheckConnectivity.png</file> 
+        <file>images/iconDeleteIsolatedAreas.svg</file>
+        <file>images/iconCheckConnectivity.svg</file> 
         <file>images/iconCreateProject.svg</file>
         <file>images/iconCreateRemoveCrossings.svg</file>
         <file>images/iconCreateRemoveTConnections.svg</file>
-        <file>images/iconCheckInstalationDates.png</file>
+        <file>images/iconCheckInstalationDates.svg</file>
         <file>images/iconDebugMenu.svg</file>
         <file>images/iconDefaultMenu.svg</file>
         <file>images/iconDeleteElements.svg</file>
         <file>images/iconDemandBuilder.png</file>
         <file>images/iconDemandSectors.png</file>
-        <file>images/iconCheckDiameters.png</file>
+        <file>images/iconCheckDiameters.svg</file>
         <file>images/iconDigitalTwinMenu.svg</file>
         <file>images/iconEditMenu.svg</file>
         <file>images/iconEditProperties.png</file>
@@ -51,14 +51,14 @@
         <file>images/iconFindElements.png</file>
         <file>images/iconGeneralMenu.svg</file>
         <file>images/iconGitHub.svg</file>
-        <file>images/iconCheckHydraulicSectors.png</file>
+        <file>images/iconCheckHydraulicSectors.svg</file>
         <file>images/iconAnalysisOptions.png</file>
         <file>images/iconImportProject.svg</file>
         <file>images/iconInterpolateNodeElevations.png</file>
         <file>images/iconIsolatedSegments.png</file>
-        <file>images/iconJoinPipes.png</file>
+        <file>images/iconJoinPipes.svg</file>
         <file>images/iconLayerManagement.svg</file>
-        <file>images/iconCheckPipeLengths.png</file>
+        <file>images/iconCheckPipeLengths.svg</file>
         <file>images/iconPatternsAndCurves.svg</file>
         <file>images/iconLoadFieldData.png</file>
         <file>images/iconBackUpProject.svg</file>
@@ -69,7 +69,7 @@
         <file>images/iconMoveElements.svg</file>
         <file>images/iconEditVertices.svg</file>
         <file>images/iconOpenProject.svg</file>
-        <file>images/iconRemoveOverlappings.png</file>
+        <file>images/iconRemoveOverlappings.svg</file>
         <file>images/iconProjectManager.svg</file>
         <file>images/iconProjectMenu.svg</file>
         <file>images/iconQueriesMenu.svg</file>
@@ -100,11 +100,11 @@
         <file>images/iconSwitch.png</file>
         <file>images/iconSwitchDisabled.png</file>
         <file>images/iconSwitchEnabled.png</file>
-        <file>images/iconCreateTConnections.png</file>
+        <file>images/iconCreateTConnections.svg</file>
         <file>images/iconThematicMaps.png</file>
         <file>images/iconToolsMenu.svg</file>
         <file>images/iconGraphTree.png</file>
-        <file>images/iconSimplifyVertices.png</file>
+        <file>images/iconSimplifyVertices.svg</file>
         <file>images/iconChangeStatus.svg</file>  
         <file>images/pencil.svg</file>
         <file>images/qgisred.png</file>
