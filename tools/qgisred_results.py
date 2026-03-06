@@ -727,11 +727,13 @@ def getOut_StatLinksProperties(out_file_path, stat):
         need_min = stat in ("Minimum", "Range")
 
         if need_max:
-            max_vals  = {name: np.full(nl, -np.inf, dtype=np.float32) for name, _, _, _ in TRACKED}
-            max_times = {name: np.full(nl, -1, dtype=np.int64)        for name, _, _, _ in TRACKED}
+            max_vals        = {name: np.full(nl, -np.inf, dtype=np.float32) for name, _, _, _ in TRACKED}
+            max_times       = {name: np.full(nl, -1, dtype=np.int64)        for name, _, _, _ in TRACKED}
+            max_flow_signed = np.zeros(nl, dtype=np.float32)
         if need_min:
-            min_vals  = {name: np.full(nl,  np.inf, dtype=np.float32) for name, _, _, _ in TRACKED}
-            min_times = {name: np.full(nl, -1, dtype=np.int64)        for name, _, _, _ in TRACKED}
+            min_vals        = {name: np.full(nl,  np.inf, dtype=np.float32) for name, _, _, _ in TRACKED}
+            min_times       = {name: np.full(nl, -1, dtype=np.int64)        for name, _, _, _ in TRACKED}
+            min_flow_signed = np.zeros(nl, dtype=np.float32)
         if stat == "Mean":
             sums            = {name: np.zeros(nl, dtype=np.float64) for name, _, _, _ in TRACKED}
             flow_sum_signed = np.zeros(nl, dtype=np.float64)
@@ -762,6 +764,7 @@ def getOut_StatLinksProperties(out_file_path, stat):
                 if name == "Flow" and stat == "Mean":
                     flow_sum_signed += np.where(valid, v, 0.0)
 
+                v_signed = v if (apply_abs and name == "Flow") else None
                 if apply_abs:
                     v = np.abs(v)                              # new array
 
@@ -769,10 +772,14 @@ def getOut_StatLinksProperties(out_file_path, stat):
                     better = valid & (v > max_vals[name])
                     max_vals[name]       = np.where(better, v, max_vals[name])
                     max_times[name][better] = time_s
+                    if v_signed is not None:
+                        max_flow_signed = np.where(better, v_signed, max_flow_signed)
                 if need_min:
                     better = valid & (v < min_vals[name])
                     min_vals[name]       = np.where(better, v, min_vals[name])
                     min_times[name][better] = time_s
+                    if v_signed is not None:
+                        min_flow_signed = np.where(better, v_signed, min_flow_signed)
                 if stat == "Mean":
                     sums[name] += np.where(valid, v.astype(np.float64), 0.0)
                 if stat == "Standard Deviation":
@@ -793,14 +800,16 @@ def getOut_StatLinksProperties(out_file_path, stat):
                 if name == "Status" or (name in disabled_np and disabled_np[name][li]):
                     continue
                 if stat == "Maximum":
+                    value = float(max_flow_signed[li]) if name == "Flow" else float(max_vals[name][li])
                     link_props[name] = {
                         "Time":  int(max_times[name][li]),
-                        "Value": round(float(max_vals[name][li]), ROUNDING_PRECISION)
+                        "Value": round(value, ROUNDING_PRECISION)
                     }
                 elif stat == "Minimum":
+                    value = float(min_flow_signed[li]) if name == "Flow" else float(min_vals[name][li])
                     link_props[name] = {
                         "Time":  int(min_times[name][li]),
-                        "Value": round(float(min_vals[name][li]), ROUNDING_PRECISION)
+                        "Value": round(value, ROUNDING_PRECISION)
                     }
                 elif stat == "Mean":
                     if name == "Flow":
