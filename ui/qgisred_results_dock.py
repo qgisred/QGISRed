@@ -58,27 +58,27 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.setupUi(self)
 
         # Translated labels
-        self._lbl_none            = self.tr("None")
-        self._lbl_maximum         = self.tr("Maximum")
-        self._lbl_minimum         = self.tr("Minimum")
-        self._lbl_range           = self.tr("Range")
-        self._lbl_average         = self.tr("Average")
-        self._lbl_std_deviation   = self.tr("Standard Deviation")
-        self._lbl_warning         = self.tr("Warning")
-        self._lbl_permanent       = self.tr("Permanent")
-        self._lbl_pressure        = self.tr("Pressure")
-        self._lbl_head            = self.tr("Head")
-        self._lbl_demand          = self.tr("Demand")
-        self._lbl_quality         = self.tr("Quality")
-        self._lbl_flow            = self.tr("Flow")
-        self._lbl_velocity        = self.tr("Velocity")
-        self._lbl_headloss        = self.tr("HeadLoss")
-        self._lbl_unit_headloss   = self.tr("Unit HeadLoss")
-        self._lbl_friction_factor = self.tr("Friction Factor")
-        self._lbl_status          = self.tr("Status")
-        self._lbl_reaction_rate   = self.tr("Reaction Rate")
-        self._lbl_signed_flow     = self.tr("Signed Flow")
-        self._lbl_unsigned_flow   = self.tr("Unsigned Flow")
+        self.lbl_none            = self.tr("None")
+        self.lbl_maximum         = self.tr("Maximum")
+        self.lbl_minimum         = self.tr("Minimum")
+        self.lbl_range           = self.tr("Range")
+        self.lbl_average         = self.tr("Average")
+        self.lbl_std_deviation   = self.tr("Standard Deviation")
+        self.lbl_warning         = self.tr("Warning")
+        self.lbl_permanent       = self.tr("Permanent")
+        self.lbl_pressure        = self.tr("Pressure")
+        self.lbl_head            = self.tr("Head")
+        self.lbl_demand          = self.tr("Demand")
+        self.lbl_quality         = self.tr("Quality")
+        self.lbl_flow            = self.tr("Flow")
+        self.lbl_velocity        = self.tr("Velocity")
+        self.lbl_headloss        = self.tr("HeadLoss")
+        self.lbl_unit_headloss   = self.tr("Unit HeadLoss")
+        self.lbl_friction_factor = self.tr("Friction Factor")
+        self.lbl_status          = self.tr("Status")
+        self.lbl_reaction_rate   = self.tr("Reaction Rate")
+        self.lbl_signed_flow     = self.tr("Signed Flow")
+        self.lbl_unsigned_flow   = self.tr("Unsigned Flow")
 
         self.btMoreTime.clicked.connect(self.nextTime)
         self.btEndTime.clicked.connect(self.endTime)
@@ -114,32 +114,32 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     def populateResultStatsComboboxes(self):
         self.cbResultTimes.addItems([self.tr("Report times")])
         self.cbStatistics.addItems([
-            self._lbl_none,
-            self._lbl_maximum,
-            self._lbl_minimum,
-            self._lbl_range,
-            self._lbl_average,
-            self._lbl_std_deviation,
+            self.lbl_none,
+            self.lbl_maximum,
+            self.lbl_minimum,
+            self.lbl_range,
+            self.lbl_average,
+            self.lbl_std_deviation,
         ])
 
     def populateVariableComboboxes(self):
         node_variables = [
-            self._lbl_none,
-            self._lbl_pressure,
-            self._lbl_head,
-            self._lbl_demand,
-            self._lbl_quality,
+            self.lbl_none,
+            self.lbl_pressure,
+            self.lbl_head,
+            self.lbl_demand,
+            self.lbl_quality,
         ]
         link_variables = [
-            self._lbl_none,
-            self._lbl_flow,
-            self._lbl_velocity,
-            self._lbl_headloss,
-            self._lbl_unit_headloss,
-            self._lbl_friction_factor,
-            self._lbl_status,
-            self._lbl_reaction_rate,
-            self._lbl_quality,
+            self.lbl_none,
+            self.lbl_flow,
+            self.lbl_velocity,
+            self.lbl_headloss,
+            self.lbl_unit_headloss,
+            self.lbl_friction_factor,
+            self.lbl_status,
+            self.lbl_reaction_rate,
+            self.lbl_quality,
         ]
         self.cbNodes.addItems(node_variables)
         self.cbLinks.addItems(link_variables)
@@ -157,7 +157,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         # If project mismatch, warn user and close the dock
         message = self.tr("The current project has been changed. Please, try again.")
-        self.iface.messageBar().pushMessage(self._lbl_warning, message, level=1, duration=5)
+        self.iface.messageBar().pushMessage(self.lbl_warning, message, level=1, duration=5)
         self.close()
         return False
     
@@ -172,44 +172,44 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         try:
             current_text = self.cbLinks.currentText()
 
-            if stat != self._lbl_none:
+            if stat != self.lbl_none:
                 # Remove Status if present
-                status_idx = self.cbLinks.findText(self._lbl_status)
+                status_idx = self.cbLinks.findText(self.lbl_status)
                 if status_idx != -1:
                     self.cbLinks.removeItem(status_idx)
 
-                if stat == self._lbl_average:
-                    flow_idx = self.cbLinks.findText(self._lbl_flow)
+                if stat == self.lbl_average:
+                    flow_idx = self.cbLinks.findText(self.lbl_flow)
                     if flow_idx != -1:
-                        self.cbLinks.setItemText(flow_idx, self._lbl_unsigned_flow)
-                        self.cbLinks.insertItem(flow_idx + 1, self._lbl_signed_flow)
-                        if current_text == self._lbl_flow:
+                        self.cbLinks.setItemText(flow_idx, self.lbl_unsigned_flow)
+                        self.cbLinks.insertItem(flow_idx + 1, self.lbl_signed_flow)
+                        if current_text == self.lbl_flow:
                             self.cbLinks.setCurrentIndex(flow_idx)
                 else:
                     # Entering non-Average stat from Average: remove Signed Flow, rename Unsigned Flow → Flow
-                    flow_sig_idx = self.cbLinks.findText(self._lbl_signed_flow)
+                    flow_sig_idx = self.cbLinks.findText(self.lbl_signed_flow)
                     if flow_sig_idx != -1:
                         self.cbLinks.removeItem(flow_sig_idx)
-                    flow_unsig_idx = self.cbLinks.findText(self._lbl_unsigned_flow)
+                    flow_unsig_idx = self.cbLinks.findText(self.lbl_unsigned_flow)
                     if flow_unsig_idx != -1:
-                        self.cbLinks.setItemText(flow_unsig_idx, self._lbl_flow)
-                        if current_text in (self._lbl_unsigned_flow, self._lbl_signed_flow):
+                        self.cbLinks.setItemText(flow_unsig_idx, self.lbl_flow)
+                        if current_text in (self.lbl_unsigned_flow, self.lbl_signed_flow):
                             self.cbLinks.setCurrentIndex(flow_unsig_idx)
             else:
                 # Restore: remove Signed Flow, rename Unsigned Flow → Flow
-                flow_sig_idx = self.cbLinks.findText(self._lbl_signed_flow)
+                flow_sig_idx = self.cbLinks.findText(self.lbl_signed_flow)
                 if flow_sig_idx != -1:
                     self.cbLinks.removeItem(flow_sig_idx)
-                flow_unsig_idx = self.cbLinks.findText(self._lbl_unsigned_flow)
+                flow_unsig_idx = self.cbLinks.findText(self.lbl_unsigned_flow)
                 if flow_unsig_idx != -1:
-                    self.cbLinks.setItemText(flow_unsig_idx, self._lbl_flow)
-                    if current_text in (self._lbl_unsigned_flow, self._lbl_signed_flow):
+                    self.cbLinks.setItemText(flow_unsig_idx, self.lbl_flow)
+                    if current_text in (self.lbl_unsigned_flow, self.lbl_signed_flow):
                         self.cbLinks.setCurrentIndex(flow_unsig_idx)
 
                 # Re-insert Status between Friction Factor and Reaction Rate
-                frict_idx = self.cbLinks.findText(self._lbl_friction_factor)
-                if frict_idx != -1 and self.cbLinks.findText(self._lbl_status) == -1:
-                    self.cbLinks.insertItem(frict_idx + 1, self._lbl_status)
+                frict_idx = self.cbLinks.findText(self.lbl_friction_factor)
+                if frict_idx != -1 and self.cbLinks.findText(self.lbl_status) == -1:
+                    self.cbLinks.insertItem(frict_idx + 1, self.lbl_status)
         finally:
             self.cbLinks.currentIndexChanged.connect(self.linksChanged)
 
@@ -342,7 +342,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                             dictSce[storage_key] = renderer.rootRule().clone()
                     except:
                         message = self.tr("Some issue occurred in the process of saving the style of the layer").format(self.tr(nameLayer))
-                        self.iface.messageBar().pushMessage(self._lbl_warning, message, level=1, duration=5)
+                        self.iface.messageBar().pushMessage(self.lbl_warning, message, level=1, duration=5)
                     
         self.Renders[self.Scenario] = dictSce
 
@@ -354,14 +354,14 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         # Maps combobox display text → layer field name (keys use self.tr to support translations)
         _LINK_FIELD_MAP = {
-            self._lbl_flow: "Flow", self._lbl_unsigned_flow: "FlowUnsig", self._lbl_signed_flow: "FlowSig",
-            self._lbl_velocity: "Velocity", self._lbl_headloss: "HeadLoss", self._lbl_unit_headloss: "UnitHdLoss",
-            self._lbl_friction_factor: "FricFactor", self._lbl_status: "Status",
-            self._lbl_reaction_rate: "ReactRate", self._lbl_quality: "Quality",
+            self.lbl_flow: "Flow", self.lbl_unsigned_flow: "FlowUnsig", self.lbl_signed_flow: "FlowSig",
+            self.lbl_velocity: "Velocity", self.lbl_headloss: "HeadLoss", self.lbl_unit_headloss: "UnitHdLoss",
+            self.lbl_friction_factor: "FricFactor", self.lbl_status: "Status",
+            self.lbl_reaction_rate: "ReactRate", self.lbl_quality: "Quality",
         }
         _NODE_FIELD_MAP = {
-            self._lbl_pressure: "Pressure", self._lbl_head: "Head",
-            self._lbl_demand: "Demand", self._lbl_quality: "Quality",
+            self.lbl_pressure: "Pressure", self.lbl_head: "Head",
+            self.lbl_demand: "Demand", self.lbl_quality: "Quality",
         }
 
         resultPath = self.getResultsPath()
@@ -400,7 +400,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     layer_to_paint.setName(disp_name)
 
                     # Configure map tip
-                    is_min_max_stat = self._statsMode and self.cbStatistics.currentText() in (self._lbl_maximum, self._lbl_minimum)
+                    is_min_max_stat = self._statsMode and self.cbStatistics.currentText() in (self.lbl_maximum, self.lbl_minimum)
                     time_field = time_field_name(field) if is_min_max_stat else None
                     if time_field:
                         tip = var_translated + ': [% "' + field + '" || \' - \' || "' + time_field + '" %]'
@@ -513,7 +513,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     renderer = QgsRuleBasedRenderer(ranges.clone())
                 except:
                     message = self.tr("Some issue occurred in the process of applying the style to the layer").format(self.tr(layerName))
-                    self.iface.messageBar().pushMessage(self._lbl_warning, message, level=1, duration=5)
+                    self.iface.messageBar().pushMessage(self.lbl_warning, message, level=1, duration=5)
                     return
         else:
             # Check if we need to load default QML
@@ -555,7 +555,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
         try:
-            if statistic != self._lbl_none:
+            if statistic != self.lbl_none:
                 self.saveCurrentRender()
                 self._statsMode = True
                 self.updateLinksComboboxForStat(statistic)
@@ -577,7 +577,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             else:
                 self.saveCurrentRender()
                 self._statsMode = False
-                self.updateLinksComboboxForStat(self._lbl_none)
+                self.updateLinksComboboxForStat(self.lbl_none)
                 self.statsDisplayWidget.setVisible(False)
                 is_temporal = self.cbTimes.count() > 1
                 self.timeDisplayWidget.setVisible(True)
@@ -738,7 +738,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     idx = combobox.currentIndex()
                     if idx > 0:
                         field = layer.fields().at(idx + 2).name()
-                        is_min_max_stat = self._statsMode and self.cbStatistics.currentText() in (self._lbl_maximum, self._lbl_minimum)
+                        is_min_max_stat = self._statsMode and self.cbStatistics.currentText() in (self.lbl_maximum, self.lbl_minimum)
                         time_field = time_field_name(field) if is_min_max_stat else None
                         self.setLayerLabels(layer, field, time_field)
                 else:
@@ -757,7 +757,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             resultPath = os.path.join(resultsPath, filename)
             if not os.path.exists(resultPath):
                 message = self.tr("No {} results are available").format(self.tr(layerName))
-                self.iface.messageBar().pushMessage(self._lbl_warning, message, level=1, duration=5)
+                self.iface.messageBar().pushMessage(self.lbl_warning, message, level=1, duration=5)
                 return False
 
         return True
@@ -846,17 +846,17 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         del dbf
 
         stat_map = {
-            "NONE": self._lbl_none,
-            "MAXIMUM": self._lbl_maximum,
-            "MINIMUM": self._lbl_minimum,
-            "RANGE": self._lbl_range,
-            "AVERAGE": self._lbl_average,
+            "NONE": self.lbl_none,
+            "MAXIMUM": self.lbl_maximum,
+            "MINIMUM": self.lbl_minimum,
+            "RANGE": self.lbl_range,
+            "AVERAGE": self.lbl_average,
         }
-        translated_stat = stat_map.get(statistic_value.strip().upper(), self._lbl_none)
+        translated_stat = stat_map.get(statistic_value.strip().upper(), self.lbl_none)
         idx = self.cbStatistics.findText(translated_stat)
         if idx >= 0:
             self.cbStatistics.setCurrentIndex(idx)
-        self._statsMode = translated_stat != self._lbl_none
+        self._statsMode = translated_stat != self.lbl_none
         if self._statsMode:
             result_times = self.cbResultTimes.currentText().lower()
             self.lbStatName.setText(f"{translated_stat} values")
@@ -874,8 +874,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.TimeLabels = []
         self.cbTimes.clear()
         if len(mylist) == 1:
-            self.TimeLabels.append(self._lbl_permanent)
-            self.cbTimes.addItem(self._lbl_permanent)
+            self.TimeLabels.append(self.lbl_permanent)
+            self.cbTimes.addItem(self.lbl_permanent)
         else:
             for item in mylist:
                 self.TimeLabels.append(item)
@@ -952,7 +952,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         # 1. Parse time strings like "00d 01:23:45" to seconds
         time_text = self.cbTimes.currentText()
-        if time_text == self._lbl_permanent:
+        if time_text == self.lbl_permanent:
             time_seconds = 0
         else:
             try:
@@ -1054,7 +1054,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.clearResultFields()
 
         stat = self.cbStatistics.currentText()
-        is_min_max = stat in (self._lbl_maximum, self._lbl_minimum)
+        is_min_max = stat in (self.lbl_maximum, self.lbl_minimum)
         resultPath = self.getResultsPath()
         binary_path = os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + ".out")
         if not os.path.exists(binary_path):
