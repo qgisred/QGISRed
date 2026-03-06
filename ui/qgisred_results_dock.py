@@ -529,32 +529,36 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         statistic = self.cbStatistics.currentText()
         time_controls = [self.timeSlider, self.btInitTime, self.btLessTime, self.btMoreTime, self.btEndTime, self.cbTimes]
 
-        if statistic != self.tr("None"):
-            self.saveCurrentRender()
-            self._statsMode = True
-            self.updateLinksComboboxForStat(statistic)
-            result_times = self.cbResultTimes.currentText().lower()
-            self.lbTime.setText(f"{statistic} values for {result_times}")
-            for w in time_controls:
-                w.setEnabled(False)
-            if self.validationsOpenResult():
-                self.ensureResultsLayersAreOpen()
-                self.clearResultFields()
-                self.completeStatsLayers()
-                self.paintIntervalTimeResults(True)
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        try:
+            if statistic != self.tr("None"):
+                self.saveCurrentRender()
+                self._statsMode = True
+                self.updateLinksComboboxForStat(statistic)
+                result_times = self.cbResultTimes.currentText().lower()
+                self.lbTime.setText(f"{statistic} values for {result_times}")
+                for w in time_controls:
+                    w.setEnabled(False)
+                if self.validationsOpenResult():
+                    self.ensureResultsLayersAreOpen()
+                    self.clearResultFields()
+                    self.completeStatsLayers()
+                    self.paintIntervalTimeResults(True)
 
-        else:
-            self.saveCurrentRender()
-            self._statsMode = False
-            self.updateLinksComboboxForStat(self.tr("None"))
-            self.lbTime.setText(self.cbTimes.currentText())
-            for w in time_controls:
-                w.setEnabled(True)
-            if self.validationsOpenResult():
-                self.ensureResultsLayersAreOpen()
-                self.clearResultFields()
-                self.completeResultLayers()
-                self.paintIntervalTimeResults(True)
+            else:
+                self.saveCurrentRender()
+                self._statsMode = False
+                self.updateLinksComboboxForStat(self.tr("None"))
+                self.lbTime.setText(self.cbTimes.currentText())
+                for w in time_controls:
+                    w.setEnabled(True)
+                if self.validationsOpenResult():
+                    self.ensureResultsLayersAreOpen()
+                    self.clearResultFields()
+                    self.completeResultLayers()
+                    self.paintIntervalTimeResults(True)
+        finally:
+            QApplication.restoreOverrideCursor()
 
     def linksChanged(self):
         if self.Computing:
@@ -568,9 +572,13 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if not self.validationsOpenResult():
             return
 
-        self.saveCurrentRender()
-        self.ensureResultsLayersAreOpen()
-        self.paintIntervalTimeResults(True)
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        try:
+            self.saveCurrentRender()
+            self.ensureResultsLayersAreOpen()
+            self.paintIntervalTimeResults(True)
+        finally:
+            QApplication.restoreOverrideCursor()
 
     def nodesChanged(self):
         if self.Computing:
@@ -584,9 +592,13 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if not self.validationsOpenResult():
             return
 
-        self.saveCurrentRender()
-        self.ensureResultsLayersAreOpen()
-        self.paintIntervalTimeResults(True)
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        try:
+            self.saveCurrentRender()
+            self.ensureResultsLayersAreOpen()
+            self.paintIntervalTimeResults(True)
+        finally:
+            QApplication.restoreOverrideCursor()
 
     def nodeLabelsClicked(self):
         self.updateLabels("Node")
@@ -658,18 +670,22 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             return
         if self._statsMode:
             return
-        
+
         if not self.validationsOpenResult():
             return
 
-        self.ensureResultsLayersAreOpen()
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        try:
+            self.ensureResultsLayersAreOpen()
 
-        value = self.cbTimes.currentIndex()
-        self.timeSlider.setValue(value)
+            value = self.cbTimes.currentIndex()
+            self.timeSlider.setValue(value)
 
-        self.completeResultLayers()
+            self.completeResultLayers()
 
-        self.paintIntervalTimeResults(False)
+            self.paintIntervalTimeResults(False)
+        finally:
+            QApplication.restoreOverrideCursor()
 
     """Main methods"""
     def updateLabels(self, layer_type):
