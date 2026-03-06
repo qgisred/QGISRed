@@ -527,7 +527,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             return
 
         statistic = self.cbStatistics.currentText()
-        time_controls = [self.timeSlider, self.btInitTime, self.btLessTime, self.btMoreTime, self.btEndTime, self.cbTimes]
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
         try:
@@ -537,8 +536,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 self.updateLinksComboboxForStat(statistic)
                 result_times = self.cbResultTimes.currentText().lower()
                 self.lbTime.setText(f"{statistic} values for {result_times}")
-                for w in time_controls:
-                    w.setEnabled(False)
+                self.lbLabel5.setVisible(False)
+                self.timeControlsWidget.setVisible(False)
                 if self.validationsOpenResult():
                     self.ensureResultsLayersAreOpen()
                     self.clearResultFields()
@@ -550,8 +549,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 self._statsMode = False
                 self.updateLinksComboboxForStat(self.tr("None"))
                 self.lbTime.setText(self.cbTimes.currentText())
-                for w in time_controls:
-                    w.setEnabled(True)
+                is_temporal = self.cbTimes.count() > 1
+                self.lbLabel5.setVisible(is_temporal)
+                self.timeControlsWidget.setVisible(is_temporal)
                 if self.validationsOpenResult():
                     self.ensureResultsLayersAreOpen()
                     self.clearResultFields()
@@ -823,25 +823,16 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.cbTimes.setCurrentIndex(0)
         self.timeSlider.setValue(0)
         self.timeSlider.setMaximum(len(self.TimeLabels) - 1)
-        self.lbTime.setText(self.TimeLabels[0])
+        if not self._statsMode:
+            self.lbTime.setText(self.TimeLabels[0])
 
         # Configure Visibilities
         if len(mylist) == 1:
             self.lbLabel5.setVisible(False)
-            self.btLessTime.setVisible(False)
-            self.btMoreTime.setVisible(False)
-            self.btInitTime.setVisible(False)
-            self.btEndTime.setVisible(False)
-            self.cbTimes.setVisible(False)
-            self.timeSlider.setVisible(False)
+            self.timeControlsWidget.setVisible(False)
         else:
-            self.lbLabel5.setVisible(True)
-            self.btLessTime.setVisible(True)
-            self.btMoreTime.setVisible(True)
-            self.btInitTime.setVisible(True)
-            self.btEndTime.setVisible(True)
-            self.cbTimes.setVisible(True)
-            self.timeSlider.setVisible(True)
+            self.lbLabel5.setVisible(not self._statsMode)
+            self.timeControlsWidget.setVisible(not self._statsMode)
 
         self.Computing = False
 
