@@ -2562,7 +2562,7 @@ class QGISRed:
         self.selectedFids = {}
 
         dlg = QGISRedImportProjectDialog()
-        icon_path = ":/images/iconData.png"
+        icon_path = ":/images/iconOpenProject.png"
         dlg.setWindowIcon(QIcon(icon_path))
         dlg.setWindowTitle("QGISRed: Open project")
         # Run the dialog event loop
