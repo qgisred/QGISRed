@@ -1060,8 +1060,16 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         self.clearResultFields()
 
-        stat = self.cbStatistics.currentText()
-        is_min_max = stat in (self.lbl_maximum, self.lbl_minimum)
+        stat_label = self.cbStatistics.currentText()
+        stat_label_to_en = {
+            self.lbl_maximum:       "Maximum",
+            self.lbl_minimum:       "Minimum",
+            self.lbl_range:         "Range",
+            self.lbl_average:       "Average",
+            self.lbl_std_deviation: "Standard Deviation",
+        }
+        stat = stat_label_to_en.get(stat_label, stat_label)
+        is_min_max = stat_label in (self.lbl_maximum, self.lbl_minimum)
         resultPath = self.getResultsPath()
         binary_path = os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + ".out")
         if not os.path.exists(binary_path):
@@ -1078,7 +1086,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
             if not target_layer:
                 continue
-
             if layerName == "Node":
                 results = getOut_StatNodesProperties(binary_path, stat)
             else:
