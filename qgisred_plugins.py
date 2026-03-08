@@ -1206,6 +1206,7 @@ class QGISRed:
         self.analysisDropButton = analysisDropButton
 
         icon_path = ":/images/iconAnalysisMenu.svg"
+        dropButton = QToolButton()
         self.add_action(
             icon_path,
             text=self.tr("Run model"),
@@ -1213,18 +1214,8 @@ class QGISRed:
             menubar=self.analysisMenu,
             toolbar=self.analysisToolbar,
             actionBase=analysisDropButton,
-            add_to_toolbar=True,
-            parent=self.iface.mainWindow(),
-        )
-        icon_path = ":/images/iconAnalysisOptions.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Analysis options..."),
-            callback=self.runAnalysisOptions,
-            menubar=self.analysisMenu,
-            toolbar=self.analysisToolbar,
-            actionBase=analysisDropButton,
-            add_to_toolbar=True,
+            dropButton=dropButton,
+            add_to_toolbar=False,
             parent=self.iface.mainWindow(),
         )
         icon_path = ":/images/iconResultsBrowser.svg"
@@ -1234,8 +1225,8 @@ class QGISRed:
             callback=self.runShowResultsDock,
             menubar=self.analysisMenu,
             toolbar=self.analysisToolbar,
-            actionBase=analysisDropButton,
-            add_to_toolbar=True,
+            actionBase=dropButton,
+            add_to_toolbar=False,
             parent=self.iface.mainWindow(),
         )
         icon_path = ":/images/iconAnalysisMenu.svg"
@@ -1243,6 +1234,17 @@ class QGISRed:
             icon_path,
             text=self.tr("Status report"),
             callback=self.runOpenStatusReport,
+            menubar=self.analysisMenu,
+            toolbar=self.analysisToolbar,
+            actionBase=dropButton,
+            add_to_toolbar=False,
+            parent=self.iface.mainWindow(),
+        )
+        icon_path = ":/images/iconAnalysisOptions.svg"
+        self.add_action(
+            icon_path,
+            text=self.tr("Analysis options..."),
+            callback=self.runAnalysisOptions,
             menubar=self.analysisMenu,
             toolbar=self.analysisToolbar,
             actionBase=analysisDropButton,
