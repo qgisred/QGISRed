@@ -2781,8 +2781,10 @@ class QGISRed:
                 pass
             try:
                 self.ResultDockwidget.close()
+                self.iface.removeDockWidget(self.ResultDockwidget)
             except Exception:
                 pass
+            self.ResultDockwidget = None
 
     def runAnalysisOptions(self):
         if not self.checkDependencies():
@@ -2936,6 +2938,7 @@ class QGISRed:
         else:
             self.ResultDockwidget.show()
             self.connectElementExplorerToResultsDock()
+        self.ResultDockwidget.tabWidget.setCurrentIndex(0)
 
     def connectElementExplorerToResultsDock(self):
         """Connect the Element Explorer results tab to the Results Dock."""
@@ -2959,20 +2962,13 @@ class QGISRed:
         if self.isLayerOnEdition():
             return
 
-        # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.OpenStatusReport(self.ProjectDirectory, self.NetworkName)
-        QApplication.restoreOverrideCursor()
-
-        # Message
-        if resMessage == "True":
-            pass
-        elif resMessage == "False":
-            self.iface.messageBar().pushMessage(
-                self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5
-            )
+        # Open Results dock and switch to Report tab
+        if self.ResultDockwidget is None:
+            self.runModel()
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.ResultDockwidget.show()
+            self.connectElementExplorerToResultsDock()
+        self.ResultDockwidget.tabWidget.setCurrentIndex(1)
 
     def runExportInp(self):
         if not self.checkDependencies():

@@ -816,6 +816,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if resMessage == "False":
             self.iface.messageBar().pushMessage("Warning", self.tr("Some issues occurred in the process"), level=1, duration=5)
         elif resMessage.startswith("[TimeLabels]"):
+            self.loadReportFile()
             self.applyStatisticFromOptions()
             self.openBaseResults(resMessage.replace("[TimeLabels]", ""))
             self.show()
@@ -833,6 +834,12 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         # If some error, close the dock
         self.close()
+
+    def loadReportFile(self):
+        rpt_path = os.path.join(self.getResultsPath(), self.NetworkName + "_" + self.Scenario + ".rpt")
+        if os.path.exists(rpt_path):
+            with open(rpt_path, "r", errors="replace") as f:
+                self.textEditReport.setPlainText(f.read())
 
     def applyStatisticFromOptions(self):
         options_path = os.path.join(self.ProjectDirectory, self.NetworkName + "_Options.dbf")
