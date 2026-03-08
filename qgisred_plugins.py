@@ -255,7 +255,7 @@ class QGISRed:
         self.myMapTools = {}
 
         # QGISRed dependencies
-        self.dllTempFolderFile = os.path.join(QGISRedUtils().getGISRedFolder(), "dllTempFolders.dat")
+        self.dllTempFolderFile = os.path.join(QGISRedUtils().getQGISRedFolder(), "dllTempFolders.dat")
         QGISRedUtils().copyDependencies()
         self.removeTempFolders()
         # QGISRed updates

@@ -485,29 +485,23 @@ class QGISRedUtils:
     def setStyle(self, layer, name):
         if name == "":
             return
-        stylePath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "layerStyles")
-        pluginPath = os.path.dirname(os.path.dirname(__file__))
 
-        # user style
-        qmlPath = os.path.join(stylePath, name + "_user.qml")
-        if os.path.exists(qmlPath):
-            layer.loadNamedStyle(qmlPath)
-            return
-
-        # project-specific style
+        # 1- project style
         projectStylePath = os.path.join(self.ProjectDirectory, "layerStyles")
         qmlPath = os.path.join(projectStylePath, name + ".qml")
         if os.path.exists(qmlPath):
             layer.loadNamedStyle(qmlPath)
             return
 
-        # plugin style
+        # 2- global style
+        stylePath = os.path.join(self.getQGISRedFolder(), "defaults", "layerStyles")
         qmlPath = os.path.join(stylePath, name + ".qml")
         if os.path.exists(qmlPath):
             layer.loadNamedStyle(qmlPath)
             return
 
-        # default style
+        # 3- default style
+        pluginPath = os.path.dirname(os.path.dirname(__file__))
         defaultStylePath = os.path.join(pluginPath, "defaults", "layerStyles")
         qmlPath = os.path.join(defaultStylePath, name + ".qml.bak")
         tempStylePath = self.replaceSvgPathInQml(qmlPath, self.defaultSvgPathText, pluginPath)
@@ -518,62 +512,30 @@ class QGISRedUtils:
         # Convert result layer name to QML filename (e.g., "Link_Flow" -> "LinkFlow")
         qmlName = name.replace("_", "") if name else ""
         
-        layerStylesPath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "layerStyles")
-        defaultStylePath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "defaults", "layerStyles")
-        pluginPath = os.path.dirname(os.path.dirname(__file__))
-
         # Search order: project folder -> layerStyles -> defaults/layerStyles
         if qmlName:
-            # project style
+            # 1- project style
             projectStylePath = os.path.join(self.ProjectDirectory, "layerStyles")
             qmlPath = os.path.join(projectStylePath, qmlName + ".qml")
             if os.path.exists(qmlPath):
                 layer.loadNamedStyle(qmlPath)
                 return
             
-            # global layerStyles
-            qmlPath = os.path.join(layerStylesPath, qmlName + ".qml")
+            # 2- global style
+            globalStylesPath = os.path.join(self.getQGISRedFolder(), "defaults", "layerStyles")
+            qmlPath = os.path.join(globalStylesPath, qmlName + ".qml")
             if os.path.exists(qmlPath):
                 layer.loadNamedStyle(qmlPath)
                 return
             
-            # default .bak style
+            # 3- default style
+            pluginPath = os.path.dirname(os.path.dirname(__file__))
+            defaultStylePath = os.path.join(pluginPath, "defaults", "layerStyles")
             qmlPath = os.path.join(defaultStylePath, qmlName + ".qml.bak")
             tempStylePath = self.replaceSvgPathInQml(qmlPath, self.defaultSvgPathText, pluginPath)
             if os.path.exists(tempStylePath):
                 layer.loadNamedStyle(tempStylePath)
                 return
-        
-        #TODO -> remove this fallback
-        # Fallback to generic node/link results style
-        if layer.geometryType() == 0:  # Point
-            qmlBasePath = os.path.join(defaultStylePath, "nodeResults.qml.bak")
-        else:
-            qmlBasePath = os.path.join(defaultStylePath, "linkResults.qml.bak")
-        if os.path.exists(qmlBasePath):
-            f = open(qmlBasePath, "r")
-            contents = f.read()
-            f.close()
-            qmlPath = ""
-            if layer.geometryType() == 0:  # Point
-                svgPath = os.path.join(defaultStylePath, "tanksResults.svg")
-                contents = contents.replace("tanks.svg", svgPath)
-                svgPath = os.path.join(defaultStylePath, "reservoirsResults.svg")
-                contents = contents.replace("reservoirs.svg", svgPath)
-                qmlPath = os.path.join(defaultStylePath, "nodeResults.qml")
-            else:
-                svgPath = os.path.join(defaultStylePath, "pumps.svg")
-                contents = contents.replace("pumps.svg", svgPath)
-                svgPath = os.path.join(defaultStylePath, "valves.svg")
-                contents = contents.replace("valves.svg", svgPath)
-                svgPath = os.path.join(defaultStylePath, "arrow.svg")
-                contents = contents.replace("arrow.svg", svgPath)
-                qmlPath = os.path.join(defaultStylePath, "linkResults.qml")
-            f = open(qmlPath, "w+")
-            f.write(contents)
-            f.close()
-            layer.loadNamedStyle(qmlPath)
-            os.remove(qmlPath)
 
     def replaceSvgPathInQml(self, qmlPath, defaultSvgPath, pluginPath):
         if not os.path.exists(qmlPath):
@@ -741,14 +703,14 @@ class QGISRedUtils:
         QGISRedUtils.DllTempoFolder = tempfile._get_default_tempdir() + "\\QGISRed_" + next(tempfile._get_candidate_names())
         shutil.copytree(self.getGISRedDllFolder(), QGISRedUtils.DllTempoFolder)
 
-    def getGISRedFolder(self):
+    def getQGISRedFolder(self):
         return os.path.join(os.getenv("APPDATA"), "QGISRed")
 
     def getGISRedDllFolder(self):
         plat = "x86"
         if "64bit" in str(platform.architecture()):
             plat = "x64"
-        dllFolder = os.path.join(self.getGISRedFolder(), "dlls")
+        dllFolder = os.path.join(self.getQGISRedFolder(), "dlls")
         return os.path.join(dllFolder, plat)
 
     def getCurrentDll(self):
@@ -1273,7 +1235,7 @@ class QGISRedUtils:
     """QLR Operations"""
 
     def getQLRFolder(self):
-        qlrFolder = os.path.join(self.getGISRedFolder(), "qlr")
+        qlrFolder = os.path.join(self.getQGISRedFolder(), "qlr")
         if not os.path.exists(qlrFolder):
             os.makedirs(qlrFolder)
         return qlrFolder

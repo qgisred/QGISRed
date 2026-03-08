@@ -3005,7 +3005,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         filename = name.replace(" ", "") + ".qml" + (".bak" if isDefault else "")
         subfolder = os.path.join("defaults", "layerStyles") if isDefault else "layerStyles"
-        path = os.path.join(self.pluginFolder, subfolder, filename)
+        folder = self.pluginFolder if isDefault else self.getQGISRedDirectoryFromUtils()
+        path = os.path.join(folder, subfolder, filename)
 
         if not os.path.exists(path):
             QMessageBox.warning(self, "Not Found", f"Style file not found: {path}")
@@ -3023,7 +3024,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def getStyleFolder(self, globalStyle):
         if globalStyle:
-            return os.path.join(self.pluginFolder, "layerStyles")
+            return os.path.join(self.getQGISRedDirectoryFromUtils(), "layerStyles")
 
         projectDir = self.getProjectDirectoryFromUtils()
         if not projectDir:
@@ -3036,6 +3037,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if self.utils:
             return self.utils.getProjectDirectory()
         return self.projectDirectory
+
+    def getQGISRedDirectoryFromUtils(self):
+        return self.utils.getQGISRedDirectory()
 
     # ============================================================
     # UI STATE MANAGEMENT
