@@ -21,9 +21,9 @@
 """
 
 # Import QGis
-from qgis.core import QgsProject, QgsVectorLayer, QgsMapLayer, QgsLayerTreeLayer
+from qgis.core import QgsProject, QgsVectorLayer, QgsMapLayer, QgsLayerTreeLayer, QgsRectangle
 from qgis.core import QgsMessageLog, QgsCoordinateTransform, QgsApplication, QgsLayerTreeGroup, QgsLayerTreeNode
-from PyQt5.QtGui import QIcon, QCursor
+from PyQt5.QtGui import QIcon, QCursor, QPixmap
 from PyQt5.QtWidgets import QAction, QMessageBox, QApplication, QMenu, QFileDialog, QToolButton
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
 from PyQt5.QtXml import QDomDocument
@@ -47,6 +47,7 @@ from .ui.qgisred_thematicmaps_dialog import QGISRedThematicMapsDialog
 from .ui.qgisred_element_explorer_dock import QGISRedElementExplorerDock
 from .ui.qgisred_queriesbyattributes_dock import QGISRedQueriesByAttributesDock
 from .ui.qgisred_statisticsandgraphs_dock import QGISRedStatisticsAndPlotsDock
+from .ui.qgisred_evolutioncurves_dock import QGISRedEvolutionCurvesDock
 from .ui.qgisred_legends_dialog import QGISRedLegendsDialog
 from .tools.qgisred_utils import QGISRedUtils
 from .tools.qgisred_dependencies import QGISRedDependencies as GISRed
@@ -1260,6 +1261,20 @@ class QGISRed:
             toolbar=self.analysisToolbar,
             actionBase=analysisDropButton,
             add_to_toolbar=True,
+            parent=self.iface.mainWindow(),
+        )
+        self.analysisToolbar.addSeparator()
+        self.analysisMenu.addSeparator()
+        icon_path = ":/images/iconStatisticsAndPlots.png"
+        self.evolutionCurvesButton = self.add_action(
+            icon_path,
+            text=self.tr("Evolution curves"),
+            callback=self.runEvolutionCurves,
+            menubar=self.analysisMenu,
+            toolbar=self.analysisToolbar,
+            actionBase=analysisDropButton,
+            add_to_toolbar=True,
+            checkable=True,
             parent=self.iface.mainWindow(),
         )
 
@@ -2925,6 +2940,7 @@ class QGISRed:
             self.ResultDockwidget = QGISRedResultsDock(self.iface)
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.ResultDockwidget)
             self.ResultDockwidget.visibilityChanged.connect(self.activeInputGroup)
+            self.ResultDockwidget.simulationFinished.connect(self.refreshEvolutionCurves)
         self.ResultDockwidget.simulate(self.ProjectDirectory, self.NetworkName)
         self.connectElementExplorerToResultsDock()
 
@@ -2998,6 +3014,152 @@ class QGISRed:
             )
         elif not resMessage == "Cancelled":
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+
+    def runEvolutionCurves(self):
+        if not self.checkDependencies():
+            return
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        if self.evolutionCurvesButton.isChecked():
+            self.runEvolutionCurvesSelectPointTool()
+            if not hasattr(self, 'evolutionCurvesDock') or self.evolutionCurvesDock is None:
+                self.evolutionCurvesDock = QGISRedEvolutionCurvesDock(self.iface)
+                self.evolutionCurvesDock.visibilityChanged.connect(self.evolutionCurvesDockVisibilityChanged)
+                self.iface.addDockWidget(Qt.BottomDockWidgetArea, self.evolutionCurvesDock)
+            self.evolutionCurvesDock.show()
+        else:
+            if "EvolutionCurves" in self.myMapTools and self.iface.mapCanvas().mapTool() == self.myMapTools["EvolutionCurves"]:
+                self.iface.mapCanvas().unsetMapTool(self.myMapTools["EvolutionCurves"])
+
+    def runEvolutionCurvesSelectPointTool(self):
+        pixmap = QPixmap(":/images/iconStatisticsAndPlots.png").scaled(32, 32)
+        cursor = QCursor(pixmap)
+        self.myMapTools["EvolutionCurves"] = QGISRedSelectPointTool(self.evolutionCurvesButton, self, self.evolutionCurvesCallback, 2, cursor)
+        self.iface.mapCanvas().setMapTool(self.myMapTools["EvolutionCurves"])
+
+    def evolutionCurvesDockVisibilityChanged(self, visible):
+        if not visible:
+            self.evolutionCurvesButton.setChecked(False)
+            if "EvolutionCurves" in self.myMapTools and self.iface.mapCanvas().mapTool() == self.myMapTools.get("EvolutionCurves"):
+                self.iface.mapCanvas().unsetMapTool(self.myMapTools["EvolutionCurves"])
+
+    def evolutionCurvesCallback(self, point):
+        self.updateEvolutionPlot(point)
+
+    def updateEvolutionPlot(self, point):
+        if not hasattr(self, 'evolutionCurvesDock') or self.evolutionCurvesDock is None:
+            return
+
+        # Identify element
+        # Tolerance in map units
+        tolerance = self.iface.mapCanvas().getCoordinateTransform().mapUnitsPerPixel() * 10
+        rect = QgsRectangle(point.x() - tolerance, point.y() - tolerance, point.x() + tolerance, point.y() + tolerance)
+        
+        found_feature = None
+        category = "" # "Node" or "Link"
+        
+        # Priority layers by their QGISRed identifier
+        layers_to_check = [
+            ("qgisred_junctions", "Node"), ("qgisred_tanks", "Node"), ("qgisred_reservoirs", "Node"),
+            ("qgisred_pipes", "Link"), ("qgisred_valves", "Link"), ("qgisred_pumps", "Link")
+        ]
+        
+        for identifier, cat in layers_to_check:
+            # Find layer by identifier
+            layer = None
+            for l in QGISRedUtils().getLayers():
+                if l.customProperty("qgisred_identifier") == identifier:
+                    layer = l
+                    break
+            
+            if layer:
+                for feature in layer.getFeatures(rect):
+                    found_feature = feature
+                    category = cat
+                    break
+            if found_feature: break
+            
+        if not found_feature:
+            self.iface.messageBar().pushMessage(self.tr("Evolution Curves"), self.tr("No network element found at this location."), level=1)
+            return
+
+        self.lastEvolutionFeature = found_feature
+        self.lastEvolutionCategory = category
+        self.performEvolutionPlotUpdate(found_feature, category)
+
+    def performEvolutionPlotUpdate(self, found_feature, category):
+        if found_feature is None:
+            return
+        element_id = str(found_feature.attribute("ID"))
+        
+        # Get current magnitude from resultsDock
+        prop_internal = ""
+        prop_display = ""
+        is_stepped = False
+        
+        if hasattr(self, 'ResultDockwidget') and self.ResultDockwidget:
+            if category == "Node":
+                prop_display = self.ResultDockwidget.cbNodes.currentText()
+                # Map display name to internal
+                mapping = {
+                    self.ResultDockwidget.lbl_pressure: "Pressure",
+                    self.ResultDockwidget.lbl_head: "Head",
+                    self.ResultDockwidget.lbl_demand: "Demand",
+                    self.ResultDockwidget.lbl_quality: "Quality"
+                }
+                prop_internal = mapping.get(prop_display, "Pressure")
+            else:
+                prop_display = self.ResultDockwidget.cbLinks.currentText()
+                mapping = {
+                    self.ResultDockwidget.lbl_flow: "Flow",
+                    self.ResultDockwidget.lbl_velocity: "Velocity",
+                    self.ResultDockwidget.lbl_headloss: "HeadLoss",
+                    self.ResultDockwidget.lbl_unit_headloss: "UnitHdLoss",
+                    self.ResultDockwidget.lbl_friction_factor: "FricFactor",
+                    self.ResultDockwidget.lbl_status: "Status",
+                    self.ResultDockwidget.lbl_reaction_rate: "ReactRate",
+                    self.ResultDockwidget.lbl_quality: "Quality",
+                    self.ResultDockwidget.lbl_signed_flow: "Flow",
+                    self.ResultDockwidget.lbl_unsigned_flow: "Flow"
+                }
+                prop_internal = mapping.get(prop_display, "Flow")
+                if prop_internal == "Status":
+                    is_stepped = True
+
+        out_path = getattr(self.ResultDockwidget, "outPath", "")
+        if not os.path.exists(out_path):
+            self.iface.messageBar().pushMessage(self.tr("Evolution Curves"), self.tr("Results file not found. Please run the model."), level=1)
+            return
+            
+        from .tools.qgisred_results import getOut_TimesNodeProperty, getOut_TimesLinkProperty, _get_out_file_metadata
+        
+        y_data = []
+        if category == "Node":
+            y_data = getOut_TimesNodeProperty(out_path, element_id, prop_internal)
+        else:
+            y_data = getOut_TimesLinkProperty(out_path, element_id, prop_internal)
+            
+        if not y_data:
+            return
+
+        # Simple time series (hours)
+        with open(out_path, 'rb') as f:
+            meta = _get_out_file_metadata(f)
+            report_start = meta["report_start"]
+            report_step = meta["report_step"]
+            num_periods = meta["num_periods"]
+            x_data = [(report_start + i * report_step) / 3600.0 for i in range(num_periods)]
+
+        title = f"{category} {element_id}: {prop_display}"
+        self.evolutionCurvesDock.updatePlot(x_data, y_data, title, self.tr("Time (h)"), prop_display, is_stepped)
+
+    def refreshEvolutionCurves(self):
+        if hasattr(self, 'evolutionCurvesDock') and self.evolutionCurvesDock:
+            self.performEvolutionPlotUpdate(self.lastEvolutionFeature, self.lastEvolutionCategory)
 
     def runLegendChanged(self):
         # Guard against calls during shutdown

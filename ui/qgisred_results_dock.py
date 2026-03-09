@@ -42,6 +42,7 @@ def time_field_name(var_name):
 class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     # Signals
     timeTextChanged = pyqtSignal(str)
+    simulationFinished = pyqtSignal()
 
     # Common variables
     iface = None
@@ -50,6 +51,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     Renders = {}
     Computing = False
     TimeLabels = []
+    outPath = ""
 
     def __init__(self, iface):
         """Constructor."""
@@ -816,10 +818,12 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if resMessage == "False":
             self.iface.messageBar().pushMessage("Warning", self.tr("Some issues occurred in the process"), level=1, duration=5)
         elif resMessage.startswith("[TimeLabels]"):
+            self.outPath = os.path.join(self.getResultsPath(), self.NetworkName + "_" + self.Scenario + ".out")
             self.loadReportFile()
             self.applyStatisticFromOptions()
             self.openBaseResults(resMessage.replace("[TimeLabels]", ""))
             self.show()
+            self.simulationFinished.emit()
             # Hide all sibling groups except Results
             netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
             if netGroup is not None:

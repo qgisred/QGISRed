@@ -5,7 +5,7 @@ from qgis.gui import QgsMapTool, QgsVertexMarker, QgsMapCanvasSnappingUtils
 
 
 class QGISRedSelectPointTool(QgsMapTool):
-    def __init__(self, button, parent, method, type=1):
+    def __init__(self, button, parent, method, type=1, cursor=None):
         QgsMapTool.__init__(self, parent.iface.mapCanvas())
         self.canvas = parent.iface.mapCanvas()
         self.iface = parent.iface
@@ -13,6 +13,7 @@ class QGISRedSelectPointTool(QgsMapTool):
         self.method = method
         self.setAction(button)
         self.type = type
+        self.custom_cursor = cursor
 
         # type 1: points; 2: lines; 3: 2-points; 4: 2-line; 5: point-line
 
@@ -48,8 +49,11 @@ class QGISRedSelectPointTool(QgsMapTool):
         if hasattr(self.parent, 'isUnloading') and self.parent.isUnloading:
             return
         QgsMapTool.activate(self)
-        pencil_cursor = QCursor(QPixmap(":/images/pencil.svg"), 0, 0)
-        self.canvas.setCursor(pencil_cursor)
+        if self.custom_cursor:
+            self.canvas.setCursor(self.custom_cursor)
+        else:
+            pencil_cursor = QCursor(QPixmap(":/images/pencil.svg"), 0, 0)
+            self.canvas.setCursor(pencil_cursor)
         type = 1
         if self.type == 2 or self.type == 4:
             type = 2
