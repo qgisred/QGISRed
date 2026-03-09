@@ -1104,8 +1104,11 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         fields = self.currentLayer.fields()
         attributes = self.currentFeature.attributes()
-        numFields = len(fields)
-        self.dataTableWidget.setRowCount(numFields)
+
+        # Skip the Id field (already shown in the title label)
+        skipFields = {"Id"}
+        numDisplayFields = sum(1 for f in fields if f.name() not in skipFields)
+        self.dataTableWidget.setRowCount(numDisplayFields)
 
         header = self.dataTableWidget.horizontalHeader()
         header.setStyleSheet("QHeaderView::section { font-weight: normal; }")
@@ -1122,15 +1125,19 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         headloss, _ = QgsProject.instance().readEntry("QGISRed", "project_headloss", "H-W")
         unitSystem = utils.getUnits()  # Returns 'SI' or 'US'
 
-        for row, field in enumerate(fields):
+        displayRow = 0
+        for field_idx, field in enumerate(fields):
             fieldName = field.name()
+            if fieldName in skipFields:
+                continue
+
             # Get pretty name for the field
             prettyName = utils.getFieldPrettyName(layerIdentifier, fieldName)
             fieldItem = QTableWidgetItem(prettyName)
             fieldItem.setToolTip(prettyName)
 
             # Get raw value and format display value
-            rawValue = attributes[row]
+            rawValue = attributes[field_idx]
             displayValue = str(rawValue) if rawValue is not None else ""
 
             # Handle Energy Price with $ prefix
@@ -1160,10 +1167,11 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             infoItem = QTableWidgetItem("")
             infoItem.setTextAlignment(Qt.AlignCenter)
 
-            self.dataTableWidget.setItem(row, 0, fieldItem)
-            self.dataTableWidget.setItem(row, 1, valueItem)
-            self.dataTableWidget.setItem(row, 2, unitItem)
-            self.dataTableWidget.setItem(row, 3, infoItem)
+            self.dataTableWidget.setItem(displayRow, 0, fieldItem)
+            self.dataTableWidget.setItem(displayRow, 1, valueItem)
+            self.dataTableWidget.setItem(displayRow, 2, unitItem)
+            self.dataTableWidget.setItem(displayRow, 3, infoItem)
+            displayRow += 1
 
     def getFieldUnitWithHeadlossLogic(self, utils, layerIdentifier, fieldName, headloss, unitSystem):
         """Get field unit with special handling for roughness based on headloss formula."""
@@ -2300,8 +2308,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 self.showResultsPlaceholder()
                 return
 
-            # Filter out Setting from display (internal field)
-            displayKeys = [k for k in results.keys() if k != "Setting"]
+            # Filter out internal/redundant fields from display
+            skipKeys = {"Identifier", "Type", "Time", "Setting"}
+            displayKeys = [k for k in results.keys() if k not in skipKeys]
 
             # Setup table
             self.setResultsTableColumns()
