@@ -348,18 +348,53 @@ class QGISRed:
             with open(self.dllTempFolderFile, "a+") as file:
                 file.write(QGISRedUtils.DllTempoFolder + "\n")
 
+        # Cleanup Docks
+        docks_to_clean = []
         if self.ResultDockwidget is not None:
             self.disconnectElementExplorerFromResultsDock()
             try:
                 self.ResultDockwidget.visibilityChanged.disconnect(self.activeInputGroup)
+                if hasattr(self, 'refreshEvolutionCurves'):
+                    self.ResultDockwidget.simulationFinished.disconnect(self.refreshEvolutionCurves)
+                    self.ResultDockwidget.resultPropertyChanged.disconnect(self.refreshEvolutionCurves)
             except Exception:
                 pass
-            try:
-                self.ResultDockwidget.close()
-                self.iface.removeDockWidget(self.ResultDockwidget)
-            except Exception:
-                pass
+            docks_to_clean.append(('ResultDockwidget', self.ResultDockwidget))
             self.ResultDockwidget = None
+
+        if hasattr(self, 'evolutionCurvesDock') and self.evolutionCurvesDock is not None:
+            try:
+                self.evolutionCurvesDock.visibilityChanged.disconnect(self.evolutionCurvesDockVisibilityChanged)
+            except Exception:
+                pass
+            docks_to_clean.append(('evolutionCurvesDock', self.evolutionCurvesDock))
+            self.evolutionCurvesDock = None
+
+        if hasattr(self, 'statisticsAndPlotsDock') and self.statisticsAndPlotsDock is not None:
+            docks_to_clean.append(('statisticsAndPlotsDock', self.statisticsAndPlotsDock))
+            self.statisticsAndPlotsDock = None
+
+        if hasattr(self, 'queriesByAttributesDock') and self.queriesByAttributesDock is not None:
+            docks_to_clean.append(('queriesByAttributesDock', self.queriesByAttributesDock))
+            self.queriesByAttributesDock = None
+
+        # Also clean up Element Explorer if instance exists
+        eeDock = QGISRedElementExplorerDock._instance
+        if eeDock is not None:
+            docks_to_clean.append(('elementExplorerDock', eeDock))
+
+        for name, dock in docks_to_clean:
+            try:
+                dock.close()
+                self.iface.removeDockWidget(dock)
+                dock.setParent(None)
+                dock.deleteLater()
+            except Exception:
+                pass
+        
+        # Clear Element Explorer singleton reference explicitly if cleaned up
+        if eeDock is not None:
+            QGISRedElementExplorerDock._instance = None
 
         for action in self.actions:
             self.iface.removeToolBarIcon(action)
