@@ -2258,6 +2258,37 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         header.setSectionResizeMode(0, QHeaderView.Stretch)
         header.setSectionResizeMode(1, QHeaderView.Stretch)
 
+    def findResultsLayerForElement(self, isNode):
+        """Find the Results group layer matching the element type (node or link)."""
+        prefix = "qgisred_node_" if isNode else "qgisred_link_"
+        for layer in self.getAllResultsGroupLayers():
+            identifier = layer.customProperty("qgisred_identifier", "")
+            if identifier.startswith(prefix):
+                return layer
+        return None
+
+    def getResultsFieldOrder(self, isNode):
+        """Get field names from the Results layer, starting after the Time column.
+        Falls back to the binary dict key order if no Results layer is found."""
+        resultsLayer = self.findResultsLayerForElement(isNode)
+        if not resultsLayer:
+            return None
+
+        fields = resultsLayer.fields()
+        startIdx = fields.indexFromName("Time")
+        skipFields = {"Id", "Type", "Time", "Setting"}
+        if startIdx >= 0:
+            return [fields[i].name() for i in range(startIdx + 1, len(fields)) if fields[i].name() not in skipFields]
+        return [f.name() for f in fields if f.name() not in skipFields]
+
+    def mapResultsFieldToBinaryKey(self, fieldName):
+        """Map a Results layer field name to the corresponding binary results dict key."""
+        fieldToBinaryKey = {
+            "UnitHeadLoss": "UnitHdLoss",
+            "UnitHdLoss": "UnitHdLoss",
+        }
+        return fieldToBinaryKey.get(fieldName, fieldName)
+
     def populateResultsTable(self):
         """Populate tableResults with per-element results from the binary .out file."""
         if not self.resultsDock:
@@ -2308,9 +2339,19 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 self.showResultsPlaceholder()
                 return
 
-            # Filter out internal/redundant fields from display
-            skipKeys = {"Identifier", "Type", "Time", "Setting"}
-            displayKeys = [k for k in results.keys() if k not in skipKeys]
+            # Get field order from Results layer attribute table columns
+            fieldOrder = self.getResultsFieldOrder(isNode)
+            if fieldOrder:
+                # Use Results layer column order, mapping field names to binary keys
+                displayKeys = []
+                for fieldName in fieldOrder:
+                    binaryKey = self.mapResultsFieldToBinaryKey(fieldName)
+                    if binaryKey in results:
+                        displayKeys.append((fieldName, binaryKey))
+            else:
+                # Fallback: use binary dict key order
+                skipKeys = {"Identifier", "Type", "Time", "Setting"}
+                displayKeys = [(k, k) for k in results.keys() if k not in skipKeys]
 
             # Setup table
             self.setResultsTableColumns()
@@ -2322,11 +2363,11 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.tableResults.setRowCount(len(displayKeys))
 
             utils = QGISRedUtils()
-            for row, key in enumerate(displayKeys):
-                value = results[key]
+            for row, (fieldName, binaryKey) in enumerate(displayKeys):
+                value = results[binaryKey]
 
-                # Property name
-                prettyName = self.getResultPrettyName(key)
+                # Property name (use field name for pretty name lookup)
+                prettyName = self.getResultPrettyName(fieldName)
                 propertyItem = QTableWidgetItem(prettyName)
                 propertyItem.setToolTip(prettyName)
 
@@ -2339,8 +2380,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 valueItem.setTextAlignment(Qt.AlignCenter)
                 valueItem.setToolTip(str(value) if value is not None else "N/A")
 
-                # Units
-                fieldUnit = utils.getFieldUnit(unitCategory, key)
+                # Units (use binary key for unit lookup)
+                fieldUnit = utils.getFieldUnit(unitCategory, binaryKey)
                 unitItem = QTableWidgetItem(fieldUnit if fieldUnit and fieldUnit != "-" else "")
                 unitItem.setTextAlignment(Qt.AlignCenter)
 
@@ -2379,6 +2420,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             "Velocity": self.tr("Velocity"),
             "HeadLoss": self.tr("HeadLoss"),
             "UnitHdLoss": self.tr("Unit HeadLoss"),
+            "UnitHeadLoss": self.tr("Unit HeadLoss"),
             "FricFactor": self.tr("Friction Factor"),
             "Status": self.tr("Status"),
             "ReactRate": self.tr("Reaction Rate"),
