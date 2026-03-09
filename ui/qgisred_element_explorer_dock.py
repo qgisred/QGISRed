@@ -1132,7 +1132,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 continue
 
             # Get pretty name for the field
-            prettyName = utils.getFieldPrettyName(layerIdentifier, fieldName)
+            prettyName = self.tr(utils.getFieldPrettyName(layerIdentifier, fieldName))
             fieldItem = QTableWidgetItem(prettyName)
             fieldItem.setToolTip(prettyName)
 
