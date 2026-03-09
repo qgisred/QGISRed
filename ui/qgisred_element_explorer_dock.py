@@ -2289,6 +2289,20 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         }
         return fieldToBinaryKey.get(fieldName, fieldName)
 
+    def mapBinaryKeyToUnitProperty(self, binaryKey):
+        """Map a binary results key to the property name used in qgisred_units.json."""
+        keyToProperty = {
+            "UnitHdLoss": "Unit HeadLoss",
+            "FricFactor": "Friction factor",
+            "ReactRate": "Reaction Rate",
+        }
+        return keyToProperty.get(binaryKey, binaryKey)
+
+    def getProjectFlowUnit(self):
+        """Get the project's flow unit abbreviation (e.g., LPS, GPM)."""
+        flowUnit, _ = QgsProject.instance().readEntry("QGISRed", "project_units", "LPS")
+        return flowUnit
+
     def populateResultsTable(self):
         """Populate tableResults with per-element results from the binary .out file."""
         if not self.resultsDock:
@@ -2380,10 +2394,21 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 valueItem.setTextAlignment(Qt.AlignCenter)
                 valueItem.setToolTip(str(value) if value is not None else "N/A")
 
-                # Units (use binary key for unit lookup)
-                fieldUnit = utils.getFieldUnit(unitCategory, binaryKey)
+                # Units (use binary key for unit lookup, mapping to JSON property names)
+                unitLookupKey = self.mapBinaryKeyToUnitProperty(binaryKey)
+                fieldUnit = utils.getFieldUnit(unitCategory, unitLookupKey)
+                unitFullName = utils.getFieldUnitFullName(unitCategory, unitLookupKey)
+
+                # For fields with "Same as Flow" units, use the project flow unit
+                if unitFullName == "Same as Flow" or (not fieldUnit and binaryKey in ("Demand", "Flow")):
+                    projectFlowUnit = self.getProjectFlowUnit()
+                    fieldUnit = projectFlowUnit
+                    unitFullName = projectFlowUnit
+
                 unitItem = QTableWidgetItem(fieldUnit if fieldUnit and fieldUnit != "-" else "")
                 unitItem.setTextAlignment(Qt.AlignCenter)
+                if unitFullName:
+                    unitItem.setToolTip(unitFullName)
 
                 # Info column
                 infoItem = QTableWidgetItem("")

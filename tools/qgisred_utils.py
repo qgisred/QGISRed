@@ -1066,6 +1066,40 @@ class QGISRedUtils:
 
         return ""
 
+    def getFieldUnitFullName(self, elementCategory, fieldName):
+        """Get the full unit name for a field (for tooltips)."""
+        if not fieldName:
+            return ""
+
+        unitSystem = self.getUnits()
+        unitDefs = self.loadUnitDefinitions()
+
+        category = self.identifierToElementName.get(elementCategory, elementCategory)
+        category = category.replace(" ", "") if category else None
+
+        if not category or category not in unitDefs:
+            return ""
+
+        categoryUnits = unitDefs[category]
+        prettyName = self.getFieldPrettyName(elementCategory, fieldName)
+
+        for _, unitInfo in categoryUnits.items():
+            if not isinstance(unitInfo, dict):
+                continue
+            propertyName = unitInfo.get("property", "")
+            if not propertyName:
+                continue
+
+            if (propertyName.lower() == fieldName.lower() or
+                propertyName.lower() == prettyName.lower() or
+                prettyName.lower().startswith(propertyName.lower())):
+                unitData = unitInfo.get(unitSystem)
+                if unitData:
+                    name = unitData.get("name", "")
+                    return name if name and name != "-" else ""
+
+        return ""
+
     def getAllFieldPrettyNames(self, elementCategory=None):
         """Get all field pretty name mappings for a category, merged with Common."""
         fieldPrettyNames = self.loadUnitDefinitions().get("FieldPrettyNames", {})

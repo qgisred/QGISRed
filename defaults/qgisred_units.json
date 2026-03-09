@@ -1034,6 +1034,18 @@
                 "name": "Percentage",
                 "abbr": "%"
             }
+        },
+        "qgisred_results_link_reactrate": {
+            "property": "Reaction Rate",
+            "SI": {
+                "name": "mass/L/day",
+                "abbr": "massunits/L/day"
+            },
+            "US": {
+                "name": "mass/L/day",
+                "abbr": "massunits/L/day"
+            },
+            "notes": "according Project mass units. Placeholder - verify units."
         }
     },
     "FieldPrettyNames": {
