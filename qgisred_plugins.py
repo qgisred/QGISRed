@@ -2941,6 +2941,7 @@ class QGISRed:
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.ResultDockwidget)
             self.ResultDockwidget.visibilityChanged.connect(self.activeInputGroup)
             self.ResultDockwidget.simulationFinished.connect(self.refreshEvolutionCurves)
+            self.ResultDockwidget.resultPropertyChanged.connect(self.refreshEvolutionCurves)
         self.ResultDockwidget.simulate(self.ProjectDirectory, self.NetworkName)
         self.connectElementExplorerToResultsDock()
 

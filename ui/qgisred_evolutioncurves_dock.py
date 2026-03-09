@@ -96,10 +96,6 @@ class EvolutionPlotWidget(QWidget):
         painter.drawLine(plot_rect.bottomLeft(), plot_rect.bottomRight())
         painter.drawLine(plot_rect.bottomLeft(), plot_rect.topLeft())
 
-        # Title (Now handled by lblTitle in the UI dock)
-        # painter.setFont(QFont("Arial", 10, QFont.Bold))
-        # painter.drawText(QRectF(0, 0, w, self.margin_top), Qt.AlignCenter, self.title)
-        
         painter.setFont(QFont("Arial", 9))
         painter.save()
         painter.translate(15, h/2)

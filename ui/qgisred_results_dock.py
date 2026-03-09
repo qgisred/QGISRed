@@ -43,6 +43,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     # Signals
     timeTextChanged = pyqtSignal(str)
     simulationFinished = pyqtSignal()
+    resultPropertyChanged = pyqtSignal()
 
     # Common variables
     iface = None
@@ -613,6 +614,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.paintIntervalTimeResults(True)
         finally:
             QApplication.restoreOverrideCursor()
+        self.resultPropertyChanged.emit()
 
     def nodesChanged(self):
         if self.Computing:
@@ -633,6 +635,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.paintIntervalTimeResults(True)
         finally:
             QApplication.restoreOverrideCursor()
+        self.resultPropertyChanged.emit()
 
     def nodeLabelsClicked(self):
         self.updateLabels("Node")
