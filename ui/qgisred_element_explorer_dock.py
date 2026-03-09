@@ -1107,7 +1107,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.dataTableWidget.setRowCount(numFields)
 
         header = self.dataTableWidget.horizontalHeader()
-        header.setStyleSheet("QHeaderView::section { font-weight: bold; }")
+        header.setStyleSheet("QHeaderView::section { font-weight: normal; }")
         self.setDataTableWidgetColumns()
 
         self.dataTableWidget.verticalHeader().setDefaultSectionSize(20)
@@ -2235,7 +2235,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.tableResults.horizontalHeader().setVisible(True)
 
         header = self.tableResults.horizontalHeader()
-        header.setStyleSheet("QHeaderView::section { font-weight: bold; }")
+        header.setStyleSheet("QHeaderView::section { font-weight: normal; }")
         header.setMinimumSectionSize(10)
         header.setSectionResizeMode(2, QHeaderView.Fixed)
         header.setSectionResizeMode(3, QHeaderView.Fixed)
