@@ -393,7 +393,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.showResultsPlaceholder()
 
     def tempHideOtherTabs(self):
-        #self.tabWidget.setTabVisible(1, False)
+        self.tabWidget.setTabVisible(1, False)
         self.tabWidget.setTabVisible(2, False)
         self.tabWidget.setTabVisible(3, False)
         self.tabWidget.setTabVisible(4, False)
@@ -661,6 +661,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         self.restoreComboBoxSelections(prevState['currentType'], prevState['currentId'])
         self.reacquireCurrentElement(prevState)
+        self.updateResultsTabVisibility()
 
     def clearAllCaches(self):
         self.nodeLayerSpatialIndices.clear()
@@ -1226,6 +1227,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.currentFeature = feature
         layer.selectByIds([feature.id()])
         self.populateDataTableWidget()
+        self.updateResultsTabVisibility()
         self.populateResultsTable()
 
         if feature.fields().indexFromName("Tag") != -1:
@@ -2177,6 +2179,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.onResultsTimeChanged(timeText)
         else:
             self.showResultsPlaceholder()
+        self.updateResultsTabVisibility()
 
     def disconnectResultsDock(self):
         """Disconnect from the results dock and show placeholder."""
@@ -2192,16 +2195,19 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.resultsDock = None
         self.resultsCurrentTimeText = ""
         self.showResultsPlaceholder()
+        self.updateResultsTabVisibility()
 
     def onResultsDockVisibilityChanged(self, visible):
         if not self.resultsDock:
             self.showResultsPlaceholder()
+            self.updateResultsTabVisibility()
             return
         timeText = self.resultsDock.lbTime.text() if self.resultsDock else ""
         if timeText:
             self.onResultsTimeChanged(timeText)
         else:
             self.showResultsPlaceholder()
+        self.updateResultsTabVisibility()
 
     def onResultsTimeChanged(self, timeText):
         """Handle time changes from the results dock."""
@@ -2369,4 +2375,22 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             "ReactRate": self.tr("Reaction Rate"),
         }
         return prettyNames.get(key, key)
+    def updateResultsTabVisibility(self):
+        """Show or hide the Results tab based on available results data and current element type."""
+        # Always hide for complementary elements
+        if self.currentLayer:
+            identifier = self.currentLayer.customProperty("qgisred_identifier", "")
+            complementaryIdentifiers = ["qgisred_serviceconnections", "qgisred_isolationvalves", "qgisred_meters"]
+            if identifier in complementaryIdentifiers:
+                self.tabWidget.setTabVisible(1, False)
+                return
+
+        # Check if results dock is connected with valid time data
+        hasResultsDock = self.resultsDock is not None and self.resultsCurrentTimeText != ""
+
+        # Check if Results group has layers
+        hasResultsLayers = len(self.getAllResultsGroupLayers()) > 0
+
+        self.tabWidget.setTabVisible(1, hasResultsDock or hasResultsLayers)
+
     # --- End Results Tab ---
