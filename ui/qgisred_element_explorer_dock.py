@@ -1231,6 +1231,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         if not layer or not feature:
             return
 
+        # Save active tab so switching elements doesn't reset it
+        currentTabIndex = self.tabWidget.currentIndex()
+
         self.currentLayer = layer
         self.currentFeature = feature
         layer.selectByIds([feature.id()])
@@ -1267,6 +1270,11 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.labelFoundElementDescription.hide()
             self.isDescVisible = False
 
+        # Restore previously active tab, falling back to Data if it was hidden
+        if self.tabWidget.isTabVisible(currentTabIndex):
+            self.tabWidget.setCurrentIndex(currentTabIndex)
+        else:
+            self.tabWidget.setCurrentIndex(0)
 
     def appendFeatureProperties(self, feature, labelSuffix=""):
         if not hasattr(self, 'dataTableWidget'):
