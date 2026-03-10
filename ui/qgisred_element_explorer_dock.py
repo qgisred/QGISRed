@@ -2284,8 +2284,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         return None
 
     def getResultsFieldOrder(self, isNode):
-        """Get field names from the Results layer, starting after the Time column.
-        Falls back to the binary dict key order if no Results layer is found."""
+        if isNode:
+            return ["Pressure", "Head", "Demand", "Quality"]
+
         resultsLayer = self.findResultsLayerForElement(isNode)
         if not resultsLayer:
             return None
