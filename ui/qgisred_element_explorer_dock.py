@@ -1134,7 +1134,10 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
             # Get raw value and format display value
             rawValue = attributes[field_idx]
-            displayValue = str(rawValue) if rawValue is not None else ""
+            if rawValue is None or str(rawValue) == "NULL" or str(rawValue).strip() == "":
+                displayValue = ""
+            else:
+                displayValue = str(rawValue)
 
             # Handle Energy Price with $ prefix
             if fieldName in ["EnergyPric", "EnergyPrice"]:
@@ -1148,7 +1151,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             # Center-align the Value column
             valueItem.setTextAlignment(Qt.AlignCenter)
             # Add tooltip with exact/complete value
-            valueItem.setToolTip(str(rawValue) if rawValue is not None else "")
+            valueItem.setToolTip(displayValue)
 
             # Get unit for the field with special handling for roughness
             fieldUnit = self.getFieldUnitWithHeadlossLogic(utils, layerIdentifier, fieldName, headloss, unitSystem)
@@ -2390,13 +2393,13 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 propertyItem.setToolTip(prettyName)
 
                 # Value
-                if value is None:
-                    displayValue = "N/A"
+                if value is None or str(value) == "NULL" or str(value).strip() == "":
+                    displayValue = ""
                 else:
                     displayValue = str(value)
                 valueItem = QTableWidgetItem(displayValue)
                 valueItem.setTextAlignment(Qt.AlignCenter)
-                valueItem.setToolTip(str(value) if value is not None else "N/A")
+                valueItem.setToolTip(displayValue)
 
                 # Units (use binary key for unit lookup, mapping to JSON property names)
                 unitLookupKey = self.mapBinaryKeyToUnitProperty(binaryKey)
