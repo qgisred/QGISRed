@@ -933,6 +933,16 @@ class QGISRedUtils:
         else:
             return 'SI'
 
+    def getQualityModel(self):
+        """Returns the quality model type: 'Chemical', 'Age', or 'Trace'."""
+        model, _ = QgsProject.instance().readEntry("QGISRed", "project_qualitymodel", "Chemical")
+        return model
+
+    def getMassUnits(self):
+        """Returns concentration units string, e.g. 'mg/L' or 'µg/L'."""
+        units, _ = QgsProject.instance().readEntry("QGISRed", "project_massunits", "mg/L")
+        return units
+
     def loadUnitDefinitions(self):
         if QGISRedUtils._unit_definitions is not None:
             return QGISRedUtils._unit_definitions
