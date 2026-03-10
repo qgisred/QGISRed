@@ -80,8 +80,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.lbl_friction_factor = self.tr("Friction Factor")
         self.lbl_status          = self.tr("Status")
         self.lbl_reaction_rate   = self.tr("Reaction Rate")
-        self.lbl_signed_flow     = self.tr("Signed Flow")
-        self.lbl_unsigned_flow   = self.tr("Unsigned Flow")
+        self.lbl_signed_flow     = self.tr("Flow (Signed)")
+        self.lbl_unsigned_flow   = self.tr("Flow (Unsigned)")
 
         self.btMoreTime.clicked.connect(self.nextTime)
         self.btEndTime.clicked.connect(self.endTime)
