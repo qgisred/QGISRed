@@ -298,8 +298,59 @@ class QGISRed:
         # QgsMessageLog.logMessage("Culture set to " + definedCulture, "QGISRed", level=0)
 
         QgsMessageLog.logMessage(self.tr("Loaded sucssesfully"), "QGISRed", level=0)
+  
+    def cleanupDocks(self):
+        """Disconnects signals and removes all plugin docks to ensure a clean state."""
+        docks_to_clean = []
+        if self.ResultDockwidget is not None:
+            self.disconnectElementExplorerFromResultsDock()
+            try:
+                self.ResultDockwidget.visibilityChanged.disconnect(self.activeInputGroup)
+                if hasattr(self, 'refreshTimeSeries'):
+                    try:
+                        self.ResultDockwidget.simulationFinished.disconnect(self.refreshTimeSeries)
+                    except Exception: pass
+                    try:
+                        self.ResultDockwidget.resultPropertyChanged.disconnect(self.refreshTimeSeries)
+                    except Exception: pass
+            except Exception:
+                pass
+            docks_to_clean.append(('ResultDockwidget', self.ResultDockwidget))
+            self.ResultDockwidget = None
 
+        if hasattr(self, 'timeSeriesDock') and self.timeSeriesDock is not None:
+            try:
+                self.timeSeriesDock.visibilityChanged.disconnect(self.timeSeriesDockVisibilityChanged)
+            except Exception:
+                pass
+            docks_to_clean.append(('timeSeriesDock', self.timeSeriesDock))
+            self.timeSeriesDock = None
+
+        if hasattr(self, 'statisticsAndPlotsDock') and self.statisticsAndPlotsDock is not None:
+            docks_to_clean.append(('statisticsAndPlotsDock', self.statisticsAndPlotsDock))
+            self.statisticsAndPlotsDock = None
+
+        if hasattr(self, 'queriesByAttributesDock') and self.queriesByAttributesDock is not None:
+            docks_to_clean.append(('queriesByAttributesDock', self.queriesByAttributesDock))
+            self.queriesByAttributesDock = None
+
+        # Also clean up Element Explorer if instance exists
+        eeDock = QGISRedElementExplorerDock._instance
+        if eeDock is not None:
+            docks_to_clean.append(('elementExplorerDock', eeDock))
+
+        for name, dock in docks_to_clean:
+            try:
+                dock.close()
+                self.iface.removeDockWidget(dock)
+                dock.setParent(None)
+                dock.deleteLater()
+            except Exception:
+                pass
         
+        # Clear Element Explorer singleton reference explicitly
+        if eeDock is not None:
+            QGISRedElementExplorerDock._instance = None
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -349,52 +400,7 @@ class QGISRed:
                 file.write(QGISRedUtils.DllTempoFolder + "\n")
 
         # Cleanup Docks
-        docks_to_clean = []
-        if self.ResultDockwidget is not None:
-            self.disconnectElementExplorerFromResultsDock()
-            try:
-                self.ResultDockwidget.visibilityChanged.disconnect(self.activeInputGroup)
-                if hasattr(self, 'refreshTimeSeries'):
-                    self.ResultDockwidget.simulationFinished.disconnect(self.refreshTimeSeries)
-                    self.ResultDockwidget.resultPropertyChanged.disconnect(self.refreshTimeSeries)
-            except Exception:
-                pass
-            docks_to_clean.append(('ResultDockwidget', self.ResultDockwidget))
-            self.ResultDockwidget = None
-
-        if hasattr(self, 'timeSeriesDock') and self.timeSeriesDock is not None:
-            try:
-                self.timeSeriesDock.visibilityChanged.disconnect(self.timeSeriesDockVisibilityChanged)
-            except Exception:
-                pass
-            docks_to_clean.append(('timeSeriesDock', self.timeSeriesDock))
-            self.timeSeriesDock = None
-
-        if hasattr(self, 'statisticsAndPlotsDock') and self.statisticsAndPlotsDock is not None:
-            docks_to_clean.append(('statisticsAndPlotsDock', self.statisticsAndPlotsDock))
-            self.statisticsAndPlotsDock = None
-
-        if hasattr(self, 'queriesByAttributesDock') and self.queriesByAttributesDock is not None:
-            docks_to_clean.append(('queriesByAttributesDock', self.queriesByAttributesDock))
-            self.queriesByAttributesDock = None
-
-        # Also clean up Element Explorer if instance exists
-        eeDock = QGISRedElementExplorerDock._instance
-        if eeDock is not None:
-            docks_to_clean.append(('elementExplorerDock', eeDock))
-
-        for name, dock in docks_to_clean:
-            try:
-                dock.close()
-                self.iface.removeDockWidget(dock)
-                dock.setParent(None)
-                dock.deleteLater()
-            except Exception:
-                pass
-        
-        # Clear Element Explorer singleton reference explicitly if cleaned up
-        if eeDock is not None:
-            QGISRedElementExplorerDock._instance = None
+        self.cleanupDocks()
 
         for action in self.actions:
             self.iface.removeToolBarIcon(action)
@@ -2824,19 +2830,8 @@ class QGISRed:
         except Exception:
             pass
 
-        # Disconnect and close the results dock widget
-        if self.ResultDockwidget is not None:
-            self.disconnectElementExplorerFromResultsDock()
-            try:
-                self.ResultDockwidget.visibilityChanged.disconnect(self.activeInputGroup)
-            except Exception:
-                pass
-            try:
-                self.ResultDockwidget.close()
-                self.iface.removeDockWidget(self.ResultDockwidget)
-            except Exception:
-                pass
-            self.ResultDockwidget = None
+        # Disconnect and close all dock widgets
+        self.cleanupDocks()
 
     def runAnalysisOptions(self):
         if not self.checkDependencies():
