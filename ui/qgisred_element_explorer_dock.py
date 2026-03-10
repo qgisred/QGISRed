@@ -1058,11 +1058,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         if not singularType or not selectedId:
             return
 
-        elementIdentifier = None
-        for plural, singular in self.singularForms.items():
-            if singular == singularType:
-                elementIdentifier = self.elementIdentifiers.get(plural)
-                break
+        elementIdentifier = self.elementIdentifiers.get(singularType)
         if not elementIdentifier:
             elementIdentifier = self.getIdentifierFromLayerName(singularType)
 
