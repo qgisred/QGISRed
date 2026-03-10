@@ -279,7 +279,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
     def reHighlightCurrentElement(self):
         """Re-apply the red highlight and selection on the current element, if any."""
-        if not self.currentLayer or not self.currentFeature:
+        if not self.isLayerValid(self.currentLayer) or not self.currentFeature:
             return False
         try:
             self.clearHighlights()
@@ -297,7 +297,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         """Refresh the current element's data without changing collapsed state or scroll position.
         This is useful after C# library operations that may have changed the element's data.
         """
-        if not self.currentLayer or not self.currentFeature:
+        if not self.isLayerValid(self.currentLayer) or not self.currentFeature:
             return False
 
         # Save scroll position
@@ -1557,6 +1557,16 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             return result
         return None
 
+    def isLayerValid(self, layer):
+        """Check if a QgsVectorLayer reference is still alive (C++ object not deleted)."""
+        if layer is None:
+            return False
+        try:
+            layer.id()
+            return True
+        except RuntimeError:
+            return False
+
     def areOverlappedPoints(self, point1, point2, tolerance=1e-9):
         return point1.distance(point2) < tolerance
 
@@ -2315,11 +2325,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.showResultsPlaceholder()
             return
 
-        try:
-            if not self.currentLayer or not self.currentFeature:
-                self.showResultsPlaceholder()
-                return
-        except RuntimeError:
+        if not self.isLayerValid(self.currentLayer) or not self.currentFeature:
             self.showResultsPlaceholder()
             return
 
@@ -2460,7 +2466,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     def updateResultsTabVisibility(self):
         """Show or hide the Results tab based on available results data and current element type."""
         # Always hide for complementary elements
-        if self.currentLayer:
+        if self.isLayerValid(self.currentLayer):
             identifier = self.currentLayer.customProperty("qgisred_identifier", "")
             complementaryIdentifiers = ["qgisred_serviceconnections", "qgisred_isolationvalves", "qgisred_meters"]
             if identifier in complementaryIdentifiers:
