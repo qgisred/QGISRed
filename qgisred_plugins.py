@@ -3313,7 +3313,7 @@ class QGISRed:
             if unit_abbr:
                 y_label_with_unit = f"{prop_display} ({unit_abbr})"
 
-        self.timeSeriesDock.updatePlot(x_data, y_data, title, self.tr("Time (h)"), y_label_with_unit, is_stepped, y_categorical_labels)
+        self.timeSeriesDock.updatePlot(x_data, y_data, title, self.tr("Time") + " (h)", y_label_with_unit, is_stepped, y_categorical_labels)
 
     def refreshTimeSeries(self):
         if hasattr(self, 'timeSeriesDock') and self.timeSeriesDock:
