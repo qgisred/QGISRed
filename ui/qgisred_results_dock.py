@@ -66,7 +66,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.lbl_minimum         = self.tr("Minimum")
         self.lbl_range           = self.tr("Range")
         self.lbl_average         = self.tr("Average")
-        self.lbl_std_deviation   = self.tr("Standard Deviation")
+        self.lbl_std_deviation   = self.tr("StdDev")
         self.lbl_warning         = self.tr("Warning")
         self.lbl_permanent       = self.tr("Permanent")
         self.lbl_pressure        = self.tr("Pressure")
@@ -1070,7 +1070,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.lbl_minimum:       "Minimum",
             self.lbl_range:         "Range",
             self.lbl_average:       "Average",
-            self.lbl_std_deviation: "Standard Deviation",
+            self.lbl_std_deviation: "StdDev",
         }
         stat = stat_label_to_en.get(stat_label, stat_label)
         is_min_max = stat_label in (self.lbl_maximum, self.lbl_minimum)

@@ -540,17 +540,17 @@ def getOut_TimesLinkProperty(out_file_path, link_id, property_name):
 def getOut_StatNodesProperties(out_file_path, stat):
     """Returns a statistic for each node property across all reporting periods.
 
-    stat: "Maximum" | "Minimum" | "Average" | "Range" | "Standard Deviation"
+    stat: "Maximum" | "Minimum" | "Average" | "Range" | "StdDev"
 
     Maximum/Minimum return {"Time": int, "Value": float}.
-    Average, Range and Standard Deviation return {"Value": float}.
+    Average, Range and StdDev return {"Value": float}.
 
     Returns:
         dict[node_id, dict[property, dict]]
     """
     import math
 
-    VALID_STATS = {"Maximum", "Minimum", "Average", "Range", "Standard Deviation"}
+    VALID_STATS = {"Maximum", "Minimum", "Average", "Range", "StdDev"}
     if stat not in VALID_STATS:
         raise ValueError(f"stat must be one of {VALID_STATS}")
 
@@ -586,7 +586,7 @@ def getOut_StatNodesProperties(out_file_path, stat):
             min_times = np.full((n_vars, n), -1, dtype=np.int64)
         if stat == "Average":
             sums = np.zeros((n_vars, n), dtype=np.float64)
-        if stat == "Standard Deviation":
+        if stat == "StdDev":
             wf_mean = np.zeros((n_vars, n), dtype=np.float64)
             wf_M2   = np.zeros((n_vars, n), dtype=np.float64)
 
@@ -612,7 +612,7 @@ def getOut_StatNodesProperties(out_file_path, stat):
                 min_times[mask] = time_s
             if stat == "Average":
                 sums += vals.astype(np.float64)
-            if stat == "Standard Deviation":
+            if stat == "StdDev":
                 v_d = vals.astype(np.float64)
                 delta = v_d - wf_mean
                 wf_mean += delta / actual_periods
@@ -644,7 +644,7 @@ def getOut_StatNodesProperties(out_file_path, stat):
                     node_props[name] = {
                         "Value": round(float(max_vals[vi, ni] - min_vals[vi, ni]), ROUNDING_PRECISION)
                     }
-                elif stat == "Standard Deviation":
+                elif stat == "StdDev":
                     variance = float(wf_M2[vi, ni]) / actual_periods if actual_periods > 0 else 0.0
                     node_props[name] = {
                         "Value": round(math.sqrt(variance), ROUNDING_PRECISION)
@@ -656,10 +656,10 @@ def getOut_StatNodesProperties(out_file_path, stat):
 def getOut_StatLinksProperties(out_file_path, stat):
     """Returns a statistic for each link property across all reporting periods.
 
-    stat: "Maximum" | "Minimum" | "Average" | "Range" | "Standard Deviation"
+    stat: "Maximum" | "Minimum" | "Average" | "Range" | "StdDev"
 
     Maximum/Minimum return {"Time": int, "Value": float}.
-    Average, Range and Standard Deviation return {"Value": float}.
+    Average, Range and StdDev return {"Value": float}.
     Status always returns None (categorical).
     Velocity, UnitHdLoss, FricFactor and ReactRate return None for pumps/valves.
 
@@ -668,7 +668,7 @@ def getOut_StatLinksProperties(out_file_path, stat):
     """
     import math
 
-    VALID_STATS = {"Maximum", "Minimum", "Average", "Range", "Standard Deviation"}
+    VALID_STATS = {"Maximum", "Minimum", "Average", "Range", "StdDev"}
     if stat not in VALID_STATS:
         raise ValueError(f"stat must be one of {VALID_STATS}")
 
@@ -737,7 +737,7 @@ def getOut_StatLinksProperties(out_file_path, stat):
         if stat == "Average":
             sums            = {name: np.zeros(nl, dtype=np.float64) for name, _, _, _ in TRACKED}
             flow_sum_signed = np.zeros(nl, dtype=np.float64)
-        if stat == "Standard Deviation":
+        if stat == "StdDev":
             wf_mean = {name: np.zeros(nl, dtype=np.float64) for name, _, _, _ in TRACKED}
             wf_M2   = {name: np.zeros(nl, dtype=np.float64) for name, _, _, _ in TRACKED}
 
@@ -782,7 +782,7 @@ def getOut_StatLinksProperties(out_file_path, stat):
                         min_flow_signed = np.where(better, v_signed, min_flow_signed)
                 if stat == "Average":
                     sums[name] += np.where(valid, v.astype(np.float64), 0.0)
-                if stat == "Standard Deviation":
+                if stat == "StdDev":
                     v_d    = v.astype(np.float64)
                     delta  = np.where(valid, v_d - wf_mean[name], 0.0)
                     new_m  = wf_mean[name] + delta / actual_periods
@@ -823,7 +823,7 @@ def getOut_StatLinksProperties(out_file_path, stat):
                     link_props[name] = {
                         "Value": round(float(max_vals[name][li] - min_vals[name][li]), ROUNDING_PRECISION)
                     }
-                elif stat == "Standard Deviation":
+                elif stat == "StdDev":
                     variance = float(wf_M2[name][li]) / actual_periods if actual_periods > 0 else 0.0
                     link_props[name] = {
                         "Value": round(math.sqrt(variance), ROUNDING_PRECISION)
