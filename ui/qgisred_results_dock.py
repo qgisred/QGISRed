@@ -109,6 +109,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.displayingLinkField = ""
         self.displayingNodeField = ""
         self._statsMode = False
+        self._currentStat = self.lbl_none
 
         self.statsDisplayWidget.setVisible(False)
         self.timeDisplayWidget.setVisible(True)
@@ -335,7 +336,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     if not var_key:
                         continue
             
-                    mode_prefix = f"stat_{self.cbStatistics.currentText()}|" if self._statsMode else "time|"
+                    mode_prefix = f"stat_{self._currentStat}|" if self._statsMode else "time|"
                     storage_key = mode_prefix + openedLayerPath + "|" + var_key
                     renderer = layer.renderer()
                     try:
@@ -551,49 +552,50 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     """Clicked events"""
 
     def statisticsChanged(self):
-        if self.Computing:
-            return
+        # 1. First, save render BEFORE updating state to new statistic (only if not computing)
+        if not self.Computing:
+            self.saveCurrentRender()
 
-        statistic = self.cbStatistics.currentText()
+        # 2. Update state and UI
+        new_stat = self.cbStatistics.currentText()
+        self._currentStat = new_stat
+        
+        if new_stat != self.lbl_none:
+            self._statsMode = True
+            self.updateLinksComboboxForStat(new_stat)
+            result_times = self.cbResultTimes.currentText().lower()
+            self.lbStatName.setText(f"{new_stat} values")
+            self.lbStatDesc.setText(f"for {result_times}")
+            self.timeDisplayWidget.setVisible(False)
+            self.statsDisplayWidget.setVisible(True)
+            self.timeControlsWidget.setVisible(False)
+            if self.cbFlowDirections.isChecked():
+                self.cbFlowDirections.setChecked(False)
+            self.cbFlowDirections.setVisible(False)
+        else:
+            self._statsMode = False
+            self.updateLinksComboboxForStat(self.lbl_none)
+            self.statsDisplayWidget.setVisible(False)
+            is_temporal = self.cbTimes.count() > 1
+            self.timeDisplayWidget.setVisible(True)
+            self.cbFlowDirections.setVisible(True)
+            self.lbTime.setText(self.cbTimes.currentText())
+            self.timeControlsWidget.setVisible(is_temporal)
 
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        try:
-            if statistic != self.lbl_none:
-                self.saveCurrentRender()
-                self._statsMode = True
-                self.updateLinksComboboxForStat(statistic)
-                result_times = self.cbResultTimes.currentText().lower()
-                self.lbStatName.setText(f"{statistic} values")
-                self.lbStatDesc.setText(f"for {result_times}")
-                self.timeDisplayWidget.setVisible(False)
-                self.statsDisplayWidget.setVisible(True)
-                self.timeControlsWidget.setVisible(False)
-                if self.cbFlowDirections.isChecked():
-                    self.cbFlowDirections.setChecked(False)
-                self.cbFlowDirections.setVisible(False)
+        # 3. Heavy operations (only if not computing)
+        if not self.Computing:
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            try:
                 if self.validationsOpenResult():
                     self.ensureResultsLayersAreOpen()
                     self.clearResultFields()
-                    self.completeStatsLayers()
+                    if self._statsMode:
+                        self.completeStatsLayers()
+                    else:
+                        self.completeResultLayers()
                     self.paintIntervalTimeResults(True)
-
-            else:
-                self.saveCurrentRender()
-                self._statsMode = False
-                self.updateLinksComboboxForStat(self.lbl_none)
-                self.statsDisplayWidget.setVisible(False)
-                is_temporal = self.cbTimes.count() > 1
-                self.timeDisplayWidget.setVisible(True)
-                self.cbFlowDirections.setVisible(True)
-                self.lbTime.setText(self.cbTimes.currentText())
-                self.timeControlsWidget.setVisible(is_temporal)
-                if self.validationsOpenResult():
-                    self.ensureResultsLayersAreOpen()
-                    self.clearResultFields()
-                    self.completeResultLayers()
-                    self.paintIntervalTimeResults(True)
-        finally:
-            QApplication.restoreOverrideCursor()
+            finally:
+                QApplication.restoreOverrideCursor()
 
     def linksChanged(self):
         if self.Computing:
@@ -868,13 +870,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         }
         translated_stat = stat_map.get(statistic_value.strip().upper(), self.lbl_none)
         idx = self.cbStatistics.findText(translated_stat)
-        if idx >= 0:
+        if idx >= 0 and self.cbStatistics.currentIndex() != idx:
             self.cbStatistics.setCurrentIndex(idx)
-        self._statsMode = translated_stat != self.lbl_none
-        if self._statsMode:
-            result_times = self.cbResultTimes.currentText().lower()
-            self.lbStatName.setText(f"{translated_stat} values")
-            self.lbStatDesc.setText(f"for {result_times}")
 
     def openBaseResults(self, labels):
         # Select comboboxes item
