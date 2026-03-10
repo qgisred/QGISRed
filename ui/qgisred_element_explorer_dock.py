@@ -49,33 +49,37 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.elementPropertiesVisible = showElementProperties
 
         self.elementTypes = [
-            self.tr('Pipes'),
-            self.tr('Junctions'),
-            self.tr('Demands'),
-            self.tr('Reservoirs'),
-            self.tr('Tanks'),
-            self.tr('Pumps'),
-            self.tr('Valves'),
-            self.tr('Sources'),
-            self.tr('Service Connections'),
-            self.tr('Isolation Valves'),
-            self.tr('Meters')
+            self.tr('Pipe'),
+            self.tr('Junction'),
+            self.tr('Demand'),
+            self.tr('Reservoir'),
+            self.tr('Tank'),
+            self.tr('Pump'),
+            self.tr('Valve'),
+            self.tr('Source'),
+            self.tr('Service Connection'),
+            self.tr('Isolation Valve'),
+            self.tr('Meter')
         ]
-        
+
         self.elementIdentifiers = {
-            'Pipes': 'qgisred_pipes', 
-            'Junctions': 'qgisred_junctions',
-            'Demands': 'qgisred_demands',
-            'Reservoirs': 'qgisred_reservoirs',
-            'Tanks': 'qgisred_tanks',
-            'Pumps': 'qgisred_pumps',
-            'Valves': 'qgisred_valves',
-            'Sources': 'qgisred_sources',
-            'Service Connections': 'qgisred_serviceconnections',
-            'Isolation Valves': 'qgisred_isolationvalves',
-            'Meters': 'qgisred_meters'
+            'Pipe': 'qgisred_pipes',
+            'Junction': 'qgisred_junctions',
+            'Demand': 'qgisred_demands',
+            'Reservoir': 'qgisred_reservoirs',
+            'Tank': 'qgisred_tanks',
+            'Pump': 'qgisred_pumps',
+            'Valve': 'qgisred_valves',
+            'Source': 'qgisred_sources',
+            'Service Connection': 'qgisred_serviceconnections',
+            'Isolation Valve': 'qgisred_isolationvalves',
+            'Meter': 'qgisred_meters'
         }
-        
+
+        # Reverse lookup: identifier → display name (singular)
+        self.identifierDisplayNames = {v: k for k, v in self.elementIdentifiers.items()}
+
+        # Maps layer name (as it appears in QGIS) → singular display name
         self.singularForms = {
             self.tr("Pipes"): self.tr("Pipe"),
             self.tr("Junctions"): self.tr("Junction"),
@@ -753,15 +757,18 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             return
         for layerNode in inputsGroup.findLayers():
             layerName = layerNode.name()
-            for elementType, identifier in self.elementIdentifiers.items():
-                if layerName == elementType:
-                    layerObj = layerNode.layer()
-                    if not layerObj:
-                        continue
-                    layerObj.setCustomProperty("qgisred_identifier", identifier)
-                    layerMetadata = QgsLayerMetadata()
-                    layerMetadata.setIdentifier(identifier)
-                    layerObj.setMetadata(layerMetadata)
+            # Map layer name to singular display name, then look up identifier
+            displayName = self.singularForms.get(layerName, layerName)
+            identifier = self.elementIdentifiers.get(displayName)
+            if not identifier:
+                continue
+            layerObj = layerNode.layer()
+            if not layerObj:
+                continue
+            layerObj.setCustomProperty("qgisred_identifier", identifier)
+            layerMetadata = QgsLayerMetadata()
+            layerMetadata.setIdentifier(identifier)
+            layerObj.setMetadata(layerMetadata)
 
     def initializeElementTypes(self):
         # Create progress bar in message bar
@@ -932,8 +939,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         if not pipesLayer:
             return
 
-        pipesLayerName = pipesLayer.name()
-        self.cbElementType.setCurrentText(pipesLayerName)
+        displayName = self.singularForms.get(pipesLayer.name(), pipesLayer.name())
+        self.cbElementType.setCurrentText(displayName)
         self.updateElementIds()
 
     # ------------------------------
@@ -1079,14 +1086,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         singularType, selectedId, fullId = self.extractTypeAndId(itemText)
         if not singularType or not selectedId:
             return
-        elementType = None
-        for plural, singular in self.singularForms.items():
-            if singular == singularType:
-                elementType = plural
-                break
-        if not elementType:
-            elementType = singularType
-        self.cbElementType.setCurrentText(elementType)
+        self.cbElementType.setCurrentText(singularType)
         index = self.cbElementId.findText(fullId)
         if index >= 0:
             self.cbElementId.setCurrentIndex(index)
@@ -1443,18 +1443,20 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             return []
         availableTypes = []
         checkedLayers = inputsGroup.checkedLayers()
-        for element, identifier in self.elementIdentifiers.items():
+        for displayName, identifier in self.elementIdentifiers.items():
             for layer in checkedLayers:
                 if layer and layer.customProperty("qgisred_identifier") == identifier:
-                    availableTypes.append(layer.name())
+                    availableTypes.append(displayName)
                     break
         return availableTypes
 
     def getLayerForElementType(self, elementType):
-        project = QgsProject.instance()
-        layers = project.mapLayersByName(elementType)
-        layerFound = layers[0] if layers else None
-        return layerFound
+        identifier = self.elementIdentifiers.get(elementType)
+        if identifier:
+            return self.getLayerByIdentifier(identifier)
+        # Fallback: try by layer name
+        layers = QgsProject.instance().mapLayersByName(elementType)
+        return layers[0] if layers else None
 
     def getLayerByIdentifier(self, identifier):
         for layer in self.getAllInputGroupLayers():
@@ -2038,7 +2040,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         # Resolve Results/Queries layer to its Inputs counterpart
         layer, feature = self.resolveToInputElement(layer, feature)
 
-        elementTypeText = layer.name()
+        elementTypeText = self.singularForms.get(layer.name(), layer.name())
         self.cbElementType.setCurrentText(elementTypeText)
 
         self.updateElementIds()
