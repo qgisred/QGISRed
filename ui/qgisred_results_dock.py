@@ -945,7 +945,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     break
             if not target_layer:
                 continue
-            candidates = [target_layer.fields().indexOf(f) for f in ("Time", "Stat")]
+            candidates = [target_layer.fields().indexOf(f) for f in ("Time", "Statistics")]
             candidates = [i for i in candidates if i != -1]
             if not candidates:
                 continue
@@ -1119,7 +1119,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             time_field_provider = _TIME_PROVIDER.get(layerName, {})
 
             # Always add fields (clearResultFields already removed them)
-            new_fields = [QgsField("Stat", QVariant.String, "", 15)]
+            new_fields = [QgsField("Statistics", QVariant.String, "", 15)]
             for var in variables:
                 new_fields.append(QgsField(var, QVariant.Double))
                 if is_min_max and var in time_field_after:
@@ -1132,7 +1132,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             if is_min_max:
                 for provider_var, tf_name in time_field_provider.items():
                     time_field_indices[provider_var] = target_layer.fields().indexOf(tf_name)
-            stat_field_idx = target_layer.fields().indexOf("Stat")
+            stat_field_idx = target_layer.fields().indexOf("Statistics")
             id_field_idx = target_layer.fields().indexOf("Id")
             if id_field_idx == -1:
                 id_field_idx = 0
