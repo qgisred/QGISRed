@@ -167,15 +167,25 @@ class TimeSeriesPlotWidget(QWidget):
             painter.setPen(pen_grid)
 
         # Vertical lines (X axis)
-        num_ticks_x = 6
-        for i in range(num_ticks_x + 1):
-            val_x = min_x + i * x_range / num_ticks_x
-            pt = to_screen(val_x, min_y)
-            painter.drawLine(QPointF(pt.x(), plot_rect.top()), QPointF(pt.x(), plot_rect.bottom()))
-            painter.setPen(Qt.black)
-            label_x = f"{int(val_x)}" if val_x == int(val_x) else f"{val_x:.1f}"
-            painter.drawText(QRectF(pt.x() - 30, plot_rect.bottom() + 5, 60, 20), Qt.AlignCenter, label_x)
-            painter.setPen(pen_grid)
+        if len(self.data_x) > 1:
+            # We want to use values from data_x to ensure they are "real" time steps
+            # but if there are too many, we take a subset
+            max_ticks_x = 10
+            step = max(1, len(self.data_x) // max_ticks_x)
+            tick_indices = list(range(0, len(self.data_x), step))
+            # Ensure last point is included if not already
+            if (len(self.data_x) - 1) not in tick_indices:
+                tick_indices.append(len(self.data_x) - 1)
+                
+            for idx in tick_indices:
+                val_x = self.data_x[idx]
+                pt = to_screen(val_x, min_y)
+                painter.setPen(pen_grid)
+                painter.drawLine(QPointF(pt.x(), plot_rect.top()), QPointF(pt.x(), plot_rect.bottom()))
+                
+                painter.setPen(Qt.black)
+                label_x = f"{int(val_x)}" if abs(val_x - int(val_x)) < 0.001 else f"{val_x:.1f}"
+                painter.drawText(QRectF(pt.x() - 30, plot_rect.bottom() + 5, 60, 20), Qt.AlignCenter, label_x)
 
         # Main Axes
         painter.setPen(QPen(Qt.black, 2))
