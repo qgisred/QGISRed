@@ -2396,7 +2396,10 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 if value is None or str(value) == "NULL" or str(value).strip() == "":
                     displayValue = ""
                 else:
-                    displayValue = str(value)
+                    try:
+                        displayValue = f"{float(value):.2f}"
+                    except (ValueError, TypeError):
+                        displayValue = str(value)
                 valueItem = QTableWidgetItem(displayValue)
                 valueItem.setTextAlignment(Qt.AlignCenter)
                 valueItem.setToolTip(displayValue)
