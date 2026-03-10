@@ -139,6 +139,12 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         layout.addWidget(self.plot)
         self.chartContainer.setLayout(layout)
 
+        # Increase title font size
+        font = self.lblTitle.font()
+        font.setPointSize(12)
+        font.setBold(True)
+        self.lblTitle.setFont(font)
+
     def updatePlot(self, x, y, title, x_label, y_label, is_stepped=False):
         self.lblTitle.setText(title)
         self.plot.setData(x, y, title, x_label, y_label, is_stepped)

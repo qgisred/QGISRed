@@ -3125,9 +3125,10 @@ class QGISRed:
 
         self.lastTimeSeriesFeature = found_feature
         self.lastTimeSeriesCategory = category
-        self.performTimeSeriesPlotUpdate(found_feature, category)
+        self.lastTimeSeriesLayer = layer
+        self.performTimeSeriesPlotUpdate(found_feature, category, layer)
 
-    def performTimeSeriesPlotUpdate(self, found_feature, category):
+    def performTimeSeriesPlotUpdate(self, found_feature, category, layer):
         if found_feature is None:
             return
         element_id = str(found_feature.attribute("ID"))
@@ -3191,11 +3192,26 @@ class QGISRed:
             x_data = [(report_start + i * report_step) / 3600.0 for i in range(num_periods)]
 
         title = f"{category} {element_id}: {prop_display}"
+        
+        # Refine title with specific type from layer if possible
+        if layer:
+            identifier = layer.customProperty("qgisred_identifier")
+            type_mapping = {
+                "qgisred_junctions": self.tr("Junction"),
+                "qgisred_tanks": self.tr("Tank"),
+                "qgisred_reservoirs": self.tr("Reservoir"),
+                "qgisred_pipes": self.tr("Pipe"),
+                "qgisred_valves": self.tr("Valve"),
+                "qgisred_pumps": self.tr("Pump")
+            }
+            specific_type = type_mapping.get(identifier, category)
+            title = f"{specific_type} {element_id} - {prop_display}"
+
         self.timeSeriesDock.updatePlot(x_data, y_data, title, self.tr("Time (h)"), prop_display, is_stepped)
 
     def refreshTimeSeries(self):
         if hasattr(self, 'timeSeriesDock') and self.timeSeriesDock:
-            self.performTimeSeriesPlotUpdate(self.lastTimeSeriesFeature, self.lastTimeSeriesCategory)
+            self.performTimeSeriesPlotUpdate(self.lastTimeSeriesFeature, self.lastTimeSeriesCategory, self.lastTimeSeriesLayer)
 
     def runLegendChanged(self):
         # Guard against calls during shutdown
