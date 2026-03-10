@@ -22,15 +22,17 @@ class TimeSeriesPlotWidget(QWidget):
         self.margin_top = 40
         self.margin_bottom = 40
         self.hover_index = None
+        self.y_categorical_labels = None # Optional list of strings for Y ticks
         self.setMouseTracking(True)
 
-    def setData(self, x, y, title="", x_label="Time", y_label="Value", is_stepped=False):
+    def setData(self, x, y, title="", x_label="Time", y_label="Value", is_stepped=False, y_categorical_labels=None):
         self.data_x = x
         self.data_y = y
         self.title = title
         self.x_label = x_label
         self.y_label = y_label
         self.is_stepped = is_stepped
+        self.y_categorical_labels = y_categorical_labels
         self.update()
 
     def update(self):
@@ -49,7 +51,12 @@ class TimeSeriesPlotWidget(QWidget):
         if not self.data_y:
             local_margin_left = 60
         else:
-            min_y, max_y = min(self.data_y), max(self.data_y)
+            if self.y_categorical_labels:
+                min_y = 0
+                max_y = len(self.y_categorical_labels) - 1
+            else:
+                min_y, max_y = min(self.data_y), max(self.data_y)
+            
             y_range = max_y - min_y
             if y_range == 0:
                 min_y -= 1
@@ -60,9 +67,17 @@ class TimeSeriesPlotWidget(QWidget):
                 
             max_label_w = 0
             num_ticks_y = 5
+            if self.y_categorical_labels:
+                num_ticks_y = len(self.y_categorical_labels) - 1
+            
             for i in range(num_ticks_y + 1):
-                val_y = min_y + i * (max_y - min_y) / num_ticks_y
-                label_w = fm.horizontalAdvance(f"{val_y:.2f}")
+                if self.y_categorical_labels:
+                    label_text = self.y_categorical_labels[i]
+                else:
+                    val_y = min_y + i * (max_y - min_y) / num_ticks_y
+                    label_text = f"{val_y:.2f}"
+                
+                label_w = fm.horizontalAdvance(label_text)
                 if label_w > max_label_w:
                     max_label_w = label_w
             
@@ -104,7 +119,14 @@ class TimeSeriesPlotWidget(QWidget):
         painter.drawRect(plot_rect)
 
         # Prepare Y axis scaling
-        min_y, max_y = min(self.data_y), max(self.data_y)
+        if self.y_categorical_labels:
+            min_y = 0
+            max_y = len(self.y_categorical_labels) - 1
+            num_ticks_y = max_y
+        else:
+            min_y, max_y = min(self.data_y), max(self.data_y)
+            num_ticks_y = 5
+            
         y_range = max_y - min_y
         if y_range == 0:
             min_y -= 1
@@ -129,14 +151,19 @@ class TimeSeriesPlotWidget(QWidget):
         painter.setPen(pen_grid)
         
         # Horizontal lines (Y axis)
-        num_ticks_y = 5
         for i in range(num_ticks_y + 1):
-            val_y = min_y + i * (max_y - min_y) / num_ticks_y
+            if self.y_categorical_labels:
+                val_y = i 
+                label_text = self.y_categorical_labels[i]
+            else:
+                val_y = min_y + i * (max_y - min_y) / num_ticks_y
+                label_text = f"{val_y:.2f}"
+                
             pt = to_screen(min_x, val_y)
             painter.drawLine(QPointF(plot_rect.left(), pt.y()), QPointF(plot_rect.right(), pt.y()))
             painter.setPen(Qt.black)
             # Draw text relative to dynamic margin
-            painter.drawText(QRectF(0, pt.y() - 10, local_margin_left - 5, 20), Qt.AlignRight | Qt.AlignVCenter, f"{val_y:.2f}")
+            painter.drawText(QRectF(0, pt.y() - 10, local_margin_left - 5, 20), Qt.AlignRight | Qt.AlignVCenter, label_text)
             painter.setPen(pen_grid)
 
         # Vertical lines (X axis)
@@ -204,7 +231,11 @@ class TimeSeriesPlotWidget(QWidget):
             painter.drawEllipse(pt, 4, 4)
             
             # Tooltip box
-            text = f"T: {val_x:.2f} h\nV: {val_y:.2f}"
+            if self.y_categorical_labels:
+                val_y_str = self.y_categorical_labels[int(round(val_y))]
+            else:
+                val_y_str = f"{val_y:.2f}"
+            text = f"T: {val_x:.2f} h\nV: {val_y_str}"
             font_tt = QFont("Arial", 8)
             painter.setFont(font_tt)
             fm = painter.fontMetrics()
@@ -300,5 +331,5 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self.setStyleSheet("background-color: white; border: none;")
         self.chartContainer.setStyleSheet("background-color: white;")
 
-    def updatePlot(self, x, y, title, x_label, y_label, is_stepped=False):
-        self.plot.setData(x, y, title, x_label, y_label, is_stepped)
+    def updatePlot(self, x, y, title, x_label, y_label, is_stepped=False, y_categorical_labels=None):
+        self.plot.setData(x, y, title, x_label, y_label, is_stepped, y_categorical_labels)

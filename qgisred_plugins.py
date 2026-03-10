@@ -3224,7 +3224,25 @@ class QGISRed:
             specific_type = type_mapping.get(identifier, category)
             title = f"{specific_type} {element_id} - {prop_display}"
 
-        self.timeSeriesDock.updatePlot(x_data, y_data, title, self.tr("Time (h)"), prop_display, is_stepped)
+        y_categorical_labels = None
+        if prop_internal == "Status":
+            is_stepped = True
+            # Map category strings to numbers: Closed -> 0, Active -> 1, Open -> 2
+            mapped_data = []
+            for status in y_data:
+                status_upper = str(status).upper()
+                if "CLOSED" in status_upper:
+                    mapped_data.append(0)
+                elif "ACTIVE" in status_upper:
+                    mapped_data.append(1)
+                elif "OPEN" in status_upper:
+                    mapped_data.append(2)
+                else:
+                    mapped_data.append(0) # Default to closed if unknown
+            y_data = mapped_data
+            y_categorical_labels = [self.tr("Closed"), self.tr("Active"), self.tr("Open")]
+
+        self.timeSeriesDock.updatePlot(x_data, y_data, title, self.tr("Time (h)"), prop_display, is_stepped, y_categorical_labels)
 
     def refreshTimeSeries(self):
         if hasattr(self, 'timeSeriesDock') and self.timeSeriesDock:
