@@ -61,6 +61,7 @@ from .tools.qgisred_identifyFeature import QGISRedIdentifyFeature
 
 # Others imports
 import os
+import json
 import tempfile
 import platform
 import base64
@@ -3145,6 +3146,71 @@ class QGISRed:
         self.lastTimeSeriesLayer = layer
         self.performTimeSeriesPlotUpdate(found_feature, category, layer)
 
+    def getUnitSystem(self):
+        """Determine if the project uses SI or US units based on the status bar text."""
+        if hasattr(self, 'unitsAction'):
+            text = self.unitsAction.text()
+            # Common US units in EPANET: CFS, GPM, MGD, IMGD, AFD
+            us_flow_units = ["CFS", "GPM", "MGD", "IMGD", "AFD"]
+            for unit in us_flow_units:
+                if unit in text.upper():
+                    return "US"
+        return "SI"
+
+    def getPropertyUnit(self, category, prop_internal):
+        """Fetch the unit abbreviation for a property from qgisred_units.json."""
+        try:
+            if not category or not prop_internal:
+                return ""
+                
+            units_path = os.path.join(self.plugin_dir, "defaults", "qgisred_units.json")
+            if not os.path.exists(units_path):
+                return ""
+            
+            with open(units_path, "r", encoding="utf-8") as f:
+                units_data = json.load(f)
+            
+            system = self.getUnitSystem()
+            
+            # Map internal property names to JSON keys
+            prop_map = {
+                ("Node", "Pressure"): "qgisred_results_node_pressure",
+                ("Node", "Head"): "qgisred_results_node_head",
+                ("Node", "Demand"): "qgisred_results_node_demand",
+                ("Node", "Quality"): "qgisred_results_node_quality",
+                ("Link", "Flow"): "qgisred_results_link_flow",
+                ("Link", "Velocity"): "qgisred_results_link_velocity",
+                ("Link", "HeadLoss"): "qgisred_results_link_headloss",
+                ("Link", "UnitHdLoss"): "qgisred_results_link_unitheadloss",
+                ("Link", "FricFactor"): "qgisred_results_link_frictionfactor",
+                ("Link", "ReactRate"): "qgisred_results_link_reactrate",
+                ("Link", "Quality"): "qgisred_results_link_quality"
+            }
+            
+            key = prop_map.get((category, prop_internal))
+            if not key:
+                return ""
+                
+            cat_key = "Nodes" if category == "Node" else "Links"
+            prop_data = units_data.get(cat_key, {}).get(key, {})
+            
+            unit_info = prop_data.get(system)
+            if not unit_info:
+                return ""
+                
+            abbr = unit_info.get("abbr", "")
+            name = unit_info.get("name", "")
+            
+            if name == "Same as Flow" or not abbr or abbr == "-":
+                # Recursively get flow units
+                flow_key = "qgisred_results_link_flow"
+                flow_data = units_data.get("Links", {}).get(flow_key, {}).get(system, {})
+                return flow_data.get("abbr", "")
+                
+            return abbr
+        except Exception:
+            return ""
+
     def performTimeSeriesPlotUpdate(self, found_feature, category, layer):
         if found_feature is None:
             return
@@ -3225,6 +3291,7 @@ class QGISRed:
             title = f"{specific_type} {element_id} - {prop_display}"
 
         y_categorical_labels = None
+        y_label_with_unit = prop_display
         if prop_internal == "Status":
             is_stepped = True
             # Map category strings to numbers: Closed -> 0, Active -> 1, Open -> 2
@@ -3241,8 +3308,12 @@ class QGISRed:
                     mapped_data.append(0) # Default to closed if unknown
             y_data = mapped_data
             y_categorical_labels = [self.tr("Closed"), self.tr("Active"), self.tr("Open")]
+        else:
+            unit_abbr = self.getPropertyUnit(category, prop_internal)
+            if unit_abbr:
+                y_label_with_unit = f"{prop_display} ({unit_abbr})"
 
-        self.timeSeriesDock.updatePlot(x_data, y_data, title, self.tr("Time (h)"), prop_display, is_stepped, y_categorical_labels)
+        self.timeSeriesDock.updatePlot(x_data, y_data, title, self.tr("Time (h)"), y_label_with_unit, is_stepped, y_categorical_labels)
 
     def refreshTimeSeries(self):
         if hasattr(self, 'timeSeriesDock') and self.timeSeriesDock:

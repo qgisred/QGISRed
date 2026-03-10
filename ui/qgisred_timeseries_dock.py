@@ -195,8 +195,8 @@ class TimeSeriesPlotWidget(QWidget):
         # Axis Title labels
         painter.setFont(QFont("Arial", 9))
         painter.save()
-        # Position title centered in the left margin area, but offset from labels
-        painter.translate(15, h/2)
+        # Position title properly within the dynamic margin area
+        painter.translate(local_margin_left / 2 - 15, h/2)
         painter.rotate(-90)
         painter.drawText(QRectF(-100, -15, 200, 30), Qt.AlignCenter, self.y_label)
         painter.restore()
