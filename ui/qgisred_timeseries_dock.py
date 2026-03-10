@@ -146,7 +146,8 @@ class TimeSeriesPlotWidget(QWidget):
             pt = to_screen(val_x, min_y)
             painter.drawLine(QPointF(pt.x(), plot_rect.top()), QPointF(pt.x(), plot_rect.bottom()))
             painter.setPen(Qt.black)
-            painter.drawText(QRectF(pt.x() - 30, plot_rect.bottom() + 5, 60, 20), Qt.AlignCenter, f"{val_x:.1f}")
+            label_x = f"{int(val_x)}" if val_x == int(val_x) else f"{val_x:.1f}"
+            painter.drawText(QRectF(pt.x() - 30, plot_rect.bottom() + 5, 60, 20), Qt.AlignCenter, label_x)
             painter.setPen(pen_grid)
 
         # Main Axes
