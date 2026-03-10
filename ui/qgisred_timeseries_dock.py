@@ -19,8 +19,10 @@ class TimeSeriesPlotWidget(QWidget):
         self.is_stepped = False
         self.margin_left = 60
         self.margin_right = 20
-        self.margin_top = 10
+        self.margin_top = 40
         self.margin_bottom = 40
+        self.hover_index = None
+        self.setMouseTracking(True)
 
     def setData(self, x, y, title="", x_label="Time", y_label="Value", is_stepped=False):
         self.data_x = x
@@ -34,7 +36,7 @@ class TimeSeriesPlotWidget(QWidget):
     def paintEvent(self, event):
         if not self.data_x or not self.data_y:
             painter = QPainter(self)
-            painter.drawText(self.rect(), Qt.AlignCenter, "No data to display")
+            painter.drawText(self.rect(), Qt.AlignCenter, self.tr("No data to display, please select an element on the map."))
             return
 
         painter = QPainter(self)
@@ -42,13 +44,33 @@ class TimeSeriesPlotWidget(QWidget):
 
         w = self.width()
         h = self.height()
-        plot_rect = QRectF(self.margin_left, self.margin_top, 
+        
+        # Draw Background
+        painter.fillRect(self.rect(), Qt.white)
+        
+        # Draw Title
+        if self.title:
+            painter.save()
+            font_title = QFont("Arial", 12)
+            font_title.setBold(True)
+            painter.setFont(font_title)
+            painter.setPen(Qt.black)
+            painter.drawText(QRectF(0, 0, w, self.margin_top), Qt.AlignCenter | Qt.AlignBottom, self.title)
+            painter.restore()
+
+        plot_rect = QRectF(self.margin_left, self.margin_top + 10, 
                            w - self.margin_left - self.margin_right, 
-                           h - self.margin_top - self.margin_bottom)
+                           h - (self.margin_top + 10) - self.margin_bottom)
+
+        painter.setPen(QPen(QColor(200, 200, 200), 1))
+        painter.drawRect(plot_rect)
 
         # Calculate scales
         min_x, max_x = min(self.data_x), max(self.data_x)
         min_y, max_y = min(self.data_y), max(self.data_y)
+        
+        # Axis font
+        painter.setFont(QFont("Arial", 9))
         
         # Add small margin to Y axis
         y_range = max_y - min_y
@@ -68,7 +90,7 @@ class TimeSeriesPlotWidget(QWidget):
             return QPointF(sx, sy)
 
         # Draw Grid & Axes
-        pen_grid = QPen(QColor(220, 220, 220), 1, Qt.DashLine)
+        pen_grid = QPen(QColor(235, 235, 235), 1, Qt.SolidLine)
         painter.setPen(pen_grid)
         
         # Horizontal lines (Y axis)
@@ -106,6 +128,7 @@ class TimeSeriesPlotWidget(QWidget):
         painter.drawText(QRectF(self.margin_left, h - self.margin_bottom + 20, plot_rect.width(), 20), Qt.AlignCenter, self.x_label)
 
         # Draw Curve
+        hover_pt = None
         if len(self.data_x) > 1:
             pen_curve = QPen(QColor(0, 120, 215), 2)
             painter.setPen(pen_curve)
@@ -117,7 +140,6 @@ class TimeSeriesPlotWidget(QWidget):
             for i in range(1, len(self.data_x)):
                 next_pt = to_screen(self.data_x[i], self.data_y[i])
                 if self.is_stepped:
-                    # Constant between points: horizontal then vertical
                     path.lineTo(next_pt.x(), start_pt.y())
                     path.lineTo(next_pt)
                 else:
@@ -125,6 +147,101 @@ class TimeSeriesPlotWidget(QWidget):
                 start_pt = next_pt
             
             painter.drawPath(path)
+
+        # Tooltip / Hover Logic
+        if self.hover_index is not None and 0 <= self.hover_index < len(self.data_x):
+            val_x = self.data_x[self.hover_index]
+            val_y = self.data_y[self.hover_index]
+            pt = to_screen(val_x, val_y)
+            
+            # Crosshair
+            painter.setPen(QPen(QColor(200, 200, 200), 1, Qt.DashLine))
+            painter.drawLine(QPointF(pt.x(), plot_rect.top()), QPointF(pt.x(), plot_rect.bottom()))
+            painter.drawLine(QPointF(plot_rect.left(), pt.y()), QPointF(plot_rect.right(), pt.y()))
+            
+            # Highlight point
+            painter.setPen(QPen(QColor(0, 120, 215), 2))
+            painter.setBrush(Qt.white)
+            painter.drawEllipse(pt, 4, 4)
+            
+            # Tooltip box
+            text = f"T: {val_x:.2f} h\nV: {val_y:.2f}"
+            font_tt = QFont("Arial", 8)
+            painter.setFont(font_tt)
+            fm = painter.fontMetrics()
+            
+            # Use flags to correctly handle multi-line text bonding box
+            rect_tt = fm.boundingRect(self.rect(), Qt.AlignCenter, text)
+            rect_tt.adjust(-5, -5, 5, 5)
+            
+            # Position tooltip box
+            tt_x = int(pt.x() + 10)
+            tt_y = int(pt.y() - 10 - rect_tt.height())
+            
+            # Keep inside widget
+            if tt_x + rect_tt.width() > w: 
+                tt_x = int(pt.x() - 10 - rect_tt.width())
+            if tt_y < 0: 
+                tt_y = int(pt.y() + 10)
+            
+            rect_tt.moveTo(tt_x, tt_y)
+            
+            painter.setPen(QPen(Qt.black, 1))
+            painter.setBrush(QColor(255, 255, 225)) # Light yellow
+            painter.drawRect(rect_tt)
+            painter.drawText(rect_tt, Qt.AlignCenter, text)
+
+    def leaveEvent(self, event):
+        if self.hover_index is not None:
+            self.hover_index = None
+            self.update()
+
+    def mouseMoveEvent(self, event):
+        if not self.data_x or len(self.data_x) < 2:
+            return
+            
+        mouse_pos = event.pos()
+        w = self.width()
+        h = self.height()
+        
+        # Guard against zero or negative dimensions
+        if w <= (self.margin_left + self.margin_right) or h <= (self.margin_top + 10 + self.margin_bottom):
+            return
+
+        plot_rect = QRectF(self.margin_left, self.margin_top + 10, 
+                           w - self.margin_left - self.margin_right, 
+                           h - (self.margin_top + 10) - self.margin_bottom)
+        
+        if not plot_rect.contains(QPointF(mouse_pos)):
+            if self.hover_index is not None:
+                self.hover_index = None
+                self.update()
+            return
+
+        # Calculate scales to reverse map
+        min_x, max_x = min(self.data_x), max(self.data_x)
+        x_range = max_x - min_x
+        if x_range <= 0: x_range = 1
+        
+        # Find nearest point in data_x
+        try:
+            rel_x = (mouse_pos.x() - plot_rect.left()) / plot_rect.width()
+            target_x = min_x + rel_x * x_range
+            
+            # Simple linear search for nearest index (more robust than binary for small data)
+            best_idx = 0
+            min_dist = abs(self.data_x[0] - target_x)
+            for i in range(1, len(self.data_x)):
+                dist = abs(self.data_x[i] - target_x)
+                if dist < min_dist:
+                    min_dist = dist
+                    best_idx = i
+            
+            if self.hover_index != best_idx:
+                self.hover_index = best_idx
+                self.update()
+        except ZeroDivisionError:
+            pass
 
 class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
     def __init__(self, iface, parent=None):
@@ -140,11 +257,11 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self.chartContainer.setLayout(layout)
 
         # Increase title font size
-        font = self.lblTitle.font()
-        font.setPointSize(12)
-        font.setBold(True)
-        self.lblTitle.setFont(font)
+        self.lblTitle.hide()
+        
+        # Set white background for the dock and container
+        self.setStyleSheet("background-color: white; border: none;")
+        self.chartContainer.setStyleSheet("background-color: white;")
 
     def updatePlot(self, x, y, title, x_label, y_label, is_stepped=False):
-        self.lblTitle.setText(title)
         self.plot.setData(x, y, title, x_label, y_label, is_stepped)
