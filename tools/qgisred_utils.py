@@ -752,9 +752,8 @@ class QGISRedUtils:
                         qgisPath = os.path.abspath(qgisPath)
                         os.chdir(currentDirectory)
 
-                    if os.path.exists(qgisPath):   
+                    if os.path.exists(qgisPath):
                         QgsProject.instance().read(qgisPath)
-                        self.applyStylesToInputLayers()
                     else:
                         request = QMessageBox.question(
                             self.iface.mainWindow(),
@@ -769,7 +768,6 @@ class QGISRedUtils:
                             qgisPath = f[0]
                             if not qgisPath == "":
                                 QgsProject.instance().read(qgisPath)
-                                self.applyStylesToInputLayers()
                         else:
                             layers = ["Pipes", "Junctions", "Demands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
                             self.openGroupLayers("Inputs", layers)
