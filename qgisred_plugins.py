@@ -3052,15 +3052,37 @@ class QGISRed:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
     def runTimeSeries(self):
-        if not self.checkDependencies():
-            return
-        self.defineCurrentProject()
-        if not self.isValidProject():
-            return
-        if self.isLayerOnEdition():
-            return
-
         if self.timeSeriesButton.isChecked():
+            # 1. Basic Validations
+            self.defineCurrentProject()
+            if not self.isValidProject() or self.isLayerOnEdition():
+                self.iface.messageBar().pushMessage(
+                    self.tr("Time Series"), 
+                    self.tr("Necessary to have a valid project and no layer on edition."), 
+                    level=1, duration=5
+                )
+                self.timeSeriesButton.setChecked(False)
+                return
+
+            # 2. Results Validation
+            results_ready = False
+            if hasattr(self, 'ResultDockwidget') and self.ResultDockwidget:
+                # check if results dock matches current project
+                if self.ResultDockwidget.isCurrentProject():
+                    # check if .out file exists
+                    out_path = getattr(self.ResultDockwidget, "outPath", "")
+                    if out_path and os.path.exists(out_path):
+                        results_ready = True
+
+            if not results_ready:
+                self.iface.messageBar().pushMessage(
+                    self.tr("Time Series"), 
+                    self.tr("It is necessary to simulate first."), 
+                    level=1, duration=5
+                )
+                self.timeSeriesButton.setChecked(False)
+                return
+
             self.runTimeSeriesSelectPointTool()
             if not hasattr(self, 'timeSeriesDock') or self.timeSeriesDock is None:
                 self.timeSeriesDock = QGISRedTimeSeriesDock(self.iface)
