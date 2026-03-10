@@ -2287,16 +2287,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         if isNode:
             return ["Pressure", "Head", "Demand", "Quality"]
 
-        resultsLayer = self.findResultsLayerForElement(isNode)
-        if not resultsLayer:
-            return None
-
-        fields = resultsLayer.fields()
-        startIdx = fields.indexFromName("Time")
-        skipFields = {"Id", "Type", "Time", "Setting"}
-        if startIdx >= 0:
-            return [fields[i].name() for i in range(startIdx + 1, len(fields)) if fields[i].name() not in skipFields]
-        return [f.name() for f in fields if f.name() not in skipFields]
+        return ["Status", "Flow", "Velocity", "HeadLoss", "UnitHeadLoss", "FricFactor", "ReactRate", "Quality"]
 
     def mapResultsFieldToBinaryKey(self, fieldName):
         """Map a Results layer field name to the corresponding binary results dict key."""
