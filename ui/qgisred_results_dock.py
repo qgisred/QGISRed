@@ -1102,16 +1102,16 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             variables = list(v[:10] for v in results[first_id].keys())
 
             # For Min/Max: time columns per layer type.
-            #   Node: Time_P_H after Head (shared Pressure+Head), Time_D, Time_Q individual
+            #   Node: Time_H after Head (shared Pressure+Head), Time_D, Time_Q individual
             #   Link: Time_H after UnitHdLoss (shared Flow/Velocity/HeadLoss/UnitHdLoss),
             #         Time_FF, Time_RR, Time_Q individual
             _TIME_FIELD_AFTER = {
-                "Node": {"Head": "Time_P_H", "Demand": "Time_D", "Quality": "Time_Q"},
+                "Node": {"Head": "Time_H", "Demand": "Time_D", "Quality": "Time_Q"},
                 "Link": {"UnitHdLoss": "Time_H", "FricFactor": "Time_FF",
                          "ReactRate": "Time_RR", "Quality": "Time_Q"},
             }
             _TIME_PROVIDER = {
-                "Node": {"Pressure": "Time_P_H", "Demand": "Time_D", "Quality": "Time_Q"},
+                "Node": {"Pressure": "Time_H", "Demand": "Time_D", "Quality": "Time_Q"},
                 "Link": {"Flow": "Time_H", "FricFactor": "Time_FF",
                          "ReactRate": "Time_RR", "Quality": "Time_Q"},
             }
