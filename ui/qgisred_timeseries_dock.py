@@ -2,7 +2,7 @@
 import os
 from PyQt5.QtWidgets import QDockWidget, QVBoxLayout, QWidget
 from PyQt5.QtCore import Qt, QPointF, QRectF
-from PyQt5.QtGui import QPainter, QPen, QColor, QFont, QPainterPath
+from PyQt5.QtGui import QPainter, QPen, QColor, QFont, QPainterPath, QFontMetrics
 from qgis.PyQt import uic
 
 # Load UI
@@ -33,6 +33,46 @@ class TimeSeriesPlotWidget(QWidget):
         self.is_stepped = is_stepped
         self.update()
 
+    def update(self):
+        # Trigger recalculation of margins if needed before painting
+        super(TimeSeriesPlotWidget, self).update()
+
+    def getPlotRect(self):
+        w = self.width()
+        h = self.height()
+        
+        # Calculate max label width to adjust margin dynamically
+        # We use a temporary font to measure
+        font = QFont("Arial", 9)
+        fm = QFontMetrics(font)
+        
+        if not self.data_y:
+            local_margin_left = 60
+        else:
+            min_y, max_y = min(self.data_y), max(self.data_y)
+            y_range = max_y - min_y
+            if y_range == 0:
+                min_y -= 1
+                max_y += 1
+            else:
+                min_y -= y_range * 0.1
+                max_y += y_range * 0.1
+                
+            max_label_w = 0
+            num_ticks_y = 5
+            for i in range(num_ticks_y + 1):
+                val_y = min_y + i * (max_y - min_y) / num_ticks_y
+                label_w = fm.horizontalAdvance(f"{val_y:.2f}")
+                if label_w > max_label_w:
+                    max_label_w = label_w
+            
+            local_margin_left = max_label_w + 40
+            if local_margin_left < 60: local_margin_left = 60
+            
+        return QRectF(local_margin_left, self.margin_top + 10, 
+                      w - local_margin_left - self.margin_right, 
+                      h - (self.margin_top + 10) - self.margin_bottom), local_margin_left
+
     def paintEvent(self, event):
         if not self.data_x or not self.data_y:
             painter = QPainter(self)
@@ -58,21 +98,13 @@ class TimeSeriesPlotWidget(QWidget):
             painter.drawText(QRectF(0, 0, w, self.margin_top), Qt.AlignCenter | Qt.AlignBottom, self.title)
             painter.restore()
 
-        plot_rect = QRectF(self.margin_left, self.margin_top + 10, 
-                           w - self.margin_left - self.margin_right, 
-                           h - (self.margin_top + 10) - self.margin_bottom)
+        plot_rect, local_margin_left = self.getPlotRect()
 
         painter.setPen(QPen(QColor(200, 200, 200), 1))
         painter.drawRect(plot_rect)
 
-        # Calculate scales
-        min_x, max_x = min(self.data_x), max(self.data_x)
+        # Prepare Y axis scaling
         min_y, max_y = min(self.data_y), max(self.data_y)
-        
-        # Axis font
-        painter.setFont(QFont("Arial", 9))
-        
-        # Add small margin to Y axis
         y_range = max_y - min_y
         if y_range == 0:
             min_y -= 1
@@ -81,6 +113,8 @@ class TimeSeriesPlotWidget(QWidget):
             min_y -= y_range * 0.1
             max_y += y_range * 0.1
 
+        # Calculate X scale
+        min_x, max_x = min(self.data_x), max(self.data_x)
         x_range = max_x - min_x
         if x_range == 0: x_range = 1
 
@@ -90,6 +124,7 @@ class TimeSeriesPlotWidget(QWidget):
             return QPointF(sx, sy)
 
         # Draw Grid & Axes
+        painter.setFont(QFont("Arial", 9))
         pen_grid = QPen(QColor(235, 235, 235), 1, Qt.SolidLine)
         painter.setPen(pen_grid)
         
@@ -100,7 +135,8 @@ class TimeSeriesPlotWidget(QWidget):
             pt = to_screen(min_x, val_y)
             painter.drawLine(QPointF(plot_rect.left(), pt.y()), QPointF(plot_rect.right(), pt.y()))
             painter.setPen(Qt.black)
-            painter.drawText(QRectF(0, pt.y() - 10, self.margin_left - 5, 20), Qt.AlignRight | Qt.AlignVCenter, f"{val_y:.2f}")
+            # Draw text relative to dynamic margin
+            painter.drawText(QRectF(0, pt.y() - 10, local_margin_left - 5, 20), Qt.AlignRight | Qt.AlignVCenter, f"{val_y:.2f}")
             painter.setPen(pen_grid)
 
         # Vertical lines (X axis)
@@ -118,14 +154,16 @@ class TimeSeriesPlotWidget(QWidget):
         painter.drawLine(plot_rect.bottomLeft(), plot_rect.bottomRight())
         painter.drawLine(plot_rect.bottomLeft(), plot_rect.topLeft())
 
+        # Axis Title labels
         painter.setFont(QFont("Arial", 9))
         painter.save()
+        # Position title centered in the left margin area, but offset from labels
         painter.translate(15, h/2)
         painter.rotate(-90)
         painter.drawText(QRectF(-100, -15, 200, 30), Qt.AlignCenter, self.y_label)
         painter.restore()
         
-        painter.drawText(QRectF(self.margin_left, h - self.margin_bottom + 20, plot_rect.width(), 20), Qt.AlignCenter, self.x_label)
+        painter.drawText(QRectF(local_margin_left, h - self.margin_bottom + 20, plot_rect.width(), 20), Qt.AlignCenter, self.x_label)
 
         # Draw Curve
         hover_pt = None
@@ -208,9 +246,7 @@ class TimeSeriesPlotWidget(QWidget):
         if w <= (self.margin_left + self.margin_right) or h <= (self.margin_top + 10 + self.margin_bottom):
             return
 
-        plot_rect = QRectF(self.margin_left, self.margin_top + 10, 
-                           w - self.margin_left - self.margin_right, 
-                           h - (self.margin_top + 10) - self.margin_bottom)
+        plot_rect, local_margin_left = self.getPlotRect()
         
         if not plot_rect.contains(QPointF(mouse_pos)):
             if self.hover_index is not None:
