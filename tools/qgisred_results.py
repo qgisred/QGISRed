@@ -813,8 +813,8 @@ def getOut_StatLinksProperties(out_file_path, stat):
                     }
                 elif stat == "Average":
                     if name == "Flow":
-                        link_props["FlowUnsig"] = {"Value": round(float(sums["Flow"][li])     / actual_periods, ROUNDING_PRECISION)}
-                        link_props["FlowSig"]   = {"Value": round(float(flow_sum_signed[li]) / actual_periods, ROUNDING_PRECISION)}
+                        link_props["Flow_Unsig"] = {"Value": round(float(sums["Flow"][li])     / actual_periods, ROUNDING_PRECISION)}
+                        link_props["Flow_Sig"]   = {"Value": round(float(flow_sum_signed[li]) / actual_periods, ROUNDING_PRECISION)}
                         continue
                     link_props[name] = {
                         "Value": round(float(sums[name][li]) / actual_periods, ROUNDING_PRECISION)

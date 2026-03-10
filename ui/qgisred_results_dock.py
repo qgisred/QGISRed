@@ -358,7 +358,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         # Maps combobox display text → layer field name (keys use self.tr to support translations)
         _LINK_FIELD_MAP = {
-            self.lbl_flow: "Flow", self.lbl_unsigned_flow: "FlowUnsig", self.lbl_signed_flow: "FlowSig",
+            self.lbl_flow: "Flow", self.lbl_unsigned_flow: "Flow_Unsig", self.lbl_signed_flow: "Flow_Sig",
             self.lbl_velocity: "Velocity", self.lbl_headloss: "HeadLoss", self.lbl_unit_headloss: "UnitHdLoss",
             self.lbl_friction_factor: "FricFactor", self.lbl_status: "Status",
             self.lbl_reaction_rate: "ReactRate", self.lbl_quality: "Quality",
@@ -470,7 +470,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     def setGraduadedPalette(self, layer, field, setRender, nameLayer):
         renderer = layer.renderer()
         rawField = field  # column name
-        qmlField = "Flow" if rawField in ("FlowSig", "FlowUnsig") else rawField
+        qmlField = "Flow" if rawField in ("Flow_Sig", "Flow_Unsig") else rawField
         if field == "Flow":
             field = "abs(" + field + ")"
         
