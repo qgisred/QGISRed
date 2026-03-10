@@ -1980,6 +1980,8 @@ class QGISRed:
             self.defineCurrentProject()
         units = "LPS"
         headloss = "D-W"
+        qualityModel = "Chemical"
+        massUnits = "mg/L"
         if self.ProjectDirectory == "Temporal Folder":
             return
         dbf = QgsVectorLayer(os.path.join(self.ProjectDirectory, self.NetworkName + "_Options.dbf"), "Options", "ogr")
@@ -1989,9 +1991,15 @@ class QGISRed:
                 units = attrs[2]
             if attrs[1] == "HEADLOSS":
                 headloss = attrs[2]
+            if attrs[1] == "QUALITY":
+                qualityModel = attrs[2]
+            if attrs[1] == "MASSUNITS":
+                massUnits = attrs[2]
 
         QgsProject.instance().writeEntry("QGISRed", "project_units", units)
         QgsProject.instance().writeEntry("QGISRed", "project_headloss", headloss)
+        QgsProject.instance().writeEntry("QGISRed", "project_qualitymodel", qualityModel)
+        QgsProject.instance().writeEntry("QGISRed", "project_massunits", massUnits)
 
         self.unitsAction.setText("QGISRed: " + units + " | " + headloss)
         del dbf
