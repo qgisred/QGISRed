@@ -277,12 +277,12 @@
                      <property name="font">
                       <font>
                        <family>Calibri</family>
-                       <pointsize>10</pointsize>
+                       <pointsize>12</pointsize>
                        <italic>true</italic>
                       </font>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">font: italic 10pt "Calibri";</string>
+                      <string notr="true">font: italic 12pt "Calibri";</string>
                      </property>
                      <property name="text">
                       <string/>

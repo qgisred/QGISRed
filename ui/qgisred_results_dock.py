@@ -563,9 +563,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if new_stat != self.lbl_none:
             self._statsMode = True
             self.updateLinksComboboxForStat(new_stat)
-            result_times = self.cbResultTimes.currentText().lower()
-            self.lbStatName.setText(f"{new_stat} values")
-            self.lbStatDesc.setText(f"for {result_times}")
+            result_times = self.cbResultTimes.currentText()
+            self.lbStatName.setText(self.tr("{} values").format(new_stat))
+            self.lbStatDesc.setText(self.tr("for {}").format(result_times.lower()))
             self.timeDisplayWidget.setVisible(False)
             self.statsDisplayWidget.setVisible(True)
             self.timeControlsWidget.setVisible(False)
