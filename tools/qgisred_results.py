@@ -323,12 +323,12 @@ def getOut_TimeLinksProperties(out_file_path, time_seconds):
                 headloss_calc = (unit_headloss * length) / 1000.0
 
             results[meta["link_ids"][i]] = {
+                "Status": status_text,
                 "Flow": round(float(flows[i]), ROUNDING_PRECISION),
                 "Velocity": None if pumpOrValve else round(float(velocities[i]), ROUNDING_PRECISION),
                 "HeadLoss": round(headloss_calc, ROUNDING_PRECISION),
                 "UnitHdLoss": None if pumpOrValve else round(unit_headloss, ROUNDING_PRECISION),
                 "FricFactor": None if pumpOrValve else round(float(friction_rates[i]), ROUNDING_PRECISION),
-                "Status": status_text,
                 "ReactRate": None if pumpOrValve else round(float(reaction_rates[i]), ROUNDING_PRECISION),
                 "Quality": round(float(qualities[i]), ROUNDING_PRECISION)
             }
