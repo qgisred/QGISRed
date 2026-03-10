@@ -1121,6 +1121,10 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         headloss, _ = QgsProject.instance().readEntry("QGISRed", "project_headloss", "H-W")
         unitSystem = utils.getUnits()  # Returns 'SI' or 'US'
 
+        # Get quality model settings for quality-related unit handling
+        qualityModel = utils.getQualityModel()
+        massUnits = utils.getMassUnits()
+
         displayRow = 0
         for field_idx, field in enumerate(fields):
             fieldName = field.name()
@@ -1153,12 +1157,16 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             # Add tooltip with exact/complete value
             valueItem.setToolTip(displayValue)
 
-            # Get unit for the field with special handling for roughness
-            fieldUnit = self.getFieldUnitWithHeadlossLogic(utils, layerIdentifier, fieldName, headloss, unitSystem)
+            # Get unit for the field with special handling for quality and roughness
+            qualityUnit = self.getFieldUnitWithQualityLogic(fieldName, qualityModel, massUnits)
+            if qualityUnit is not None:
+                fieldUnit = qualityUnit
+                unitFullName = self.getFieldUnitFullNameWithQualityLogic(fieldName, qualityModel, massUnits) or ""
+            else:
+                fieldUnit = self.getFieldUnitWithHeadlossLogic(utils, layerIdentifier, fieldName, headloss, unitSystem)
+                unitFullName = self.getFieldUnitFullNameWithHeadlossLogic(utils, layerIdentifier, fieldName, headloss, unitSystem)
             unitItem = QTableWidgetItem(fieldUnit if fieldUnit and fieldUnit != "-" else "")
             unitItem.setTextAlignment(Qt.AlignCenter)
-            # Add tooltip with full unit name
-            unitFullName = self.getFieldUnitFullNameWithHeadlossLogic(utils, layerIdentifier, fieldName, headloss, unitSystem)
             if unitFullName:
                 unitItem.setToolTip(unitFullName)
 
@@ -1209,6 +1217,68 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         # For all other fields, return empty string (full name method not available)
         return ""
+
+    def getFieldUnitWithQualityLogic(self, fieldName, qualityModel, massUnits):
+        """Get field unit with special handling for quality-related fields.
+        Returns the unit string, or None if the field is not quality-related."""
+        qualityFields = ["IniQuality", "InitQuality", "Quality"]
+        reactionRateFields = ["ReactRate", "Reaction Rate"]
+        sourceFields = ["BaseValue"]
+
+        if fieldName in qualityFields:
+            if qualityModel == "Age":
+                return "hr"
+            elif qualityModel == "Trace":
+                return "%"
+            else:  # Chemical
+                return massUnits
+
+        if fieldName in reactionRateFields:
+            if qualityModel in ("Age", "Trace"):
+                return ""
+            else:  # Chemical
+                massPrefix = massUnits.split("/")[0] if "/" in massUnits else massUnits
+                return f"{massPrefix}/h"
+
+        if fieldName in sourceFields:
+            if qualityModel in ("Age", "Trace"):
+                return ""
+            else:  # Chemical
+                massPrefix = massUnits.split("/")[0] if "/" in massUnits else massUnits
+                return f"{massPrefix}/min"
+
+        return None
+
+    def getFieldUnitFullNameWithQualityLogic(self, fieldName, qualityModel, massUnits):
+        """Get full unit name for quality-related fields (for tooltips).
+        Returns the full name string, or None if the field is not quality-related."""
+        qualityFields = ["IniQuality", "InitQuality", "Quality"]
+        reactionRateFields = ["ReactRate", "Reaction Rate"]
+        sourceFields = ["BaseValue"]
+
+        if fieldName in qualityFields:
+            if qualityModel == "Age":
+                return "Hours"
+            elif qualityModel == "Trace":
+                return "Percentage"
+            else:  # Chemical
+                return massUnits
+
+        if fieldName in reactionRateFields:
+            if qualityModel in ("Age", "Trace"):
+                return ""
+            else:  # Chemical
+                massPrefix = massUnits.split("/")[0] if "/" in massUnits else massUnits
+                return f"{massPrefix} per hour"
+
+        if fieldName in sourceFields:
+            if qualityModel in ("Age", "Trace"):
+                return ""
+            else:  # Chemical
+                massPrefix = massUnits.split("/")[0] if "/" in massUnits else massUnits
+                return f"{massPrefix} per minute"
+
+        return None
 
     def setDataTableWidgetColumns(self):
         self.dataTableWidget.setColumnCount(4)
@@ -2384,6 +2454,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.tableResults.setRowCount(len(displayKeys))
 
             utils = QGISRedUtils()
+            qualityModel = utils.getQualityModel()
+            massUnits = utils.getMassUnits()
             for row, (fieldName, binaryKey) in enumerate(displayKeys):
                 value = results[binaryKey]
 
@@ -2405,15 +2477,21 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 valueItem.setToolTip(displayValue)
 
                 # Units (use binary key for unit lookup, mapping to JSON property names)
-                unitLookupKey = self.mapBinaryKeyToUnitProperty(binaryKey)
-                fieldUnit = utils.getFieldUnit(unitCategory, unitLookupKey)
-                unitFullName = utils.getFieldUnitFullName(unitCategory, unitLookupKey)
+                # Try quality-aware logic first for quality-related fields
+                qualityUnit = self.getFieldUnitWithQualityLogic(binaryKey, qualityModel, massUnits)
+                if qualityUnit is not None:
+                    fieldUnit = qualityUnit
+                    unitFullName = self.getFieldUnitFullNameWithQualityLogic(binaryKey, qualityModel, massUnits) or ""
+                else:
+                    unitLookupKey = self.mapBinaryKeyToUnitProperty(binaryKey)
+                    fieldUnit = utils.getFieldUnit(unitCategory, unitLookupKey)
+                    unitFullName = utils.getFieldUnitFullName(unitCategory, unitLookupKey)
 
-                # For fields with "Same as Flow" units, use the project flow unit
-                if unitFullName == "Same as Flow" or (not fieldUnit and binaryKey in ("Demand", "Flow")):
-                    projectFlowUnit = self.getProjectFlowUnit()
-                    fieldUnit = projectFlowUnit
-                    unitFullName = projectFlowUnit
+                    # For fields with "Same as Flow" units, use the project flow unit
+                    if unitFullName == "Same as Flow" or (not fieldUnit and binaryKey in ("Demand", "Flow")):
+                        projectFlowUnit = self.getProjectFlowUnit()
+                        fieldUnit = projectFlowUnit
+                        unitFullName = projectFlowUnit
 
                 unitItem = QTableWidgetItem(fieldUnit if fieldUnit and fieldUnit != "-" else "")
                 unitItem.setTextAlignment(Qt.AlignCenter)
