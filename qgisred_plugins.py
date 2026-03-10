@@ -1300,7 +1300,7 @@ class QGISRed:
         )
         self.analysisToolbar.addSeparator()
         self.analysisMenu.addSeparator()
-        icon_path = ":/images/iconStatisticsAndPlots.png"
+        icon_path = ":/images/iconEvolutionCurves.svg"
         self.evolutionCurvesButton = self.add_action(
             icon_path,
             text=self.tr("Evolution curves"),
@@ -3072,7 +3072,7 @@ class QGISRed:
                 self.iface.mapCanvas().unsetMapTool(self.myMapTools["EvolutionCurves"])
 
     def runEvolutionCurvesSelectPointTool(self):
-        pixmap = QPixmap(":/images/iconStatisticsAndPlots.png").scaled(32, 32)
+        pixmap = QPixmap(":/images/iconEvolutionCurves.svg").scaled(32, 32)
         cursor = QCursor(pixmap)
         self.myMapTools["EvolutionCurves"] = QGISRedSelectPointTool(self.evolutionCurvesButton, self, self.evolutionCurvesCallback, 2, cursor)
         self.iface.mapCanvas().setMapTool(self.myMapTools["EvolutionCurves"])
