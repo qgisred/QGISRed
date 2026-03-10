@@ -47,7 +47,7 @@ from .ui.qgisred_thematicmaps_dialog import QGISRedThematicMapsDialog
 from .ui.qgisred_element_explorer_dock import QGISRedElementExplorerDock
 from .ui.qgisred_queriesbyattributes_dock import QGISRedQueriesByAttributesDock
 from .ui.qgisred_statisticsandgraphs_dock import QGISRedStatisticsAndPlotsDock
-from .ui.qgisred_evolutioncurves_dock import QGISRedEvolutionCurvesDock
+from .ui.qgisred_timeseries_dock import QGISRedTimeSeriesDock
 from .ui.qgisred_legends_dialog import QGISRedLegendsDialog
 from .tools.qgisred_utils import QGISRedUtils
 from .tools.qgisred_dependencies import QGISRedDependencies as GISRed
@@ -354,21 +354,21 @@ class QGISRed:
             self.disconnectElementExplorerFromResultsDock()
             try:
                 self.ResultDockwidget.visibilityChanged.disconnect(self.activeInputGroup)
-                if hasattr(self, 'refreshEvolutionCurves'):
-                    self.ResultDockwidget.simulationFinished.disconnect(self.refreshEvolutionCurves)
-                    self.ResultDockwidget.resultPropertyChanged.disconnect(self.refreshEvolutionCurves)
+                if hasattr(self, 'refreshTimeSeries'):
+                    self.ResultDockwidget.simulationFinished.disconnect(self.refreshTimeSeries)
+                    self.ResultDockwidget.resultPropertyChanged.disconnect(self.refreshTimeSeries)
             except Exception:
                 pass
             docks_to_clean.append(('ResultDockwidget', self.ResultDockwidget))
             self.ResultDockwidget = None
 
-        if hasattr(self, 'evolutionCurvesDock') and self.evolutionCurvesDock is not None:
+        if hasattr(self, 'timeSeriesDock') and self.timeSeriesDock is not None:
             try:
-                self.evolutionCurvesDock.visibilityChanged.disconnect(self.evolutionCurvesDockVisibilityChanged)
+                self.timeSeriesDock.visibilityChanged.disconnect(self.timeSeriesDockVisibilityChanged)
             except Exception:
                 pass
-            docks_to_clean.append(('evolutionCurvesDock', self.evolutionCurvesDock))
-            self.evolutionCurvesDock = None
+            docks_to_clean.append(('timeSeriesDock', self.timeSeriesDock))
+            self.timeSeriesDock = None
 
         if hasattr(self, 'statisticsAndPlotsDock') and self.statisticsAndPlotsDock is not None:
             docks_to_clean.append(('statisticsAndPlotsDock', self.statisticsAndPlotsDock))
@@ -1300,11 +1300,11 @@ class QGISRed:
         )
         self.analysisToolbar.addSeparator()
         self.analysisMenu.addSeparator()
-        icon_path = ":/images/iconEvolutionCurves.svg"
-        self.evolutionCurvesButton = self.add_action(
+        icon_path = ":/images/iconTimeSeries.svg"
+        self.timeSeriesButton = self.add_action(
             icon_path,
-            text=self.tr("Evolution curves"),
-            callback=self.runEvolutionCurves,
+            text=self.tr("Time Series"),
+            callback=self.runTimeSeries,
             menubar=self.analysisMenu,
             toolbar=self.analysisToolbar,
             actionBase=analysisDropButton,
@@ -2975,8 +2975,8 @@ class QGISRed:
             self.ResultDockwidget = QGISRedResultsDock(self.iface)
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.ResultDockwidget)
             self.ResultDockwidget.visibilityChanged.connect(self.activeInputGroup)
-            self.ResultDockwidget.simulationFinished.connect(self.refreshEvolutionCurves)
-            self.ResultDockwidget.resultPropertyChanged.connect(self.refreshEvolutionCurves)
+            self.ResultDockwidget.simulationFinished.connect(self.refreshTimeSeries)
+            self.ResultDockwidget.resultPropertyChanged.connect(self.refreshTimeSeries)
         self.ResultDockwidget.simulate(self.ProjectDirectory, self.NetworkName)
         self.connectElementExplorerToResultsDock()
 
@@ -3051,7 +3051,7 @@ class QGISRed:
         elif not resMessage == "Cancelled":
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
-    def runEvolutionCurves(self):
+    def runTimeSeries(self):
         if not self.checkDependencies():
             return
         self.defineCurrentProject()
@@ -3060,34 +3060,34 @@ class QGISRed:
         if self.isLayerOnEdition():
             return
 
-        if self.evolutionCurvesButton.isChecked():
-            self.runEvolutionCurvesSelectPointTool()
-            if not hasattr(self, 'evolutionCurvesDock') or self.evolutionCurvesDock is None:
-                self.evolutionCurvesDock = QGISRedEvolutionCurvesDock(self.iface)
-                self.evolutionCurvesDock.visibilityChanged.connect(self.evolutionCurvesDockVisibilityChanged)
-                self.iface.addDockWidget(Qt.BottomDockWidgetArea, self.evolutionCurvesDock)
-            self.evolutionCurvesDock.show()
+        if self.timeSeriesButton.isChecked():
+            self.runTimeSeriesSelectPointTool()
+            if not hasattr(self, 'timeSeriesDock') or self.timeSeriesDock is None:
+                self.timeSeriesDock = QGISRedTimeSeriesDock(self.iface)
+                self.timeSeriesDock.visibilityChanged.connect(self.timeSeriesDockVisibilityChanged)
+                self.iface.addDockWidget(Qt.BottomDockWidgetArea, self.timeSeriesDock)
+            self.timeSeriesDock.show()
         else:
-            if "EvolutionCurves" in self.myMapTools and self.iface.mapCanvas().mapTool() == self.myMapTools["EvolutionCurves"]:
-                self.iface.mapCanvas().unsetMapTool(self.myMapTools["EvolutionCurves"])
+            if "TimeSeries" in self.myMapTools and self.iface.mapCanvas().mapTool() == self.myMapTools["TimeSeries"]:
+                self.iface.mapCanvas().unsetMapTool(self.myMapTools["TimeSeries"])
 
-    def runEvolutionCurvesSelectPointTool(self):
-        pixmap = QPixmap(":/images/iconEvolutionCurves.svg").scaled(32, 32)
+    def runTimeSeriesSelectPointTool(self):
+        pixmap = QPixmap(":/images/iconTimeSeries.svg").scaled(32, 32)
         cursor = QCursor(pixmap)
-        self.myMapTools["EvolutionCurves"] = QGISRedSelectPointTool(self.evolutionCurvesButton, self, self.evolutionCurvesCallback, 2, cursor)
-        self.iface.mapCanvas().setMapTool(self.myMapTools["EvolutionCurves"])
+        self.myMapTools["TimeSeries"] = QGISRedSelectPointTool(self.timeSeriesButton, self, self.timeSeriesCallback, 2, cursor)
+        self.iface.mapCanvas().setMapTool(self.myMapTools["TimeSeries"])
 
-    def evolutionCurvesDockVisibilityChanged(self, visible):
+    def timeSeriesDockVisibilityChanged(self, visible):
         if not visible:
-            self.evolutionCurvesButton.setChecked(False)
-            if "EvolutionCurves" in self.myMapTools and self.iface.mapCanvas().mapTool() == self.myMapTools.get("EvolutionCurves"):
-                self.iface.mapCanvas().unsetMapTool(self.myMapTools["EvolutionCurves"])
+            self.timeSeriesButton.setChecked(False)
+            if "TimeSeries" in self.myMapTools and self.iface.mapCanvas().mapTool() == self.myMapTools.get("TimeSeries"):
+                self.iface.mapCanvas().unsetMapTool(self.myMapTools["TimeSeries"])
 
-    def evolutionCurvesCallback(self, point):
-        self.updateEvolutionPlot(point)
+    def timeSeriesCallback(self, point):
+        self.updateTimeSeriesPlot(point)
 
-    def updateEvolutionPlot(self, point):
-        if not hasattr(self, 'evolutionCurvesDock') or self.evolutionCurvesDock is None:
+    def updateTimeSeriesPlot(self, point):
+        if not hasattr(self, 'timeSeriesDock') or self.timeSeriesDock is None:
             return
 
         # Identify element
@@ -3120,14 +3120,14 @@ class QGISRed:
             if found_feature: break
             
         if not found_feature:
-            self.iface.messageBar().pushMessage(self.tr("Evolution Curves"), self.tr("No network element found at this location."), level=1)
+            self.iface.messageBar().pushMessage(self.tr("Time Series"), self.tr("No network element found at this location."), level=1)
             return
 
-        self.lastEvolutionFeature = found_feature
-        self.lastEvolutionCategory = category
-        self.performEvolutionPlotUpdate(found_feature, category)
+        self.lastTimeSeriesFeature = found_feature
+        self.lastTimeSeriesCategory = category
+        self.performTimeSeriesPlotUpdate(found_feature, category)
 
-    def performEvolutionPlotUpdate(self, found_feature, category):
+    def performTimeSeriesPlotUpdate(self, found_feature, category):
         if found_feature is None:
             return
         element_id = str(found_feature.attribute("ID"))
@@ -3168,7 +3168,7 @@ class QGISRed:
 
         out_path = getattr(self.ResultDockwidget, "outPath", "")
         if not os.path.exists(out_path):
-            self.iface.messageBar().pushMessage(self.tr("Evolution Curves"), self.tr("Results file not found. Please run the model."), level=1)
+            self.iface.messageBar().pushMessage(self.tr("Time Series"), self.tr("Results file not found. Please run the model."), level=1)
             return
             
         from .tools.qgisred_results import getOut_TimesNodeProperty, getOut_TimesLinkProperty, _get_out_file_metadata
@@ -3191,11 +3191,11 @@ class QGISRed:
             x_data = [(report_start + i * report_step) / 3600.0 for i in range(num_periods)]
 
         title = f"{category} {element_id}: {prop_display}"
-        self.evolutionCurvesDock.updatePlot(x_data, y_data, title, self.tr("Time (h)"), prop_display, is_stepped)
+        self.timeSeriesDock.updatePlot(x_data, y_data, title, self.tr("Time (h)"), prop_display, is_stepped)
 
-    def refreshEvolutionCurves(self):
-        if hasattr(self, 'evolutionCurvesDock') and self.evolutionCurvesDock:
-            self.performEvolutionPlotUpdate(self.lastEvolutionFeature, self.lastEvolutionCategory)
+    def refreshTimeSeries(self):
+        if hasattr(self, 'timeSeriesDock') and self.timeSeriesDock:
+            self.performTimeSeriesPlotUpdate(self.lastTimeSeriesFeature, self.lastTimeSeriesCategory)
 
     def runLegendChanged(self):
         # Guard against calls during shutdown

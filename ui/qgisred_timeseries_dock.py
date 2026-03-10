@@ -6,11 +6,11 @@ from PyQt5.QtGui import QPainter, QPen, QColor, QFont, QPainterPath
 from qgis.PyQt import uic
 
 # Load UI
-FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_evolutioncurves_dock.ui"))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_timeseries_dock.ui"))
 
-class EvolutionPlotWidget(QWidget):
+class TimeSeriesPlotWidget(QWidget):
     def __init__(self, parent=None):
-        super(EvolutionPlotWidget, self).__init__(parent)
+        super(TimeSeriesPlotWidget, self).__init__(parent)
         self.data_x = []
         self.data_y = []
         self.title = ""
@@ -126,14 +126,14 @@ class EvolutionPlotWidget(QWidget):
             
             painter.drawPath(path)
 
-class QGISRedEvolutionCurvesDock(QDockWidget, FORM_CLASS):
+class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
     def __init__(self, iface, parent=None):
-        super(QGISRedEvolutionCurvesDock, self).__init__(parent or iface.mainWindow())
+        super(QGISRedTimeSeriesDock, self).__init__(parent or iface.mainWindow())
         self.iface = iface
         self.setupUi(self)
         
         # Create the custom plot widget and add it to the container
-        self.plot = EvolutionPlotWidget(self.chartContainer)
+        self.plot = TimeSeriesPlotWidget(self.chartContainer)
         layout = QVBoxLayout(self.chartContainer)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.plot)

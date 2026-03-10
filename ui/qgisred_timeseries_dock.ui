@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>QGISRedEvolutionCurvesDock</class>
- <widget class="QDockWidget" name="QGISRedEvolutionCurvesDock">
+ <class>QGISRedTimeSeriesDock</class>
+ <widget class="QDockWidget" name="QGISRedTimeSeriesDock">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Evolution Curves</string>
+   <string>Time Series</string>
   </property>
   <widget class="QWidget" name="dockWidgetContents">
    <layout class="QVBoxLayout" name="verticalLayout">

@@ -107,7 +107,7 @@
         <file>images/iconSimplifyVertices.svg</file>
         <file>images/iconChangeStatus.svg</file>  
         <file>images/pencil.svg</file>
-        <file>images/iconEvolutionCurves.svg</file>
+        <file>images/iconTimeSeries.svg</file>
         <file>images/qgisred.png</file>
     </qresource>
 </RCC>
