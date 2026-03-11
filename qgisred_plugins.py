@@ -1294,17 +1294,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconExportToEpanet.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Export to Epanet"),
-            callback=self.runExportInp,
-            menubar=self.analysisMenu,
-            toolbar=self.analysisToolbar,
-            actionBase=analysisDropButton,
-            add_to_toolbar=True,
-            parent=self.iface.mainWindow(),
-        )
+        analysisDropButton.menu().addSeparator()
         self.analysisToolbar.addSeparator()
         self.analysisMenu.addSeparator()
         icon_path = ":/images/iconTimeSeries.svg"
@@ -1317,6 +1307,20 @@ class QGISRed:
             actionBase=analysisDropButton,
             add_to_toolbar=True,
             checkable=True,
+            parent=self.iface.mainWindow(),
+        )
+        analysisDropButton.menu().addSeparator()
+        self.analysisToolbar.addSeparator()
+        self.analysisMenu.addSeparator()
+        icon_path = ":/images/iconExportToEpanet.svg"
+        self.add_action(
+            icon_path,
+            text=self.tr("Export to Epanet"),
+            callback=self.runExportInp,
+            menubar=self.analysisMenu,
+            toolbar=self.analysisToolbar,
+            actionBase=analysisDropButton,
+            add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
 
