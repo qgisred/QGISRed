@@ -248,7 +248,16 @@ class TimeSeriesPlotWidget(QWidget):
                 val_y_str = self.y_categorical_labels[int(round(val_y))]
             else:
                 val_y_str = f"{val_y:.2f}"
-            text = f"T: {val_x:.2f} h\nV: {val_y_str}"
+            
+            # Format time as 00d 00:00:00
+            total_seconds = int(round(val_x * 3600))
+            days = total_seconds // 86400
+            hours_part = (total_seconds % 86400) // 3600
+            minutes_part = (total_seconds % 3600) // 60
+            seconds_part = total_seconds % 60
+            time_str = f"{days:02d}d {hours_part:02d}:{minutes_part:02d}:{seconds_part:02d}"
+            
+            text = f"{val_y_str}\n{time_str}"
             font_tt = QFont("Arial", 8)
             painter.setFont(font_tt)
             fm = painter.fontMetrics()
@@ -269,8 +278,8 @@ class TimeSeriesPlotWidget(QWidget):
             
             rect_tt.moveTo(tt_x, tt_y)
             
-            painter.setPen(QPen(Qt.black, 1))
-            painter.setBrush(QColor(255, 255, 225)) # Light yellow
+            painter.setPen(QPen(QColor(0, 128, 0), 1))
+            painter.setBrush(Qt.white)
             painter.drawRect(rect_tt)
             painter.drawText(rect_tt, Qt.AlignCenter, text)
 
