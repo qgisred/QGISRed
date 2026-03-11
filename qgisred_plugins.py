@@ -3102,7 +3102,7 @@ class QGISRed:
                 self.iface.mapCanvas().unsetMapTool(self.myMapTools["TimeSeries"])
 
     def runTimeSeriesSelectPointTool(self):
-        pixmap = QPixmap(":/images/iconTimeSeries.svg").scaled(32, 32)
+        pixmap = QPixmap(":/images/iconTimeSeries.svg").scaled(16, 16)
         cursor = QCursor(pixmap)
         self.myMapTools["TimeSeries"] = QGISRedSelectPointTool(self.timeSeriesButton, self, self.timeSeriesCallback, 2, cursor)
         self.iface.mapCanvas().setMapTool(self.myMapTools["TimeSeries"])
