@@ -115,6 +115,9 @@ class TimeSeriesPlotWidget(QWidget):
 
         plot_rect, local_margin_left = self.getPlotRect()
 
+        # Draw plot area background (very light blue)
+        painter.fillRect(plot_rect, QColor(245, 250, 255))
+
         painter.setPen(QPen(QColor(200, 200, 200), 1))
         painter.drawRect(plot_rect)
 
@@ -147,7 +150,7 @@ class TimeSeriesPlotWidget(QWidget):
 
         # Draw Grid & Axes
         painter.setFont(QFont("Arial", 9))
-        pen_grid = QPen(QColor(235, 235, 235), 1, Qt.SolidLine)
+        pen_grid = QPen(QColor(220, 232, 245), 1, Qt.SolidLine)
         painter.setPen(pen_grid)
         
         # Horizontal lines (Y axis)
@@ -230,8 +233,8 @@ class TimeSeriesPlotWidget(QWidget):
             val_y = self.data_y[self.hover_index]
             pt = to_screen(val_x, val_y)
             
-            # Crosshair
-            painter.setPen(QPen(QColor(200, 200, 200), 1, Qt.DashLine))
+            # Crosshair (Soft Red / Coral)
+            painter.setPen(QPen(QColor(255, 110, 110), 1, Qt.DashLine))
             painter.drawLine(QPointF(pt.x(), plot_rect.top()), QPointF(pt.x(), plot_rect.bottom()))
             painter.drawLine(QPointF(plot_rect.left(), pt.y()), QPointF(plot_rect.right(), pt.y()))
             
