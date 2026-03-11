@@ -42,8 +42,9 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
 
         if self.useElementPropertiesDock:
             self.dock.updateCollapsibleWidgetsState(collapseElementProperties=False)
-            
+
         self.setDockConnections()
+        self.dock.connectResultsDock()
     
     def setDockConnections(self):
         if self.dock is not None:

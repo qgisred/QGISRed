@@ -9,6 +9,7 @@ from qgis.utils import iface
 from qgis.gui import QgsHighlight
 from ..tools.qgisred_utils import QGISRedUtils
 from ..tools.qgisred_results import getOut_TimeNodeProperties, getOut_TimeLinkProperties
+from .qgisred_results_dock import QGISRedResultsDock
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_element_explorer_dock.ui"))
 
@@ -119,6 +120,12 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         # Results tab state
         self.resultsDock = None
         self.resultsCurrentTimeText = ""
+        self.resultsPlaceholderLocked = True
+
+        self.resultsDockVisibilityTimer = QTimer()
+        self.resultsDockVisibilityTimer.setSingleShot(True)
+        self.resultsDockVisibilityTimer.setInterval(150)
+        self.resultsDockVisibilityTimer.timeout.connect(self.checkResultsDockClosed)
 
         self.layerTreeChangeTimer = QTimer()
         self.layerTreeChangeTimer.setSingleShot(True)
@@ -612,6 +619,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.safeDisconnect(self.mFindElementsGroupBox.collapsedStateChanged, self.onFindElementsToggled)
 
             self.layerTreeChangeTimer.stop()
+            self.resultsDockVisibilityTimer.stop()
 
             self.removeEventFiltersRecursive(self.widget())
             self.clearHighlights()
@@ -2261,8 +2269,13 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     # ------------------------------
     # Results Tab
     # ------------------------------
-    def connectResultsDock(self, resultsDock):
-        """Connect to a QGISRedResultsDock to sync results data."""
+    def connectResultsDock(self, resultsDock=None):
+        """Connect to a QGISRedResultsDock to sync results data.
+        If no resultsDock is provided, attempts to find one automatically."""
+        if resultsDock is None:
+            resultsDock = self.findResultsDock()
+        if resultsDock is None:
+            return
         if self.resultsDock is resultsDock:
             return
         if self.resultsDock is not None:
@@ -2277,6 +2290,13 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         else:
             self.showResultsPlaceholder()
         self.updateResultsTabVisibility()
+
+    def findResultsDock(self):
+        """Find an existing visible QGISRedResultsDock among main window dock widgets."""
+        for widget in iface.mainWindow().findChildren(QDockWidget):
+            if isinstance(widget, QGISRedResultsDock) and widget.isVisible():
+                return widget
+        return None
 
     def disconnectResultsDock(self):
         """Disconnect from the results dock and show placeholder."""
@@ -2295,25 +2315,40 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.updateResultsTabVisibility()
 
     def onResultsDockVisibilityChanged(self, visible):
+        if not visible:
+            # Delay disconnect to avoid false triggers when RD is detached to float
+            self.resultsDockVisibilityTimer.start()
+            return
+        # RD became visible again — cancel any pending disconnect
+        self.resultsDockVisibilityTimer.stop()
         if not self.resultsDock:
             self.showResultsPlaceholder()
             self.updateResultsTabVisibility()
             return
-        timeText = self.resultsDock.lbTime.text() if self.resultsDock else ""
+        timeText = self.resultsDock.lbTime.text()
         if timeText:
             self.onResultsTimeChanged(timeText)
         else:
             self.showResultsPlaceholder()
         self.updateResultsTabVisibility()
 
+    def checkResultsDockClosed(self):
+        """Called after a short delay to verify the RD is truly closed, not just floating."""
+        if self.resultsDock is not None and not self.resultsDock.isVisible():
+            self.disconnectResultsDock()
+
     def onResultsTimeChanged(self, timeText):
         """Handle time changes from the results dock."""
+        self.resultsPlaceholderLocked = False
         self.resultsCurrentTimeText = timeText
+        self.labelResultsTime.show()
         self.labelResultsTime.setText(timeText)
         self.populateResultsTable()
 
     def showResultsPlaceholder(self):
         """Show a placeholder message when no results are available."""
+        self.resultsPlaceholderLocked = True
+        self.labelResultsTime.hide()
         self.labelResultsTime.setText("")
         self.tableResults.clearContents()
         self.tableResults.setColumnCount(1)
@@ -2386,8 +2421,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
     def populateResultsTable(self):
         """Populate tableResults with per-element results from the binary .out file."""
-        if not self.resultsDock:
-            self.showResultsPlaceholder()
+        if self.resultsPlaceholderLocked or not self.resultsDock:
             return
 
         if not self.isLayerValid(self.currentLayer) or not self.currentFeature:
