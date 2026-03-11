@@ -3097,6 +3097,8 @@ class QGISRed:
                 self.timeSeriesDock.visibilityChanged.connect(self.timeSeriesDockVisibilityChanged)
                 self.iface.addDockWidget(Qt.BottomDockWidgetArea, self.timeSeriesDock)
             self.timeSeriesDock.show()
+            self.timeSeriesDock.raise_()
+            self.timeSeriesDock.setFocus()
         else:
             if "TimeSeries" in self.myMapTools and self.iface.mapCanvas().mapTool() == self.myMapTools["TimeSeries"]:
                 self.iface.mapCanvas().unsetMapTool(self.myMapTools["TimeSeries"])
