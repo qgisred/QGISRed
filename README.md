@@ -66,16 +66,18 @@ The following tools are required:
 - **`lrelease`** – compiles a `.ts` file into the binary `.qm` format that QGIS loads.
 - **Qt Linguist** *(optional)* – GUI editor for `.ts` files.
 
-All three tools ship with **Qt5 Development Tools**. Install them for your platform:
-
-| Platform | Command |
-|---|---|
-| **Windows** | Download OSGeo4W from https://trac.osgeo.org/osgeo4w/ and in Advanced mode install select qt5 and qt6 options (instead of Skip) |
-| **macOS (Homebrew)** | `brew install qt@5` |
-| **Ubuntu / Debian** | `sudo apt-get install qttools5-dev-tools qt5-qmake` |
-| **Arch Linux** | `sudo pacman -S qt5-tools` |
+All three tools ship with **Qt5 Development Tools**. Install them downloading OSGeo4W from https://trac.osgeo.org/osgeo4w/ and in the "Advanced mode" select qt5 and qt6 options (instead of Skip) in CommandLine and Desktop and qt5-devel and qt6-devel in libs. 
 
 ### Step-by-step guide
+#### 0. Open the OSGeo4W Shell
+
+To run all 3 tools use the OSGeo4W Shell normally placed in "C:/Users/username/AppData/Local/Programs/OSGeo4W".
+
+Set the path to the plugin directory:
+
+```bash
+cd "C:/Users/username/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed"
+```
 
 #### 1. Generate / update the `.ts` template
 
@@ -119,26 +121,18 @@ Open the `.ts` file with a text editor or with **Qt Linguist** and fill in the `
 </message>
 ```
 
-**Using Qt Linguist** (recommended for large files) whit OSGeo4W Shell:
+**Using Qt Linguist** (recommended for large files):
 
 ```bash
-# macOS (Homebrew)
-/opt/homebrew/Cellar/qt@5/5.15.13_1/bin/linguist i18n/qgisred_es.ts
-
-# Linux / Windows
-"C:\Users\username\AppData\Local\Programs\OSGeo4W\apps\qt5\bin\linguist.exe" i18n/qgisred_es.ts
+linguist i18n/qgisred_es.ts
 ```
 
 #### 4. Compile the translation
 
-Once all strings are translated, compile the `.ts` file into a binary `.qm` file whit OSGeo4W Shell:
+Once all strings are translated, compile the `.ts` file into a binary `.qm` file:
 
 ```bash
-# macOS (Homebrew – adjust path to your Qt version)
-/opt/homebrew/Cellar/qt@5/5.15.13_1/bin/lrelease i18n/qgisred_es.ts
-
-# Linux / Windows
-"C:\Users\username\AppData\Local\Programs\OSGeo4W\apps\qt5\bin\lrelease.exe" i18n/qgisred_es.ts
+lrelease i18n/qgisred_es.ts
 ```
 
 This produces `i18n/qgisred_es.qm`, which QGIS picks up automatically at startup.
