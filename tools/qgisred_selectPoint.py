@@ -1,11 +1,11 @@
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor, QCursor, QPixmap
+from PyQt5.QtGui import QColor, QCursor, QPixmap, QPainter, QPainterPath, QPen
+from PyQt5.QtCore import Qt, QPoint
 from qgis.core import QgsPointXY, QgsProject, QgsSnappingConfig, QgsTolerance
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsMapCanvasSnappingUtils
 
 
 class QGISRedSelectPointTool(QgsMapTool):
-    def __init__(self, button, parent, method, type=1, cursor=None):
+    def __init__(self, button, parent, method, type=1, cursor=None, icon_size=18):
         QgsMapTool.__init__(self, parent.iface.mapCanvas())
         self.canvas = parent.iface.mapCanvas()
         self.iface = parent.iface
@@ -13,36 +13,92 @@ class QGISRedSelectPointTool(QgsMapTool):
         self.method = method
         self.setAction(button)
         self.type = type
-        self.custom_cursor = cursor
+        self.icon_size = icon_size
+        
+        # Handle cursor: can be a string path, a QPixmap, or a QCursor
+        self.custom_cursor = None
+        if isinstance(cursor, QCursor):
+            self.custom_cursor = cursor
+        elif isinstance(cursor, (str, QPixmap)):
+            self.custom_cursor = self.create_combined_cursor(cursor)
+        elif cursor is None:
+            self.custom_cursor = Qt.CrossCursor
 
         # type 1: points; 2: lines; 3: 2-points; 4: 2-line; 5: point-line
-
         self.startMarker = QgsVertexMarker(self.iface.mapCanvas())
         self.startMarker.setColor(QColor(255, 87, 51))
         if self.type == 3 or self.type == 4 or self.type == 5:
             self.startMarker.setColor(QColor(139, 0, 0))
         self.startMarker.setIconSize(15)
-        self.startMarker.setIconType(QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
+        self.startMarker.setIconType(QgsVertexMarker.ICON_BOX)
         if self.type == 2 or self.type == 4:
             try:
-                self.startMarker.setIconType(QgsVertexMarker.ICON_TRIANGLE)  # or ICON_CROSS, ICON_X
+                self.startMarker.setIconType(QgsVertexMarker.ICON_TRIANGLE)
             except:
-                self.startMarker.setIconType(QgsVertexMarker.ICON_X)  # or ICON_CROSS, ICON_X
+                self.startMarker.setIconType(QgsVertexMarker.ICON_X)
         self.startMarker.setPenWidth(3)
         self.startMarker.hide()
 
         self.endMarker = QgsVertexMarker(self.iface.mapCanvas())
         self.endMarker.setColor(QColor(0, 128, 0))
         self.endMarker.setIconSize(15)
-        self.endMarker.setIconType(QgsVertexMarker.ICON_BOX)  # or ICON_CROSS, ICON_X
+        self.endMarker.setIconType(QgsVertexMarker.ICON_BOX)
         if self.type == 4 or self.type == 5:
-            self.endMarker.setIconType(QgsVertexMarker.ICON_X)  # or ICON_CROSS, ICON_X
+            self.endMarker.setIconType(QgsVertexMarker.ICON_X)
         self.endMarker.setPenWidth(3)
         self.endMarker.hide()
         self.firstPoint = None
 
         self.snapper = None
         self.resetProperties()
+
+    def create_combined_cursor(self, icon):
+        """Create a professional, sharp cursor with a slender arrow and a custom icon."""
+        ratio = self.iface.mainWindow().devicePixelRatioF()
+        
+        # Calculate canvas size to avoid clipping
+        canvas_width = max(32, 12 + self.icon_size)
+        canvas_height = max(32, 12 + self.icon_size)
+        
+        pixmap = QPixmap(int(canvas_width * ratio), int(canvas_height * ratio))
+        pixmap.setDevicePixelRatio(ratio)
+        pixmap.fill(Qt.transparent)
+        
+        painter = QPainter(pixmap)
+        # Use antialiasing for smooth diagonal lines
+        painter.setRenderHint(QPainter.Antialiasing, True)
+        
+        # Create a slender, proportional arrow path (Standard UI style)
+        path = QPainterPath()
+        path.moveTo(0, 0)
+        path.lineTo(0, 15)
+        path.lineTo(4, 11)
+        path.lineTo(6, 16)
+        path.lineTo(8, 15)
+        path.lineTo(6, 10.5)
+        path.lineTo(11, 11)
+        path.closeSubpath()
+        
+        # Draw with a clean black outline and white fill
+        # Width 0 creates a cosmetic pen (the thinnest possible sharp line)
+        painter.setPen(QPen(QColor(Qt.black), 0, Qt.SolidLine, Qt.SquareCap, Qt.MiterJoin))
+        painter.setBrush(Qt.white)
+        painter.drawPath(path)
+        
+        # Draw the custom icon at the bottom-right
+        icon_pixmap = icon if isinstance(icon, QPixmap) else QPixmap(icon)
+        if not icon_pixmap.isNull():
+            scaled_icon = icon_pixmap.scaled(int(self.icon_size * ratio), int(self.icon_size * ratio), 
+                                            Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            scaled_icon.setDevicePixelRatio(ratio)
+            
+            # Position it adjusted by the size for a unified look
+            offset = 11 if self.icon_size > 20 else 13
+            painter.drawPixmap(offset, offset, scaled_icon)
+        
+        painter.end()
+        # The hotspot (0,0) is at the tip
+        return QCursor(pixmap, 0, 0)
 
     def activate(self):
         # Guard against calls during shutdown

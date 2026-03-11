@@ -2999,6 +2999,7 @@ class QGISRed:
             self.runModel()
         else:
             self.ResultDockwidget.show()
+            self.ResultDockwidget.raise_()
             self.connectElementExplorerToResultsDock()
         self.ResultDockwidget.tabWidget.setCurrentIndex(0)
 
@@ -3029,6 +3030,7 @@ class QGISRed:
             self.runModel()
         else:
             self.ResultDockwidget.show()
+            self.ResultDockwidget.raise_()
             self.connectElementExplorerToResultsDock()
         self.ResultDockwidget.tabWidget.setCurrentIndex(1)
 
@@ -3104,9 +3106,7 @@ class QGISRed:
                 self.iface.mapCanvas().unsetMapTool(self.myMapTools["TimeSeries"])
 
     def runTimeSeriesSelectPointTool(self):
-        pixmap = QPixmap(":/images/iconTimeSeries.svg").scaled(16, 16)
-        cursor = QCursor(pixmap)
-        self.myMapTools["TimeSeries"] = QGISRedSelectPointTool(self.timeSeriesButton, self, self.timeSeriesCallback, 2, cursor)
+        self.myMapTools["TimeSeries"] = QGISRedSelectPointTool(self.timeSeriesButton, self, self.timeSeriesCallback, 2, cursor=":/images/iconTimeSeries.svg")
         self.iface.mapCanvas().setMapTool(self.myMapTools["TimeSeries"])
 
     def timeSeriesDockVisibilityChanged(self, visible):
@@ -3869,9 +3869,7 @@ class QGISRed:
             self.editElementButton.setChecked(False)
         else:
             self.gisredDll = None
-            pixmap = QPixmap(":/images/pencil.svg").scaled(32, 32)
-            cursor = QCursor(pixmap, 0, 0)
-            self.myMapTools[tool] = QGISRedSelectPointTool(self.editElementButton, self, self.runProperties, 2, cursor)
+            self.myMapTools[tool] = QGISRedSelectPointTool(self.editElementButton, self, self.runProperties, 2, cursor=":/images/pencil.svg", icon_size=24)
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runProperties(self, point):
