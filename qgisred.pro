@@ -22,6 +22,7 @@ SOURCES = qgisred_plugins.py \
           ui/qgisred_renameproject_dialog.py \
           ui/qgisred_results_dock.py \
           ui/qgisred_thematicmaps_dialog.py \
+          ui/qgisred_timeseries_dock.py \
           ui/qgisred_toolConnections_dialog.py \
           ui/qgisred_toolConnectivity_dialog.py \
           ui/qgisred_toolLength_dialog.py
@@ -38,6 +39,7 @@ FORMS = ui/qgisred_about_dialog.ui \
         ui/qgisred_renameproject_dialog.ui \
         ui/qgisred_results_dock.ui \
         ui/qgisred_thematicmaps_dialog.ui \
+        ui/qgisred_timeseries_dock.ui \
         ui/qgisred_toolConnections_dialog.ui \
         ui/qgisred_toolConnectivity_dialog.ui \
         ui/qgisred_toolLength_dialog.ui
