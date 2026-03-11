@@ -51,9 +51,7 @@ class QGISRedSelectPointTool(QgsMapTool):
         QgsMapTool.activate(self)
         if self.custom_cursor:
             self.canvas.setCursor(self.custom_cursor)
-        else:
-            pencil_cursor = QCursor(QPixmap(":/images/pencil.svg"), 0, 0)
-            self.canvas.setCursor(pencil_cursor)
+
         type = 1
         if self.type == 2 or self.type == 4:
             type = 2

@@ -3867,8 +3867,9 @@ class QGISRed:
             self.editElementButton.setChecked(False)
         else:
             self.gisredDll = None
-            self.myMapTools[tool] = QGISRedSelectPointTool(self.editElementButton, self, self.runProperties, 2)
-            self.myMapTools[tool].setCursor(Qt.WhatsThisCursor)
+            pixmap = QPixmap(":/images/pencil.svg").scaled(32, 32)
+            cursor = QCursor(pixmap, 0, 0)
+            self.myMapTools[tool] = QGISRedSelectPointTool(self.editElementButton, self, self.runProperties, 2, cursor)
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runProperties(self, point):
