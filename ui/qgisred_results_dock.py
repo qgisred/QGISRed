@@ -33,10 +33,24 @@ def seconds_to_time_str(seconds):
     return f"{d:02d}d {h:02d}:{m:02d}:{s:02d}"
 
 
-def time_field_name(var_name):
-    """Return the time-companion field name for a variable: 'Time_' + uppercase letters."""
-    uppers = ''.join(c for c in var_name if c.isupper())
-    return ("Time_" + uppers)[:10]
+def time_field_name(var_name, layer_type):
+    """Return the time-companion field name for a variable based on layer type."""
+    if layer_type == "Node":
+        mapping = {
+            "Pressure": "Time_H",
+            "Head": "Time_H",
+            "Demand": "Time_D",
+            "Quality": "Time_Q"
+        }
+    else:  # Link
+        mapping = {
+            "Flow": "Time_H",
+            "Velocity": "Time_H",
+            "HeadLoss": "Time_H",
+            "UnitHdLoss": "Time_H",
+            "Quality": "Time_Q"
+        }
+    return mapping.get(var_name)
 
 
 class QGISRedResultsDock(QDockWidget, FORM_CLASS):
@@ -405,7 +419,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
                     # Configure map tip
                     is_min_max_stat = self._statsMode and self.cbStatistics.currentText() in (self.lbl_maximum, self.lbl_minimum)
-                    time_field = time_field_name(field) if is_min_max_stat else None
+                    time_field = time_field_name(field, nameLayer) if is_min_max_stat else None
                     if time_field:
                         tip = var_translated + ': [% "' + field + '" || \' - \' || "' + time_field + '" %]'
                     else:
@@ -746,7 +760,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     if idx > 0:
                         field = layer.fields().at(idx + 2).name()
                         is_min_max_stat = self._statsMode and self.cbStatistics.currentText() in (self.lbl_maximum, self.lbl_minimum)
-                        time_field = time_field_name(field) if is_min_max_stat else None
+                        time_field = time_field_name(field, layer_type) if is_min_max_stat else None
                         self.setLayerLabels(layer, field, time_field)
                 else:
                     layer.setLabelsEnabled(False)
@@ -1107,13 +1121,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             #         Time_FF, Time_RR, Time_Q individual
             _TIME_FIELD_AFTER = {
                 "Node": {"Head": "Time_H", "Demand": "Time_D", "Quality": "Time_Q"},
-                "Link": {"UnitHdLoss": "Time_H", "FricFactor": "Time_FF",
-                         "ReactRate": "Time_RR", "Quality": "Time_Q"},
+                "Link": {"UnitHdLoss": "Time_H", "Quality": "Time_Q"},
             }
             _TIME_PROVIDER = {
                 "Node": {"Pressure": "Time_H", "Demand": "Time_D", "Quality": "Time_Q"},
-                "Link": {"Flow": "Time_H", "FricFactor": "Time_FF",
-                         "ReactRate": "Time_RR", "Quality": "Time_Q"},
+                "Link": {"Flow": "Time_H", "Quality": "Time_Q"},
             }
             time_field_after  = _TIME_FIELD_AFTER.get(layerName, {})
             time_field_provider = _TIME_PROVIDER.get(layerName, {})
