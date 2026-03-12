@@ -2312,6 +2312,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 pass
             self.resultsDock = None
         self.resultsCurrentTimeText = ""
+        self.labelResultsTime.setText("0")
         self.populateResultsTable()
         self.updateResultsTabVisibility()
 
@@ -2419,25 +2420,28 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
             # Determine the time to query
             timeText = self.resultsCurrentTimeText
-            if not timeText:
-                # No results dock connected — use the first available time from the layer
-                for feat in resultsLayer.getFeatures():
-                    timeText = str(feat.attribute("Time"))
+            matchedFeature = None
+
+            if timeText:
+                # Results dock connected — filter by Id and Time
+                expr = f"\"Id\" = '{elementId}' AND \"Time\" = '{timeText}'"
+                for feat in resultsLayer.getFeatures(expr):
+                    matchedFeature = feat
                     break
-            if not timeText:
-                self.clearResultsTable()
-                return
+            else:
+                # No results dock — query by Id only, read time from the feature
+                expr = f"\"Id\" = '{elementId}'"
+                for feat in resultsLayer.getFeatures(expr):
+                    matchedFeature = feat
+                    if feat.fields().indexFromName("Time") >= 0:
+                        timeText = str(feat.attribute("Time"))
+                    break
+                if not timeText:
+                    timeText = "0"
 
             # Show the time label
             self.labelResultsTime.show()
             self.labelResultsTime.setText(timeText)
-
-            # Query the layer: filter by Id and Time
-            expr = f"\"Id\" = '{elementId}' AND \"Time\" = '{timeText}'"
-            matchedFeature = None
-            for feat in resultsLayer.getFeatures(expr):
-                matchedFeature = feat
-                break
 
             if not matchedFeature:
                 self.clearResultsTable()
