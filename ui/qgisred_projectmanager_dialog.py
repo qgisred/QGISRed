@@ -4,6 +4,7 @@ from PyQt5.QtCore import Qt, QDateTime
 from PyQt5.QtGui import QFont
 from qgis.core import QgsProject
 from qgis.PyQt import uic
+from qgis.PyQt.QtWidgets import QHeaderView
 
 # Import the code for the dialog
 from .qgisred_createproject_dialog import QGISRedCreateProjectDialog
@@ -16,6 +17,7 @@ from ..tools.qgisred_utils import QGISRedUtils
 import os
 from shutil import copyfile
 from xml.etree import ElementTree
+
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_projectmanager_dialog.ui"))
 
@@ -69,13 +71,18 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         self.gplFile = os.path.join(gplFolder, "qgisredprojectlist.gpl")
         # Columns:
         self.twProjectList.setColumnCount(4)
-        item = QTableWidgetItem("Name")
+        header = self.twProjectList.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(3, QHeaderView.Stretch)
+        item = QTableWidgetItem(self.tr("Name"))
         self.twProjectList.setHorizontalHeaderItem(0, item)
-        item = QTableWidgetItem("Last update")
+        item = QTableWidgetItem(self.tr("Last update"))
         self.twProjectList.setHorizontalHeaderItem(1, item)
-        item = QTableWidgetItem("Creation date")
+        item = QTableWidgetItem(self.tr("Creation date"))
         self.twProjectList.setHorizontalHeaderItem(2, item)
-        item = QTableWidgetItem("Folder")
+        item = QTableWidgetItem(self.tr("Folder"))
         self.twProjectList.setHorizontalHeaderItem(3, item)
 
         self.twProjectList.cellDoubleClicked.connect(self.openProject)

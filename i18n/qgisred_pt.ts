@@ -1626,7 +1626,7 @@
         <translation>Junção</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2512"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2514"/>
         <source>Demand</source>
         <translation>Demanda</translation>
     </message>
@@ -1671,97 +1671,97 @@
         <translation>Medidor</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="1014"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="1016"/>
         <source>Info</source>
         <translation>Info</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="1014"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="1016"/>
         <source>Feature not found</source>
         <translation>Feição não encontrada</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="1686"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="1688"/>
         <source>{singularNodeType} {selectedId} {suffixStr}</source>
         <translation>{singularNodeType} {selectedId} {suffixStr}</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="1691"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="1693"/>
         <source>{singularElementType} {selectedId}</source>
         <translation>{singularElementType} {selectedId}</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2333"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2335"/>
         <source>Property</source>
         <translation type="unfinished">Propriedade</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2333"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2335"/>
         <source>Value</source>
         <translation type="unfinished">Valor</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2333"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2335"/>
         <source>Units</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2510"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2512"/>
         <source>Pressure</source>
         <translation type="unfinished">Pressão</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2511"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2513"/>
         <source>Head</source>
         <translation type="unfinished">Carga</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2513"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2515"/>
         <source>Quality</source>
         <translation type="unfinished">Qualidade</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2514"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2516"/>
         <source>Flow</source>
         <translation type="unfinished">Vazão</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2515"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2517"/>
         <source>Velocity</source>
         <translation type="unfinished">Velocidade</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2516"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2518"/>
         <source>HeadLoss</source>
         <translation type="unfinished">Perda de Carga</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2518"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2520"/>
         <source>Unit HeadLoss</source>
         <translation type="unfinished">Perda de Carga Unitária</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2519"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2521"/>
         <source>Friction Factor</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2520"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2522"/>
         <source>Status</source>
         <translation type="unfinished">Status</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2521"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2523"/>
         <source>Reaction Rate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2244"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2246"/>
         <source>No Layers Found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2244"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2246"/>
         <source>No layers found in the Inputs or Results group.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2711,6 +2711,26 @@
     <message>
         <location filename="../ui/qgisred_projectmanager_dialog.py" line="579"/>
         <source>You need to select a project to open its folder.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/qgisred_projectmanager_dialog.py" line="74"/>
+        <source>Last update</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/qgisred_projectmanager_dialog.py" line="72"/>
+        <source>Name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/qgisred_projectmanager_dialog.py" line="76"/>
+        <source>Creation date</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/qgisred_projectmanager_dialog.py" line="78"/>
+        <source>Folder</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
