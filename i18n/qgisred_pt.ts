@@ -2313,6 +2313,11 @@
         <source>Import From Project</source>
         <translation>Importar de Projeto</translation>
     </message>
+    <message>
+        <location filename="../ui/qgisred_import_dialog.py" line="87"/>
+        <source>QGISRed: Add data</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>QGISRedImportProjectDialog</name>
@@ -2634,102 +2639,102 @@
         <translation>Ir para a Pasta</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_projectmanager_dialog.py" line="335"/>
+        <location filename="../ui/qgisred_projectmanager_dialog.py" line="342"/>
         <source>QGISRed</source>
         <translation>QGISRed</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_projectmanager_dialog.py" line="324"/>
+        <location filename="../ui/qgisred_projectmanager_dialog.py" line="331"/>
         <source>Project will be remove completely from your computer. Are you sure?</source>
         <translation>O projeto será removido completamente do seu computador. Tem certeza?</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_projectmanager_dialog.py" line="335"/>
+        <location filename="../ui/qgisred_projectmanager_dialog.py" line="342"/>
         <source>Project will be unloaded from this list, but will remain in your computer. You could add it back using the Load button. Do you want to continue?</source>
         <translation>O projeto será removido desta lista, mas permanecerá no seu computador. Você pode adicioná-lo novamente usando o botão Carregar. Deseja continuar?</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_projectmanager_dialog.py" line="580"/>
+        <location filename="../ui/qgisred_projectmanager_dialog.py" line="587"/>
         <source>Warning</source>
         <translation type="unfinished">Aviso</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_projectmanager_dialog.py" line="309"/>
+        <location filename="../ui/qgisred_projectmanager_dialog.py" line="316"/>
         <source>Please, select a row project to move.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_projectmanager_dialog.py" line="320"/>
+        <location filename="../ui/qgisred_projectmanager_dialog.py" line="327"/>
         <source>Current project can not be </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_projectmanager_dialog.py" line="362"/>
+        <location filename="../ui/qgisred_projectmanager_dialog.py" line="369"/>
         <source>You need to select a project to {word} it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_projectmanager_dialog.py" line="389"/>
+        <location filename="../ui/qgisred_projectmanager_dialog.py" line="396"/>
         <source>Selected project is currently opened.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_projectmanager_dialog.py" line="395"/>
+        <location filename="../ui/qgisred_projectmanager_dialog.py" line="402"/>
         <source>You need to select a project to open it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_projectmanager_dialog.py" line="481"/>
+        <location filename="../ui/qgisred_projectmanager_dialog.py" line="488"/>
         <source>Zip file stored in: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_projectmanager_dialog.py" line="484"/>
+        <location filename="../ui/qgisred_projectmanager_dialog.py" line="491"/>
         <source>You need to select a project to export it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_projectmanager_dialog.py" line="517"/>
+        <location filename="../ui/qgisred_projectmanager_dialog.py" line="524"/>
         <source>You need to select a project to clone.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_projectmanager_dialog.py" line="539"/>
+        <location filename="../ui/qgisred_projectmanager_dialog.py" line="546"/>
         <source>Current project can not be renamed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_projectmanager_dialog.py" line="566"/>
+        <location filename="../ui/qgisred_projectmanager_dialog.py" line="573"/>
         <source>Project name has been renamed to </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_projectmanager_dialog.py" line="568"/>
+        <location filename="../ui/qgisred_projectmanager_dialog.py" line="575"/>
         <source>You need to select a project to change its name.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_projectmanager_dialog.py" line="579"/>
+        <location filename="../ui/qgisred_projectmanager_dialog.py" line="586"/>
         <source>You need to select a project to open its folder.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_projectmanager_dialog.py" line="74"/>
+        <location filename="../ui/qgisred_projectmanager_dialog.py" line="81"/>
         <source>Last update</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_projectmanager_dialog.py" line="72"/>
+        <location filename="../ui/qgisred_projectmanager_dialog.py" line="79"/>
         <source>Name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_projectmanager_dialog.py" line="76"/>
+        <location filename="../ui/qgisred_projectmanager_dialog.py" line="83"/>
         <source>Creation date</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_projectmanager_dialog.py" line="78"/>
+        <location filename="../ui/qgisred_projectmanager_dialog.py" line="85"/>
         <source>Folder</source>
         <translation type="unfinished"></translation>
     </message>

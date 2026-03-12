@@ -84,7 +84,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.tbScLength.setEnabled(self.isPunctualConnection)
 
         if not self.NewProject:
-            self.setWindowTitle("QGISRed: Add data")
+            self.setWindowTitle(self.tr("QGISRed: Add data"))
             icon_path = ":/images/iconAddData.svg"
             self.setWindowIcon(QIcon(icon_path))
             self.lbProject.setVisible(False)
