@@ -493,6 +493,10 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     # ------------------------------
     # Clear and Reset Methods
     # ------------------------------
+    def deselectElement(self):
+        """Deselect the current element and reset the ID combobox."""
+        self.cbElementId.setCurrentIndex(-1)
+
     def clearAll(self):
         self.clearHighlights()
         self.clearAllLayerSelections()

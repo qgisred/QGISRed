@@ -230,6 +230,8 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
 
         allFeatures = self.identify(event.x(), event.y(), self.TopDownAll)
         if not allFeatures:
+            if self.dock:
+                self.dock.deselectElement()
             return
 
         selectedLayer, selectedFeature, selectedHandler = self.getFeatureByPriority(allFeatures)
