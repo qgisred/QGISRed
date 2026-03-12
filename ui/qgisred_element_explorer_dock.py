@@ -973,6 +973,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.listWidget.clear()
         self.dataTableWidget.clear()
         self.setDataTableWidgetColumns()
+        if index >= 0 and self.cbElementId.currentText():
+            self.findElement()
 
     @pyqtSlot()
     def onFindButtonClicked(self):
