@@ -2,7 +2,7 @@
 import os
 from PyQt5.QtCore import Qt, pyqtSlot, pyqtSignal, QEvent, QTimer
 from PyQt5.QtGui import QIcon, QFont, QColor
-from PyQt5.QtWidgets import QDockWidget, QWidget, QMessageBox, QLineEdit, QListWidgetItem, QTableWidgetItem, QHeaderView, QAbstractItemView, QFrame, QProgressBar
+from PyQt5.QtWidgets import QDockWidget, QWidget, QMessageBox, QLineEdit, QListWidgetItem, QTableWidgetItem, QHeaderView, QAbstractItemView, QFrame
 from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsVectorLayer, QgsSettings, QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsLayerMetadata, QgsSpatialIndex, Qgis
 from qgis.utils import iface
@@ -756,51 +756,20 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             layerObj.setMetadata(layerMetadata)
 
     def initializeElementTypes(self):
-        # Create progress bar in message bar
-        progressMessageBar = iface.messageBar().createMessage("Element Explorer", "Initializing element types...")
-        progress = QProgressBar()
-        progress.setMaximum(100)
-        progress.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-        progressMessageBar.layout().addWidget(progress)
-        iface.messageBar().pushWidget(progressMessageBar, Qgis.Info)
+        self.cbElementType.clear()
+        availableTypes = self.getAvailableElementTypes()
+        for name in availableTypes:
+            self.cbElementType.addItem(self.tr(name), name)
+        self.initializeElementIdsCache()
 
-        try:
-            progress.setValue(10)
-            self.cbElementType.clear()
-
-            progress.setValue(20)
-            availableTypes = self.getAvailableElementTypes()
-            for name in availableTypes:
-                self.cbElementType.addItem(self.tr(name), name)
-
-            progress.setValue(30)
-            self.initializeElementIdsCache(progress)
-
-            progress.setValue(100)
-        finally:
-            # Clear the message bar after completion
-            iface.messageBar().clearWidgets()
-
-    def initializeElementIdsCache(self, progress=None):
+    def initializeElementIdsCache(self):
         """Initialize element IDs cache with optimized batch processing"""
-        # Build all spatial indices and caches upfront
-        if progress:
-            progress.setValue(35)
         self.buildNodeLayerSpatialIndices()
-
-        if progress:
-            progress.setValue(45)
         self.buildSourceDemandCacheBatch()
 
         availableTypes = self.getAvailableElementTypes()
-        totalTypes = len(availableTypes)
 
-        for idx, elementType in enumerate(availableTypes):
-            # Update progress for each element type (45% to 95%)
-            if progress:
-                progressValue = 45 + int((idx / totalTypes) * 50)
-                progress.setValue(progressValue)
-
+        for elementType in availableTypes:
             layer = self.getLayerForElementType(elementType)
             if layer:
                 identifier = layer.customProperty("qgisred_identifier")
@@ -815,9 +784,6 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 self.dictOfElementIds[elementType] = sorted(set(ids))
             else:
                 self.dictOfElementIds[elementType] = []
-
-        if progress:
-            progress.setValue(95)
 
     def buildSourceDemandCacheBatch(self):
         """Pre-compute all source/demand to node relationships in batch"""
