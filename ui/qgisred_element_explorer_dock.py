@@ -461,7 +461,6 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.leElementMask.textChanged.connect(self.filterElementIds)
         self.listWidget.itemClicked.connect(self.onListItemSingleClicked)
         self.listWidget.itemDoubleClicked.connect(self.onListItemDoubleClicked)
-        self.btClear.clicked.connect(self.clearAll)
         self.cbElementId.currentIndexChanged.connect(self.onElementIdChanged)           
 
 
@@ -611,7 +610,6 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.safeDisconnect(self.leElementMask.textChanged, self.filterElementIds)
             self.safeDisconnect(self.listWidget.itemClicked, self.onListItemSingleClicked)
             self.safeDisconnect(self.listWidget.itemDoubleClicked, self.onListItemDoubleClicked)
-            self.safeDisconnect(self.btClear.clicked, self.clearAll)
             self.safeDisconnect(self.cbElementId.currentIndexChanged, self.onElementIdChanged)
 
             
