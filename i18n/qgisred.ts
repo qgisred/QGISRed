@@ -243,7 +243,7 @@
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.ui" line="91"/>
-        <source>Element ID:</source>
+        <source>Element ID</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

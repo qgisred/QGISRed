@@ -243,8 +243,8 @@
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.ui" line="91"/>
-        <source>Element ID:</source>
-        <translation>ID de elemento:</translation>
+        <source>Element ID</source>
+        <translation>ID de elemento</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.ui" line="104"/>
