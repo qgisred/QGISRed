@@ -2074,9 +2074,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         # Determine which Inputs identifiers to search
         searchIdentifiers = None
-        if identifier.startswith("qgisred_link_"):
+        if identifier == "qgisred_link" or identifier.startswith("qgisred_link_"):
             searchIdentifiers = ["qgisred_pipes", "qgisred_pumps", "qgisred_valves"]
-        elif identifier.startswith("qgisred_node_"):
+        elif identifier == "qgisred_node" or identifier.startswith("qgisred_node_"):
             searchIdentifiers = ["qgisred_junctions", "qgisred_reservoirs", "qgisred_tanks"]
         elif identifier.startswith("qgisred_query_"):
             # Pattern: qgisred_query_{layerType}_{field} e.g. qgisred_query_pipes_diameter
@@ -2315,6 +2315,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.resultsCurrentTimeText = timeText
         self.labelResultsTime.show()
         self.labelResultsTime.setText(timeText)
+        self.updateResultsTabVisibility()
         self.populateResultsTable()
 
     def clearResultsTable(self):
@@ -2341,11 +2342,13 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         header.setSectionResizeMode(1, QHeaderView.Stretch)
 
     def findResultsLayerForElement(self, isNode):
-        """Find the Results group layer matching the element type (node or link)."""
-        prefix = "qgisred_node_" if isNode else "qgisred_link_"
+        """Find the Results group layer matching the element type (node or link).
+        Matches both the base identifier (qgisred_node/qgisred_link) set on layer creation
+        and the variable-specific identifier (qgisred_node_pressure etc.) set after QML styling."""
+        base = "qgisred_node" if isNode else "qgisred_link"
         for layer in self.getAllResultsGroupLayers():
             identifier = layer.customProperty("qgisred_identifier", "")
-            if identifier.startswith(prefix):
+            if identifier == base or identifier.startswith(base + "_"):
                 return layer
         return None
 
