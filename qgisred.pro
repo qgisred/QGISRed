@@ -25,7 +25,8 @@ SOURCES = qgisred_plugins.py \
           ui/qgisred_timeseries_dock.py \
           ui/qgisred_toolConnections_dialog.py \
           ui/qgisred_toolConnectivity_dialog.py \
-          ui/qgisred_toolLength_dialog.py
+          ui/qgisred_toolLength_dialog.py \
+          ui/qgisred_legends_dialog.py
 
 FORMS = ui/qgisred_about_dialog.ui \
         ui/qgisred_cloneproject_dialog.ui \
@@ -42,7 +43,8 @@ FORMS = ui/qgisred_about_dialog.ui \
         ui/qgisred_timeseries_dock.ui \
         ui/qgisred_toolConnections_dialog.ui \
         ui/qgisred_toolConnectivity_dialog.ui \
-        ui/qgisred_toolLength_dialog.ui
+        ui/qgisred_toolLength_dialog.ui \
+        ui/qgisred_legends_dialog.ui
 
 TRANSLATIONS = i18n/qgisred.ts \
                i18n/qgisred_es.ts \

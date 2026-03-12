@@ -233,14 +233,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def configureWindow(self):
         iconPath = os.path.join(os.path.dirname(__file__), "..", "images", "iconThematicMaps.png")
         self.setWindowIcon(QIcon(iconPath))
-        self.setWindowTitle(self.tr("QGISRed Legend Editor"))
+        self.setWindowTitle(self.tr("QGISRed: Legend Editor"))
         self.setWindowFlags(Qt.Window | Qt.WindowStaysOnTopHint | Qt.WindowCloseButtonHint)
         self.btClassPlus.setIcon(QIcon(":/images/themes/default/symbologyAdd.svg"))
         self.btClassMinus.setIcon(QIcon(":/images/themes/default/symbologyRemove.svg"))
 
     def setupTableView(self):
         self.tableView.setColumnCount(5)
-        self.tableView.setHorizontalHeaderLabels(["", "Color", "Size", "Value", "Legend"])
+        self.tableView.setHorizontalHeaderLabels(["", self.tr("Color"), self.tr("Size"), self.tr("Value"), self.tr("Legend")])
         self.rowSelectionFilter = QGISRedRowSelectionFilter(self.tableView)
 
         header = self.tableView.horizontalHeader()
