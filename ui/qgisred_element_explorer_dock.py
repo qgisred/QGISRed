@@ -1071,16 +1071,20 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                     return
 
     def onListItemDoubleClicked(self, item):
-        itemText = item.text()
         self.leElementMask.clear()
-        singularType, selectedId, fullId = self.extractTypeAndId(itemText)
-        if not singularType or not selectedId:
+        singularType, selectedId, fullId = self.extractTypeAndId(item.text())
+        identifier = item.data(Qt.UserRole)
+        if identifier:
+            invertedIdentifiers = {v: k for k, v in self.elementIdentifiers.items()}
+            singularType = invertedIdentifiers.get(identifier, singularType)
+        if not singularType:
             return
+        
         self.cbElementType.setCurrentText(singularType)
-        index = self.cbElementId.findText(fullId)
-        if index >= 0:
-            self.cbElementId.setCurrentIndex(index)
-        self.findElement()
+        if selectedId:
+            index = self.cbElementId.findText(fullId if fullId else selectedId)
+            if index >= 0:
+                self.cbElementId.setCurrentIndex(index)
 
     # ------------------------------
     # Map and Feature Display Methods
