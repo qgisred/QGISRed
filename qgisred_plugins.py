@@ -5003,18 +5003,39 @@ class QGISRed:
 
         tool = "identifyFeatureElementProperties"
         if self.isToolAlreadyActive(tool, self.openElementsPropertyDialog):
+            if existingDock:
+                existingDock.updateCollapsibleWidgetsState(collapseFindElements=True)
             self.connectElementExplorerToResultsDock()
             return
 
         if existingDock:
-            wasEPCollapsed = existingDock.mElementPropertiesGroupBox.isCollapsed()
-            # Only expand Element Properties if collapsed, don't touch Connected Elements
-            if wasEPCollapsed:
-                existingDock.updateCollapsibleWidgetsState(collapseElementProperties=False)
-                existingDock.scrollToElementProperties()
+            existingDock.show()
+            existingDock.raise_()
+            existingDock.activateWindow()
+            existingDock.updateCollapsibleWidgetsState(collapseElementProperties=False, collapseFindElements=True)
+            existingDock.scrollToElementProperties()
+            dock = existingDock
+        else:
+            try:
+                dock = QGISRedElementExplorerDock.getInstance(
+                    self.iface.mapCanvas(),
+                    self.iface.mainWindow(),
+                    showFindElements=True,
+                    showElementProperties=True
+                )
+                self.iface.addDockWidget(Qt.RightDockWidgetArea, dock)
+                dock.show()
+                dock.raise_()
+                dock.activateWindow()
+                dock.onLayerTreeChanged()
+                dock.setDefaultValue()
+                dock.updateCollapsibleWidgetsState(collapseElementProperties=False, collapseFindElements=True)
+            except Exception:
+                self.openElementsPropertyDialog.setChecked(False)
+                return
 
         self.connectElementExplorerToResultsDock()
-        self.switchToIdentifyTool(tool, self.openElementsPropertyDialog, True, existingDock)
+        self.switchToIdentifyTool(tool, self.openElementsPropertyDialog, True, dock)
 
     def runQueriesByAttributes(self):
         if not self.checkDependencies():
