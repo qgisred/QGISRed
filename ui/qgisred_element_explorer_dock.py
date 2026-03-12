@@ -8,7 +8,6 @@ from qgis.core import QgsProject, QgsVectorLayer, QgsSettings, QgsGeometry, QgsP
 from qgis.utils import iface
 from qgis.gui import QgsHighlight
 from ..tools.qgisred_utils import QGISRedUtils
-from ..tools.qgisred_results import getOut_TimeNodeProperties, getOut_TimeLinkProperties
 from .qgisred_results_dock import QGISRedResultsDock
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_element_explorer_dock.ui"))
@@ -2402,22 +2401,15 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         return ["Status", "Flow", "Velocity", "HeadLoss", "UnitHeadLoss", "FricFactor", "ReactRate", "Quality"]
 
-    def mapResultsFieldToBinaryKey(self, fieldName):
-        """Map a Results layer field name to the corresponding binary results dict key."""
-        fieldToBinaryKey = {
-            "UnitHeadLoss": "UnitHdLoss",
-            "UnitHdLoss": "UnitHdLoss",
-        }
-        return fieldToBinaryKey.get(fieldName, fieldName)
-
-    def mapBinaryKeyToUnitProperty(self, binaryKey):
-        """Map a binary results key to the property name used in qgisred_units.json."""
-        keyToProperty = {
+    def mapFieldToUnitProperty(self, fieldName):
+        """Map a Results layer field name to the property name used in qgisred_units.json."""
+        fieldToProperty = {
             "UnitHdLoss": "Unit HeadLoss",
+            "UnitHeadLoss": "Unit HeadLoss",
             "FricFactor": "Friction factor",
             "ReactRate": "Reaction Rate",
         }
-        return keyToProperty.get(binaryKey, binaryKey)
+        return fieldToProperty.get(fieldName, fieldName)
 
     def getProjectFlowUnit(self):
         """Get the project's flow unit abbreviation (e.g., LPS, GPM)."""
@@ -2425,7 +2417,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         return flowUnit
 
     def populateResultsTable(self):
-        """Populate tableResults with per-element results from the binary .out file."""
+        """Populate tableResults with per-element results from the Results group layer attribute table."""
         if self.resultsPlaceholderLocked or not self.resultsDock:
             return
 
@@ -2445,43 +2437,34 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             # Get element Id
             elementId = str(self.currentFeature.attribute("Id"))
 
-            # Build binary path from the results dock's project info
-            projectDir = self.resultsDock.ProjectDirectory
-            networkName = self.resultsDock.NetworkName
-            binaryPath = os.path.join(projectDir, "Results", networkName + "_Base.out")
-
-            if not os.path.exists(binaryPath):
+            # Find the Results group layer for this element type
+            resultsLayer = self.findResultsLayerForElement(isNode)
+            if not resultsLayer:
                 self.showResultsPlaceholder()
                 return
 
-            # Parse time text to seconds
-            timeSeconds = self.parseTimeTextToSeconds(self.resultsCurrentTimeText)
+            # Query the layer: filter by Id and Time
+            timeText = self.resultsCurrentTimeText or ""
+            expr = f"\"Id\" = '{elementId}' AND \"Time\" = '{timeText}'"
+            matchedFeature = None
+            for feat in resultsLayer.getFeatures(expr):
+                matchedFeature = feat
+                break
 
-            # Get per-element results
-            if isNode:
-                results = getOut_TimeNodeProperties(binaryPath, timeSeconds, elementId)
-                unitCategory = "Nodes"
-            else:
-                results = getOut_TimeLinkProperties(binaryPath, timeSeconds, elementId)
-                unitCategory = "Links"
-
-            if not results:
+            if not matchedFeature:
                 self.showResultsPlaceholder()
                 return
 
-            # Get field order from Results layer attribute table columns
+            unitCategory = "Nodes" if isNode else "Links"
+
+            # Get field order and filter to fields that exist in the layer
             fieldOrder = self.getResultsFieldOrder(isNode)
-            if fieldOrder:
-                # Use Results layer column order, mapping field names to binary keys
-                displayKeys = []
-                for fieldName in fieldOrder:
-                    binaryKey = self.mapResultsFieldToBinaryKey(fieldName)
-                    if binaryKey in results:
-                        displayKeys.append((fieldName, binaryKey))
-            else:
-                # Fallback: use binary dict key order
-                skipKeys = {"Identifier", "Type", "Time", "Setting"}
-                displayKeys = [(k, k) for k in results.keys() if k not in skipKeys]
+            layerFieldNames = [f.name() for f in resultsLayer.fields()]
+            displayFields = [f for f in fieldOrder if f in layerFieldNames]
+
+            if not displayFields:
+                self.showResultsPlaceholder()
+                return
 
             # Setup table
             self.setResultsTableColumns()
@@ -2490,15 +2473,15 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.tableResults.setEditTriggers(QAbstractItemView.NoEditTriggers)
             self.tableResults.verticalHeader().setDefaultSectionSize(20)
             self.tableResults.verticalHeader().setVisible(False)
-            self.tableResults.setRowCount(len(displayKeys))
+            self.tableResults.setRowCount(len(displayFields))
 
             utils = QGISRedUtils()
             qualityModel = utils.getQualityModel()
             massUnits = utils.getMassUnits()
-            for row, (fieldName, binaryKey) in enumerate(displayKeys):
-                value = results[binaryKey]
+            for row, fieldName in enumerate(displayFields):
+                value = matchedFeature.attribute(fieldName)
 
-                # Property name (use field name for pretty name lookup)
+                # Property name
                 prettyName = self.getResultPrettyName(fieldName)
                 propertyItem = QTableWidgetItem(prettyName)
                 propertyItem.setToolTip(prettyName)
@@ -2515,19 +2498,18 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 valueItem.setTextAlignment(Qt.AlignCenter)
                 valueItem.setToolTip(displayValue)
 
-                # Units (use binary key for unit lookup, mapping to JSON property names)
-                # Try quality-aware logic first for quality-related fields
-                qualityUnit = self.getFieldUnitWithQualityLogic(binaryKey, qualityModel, massUnits)
+                # Units
+                qualityUnit = self.getFieldUnitWithQualityLogic(fieldName, qualityModel, massUnits)
                 if qualityUnit is not None:
                     fieldUnit = qualityUnit
-                    unitFullName = self.getFieldUnitFullNameWithQualityLogic(binaryKey, qualityModel, massUnits) or ""
+                    unitFullName = self.getFieldUnitFullNameWithQualityLogic(fieldName, qualityModel, massUnits) or ""
                 else:
-                    unitLookupKey = self.mapBinaryKeyToUnitProperty(binaryKey)
+                    unitLookupKey = self.mapFieldToUnitProperty(fieldName)
                     fieldUnit = utils.getFieldUnit(unitCategory, unitLookupKey)
                     unitFullName = utils.getFieldUnitFullName(unitCategory, unitLookupKey)
 
                     # For fields with "Same as Flow" units, use the project flow unit
-                    if unitFullName == "Same as Flow" or (not fieldUnit and binaryKey in ("Demand", "Flow")):
+                    if unitFullName == "Same as Flow" or (not fieldUnit and fieldName in ("Demand", "Flow")):
                         projectFlowUnit = self.getProjectFlowUnit()
                         fieldUnit = projectFlowUnit
                         unitFullName = projectFlowUnit
@@ -2548,18 +2530,6 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         except Exception:
             self.showResultsPlaceholder()
-
-    def parseTimeTextToSeconds(self, timeText):
-        """Parse a time label string to seconds."""
-        if not timeText or timeText == self.tr("Permanent"):
-            return 0
-        try:
-            parts = timeText.split(" ")
-            days = int(parts[0].replace("d", ""))
-            hms = parts[1].split(":")
-            return days * 86400 + int(hms[0]) * 3600 + int(hms[1]) * 60 + int(hms[2])
-        except Exception:
-            return 0
 
     def getResultPrettyName(self, key):
         """Get a user-friendly name for a result property key."""
