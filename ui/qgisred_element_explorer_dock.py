@@ -39,6 +39,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             raise Exception(f"{self.__class__.__name__} is a singleton! Use getInstance() instead.")
         super(self.__class__, self).__init__(parent)
         self.setupUi(self)
+        self.mElementPropertiesGroupBox.setVisible(False)
         self.setupEventFilters() 
         self.setObjectName(self.__class__.__name__)
         self.setFloating(False)
@@ -162,8 +163,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         if hasattr(self, 'initializeElementTypes'):
             self.initializeElementTypes()
 
-        self.mElementPropertiesGroupBox.setCollapsed(True)
-        self.mFindElementsGroupBox.setCollapsed(True)
+        self.mElementPropertiesGroupBox.setCollapsed(False)
+        self.mFindElementsGroupBox.setCollapsed(False)
         self.mConnectedElementsGroupBox.setCollapsed(True)
         self.trackCollapsibleWidgetsEvents()
         
@@ -172,6 +173,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     def trackCollapsibleWidgetsEvents(self):
         self.mElementPropertiesGroupBox.collapsedStateChanged.connect(self.onElementPropertiesToggled)
         self.mFindElementsGroupBox.collapsedStateChanged.connect(self.onFindElementsToggled)
+        self.labelFoundElementTag.installEventFilter(self)
+        self.labelFoundElementDescription.installEventFilter(self)
 
     def updateCollapsibleWidgetsState(self, collapseElementProperties=None, collapseFindElements=None, collapseConnectedElements=None):
         self.mElementPropertiesGroupBox.blockSignals(True)
@@ -210,61 +213,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     # Collapsible Widgets Handlers
     # ------------------------------
     def onElementPropertiesToggled(self, collapsed):
-        if collapsed:
-            self.moveWidgetsToFindElements()
-        else:
-            self.moveWidgetsToElementProperties()
-            
+        pass  # Handled via event filters on individual labels        
     def onFindElementsToggled(self, collapsed):
-        if collapsed:
-            self.moveWidgetsToElementProperties()
-        else:
-            if self.mElementPropertiesGroupBox.isCollapsed():
-                self.moveWidgetsToFindElements()
-
-    def moveWidgetsToElementProperties(self):
-        widgets = [self.labelFoundElement, self.labelFoundElementTag, self.labelFoundElementDescription, self.mConnectedElementsGroupBox]
-
-        for widget in widgets:
-            currentParent = widget.parent()
-            if currentParent and currentParent.layout():
-                currentParent.layout().removeWidget(widget)
-
-        targetLayout = self.elementPropertiesLayout
-        line = self.lineEp
-        index = targetLayout.indexOf(line)
-
-        for i, widget in enumerate(widgets):
-            targetLayout.insertWidget(index + 1 + i, widget)
-            widget.show()
-
-        self.labelFoundElementTag.setVisible(self.isTagVisible)
-        self.labelFoundElementDescription.setVisible(self.isDescVisible)
-
-        if self.isFloating():
-            QTimer.singleShot(50, self.resetScrollPosition)
-
-    def moveWidgetsToFindElements(self):
-        widgets = [self.labelFoundElement, self.labelFoundElementTag, self.labelFoundElementDescription, self.mConnectedElementsGroupBox]
-
-        for widget in widgets:
-            currentParent = widget.parent()
-            if currentParent and currentParent.layout():
-                currentParent.layout().removeWidget(widget)
-
-        targetLayout = self.findElementsLayout
-        line = self.line
-        index = targetLayout.indexOf(line)
-
-        for i, widget in enumerate(widgets):
-            targetLayout.insertWidget(index + 1 + i, widget)
-            widget.show()
-
-        self.labelFoundElementTag.setVisible(self.isTagVisible)
-        self.labelFoundElementDescription.setVisible(self.isDescVisible)
-
-        if self.isFloating():
-            QTimer.singleShot(50, self.resetScrollPosition)
+        pass
 
     def resetScrollPosition(self):
         # Reset the scroll area position to the top
@@ -366,6 +317,13 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                     self.installEventFilterRecursive(child)
 
     def eventFilter(self, obj, event):
+        # Intercept Show events on conditional labels to keep them hidden if empty
+        if event.type() == QEvent.Show and obj in (self.labelFoundElementTag, self.labelFoundElementDescription):
+            text = obj.text().strip()
+            if not text or text == "-":
+                obj.hide()
+                return True
+
         if event.type() == QEvent.FocusIn:
             if obj != self and self.isAncestorOf(obj):
                 self.reestablishIdentifyTool()
@@ -668,10 +626,23 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         prevState = self.saveCurrentElementState()
 
+        # Block combobox signals to avoid triggering onElementIdChanged multiple times
+        # while rebuilding the lists and restoring the selection
+        self.cbElementId.blockSignals(True)
+        self.cbElementType.blockSignals(True)
+
         self.initializeCustomLayerProperties()
         self.initializeElementTypes()
-
         self.restoreComboBoxSelections(prevState['currentType'], prevState['currentId'])
+
+        self.cbElementType.blockSignals(False)
+        self.cbElementId.blockSignals(False)
+
+        hasSelection = self.cbElementId.currentIndex() >= 0 and bool(self.cbElementId.currentText())
+        self.mElementPropertiesGroupBox.setVisible(hasSelection)
+        if not hasSelection:
+            self.mConnectedElementsGroupBox.setVisible(False)
+
         self.reacquireCurrentElement(prevState)
         self.updateResultsTabVisibility()
 
@@ -971,8 +942,18 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.listWidget.clear()
         self.dataTableWidget.clear()
         self.setDataTableWidgetColumns()
-        if index >= 0 and self.cbElementId.currentText():
-            self.findElement()
+        self.setUpdatesEnabled(False)
+        try:
+            if index >= 0 and self.cbElementId.currentText():
+                self.findElement()
+                self.mElementPropertiesGroupBox.setVisible(True)
+            else:
+                self.mElementPropertiesGroupBox.setVisible(False)
+                self.mConnectedElementsGroupBox.setVisible(False)
+                self.clearHighlights()
+                self.clearAllLayerSelections()
+        finally:
+            self.setUpdatesEnabled(True)
 
     @pyqtSlot()
     def findElement(self):
@@ -1869,6 +1850,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         else:
             self.findAdjacentLinksByGeometry(feature, layer)
         self.sortListWidgetItems()
+        hasConnected = self.listWidget.count() > 0
+        self.mConnectedElementsGroupBox.setVisible(hasConnected)
 
     def findAdjacentNodesByGeometry(self, lineFeature):
         geom = lineFeature.geometry()
