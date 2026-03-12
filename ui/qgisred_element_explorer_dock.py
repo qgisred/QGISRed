@@ -896,36 +896,41 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         # For node layers that might have source/demand suffixes
         if identifier in ["qgisred_junctions", "qgisred_reservoirs", "qgisred_tanks"]:
-            # Pre-build sets of geometries for fast lookup
-            sourceGeoms = set()
-            demandGeoms = set()
+            # Collect source/demand geometries for overlap checks
+            sourceFeatureGeoms = []
+            demandFeatureGeoms = []
 
             sourceLayer = self.getLayerByIdentifier("qgisred_sources")
             if sourceLayer:
                 for srcFeat in sourceLayer.getFeatures():
                     if not srcFeat.geometry().isEmpty():
-                        sourceGeoms.add(srcFeat.geometry().asWkt())
+                        sourceFeatureGeoms.append(srcFeat.geometry())
 
             if identifier == "qgisred_junctions":
                 demandLayer = self.getLayerByIdentifier("qgisred_demands")
                 if demandLayer:
                     for dmndFeat in demandLayer.getFeatures():
                         if not dmndFeat.geometry().isEmpty():
-                            demandGeoms.add(dmndFeat.geometry().asWkt())
+                            demandFeatureGeoms.append(dmndFeat.geometry())
 
-            # Process features with pre-built geometry sets
+            # Process features with distance-based overlap check
             for feature in layer.getFeatures():
                 value = feature.attribute("Id")
                 idStr = str(value) if value is not None else ""
 
-                if not feature.geometry().isEmpty():
-                    featWkt = feature.geometry().asWkt()
+                featGeom = feature.geometry()
+                if not featGeom.isEmpty():
                     suffixes = []
 
-                    if featWkt in sourceGeoms:
-                        suffixes.append("(Source)")
-                    if featWkt in demandGeoms:
-                        suffixes.append("(Mult.Dem)")
+                    for srcGeom in sourceFeatureGeoms:
+                        if self.areOverlappedPoints(featGeom, srcGeom):
+                            suffixes.append("(Source)")
+                            break
+
+                    for dmndGeom in demandFeatureGeoms:
+                        if self.areOverlappedPoints(featGeom, dmndGeom):
+                            suffixes.append("(Mult.Dem)")
+                            break
 
                     if suffixes:
                         idStr += " " + " ".join(suffixes)
