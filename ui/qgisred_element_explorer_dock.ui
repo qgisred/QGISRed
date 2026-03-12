@@ -285,7 +285,7 @@
                 <bool>true</bool>
                </property>
                <property name="styleSheet">
-                <string notr="true">QTabBar::tab { font-weight: bold; min-width: 80px; }</string>
+                <string notr="true">QTabBar::tab { font-weight: bold;}</string>
                </property>
                <property name="currentIndex">
                 <number>0</number>

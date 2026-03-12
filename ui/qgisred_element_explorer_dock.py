@@ -377,6 +377,11 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.tabWidget.setTabVisible(2, False)
         self.tabWidget.setTabVisible(3, False)
         self.tabWidget.setTabVisible(4, False)
+        # Add padding spaces so tab text is never clipped
+        for i in range(self.tabWidget.count()):
+            text = self.tabWidget.tabText(i)
+            if text and not text.startswith(" "):
+                self.tabWidget.setTabText(i, f" {text} ")
 
     def setComponentVisibility(self, showFindElements, showElementProperties):
         self.findElementsVisible = showFindElements
