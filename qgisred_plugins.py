@@ -3964,7 +3964,7 @@ class QGISRed:
         resMessage = GISRed.Commit(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(resMessage, self.tr("Input data is valid"))
+        self.processCsharpResult(resMessage, QCoreApplication.translate("QGISRed", "Input data is valid"))
 
     def runCheckOverlappingElements(self):
         if not self.checkDependencies():
@@ -3985,7 +3985,7 @@ class QGISRed:
         )
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(resMessage, self.tr("No overlapping elements found"))
+        self.processCsharpResult(resMessage, QCoreApplication.translate("QGISRed", "No overlapping elements found"))
 
     def runSimplifyVertices(self):
         if not self.checkDependencies():
@@ -4004,7 +4004,7 @@ class QGISRed:
         resMessage = GISRed.CheckAlignedVertices(self.ProjectDirectory, self.NetworkName, self.tempFolder, self.linkIds)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(resMessage, self.tr("No aligned vertices to delete"))
+        self.processCsharpResult(resMessage, QCoreApplication.translate("QGISRed", "No aligned vertices to delete"))
 
     def runCheckJoinPipes(self):
         if not self.checkDependencies():
@@ -4021,7 +4021,7 @@ class QGISRed:
         resMessage = GISRed.CheckJoinPipes(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(resMessage, self.tr("No pipes to join"))
+        self.processCsharpResult(resMessage, QCoreApplication.translate("QGISRed", "No pipes to join"))
 
     def runCheckTConncetions(self):
         if not self.checkDependencies():
@@ -4038,7 +4038,7 @@ class QGISRed:
         resMessage = GISRed.CheckTConnections(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(resMessage, self.tr("No T connections to create"))
+        self.processCsharpResult(resMessage, QCoreApplication.translate("QGISRed", "No T connections to create"))
 
     def runCheckConnectivityM(self):
         self.runCheckConnectivity()
@@ -4144,7 +4144,7 @@ class QGISRed:
         # Message
         if resMessage == "True":
             self.iface.messageBar().pushMessage(
-                self.tr("Information"), self.tr("No issues on diameter checking"), level=3, duration=5
+                self.tr("Information"), QCoreApplication.translate("QGISRed", "No issues on diameter checking"), level=3, duration=5
             )
         elif resMessage == "False":
             self.iface.messageBar().pushMessage(

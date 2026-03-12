@@ -557,7 +557,7 @@
     <message>
         <location filename="../qgisred_plugins.py" line="4146"/>
         <source>No issues on diameter checking</source>
-        <translation>No ha habido en la comprobación de diámetros</translation>
+        <translation type="obsolete">No ha habido en la comprobación de diámetros</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="4177"/>
@@ -692,27 +692,27 @@
     <message>
         <location filename="../qgisred_plugins.py" line="3967"/>
         <source>Input data is valid</source>
-        <translation>Los datos de entrada son válidos</translation>
+        <translation type="obsolete">Los datos de entrada son válidos</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="3988"/>
         <source>No overlapping elements found</source>
-        <translation>No se han encontrado elementos superpuestos</translation>
+        <translation type="obsolete">No se han encontrado elementos superpuestos</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="4007"/>
         <source>No aligned vertices to delete</source>
-        <translation>No hay vértices alineados que eliminar</translation>
+        <translation type="obsolete">No hay vértices alineados que eliminar</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="4024"/>
         <source>No pipes to join</source>
-        <translation>No hay tuberías que unir</translation>
+        <translation type="obsolete">No hay tuberías que unir</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="4041"/>
         <source>No T connections to create</source>
-        <translation>No hay conexiones en T que crear</translation>
+        <translation type="obsolete">No hay conexiones en T que crear</translation>
     </message>
 </context>
 <context>
@@ -1346,6 +1346,36 @@
         <location filename="../qgisred_plugins.py" line="1301"/>
         <source>Time Series</source>
         <translation>Curvas de Evolución</translation>
+    </message>
+    <message>
+        <location filename="../qgisred_plugins.py" line="3967"/>
+        <source>Input data is valid</source>
+        <translation>Los datos de entrada son válidos</translation>
+    </message>
+    <message>
+        <location filename="../qgisred_plugins.py" line="3988"/>
+        <source>No overlapping elements found</source>
+        <translation>No se han encontrado elementos superpuestos</translation>
+    </message>
+    <message>
+        <location filename="../qgisred_plugins.py" line="4007"/>
+        <source>No aligned vertices to delete</source>
+        <translation>No hay vértices alineados que eliminar</translation>
+    </message>
+    <message>
+        <location filename="../qgisred_plugins.py" line="4024"/>
+        <source>No pipes to join</source>
+        <translation>No hay tuberías que unir</translation>
+    </message>
+    <message>
+        <location filename="../qgisred_plugins.py" line="4041"/>
+        <source>No T connections to create</source>
+        <translation>No hay conexiones en T que crear</translation>
+    </message>
+    <message>
+        <location filename="../qgisred_plugins.py" line="4146"/>
+        <source>No issues on diameter checking</source>
+        <translation>No ha habido problemas en la comprobación de diámetros</translation>
     </message>
 </context>
 <context>

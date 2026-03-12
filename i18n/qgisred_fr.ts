@@ -557,7 +557,7 @@
     <message>
         <location filename="../qgisred_plugins.py" line="4146"/>
         <source>No issues on diameter checking</source>
-        <translation>Aucun problème lors de la vérification des diamètres</translation>
+        <translation type="obsolete">Aucun problème lors de la vérification des diamètres</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="4177"/>
@@ -688,31 +688,6 @@
         <location filename="../qgisred_plugins.py" line="3330"/>
         <source>Time</source>
         <translation type="unfinished">Temps</translation>
-    </message>
-    <message>
-        <location filename="../qgisred_plugins.py" line="3967"/>
-        <source>Input data is valid</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../qgisred_plugins.py" line="3988"/>
-        <source>No overlapping elements found</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../qgisred_plugins.py" line="4007"/>
-        <source>No aligned vertices to delete</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../qgisred_plugins.py" line="4024"/>
-        <source>No pipes to join</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../qgisred_plugins.py" line="4041"/>
-        <source>No T connections to create</source>
-        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1346,6 +1321,36 @@
         <location filename="../qgisred_plugins.py" line="1301"/>
         <source>Time Series</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qgisred_plugins.py" line="3967"/>
+        <source>Input data is valid</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qgisred_plugins.py" line="3988"/>
+        <source>No overlapping elements found</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qgisred_plugins.py" line="4007"/>
+        <source>No aligned vertices to delete</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qgisred_plugins.py" line="4024"/>
+        <source>No pipes to join</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qgisred_plugins.py" line="4041"/>
+        <source>No T connections to create</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qgisred_plugins.py" line="4146"/>
+        <source>No issues on diameter checking</source>
+        <translation type="unfinished">Aucun problème lors de la vérification des diamètres</translation>
     </message>
 </context>
 <context>
