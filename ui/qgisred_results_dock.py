@@ -97,10 +97,25 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.lbl_signed_flow     = self.tr("Flow (Signed)")
         self.lbl_unsigned_flow   = self.tr("Flow (Unsigned)")
 
+        comboStyle = """
+            QComboBox { 
+                background-color: white; 
+                combobox-popup: 0;
+            }
+            QComboBox QAbstractItemView {
+                selection-background-color: #3574F0;
+                selection-color: white;
+                outline: none;
+                max-height: 250px;
+                qproperty-verticalScrollBarPolicy: ScrollBarAsNeeded;
+            }
+        """
+
         self.btMoreTime.clicked.connect(self.nextTime)
         self.btEndTime.clicked.connect(self.endTime)
         self.btLessTime.clicked.connect(self.previousTime)
         self.btInitTime.clicked.connect(self.initTime)
+        self.cbTimes.setStyleSheet(comboStyle)
         self.cbTimes.view().setVerticalScrollBarPolicy(0)
         self.cbTimes.currentIndexChanged.connect(self.timeChanged)
         self.timeSlider.valueChanged.connect(self.sliderChanged)

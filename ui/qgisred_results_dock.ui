@@ -387,6 +387,9 @@
                             <verstretch>0</verstretch>
                            </sizepolicy>
                           </property>
+                          <property name="maxVisibleItems">
+                           <number>10</number>
+                          </property>
                          </widget>
                         </item>
                         <item>
