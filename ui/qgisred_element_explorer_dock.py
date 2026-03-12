@@ -119,7 +119,6 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         # Results tab state
         self.resultsDock = None
         self.resultsCurrentTimeText = ""
-        self.resultsPlaceholderLocked = True
 
         self.resultsDockVisibilityTimer = QTimer()
         self.resultsDockVisibilityTimer.setSingleShot(True)
@@ -400,7 +399,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.cbElementId.setStyleSheet("QComboBox { background-color: white; }")
 
         self.tempHideOtherTabs()
-        self.showResultsPlaceholder()
+        self.clearResultsTable()
 
     def tempHideOtherTabs(self):
         self.tabWidget.setTabVisible(1, False)
@@ -2291,8 +2290,6 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         timeText = resultsDock.lbTime.text()
         if timeText:
             self.onResultsTimeChanged(timeText)
-        else:
-            self.showResultsPlaceholder()
         self.updateResultsTabVisibility()
 
     def findResultsDock(self):
@@ -2315,7 +2312,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 pass
             self.resultsDock = None
         self.resultsCurrentTimeText = ""
-        self.showResultsPlaceholder()
+        self.populateResultsTable()
         self.updateResultsTabVisibility()
 
     def onResultsDockVisibilityChanged(self, visible):
@@ -2325,15 +2322,10 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             return
         # RD became visible again — cancel any pending disconnect
         self.resultsDockVisibilityTimer.stop()
-        if not self.resultsDock:
-            self.showResultsPlaceholder()
-            self.updateResultsTabVisibility()
-            return
-        timeText = self.resultsDock.lbTime.text()
-        if timeText:
-            self.onResultsTimeChanged(timeText)
-        else:
-            self.showResultsPlaceholder()
+        if self.resultsDock:
+            timeText = self.resultsDock.lbTime.text()
+            if timeText:
+                self.onResultsTimeChanged(timeText)
         self.updateResultsTabVisibility()
 
     def checkResultsDockClosed(self):
@@ -2343,32 +2335,17 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
     def onResultsTimeChanged(self, timeText):
         """Handle time changes from the results dock."""
-        self.resultsPlaceholderLocked = False
         self.resultsCurrentTimeText = timeText
         self.labelResultsTime.show()
         self.labelResultsTime.setText(timeText)
         self.populateResultsTable()
 
-    def showResultsPlaceholder(self):
-        """Show a placeholder message when no results are available."""
-        self.resultsPlaceholderLocked = True
+    def clearResultsTable(self):
+        """Clear the results table contents."""
         self.labelResultsTime.hide()
         self.labelResultsTime.setText("")
         self.tableResults.clearContents()
-        self.tableResults.setColumnCount(1)
-        self.tableResults.setRowCount(1)
-        self.tableResults.horizontalHeader().setVisible(False)
-        self.tableResults.verticalHeader().setVisible(False)
-        self.tableResults.setShowGrid(False)
-
-        item = QTableWidgetItem(self.tr("No results available. Run the model and open the Results panel to view simulation results."))
-        item.setFlags(Qt.ItemIsEnabled)
-        item.setTextAlignment(Qt.AlignCenter)
-        item.setForeground(QColor(128, 128, 128))
-        self.tableResults.setItem(0, 0, item)
-        header = self.tableResults.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.Stretch)
-        self.tableResults.setWordWrap(True)
+        self.tableResults.setRowCount(0)
 
     def setResultsTableColumns(self):
         """Configure tableResults with the same 4-column structure as dataTableWidget."""
@@ -2418,11 +2395,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
     def populateResultsTable(self):
         """Populate tableResults with per-element results from the Results group layer attribute table."""
-        if self.resultsPlaceholderLocked or not self.resultsDock:
-            return
-
         if not self.isLayerValid(self.currentLayer) or not self.currentFeature:
-            self.showResultsPlaceholder()
+            self.clearResultsTable()
             return
 
         identifier = self.currentLayer.customProperty("qgisred_identifier", "")
@@ -2430,7 +2404,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         isLink = identifier in self.linkLayers
 
         if not isNode and not isLink:
-            self.showResultsPlaceholder()
+            self.clearResultsTable()
             return
 
         try:
@@ -2440,11 +2414,25 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             # Find the Results group layer for this element type
             resultsLayer = self.findResultsLayerForElement(isNode)
             if not resultsLayer:
-                self.showResultsPlaceholder()
+                self.clearResultsTable()
                 return
 
+            # Determine the time to query
+            timeText = self.resultsCurrentTimeText
+            if not timeText:
+                # No results dock connected — use the first available time from the layer
+                for feat in resultsLayer.getFeatures():
+                    timeText = str(feat.attribute("Time"))
+                    break
+            if not timeText:
+                self.clearResultsTable()
+                return
+
+            # Show the time label
+            self.labelResultsTime.show()
+            self.labelResultsTime.setText(timeText)
+
             # Query the layer: filter by Id and Time
-            timeText = self.resultsCurrentTimeText or ""
             expr = f"\"Id\" = '{elementId}' AND \"Time\" = '{timeText}'"
             matchedFeature = None
             for feat in resultsLayer.getFeatures(expr):
@@ -2452,7 +2440,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 break
 
             if not matchedFeature:
-                self.showResultsPlaceholder()
+                self.clearResultsTable()
                 return
 
             unitCategory = "Nodes" if isNode else "Links"
@@ -2463,7 +2451,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             displayFields = [f for f in fieldOrder if f in layerFieldNames]
 
             if not displayFields:
-                self.showResultsPlaceholder()
+                self.clearResultsTable()
                 return
 
             # Setup table
@@ -2529,7 +2517,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 self.tableResults.setItem(row, 3, infoItem)
 
         except Exception:
-            self.showResultsPlaceholder()
+            self.clearResultsTable()
 
     def getResultPrettyName(self, key):
         """Get a user-friendly name for a result property key."""
@@ -2549,7 +2537,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         }
         return prettyNames.get(key, key)
     def updateResultsTabVisibility(self):
-        """Show or hide the Results tab based on available results data and current element type."""
+        """Show or hide the Results tab based on Results group layers and current element type."""
         # Always hide for complementary elements
         if self.isLayerValid(self.currentLayer):
             identifier = self.currentLayer.customProperty("qgisred_identifier", "")
@@ -2558,12 +2546,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 self.tabWidget.setTabVisible(1, False)
                 return
 
-        # Check if results dock is connected with valid time data
-        hasResultsDock = self.resultsDock is not None and self.resultsCurrentTimeText != ""
-
-        # Check if Results group has layers
+        # Show tab if Results group has layers
         hasResultsLayers = len(self.getAllResultsGroupLayers()) > 0
-
-        self.tabWidget.setTabVisible(1, hasResultsDock or hasResultsLayers)
+        self.tabWidget.setTabVisible(1, hasResultsLayers)
 
     # --- End Results Tab ---
