@@ -80,19 +80,19 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         # Reverse lookup: identifier → display name (singular)
         self.identifierDisplayNames = {v: k for k, v in self.elementIdentifiers.items()}
 
-        # Maps layer name (as it appears in QGIS) → singular display name
+        # Maps layer name (English, as it appears in QGIS) → translated singular display name
         self.singularForms = {
-            self.tr("Pipes"): self.tr("Pipe"),
-            self.tr("Junctions"): self.tr("Junction"),
-            self.tr("Demands"): self.tr("Demand"),
-            self.tr("Reservoirs"): self.tr("Reservoir"),
-            self.tr("Tanks"): self.tr("Tank"),
-            self.tr("Pumps"): self.tr("Pump"),
-            self.tr("Valves"): self.tr("Valve"),
-            self.tr("Sources"): self.tr("Source"),
-            self.tr("Service Connections"): self.tr("Service Connection"),
-            self.tr("Isolation Valves"): self.tr("Isolation Valve"),
-            self.tr("Meters"): self.tr("Meter")
+            "Pipes": self.tr("Pipe"),
+            "Junctions": self.tr("Junction"),
+            "Demands": self.tr("Demand"),
+            "Reservoirs": self.tr("Reservoir"),
+            "Tanks": self.tr("Tank"),
+            "Pumps": self.tr("Pump"),
+            "Valves": self.tr("Valve"),
+            "Sources": self.tr("Source"),
+            "Service Connections": self.tr("Service Connection"),
+            "Isolation Valves": self.tr("Isolation Valve"),
+            "Meters": self.tr("Meter")
         }
         
         self.originalIds = []
@@ -659,7 +659,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.sourceDemandIdCache.clear()
 
     def saveCurrentElementState(self):
-        currentType = self.cbElementType.currentText()
+        currentType = self.cbElementType.currentData()
         currentId = self.extractNodeId(self.cbElementId.currentText())
         return {
             'currentType': currentType,
@@ -674,7 +674,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         }
 
     def restoreComboBoxSelections(self, currentType, currentId):
-        typeIndex = self.cbElementType.findText(currentType)
+        typeIndex = self.cbElementType.findData(currentType)
         if typeIndex >= 0:
             self.cbElementType.setCurrentIndex(typeIndex)
             idIndex = self.cbElementId.findText(currentId)
@@ -770,7 +770,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
             progress.setValue(20)
             availableTypes = self.getAvailableElementTypes()
-            self.cbElementType.addItems(availableTypes)
+            for name in availableTypes:
+                self.cbElementType.addItem(self.tr(name), name)
 
             progress.setValue(30)
             self.initializeElementIdsCache(progress)
@@ -973,7 +974,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.showLayerVisibilityWarning()
             return
 
-        selectedType = self.cbElementType.currentText()
+        selectedType = self.cbElementType.currentData()
         selectedId = self.extractNodeId(self.cbElementId.currentText())
         elementIdentifier = self.elementIdentifiers.get(selectedType)
 
@@ -1021,8 +1022,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     def updateElementIds(self):
         self.cbElementId.clear()
         self.labelFoundElement.setText("")
-        
-        selectedType = self.cbElementType.currentText()
+
+        selectedType = self.cbElementType.currentData()
         ids = self.dictOfElementIds.get(selectedType, [])
         
         mask = self.leElementMask.text().strip()
@@ -1036,7 +1037,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     def filterElementIds(self):
         mask = self.leElementMask.text().strip()
         self.cbElementId.clear()
-        selectedType = self.cbElementType.currentText()
+        selectedType = self.cbElementType.currentData()
         ids = self.dictOfElementIds.get(selectedType, [])
         if mask:
             filteredIds = [id for id in ids if mask.lower() in id.lower()]
@@ -1080,8 +1081,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             singularType = invertedIdentifiers.get(identifier, singularType)
         if not singularType:
             return
-        
-        self.cbElementType.setCurrentText(singularType)
+
+        self.cbElementType.setCurrentText(self.tr(singularType))
         if selectedId:
             index = self.cbElementId.findText(fullId if fullId else selectedId)
             if index >= 0:
@@ -1669,12 +1670,12 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                             break
             singularNodeType = self.singularForms.get(nodeLayer.name(), nodeLayer.name())
             suffixStr = " ".join(suffixes)
-            finalText = self.tr(f"{singularNodeType} {selectedId} {suffixStr}".strip())
+            finalText = f"{singularNodeType} {selectedId} {suffixStr}".strip()
             self.labelFoundElement.setText(finalText)
         else:
-            elementType = self.cbElementType.currentText()
-            singularElementType = self.singularForms.get(elementType, elementType)
-            finalText = self.tr(f"{singularElementType} {selectedId}")
+            elementType = self.cbElementType.currentData()
+            singularElementType = self.tr(elementType) if elementType else self.cbElementType.currentText()
+            finalText = f"{singularElementType} {selectedId}"
             self.labelFoundElement.setText(finalText)
 
         return finalText
