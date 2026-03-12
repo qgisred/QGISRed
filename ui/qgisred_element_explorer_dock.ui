@@ -308,19 +308,19 @@
                 </attribute>
                 <layout class="QVBoxLayout" name="verticalLayout_7">
                  <property name="spacing">
-                  <number>2</number>
+                  <number>0</number>
                  </property>
                  <property name="leftMargin">
-                  <number>2</number>
+                  <number>0</number>
                  </property>
                  <property name="topMargin">
-                  <number>2</number>
+                  <number>0</number>
                  </property>
                  <property name="rightMargin">
-                  <number>2</number>
+                  <number>0</number>
                  </property>
                  <property name="bottomMargin">
-                  <number>2</number>
+                  <number>0</number>
                  </property>
                  <item>
                   <widget class="QTableWidget" name="dataTableWidget">
@@ -349,27 +349,27 @@
                 </attribute>
                 <layout class="QHBoxLayout" name="horizontalLayout_4">
                  <property name="spacing">
-                  <number>2</number>
+                  <number>0</number>
                  </property>
                  <property name="leftMargin">
-                  <number>2</number>
+                  <number>0</number>
                  </property>
                  <property name="topMargin">
-                  <number>2</number>
+                  <number>0</number>
                  </property>
                  <property name="rightMargin">
-                  <number>2</number>
+                  <number>0</number>
                  </property>
                  <property name="bottomMargin">
-                  <number>2</number>
+                  <number>0</number>
                  </property>
                  <item>
                   <layout class="QFormLayout" name="formLayout_3">
                    <property name="horizontalSpacing">
-                    <number>2</number>
+                    <number>0</number>
                    </property>
                    <property name="verticalSpacing">
-                    <number>2</number>
+                    <number>0</number>
                    </property>
                    <item row="0" column="1">
                     <widget class="QLabel" name="labelResultsTime">
