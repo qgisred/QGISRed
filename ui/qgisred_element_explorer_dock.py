@@ -393,10 +393,21 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             searchIcon = QIcon(os.path.join(os.path.dirname(__file__), '..', 'images', 'iconFilter.png'))
             self.leElementMask.addAction(searchIcon, QLineEdit.LeadingPosition)
         
+        comboStyle = """
+            QComboBox { background-color: white; }
+            QComboBox QAbstractItemView {
+                selection-background-color: transparent;
+                selection-color: black;
+                outline: none;
+            }
+            QComboBox QAbstractItemView::item:selected {
+                border: 1px solid #3574F0;
+            }
+        """
         if hasattr(self, 'cbElementType'):
-            self.cbElementType.setStyleSheet("QComboBox { background-color: white; }")
+            self.cbElementType.setStyleSheet(comboStyle)
         if hasattr(self, 'cbElementId'):
-            self.cbElementId.setStyleSheet("QComboBox { background-color: white; }")
+            self.cbElementId.setStyleSheet(comboStyle)
 
         self.tempHideOtherTabs()
         self.clearResultsTable()
