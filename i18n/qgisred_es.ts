@@ -254,7 +254,7 @@
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.ui" line="153"/>
         <source>Find</source>
-        <translation>Buscar</translation>
+        <translation type="obsolete">Buscar</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.ui" line="172"/>
@@ -267,27 +267,27 @@
         <translation>Limpiar</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.ui" line="215"/>
+        <location filename="../ui/qgisred_element_explorer_dock.ui" line="170"/>
         <source>Element Properties</source>
         <translation>Propiedades de los elementos</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.ui" line="268"/>
+        <location filename="../ui/qgisred_element_explorer_dock.ui" line="223"/>
         <source>-</source>
         <translation>-</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.ui" line="281"/>
+        <location filename="../ui/qgisred_element_explorer_dock.ui" line="236"/>
         <source>Connected Elements</source>
         <translation>Elementos conectados</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.ui" line="381"/>
+        <location filename="../ui/qgisred_element_explorer_dock.ui" line="336"/>
         <source>Data</source>
         <translation>Datos</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.ui" line="422"/>
+        <location filename="../ui/qgisred_element_explorer_dock.ui" line="377"/>
         <source>Results</source>
         <translation>Resultados</translation>
     </message>
@@ -297,17 +297,17 @@
         <translation type="obsolete">Día 1, 15:10</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.ui" line="489"/>
+        <location filename="../ui/qgisred_element_explorer_dock.ui" line="444"/>
         <source>Curves</source>
         <translation>Curvas</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.ui" line="511"/>
+        <location filename="../ui/qgisred_element_explorer_dock.ui" line="466"/>
         <source>Patterns</source>
         <translation>Patrones</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.ui" line="533"/>
+        <location filename="../ui/qgisred_element_explorer_dock.ui" line="488"/>
         <source>Controls</source>
         <translation>Controles</translation>
     </message>
@@ -512,7 +512,7 @@
     <message>
         <location filename="../qgisred_plugins.py" line="3269"/>
         <source>Time Series</source>
-        <translation>Curvas de Modulación</translation>
+        <translation>Curvas de Evolución</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="3069"/>
@@ -1551,219 +1551,229 @@
 <context>
     <name>QGISRedElementExplorerDock</name>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="85"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="84"/>
         <source>Pipes</source>
         <translation>Tuberías</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="86"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="85"/>
         <source>Junctions</source>
         <translation>Uniones</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="87"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="86"/>
         <source>Demands</source>
         <translation>Demandas</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="88"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="87"/>
         <source>Reservoirs</source>
         <translation>Embalses</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="89"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="88"/>
         <source>Tanks</source>
         <translation>Depósitos</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="90"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="89"/>
         <source>Pumps</source>
         <translation>Bombas</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="91"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="90"/>
         <source>Valves</source>
         <translation>Válvulas</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="92"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="91"/>
         <source>Sources</source>
         <translation>Fuentes</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="93"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="92"/>
         <source>Service Connections</source>
         <translation>Acometidas</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="94"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="93"/>
         <source>Isolation Valves</source>
         <translation>Válvulas de seccionamiento</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="95"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="94"/>
         <source>Meters</source>
         <translation>Medidores</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="85"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="84"/>
         <source>Pipe</source>
         <translation>Tubería</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="86"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="85"/>
         <source>Junction</source>
         <translation>Unión</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2564"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2512"/>
         <source>Demand</source>
         <translation>Demanda</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="88"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="87"/>
         <source>Reservoir</source>
         <translation>Embalse</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="89"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="88"/>
         <source>Tank</source>
         <translation>Tanque</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="90"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="89"/>
         <source>Pump</source>
         <translation>Bomba</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="91"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="90"/>
         <source>Valve</source>
         <translation>Válvula</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="92"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="91"/>
         <source>Source</source>
         <translation>Fuente</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="93"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="92"/>
         <source>Service Connection</source>
         <translation>Acometida</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="94"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="93"/>
         <source>Isolation Valve</source>
         <translation>Válvula de seccionamiento</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="95"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="94"/>
         <source>Meter</source>
         <translation>Medidor</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="1016"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="1014"/>
         <source>Info</source>
         <translation>Información</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="1016"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="1014"/>
         <source>Feature not found</source>
         <translation>Elemento no encontrado</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="1692"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="1686"/>
         <source>{singularNodeType} {selectedId} {suffixStr}</source>
         <translation>{singularNodeType} {selectedId} {suffixStr}</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="1697"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="1691"/>
         <source>{singularElementType} {selectedId}</source>
         <translation>{singularElementType} {selectedId}</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2372"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2333"/>
         <source>Property</source>
         <translation>Propiedad</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2372"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2333"/>
         <source>Value</source>
         <translation>Valor</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2372"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2333"/>
         <source>Units</source>
         <translation>Unidades</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="2263"/>
         <source>Layers Not Visible</source>
-        <translation>Capas no visibles</translation>
+        <translation type="obsolete">Capas no visibles</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="2263"/>
         <source>The layers in the Inputs or Results group must be visible in order to select an element.</source>
-        <translation>Las capas de los grupos de Entradas o Resultados debe ser visible para seleccionar un elemento.</translation>
+        <translation type="obsolete">Las capas de los grupos de Entradas o Resultados debe ser visible para seleccionar un elemento.</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="2360"/>
         <source>No results available. Run the model and open the Results panel to view simulation results.</source>
-        <translation>Ningún resultado disponible. Ejecuta el modelo y abre el panel de Resultados para ver los resultados de la simulación.</translation>
+        <translation type="obsolete">Ningún resultado disponible. Ejecuta el modelo y abre el panel de Resultados para ver los resultados de la simulación.</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_element_explorer_dock.py" line="2549"/>
         <source>Permanent</source>
-        <translation>Permanente</translation>
+        <translation type="obsolete">Permanente</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2562"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2510"/>
         <source>Pressure</source>
         <translation>Presión</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2563"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2511"/>
         <source>Head</source>
         <translation>Carga</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2565"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2513"/>
         <source>Quality</source>
         <translation>Calidad</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2566"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2514"/>
         <source>Flow</source>
         <translation>Caudal</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2567"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2515"/>
         <source>Velocity</source>
         <translation>Velocidad</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2568"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2516"/>
         <source>HeadLoss</source>
         <translation>Pérdida de carga</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2570"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2518"/>
         <source>Unit HeadLoss</source>
         <translation>Pérdida de carga unitaria</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2571"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2519"/>
         <source>Friction Factor</source>
         <translation>Factor de Fricción</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2572"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2520"/>
         <source>Status</source>
         <translation>Estado</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2573"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2521"/>
         <source>Reaction Rate</source>
         <translation>Tasa de Reacción</translation>
+    </message>
+    <message>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2244"/>
+        <source>No Layers Found</source>
+        <translation>No se han encontrado Capas</translation>
+    </message>
+    <message>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2244"/>
+        <source>No layers found in the Inputs or Results group.</source>
+        <translation>No se han encontrado capas en el grupo de Entradas o resultados</translation>
     </message>
 </context>
 <context>
@@ -3129,12 +3139,12 @@
     <message>
         <location filename="../ui/qgisred_timeseries_dock.ui" line="14"/>
         <source>Time Series</source>
-        <translation type="unfinished"></translation>
+        <translation>Curvas de Evolución</translation>
     </message>
     <message>
         <location filename="../ui/qgisred_timeseries_dock.ui" line="43"/>
         <source>Selection required...</source>
-        <translation type="unfinished"></translation>
+        <translation>Selección requerida</translation>
     </message>
 </context>
 <context>
@@ -3160,7 +3170,7 @@
     <message>
         <location filename="../ui/qgisred_timeseries_dock.py" line="94"/>
         <source>No data to display, please select an element on the map.</source>
-        <translation type="unfinished"></translation>
+        <translation>No hay datos para mostrar. Por favor, seleccione un elemento en el mapa</translation>
     </message>
 </context>
 </TS>
