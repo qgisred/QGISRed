@@ -5003,9 +5003,10 @@ class QGISRed:
 
         tool = "identifyFeatureElementProperties"
         if self.isToolAlreadyActive(tool, self.openElementsPropertyDialog):
-            if existingDock:
-                existingDock.updateCollapsibleWidgetsState(collapseFindElements=True)
-            self.connectElementExplorerToResultsDock()
+            self.openElementsPropertyDialog.setChecked(False)
+            currentTool = self.iface.mapCanvas().mapTool()
+            if currentTool:
+                self.iface.mapCanvas().unsetMapTool(currentTool)
             return
 
         if existingDock:
