@@ -2486,7 +2486,10 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                     displayValue = ""
                 else:
                     try:
-                        displayValue = f"{float(value):.2f}"
+                        numValue = float(value)
+                        if fieldName == "Flow":
+                            numValue = abs(numValue)
+                        displayValue = f"{numValue:.2f}"
                     except (ValueError, TypeError):
                         displayValue = str(value)
                 valueItem = QTableWidgetItem(displayValue)
