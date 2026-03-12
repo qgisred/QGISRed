@@ -196,10 +196,6 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         # Panel should NOT close automatically when frames collapse
         # It should only close when the X button is clicked
 
-        if not fe_collapsed and ep_collapsed:
-            self.moveWidgetsToFindElements()
-        elif not ep_collapsed:
-            self.moveWidgetsToElementProperties()
 
         self.mElementPropertiesGroupBox.blockSignals(False)
         self.mFindElementsGroupBox.blockSignals(False)

@@ -4959,19 +4959,18 @@ class QGISRed:
 
         existingDock = QGISRedElementExplorerDock._instance
 
-        tool = "identifyFeature"
-        if self.isToolAlreadyActive(tool, self.openFindElementsDialog):
-            self.connectElementExplorerToResultsDock()
-            return
+        # Unset map tool if it was one of the search tools, as this button doesn't use tools
+        currentTool = self.iface.mapCanvas().mapTool()
+        if currentTool and type(currentTool).__name__ == "QGISRedIdentifyFeature":
+            self.iface.mapCanvas().unsetMapTool(currentTool)
 
-        useElementProperties = False
         if existingDock:
-            useElementProperties = not existingDock.mElementPropertiesGroupBox.isCollapsed()
-            wasFindCollapsed = existingDock.mFindElementsGroupBox.isCollapsed()
-            # Only expand Find Elements if collapsed, don't touch Connected Elements
-            if wasFindCollapsed:
-                existingDock.updateCollapsibleWidgetsState(collapseFindElements=False)
-                existingDock.scrollToTop()
+            existingDock.show()
+            existingDock.raise_()
+            existingDock.activateWindow()
+            # Expand Find Elements and ensure it's visible
+            existingDock.updateCollapsibleWidgetsState(collapseFindElements=False)
+            existingDock.scrollToTop()
             dock = existingDock
         else:
             try:
@@ -4979,7 +4978,7 @@ class QGISRed:
                     self.iface.mapCanvas(),
                     self.iface.mainWindow(),
                     showFindElements=True,
-                    showElementProperties=useElementProperties
+                    showElementProperties=False
                 )
 
                 self.iface.addDockWidget(Qt.RightDockWidgetArea, dock)
@@ -4994,7 +4993,7 @@ class QGISRed:
                 return
 
         self.connectElementExplorerToResultsDock()
-        self.switchToIdentifyTool(tool, self.openFindElementsDialog, useElementProperties, dock)
+        self.openFindElementsDialog.setChecked(False) # Not a tool, don't keep it checked
 
     def runElementsProperty(self):
         if not self.validateProject(self.openElementsPropertyDialog):
