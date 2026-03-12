@@ -158,7 +158,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         
         if hasattr(self, 'initializeCustomLayerProperties'):
             self.initializeCustomLayerProperties()
-        
+
         if hasattr(self, 'initializeElementTypes'):
             self.initializeElementTypes()
 
@@ -477,7 +477,6 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 layer.dataChanged.connect(self.onLayerTreeChanged)
                 layer.featureAdded.connect(self.updateElementIds)
                 layer.featureDeleted.connect(self.updateElementIds)
-                layer.visibilityChanged.connect(self.onLayerTreeChanged)
             self.connectedLayerNodes.append(layerNode)
         except Exception:
             pass
@@ -490,7 +489,6 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 self.safeDisconnect(layer.dataChanged, self.onLayerTreeChanged)
                 self.safeDisconnect(layer.featureAdded, self.updateElementIds)
                 self.safeDisconnect(layer.featureDeleted, self.updateElementIds)
-                self.safeDisconnect(layer.visibilityChanged, self.onLayerTreeChanged)
         except (RuntimeError, TypeError):
             pass
 
@@ -504,11 +502,6 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             if hasattr(layer, 'dataChanged'):
                 try:
                     layer.dataChanged.disconnect(self.onLayerTreeChanged)
-                except Exception:
-                    pass
-            if hasattr(layer, 'visibilityChanged'):
-                try:
-                    layer.visibilityChanged.disconnect(self.onLayerTreeChanged)
                 except Exception:
                     pass
         except Exception:
@@ -984,7 +977,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.listWidget.clear()
 
         # Check if any layers are available
-        availableLayers, sourceGroup = self.getAvailableLayersForExplorer(checkVisibility=True)
+        availableLayers, sourceGroup = self.getAvailableLayersForExplorer()
         if not availableLayers:
             self.showLayerVisibilityWarning()
             return
@@ -1518,14 +1511,10 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         return None, None
 
     def getAvailableElementTypes(self):
-        inputsGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
-        if not inputsGroup:
-            return []
         availableTypes = []
-        checkedLayers = inputsGroup.checkedLayers()
         for displayName, identifier in self.elementIdentifiers.items():
-            for layer in checkedLayers:
-                if layer and layer.customProperty("qgisred_identifier") == identifier:
+            for layer in self.getAllInputGroupLayers():
+                if layer.customProperty("qgisred_identifier") == identifier:
                     availableTypes.append(displayName)
                     break
         return availableTypes
@@ -2122,7 +2111,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             return
 
         # Check if layers are available
-        availableLayers, _ = self.getAvailableLayersForExplorer(checkVisibility=True)
+        availableLayers, _ = self.getAvailableLayersForExplorer()
         if not availableLayers:
             self.showLayerVisibilityWarning()
             return
@@ -2222,51 +2211,38 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         resultsLayers = self.getAllResultsGroupLayers()
         return len(resultsLayers) > 0
 
-    def getAvailableLayersForExplorer(self, checkVisibility=True):
+    def getAvailableLayersForExplorer(self):
         """
         Get available layers for the Element Explorer.
-        First tries Inputs group, falls back to Results group if Inputs layers are not visible.
-
-        Args:
-            checkVisibility: If True, only returns layers from groups that have visible/checked layers.
+        First tries Inputs group, falls back to Results group.
 
         Returns:
             tuple: (layers_list, source_group_name) or ([], None) if no layers available
         """
         root = QgsProject.instance().layerTreeRoot()
 
-        # First, try Inputs group
+        # First, try Inputs group (regardless of visibility)
         inputsGroup = root.findGroup("Inputs")
         if inputsGroup:
-            if checkVisibility:
-                checkedInputs = self.getCheckedInputGroupLayers()
-                if checkedInputs:
-                    return self.getAllInputGroupLayers(), "Inputs"
-            else:
-                inputLayers = self.getAllInputGroupLayers()
-                if inputLayers:
-                    return inputLayers, "Inputs"
+            inputLayers = self.getAllInputGroupLayers()
+            if inputLayers:
+                return inputLayers, "Inputs"
 
-        # If Inputs not available/visible, try Results group
+        # If Inputs not available, try Results group
         resultsGroup = root.findGroup("Results")
         if resultsGroup:
-            if checkVisibility:
-                checkedResults = self.getCheckedResultsGroupLayers()
-                if checkedResults:
-                    return self.getAllResultsGroupLayers(), "Results"
-            else:
-                resultsLayers = self.getAllResultsGroupLayers()
-                if resultsLayers:
-                    return resultsLayers, "Results"
+            resultsLayers = self.getAllResultsGroupLayers()
+            if resultsLayers:
+                return resultsLayers, "Results"
 
         return [], None
 
     def showLayerVisibilityWarning(self):
-        """Show warning message when no layers are visible in either Inputs or Results groups."""
+        """Show warning message when no layers are found in either Inputs or Results groups."""
         QMessageBox.warning(
             self,
-            self.tr("Layers Not Visible"),
-            self.tr("The layers in the Inputs or Results group must be visible in order to select an element.")
+            self.tr("No Layers Found"),
+            self.tr("No layers found in the Inputs or Results group.")
         )
 
     # ------------------------------
