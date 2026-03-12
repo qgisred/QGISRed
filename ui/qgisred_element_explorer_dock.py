@@ -1169,14 +1169,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             if unitFullName:
                 unitItem.setToolTip(unitFullName)
 
-            # Info column - placeholder for contextual icons
-            infoItem = QTableWidgetItem("")
-            infoItem.setTextAlignment(Qt.AlignCenter)
-
             self.dataTableWidget.setItem(displayRow, 0, fieldItem)
             self.dataTableWidget.setItem(displayRow, 1, valueItem)
             self.dataTableWidget.setItem(displayRow, 2, unitItem)
-            self.dataTableWidget.setItem(displayRow, 3, infoItem)
             displayRow += 1
 
     def getFieldUnitWithHeadlossLogic(self, utils, layerIdentifier, fieldName, headloss, unitSystem):
@@ -1280,17 +1275,15 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         return None
 
     def setDataTableWidgetColumns(self):
-        self.dataTableWidget.setColumnCount(4)
-        self.dataTableWidget.setHorizontalHeaderLabels([self.tr("Property"), self.tr("Value"), self.tr("Units"), self.tr("")])
+        self.dataTableWidget.setColumnCount(3)
+        self.dataTableWidget.setHorizontalHeaderLabels([self.tr("Property"), self.tr("Value"), self.tr("Units")])
 
         header = self.dataTableWidget.horizontalHeader()
         # Allow smaller column sizes (default minimum is ~20px)
         header.setMinimumSectionSize(10)
-        # Units and Info columns: fixed small width
+        # Units column: fixed small width
         header.setSectionResizeMode(2, QHeaderView.Fixed)
-        header.setSectionResizeMode(3, QHeaderView.Fixed)
         self.dataTableWidget.setColumnWidth(2, 40)
-        self.dataTableWidget.setColumnWidth(3, 15)
         # Property and Value columns: stretch to fill remaining space
         header.setSectionResizeMode(0, QHeaderView.Stretch)
         header.setSectionResizeMode(1, QHeaderView.Stretch)
@@ -2347,18 +2340,16 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.tableResults.setRowCount(0)
 
     def setResultsTableColumns(self):
-        """Configure tableResults with the same 4-column structure as dataTableWidget."""
-        self.tableResults.setColumnCount(4)
-        self.tableResults.setHorizontalHeaderLabels([self.tr("Property"), self.tr("Value"), self.tr("Units"), self.tr("")])
+        """Configure tableResults with the same 3-column structure as dataTableWidget."""
+        self.tableResults.setColumnCount(3)
+        self.tableResults.setHorizontalHeaderLabels([self.tr("Property"), self.tr("Value"), self.tr("Units")])
         self.tableResults.horizontalHeader().setVisible(True)
 
         header = self.tableResults.horizontalHeader()
         header.setStyleSheet("QHeaderView::section { font-weight: normal; }")
         header.setMinimumSectionSize(10)
         header.setSectionResizeMode(2, QHeaderView.Fixed)
-        header.setSectionResizeMode(3, QHeaderView.Fixed)
         self.tableResults.setColumnWidth(2, 40)
-        self.tableResults.setColumnWidth(3, 15)
         header.setSectionResizeMode(0, QHeaderView.Stretch)
         header.setSectionResizeMode(1, QHeaderView.Stretch)
 
@@ -2522,14 +2513,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 if unitFullName:
                     unitItem.setToolTip(unitFullName)
 
-                # Info column
-                infoItem = QTableWidgetItem("")
-                infoItem.setTextAlignment(Qt.AlignCenter)
-
                 self.tableResults.setItem(row, 0, propertyItem)
                 self.tableResults.setItem(row, 1, valueItem)
                 self.tableResults.setItem(row, 2, unitItem)
-                self.tableResults.setItem(row, 3, infoItem)
 
         except Exception:
             self.clearResultsTable()
