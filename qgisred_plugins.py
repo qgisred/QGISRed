@@ -3964,7 +3964,7 @@ class QGISRed:
         resMessage = GISRed.Commit(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(resMessage, "Input data is valid")
+        self.processCsharpResult(resMessage, self.tr("Input data is valid"))
 
     def runCheckOverlappingElements(self):
         if not self.checkDependencies():
@@ -3985,7 +3985,7 @@ class QGISRed:
         )
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(resMessage, "No overlapping elements found")
+        self.processCsharpResult(resMessage, self.tr("No overlapping elements found"))
 
     def runSimplifyVertices(self):
         if not self.checkDependencies():
@@ -4004,7 +4004,7 @@ class QGISRed:
         resMessage = GISRed.CheckAlignedVertices(self.ProjectDirectory, self.NetworkName, self.tempFolder, self.linkIds)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(resMessage, "No aligned vertices to delete")
+        self.processCsharpResult(resMessage, self.tr("No aligned vertices to delete"))
 
     def runCheckJoinPipes(self):
         if not self.checkDependencies():
@@ -4021,7 +4021,7 @@ class QGISRed:
         resMessage = GISRed.CheckJoinPipes(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(resMessage, "No pipes to join")
+        self.processCsharpResult(resMessage, self.tr("No pipes to join"))
 
     def runCheckTConncetions(self):
         if not self.checkDependencies():
@@ -4038,7 +4038,7 @@ class QGISRed:
         resMessage = GISRed.CheckTConnections(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(resMessage, "No T connections to create")
+        self.processCsharpResult(resMessage, self.tr("No T connections to create"))
 
     def runCheckConnectivityM(self):
         self.runCheckConnectivity()

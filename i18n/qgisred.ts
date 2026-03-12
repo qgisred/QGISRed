@@ -674,6 +674,31 @@
         <source>Time</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../qgisred_plugins.py" line="3967"/>
+        <source>Input data is valid</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qgisred_plugins.py" line="3988"/>
+        <source>No overlapping elements found</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qgisred_plugins.py" line="4007"/>
+        <source>No aligned vertices to delete</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qgisred_plugins.py" line="4024"/>
+        <source>No pipes to join</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qgisred_plugins.py" line="4041"/>
+        <source>No T connections to create</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>QGISRed</name>
@@ -1606,7 +1631,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2502"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2506"/>
         <source>Demand</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1661,87 +1686,87 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="1674"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="1678"/>
         <source>{singularNodeType} {selectedId} {suffixStr}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="1679"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="1683"/>
         <source>{singularElementType} {selectedId}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2323"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2327"/>
         <source>Property</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2323"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2327"/>
         <source>Value</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2323"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2327"/>
         <source>Units</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2500"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2504"/>
         <source>Pressure</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2501"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2505"/>
         <source>Head</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2503"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2507"/>
         <source>Quality</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2504"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2508"/>
         <source>Flow</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2505"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2509"/>
         <source>Velocity</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2506"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2510"/>
         <source>HeadLoss</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2508"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2512"/>
         <source>Unit HeadLoss</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2509"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2513"/>
         <source>Friction Factor</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2510"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2514"/>
         <source>Status</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2511"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2515"/>
         <source>Reaction Rate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2234"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2238"/>
         <source>No Layers Found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="2234"/>
+        <location filename="../ui/qgisred_element_explorer_dock.py" line="2238"/>
         <source>No layers found in the Inputs or Results group.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2975,17 +3000,17 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.ui" line="414"/>
+        <location filename="../ui/qgisred_results_dock.ui" line="417"/>
         <source>&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.ui" line="440"/>
+        <location filename="../ui/qgisred_results_dock.ui" line="443"/>
         <source>&gt;|</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.ui" line="527"/>
+        <location filename="../ui/qgisred_results_dock.ui" line="530"/>
         <source>Nodes</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3015,7 +3040,7 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.ui" line="573"/>
+        <location filename="../ui/qgisred_results_dock.ui" line="576"/>
         <source>Links</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3045,17 +3070,17 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.py" line="838"/>
+        <location filename="../ui/qgisred_results_dock.py" line="853"/>
         <source>Some issues occurred in the process</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.ui" line="462"/>
+        <location filename="../ui/qgisred_results_dock.ui" line="465"/>
         <source>Result Times</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.ui" line="489"/>
+        <location filename="../ui/qgisred_results_dock.ui" line="492"/>
         <source>Statistics</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3065,22 +3090,22 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.ui" line="556"/>
+        <location filename="../ui/qgisred_results_dock.ui" line="559"/>
         <source>Show Node Labels</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.ui" line="602"/>
+        <location filename="../ui/qgisred_results_dock.ui" line="605"/>
         <source>Show Link Labels</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.ui" line="621"/>
+        <location filename="../ui/qgisred_results_dock.ui" line="624"/>
         <source>Show Flow Directions</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.py" line="133"/>
+        <location filename="../ui/qgisred_results_dock.py" line="148"/>
         <source>Report times</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3115,7 +3140,7 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.py" line="177"/>
+        <location filename="../ui/qgisred_results_dock.py" line="192"/>
         <source>The current project has been changed. Please, try again.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3125,37 +3150,37 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.py" line="267"/>
+        <location filename="../ui/qgisred_results_dock.py" line="282"/>
         <source>Results</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.py" line="267"/>
+        <location filename="../ui/qgisred_results_dock.py" line="282"/>
         <source>{} results not found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.py" line="362"/>
+        <location filename="../ui/qgisred_results_dock.py" line="377"/>
         <source>Some issue occurred in the process of saving the style of the layer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.py" line="403"/>
+        <location filename="../ui/qgisred_results_dock.py" line="418"/>
         <source>Link {}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.py" line="408"/>
+        <location filename="../ui/qgisred_results_dock.py" line="423"/>
         <source>Node {}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.py" line="533"/>
+        <location filename="../ui/qgisred_results_dock.py" line="548"/>
         <source>Some issue occurred in the process of applying the style to the layer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.py" line="780"/>
+        <location filename="../ui/qgisred_results_dock.py" line="795"/>
         <source>No {} results are available</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3170,12 +3195,12 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.ui" line="513"/>
+        <location filename="../ui/qgisred_results_dock.ui" line="516"/>
         <source>Mapping</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.ui" line="658"/>
+        <location filename="../ui/qgisred_results_dock.ui" line="661"/>
         <source>Report</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3195,12 +3220,12 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.py" line="581"/>
+        <location filename="../ui/qgisred_results_dock.py" line="596"/>
         <source>{} values</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.py" line="582"/>
+        <location filename="../ui/qgisred_results_dock.py" line="597"/>
         <source>for {}</source>
         <translation type="unfinished"></translation>
     </message>
