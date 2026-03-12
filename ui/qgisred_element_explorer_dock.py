@@ -394,14 +394,16 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.leElementMask.addAction(searchIcon, QLineEdit.LeadingPosition)
         
         comboStyle = """
-            QComboBox { background-color: white; }
-            QComboBox QAbstractItemView {
-                selection-background-color: transparent;
-                selection-color: black;
-                outline: none;
+            QComboBox { 
+                background-color: white; 
+                combobox-popup: 0;
             }
-            QComboBox QAbstractItemView::item:selected {
-                border: 1px solid #3574F0;
+            QComboBox QAbstractItemView {
+                selection-background-color: #3574F0;
+                selection-color: white;
+                outline: none;
+                max-height: 250px;
+                qproperty-verticalScrollBarPolicy: ScrollBarAsNeeded;
             }
         """
         if hasattr(self, 'cbElementType'):
