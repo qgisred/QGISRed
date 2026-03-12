@@ -120,6 +120,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         # Results tab state
         self.resultsDock = None
         self.resultsCurrentTimeText = ""
+        self.resultsCurrentStat = ""
 
         self.resultsDockVisibilityTimer = QTimer()
         self.resultsDockVisibilityTimer.setSingleShot(True)
@@ -2257,11 +2258,15 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.disconnectResultsDock()
         self.resultsDock = resultsDock
         resultsDock.timeTextChanged.connect(self.onResultsTimeChanged)
+        resultsDock.statisticsModeChanged.connect(self.onResultsStatisticsChanged)
         resultsDock.visibilityChanged.connect(self.onResultsDockVisibilityChanged)
         # Initial sync
-        timeText = resultsDock.lbTime.text()
-        if timeText:
-            self.onResultsTimeChanged(timeText)
+        if resultsDock._statsMode:
+            self.onResultsStatisticsChanged(resultsDock._currentStat)
+        else:
+            timeText = resultsDock.lbTime.text()
+            if timeText:
+                self.onResultsTimeChanged(timeText)
         self.updateResultsTabVisibility()
 
     def findResultsDock(self):
@@ -2279,12 +2284,17 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             except (TypeError, RuntimeError):
                 pass
             try:
+                self.resultsDock.statisticsModeChanged.disconnect(self.onResultsStatisticsChanged)
+            except (TypeError, RuntimeError):
+                pass
+            try:
                 self.resultsDock.visibilityChanged.disconnect(self.onResultsDockVisibilityChanged)
             except (TypeError, RuntimeError):
                 pass
             self.resultsDock = None
         self.resultsCurrentTimeText = ""
-        self.labelResultsTime.setText("0")
+        self.resultsCurrentStat = ""
+        self.labelResultsTime.setText("00d 00:00:00")
         self.populateResultsTable()
         self.updateResultsTabVisibility()
 
@@ -2313,6 +2323,21 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.labelResultsTime.setText(timeText)
         self.updateResultsTabVisibility()
         self.populateResultsTable()
+
+    def onResultsStatisticsChanged(self, statName):
+        """Handle statistics mode changes from the results dock."""
+        self.resultsCurrentStat = statName
+        self.labelResultsTime.show()
+        if statName:
+            self.labelResultsTime.setText(self.formatStatsLabelText(statName))
+        else:
+            self.labelResultsTime.setText(self.resultsCurrentTimeText)
+        self.updateResultsTabVisibility()
+        self.populateResultsTable()
+
+    def formatStatsLabelText(self, statName):
+        """Format statistics label as 'StatName for report times'."""
+        return f"{statName} {self.tr('values for report times')}"
 
     def clearResultsTable(self):
         """Clear the results table contents."""
@@ -2352,7 +2377,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         if isNode:
             return ["Pressure", "Head", "Demand", "Quality"]
 
-        return ["Status", "Flow", "Velocity", "HeadLoss", "UnitHeadLoss", "FricFactor", "ReactRate", "Quality"]
+        return ["Status", "Flow", "Velocity", "HeadLoss", "UnitHdLoss", "FricFactor", "ReactRate", "Quality"]
 
     def mapFieldToUnitProperty(self, fieldName):
         """Map a Results layer field name to the property name used in qgisred_units.json."""
@@ -2393,30 +2418,41 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 self.clearResultsTable()
                 return
 
-            # Determine the time to query
-            timeText = self.resultsCurrentTimeText
+            # Determine query mode and find matching feature
+            isStatsMode = bool(self.resultsCurrentStat)
             matchedFeature = None
 
-            if timeText:
-                # Results dock connected — filter by Id and Time
-                expr = f"\"Id\" = '{elementId}' AND \"Time\" = '{timeText}'"
-                for feat in resultsLayer.getFeatures(expr):
-                    matchedFeature = feat
-                    break
-            else:
-                # No results dock — query by Id only, read time from the feature
+            if isStatsMode:
+                # Statistics mode: one row per element, no Time column
                 expr = f"\"Id\" = '{elementId}'"
                 for feat in resultsLayer.getFeatures(expr):
                     matchedFeature = feat
-                    if feat.fields().indexFromName("Time") >= 0:
-                        timeText = str(feat.attribute("Time"))
                     break
-                if not timeText:
-                    timeText = "0"
+                labelText = self.formatStatsLabelText(self.resultsCurrentStat)
+            else:
+                # Time mode: filter by Id + Time
+                timeText = self.resultsCurrentTimeText
+                if timeText:
+                    # Results dock connected — filter by Id and Time
+                    expr = f"\"Id\" = '{elementId}' AND \"Time\" = '{timeText}'"
+                    for feat in resultsLayer.getFeatures(expr):
+                        matchedFeature = feat
+                        break
+                else:
+                    # No results dock — query by Id only, read time from the feature
+                    expr = f"\"Id\" = '{elementId}'"
+                    for feat in resultsLayer.getFeatures(expr):
+                        matchedFeature = feat
+                        if feat.fields().indexFromName("Time") >= 0:
+                            timeText = str(feat.attribute("Time"))
+                        break
+                    if not timeText:
+                        timeText = "00d 00:00:00"
+                labelText = timeText
 
-            # Show the time label
+            # Show the time/statistics label
             self.labelResultsTime.show()
-            self.labelResultsTime.setText(timeText)
+            self.labelResultsTime.setText(labelText)
 
             if not matchedFeature:
                 self.clearResultsTable()

@@ -56,6 +56,7 @@ def time_field_name(var_name, layer_type):
 class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     # Signals
     timeTextChanged = pyqtSignal(str)
+    statisticsModeChanged = pyqtSignal(str)
     simulationFinished = pyqtSignal()
     resultPropertyChanged = pyqtSignal()
 
@@ -625,6 +626,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     self.paintIntervalTimeResults(True)
             finally:
                 QApplication.restoreOverrideCursor()
+        self.statisticsModeChanged.emit(new_stat if self._statsMode else "")
 
     def linksChanged(self):
         if self.Computing:
