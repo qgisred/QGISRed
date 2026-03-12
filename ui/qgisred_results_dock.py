@@ -1171,7 +1171,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     continue
                 updates = {}
                 if stat_field_idx != -1:
-                    updates[stat_field_idx] = stat
+                    updates[stat_field_idx] = stat_label
                 for var, val in results[elem_id].items():
                     var_key = var[:10]
                     if var_key in field_indices and field_indices[var_key] != -1:
