@@ -459,7 +459,6 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     def setupConnections(self):
         self.cbElementType.currentIndexChanged.connect(self.updateElementIds)
         self.leElementMask.textChanged.connect(self.filterElementIds)
-        self.btFind.clicked.connect(self.onFindButtonClicked)
         self.listWidget.itemClicked.connect(self.onListItemSingleClicked)
         self.listWidget.itemDoubleClicked.connect(self.onListItemDoubleClicked)
         self.btClear.clicked.connect(self.clearAll)
@@ -610,7 +609,6 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             
             self.safeDisconnect(self.cbElementType.currentIndexChanged, self.updateElementIds)
             self.safeDisconnect(self.leElementMask.textChanged, self.filterElementIds)
-            self.safeDisconnect(self.btFind.clicked, self.onFindButtonClicked)
             self.safeDisconnect(self.listWidget.itemClicked, self.onListItemSingleClicked)
             self.safeDisconnect(self.listWidget.itemDoubleClicked, self.onListItemDoubleClicked)
             self.safeDisconnect(self.btClear.clicked, self.clearAll)
@@ -974,13 +972,6 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.dataTableWidget.clear()
         self.setDataTableWidgetColumns()
         if index >= 0 and self.cbElementId.currentText():
-            self.findElement()
-
-    @pyqtSlot()
-    def onFindButtonClicked(self):
-        if self.listWidget.currentItem():
-            self.onListItemDoubleClicked(self.listWidget.currentItem())
-        else:
             self.findElement()
 
     @pyqtSlot()
