@@ -98,6 +98,14 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.lbl_signed_flow     = self.tr("Flow (Signed)")
         self.lbl_unsigned_flow   = self.tr("Flow (Unsigned)")
 
+        self.stat_variables = {
+            self.lbl_maximum: self.tr("Maximum values"),
+            self.lbl_minimum: self.tr("Minimum values"),
+            self.lbl_range: self.tr("Range values"),
+            self.lbl_average: self.tr("Average values"),
+            self.lbl_std_deviation: self.tr("Standard deviation values"),
+        }
+
         comboStyle = """
             QComboBox { 
                 background-color: white; 
@@ -594,7 +602,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self._statsMode = True
             self.updateLinksComboboxForStat(new_stat)
             result_times = self.cbResultTimes.currentText()
-            self.lbStatName.setText(self.tr("{} values").format(new_stat))
+            self.lbStatName.setText(self.stat_variables.get(new_stat, new_stat))
             self.lbStatDesc.setText(self.tr("for {}").format(result_times.lower()))
             self.timeDisplayWidget.setVisible(False)
             self.statsDisplayWidget.setVisible(True)

@@ -66,7 +66,7 @@ The following tools are required:
 - **`lrelease`** – compiles a `.ts` file into the binary `.qm` format that QGIS loads.
 - **Qt Linguist** *(optional)* – GUI editor for `.ts` files.
 
-All three tools ship with **Qt5 Development Tools**. Install them downloading OSGeo4W from https://trac.osgeo.org/osgeo4w/ and in the "Advanced mode" select qt5 and qt6 options (instead of Skip) in CommandLine and Desktop and qt5-devel and qt6-devel in libs. 
+All three tools ship with **Qt5 Development Tools**. Install them downloading OSGeo4W from https://trac.osgeo.org/osgeo4w/ and in the "Advanced mode" select qt5 and qt6 options (instead of Skip) in CommandLine and Desktop and qt5-devel, qt6-devel, python3-pyqt5 and python3-pyqt6 in libs. 
 
 ### Step-by-step guide
 #### 0. Open the OSGeo4W Shell
