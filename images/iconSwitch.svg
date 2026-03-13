@@ -1,3 +1,47 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16" viewBox="0 0 16 16">
-  <image href="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAAQABADASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAj/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AIyAB//Z" width="16" height="16"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+<path fill="#000000" fill-opacity="0.012" d="M 13.000 5.000 L 14.000 5.000 L 14.000 6.000 L 13.000 6.000 Z M 13.000 10.000 L 14.000 10.000 L 14.000 11.000 L 13.000 11.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.055" d="M 13.000 12.000 L 14.000 12.000 L 14.000 13.000 L 13.000 13.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.059" d="M 13.000 3.000 L 14.000 3.000 L 14.000 4.000 L 13.000 4.000 Z M 14.000 6.000 L 15.000 6.000 L 15.000 7.000 L 14.000 7.000 Z M 2.000 12.000 L 3.000 12.000 L 3.000 13.000 L 2.000 13.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.063" d="M 2.000 3.000 L 3.000 3.000 L 3.000 4.000 L 2.000 4.000 Z M 14.000 9.000 L 15.000 9.000 L 15.000 10.000 L 14.000 10.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.176" d="M 12.000 9.000 L 13.000 9.000 L 13.000 10.000 L 12.000 10.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.180" d="M 12.000 6.000 L 13.000 6.000 L 13.000 7.000 L 12.000 7.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.200" d="M 5.000 5.000 L 6.000 5.000 L 6.000 6.000 L 5.000 6.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.204" d="M 10.000 5.000 L 11.000 5.000 L 11.000 6.000 L 10.000 6.000 Z M 5.000 10.000 L 6.000 10.000 L 6.000 11.000 L 5.000 11.000 Z M 11.000 11.000 L 12.000 11.000 L 12.000 12.000 L 11.000 12.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.208" d="M 11.000 4.000 L 12.000 4.000 L 12.000 5.000 L 11.000 5.000 Z M 10.000 10.000 L 11.000 10.000 L 11.000 11.000 L 10.000 11.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.212" d="M 7.000 4.000 L 9.000 4.000 L 9.000 5.000 L 7.000 5.000 Z M 4.000 7.000 L 5.000 7.000 L 5.000 8.000 L 4.000 8.000 Z M 15.000 10.000 L 16.000 10.000 L 16.000 11.000 L 15.000 11.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.216" d="M 4.000 8.000 L 5.000 8.000 L 5.000 9.000 L 4.000 9.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.220" d="M 15.000 5.000 L 16.000 5.000 L 16.000 6.000 L 15.000 6.000 Z M 11.000 7.000 L 12.000 7.000 L 12.000 8.000 L 11.000 8.000 Z M 11.000 8.000 L 12.000 8.000 L 12.000 9.000 L 11.000 9.000 Z M 7.000 11.000 L 9.000 11.000 L 9.000 12.000 L 7.000 12.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.224" d="M 0.000 10.000 L 1.000 10.000 L 1.000 11.000 L 0.000 11.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.227" d="M 0.000 5.000 L 1.000 5.000 L 1.000 6.000 L 0.000 6.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.306" d="M 12.000 4.000 L 13.000 4.000 L 13.000 5.000 L 12.000 5.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.314" d="M 12.000 11.000 L 13.000 11.000 L 13.000 12.000 L 12.000 12.000 Z M 14.000 11.000 L 15.000 11.000 L 15.000 12.000 L 14.000 12.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.318" d="M 14.000 4.000 L 15.000 4.000 L 15.000 5.000 L 14.000 5.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.322" d="M 1.000 11.000 L 2.000 11.000 L 2.000 12.000 L 1.000 12.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.329" d="M 1.000 4.000 L 2.000 4.000 L 2.000 5.000 L 1.000 5.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.337" d="M 12.000 12.000 L 13.000 12.000 L 13.000 13.000 L 12.000 13.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.341" d="M 12.000 3.000 L 13.000 3.000 L 13.000 4.000 L 12.000 4.000 Z M 3.000 12.000 L 4.000 12.000 L 4.000 13.000 L 3.000 13.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.345" d="M 3.000 3.000 L 4.000 3.000 L 4.000 4.000 L 3.000 4.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.412" d="M 12.000 7.000 L 13.000 7.000 L 13.000 8.000 L 12.000 8.000 Z M 12.000 8.000 L 13.000 8.000 L 13.000 9.000 L 12.000 9.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.463" d="M 4.000 12.000 L 5.000 12.000 L 5.000 13.000 L 4.000 13.000 Z M 11.000 12.000 L 12.000 12.000 L 12.000 13.000 L 11.000 13.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.467" d="M 4.000 3.000 L 12.000 3.000 L 12.000 4.000 L 4.000 4.000 Z M 5.000 12.000 L 11.000 12.000 L 11.000 13.000 L 5.000 13.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.506" d="M 4.000 6.000 L 5.000 6.000 L 5.000 7.000 L 4.000 7.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.510" d="M 6.000 4.000 L 7.000 4.000 L 7.000 5.000 L 6.000 5.000 Z M 11.000 6.000 L 12.000 6.000 L 12.000 7.000 L 11.000 7.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.514" d="M 9.000 4.000 L 10.000 4.000 L 10.000 5.000 L 9.000 5.000 Z M 4.000 9.000 L 5.000 9.000 L 5.000 10.000 L 4.000 10.000 Z M 11.000 9.000 L 12.000 9.000 L 12.000 10.000 L 11.000 10.000 Z M 6.000 11.000 L 7.000 11.000 L 7.000 12.000 L 6.000 12.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.518" d="M 9.000 11.000 L 10.000 11.000 L 10.000 12.000 L 9.000 12.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.627" d="M 14.000 5.000 L 15.000 5.000 L 15.000 6.000 L 14.000 6.000 Z M 14.000 10.000 L 15.000 10.000 L 15.000 11.000 L 14.000 11.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.631" d="M 11.000 10.000 L 12.000 10.000 L 12.000 11.000 L 11.000 11.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.639" d="M 11.000 5.000 L 12.000 5.000 L 12.000 6.000 L 11.000 6.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.643" d="M 15.000 7.000 L 16.000 7.000 L 16.000 8.000 L 15.000 8.000 Z M 15.000 8.000 L 16.000 8.000 L 16.000 9.000 L 15.000 9.000 Z M 15.000 9.000 L 16.000 9.000 L 16.000 10.000 L 15.000 10.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.647" d="M 15.000 6.000 L 16.000 6.000 L 16.000 7.000 L 15.000 7.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.710" d="M 13.000 4.000 L 14.000 4.000 L 14.000 5.000 L 13.000 5.000 Z M 13.000 11.000 L 14.000 11.000 L 14.000 12.000 L 13.000 12.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.718" d="M 0.000 9.000 L 1.000 9.000 L 1.000 10.000 L 0.000 10.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.722" d="M 0.000 6.000 L 1.000 6.000 L 1.000 7.000 L 0.000 7.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.757" d="M 10.000 11.000 L 11.000 11.000 L 11.000 12.000 L 10.000 12.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.761" d="M 10.000 4.000 L 11.000 4.000 L 11.000 5.000 L 10.000 5.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.933" d="M 2.000 4.000 L 3.000 4.000 L 3.000 5.000 L 2.000 5.000 Z M 2.000 11.000 L 3.000 11.000 L 3.000 12.000 L 2.000 12.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.949" d="M 0.000 7.000 L 1.000 7.000 L 1.000 8.000 L 0.000 8.000 Z M 0.000 8.000 L 1.000 8.000 L 1.000 9.000 L 0.000 9.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.973" d="M 5.000 4.000 L 6.000 4.000 L 6.000 5.000 L 5.000 5.000 Z M 4.000 5.000 L 5.000 5.000 L 5.000 6.000 L 4.000 6.000 Z M 4.000 10.000 L 5.000 10.000 L 5.000 11.000 L 4.000 11.000 Z M 5.000 11.000 L 6.000 11.000 L 6.000 12.000 L 5.000 12.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.980" d="M 1.000 10.000 L 2.000 10.000 L 2.000 11.000 L 1.000 11.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" fill-opacity="0.984" d="M 1.000 5.000 L 2.000 5.000 L 2.000 6.000 L 1.000 6.000 Z" fill-rule="evenodd"/>
+<path fill="#000000" d="M 3.000 4.000 L 5.000 4.000 L 5.000 5.000 L 3.000 5.000 Z M 2.000 5.000 L 4.000 5.000 L 4.000 6.000 L 2.000 6.000 Z M 1.000 6.000 L 4.000 6.000 L 4.000 7.000 L 1.000 7.000 Z M 1.000 7.000 L 4.000 7.000 L 4.000 8.000 L 1.000 8.000 Z M 1.000 8.000 L 4.000 8.000 L 4.000 9.000 L 1.000 9.000 Z M 1.000 9.000 L 4.000 9.000 L 4.000 10.000 L 1.000 10.000 Z M 2.000 10.000 L 4.000 10.000 L 4.000 11.000 L 2.000 11.000 Z M 3.000 11.000 L 5.000 11.000 L 5.000 12.000 L 3.000 12.000 Z" fill-rule="evenodd"/>
 </svg>
