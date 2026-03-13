@@ -1,5 +1,4 @@
 SOURCES = qgisred_plugins.py \
-          resources.py \
           resources3x.py \
           tools/qgisred_createConnection.py \
           tools/qgisred_createPipe.py \

@@ -1763,11 +1763,9 @@ class QGISRed:
                 self.iface.mainWindow(),
                 self.tr("QGISRed Dependencies"),
                 self.tr(
-                    "QGISRed plugin only runs in Windows OS and requires some dependencies (v"
-                    + self.DependenciesVersion
-                    + "). Do you want to install them now?\n\nAt the end, the QGISRed web page will be open to show the news, "
-                    "where you can also register if you wish to receive the newsletters."
-                ),
+                    "QGISRed plugin only runs in Windows OS and requires some dependencies (v{}). Do you want to install them now?") +
+                    "\n\n" + self.tr("At the end, the QGISRed web page will be open to show the news, where you can also register if you wish to receive the newsletters."
+                ).format(self.DependenciesVersion),
                 QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
             )
             if request == QMessageBox.Yes:
@@ -1821,11 +1819,8 @@ class QGISRed:
                         self.iface.mainWindow(),
                         self.tr("QGISRed Updates"),
                         self.tr(
-                            "QGISRed plugin has a new version ("
-                            + contents
-                            + "). You can upgrade it from the QGis plugin manager. "
-                            + "Do you want to remember it again?"
-                        ),
+                            "QGISRed plugin has a new version ({}). You can upgrade it from the QGis plugin manager. Do you want to remember it again?"
+                        ).format(contents),
                         QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
                     )
 
