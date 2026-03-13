@@ -58,6 +58,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.pluginFolder = os.path.dirname(os.path.dirname(__file__))
         self.isEditing = True
         self.originalRenderer = None
+        self._workingRenderer = None
         self.availableUniqueValues = []
         self.usedUniqueValues = []
         self.addClassClickTimer = None
@@ -516,6 +517,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def handleValidLayerSelection(self, layer):
         self.lastValidLayerId = layer.id()
         self.currentLayer = layer
+        self._workingRenderer = None
         self.originalRenderer = layer.renderer().clone() if layer.renderer() else None
         self.currentFieldType, self.currentFieldName = self.detectFieldType(layer)
         self.frameLegends.setEnabled(True)
@@ -601,7 +603,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return
 
         newType = self.cbLegendsType.currentData()
-        currentType = self.currentLayer.renderer().type() if self.currentLayer.renderer() else None
+        effectiveRenderer = self._workingRenderer or (self.currentLayer.renderer() if self.currentLayer else None)
+        currentType = effectiveRenderer.type() if effectiveRenderer else None
 
         if newType == currentType:
             return
@@ -629,7 +632,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.updateUiBasedOnFieldType()
         self.populateLegendTable()
         self.updateButtonStates()
-        self.currentLayer.triggerRepaint()
 
     def validateCategorizedConversion(self, field, currentType):
         """Validates if conversion to categorized renderer is allowed based on unique value count."""
@@ -1480,7 +1482,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not self.currentLayer:
             return
 
-        renderer = self.currentLayer.renderer()
+        renderer = self._workingRenderer or self.currentLayer.renderer()
+        self._workingRenderer = None
         if not isinstance(renderer, QgsGraduatedSymbolRenderer):
             return
 
@@ -1506,7 +1509,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not self.currentLayer:
             return
 
-        renderer = self.currentLayer.renderer()
+        renderer = self._workingRenderer or self.currentLayer.renderer()
+        self._workingRenderer = None
         self.clearTable()
 
         self.usedUniqueValues = []
@@ -2682,7 +2686,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             categories.append(category)
 
         renderer = QgsCategorizedSymbolRenderer(field, categories)
-        layer.setRenderer(renderer)
+        self._workingRenderer = renderer
 
     def convertToGraduated(self, field):
         layer = self.currentLayer
@@ -2718,7 +2722,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             ranges.append(rangeObj)
 
         renderer = QgsGraduatedSymbolRenderer(field, ranges)
-        layer.setRenderer(renderer)
+        self._workingRenderer = renderer
 
     def interpolateColor(self, startColor, endColor, index, total):
         t = index / max(1, total - 1)
@@ -3512,6 +3516,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
     # ============================================================
 
     def cancelAndClose(self):
+        if self.currentLayer and self.originalRenderer:
+            self.currentLayer.setRenderer(self.originalRenderer.clone())
+            self.currentLayer.triggerRepaint()
         self.close()
 
     def eventFilter(self, obj, event):
