@@ -1763,9 +1763,8 @@ class QGISRed:
                 self.iface.mainWindow(),
                 self.tr("QGISRed Dependencies"),
                 self.tr(
-                    "QGISRed plugin only runs in Windows OS and requires some dependencies (v{}). Do you want to install them now?") +
-                    "\n\n" + self.tr("At the end, the QGISRed web page will be open to show the news, where you can also register if you wish to receive the newsletters."
-                ).format(self.DependenciesVersion),
+                    "QGISRed plugin only runs in Windows OS and requires some dependencies (v{}). Do you want to install them now?").format(self.DependenciesVersion) +
+                    "\n\n" + self.tr("At the end, the QGISRed web page will be open to show the news, where you can also register if you wish to receive the newsletters."),
                 QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
             )
             if request == QMessageBox.Yes:
