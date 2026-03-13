@@ -574,7 +574,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconThematicMaps.png"
+        icon_path = ":/images/iconThematicMaps.svg"
         self.add_action(
             icon_path,
             text=self.tr("Legend editor..."),
@@ -1050,7 +1050,7 @@ class QGISRed:
             add_to_toolbar=True,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconCheckMaterials.png"
+        icon_path = ":/images/iconCheckMaterials.svg"
         self.add_action(
             icon_path,
             text=self.tr("Check pipe materials"),
@@ -1648,7 +1648,7 @@ class QGISRed:
         )
         self.queriesDropButton = queriesDropButton
         # Find Elements by ID
-        icon_path = ":/images/iconFindElements.png"
+        icon_path = ":/images/iconFindElements.svg"
         self.openFindElementsDialog = self.add_action(
             icon_path,
             text=self.tr("Find Elements by ID..."),
@@ -1662,7 +1662,7 @@ class QGISRed:
         )
 
         # # Elements Properties
-        icon_path = ":/images/iconElementProperties.png"
+        icon_path = ":/images/iconElementProperties.svg"
         self.openElementsPropertyDialog = self.add_action(
             icon_path,
             text=self.tr("Element Properties..."),
@@ -1675,7 +1675,7 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         # Thematic Maps
-        icon_path = ":/images/iconThematicMaps.png"
+        icon_path = ":/images/iconThematicMaps.svg"
         self.openThematicMapsDialog = self.add_action(
             icon_path,
             text=self.tr("Thematic Maps..."),
@@ -1687,7 +1687,7 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         # # Queries by Attributes
-        icon_path = ":/images/iconQueryByAttributes.png"
+        icon_path = ":/images/iconQueryByAttributes.svg"
         self.openLiveQueriesDialog = self.add_action(
             icon_path,
             text=self.tr("Queries by Attributes..."),
@@ -1699,7 +1699,7 @@ class QGISRed:
             parent=self.iface.mainWindow(),
         )
         # # Statistics & Plots
-        icon_path = ":/images/iconStatisticsAndPlots.png"
+        icon_path = ":/images/iconStatisticsAndPlots.svg"
         self.openStatisticsAndPlotsDialog = self.add_action(
             icon_path,
             text=self.tr("Statistics && Plots..."),

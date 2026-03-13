@@ -48,7 +48,7 @@ changelog=version 0.17.1:
 tags=Hydraulic model, Water Distribution Networks, EPANET, GISRed, Detailed Model, Digital Twins
 
 category=Plugins
-icon=images/qgisred.png
+icon=images/qgisred.svg
 # experimental flag
 experimental=False
 

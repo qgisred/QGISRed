@@ -85,20 +85,20 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
 
 
     def setupButtonIcons(self): #TODO rename to QGISRed folder instead of BID on deploy
-        self.btImport.setIcon(QIcon(":/images/iconStatisticsImport.png"))
-        self.btExport.setIcon(QIcon(":/images/iconStatisticsExport.png"))
+        self.btImport.setIcon(QIcon(":/images/iconStatisticsImport.svg"))
+        self.btExport.setIcon(QIcon(":/images/iconStatisticsExport.svg"))
 
-        self.btCriteriaUp.setIcon(QIcon(":/images/iconStatisticsArrowUp.png"))
-        self.btCriteriaDown.setIcon(QIcon(":/images/iconStatisticsArrowDown.png"))
-        self.btCriteriaClear.setIcon(QIcon(":/images/iconStatisticsDelete.png"))
-        self.btCriteriaEdit.setIcon(QIcon(":/images/iconStatisticsEdit.png"))
+        self.btCriteriaUp.setIcon(QIcon(":/images/iconStatisticsArrowUp.svg"))
+        self.btCriteriaDown.setIcon(QIcon(":/images/iconStatisticsArrowDown.svg"))
+        self.btCriteriaClear.setIcon(QIcon(":/images/iconStatisticsDelete.svg"))
+        self.btCriteriaEdit.setIcon(QIcon(":/images/iconStatisticsEdit.svg"))
 
-        self.iconSwitchEnabled  = QIcon(":/images/iconSwitchEnabled.png")
-        self.iconSwitchDisabled = QIcon(":/images/iconSwitchDisabled.png")
+        self.iconSwitchEnabled  = QIcon(":/images/iconSwitchEnabled.svg")
+        self.iconSwitchDisabled = QIcon(":/images/iconSwitchDisabled.svg")
 
         self.btCriteriaSwitch.setIcon(self.iconSwitchEnabled)
 
-        self.btExcel.setIcon(QIcon(":/images/iconStatisticsExcel.png"))
+        self.btExcel.setIcon(QIcon(":/images/iconStatisticsExcel.svg"))
 
     def setupConnections(self):
         # element / property updates

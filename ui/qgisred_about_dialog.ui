@@ -434,7 +434,7 @@
           <string/>
          </property>
          <property name="pixmap">
-          <pixmap>:/images/aboutRedhisp.png</pixmap>
+          <pixmap>:/images/aboutRedhisp.svg</pixmap>
          </property>
          <property name="scaledContents">
           <bool>false</bool>
@@ -462,7 +462,7 @@
           <string/>
          </property>
          <property name="pixmap">
-          <pixmap>:/images/aboutIIAMA.png</pixmap>
+          <pixmap>:/images/aboutIIAMA.svg</pixmap>
          </property>
          <property name="scaledContents">
           <bool>false</bool>
@@ -490,7 +490,7 @@
           <string/>
          </property>
          <property name="pixmap">
-          <pixmap>:/images/aboutUPV.png</pixmap>
+          <pixmap>:/images/aboutUPV.svg</pixmap>
          </property>
          <property name="scaledContents">
           <bool>false</bool>

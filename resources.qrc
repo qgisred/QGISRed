@@ -1,10 +1,10 @@
 <RCC>
     <qresource prefix="/" >
-        <file>images/aboutRedhisp.png</file>
-        <file>images/aboutIIAMA.png</file>
-        <file>images/aboutUPV.png</file>
+        <file>images/aboutRedhisp.svg</file>
+        <file>images/aboutIIAMA.svg</file>
+        <file>images/aboutUPV.svg</file>
         <file>images/iconAbout.svg</file>  
-        <file>images/cursor.png</file>
+        <file>images/cursor.svg</file>
         <file>images/iconAddAutometer.svg</file>
         <file>images/iconAddConnection.svg</file>
         <file>images/iconAddCountermeter.svg</file>
@@ -44,11 +44,11 @@
         <file>images/iconDigitalTwinMenu.svg</file>
         <file>images/iconEditMenu.svg</file>
         <file>images/iconEditMenu.svg</file>
-        <file>images/iconElementProperties.png</file>
-        <file>images/iconExport.png</file>
+        <file>images/iconElementProperties.svg</file>
+        <file>images/iconExport.svg</file>
         <file>images/iconExportToEpanet.svg</file>
-        <file>images/iconFilter.png</file>
-        <file>images/iconFindElements.png</file>
+        <file>images/iconFilter.svg</file>
+        <file>images/iconFindElements.svg</file>
         <file>images/iconGeneralMenu.svg</file>
         <file>images/iconGitHub.svg</file>
         <file>images/iconCheckHydraulicSectors.svg</file>
@@ -62,7 +62,7 @@
         <file>images/iconPatternsAndCurves.svg</file>
         <file>images/iconLoadFieldData.svg</file>
         <file>images/iconBackUpProject.svg</file>
-        <file>images/iconCheckMaterials.png</file>
+        <file>images/iconCheckMaterials.svg</file>
         <file>images/iconMaterials.svg</file>
         <file>images/iconMergeSplitJunctions.svg</file>
         <file>images/iconMoveNodes.svg</file>
@@ -73,7 +73,7 @@
         <file>images/iconProjectManager.svg</file>
         <file>images/iconProjectMenu.svg</file>
         <file>images/iconQueriesMenu.svg</file>
-        <file>images/iconQueryByAttributes.png</file>
+        <file>images/iconQueryByAttributes.svg</file>
         <file>images/iconResultsBrowser.svg</file>
         <file>images/iconReverseElements.svg</file>
         <file>images/iconSetRoughnessFromMaterialDate.svg</file>
@@ -87,27 +87,27 @@
 		<file>images/iconLoadMeterReadings.svg</file>
         <file>images/iconProjectSettings.svg</file>
         <file>images/iconSplitJoinPipes.svg</file>
-        <file>images/iconStatisticsAndPlots.png</file>
-        <file>images/iconStatisticsArrowDown.png</file>
-        <file>images/iconStatisticsArrowUp.png</file>
-        <file>images/iconStatisticsDelete.png</file>
-        <file>images/iconStatisticsEdit.png</file>
-        <file>images/iconStatisticsExcel.png</file>
-        <file>images/iconStatisticsExport.png</file>
-        <file>images/iconStatisticsImport.png</file>
+        <file>images/iconStatisticsAndPlots.svg</file>
+        <file>images/iconStatisticsArrowDown.svg</file>
+        <file>images/iconStatisticsArrowUp.svg</file>
+        <file>images/iconStatisticsDelete.svg</file>
+        <file>images/iconStatisticsEdit.svg</file>
+        <file>images/iconStatisticsExcel.svg</file>
+        <file>images/iconStatisticsExport.svg</file>
+        <file>images/iconStatisticsImport.svg</file>
         <file>images/iconSetPipeStatusFromValves.svg</file>
         <file>images/iconSummary.svg</file>
-        <file>images/iconSwitch.png</file>
-        <file>images/iconSwitchDisabled.png</file>
-        <file>images/iconSwitchEnabled.png</file>
+        <file>images/iconSwitch.svg</file>
+        <file>images/iconSwitchDisabled.svg</file>
+        <file>images/iconSwitchEnabled.svg</file>
         <file>images/iconCreateTConnections.svg</file>
-        <file>images/iconThematicMaps.png</file>
+        <file>images/iconThematicMaps.svg</file>
         <file>images/iconToolsMenu.svg</file>
         <file>images/iconGraphTree.svg</file>
         <file>images/iconSimplifyVertices.svg</file>
         <file>images/iconChangeStatus.svg</file>  
         <file>images/pencil.svg</file>
         <file>images/iconTimeSeries.svg</file>
-        <file>images/qgisred.png</file>
+        <file>images/qgisred.svg</file>
     </qresource>
 </RCC>
