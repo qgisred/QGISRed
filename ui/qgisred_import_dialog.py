@@ -65,7 +65,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         utils = QGISRedUtils(direct, netw, ifac)
         self.crs = utils.getProjectCrs()
         self.tbCRS.setText(self.crs.description())
-        self.lbUnits.setText("Degrees")
+        self.lbUnits.setText(self.tr("Degrees"))
         self.ProcessDone = False
         self.InpFile = ""
 
@@ -288,7 +288,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
 
         dirList = os.listdir(selected_directory)
         self.cbPipeLayer.clear()
-        self.cbPipeLayer.addItem("None")
+        self.cbPipeLayer.addItem(self.tr("None"))
         self.cbValveLayer.clear()
         self.cbValveLayer.addItem("None")
         self.cbPumpLayer.clear()
@@ -1151,17 +1151,17 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         if isValid:
             # Validations SHP's
             if not os.path.exists(self.tbShpDirectory.text()):
-                self.iface.messageBar().pushMessage("Validations", "The SHPs folder is not valid or does not exist", level=1)
+                self.iface.messageBar().pushMessage("Validations", self.tr("The SHPs folder is not valid or does not exist"), level=1)
                 return
             # Tolerance
             tolerance = self.tbTolerance.text()
             try:
                 t = float(tolerance)
                 if t < 0:
-                    self.iface.messageBar().pushMessage("Validations", "Not valid Tolerance", level=1)
+                    self.iface.messageBar().pushMessage(self.tr("Validations"), self.tr("Not valid Tolerance"), level=1)
                     return
             except Exception:
-                self.iface.messageBar().pushMessage("Validations", "Not numeric Tolerance", level=1)
+                self.iface.messageBar().pushMessage(self.tr("Validations"), self.tr("Not numeric Tolerance"), level=1)
                 return
             # ServiceConnection Length
             scLength = self.tbScLength.text()
@@ -1169,15 +1169,15 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 try:
                     t = float(scLength)
                     if t < 0:
-                        self.iface.messageBar().pushMessage("Validations", "Not valid Service Connection Length", level=1)
+                        self.iface.messageBar().pushMessage(self.tr("Validations"), self.tr("Not valid Service Connection Length"), level=1)
                         return
                 except Exception:
-                    self.iface.messageBar().pushMessage("Validations", "Not numeric Service Connection Length", level=1)
+                    self.iface.messageBar().pushMessage(self.tr("Validations"), self.tr("Not numeric Service Connection Length"), level=1)
                     return
             # Fields
             fields = self.createShpFields()
             if fields == "":
-                self.iface.messageBar().pushMessage("Validations", "Any SHP selected for importing", level=1)
+                self.iface.messageBar().pushMessage(self.tr("Validations"), self.tr("Any SHP selected for importing"), level=1)
                 return
 
             # Process

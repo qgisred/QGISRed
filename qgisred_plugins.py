@@ -1929,8 +1929,8 @@ class QGISRed:
                 # Close project and continue?
                 reply = QMessageBox.question(
                     self.iface.mainWindow(),
-                    self.tr("Opened project"),
-                    self.tr("Do you want to close the current project and continue?"),
+                    QCoreApplication.translate("QGISRed", "Open project"),
+                    QCoreApplication.translate("QGISRed", "Do you want to close the current project and continue?"),
                     QMessageBox.Yes,
                     QMessageBox.No,
                 )
@@ -1944,8 +1944,8 @@ class QGISRed:
                 # Close files and continue?
                 reply = QMessageBox.question(
                     self.iface.mainWindow(),
-                    self.tr("Opened layers"),
-                    self.tr("Do you want to close the current layers and continue?"),
+                    QCoreApplication.translate("QGISRed", "Open layers"),
+                    QCoreApplication.translate("QGISRed", "Do you want to close the current layers and continue?"),
                     QMessageBox.Yes,
                     QMessageBox.No,
                 )

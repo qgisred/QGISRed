@@ -321,17 +321,17 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             isSameProject = self.getUniformedPath(self.ProjectDirectory) == projectPath
             isSameNet = self.NetworkName == projectNetwork
             if isSameProject and isSameNet:
-                word = "unloaded"
                 if remove:
-                    word = "removed"
-                self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Current project can not be ") + word + ".", level=1, duration=5)
+                    self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Current project cannot be removed"), level=1, duration=5)
+                else: 
+                    self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Current project cannot be unloaded"), level=1, duration=5)
                 return
 
             if remove:
                 request = QMessageBox.question(
                     self.iface.mainWindow(),
                     self.tr("QGISRed"),
-                    self.tr("Project will be remove completely from your computer. Are you sure?"),
+                    self.tr("Project will be removed completely from your computer. Are you sure?"),
                     QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
                 )
                 if request == QMessageBox.Yes:
