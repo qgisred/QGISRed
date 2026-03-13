@@ -572,12 +572,12 @@
     <message>
         <location filename="../qgisred_plugins.py" line="1916"/>
         <source>Some layer is in Edit Mode. Plase, commit it before continuing.</source>
-        <translation>Alguna capa está en Modo Edición. Por favor, consolídela antes de continuar.</translation>
+        <translation type="obsolete">Alguna capa está en Modo Edición. Por favor, consolídela antes de continuar.</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="1924"/>
         <source>The project has changes. Please save them before continuing.</source>
-        <translation>El proyecto tiene cambios. Por favor, guárdelos antes de continuar.</translation>
+        <translation type="obsolete">El proyecto tiene cambios. Por favor, guárdelos antes de continuar.</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="1930"/>
@@ -597,7 +597,7 @@
     <message>
         <location filename="../qgisred_plugins.py" line="2792"/>
         <source>Backup stored in: </source>
-        <translation>Copia de seguridad almacenada en:</translation>
+        <translation type="obsolete">Copia de seguridad almacenada en:</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="4125"/>
@@ -945,7 +945,7 @@
     <message>
         <location filename="../qgisred_plugins.py" line="950"/>
         <source>Check &amp;&amp; Commit data</source>
-        <translation>Comprobar &amp;&amp; Confirmar datos</translation>
+        <translation>Comprobar y Confirmar datos</translation>
     </message>
     <message>
         <location filename="../qgisred_plugins.py" line="961"/>
@@ -1401,6 +1401,26 @@
         <location filename="../qgisred_plugins.py" line="1945"/>
         <source>Open layers</source>
         <translation>Capas abiertas</translation>
+    </message>
+    <message>
+        <location filename="../qgisred_plugins.py" line="1924"/>
+        <source>Warning</source>
+        <translation>Advertencia</translation>
+    </message>
+    <message>
+        <location filename="../qgisred_plugins.py" line="1916"/>
+        <source>Some layer is in Edit Mode. Plase, commit it before continuing.</source>
+        <translation>Alguna capa está en Modo Edición. Por favor, consolídela antes de continuar.</translation>
+    </message>
+    <message>
+        <location filename="../qgisred_plugins.py" line="1924"/>
+        <source>The project has changes. Please save them before continuing.</source>
+        <translation>El proyecto tiene cambios. Por favor, guárdelos antes de continuar.</translation>
+    </message>
+    <message>
+        <location filename="../qgisred_plugins.py" line="2792"/>
+        <source>Backup stored in:</source>
+        <translation>Copia de seguridad almacenada en:</translation>
     </message>
 </context>
 <context>

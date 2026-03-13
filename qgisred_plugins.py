@@ -1914,7 +1914,7 @@ class QGISRed:
         for layer in layers:
             if layer.isEditable():
                 self.iface.messageBar().pushMessage(
-                    self.tr("Warning"), self.tr("Some layer is in Edit Mode. Plase, commit it before continuing."), level=1, duration=5
+                    QCoreApplication.translate("QGISRed", "Warning"), QCoreApplication.translate("QGISRed", "Some layer is in Edit Mode. Plase, commit it before continuing."), level=1, duration=5
                 )
                 return False
         qgsFilename = QgsProject.instance().fileName()
@@ -1922,7 +1922,7 @@ class QGISRed:
             if QgsProject.instance().isDirty():
                 # Save and continue
                 self.iface.messageBar().pushMessage(
-                    self.tr("Warning"), self.tr("The project has changes. Please save them before continuing."), level=1, duration=5
+                    QCoreApplication.translate("QGISRed", "Warning"), QCoreApplication.translate("QGISRed", "The project has changes. Please save them before continuing."), level=1, duration=5
                 )
                 return False
             else:
@@ -2789,7 +2789,7 @@ class QGISRed:
 
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         path = utils.saveBackup()
-        self.iface.messageBar().pushMessage("QGISRed", self.tr("Backup stored in: " + path), level=0, duration=5)
+        self.iface.messageBar().pushMessage("QGISRed", QCoreApplication.translate("QGISRed", "Backup stored in:") + " " + path, level=0, duration=5)
 
     def runOpenedQgisProject(self):
         # Reset the unloading flag since we're opening a new project

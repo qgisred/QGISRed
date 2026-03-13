@@ -550,21 +550,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qgisred_plugins.py" line="1916"/>
-        <source>Some layer is in Edit Mode. Plase, commit it before continuing.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../qgisred_plugins.py" line="1924"/>
-        <source>The project has changes. Please save them before continuing.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../qgisred_plugins.py" line="2792"/>
-        <source>Backup stored in: </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../qgisred_plugins.py" line="4125"/>
         <source>No one pipe&apos;s length out of tolerance</source>
         <translation type="unfinished"></translation>
@@ -1235,6 +1220,26 @@
     <message>
         <location filename="../qgisred_plugins.py" line="1945"/>
         <source>Open layers</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qgisred_plugins.py" line="1924"/>
+        <source>Warning</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qgisred_plugins.py" line="1916"/>
+        <source>Some layer is in Edit Mode. Plase, commit it before continuing.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qgisred_plugins.py" line="1924"/>
+        <source>The project has changes. Please save them before continuing.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qgisred_plugins.py" line="2792"/>
+        <source>Backup stored in:</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
