@@ -73,6 +73,10 @@ from ctypes import windll, c_uint16, c_uint, wstring_at, byref, cast
 from ctypes import create_string_buffer, c_void_p, Structure, POINTER
 
 
+class LANGANDCODEPAGE(Structure):
+    _fields_ = [("wLanguage", c_uint16), ("wCodePage", c_uint16)]
+
+
 class QGISRed:
     """QGISRed Plugin Implementation."""
 
@@ -1721,9 +1725,6 @@ class QGISRed:
             pass
 
     def getVersion(self, filename, what):
-        class LANGANDCODEPAGE(Structure):
-            _fields_ = [("wLanguage", c_uint16), ("wCodePage", c_uint16)]
-
         wstr_file = wstring_at(filename)
         size = windll.version.GetFileVersionInfoSizeW(wstr_file, None)
         if size == 0:
@@ -3332,7 +3333,8 @@ class QGISRed:
             if unit_abbr:
                 y_label_with_unit = f"{prop_display} ({unit_abbr})"
 
-        self.timeSeriesDock.updatePlot(x_data, y_data, title, self.tr("Time") + " (h)", y_label_with_unit, is_stepped, y_categorical_labels)
+        translated_time = self.tr("Time")
+        self.timeSeriesDock.updatePlot(x_data, y_data, title, f"{translated_time} (h)", y_label_with_unit, is_stepped, y_categorical_labels)
 
     def refreshTimeSeries(self):
         if hasattr(self, 'timeSeriesDock') and self.timeSeriesDock:
@@ -4507,8 +4509,6 @@ class QGISRed:
         if self.hasToOpenSectorLayers:
             QGISRedUtils().runTask(self.removeSectorLayers, self.runOpenTemporaryFiles)
 
-    """"""
-
     def runPaintServiceConnection(self):
         # Validations
         self.defineCurrentProject()
@@ -4810,8 +4810,6 @@ class QGISRed:
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "No Washout Valves to include in the model")
-
-    """Tree Graph"""
 
     def runTree(self, point):
         if not self.checkDependencies():
