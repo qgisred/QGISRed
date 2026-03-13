@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>:/images/iconLayers.png</normaloff>:/images/iconLayers.png</iconset>
+    <normaloff>:/images/iconCreateProject.svg</normaloff>:/images/iconCreateProject.svg</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">

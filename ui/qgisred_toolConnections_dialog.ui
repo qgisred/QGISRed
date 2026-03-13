@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>342</width>
-    <height>143</height>
+    <height>100</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>:/images/iconIncorporateConnectionsToModel.png</normaloff>:/images/iconIncorporateConnectionsToModel.png</iconset>
+    <normaloff>:/images/iconIncorporateConnectionsToModel.svg</normaloff>:/images/iconIncorporateConnectionsToModel.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
