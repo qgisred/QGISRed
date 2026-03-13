@@ -3,11 +3,13 @@ from PyQt5.QtWidgets import QDockWidget, QApplication
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QColor, QFont
 from qgis.PyQt import uic
-from qgis.core import QgsProject, QgsLayerTreeGroup, QgsField, QgsVectorLayer
-from PyQt5.QtCore import Qt, QVariant, QTimer
+from qgis.core import QgsProject, QgsLayerTreeGroup, QgsField, QgsVectorLayer, QgsAttributeTableConfig
+from qgis.gui import QgsDualView
+import sip
+from PyQt5.QtCore import Qt, QVariant, QTimer, QObject
 from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling
 from qgis.core import QgsTextFormat
-from qgis.core import QgsProperty, QgsRenderContext
+from qgis.core import QgsProperty, QgsRenderContext, NULL
 from qgis.core import QgsGraduatedSymbolRenderer, QgsRuleBasedRenderer
 
 from ..tools.qgisred_utils import QGISRedUtils
@@ -23,35 +25,34 @@ from shutil import copyfile
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_results_dock.ui"))
 
-def seconds_to_time_str(seconds):
-    """Convert seconds to 'NNd HH:MM:SS' format."""
-    d = seconds // 86400
-    rem = seconds % 86400
-    h = rem // 3600
-    m = (rem % 3600) // 60
-    s = rem % 60
-    return f"{d:02d}d {h:02d}:{m:02d}:{s:02d}"
+NODE_RESULT_FIELDS = [
+    ("Time", "String", 15),
+    ("Statistics", "String", 15),
+    ("Pressure", "Double"),
+    ("Head", "Double"),
+    ("Time_H", "String", 15),
+    ("Demand", "Double"),
+    ("Time_D", "String", 15),
+    ("Quality", "Double"),
+    ("Time_Q", "String", 15),
+]
 
-
-def time_field_name(var_name, layer_type):
-    """Return the time-companion field name for a variable based on layer type."""
-    if layer_type == "Node":
-        mapping = {
-            "Pressure": "Time_H",
-            "Head": "Time_H",
-            "Demand": "Time_D",
-            "Quality": "Time_Q"
-        }
-    else:  # Link
-        mapping = {
-            "Flow": "Time_H",
-            "Velocity": "Time_H",
-            "HeadLoss": "Time_H",
-            "UnitHdLoss": "Time_H",
-            "Quality": "Time_Q"
-        }
-    return mapping.get(var_name)
-
+LINK_RESULT_FIELDS = [
+    ("Time", "String", 15),
+    ("Statistics", "String", 15),
+    ("Status", "String"),
+    ("Flow", "Double"),
+    ("Flow_Unsig", "Double"),
+    ("Flow_Sig", "Double"),
+    ("Velocity", "Double"),
+    ("HeadLoss", "Double"),
+    ("UnitHdLoss", "Double"),
+    ("Time_H", "String", 15),
+    ("FricFactor", "Double"),
+    ("ReactRate", "Double"),
+    ("Quality", "Double"),
+    ("Time_Q", "String", 15),
+]
 
 class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     # Signals
@@ -294,6 +295,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             # Open layer if not already open
             if resultLayerPath not in openedLayersPaths:
                 utils.openLayer(group, file, results=True)
+                # Ensure all possible fields are created in the correct order
+                for layer in self.getLayers():
+                    if self.getLayerPath(layer) == resultLayerPath:
+                        self.prepareResultFields(layer, file)
+                        break
 
     def removeResults(self):
         resultPath = self.getResultsPath()
@@ -332,6 +338,160 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             QGISRedUtils.setGroupIdentifier(resultGroup, "Results")
         resultGroup.setItemVisibilityChecked(True)
         return resultGroup
+
+    """Fields"""
+    def prepareResultFields(self, layer, layer_type):
+        """Ensures that all possible result fields exist in the layer in a fixed order."""
+        if layer_type == "Node":
+            fields_def = NODE_RESULT_FIELDS
+        else:
+            fields_def = LINK_RESULT_FIELDS
+            
+        existing_fields = layer.fields().names()
+        new_fields = []
+        
+        type_map = {
+            "String": QVariant.String,
+            "Double": QVariant.Double
+        }
+        
+        for name, type_str, *extra in fields_def:
+            if name not in existing_fields:
+                qgs_type = type_map.get(type_str, QVariant.String)
+                length = extra[0] if extra else 0
+                if length:
+                    new_fields.append(QgsField(name, qgs_type, "", length))
+                else:
+                    new_fields.append(QgsField(name, qgs_type))
+        
+        if new_fields:
+            layer.dataProvider().addAttributes(new_fields)
+            layer.updateFields()
+
+    def updateFieldsVisibility(self, layer, layer_type, stats_mode, stat=None):
+        """Controls which result fields are visible in the attribute table."""
+        config = layer.attributeTableConfig()
+        config.update(layer.fields())
+        
+        # Result fields in 10-char format
+        node_fields_upper = [f[0][:10].upper() for f in NODE_RESULT_FIELDS]
+        link_fields_upper = [f[0][:10].upper() for f in LINK_RESULT_FIELDS]
+        all_result_fields_upper = set(node_fields_upper + link_fields_upper)
+        
+        visible_results = set()
+        if not stats_mode:
+            visible_results.add("Time")
+            if layer_type == "Node":
+                visible_results.update(["Pressure", "Head", "Demand", "Quality"])
+            else:
+                visible_results.update(["Status", "Flow", "Velocity", "HeadLoss", "UnitHdLoss", "FricFactor", "ReactRate", "Quality"])
+        else:
+            visible_results.add("Statistics")
+            if layer_type == "Node":
+                visible_results.update(["Pressure", "Head", "Demand", "Quality"])
+                if stat in (self.lbl_maximum, self.lbl_minimum):
+                    visible_results.update(["Time_H", "Time_D", "Time_Q"])
+            else:
+                visible_results.update(["Flow", "Velocity", "HeadLoss", "UnitHdLoss", "FricFactor", "ReactRate", "Quality"])
+                if stat == self.lbl_average:
+                    visible_results.discard("Flow")
+                    visible_results.update(["Flow_Unsig", "Flow_Sig"])
+                if stat in (self.lbl_maximum, self.lbl_minimum):
+                    visible_results.update(["Time_H", "Time_Q"])
+        truncated_visible_upper = {v[:10].upper() for v in visible_results}
+
+        # Ensure we don't hide columns that are NOT result fields (e.g., ID, Name)
+        columns = config.columns()
+        for i in range(len(columns)):
+            col = columns[i]
+            col_name_upper = col.name.upper()
+            if col_name_upper in all_result_fields_upper:
+                # Result field: set hidden state based on mode
+                columns[i].hidden = not col_name_upper in truncated_visible_upper
+                # Ensure it's treated as a field column
+                columns[i].type = 0
+        
+        config.setColumns(columns)
+        layer.setAttributeTableConfig(config)
+        
+        # Surgical refresh: ONLY update windows already open
+        # NOTE: allWidgets() returns Qt base types (QStackedWidget, QDialog).
+        # We must use sip.cast() to get the real QGIS type and access layer().
+        if not self.Computing:
+            layer_id = layer.id()
+            refreshed_count = 0
+            
+            cast_map = {
+                "QgsDualView": QgsDualView,
+            }
+            for widget in QApplication.instance().allWidgets():
+                cls = widget.metaObject().className()
+                if cls not in cast_map:
+                    continue
+                try:
+                    typed = sip.cast(widget, cast_map[cls])
+                    # layer() no está en QgsDualView en QGIS 3.4, pero masterModel().layer() sí
+                    w_layer = typed.masterModel().layer()
+                    if w_layer and w_layer.id() == layer_id:
+                        typed.setAttributeTableConfig(config)
+                        refreshed_count += 1
+                except Exception:
+                    pass
+
+
+            
+            if refreshed_count > 0:
+                QApplication.processEvents()
+
+
+    def forceFinalFieldsVisibility(self):
+        """Re-applies visibility to all result layers after everything has settled."""
+        resultPath = self.getResultsPath()
+        for layerName in ["Node", "Link"]:
+            resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + layerName + ".shp")
+            for layer in self.getLayers():
+                if self.getLayerPath(layer) == resultLayerPath:
+                    self.updateFieldsVisibility(layer, layerName, self._statsMode, self._currentStat)
+
+    def clearResultFields(self):
+        """Clears the values of result fields instead of deleting them to preserve order."""
+        resultPath = self.getResultsPath()
+        openedLayers = self.getLayers()
+        for layerName in ["Node", "Link"]:
+            resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + layerName + ".shp")
+            target_layer = None
+            for layer in openedLayers:
+                if self.getLayerPath(layer) == resultLayerPath:
+                    target_layer = layer
+                    break
+            if not target_layer:
+                continue
+            
+            # Identify result fields from constants
+            fields_def = NODE_RESULT_FIELDS if layerName == "Node" else LINK_RESULT_FIELDS
+            fields_to_clear = [f[0] for f in fields_def]
+            
+            field_indices = []
+            for f_name in fields_to_clear:
+                idx = target_layer.fields().indexOf(f_name)
+                if idx != -1:
+                    field_indices.append(idx)
+            
+            if not field_indices:
+                continue
+                
+            attribute_updates = {}
+            for feature in target_layer.getFeatures():
+                updates = {idx: NULL for idx in field_indices}
+                attribute_updates[feature.id()] = updates
+                
+            if attribute_updates:
+                target_layer.dataProvider().changeAttributeValues(attribute_updates)
+                target_layer.dataProvider().dataChanged.emit()
+                target_layer.triggerRepaint()
+                
+        self.displayingLinkField = ""
+        self.displayingNodeField = ""
 
     """UI Elements"""
     def restoreElementsCb(self):
@@ -632,6 +792,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                     else:
                         self.completeResultLayers()
                     self.paintIntervalTimeResults(True)
+                    
+                    # Defer final visibility application to ensure the layer is fully ready
+                    # This fixes the issue where opening the table too fast shows all columns
+                    QTimer.singleShot(200, self.forceFinalFieldsVisibility)
             finally:
                 QApplication.restoreOverrideCursor()
         self.statisticsModeChanged.emit(new_stat if self._statsMode else "")
@@ -652,6 +816,15 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         try:
             self.saveCurrentRender()
             self.ensureResultsLayersAreOpen()
+            
+            # Update visibility when variable changes
+            resultPath = self.getResultsPath()
+            resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_Link.shp")
+            for layer in self.getLayers():
+                if self.getLayerPath(layer) == resultLayerPath:
+                    self.updateFieldsVisibility(layer, "Link", self._statsMode, self._currentStat)
+                    break
+
             self.paintIntervalTimeResults(True)
         finally:
             QApplication.restoreOverrideCursor()
@@ -673,6 +846,15 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         try:
             self.saveCurrentRender()
             self.ensureResultsLayersAreOpen()
+
+            # Update visibility when variable changes
+            resultPath = self.getResultsPath()
+            resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_Node.shp")
+            for layer in self.getLayers():
+                if self.getLayerPath(layer) == resultLayerPath:
+                    self.updateFieldsVisibility(layer, "Node", self._statsMode, self._currentStat)
+                    break
+
             self.paintIntervalTimeResults(True)
         finally:
             QApplication.restoreOverrideCursor()
@@ -960,32 +1142,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         self.paintIntervalTimeResults(True)
 
+        # Defer final visibility application to ensure the layer is fully ready
+        QTimer.singleShot(200, self.forceFinalFieldsVisibility)
+
         # Activate map tips
         self.iface.actionMapTips().setChecked(True)
-
-    def clearResultFields(self):
-        """Removes result fields (from the first 'Time' or 'Stat' column onward) from both result layers."""
-        resultPath = self.getResultsPath()
-        openedLayers = self.getLayers()
-        for layerName in ["Node", "Link"]:
-            resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + layerName + ".shp")
-            target_layer = None
-            for layer in openedLayers:
-                if self.getLayerPath(layer) == resultLayerPath:
-                    target_layer = layer
-                    break
-            if not target_layer:
-                continue
-            candidates = [target_layer.fields().indexOf(f) for f in ("Time", "Statistics")]
-            candidates = [i for i in candidates if i != -1]
-            if not candidates:
-                continue
-            start_idx = min(candidates)
-            fields_to_delete = list(range(start_idx, target_layer.fields().count()))
-            target_layer.dataProvider().deleteAttributes(fields_to_delete)
-            target_layer.updateFields()
-        self.displayingLinkField = ""
-        self.displayingNodeField = ""
 
     def completeResultLayers(self):
         """Populates the attribute tables of the result layers with data from the .out file."""
@@ -1032,32 +1193,15 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             if not results:
                 continue
 
-            # 2. Check and add missing fields
-            first_id = next(iter(results))
-            variables = list(v[:10] for v in results[first_id].keys())
-            existing_fields = target_layer.fields().names()
-            new_fields = []
-            
-            # Ensure "Time" field exists
-            if "Time" not in existing_fields:
-                new_fields.append(QgsField("Time", QVariant.String, "", 15))
-
-            for var in variables:
-                if var not in existing_fields:
-                    if var == "Status":
-                        new_fields.append(QgsField(var, QVariant.String))
-                    else:
-                        new_fields.append(QgsField(var, QVariant.Double))
-
-            if new_fields:
-                target_layer.dataProvider().addAttributes(new_fields)
-                target_layer.updateFields()
-
             # 3. Update features
+            first_id = next(iter(results))
+            variables = list(results[first_id].keys())
+            
             # Get field indices
             field_indices = {}
             for var in variables:
-                field_indices[var] = target_layer.fields().indexOf(var)
+                # Shapefile fields are limited to 10 chars
+                field_indices[var] = target_layer.fields().indexOf(var[:10])
             
             time_field_idx = target_layer.fields().indexOf("Time")
             
@@ -1085,6 +1229,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 target_layer.dataProvider().changeAttributeValues(attribute_updates)
                 target_layer.dataProvider().dataChanged.emit()
                 target_layer.triggerRepaint()
+            
+            # Apply visibility AFTER populating
+            self.updateFieldsVisibility(target_layer, layerName, stats_mode=False)
 
     def completeStatsLayers(self):
         """Populates the attribute tables of result layers with statistics from the .out file.
@@ -1147,16 +1294,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             time_field_after  = _TIME_FIELD_AFTER.get(layerName, {})
             time_field_provider = _TIME_PROVIDER.get(layerName, {})
 
-            # Always add fields (clearResultFields already removed them)
-            new_fields = [QgsField("Statistics", QVariant.String, "", 15)]
-            for var in variables:
-                new_fields.append(QgsField(var, QVariant.Double))
-                if is_min_max and var in time_field_after:
-                    new_fields.append(QgsField(time_field_after[var], QVariant.String, "", 15))
-            target_layer.dataProvider().addAttributes(new_fields)
-            target_layer.updateFields()
+            first_id = next(iter(results))
+            variables = list(results[first_id].keys())
 
-            field_indices = {var: target_layer.fields().indexOf(var) for var in variables}
+            field_indices = {var: target_layer.fields().indexOf(var[:10]) for var in variables}
             time_field_indices = {}
             if is_min_max:
                 for provider_var, tf_name in time_field_provider.items():
@@ -1187,3 +1328,38 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 target_layer.dataProvider().changeAttributeValues(attribute_updates)
                 target_layer.dataProvider().dataChanged.emit()
                 target_layer.triggerRepaint()
+            
+            # Apply visibility AFTER populating
+            self.updateFieldsVisibility(target_layer, layerName, stats_mode=True, stat=stat_label)
+
+
+"""Helpers"""
+def seconds_to_time_str(seconds):
+    """Convert seconds to 'NNd HH:MM:SS' format."""
+    d = seconds // 86400
+    rem = seconds % 86400
+    h = rem // 3600
+    m = (rem % 3600) // 60
+    s = rem % 60
+    return f"{d:02d}d {h:02d}:{m:02d}:{s:02d}"
+
+
+def time_field_name(var_name, layer_type):
+    """Return the time-companion field name for a variable based on layer type."""
+    if layer_type == "Node":
+        mapping = {
+            "Pressure": "Time_H",
+            "Head": "Time_H",
+            "Demand": "Time_D",
+            "Quality": "Time_Q"
+        }
+    else:  # Link
+        mapping = {
+            "Flow": "Time_H",
+            "Velocity": "Time_H",
+            "HeadLoss": "Time_H",
+            "UnitHdLoss": "Time_H",
+            "Quality": "Time_Q"
+        }
+    return mapping.get(var_name)
+
