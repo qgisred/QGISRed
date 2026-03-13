@@ -882,15 +882,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 self.textEditReport.setPlainText(f.read())
 
     def applyStatisticFromOptions(self):
-        options_path = os.path.join(self.ProjectDirectory, self.NetworkName + "_Options.dbf")
-        dbf = QgsVectorLayer(options_path, "Options", "ogr")
-        statistic_value = "NONE"
-        for feature in dbf.getFeatures():
-            attrs = feature.attributes()
-            if attrs[1] == "STATISTIC":
-                statistic_value = attrs[2]
-                break
-        del dbf
+        statistic_value, _ = QgsProject.instance().readEntry("QGISRed", "project_statistics", "NONE")
 
         stat_map = {
             "NONE": self.lbl_none,

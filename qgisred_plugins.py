@@ -1986,6 +1986,7 @@ class QGISRed:
         headloss = "D-W"
         qualityModel = "Chemical"
         massUnits = "mg/L"
+        statistics = "None"
         if self.ProjectDirectory == "Temporal Folder":
             return
         dbf = QgsVectorLayer(os.path.join(self.ProjectDirectory, self.NetworkName + "_Options.dbf"), "Options", "ogr")
@@ -1999,11 +2000,14 @@ class QGISRed:
                 qualityModel = attrs[2]
             if attrs[1] == "MASSUNITS":
                 massUnits = attrs[2]
+            if attrs[1] == "STATISTIC":
+                statistics = attrs[2]
 
         QgsProject.instance().writeEntry("QGISRed", "project_units", units)
         QgsProject.instance().writeEntry("QGISRed", "project_headloss", headloss)
         QgsProject.instance().writeEntry("QGISRed", "project_qualitymodel", qualityModel)
         QgsProject.instance().writeEntry("QGISRed", "project_massunits", massUnits)
+        QgsProject.instance().writeEntry("QGISRed", "project_statistics", statistics)
 
         self.unitsAction.setText("QGISRed: " + units + " | " + headloss)
         del dbf
@@ -2980,6 +2984,7 @@ class QGISRed:
 
         # Results Dock
         if self.ResultDockwidget is None:
+            self.readUnits()
             self.ResultDockwidget = QGISRedResultsDock(self.iface)
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.ResultDockwidget)
             self.ResultDockwidget.visibilityChanged.connect(self.activeInputGroup)
