@@ -5,7 +5,7 @@ from qgis.gui import QgsMapTool, QgsVertexMarker, QgsMapCanvasSnappingUtils
 
 
 class QGISRedSelectPointTool(QgsMapTool):
-    def __init__(self, button, parent, method, type=1, cursor=None, icon_size=18):
+    def __init__(self, button, parent, method, type=1, cursor=None, icon_size=24):
         QgsMapTool.__init__(self, parent.iface.mapCanvas())
         self.canvas = parent.iface.mapCanvas()
         self.iface = parent.iface
