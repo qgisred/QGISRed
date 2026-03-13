@@ -1248,12 +1248,14 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         header = self.dataTableWidget.horizontalHeader()
         # Allow smaller column sizes (default minimum is ~20px)
         header.setMinimumSectionSize(10)
-        # Units column: fixed small width
-        header.setSectionResizeMode(2, QHeaderView.Fixed)
-        self.dataTableWidget.setColumnWidth(2, 40)
-        # Property and Value columns: stretch to fill remaining space
-        header.setSectionResizeMode(0, QHeaderView.Stretch)
-        header.setSectionResizeMode(1, QHeaderView.Stretch)
+        # All columns: interactive so the user can resize them by dragging
+        header.setSectionResizeMode(0, QHeaderView.Interactive)
+        header.setSectionResizeMode(1, QHeaderView.Interactive)
+        header.setSectionResizeMode(2, QHeaderView.Interactive)
+        header.setStretchLastSection(True)
+        # Set initial widths (will be adjusted once widget has a real size)
+        self.dataTableWidget.setColumnWidth(0, 200)
+        self.dataTableWidget.setColumnWidth(1, 100)
 
     def loadFeature(self, layer, feature, featureIdText=""):
         if not layer or not feature:
@@ -2315,10 +2317,14 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         header = self.tableResults.horizontalHeader()
         header.setStyleSheet("QHeaderView::section { font-weight: normal; }")
         header.setMinimumSectionSize(10)
-        header.setSectionResizeMode(2, QHeaderView.Fixed)
-        self.tableResults.setColumnWidth(2, 40)
-        header.setSectionResizeMode(0, QHeaderView.Stretch)
-        header.setSectionResizeMode(1, QHeaderView.Stretch)
+        # All columns: interactive so the user can resize them by dragging
+        header.setSectionResizeMode(0, QHeaderView.Interactive)
+        header.setSectionResizeMode(1, QHeaderView.Interactive)
+        header.setSectionResizeMode(2, QHeaderView.Interactive)
+        header.setStretchLastSection(True)
+        # Set initial widths (will be adjusted once widget has a real size)
+        self.tableResults.setColumnWidth(0, 200)
+        self.tableResults.setColumnWidth(1, 100)
 
     def findResultsLayerForElement(self, isNode):
         """Find the Results group layer matching the element type (node or link).
