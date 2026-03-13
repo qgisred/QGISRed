@@ -109,5 +109,6 @@
         <file>images/pencil.svg</file>
         <file>images/iconTimeSeries.svg</file>
         <file>images/qgisred.svg</file>
+        <file>images/aboutBid.png</file>
     </qresource>
 </RCC>
