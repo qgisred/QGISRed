@@ -464,12 +464,6 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         # Run the dialog event loop
         self.close()
         dlg.exec_()
-        self.parent.readUnits()
-        result = dlg.ProcessDone
-        if result:
-            self.ProjectDirectory = dlg.ProjectDirectory
-            self.NetworkName = dlg.NetworkName
-            self.ProcessDone = True
 
     def exportData(self):
         ok, name, project, _ = self.getSelectedRowInfo()
