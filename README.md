@@ -68,26 +68,15 @@ The following tools are required:
 
 All three tools ship with **Qt5 Development Tools**. Install them downloading OSGeo4W from https://trac.osgeo.org/osgeo4w/ and in the "Advanced mode" select qt5 and qt6 options (instead of Skip) in CommandLine and Desktop and qt5-devel, qt6-devel, python3-pyqt5 and python3-pyqt6 in libs. 
 
-### Step-by-step guide
-#### 0. Open the OSGeo4W Shell
-
-To run all 3 tools use the OSGeo4W Shell normally placed in "C:/Users/username/AppData/Local/Programs/OSGeo4W".
-
-Set the path to the plugin directory:
-
-```bash
-cd "C:/Users/username/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/QGISRed"
-```
-
 #### 1. Generate / update the `.ts` template
 
-Run `pylupdate5` against the project file to extract every translatable string from the source code and `.ui` files:
+To automatically extract every translatable string from the source code and `.ui` files into a `.ts` template, simply run the `UpdateTranslations.bat` script located at the root of the plugin directory:
 
-```bash
-pylupdate5 qgisred.pro
+```bat
+UpdateTranslations.bat
 ```
 
-This writes (or updates) `i18n/qgisred.ts`.
+This script will seamlessly locate and open the OSGeo4W Shell and run `pylupdate5 qgisred.pro` in the background. This writes (or updates) the `.ts` files inside the `i18n/` folder.
 
 #### 2. Create a new language file
 
@@ -129,13 +118,13 @@ linguist i18n/qgisred_es.ts
 
 #### 4. Compile the translation
 
-Once all strings are translated, compile the `.ts` file into a binary `.qm` file:
+Once all strings are translated, compile the `.ts` file into a binary `.qm` format that QGIS can read. You can easily do this by running the `CompileTranslations.bat` script located at the root of the plugin directory:
 
-```bash
-lrelease i18n/qgisred_es.ts
+```bat
+CompileTranslations.bat
 ```
 
-This produces `i18n/qgisred_es.qm`, which QGIS picks up automatically at startup.
+This script will automatically open the OSGeo4W Shell and run `lrelease i18n/qgisred_es.ts` (and the other language defined in the scripts) in the plugin folder. This produces `i18n/qgisred_es.qm` (and the other language defined in the scripts), which QGIS picks up automatically at startup.
 
 #### 5. Test in QGIS
 
