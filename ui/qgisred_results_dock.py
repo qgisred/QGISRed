@@ -317,7 +317,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 break
 
     def getInputGroup(self):
-        # Same method in qgisred_newproject_dialog and qgisred_plugins
+        # Same method in qgisred_newproject_dialog and qgisred
         inputGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
         if inputGroup is None:
             netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)

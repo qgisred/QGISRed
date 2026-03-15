@@ -31,5 +31,5 @@ def classFactory(iface):  # pylint: disable=invalid-name
     :type iface: QgisInterface
     """
     #
-    from .qgisred_plugins import QGISRed
+    from .qgisred import QGISRed
     return QGISRed(iface)
