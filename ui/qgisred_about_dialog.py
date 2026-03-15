@@ -17,8 +17,18 @@ class QGISRedAboutDialog(QDialog, FORM_CLASS):
         self.labelIiama.mousePressEvent = self.linkIiama
         self.labelUpv.mousePressEvent = self.linkUpv
         self.lbManual.mousePressEvent = self.userManual
-        self.lbManual_es.mousePressEvent = self.userManualEs
+        self.lbOfflineManual.mousePressEvent = self.offlineManual
         self.lbIssues.mousePressEvent = self.issuesRepository
+
+        from PyQt5.QtCore import QSettings
+        locale = QSettings().value("locale/userLocale", "")[0:2]
+        if locale == "es":
+            self.online_manual = "https://qgisred.gitbook.io/manual-de-usuario"
+            self.offline_manual_file = "usermanual_es.pdf"
+        else:
+            self.online_manual = "https://qgisred.gitbook.io/usermanual"
+            self.offline_manual_file = "usermanual_en.pdf"
+
         # version
         metadata = os.path.join(os.path.dirname(os.path.dirname(__file__)), "metadata.txt")
         if os.path.exists(metadata):
@@ -43,11 +53,10 @@ class QGISRedAboutDialog(QDialog, FORM_CLASS):
         webbrowser.open("http://www.upv.es/index-en.html")
 
     def userManual(self, event):
-        pdf = os.path.join(os.path.dirname(os.path.dirname(__file__)), "manuals", "usermanual_en.pdf")
-        webbrowser.open(pdf)
+        webbrowser.open(self.online_manual)
 
-    def userManualEs(self, event):
-        pdf = os.path.join(os.path.dirname(os.path.dirname(__file__)), "manuals", "usermanual_es.pdf")
+    def offlineManual(self, event):
+        pdf = os.path.join(os.path.dirname(os.path.dirname(__file__)), "manuals", self.offline_manual_file)
         webbrowser.open(pdf)
 
     def issuesRepository(self, event):

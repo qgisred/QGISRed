@@ -298,7 +298,6 @@ class QGISRed:
         self.zoomToFullExtent = False
         self.removingLayers = False        
 
-
         self.setCulture()
         # QgsMessageLog.logMessage("Culture set to " + definedCulture, "QGISRed", level=0)
 
