@@ -43,11 +43,11 @@ class QGISRedAboutDialog(QDialog, FORM_CLASS):
         webbrowser.open("http://www.upv.es/index-en.html")
 
     def userManual(self, event):
-        pdf = os.path.join(os.path.dirname(os.path.dirname(__file__)), "usermanual_en.pdf")
+        pdf = os.path.join(os.path.dirname(os.path.dirname(__file__)), "manuals", "usermanual_en.pdf")
         webbrowser.open(pdf)
 
     def userManualEs(self, event):
-        pdf = os.path.join(os.path.dirname(os.path.dirname(__file__)), "usermanual_es.pdf")
+        pdf = os.path.join(os.path.dirname(os.path.dirname(__file__)), "manuals", "usermanual_es.pdf")
         webbrowser.open(pdf)
 
     def issuesRepository(self, event):
