@@ -28,6 +28,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     FIELD_TYPE_NUMERIC = "numeric"
     FIELD_TYPE_CATEGORICAL = "categorical"
     FIELD_TYPE_UNKNOWN = "unknown"
+    FIELD_TYPE_SINGLE = "single"
 
     WARN_CLASSES = 50
     MAX_CLASSES = 1000
@@ -104,6 +105,21 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return False
         identifier = self.currentLayer.customProperty("qgisred_identifier")
         return identifier and identifier.startswith("qgisred_node_")
+
+    def isInputLayer(self):
+        """Check if the current layer is an input (model element) layer."""
+        if not self.currentLayer:
+            return False
+        identifier = self.currentLayer.customProperty("qgisred_identifier")
+        if not identifier:
+            return False
+        INPUT_IDENTIFIERS = {
+            "qgisred_pipes", "qgisred_pumps", "qgisred_valves",
+            "qgisred_junctions", "qgisred_reservoirs", "qgisred_tanks",
+            "qgisred_sources", "qgisred_serviceconnections",
+            "qgisred_isolationvalves", "qgisred_meters", "qgisred_demands"
+        }
+        return identifier in INPUT_IDENTIFIERS
 
     def getResultFieldMapping(self):
         """Map layer identifier to field name in the 'All' shapefile."""
