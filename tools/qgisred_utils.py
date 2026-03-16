@@ -715,7 +715,7 @@ class QGISRedUtils:
 
     def getCurrentDll(self):
         os.chdir(QGISRedUtils.DllTempoFolder)
-        return os.path.join(QGISRedUtils.DllTempoFolder, "GISRed.QGisPlugins.dll")
+        return os.path.join(QGISRedUtils.DllTempoFolder, "GISRed.QGISRed.dll")
 
     def getUserFolder(self):
         userFolder = os.path.expanduser("~\\QGISRed")

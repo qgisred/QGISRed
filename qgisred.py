@@ -1753,7 +1753,7 @@ class QGISRed:
         valid = False
         gisredDir = QGISRedUtils().getGISRedDllFolder()
         if os.path.isdir(gisredDir):
-            currentVersion = self.getVersion(os.path.join(gisredDir, "GISRed.QGisPlugins.dll"), "FileVersion")
+            currentVersion = self.getVersion(os.path.join(gisredDir, "GISRed.QGISRed.dll"), "FileVersion")
             if currentVersion == self.DependenciesVersion:
                 valid = True
         if not valid:
