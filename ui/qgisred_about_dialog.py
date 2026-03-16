@@ -15,6 +15,7 @@ class QGISRedAboutDialog(QDialog, FORM_CLASS):
         self.labelQGISRed.mousePressEvent = self.linkQgisred
         self.labelRedhisp.mousePressEvent = self.linkRedhisp
         self.labelIiama.mousePressEvent = self.linkIiama
+        self.labelBidImage.mousePressEvent = self.linkBidImage
         self.labelUpv.mousePressEvent = self.linkUpv
         self.lbManual.mousePressEvent = self.userManual
         self.lbOfflineManual.mousePressEvent = self.offlineManual
@@ -48,6 +49,9 @@ class QGISRedAboutDialog(QDialog, FORM_CLASS):
 
     def linkIiama(self, event):
         webbrowser.open("https://www.iiama.upv.es/iiama/en/")
+
+    def linkBidImage(self, event):
+        webbrowser.open("https://www.iadb.org/")
 
     def linkUpv(self, event):
         webbrowser.open("http://www.upv.es/index-en.html")
