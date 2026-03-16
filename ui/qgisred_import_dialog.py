@@ -192,8 +192,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                     ]
                     for layer in layers:
                         if self.NetworkName + "_" + layer + ".shp" in dirList:
-                            message = "The selected folder has some files with the same project name."
-                            self.iface.messageBar().pushMessage("Validations", message, level=1)
+                            message = self.tr("The selected folder has some files with the same project name.")
+                            self.iface.messageBar().pushMessage(self.tr("Validations"), message, level=1)
                             return False
         if self.cbCreateSubfolder.isChecked() and not os.path.exists(self.ProjectDirectory):
             try:  # create directory if does not exist

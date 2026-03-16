@@ -2633,7 +2633,7 @@ class QGISRed:
         dlg = QGISRedImportProjectDialog()
         icon_path = ":/images/iconOpenProject.svg"
         dlg.setWindowIcon(QIcon(icon_path))
-        dlg.setWindowTitle("QGISRed: Open project")
+        dlg.setWindowTitle(self.tr("QGISRed: Open project"))
         # Run the dialog event loop
         dlg.exec_()
         result = dlg.ProcessDone

@@ -1617,6 +1617,11 @@
         <source>QGISRed plugin has a new version ({}). You can upgrade it from the QGis plugin manager. Do you want to remember it again?</source>
         <translation>El complemento QGISRed tiene una nueva versión ({}). Puedes actualizarlo desde el gestor de complementos de QGIS. ¿Quieres volver a recordar este mensaje?</translation>
     </message>
+    <message>
+        <location filename="../qgisred.py" line="2636"/>
+        <source>QGISRed: Open project</source>
+        <translation>QGISRed: Abrir proyecto</translation>
+    </message>
 </context>
 <context>
     <name>QGISRedAboutDialog</name>
@@ -2782,6 +2787,11 @@
         <location filename="../ui/qgisred_import_dialog.py" line="68"/>
         <source>Degrees</source>
         <translation>Grados</translation>
+    </message>
+    <message>
+        <location filename="../ui/qgisred_import_dialog.py" line="195"/>
+        <source>The selected folder has some files with the same project name.</source>
+        <translation>La carpeta seleccionada tiene algunos archivos con el mismo nombre de proyecto.</translation>
     </message>
 </context>
 <context>
