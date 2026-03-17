@@ -1986,15 +1986,15 @@ class QGISRed:
         dbf = QgsVectorLayer(os.path.join(self.ProjectDirectory, self.NetworkName + "_Options.dbf"), "Options", "ogr")
         for feature in dbf.getFeatures():
             attrs = feature.attributes()
-            if attrs[1] == "UNITS":
+            if attrs[1].upper() == "UNITS":
                 units = attrs[2]
-            if attrs[0].upper() == "HYDRAULICS" and attrs[1] == "HEADLOSS":
+            if attrs[0].upper() == "HYDRAULICS" and attrs[1].upper() == "HEADLOSS":
                 headloss = attrs[2]
-            if attrs[1] == "QUALITY":
+            if attrs[1].upper() == "QUALITY TYPE":
                 qualityModel = attrs[2]
-            if attrs[1] == "MASSUNITS":
+            if attrs[1].upper() == "MASSUNITS":
                 massUnits = attrs[2]
-            if attrs[1] == "STATISTIC":
+            if attrs[1].upper() == "STATISTIC":
                 statistics = attrs[2]
 
         QgsProject.instance().writeEntry("QGISRed", "project_units", units)
