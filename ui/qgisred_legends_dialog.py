@@ -1480,6 +1480,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
             return self.FIELD_TYPE_CATEGORICAL, fieldName
 
+        # singleSymbol renderer for input layers gets its own field type
+        if renderer and renderer.type() == "singleSymbol" and self.isInputLayer():
+            return self.FIELD_TYPE_SINGLE, None
+
         return self.FIELD_TYPE_UNKNOWN, None
 
     def resetToEmptyState(self):
