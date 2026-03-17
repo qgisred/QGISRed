@@ -185,7 +185,8 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
             return True
 
         if event.type() == QEvent.MouseButtonDblClick and event.button() == Qt.LeftButton:
-            self.openColorPicker()
+            if self.isEnabled():
+                self.openColorPicker()
             return True
 
         return False
