@@ -1988,7 +1988,7 @@ class QGISRed:
             attrs = feature.attributes()
             if attrs[1] == "UNITS":
                 units = attrs[2]
-            if attrs[1] == "HEADLOSS":
+            if attrs[0].upper() == "HYDRAULICS" and attrs[1] == "HEADLOSS":
                 headloss = attrs[2]
             if attrs[1] == "QUALITY":
                 qualityModel = attrs[2]
@@ -2003,8 +2003,14 @@ class QGISRed:
         QgsProject.instance().writeEntry("QGISRed", "project_massunits", massUnits)
         QgsProject.instance().writeEntry("QGISRed", "project_statistics", statistics)
 
-        self.unitsAction.setText("QGISRed: " + units + " | " + headloss)
         del dbf
+
+        self.setUnits()
+
+    def setUnits(self):
+        units = QgsProject.instance().readEntry("QGISRed", "project_units", "LPS")[0]
+        headloss = QgsProject.instance().readEntry("QGISRed", "project_headloss", "D-W")[0]
+        self.unitsAction.setText("QGISRed: " + units + " | " + headloss)
 
     """Remove Layers"""
 
