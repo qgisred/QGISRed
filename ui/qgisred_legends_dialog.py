@@ -1690,7 +1690,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         valueWidget.setReadOnly(True)
         valueWidget.setAlignment(Qt.AlignCenter)
 
-        if isReadOnlyValue:
+        if self.isInputLayer():
+            valueWidget.setEnabled(False)
+            valueWidget.setStyleSheet(self.getReadOnlyLineEditStyle())
+        elif isReadOnlyValue:
             valueWidget.setStyleSheet(self.getReadOnlyLineEditStyle())
         else:
             valueWidget.setStyleSheet(self.getBaseLineEditStyle())
@@ -1701,8 +1704,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def setLegendWidget(self, row, legendText):
         legendWidget = QLineEdit(legendText)
-        legendWidget.setEnabled(self.isEditing)
-        legendWidget.setStyleSheet(self.getBaseLineEditStyle())
+        isEnabled = self.isEditing and not self.isInputLayer()
+        legendWidget.setEnabled(isEnabled)
+        legendWidget.setStyleSheet(
+            self.getReadOnlyLineEditStyle() if not isEnabled else self.getBaseLineEditStyle()
+        )
         legendWidget.installEventFilter(self.rowSelectionFilter)
 
         self.tableView.setCellWidget(row, 4, legendWidget)
