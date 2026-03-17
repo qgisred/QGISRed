@@ -2940,8 +2940,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 self._applyPipeColorExpression(sl.subSymbol(), color)
 
     def _applyJunctionColorExpression(self, symbol, color):
-        """Replace #ffffff with the new color in the junction fill-color expression."""
-        self._updateExpressionColor(symbol, '#ffffff', color, QgsSymbolLayer.PropertyFillColor)
+        """Update no-demand junction fill color; demand colors (#fdbf6f, #a6cee3) stay unchanged."""
+        newHexStr = color.name().lower()
+        newExpr = f"if (BaseDem is NULL, '{newHexStr}', if( BaseDem >0, '#fdbf6f', if (BaseDem <0 , '#a6cee3', '{newHexStr}')))"
+        newProp = QgsProperty.fromExpression(newExpr)
+        for i in range(symbol.symbolLayerCount()):
+            sl = symbol.symbolLayer(i)
+            existing = sl.dataDefinedProperties().property(QgsSymbolLayer.PropertyFillColor)
+            if existing and existing.propertyType() == QgsProperty.ExpressionBasedProperty:
+                sl.setDataDefinedProperty(QgsSymbolLayer.PropertyFillColor, newProp)
+            if hasattr(sl, 'subSymbol') and sl.subSymbol():
+                self._applyJunctionColorExpression(sl.subSymbol(), color)
 
     def _clearColorExpression(self, symbol):
         """Remove data-defined PropertyFillColor so a subsequent flat applyColorToSymbol takes effect."""
