@@ -571,6 +571,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.populateNumericLegend()
         elif self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
             self.populateCategoricalLegend()
+        elif self.currentFieldType == self.FIELD_TYPE_SINGLE:
+            self.populateSingleSymbolLegend()
         else:
             self.clearTable()
 
@@ -1583,6 +1585,27 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.updateClassCount()
         self.updateButtonStates()
         self.updateClassCountLimits()
+
+    def populateSingleSymbolLegend(self):
+        """Populate the table with a single row representing the singleSymbol renderer."""
+        if not self.currentLayer:
+            return
+
+        renderer = self.currentLayer.renderer()
+        self.clearTable()
+
+        if not renderer or renderer.type() != "singleSymbol":
+            return
+
+        symbol = renderer.symbol()
+        if not symbol:
+            return
+
+        geometryHint = self.getGeometryHint()
+        row = self.tableView.rowCount()
+        self.tableView.insertRow(row)
+        self.setRowWidgets(row, symbol, True, "", "", geometryHint, isReadOnlyValue=True)
+        self.updateClassCount()
 
     def setRowWidgets(
         self,
