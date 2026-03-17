@@ -64,7 +64,8 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
     defaultRgba = QColor(19, 125, 220, 255)
 
     def __init__(self, parent=None, geometryHint="fill", initialColor=None,
-                 allowAlpha=True, dialogTitle="Pick color", doubleClickOnly=False):
+                 allowAlpha=True, dialogTitle="Pick color", doubleClickOnly=False,
+                 actualSymbol=None):
         super().__init__(parent)
 
         self.geometryType = self.normalizeGeometryHint(geometryHint)
@@ -73,6 +74,7 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
         self.useDoubleClick = doubleClickOnly
         self.activeColor = self.parseInitialColor(initialColor)
         self.currentSymbolSize = 0.0
+        self._actualSymbol = actualSymbol.clone() if actualSymbol else None
 
         self.configureWidgetStyle()
         self.refreshSymbolDisplay()
@@ -102,10 +104,15 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
         self.setToolTip(self.tr("Click to pick a color."))
 
     def refreshSymbolDisplay(self):
-        symbol = self.createGeometrySpecificSymbol()
-
-        if self.currentSymbolSize > 0:
-            self.applySizeScaling(symbol)
+        if self._actualSymbol:
+            symbol = self._actualSymbol.clone()
+            symbol.setColor(self.activeColor)
+            if self.currentSymbolSize > 0:
+                self.applySizeScaling(symbol)
+        else:
+            symbol = self.createGeometrySpecificSymbol()
+            if self.currentSymbolSize > 0:
+                self.applySizeScaling(symbol)
 
         self.setSymbol(symbol)
 
@@ -145,6 +152,11 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
     def updateSymbolSize(self, newSize, isLine=False):
         if newSize > 0:
             self.currentSymbolSize = newSize
+            if self._actualSymbol:
+                if isLine or self.geometryType == self.lineType:
+                    self._actualSymbol.setWidth(newSize)
+                else:
+                    self._actualSymbol.setSize(newSize)
             self.refreshSymbolDisplay()
 
     def setSelectorColor(self, newColor):

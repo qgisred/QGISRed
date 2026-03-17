@@ -1661,6 +1661,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             True,
             "Pick color",
             doubleClickOnly=True,
+            actualSymbol=symbol,
         )
         colorSelector.setEnabled(self.isEditing)
         colorSelector.colorChanged.connect(self.onRowColorChanged)
