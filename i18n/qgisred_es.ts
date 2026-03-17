@@ -815,7 +815,7 @@
     <message>
         <location filename="../qgisred.py" line="631"/>
         <source>Save map</source>
-        <translation>Guardar mapa</translation>
+        <translation type="obsolete">Guardar mapa</translation>
     </message>
     <message>
         <location filename="../qgisred.py" line="642"/>
@@ -1621,6 +1621,11 @@
         <location filename="../qgisred.py" line="2636"/>
         <source>QGISRed: Open project</source>
         <translation>QGISRed: Abrir proyecto</translation>
+    </message>
+    <message>
+        <location filename="../qgisred.py" line="631"/>
+        <source>Save project</source>
+        <translation>Guardar proyecto</translation>
     </message>
 </context>
 <context>

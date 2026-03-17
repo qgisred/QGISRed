@@ -630,7 +630,7 @@ class QGISRed:
         icon_path = ":/images/iconSaveProject.svg"
         self.add_action(
             icon_path,
-            text=self.tr("Save map"),
+            text=self.tr("Save project"),
             callback=self.runSaveActionProject,
             menubar=self.projectMenu,
             toolbar=self.projectToolbar,

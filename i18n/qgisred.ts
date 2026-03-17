@@ -505,11 +505,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="631"/>
-        <source>Save map</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../qgisred.py" line="642"/>
         <source>Project backup</source>
         <translation type="unfinished"></translation>
@@ -1252,6 +1247,11 @@
     <message>
         <location filename="../qgisred.py" line="2636"/>
         <source>QGISRed: Open project</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qgisred.py" line="631"/>
+        <source>Save project</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
