@@ -2861,18 +2861,26 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not symbol:
             return
 
+        identifier = self.currentLayer.customProperty("qgisred_identifier")
         colorContainer = self.tableView.cellWidget(0, 1)
         sizeWidget = self.tableView.cellWidget(0, 2)
 
         colorWidget = colorContainer.findChild(QGISRedSymbolColorSelector) if colorContainer else None
         if colorWidget and colorWidget.isEnabled():
-            self.applyColorToSymbol(symbol, colorWidget.activeColor)
+            newColor = colorWidget.activeColor
+            if identifier == "qgisred_pipes":
+                self._applyPipeColorExpression(symbol, newColor)
+            elif identifier == "qgisred_junctions":
+                self._applyJunctionColorExpression(symbol, newColor)
+            elif identifier == "qgisred_isolationvalves":
+                self._clearColorExpression(symbol)
+                self.applyColorToSymbol(symbol, newColor)
+            else:
+                self.applyColorToSymbol(symbol, newColor)
 
         try:
             size = float(sizeWidget.text())
             self.applySizeToSymbol(symbol, size)
-
-            identifier = self.currentLayer.customProperty("qgisred_identifier")
             if identifier == "qgisred_pipes":
                 self._scalePipeCvMarker(symbol, size)
         except Exception:
@@ -2902,6 +2910,37 @@ class QGISRedLegendsDialog(QDialog, formClass):
                         expr = f"if(IniStatus is NULL, 0,if(IniStatus !='CV', 0,{newCvSize}))"
                         prop = QgsProperty.fromExpression(expr)
                         ml.setDataDefinedProperty(QgsSymbolLayer.PropertySize, prop)
+
+    def _updateExpressionColor(self, symbol, oldHex, newColor, propertyKey):
+        """Replace oldHex with newColor in a data-defined property expression on all symbol layers."""
+        newHexStr = newColor.name().lower()
+        oldLower = oldHex.lower()
+        for i in range(symbol.symbolLayerCount()):
+            sl = symbol.symbolLayer(i)
+            prop = sl.dataDefinedProperties().property(propertyKey)
+            if prop and prop.propertyType() == QgsProperty.ExpressionBasedProperty:
+                expr = prop.expressionString()
+                updated = expr.replace(oldLower, newHexStr).replace(oldLower.upper(), newHexStr)
+                if updated != expr:
+                    sl.setDataDefinedProperty(propertyKey, QgsProperty.fromExpression(updated))
+            if hasattr(sl, 'subSymbol') and sl.subSymbol():
+                self._updateExpressionColor(sl.subSymbol(), oldHex, newColor, propertyKey)
+
+    def _applyPipeColorExpression(self, symbol, color):
+        """Replace #0f1291 with the new color in the pipe stroke-color expression."""
+        self._updateExpressionColor(symbol, '#0f1291', color, QgsSymbolLayer.PropertyStrokeColor)
+
+    def _applyJunctionColorExpression(self, symbol, color):
+        """Replace #ffffff with the new color in the junction fill-color expression."""
+        self._updateExpressionColor(symbol, '#ffffff', color, QgsSymbolLayer.PropertyFillColor)
+
+    def _clearColorExpression(self, symbol):
+        """Remove data-defined PropertyFillColor so a subsequent flat applyColorToSymbol takes effect."""
+        for i in range(symbol.symbolLayerCount()):
+            sl = symbol.symbolLayer(i)
+            sl.setDataDefinedProperty(QgsSymbolLayer.PropertyFillColor, QgsProperty())
+            if hasattr(sl, 'subSymbol') and sl.subSymbol():
+                self._clearColorExpression(sl.subSymbol())
 
     def applyNumericLegend(self):
         ranges = []
