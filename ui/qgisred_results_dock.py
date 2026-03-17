@@ -204,6 +204,26 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.close()
         return False
     
+    def updateQualityItemComboboxes(self):
+        self.cbLinks.currentIndexChanged.disconnect(self.linksChanged)
+        self.cbNodes.currentIndexChanged.disconnect(self.nodesChanged)
+        try:
+            if self.isQualitySimulated:
+                if self.cbNodes.findText(self.lbl_quality) == -1:
+                    self.cbNodes.addItem(self.lbl_quality)
+                if self.cbLinks.findText(self.lbl_quality) == -1:
+                    self.cbLinks.addItem(self.lbl_quality)
+            else:
+                node_q_idx = self.cbNodes.findText(self.lbl_quality)
+                if node_q_idx != -1:
+                    self.cbNodes.removeItem(node_q_idx)
+                link_q_idx = self.cbLinks.findText(self.lbl_quality)
+                if link_q_idx != -1:
+                    self.cbLinks.removeItem(link_q_idx)
+        finally:
+            self.cbLinks.currentIndexChanged.connect(self.linksChanged)
+            self.cbNodes.currentIndexChanged.connect(self.nodesChanged)
+
     def updateLinksComboboxForStat(self, stat):
         """Adjusts cbLinks items when entering/leaving statistics mode.
 
@@ -1046,6 +1066,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         elif resMessage.startswith("[TimeLabels]"):
             self.outPath = os.path.join(self.getResultsPath(), self.NetworkName + "_" + self.Scenario + ".out")
             self.loadReportFile()
+            self.updateQualityOptions()
+            self.updateQualityItemComboboxes()
             self.applyStatisticFromOptions()
             self.openBaseResults(resMessage.replace("[TimeLabels]", ""))
             self.show()
@@ -1085,6 +1107,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         idx = self.cbStatistics.findText(translated_stat)
         if idx >= 0 and self.cbStatistics.currentIndex() != idx:
             self.cbStatistics.setCurrentIndex(idx)
+
+    def updateQualityOptions(self):
+        qualityModel, _ = QgsProject.instance().readEntry("QGISRed", "project_qualitymodel", "Chemical")
+        self.isQualitySimulated = qualityModel.upper() != "NONE"
 
     def openBaseResults(self, labels):
         # Select comboboxes item
