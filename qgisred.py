@@ -1973,7 +1973,7 @@ class QGISRed:
                 
         return False
 
-    def readUnits(self, folder="", network=""):
+    def readOptions(self, folder="", network=""):
         if folder == "" and network == "":
             self.defineCurrentProject()
         units = "LPS"
@@ -2253,7 +2253,7 @@ class QGISRed:
 
         resMessage = GISRed.ReplaceTemporalFiles(self.ProjectDirectory, self.tempFolder)
 
-        self.readUnits(self.ProjectDirectory, self.NetworkName)
+        self.readOptions(self.ProjectDirectory, self.NetworkName)
 
         if self.hasToOpenNewLayers:
             self.opendedLayers = False
@@ -2647,7 +2647,7 @@ class QGISRed:
             utils.openProjectInQgis()
             utils.enforceAllIdentifiers()
 
-            self.readUnits()
+            self.readOptions()
 
     def runCanCreateProject(self):
         if not self.checkDependencies():
@@ -2675,7 +2675,7 @@ class QGISRed:
         dlg = QGISRedCreateProjectDialog()
         dlg.config(self.iface, self.ProjectDirectory, self.NetworkName, self)
         dlg.exec_()
-        self.readUnits()
+        self.readOptions()
 
     def runCanImportData(self):
         if not self.checkDependencies():
@@ -2796,7 +2796,7 @@ class QGISRed:
         if self.ProjectDirectory == self.TemporalFolder:
             return
         
-        self.readUnits(self.ProjectDirectory, self.NetworkName)
+        self.readOptions(self.ProjectDirectory, self.NetworkName)
         
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.assignLayerIdentifiers()
@@ -2978,7 +2978,7 @@ class QGISRed:
 
         # Results Dock
         if self.ResultDockwidget is None:
-            self.readUnits()
+            self.readOptions()
             self.ResultDockwidget = QGISRedResultsDock(self.iface)
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.ResultDockwidget)
             self.ResultDockwidget.visibilityChanged.connect(self.activeInputGroup)
