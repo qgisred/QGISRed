@@ -545,6 +545,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.updateUiBasedOnFieldType()
         self.populateLegendTable()
         self.updateButtonStates()
+        self.updateInputLayerRestrictions()
 
     def updateFrameLegendLabel(self, layer):
         layerName = layer.name()
@@ -3341,6 +3342,94 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def updateClassCount(self):
         self.leClassCount.setValue(self.tableView.rowCount())
+
+    # ============================================================
+    # INPUT LAYER RESTRICTIONS
+    # ============================================================
+
+    def updateInputLayerRestrictions(self):
+        """Disable right-panel batch controls for input layers; apply per-element column rules."""
+        isInput = self.isInputLayer()
+
+        # Classification panel
+        self.cbMode.setEnabled(not isInput)
+        self.spinIntervalRange.setEnabled(not isInput)
+        self.leClassCount.setReadOnly(isInput)
+        if isInput:
+            self.leClassCount.setButtonSymbols(QSpinBox.NoButtons)
+        else:
+            self.leClassCount.setButtonSymbols(QSpinBox.UpDownArrows)
+
+        # Class action buttons
+        self.btClassPlus.setEnabled(not isInput)
+        self.btClassMinus.setEnabled(not isInput)
+        self.btUp.setEnabled(not isInput)
+        self.btDown.setEnabled(not isInput)
+        self.btClassifyAll.setEnabled(not isInput)
+
+        # Color panel
+        self.cbColors.setEnabled(not isInput)
+        self.btColorEqual.setEnabled(not isInput)
+        self.btnColorRamp.setEnabled(not isInput)
+        self.btRefreshColors.setEnabled(not isInput)
+        self.ckColorInvert.setEnabled(not isInput)
+
+        # Size panel
+        self.cbSizes.setEnabled(not isInput)
+        self.spinSizeEqual.setEnabled(not isInput)
+        self.spinSizeMin.setEnabled(not isInput)
+        self.spinSizeMax.setEnabled(not isInput)
+        self.ckSizeInvert.setEnabled(not isInput)
+
+        # Per-element column restrictions (applied on top, after table is populated)
+        if isInput:
+            self.updateInputElementColumnRestrictions()
+
+    def updateInputElementColumnRestrictions(self):
+        """Apply per-element-type color/size column restrictions for input layers."""
+        identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else ""
+
+        COLOR_LOCKED = {
+            "qgisred_valves", "qgisred_pumps",
+            "qgisred_reservoirs", "qgisred_tanks", "qgisred_sources"
+        }
+
+        if identifier in COLOR_LOCKED:
+            self._disableColorColumnInTable()
+        elif identifier == "qgisred_pipes":
+            self._applyPipeColumnRestrictions()
+        elif identifier == "qgisred_junctions":
+            self._applyJunctionColumnRestrictions()
+        else:
+            # All other input elements: lock color by default
+            self._disableColorColumnInTable()
+
+    def _disableColorColumnInTable(self):
+        """Disable color button (col 1) for every row in the table."""
+        for row in range(self.tableView.rowCount()):
+            container = self.tableView.cellWidget(row, 1)
+            if container:
+                colorWidget = container.findChild(QGISRedSymbolColorSelector)
+                if colorWidget:
+                    colorWidget.setEnabled(False)
+
+    def _applyPipeColumnRestrictions(self):
+        """Lock color for all pipe rows. Size editing allowed; CV scaling happens on Apply."""
+        self._disableColorColumnInTable()
+
+    def _applyJunctionColumnRestrictions(self):
+        """Lock color on demand rows (non-white), allow color on no-demand rows (white)."""
+        for row in range(self.tableView.rowCount()):
+            container = self.tableView.cellWidget(row, 1)
+            if not container:
+                continue
+            colorWidget = container.findChild(QGISRedSymbolColorSelector)
+            if not colorWidget:
+                continue
+            currentColor = getattr(colorWidget, 'activeColor', None)
+            isNoDemandRow = currentColor and currentColor == QColor(255, 255, 255)
+            if not isNoDemandRow:
+                colorWidget.setEnabled(False)
 
     # ============================================================
     # UTILITY METHODS
