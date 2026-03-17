@@ -1320,16 +1320,24 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def collectRenderableLayersRecursive(self, group, layers, recurseIntoSubgroups):
         """Collects renderable layers from a group, optionally recursing into subgroups."""
+        groupIdentifier = group.customProperty("qgisred_identifier") or ""
+        isInputGroup = groupIdentifier == "qgisred_inputs"
+
         for child in group.children():
             if isinstance(child, QgsLayerTreeLayer) and child.isVisible():
                 layer = child.layer()
-                if (
-                    layer
-                    and isinstance(layer, QgsVectorLayer)
-                    and layer.renderer().type()
-                    in ("graduatedSymbol", "categorizedSymbol")
-                ):
-                    layers.append(layer)
+                if layer and isinstance(layer, QgsVectorLayer):
+                    rendererType = layer.renderer().type() if layer.renderer() else ""
+                    isInputLayer = isInputGroup or layer.customProperty("qgisred_identifier") in {
+                        "qgisred_pipes", "qgisred_pumps", "qgisred_valves",
+                        "qgisred_junctions", "qgisred_reservoirs", "qgisred_tanks",
+                        "qgisred_sources", "qgisred_serviceconnections",
+                        "qgisred_isolationvalves", "qgisred_meters", "qgisred_demands"
+                    }
+                    if rendererType in ("graduatedSymbol", "categorizedSymbol") or (
+                        rendererType == "singleSymbol" and isInputLayer
+                    ):
+                        layers.append(layer)
             elif isinstance(child, QgsLayerTreeGroup) and recurseIntoSubgroups:
                 # Recursively collect layers from nested subgroups
                 self.collectRenderableLayersRecursive(child, layers, recurseIntoSubgroups)
