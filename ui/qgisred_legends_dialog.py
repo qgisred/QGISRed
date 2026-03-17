@@ -3409,6 +3409,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self._applyPipeColumnRestrictions()
         elif identifier == "qgisred_junctions":
             self._applyJunctionColumnRestrictions()
+        elif identifier == "qgisred_isolationvalves":
+            pass  # color column stays enabled
         else:
             # All other input elements: lock color by default
             self._disableColorColumnInTable()
@@ -3423,22 +3425,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
                     colorWidget.setEnabled(False)
 
     def _applyPipeColumnRestrictions(self):
-        """Lock color for all pipe rows. Size editing allowed; CV scaling happens on Apply."""
-        self._disableColorColumnInTable()
+        """Color editing allowed; CV scaling happens on Apply."""
+        pass
 
     def _applyJunctionColumnRestrictions(self):
-        """Lock color on demand rows (non-white), allow color on no-demand rows (white)."""
-        for row in range(self.tableView.rowCount()):
-            container = self.tableView.cellWidget(row, 1)
-            if not container:
-                continue
-            colorWidget = container.findChild(QGISRedSymbolColorSelector)
-            if not colorWidget:
-                continue
-            currentColor = getattr(colorWidget, 'activeColor', None)
-            isNoDemandRow = currentColor and currentColor == QColor(255, 255, 255)
-            if not isNoDemandRow:
-                colorWidget.setEnabled(False)
+        """Color column always enabled for junctions."""
+        pass
 
     # ============================================================
     # UTILITY METHODS
