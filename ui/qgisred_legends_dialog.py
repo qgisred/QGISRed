@@ -3113,6 +3113,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def updateUiBasedOnFieldType(self):
         isNumeric = self.currentFieldType == self.FIELD_TYPE_NUMERIC
         isCategorical = self.currentFieldType == self.FIELD_TYPE_CATEGORICAL
+        isSingle = self.currentFieldType == self.FIELD_TYPE_SINGLE
         isFixedInterval = isNumeric and self.cbMode.currentData() == "FixedInterval"
         isManualNumeric = isNumeric and (
             self.cbMode.currentData() is None
@@ -3128,7 +3129,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if isCategorical:
             self.updateAddClassButtonState()
 
-        if self.currentFieldType != self.FIELD_TYPE_UNKNOWN:
+        if isSingle:
+            self.labelFrameLegends.setVisible(True)
+
+        if self.currentFieldType not in (self.FIELD_TYPE_UNKNOWN, self.FIELD_TYPE_SINGLE):
             self.applySizeLogic()
             self.applyColorLogic()
 
