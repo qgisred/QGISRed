@@ -2927,8 +2927,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 self._updateExpressionColor(sl.subSymbol(), oldHex, newColor, propertyKey)
 
     def _applyPipeColorExpression(self, symbol, color):
-        """Replace #0f1291 with the new color in the pipe stroke-color expression."""
-        self._updateExpressionColor(symbol, '#0f1291', color, QgsSymbolLayer.PropertyStrokeColor)
+        """Update open-pipe stroke color; NULL-status branch always stays #0f1291."""
+        newHexStr = color.name().lower()
+        newExpr = f"if(IniStatus is NULL, '#0f1291',if(IniStatus !='CLOSED', '{newHexStr}','#ff0f13'))"
+        newProp = QgsProperty.fromExpression(newExpr)
+        for i in range(symbol.symbolLayerCount()):
+            sl = symbol.symbolLayer(i)
+            existing = sl.dataDefinedProperties().property(QgsSymbolLayer.PropertyStrokeColor)
+            if existing and existing.propertyType() == QgsProperty.ExpressionBasedProperty:
+                sl.setDataDefinedProperty(QgsSymbolLayer.PropertyStrokeColor, newProp)
+            if hasattr(sl, 'subSymbol') and sl.subSymbol():
+                self._applyPipeColorExpression(sl.subSymbol(), color)
 
     def _applyJunctionColorExpression(self, symbol, color):
         """Replace #ffffff with the new color in the junction fill-color expression."""
