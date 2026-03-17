@@ -2827,8 +2827,65 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.applyNumericLegend()
         elif self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
             self.applyCategoricalLegend()
+        elif self.currentFieldType == self.FIELD_TYPE_SINGLE:
+            self.applySingleSymbolLegend()
 
         self.currentLayer.triggerRepaint()
+
+    PIPE_DEFAULT_WIDTH = 1.5   # pixels — matches line_width in Pipes.qml.bak
+    PIPE_DEFAULT_CV_SIZE = 5   # mm — matches MarkerLine SVG size in Pipes.qml.bak
+
+    def applySingleSymbolLegend(self):
+        """Apply color and size edits from the single-row table to the singleSymbol renderer."""
+        renderer = self.currentLayer.renderer()
+        if not renderer or renderer.type() != "singleSymbol":
+            return
+
+        symbol = renderer.symbol()
+        if not symbol:
+            return
+
+        colorContainer = self.tableView.cellWidget(0, 1)
+        sizeWidget = self.tableView.cellWidget(0, 2)
+
+        colorWidget = colorContainer.findChild(QGISRedSymbolColorSelector) if colorContainer else None
+        if colorWidget and colorWidget.isEnabled():
+            self.applyColorToSymbol(symbol, colorWidget.activeColor)
+
+        try:
+            size = float(sizeWidget.text())
+            self.applySizeToSymbol(symbol, size)
+
+            identifier = self.currentLayer.customProperty("qgisred_identifier")
+            if identifier == "qgisred_pipes":
+                self._scalePipeCvMarker(symbol, size)
+        except Exception:
+            pass
+
+    def _scalePipeCvMarker(self, symbol, newWidth):
+        """Scale the CV triangle marker proportionally to the pipe line width.
+
+        In Pipes.qml.bak the MarkerLine data-defined size expression is:
+            if(IniStatus is NULL, 0, if(IniStatus !='CV', 0, 5))
+        The base CV size is 5mm at default pipe width 1.5px.
+        New CV size = PIPE_DEFAULT_CV_SIZE * (newWidth / PIPE_DEFAULT_WIDTH)
+        """
+        if newWidth <= 0:
+            return
+
+        scaleFactor = newWidth / self.PIPE_DEFAULT_WIDTH
+        newCvSize = round(self.PIPE_DEFAULT_CV_SIZE * scaleFactor, 3)
+
+        for i in range(symbol.symbolLayerCount()):
+            sl = symbol.symbolLayer(i)
+            if sl.layerType() == "MarkerLine":
+                markerSymbol = sl.subSymbol()
+                if markerSymbol:
+                    for j in range(markerSymbol.symbolLayerCount()):
+                        ml = markerSymbol.symbolLayer(j)
+                        expr = f"if(IniStatus is NULL, 0,if(IniStatus !='CV', 0,{newCvSize}))"
+                        prop = QgsProperty.fromExpression(expr)
+                        ml.setDataDefinedProperty(QgsSymbolLayer.PropertySize, prop)
 
     def applyNumericLegend(self):
         ranges = []
