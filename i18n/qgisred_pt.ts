@@ -613,7 +613,7 @@
 <context>
     <name>QGISRed</name>
     <message>
-        <location filename="../qgisred.py" line="4862"/>
+        <location filename="../qgisred.py" line="4868"/>
         <source>Error</source>
         <translation>Erro</translation>
     </message>
@@ -1238,37 +1238,37 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="3268"/>
+        <location filename="../qgisred.py" line="3274"/>
         <source>Time Series</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="3967"/>
+        <location filename="../qgisred.py" line="3973"/>
         <source>Input data is valid</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="3988"/>
+        <location filename="../qgisred.py" line="3994"/>
         <source>No overlapping elements found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="4007"/>
+        <location filename="../qgisred.py" line="4013"/>
         <source>No aligned vertices to delete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="4024"/>
+        <location filename="../qgisred.py" line="4030"/>
         <source>No pipes to join</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="4041"/>
+        <location filename="../qgisred.py" line="4047"/>
         <source>No T connections to create</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="4146"/>
+        <location filename="../qgisred.py" line="4152"/>
         <source>No issues on diameter checking</source>
         <translation type="unfinished">Nenhum problema na verificação de diâmetro</translation>
     </message>
@@ -1293,7 +1293,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="4794"/>
+        <location filename="../qgisred.py" line="4800"/>
         <source>Warning</source>
         <translation type="unfinished">Aviso</translation>
     </message>
@@ -1308,7 +1308,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="2790"/>
+        <location filename="../qgisred.py" line="2796"/>
         <source>Backup stored in:</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1338,157 +1338,157 @@
         <translation type="unfinished">Nenhum projeto válido está aberto</translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="4208"/>
+        <location filename="../qgisred.py" line="4214"/>
         <source>Information</source>
         <translation type="unfinished">Informação</translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="2452"/>
+        <location filename="../qgisred.py" line="2458"/>
         <source>Some Ids are not defined. Commit before and try again.</source>
         <translation type="unfinished">Alguns IDs não estão definidos. Faça o commit antes e tente novamente.</translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="2757"/>
+        <location filename="../qgisred.py" line="2763"/>
         <source>Info</source>
         <translation type="unfinished">Info</translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="2723"/>
+        <location filename="../qgisred.py" line="2729"/>
         <source>Project saved</source>
         <translation type="unfinished">Projeto salvo</translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="4212"/>
+        <location filename="../qgisred.py" line="4218"/>
         <source>Some issues occurred in the process</source>
         <translation type="unfinished">Ocorreram alguns problemas no processo</translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="2757"/>
+        <location filename="../qgisred.py" line="2763"/>
         <source>Project options updated</source>
         <translation type="unfinished">Opções do projeto atualizadas</translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="3053"/>
+        <location filename="../qgisred.py" line="3059"/>
         <source>INP file successfully exported</source>
         <translation type="unfinished">Arquivo INP exportado com sucesso</translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="3068"/>
+        <location filename="../qgisred.py" line="3074"/>
         <source>Necessary to have a valid project and no layer on edition.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="3087"/>
+        <location filename="../qgisred.py" line="3093"/>
         <source>It is necessary to simulate first.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="3154"/>
+        <location filename="../qgisred.py" line="3160"/>
         <source>No network element found at this location.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="3268"/>
+        <location filename="../qgisred.py" line="3274"/>
         <source>Results file not found. Please run the model.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="3296"/>
+        <location filename="../qgisred.py" line="3302"/>
         <source>Junction</source>
         <translation type="unfinished">Junção</translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="3297"/>
+        <location filename="../qgisred.py" line="3303"/>
         <source>Tank</source>
         <translation type="unfinished">Tanque</translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="3298"/>
+        <location filename="../qgisred.py" line="3304"/>
         <source>Reservoir</source>
         <translation type="unfinished">Reservatório</translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="3299"/>
+        <location filename="../qgisred.py" line="3305"/>
         <source>Pipe</source>
         <translation type="unfinished">Tubulação</translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="3300"/>
+        <location filename="../qgisred.py" line="3306"/>
         <source>Valve</source>
         <translation type="unfinished">Válvula</translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="3301"/>
+        <location filename="../qgisred.py" line="3307"/>
         <source>Pump</source>
         <translation type="unfinished">Bomba</translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="3323"/>
+        <location filename="../qgisred.py" line="3329"/>
         <source>Closed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="3323"/>
+        <location filename="../qgisred.py" line="3329"/>
         <source>Active</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="3323"/>
+        <location filename="../qgisred.py" line="3329"/>
         <source>Open</source>
         <translation type="unfinished">Abrir</translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="3329"/>
+        <location filename="../qgisred.py" line="3335"/>
         <source>Time</source>
         <translation type="unfinished">Tempo</translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="4084"/>
+        <location filename="../qgisred.py" line="4090"/>
         <source>Only one zone</source>
         <translation type="unfinished">Apenas uma zona</translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="4125"/>
+        <location filename="../qgisred.py" line="4131"/>
         <source>No one pipe&apos;s length out of tolerance</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="4177"/>
+        <location filename="../qgisred.py" line="4183"/>
         <source>No issues on materials checking</source>
         <translation type="unfinished">Nenhum problema na verificação de materiais</translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="4208"/>
+        <location filename="../qgisred.py" line="4214"/>
         <source>No issues on installation dates checking</source>
         <translation type="unfinished">Nenhum problema na verificação de datas de instalação</translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="4443"/>
+        <location filename="../qgisred.py" line="4449"/>
         <source>No issues ocurred</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="4471"/>
+        <location filename="../qgisred.py" line="4477"/>
         <source>Any elevation has been estimated</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="4711"/>
+        <location filename="../qgisred.py" line="4717"/>
         <source>Does not exist Isolation Valves SHP file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="4735"/>
+        <location filename="../qgisred.py" line="4741"/>
         <source>Does not exist ServiceConnections SHP file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="4770"/>
+        <location filename="../qgisred.py" line="4776"/>
         <source>Does not exist Hydrants SHP file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="4794"/>
+        <location filename="../qgisred.py" line="4800"/>
         <source>Does not exist Washout Valves SHP file</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1508,7 +1508,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qgisred.py" line="2636"/>
+        <location filename="../qgisred.py" line="2642"/>
         <source>QGISRed: Open project</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2868,99 +2868,99 @@
 <context>
     <name>QGISRedLegendsDialog</name>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="290"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="306"/>
         <source>Classify All Unique Values</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="358"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="374"/>
         <source>Move selected class up</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="359"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="375"/>
         <source>Move selected class down</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="360"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="376"/>
         <source>Remove selected class(es)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="361"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="377"/>
         <source>Add all unique values as separate classes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="364"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="380"/>
         <source>Refresh color ramp</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="366"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="382"/>
         <source>Load default style for this layer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="367"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="383"/>
         <source>Load style from global database</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="368"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="384"/>
         <source>Save current style to global database</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="369"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="385"/>
         <source>Load style from project database</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="370"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="386"/>
         <source>Save current style to project database</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="371"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="387"/>
         <source>Apply changes to layer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="372"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="388"/>
         <source>Cancel and close dialog</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="1259"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="1278"/>
         <source>Legend</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="535"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="552"/>
         <source>Legend for</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="646"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="665"/>
         <source>Too Many Classes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="646"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="665"/>
         <source>The field &apos;{field}&apos; has {uniqueCount} unique values.
 The maximum allowed is {self.MAX_CLASSES}.
 Please filter the data or choose a different field.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="659"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="678"/>
         <source>High Class Count Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="659"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="678"/>
         <source>The field &apos;{field}&apos; has {uniqueCount} unique values.
 Creating a categorized legend with more than {self.WARN_CLASSES} classes may affect performance and readability.
 
@@ -2968,91 +2968,91 @@ Do you want to proceed?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="1446"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="1473"/>
         <source>Single Symbol</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="1440"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="1467"/>
         <source>Categorized</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="1444"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="1471"/>
         <source>Graduated</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="3493"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="3750"/>
         <source>Other Values</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="1898"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="1957"/>
         <source>Info</source>
         <translation type="unfinished">Info</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="1898"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="1957"/>
         <source>All values are already classified.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="1971"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="2030"/>
         <source>Limit Exceeded</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="1907"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="1966"/>
         <source>Adding {uniqueCountToAdd} classes would result in {totalPotential} total classes,
 which exceeds the maximum limit of {self.MAX_CLASSES}.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="1924"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="1983"/>
         <source>Adding classes...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="1924"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="1983"/>
         <source>Cancel</source>
         <translation type="unfinished">Cancelar</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="1971"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="2030"/>
         <source>Maximum of {self.MAX_CLASSES} classes reached.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="3123"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="3300"/>
         <source>Right-click: Add a new item above the current selection
 Left-click: Add a new item below the current selection
 Double-click: Add &quot;Other values&quot; option</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="3131"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="3308"/>
         <source>Right-click: Add a new item above the current selection
 Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="237"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="253"/>
         <source>QGISRed: Legend Editor</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="244"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="260"/>
         <source>Color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="244"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="260"/>
         <source>Size</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_legends_dialog.py" line="244"/>
+        <location filename="../ui/qgisred_legends_dialog.py" line="260"/>
         <source>Value</source>
         <translation type="unfinished">Valor</translation>
     </message>
@@ -3485,7 +3485,7 @@ Left-click: Add a new item below the current selection</source>
         <translation type="obsolete">Comentários:</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.py" line="1045"/>
+        <location filename="../ui/qgisred_results_dock.py" line="1065"/>
         <source>Some issues occurred in the process</source>
         <translation>Ocorreram alguns problemas no processo</translation>
     </message>
@@ -3565,37 +3565,37 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished">Aviso</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.py" line="292"/>
+        <location filename="../ui/qgisred_results_dock.py" line="312"/>
         <source>Results</source>
         <translation type="unfinished">Resultados</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.py" line="292"/>
+        <location filename="../ui/qgisred_results_dock.py" line="312"/>
         <source>{} results not found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.py" line="546"/>
+        <location filename="../ui/qgisred_results_dock.py" line="566"/>
         <source>Some issue occurred in the process of saving the style of the layer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.py" line="587"/>
+        <location filename="../ui/qgisred_results_dock.py" line="607"/>
         <source>Link {}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.py" line="592"/>
+        <location filename="../ui/qgisred_results_dock.py" line="612"/>
         <source>Node {}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.py" line="717"/>
+        <location filename="../ui/qgisred_results_dock.py" line="737"/>
         <source>Some issue occurred in the process of applying the style to the layer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.py" line="987"/>
+        <location filename="../ui/qgisred_results_dock.py" line="1007"/>
         <source>No {} results are available</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3635,7 +3635,7 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.py" line="766"/>
+        <location filename="../ui/qgisred_results_dock.py" line="786"/>
         <source>for {}</source>
         <translation type="unfinished"></translation>
     </message>
