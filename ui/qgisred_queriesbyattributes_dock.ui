@@ -41,7 +41,7 @@
          <x>0</x>
          <y>0</y>
          <width>265</width>
-         <height>565</height>
+         <height>419</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -105,32 +105,16 @@
          </layout>
         </item>
         <item>
-         <widget class="QFrame" name="frame">
-          <property name="frameShape">
-           <enum>QFrame::StyledPanel</enum>
+         <widget class="QgsCollapsibleGroupBox" name="mGroupBoxCriteriaGroupBox">
+          <property name="title">
+           <string>Criterion</string>
           </property>
-          <property name="frameShadow">
-           <enum>QFrame::Sunken</enum>
+          <property name="collapsed">
+           <bool>false</bool>
           </property>
-          <layout class="QVBoxLayout" name="verticalLayout_4">
+          <layout class="QHBoxLayout" name="horizontalLayout_8">
            <item>
             <layout class="QVBoxLayout" name="verticalLayout_6">
-             <item>
-              <widget class="QLabel" name="label_8">
-               <property name="font">
-                <font>
-                 <weight>75</weight>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>Criterion</string>
-               </property>
-               <property name="buddy">
-                <cstring>cbProperty</cstring>
-               </property>
-              </widget>
-             </item>
              <item>
               <layout class="QGridLayout" name="gridLayout">
                <item row="1" column="1">
@@ -348,37 +332,37 @@
                </item>
               </layout>
              </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout">
+               <item>
+                <spacer name="horizontalSpacer_2">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btSubmit">
+                 <property name="text">
+                  <string>Submit</string>
+                 </property>
+                 <property name="checkable">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
             </layout>
            </item>
           </layout>
          </widget>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout">
-          <item>
-           <spacer name="horizontalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="btSubmit">
-            <property name="text">
-             <string>Submit</string>
-            </property>
-            <property name="checkable">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
         </item>
         <item>
          <widget class="Line" name="line">
@@ -394,6 +378,9 @@
           </property>
           <property name="checkable">
            <bool>false</bool>
+          </property>
+          <property name="collapsed">
+           <bool>true</bool>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_2">
            <item>
@@ -478,13 +465,13 @@
   <customwidget>
    <class>QgsCollapsibleGroupBox</class>
    <extends>QGroupBox</extends>
-   <header>qgis.gui</header>
+   <header>qgscollapsiblegroupbox.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>QgsFilterLineEdit</class>
    <extends>QLineEdit</extends>
-   <header>qgis.gui</header>
+   <header>qgsfilterlineedit.h</header>
   </customwidget>
   <customwidget>
    <class>QgsScrollArea</class>
