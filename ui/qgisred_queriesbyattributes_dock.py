@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from PyQt5.QtWidgets import QDockWidget, QTableWidgetItem, QHeaderView, QAbstractItemView
+from PyQt5.QtWidgets import QDockWidget, QTableWidgetItem, QHeaderView, QAbstractItemView, QToolButton
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor, QIcon, QFont  
+from PyQt5.QtGui import QColor, QIcon, QFont
 from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsVectorLayer, QgsFeatureRequest
 import os
@@ -10,6 +10,7 @@ from datetime import datetime
 import csv
 
 from ..tools.qgisred_utils import QGISRedUtils
+from .qgisred_results_dock import QGISRedResultsDock
 
 # load UI
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),"qgisred_queriesbyattributes_dock.ui"))
@@ -22,9 +23,26 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.canvas = iface.mapCanvas()
         self.initializeQueriesByAttributes()
 
+    def closeEvent(self, event):
+        self.clearMapSelection()
+        super().closeEvent(event)
+
+    def clearMapSelection(self):
+        if self.lastSelectedLayer is not None:
+            try:
+                self.lastSelectedLayer.removeSelection()
+            except RuntimeError:
+                pass
+            self.lastSelectedLayer = None
+            self.canvas.refresh()
+
     def initializeQueriesByAttributes(self):
         self.criteria = []
         self.currentlyReplacingIndex = None
+        self.isResultsMode = False
+        self.resultsDock = None
+        self.currentResultsTimeText = ""
+        self.lastSelectedLayer = None
 
         self.elementIdentifiers = {
             'Pipes': 'qgisred_pipes',
@@ -137,12 +155,34 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.cbElementType.clear()
         inputsGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
         if inputsGroup:
-            checkedLayers = inputsGroup.checkedLayers()
-            for element, identifier in self.elementIdentifiers.items():
-                for layer in checkedLayers:
-                    if layer and layer.customProperty("qgisred_identifier") == identifier:
-                        self.cbElementType.addItem(layer.name(), layer)
+            identifiers = set(self.elementIdentifiers.values())
+            for layerNode in inputsGroup.findLayers():
+                layer = layerNode.layer()
+                if layer and layer.customProperty("qgisred_identifier") in identifiers:
+                    self.cbElementType.addItem(layer.name(), layer)
+        resultsGroup = QgsProject.instance().layerTreeRoot().findGroup("Results")
+        if resultsGroup:
+            nodeLayer = linkLayer = None
+            for layerNode in resultsGroup.findLayers():
+                layer = layerNode.layer()
+                if not layer:
+                    continue
+                ident = layer.customProperty("qgisred_identifier") or ""
+                if ident.startswith("qgisred_node") and nodeLayer is None:
+                    nodeLayer = layer
+                elif ident.startswith("qgisred_link") and linkLayer is None:
+                    linkLayer = layer
+            if nodeLayer:
+                self.cbElementType.addItem(self.tr("Nodes"), nodeLayer)
+            if linkLayer:
+                self.cbElementType.addItem(self.tr("Lines"), linkLayer)
         self.updateProperties()
+
+    def isResultsLayer(self, layer):
+        if not layer:
+            return False
+        ident = layer.customProperty("qgisred_identifier") or ""
+        return ident.startswith("qgisred_node") or ident.startswith("qgisred_link")
 
     def updateButtonsState(self):
         has = len(self.criteria) > 0
@@ -151,7 +191,8 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.btReplace.setEnabled(has and sel)
         self.btClear.setEnabled(has)
         self.btSubmit.setEnabled(has)
-        self.cbElementType.setEnabled(not has)
+        # Results layers don't lock the element type selector
+        self.cbElementType.setEnabled(not has or self.isResultsMode)
         self.cbStatisticsFor.setEnabled(has)
 
     def moveCriterionUp(self):
@@ -190,17 +231,27 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         layer = self.cbElementType.currentData(Qt.UserRole)
         if not layer:
             return
+        self.isResultsMode = self.isResultsLayer(layer)
         self.cbProperty.clear()
         self.cbStatisticsFor.clear()
-        #self.cbStatisticsFor.addItem("")
+        excludedLower = {'id', 'descrip'}
+        resultsMetaLower = {'time', 'statistics', 'time_h', 'time_d', 'time_q', 'type'}
         for field in layer.fields():
             fn = field.name()
-            if fn.lower() not in ('id','descrip'):
-                self.cbProperty.addItem(fn)
-                self.cbStatisticsFor.addItem(fn)
+            fnl = fn.lower()
+            if fnl in excludedLower:
+                continue
+            if self.isResultsMode and fnl in resultsMetaLower:
+                continue
+            self.cbProperty.addItem(fn)
+            self.cbStatisticsFor.addItem(fn)
         if self.cbProperty.count():
             self.updateConditions()
             self.updateValues()
+        if self.isResultsMode:
+            self.connectResultsDock()
+        else:
+            self.disconnectResultsDock()
 
     def updateConditions(self):
         self.cbCondition.clear()
@@ -372,9 +423,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.criteria = []
         self.currentlyReplacingIndex = None
         self.reloadCriteriaTable()
-        layer = self.cbElementType.currentData(Qt.UserRole)
-        if layer:
-            layer.removeSelection()
+        self.clearMapSelection()
         self.tableWidgetStatistics.setRowCount(0)
 
     def buildExpression(self, crit):
@@ -396,40 +445,55 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.labelStatisticsPropertyFor.setText(self.tr(f"Statistics of {property} for selected Elements"))
         self.calculateStatistics()
 
+    def _effectiveCriteria(self):
+        return self.criteria
+
     def calculateStatistics(self):
         selectedLayer = self.cbElementType.currentData(Qt.UserRole)
         if not selectedLayer:
             return
 
+        # Clear previous layer's selection if the target layer changed
+        if self.lastSelectedLayer is not None and self.lastSelectedLayer is not selectedLayer:
+            try:
+                self.lastSelectedLayer.removeSelection()
+            except RuntimeError:
+                pass
+
         targetField = self.cbStatisticsFor.currentText()
         if not targetField:
             return
 
+        effectiveCriteria = self._effectiveCriteria()
+        if not effectiveCriteria:
+            return
+
         # Collect feature values per individual criterion
         statsPerCriterion = []
-        for criterion in self.criteria:
+        for criterion in effectiveCriteria:
             if not criterion.get('enabled', True):
                 continue
 
             filterExpression = self.buildExpression(criterion)
             featureRequest = QgsFeatureRequest().setFilterExpression(filterExpression)
             featureValues = [
-                feat[targetField]
+                float(feat[targetField])
                 for feat in selectedLayer.getFeatures(featureRequest)
                 if feat[targetField] is not None
+                and str(feat[targetField]) not in ('', 'NULL')
             ]
             statsPerCriterion.append(featureValues)
 
         # Build include/exclude expressions
         includeExpressions = [
             self.buildExpression(crit)
-            for crit in self.criteria
-            if crit['operator'] == '+'
+            for crit in effectiveCriteria
+            if crit['operator'] == '+' and crit.get('enabled', True)
         ]
         excludeExpressions = [
             self.buildExpression(crit)
-            for crit in self.criteria
-            if crit['operator'] == '-'
+            for crit in effectiveCriteria
+            if crit['operator'] == '-' and crit.get('enabled', True)
         ]
         inclusionExpressionString = ' OR '.join(includeExpressions)
         exclusionExpressionString = ' AND '.join(excludeExpressions)
@@ -438,11 +502,20 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             inclusionExpressionString,
             f"NOT ({exclusionExpressionString})" if exclusionExpressionString else ''
         ]))
-        allFeaturesRequest = QgsFeatureRequest().setFilterExpression(combinedExpression)
+        if combinedExpression:
+            selectedLayer.selectByExpression(combinedExpression)
+            self.lastSelectedLayer = selectedLayer
+        else:
+            selectedLayer.removeSelection()
+            self.lastSelectedLayer = None
+        self.canvas.refresh()
+
+        allFeaturesRequest = QgsFeatureRequest().setFilterExpression(combinedExpression) if combinedExpression else QgsFeatureRequest()
         allFeatureValues = [
-            feat[targetField]
+            float(feat[targetField])
             for feat in selectedLayer.getFeatures(allFeaturesRequest)
             if feat[targetField] is not None
+            and str(feat[targetField]) not in ('', 'NULL')
         ]
         statsPerCriterion.append(allFeatureValues)
 
@@ -618,6 +691,44 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         )
 
         self.reloadCriteriaTable()
+
+    def findResultsDock(self):
+        from qgis.gui import QgsDockWidget
+        from PyQt5.QtWidgets import QDockWidget as _QDW
+        for widget in self.iface.mainWindow().findChildren(_QDW):
+            if isinstance(widget, QGISRedResultsDock) and widget.isVisible():
+                return widget
+        return None
+
+    def connectResultsDock(self, resultsDock=None):
+        if resultsDock is None:
+            resultsDock = self.findResultsDock()
+        if resultsDock is None:
+            return
+        if self.resultsDock is resultsDock:
+            return
+        if self.resultsDock is not None:
+            self.disconnectResultsDock()
+        self.resultsDock = resultsDock
+        resultsDock.timeTextChanged.connect(self.onResultsTimeChanged)
+        # Initial sync
+        timeText = resultsDock.lbTime.text()
+        if timeText:
+            self.onResultsTimeChanged(timeText)
+
+    def disconnectResultsDock(self):
+        if self.resultsDock is not None:
+            try:
+                self.resultsDock.timeTextChanged.disconnect(self.onResultsTimeChanged)
+            except (TypeError, RuntimeError):
+                pass
+            self.resultsDock = None
+        self.currentResultsTimeText = ""
+
+    def onResultsTimeChanged(self, timeText):
+        self.currentResultsTimeText = timeText
+        if self._effectiveCriteria() and self.isResultsMode:
+            self.runQuery()
 
     def exportTableWidgetCsv(self, table, prefix):
         folder = QFileDialog.getExistingDirectory(
