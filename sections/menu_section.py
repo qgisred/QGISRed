@@ -58,66 +58,50 @@ class MenuSection:
         self.generalToolbar.setVisible(False)
         #    #Buttons
         generalDropButton = QToolButton()
-        icon_path = ":/images/iconGeneralMenu.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("General"),
-            callback=self.runGeneralToolbar,
-            menubar=self.generalMenu,
-            add_to_menu=False,
-            toolbar=self.toolbar,
-            dropButton=generalDropButton,
-            addActionToDrop=False,
-            checkable=True,
-            add_to_toolbar=False,
-            parent=self.iface.mainWindow(),
+        action = self._make_action(
+            ":/images/iconGeneralMenu.svg", 
+            self.tr("General"), 
+            self.runGeneralToolbar,
+            checkable=True, parent=self.iface.mainWindow(),
         )
+        self.setup_dropdown_button(action, generalDropButton, self.toolbar)
         self.generalDropButton = generalDropButton
 
-        icon_path = ":/images/iconProjectManager.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Project manager..."),
-            callback=self.runProjectManager,
-            menubar=self.generalMenu,
-            toolbar=self.generalToolbar,
-            actionBase=generalDropButton,
-            add_to_toolbar=True,
+        action = self._make_action(
+            ":/images/iconProjectManager.svg", 
+            self.tr("Project manager..."), 
+            self.runProjectManager,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconOpenProject.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Open project..."),
-            callback=self.runCanOpenProject,
-            menubar=self.generalMenu,
-            toolbar=self.generalToolbar,
-            actionBase=generalDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(action, self.generalMenu, self.generalToolbar)
+        self.add_to_dropdown(action, generalDropButton)
+
+        action = self._make_action(
+            ":/images/iconOpenProject.svg", 
+            self.tr("Open project..."), 
+            self.runCanOpenProject,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconCreateProject.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Create project..."),
-            callback=self.runCanCreateProject,
-            menubar=self.generalMenu,
-            toolbar=self.generalToolbar,
-            actionBase=generalDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(action, self.generalMenu, self.generalToolbar)
+        self.add_to_dropdown(action, generalDropButton)
+
+        action = self._make_action(
+            ":/images/iconCreateProject.svg", 
+            self.tr("Create project..."), 
+            self.runCanCreateProject,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconImportProject.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Import project..."),
-            callback=self.runCanImportData,
-            menubar=self.generalMenu,
-            toolbar=self.generalToolbar,
-            actionBase=generalDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(action, self.generalMenu, self.generalToolbar)
+        self.add_to_dropdown(action, generalDropButton)
+
+        action = self._make_action(
+            ":/images/iconImportProject.svg", 
+            self.tr("Import project..."), 
+            self.runCanImportData,
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(action, self.generalMenu, self.generalToolbar)
+        self.add_to_dropdown(action, generalDropButton)
 
     def addProjectMenu(self):
         #    #Menu
@@ -130,138 +114,113 @@ class MenuSection:
         self.projectToolbar.setVisible(False)
         #    #Buttons
         projectDropButton = QToolButton()
-        icon_path = ":/images/iconProjectMenu.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Project"),
-            callback=self.runProjectToolbar,
-            menubar=self.projectMenu,
-            add_to_menu=False,
-            toolbar=self.toolbar,
-            dropButton=projectDropButton,
-            checkable=True,
-            addActionToDrop=False,
-            add_to_toolbar=False,
+        action = self._make_action(
+            ":/images/iconProjectMenu.svg", 
+            self.tr("Project"), 
+            self.runProjectToolbar,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
+        self.setup_dropdown_button(action, projectDropButton, self.toolbar)
         self.projectDropButton = projectDropButton
 
-        icon_path = ":/images/iconSummary.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Summary..."),
-            callback=self.runSummary,
-            menubar=self.projectMenu,
-            toolbar=self.projectToolbar,
-            actionBase=projectDropButton,
-            add_to_toolbar=True,
+        action = self._make_action(
+            ":/images/iconSummary.svg", 
+            self.tr("Summary..."), 
+            self.runSummary,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconAddData.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Add data by import..."),
-            callback=self.runCanAddData,
-            menubar=self.projectMenu,
-            toolbar=self.projectToolbar,
-            actionBase=projectDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(action, self.projectMenu, self.projectToolbar)
+        self.add_to_dropdown(action, projectDropButton)
+
+        action = self._make_action(
+            ":/images/iconAddData.svg", 
+            self.tr("Add data by import..."), 
+            self.runCanAddData,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconLayerManagement.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Layer manager..."),
-            callback=self.runLayerManagement,
-            menubar=self.projectMenu,
-            toolbar=self.projectToolbar,
-            actionBase=projectDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(action, self.projectMenu, self.projectToolbar)
+        self.add_to_dropdown(action, projectDropButton)
+
+        action = self._make_action(
+            ":/images/iconLayerManagement.svg", 
+            self.tr("Layer manager..."), 
+            self.runLayerManagement,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconThematicMaps.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Legend editor..."),
-            callback=self.runLegends,
-            menubar=self.projectMenu,
-            toolbar=self.projectToolbar,
-            actionBase=projectDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(action, self.projectMenu, self.projectToolbar)
+        self.add_to_dropdown(action, projectDropButton)
+
+        action = self._make_action(
+            ":/images/iconThematicMaps.svg", 
+            self.tr("Legend editor..."), 
+            self.runLegends,
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(action, self.projectMenu, self.projectToolbar)
+        self.add_to_dropdown(action, projectDropButton)
+
         projectDropButton.menu().addSeparator()
         self.projectToolbar.addSeparator()
         self.projectMenu.addSeparator()
-        icon_path = ":/images/iconProjectSettings.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Project settings..."),
-            callback=self.runSettings,
-            menubar=self.projectMenu,
-            toolbar=self.projectToolbar,
-            actionBase=projectDropButton,
-            add_to_toolbar=True,
+
+        action = self._make_action(
+            ":/images/iconProjectSettings.svg", 
+            self.tr("Project settings..."), 
+            self.runSettings,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconDefaultMenu.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Default values..."),
-            callback=self.runDefaultValues,
-            menubar=self.projectMenu,
-            toolbar=self.projectToolbar,
-            actionBase=projectDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(action, self.projectMenu, self.projectToolbar)
+        self.add_to_dropdown(action, projectDropButton)
+
+        action = self._make_action(
+            ":/images/iconDefaultMenu.svg", 
+            self.tr("Default values..."), 
+            self.runDefaultValues,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconMaterials.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Materials Table..."),
-            callback=self.runMaterials,
-            menubar=self.projectMenu,
-            toolbar=self.projectToolbar,
-            actionBase=projectDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(action, self.projectMenu, self.projectToolbar)
+        self.add_to_dropdown(action, projectDropButton)
+
+        action = self._make_action(
+            ":/images/iconMaterials.svg", 
+            self.tr("Materials Table..."), 
+            self.runMaterials,
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(action, self.projectMenu, self.projectToolbar)
+        self.add_to_dropdown(action, projectDropButton)
+
         projectDropButton.menu().addSeparator()
         self.projectToolbar.addSeparator()
         self.projectMenu.addSeparator()
-        icon_path = ":/images/iconSaveProject.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Save project"),
-            callback=self.runSaveActionProject,
-            menubar=self.projectMenu,
-            toolbar=self.projectToolbar,
-            actionBase=projectDropButton,
-            add_to_toolbar=True,
+
+        action = self._make_action(
+            ":/images/iconSaveProject.svg", 
+            self.tr("Save project"), 
+            self.runSaveActionProject,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconBackUpProject.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Project backup"),
-            callback=self.runCreateBackup,
-            menubar=self.projectMenu,
-            toolbar=self.projectToolbar,
-            actionBase=projectDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(action, self.projectMenu, self.projectToolbar)
+        self.add_to_dropdown(action, projectDropButton)
+
+        action = self._make_action(
+            ":/images/iconBackUpProject.svg", 
+            self.tr("Project backup"), 
+            self.runCreateBackup,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconCloseProject.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Close project"),
-            callback=self.runCloseProject,
-            menubar=self.projectMenu,
-            toolbar=self.projectToolbar,
-            actionBase=projectDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(action, self.projectMenu, self.projectToolbar)
+        self.add_to_dropdown(action, projectDropButton)
+
+        action = self._make_action(
+            ":/images/iconCloseProject.svg", 
+            self.tr("Close project"), 
+            self.runCloseProject,
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(action, self.projectMenu, self.projectToolbar)
+        self.add_to_dropdown(action, projectDropButton)
 
     def addEditMenu(self):
         #    #Menu
@@ -275,254 +234,208 @@ class MenuSection:
 
         #    #Buttons
         editDropButton = QToolButton()
-        icon_path = ":/images/iconEditMenu.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Edition"),
-            callback=self.runEditionToolbar,
-            menubar=self.editionMenu,
-            add_to_menu=False,
-            checkable=True,
-            toolbar=self.toolbar,
-            dropButton=editDropButton,
-            addActionToDrop=False,
-            add_to_toolbar=False,
+        action = self._make_action(
+            ":/images/iconEditMenu.svg", 
+            self.tr("Edition"), 
+            self.runEditionToolbar,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
+        self.setup_dropdown_button(action, editDropButton, self.toolbar)
         self.editDropButton = editDropButton
 
-        icon_path = ":/images/iconAddPipe.svg"
-        self.addPipeButton = self.add_action(
-            icon_path,
-            text=self.tr("Add pipe"),
-            callback=self.runPaintPipe,
-            menubar=self.editionMenu,
-            toolbar=self.editionToolbar,
-            actionBase=editDropButton,
-            add_to_toolbar=True,
-            checkable=True,
+        self.addPipeButton = self._make_action(
+            ":/images/iconAddPipe.svg", self.tr("Add pipe"), self.runPaintPipe,
+            checkable=True, parent=self.iface.mainWindow(),
+        )
+        self.add_to_group(self.addPipeButton, self.editionMenu, self.editionToolbar)
+        self.add_to_dropdown(self.addPipeButton, editDropButton)
+
+        self.addTankButton = self._make_action(
+            ":/images/iconAddTank.svg", 
+            self.tr("Add tank"), 
+            self.runSelectTankPoint,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconAddTank.svg"
-        self.addTankButton = self.add_action(
-            icon_path,
-            text=self.tr("Add tank"),
-            callback=self.runSelectTankPoint,
-            menubar=self.editionMenu,
-            toolbar=self.editionToolbar,
-            actionBase=editDropButton,
-            add_to_toolbar=True,
-            checkable=True,
+        self.add_to_group(self.addTankButton, self.editionMenu, self.editionToolbar)
+        self.add_to_dropdown(self.addTankButton, editDropButton)
+
+        self.addReservoirButton = self._make_action(
+            ":/images/iconAddReservoir.svg", 
+            self.tr("Add reservoir"), 
+            self.runSelectReservoirPoint,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconAddReservoir.svg"
-        self.addReservoirButton = self.add_action(
-            icon_path,
-            text=self.tr("Add reservoir"),
-            callback=self.runSelectReservoirPoint,
-            menubar=self.editionMenu,
-            toolbar=self.editionToolbar,
-            actionBase=editDropButton,
-            add_to_toolbar=True,
-            checkable=True,
+        self.add_to_group(self.addReservoirButton, self.editionMenu, self.editionToolbar)
+        self.add_to_dropdown(self.addReservoirButton, editDropButton)
+
+        self.insertValveButton = self._make_action(
+            ":/images/iconAddValve.svg", 
+            self.tr("Insert valve in pipe"), 
+            self.runSelectValvePoint,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconAddValve.svg"
-        self.insertValveButton = self.add_action(
-            icon_path,
-            text=self.tr("Insert valve in pipe"),
-            callback=self.runSelectValvePoint,
-            menubar=self.editionMenu,
-            toolbar=self.editionToolbar,
-            actionBase=editDropButton,
-            add_to_toolbar=True,
-            checkable=True,
+        self.add_to_group(self.insertValveButton, self.editionMenu, self.editionToolbar)
+        self.add_to_dropdown(self.insertValveButton, editDropButton)
+
+        self.insertPumpButton = self._make_action(
+            ":/images/iconAddPump.svg", 
+            self.tr("Insert pump in pipe"), 
+            self.runSelectPumpPoint,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconAddPump.svg"
-        self.insertPumpButton = self.add_action(
-            icon_path,
-            text=self.tr("Insert pump in pipe"),
-            callback=self.runSelectPumpPoint,
-            menubar=self.editionMenu,
-            toolbar=self.editionToolbar,
-            actionBase=editDropButton,
-            add_to_toolbar=True,
-            checkable=True,
-            parent=self.iface.mainWindow(),
-        )
+        self.add_to_group(self.insertPumpButton, self.editionMenu, self.editionToolbar)
+        self.add_to_dropdown(self.insertPumpButton, editDropButton)
+
         editDropButton.menu().addSeparator()
         self.editionToolbar.addSeparator()
         self.editionMenu.addSeparator()
-        icon_path = ":/images/iconMultipleSelection.svg"
-        self.selectElementsButton = self.add_action(
-            icon_path,
-            text=self.tr("Select multiple elements"),
-            callback=self.runSelectElements,
-            menubar=self.editionMenu,
-            toolbar=self.editionToolbar,
-            actionBase=editDropButton,
-            add_to_toolbar=True,
-            checkable=True,
+
+        self.selectElementsButton = self._make_action(
+            ":/images/iconMultipleSelection.svg", 
+            self.tr("Select multiple elements"), 
+            self.runSelectElements,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconMoveNodes.svg"
-        self.moveElementsButton = self.add_action(
-            icon_path,
-            text=self.tr("Move nodes"),
-            callback=self.runMoveElements,
-            menubar=self.editionMenu,
-            toolbar=self.editionToolbar,
-            actionBase=editDropButton,
-            add_to_toolbar=True,
-            checkable=True,
+        self.add_to_group(self.selectElementsButton, self.editionMenu, self.editionToolbar)
+        self.add_to_dropdown(self.selectElementsButton, editDropButton)
+
+        self.moveElementsButton = self._make_action(
+            ":/images/iconMoveNodes.svg", 
+            self.tr("Move nodes"), 
+            self.runMoveElements,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconEditVertices.svg"
-        self.moveVertexsButton = self.add_action(
-            icon_path,
-            text=self.tr("Edit link vertices"),
-            callback=self.runEditLinkGeometry,
-            menubar=self.editionMenu,
-            toolbar=self.editionToolbar,
-            actionBase=editDropButton,
-            add_to_toolbar=True,
-            checkable=True,
+        self.add_to_group(self.moveElementsButton, self.editionMenu, self.editionToolbar)
+        self.add_to_dropdown(self.moveElementsButton, editDropButton)
+
+        self.moveVertexsButton = self._make_action(
+            ":/images/iconEditVertices.svg", 
+            self.tr("Edit link vertices"), 
+            self.runEditLinkGeometry,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconReverseElements.svg"
-        self.reverseLinkButton = self.add_action(
-            icon_path,
-            text=self.tr("Reverse elements"),
-            callback=self.canReverseLink,
-            menubar=self.editionMenu,
-            toolbar=self.editionToolbar,
-            actionBase=editDropButton,
-            add_to_toolbar=True,
-            checkable=True,
+        self.add_to_group(self.moveVertexsButton, self.editionMenu, self.editionToolbar)
+        self.add_to_dropdown(self.moveVertexsButton, editDropButton)
+
+        self.reverseLinkButton = self._make_action(
+            ":/images/iconReverseElements.svg", 
+            self.tr("Reverse elements"), 
+            self.canReverseLink,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconSplitJoinPipes.svg"
-        self.splitPipeButton = self.add_action(
-            icon_path,
-            text=self.tr("Split/Join pipes"),
-            callback=self.runSelectSplitPoint,
-            menubar=self.editionMenu,
-            toolbar=self.editionToolbar,
-            actionBase=editDropButton,
-            add_to_toolbar=True,
-            checkable=True,
+        self.add_to_group(self.reverseLinkButton, self.editionMenu, self.editionToolbar)
+        self.add_to_dropdown(self.reverseLinkButton, editDropButton)
+
+        self.splitPipeButton = self._make_action(
+            ":/images/iconSplitJoinPipes.svg", 
+            self.tr("Split/Join pipes"), 
+            self.runSelectSplitPoint,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconMergeSplitJunctions.svg"
-        self.mergeSplitJunctionButton = self.add_action(
-            icon_path,
-            text=self.tr("Merge/Dissolve junctions"),
-            callback=self.runSelectPointToMergeSplit,
-            menubar=self.editionMenu,
-            toolbar=self.editionToolbar,
-            actionBase=editDropButton,
-            add_to_toolbar=True,
-            checkable=True,
+        self.add_to_group(self.splitPipeButton, self.editionMenu, self.editionToolbar)
+        self.add_to_dropdown(self.splitPipeButton, editDropButton)
+
+        self.mergeSplitJunctionButton = self._make_action(
+            ":/images/iconMergeSplitJunctions.svg", 
+            self.tr("Merge/Dissolve junctions"), 
+            self.runSelectPointToMergeSplit,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconCreateRemoveTConnections.svg"
-        self.createReverseTconButton = self.add_action(
-            icon_path,
-            text=self.tr("Create/Remove T connections"),
-            callback=self.runSelectPointToTconnections,
-            menubar=self.editionMenu,
-            toolbar=self.editionToolbar,
-            actionBase=editDropButton,
-            add_to_toolbar=True,
-            checkable=True,
+        self.add_to_group(self.mergeSplitJunctionButton, self.editionMenu, self.editionToolbar)
+        self.add_to_dropdown(self.mergeSplitJunctionButton, editDropButton)
+
+        self.createReverseTconButton = self._make_action(
+            ":/images/iconCreateRemoveTConnections.svg", 
+            self.tr("Create/Remove T connections"), 
+            self.runSelectPointToTconnections,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconCreateRemoveCrossings.svg"
-        self.createReverseCrossButton = self.add_action(
-            icon_path,
-            text=self.tr("Create/Remove crossings"),
-            callback=self.runSelectPointToCrossings,
-            menubar=self.editionMenu,
-            toolbar=self.editionToolbar,
-            actionBase=editDropButton,
-            add_to_toolbar=True,
-            checkable=True,
+        self.add_to_group(self.createReverseTconButton, self.editionMenu, self.editionToolbar)
+        self.add_to_dropdown(self.createReverseTconButton, editDropButton)
+
+        self.createReverseCrossButton = self._make_action(
+            ":/images/iconCreateRemoveCrossings.svg", 
+            self.tr("Create/Remove crossings"), 
+            self.runSelectPointToCrossings,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconMoveElements.svg"
-        self.moveValvePumpButton = self.add_action(
-            icon_path,
-            text=self.tr("Move valves/pumps"),
-            callback=self.runSelectValvePumpPoints,
-            menubar=self.editionMenu,
-            toolbar=self.editionToolbar,
-            actionBase=editDropButton,
-            add_to_toolbar=True,
-            checkable=True,
+        self.add_to_group(self.createReverseCrossButton, self.editionMenu, self.editionToolbar)
+        self.add_to_dropdown(self.createReverseCrossButton, editDropButton)
+
+        self.moveValvePumpButton = self._make_action(
+            ":/images/iconMoveElements.svg", 
+            self.tr("Move valves/pumps"), 
+            self.runSelectValvePumpPoints,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconChangeStatus.svg"
-        self.changeStatusButton = self.add_action(
-            icon_path,
-            text=self.tr("Change element status"),
-            callback=self.runSelectElementStatusPoint,
-            menubar=self.editionMenu,
-            toolbar=self.editionToolbar,
-            actionBase=editDropButton,
-            add_to_toolbar=True,
-            checkable=True,
+        self.add_to_group(self.moveValvePumpButton, self.editionMenu, self.editionToolbar)
+        self.add_to_dropdown(self.moveValvePumpButton, editDropButton)
+
+        self.changeStatusButton = self._make_action(
+            ":/images/iconChangeStatus.svg", 
+            self.tr("Change element status"), 
+            self.runSelectElementStatusPoint,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconDeleteElements.svg"
-        self.removeElementsButton = self.add_action(
-            icon_path,
-            text=self.tr("Delete elements"),
-            callback=self.canDeleteElements,
-            menubar=self.editionMenu,
-            toolbar=self.editionToolbar,
-            actionBase=editDropButton,
-            add_to_toolbar=True,
-            checkable=True,
+        self.add_to_group(self.changeStatusButton, self.editionMenu, self.editionToolbar)
+        self.add_to_dropdown(self.changeStatusButton, editDropButton)
+
+        self.removeElementsButton = self._make_action(
+            ":/images/iconDeleteElements.svg", 
+            self.tr("Delete elements"), 
+            self.canDeleteElements,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(self.removeElementsButton, self.editionMenu, self.editionToolbar)
+        self.add_to_dropdown(self.removeElementsButton, editDropButton)
+
         editDropButton.menu().addSeparator()
         self.editionToolbar.addSeparator()
         self.editionMenu.addSeparator()
-        icon_path = ":/images/iconEditMenu.svg"
-        self.editElementButton = self.add_action(
-            icon_path,
-            text=self.tr("Edit element properties..."),
-            callback=self.runSelectPointProperties,
-            menubar=self.editionMenu,
-            toolbar=self.editionToolbar,
-            actionBase=editDropButton,
-            add_to_toolbar=True,
-            checkable=True,
+
+        self.editElementButton = self._make_action(
+            ":/images/iconEditMenu.svg", 
+            self.tr("Edit element properties..."), 
+            self.runSelectPointProperties,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconPatternsAndCurves.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Edit patterns and curves..."),
-            callback=self.runPatternsCurves,
-            menubar=self.editionMenu,
-            toolbar=self.editionToolbar,
-            actionBase=editDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(self.editElementButton, self.editionMenu, self.editionToolbar)
+        self.add_to_dropdown(self.editElementButton, editDropButton)
+
+        action = self._make_action(
+            ":/images/iconPatternsAndCurves.svg", 
+            self.tr("Edit patterns and curves..."), 
+            self.runPatternsCurves,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconControlsAndRules.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Edit controls..."),
-            callback=self.runControls,
-            menubar=self.editionMenu,
-            toolbar=self.editionToolbar,
-            actionBase=editDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(action, self.editionMenu, self.editionToolbar)
+        self.add_to_dropdown(action, editDropButton)
+
+        action = self._make_action(
+            ":/images/iconControlsAndRules.svg", 
+            self.tr("Edit controls..."), 
+            self.runControls,
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(action, self.editionMenu, self.editionToolbar)
+        self.add_to_dropdown(action, editDropButton)
 
     def addDebugMenu(self):
         #    #Menu
@@ -535,162 +448,135 @@ class MenuSection:
         self.debugToolbar.setVisible(False)
         #    #Buttons
         debugDropButton = QToolButton()
-        icon_path = ":/images/iconDebugMenu.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Debug"),
-            callback=self.runDebugToolbar,
-            menubar=self.debugMenu,
-            add_to_menu=False,
-            checkable=True,
-            toolbar=self.toolbar,
-            dropButton=debugDropButton,
-            addActionToDrop=False,
-            add_to_toolbar=False,
+        action = self._make_action(
+            ":/images/iconDebugMenu.svg", 
+            self.tr("Debug"), 
+            self.runDebugToolbar,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
+        self.setup_dropdown_button(action, debugDropButton, self.toolbar)
         self.debugDropButton = debugDropButton
 
-        icon_path = ":/images/iconDebugMenu.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Check && Commit data"),
-            callback=self.runCommit,
-            menubar=self.debugMenu,
-            toolbar=self.debugToolbar,
-            actionBase=debugDropButton,
-            add_to_toolbar=True,
+        action = self._make_action(
+            ":/images/iconDebugMenu.svg", 
+            self.tr("Check && Commit data"), 
+            self.runCommit,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconRemoveOverlappings.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Remove overlapping elements"),
-            callback=self.runCheckOverlappingElements,
-            menubar=self.debugMenu,
-            toolbar=self.debugToolbar,
-            actionBase=debugDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(action, self.debugMenu, self.debugToolbar)
+        self.add_to_dropdown(action, debugDropButton)
+
+        action = self._make_action(
+            ":/images/iconRemoveOverlappings.svg", 
+            self.tr("Remove overlapping elements"), 
+            self.runCheckOverlappingElements,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconSimplifyVertices.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Simplify link vertices"),
-            callback=self.runSimplifyVertices,
-            menubar=self.debugMenu,
-            toolbar=self.debugToolbar,
-            actionBase=debugDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(action, self.debugMenu, self.debugToolbar)
+        self.add_to_dropdown(action, debugDropButton)
+
+        action = self._make_action(
+            ":/images/iconSimplifyVertices.svg", 
+            self.tr("Simplify link vertices"), 
+            self.runSimplifyVertices,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconJoinPipes.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Join consecutive pipes (diameter, material and year)"),
-            callback=self.runCheckJoinPipes,
-            menubar=self.debugMenu,
-            toolbar=self.debugToolbar,
-            actionBase=debugDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(action, self.debugMenu, self.debugToolbar)
+        self.add_to_dropdown(action, debugDropButton)
+
+        action = self._make_action(
+            ":/images/iconJoinPipes.svg", 
+            self.tr("Join consecutive pipes (diameter, material and year)"), 
+            self.runCheckJoinPipes,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconCreateTConnections.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Create T Connections"),
-            callback=self.runCheckTConncetions,
-            menubar=self.debugMenu,
-            toolbar=self.debugToolbar,
-            actionBase=debugDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(action, self.debugMenu, self.debugToolbar)
+        self.add_to_dropdown(action, debugDropButton)
+
+        action = self._make_action(
+            ":/images/iconCreateTConnections.svg", 
+            self.tr("Create T Connections"), 
+            self.runCheckTConncetions,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconCheckConnectivity.svg"
+        self.add_to_group(action, self.debugMenu, self.debugToolbar)
+        self.add_to_dropdown(action, debugDropButton)
+
+        # Connectivity sub-dropdown
         dropButton = QToolButton()
-        self.add_action(
-            icon_path,
-            text=self.tr("Check connectivity"),
-            callback=self.runCheckConnectivityM,
-            menubar=self.debugMenu,
-            toolbar=self.debugToolbar,
-            actionBase=debugDropButton,
-            dropButton=dropButton,
-            add_to_toolbar=False,
+        action = self._make_action(
+            ":/images/iconCheckConnectivity.svg", 
+            self.tr("Check connectivity"), 
+            self.runCheckConnectivityM,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconDeleteIsolatedAreas.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Delete issolated subzones"),
-            callback=self.runCheckConnectivityC,
-            menubar=self.debugMenu,
-            toolbar=self.debugToolbar,
-            actionBase=dropButton,
-            add_to_toolbar=False,
+        self.add_to_group(action, self.debugMenu)
+        self.add_to_dropdown(action, debugDropButton)
+        self.setup_dropdown_button(action, dropButton, self.debugToolbar)
+        self.add_to_dropdown(action, dropButton)
+
+        action = self._make_action(
+            ":/images/iconDeleteIsolatedAreas.svg", 
+            self.tr("Delete issolated subzones"), 
+            self.runCheckConnectivityC,
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(action, self.debugMenu)
+        self.add_to_dropdown(action, dropButton)
+
         dropButton.menu().addSeparator()
         self.debugToolbar.addSeparator()
         self.debugMenu.addSeparator()
-        icon_path = ":/images/iconCheckPipeLengths.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Check pipe lengths"),
-            callback=self.runCheckLengths,
-            menubar=self.debugMenu,
-            toolbar=self.debugToolbar,
-            actionBase=debugDropButton,
-            add_to_toolbar=True,
+
+        action = self._make_action(
+            ":/images/iconCheckPipeLengths.svg", 
+            self.tr("Check pipe lengths"), 
+            self.runCheckLengths,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconCheckDiameters.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Check diameters"),
-            callback=self.runCheckDiameters,
-            menubar=self.debugMenu,
-            toolbar=self.debugToolbar,
-            actionBase=debugDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(action, self.debugMenu, self.debugToolbar)
+        self.add_to_dropdown(action, debugDropButton)
+
+        action = self._make_action(
+            ":/images/iconCheckDiameters.svg", 
+            self.tr("Check diameters"), 
+            self.runCheckDiameters,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconCheckMaterials.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Check pipe materials"),
-            callback=self.runCheckMaterials,
-            menubar=self.debugMenu,
-            toolbar=self.debugToolbar,
-            actionBase=debugDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(action, self.debugMenu, self.debugToolbar)
+        self.add_to_dropdown(action, debugDropButton)
+
+        action = self._make_action(
+            ":/images/iconCheckMaterials.svg", 
+            self.tr("Check pipe materials"), 
+            self.runCheckMaterials,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconCheckInstalationDates.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Check pipe installation dates"),
-            callback=self.runCheckInstallationDates,
-            menubar=self.debugMenu,
-            toolbar=self.debugToolbar,
-            actionBase=debugDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(action, self.debugMenu, self.debugToolbar)
+        self.add_to_dropdown(action, debugDropButton)
+
+        action = self._make_action(
+            ":/images/iconCheckInstalationDates.svg", 
+            self.tr("Check pipe installation dates"), 
+            self.runCheckInstallationDates,
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(action, self.debugMenu, self.debugToolbar)
+        self.add_to_dropdown(action, debugDropButton)
+
         dropButton.menu().addSeparator()
         self.debugToolbar.addSeparator()
         self.debugMenu.addSeparator()
-        icon_path = ":/images/iconCheckHydraulicSectors.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Check hydraulic sectors"),
-            callback=self.runHydraulicSectors,
-            menubar=self.debugMenu,
-            toolbar=self.debugToolbar,
-            actionBase=debugDropButton,
-            add_to_toolbar=True,
+
+        action = self._make_action(
+            ":/images/iconCheckHydraulicSectors.svg", 
+            self.tr("Check hydraulic sectors"), 
+            self.runHydraulicSectors,
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(action, self.debugMenu, self.debugToolbar)
+        self.add_to_dropdown(action, debugDropButton)
 
     def addToolsMenu(self):
         #    #Menu
@@ -703,128 +589,105 @@ class MenuSection:
         self.toolsToolbar.setVisible(False)
         #    #Buttons
         toolDropButton = QToolButton()
-        icon_path = ":/images/iconToolsMenu.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Tools"),
-            callback=self.runToolsToolbar,
-            menubar=self.toolsMenu,
-            add_to_menu=False,
-            checkable=True,
-            toolbar=self.toolbar,
-            dropButton=toolDropButton,
-            addActionToDrop=False,
-            add_to_toolbar=False,
+        action = self._make_action(
+            ":/images/iconToolsMenu.svg", 
+            self.tr("Tools"), 
+            self.runToolsToolbar,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
+        self.setup_dropdown_button(action, toolDropButton, self.toolbar)
         self.toolsDropButton = toolDropButton
 
-        icon_path = ":/images/iconCalculatePipeLengths.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Automatically Calculate Pipe Lengths"),
-            callback=self.runCalculateLengths,
-            menubar=self.toolsMenu,
-            toolbar=self.toolsToolbar,
-            actionBase=toolDropButton,
-            add_to_toolbar=True,
+        action = self._make_action(
+            ":/images/iconCalculatePipeLengths.svg", 
+            self.tr("Automatically Calculate Pipe Lengths"), 
+            self.runCalculateLengths,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconInterpolateNodeElevations.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Interpolate elevation from .asc files..."),
-            callback=self.runElevationInterpolation,
-            menubar=self.toolsMenu,
-            toolbar=self.toolsToolbar,
-            actionBase=toolDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(action, self.toolsMenu, self.toolsToolbar)
+        self.add_to_dropdown(action, toolDropButton)
+
+        action = self._make_action(
+            ":/images/iconInterpolateNodeElevations.svg", 
+            self.tr("Interpolate elevation from .asc files..."), 
+            self.runElevationInterpolation,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconSetRoughnessFromMaterialDate.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Set roughness coefficient (from Material and Date)"),
-            callback=self.runSetRoughness,
-            menubar=self.toolsMenu,
-            toolbar=self.toolsToolbar,
-            actionBase=toolDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(action, self.toolsMenu, self.toolsToolbar)
+        self.add_to_dropdown(action, toolDropButton)
+
+        action = self._make_action(
+            ":/images/iconSetRoughnessFromMaterialDate.svg", 
+            self.tr("Set roughness coefficient (from Material and Date)"), 
+            self.runSetRoughness,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconConvertRoughnessCoeff.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Convert roughness coefficient"),
-            callback=self.runConvertRoughness,
-            menubar=self.toolsMenu,
-            toolbar=self.toolsToolbar,
-            actionBase=toolDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(action, self.toolsMenu, self.toolsToolbar)
+        self.add_to_dropdown(action, toolDropButton)
+
+        action = self._make_action(
+            ":/images/iconConvertRoughnessCoeff.svg", 
+            self.tr("Convert roughness coefficient"), 
+            self.runConvertRoughness,
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(action, self.toolsMenu, self.toolsToolbar)
+        self.add_to_dropdown(action, toolDropButton)
+
         toolDropButton.menu().addSeparator()
         self.toolsToolbar.addSeparator()
         self.toolsMenu.addSeparator()
-        icon_path = ":/images/iconDemandBuilder.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Nodal Demand Builder..."),
-            callback=self.runDemandsManager,
-            menubar=self.toolsMenu,
-            toolbar=self.toolsToolbar,
-            actionBase=toolDropButton,
-            add_to_toolbar=True,
+
+        action = self._make_action(
+            ":/images/iconDemandBuilder.svg", 
+            self.tr("Nodal Demand Builder..."), 
+            self.runDemandsManager,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconScenarioBuilder.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Scenario Builder..."),
-            callback=self.runScenarioManager,
-            menubar=self.toolsMenu,
-            toolbar=self.toolsToolbar,
-            actionBase=toolDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(action, self.toolsMenu, self.toolsToolbar)
+        self.add_to_dropdown(action, toolDropButton)
+
+        action = self._make_action(
+            ":/images/iconScenarioBuilder.svg", 
+            self.tr("Scenario Builder..."), 
+            self.runScenarioManager,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconIsolatedSegments.svg"
-        self.isolatedSegmentsButton = self.add_action(
-            icon_path,
-            text=self.tr("Isolated Segments"),
-            callback=self.runIsolatedSegments,
-            menubar=self.toolsMenu,
-            toolbar=self.toolsToolbar,
-            actionBase=toolDropButton,
-            add_to_toolbar=True,
-            checkable=True,
+        self.add_to_group(action, self.toolsMenu, self.toolsToolbar)
+        self.add_to_dropdown(action, toolDropButton)
+
+        self.isolatedSegmentsButton = self._make_action(
+            ":/images/iconIsolatedSegments.svg", 
+            self.tr("Isolated Segments"), 
+            self.runIsolatedSegments,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(self.isolatedSegmentsButton, self.toolsMenu, self.toolsToolbar)
+        self.add_to_dropdown(self.isolatedSegmentsButton, toolDropButton)
+
         toolDropButton.menu().addSeparator()
         self.toolsToolbar.addSeparator()
         self.toolsMenu.addSeparator()
-        icon_path = ":/images/iconDemandSectors.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Obtain demand sectors"),
-            callback=self.runDemandSectors,
-            menubar=self.toolsMenu,
-            toolbar=self.toolsToolbar,
-            actionBase=toolDropButton,
-            add_to_toolbar=True,
+
+        action = self._make_action(
+            ":/images/iconDemandSectors.svg", 
+            self.tr("Obtain demand sectors"), 
+            self.runDemandSectors,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconGraphTree.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Tree Graph..."),
-            callback=self.runTree,
-            menubar=self.toolsMenu,
-            toolbar=self.toolsToolbar,
-            actionBase=toolDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(action, self.toolsMenu, self.toolsToolbar)
+        self.add_to_dropdown(action, toolDropButton)
+
+        action = self._make_action(
+            ":/images/iconGraphTree.svg", 
+            self.tr("Tree Graph..."), 
+            self.runTree,
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(action, self.toolsMenu, self.toolsToolbar)
+        self.add_to_dropdown(action, toolDropButton)
 
     def addAnalysisMenu(self):
         #    #Menu
@@ -837,97 +700,84 @@ class MenuSection:
         self.analysisToolbar.setVisible(False)
         #    #Buttons
         analysisDropButton = QToolButton()
-        icon_path = ":/images/iconAnalysisMenu.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Analysis"),
-            callback=self.runAnalysisToolbar,
-            menubar=self.analysisMenu,
-            add_to_menu=False,
-            toolbar=self.toolbar,
-            dropButton=analysisDropButton,
-            checkable=True,
-            addActionToDrop=False,
-            add_to_toolbar=False,
+        action = self._make_action(
+            ":/images/iconAnalysisMenu.svg", 
+            self.tr("Analysis"), 
+            self.runAnalysisToolbar,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
+        self.setup_dropdown_button(action, analysisDropButton, self.toolbar)
         self.analysisDropButton = analysisDropButton
 
-        icon_path = ":/images/iconAnalysisMenu.svg"
+        # Run model sub-dropdown (groups Run model / Results browser / Status report)
         dropButton = QToolButton()
-        self.add_action(
-            icon_path,
-            text=self.tr("Run model"),
-            callback=self.runModel,
-            menubar=self.analysisMenu,
-            toolbar=self.analysisToolbar,
-            actionBase=analysisDropButton,
-            dropButton=dropButton,
-            add_to_toolbar=False,
+        action = self._make_action(
+            ":/images/iconAnalysisMenu.svg", 
+            self.tr("Run model"), 
+            self.runModel,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconResultsBrowser.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Results browser"),
-            callback=self.runShowResultsDock,
-            menubar=self.analysisMenu,
-            toolbar=self.analysisToolbar,
-            actionBase=dropButton,
-            add_to_toolbar=False,
+        self.add_to_group(action, self.analysisMenu)
+        self.add_to_dropdown(action, analysisDropButton)
+        self.setup_dropdown_button(action, dropButton, self.analysisToolbar)
+        self.add_to_dropdown(action, dropButton)
+
+        action = self._make_action(
+            ":/images/iconResultsBrowser.svg", 
+            self.tr("Results browser"), 
+            self.runShowResultsDock,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconAnalysisMenu.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Status report"),
-            callback=self.runOpenStatusReport,
-            menubar=self.analysisMenu,
-            toolbar=self.analysisToolbar,
-            actionBase=dropButton,
-            add_to_toolbar=False,
+        self.add_to_group(action, self.analysisMenu)
+        self.add_to_dropdown(action, dropButton)
+        self.add_to_dropdown(action, analysisDropButton)
+
+        action = self._make_action(
+            ":/images/iconAnalysisMenu.svg", 
+            self.tr("Status report"), 
+            self.runOpenStatusReport,
             parent=self.iface.mainWindow(),
         )
-        icon_path = ":/images/iconAnalysisOptions.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Analysis options..."),
-            callback=self.runAnalysisOptions,
-            menubar=self.analysisMenu,
-            toolbar=self.analysisToolbar,
-            actionBase=analysisDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(action, self.analysisMenu)
+        self.add_to_dropdown(action, dropButton)
+        self.add_to_dropdown(action, analysisDropButton)
+
+        action = self._make_action(
+            ":/images/iconAnalysisOptions.svg", 
+            self.tr("Analysis options..."), 
+            self.runAnalysisOptions,
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(action, self.analysisMenu, self.analysisToolbar)
+        self.add_to_dropdown(action, analysisDropButton)
+
         analysisDropButton.menu().addSeparator()
         self.analysisToolbar.addSeparator()
         self.analysisMenu.addSeparator()
-        icon_path = ":/images/iconTimeSeries.svg"
-        self.timeSeriesButton = self.add_action(
-            icon_path,
-            text=self.tr("Time Series"),
-            callback=self.runTimeSeries,
-            menubar=self.analysisMenu,
-            toolbar=self.analysisToolbar,
-            actionBase=analysisDropButton,
-            add_to_toolbar=True,
-            checkable=True,
+
+        self.timeSeriesButton = self._make_action(
+            ":/images/iconTimeSeries.svg", 
+            self.tr("Time Series"), 
+            self.runTimeSeries,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(self.timeSeriesButton, self.analysisMenu, self.analysisToolbar)
+        self.add_to_dropdown(self.timeSeriesButton, analysisDropButton)
+
         analysisDropButton.menu().addSeparator()
         self.analysisToolbar.addSeparator()
         self.analysisMenu.addSeparator()
-        icon_path = ":/images/iconExportToEpanet.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Export to Epanet"),
-            callback=self.runExportInp,
-            menubar=self.analysisMenu,
-            toolbar=self.analysisToolbar,
-            actionBase=analysisDropButton,
-            add_to_toolbar=True,
+
+        action = self._make_action(
+            ":/images/iconExportToEpanet.svg", 
+            self.tr("Export to Epanet"), 
+            self.runExportInp,
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(action, self.analysisMenu, self.analysisToolbar)
+        self.add_to_dropdown(action, analysisDropButton)
 
     def addDigitalTwinMenu(self):
         #    #Menu
@@ -940,47 +790,35 @@ class MenuSection:
         self.dtToolbar.setVisible(False)
         #    #Buttons
         dtDropButton = QToolButton()
-        icon_path = ":/images/iconDigitalTwinMenu.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Digital Twin"),
-            callback=self.runDtToolbar,
-            menubar=self.dtMenu,
-            add_to_menu=False,
-            checkable=True,
-            toolbar=self.toolbar,
-            dropButton=dtDropButton,
-            addActionToDrop=False,
-            add_to_toolbar=False,
+        action = self._make_action(
+            ":/images/iconDigitalTwinMenu.svg", 
+            self.tr("Digital Twin"), 
+            self.runDtToolbar,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
+        self.setup_dropdown_button(action, dtDropButton, self.toolbar)
         self.dtDropButton = dtDropButton
 
-        icon_path = ":/images/iconAddConnection.svg"
-        self.addServConnButton = self.add_action(
-            icon_path,
-            text=self.tr("Add service connection"),
-            callback=self.runPaintServiceConnection,
-            menubar=self.dtMenu,
-            toolbar=self.dtToolbar,
-            actionBase=dtDropButton,
-            add_to_toolbar=True,
-            checkable=True,
+        self.addServConnButton = self._make_action(
+            ":/images/iconAddConnection.svg", 
+            self.tr("Add service connection"), 
+            self.runPaintServiceConnection,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(self.addServConnButton, self.dtMenu, self.dtToolbar)
+        self.add_to_dropdown(self.addServConnButton, dtDropButton)
 
-        icon_path = ":/images/iconAddIsolationValve.svg"
-        self.addIsolationValveButton = self.add_action(
-            icon_path,
-            text=self.tr("Add isolation valve"),
-            callback=self.runSelectIsolationValvePoint,
-            menubar=self.dtMenu,
-            toolbar=self.dtToolbar,
-            actionBase=dtDropButton,
-            add_to_toolbar=True,
-            checkable=True,
+        self.addIsolationValveButton = self._make_action(
+            ":/images/iconAddIsolationValve.svg", 
+            self.tr("Add isolation valve"), 
+            self.runSelectIsolationValvePoint,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(self.addIsolationValveButton, self.dtMenu, self.dtToolbar)
+        self.add_to_dropdown(self.addIsolationValveButton, dtDropButton)
 
         # Create submenu for the main menu
         self.meterSubMenu = self.dtMenu.addMenu(self.tr("Add Meter"))
@@ -993,166 +831,125 @@ class MenuSection:
 
         self.currentMeter = "Undefined"
         self.addMeterDropButton = QToolButton()
-        self.addMeterDropButton.setPopupMode(QToolButton.InstantPopup)  # Optional: open menu on click
-        icon_path = ":/images/iconAddDefaultMeter.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Add meter"),
-            callback=self.runSelectDefaultMeterPoint,
-            add_to_menu=False,
-            menubar=None,
-            toolbar=self.dtToolbar,
-            actionBase=None,  # Changed: no flat action in dtDropButton menu
-            addActionToDrop=False,
-            add_to_toolbar=False,
-            checkable=True,
-            dropButton=self.addMeterDropButton,
+        action = self._make_action(
+            ":/images/iconAddDefaultMeter.svg", 
+            self.tr("Add meter"), 
+            self.runSelectDefaultMeterPoint,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
+        self.setup_dropdown_button(action, self.addMeterDropButton, self.dtToolbar)
 
-        icon_path = ":/images/iconAddAutometer.svg"
-        self.addAutoMeterButton = self.add_action(
-            icon_path,
-            text=self.tr("Add automatic meter"),
-            callback=self.runSelectAutoMeterPoint,
-            menubar=self.meterSubMenu,
-            toolbar=self.dtToolbar,
-            actionBase=self.addMeterDropButton,
-            add_to_toolbar=False,
-            checkable=True,
+        self.addAutoMeterButton = self._make_action(
+            ":/images/iconAddAutometer.svg", 
+            self.tr("Add automatic meter"), 
+            self.runSelectAutoMeterPoint,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(self.addAutoMeterButton, self.meterSubMenu)
+        self.add_to_dropdown(self.addAutoMeterButton, self.addMeterDropButton)
         self.addMeterDropButton.setDefaultAction(self.addAutoMeterButton)
 
-        icon_path = ":/images/iconAddManometer.svg"
-        self.addManometerButton = self.add_action(
-            icon_path,
-            text=self.tr("Add manometer"),
-            callback=self.runSelectManometerPoint,
-            menubar=self.meterSubMenu,
-            toolbar=self.dtToolbar,
-            actionBase=self.addMeterDropButton,
-            add_to_toolbar=False,
-            checkable=True,
+        self.addManometerButton = self._make_action(
+            ":/images/iconAddManometer.svg", 
+            self.tr("Add manometer"), 
+            self.runSelectManometerPoint,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(self.addManometerButton, self.meterSubMenu)
+        self.add_to_dropdown(self.addManometerButton, self.addMeterDropButton)
 
-        icon_path = ":/images/iconAddFlowmeter.svg"
-        self.addFlowmeterButton = self.add_action(
-            icon_path,
-            text=self.tr("Add flowmeter"),
-            callback=self.runSelectFlowmeterPoint,
-            menubar=self.meterSubMenu,
-            toolbar=self.dtToolbar,
-            actionBase=self.addMeterDropButton,
-            add_to_toolbar=False,
-            checkable=True,
+        self.addFlowmeterButton = self._make_action(
+            ":/images/iconAddFlowmeter.svg", 
+            self.tr("Add flowmeter"), 
+            self.runSelectFlowmeterPoint,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(self.addFlowmeterButton, self.meterSubMenu)
+        self.add_to_dropdown(self.addFlowmeterButton, self.addMeterDropButton)
 
-        icon_path = ":/images/iconAddCountermeter.svg"
-        self.addCountermeterButton = self.add_action(
-            icon_path,
-            text=self.tr("Add countermeter"),
-            callback=self.runSelectCountermeterPoint,
-            menubar=self.meterSubMenu,
-            toolbar=self.dtToolbar,
-            actionBase=self.addMeterDropButton,
-            add_to_toolbar=False,
-            checkable=True,
+        self.addCountermeterButton = self._make_action(
+            ":/images/iconAddCountermeter.svg", 
+            self.tr("Add countermeter"), 
+            self.runSelectCountermeterPoint,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(self.addCountermeterButton, self.meterSubMenu)
+        self.add_to_dropdown(self.addCountermeterButton, self.addMeterDropButton)
 
-        icon_path = ":/images/iconAddLevelSensor.svg"
-        self.addLevelSensorButton = self.add_action(
-            icon_path,
-            text=self.tr("Add level sensor"),
-            callback=self.runSelectLevelSensorPoint,
-            menubar=self.meterSubMenu,
-            toolbar=self.dtToolbar,
-            actionBase=self.addMeterDropButton,
-            add_to_toolbar=False,
-            checkable=True,
+        self.addLevelSensorButton = self._make_action(
+            ":/images/iconAddLevelSensor.svg", 
+            self.tr("Add level sensor"), 
+            self.runSelectLevelSensorPoint,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(self.addLevelSensorButton, self.meterSubMenu)
+        self.add_to_dropdown(self.addLevelSensorButton, self.addMeterDropButton)
 
-        icon_path = ":/images/iconAddDiffManometer.svg"
-        self.addDifferentialManometerButton = self.add_action(
-            icon_path,
-            text=self.tr("Add differential manometer"),
-            callback=self.runSelectDifferentialManometerPoint,
-            menubar=self.meterSubMenu,
-            toolbar=self.dtToolbar,
-            actionBase=self.addMeterDropButton,
-            add_to_toolbar=False,
-            checkable=True,
+        self.addDifferentialManometerButton = self._make_action(
+            ":/images/iconAddDiffManometer.svg", 
+            self.tr("Add differential manometer"), 
+            self.runSelectDifferentialManometerPoint,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(self.addDifferentialManometerButton, self.meterSubMenu)
+        self.add_to_dropdown(self.addDifferentialManometerButton, self.addMeterDropButton)
 
-        icon_path = ":/images/iconAddQualitySensor.svg"
-        self.addQualitySensorButton = self.add_action(
-            icon_path,
-            text=self.tr("Add quality sensor"),
-            callback=self.runSelectQualitySensorPoint,
-            menubar=self.meterSubMenu,
-            toolbar=self.dtToolbar,
-            actionBase=self.addMeterDropButton,
-            add_to_toolbar=False,
-            checkable=True,
+        self.addQualitySensorButton = self._make_action(
+            ":/images/iconAddQualitySensor.svg", 
+            self.tr("Add quality sensor"), 
+            self.runSelectQualitySensorPoint,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(self.addQualitySensorButton, self.meterSubMenu)
+        self.add_to_dropdown(self.addQualitySensorButton, self.addMeterDropButton)
 
-        icon_path = ":/images/iconAddEnergySensor.svg"
-        self.addEnergySensorButton = self.add_action(
-            icon_path,
-            text=self.tr("Add energy sensor"),
-            callback=self.runSelectEnergySensorPoint,
-            menubar=self.meterSubMenu,
-            toolbar=self.dtToolbar,
-            actionBase=self.addMeterDropButton,
-            add_to_toolbar=False,
-            checkable=True,
+        self.addEnergySensorButton = self._make_action(
+            ":/images/iconAddEnergySensor.svg", 
+            self.tr("Add energy sensor"), 
+            self.runSelectEnergySensorPoint,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(self.addEnergySensorButton, self.meterSubMenu)
+        self.add_to_dropdown(self.addEnergySensorButton, self.addMeterDropButton)
 
-        icon_path = ":/images/iconAddStatusSensor.svg"
-        self.addStatusSensorButton = self.add_action(
-            icon_path,
-            text=self.tr("Add status sensor"),
-            callback=self.runSelectStatusSensorPoint,
-            menubar=self.meterSubMenu,
-            toolbar=self.dtToolbar,
-            actionBase=self.addMeterDropButton,
-            add_to_toolbar=False,
-            checkable=True,
+        self.addStatusSensorButton = self._make_action(
+            ":/images/iconAddStatusSensor.svg", 
+            self.tr("Add status sensor"), 
+            self.runSelectStatusSensorPoint,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(self.addStatusSensorButton, self.meterSubMenu)
+        self.add_to_dropdown(self.addStatusSensorButton, self.addMeterDropButton)
 
-        icon_path = ":/images/iconAddValveOpening.svg"
-        self.addValveOpeningButton = self.add_action(
-            icon_path,
-            text=self.tr("Add valve opening"),
-            callback=self.runSelectValveOpeningPoint,
-            menubar=self.meterSubMenu,
-            toolbar=self.dtToolbar,
-            actionBase=self.addMeterDropButton,
-            add_to_toolbar=False,
-            checkable=True,
+        self.addValveOpeningButton = self._make_action(
+            ":/images/iconAddValveOpening.svg", 
+            self.tr("Add valve opening"), 
+            self.runSelectValveOpeningPoint,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(self.addValveOpeningButton, self.meterSubMenu)
+        self.add_to_dropdown(self.addValveOpeningButton, self.addMeterDropButton)
 
-        icon_path = ":/images/iconAddTachometer.svg"
-        self.addTachometerButton = self.add_action(
-            icon_path,
-            text=self.tr("Add tachometer"),
-            callback=self.runSelectTachometerPoint,
-            menubar=self.meterSubMenu,
-            toolbar=self.dtToolbar,
-            actionBase=self.addMeterDropButton,
-            add_to_toolbar=False,
-            checkable=True,
+        self.addTachometerButton = self._make_action(
+            ":/images/iconAddTachometer.svg", 
+            self.tr("Add tachometer"), 
+            self.runSelectTachometerPoint,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(self.addTachometerButton, self.meterSubMenu)
+        self.add_to_dropdown(self.addTachometerButton, self.addMeterDropButton)
 
         # Add all meter actions to the toolbar submenu
         for a in [
@@ -1174,57 +971,45 @@ class MenuSection:
         self.dtMenu.addSeparator()
         self.dtToolbar.addSeparator()
 
-        icon_path = ":/images/iconLoadMeterReadings.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Load meter readings..."),
-            callback=self.runLoadReadings,
-            menubar=self.dtMenu,
-            toolbar=self.dtToolbar,
-            actionBase=dtDropButton,
-            add_to_toolbar=True,
+        action = self._make_action(
+            ":/images/iconLoadMeterReadings.svg", 
+            self.tr("Load meter readings..."), 
+            self.runLoadReadings,
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(action, self.dtMenu, self.dtToolbar)
+        self.add_to_dropdown(action, dtDropButton)
 
-        icon_path = ":/images/iconSetPipeStatusFromValves.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Set pipe's initial status from isolation valves"),
-            callback=self.runSetPipeStatus,
-            menubar=self.dtMenu,
-            toolbar=self.dtToolbar,
-            actionBase=dtDropButton,
-            add_to_toolbar=True,
+        action = self._make_action(
+            ":/images/iconSetPipeStatusFromValves.svg", 
+            self.tr("Set pipe's initial status from isolation valves"), 
+            self.runSetPipeStatus,
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(action, self.dtMenu, self.dtToolbar)
+        self.add_to_dropdown(action, dtDropButton)
 
-        icon_path = ":/images/iconLoadFieldData.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Load field data..."),
-            callback=self.runLoadScada,
-            menubar=self.dtMenu,
-            toolbar=self.dtToolbar,
-            actionBase=dtDropButton,
-            add_to_toolbar=True,
+        action = self._make_action(
+            ":/images/iconLoadFieldData.svg", 
+            self.tr("Load field data..."), 
+            self.runLoadScada,
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(action, self.dtMenu, self.dtToolbar)
+        self.add_to_dropdown(action, dtDropButton)
 
         dtDropButton.menu().addSeparator()
         self.dtMenu.addSeparator()
         self.dtToolbar.addSeparator()
 
-        icon_path = ":/images/iconIncorporateConnectionsToModel.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Convert service connections into pipes/nodes"),
-            callback=self.runAddConnections,
-            menubar=self.dtMenu,
-            toolbar=self.dtToolbar,
-            actionBase=dtDropButton,
-            add_to_toolbar=True,
+        action = self._make_action(
+            ":/images/iconIncorporateConnectionsToModel.svg", 
+            self.tr("Convert service connections into pipes/nodes"), 
+            self.runAddConnections,
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(action, self.dtMenu, self.dtToolbar)
+        self.add_to_dropdown(action, dtDropButton)
 
     def addQueriesMenu(self):
         #    #Menu
@@ -1237,84 +1022,62 @@ class MenuSection:
         self.queriesToolbar.setVisible(False)
         #    #Buttons
         queriesDropButton = QToolButton()
-        icon_path = ":/images/iconQueriesMenu.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Queries"),
-            callback=self.runQueriesToolbar,
-            menubar=self.queriesMenu,
-            add_to_menu=False,
-            toolbar=self.toolbar,
-            dropButton=queriesDropButton,
-            checkable=True,
-            addActionToDrop=False,
-            add_to_toolbar=False,
+        action = self._make_action(
+            ":/images/iconQueriesMenu.svg", 
+            self.tr("Queries"), 
+            self.runQueriesToolbar,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
+        self.setup_dropdown_button(action, queriesDropButton, self.toolbar)
         self.queriesDropButton = queriesDropButton
-        # Find Elements by ID
-        icon_path = ":/images/iconFindElements.svg"
-        self.openFindElementsDialog = self.add_action(
-            icon_path,
-            text=self.tr("Find Elements by ID..."),
-            callback=self.runFindElements,
-            menubar=self.queriesMenu,
-            toolbar=self.queriesToolbar,
-            actionBase=queriesDropButton,
-            add_to_toolbar=True,
-            checkable=True,
-            parent=self.iface.mainWindow(),
-        )
 
-        # # Elements Properties
-        icon_path = ":/images/iconElementProperties.svg"
-        self.openElementsPropertyDialog = self.add_action(
-            icon_path,
-            text=self.tr("Element Properties..."),
-            callback=self.runElementsProperty,
-            menubar=self.queriesMenu,
-            toolbar=self.queriesToolbar,
-            actionBase=queriesDropButton,
-            checkable=True,
-            add_to_toolbar=True,
+        self.openFindElementsDialog = self._make_action(
+            ":/images/iconFindElements.svg", 
+            self.tr("Find Elements by ID..."), 
+            self.runFindElements,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
-        # Thematic Maps
-        icon_path = ":/images/iconThematicMaps.svg"
-        self.openThematicMapsDialog = self.add_action(
-            icon_path,
-            text=self.tr("Thematic Maps..."),
-            callback=self.runThematicMaps,
-            menubar=self.queriesMenu,
-            toolbar=self.queriesToolbar,
-            actionBase=queriesDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(self.openFindElementsDialog, self.queriesMenu, self.queriesToolbar)
+        self.add_to_dropdown(self.openFindElementsDialog, queriesDropButton)
+
+        self.openElementsPropertyDialog = self._make_action(
+            ":/images/iconElementProperties.svg", 
+            self.tr("Element Properties..."), 
+            self.runElementsProperty,
+            checkable=True, 
             parent=self.iface.mainWindow(),
         )
-        # # Queries by Attributes
-        icon_path = ":/images/iconQueryByAttributes.svg"
-        self.openLiveQueriesDialog = self.add_action(
-            icon_path,
-            text=self.tr("Queries by Attributes..."),
-            callback=self.runQueriesByAttributes,
-            menubar=self.queriesMenu,
-            toolbar=self.queriesToolbar,
-            actionBase=queriesDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(self.openElementsPropertyDialog, self.queriesMenu, self.queriesToolbar)
+        self.add_to_dropdown(self.openElementsPropertyDialog, queriesDropButton)
+
+        self.openThematicMapsDialog = self._make_action(
+            ":/images/iconThematicMaps.svg", 
+            self.tr("Thematic Maps..."), 
+            self.runThematicMaps,
             parent=self.iface.mainWindow(),
         )
-        # # Statistics & Plots
-        icon_path = ":/images/iconStatisticsAndPlots.svg"
-        self.openStatisticsAndPlotsDialog = self.add_action(
-            icon_path,
-            text=self.tr("Statistics && Plots..."),
-            callback=self.runStatisticsAndPlots,
-            menubar=self.queriesMenu,
-            toolbar=self.queriesToolbar,
-            actionBase=queriesDropButton,
-            add_to_toolbar=True,
+        self.add_to_group(self.openThematicMapsDialog, self.queriesMenu, self.queriesToolbar)
+        self.add_to_dropdown(self.openThematicMapsDialog, queriesDropButton)
+
+        self.openLiveQueriesDialog = self._make_action(
+            ":/images/iconQueryByAttributes.svg", 
+            self.tr("Queries by Attributes..."), 
+            self.runQueriesByAttributes,
             parent=self.iface.mainWindow(),
         )
+        self.add_to_group(self.openLiveQueriesDialog, self.queriesMenu, self.queriesToolbar)
+        self.add_to_dropdown(self.openLiveQueriesDialog, queriesDropButton)
+
+        self.openStatisticsAndPlotsDialog = self._make_action(
+            ":/images/iconStatisticsAndPlots.svg", 
+            self.tr("Statistics && Plots..."), 
+            self.runStatisticsAndPlots,
+            parent=self.iface.mainWindow(),
+        )
+        self.add_to_group(self.openStatisticsAndPlotsDialog, self.queriesMenu, self.queriesToolbar)
+        self.add_to_dropdown(self.openStatisticsAndPlotsDialog, queriesDropButton)
 
     """Toolbar visibility toggles"""
 

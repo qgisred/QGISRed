@@ -28,7 +28,7 @@ class LANGANDCODEPAGE(Structure):
 
 
 class LifecycleSection:
-    """Plugin lifecycle: __init__, tr, add_action, initGui, cleanupDocks, unload,
+    """Plugin lifecycle: __init__, tr, action builders, initGui, cleanupDocks, unload,
     setCulture, getVersion, checkDependencies, checkForUpdates, openNewFeaturesWebpage,
     removeTempFolders."""
 
@@ -97,62 +97,53 @@ class LifecycleSection:
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
         return QCoreApplication.translate("QGISRed", message)
 
-    def add_action(
-        self,
-        icon_path,
-        text,
-        callback,
-        menubar,
-        toolbar,
-        checkable=False,
-        actionBase=None,
-        dropButton=None,
-        addActionToDrop=True,
-        enabled_flag=True,
-        add_to_menu=True,
-        add_to_toolbar=True,
-        status_tip=None,
-        whats_this=None,
-        parent=None,
-    ):
-        icon = QIcon(icon_path)
-        action = QAction(icon, text, parent)
+
+    def _make_action(self, icon_path, text, callback, checkable=False, enabled_flag=True, parent=None):
+        """Create a QAction, connect its callback and register it in self.actions."""
+        action = QAction(QIcon(icon_path), text, parent)
         action.triggered.connect(callback)
         action.setEnabled(enabled_flag)
         action.setCheckable(checkable)
+        self.actions.append(action)
+        return action
 
-        if status_tip is not None:
-            action.setStatusTip(status_tip)
+    def setup_dropdown_button(self, action, button, toolbar):
+        """Configure *button* (QToolButton) as a dropdown and add it as a widget to *toolbar*.
+        Creates a fresh QMenu for the button. The header action itself is NOT added
+        to the popup menu (the arrow opens the children, not itself).
+        """
+        menu = QMenu()
+        button.setMenu(menu)
+        button.setDefaultAction(action)
+        button.setPopupMode(QToolButton.MenuButtonPopup)
+        toolbar.addWidget(button)
 
-        if whats_this is not None:
-            action.setWhatsThis(whats_this)
-
-        if actionBase is not None:
-            menu = actionBase.menu()
-            if menu is not None:
-                menu.addAction(action)
-                actionBase.setMenu(menu)
-                # actionBase.setDefaultAction(action)
-                actionBase.setPopupMode(QToolButton.MenuButtonPopup)
-
-        if dropButton is not None:
-            menu = QMenu()
-            if addActionToDrop:
-                menu.addAction(action)
-            dropButton.setMenu(menu)
-            dropButton.setDefaultAction(action)
-            dropButton.setPopupMode(QToolButton.MenuButtonPopup)
-            toolbar.addWidget(dropButton)
-
-        if add_to_toolbar:
+    def add_to_group(self, action, submenu, toolbar=None):
+        """Add *action* to *submenu* (menubar entry) and optionally to a floating *toolbar*."""
+        submenu.addAction(action)
+        if toolbar is not None:
             toolbar.addAction(action)
 
-        if add_to_menu:
-            menubar.addAction(action)
+    def add_to_dropdown(self, action, button):
+        """Append *action* to the popup menu of an existing QToolButton.
+        Can be called multiple times to register the same action in several dropdowns.
+        """
+        menu = button.menu()
+        if menu is None:
+            menu = QMenu()
+            button.setMenu(menu)
+            button.setPopupMode(QToolButton.MenuButtonPopup)
+        menu.addAction(action)
+        button.setMenu(menu)
+        button.setPopupMode(QToolButton.MenuButtonPopup)
 
-        self.actions.append(action)
-
+    def add_simple_action(self, icon_path, text, callback, menu, toolbar, checkable=False, enabled_flag=True, parent=None):
+        """Create an action and add it directly to *menu* and *toolbar* (no dropdowns)."""
+        action = self._make_action(icon_path, text, callback, checkable=checkable, enabled_flag=enabled_flag, parent=parent)
+        menu.addAction(action)
+        toolbar.addAction(action)
         return action
+
 
     def initGui(self):
         if not platform.system() == "Windows":
@@ -169,24 +160,14 @@ class LifecycleSection:
         self.addQueriesMenu()
 
         # About
-        icon_path = ":/images/iconAbout.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("About..."),
-            callback=self.runAbout,
-            menubar=self.qgisredmenu,
-            toolbar=self.toolbar,
-            parent=self.iface.mainWindow(),
+        self.add_simple_action(
+            ":/images/iconAbout.svg", self.tr("About..."), self.runAbout,
+            self.qgisredmenu, self.toolbar, parent=self.iface.mainWindow(),
         )
         # Report issues
-        icon_path = ":/images/iconGitHub.svg"
-        self.add_action(
-            icon_path,
-            text=self.tr("Report issues or comments..."),
-            callback=self.runReportIssues,
-            menubar=self.qgisredmenu,
-            toolbar=self.toolbar,
-            parent=self.iface.mainWindow(),
+        self.add_simple_action(
+            ":/images/iconGitHub.svg", self.tr("Report issues or comments..."), self.runReportIssues,
+            self.qgisredmenu, self.toolbar, parent=self.iface.mainWindow(),
         )
 
         # Connecting QGis Events
