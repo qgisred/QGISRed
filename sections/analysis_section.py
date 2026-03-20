@@ -12,7 +12,6 @@ from ..tools.qgisred_utils import QGISRedUtils
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool
 from ..ui.analysis.qgisred_results_dock import QGISRedResultsDock
-from ..ui.queries.qgisred_element_explorer_dock import QGISRedElementExplorerDock
 from ..ui.analysis.qgisred_timeseries_dock import QGISRedTimeSeriesDock
 
 
@@ -58,93 +57,6 @@ class AnalysisSection:
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
-    def runDefaultValues(self):
-        if not self.checkDependencies():
-            return
-        # Validations
-        self.defineCurrentProject()
-        if not self.isValidProject():
-            return
-        if self.isLayerOnEdition():
-            return
-
-        # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.DefaultValues(self.ProjectDirectory, self.NetworkName, self.tempFolder)
-        QApplication.restoreOverrideCursor()
-
-        # Message
-        if resMessage == "True":
-            self.hasToOpenNewLayers = False
-            self.hasToOpenIssuesLayers = False
-            self.extent = QGISRedUtils().getProjectExtent()
-            self.removingLayers = True
-            QGISRedUtils().runTask(self.removeDBFs, self.runOpenTemporaryFiles)
-        elif resMessage == "False":
-            self.iface.messageBar().pushMessage(
-                self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5
-            )
-        elif resMessage == "Cancelled":
-            pass
-        else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
-
-    def runMaterials(self):
-        if not self.checkDependencies():
-            return
-        # Validations
-        self.defineCurrentProject()
-        if not self.isValidProject():
-            return
-        if self.isLayerOnEdition():
-            return
-
-        # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.Materials(self.ProjectDirectory, self.NetworkName, self.tempFolder)
-        QApplication.restoreOverrideCursor()
-
-        # Message
-        if resMessage == "True":
-            self.hasToOpenNewLayers = False
-            self.hasToOpenIssuesLayers = False
-            self.extent = QGISRedUtils().getProjectExtent()
-            self.removingLayers = True
-            QGISRedUtils().runTask(self.removeDBFs, self.runOpenTemporaryFiles)
-        elif resMessage == "False":
-            self.iface.messageBar().pushMessage(
-                self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5
-            )
-        elif resMessage == "Cancelled":
-            pass
-        else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
-
-    def runSummary(self):
-        if not self.checkDependencies():
-            return
-        # Validations
-        self.defineCurrentProject()
-        if not self.isValidProject():
-            return
-        if self.isLayerOnEdition():
-            return
-
-        # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.Summary(self.ProjectDirectory, self.NetworkName)
-        QApplication.restoreOverrideCursor()
-
-        # Message
-        if resMessage == "True":
-            pass
-        elif resMessage == "False":
-            self.iface.messageBar().pushMessage(
-                self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5
-            )
-        else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
-
     def runModel(self):
         if not self.checkDependencies():
             return
@@ -181,18 +93,6 @@ class AnalysisSection:
             self.ResultDockwidget.raise_()
             self.connectElementExplorerToResultsDock()
         self.ResultDockwidget.tabWidget.setCurrentIndex(0)
-
-    def connectElementExplorerToResultsDock(self):
-        """Connect the Element Explorer results tab to the Results Dock."""
-        eeDock = QGISRedElementExplorerDock._instance
-        if eeDock is not None and self.ResultDockwidget is not None:
-            eeDock.connectResultsDock(self.ResultDockwidget)
-
-    def disconnectElementExplorerFromResultsDock(self):
-        """Disconnect the Element Explorer results tab from the Results Dock."""
-        eeDock = QGISRedElementExplorerDock._instance
-        if eeDock is not None:
-            eeDock.disconnectResultsDock()
 
     def runOpenStatusReport(self):
         if not self.checkDependencies():
@@ -512,18 +412,3 @@ class AnalysisSection:
     def refreshTimeSeries(self):
         if hasattr(self, 'timeSeriesDock') and self.timeSeriesDock:
             self.performTimeSeriesPlotUpdate(self.lastTimeSeriesFeature, self.lastTimeSeriesCategory, self.lastTimeSeriesLayer)
-
-    def runLegendChanged(self):
-        # Guard against calls during shutdown
-        if self.isUnloading:
-            return
-        if not self.removingLayers:
-            # Validations
-            self.defineCurrentProject()
-            if self.ProjectDirectory == self.TemporalFolder:
-                return
-
-            if not self.checkDependencies():
-                return
-
-            self.updateMetadata()

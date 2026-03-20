@@ -158,6 +158,21 @@ class LayerManagementSection:
 
     """Groups"""
 
+    def runLegendChanged(self):
+        # Guard against calls during shutdown
+        if self.isUnloading:
+            return
+        if not self.removingLayers:
+            # Validations
+            self.defineCurrentProject()
+            if self.ProjectDirectory == self.TemporalFolder:
+                return
+
+            if not self.checkDependencies():
+                return
+
+            self.updateMetadata()
+
     def activeInputGroup(self):
         # Guard against calls during shutdown
         if self.isUnloading:

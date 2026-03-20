@@ -180,6 +180,18 @@ class QueriesSection:
         self.statisticsAndPlotsDock = QGISRedStatisticsAndPlotsDock(self.iface)
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.statisticsAndPlotsDock)
 
+    def connectElementExplorerToResultsDock(self):
+        """Connect the Element Explorer results tab to the Results Dock."""
+        eeDock = QGISRedElementExplorerDock._instance
+        if eeDock is not None and self.ResultDockwidget is not None:
+            eeDock.connectResultsDock(self.ResultDockwidget)
+
+    def disconnectElementExplorerFromResultsDock(self):
+        """Disconnect the Element Explorer results tab from the Results Dock."""
+        eeDock = QGISRedElementExplorerDock._instance
+        if eeDock is not None:
+            eeDock.disconnectResultsDock()
+
     def runLegends(self):
         if not self.checkDependencies():
             return
