@@ -1402,6 +1402,11 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         featLargestDim = max(featWidth, featHeight)
         mapLargestDim = max(mapWidth, mapHeight)
         ratio = featLargestDim / mapLargestDim if mapLargestDim != 0 else 1
+
+        # If the element is already visible within the current extent, do nothing
+        if currentExtent.contains(featureExtent):
+            return
+
         center = featureExtent.center()
         if not isPoint:
             if ratio > 0.25:
