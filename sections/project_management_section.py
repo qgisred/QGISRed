@@ -81,6 +81,17 @@ class ProjectManagementSection:
                     return False
         return True
 
+    def validateProject(self, action):
+        # Validates dependencies and project, unchecks action on failure
+        if not self.checkDependencies():
+            action.setChecked(False)
+            return False
+        self.defineCurrentProject()
+        if not self.isValidProject() or self.isLayerOnEdition():
+            action.setChecked(False)
+            return False
+        return True
+
     def isValidProject(self):
         if self.ProjectDirectory == self.TemporalFolder:
             self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)

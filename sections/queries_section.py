@@ -13,31 +13,6 @@ from ..tools.map_tools.qgisred_identifyFeature import QGISRedIdentifyFeature
 class QueriesSection:
     """Thematic maps, element explorer, queries by attributes, statistics, legends."""
 
-    def runThematicMaps(self):
-        if not self.checkDependencies():
-            return
-        # Validations
-        self.defineCurrentProject()
-        if not self.isValidProject():
-            return
-        if self.isLayerOnEdition():
-            return
-
-        dlg = QGISRedThematicMapsDialog()
-        dlg.config(self.iface, self.ProjectDirectory, self.NetworkName)
-        dlg.exec_()
-
-    def validateProject(self, action):
-        # Validates dependencies and project, unchecks action on failure
-        if not self.checkDependencies():
-            action.setChecked(False)
-            return False
-        self.defineCurrentProject()
-        if not self.isValidProject() or self.isLayerOnEdition():
-            action.setChecked(False)
-            return False
-        return True
-
     def isToolAlreadyActive(self, toolKey, action):
         # Returns True if toolKey is already the active map tool, keeping the action checked
         if toolKey in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[toolKey]:
@@ -67,6 +42,33 @@ class QueriesSection:
                 dock.refreshCurrentElement()
         except Exception:
             action.setChecked(False)
+
+    def connectElementExplorerToResultsDock(self):
+        """Connect the Element Explorer results tab to the Results Dock."""
+        eeDock = QGISRedElementExplorerDock._instance
+        if eeDock is not None and self.ResultDockwidget is not None:
+            eeDock.connectResultsDock(self.ResultDockwidget)
+
+    def disconnectElementExplorerFromResultsDock(self):
+        """Disconnect the Element Explorer results tab from the Results Dock."""
+        eeDock = QGISRedElementExplorerDock._instance
+        if eeDock is not None:
+            eeDock.disconnectResultsDock()
+
+    """Main methods"""
+    def runThematicMaps(self):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        dlg = QGISRedThematicMapsDialog()
+        dlg.config(self.iface, self.ProjectDirectory, self.NetworkName)
+        dlg.exec_()
 
     def runFindElements(self):
         if not self.validateProject(self.openFindElementsDialog):
@@ -178,16 +180,3 @@ class QueriesSection:
 
         self.statisticsAndPlotsDock = QGISRedStatisticsAndPlotsDock(self.iface)
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.statisticsAndPlotsDock)
-
-    def connectElementExplorerToResultsDock(self):
-        """Connect the Element Explorer results tab to the Results Dock."""
-        eeDock = QGISRedElementExplorerDock._instance
-        if eeDock is not None and self.ResultDockwidget is not None:
-            eeDock.connectResultsDock(self.ResultDockwidget)
-
-    def disconnectElementExplorerFromResultsDock(self):
-        """Disconnect the Element Explorer results tab from the Results Dock."""
-        eeDock = QGISRedElementExplorerDock._instance
-        if eeDock is not None:
-            eeDock.disconnectResultsDock()
-
