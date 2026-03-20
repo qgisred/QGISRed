@@ -154,10 +154,6 @@ class UtilsSection:
                 self.iface.mapCanvas().refresh()
                 return
 
-    def doNothing(self, task=None):
-        if task is not None:
-            return {"task": task.definition()}
-
     def transformPoint(self, point):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         pipesCrs = utils.getProjectCrs()
