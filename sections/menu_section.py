@@ -1382,4 +1382,4 @@ class MenuSection:
         dlg.exec_()
 
     def runReportIssues(self):
-        webbrowser.open("https://github.com/neslerel/QGISRed/issues")
+        webbrowser.open("https://github.com/qgisred/QGISRed/issues")
