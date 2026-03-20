@@ -4,7 +4,6 @@
         <file>images/aboutIIAMA.svg</file>
         <file>images/aboutUPV.svg</file>
         <file>images/iconAbout.svg</file>  
-        <file>images/cursor.svg</file>
         <file>images/iconAddAutometer.svg</file>
         <file>images/iconAddConnection.svg</file>
         <file>images/iconAddCountermeter.svg</file>
@@ -45,7 +44,6 @@
         <file>images/iconEditMenu.svg</file>
         <file>images/iconEditMenu.svg</file>
         <file>images/iconElementProperties.svg</file>
-        <file>images/iconExport.svg</file>
         <file>images/iconExportToEpanet.svg</file>
         <file>images/iconFilter.svg</file>
         <file>images/iconFindElements.svg</file>
@@ -97,7 +95,6 @@
         <file>images/iconStatisticsImport.svg</file>
         <file>images/iconSetPipeStatusFromValves.svg</file>
         <file>images/iconSummary.svg</file>
-        <file>images/iconSwitch.svg</file>
         <file>images/iconSwitchDisabled.svg</file>
         <file>images/iconSwitchEnabled.svg</file>
         <file>images/iconCreateTConnections.svg</file>
