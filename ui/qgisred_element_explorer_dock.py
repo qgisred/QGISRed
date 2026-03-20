@@ -39,6 +39,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             raise Exception(f"{self.__class__.__name__} is a singleton! Use getInstance() instead.")
         super(self.__class__, self).__init__(parent)
         self.setupUi(self)
+        self.initTableWidgets()
         self.mElementPropertiesGroupBox.setVisible(False)
         self.setupEventFilters() 
         self.setObjectName(self.__class__.__name__)
@@ -516,8 +517,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         if hasattr(self, 'listWidget'):
             self.listWidget.clear()
         if hasattr(self, 'dataTableWidget'):
-            self.dataTableWidget.clear()
-            self.setDataTableWidgetColumns()
+            self.dataTableWidget.clearContents()
+            self.dataTableWidget.setRowCount(0)
 
     def clearAllLayerSelections(self):
         for lyr in QgsProject.instance().mapLayers().values():
@@ -913,8 +914,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.labelFoundElementDescription.hide()
         self.isDescVisible = False
         self.listWidget.clear()
-        self.dataTableWidget.clear()
-        self.setDataTableWidgetColumns()
+        self.dataTableWidget.clearContents()
+        self.dataTableWidget.setRowCount(0)
         self.setUpdatesEnabled(False)
         try:
             if index >= 0 and self.cbElementId.currentText():
@@ -1059,10 +1060,6 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     # ------------------------------
     def populateDataTableWidget(self):
         self.dataTableWidget.clearContents()
-        self.dataTableWidget.setShowGrid(False)
-        self.dataTableWidget.setStyleSheet("QTableWidget::item { padding: 1px; }")
-
-        self.dataTableWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
         fields = self.currentLayer.fields()
         attributes = self.currentFeature.attributes()
@@ -1071,13 +1068,6 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         skipFields = {"Id"}
         numDisplayFields = sum(1 for f in fields if f.name() not in skipFields)
         self.dataTableWidget.setRowCount(numDisplayFields)
-
-        header = self.dataTableWidget.horizontalHeader()
-        header.setStyleSheet("QHeaderView::section { font-weight: normal; }")
-        self.setDataTableWidgetColumns()
-
-        self.dataTableWidget.verticalHeader().setDefaultSectionSize(20)
-        self.dataTableWidget.verticalHeader().setVisible(False)
 
         # Get the layer identifier for pretty name lookup
         layerIdentifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else None
@@ -1241,19 +1231,38 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         return None
 
+    def initTableWidgets(self):
+        """One-time setup for dataTableWidget and tableResults. Called once from __init__."""
+        self.setDataTableWidgetColumns()
+        self.dataTableWidget.setShowGrid(False)
+        self.dataTableWidget.setStyleSheet("QTableWidget::item { padding: 1px; }")
+        self.dataTableWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.dataTableWidget.verticalHeader().setDefaultSectionSize(20)
+        self.dataTableWidget.verticalHeader().setVisible(False)
+
+        self.setResultsTableColumns()
+        self.tableResults.setShowGrid(False)
+        self.tableResults.setStyleSheet("QTableWidget::item { padding: 1px; }")
+        self.tableResults.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.tableResults.verticalHeader().setDefaultSectionSize(20)
+        self.tableResults.verticalHeader().setVisible(False)
+
     def setDataTableWidgetColumns(self):
         self.dataTableWidget.setColumnCount(3)
         self.dataTableWidget.setHorizontalHeaderLabels([self.tr("Property"), self.tr("Value"), self.tr("Units")])
 
         header = self.dataTableWidget.horizontalHeader()
+        header.setStyleSheet("QHeaderView::section { font-weight: normal; }")
         # Allow smaller column sizes (default minimum is ~20px)
         header.setMinimumSectionSize(10)
-        # Units column: fixed small width
-        header.setSectionResizeMode(2, QHeaderView.Fixed)
-        self.dataTableWidget.setColumnWidth(2, 40)
-        # Property and Value columns: stretch to fill remaining space
-        header.setSectionResizeMode(0, QHeaderView.Stretch)
-        header.setSectionResizeMode(1, QHeaderView.Stretch)
+        # All columns: interactive so the user can resize them by dragging
+        header.setSectionResizeMode(0, QHeaderView.Interactive)
+        header.setSectionResizeMode(1, QHeaderView.Interactive)
+        header.setSectionResizeMode(2, QHeaderView.Interactive)
+        header.setStretchLastSection(True)
+        # Set initial widths (will be adjusted once widget has a real size)
+        self.dataTableWidget.setColumnWidth(0, 200)
+        self.dataTableWidget.setColumnWidth(1, 100)
 
     def loadFeature(self, layer, feature, featureIdText=""):
         if not layer or not feature:
@@ -2315,10 +2324,12 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         header = self.tableResults.horizontalHeader()
         header.setStyleSheet("QHeaderView::section { font-weight: normal; }")
         header.setMinimumSectionSize(10)
-        header.setSectionResizeMode(2, QHeaderView.Fixed)
-        self.tableResults.setColumnWidth(2, 40)
-        header.setSectionResizeMode(0, QHeaderView.Stretch)
-        header.setSectionResizeMode(1, QHeaderView.Stretch)
+        header.setSectionResizeMode(0, QHeaderView.Interactive)
+        header.setSectionResizeMode(1, QHeaderView.Interactive)
+        header.setSectionResizeMode(2, QHeaderView.Interactive)
+        header.setStretchLastSection(True)
+        self.tableResults.setColumnWidth(0, 200)
+        self.tableResults.setColumnWidth(1, 100)
 
     def findResultsLayerForElement(self, isNode):
         """Find the Results group layer matching the element type (node or link).
@@ -2427,13 +2438,6 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 self.clearResultsTable()
                 return
 
-            # Setup table
-            self.setResultsTableColumns()
-            self.tableResults.setShowGrid(False)
-            self.tableResults.setStyleSheet("QTableWidget::item { padding: 1px; }")
-            self.tableResults.setEditTriggers(QAbstractItemView.NoEditTriggers)
-            self.tableResults.verticalHeader().setDefaultSectionSize(20)
-            self.tableResults.verticalHeader().setVisible(False)
             self.tableResults.setRowCount(len(displayFields))
 
             utils = QGISRedUtils()
