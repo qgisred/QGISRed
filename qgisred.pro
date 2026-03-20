@@ -1,49 +1,65 @@
 SOURCES = qgisred.py \
           resources3x.py \
-          tools/qgisred_createConnection.py \
-          tools/qgisred_createPipe.py \
+          sections/menu_section.py \
+          sections/lifecycle_section.py \
+          sections/project_management_section.py \
+          sections/layer_management_section.py \
+          sections/network_editing_section.py \
+          sections/analysis_section.py \
+          sections/queries_section.py \
+          sections/tools_section.py \
+          sections/debug_validation_section.py \
+          sections/digital_twin_section.py \
+          sections/utils_section.py \
           tools/qgisred_dependencies.py \
-          tools/qgisred_editLinksGeometry.py \
-          tools/qgisred_identifyFeature.py \
-          tools/qgisred_moveNodes.py \
-          tools/qgisred_multilayerSelection.py \
-          tools/qgisred_selectPoint.py \
+          tools/qgisred_results.py \
+          tools/qgisred_translatable_strings.py \
           tools/qgisred_utils.py \
-          ui/qgisred_about_dialog.py \
-          ui/qgisred_cloneproject_dialog.py \
-          ui/qgisred_createproject_dialog.py \
-          ui/qgisred_element_explorer_dock.py \
-          ui/qgisred_import_dialog.py \
-          ui/qgisred_layermanagement_dialog.py \
-          ui/qgisred_loadproject_dialog.py \
-          ui/qgisred_projectmanager_dialog.py \
-          ui/qgisred_queriesbyattributes_dock.py \
-          ui/qgisred_renameproject_dialog.py \
-          ui/qgisred_results_dock.py \
-          ui/qgisred_thematicmaps_dialog.py \
-          ui/qgisred_timeseries_dock.py \
-          ui/qgisred_toolConnections_dialog.py \
-          ui/qgisred_toolConnectivity_dialog.py \
-          ui/qgisred_toolLength_dialog.py \
-          ui/qgisred_legends_dialog.py
+          tools/map_tools/qgisred_createConnection.py \
+          tools/map_tools/qgisred_createPipe.py \
+          tools/map_tools/qgisred_editLinksGeometry.py \
+          tools/map_tools/qgisred_identifyFeature.py \
+          tools/map_tools/qgisred_moveNodes.py \
+          tools/map_tools/qgisred_multilayerSelection.py \
+          tools/map_tools/qgisred_selectPoint.py \
+          ui/general/qgisred_about_dialog.py \
+          ui/general/qgisred_cloneproject_dialog.py \
+          ui/general/qgisred_createproject_dialog.py \
+          ui/general/qgisred_import_dialog.py \
+          ui/general/qgisred_loadproject_dialog.py \
+          ui/general/qgisred_projectmanager_dialog.py \
+          ui/general/qgisred_renameproject_dialog.py \
+          ui/project/qgisred_custom_dialogs.py \
+          ui/project/qgisred_layermanagement_dialog.py \
+          ui/project/qgisred_legends_dialog.py \
+          ui/queries/qgisred_element_explorer_dock.py \
+          ui/queries/qgisred_queriesbyattributes_dock.py \
+          ui/queries/qgisred_statisticsandgraphs_dock.py \
+          ui/queries/qgisred_thematicmaps_dialog.py \
+          ui/analysis/qgisred_results_dock.py \
+          ui/analysis/qgisred_timeseries_dock.py \
+          ui/debug/qgisred_toolConnectivity_dialog.py \
+          ui/debug/qgisred_toolLength_dialog.py \
+          ui/digitaltwin/qgisred_toolConnections_dialog.py
 
-FORMS = ui/qgisred_about_dialog.ui \
-        ui/qgisred_cloneproject_dialog.ui \
-        ui/qgisred_createproject_dialog.ui \
-        ui/qgisred_element_explorer_dock.ui \
-        ui/qgisred_import_dialog.ui \
-        ui/qgisred_layermanagement_dialog.ui \
-        ui/qgisred_loadproject_dialog.ui \
-        ui/qgisred_projectmanager_dialog.ui \
-        ui/qgisred_queriesbyattributes_dock.ui \
-        ui/qgisred_renameproject_dialog.ui \
-        ui/qgisred_results_dock.ui \
-        ui/qgisred_thematicmaps_dialog.ui \
-        ui/qgisred_timeseries_dock.ui \
-        ui/qgisred_toolConnections_dialog.ui \
-        ui/qgisred_toolConnectivity_dialog.ui \
-        ui/qgisred_toolLength_dialog.ui \
-        ui/qgisred_legends_dialog.ui
+FORMS = ui/general/qgisred_about_dialog.ui \
+        ui/general/qgisred_cloneproject_dialog.ui \
+        ui/general/qgisred_createproject_dialog.ui \
+        ui/general/qgisred_import_dialog.ui \
+        ui/general/qgisred_loadproject_dialog.ui \
+        ui/general/qgisred_projectmanager_dialog.ui \
+        ui/general/qgisred_renameproject_dialog.ui \
+        ui/project/qgisred_layermanagement_dialog.ui \
+        ui/project/qgisred_legends_dialog.ui \
+        ui/queries/qgisred_element_explorer_dock.ui \
+        ui/queries/qgisred_queriesbyattributes_dock.ui \
+        ui/queries/qgisred_statisticsandgraphs_dock.ui \
+        ui/queries/qgisred_thematicmaps_dialog.ui \
+        ui/analysis/qgisred_results_dock.ui \
+        ui/analysis/qgisred_timeseries_dock.ui \
+        ui/debug/qgisred_toolConnectivity_dialog.ui \
+        ui/debug/qgisred_toolLength_dialog.ui \
+        ui/digitaltwin/qgisred_toolConnections_dialog.ui
 
 TRANSLATIONS = i18n/qgisred.ts \
                i18n/qgisred_es.ts \
