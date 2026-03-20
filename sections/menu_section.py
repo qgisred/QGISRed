@@ -1366,9 +1366,6 @@ class MenuSection:
     def changeQueriesToolbarVisibility(self, status):
         self.queriesDropButton.setChecked(status)
 
-    def runExperimentalToolbar(self):
-        self.experimentalToolbar.setVisible(not self.experimentalToolbar.isVisible())
-
     def updateCheckables(self):
         self.generalDropButton.setChecked(self.generalToolbar.isVisible())
         self.projectDropButton.setChecked(self.projectToolbar.isVisible())
