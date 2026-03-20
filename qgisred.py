@@ -33,31 +33,31 @@ from PyQt5.QtXml import QDomDocument
 from . import resources3x
 
 # Import other plugin code
-from .ui.qgisred_projectmanager_dialog import QGISRedProjectManagerDialog
-from .ui.qgisred_createproject_dialog import QGISRedCreateProjectDialog
-from .ui.qgisred_layermanagement_dialog import QGISRedLayerManagementDialog
-from .ui.qgisred_import_dialog import QGISRedImportDialog
-from .ui.qgisred_about_dialog import QGISRedAboutDialog
-from .ui.qgisred_results_dock import QGISRedResultsDock
-from .ui.qgisred_toolLength_dialog import QGISRedLengthToolDialog
-from .ui.qgisred_toolConnections_dialog import QGISRedServiceConnectionsToolDialog
-from .ui.qgisred_toolConnectivity_dialog import QGISRedConnectivityToolDialog
-from .ui.qgisred_loadproject_dialog import QGISRedImportProjectDialog
-from .ui.qgisred_thematicmaps_dialog import QGISRedThematicMapsDialog
-from .ui.qgisred_element_explorer_dock import QGISRedElementExplorerDock
-from .ui.qgisred_queriesbyattributes_dock import QGISRedQueriesByAttributesDock
-from .ui.qgisred_statisticsandgraphs_dock import QGISRedStatisticsAndPlotsDock
-from .ui.qgisred_timeseries_dock import QGISRedTimeSeriesDock
-from .ui.qgisred_legends_dialog import QGISRedLegendsDialog
+from .ui.general.qgisred_projectmanager_dialog import QGISRedProjectManagerDialog
+from .ui.general.qgisred_createproject_dialog import QGISRedCreateProjectDialog
+from .ui.project.qgisred_layermanagement_dialog import QGISRedLayerManagementDialog
+from .ui.general.qgisred_import_dialog import QGISRedImportDialog
+from .ui.general.qgisred_about_dialog import QGISRedAboutDialog
+from .ui.analysis.qgisred_results_dock import QGISRedResultsDock
+from .ui.debug.qgisred_toolLength_dialog import QGISRedLengthToolDialog
+from .ui.digitaltwin.qgisred_toolConnections_dialog import QGISRedServiceConnectionsToolDialog
+from .ui.debug.qgisred_toolConnectivity_dialog import QGISRedConnectivityToolDialog
+from .ui.general.qgisred_loadproject_dialog import QGISRedImportProjectDialog
+from .ui.queries.qgisred_thematicmaps_dialog import QGISRedThematicMapsDialog
+from .ui.queries.qgisred_element_explorer_dock import QGISRedElementExplorerDock
+from .ui.queries.qgisred_queriesbyattributes_dock import QGISRedQueriesByAttributesDock
+from .ui.queries.qgisred_statisticsandgraphs_dock import QGISRedStatisticsAndPlotsDock
+from .ui.analysis.qgisred_timeseries_dock import QGISRedTimeSeriesDock
+from .ui.project.qgisred_legends_dialog import QGISRedLegendsDialog
 from .tools.qgisred_utils import QGISRedUtils
 from .tools.qgisred_dependencies import QGISRedDependencies as GISRed
-from .tools.qgisred_moveNodes import QGISRedMoveNodesTool
-from .tools.qgisred_multilayerSelection import QGISRedMultiLayerSelection
-from .tools.qgisred_createPipe import QGISRedCreatePipeTool
-from .tools.qgisred_createConnection import QGISRedCreateConnectionTool
-from .tools.qgisred_editLinksGeometry import QGISRedEditLinksGeometryTool
-from .tools.qgisred_selectPoint import QGISRedSelectPointTool
-from .tools.qgisred_identifyFeature import QGISRedIdentifyFeature
+from .tools.map_tools.qgisred_moveNodes import QGISRedMoveNodesTool
+from .tools.map_tools.qgisred_multilayerSelection import QGISRedMultiLayerSelection
+from .tools.map_tools.qgisred_createPipe import QGISRedCreatePipeTool
+from .tools.map_tools.qgisred_createConnection import QGISRedCreateConnectionTool
+from .tools.map_tools.qgisred_editLinksGeometry import QGISRedEditLinksGeometryTool
+from .tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool
+from .tools.map_tools.qgisred_identifyFeature import QGISRedIdentifyFeature
 
 # Others imports
 import os

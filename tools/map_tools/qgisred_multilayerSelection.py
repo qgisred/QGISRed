@@ -12,7 +12,7 @@ except:
     except:
         pass
 import processing
-from ..tools.qgisred_utils import QGISRedUtils
+from ..qgisred_utils import QGISRedUtils
 
 
 class QGISRedMultiLayerSelection(QgsMapTool):

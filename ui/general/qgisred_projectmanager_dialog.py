@@ -12,7 +12,7 @@ from .qgisred_import_dialog import QGISRedImportDialog
 from .qgisred_loadproject_dialog import QGISRedImportProjectDialog
 from .qgisred_cloneproject_dialog import QGISRedCloneProjectDialog
 from .qgisred_renameproject_dialog import QGISRedRenameProjectDialog
-from ..tools.qgisred_utils import QGISRedUtils
+from ...tools.qgisred_utils import QGISRedUtils
 
 import os
 from shutil import copyfile

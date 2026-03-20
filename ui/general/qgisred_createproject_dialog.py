@@ -5,8 +5,8 @@ from qgis.core import QgsCoordinateReferenceSystem
 from qgis.PyQt import uic
 from qgis.gui import QgsProjectionSelectionDialog as QgsGenericProjectionSelector
 
-from ..tools.qgisred_utils import QGISRedUtils
-from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
+from ...tools.qgisred_utils import QGISRedUtils
+from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
 import os
 

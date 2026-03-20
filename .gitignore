@@ -1,7 +1,4 @@
-/__pycache__
-/__pycache__/*.pyc
-/tools/__pycache__/*.pyc
+**/__pycache__/
 .vscode
-/ui/__pycache__
 /layerStyles/*.qml
 *.qml

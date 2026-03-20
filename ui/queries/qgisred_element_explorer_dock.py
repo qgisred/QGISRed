@@ -7,8 +7,8 @@ from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsVectorLayer, QgsSettings, QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsLayerMetadata, QgsSpatialIndex, Qgis
 from qgis.utils import iface
 from qgis.gui import QgsHighlight
-from ..tools.qgisred_utils import QGISRedUtils
-from .qgisred_results_dock import QGISRedResultsDock
+from ...tools.qgisred_utils import QGISRedUtils
+from ..analysis.qgisred_results_dock import QGISRedResultsDock
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_element_explorer_dock.ui"))
 
@@ -328,7 +328,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         return super(QGISRedElementExplorerDock, self).eventFilter(obj, event)
 
     def reestablishIdentifyTool(self):
-        from ..tools.qgisred_identifyFeature import QGISRedIdentifyFeature
+        from ...tools.map_tools.qgisred_identifyFeature import QGISRedIdentifyFeature
         currentTool = self.canvas.mapTool()
         if not isinstance(currentTool, QGISRedIdentifyFeature):
             self.dockFocusChanged.emit(True)
@@ -392,7 +392,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.close()
 
     def openIdentifyForFindDock(self):
-        from ..tools.qgisred_identifyFeature import QGISRedIdentifyFeature
+        from ...tools.map_tools.qgisred_identifyFeature import QGISRedIdentifyFeature
         self.identifyTool = QGISRedIdentifyFeature(self.canvas, useFindDock=True)
         self.canvas.setMapTool(self.identifyTool)
 

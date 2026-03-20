@@ -12,9 +12,9 @@ from qgis.core import QgsTextFormat
 from qgis.core import QgsProperty, QgsRenderContext, NULL
 from qgis.core import QgsGraduatedSymbolRenderer, QgsRuleBasedRenderer
 
-from ..tools.qgisred_utils import QGISRedUtils
-from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
-from ..tools.qgisred_results import (
+from ...tools.qgisred_utils import QGISRedUtils
+from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
+from ...tools.qgisred_results import (
     getOut_TimeNodesProperties, getOut_TimeLinksProperties,
     getOut_StatNodesProperties, getOut_StatLinksProperties,
 )

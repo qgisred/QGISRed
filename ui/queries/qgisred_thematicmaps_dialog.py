@@ -17,7 +17,7 @@ from qgis.core import QgsProject, QgsVectorLayer, QgsPalLayerSettings, QgsVector
 from qgis.utils import iface
 
 # Local imports
-from ..tools.qgisred_utils import QGISRedUtils
+from ...tools.qgisred_utils import QGISRedUtils
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_thematicmaps_dialog.ui"))
 

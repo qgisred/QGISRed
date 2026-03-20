@@ -1,4 +1,4 @@
-from ..ui.qgisred_element_explorer_dock import QGISRedElementExplorerDock
+from ...ui.queries.qgisred_element_explorer_dock import QGISRedElementExplorerDock
 from qgis.gui import QgsMapToolIdentify, QgsHighlight
 from qgis.utils import iface
 from qgis.core import QgsProject, QgsVectorLayer

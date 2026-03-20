@@ -17,7 +17,7 @@ from qgis.core import QgsLayerTreeGroup, QgsLayerTreeLayer, QgsGradientColorRamp
 from qgis.core import QgsClassificationPrettyBreaks, QgsStyle, QgsPresetSchemeColorRamp, QgsProperty, QgsSymbolLayer
 from qgis.utils import iface
 
-from ..tools.qgisred_utils import QGISRedUtils
+from ...tools.qgisred_utils import QGISRedUtils
 from .qgisred_custom_dialogs import QGISRedRangeEditDialog, QGISRedSymbolColorSelector
 from .qgisred_custom_dialogs import QGISRedColorRampSelector, QGISRedRowSelectionFilter
 from .qgisred_custom_dialogs import QGISRedPaletteEmulator, QGISRedSizePaletteEmulator

@@ -11,7 +11,7 @@ except:
     except:
         pass
 
-from ..tools.qgisred_utils import QGISRedUtils
+from ..qgisred_utils import QGISRedUtils
 
 
 class QGISRedEditLinksGeometryTool(QgsMapTool):

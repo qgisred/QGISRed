@@ -2,7 +2,7 @@
 from PyQt5.QtWidgets import QFileDialog, QDialog
 from qgis.PyQt import uic
 
-from ..tools.qgisred_utils import QGISRedUtils
+from ...tools.qgisred_utils import QGISRedUtils
 
 import os
 
