@@ -7,7 +7,6 @@ from ..ui.queries.qgisred_thematicmaps_dialog import QGISRedThematicMapsDialog
 from ..ui.queries.qgisred_element_explorer_dock import QGISRedElementExplorerDock
 from ..ui.queries.qgisred_queriesbyattributes_dock import QGISRedQueriesByAttributesDock
 from ..ui.queries.qgisred_statisticsandgraphs_dock import QGISRedStatisticsAndPlotsDock
-from ..ui.project.qgisred_legends_dialog import QGISRedLegendsDialog
 from ..tools.map_tools.qgisred_identifyFeature import QGISRedIdentifyFeature
 
 
@@ -192,16 +191,3 @@ class QueriesSection:
         if eeDock is not None:
             eeDock.disconnectResultsDock()
 
-    def runLegends(self):
-        if not self.checkDependencies():
-            return
-        # Validations
-        self.defineCurrentProject()
-        if not self.isValidProject():
-            return
-        if self.isLayerOnEdition():
-            return
-
-        self.legendsDialog = QGISRedLegendsDialog()
-        self.legendsDialog.config(self.iface, self.ProjectDirectory, self.NetworkName, self)
-        self.legendsDialog.show()

@@ -13,6 +13,7 @@ from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..ui.general.qgisred_projectmanager_dialog import QGISRedProjectManagerDialog
 from ..ui.general.qgisred_createproject_dialog import QGISRedCreateProjectDialog
 from ..ui.project.qgisred_layermanagement_dialog import QGISRedLayerManagementDialog
+from ..ui.project.qgisred_legends_dialog import QGISRedLegendsDialog
 from ..ui.general.qgisred_import_dialog import QGISRedImportDialog
 from ..ui.general.qgisred_loadproject_dialog import QGISRedImportProjectDialog
 
@@ -32,33 +33,6 @@ class ProjectManagementSection:
                 self.ProjectDirectory = os.path.dirname(layerUri)
                 fileNameWithoutExt = os.path.splitext(os.path.basename(layerUri))[0]
                 self.NetworkName = fileNameWithoutExt.replace("_" + layerName, "")
-
-    def isOpenedProjectOld(self):
-        if self.isLayerOnEdition():
-            return False
-        qgsFilename = QgsProject.instance().fileName()
-        if not qgsFilename == "":
-            if QgsProject.instance().isDirty():
-                # Save and continue
-                message = "The project has changes. Please save them before continuing."
-                self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr(message), level=1)
-                return False
-            else:
-                # Close the project and continue?
-                question = "Do you want to close the current project and continue?"
-                reply = QMessageBox.question(
-                    self.iface.mainWindow(),
-                    self.tr("Opened project"),
-                    self.tr(question),
-                    QMessageBox.Yes,
-                    QMessageBox.No,
-                )
-                if reply == QMessageBox.Yes:
-                    QgsProject.instance().clear()
-                    return True
-                else:
-                    return False
-        return True
 
     def isOpenedProject(self):
         layers = self.getLayers()
@@ -107,9 +81,6 @@ class ProjectManagementSection:
                     return False
         return True
 
-    def clearQGisProject(self):
-        QgsProject.instance().clear()
-
     def isValidProject(self):
         if self.ProjectDirectory == self.TemporalFolder:
             self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
@@ -130,6 +101,65 @@ class ProjectManagementSection:
 
         return False
 
+
+    def runOpenedQgisProject(self):
+        # Reset the unloading flag since we're opening a new project
+        self.isUnloading = False
+        self.defineCurrentProject()
+        if self.ProjectDirectory == self.TemporalFolder:
+            return
+
+        self.readOptions(self.ProjectDirectory, self.NetworkName)
+
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils.assignLayerIdentifiers()
+
+        QGISRedUtils().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
+
+        root = QgsProject.instance().layerTreeRoot()
+        inputs_group = root.findGroup("Inputs")
+
+        if inputs_group:
+            input_layers = []
+            for child in inputs_group.children():
+                if isinstance(child, QgsLayerTreeLayer):
+                    input_layers.append(child.layer())
+
+    def clearQGisProject(self):
+        QgsProject.instance().clear()
+
+    def runSaveProject(self):
+        self.defineCurrentProject()
+        if not self.ProjectDirectory == self.TemporalFolder:
+            self.updateMetadata()
+
+    def runClearedProject(self):
+        # Set flag to prevent DLL calls during shutdown
+        self.isUnloading = False
+
+        # Invalidate the DLL instance
+        self.gisredDll = None
+
+        # Deactivate all map tools to prevent callbacks during cleanup
+        try:
+            if hasattr(self, 'myMapTools'):
+                for tool_name, tool in list(self.myMapTools.items()):
+                    try:
+                        if tool is not None:
+                            if self.iface.mapCanvas().mapTool() is tool:
+                                self.iface.mapCanvas().unsetMapTool(tool)
+                            tool.deactivate()
+                    except Exception:
+                        pass
+                self.myMapTools.clear()
+        except Exception:
+            pass
+
+        # Disconnect and close all dock widgets
+        self.cleanupDocks()
+
+
+    """Read/Write methods"""
     def readOptions(self, folder="", network=""):
         if folder == "" and network == "":
             self.defineCurrentProject()
@@ -212,6 +242,21 @@ class ProjectManagementSection:
                     paths = paths + layerName + ";"
         return paths
 
+    def runChangeCrs(self):
+        # Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.ChangeCrs(self.ProjectDirectory, self.NetworkName, self.specificEpsg)
+        QApplication.restoreOverrideCursor()
+
+        if resMessage == "True":
+            pass
+        elif resMessage == "False":
+            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+
+
+    """Main methods"""
     def runProjectManager(self):
         if not self.checkDependencies():
             return
@@ -315,18 +360,6 @@ class ProjectManagementSection:
             if valid:
                 QGISRedUtils().runTask(self.clearQGisProject, self.runImport)
 
-    def runCanAddData(self):
-        if not self.checkDependencies():
-            return
-
-        # Validations
-        self.defineCurrentProject()
-        if not self.isValidProject():
-            return
-        if self.isLayerOnEdition():
-            return
-        self.runImport()
-
     def runImport(self):
         if not self.checkDependencies():
             return
@@ -341,25 +374,71 @@ class ProjectManagementSection:
         # Run the dialog event loop
         dlg.exec_()
 
-    def runCloseProject(self):
-        self.iface.newProject(True)
+    def runSummary(self):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
 
-    def runSaveActionProject(self):
-        self.iface.mainWindow().findChild(QAction, "mActionSaveProject").trigger()
-        self.iface.messageBar().pushMessage(self.tr("Info"), self.tr("Project saved"), level=0, duration=5)
-
-    def runChangeCrs(self):
         # Process
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.ChangeCrs(self.ProjectDirectory, self.NetworkName, self.specificEpsg)
+        resMessage = GISRed.Summary(self.ProjectDirectory, self.NetworkName)
         QApplication.restoreOverrideCursor()
 
+        # Message
         if resMessage == "True":
             pass
         elif resMessage == "False":
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
+            self.iface.messageBar().pushMessage(
+                self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5
+            )
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+
+    def runCanAddData(self):
+        if not self.checkDependencies():
+            return
+
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+        self.runImport()
+
+    def runLayerManagement(self):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+        # show the dialog
+        dlg = QGISRedLayerManagementDialog()
+        dlg.config(self.iface, self.ProjectDirectory, self.NetworkName, self)
+        # Run the dialog event loop
+        dlg.exec_()
+
+    def runLegends(self):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        self.legendsDialog = QGISRedLegendsDialog()
+        self.legendsDialog.config(self.iface, self.ProjectDirectory, self.NetworkName, self)
+        self.legendsDialog.show()
 
     def runSettings(self):
         if not self.checkDependencies():
@@ -386,21 +465,6 @@ class ProjectManagementSection:
             pass
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
-
-    def runEditProject(self):
-        if not self.checkDependencies():
-            return
-        # Validations
-        self.defineCurrentProject()
-        if not self.isValidProject():
-            return
-        if self.isLayerOnEdition():
-            return
-        # show the dialog
-        dlg = QGISRedLayerManagementDialog()
-        dlg.config(self.iface, self.ProjectDirectory, self.NetworkName, self)
-        # Run the dialog event loop
-        dlg.exec_()
 
     def runDefaultValues(self):
         if not self.checkDependencies():
@@ -464,30 +528,9 @@ class ProjectManagementSection:
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
-    def runSummary(self):
-        if not self.checkDependencies():
-            return
-        # Validations
-        self.defineCurrentProject()
-        if not self.isValidProject():
-            return
-        if self.isLayerOnEdition():
-            return
-
-        # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.Summary(self.ProjectDirectory, self.NetworkName)
-        QApplication.restoreOverrideCursor()
-
-        # Message
-        if resMessage == "True":
-            pass
-        elif resMessage == "False":
-            self.iface.messageBar().pushMessage(
-                self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5
-            )
-        else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+    def runSaveActionProject(self):
+        self.iface.mainWindow().findChild(QAction, "mActionSaveProject").trigger()
+        self.iface.messageBar().pushMessage(self.tr("Info"), self.tr("Project saved"), level=0, duration=5)
 
     def runCreateBackup(self):
         self.defineCurrentProject()
@@ -500,55 +543,7 @@ class ProjectManagementSection:
         path = utils.saveBackup()
         self.iface.messageBar().pushMessage("QGISRed", QCoreApplication.translate("QGISRed", "Backup stored in:") + " " + path, level=0, duration=5)
 
-    def runOpenedQgisProject(self):
-        # Reset the unloading flag since we're opening a new project
-        self.isUnloading = False
-        self.defineCurrentProject()
-        if self.ProjectDirectory == self.TemporalFolder:
-            return
+    def runCloseProject(self):
+        self.iface.newProject(True)
 
-        self.readOptions(self.ProjectDirectory, self.NetworkName)
 
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        utils.assignLayerIdentifiers()
-
-        QGISRedUtils().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
-
-        root = QgsProject.instance().layerTreeRoot()
-        inputs_group = root.findGroup("Inputs")
-
-        if inputs_group:
-            input_layers = []
-            for child in inputs_group.children():
-                if isinstance(child, QgsLayerTreeLayer):
-                    input_layers.append(child.layer())
-
-    def runSaveProject(self):
-        self.defineCurrentProject()
-        if not self.ProjectDirectory == self.TemporalFolder:
-            self.updateMetadata()
-
-    def runClearedProject(self):
-        # Set flag to prevent DLL calls during shutdown
-        self.isUnloading = False
-
-        # Invalidate the DLL instance
-        self.gisredDll = None
-
-        # Deactivate all map tools to prevent callbacks during cleanup
-        try:
-            if hasattr(self, 'myMapTools'):
-                for tool_name, tool in list(self.myMapTools.items()):
-                    try:
-                        if tool is not None:
-                            if self.iface.mapCanvas().mapTool() is tool:
-                                self.iface.mapCanvas().unsetMapTool(tool)
-                            tool.deactivate()
-                    except Exception:
-                        pass
-                self.myMapTools.clear()
-        except Exception:
-            pass
-
-        # Disconnect and close all dock widgets
-        self.cleanupDocks()

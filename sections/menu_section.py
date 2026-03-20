@@ -172,7 +172,7 @@ class MenuSection:
         self.add_action(
             icon_path,
             text=self.tr("Layer manager..."),
-            callback=self.runEditProject,
+            callback=self.runLayerManagement,
             menubar=self.projectMenu,
             toolbar=self.projectToolbar,
             actionBase=projectDropButton,
