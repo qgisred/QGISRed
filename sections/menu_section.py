@@ -32,7 +32,7 @@ class MenuSection:
     AnalysisSection:
         timeSeriesButton, analysisDropButton
 
-    SegmentTreeSection:
+    ToolsSection:
         isolatedSegmentsButton
 
     QueriesSection:

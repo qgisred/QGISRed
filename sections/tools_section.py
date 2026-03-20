@@ -1,15 +1,108 @@
 # -*- coding: utf-8 -*-
-"""Tools section for QGISRed (lengths, roughness, elevation, demands, scenarios)."""
+"""Tools section for QGISRed (lengths, roughness, elevation, demands, scenarios, isolated segments, tree)."""
+
+import os
 
 from PyQt5.QtWidgets import QApplication, QFileDialog
 from PyQt5.QtCore import Qt
 
 from ..tools.qgisred_utils import QGISRedUtils
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
+from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool
 
 
 class ToolsSection:
     """Calculate lengths, set/convert roughness, interpolate elevation, demand sectors, scenario/demands manager."""
+
+    def runCalculateLengths(self):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        # Process
+        if not self.getSelectedFeaturesIds():
+            return
+
+        ids = ""
+        for key in self.selectedIds:
+            ids = ids + key + ":" + str(self.selectedIds[key]) + ";"
+
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.CalculateLengths(self.ProjectDirectory, self.NetworkName, self.tempFolder, ids)
+        QApplication.restoreOverrideCursor()
+
+        self.processCsharpResult(resMessage, self.tr("No issues ocurred"))
+
+    def runElevationInterpolation(self):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        self.ElevationFiles = ""
+        qfd = QFileDialog()
+        path = ""
+        filter = "asc(*.asc)"
+        f = QFileDialog.getOpenFileNames(qfd, "Select ASC file", path, filter)
+        if not f[1] == "":
+            for fil in f[0]:
+                self.ElevationFiles = self.ElevationFiles + fil + ";"
+
+            # Process
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            resMessage = GISRed.ElevationInterpolation(
+                self.ProjectDirectory, self.NetworkName, self.tempFolder, self.ElevationFiles
+            )
+            QApplication.restoreOverrideCursor()
+
+            self.processCsharpResult(resMessage, self.tr("Any elevation has been estimated"))
+
+    def runSetRoughness(self):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        # Process
+        if not self.getSelectedFeaturesIds():
+            return
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.SetRoughness(self.ProjectDirectory, self.NetworkName, self.tempFolder, self.linkIds)
+        QApplication.restoreOverrideCursor()
+
+        self.processCsharpResult(resMessage, self.tr("No issues ocurred"))
+
+    def runConvertRoughness(self):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        # Process
+        if not self.getSelectedFeaturesIds():
+            return
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.ConvertRoughness(self.ProjectDirectory, self.NetworkName, self.tempFolder, self.linkIds)
+        QApplication.restoreOverrideCursor()
+
+        self.processCsharpResult(resMessage, self.tr("No issues ocurred"))
 
     def runDemandsManager(self):
         if not self.checkDependencies():
@@ -58,96 +151,6 @@ class ToolsSection:
 
         self.processCsharpResult(resMessage, "")
 
-    def runCalculateLengths(self):
-        if not self.checkDependencies():
-            return
-        # Validations
-        self.defineCurrentProject()
-        if not self.isValidProject():
-            return
-        if self.isLayerOnEdition():
-            return
-
-        # Process
-        if not self.getSelectedFeaturesIds():
-            return
-
-        ids = ""
-        for key in self.selectedIds:
-            ids = ids + key + ":" + str(self.selectedIds[key]) + ";"
-
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.CalculateLengths(self.ProjectDirectory, self.NetworkName, self.tempFolder, ids)
-        QApplication.restoreOverrideCursor()
-
-        self.processCsharpResult(resMessage, self.tr("No issues ocurred"))
-
-    def runSetRoughness(self):
-        if not self.checkDependencies():
-            return
-        # Validations
-        self.defineCurrentProject()
-        if not self.isValidProject():
-            return
-        if self.isLayerOnEdition():
-            return
-
-        # Process
-        if not self.getSelectedFeaturesIds():
-            return
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.SetRoughness(self.ProjectDirectory, self.NetworkName, self.tempFolder, self.linkIds)
-        QApplication.restoreOverrideCursor()
-
-        self.processCsharpResult(resMessage, self.tr("No issues ocurred"))
-
-    def runConvertRoughness(self):
-        if not self.checkDependencies():
-            return
-        # Validations
-        self.defineCurrentProject()
-        if not self.isValidProject():
-            return
-        if self.isLayerOnEdition():
-            return
-
-        # Process
-        if not self.getSelectedFeaturesIds():
-            return
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        resMessage = GISRed.ConvertRoughness(self.ProjectDirectory, self.NetworkName, self.tempFolder, self.linkIds)
-        QApplication.restoreOverrideCursor()
-
-        self.processCsharpResult(resMessage, self.tr("No issues ocurred"))
-
-    def runElevationInterpolation(self):
-        if not self.checkDependencies():
-            return
-        # Validations
-        self.defineCurrentProject()
-        if not self.isValidProject():
-            return
-        if self.isLayerOnEdition():
-            return
-
-        self.ElevationFiles = ""
-        qfd = QFileDialog()
-        path = ""
-        filter = "asc(*.asc)"
-        f = QFileDialog.getOpenFileNames(qfd, "Select ASC file", path, filter)
-        if not f[1] == "":
-            for fil in f[0]:
-                self.ElevationFiles = self.ElevationFiles + fil + ";"
-
-            # Process
-            QApplication.setOverrideCursor(Qt.WaitCursor)
-            resMessage = GISRed.ElevationInterpolation(
-                self.ProjectDirectory, self.NetworkName, self.tempFolder, self.ElevationFiles
-            )
-            QApplication.restoreOverrideCursor()
-
-            self.processCsharpResult(resMessage, self.tr("Any elevation has been estimated"))
-
     def runDemandSectors(self):
         if not self.checkDependencies():
             return
@@ -179,3 +182,175 @@ class ToolsSection:
         self.extent = QGISRedUtils().getProjectExtent()
         if self.hasToOpenSectorLayers:
             QGISRedUtils().runTask(self.removeSectorLayers, self.runOpenTemporaryFiles)
+
+    """Isolated Segments"""
+
+    def runIsolatedSegments(self, point):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        resMessage = "Select"
+        tool = "pointIsolatedSegment"
+        if point == True or point == False:
+            point = ""
+            self.gisredDll = None
+        if not point == "":
+            point = self.transformPoint(point)
+            point = str(point.x()) + ":" + str(point.y())
+
+            # Process
+            if self.gisredDll is None:
+                self.gisredDll = GISRed.CreateInstance()
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            resMessage = GISRed.IsolatedSegments(self.gisredDll, self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
+            QApplication.restoreOverrideCursor()
+
+        if resMessage == "False" or resMessage == "Cancelled":
+            return
+        elif resMessage == "Select":
+            self.blockLayers(True)
+            self.myMapTools[tool] = QGISRedSelectPointTool(self.isolatedSegmentsButton, self, self.runIsolatedSegments, 2)
+            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
+        elif "shps" in resMessage:
+            if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+                self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
+                self.isolatedSegmentsButton.setChecked(False)
+            self.gisredDll = None
+            self.blockLayers(False)
+            # self.treeName = resMessage.split("^")[1]
+            self.removingLayers = True
+            QGISRedUtils().runTask(self.removeIsolatedSegmentsLayers, self.runLoadIsolatedSegmentLayers)
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+
+    def runLoadIsolatedSegmentLayers(self):
+        # Process
+        queriesFolder = os.path.join(self.ProjectDirectory, "Queries")
+        try:  # create directory if does not exist
+            os.stat(queriesFolder)
+        except Exception:
+            os.mkdir(queriesFolder)
+
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.ReplaceTemporalFiles(queriesFolder, self.tempFolder)
+        QApplication.restoreOverrideCursor()
+
+        self.openIsolatedSegmentsLayers()
+        self.removingLayers = False
+
+        # Message
+        if resMessage == "True":
+            pass
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+
+    def openIsolatedSegmentsLayers(self):
+        # Open layers
+        isoaltedSegmentsGroup = self.getIsolatedSegmentsGroup()
+        queriesFolder = os.path.join(self.ProjectDirectory, "Queries")
+        utils = QGISRedUtils(queriesFolder, self.NetworkName, self.iface)
+        utils.openIsolatedSegmentsLayer(isoaltedSegmentsGroup, "Links")
+        utils.openIsolatedSegmentsLayer(isoaltedSegmentsGroup, "Nodes")
+
+    def getIsolatedSegmentsGroup(self):
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        return utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Isolated Segments"])
+
+    def removeIsolatedSegmentsLayers(self):
+        path = os.path.join(self.ProjectDirectory, "Queries")
+        utils = QGISRedUtils(path, self.NetworkName, self.iface)
+        utils.removeLayers(["IsolatedSegments_Links", "IsolatedSegments_Nodes"])
+
+    """Tree"""
+
+    def runTree(self, point):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        point1 = ""
+        if point is not False:
+            point = self.transformPoint(point)
+            point1 = str(point.x()) + ":" + str(point.y())
+
+        tool = "treeNode"
+        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
+
+        # Process
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.Tree(self.ProjectDirectory, self.NetworkName, self.tempFolder, point1)
+        QApplication.restoreOverrideCursor()
+
+        # Action
+        if resMessage == "False" or resMessage == "Cancelled":
+            return
+        elif resMessage == "Select":
+            self.selectPointToTree()
+        elif "shps" in resMessage:
+            self.treeName = resMessage.split("^")[1]
+            self.removingLayers = True
+            QGISRedUtils().runTask(self.removeTreeLayers, self.runTreeProcess)
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+
+    def runTreeProcess(self):
+        # Process
+        treeFolder = os.path.join(self.ProjectDirectory, "Trees")
+        try:  # create directory if does not exist
+            os.stat(treeFolder)
+        except Exception:
+            os.mkdir(treeFolder)
+
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        resMessage = GISRed.ReplaceTemporalFiles(treeFolder, self.tempFolder)
+        QApplication.restoreOverrideCursor()
+
+        self.openTreeLayers()
+        self.removingLayers = False
+
+        # Message
+        if resMessage == "True":
+            pass
+        else:
+            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+
+    def selectPointToTree(self):
+        tool = "treeNode"
+        if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
+            self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
+        else:
+            self.myMapTools[tool] = QGISRedSelectPointTool(None, self, self.runTree, 1)
+            self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
+
+    def openTreeLayers(self):
+        # Open layers
+        treeGroup = self.getTreeGroup()
+        treeFolder = os.path.join(self.ProjectDirectory, "Trees")
+        utils = QGISRedUtils(treeFolder, self.NetworkName, self.iface)
+        utils.openTreeLayer(treeGroup, "Links", self.treeName, link=True)
+        utils.openTreeLayer(treeGroup, "Nodes", self.treeName)
+        group = self.getInputGroup()
+        if group is not None:
+            group.setItemVisibilityChecked(False)
+
+    def getTreeGroup(self):
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        return utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Tree: " + self.treeName])
+
+    def removeTreeLayers(self):
+        treePath = os.path.join(self.ProjectDirectory, "Trees")
+        utils = QGISRedUtils(treePath, self.NetworkName, self.iface)
+        utils.removeLayers(["Links_Tree_" + self.treeName, "Nodes_Tree_" + self.treeName])
+        self.removeEmptyQuerySubGroup("Tree")

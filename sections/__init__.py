@@ -15,8 +15,6 @@ from .debug_validation_section import DebugValidationSection
 from .tools_section import ToolsSection
 from .digital_twin_section import DigitalTwinSection
 from .queries_section import QueriesSection
-from .segment_tree_section import SegmentTreeSection
-
 __all__ = [
     "LifecycleSection",
     "MenuSection",
@@ -29,5 +27,4 @@ __all__ = [
     "ToolsSection",
     "DigitalTwinSection",
     "QueriesSection",
-    "SegmentTreeSection",
 ]

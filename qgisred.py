@@ -12,9 +12,6 @@ from .sections.debug_validation_section import DebugValidationSection
 from .sections.tools_section import ToolsSection
 from .sections.digital_twin_section import DigitalTwinSection
 from .sections.queries_section import QueriesSection
-from .sections.segment_tree_section import SegmentTreeSection
-
-
 class QGISRed(
     LifecycleSection,
     MenuSection,
@@ -27,7 +24,6 @@ class QGISRed(
     ToolsSection,
     DigitalTwinSection,
     QueriesSection,
-    SegmentTreeSection,
 ):
     """QGISRed Plugin Implementation."""
 
