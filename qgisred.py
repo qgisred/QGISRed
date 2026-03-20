@@ -64,8 +64,8 @@ import os
 import json
 import tempfile
 import platform
+import subprocess
 import base64
-import shutil
 import webbrowser
 import urllib.request
 import ssl
@@ -1724,20 +1724,21 @@ class QGISRed:
             pass
 
     def getVersion(self, filename, what):
+        _UNKNOWN_VERSION = "0.0.0.0"  # DLL version fallback string, not a network address  # nosec B104
         wstr_file = wstring_at(filename)
         size = windll.version.GetFileVersionInfoSizeW(wstr_file, None)
         if size == 0:
-            return "0.0.0.0"
+            return _UNKNOWN_VERSION
 
         buffer = create_string_buffer(size)
         if windll.version.GetFileVersionInfoW(wstr_file, None, size, buffer) == 0:
-            return "0.0.0.0"
+            return _UNKNOWN_VERSION
 
         value = c_void_p(0)
         value_size = c_uint(0)
         ret = windll.version.VerQueryValueW(buffer, wstring_at(r"\VarFileInfo\Translation"), byref(value), byref(value_size))
         if ret == 0:
-            return "0.0.0.0"
+            return _UNKNOWN_VERSION
         lcp = cast(value, POINTER(LANGANDCODEPAGE))
         language = "{0:04x}{1:04x}".format(lcp.contents.wLanguage, lcp.contents.wCodePage)
 
@@ -1746,7 +1747,7 @@ class QGISRed:
         )
 
         if res == 0:
-            return "0.0.0.0"
+            return _UNKNOWN_VERSION
         return wstring_at(value.value, value_size.value - 1)
 
     def checkDependencies(self):
@@ -1757,7 +1758,7 @@ class QGISRed:
             if currentVersion == self.DependenciesVersion:
                 valid = True
         if not valid:
-            link = '"https://qgisred.upv.es/files/dependencies/' + self.DependenciesVersion + '/QGISRed_Installation.msi"'
+            link = "https://qgisred.upv.es/files/dependencies/" + self.DependenciesVersion + "/QGISRed_Installation.msi"
             request = QMessageBox.question(
                 self.iface.mainWindow(),
                 self.tr("QGISRed Dependencies"),
@@ -1774,12 +1775,14 @@ class QGISRed:
                         os.path.join(os.path.join(os.getenv("APPDATA"), "QGISRed"), "dlls"), "Uninstall.msi.lnk"
                     )
                     if os.path.exists(uninstallFile):
-                        os.system(uninstallFile)
+                        os.startfile(uninstallFile)
 
                 localFile = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names()) + ".msi"
                 try:
-                    urllib.request.urlretrieve(link.strip("'\""), localFile)
-                    os.system(localFile)
+                    if not link.startswith("https://"):
+                        return valid
+                    urllib.request.urlretrieve(link, localFile)
+                    subprocess.run(["msiexec", "/i", localFile], check=False)
                     os.remove(localFile)
                 except Exception:
                     pass
@@ -1791,11 +1794,13 @@ class QGISRed:
         return valid
 
     def checkForUpdates(self):
-        link = '"https://qgisred.upv.es/files/versions.txt"'
+        link = "https://qgisred.upv.es/files/versions.txt"
         tempLocalFile = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names()) + ".txt"
         try:
             # Read online file
-            urllib.request.urlretrieve(link.strip("'\""), tempLocalFile)
+            if not link.startswith("https://"):
+                return
+            urllib.request.urlretrieve(link, tempLocalFile)
             f = open(tempLocalFile, "r")
             contents = f.read()  # 0.11
             f.close()
@@ -1839,7 +1844,9 @@ class QGISRed:
         tempLocalFile = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names()) + ".txt"
         try:
             # Read online file
-            urllib.request.urlretrieve(link.strip("'\""), tempLocalFile)
+            if not link.startswith("https://"):
+                return
+            urllib.request.urlretrieve(link, tempLocalFile)
             f = open(tempLocalFile, "r")
             url = f.readline()
             f.close()

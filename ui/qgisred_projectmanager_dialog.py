@@ -16,7 +16,7 @@ from ..tools.qgisred_utils import QGISRedUtils
 
 import os
 from shutil import copyfile
-from xml.etree import ElementTree
+from xml.etree import ElementTree  # nosec B314 — parses local project files only, no external input
 
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_projectmanager_dialog.ui"))

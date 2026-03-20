@@ -19,7 +19,7 @@ from shutil import copyfile
 import platform
 from zipfile import ZipFile
 from random import randrange
-from xml.etree import ElementTree
+from xml.etree import ElementTree  # nosec B314 — parses local project files only, no external input
 import json
 
 class QGISRedUtils:
