@@ -124,7 +124,7 @@
     <message>
         <location filename="../sections/debug_validation_section.py" line="191"/>
         <source>No one pipe&apos;s length out of tolerance</source>
-        <translation>Ninguna longitud de tubería fuera de la tolerancia</translation>
+        <translation type="obsolete">Ninguna longitud de tubería fuera de la tolerancia</translation>
     </message>
     <message>
         <location filename="../sections/debug_validation_section.py" line="278"/>
@@ -145,6 +145,11 @@
         <location filename="../sections/debug_validation_section.py" line="274"/>
         <source>No issues on installation dates checking</source>
         <translation>No ha habido problemas en la comprobación de fechas de instalación</translation>
+    </message>
+    <message>
+        <location filename="../sections/debug_validation_section.py" line="191"/>
+        <source>No pipe length out of tolerance</source>
+        <translation>Ninguna longitud de tubería está fuera de la tolerancia</translation>
     </message>
 </context>
 <context>
@@ -484,12 +489,22 @@
     </message>
     <message>
         <location filename="../sections/digital_twin_section.py" line="219"/>
-        <source>Does not exist Isolation Valves SHP file</source>
+        <source>It does not exist Isolation Valves SHP file</source>
+        <translation type="obsolete">No existe el archivo SHP de Válvulas de seccionamiento</translation>
+    </message>
+    <message>
+        <location filename="../sections/digital_twin_section.py" line="243"/>
+        <source>It does not exist ServiceConnections SHP file</source>
+        <translation type="obsolete">No existe el archivo SHP de Acometidas</translation>
+    </message>
+    <message>
+        <location filename="../sections/digital_twin_section.py" line="219"/>
+        <source>The Isolation Valves SHP file does not exist</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../sections/digital_twin_section.py" line="243"/>
-        <source>Does not exist ServiceConnections SHP file</source>
+        <source>The Service Connections SHP file does not exist</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -970,42 +985,42 @@
         <translation>Haga clic para cambiarlo</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="163"/>
+        <location filename="../sections/lifecycle_section.py" line="185"/>
         <source>About...</source>
         <translation>Acerca de...</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="168"/>
+        <location filename="../sections/lifecycle_section.py" line="190"/>
         <source>Report issues or comments...</source>
         <translation>Informar de problemas o comentarios...</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="223"/>
+        <location filename="../sections/lifecycle_section.py" line="245"/>
         <source>Loaded sucssesfully</source>
         <translation>Cargado exitósamente</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="410"/>
+        <location filename="../sections/lifecycle_section.py" line="432"/>
         <source>QGISRed Dependencies</source>
         <translation>Dependencias de QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="410"/>
+        <location filename="../sections/lifecycle_section.py" line="432"/>
         <source>QGISRed plugin only runs in Windows OS and requires some dependencies (v{}). Do you want to install them now?</source>
         <translation>El complemento QGISRed solo se ejecuta en Windows y requiere algunas dependencias (v{}). ¿Quieres instalarlas ahora?</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="410"/>
+        <location filename="../sections/lifecycle_section.py" line="432"/>
         <source>At the end, the QGISRed web page will be open to show the news, where you can also register if you wish to receive the newsletters.</source>
         <translation>Al final, se abrirá la página web de QGISRed para mostrar las últimas novedades, donde también podrás registrarte si deseas recibir los boletines informativos.</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="469"/>
+        <location filename="../sections/lifecycle_section.py" line="491"/>
         <source>QGISRed Updates</source>
         <translation>Actualizaciones de QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="469"/>
+        <location filename="../sections/lifecycle_section.py" line="491"/>
         <source>QGISRed plugin has a new version ({}). You can upgrade it from the QGis plugin manager. Do you want to remember it again?</source>
         <translation>El complemento QGISRed tiene una nueva versión ({}). Puedes actualizarlo desde el gestor de complementos de QGIS. ¿Quieres volver a recordar este mensaje?</translation>
     </message>
@@ -1561,42 +1576,42 @@
     <message>
         <location filename="../qgisred.py" line="4868"/>
         <source>Error</source>
-        <translation>Error</translation>
+        <translation type="obsolete">Error</translation>
     </message>
     <message>
         <location filename="../qgisred.py" line="110"/>
         <source>QGISRed only works on Windows</source>
-        <translation>QGISRed solo funciona en Windows</translation>
+        <translation type="obsolete">QGISRed solo funciona en Windows</translation>
     </message>
     <message>
         <location filename="../qgisred.py" line="142"/>
         <source>Click to change it</source>
-        <translation>Haga clic para cambiarlo</translation>
+        <translation type="obsolete">Haga clic para cambiarlo</translation>
     </message>
     <message>
         <location filename="../qgisred.py" line="235"/>
         <source>About...</source>
-        <translation>Acerca de...</translation>
+        <translation type="obsolete">Acerca de...</translation>
     </message>
     <message>
         <location filename="../qgisred.py" line="245"/>
         <source>Report issues or comments...</source>
-        <translation>Informar de problemas o comentarios...</translation>
+        <translation type="obsolete">Informar de problemas o comentarios...</translation>
     </message>
     <message>
         <location filename="../qgisred.py" line="460"/>
         <source>General</source>
-        <translation>General</translation>
+        <translation type="obsolete">General</translation>
     </message>
     <message>
         <location filename="../qgisred.py" line="454"/>
         <source>QGISRed General</source>
-        <translation>General de QGISRed</translation>
+        <translation type="obsolete">General de QGISRed</translation>
     </message>
     <message>
         <location filename="../qgisred.py" line="373"/>
         <source>Project manager</source>
-        <translation>Gestor de proyectos</translation>
+        <translation type="obsolete">Gestor de proyectos</translation>
     </message>
     <message>
         <location filename="../sections/project_management_section.py" line="55"/>

@@ -122,11 +122,6 @@
         <translation type="unfinished">Erreur</translation>
     </message>
     <message>
-        <location filename="../sections/debug_validation_section.py" line="191"/>
-        <source>No one pipe&apos;s length out of tolerance</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../sections/debug_validation_section.py" line="278"/>
         <source>Warning</source>
         <translation type="unfinished">Avertissement</translation>
@@ -145,6 +140,11 @@
         <location filename="../sections/debug_validation_section.py" line="274"/>
         <source>No issues on installation dates checking</source>
         <translation type="unfinished">Aucun problème lors de la vérification des dates d’installation</translation>
+    </message>
+    <message>
+        <location filename="../sections/debug_validation_section.py" line="191"/>
+        <source>No pipe length out of tolerance</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -484,12 +484,12 @@
     </message>
     <message>
         <location filename="../sections/digital_twin_section.py" line="219"/>
-        <source>Does not exist Isolation Valves SHP file</source>
+        <source>The Isolation Valves SHP file does not exist</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../sections/digital_twin_section.py" line="243"/>
-        <source>Does not exist ServiceConnections SHP file</source>
+        <source>The Service Connections SHP file does not exist</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -865,42 +865,42 @@
         <translation type="unfinished">Cliquez pour le changer</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="163"/>
+        <location filename="../sections/lifecycle_section.py" line="185"/>
         <source>About...</source>
         <translation type="unfinished">À propos...</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="168"/>
+        <location filename="../sections/lifecycle_section.py" line="190"/>
         <source>Report issues or comments...</source>
         <translation type="unfinished">Signaler des problèmes ou des commentaires...</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="223"/>
+        <location filename="../sections/lifecycle_section.py" line="245"/>
         <source>Loaded sucssesfully</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="410"/>
+        <location filename="../sections/lifecycle_section.py" line="432"/>
         <source>QGISRed Dependencies</source>
         <translation type="unfinished">Dépendances de QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="410"/>
+        <location filename="../sections/lifecycle_section.py" line="432"/>
         <source>QGISRed plugin only runs in Windows OS and requires some dependencies (v{}). Do you want to install them now?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="410"/>
+        <location filename="../sections/lifecycle_section.py" line="432"/>
         <source>At the end, the QGISRed web page will be open to show the news, where you can also register if you wish to receive the newsletters.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="469"/>
+        <location filename="../sections/lifecycle_section.py" line="491"/>
         <source>QGISRed Updates</source>
         <translation type="unfinished">Mises à jour de QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="469"/>
+        <location filename="../sections/lifecycle_section.py" line="491"/>
         <source>QGISRed plugin has a new version ({}). You can upgrade it from the QGis plugin manager. Do you want to remember it again?</source>
         <translation type="unfinished"></translation>
     </message>

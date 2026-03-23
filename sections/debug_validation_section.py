@@ -188,7 +188,7 @@ class DebugValidationSection:
             )
             QApplication.restoreOverrideCursor()
 
-            self.processCsharpResult(resMessage, self.tr("No one pipe's length out of tolerance"))
+            self.processCsharpResult(resMessage, self.tr("No pipe length out of tolerance"))
 
     def runCheckDiameters(self):
         if not self.checkDependencies():
