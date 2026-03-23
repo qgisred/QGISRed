@@ -1331,6 +1331,20 @@ class QGISRedUtils:
 
     """QLR Operations"""
 
+    def getProjectGuid(self):
+        metadataFile = os.path.join(self.ProjectDirectory, self.NetworkName + "_Metadata.txt")
+        if os.path.exists(metadataFile):
+            try:
+                with open(metadataFile, "r", encoding="latin-1") as f:
+                    data = f.read()
+                root = ElementTree.fromstring(data)
+                guidNode = root.find("Guid")
+                if guidNode is not None and guidNode.text:
+                    return guidNode.text
+            except Exception:
+                pass
+        return self.NetworkName
+
     def getQLRFolder(self):
         qlrFolder = os.path.join(self.getQGISRedFolder(), "qlr")
         if not os.path.exists(qlrFolder):
@@ -1338,7 +1352,7 @@ class QGISRedUtils:
         return qlrFolder
 
     def saveProjectAsQLR(self):
-        qlrFolder = os.path.join(self.getQLRFolder(), self.NetworkName)
+        qlrFolder = os.path.join(self.getQLRFolder(), self.getProjectGuid())
         if not os.path.exists(qlrFolder):
             os.makedirs(qlrFolder)
 
@@ -1394,7 +1408,7 @@ class QGISRedUtils:
         return (savedCount > 0, qlrFolder)
 
     def loadProjectFromQLR(self):
-        qlrFolder = os.path.join(self.getQLRFolder(), self.NetworkName)
+        qlrFolder = os.path.join(self.getQLRFolder(), self.getProjectGuid())
 
         if not os.path.exists(qlrFolder):
             return False
@@ -1458,7 +1472,7 @@ class QGISRedUtils:
         return len(loadedLayers) > 0
 
     def deleteProjectQLR(self):
-        qlrFolder = os.path.join(self.getQLRFolder(), self.NetworkName)
+        qlrFolder = os.path.join(self.getQLRFolder(), self.getProjectGuid())
 
         if not os.path.exists(qlrFolder):
             return False
