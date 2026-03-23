@@ -980,15 +980,27 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         checkbox = self.cbNodeLabels if layer_type == "Node" else self.cbLinkLabels
         combobox = self.cbNodes if layer_type == "Node" else self.cbLinks
 
+        _LINK_FIELD_MAP = {
+            self.lbl_flow: "Flow", self.lbl_unsigned_flow: "Flow_Unsig", self.lbl_signed_flow: "Flow_Sig",
+            self.lbl_velocity: "Velocity", self.lbl_headloss: "HeadLoss", self.lbl_unit_headloss: "UnitHdLoss",
+            self.lbl_friction_factor: "FricFactor", self.lbl_status: "Status",
+            self.lbl_reaction_rate: "ReactRate", self.lbl_quality: "Quality",
+        }
+        _NODE_FIELD_MAP = {
+            self.lbl_pressure: "Pressure", self.lbl_head: "Head",
+            self.lbl_demand: "Demand", self.lbl_quality: "Quality",
+        }
+        field_map = _LINK_FIELD_MAP if layer_type == "Link" else _NODE_FIELD_MAP
+
         for layer in self.getLayers():
             if self.getLayerPath(layer) == resultLayerPath:
                 if checkbox.isChecked():
-                    idx = combobox.currentIndex()
-                    if idx > 0:
-                        field = layer.fields().at(idx + 2).name()
-                        is_min_max_stat = self._statsMode and self.cbStatistics.currentText() in (self.lbl_maximum, self.lbl_minimum)
-                        time_field = time_field_name(field, layer_type) if is_min_max_stat else None
-                        self.setLayerLabels(layer, field, time_field)
+                    if combobox.currentIndex() > 0:
+                        field = field_map.get(combobox.currentText(), "")
+                        if field:
+                            is_min_max_stat = self._statsMode and self.cbStatistics.currentText() in (self.lbl_maximum, self.lbl_minimum)
+                            time_field = time_field_name(field, layer_type) if is_min_max_stat else None
+                            self.setLayerLabels(layer, field, time_field)
                 else:
                     layer.setLabelsEnabled(False)
                     layer.triggerRepaint()
