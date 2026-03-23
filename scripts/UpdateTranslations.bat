@@ -24,7 +24,7 @@ echo Preparing execution of: pylupdate5 qgisred.pro
 echo.
 
 :: Call OSGeo4W.bat setting the working directory via cmd /c to ensure it runs inside the plugin folder
-call "%OSGEO4W_BAT%" cmd /c "cd /d ""%~dp0.."" && pylupdate5 qgisred.pro"
+call "%OSGEO4W_BAT%" cmd /c "cd /d ""%~dp0.."" && lupdate qgisred.pro -noobsolete && pylupdate5 qgisred.pro "
 
 echo.
 echo Operation completed (or OSGeo4W window closed).
