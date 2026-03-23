@@ -86,16 +86,38 @@ class LifecycleSection:
         # To allow downloads from qgisred web page
         ssl._create_default_https_context = ssl._create_unverified_context
 
+    # All contexts that pylupdate5 assigns to section classes (since they are not QObject
+    # subclasses, self.tr() always resolves here via MRO instead of using the class name).
+    _SECTION_CONTEXTS = [
+        "QGISRed",
+        "MenuSection",
+        "LifecycleSection",
+        "AnalysisSection",
+        "DebugValidationSection",
+        "DigitalTwinSection",
+        "LayerManagementSection",
+        "NetworkEditingSection",
+        "ProjectManagementSection",
+        "ToolsSection",
+        "UtilsSection",
+    ]
+
     def tr(self, message):
         """Get the translation for a string using Qt translation API.
         We implement this ourselves since we do not inherit QObject.
+        Searches all section contexts because pylupdate5 assigns each class its own
+        context, but self.tr() always resolves to this method via Python's MRO.
         :param message: String for translation.
         :type message: str, QString
         :returns: Translated version of message.
         :rtype: QString
         """
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
-        return QCoreApplication.translate("QGISRed", message)
+        for ctx in self._SECTION_CONTEXTS:
+            result = QCoreApplication.translate(ctx, message)
+            if result != message:
+                return result
+        return message
 
 
     def _make_action(self, icon_path, text, callback, checkable=False, enabled_flag=True, parent=None):

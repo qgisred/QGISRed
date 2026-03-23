@@ -712,42 +712,42 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="173"/>
+        <location filename="../sections/lifecycle_section.py" line="163"/>
         <source>About...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="183"/>
+        <location filename="../sections/lifecycle_section.py" line="168"/>
         <source>Report issues or comments...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="242"/>
+        <location filename="../sections/lifecycle_section.py" line="223"/>
         <source>Loaded sucssesfully</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="429"/>
+        <location filename="../sections/lifecycle_section.py" line="410"/>
         <source>QGISRed Dependencies</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="429"/>
+        <location filename="../sections/lifecycle_section.py" line="410"/>
         <source>QGISRed plugin only runs in Windows OS and requires some dependencies (v{}). Do you want to install them now?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="429"/>
+        <location filename="../sections/lifecycle_section.py" line="410"/>
         <source>At the end, the QGISRed web page will be open to show the news, where you can also register if you wish to receive the newsletters.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="488"/>
+        <location filename="../sections/lifecycle_section.py" line="469"/>
         <source>QGISRed Updates</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="488"/>
+        <location filename="../sections/lifecycle_section.py" line="469"/>
         <source>QGISRed plugin has a new version ({}). You can upgrade it from the QGis plugin manager. Do you want to remember it again?</source>
         <translation type="unfinished"></translation>
     </message>
@@ -755,7 +755,7 @@
 <context>
     <name>MenuSection</name>
     <message>
-        <location filename="../sections/menu_section.py" line="62"/>
+        <location filename="../sections/menu_section.py" line="61"/>
         <source>General</source>
         <translation type="unfinished"></translation>
     </message>
@@ -765,492 +765,492 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="78"/>
+        <location filename="../sections/menu_section.py" line="70"/>
         <source>Project manager...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="89"/>
+        <location filename="../sections/menu_section.py" line="79"/>
         <source>Open project...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="100"/>
+        <location filename="../sections/menu_section.py" line="88"/>
         <source>Create project...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="111"/>
+        <location filename="../sections/menu_section.py" line="97"/>
         <source>Import project...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="134"/>
+        <location filename="../sections/menu_section.py" line="117"/>
         <source>Project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="128"/>
+        <location filename="../sections/menu_section.py" line="112"/>
         <source>QGISRed Project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="150"/>
+        <location filename="../sections/menu_section.py" line="127"/>
         <source>Summary...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="161"/>
+        <location filename="../sections/menu_section.py" line="136"/>
         <source>Add data by import...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="172"/>
+        <location filename="../sections/menu_section.py" line="145"/>
         <source>Layer manager...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="183"/>
+        <location filename="../sections/menu_section.py" line="154"/>
         <source>Legend editor...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="197"/>
+        <location filename="../sections/menu_section.py" line="167"/>
         <source>Project settings...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="208"/>
+        <location filename="../sections/menu_section.py" line="176"/>
         <source>Default values...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="219"/>
+        <location filename="../sections/menu_section.py" line="185"/>
         <source>Materials Table...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="233"/>
+        <location filename="../sections/menu_section.py" line="198"/>
         <source>Save project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="244"/>
+        <location filename="../sections/menu_section.py" line="207"/>
         <source>Project backup</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="255"/>
+        <location filename="../sections/menu_section.py" line="216"/>
         <source>Close project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="279"/>
+        <location filename="../sections/menu_section.py" line="237"/>
         <source>Edition</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="272"/>
+        <location filename="../sections/menu_section.py" line="231"/>
         <source>QGISRed Edition</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="295"/>
+        <location filename="../sections/menu_section.py" line="247"/>
         <source>Add pipe</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="307"/>
+        <location filename="../sections/menu_section.py" line="254"/>
         <source>Add tank</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="319"/>
+        <location filename="../sections/menu_section.py" line="264"/>
         <source>Add reservoir</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="331"/>
+        <location filename="../sections/menu_section.py" line="274"/>
         <source>Insert valve in pipe</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="343"/>
+        <location filename="../sections/menu_section.py" line="284"/>
         <source>Insert pump in pipe</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="358"/>
+        <location filename="../sections/menu_section.py" line="298"/>
         <source>Select multiple elements</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="370"/>
+        <location filename="../sections/menu_section.py" line="308"/>
         <source>Move nodes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="382"/>
+        <location filename="../sections/menu_section.py" line="318"/>
         <source>Edit link vertices</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="394"/>
+        <location filename="../sections/menu_section.py" line="328"/>
         <source>Reverse elements</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="406"/>
+        <location filename="../sections/menu_section.py" line="338"/>
         <source>Split/Join pipes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="418"/>
+        <location filename="../sections/menu_section.py" line="348"/>
         <source>Merge/Dissolve junctions</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="430"/>
+        <location filename="../sections/menu_section.py" line="358"/>
         <source>Create/Remove T connections</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="442"/>
+        <location filename="../sections/menu_section.py" line="368"/>
         <source>Create/Remove crossings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="454"/>
+        <location filename="../sections/menu_section.py" line="378"/>
         <source>Move valves/pumps</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="466"/>
+        <location filename="../sections/menu_section.py" line="388"/>
         <source>Change element status</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="478"/>
+        <location filename="../sections/menu_section.py" line="398"/>
         <source>Delete elements</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="493"/>
+        <location filename="../sections/menu_section.py" line="412"/>
         <source>Edit element properties...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="505"/>
+        <location filename="../sections/menu_section.py" line="422"/>
         <source>Edit patterns and curves...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="516"/>
+        <location filename="../sections/menu_section.py" line="431"/>
         <source>Edit controls...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="539"/>
+        <location filename="../sections/menu_section.py" line="451"/>
         <source>Debug</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="533"/>
+        <location filename="../sections/menu_section.py" line="446"/>
         <source>QGISRed Debug</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="555"/>
+        <location filename="../sections/menu_section.py" line="461"/>
         <source>Check &amp;&amp; Commit data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="566"/>
+        <location filename="../sections/menu_section.py" line="470"/>
         <source>Remove overlapping elements</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="577"/>
+        <location filename="../sections/menu_section.py" line="479"/>
         <source>Simplify link vertices</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="588"/>
+        <location filename="../sections/menu_section.py" line="488"/>
         <source>Join consecutive pipes (diameter, material and year)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="599"/>
+        <location filename="../sections/menu_section.py" line="497"/>
         <source>Create T Connections</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="611"/>
+        <location filename="../sections/menu_section.py" line="508"/>
         <source>Check connectivity</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="623"/>
+        <location filename="../sections/menu_section.py" line="519"/>
         <source>Delete issolated subzones</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="637"/>
+        <location filename="../sections/menu_section.py" line="532"/>
         <source>Check pipe lengths</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="648"/>
+        <location filename="../sections/menu_section.py" line="541"/>
         <source>Check diameters</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="659"/>
+        <location filename="../sections/menu_section.py" line="550"/>
         <source>Check pipe materials</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="670"/>
+        <location filename="../sections/menu_section.py" line="559"/>
         <source>Check pipe installation dates</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="684"/>
+        <location filename="../sections/menu_section.py" line="572"/>
         <source>Check hydraulic sectors</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="707"/>
+        <location filename="../sections/menu_section.py" line="592"/>
         <source>Tools</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="701"/>
+        <location filename="../sections/menu_section.py" line="587"/>
         <source>QGISRed Tools</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="723"/>
+        <location filename="../sections/menu_section.py" line="602"/>
         <source>Automatically Calculate Pipe Lengths</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="734"/>
+        <location filename="../sections/menu_section.py" line="611"/>
         <source>Interpolate elevation from .asc files...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="745"/>
+        <location filename="../sections/menu_section.py" line="620"/>
         <source>Set roughness coefficient (from Material and Date)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="756"/>
+        <location filename="../sections/menu_section.py" line="629"/>
         <source>Convert roughness coefficient</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="770"/>
+        <location filename="../sections/menu_section.py" line="642"/>
         <source>Nodal Demand Builder...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="781"/>
+        <location filename="../sections/menu_section.py" line="651"/>
         <source>Scenario Builder...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="792"/>
+        <location filename="../sections/menu_section.py" line="660"/>
         <source>Isolated Segments</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="807"/>
+        <location filename="../sections/menu_section.py" line="674"/>
         <source>Obtain demand sectors</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="818"/>
+        <location filename="../sections/menu_section.py" line="683"/>
         <source>Tree Graph...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="841"/>
+        <location filename="../sections/menu_section.py" line="703"/>
         <source>Analysis</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="835"/>
+        <location filename="../sections/menu_section.py" line="698"/>
         <source>QGISRed Analysis</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="858"/>
+        <location filename="../sections/menu_section.py" line="715"/>
         <source>Run model</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="870"/>
+        <location filename="../sections/menu_section.py" line="726"/>
         <source>Results browser</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="881"/>
+        <location filename="../sections/menu_section.py" line="736"/>
         <source>Status report</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="892"/>
+        <location filename="../sections/menu_section.py" line="746"/>
         <source>Analysis options...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="906"/>
+        <location filename="../sections/menu_section.py" line="759"/>
         <source>Time Series</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="921"/>
+        <location filename="../sections/menu_section.py" line="773"/>
         <source>Export to Epanet</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="944"/>
+        <location filename="../sections/menu_section.py" line="793"/>
         <source>Digital Twin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="938"/>
+        <location filename="../sections/menu_section.py" line="788"/>
         <source>QGISRed Digital Twin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="960"/>
+        <location filename="../sections/menu_section.py" line="803"/>
         <source>Add service connection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="973"/>
+        <location filename="../sections/menu_section.py" line="813"/>
         <source>Add isolation valve</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="990"/>
+        <location filename="../sections/menu_section.py" line="828"/>
         <source>Add Meter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="998"/>
+        <location filename="../sections/menu_section.py" line="834"/>
         <source>Add meter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1014"/>
+        <location filename="../sections/menu_section.py" line="843"/>
         <source>Add automatic meter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1028"/>
+        <location filename="../sections/menu_section.py" line="854"/>
         <source>Add manometer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1041"/>
+        <location filename="../sections/menu_section.py" line="864"/>
         <source>Add flowmeter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1054"/>
+        <location filename="../sections/menu_section.py" line="874"/>
         <source>Add countermeter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1067"/>
+        <location filename="../sections/menu_section.py" line="884"/>
         <source>Add level sensor</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1080"/>
+        <location filename="../sections/menu_section.py" line="894"/>
         <source>Add differential manometer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1093"/>
+        <location filename="../sections/menu_section.py" line="904"/>
         <source>Add quality sensor</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1106"/>
+        <location filename="../sections/menu_section.py" line="914"/>
         <source>Add energy sensor</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1119"/>
+        <location filename="../sections/menu_section.py" line="924"/>
         <source>Add status sensor</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1132"/>
+        <location filename="../sections/menu_section.py" line="934"/>
         <source>Add valve opening</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1145"/>
+        <location filename="../sections/menu_section.py" line="944"/>
         <source>Add tachometer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1178"/>
+        <location filename="../sections/menu_section.py" line="974"/>
         <source>Load meter readings...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1190"/>
+        <location filename="../sections/menu_section.py" line="983"/>
         <source>Set pipe&apos;s initial status from isolation valves</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1202"/>
+        <location filename="../sections/menu_section.py" line="992"/>
         <source>Load field data...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1218"/>
+        <location filename="../sections/menu_section.py" line="1005"/>
         <source>Convert service connections into pipes/nodes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1241"/>
+        <location filename="../sections/menu_section.py" line="1025"/>
         <source>Queries</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1235"/>
+        <location filename="../sections/menu_section.py" line="1020"/>
         <source>QGISRed Queries</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1257"/>
+        <location filename="../sections/menu_section.py" line="1035"/>
         <source>Find Elements by ID...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1271"/>
+        <location filename="../sections/menu_section.py" line="1045"/>
         <source>Element Properties...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1284"/>
+        <location filename="../sections/menu_section.py" line="1055"/>
         <source>Thematic Maps...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1296"/>
+        <location filename="../sections/menu_section.py" line="1064"/>
         <source>Queries by Attributes...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1308"/>
+        <location filename="../sections/menu_section.py" line="1073"/>
         <source>Statistics &amp;&amp; Plots...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1719,7 +1719,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2502"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2530"/>
         <source>Demand</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1764,87 +1764,87 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="971"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="985"/>
         <source>Info</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="971"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="985"/>
         <source>Feature not found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2321"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2349"/>
         <source>Property</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2321"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2349"/>
         <source>Value</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2321"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2349"/>
         <source>Units</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2500"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2528"/>
         <source>Pressure</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2501"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2529"/>
         <source>Head</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2503"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2531"/>
         <source>Quality</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2504"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2532"/>
         <source>Flow</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2505"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2533"/>
         <source>Velocity</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2506"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2534"/>
         <source>HeadLoss</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2508"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2536"/>
         <source>Unit HeadLoss</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2509"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2537"/>
         <source>Friction Factor</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2510"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2538"/>
         <source>Status</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2511"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2539"/>
         <source>Reaction Rate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2208"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2236"/>
         <source>No Layers Found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2208"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2236"/>
         <source>No layers found in the Inputs or Results group.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3221,7 +3221,7 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1065"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1064"/>
         <source>Some issues occurred in the process</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3311,27 +3311,27 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="566"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="553"/>
         <source>Some issue occurred in the process of saving the style of the layer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="607"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="594"/>
         <source>Link {}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="612"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="599"/>
         <source>Node {}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="737"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="724"/>
         <source>Some issue occurred in the process of applying the style to the layer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1007"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1006"/>
         <source>No {} results are available</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3371,7 +3371,7 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="786"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="773"/>
         <source>for {}</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3461,17 +3461,17 @@ Left-click: Add a new item below the current selection</source>
 <context>
     <name>QGISRedUtils</name>
     <message>
-        <location filename="../tools/qgisred_utils.py" line="758"/>
+        <location filename="../tools/qgisred_utils.py" line="804"/>
         <source>QGISRed project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_utils.py" line="758"/>
+        <location filename="../tools/qgisred_utils.py" line="804"/>
         <source>We cannot find the qgis project file. Do you want to find this file manually? If not, we will open only the layers from the Inputs group.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_utils.py" line="1130"/>
+        <location filename="../tools/qgisred_utils.py" line="1176"/>
         <source>{field} field not found in layer {layer.name()}</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3497,7 +3497,7 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/tools_section.py" line="327"/>
+        <location filename="../sections/tools_section.py" line="328"/>
         <source>Error</source>
         <translation type="unfinished"></translation>
     </message>
