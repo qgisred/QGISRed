@@ -337,27 +337,14 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 break
 
     def getInputGroup(self):
-        # Same method in qgisred_newproject_dialog and qgisred
-        inputGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
-        if inputGroup is None:
-            netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
-            if netGroup is None:
-                root = QgsProject.instance().layerTreeRoot()
-                netGroup = root.insertGroup(0, self.NetworkName)
-            inputGroup = netGroup.addGroup("Inputs")
-        return inputGroup
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        return utils.getOrCreateGroup("Inputs")
 
     def getResultGroup(self):
-        resultGroup = QgsProject.instance().layerTreeRoot().findGroup("Results")
-        if resultGroup is None:
-            netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
-            if netGroup is None:
-                root = QgsProject.instance().layerTreeRoot()
-                netGroup = root.addGroup(self.NetworkName)
-            resultGroup = netGroup.insertGroup(0, "Results")
-            QGISRedUtils.setGroupIdentifier(resultGroup, "Results")
-        resultGroup.setItemVisibilityChecked(True)
-        return resultGroup
+        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        group = utils.getOrCreateGroup("Results")
+        group.setItemVisibilityChecked(True)
+        return group
 
     """Fields"""
     def prepareResultFields(self, layer, layer_type):

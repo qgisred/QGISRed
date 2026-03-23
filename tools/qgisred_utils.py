@@ -47,6 +47,8 @@ class QGISRedUtils:
         'qgisred_isolatedsegments': 'IsolatedSegments'
     }
 
+    MAIN_GROUP_ORDER = ["Results", "Queries", "Issues", "Inputs"]
+
     defaultSvgPathText = "defaultSvgPath"
 
     # Unit definitions loaded from JSON file
@@ -200,14 +202,7 @@ class QGISRedUtils:
         return None
 
     def getInputGroup(self):
-        root = QgsProject.instance().layerTreeRoot()
-        inputGroup = self.findGroupRecursive(root, "Inputs")
-        if inputGroup is None:
-            netGroup = self.findGroupRecursive(root, self.NetworkName)
-            if netGroup is None:
-                netGroup = root.insertGroup(0, self.NetworkName)
-            inputGroup = netGroup.insertGroup(0, "Inputs")
-        return inputGroup
+        return self.getOrCreateGroup("Inputs")
 
     @classmethod
     def findGroupByIdentifier(cls, identifier):
@@ -240,6 +235,34 @@ class QGISRedUtils:
             if identifier not in cls.identifierToGroupName:
                 cls.identifierToGroupName[identifier] = keyOrName
 
+    def _getOrCreateNetGroup(self, root):
+        netGroup = self._findGroupByNameRecursive(root, self.NetworkName)
+        if not netGroup:
+            netGroup = root.insertGroup(0, self.NetworkName)
+            self.setGroupIdentifier(netGroup, self.NetworkName)
+        return netGroup
+
+    def _ensureMainGroupOrder(self, netGroup):
+        """Reorder MAIN_GROUP_ORDER groups as direct children of netGroup (top→bottom)."""
+        for groupName in reversed(self.MAIN_GROUP_ORDER):
+            group = None
+            identifier = self.groupIdentifiers.get(groupName)
+            if identifier:
+                for child in netGroup.children():
+                    if isinstance(child, QgsLayerTreeGroup):
+                        if child.customProperty("qgisred_identifier") == identifier:
+                            group = child
+                            break
+            if not group:
+                for child in netGroup.children():
+                    if isinstance(child, QgsLayerTreeGroup) and child.name() == groupName:
+                        group = child
+                        break
+            if group:
+                cloned = group.clone()
+                netGroup.insertChildNode(0, cloned)
+                netGroup.removeChildNode(group)
+
     def getOrCreateGroup(self, groupName):
         root = QgsProject.instance().layerTreeRoot()
         identifier = self.groupIdentifiers.get(groupName)
@@ -253,13 +276,18 @@ class QGISRedUtils:
             return group
         netGroup = None
         if self.NetworkName:
-            netGroup = self._findGroupByNameRecursive(root, self.NetworkName)
-            if not netGroup:
-                netGroup = root.insertGroup(0, self.NetworkName)
-                self.setGroupIdentifier(netGroup, self.NetworkName)
+            netGroup = self._getOrCreateNetGroup(root)
         parent = netGroup if netGroup else root
         newGroup = parent.insertGroup(0, groupName)
         self.setGroupIdentifier(newGroup, groupName)
+        if netGroup:
+            self._ensureMainGroupOrder(netGroup)
+            # Re-find after reorder since the node may have been cloned
+            identifier = self.groupIdentifiers.get(groupName)
+            if identifier:
+                refound = self.findGroupByIdentifier(identifier)
+                if refound:
+                    return refound
         return newGroup
 
     @classmethod
@@ -278,6 +306,7 @@ class QGISRedUtils:
             return QgsProject.instance().layerTreeRoot()
         root = QgsProject.instance().layerTreeRoot()
         currentParent = root
+        netGroup = None
         for i, groupName in enumerate(path):
             foundGroup = None
             identifier = self.groupIdentifiers.get(groupName)
@@ -297,6 +326,23 @@ class QGISRedUtils:
                 self.setGroupIdentifier(foundGroup, groupName)
             else:
                 self.setGroupIdentifier(foundGroup, groupName)
+            # Track the network group (first level) to enforce main group order
+            if i == 0 and self.NetworkName and groupName == self.NetworkName:
+                netGroup = foundGroup
+            # After resolving the level directly inside the network group, reorder
+            if i == 1 and netGroup is not None:
+                self._ensureMainGroupOrder(netGroup)
+                # Re-find foundGroup in case it was cloned during reorder
+                identifier = self.groupIdentifiers.get(groupName)
+                if identifier:
+                    refound = None
+                    for child in netGroup.children():
+                        if isinstance(child, QgsLayerTreeGroup):
+                            if child.customProperty("qgisred_identifier") == identifier:
+                                refound = child
+                                break
+                    if refound:
+                        foundGroup = refound
             currentParent = foundGroup
         return currentParent
 
