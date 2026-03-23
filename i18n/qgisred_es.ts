@@ -2864,7 +2864,7 @@
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="90"/>
         <source>Tank</source>
-        <translation>Tanque</translation>
+        <translation>Depósito</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="91"/>
