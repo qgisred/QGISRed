@@ -109,7 +109,7 @@ class LayerManagementSection:
         inputGroup = self.getInputGroup()
 
         if self.storeQLRSucess:
-            utils.loadProjectFromQLR()
+            utils.loadProjectFromQLR(self.qlrFolder)
             inputGroup = self.getInputGroup()
             proccessPerformed = False
             for layer_name in self.ownMainLayers + self.especificComplementaryLayers:
@@ -126,7 +126,7 @@ class LayerManagementSection:
         self.especificComplementaryLayers = []
 
         # Always remove the one project‑level QLR file if it was created
-        utils.deleteProjectQLR()
+        utils.deleteProjectQLR(self.qlrFolder)
         utils.removeEmptyLayersInGroup(inputGroup)
 
         self.updateMetadata()
@@ -240,7 +240,7 @@ class LayerManagementSection:
 
     def processCsharpResult(self, b, message):
         utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        self.storeQLRSucess, _ = utils.saveProjectAsQLR()
+        self.storeQLRSucess, self.qlrFolder = utils.saveProjectAsQLR()
         # Action
         self.hasToOpenNewLayers = False
         self.hasToOpenIssuesLayers = False

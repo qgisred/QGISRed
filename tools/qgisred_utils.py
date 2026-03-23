@@ -1407,8 +1407,9 @@ class QGISRedUtils:
 
         return (savedCount > 0, qlrFolder)
 
-    def loadProjectFromQLR(self):
-        qlrFolder = os.path.join(self.getQLRFolder(), self.getProjectGuid())
+    def loadProjectFromQLR(self, qlrFolder=None):
+        if qlrFolder is None:
+            qlrFolder = os.path.join(self.getQLRFolder(), self.getProjectGuid())
 
         if not os.path.exists(qlrFolder):
             return False
@@ -1471,8 +1472,9 @@ class QGISRedUtils:
 
         return len(loadedLayers) > 0
 
-    def deleteProjectQLR(self):
-        qlrFolder = os.path.join(self.getQLRFolder(), self.getProjectGuid())
+    def deleteProjectQLR(self, qlrFolder=None):
+        if qlrFolder is None:
+            qlrFolder = os.path.join(self.getQLRFolder(), self.getProjectGuid())
 
         if not os.path.exists(qlrFolder):
             return False
