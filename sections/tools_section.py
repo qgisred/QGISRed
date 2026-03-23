@@ -227,6 +227,7 @@ class ToolsSection:
             self.removingLayers = True
             QGISRedUtils().runTask(self.removeIsolatedSegmentsLayers, self.runLoadIsolatedSegmentLayers)
         else:
+            self.blockLayers(False)
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
     def runLoadIsolatedSegmentLayers(self):
