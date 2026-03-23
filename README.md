@@ -135,3 +135,68 @@ Set QGIS to the target language (*Settings → Options → General → User inte
 ```
 Install Qt5 tools → Update .ts template (pylupdate5) → Create/edit language file → Compile (lrelease) → Test in QGIS
 ```
+
+## Adding a new Section
+
+The plugin logic is split into *Section* classes under `sections/`. Each Section is a plain Python class (no base class) that is mixed into the main `QGISRed` class via multiple inheritance. Adding a new section requires touching **5 files**:
+
+### 1. `sections/your_section.py` — create the section
+
+```python
+# -*- coding: utf-8 -*-
+"""Short description of what this section does."""
+
+class YourSection:
+    def someMethod(self):
+        # self.tr() works normally — it resolves through LifecycleSection.tr()
+        self.iface.messageBar().pushMessage(self.tr("Hello"))
+```
+
+### 2. `sections/__init__.py` — export the class
+
+```python
+from .your_section import YourSection
+
+__all__ = [
+    ...,
+    "YourSection",
+]
+```
+
+### 3. `qgisred.py` — add the class to the `QGISRed` hierarchy
+
+```python
+from .sections.your_section import YourSection
+
+class QGISRed(
+    LifecycleSection,
+    ...,
+    YourSection,   # add here
+):
+    ...
+```
+
+> **MRO note:** `LifecycleSection` must remain first so that `__init__`, `tr()`, and `initGui()` are resolved from there.
+
+### 4. `sections/lifecycle_section.py` — register the context for translations
+
+`tr()` searches a list of known section contexts. Append your class name to `_SECTION_CONTEXTS`:
+
+```python
+_SECTION_CONTEXTS = [
+    "QGISRed",
+    ...
+    "YourSection",   # add here
+]
+```
+
+Without this step, any `self.tr(...)` calls inside your section will not be translated.
+
+### 5. `qgisred.pro` — register the file for `pylupdate5`
+
+Add the new file to the `SOURCES` list so that `UpdateTranslations.bat` picks up its translatable strings:
+
+```
+SOURCES = ... \
+          sections/your_section.py
+```
