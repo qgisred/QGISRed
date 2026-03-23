@@ -6,102 +6,102 @@
     <message>
         <location filename="../sections/analysis_section.py" line="137"/>
         <source>Warning</source>
-        <translation type="unfinished">Advertencia</translation>
+        <translation>Advertencia</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="137"/>
         <source>Some issues occurred in the process</source>
-        <translation type="unfinished">Se produjeron algunos problemas durante el proceso</translation>
+        <translation>Se produjeron algunos problemas durante el proceso</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="141"/>
         <source>Error</source>
-        <translation type="unfinished">Error</translation>
+        <translation>Error</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="133"/>
         <source>Information</source>
-        <translation type="unfinished">Información</translation>
+        <translation>Información</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="133"/>
         <source>INP file successfully exported</source>
-        <translation type="unfinished">Archivo INP exportado correctamente</translation>
+        <translation>Archivo INP exportado correctamente</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="348"/>
         <source>Time Series</source>
-        <translation type="unfinished">Curvas de Evolución</translation>
+        <translation>Curvas de Evolución</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="148"/>
         <source>Necessary to have a valid project and no layer on edition.</source>
-        <translation type="unfinished">Es necesario tener un proyecto válido y ninguna capa en edición.</translation>
+        <translation>Es necesario tener un proyecto válido y ninguna capa en edición.</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="167"/>
         <source>It is necessary to simulate first.</source>
-        <translation type="unfinished">Es necesario simular antes.</translation>
+        <translation>Es necesario simular antes.</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="234"/>
         <source>No network element found at this location.</source>
-        <translation type="unfinished">Ninguna red encontrada en esta localización.</translation>
+        <translation>Ninguna red encontrada en esta localización.</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="348"/>
         <source>Results file not found. Please run the model.</source>
-        <translation type="unfinished">Archivo de resultados no encontrado. Por favor, ejecute el modelo.</translation>
+        <translation>Archivo de resultados no encontrado. Por favor, ejecute el modelo.</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="376"/>
         <source>Junction</source>
-        <translation type="unfinished">Unión</translation>
+        <translation>Unión</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="377"/>
         <source>Tank</source>
-        <translation type="unfinished"></translation>
+        <translation>Depósito</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="378"/>
         <source>Reservoir</source>
-        <translation type="unfinished">Embalse</translation>
+        <translation>Embalse</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="379"/>
         <source>Pipe</source>
-        <translation type="unfinished">Tubería</translation>
+        <translation>Tubería</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="380"/>
         <source>Valve</source>
-        <translation type="unfinished">Válvula</translation>
+        <translation>Válvula</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="381"/>
         <source>Pump</source>
-        <translation type="unfinished">Bomba</translation>
+        <translation>Bomba</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="403"/>
         <source>Closed</source>
-        <translation type="unfinished">Cerrada</translation>
+        <translation>Cerrada</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="403"/>
         <source>Active</source>
-        <translation type="unfinished">Activa</translation>
+        <translation>Activa</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="403"/>
         <source>Open</source>
-        <translation type="unfinished"></translation>
+        <translation>Abierta</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="409"/>
         <source>Time</source>
-        <translation type="unfinished">Tiempo</translation>
+        <translation>Instante</translation>
     </message>
 </context>
 <context>
@@ -109,42 +109,42 @@
     <message>
         <location filename="../sections/debug_validation_section.py" line="274"/>
         <source>Information</source>
-        <translation type="unfinished">Información</translation>
+        <translation>Información</translation>
     </message>
     <message>
         <location filename="../sections/debug_validation_section.py" line="150"/>
         <source>Only one zone</source>
-        <translation type="unfinished">Solo una zona</translation>
+        <translation>Solo una zona</translation>
     </message>
     <message>
         <location filename="../sections/debug_validation_section.py" line="311"/>
         <source>Error</source>
-        <translation type="unfinished">Error</translation>
+        <translation>Error</translation>
     </message>
     <message>
         <location filename="../sections/debug_validation_section.py" line="191"/>
         <source>No one pipe&apos;s length out of tolerance</source>
-        <translation type="unfinished">Ninguna longitud de tubería fuera de la tolerancia</translation>
+        <translation>Ninguna longitud de tubería fuera de la tolerancia</translation>
     </message>
     <message>
         <location filename="../sections/debug_validation_section.py" line="278"/>
         <source>Warning</source>
-        <translation type="unfinished">Advertencia</translation>
+        <translation>Advertencia</translation>
     </message>
     <message>
         <location filename="../sections/debug_validation_section.py" line="278"/>
         <source>Some issues occurred in the process</source>
-        <translation type="unfinished">Se produjeron algunos problemas durante el proceso</translation>
+        <translation>Se han producido algunos problemas durante el proceso</translation>
     </message>
     <message>
         <location filename="../sections/debug_validation_section.py" line="243"/>
         <source>No issues on materials checking</source>
-        <translation type="unfinished">No ha habido en la comprobación de materiales</translation>
+        <translation>No ha habido problemas en la comprobación de materiales</translation>
     </message>
     <message>
         <location filename="../sections/debug_validation_section.py" line="274"/>
         <source>No issues on installation dates checking</source>
-        <translation type="unfinished">No ha habido en la comprobación de fechas de instalación</translation>
+        <translation>No ha habido problemas en la comprobación de fechas de instalación</translation>
     </message>
 </context>
 <context>
@@ -480,7 +480,7 @@
     <message>
         <location filename="../sections/digital_twin_section.py" line="243"/>
         <source>Warning</source>
-        <translation type="unfinished">Advertencia</translation>
+        <translation>Advertencia</translation>
     </message>
     <message>
         <location filename="../sections/digital_twin_section.py" line="219"/>
@@ -638,7 +638,7 @@
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="26"/>
         <source>Statistics &amp; Plots</source>
-        <translation type="unfinished"></translation>
+        <translation>Estadísticas y Gráficos</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="186"/>
@@ -648,52 +648,52 @@
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="196"/>
         <source># Classes</source>
-        <translation type="unfinished"></translation>
+        <translation># Clases</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="203"/>
         <source>Classified by</source>
-        <translation type="unfinished"></translation>
+        <translation>Clasificado por</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="228"/>
         <source>Filter:</source>
-        <translation type="unfinished"></translation>
+        <translation>Filtro:</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="237"/>
         <source>Value/Range</source>
-        <translation type="unfinished"></translation>
+        <translation>Valor</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="244"/>
         <source>From</source>
-        <translation type="unfinished"></translation>
+        <translation>Desde</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="264"/>
         <source>Attribute</source>
-        <translation type="unfinished"></translation>
+        <translation>Atributo</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="291"/>
         <source>To</source>
-        <translation type="unfinished"></translation>
+        <translation>Hasta</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="391"/>
         <source>Only selected elements</source>
-        <translation type="unfinished"></translation>
+        <translation>Solo los elementos seleccionados</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="326"/>
         <source>Analyze</source>
-        <translation type="unfinished"></translation>
+        <translation>Analizar</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="376"/>
         <source>Property (by Classes)</source>
-        <translation type="unfinished"></translation>
+        <translation>Propiedad (por Clases)</translation>
     </message>
 </context>
 <context>
@@ -944,12 +944,12 @@
     <message>
         <location filename="../sections/layer_management_section.py" line="249"/>
         <source>Information</source>
-        <translation type="unfinished">Información</translation>
+        <translation>Información</translation>
     </message>
     <message>
         <location filename="../sections/layer_management_section.py" line="304"/>
         <source>Error</source>
-        <translation type="unfinished">Error</translation>
+        <translation>Error</translation>
     </message>
 </context>
 <context>
@@ -957,57 +957,57 @@
     <message>
         <location filename="../sections/lifecycle_section.py" line="48"/>
         <source>Error</source>
-        <translation type="unfinished">Error</translation>
+        <translation>Error</translation>
     </message>
     <message>
         <location filename="../sections/lifecycle_section.py" line="48"/>
         <source>QGISRed only works on Windows</source>
-        <translation type="unfinished">QGISRed solo funciona en Windows</translation>
+        <translation>QGISRed solo funciona en Windows</translation>
     </message>
     <message>
         <location filename="../sections/lifecycle_section.py" line="80"/>
         <source>Click to change it</source>
-        <translation type="unfinished">Haga clic para cambiarlo</translation>
+        <translation>Haga clic para cambiarlo</translation>
     </message>
     <message>
         <location filename="../sections/lifecycle_section.py" line="163"/>
         <source>About...</source>
-        <translation type="unfinished">Acerca de...</translation>
+        <translation>Acerca de...</translation>
     </message>
     <message>
         <location filename="../sections/lifecycle_section.py" line="168"/>
         <source>Report issues or comments...</source>
-        <translation type="unfinished">Informar de problemas o comentarios...</translation>
+        <translation>Informar de problemas o comentarios...</translation>
     </message>
     <message>
         <location filename="../sections/lifecycle_section.py" line="223"/>
         <source>Loaded sucssesfully</source>
-        <translation type="unfinished">Cargado exitósamente</translation>
+        <translation>Cargado exitósamente</translation>
     </message>
     <message>
         <location filename="../sections/lifecycle_section.py" line="410"/>
         <source>QGISRed Dependencies</source>
-        <translation type="unfinished">Dependencias de QGISRed</translation>
+        <translation>Dependencias de QGISRed</translation>
     </message>
     <message>
         <location filename="../sections/lifecycle_section.py" line="410"/>
         <source>QGISRed plugin only runs in Windows OS and requires some dependencies (v{}). Do you want to install them now?</source>
-        <translation type="unfinished">El complemento QGISRed solo se ejecuta en Windows y requiere algunas dependencias (v{}). ¿Quieres instalarlas ahora?</translation>
+        <translation>El complemento QGISRed solo se ejecuta en Windows y requiere algunas dependencias (v{}). ¿Quieres instalarlas ahora?</translation>
     </message>
     <message>
         <location filename="../sections/lifecycle_section.py" line="410"/>
         <source>At the end, the QGISRed web page will be open to show the news, where you can also register if you wish to receive the newsletters.</source>
-        <translation type="unfinished">Al final, se abrirá la página web de QGISRed para mostrar las últimas novedades, donde también podrás registrarte si deseas recibir los boletines informativos.</translation>
+        <translation>Al final, se abrirá la página web de QGISRed para mostrar las últimas novedades, donde también podrás registrarte si deseas recibir los boletines informativos.</translation>
     </message>
     <message>
         <location filename="../sections/lifecycle_section.py" line="469"/>
         <source>QGISRed Updates</source>
-        <translation type="unfinished">Actualizaciones de QGISRed</translation>
+        <translation>Actualizaciones de QGISRed</translation>
     </message>
     <message>
         <location filename="../sections/lifecycle_section.py" line="469"/>
         <source>QGISRed plugin has a new version ({}). You can upgrade it from the QGis plugin manager. Do you want to remember it again?</source>
-        <translation type="unfinished">El complemento QGISRed tiene una nueva versión ({}). Puedes actualizarlo desde el gestor de complementos de QGIS. ¿Quieres volver a recordar este mensaje?</translation>
+        <translation>El complemento QGISRed tiene una nueva versión ({}). Puedes actualizarlo desde el gestor de complementos de QGIS. ¿Quieres volver a recordar este mensaje?</translation>
     </message>
 </context>
 <context>
