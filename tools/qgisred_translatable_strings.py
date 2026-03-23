@@ -1,76 +1,91 @@
 # -*- coding: utf-8 -*-
-# Translatable strings from qgisred_units.json 
+# Translatable strings that pylupdate5 cannot extract automatically.
+# Calling QCoreApplication.translate() directly with literal strings
+# so pylupdate5 picks them up when generating/updating .ts files.
 from PyQt5.QtCore import QCoreApplication
 
-def _tr(s):
-    return QCoreApplication.translate('FieldPrettyNames', s)
-
 # Common fields
-_tr("Identifier")
-_tr("Tag")
-_tr("Description")
+QCoreApplication.translate('FieldPrettyNames', "Identifier")
+QCoreApplication.translate('FieldPrettyNames', "Tag")
+QCoreApplication.translate('FieldPrettyNames', "Description")
 
 # Pipes
-_tr("Length")
-_tr("Diameter")
-_tr("Roughness Coefficient")
-_tr("Loss Coefficient")
-_tr("Material")
-_tr("Installation Date")
-_tr("Initial Status")
-_tr("Bulk Coefficient")
-_tr("Wall Coefficient")
+QCoreApplication.translate('FieldPrettyNames', "Length")
+QCoreApplication.translate('FieldPrettyNames', "Diameter")
+QCoreApplication.translate('FieldPrettyNames', "Roughness Coefficient")
+QCoreApplication.translate('FieldPrettyNames', "Loss Coefficient")
+QCoreApplication.translate('FieldPrettyNames', "Material")
+QCoreApplication.translate('FieldPrettyNames', "Installation Date")
+QCoreApplication.translate('FieldPrettyNames', "Initial Status")
+QCoreApplication.translate('FieldPrettyNames', "Bulk Coefficient")
+QCoreApplication.translate('FieldPrettyNames', "Wall Coefficient")
 
 # Junctions
-_tr("Elevation")
-_tr("Base Demand")
-_tr("Demand Pattern")
-_tr("Emitter Coefficient")
-_tr("Initial Quality")
+QCoreApplication.translate('FieldPrettyNames', "Elevation")
+QCoreApplication.translate('FieldPrettyNames', "Base Demand")
+QCoreApplication.translate('FieldPrettyNames', "Demand Pattern")
+QCoreApplication.translate('FieldPrettyNames', "Emitter Coefficient")
+QCoreApplication.translate('FieldPrettyNames', "Initial Quality")
 
 # Tanks
-_tr("Initial Level")
-_tr("Minimum Level")
-_tr("Maximum Level")
-_tr("Minimum Volume")
-_tr("Volume Curve")
-_tr("Overflow")
-_tr("Mixing Model")
-_tr("Mixing Fraction")
-_tr("Reaction Coefficient")
+QCoreApplication.translate('FieldPrettyNames', "Initial Level")
+QCoreApplication.translate('FieldPrettyNames', "Minimum Level")
+QCoreApplication.translate('FieldPrettyNames', "Maximum Level")
+QCoreApplication.translate('FieldPrettyNames', "Minimum Volume")
+QCoreApplication.translate('FieldPrettyNames', "Volume Curve")
+QCoreApplication.translate('FieldPrettyNames', "Overflow")
+QCoreApplication.translate('FieldPrettyNames', "Mixing Model")
+QCoreApplication.translate('FieldPrettyNames', "Mixing Fraction")
+QCoreApplication.translate('FieldPrettyNames', "Reaction Coefficient")
 
 # Reservoirs
-_tr("Total Head")
-_tr("Head Pattern")
+QCoreApplication.translate('FieldPrettyNames', "Total Head")
+QCoreApplication.translate('FieldPrettyNames', "Head Pattern")
 
 # Valves
-_tr("Type")
-_tr("Setting")
-_tr("HeadLoss Curve")
+QCoreApplication.translate('FieldPrettyNames', "Type")
+QCoreApplication.translate('FieldPrettyNames', "Setting")
+QCoreApplication.translate('FieldPrettyNames', "HeadLoss Curve")
 
 # Pumps
-_tr("Head Curve")
-_tr("Power")
-_tr("Speed")
-_tr("Speed Pattern")
-_tr("Efficiency Curve")
-_tr("Energy Price")
-_tr("Price Pattern")
+QCoreApplication.translate('FieldPrettyNames', "Head Curve")
+QCoreApplication.translate('FieldPrettyNames', "Power")
+QCoreApplication.translate('FieldPrettyNames', "Speed")
+QCoreApplication.translate('FieldPrettyNames', "Speed Pattern")
+QCoreApplication.translate('FieldPrettyNames', "Efficiency Curve")
+QCoreApplication.translate('FieldPrettyNames', "Energy Price")
+QCoreApplication.translate('FieldPrettyNames', "Price Pattern")
 
 # Sources
-_tr("Base Value")
-_tr("Pattern")
+QCoreApplication.translate('FieldPrettyNames', "Base Value")
+QCoreApplication.translate('FieldPrettyNames', "Pattern")
 
 # Meters
-_tr("Is Active")
+QCoreApplication.translate('FieldPrettyNames', "Is Active")
 
 # Demands
-_tr("Node Identifier")
-_tr("Category")
+QCoreApplication.translate('FieldPrettyNames', "Node Identifier")
+QCoreApplication.translate('FieldPrettyNames', "Category")
 
 # Service Connections
-_tr("Reliability")
+QCoreApplication.translate('FieldPrettyNames', "Reliability")
 
 # Isolation Valves
-_tr("Status")
-_tr("Available")
+QCoreApplication.translate('FieldPrettyNames', "Status")
+QCoreApplication.translate('FieldPrettyNames', "Available")
+
+# Layer names shown in QGIS legend (Inputs group)
+QCoreApplication.translate('InputLayerNames', "Pipes")
+QCoreApplication.translate('InputLayerNames', "Junctions")
+QCoreApplication.translate('InputLayerNames', "Multiple Demands")
+QCoreApplication.translate('InputLayerNames', "Reservoirs")
+QCoreApplication.translate('InputLayerNames', "Tanks")
+QCoreApplication.translate('InputLayerNames', "Pumps")
+QCoreApplication.translate('InputLayerNames', "Valves")
+QCoreApplication.translate('InputLayerNames', "Sources")
+QCoreApplication.translate('InputLayerNames', "Service Connections")
+QCoreApplication.translate('InputLayerNames', "Isolation Valves")
+QCoreApplication.translate('InputLayerNames', "Meters")
+QCoreApplication.translate('InputLayerNames', "Hydrants")
+QCoreApplication.translate('InputLayerNames', "Washout Valves")
+QCoreApplication.translate('InputLayerNames', "Air Release Valves")

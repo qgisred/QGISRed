@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtGui import QColor
-from PyQt5.QtCore import QFileInfo, QTimer
+from PyQt5.QtCore import QFileInfo, QTimer, QCoreApplication
 from PyQt5.QtWidgets import QMessageBox, QFileDialog
 from qgis.core import QgsVectorLayer, QgsProject, QgsLayerTreeLayer, QgsTask, QgsApplication, QgsLayerMetadata
 from qgis.core import QgsSymbol, Qgis, QgsLayerTreeGroup, QgsLayerDefinition
@@ -53,6 +53,9 @@ class QGISRedUtils:
 
     # Unit definitions loaded from JSON file
     _unit_definitions = None
+
+    def tr(self, message):
+        return QCoreApplication.translate("InputLayerNames", message)
 
     def __init__(self, directory="", networkName="", iface=None):
         self.iface = iface
@@ -374,6 +377,7 @@ class QGISRedUtils:
 
     def openLayer(self, group, name, ext=".shp", results=False, toEnd=False, sectors=False, issues=False):
         showName = self.getLayerNameToLegend(name)
+        showName = self.tr(showName)
         name = name.replace(" ", "")
         originalName = self.getOriginalNameFromLayerName(name)
         layerName = self.NetworkName + "_" + originalName 
@@ -869,14 +873,15 @@ class QGISRedUtils:
         treeGroup = netGroup.insertGroup(0, groupName)
         for lay in layerNames:
             layerName = lay
+            showName = self.tr(self.getLayerNameToLegend(layerName))
             layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp")
             if not os.path.exists(layerPath):
                 continue
 
             if treeGroup is None:
-                vlayer = self.iface.addVectorLayer(layerPath, layerName, "ogr")
+                vlayer = self.iface.addVectorLayer(layerPath, showName, "ogr")
             else:
-                vlayer = QgsVectorLayer(layerPath, layerName, "ogr")
+                vlayer = QgsVectorLayer(layerPath, showName, "ogr")
                 QgsProject.instance().addMapLayer(vlayer, False)
                 treeGroup.insertChildNode(0, QgsLayerTreeLayer(vlayer))
 
@@ -896,8 +901,9 @@ class QGISRedUtils:
             if isinstance(child, QgsLayerTreeLayer):
                 layer = child.layer()
                 if layer:
-                    layerName = layer.name().replace(" ", "")
-                    self.setStyle(layer, layerName.lower())
+                    identifier = layer.customProperty("qgisred_identifier")
+                    if identifier:
+                        self.setStyle(layer, identifier.replace("qgisred_", ""))
 
     def saveFilesInZip(self, zipPath):
         filePaths = []
@@ -1297,28 +1303,31 @@ class QGISRedUtils:
                 self.enforceGroupIdentifiers(child)
 
     def enforceLayerIdentifiers(self):
-        layers = self.getLayers()
+        layersByPath = {self.getLayerPath(layer): layer for layer in self.getLayers()}
+        networkPrefix = f"{self.NetworkName}_"
 
-        for layer in layers:
-            layerName = layer.name()
-
-            matchingIdentifier = None
-            for identifier, mappedName in self.identifierToElementName.items():
-                if layerName == mappedName:
-                    matchingIdentifier = identifier
-                    break
-
-            if matchingIdentifier:
-                existingIdentifier = layer.customProperty("qgisred_identifier")
-                if not existingIdentifier or existingIdentifier != matchingIdentifier:
-                    layer.setCustomProperty("qgisred_identifier", matchingIdentifier)
-                    layerMeta = QgsLayerMetadata()
-                    layerMeta.setIdentifier(matchingIdentifier)
-                    layer.setMetadata(layerMeta)
+        for elementName, identifierKey in self.elementIdentifiers.items():
+            expectedPath = self.generatePath(self.ProjectDirectory, f"{networkPrefix}{elementName}.shp")
+            layer = layersByPath.get(expectedPath)
+            if layer is None:
+                continue
+            expectedIdentifier = f"qgisred_{identifierKey}"
+            existingIdentifier = layer.customProperty("qgisred_identifier")
+            if not existingIdentifier or existingIdentifier != expectedIdentifier:
+                self.setLayerIdentifier(layer, identifierKey)
 
     def enforceAllIdentifiers(self):
         self.enforceGroupIdentifiers()
         self.enforceLayerIdentifiers()
+
+    def getTranslatedNameForIdentifier(self, identifier):
+        """Returns the translated legend name for a qgisred_identifier, or None if unknown."""
+        englishName = self.identifierToElementName.get(identifier)
+        if not englishName:
+            return None
+        if englishName == "Demands":
+            englishName = "Multiple Demands"
+        return self.tr(englishName)
 
     """QLR Operations"""
 

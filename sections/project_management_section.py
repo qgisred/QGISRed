@@ -131,10 +131,14 @@ class ProjectManagementSection:
         inputs_group = root.findGroup("Inputs")
 
         if inputs_group:
-            input_layers = []
             for child in inputs_group.children():
                 if isinstance(child, QgsLayerTreeLayer):
-                    input_layers.append(child.layer())
+                    layer = child.layer()
+                    if layer:
+                        identifier = layer.customProperty("qgisred_identifier")
+                        translatedName = utils.getTranslatedNameForIdentifier(identifier)
+                        if translatedName and layer.name() != translatedName:
+                            layer.setName(translatedName)
 
     def clearQGisProject(self):
         QgsProject.instance().clear()

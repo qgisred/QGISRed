@@ -697,6 +697,312 @@
     </message>
 </context>
 <context>
+    <name>FieldPrettyNames</name>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="8"/>
+        <source>Identifier</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="9"/>
+        <source>Tag</source>
+        <translation type="unfinished">Etiqueta</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="10"/>
+        <source>Description</source>
+        <translation type="unfinished">Descrição</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="13"/>
+        <source>Length</source>
+        <translation type="unfinished">Comprimento</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="14"/>
+        <source>Diameter</source>
+        <translation type="unfinished">Diâmetro</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="15"/>
+        <source>Roughness Coefficient</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="16"/>
+        <source>Loss Coefficient</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="17"/>
+        <source>Material</source>
+        <translation type="unfinished">Material</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="18"/>
+        <source>Installation Date</source>
+        <translation type="unfinished">Data de Instalação</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="19"/>
+        <source>Initial Status</source>
+        <translation type="unfinished">Status Inicial</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="20"/>
+        <source>Bulk Coefficient</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="21"/>
+        <source>Wall Coefficient</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="24"/>
+        <source>Elevation</source>
+        <translation type="unfinished">Elevação</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="25"/>
+        <source>Base Demand</source>
+        <translation type="unfinished">Demanda Base</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="26"/>
+        <source>Demand Pattern</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="27"/>
+        <source>Emitter Coefficient</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="28"/>
+        <source>Initial Quality</source>
+        <translation type="unfinished">Qualidade Inicial</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="31"/>
+        <source>Initial Level</source>
+        <translation type="unfinished">Nível Inicial</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="32"/>
+        <source>Minimum Level</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="33"/>
+        <source>Maximum Level</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="34"/>
+        <source>Minimum Volume</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="35"/>
+        <source>Volume Curve</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="36"/>
+        <source>Overflow</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="37"/>
+        <source>Mixing Model</source>
+        <translation type="unfinished">Modelo de Mistura</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="38"/>
+        <source>Mixing Fraction</source>
+        <translation type="unfinished">Fração de Mistura</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="39"/>
+        <source>Reaction Coefficient</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="42"/>
+        <source>Total Head</source>
+        <translation type="unfinished">Carga Total</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="43"/>
+        <source>Head Pattern</source>
+        <translation type="unfinished">Padrão de Carga</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="46"/>
+        <source>Type</source>
+        <translation type="unfinished">Tipo</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="47"/>
+        <source>Setting</source>
+        <translation type="unfinished">Ajuste</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="48"/>
+        <source>HeadLoss Curve</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="51"/>
+        <source>Head Curve</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="52"/>
+        <source>Power</source>
+        <translation type="unfinished">Potência</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="53"/>
+        <source>Speed</source>
+        <translation type="unfinished">Velocidade</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="54"/>
+        <source>Speed Pattern</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="55"/>
+        <source>Efficiency Curve</source>
+        <translation type="unfinished">Curva de Eficiência</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="56"/>
+        <source>Energy Price</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="57"/>
+        <source>Price Pattern</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="60"/>
+        <source>Base Value</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="61"/>
+        <source>Pattern</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="64"/>
+        <source>Is Active</source>
+        <translation type="unfinished">Está Ativo</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="67"/>
+        <source>Node Identifier</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="68"/>
+        <source>Category</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="71"/>
+        <source>Reliability</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="74"/>
+        <source>Status</source>
+        <translation type="unfinished">Status</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="75"/>
+        <source>Available</source>
+        <translation type="unfinished">Disponível</translation>
+    </message>
+</context>
+<context>
+    <name>InputLayerNames</name>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="78"/>
+        <source>Pipes</source>
+        <translation type="unfinished">Tubulações</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="79"/>
+        <source>Junctions</source>
+        <translation type="unfinished">Junções</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="80"/>
+        <source>Multiple Demands</source>
+        <translation type="unfinished">Demandas Múltiplas</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="81"/>
+        <source>Reservoirs</source>
+        <translation type="unfinished">Reservatórios</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="82"/>
+        <source>Tanks</source>
+        <translation type="unfinished">Tanques</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="83"/>
+        <source>Pumps</source>
+        <translation type="unfinished">Bombas</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="84"/>
+        <source>Valves</source>
+        <translation type="unfinished">Válvulas</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="85"/>
+        <source>Sources</source>
+        <translation type="unfinished">Fontes</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="86"/>
+        <source>Service Connections</source>
+        <translation type="unfinished">Ligações de Serviço</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="87"/>
+        <source>Isolation Valves</source>
+        <translation type="unfinished">Válvulas de Isolamento</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="88"/>
+        <source>Meters</source>
+        <translation type="unfinished">Medidores</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="89"/>
+        <source>Hydrants</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="90"/>
+        <source>Washout Valves</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="91"/>
+        <source>Air Release Valves</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>LANGANDCODEPAGE</name>
     <message>
         <location filename="../qgisred.py" line="1761"/>
@@ -1411,7 +1717,7 @@
 <context>
     <name>ProjectManagementSection</name>
     <message>
-        <location filename="../sections/project_management_section.py" line="534"/>
+        <location filename="../sections/project_management_section.py" line="538"/>
         <source>Warning</source>
         <translation type="unfinished">Aviso</translation>
     </message>
@@ -1421,32 +1727,32 @@
         <translation type="unfinished">Nenhum projeto válido está aberto</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="534"/>
+        <location filename="../sections/project_management_section.py" line="538"/>
         <source>Some issues occurred in the process</source>
         <translation type="unfinished">Ocorreram alguns problemas no processo</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="540"/>
+        <location filename="../sections/project_management_section.py" line="544"/>
         <source>Error</source>
         <translation type="unfinished">Erro</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="318"/>
+        <location filename="../sections/project_management_section.py" line="322"/>
         <source>QGISRed: Open project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="544"/>
+        <location filename="../sections/project_management_section.py" line="548"/>
         <source>Info</source>
         <translation type="unfinished">Info</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="471"/>
+        <location filename="../sections/project_management_section.py" line="475"/>
         <source>Project options updated</source>
         <translation type="unfinished">Opções do projeto atualizadas</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="544"/>
+        <location filename="../sections/project_management_section.py" line="548"/>
         <source>Project saved</source>
         <translation type="unfinished">Projeto salvo</translation>
     </message>
@@ -2029,7 +2335,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="555"/>
+        <location filename="../sections/project_management_section.py" line="559"/>
         <source>Backup stored in:</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4384,17 +4690,17 @@ Left-click: Add a new item below the current selection</source>
 <context>
     <name>QGISRedUtils</name>
     <message>
-        <location filename="../tools/qgisred_utils.py" line="804"/>
+        <location filename="../tools/qgisred_utils.py" line="808"/>
         <source>QGISRed project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_utils.py" line="804"/>
+        <location filename="../tools/qgisred_utils.py" line="808"/>
         <source>We cannot find the qgis project file. Do you want to find this file manually? If not, we will open only the layers from the Inputs group.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_utils.py" line="1176"/>
+        <location filename="../tools/qgisred_utils.py" line="1181"/>
         <source>{field} field not found in layer {layer.name()}</source>
         <translation type="unfinished"></translation>
     </message>
