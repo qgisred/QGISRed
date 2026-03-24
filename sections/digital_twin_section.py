@@ -57,7 +57,7 @@ class DigitalTwinSection:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.addIsolationValveButton.setChecked(False)
         else:
-            self.myMapTools[tool] = QGISRedSelectPointTool(self.addIsolationValveButton, self, self.runAddIsolationValve, 2)
+            self.myMapTools[tool] = QGISRedSelectPointTool(self.addIsolationValveButton, self, self.runAddIsolationValve, 2, cursor=":/images/iconAddIsolationValve.svg")
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runAddIsolationValve(self, point):
@@ -87,7 +87,7 @@ class DigitalTwinSection:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             action.setChecked(False)
         else:
-            self.myMapTools[tool] = QGISRedSelectPointTool(action, self, self.runAddMeter, 2)
+            self.myMapTools[tool] = QGISRedSelectPointTool(action, self, self.runAddMeter, 2, cursor=action.icon().pixmap(24, 24))
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runSelectDefaultMeterPoint(self):

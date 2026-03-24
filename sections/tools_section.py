@@ -215,7 +215,7 @@ class ToolsSection:
             return
         elif resMessage == "Select":
             self.blockLayers(True)
-            self.myMapTools[tool] = QGISRedSelectPointTool(self.isolatedSegmentsButton, self, self.runIsolatedSegments, 2)
+            self.myMapTools[tool] = QGISRedSelectPointTool(self.isolatedSegmentsButton, self, self.runIsolatedSegments, 2, cursor=":/images/iconIsolatedSegments.svg")
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
         elif "shps" in resMessage:
             if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
