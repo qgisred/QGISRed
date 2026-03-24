@@ -1240,11 +1240,11 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             # Validations ZIP
             self.ZipFile = self.tbZipFile.text()
             if len(self.ZipFile) == 0:
-                self.iface.messageBar().pushMessage("Validations", "ZIP file is not valid", level=1)
+                self.iface.messageBar().pushMessage(self.tr("Validations"), self.tr("ZIP file is not valid"), level=1)
                 return
             else:
                 if not os.path.exists(self.ZipFile):
-                    self.iface.messageBar().pushMessage("Validations", "ZIP file does not exist", level=1)
+                    self.iface.messageBar().pushMessage(self.tr("Validations"), self.tr("ZIP file does not exist"), level=1)
                     return
 
             self.close()
@@ -1265,7 +1265,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                     break
 
             if not validProject:
-                self.iface.messageBar().pushMessage("Warninf", "ZIP file does not contain a valid QGISRed project", level=1)
+                self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("ZIP file does not contain a valid QGISRed project"), level=1)
                 return
 
             QGISRedFileSystemUtils().copyFolderFiles(tempFolder, self.ProjectDirectory)

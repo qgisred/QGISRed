@@ -3566,7 +3566,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1183"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1247"/>
         <source>Validations</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3603,6 +3603,26 @@
     <message>
         <location filename="../ui/general/qgisred_import_dialog.py" line="198"/>
         <source>The selected folder has some files with the same project name.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1243"/>
+        <source>ZIP file is not valid</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1247"/>
+        <source>ZIP file does not exist</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1268"/>
+        <source>Warning</source>
+        <translation type="unfinished">Avertissement</translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1268"/>
+        <source>ZIP file does not contain a valid QGISRed project</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -4646,12 +4666,12 @@ Left-click: Add a new item below the current selection</source>
 <context>
     <name>QGISRedSelectPointTool</name>
     <message>
-        <location filename="../tools/map_tools/qgisred_selectPoint.py" line="185"/>
+        <location filename="../tools/map_tools/qgisred_selectPoint.py" line="138"/>
         <source>Warning</source>
         <translation type="unfinished">Avertissement</translation>
     </message>
     <message>
-        <location filename="../tools/map_tools/qgisred_selectPoint.py" line="185"/>
+        <location filename="../tools/map_tools/qgisred_selectPoint.py" line="138"/>
         <source>A not valid point was selected</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4659,7 +4679,7 @@ Left-click: Add a new item below the current selection</source>
 <context>
     <name>QGISRedStylingUtils</name>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="253"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="309"/>
         <source>{field} field not found in layer {layer.name()}</source>
         <translation type="unfinished"></translation>
     </message>

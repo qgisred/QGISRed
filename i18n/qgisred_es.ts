@@ -2718,7 +2718,7 @@
         <translation>La carpeta seleccionada tiene algunos archivos con el mismo nombre de proyecto.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1183"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1247"/>
         <source>Validations</source>
         <translation>Validaciones</translation>
     </message>
@@ -2751,6 +2751,26 @@
         <location filename="../ui/general/qgisred_import_dialog.py" line="1183"/>
         <source>Any SHP selected for importing</source>
         <translation>Ningún SHP seleccionado para importar</translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1243"/>
+        <source>ZIP file is not valid</source>
+        <translation>El archivo ZIP no es válido</translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1247"/>
+        <source>ZIP file does not exist</source>
+        <translation>El archivo ZIP no existe</translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1268"/>
+        <source>Warning</source>
+        <translation>Advertencia</translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1268"/>
+        <source>ZIP file does not contain a valid QGISRed project</source>
+        <translation>El archivo ZIP no contiene un proyecto de QGISRed válido</translation>
     </message>
 </context>
 <context>
@@ -3733,12 +3753,12 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
 <context>
     <name>QGISRedSelectPointTool</name>
     <message>
-        <location filename="../tools/map_tools/qgisred_selectPoint.py" line="185"/>
+        <location filename="../tools/map_tools/qgisred_selectPoint.py" line="138"/>
         <source>Warning</source>
         <translation>Advertencia</translation>
     </message>
     <message>
-        <location filename="../tools/map_tools/qgisred_selectPoint.py" line="185"/>
+        <location filename="../tools/map_tools/qgisred_selectPoint.py" line="138"/>
         <source>A not valid point was selected</source>
         <translation>Se ha seleccionado un punto no válido</translation>
     </message>
@@ -3746,7 +3766,7 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
 <context>
     <name>QGISRedStylingUtils</name>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="253"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="309"/>
         <source>{field} field not found in layer {layer.name()}</source>
         <translation>Campo {field} no encontrado en la capa {layer.name()}</translation>
     </message>
