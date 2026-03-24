@@ -248,6 +248,8 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         if self.cbProperty.count():
             self.updateConditions()
             self.updateValues()
+        self.labelResults.setVisible(self.isResultsMode)
+        self.lineResults.setVisible(self.isResultsMode)
         if self.isResultsMode:
             self.connectResultsDock()
         else:

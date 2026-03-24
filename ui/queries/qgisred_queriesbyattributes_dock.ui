@@ -386,6 +386,23 @@
            <item>
             <layout class="QVBoxLayout" name="verticalLayout_2">
              <item>
+              <widget class="QLabel" name="labelResults">
+               <property name="text">
+                <string/>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="Line" name="lineResults">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+             </item>
+             <item>
               <layout class="QHBoxLayout" name="horizontalLayout_7">
                <item>
                 <widget class="QLabel" name="labelStatisticsProperty">
