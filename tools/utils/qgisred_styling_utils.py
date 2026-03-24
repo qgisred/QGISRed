@@ -20,6 +20,62 @@ def _plugin_root():
     return os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
 
+def create_combined_cursor(icon, iface=None, icon_size=24):
+    """Create a cursor with a slender arrow and a custom icon at the bottom-right.
+
+    icon: str resource path, QPixmap, or QCursor (returned as-is).
+    iface: optional QGIS iface, used for devicePixelRatioF (falls back to 1.0).
+    icon_size: size in logical pixels for the overlaid icon (default 24).
+    """
+    from PyQt5.QtGui import QCursor, QPixmap, QPainter, QPainterPath, QPen, QColor
+    from PyQt5.QtCore import Qt
+
+    if isinstance(icon, QCursor):
+        return icon
+
+    ratio = 1.0
+    if iface is not None:
+        try:
+            ratio = iface.mainWindow().devicePixelRatioF()
+        except Exception:
+            pass
+
+    canvas_size = max(32, 12 + icon_size)
+    pixmap = QPixmap(int(canvas_size * ratio), int(canvas_size * ratio))
+    pixmap.setDevicePixelRatio(ratio)
+    pixmap.fill(Qt.transparent)
+
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.Antialiasing, True)
+
+    path = QPainterPath()
+    path.moveTo(0, 0)
+    path.lineTo(0, 15)
+    path.lineTo(4, 11)
+    path.lineTo(6, 16)
+    path.lineTo(8, 15)
+    path.lineTo(6, 10.5)
+    path.lineTo(11, 11)
+    path.closeSubpath()
+
+    painter.setPen(QPen(QColor(Qt.black), 0, Qt.SolidLine, Qt.SquareCap, Qt.MiterJoin))
+    painter.setBrush(Qt.white)
+    painter.drawPath(path)
+
+    icon_pixmap = icon if isinstance(icon, QPixmap) else QPixmap(icon)
+    if not icon_pixmap.isNull():
+        scaled = icon_pixmap.scaled(
+            int(icon_size * ratio), int(icon_size * ratio),
+            Qt.KeepAspectRatio, Qt.SmoothTransformation
+        )
+        scaled.setDevicePixelRatio(ratio)
+        offset = 11 if icon_size > 20 else 13
+        painter.drawPixmap(offset, offset, scaled)
+
+    painter.end()
+    return QCursor(pixmap, 0, 0)
+
+
 class QGISRedStylingUtils:
     defaultSvgPathText = "defaultSvgPath"
 

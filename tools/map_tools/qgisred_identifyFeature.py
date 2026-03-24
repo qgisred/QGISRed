@@ -6,6 +6,7 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QColor
 from qgis.core import QgsPointXY, QgsProject, QgsSnappingConfig, QgsTolerance
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsMapCanvasSnappingUtils
+from ..utils.qgisred_styling_utils import create_combined_cursor
 
 
 class QGISRedIdentifyFeature(QgsMapToolIdentify):
@@ -18,7 +19,7 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
     # -------------------------------
     # Initialization and Setup Methods
     # -------------------------------
-    def __init__(self, canvas, button, toggleAction=None, useElementPropertiesDock=True, dock=None):
+    def __init__(self, canvas, button, toggleAction=None, useElementPropertiesDock=True, dock=None, cursor=None):
         super().__init__(canvas)
         self.canvas = canvas
         self.setAction(button)
@@ -27,6 +28,7 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
         self.currentHighlight = None
         self.dock = dock
         self.ignoreNextRelease = False
+        self.custom_cursor = create_combined_cursor(cursor, iface, 24) if cursor is not None else None
         self.setupConnections()
         self.startVertexes()
         self.resetProperties()
@@ -292,6 +294,8 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
     # -------------------------------
     def activate(self):
         QgsMapTool.activate(self)
+        if self.custom_cursor:
+            self.canvas.setCursor(self.custom_cursor)
         self.configSnapper()
 
     def setIdentifyFeatureAsMapTool(self):

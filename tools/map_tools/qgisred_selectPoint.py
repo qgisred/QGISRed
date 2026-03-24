@@ -1,7 +1,8 @@
-from PyQt5.QtGui import QColor, QCursor, QPixmap, QPainter, QPainterPath, QPen
-from PyQt5.QtCore import Qt, QPoint
+from PyQt5.QtGui import QColor, QCursor, QPixmap
+from PyQt5.QtCore import Qt
 from qgis.core import QgsPointXY, QgsProject, QgsSnappingConfig, QgsTolerance
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsMapCanvasSnappingUtils
+from ..utils.qgisred_styling_utils import create_combined_cursor
 
 
 class QGISRedSelectPointTool(QgsMapTool):
@@ -20,7 +21,7 @@ class QGISRedSelectPointTool(QgsMapTool):
         if isinstance(cursor, QCursor):
             self.custom_cursor = cursor
         elif isinstance(cursor, (str, QPixmap)):
-            self.custom_cursor = self.create_combined_cursor(cursor)
+            self.custom_cursor = create_combined_cursor(cursor, self.iface, self.icon_size)
         elif cursor is None:
             self.custom_cursor = Qt.CrossCursor
 
@@ -51,54 +52,6 @@ class QGISRedSelectPointTool(QgsMapTool):
 
         self.snapper = None
         self.resetProperties()
-
-    def create_combined_cursor(self, icon):
-        """Create a professional, sharp cursor with a slender arrow and a custom icon."""
-        ratio = self.iface.mainWindow().devicePixelRatioF()
-        
-        # Calculate canvas size to avoid clipping
-        canvas_width = max(32, 12 + self.icon_size)
-        canvas_height = max(32, 12 + self.icon_size)
-        
-        pixmap = QPixmap(int(canvas_width * ratio), int(canvas_height * ratio))
-        pixmap.setDevicePixelRatio(ratio)
-        pixmap.fill(Qt.transparent)
-        
-        painter = QPainter(pixmap)
-        # Use antialiasing for smooth diagonal lines
-        painter.setRenderHint(QPainter.Antialiasing, True)
-        
-        # Create a slender, proportional arrow path (Standard UI style)
-        path = QPainterPath()
-        path.moveTo(0, 0)
-        path.lineTo(0, 15)
-        path.lineTo(4, 11)
-        path.lineTo(6, 16)
-        path.lineTo(8, 15)
-        path.lineTo(6, 10.5)
-        path.lineTo(11, 11)
-        path.closeSubpath()
-        
-        # Draw with a clean black outline and white fill
-        # Width 0 creates a cosmetic pen (the thinnest possible sharp line)
-        painter.setPen(QPen(QColor(Qt.black), 0, Qt.SolidLine, Qt.SquareCap, Qt.MiterJoin))
-        painter.setBrush(Qt.white)
-        painter.drawPath(path)
-        
-        # Draw the custom icon at the bottom-right
-        icon_pixmap = icon if isinstance(icon, QPixmap) else QPixmap(icon)
-        if not icon_pixmap.isNull():
-            scaled_icon = icon_pixmap.scaled(int(self.icon_size * ratio), int(self.icon_size * ratio), 
-                                            Qt.KeepAspectRatio, Qt.SmoothTransformation)
-            scaled_icon.setDevicePixelRatio(ratio)
-            
-            # Position it adjusted by the size for a unified look
-            offset = 11 if self.icon_size > 20 else 13
-            painter.drawPixmap(offset, offset, scaled_icon)
-        
-        painter.end()
-        # The hotspot (0,0) is at the tip
-        return QCursor(pixmap, 0, 0)
 
     def activate(self):
         # Guard against calls during shutdown

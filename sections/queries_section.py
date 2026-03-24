@@ -33,9 +33,9 @@ class QueriesSection:
                 self.iface.mapCanvas(),
                 action,
                 useElementPropertiesDock=useElementPropertiesDock,
-                dock=dock
+                dock=dock,
+                cursor=action.icon().pixmap(24, 24)
             )
-            self.myMapTools[toolKey].setCursor(Qt.WhatsThisCursor)
             self.iface.mapCanvas().setMapTool(self.myMapTools[toolKey])
             if dock:
                 dock.reHighlightCurrentElement()
