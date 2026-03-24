@@ -5,6 +5,7 @@ from PyQt5.QtGui import QColor, QIcon, QFont
 from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsVectorLayer, QgsFeatureRequest
 import os
+from PyQt5 import sip
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from datetime import datetime
 import csv
@@ -32,7 +33,8 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
     def clearMapSelection(self):
         if self.lastSelectedLayer is not None:
             try:
-                self.lastSelectedLayer.removeSelection()
+                if not sip.isdeleted(self.lastSelectedLayer):
+                    self.lastSelectedLayer.removeSelection()
             except RuntimeError:
                 pass
             self.lastSelectedLayer = None
@@ -46,6 +48,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.currentResultsTimeText = ""
         self.currentResultsStatText = ""
         self.lastSelectedLayer = None
+        self.lastCombinedExpression = ""
 
         self.resultsDockVisibilityTimer = QTimer()
         self.resultsDockVisibilityTimer.setSingleShot(True)
@@ -90,7 +93,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.tableWidgetCriteria.verticalHeader().setVisible(False)
         h = self.tableWidgetCriteria.horizontalHeader()
         h.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        h.setSectionResizeMode(1, QHeaderView.Stretch)          
+        h.setSectionResizeMode(1, QHeaderView.Stretch)
 
         # set up statistics table
         if self.tableWidgetStatistics.columnCount() == 0:
@@ -171,23 +174,23 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             for layerNode in inputsGroup.findLayers():
                 layer = layerNode.layer()
                 if layer and layer.customProperty("qgisred_identifier") in identifiers:
-                    self.cbElementType.addItem(layer.name(), layer)
+                    self.cbElementType.addItem(layer.name(), layer.customProperty("qgisred_identifier"))
         resultsGroup = QgsProject.instance().layerTreeRoot().findGroup("Results")
         if resultsGroup:
-            nodeLayer = linkLayer = None
+            nodeIdent = linkIdent = None
             for layerNode in resultsGroup.findLayers():
                 layer = layerNode.layer()
                 if not layer:
                     continue
                 ident = layer.customProperty("qgisred_identifier") or ""
-                if ident.startswith("qgisred_node") and nodeLayer is None:
-                    nodeLayer = layer
-                elif ident.startswith("qgisred_link") and linkLayer is None:
-                    linkLayer = layer
-            if nodeLayer:
-                self.cbElementType.addItem(self.tr("Nodes"), nodeLayer)
-            if linkLayer:
-                self.cbElementType.addItem(self.tr("Lines"), linkLayer)
+                if ident.startswith("qgisred_node") and nodeIdent is None:
+                    nodeIdent = ident
+                elif ident.startswith("qgisred_link") and linkIdent is None:
+                    linkIdent = ident
+            if nodeIdent:
+                self.cbElementType.addItem(self.tr("Nodes"), nodeIdent)
+            if linkIdent:
+                self.cbElementType.addItem(self.tr("Lines"), linkIdent)
         self.updateProperties()
 
     def isResultsLayer(self, layer):
@@ -239,8 +242,18 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
 
         self.tableWidgetCriteria.clearSelection()
 
+    def resolveLayer(self):
+        """Resolve the current qgisred_identifier from the combobox to a live QgsVectorLayer."""
+        qrIdent = self.cbElementType.currentData(Qt.UserRole)
+        if not qrIdent:
+            return None
+        for layer in QgsProject.instance().mapLayers().values():
+            if layer.customProperty("qgisred_identifier") == qrIdent:
+                return layer
+        return None
+
     def updateProperties(self):
-        layer = self.cbElementType.currentData(Qt.UserRole)
+        layer = self.resolveLayer()
         if not layer:
             return
         self.isResultsMode = self.isResultsLayer(layer)
@@ -274,19 +287,19 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
     def updateConditions(self):
         self.cbCondition.clear()
         prop = self.cbProperty.currentText()
-        layer = self.cbElementType.currentData(Qt.UserRole)
+        layer = self.resolveLayer()
         if not layer or not prop:
             return
         field = layer.fields().field(prop)
         cat = self.fieldTypeMapping.get(field.typeName().lower(), 'text')
-        
+
         self.cbCondition.addItems(self.conditionsByType.get('numeric', [])) #all numeric for now
 
     def updateValues(self):
         ...
         # self.cbValue.clear()
         # prop = self.cbProperty.currentText()
-        # layer = self.cbElementType.currentData(Qt.UserRole)
+        # layer = self.resolveLayer()
         # if not layer or not prop:
         #     return
         # field = layer.fields().field(prop)
@@ -440,6 +453,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
     def clearCriteria(self):
         self.criteria = []
         self.currentlyReplacingIndex = None
+        self.lastCombinedExpression = ""
         self.reloadCriteriaTable()
         self.clearMapSelection()
         self.tableWidgetStatistics.setRowCount(0)
@@ -463,18 +477,19 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.labelStatisticsPropertyFor.setText(self.tr(f"Statistics of {property} for selected Elements"))
         self.calculateStatistics()
 
-    def _effectiveCriteria(self):
+    def effectiveCriteria(self):
         return self.criteria
 
     def calculateStatistics(self):
-        selectedLayer = self.cbElementType.currentData(Qt.UserRole)
+        selectedLayer = self.resolveLayer()
         if not selectedLayer:
             return
 
         # Clear previous layer's selection if the target layer changed
         if self.lastSelectedLayer is not None and self.lastSelectedLayer is not selectedLayer:
             try:
-                self.lastSelectedLayer.removeSelection()
+                if not sip.isdeleted(self.lastSelectedLayer):
+                    self.lastSelectedLayer.removeSelection()
             except RuntimeError:
                 pass
 
@@ -482,7 +497,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         if not targetField:
             return
 
-        effectiveCriteria = self._effectiveCriteria()
+        effectiveCriteria = self.effectiveCriteria()
         if not effectiveCriteria:
             return
 
@@ -520,6 +535,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             inclusionExpressionString,
             f"NOT ({exclusionExpressionString})" if exclusionExpressionString else ''
         ]))
+        self.lastCombinedExpression = combinedExpression
         if combinedExpression:
             selectedLayer.selectByExpression(combinedExpression)
             self.lastSelectedLayer = selectedLayer
@@ -692,7 +708,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             self.btCriteriaSwitch.setIcon(
             self.iconSwitchEnabled  if enabled  else
             self.iconSwitchDisabled )
-            
+
     def toggleCriterionEnabled(self):
         row = self.tableWidgetCriteria.currentRow()
         if not (0 <= row < len(self.criteria)):
@@ -710,6 +726,18 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
 
         self.reloadCriteriaTable()
 
+    # --- Results dock integration ---
+
+    def isResultsDockAlive(self):
+        return self.resultsDock is not None and not sip.isdeleted(self.resultsDock)
+
+    def findResultsDock(self):
+        from PyQt5.QtWidgets import QDockWidget as _QDW
+        for widget in self.iface.mainWindow().findChildren(_QDW):
+            if isinstance(widget, QGISRedResultsDock) and not sip.isdeleted(widget) and widget.isVisible():
+                return widget
+        return None
+
     def pollForResultsDock(self):
         if self.resultsDock is not None:
             return
@@ -717,16 +745,9 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         if dock is not None:
             self.connectResultsDock(dock)
 
-    def findResultsDock(self):
-        from qgis.gui import QgsDockWidget
-        from PyQt5.QtWidgets import QDockWidget as _QDW
-        for widget in self.iface.mainWindow().findChildren(_QDW):
-            if isinstance(widget, QGISRedResultsDock) and widget.isVisible():
-                return widget
-        return None
-
-    def _syncResultsLabel(self, resultsDock):
-        """Read the current time/statistics state from the Results dock and update labelResults."""
+    def syncResultsLabel(self, resultsDock):
+        if sip.isdeleted(resultsDock):
+            return
         if resultsDock._statsMode:
             self.onResultsStatisticsChanged(resultsDock._currentStat)
         else:
@@ -739,9 +760,8 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             resultsDock = self.findResultsDock()
         if resultsDock is None:
             return
-        if self.resultsDock is resultsDock:
-            # Already connected — just re-sync the label
-            self._syncResultsLabel(resultsDock)
+        if self.isResultsDockAlive() and self.resultsDock is resultsDock:
+            self.syncResultsLabel(resultsDock)
             return
         if self.resultsDock is not None:
             self.disconnectResultsDock()
@@ -749,27 +769,33 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.resultsDockPollTimer.stop()
         resultsDock.timeTextChanged.connect(self.onResultsTimeChanged)
         resultsDock.statisticsModeChanged.connect(self.onResultsStatisticsChanged)
+        resultsDock.resultPropertyChanged.connect(self.onResultsPropertyChanged)
         resultsDock.visibilityChanged.connect(self.onResultsDockVisibilityChanged)
-        self._syncResultsLabel(resultsDock)
+        self.syncResultsLabel(resultsDock)
 
     def disconnectResultsDock(self):
         if self.resultsDock is not None:
-            try:
-                self.resultsDock.timeTextChanged.disconnect(self.onResultsTimeChanged)
-            except (TypeError, RuntimeError):
-                pass
-            try:
-                self.resultsDock.statisticsModeChanged.disconnect(self.onResultsStatisticsChanged)
-            except (TypeError, RuntimeError):
-                pass
-            try:
-                self.resultsDock.visibilityChanged.disconnect(self.onResultsDockVisibilityChanged)
-            except (TypeError, RuntimeError):
-                pass
+            if not sip.isdeleted(self.resultsDock):
+                try:
+                    self.resultsDock.timeTextChanged.disconnect(self.onResultsTimeChanged)
+                except (TypeError, RuntimeError):
+                    pass
+                try:
+                    self.resultsDock.statisticsModeChanged.disconnect(self.onResultsStatisticsChanged)
+                except (TypeError, RuntimeError):
+                    pass
+                try:
+                    self.resultsDock.resultPropertyChanged.disconnect(self.onResultsPropertyChanged)
+                except (TypeError, RuntimeError):
+                    pass
+                try:
+                    self.resultsDock.visibilityChanged.disconnect(self.onResultsDockVisibilityChanged)
+                except (TypeError, RuntimeError):
+                    pass
             self.resultsDock = None
         self.currentResultsStatText = ""
         # Fall back to layer time instead of clearing
-        layer = self.cbElementType.currentData(Qt.UserRole)
+        layer = self.resolveLayer()
         if layer and self.isResultsLayer(layer):
             self.fetchTimeFromLayer(layer)
             self.resultsDockPollTimer.start()
@@ -780,7 +806,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
     def onResultsTimeChanged(self, timeText):
         self.currentResultsTimeText = timeText
         self.labelResults.setText(timeText)
-        if self._effectiveCriteria() and self.isResultsMode:
+        if self.effectiveCriteria() and self.isResultsMode:
             self.runQuery()
 
     def onResultsStatisticsChanged(self, statName):
@@ -789,24 +815,43 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             self.labelResults.setText(f"{statName} {self.tr('values for report times')}")
         else:
             self.labelResults.setText(self.currentResultsTimeText)
-        if self._effectiveCriteria() and self.isResultsMode:
+        if self.effectiveCriteria() and self.isResultsMode:
             self.runQuery()
 
+    def onResultsPropertyChanged(self):
+        self.reapplySelection()
+
+    def reapplySelection(self):
+        if not self.lastCombinedExpression or not self.isResultsMode:
+            return
+        selectedLayer = self.resolveLayer()
+        if not selectedLayer:
+            return
+        selectedLayer.selectByExpression(self.lastCombinedExpression)
+        self.lastSelectedLayer = selectedLayer
+        self.canvas.refresh()
+
     def onResultsDockVisibilityChanged(self, visible):
+        if not self.isResultsDockAlive():
+            self.disconnectResultsDock()
+            return
         if not visible:
             self.resultsDockVisibilityTimer.start()
             return
         self.resultsDockVisibilityTimer.stop()
-        if self.resultsDock:
-            timeText = self.resultsDock.lbTime.text()
-            if timeText:
-                self.onResultsTimeChanged(timeText)
+        timeText = self.resultsDock.lbTime.text()
+        if timeText:
+            self.onResultsTimeChanged(timeText)
 
     def checkResultsDockClosed(self):
-        if self.resultsDock is not None and not self.resultsDock.isVisible():
+        if not self.isResultsDockAlive():
+            self.disconnectResultsDock()
+        elif not self.resultsDock.isVisible():
             self.disconnectResultsDock()
 
     def fetchTimeFromLayer(self, layer):
+        if layer is None or sip.isdeleted(layer):
+            return
         stat_idx = layer.fields().indexFromName("Statistics")
         time_idx = layer.fields().indexFromName("Time")
         if stat_idx < 0 and time_idx < 0:
@@ -823,6 +868,8 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
                 self.currentResultsStatText = ""
                 self.labelResults.setText(self.currentResultsTimeText)
                 return
+
+    # --- Export ---
 
     def exportTableWidgetCsv(self, table, prefix):
         folder = QFileDialog.getExistingDirectory(
@@ -841,7 +888,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             with open(fname, 'w', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
                 headers = [
-                    table.horizontalHeaderItem(col).text() 
+                    table.horizontalHeaderItem(col).text()
                         if table.horizontalHeaderItem(col) else ''
                     for col in range(table.columnCount())
                ]
@@ -849,7 +896,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
 
                 for row in range(table.rowCount()):
                     rowdata = [
-                        table.item(row, col).text() 
+                        table.item(row, col).text()
                             if table.item(row, col) else ''
                         for col in range(table.columnCount())
                     ]
