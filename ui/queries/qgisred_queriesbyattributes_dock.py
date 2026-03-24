@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtWidgets import QDockWidget, QTableWidgetItem, QHeaderView, QAbstractItemView, QToolButton
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QColor, QIcon, QFont
 from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsVectorLayer, QgsFeatureRequest
@@ -24,6 +24,8 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.initializeQueriesByAttributes()
 
     def closeEvent(self, event):
+        self.resultsDockVisibilityTimer.stop()
+        self.disconnectResultsDock()
         self.clearMapSelection()
         super().closeEvent(event)
 
@@ -42,7 +44,13 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.isResultsMode = False
         self.resultsDock = None
         self.currentResultsTimeText = ""
+        self.currentResultsStatText = ""
         self.lastSelectedLayer = None
+
+        self.resultsDockVisibilityTimer = QTimer()
+        self.resultsDockVisibilityTimer.setSingleShot(True)
+        self.resultsDockVisibilityTimer.setInterval(150)
+        self.resultsDockVisibilityTimer.timeout.connect(self.checkResultsDockClosed)
 
         self.elementIdentifiers = {
             'Pipes': 'qgisred_pipes',
@@ -252,6 +260,8 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.lineResults.setVisible(self.isResultsMode)
         if self.isResultsMode:
             self.connectResultsDock()
+            if self.resultsDock is None:
+                self.fetchTimeFromLayer(layer)
         else:
             self.disconnectResultsDock()
 
@@ -713,10 +723,15 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             self.disconnectResultsDock()
         self.resultsDock = resultsDock
         resultsDock.timeTextChanged.connect(self.onResultsTimeChanged)
+        resultsDock.statisticsModeChanged.connect(self.onResultsStatisticsChanged)
+        resultsDock.visibilityChanged.connect(self.onResultsDockVisibilityChanged)
         # Initial sync
-        timeText = resultsDock.lbTime.text()
-        if timeText:
-            self.onResultsTimeChanged(timeText)
+        if resultsDock._statsMode:
+            self.onResultsStatisticsChanged(resultsDock._currentStat)
+        else:
+            timeText = resultsDock.lbTime.text()
+            if timeText:
+                self.onResultsTimeChanged(timeText)
 
     def disconnectResultsDock(self):
         if self.resultsDock is not None:
@@ -724,13 +739,58 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
                 self.resultsDock.timeTextChanged.disconnect(self.onResultsTimeChanged)
             except (TypeError, RuntimeError):
                 pass
+            try:
+                self.resultsDock.statisticsModeChanged.disconnect(self.onResultsStatisticsChanged)
+            except (TypeError, RuntimeError):
+                pass
+            try:
+                self.resultsDock.visibilityChanged.disconnect(self.onResultsDockVisibilityChanged)
+            except (TypeError, RuntimeError):
+                pass
             self.resultsDock = None
         self.currentResultsTimeText = ""
+        self.currentResultsStatText = ""
+        self.labelResults.setText("")
 
     def onResultsTimeChanged(self, timeText):
         self.currentResultsTimeText = timeText
+        self.labelResults.setText(timeText)
         if self._effectiveCriteria() and self.isResultsMode:
             self.runQuery()
+
+    def onResultsStatisticsChanged(self, statName):
+        self.currentResultsStatText = statName
+        if statName:
+            self.labelResults.setText(f"{statName} {self.tr('values for report times')}")
+        else:
+            self.labelResults.setText(self.currentResultsTimeText)
+        if self._effectiveCriteria() and self.isResultsMode:
+            self.runQuery()
+
+    def onResultsDockVisibilityChanged(self, visible):
+        if not visible:
+            self.resultsDockVisibilityTimer.start()
+            return
+        self.resultsDockVisibilityTimer.stop()
+        if self.resultsDock:
+            timeText = self.resultsDock.lbTime.text()
+            if timeText:
+                self.onResultsTimeChanged(timeText)
+
+    def checkResultsDockClosed(self):
+        if self.resultsDock is not None and not self.resultsDock.isVisible():
+            self.disconnectResultsDock()
+
+    def fetchTimeFromLayer(self, layer):
+        idx = layer.fields().indexFromName("Time")
+        if idx < 0:
+            return
+        for feat in layer.getFeatures():
+            val = feat.attribute(idx)
+            if val is not None and str(val).strip():
+                self.currentResultsTimeText = str(val)
+                self.labelResults.setText(self.currentResultsTimeText)
+                return
 
     def exportTableWidgetCsv(self, table, prefix):
         folder = QFileDialog.getExistingDirectory(
