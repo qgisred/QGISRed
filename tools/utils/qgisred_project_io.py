@@ -167,7 +167,7 @@ class QGISRedProjectIO:
         return self.NetworkName
 
     def getQLRFolder(self):
-        qlrFolder = os.path.join(self.getQGISRedFolder(), "qlr")
+        qlrFolder = os.path.join(self._fs().getQGISRedFolder(), "qlr")
         if not os.path.exists(qlrFolder):
             os.makedirs(qlrFolder)
         return qlrFolder
@@ -178,7 +178,7 @@ class QGISRedProjectIO:
             os.makedirs(qlrFolder)
 
         savedCount = 0
-        layers = self.getLayers()
+        layers = self._layers().getLayers()
         root = QgsProject.instance().layerTreeRoot()
         layerMeta = {}
 
@@ -245,7 +245,7 @@ class QGISRedProjectIO:
             with open(metadataPath, 'r') as f:
                 layerMeta = json.load(f)
 
-        self.removePluginLayers()
+        self._layers().removePluginLayers()
 
         loadedLayers = []
         root = QgsProject.instance().layerTreeRoot()
@@ -261,7 +261,7 @@ class QGISRedProjectIO:
                     root
                 )
                 if success:
-                    for layer in self.getLayers():
+                    for layer in self._layers().getLayers():
                         if layer.customProperty("qgisred_identifier") == identifier:
                             loadedLayers.append((layer, identifier))
                             break
