@@ -711,12 +711,23 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
                 return widget
         return None
 
+    def _syncResultsLabel(self, resultsDock):
+        """Read the current time/statistics state from the Results dock and update labelResults."""
+        if resultsDock._statsMode:
+            self.onResultsStatisticsChanged(resultsDock._currentStat)
+        else:
+            timeText = resultsDock.lbTime.text()
+            if timeText:
+                self.onResultsTimeChanged(timeText)
+
     def connectResultsDock(self, resultsDock=None):
         if resultsDock is None:
             resultsDock = self.findResultsDock()
         if resultsDock is None:
             return
         if self.resultsDock is resultsDock:
+            # Already connected — just re-sync the label
+            self._syncResultsLabel(resultsDock)
             return
         if self.resultsDock is not None:
             self.disconnectResultsDock()
@@ -724,13 +735,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         resultsDock.timeTextChanged.connect(self.onResultsTimeChanged)
         resultsDock.statisticsModeChanged.connect(self.onResultsStatisticsChanged)
         resultsDock.visibilityChanged.connect(self.onResultsDockVisibilityChanged)
-        # Initial sync
-        if resultsDock._statsMode:
-            self.onResultsStatisticsChanged(resultsDock._currentStat)
-        else:
-            timeText = resultsDock.lbTime.text()
-            if timeText:
-                self.onResultsTimeChanged(timeText)
+        self._syncResultsLabel(resultsDock)
 
     def disconnectResultsDock(self):
         if self.resultsDock is not None:
