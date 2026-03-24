@@ -429,7 +429,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
     def buildExpression(self, crit):
         fld  = f'"{crit["property"]}"'
         cond = crit['condition']
-        op_map = {'=':'=', '≠':'<>', 'contains':' LIKE ', 'starts \with':' LIKE ', 'ends with':' LIKE '}
+        op_map = {'=':'=', '≠':'<>', 'contains':' LIKE ', 'starts with':' LIKE ', 'ends with':' LIKE '}
         op   = op_map.get(cond, cond)
         val  = crit['value']
         if isinstance(val, str):
