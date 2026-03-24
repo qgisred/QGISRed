@@ -24,6 +24,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
 
     def closeEvent(self, event):
         self.resultsDockVisibilityTimer.stop()
+        self.resultsDockPollTimer.stop()
         self.disconnectResultsDock()
         self.clearMapSelection()
         super().closeEvent(event)
@@ -50,6 +51,10 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.resultsDockVisibilityTimer.setSingleShot(True)
         self.resultsDockVisibilityTimer.setInterval(150)
         self.resultsDockVisibilityTimer.timeout.connect(self.checkResultsDockClosed)
+
+        self.resultsDockPollTimer = QTimer()
+        self.resultsDockPollTimer.setInterval(1500)
+        self.resultsDockPollTimer.timeout.connect(self.pollForResultsDock)
 
         self.elementIdentifiers = {
             'Pipes': 'qgisred_pipes',
@@ -261,7 +266,9 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             self.connectResultsDock()
             if self.resultsDock is None:
                 self.fetchTimeFromLayer(layer)
+                self.resultsDockPollTimer.start()
         else:
+            self.resultsDockPollTimer.stop()
             self.disconnectResultsDock()
 
     def updateConditions(self):
@@ -703,6 +710,13 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
 
         self.reloadCriteriaTable()
 
+    def pollForResultsDock(self):
+        if self.resultsDock is not None:
+            return
+        dock = self.findResultsDock()
+        if dock is not None:
+            self.connectResultsDock(dock)
+
     def findResultsDock(self):
         from qgis.gui import QgsDockWidget
         from PyQt5.QtWidgets import QDockWidget as _QDW
@@ -732,6 +746,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         if self.resultsDock is not None:
             self.disconnectResultsDock()
         self.resultsDock = resultsDock
+        self.resultsDockPollTimer.stop()
         resultsDock.timeTextChanged.connect(self.onResultsTimeChanged)
         resultsDock.statisticsModeChanged.connect(self.onResultsStatisticsChanged)
         resultsDock.visibilityChanged.connect(self.onResultsDockVisibilityChanged)
@@ -752,9 +767,15 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             except (TypeError, RuntimeError):
                 pass
             self.resultsDock = None
-        self.currentResultsTimeText = ""
         self.currentResultsStatText = ""
-        self.labelResults.setText("")
+        # Fall back to layer time instead of clearing
+        layer = self.cbElementType.currentData(Qt.UserRole)
+        if layer and self.isResultsLayer(layer):
+            self.fetchTimeFromLayer(layer)
+            self.resultsDockPollTimer.start()
+        else:
+            self.currentResultsTimeText = ""
+            self.labelResults.setText("")
 
     def onResultsTimeChanged(self, timeText):
         self.currentResultsTimeText = timeText
@@ -786,13 +807,20 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             self.disconnectResultsDock()
 
     def fetchTimeFromLayer(self, layer):
-        idx = layer.fields().indexFromName("Time")
-        if idx < 0:
+        stat_idx = layer.fields().indexFromName("Statistics")
+        time_idx = layer.fields().indexFromName("Time")
+        if stat_idx < 0 and time_idx < 0:
             return
         for feat in layer.getFeatures():
-            val = feat.attribute(idx)
-            if val is not None and str(val).strip():
-                self.currentResultsTimeText = str(val)
+            stat_val = feat.attribute(stat_idx) if stat_idx >= 0 else None
+            time_val = feat.attribute(time_idx) if time_idx >= 0 else None
+            if stat_val and str(stat_val).strip():
+                self.currentResultsStatText = str(stat_val)
+                self.labelResults.setText(f"{stat_val} {self.tr('values for report times')}")
+                return
+            if time_val and str(time_val).strip():
+                self.currentResultsTimeText = str(time_val)
+                self.currentResultsStatText = ""
                 self.labelResults.setText(self.currentResultsTimeText)
                 return
 
