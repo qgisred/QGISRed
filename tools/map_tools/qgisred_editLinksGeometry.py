@@ -11,7 +11,8 @@ except:
     except:
         pass
 
-from ..qgisred_utils import QGISRedUtils
+from ..utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
+from ..utils.qgisred_layer_utils import QGISRedLayerUtils
 
 
 class QGISRedEditLinksGeometryTool(QgsMapTool):
@@ -125,16 +126,16 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
     """Methods"""
 
     def getUniformedPath(self, path):
-        return QGISRedUtils().getUniformedPath(path)
+        return QGISRedFileSystemUtils().getUniformedPath(path)
 
     def getLayerPath(self, layer):
-        return QGISRedUtils().getLayerPath(layer)
+        return QGISRedFileSystemUtils().getLayerPath(layer)
 
     def generatePath(self, folder, fileName):
-        return QGISRedUtils().generatePath(folder, fileName)
+        return QGISRedFileSystemUtils().generatePath(folder, fileName)
 
     def getLayers(self):
-        return QGISRedUtils().getLayers()
+        return QGISRedLayerUtils().getLayers()
 
     def areOverlapedPoints(self, point1, point2):
         tolerance = 0.1

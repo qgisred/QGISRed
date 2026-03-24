@@ -2,7 +2,7 @@
 from PyQt5.QtWidgets import QFileDialog, QDialog
 from qgis.PyQt import uic
 
-from ...tools.qgisred_utils import QGISRedUtils
+from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 
 import os
 
@@ -26,7 +26,7 @@ class QGISRedImportProjectDialog(QDialog, FORM_CLASS):
 
     def selectDirectory(self):
         selected_directory = QFileDialog.getExistingDirectory()
-        selected_directory = QGISRedUtils().getUniformedPath(selected_directory)
+        selected_directory = QGISRedFileSystemUtils().getUniformedPath(selected_directory)
         if not selected_directory == "":
             self.tbProjectDirectory.setText(selected_directory)
             # self.tbProjectDirectory.setCursorPosition(0)

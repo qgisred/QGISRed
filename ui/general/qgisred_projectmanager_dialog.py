@@ -12,7 +12,10 @@ from .qgisred_import_dialog import QGISRedImportDialog
 from .qgisred_loadproject_dialog import QGISRedImportProjectDialog
 from .qgisred_cloneproject_dialog import QGISRedCloneProjectDialog
 from .qgisred_renameproject_dialog import QGISRedRenameProjectDialog
-from ...tools.qgisred_utils import QGISRedUtils
+from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
+from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ...tools.utils.qgisred_project_io import QGISRedProjectIO
+from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 
 import os
 from shutil import copyfile
@@ -95,7 +98,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         self.ProcessDone = False
         self.NetworkName = netw
         self.ProjectDirectory = direct
-        self.utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        self.utils = QGISRedFileSystemUtils(self.ProjectDirectory, self.NetworkName, self.iface)
 
         # Rows:
         self.fillTable()
@@ -239,7 +242,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         return self.utils.generatePath(folder, fileName)
 
     def getLayers(self):
-        return self.utils.getLayers()
+        return QGISRedLayerUtils().getLayers()
 
     def removeFilesFromFolder(self, folder, networkName):
         folder = self.getUniformedPath(folder)
@@ -397,7 +400,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 return
             valid = self.parent.isOpenedProject()
             if valid:
-                self.utils.runTask(self.clearQGisProject, self.openProjectProcess)
+                QGISRedLayerUtils().runTask(self.clearQGisProject, self.openProjectProcess)
         else:
             self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("You need to select a project to open it."), level=1, duration=5)
 
@@ -423,9 +426,9 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 for entry in existingEntries:
                     f.write(entry + "\n")
 
-            utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-            utils.openProjectInQgis()
-            utils.enforceAllIdentifiers()
+            io = QGISRedProjectIO(self.ProjectDirectory, self.NetworkName, self.iface)
+            io.openProjectInQgis()
+            QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface).enforceAllIdentifiers()
             self.close()
             self.ProcessDone = True
             self.parent.readOptions()
@@ -436,7 +439,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         else:
             valid = self.parent.isOpenedProject()
             if valid:
-                self.utils.runTask(self.clearQGisProject, self.createProjectProcess)
+                QGISRedLayerUtils().runTask(self.clearQGisProject, self.createProjectProcess)
 
     def createProjectProcess(self):
         dlg = QGISRedCreateProjectDialog()
@@ -456,7 +459,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         else:
             valid = self.parent.isOpenedProject()
             if valid:
-                self.utils.runTask(self.clearQGisProject, self.importDataProcess)
+                QGISRedLayerUtils().runTask(self.clearQGisProject, self.importDataProcess)
 
     def importDataProcess(self):
         dlg = QGISRedImportDialog()
@@ -477,8 +480,8 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             if zipPath == "":
                 return
 
-            utils = QGISRedUtils(project, name, self.iface)
-            utils.saveFilesInZip(zipPath)
+            io = QGISRedProjectIO(project, name, self.iface)
+            io.saveFilesInZip(zipPath)
             self.iface.messageBar().pushMessage("QGISRed", self.tr("Zip file stored in: ") + zipPath, level=0, duration=5)
             return
         else:

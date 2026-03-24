@@ -8,7 +8,7 @@ from qgis.core import QgsRectangle
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import Qt
 
-from ..tools.qgisred_utils import QGISRedUtils
+from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool
 from ..ui.analysis.qgisred_results_dock import QGISRedResultsDock
@@ -43,9 +43,9 @@ class AnalysisSection:
             self.unitsAction.setText("QGISRed: " + resMessage)
             self.hasToOpenNewLayers = False
             self.hasToOpenIssuesLayers = False
-            self.extent = QGISRedUtils().getProjectExtent()
+            self.extent = QGISRedLayerUtils().getProjectExtent()
             self.removingLayers = True
-            QGISRedUtils().runTask(self.removeDBFs, self.runOpenTemporaryFiles)
+            QGISRedLayerUtils().runTask(self.removeDBFs, self.runOpenTemporaryFiles)
         elif resMessage == "commit":
             self.processCsharpResult(resMessage, "Pipe's roughness converted")
         elif resMessage == "False":
@@ -218,7 +218,7 @@ class AnalysisSection:
         for identifier, cat in layers_to_check:
             # Find layer by identifier
             layer = None
-            for l in QGISRedUtils().getLayers():
+            for l in QGISRedLayerUtils().getLayers():
                 if l.customProperty("qgisred_identifier") == identifier:
                     layer = l
                     break

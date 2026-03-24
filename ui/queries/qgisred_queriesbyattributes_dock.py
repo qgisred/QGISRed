@@ -9,7 +9,6 @@ from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from datetime import datetime
 import csv
 
-from ...tools.qgisred_utils import QGISRedUtils
 from ..analysis.qgisred_results_dock import QGISRedResultsDock
 
 # load UI

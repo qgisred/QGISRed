@@ -12,7 +12,7 @@ except:
     except:
         pass
 import processing
-from ..qgisred_utils import QGISRedUtils
+from ..utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 
 
 class QGISRedMultiLayerSelection(QgsMapTool):
@@ -61,7 +61,7 @@ class QGISRedMultiLayerSelection(QgsMapTool):
 
         layers = self.canvas.layers()
         for layer in layers:
-            path = QGISRedUtils().getLayerPath(layer)
+            path = QGISRedFileSystemUtils().getLayerPath(layer)
             if "_Pipes.shp" in path:
                 c = layer.sourceCrs()
                 self.crs = "?crs=" + c.authid()

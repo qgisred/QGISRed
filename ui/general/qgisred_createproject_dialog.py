@@ -5,7 +5,9 @@ from qgis.core import QgsCoordinateReferenceSystem
 from qgis.PyQt import uic
 from qgis.gui import QgsProjectionSelectionDialog as QgsGenericProjectionSelector
 
-from ...tools.qgisred_utils import QGISRedUtils
+from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
+from ...tools.utils.qgisred_project_io import QGISRedProjectIO
 from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
 import os
@@ -38,12 +40,12 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
     def config(self, ifac, direct, netw, parent):
         self.iface = ifac
         self.parent = parent
-        utils = QGISRedUtils(direct, netw, ifac)
+        utils = QGISRedLayerUtils(direct, netw, ifac)
         self.crs = utils.getProjectCrs()
         self.tbCRS.setText(self.crs.description())
         self.NetworkName = netw
         if direct == "Temporal folder":
-            direct = QGISRedUtils().getUserFolder()
+            direct = QGISRedFileSystemUtils().getUserFolder()
         self.ProjectDirectory = direct
         self.tbNetworkName.setText(netw)
         self.tbProjectDirectory.setText(direct)
@@ -131,7 +133,7 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
             if resMessage == "True":
                 self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Process successfully completed"), level=3, duration=5)
                 # Project manager list
-                QGISRedUtils().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
+                QGISRedProjectIO().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
                 # open layers
                 self.parent.openElementLayers(self.NetworkName, self.ProjectDirectory)
             elif resMessage == "False":

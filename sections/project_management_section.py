@@ -8,7 +8,9 @@ from PyQt5.QtWidgets import QApplication, QMessageBox, QAction
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, QCoreApplication
 
-from ..tools.qgisred_utils import QGISRedUtils
+from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ..tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
+from ..tools.utils.qgisred_project_io import QGISRedProjectIO
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..ui.general.qgisred_projectmanager_dialog import QGISRedProjectManagerDialog
 from ..ui.general.qgisred_createproject_dialog import QGISRedCreateProjectDialog
@@ -122,10 +124,10 @@ class ProjectManagementSection:
 
         self.readOptions(self.ProjectDirectory, self.NetworkName)
 
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        utils.assignLayerIdentifiers()
+        identifiers = QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        identifiers.assignLayerIdentifiers()
 
-        QGISRedUtils().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
+        QGISRedProjectIO().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
 
         root = QgsProject.instance().layerTreeRoot()
         inputs_group = root.findGroup("Inputs")
@@ -136,7 +138,7 @@ class ProjectManagementSection:
                     layer = child.layer()
                     if layer:
                         identifier = layer.customProperty("qgisred_identifier")
-                        translatedName = utils.getTranslatedNameForIdentifier(identifier)
+                        translatedName = identifiers.getTranslatedNameForIdentifier(identifier)
                         if translatedName and layer.name() != translatedName:
                             layer.setName(translatedName)
 
@@ -302,7 +304,7 @@ class ProjectManagementSection:
         else:
             valid = self.isOpenedProject()
             if valid:
-                QGISRedUtils().runTask(self.clearQGisProject, self.runOpenProject)
+                QGISRedLayerUtils().runTask(self.clearQGisProject, self.runOpenProject)
 
     def runOpenProject(self):
         if not self.checkDependencies():
@@ -327,11 +329,11 @@ class ProjectManagementSection:
             self.NetworkName = dlg.NetworkName
             self.ProjectDirectory = dlg.ProjectDirectory
             # Write .gql file
-            QGISRedUtils().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
+            QGISRedProjectIO().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
             # Open files
-            utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-            utils.openProjectInQgis()
-            utils.enforceAllIdentifiers()
+            io = QGISRedProjectIO(self.ProjectDirectory, self.NetworkName, self.iface)
+            io.openProjectInQgis()
+            QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface).enforceAllIdentifiers()
 
             self.readOptions()
 
@@ -345,7 +347,7 @@ class ProjectManagementSection:
         else:
             valid = self.isOpenedProject()
             if valid:
-                QGISRedUtils().runTask(self.clearQGisProject, self.runCreateProject)
+                QGISRedLayerUtils().runTask(self.clearQGisProject, self.runCreateProject)
 
     def runCreateProject(self):
         if not self.checkDependencies():
@@ -373,7 +375,7 @@ class ProjectManagementSection:
         else:
             valid = self.isOpenedProject()
             if valid:
-                QGISRedUtils().runTask(self.clearQGisProject, self.runImport)
+                QGISRedLayerUtils().runTask(self.clearQGisProject, self.runImport)
 
     def runImport(self):
         if not self.checkDependencies():
@@ -500,9 +502,9 @@ class ProjectManagementSection:
         if resMessage == "True":
             self.hasToOpenNewLayers = False
             self.hasToOpenIssuesLayers = False
-            self.extent = QGISRedUtils().getProjectExtent()
+            self.extent = QGISRedLayerUtils().getProjectExtent()
             self.removingLayers = True
-            QGISRedUtils().runTask(self.removeDBFs, self.runOpenTemporaryFiles)
+            QGISRedLayerUtils().runTask(self.removeDBFs, self.runOpenTemporaryFiles)
         elif resMessage == "False":
             self.iface.messageBar().pushMessage(
                 self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5
@@ -531,9 +533,9 @@ class ProjectManagementSection:
         if resMessage == "True":
             self.hasToOpenNewLayers = False
             self.hasToOpenIssuesLayers = False
-            self.extent = QGISRedUtils().getProjectExtent()
+            self.extent = QGISRedLayerUtils().getProjectExtent()
             self.removingLayers = True
-            QGISRedUtils().runTask(self.removeDBFs, self.runOpenTemporaryFiles)
+            QGISRedLayerUtils().runTask(self.removeDBFs, self.runOpenTemporaryFiles)
         elif resMessage == "False":
             self.iface.messageBar().pushMessage(
                 self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5
@@ -554,8 +556,8 @@ class ProjectManagementSection:
         if self.isLayerOnEdition():
             return
 
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        path = utils.saveBackup()
+        io = QGISRedProjectIO(self.ProjectDirectory, self.NetworkName, self.iface)
+        path = io.saveBackup()
         self.iface.messageBar().pushMessage("QGISRed", QCoreApplication.translate("QGISRed", "Backup stored in:") + " " + path, level=0, duration=5)
 
     def runCloseProject(self):

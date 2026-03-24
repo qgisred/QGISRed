@@ -17,7 +17,7 @@ from qgis.core import QgsLayerTreeGroup, QgsLayerTreeLayer, QgsGradientColorRamp
 from qgis.core import QgsClassificationPrettyBreaks, QgsStyle, QgsPresetSchemeColorRamp, QgsProperty, QgsSymbolLayer
 from qgis.utils import iface
 
-from ...tools.qgisred_utils import QGISRedUtils
+from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from .qgisred_custom_dialogs import QGISRedRangeEditDialog, QGISRedSymbolColorSelector
 from .qgisred_custom_dialogs import QGISRedColorRampSelector, QGISRedRowSelectionFilter
 from .qgisred_custom_dialogs import QGISRedPaletteEmulator, QGISRedSizePaletteEmulator
@@ -222,7 +222,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.qgisInterface = qgisInterface
         self.projectDirectory = projectDirectory
         self.networkName = networkName
-        self.utils = QGISRedUtils(projectDirectory, networkName, qgisInterface)
+        self.utils = QGISRedIdentifierUtils(projectDirectory, networkName, qgisInterface)
 
         if self.cbLegendLayer.currentLayer():
             self.onLayerChanged(self.cbLegendLayer.currentLayer())
@@ -3199,7 +3199,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def getElementNameForIdentifier(self, identifier):
         if self.utils:
             return self.utils.identifierToElementName.get(identifier)
-        return QGISRedUtils().identifierToElementName.get(identifier)
+        return QGISRedIdentifierUtils().identifierToElementName.get(identifier)
 
     def getStyleFolder(self, globalStyle):
         if globalStyle:

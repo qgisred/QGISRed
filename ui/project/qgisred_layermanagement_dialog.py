@@ -5,7 +5,9 @@ from qgis.core import QgsCoordinateReferenceSystem, QgsVectorLayer, QgsProject
 from qgis.PyQt import uic
 from qgis.gui import QgsProjectionSelectionDialog as QgsGenericProjectionSelector
 
-from ...tools.qgisred_utils import QGISRedUtils
+from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
+from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
 import os
@@ -62,7 +64,7 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         self.iface = ifac
         self.parent = parent
 
-        self.utils = QGISRedUtils(direct, netw, ifac)
+        self.utils = QGISRedLayerUtils(direct, netw, ifac)
         self.crs = self.utils.getProjectCrs()
         self.originalCrs = self.crs
         self.tbCRS.setText(self.crs.description())
@@ -229,10 +231,10 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
                 self.tbCRS.setText(self.crs.description())
 
     def getLayerPath(self, layer):
-        return self.utils.getLayerPath(layer)
+        return QGISRedFileSystemUtils().getLayerPath(layer)
 
     def generatePath(self, folder, fileName):
-        return self.utils.generatePath(folder, fileName)
+        return QGISRedFileSystemUtils().generatePath(folder, fileName)
 
     def getLayers(self):
         return self.utils.getLayers()
@@ -256,7 +258,7 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         
         for layer in openedLayers:
             # Should translate here
-            originalName = self.utils.getOriginalNameFromLayerName(layerName)
+            originalName = QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface).getOriginalNameFromLayerName(layerName)
             layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + originalName + ".shp")
             if self.getLayerPath(layer) == layerPath:
                 return True

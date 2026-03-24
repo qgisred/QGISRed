@@ -12,7 +12,9 @@ from qgis.core import QgsTextFormat
 from qgis.core import QgsProperty, QgsRenderContext, NULL
 from qgis.core import QgsGraduatedSymbolRenderer, QgsRuleBasedRenderer
 
-from ...tools.qgisred_utils import QGISRedUtils
+from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
+from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ...tools.qgisred_results import (
     getOut_TimeNodesProperties, getOut_TimeLinksProperties,
@@ -278,29 +280,29 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
     """Paths"""
     def getUniformedPath(self, path):
-        return QGISRedUtils().getUniformedPath(path)
+        return QGISRedFileSystemUtils().getUniformedPath(path)
 
     def getLayerPath(self, layer):
-        return QGISRedUtils().getLayerPath(layer)
+        return QGISRedFileSystemUtils().getLayerPath(layer)
 
     def generatePath(self, folder, fileName):
-        return QGISRedUtils().generatePath(folder, fileName)
+        return QGISRedFileSystemUtils().generatePath(folder, fileName)
 
     def getResultsPath(self):
         return os.path.join(self.ProjectDirectory, "Results")
 
     """Layers and Groups"""
     def getLayers(self):
-        return QGISRedUtils().getLayers()
+        return QGISRedLayerUtils().getLayers()
 
     def openLayerResults(self, scenario, nameLayer=None):
         resultPath = self.getResultsPath()
-        utils = QGISRedUtils(resultPath, self.NetworkName + "_" + scenario, self.iface)
+        utils = QGISRedLayerUtils(resultPath, self.NetworkName + "_" + scenario, self.iface)
         resultGroup = self.getResultGroup()
         group = resultGroup.findGroup(scenario)
         if group is None:
             group = resultGroup.addGroup(scenario)
-            QGISRedUtils.setGroupIdentifier(group, scenario)
+            QGISRedLayerUtils.setGroupIdentifier(group, scenario)
 
         openedLayersPaths = [self.getLayerPath(l) for l in self.getLayers()]
 
@@ -323,7 +325,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
     def removeResults(self):
         resultPath = self.getResultsPath()
-        utils = QGISRedUtils(resultPath, self.NetworkName + "_" + self.Scenario, self.iface)
+        utils = QGISRedLayerUtils(resultPath, self.NetworkName + "_" + self.Scenario, self.iface)
         utils.removeLayers(["Node", "Link"])
 
     def removeResultLayer(self, nameLayer):
@@ -337,11 +339,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 break
 
     def getInputGroup(self):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         return utils.getOrCreateGroup("Inputs")
 
     def getResultGroup(self):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         group = utils.getOrCreateGroup("Results")
         group.setItemVisibilityChecked(True)
         return group
@@ -683,8 +685,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         hasRender = False
         ranges = None
         
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        
+        utils = QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+
         if setRender:  # Just opened a layer or changed variable
             dictRend = self.Renders.get(self.Scenario)
             layerPath = self.getLayerPath(layer)
@@ -1051,7 +1053,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.saveCurrentRender()
 
         # Remove results layers previous to simulate
-        QGISRedUtils().runTask(self.removeResults, self.simulationProcess)
+        QGISRedLayerUtils().runTask(self.removeResults, self.simulationProcess)
 
     def simulationProcess(self):
         # Process
@@ -1152,7 +1154,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         # Task is necessary because after remove layers, DBF files are in use. With the task,
         # the remove process finishs and filer are not in use
-        QGISRedUtils().runTask(self.removeResults, self.openAllResultsProcess)
+        QGISRedLayerUtils().runTask(self.removeResults, self.openAllResultsProcess)
 
     def openAllResultsProcess(self):
         # Ensure result layers are opened

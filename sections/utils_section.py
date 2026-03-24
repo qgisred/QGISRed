@@ -5,7 +5,8 @@ from qgis.core import QgsCoordinateTransform, QgsProject
 from PyQt5.QtGui import QCursor
 from ctypes import windll
 
-from ..tools.qgisred_utils import QGISRedUtils
+from ..tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
+from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 
 
 class UtilsSection:
@@ -46,16 +47,16 @@ class UtilsSection:
         return tolerance
 
     def getUniformedPath(self, path):
-        return QGISRedUtils().getUniformedPath(path)
+        return QGISRedFileSystemUtils().getUniformedPath(path)
 
     def getLayerPath(self, layer):
-        return QGISRedUtils().getLayerPath(layer)
+        return QGISRedFileSystemUtils().getLayerPath(layer)
 
     def generatePath(self, folder, fileName):
-        return QGISRedUtils().generatePath(folder, fileName)
+        return QGISRedFileSystemUtils().generatePath(folder, fileName)
 
     def getLayers(self):
-        return QGISRedUtils().getLayers()
+        return QGISRedLayerUtils().getLayers()
 
     def getSelectedFeaturesIds(self):
         linkIdsList = []
@@ -155,7 +156,7 @@ class UtilsSection:
                 return
 
     def transformPoint(self, point):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         pipesCrs = utils.getProjectCrs()
         projectCrs = self.iface.mapCanvas().mapSettings().destinationCrs()
         xform = QgsCoordinateTransform(projectCrs, pipesCrs, QgsProject.instance())

@@ -5,7 +5,10 @@ from PyQt5.QtGui import QIcon
 from qgis.core import QgsVectorLayer, QgsProject, QgsCoordinateReferenceSystem, QgsWkbTypes
 from qgis.PyQt import uic
 from qgis.gui import QgsProjectionSelectionDialog as QgsGenericProjectionSelector
-from ...tools.qgisred_utils import QGISRedUtils
+from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
+from ...tools.utils.qgisred_project_io import QGISRedProjectIO
+from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
 import os
 import tempfile
@@ -62,7 +65,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.parent = parent
         self.iface = ifac
 
-        utils = QGISRedUtils(direct, netw, ifac)
+        utils = QGISRedLayerUtils(direct, netw, ifac)
         self.crs = utils.getProjectCrs()
         self.tbCRS.setText(self.crs.description())
         self.lbUnits.setText(self.tr("Degrees"))
@@ -74,7 +77,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.NewProject = False
         if direct == "Temporal folder":
             self.NewProject = True
-            direct = QGISRedUtils().getUserFolder()
+            direct = QGISRedFileSystemUtils().getUserFolder()
         self.ProjectDirectory = direct
         self.tbProjectDirectory.setText(direct)
         # self.tbProjectDirectory.setCursorPosition(0)
@@ -222,11 +225,11 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             return False
 
         # Write .gql file
-        QGISRedUtils().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
+        QGISRedProjectIO().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
         return True
 
     def getInputGroup(self):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         return utils.getOrCreateGroup("Inputs")
 
     def setZoomExtent(self, exception=None, result=None):
@@ -271,7 +274,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             self.parent.NetworkName = self.NetworkName
 
             # Write .gql file
-            QGISRedUtils().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
+            QGISRedProjectIO().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
 
             # Open files
             self.parent.processCsharpResult(resMessage, "")
@@ -1250,7 +1253,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             QApplication.setOverrideCursor(Qt.WaitCursor)
             # Unzip
             tempFolder = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names())
-            QGISRedUtils().unzipFile(self.ZipFile, tempFolder)
+            QGISRedProjectIO().unzipFile(self.ZipFile, tempFolder)
             QApplication.restoreOverrideCursor()
 
             validProject = False
@@ -1265,15 +1268,15 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 self.iface.messageBar().pushMessage("Warninf", "ZIP file does not contain a valid QGISRed project", level=1)
                 return
 
-            QGISRedUtils().copyFolderFiles(tempFolder, self.ProjectDirectory)
-            QGISRedUtils().removeFolder(tempFolder)
+            QGISRedFileSystemUtils().copyFolderFiles(tempFolder, self.ProjectDirectory)
+            QGISRedFileSystemUtils().removeFolder(tempFolder)
             self.parent.ProjectDirectory = self.ProjectDirectory
             self.parent.NetworkName = self.NetworkName
 
             # Write .gql file
-            QGISRedUtils().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
+            QGISRedProjectIO().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
 
             # Open files
-            utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-            utils.openProjectInQgis()
-            utils.enforceAllIdentifiers()
+            io = QGISRedProjectIO(self.ProjectDirectory, self.NetworkName, self.iface)
+            io.openProjectInQgis()
+            QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface).enforceAllIdentifiers()

@@ -7,7 +7,8 @@ from qgis.core import QgsProject, QgsVectorLayer
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import Qt
 
-from ..tools.qgisred_utils import QGISRedUtils
+from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ..tools.utils.qgisred_project_io import QGISRedProjectIO
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
 
@@ -17,21 +18,21 @@ class LayerManagementSection:
     """Remove Layers"""
 
     def removeLayers(self):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayers(self.ownMainLayers)
         utils.removeLayers(self.ownFiles, ".dbf")
         utils.removeLayers(self.especificComplementaryLayers)
 
     def removeDBFs(self):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayers(self.ownFiles, ".dbf")
 
     def removeIssuesLayers(self):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayers(self.issuesLayers)
 
     def removeLayersAndIssuesLayers(self):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayers(self.ownMainLayers)
         utils.removeLayers(self.ownFiles, ".dbf")
         utils.removeLayers(self.especificComplementaryLayers)
@@ -44,12 +45,12 @@ class LayerManagementSection:
                 os.remove(os.path.join(self.ProjectDirectory, fi))
 
     def removeLayersConnectivity(self):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayer("Links_Connectivity")
         self.removeEmptyQuerySubGroup("Connectivity")
 
     def removeLayersAndConnectivity(self):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayers(self.ownMainLayers)
         utils.removeLayers(self.ownFiles, ".dbf")
         utils.removeLayers(self.especificComplementaryLayers)
@@ -57,7 +58,7 @@ class LayerManagementSection:
         self.removeEmptyQuerySubGroup("Connectivity")
 
     def removeSectorLayers(self):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         utils.removeLayers(["Links_" + self.Sectors, "Nodes_" + self.Sectors])
         sectorGroupName = self.getSectorGroupName()
         self.removeEmptyQuerySubGroup(sectorGroupName)
@@ -66,11 +67,11 @@ class LayerManagementSection:
 
     def openRemoveSpecificLayers(self, layers, epsg):
         self.especificComplementaryLayers = self.complementaryLayers
-        self.extent = QGISRedUtils().getProjectExtent()
+        self.extent = QGISRedLayerUtils().getProjectExtent()
         self.specificEpsg = epsg
         self.specificLayers = layers
         self.removingLayers = True
-        QGISRedUtils().runTask(self.removeLayers, self.openSpecificLayers)
+        QGISRedLayerUtils().runTask(self.removeLayers, self.openSpecificLayers)
 
     def openSpecificLayers(self):
         self.especificComplementaryLayers = []
@@ -78,13 +79,13 @@ class LayerManagementSection:
             self.runChangeCrs()
 
         self.opendedLayers = False
-        QGISRedUtils().runTask(self.openSpecificLayersProcess, self.setExtent)
+        QGISRedLayerUtils().runTask(self.openSpecificLayersProcess, self.setExtent)
 
     def openSpecificLayersProcess(self):
         if not self.opendedLayers:
             self.opendedLayers = True
             # Open layers
-            utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+            utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
             inputGroup = self.getInputGroup()
             utils.openElementsLayers(inputGroup, self.specificLayers)
             self.updateMetadata()
@@ -92,7 +93,7 @@ class LayerManagementSection:
 
     def openElementLayer(self, nameLayer):
         # Open layers
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         inputGroup = self.getInputGroup()
         utils.openElementsLayers(inputGroup, [nameLayer])
         self.updateMetadata()
@@ -105,11 +106,12 @@ class LayerManagementSection:
 
         # Prepare for opening
         self.opendedLayers = False
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        io = QGISRedProjectIO(self.ProjectDirectory, self.NetworkName, self.iface)
         inputGroup = self.getInputGroup()
 
         if self.storeQLRSucess:
-            utils.loadProjectFromQLR(self.qlrFolder)
+            io.loadProjectFromQLR(self.qlrFolder)
             inputGroup = self.getInputGroup()
             proccessPerformed = False
             for layer_name in self.ownMainLayers + self.especificComplementaryLayers:
@@ -126,30 +128,30 @@ class LayerManagementSection:
         self.especificComplementaryLayers = []
 
         # Always remove the one project‑level QLR file if it was created
-        utils.deleteProjectQLR(self.qlrFolder)
+        io.deleteProjectQLR(self.qlrFolder)
         utils.removeEmptyLayersInGroup(inputGroup)
 
         self.updateMetadata()
 
     def openInputLayers(self, projectDir, networkName):
         # Open layers
-        utils = QGISRedUtils(projectDir, networkName, self.iface)
+        utils = QGISRedLayerUtils(projectDir, networkName, self.iface)
         inputGroup = self.getInputGroup()
         utils.openElementsLayers(inputGroup, self.ownMainLayers)
 
     def openIssuesLayers(self):
         # Open layers
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         issuesGroup = self.getIssuesGroup()
         utils.openIssuesLayers(issuesGroup, self.issuesLayers)
 
     def openConnectivityLayer(self):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         connGroup = utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Connectivity"])
         utils.openLayer(connGroup, "Links_Connectivity")
 
     def openSectorLayers(self):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         if os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_Links_" + self.Sectors + ".shp")):
             sectorGroupName = self.getSectorGroupName()
             sectorGroup = utils.getOrCreateNestedGroup([self.NetworkName, "Queries", sectorGroupName])
@@ -180,7 +182,7 @@ class LayerManagementSection:
         if self.ResultDockwidget is None:
             return
         try:
-            utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+            utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
             group = utils.getOrCreateGroup("Inputs")
             if group is not None:
                 group.setItemVisibilityChecked(not self.ResultDockwidget.isVisible())
@@ -191,19 +193,19 @@ class LayerManagementSection:
             pass
 
     def getInputGroup(self):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         return utils.getOrCreateGroup("Inputs")
 
     def getQueryGroup(self):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         return utils.getOrCreateGroup("Queries")
 
     def getIssuesGroup(self):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         return utils.getOrCreateGroup("Issues")
 
     def removeEmptyIssuesGroup(self):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         root = QgsProject.instance().layerTreeRoot()
         issuesGroup = utils._findGroupByNameRecursive(root, "Issues")
         if issuesGroup is not None:
@@ -221,7 +223,7 @@ class LayerManagementSection:
             return "Sectors"
 
     def removeEmptyQuerySubGroup(self, name):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         root = QgsProject.instance().layerTreeRoot()
         querySubGroup = utils._findGroupByNameRecursive(root, name)
         if querySubGroup is not None:
@@ -239,8 +241,8 @@ class LayerManagementSection:
     """Others"""
 
     def processCsharpResult(self, b, message):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        self.storeQLRSucess, self.qlrFolder = utils.saveProjectAsQLR()
+        io = QGISRedProjectIO(self.ProjectDirectory, self.NetworkName, self.iface)
+        self.storeQLRSucess, self.qlrFolder = io.saveProjectAsQLR()
         # Action
         self.hasToOpenNewLayers = False
         self.hasToOpenIssuesLayers = False
@@ -260,13 +262,13 @@ class LayerManagementSection:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
         self.removingLayers = True
-        self.extent = QGISRedUtils().getProjectExtent()
+        self.extent = QGISRedLayerUtils().getProjectExtent()
         if self.hasToOpenNewLayers and self.hasToOpenIssuesLayers:
-            QGISRedUtils().runTask(self.removeLayersAndIssuesLayers, self.runOpenTemporaryFiles)
+            QGISRedLayerUtils().runTask(self.removeLayersAndIssuesLayers, self.runOpenTemporaryFiles)
         elif self.hasToOpenNewLayers:
-            QGISRedUtils().runTask(self.removeLayers, self.runOpenTemporaryFiles)
+            QGISRedLayerUtils().runTask(self.removeLayers, self.runOpenTemporaryFiles)
         elif self.hasToOpenIssuesLayers:
-            QGISRedUtils().runTask(self.removeIssuesLayers, self.runOpenTemporaryFiles)
+            QGISRedLayerUtils().runTask(self.removeIssuesLayers, self.runOpenTemporaryFiles)
 
     def runOpenTemporaryFiles(self):
         if self.hasToOpenIssuesLayers:
@@ -280,7 +282,7 @@ class LayerManagementSection:
 
         if self.hasToOpenNewLayers:
             self.opendedLayers = False
-            QGISRedUtils().runTask(self.openElementLayers, self.setExtent)
+            QGISRedLayerUtils().runTask(self.openElementLayers, self.setExtent)
             self.openNewLayers = False
 
         if self.hasToOpenIssuesLayers:

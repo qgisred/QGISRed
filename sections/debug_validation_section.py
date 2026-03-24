@@ -4,7 +4,7 @@
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import Qt, QCoreApplication
 
-from ..tools.qgisred_utils import QGISRedUtils
+from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..ui.debug.qgisred_toolLength_dialog import QGISRedLengthToolDialog
 from ..ui.debug.qgisred_toolConnectivity_dialog import QGISRedConnectivityToolDialog
@@ -159,11 +159,11 @@ class DebugValidationSection:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
         self.removingLayers = True
-        self.extent = QGISRedUtils().getProjectExtent()
+        self.extent = QGISRedLayerUtils().getProjectExtent()
         if self.hasToOpenNewLayers and self.hasToOpenConnectivityLayers:
-            QGISRedUtils().runTask(self.removeLayersAndConnectivity, self.runOpenTemporaryFiles)
+            QGISRedLayerUtils().runTask(self.removeLayersAndConnectivity, self.runOpenTemporaryFiles)
         elif self.hasToOpenConnectivityLayers:
-            QGISRedUtils().runTask(self.removeLayersConnectivity, self.runOpenTemporaryFiles)
+            QGISRedLayerUtils().runTask(self.removeLayersConnectivity, self.runOpenTemporaryFiles)
 
     def runCheckLengths(self):
         if not self.checkDependencies():
@@ -311,6 +311,6 @@ class DebugValidationSection:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
         self.removingLayers = True
-        self.extent = QGISRedUtils().getProjectExtent()
+        self.extent = QGISRedLayerUtils().getProjectExtent()
         if self.hasToOpenSectorLayers:
-            QGISRedUtils().runTask(self.removeSectorLayers, self.runOpenTemporaryFiles)
+            QGISRedLayerUtils().runTask(self.removeSectorLayers, self.runOpenTemporaryFiles)

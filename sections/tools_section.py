@@ -6,7 +6,7 @@ import os
 from PyQt5.QtWidgets import QApplication, QFileDialog
 from PyQt5.QtCore import Qt
 
-from ..tools.qgisred_utils import QGISRedUtils
+from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool
 
@@ -179,9 +179,9 @@ class ToolsSection:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
         self.removingLayers = True
-        self.extent = QGISRedUtils().getProjectExtent()
+        self.extent = QGISRedLayerUtils().getProjectExtent()
         if self.hasToOpenSectorLayers:
-            QGISRedUtils().runTask(self.removeSectorLayers, self.runOpenTemporaryFiles)
+            QGISRedLayerUtils().runTask(self.removeSectorLayers, self.runOpenTemporaryFiles)
 
     """Isolated Segments"""
 
@@ -225,7 +225,7 @@ class ToolsSection:
             self.blockLayers(False)
             # self.treeName = resMessage.split("^")[1]
             self.removingLayers = True
-            QGISRedUtils().runTask(self.removeIsolatedSegmentsLayers, self.runLoadIsolatedSegmentLayers)
+            QGISRedLayerUtils().runTask(self.removeIsolatedSegmentsLayers, self.runLoadIsolatedSegmentLayers)
         else:
             self.blockLayers(False)
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
@@ -255,17 +255,17 @@ class ToolsSection:
         # Open layers
         isoaltedSegmentsGroup = self.getIsolatedSegmentsGroup()
         queriesFolder = os.path.join(self.ProjectDirectory, "Queries")
-        utils = QGISRedUtils(queriesFolder, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(queriesFolder, self.NetworkName, self.iface)
         utils.openIsolatedSegmentsLayer(isoaltedSegmentsGroup, "Links")
         utils.openIsolatedSegmentsLayer(isoaltedSegmentsGroup, "Nodes")
 
     def getIsolatedSegmentsGroup(self):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         return utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Isolated Segments"])
 
     def removeIsolatedSegmentsLayers(self):
         path = os.path.join(self.ProjectDirectory, "Queries")
-        utils = QGISRedUtils(path, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(path, self.NetworkName, self.iface)
         utils.removeLayers(["IsolatedSegments_Links", "IsolatedSegments_Nodes"])
 
     """Tree"""
@@ -302,7 +302,7 @@ class ToolsSection:
         elif "shps" in resMessage:
             self.treeName = resMessage.split("^")[1]
             self.removingLayers = True
-            QGISRedUtils().runTask(self.removeTreeLayers, self.runTreeProcess)
+            QGISRedLayerUtils().runTask(self.removeTreeLayers, self.runTreeProcess)
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
@@ -339,7 +339,7 @@ class ToolsSection:
         # Open layers
         treeGroup = self.getTreeGroup()
         treeFolder = os.path.join(self.ProjectDirectory, "Trees")
-        utils = QGISRedUtils(treeFolder, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(treeFolder, self.NetworkName, self.iface)
         utils.openTreeLayer(treeGroup, "Links", self.treeName, link=True)
         utils.openTreeLayer(treeGroup, "Nodes", self.treeName)
         group = self.getInputGroup()
@@ -347,11 +347,11 @@ class ToolsSection:
             group.setItemVisibilityChecked(False)
 
     def getTreeGroup(self):
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         return utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Tree: " + self.treeName])
 
     def removeTreeLayers(self):
         treePath = os.path.join(self.ProjectDirectory, "Trees")
-        utils = QGISRedUtils(treePath, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(treePath, self.NetworkName, self.iface)
         utils.removeLayers(["Links_Tree_" + self.treeName, "Nodes_Tree_" + self.treeName])
         self.removeEmptyQuerySubGroup("Tree")

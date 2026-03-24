@@ -15,6 +15,12 @@ SOURCES = qgisred.py \
           tools/qgisred_results.py \
           tools/qgisred_translatable_strings.py \
           tools/qgisred_utils.py \
+          tools/utils/qgisred_filesystem_utils.py \
+          tools/utils/qgisred_field_utils.py \
+          tools/utils/qgisred_styling_utils.py \
+          tools/utils/qgisred_identifier_utils.py \
+          tools/utils/qgisred_layer_utils.py \
+          tools/utils/qgisred_project_io.py \
           tools/map_tools/qgisred_createConnection.py \
           tools/map_tools/qgisred_createPipe.py \
           tools/map_tools/qgisred_editLinksGeometry.py \

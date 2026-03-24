@@ -17,7 +17,9 @@ from qgis.core import QgsProject, QgsVectorLayer, QgsPalLayerSettings, QgsVector
 from qgis.utils import iface
 
 # Local imports
-from ...tools.qgisred_utils import QGISRedUtils
+from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils
+from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_thematicmaps_dialog.ui"))
 
@@ -190,7 +192,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if inputsParent is None:
             inputsParent = rootGroup
         networkName = inputsParent.name() if inputsParent != rootGroup else ""
-        utils = QGISRedUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         if networkName:
             return utils.getOrCreateNestedGroup([networkName, "Queries", "Thematic Maps"])
         else:
@@ -260,12 +262,12 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         derivedLayer.setLabelsEnabled(False)
         
         if field == 'Material':
-            QGISRedUtils().applyCategorizedRenderer(derivedLayer, field, qmlPath)
+            QGISRedStylingUtils().applyCategorizedRenderer(derivedLayer, field, qmlPath)
 
         derivedLayer.setCustomProperty("qgisred_identifier", layerIdentifier)
 
         QgsProject.instance().addMapLayer(derivedLayer, False)
-        QGISRedUtils().hideFields(derivedLayer, field)
+        QGISRedStylingUtils().hideFields(derivedLayer, field)
 
         if parentGroup and not sip.isdeleted(parentGroup):
             layerTreeLayer = parentGroup.insertLayer(layerPosition, derivedLayer)
@@ -511,7 +513,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                 self.checkLayersRecursiveByIdentifier(child, identifierMapping)
 
     def getSelectedQueries(self):
-        units = QGISRedUtils().getUnits()
+        units = QGISRedFieldUtils().getUnits()
         queries = []
 
         # Tanks and Reservoirs queries (top)

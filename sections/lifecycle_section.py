@@ -18,7 +18,7 @@ from PyQt5.QtWidgets import QAction, QMessageBox, QMenu, QToolButton
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
 
 from .. import resources3x  # noqa: F401  (registers Qt resources)
-from ..tools.qgisred_utils import QGISRedUtils
+from ..tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..ui.queries.qgisred_element_explorer_dock import QGISRedElementExplorerDock
 
@@ -202,8 +202,8 @@ class LifecycleSection:
         self.myMapTools = {}
 
         # QGISRed dependencies
-        self.dllTempFolderFile = os.path.join(QGISRedUtils().getQGISRedFolder(), "dllTempFolders.dat")
-        QGISRedUtils().copyDependencies()
+        self.dllTempFolderFile = os.path.join(QGISRedFileSystemUtils().getQGISRedFolder(), "dllTempFolders.dat")
+        QGISRedFileSystemUtils().copyDependencies()
         self.removeTempFolders()
         # QGISRed updates
         self.checkForUpdates()
@@ -340,11 +340,11 @@ class LifecycleSection:
         except Exception:
             pass
 
-        QGISRedUtils().removeFolder(self.tempFolder)
+        QGISRedFileSystemUtils().removeFolder(self.tempFolder)
 
-        if QGISRedUtils.DllTempoFolder is not None:
+        if QGISRedFileSystemUtils.DllTempoFolder is not None:
             with open(self.dllTempFolderFile, "a+") as file:
-                file.write(QGISRedUtils.DllTempoFolder + "\n")
+                file.write(QGISRedFileSystemUtils.DllTempoFolder + "\n")
 
         # Cleanup Docks
         self.cleanupDocks()
@@ -422,7 +422,7 @@ class LifecycleSection:
 
     def checkDependencies(self):
         valid = False
-        gisredDir = QGISRedUtils().getGISRedDllFolder()
+        gisredDir = QGISRedFileSystemUtils().getGISRedDllFolder()
         if os.path.isdir(gisredDir):
             currentVersion = self.getVersion(os.path.join(gisredDir, "GISRed.QGISRed.dll"), "FileVersion")
             if currentVersion == self.DependenciesVersion:
@@ -458,7 +458,7 @@ class LifecycleSection:
                     pass
                 valid = self.checkDependencies()
                 if valid:
-                    QGISRedUtils().copyDependencies()
+                    QGISRedFileSystemUtils().copyDependencies()
                     self.setCulture()
 
         return valid
@@ -533,7 +533,7 @@ class LifecycleSection:
             lines = file.readlines()
             for line in lines:
                 filePath = line.strip("\n")
-                if not QGISRedUtils().removeFolder(filePath):
+                if not QGISRedFileSystemUtils().removeFolder(filePath):
                     allDeleted = False
         if allDeleted:
             os.remove(self.dllTempFolderFile)
