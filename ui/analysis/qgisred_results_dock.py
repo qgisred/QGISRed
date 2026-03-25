@@ -1065,7 +1065,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         # Message
         if resMessage == "False":
             self.iface.messageBar().pushMessage("Warning", self.tr("Some issues occurred in the process"), level=1, duration=5)
-        elif resMessage.startswith("[TimeLabels]"):
+        elif resMessage == "True":
             self.outPath = os.path.join(self.getResultsPath(), self.NetworkName + "_" + self.Scenario + ".out")
             self.loadReportFile()
             self.updateQualityOptions()
