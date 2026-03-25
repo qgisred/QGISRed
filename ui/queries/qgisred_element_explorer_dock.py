@@ -347,11 +347,11 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
     def setDockStyle(self):
         iconName = 'iconFindElements.svg' if 'Find' in self.__class__.__name__ else 'iconElementProperties.svg'
-        iconPath = os.path.join(os.path.dirname(__file__), '..', 'images', iconName)
+        iconPath = os.path.join(os.path.dirname(__file__), '..', '..', 'images', iconName)
         self.setWindowIcon(QIcon(iconPath))
         
         if hasattr(self, 'leElementMask'):
-            searchIcon = QIcon(os.path.join(os.path.dirname(__file__), '..', 'images', 'iconFilter.svg'))
+            searchIcon = QIcon(os.path.join(os.path.dirname(__file__), '..', '..', 'images', 'iconFilter.svg'))
             self.leElementMask.addAction(searchIcon, QLineEdit.LeadingPosition)
         
         comboStyle = """
