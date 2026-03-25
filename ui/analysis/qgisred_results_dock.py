@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtWidgets import QDockWidget, QApplication
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QColor, QFont
+from PyQt5.QtGui import QColor, QFont, QPixmap
 from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsLayerTreeGroup, QgsField, QgsVectorLayer, QgsAttributeTableConfig
 from qgis.gui import QgsDualView
@@ -24,6 +24,7 @@ from ...tools.qgisred_results import (
 
 
 import os
+import glob as _glob
 from shutil import copyfile
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_results_dock.ui"))
@@ -156,7 +157,63 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.statsDisplayWidget.setVisible(False)
         self.timeDisplayWidget.setVisible(True)
 
+        # Stale results warning
+        self._resultsStale = False
+        self._staleCheckTimer = QTimer()
+        self._staleCheckTimer.setInterval(5000)
+        self._staleCheckTimer.timeout.connect(self._checkResultsStale)
+        self.visibilityChanged.connect(self._onVisibilityChanged)
+        _pixmap = QPixmap(":/images/iconWarning.svg").scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        self.lbWarnIcon.setPixmap(_pixmap)
+
     """Methods"""
+
+    """Stale results detection"""
+    def _getNetworkFiles(self):
+        """Return all network shapefiles and dbf files (excluding Results/).
+        Note: _Metadata.txt is excluded — it gets updated by internal operations
+        (e.g. opening layers) unrelated to user edits, causing false positives."""
+        p = self.ProjectDirectory
+        n = self.NetworkName
+        return (
+            _glob.glob(os.path.join(p, f"{n}_*.shp")) +
+            _glob.glob(os.path.join(p, f"{n}_*.dbf"))
+        )
+
+    def _checkResultsStale(self):
+        """Compare .out mtime with network files; mark stale if any network file is newer."""
+        if not os.path.exists(self.outPath):
+            return
+        out_mtime = os.path.getmtime(self.outPath)
+        if any(os.path.getmtime(f) > out_mtime for f in self._getNetworkFiles()):
+            self._markResultsStale()
+
+    def _startStaleCheckTimer(self):
+        self._resultsStale = False
+        self._updateStaleWarning()
+        self._checkResultsStale()
+        if self.isVisible():
+            self._staleCheckTimer.start()
+
+    def _stopStaleCheckTimer(self):
+        self._staleCheckTimer.stop()
+
+    def _onVisibilityChanged(self, visible):
+        if visible:
+            if self.outPath and os.path.exists(self.outPath):
+                self._staleCheckTimer.start()
+        else:
+            self._staleCheckTimer.stop()
+
+    def _markResultsStale(self):
+        self._resultsStale = True
+        self._updateStaleWarning()
+
+    def _updateStaleWarning(self):
+        self.staleWarningWidget.setVisible(self._resultsStale)
+
+    # ------------------------------------------------------------------
+
     def populateResultStatsComboboxes(self):
         self.cbResultTimes.addItems([self.tr("Report times")])
         self.cbStatistics.addItems([
@@ -1040,6 +1097,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
     def simulate(self, direct, netw):
         self.Computing = True
+        self._stopStaleCheckTimer()
         # If there is a new project, reset options
         if not (self.NetworkName == netw and self.ProjectDirectory == direct):
             self.NetworkName = netw
@@ -1072,6 +1130,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.updateQualityItemComboboxes()
             self.applyStatisticFromOptions()
             self.openBaseResults(self._readTimeLabelsFromOut())
+            self._startStaleCheckTimer()
             self.show()
             self.simulationFinished.emit()
             # Hide all sibling groups except Results
@@ -1107,6 +1166,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         self.applyStatisticFromOptions()
         labels = self._readTimeLabelsFromOut()
         self.openBaseResults(labels)
+        self._startStaleCheckTimer()
         self.show()
         self.simulationFinished.emit()
         netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
