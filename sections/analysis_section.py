@@ -170,12 +170,13 @@ class AnalysisSection:
                 return
 
             # 2. Results Validation
-            self._initResultsDock()
             results_ready = False
-            out_path = getattr(self.ResultDockwidget, 'outPath', '')
-            if out_path and os.path.exists(out_path) and self.ResultDockwidget.isCurrentProject():
-                results_ready = True
+            if self.ResultDockwidget:
+                out_path = getattr(self.ResultDockwidget, 'outPath', '')
+                if out_path and os.path.exists(out_path) and self.ResultDockwidget.isCurrentProject():
+                    results_ready = True
             if not results_ready and os.path.exists(self._outFilePath()):
+                self._initResultsDock()
                 self.ResultDockwidget.setProjectInfo(self.ProjectDirectory, self.NetworkName)
                 self.ResultDockwidget.hide()
                 results_ready = True
