@@ -131,6 +131,11 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             # now ensure Queries → Thematic Maps hierarchy exists
             thematicGroup = self.getOrCreateQueriesGroup(rootGroup, inputsGroup)
 
+            # Re-fetch inputsGroup since getOrCreateQueriesGroup may have modified the tree
+            inputsGroup = self.findGroupByName(rootGroup, 'Inputs')
+            if inputsGroup is None:
+                super().accept()
+                return
             pipesLayer = self.findLayerInGroup(inputsGroup, 'Pipes', 'qgisred_pipes')
             print("pipesLayer : ", pipesLayer)
             if pipesLayer is None:
