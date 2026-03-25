@@ -57,6 +57,20 @@ class AnalysisSection:
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
+    def _outFilePath(self):
+        scenario = getattr(self.ResultDockwidget, 'Scenario', 'Base') if self.ResultDockwidget else 'Base'
+        return os.path.join(self.ProjectDirectory, "Results", f"{self.NetworkName}_{scenario}.out")
+
+    def _initResultsDock(self):
+        if self.ResultDockwidget is None:
+            self.readOptions()
+            self.ResultDockwidget = QGISRedResultsDock(self.iface)
+            self.iface.addDockWidget(Qt.RightDockWidgetArea, self.ResultDockwidget)
+            # activeInputGroup is defined in LayerManagementSection
+            self.ResultDockwidget.visibilityChanged.connect(self.activeInputGroup)
+            self.ResultDockwidget.simulationFinished.connect(self.refreshTimeSeries)
+            self.ResultDockwidget.resultPropertyChanged.connect(self.refreshTimeSeries)
+
     def runModel(self):
         if not self.checkDependencies():
             return
@@ -67,15 +81,7 @@ class AnalysisSection:
         if self.isLayerOnEdition():
             return
 
-        # Results Dock
-        if self.ResultDockwidget is None:
-            self.readOptions()
-            self.ResultDockwidget = QGISRedResultsDock(self.iface)
-            self.iface.addDockWidget(Qt.RightDockWidgetArea, self.ResultDockwidget)
-            # activeInputGroup is defined in LayerManagementSection
-            self.ResultDockwidget.visibilityChanged.connect(self.activeInputGroup)
-            self.ResultDockwidget.simulationFinished.connect(self.refreshTimeSeries)
-            self.ResultDockwidget.resultPropertyChanged.connect(self.refreshTimeSeries)
+        self._initResultsDock()
         self.ResultDockwidget.simulate(self.ProjectDirectory, self.NetworkName)
         self.connectElementExplorerToResultsDock()
 
@@ -86,12 +92,18 @@ class AnalysisSection:
         self.defineCurrentProject()
         if not self.isValidProject():
             return
-        if self.ResultDockwidget is None:
-            self.runModel()
+
+        self._initResultsDock()
+        if not getattr(self.ResultDockwidget, 'outPath', '') or not self.ResultDockwidget.TimeLabels:
+            if os.path.exists(self._outFilePath()):
+                self.ResultDockwidget.loadExistingResults(self.ProjectDirectory, self.NetworkName)
+            else:
+                self.ResultDockwidget.simulate(self.ProjectDirectory, self.NetworkName)
         else:
+            self.ResultDockwidget.openAllResultsProcess()
             self.ResultDockwidget.show()
             self.ResultDockwidget.raise_()
-            self.connectElementExplorerToResultsDock()
+        self.connectElementExplorerToResultsDock()
         self.ResultDockwidget.tabWidget.setCurrentIndex(0)
 
     def runOpenStatusReport(self):
@@ -104,13 +116,17 @@ class AnalysisSection:
         if self.isLayerOnEdition():
             return
 
-        # Open Results dock and switch to Report tab
-        if self.ResultDockwidget is None:
-            self.runModel()
+        self._initResultsDock()
+        if not getattr(self.ResultDockwidget, 'outPath', '') or not self.ResultDockwidget.TimeLabels:
+            if os.path.exists(self._outFilePath()):
+                self.ResultDockwidget.loadExistingResults(self.ProjectDirectory, self.NetworkName)
+            else:
+                self.ResultDockwidget.simulate(self.ProjectDirectory, self.NetworkName)
         else:
+            self.ResultDockwidget.openAllResultsProcess()
             self.ResultDockwidget.show()
             self.ResultDockwidget.raise_()
-            self.connectElementExplorerToResultsDock()
+        self.connectElementExplorerToResultsDock()
         self.ResultDockwidget.tabWidget.setCurrentIndex(1)
 
     def runExportInp(self):
@@ -154,14 +170,15 @@ class AnalysisSection:
                 return
 
             # 2. Results Validation
+            self._initResultsDock()
             results_ready = False
-            if hasattr(self, 'ResultDockwidget') and self.ResultDockwidget:
-                # check if results dock matches current project
-                if self.ResultDockwidget.isCurrentProject():
-                    # check if .out file exists
-                    out_path = getattr(self.ResultDockwidget, "outPath", "")
-                    if out_path and os.path.exists(out_path):
-                        results_ready = True
+            out_path = getattr(self.ResultDockwidget, 'outPath', '')
+            if out_path and os.path.exists(out_path) and self.ResultDockwidget.isCurrentProject():
+                results_ready = True
+            if not results_ready and os.path.exists(self._outFilePath()):
+                self.ResultDockwidget.setProjectInfo(self.ProjectDirectory, self.NetworkName)
+                self.ResultDockwidget.hide()
+                results_ready = True
 
             if not results_ready:
                 self.iface.messageBar().pushMessage(
@@ -348,7 +365,7 @@ class AnalysisSection:
             self.iface.messageBar().pushMessage(self.tr("Time Series"), self.tr("Results file not found. Please run the model."), level=1)
             return
 
-        from ..tools.qgisred_results import getOut_TimesNodeProperty, getOut_TimesLinkProperty, _get_out_file_metadata
+        from ..tools.qgisred_results import getOut_TimesNodeProperty, getOut_TimesLinkProperty, get_out_file_metadata
 
         y_data = []
         if category == "Node":
@@ -361,7 +378,7 @@ class AnalysisSection:
 
         # Simple time series (hours)
         with open(out_path, 'rb') as f:
-            meta = _get_out_file_metadata(f)
+            meta = get_out_file_metadata(f)
             report_start = meta["report_start"]
             report_step = meta["report_step"]
             num_periods = meta["num_periods"]

@@ -19,6 +19,7 @@ from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ...tools.qgisred_results import (
     getOut_TimeNodesProperties, getOut_TimeLinksProperties,
     getOut_StatNodesProperties, getOut_StatLinksProperties,
+    get_out_file_metadata,
 )
 
 
@@ -1070,7 +1071,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.updateQualityOptions()
             self.updateQualityItemComboboxes()
             self.applyStatisticFromOptions()
-            self.openBaseResults(resMessage.replace("[TimeLabels]", ""))
+            self.openBaseResults(self._readTimeLabelsFromOut())
             self.show()
             self.simulationFinished.emit()
             # Hide all sibling groups except Results
@@ -1087,6 +1088,53 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         # If some error, close the dock
         self.close()
+
+    def setProjectInfo(self, projectDir, networkName):
+        """Set project/network/outPath without touching the UI or loading layers.
+        Used by TimeSeries when only outPath is needed."""
+        self.ProjectDirectory = projectDir
+        self.NetworkName = networkName
+        self.Scenario = "Base"
+        self.outPath = os.path.join(self.getResultsPath(), f"{self.NetworkName}_{self.Scenario}.out")
+
+    def loadExistingResults(self, projectDir, networkName):
+        """Load results from an existing .out file without running GISRed.Compute."""
+        self.setProjectInfo(projectDir, networkName)
+        self.saveCurrentRender()
+        self.loadReportFile()
+        self.updateQualityOptions()
+        self.updateQualityItemComboboxes()
+        self.applyStatisticFromOptions()
+        labels = self._readTimeLabelsFromOut()
+        self.openBaseResults(labels)
+        self.show()
+        self.simulationFinished.emit()
+        netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
+        if netGroup is not None:
+            for child in netGroup.children():
+                if isinstance(child, QgsLayerTreeGroup):
+                    groupId = child.customProperty("qgisred_identifier")
+                    if groupId != "qgisred_results" and child.name() != "Results":
+                        child.setItemVisibilityChecked(False)
+
+    def _readTimeLabelsFromOut(self):
+        """Read time step labels from existing .out file (same format as GISRed.Compute returns)."""
+        try:
+            with open(self.outPath, 'rb') as f:
+                meta = get_out_file_metadata(f)
+            if meta is None:
+                return self.lbl_permanent
+            n = meta["num_periods"]
+            if n <= 1:
+                return self.lbl_permanent
+            start = meta["report_start"]
+            step = meta["report_step"]
+            labels = []
+            for i in range(n):
+                labels.append(seconds_to_time_str(start + i * step))
+            return ";".join(labels)
+        except Exception:
+            return self.lbl_permanent
 
     def loadReportFile(self):
         rpt_path = os.path.join(self.getResultsPath(), self.NetworkName + "_" + self.Scenario + ".rpt")

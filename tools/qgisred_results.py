@@ -154,7 +154,17 @@ def _resolve_link_status(indicator, link_type, Q, setting,
         else:
             return "Closed"
 
-def _get_out_file_metadata(f, include_lengths=False):
+def _calculate_period_index(time_seconds, meta):
+    """Calculates the reporting period index for a given time."""
+    if meta["num_periods"] <= 1:
+        return 0
+    if meta["report_step"] <= 0:
+        return 0
+    period_index = int((time_seconds - meta["report_start"]) / meta["report_step"])
+    return max(0, min(period_index, meta["num_periods"] - 1))
+
+"""Metadata"""
+def get_out_file_metadata(f, include_lengths=False):
     """Parses the static part of the EPANET .out file and returns metadata."""
 
     prologue_fixed = f.read(15 * 4)
@@ -226,15 +236,6 @@ def _get_out_file_metadata(f, include_lengths=False):
         "link_to": link_to,
     }
 
-def _calculate_period_index(time_seconds, meta):
-    """Calculates the reporting period index for a given time."""
-    if meta["num_periods"] <= 1:
-        return 0
-    if meta["report_step"] <= 0:
-        return 0
-    period_index = int((time_seconds - meta["report_start"]) / meta["report_step"])
-    return max(0, min(period_index, meta["num_periods"] - 1))
-
 """Results"""
 def getOut_TimeNodesProperties(out_file_path, time_seconds):
     """Reads node results from an EPANET binary (.out) file for a specific time."""
@@ -242,7 +243,7 @@ def getOut_TimeNodesProperties(out_file_path, time_seconds):
         return {}
 
     with open(out_file_path, 'rb') as f:
-        meta = _get_out_file_metadata(f)
+        meta = get_out_file_metadata(f)
         if not meta:
             return {}
         
@@ -273,7 +274,7 @@ def getOut_TimeLinksProperties(out_file_path, time_seconds):
         return {}
 
     with open(out_file_path, 'rb') as f:
-        meta = _get_out_file_metadata(f, include_lengths=True)
+        meta = get_out_file_metadata(f, include_lengths=True)
         if not meta:
             return {}
 
@@ -340,7 +341,7 @@ def getOut_TimeNodeProperties(out_file_path, time_seconds, node_id):
         return {}
 
     with open(out_file_path, 'rb') as f:
-        meta = _get_out_file_metadata(f)
+        meta = get_out_file_metadata(f)
         if not meta or node_id not in meta["node_ids"]:
             return {}
 
@@ -366,7 +367,7 @@ def getOut_TimeLinkProperties(out_file_path, time_seconds, link_id):
         return {}
 
     with open(out_file_path, 'rb') as f:
-        meta = _get_out_file_metadata(f)
+        meta = get_out_file_metadata(f)
         if not meta or link_id not in meta["link_ids"]:
             return {}
 
@@ -432,7 +433,7 @@ def getOut_TimesNodeProperty(out_file_path, node_id, property_name):
         return []
 
     with open(out_file_path, 'rb') as f:
-        meta = _get_out_file_metadata(f)
+        meta = get_out_file_metadata(f)
         var_names = ["Demand", "Head", "Pressure", "Quality"]
         if not meta or node_id not in meta["node_ids"] or property_name not in var_names:
             return []
@@ -458,7 +459,7 @@ def getOut_TimesLinkProperty(out_file_path, link_id, property_name):
         return []
 
     with open(out_file_path, 'rb') as f:
-        meta = _get_out_file_metadata(f, include_lengths=(property_name == "HeadLoss"))
+        meta = get_out_file_metadata(f, include_lengths=(property_name == "HeadLoss"))
         
         var_names = ["Flow", "Velocity", "UnitHdLoss", "Quality", "Status", "Setting", "ReactRate", "FricFactor"]
         calc_headloss = False
@@ -558,7 +559,7 @@ def getOut_StatNodesProperties(out_file_path, stat):
         return {}
 
     with open(out_file_path, 'rb') as f:
-        meta = _get_out_file_metadata(f)
+        meta = get_out_file_metadata(f)
         if not meta or meta["num_periods"] == 0:
             return {}
 
@@ -676,7 +677,7 @@ def getOut_StatLinksProperties(out_file_path, stat):
         return {}
 
     with open(out_file_path, 'rb') as f:
-        meta = _get_out_file_metadata(f, include_lengths=True)
+        meta = get_out_file_metadata(f, include_lengths=True)
         if not meta or meta["num_periods"] == 0:
             return {}
 
