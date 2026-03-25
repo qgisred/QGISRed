@@ -31,7 +31,7 @@ class QGISRedAboutDialog(QDialog, FORM_CLASS):
             self.offline_manual_file = "usermanual_en.pdf"
 
         # version
-        metadata = os.path.join(os.path.dirname(os.path.dirname(__file__)), "metadata.txt")
+        metadata = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "metadata.txt")
         if os.path.exists(metadata):
             with open(metadata, "r") as f:
                 lines = f.readlines()
@@ -60,7 +60,7 @@ class QGISRedAboutDialog(QDialog, FORM_CLASS):
         webbrowser.open(self.online_manual)
 
     def offlineManual(self, event):
-        pdf = os.path.join(os.path.dirname(os.path.dirname(__file__)), "manuals", self.offline_manual_file)
+        pdf = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "manuals", self.offline_manual_file)
         webbrowser.open(pdf)
 
     def issuesRepository(self, event):
