@@ -136,6 +136,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             if inputsGroup is None:
                 super().accept()
                 return
+
             pipesLayer = self.findLayerInGroup(inputsGroup, 'Pipes', 'qgisred_pipes')
             print("pipesLayer : ", pipesLayer)
             if pipesLayer is None:
@@ -349,7 +350,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if not qmlFile.endswith('.qml.bak'):
             qmlFile = qmlFile.replace('.qml', '.qml.bak')
 
-        qmlPath = os.path.join(os.path.dirname(__file__), '..', 'defaults', 'layerStyles', qmlFile)
+        qmlPath = os.path.join(os.path.dirname(__file__), '..', '..', 'defaults', 'layerStyles', qmlFile)
         if os.path.exists(qmlPath):
             layer.loadNamedStyle(qmlPath)
             layer.setCustomProperty("styleURI", qmlPath)
