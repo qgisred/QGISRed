@@ -19,6 +19,7 @@ from qgis.utils import iface
 
 from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
+from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from .qgisred_custom_dialogs import QGISRedRangeEditDialog, QGISRedSymbolColorSelector
 from .qgisred_custom_dialogs import QGISRedColorRampSelector, QGISRedRowSelectionFilter
 from .qgisred_custom_dialogs import QGISRedPaletteEmulator, QGISRedSizePaletteEmulator
@@ -75,6 +76,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.projectDirectory = ""
         self.networkName = ""
         self.utils = None
+        self.fieldUtils = None
+        self.fsUtils = None
         self.paletteEmulator = QGISRedPaletteEmulator(self)
         self.sizePaletteEmulator = QGISRedSizePaletteEmulator(self)
         self.previousClassificationMode = None
@@ -224,6 +227,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.projectDirectory = projectDirectory
         self.networkName = networkName
         self.utils = QGISRedIdentifierUtils(projectDirectory, networkName, qgisInterface)
+        self.fieldUtils = QGISRedFieldUtils(projectDirectory, networkName, qgisInterface)
+        self.fsUtils = QGISRedFileSystemUtils(projectDirectory, networkName, qgisInterface)
 
         if self.cbLegendLayer.currentLayer():
             self.onLayerChanged(self.cbLegendLayer.currentLayer())
@@ -1457,7 +1462,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         supportsCategorized = False
         if self.utils:
-            supportsCategorized = QGISRedFieldUtils().getLayerSupportsCategorized(layerIdentifier)
+            supportsCategorized = self.fieldUtils.getLayerSupportsCategorized(layerIdentifier)
 
         if supportsCategorized:
             self.cbLegendsType.addItem(self.tr("Graduated"), "graduatedSymbol")
@@ -2822,7 +2827,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if self.utils:
             layerIdentifier = self.currentLayer.customProperty("qgisred_identifier")
             if layerIdentifier:
-                return self.utils.getUnitAbbreviationForLayer(layerIdentifier)
+                return self.fieldUtils.getUnitAbbreviationForLayer(layerIdentifier)
         return ""
 
     def generateRandomHsvColor(self):
@@ -3214,12 +3219,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         return os.path.join(projectDir, "layerStyles")
 
     def getProjectDirectoryFromUtils(self):
-        if self.utils:
-            return self.utils.getProjectDirectory()
         return self.projectDirectory
 
     def getQGISRedDirectoryFromUtils(self):
-        return self.utils.getQGISRedDirectory()
+        return self.fsUtils.getQGISRedFolder()
 
     # ============================================================
     # UI STATE MANAGEMENT
@@ -3499,7 +3502,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return ""
 
         try:
-            return self.utils.getUnits()
+            return self.fieldUtils.getUnits()
         except:
             return ""
 
@@ -3766,7 +3769,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         layerIdent = self.currentLayer.customProperty("qgisred_identifier")
         if layerIdent:
-            return self.utils.getUnitAbbreviationForLayer(layerIdent)
+            return self.fieldUtils.getUnitAbbreviationForLayer(layerIdent)
         return ""
 
     # ============================================================
