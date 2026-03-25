@@ -121,6 +121,12 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                 if parent:
                     parent.removeChildNode(queriesGroup)
 
+        # Re-fetch inputsGroup since tree modifications may have invalidated it
+        inputsGroup = self.findGroupByName(rootGroup, 'Inputs')
+        if inputsGroup is None:
+            super().accept()
+            return
+
         if selectedQueries:
             # now ensure Queries → Thematic Maps hierarchy exists
             thematicGroup = self.getOrCreateQueriesGroup(rootGroup, inputsGroup)

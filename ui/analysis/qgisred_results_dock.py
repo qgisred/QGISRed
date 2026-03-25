@@ -427,9 +427,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 qgs_type = type_map.get(type_str, QVariant.String)
                 length = extra[0] if extra else 0
                 if length:
-                    new_fields.append(QgsField(name, qgs_type, "", length))
+                    new_fields.append(QgsField(name=name, type=qgs_type, len=length))
                 else:
-                    new_fields.append(QgsField(name, qgs_type))
+                    new_fields.append(QgsField(name=name, type=qgs_type))
         
         if new_fields:
             layer.dataProvider().addAttributes(new_fields)
