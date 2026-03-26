@@ -136,7 +136,36 @@ Set QGIS to the target language (*Settings → Options → General → User inte
 Install Qt5 tools → Update .ts template (pylupdate5) → Create/edit language file → Compile (lrelease) → Test in QGIS
 ```
 
+## Running Tests
+
+The plugin uses **pytest** for automated testing.
+
+### Prerequisites
+
+You need `pytest` installed in your QGIS Python environment. To install it, open the terminal and run:
+
+```bash
+python -m pip install pytest
+```
+
+### How to run the tests
+
+To run the entire test suite, execute the following command from the plugin root directory:
+
+```bash
+python -m pytest tests/ -v
+```
+
+If you are running from a standard Windows console and `python` does not point to the QGIS interpreter, use the full path:
+
+```powershell
+& "C:\Program Files\QGIS 3.44.1\apps\Python312\python.exe" -m pytest tests/ -v
+```
+
+All test logic and helpers are located in the `tests/` directory.
+
 ## Adding a new Section
+
 
 The plugin logic is split into *Section* classes under `sections/`. Each Section is a plain Python class (no base class) that is mixed into the main `QGISRed` class via multiple inheritance. Adding a new section requires touching **5 files**:
 
