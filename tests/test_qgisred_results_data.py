@@ -13,7 +13,7 @@ from unittest.mock import MagicMock
 sys.modules['qgis'] = MagicMock()
 sys.modules['qgis.core'] = MagicMock()
 sys.modules['qgis.gui'] = MagicMock()
-sys.modules['qgis.utils'] = c()
+sys.modules['qgis.utils'] = MagicMock()
 
 from ui.analysis.qgisred_results_data import seconds_to_time_str
 
