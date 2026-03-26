@@ -41,7 +41,7 @@
          <x>0</x>
          <y>0</y>
          <width>265</width>
-         <height>411</height>
+         <height>420</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -107,16 +107,43 @@
            </layout>
           </item>
           <item>
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>Criterion</string>
-            </property>
-           </widget>
+           <layout class="QHBoxLayout" name="horizontalLayout_9">
+            <item>
+             <widget class="QRadioButton" name="radioButton">
+              <property name="text">
+               <string>One Criterion</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="radioButton_2">
+              <property name="text">
+               <string>Multiple Criterion</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
           </item>
           <item>
            <widget class="QFrame" name="frameCriteria">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -186,7 +213,7 @@
                   </size>
                  </property>
                  <property name="title">
-                  <string>Multiple Criteria</string>
+                  <string/>
                  </property>
                  <property name="collapsed">
                   <bool>true</bool>
