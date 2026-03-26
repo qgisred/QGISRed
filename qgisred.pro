@@ -12,7 +12,7 @@ SOURCES = qgisred.py \
           sections/digital_twin_section.py \
           sections/utils_section.py \
           tools/qgisred_dependencies.py \
-          tools/qgisred_results.py \
+          ui/analysis/qgisred_results_binary.py \
           tools/qgisred_translatable_strings.py \
           tools/utils/qgisred_filesystem_utils.py \
           tools/utils/qgisred_field_utils.py \

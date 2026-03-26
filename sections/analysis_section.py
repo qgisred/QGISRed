@@ -366,7 +366,7 @@ class AnalysisSection:
             self.iface.messageBar().pushMessage(self.tr("Time Series"), self.tr("Results file not found. Please run the model."), level=1)
             return
 
-        from ..tools.qgisred_results import getOut_TimesNodeProperty, getOut_TimesLinkProperty, get_out_file_metadata
+        from ..ui.analysis.qgisred_results_binary import getOut_TimesNodeProperty, getOut_TimesLinkProperty, get_out_file_metadata
 
         y_data = []
         if category == "Node":

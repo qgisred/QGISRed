@@ -11,7 +11,7 @@ _PLUGIN_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _PLUGIN_ROOT not in sys.path:
     sys.path.insert(0, _PLUGIN_ROOT)
 
-from tools.qgisred_results import (
+from ui.analysis.qgisred_results_binary import (
     get_out_file_metadata,
     getOut_TimeNodesProperties,
     getOut_TimeLinksProperties,

@@ -3,7 +3,7 @@ import os
 
 from qgis.core import NULL
 
-from ...tools.qgisred_results import (
+from .qgisred_results_binary import (
     getOut_TimeNodesProperties, getOut_TimeLinksProperties,
     getOut_StatNodesProperties, getOut_StatLinksProperties,
     get_out_file_metadata,
