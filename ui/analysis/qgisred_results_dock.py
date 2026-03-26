@@ -25,7 +25,6 @@ from ...tools.qgisred_results import (
 
 import os
 import glob as _glob
-from shutil import copyfile
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_results_dock.ui"))
 
@@ -156,6 +155,18 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
         self.statsDisplayWidget.setVisible(False)
         self.timeDisplayWidget.setVisible(True)
+
+        # Maps combobox display text → layer field name (keys use self.tr to support translations)
+        self._node_field_map = {
+            self.lbl_pressure: "Pressure", self.lbl_head: "Head",
+            self.lbl_demand: "Demand", self.lbl_quality: "Quality",
+        }
+        self._link_field_map = {
+            self.lbl_flow: "Flow", self.lbl_unsigned_flow: "Flow_Unsig", self.lbl_signed_flow: "Flow_Sig",
+            self.lbl_velocity: "Velocity", self.lbl_headloss: "HeadLoss", self.lbl_unit_headloss: "UnitHdLoss",
+            self.lbl_friction_factor: "FricFactor", self.lbl_status: "Status",
+            self.lbl_reaction_rate: "ReactRate", self.lbl_quality: "Quality",
+        }
 
         # Stale results warning
         self._resultsStale = False
@@ -389,12 +400,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     def removeResultLayer(self, nameLayer):
         """Remove a specific result layer from the QGIS legend."""
         self.Scenario = "Base"
-        resultPath = self.getResultsPath()
-        resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp")
-        for layer in self.getLayers():
-            if self.getLayerPath(layer) == resultLayerPath:
-                QgsProject.instance().removeMapLayer(layer.id())
-                break
+        layer = self._findResultLayer(nameLayer)
+        if layer:
+            QgsProject.instance().removeMapLayer(layer.id())
 
     def getInputGroup(self):
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
@@ -439,98 +447,43 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         """Controls which result fields are visible in the attribute table."""
         config = layer.attributeTableConfig()
         config.update(layer.fields())
-        
-        # Result fields in 10-char format
+
+        # Result fields in 10-char format (used to avoid hiding non-result columns like ID/Name)
         node_fields_upper = [f[0][:10].upper() for f in NODE_RESULT_FIELDS]
         link_fields_upper = [f[0][:10].upper() for f in LINK_RESULT_FIELDS]
         all_result_fields_upper = set(node_fields_upper + link_fields_upper)
-        
-        visible_results = set()
-        if not stats_mode:
-            visible_results.add("Time")
-            if layer_type == "Node":
-                visible_results.update(["Pressure", "Head", "Demand", "Quality"])
-            else:
-                visible_results.update(["Status", "Flow", "Velocity", "HeadLoss", "UnitHdLoss", "FricFactor", "ReactRate", "Quality"])
-        else:
-            visible_results.add("Statistics")
-            if layer_type == "Node":
-                visible_results.update(["Pressure", "Head", "Demand", "Quality"])
-                if stat in (self.lbl_maximum, self.lbl_minimum):
-                    visible_results.update(["Time_H", "Time_D", "Time_Q"])
-            else:
-                visible_results.update(["Flow", "Velocity", "HeadLoss", "UnitHdLoss", "FricFactor", "ReactRate", "Quality"])
-                if stat == self.lbl_average:
-                    visible_results.discard("Flow")
-                    visible_results.update(["Flow_Unsig", "Flow_Sig"])
-                if stat in (self.lbl_maximum, self.lbl_minimum):
-                    visible_results.update(["Time_H", "Time_Q"])
+
+        visible_results = self._computeVisibleFields(layer_type, stats_mode, stat)
         truncated_visible_upper = {v[:10].upper() for v in visible_results}
 
-        # Ensure we don't hide columns that are NOT result fields (e.g., ID, Name)
+        # Apply visibility only to result columns; leave ID/Name columns untouched
         columns = config.columns()
         for i in range(len(columns)):
             col = columns[i]
             col_name_upper = col.name.upper()
             if col_name_upper in all_result_fields_upper:
-                # Result field: set hidden state based on mode
-                columns[i].hidden = not col_name_upper in truncated_visible_upper
-                # Ensure it's treated as a field column
-                columns[i].type = 0
-        
+                columns[i].hidden = col_name_upper not in truncated_visible_upper
+                columns[i].type = 0  # treat as a field column
+
         config.setColumns(columns)
         layer.setAttributeTableConfig(config)
-        
-        # Surgical refresh: ONLY update windows already open
-        # NOTE: allWidgets() returns Qt base types (QStackedWidget, QDialog).
-        # We must use sip.cast() to get the real QGIS type and access layer().
+
+        # Surgical refresh: only update attribute table windows already open
         if not self.Computing:
-            layer_id = layer.id()
-            refreshed_count = 0
-            
-            cast_map = {
-                "QgsDualView": QgsDualView,
-            }
-            for widget in QApplication.instance().allWidgets():
-                cls = widget.metaObject().className()
-                if cls not in cast_map:
-                    continue
-                try:
-                    typed = sip.cast(widget, cast_map[cls])
-                    # layer() no está en QgsDualView en QGIS 3.4, pero masterModel().layer() sí
-                    w_layer = typed.masterModel().layer()
-                    if w_layer and w_layer.id() == layer_id:
-                        typed.setAttributeTableConfig(config)
-                        refreshed_count += 1
-                except Exception:
-                    pass
-
-
-            
-            if refreshed_count > 0:
-                QApplication.processEvents()
+            self._applyFieldVisibilityToOpenTables(layer, config)
 
 
     def forceFinalFieldsVisibility(self):
         """Re-applies visibility to all result layers after everything has settled."""
-        resultPath = self.getResultsPath()
         for layerName in ["Node", "Link"]:
-            resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + layerName + ".shp")
-            for layer in self.getLayers():
-                if self.getLayerPath(layer) == resultLayerPath:
-                    self.updateFieldsVisibility(layer, layerName, self._statsMode, self._currentStat)
+            layer = self._findResultLayer(layerName)
+            if layer:
+                self.updateFieldsVisibility(layer, layerName, self._statsMode, self._currentStat)
 
     def clearResultFields(self):
         """Clears the values of result fields instead of deleting them to preserve order."""
-        resultPath = self.getResultsPath()
-        openedLayers = self.getLayers()
         for layerName in ["Node", "Link"]:
-            resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + layerName + ".shp")
-            target_layer = None
-            for layer in openedLayers:
-                if self.getLayerPath(layer) == resultLayerPath:
-                    target_layer = layer
-                    break
+            target_layer = self._findResultLayer(layerName)
             if not target_layer:
                 continue
             
@@ -563,57 +516,166 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     """UI Elements"""
     def restoreElementsCb(self):
         self.Scenario = "Base"
-        resultPath = self.getResultsPath()
-        layers = self.getLayers()
-
         self.Computing = True
         self.cbLinks.setCurrentIndex(0)
         self.cbNodes.setCurrentIndex(0)
 
         for nameLayer in ["Node", "Link"]:
-            layerResult = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp")
-            for layer in layers:
-                openLayerPath = self.getLayerPath(layer)
-                if openLayerPath == layerResult:
-                    if "Link" in nameLayer:
-                        self.cbLinks.setCurrentIndex(1) # Default to first result
-                    else:
-                        self.cbNodes.setCurrentIndex(1) # Default to first result
+            if self._findResultLayer(nameLayer):
+                if "Link" in nameLayer:
+                    self.cbLinks.setCurrentIndex(1)  # Default to first result
+                else:
+                    self.cbNodes.setCurrentIndex(1)  # Default to first result
         self.Computing = False
+
+    """Private helpers"""
+
+    def _findResultLayer(self, nameLayer, scenario=None):
+        """Return the opened result layer for the given name, or None if not open."""
+        scenario = scenario or self.Scenario
+        result_path = self.generatePath(
+            self.getResultsPath(),
+            f"{self.NetworkName}_{scenario}_{nameLayer}.shp"
+        )
+        for layer in self.getLayers():
+            if self.getLayerPath(layer) == result_path:
+                return layer
+        return None
+
+    def _getRenderStorageKey(self, layer_path, var_key):
+        """Build the cache key used to store/retrieve a renderer for a given layer and variable."""
+        prefix = f"stat_{self._currentStat}|" if self._statsMode else "time|"
+        return f"{prefix}{layer_path}|{var_key}"
+
+    def _setModeWidgetsVisibility(self, is_stats_mode, is_temporal=True):
+        """Show/hide time vs statistics widgets according to the current display mode."""
+        self.statsDisplayWidget.setVisible(is_stats_mode)
+        self.timeDisplayWidget.setVisible(not is_stats_mode)
+        self.cbFlowDirections.setVisible(not is_stats_mode)
+        self.timeControlsWidget.setVisible(not is_stats_mode and is_temporal)
+
+    def _lookupCachedRenderer(self, layer, db_field_name):
+        """Look up any previously saved renderer for this layer and variable in the render cache.
+
+        Returns (ranges, has_render) where ranges is the cached renderer data (or None)
+        and has_render is True when a cached renderer was found.
+        """
+        render_cache = self.Renders.get(self.Scenario)
+        layer_path = self.getLayerPath(layer)
+        storage_key = self._getRenderStorageKey(layer_path, db_field_name)
+        ranges = None
+        has_render = False
+
+        if render_cache is None:
+            # Scenario not found — fall back to Base scenario
+            base_render_cache = self.Renders.get("Base")
+            if base_render_cache is not None:
+                base_key = self._getRenderStorageKey(
+                    layer_path.replace("_" + self.Scenario + "_", "_Base_"), db_field_name
+                )
+                ranges = base_render_cache.get(base_key)
+                if ranges is not None:
+                    has_render = True
+        else:
+            ranges = render_cache.get(storage_key)
+            if ranges is not None:
+                has_render = True
+            else:
+                # Current scenario has no entry — fall back to Base scenario
+                base_render_cache = self.Renders.get("Base")
+                if base_render_cache is not None:
+                    base_key = self._getRenderStorageKey(
+                        layer_path.replace("_" + self.Scenario + "_", "_Base_"), db_field_name
+                    )
+                    ranges = base_render_cache.get(base_key)
+                    if ranges is not None:
+                        has_render = True
+
+        return ranges, has_render
+
+    def _computeVisibleFields(self, layer_type, stats_mode, stat=None):
+        """Return the set of result field names that should be visible for the given mode."""
+        visible = set()
+        if not stats_mode:
+            visible.add("Time")
+            if layer_type == "Node":
+                visible.update(["Pressure", "Head", "Demand", "Quality"])
+            else:
+                visible.update(["Status", "Flow", "Velocity", "HeadLoss", "UnitHdLoss", "FricFactor", "ReactRate", "Quality"])
+        else:
+            visible.add("Statistics")
+            if layer_type == "Node":
+                visible.update(["Pressure", "Head", "Demand", "Quality"])
+                if stat in (self.lbl_maximum, self.lbl_minimum):
+                    visible.update(["Time_H", "Time_D", "Time_Q"])
+            else:
+                visible.update(["Flow", "Velocity", "HeadLoss", "UnitHdLoss", "FricFactor", "ReactRate", "Quality"])
+                if stat == self.lbl_average:
+                    visible.discard("Flow")
+                    visible.update(["Flow_Unsig", "Flow_Sig"])
+                if stat in (self.lbl_maximum, self.lbl_minimum):
+                    visible.update(["Time_H", "Time_Q"])
+        return visible
+
+    def _applyFieldVisibilityToOpenTables(self, layer, config):
+        """Refresh attribute table config in any attribute table window already open for this layer."""
+        layer_id = layer.id()
+        refreshed_count = 0
+        cast_map = {"QgsDualView": QgsDualView}
+        for widget in QApplication.instance().allWidgets():
+            cls = widget.metaObject().className()
+            if cls not in cast_map:
+                continue
+            try:
+                typed = sip.cast(widget, cast_map[cls])
+                # layer() is not in QgsDualView in QGIS 3.4, but masterModel().layer() is
+                w_layer = typed.masterModel().layer()
+                if w_layer and w_layer.id() == layer_id:
+                    typed.setAttributeTableConfig(config)
+                    refreshed_count += 1
+            except Exception:
+                pass
+        if refreshed_count > 0:
+            QApplication.processEvents()
+
+    def _buildFieldIndexMap(self, layer, variables):
+        """Return a dict mapping each variable name to its field index in the layer.
+        Shapefile field names are capped at 10 characters."""
+        return {var: layer.fields().indexOf(var[:10]) for var in variables}
+
+    def _applyAttributeUpdates(self, layer, updates_dict):
+        """Write a batch of attribute updates to the layer's data provider and trigger repaint."""
+        if updates_dict:
+            layer.dataProvider().changeAttributeValues(updates_dict)
+            layer.dataProvider().dataChanged.emit()
+            layer.triggerRepaint()
 
     """Symbology"""
     def saveCurrentRender(self):
-        openedLayers = self.getLayers()
-        resultPath = self.getResultsPath()
-        dictSce = self.Renders.get(self.Scenario)
-        if dictSce is None:
-            dictSce = {}
+        scenario_renders = self.Renders.get(self.Scenario, {})
 
-        resultLayersName = ["Node", "Link"]   
-        for nameLayer in resultLayersName:
-            resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp")
-            for layer in openedLayers:
-                openedLayerPath = self.getLayerPath(layer)
-                if openedLayerPath == resultLayerPath:
-                    # Use the field that IS currently displayed on the layer
-                    var_key = self.displayingLinkField if "Link" in nameLayer else self.displayingNodeField
-                    
-                    if not var_key:
-                        continue
-            
-                    mode_prefix = f"stat_{self._currentStat}|" if self._statsMode else "time|"
-                    storage_key = mode_prefix + openedLayerPath + "|" + var_key
-                    renderer = layer.renderer()
-                    try:
-                        if renderer.type() == "graduatedSymbol":
-                            dictSce[storage_key] = renderer.ranges()
-                        elif renderer.type() == "RuleRenderer":
-                            dictSce[storage_key] = renderer.rootRule().clone()
-                    except:
-                        message = self.tr("Some issue occurred in the process of saving the style of the layer").format(self.tr(nameLayer))
-                        self.iface.messageBar().pushMessage(self.lbl_warning, message, level=1, duration=5)
-                    
-        self.Renders[self.Scenario] = dictSce
+        for nameLayer in ["Node", "Link"]:
+            layer = self._findResultLayer(nameLayer)
+            if not layer:
+                continue
+
+            var_key = self.displayingLinkField if "Link" in nameLayer else self.displayingNodeField
+            if not var_key:
+                continue
+
+            layer_path = self.getLayerPath(layer)
+            storage_key = self._getRenderStorageKey(layer_path, var_key)
+            renderer = layer.renderer()
+            try:
+                if renderer.type() == "graduatedSymbol":
+                    scenario_renders[storage_key] = renderer.ranges()
+                elif renderer.type() == "RuleRenderer":
+                    scenario_renders[storage_key] = renderer.rootRule().clone()
+            except:
+                message = self.tr("Some issue occurred in the process of saving the style of the layer").format(self.tr(nameLayer))
+                self.iface.messageBar().pushMessage(self.lbl_warning, message, level=1, duration=5)
+
+        self.Renders[self.Scenario] = scenario_renders
 
     def paintIntervalTimeResults(self, setRender=False):
         if not self._statsMode:
@@ -621,77 +683,56 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.lbTime.setText(time_text)
             self.timeTextChanged.emit(time_text)
 
-        # Maps combobox display text → layer field name (keys use self.tr to support translations)
-        _LINK_FIELD_MAP = {
-            self.lbl_flow: "Flow", self.lbl_unsigned_flow: "Flow_Unsig", self.lbl_signed_flow: "Flow_Sig",
-            self.lbl_velocity: "Velocity", self.lbl_headloss: "HeadLoss", self.lbl_unit_headloss: "UnitHdLoss",
-            self.lbl_friction_factor: "FricFactor", self.lbl_status: "Status",
-            self.lbl_reaction_rate: "ReactRate", self.lbl_quality: "Quality",
-        }
-        _NODE_FIELD_MAP = {
-            self.lbl_pressure: "Pressure", self.lbl_head: "Head",
-            self.lbl_demand: "Demand", self.lbl_quality: "Quality",
-        }
-
-        resultPath = self.getResultsPath()
         for nameLayer in ["Node", "Link"]:
-            layer_to_paint = None
-            resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp")
-            # Check if layer is already open
-            for layer in self.getLayers():
-                if self.getLayerPath(layer) == resultLayerPath:
-                    layer_to_paint = layer
-                    break
+            layer_to_paint = self._findResultLayer(nameLayer)
 
             if layer_to_paint:
                 field = ""
-                disp_name = ""
-                var_translated = ""
+                display_name = ""
+                selected_variable_text = ""
                 if "Link" in nameLayer:
                     if self.cbLinks.currentIndex() > 0:
-                        var_translated = self.cbLinks.currentText()
-                        field = _LINK_FIELD_MAP.get(var_translated, "")
-                        disp_name = self.tr("Link {}").format(var_translated)
+                        selected_variable_text = self.cbLinks.currentText()
+                        field = self._link_field_map.get(selected_variable_text, "")
+                        display_name = self.tr("Link {}").format(selected_variable_text)
                 else:
                     if self.cbNodes.currentIndex() > 0:
-                        var_translated = self.cbNodes.currentText()
-                        field = _NODE_FIELD_MAP.get(var_translated, "")
-                        disp_name = self.tr("Node {}").format(var_translated)
+                        selected_variable_text = self.cbNodes.currentText()
+                        field = self._node_field_map.get(selected_variable_text, "")
+                        display_name = self.tr("Node {}").format(selected_variable_text)
 
                 if field:
-                    self.setGraduadedPalette(layer_to_paint, field, setRender, nameLayer)
+                    self.setGraduatedPalette(layer_to_paint, field, setRender, nameLayer)
 
                     # Store current displayed variable
                     if "Link" in nameLayer: self.displayingLinkField = field
                     else: self.displayingNodeField = field
 
                     # Set layer name in legend
-                    layer_to_paint.setName(disp_name)
+                    layer_to_paint.setName(display_name)
 
                     # Configure map tip
                     is_min_max_stat = self._statsMode and self.cbStatistics.currentText() in (self.lbl_maximum, self.lbl_minimum)
                     time_field = time_field_name(field, nameLayer) if is_min_max_stat else None
                     if time_field:
-                        tip = var_translated + ': [% "' + field + '" || \' - \' || "' + time_field + '" %]'
+                        tip = selected_variable_text + ': [% "' + field + '" || \' - \' || "' + time_field + '" %]'
                     else:
-                        tip = var_translated + ': [% "' + field + '" %]'
+                        tip = selected_variable_text + ': [% "' + field + '" %]'
                     layer_to_paint.setMapTipTemplate(tip)
 
                     # Configure layer labels
                     self.setLayerLabels(layer_to_paint, field, time_field)
 
     def setLayerLabels(self, layer, fieldName, time_field=None):
-        firstCondition = layer.geometryType() == 0 and self.cbNodeLabels.isChecked()
-        secondCondition = layer.geometryType() == 1 and self.cbLinkLabels.isChecked()
-        if firstCondition or secondCondition:
+        node_labels_enabled = layer.geometryType() == 0 and self.cbNodeLabels.isChecked()
+        link_labels_enabled = layer.geometryType() == 1 and self.cbLinkLabels.isChecked()
+        if node_labels_enabled or link_labels_enabled:
             layer_settings = QgsPalLayerSettings()
             layer_settings.formatNumbers = True
             layer_settings.decimals = 2
             text_format = QgsTextFormat()
             text_format.setFont(QFont("Arial", 10))
             color = "black"
-            # if secondCondition:
-            #     color = "blue"
             text_format.setColor(QColor(color))
             layer_settings.setFormat(text_format)
 
@@ -717,12 +758,12 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         try:
             if layer.geometryType() == 1 and self.cbFlowDirections.isChecked():
                 # Show arrows in pipes
-                ss = symbol.symbolLayer(3)  # arrow positive flow
+                arrow_symbol_layer = symbol.symbolLayer(3)  # arrow positive flow
                 prop.setExpressionString("if(Type='PIPE', if(" + field + ">0,3,0),0)")
-                ss.subSymbol().setDataDefinedSize(prop)
-                ss = symbol.symbolLayer(4)  # arrow negative flow
+                arrow_symbol_layer.subSymbol().setDataDefinedSize(prop)
+                arrow_symbol_layer = symbol.symbolLayer(4)  # arrow negative flow
                 prop.setExpressionString("if(Type='PIPE', if(" + field + "<0,3,0),0)")
-                ss.subSymbol().setDataDefinedSize(prop)
+                arrow_symbol_layer.subSymbol().setDataDefinedSize(prop)
             else:
                 # Hide arrows
                 prop.setExpressionString("0")
@@ -732,77 +773,51 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.cbFlowDirections.setChecked(False)
             self.cbFlowDirections.setEnabled(False)
 
-    def setGraduadedPalette(self, layer, field, setRender, nameLayer):
+    def setGraduatedPalette(self, layer, field, setRender, nameLayer):
         renderer = layer.renderer()
-        rawField = field  # column name
-        qmlField = "Flow" if rawField in ("Flow_Sig", "Flow_Unsig") else rawField
+        db_field_name = field  # column name as stored in the DBF
+        qml_field_name = "Flow" if db_field_name in ("Flow_Sig", "Flow_Unsig") else db_field_name
         if field == "Flow":
             field = "abs(" + field + ")"
-        
-        is_status = (rawField == "Status")
-        hasRender = False
-        ranges = None
-        
+
+        is_status = (db_field_name == "Status")
+        ranges, hasRender = self._lookupCachedRenderer(layer, db_field_name) if setRender else (None, False)
+
         utils = QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface)
 
-        if setRender:  # Just opened a layer or changed variable
-            dictRend = self.Renders.get(self.Scenario)
-            layerPath = self.getLayerPath(layer)
-            mode_prefix = f"stat_{self.cbStatistics.currentText()}|" if self._statsMode else "time|"
-            storage_key = mode_prefix + layerPath + "|" + rawField
-
-            if dictRend is None:
-                dictRend = self.Renders.get("Base")
-                if dictRend is not None:
-                    base_storage_key = mode_prefix + layerPath.replace("_" + self.Scenario + "_", "_Base_") + "|" + rawField
-                    ranges = dictRend.get(base_storage_key)
-                    if ranges is not None:
-                        hasRender = True
-            else:
-                ranges = dictRend.get(storage_key)
-                if ranges is not None:
-                    hasRender = True
-                else:
-                    dictRendBase = self.Renders.get("Base")
-                    if dictRendBase is not None:
-                        base_storage_key = mode_prefix + layerPath.replace("_" + self.Scenario + "_", "_Base_") + "|" + rawField
-                        ranges = dictRendBase.get(base_storage_key)
-                        if ranges is not None:
-                            hasRender = True
         # Ensure correct renderer type
         if is_status:
             # Check if we need to load default QML
             if not hasRender and not isinstance(renderer, QgsRuleBasedRenderer):
-                qmlName = nameLayer.split("_")[0] + "_" + rawField 
+                qmlName = nameLayer.split("_")[0] + "_" + db_field_name
                 utils.setResultStyle(layer, qmlName)
                 renderer = layer.renderer()
-            
+
             if hasRender and isinstance(ranges, QgsRuleBasedRenderer.Rule):
                 try:
                     renderer = QgsRuleBasedRenderer(ranges.clone())
                 except:
-                    message = self.tr("Some issue occurred in the process of applying the style to the layer").format(self.tr(layerName))
+                    message = self.tr("Some issue occurred in the process of applying the style to the layer").format(self.tr(nameLayer))
                     self.iface.messageBar().pushMessage(self.lbl_warning, message, level=1, duration=5)
                     return
         else:
-            # Check if we need to load default QML
-            # We load it if there's no saved render AND (it's not graduated OR it's the wrong variable)
+            # We load QML if there's no saved render AND (it's not graduated OR it's the wrong variable)
             wrong_variable = isinstance(renderer, QgsGraduatedSymbolRenderer) and renderer.classAttribute() != field
             if not hasRender and (not isinstance(renderer, QgsGraduatedSymbolRenderer) or len(renderer.ranges()) == 0 or wrong_variable):
-                qmlName = nameLayer.split("_")[0] + "_" + qmlField 
+                qmlName = nameLayer.split("_")[0] + "_" + qml_field_name
                 utils.setResultStyle(layer, qmlName)
                 renderer = layer.renderer()
-                
+
             if hasRender and isinstance(ranges, list):
                 renderer = QgsGraduatedSymbolRenderer(field, ranges)
-            
+
             if isinstance(renderer, QgsGraduatedSymbolRenderer):
                 renderer.setClassAttribute(field)
 
         # Update arrow visibility
         try:
             # Arrows always use the Flow field (index 2 in layer)
-            flow_field = layer.fields().at(2).name() 
+            flow_field = layer.fields().at(2).name()
             symbols = renderer.symbols(QgsRenderContext())
             for symbol in symbols:
                 if symbol.type() == 1:  # line
@@ -831,21 +846,14 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             result_times = self.cbResultTimes.currentText()
             self.lbStatName.setText(self.stat_variables.get(new_stat, new_stat))
             self.lbStatDesc.setText(self.tr("for {}").format(result_times.lower()))
-            self.timeDisplayWidget.setVisible(False)
-            self.statsDisplayWidget.setVisible(True)
-            self.timeControlsWidget.setVisible(False)
             if self.cbFlowDirections.isChecked():
                 self.cbFlowDirections.setChecked(False)
-            self.cbFlowDirections.setVisible(False)
+            self._setModeWidgetsVisibility(True)
         else:
             self._statsMode = False
             self.updateLinksComboboxForStat(self.lbl_none)
-            self.statsDisplayWidget.setVisible(False)
-            is_temporal = self.cbTimes.count() > 1
-            self.timeDisplayWidget.setVisible(True)
-            self.cbFlowDirections.setVisible(True)
             self.lbTime.setText(self.cbTimes.currentText())
-            self.timeControlsWidget.setVisible(is_temporal)
+            self._setModeWidgetsVisibility(False, is_temporal=self.cbTimes.count() > 1)
 
         # 3. Heavy operations (only if not computing)
         if not self.Computing:
@@ -883,14 +891,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         try:
             self.saveCurrentRender()
             self.ensureResultsLayersAreOpen()
-            
+
             # Update visibility when variable changes
-            resultPath = self.getResultsPath()
-            resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_Link.shp")
-            for layer in self.getLayers():
-                if self.getLayerPath(layer) == resultLayerPath:
-                    self.updateFieldsVisibility(layer, "Link", self._statsMode, self._currentStat)
-                    break
+            link_layer = self._findResultLayer("Link")
+            if link_layer:
+                self.updateFieldsVisibility(link_layer, "Link", self._statsMode, self._currentStat)
 
             self.paintIntervalTimeResults(True)
         finally:
@@ -915,12 +920,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.ensureResultsLayersAreOpen()
 
             # Update visibility when variable changes
-            resultPath = self.getResultsPath()
-            resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_Node.shp")
-            for layer in self.getLayers():
-                if self.getLayerPath(layer) == resultLayerPath:
-                    self.updateFieldsVisibility(layer, "Node", self._statsMode, self._currentStat)
-                    break
+            node_layer = self._findResultLayer("Node")
+            if node_layer:
+                self.updateFieldsVisibility(node_layer, "Node", self._statsMode, self._currentStat)
 
             self.paintIntervalTimeResults(True)
         finally:
@@ -936,21 +938,17 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     def flowDirectionsClicked(self):
         if not self.validationsOpenResult():
             return
-        
+
         self.ensureResultsLayersAreOpen()
 
-        resultLayerPath = self.generatePath(self.getResultsPath(), self.NetworkName + "_" + self.Scenario + "_Link.shp")
-        for layer in self.getLayers():
-            if self.getLayerPath(layer) == resultLayerPath:
-                layer_to_paint = layer
-                break
+        layer_to_paint = self._findResultLayer("Link")
         if layer_to_paint:
             renderer = layer_to_paint.renderer()
             symbols = renderer.symbols(QgsRenderContext())
             flow_field = layer_to_paint.fields().at(2).name()  # Flow field
             for symbol in symbols:
                 self.setArrowsVisibility(symbol, layer_to_paint, flow_field)
-            
+
             layer_to_paint.setRenderer(renderer)
             layer_to_paint.triggerRepaint()
 
@@ -1018,39 +1016,25 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
     def updateLabels(self, layer_type):
         if not self.validationsOpenResult():
             return
-        
+
         self.ensureResultsLayersAreOpen()
 
-        resultPath = self.getResultsPath()
-        resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + layer_type + ".shp")
-        
         checkbox = self.cbNodeLabels if layer_type == "Node" else self.cbLinkLabels
         combobox = self.cbNodes if layer_type == "Node" else self.cbLinks
+        field_map = self._link_field_map if layer_type == "Link" else self._node_field_map
 
-        _LINK_FIELD_MAP = {
-            self.lbl_flow: "Flow", self.lbl_unsigned_flow: "Flow_Unsig", self.lbl_signed_flow: "Flow_Sig",
-            self.lbl_velocity: "Velocity", self.lbl_headloss: "HeadLoss", self.lbl_unit_headloss: "UnitHdLoss",
-            self.lbl_friction_factor: "FricFactor", self.lbl_status: "Status",
-            self.lbl_reaction_rate: "ReactRate", self.lbl_quality: "Quality",
-        }
-        _NODE_FIELD_MAP = {
-            self.lbl_pressure: "Pressure", self.lbl_head: "Head",
-            self.lbl_demand: "Demand", self.lbl_quality: "Quality",
-        }
-        field_map = _LINK_FIELD_MAP if layer_type == "Link" else _NODE_FIELD_MAP
-
-        for layer in self.getLayers():
-            if self.getLayerPath(layer) == resultLayerPath:
-                if checkbox.isChecked():
-                    if combobox.currentIndex() > 0:
-                        field = field_map.get(combobox.currentText(), "")
-                        if field:
-                            is_min_max_stat = self._statsMode and self.cbStatistics.currentText() in (self.lbl_maximum, self.lbl_minimum)
-                            time_field = time_field_name(field, layer_type) if is_min_max_stat else None
-                            self.setLayerLabels(layer, field, time_field)
-                else:
-                    layer.setLabelsEnabled(False)
-                    layer.triggerRepaint()
+        layer = self._findResultLayer(layer_type)
+        if layer:
+            if checkbox.isChecked():
+                if combobox.currentIndex() > 0:
+                    field = field_map.get(combobox.currentText(), "")
+                    if field:
+                        is_min_max_stat = self._statsMode and self.cbStatistics.currentText() in (self.lbl_maximum, self.lbl_minimum)
+                        time_field = time_field_name(field, layer_type) if is_min_max_stat else None
+                        self.setLayerLabels(layer, field, time_field)
+            else:
+                layer.setLabelsEnabled(False)
+                layer.triggerRepaint()
 
     def validationsOpenResult(self):
         if not self.isCurrentProject():
@@ -1070,29 +1054,18 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         return True
 
     def ensureResultsLayersAreOpen(self):
-        # Ensure result layers are opened
+        """Open result layers that are needed based on combobox state but not yet open."""
         if not self.isCurrentProject():
             return
 
         self.Scenario = "Base"
-        resultPath = self.getResultsPath()
         layer_combobox = {"Node": self.cbNodes, "Link": self.cbLinks}
         for nameLayer in ["Node", "Link"]:
             # Don't open a layer if its variable combobox is set to None
             if layer_combobox[nameLayer].currentIndex() == 0:
                 continue
 
-            layer_to_paint = None
-            resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + nameLayer + ".shp")
-
-            # Check if layer is already open
-            for layer in self.getLayers():
-                if self.getLayerPath(layer) == resultLayerPath:
-                    layer_to_paint = layer
-                    break
-
-            # If the layer is not open, open it!
-            if layer_to_paint is None:
+            if self._findResultLayer(nameLayer) is None:
                 self.openLayerResults(self.Scenario, nameLayer)
 
     def simulate(self, direct, netw):
@@ -1229,27 +1202,25 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
             self.cbNodes.setCurrentIndex(1)
 
         # Time labels
-        mylist = labels.split(";")
+        time_label_list = labels.split(";")
         self.TimeLabels = []
         self.cbTimes.clear()
-        if len(mylist) == 1:
+        if len(time_label_list) == 1:
             self.TimeLabels.append(self.lbl_permanent)
             self.cbTimes.addItem(self.lbl_permanent)
         else:
-            for item in mylist:
+            for item in time_label_list:
                 self.TimeLabels.append(item)
                 self.cbTimes.addItem(item)
 
         self.cbTimes.setCurrentIndex(0)
         self.timeSlider.setValue(0)
         self.timeSlider.setMaximum(len(self.TimeLabels) - 1)
-        # Configure Visibilities
+        # Configure visibilities
         in_stats = self._statsMode
-        self.statsDisplayWidget.setVisible(in_stats)
-        self.timeDisplayWidget.setVisible(not in_stats)
         if not in_stats:
             self.lbTime.setText(self.TimeLabels[0])
-        self.timeControlsWidget.setVisible(not in_stats and len(mylist) > 1)
+        self._setModeWidgetsVisibility(in_stats, is_temporal=len(time_label_list) > 1)
 
         self.Computing = False
 
@@ -1307,15 +1278,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if not os.path.exists(binary_path):
             return
 
-        openedLayers = self.getLayers()
         for layerName in ["Node", "Link"]:
-            resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + layerName + ".shp")
-            target_layer = None
-            for layer in openedLayers:
-                if self.getLayerPath(layer) == resultLayerPath:
-                    target_layer = layer
-                    break
-
+            target_layer = self._findResultLayer(layerName)
             if not target_layer:
                 continue
 
@@ -1324,47 +1288,31 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 results = getOut_TimeNodesProperties(binary_path, time_seconds)
             else:
                 results = getOut_TimeLinksProperties(binary_path, time_seconds)
-            
+
             if not results:
                 continue
 
-            # 3. Update features
             first_id = next(iter(results))
             variables = list(results[first_id].keys())
-            
-            # Get field indices
-            field_indices = {}
-            for var in variables:
-                # Shapefile fields are limited to 10 chars
-                field_indices[var] = target_layer.fields().indexOf(var[:10])
-            
+            field_indices = self._buildFieldIndexMap(target_layer, variables)
             time_field_idx = target_layer.fields().indexOf("Time")
-            
-            # Find Id field index (assuming it's called "Id")
             id_field_idx = target_layer.fields().indexOf("Id")
             if id_field_idx == -1:
-                # fallback to first field if "Id" not found
-                id_field_idx = 0
+                id_field_idx = 0  # fallback to first field
 
             attribute_updates = {}
             for feature in target_layer.getFeatures():
-                elem_id = str(feature.attributes()[id_field_idx])
-                if elem_id in results:
-                    elem_results = results[elem_id]
+                feature_id = str(feature.attributes()[id_field_idx])
+                if feature_id in results:
                     updates = {}
                     if time_field_idx != -1:
                         updates[time_field_idx] = time_text
-                    
-                    for var, val in elem_results.items():
+                    for var, val in results[feature_id].items():
                         updates[field_indices[var[:10]]] = val
                     attribute_updates[feature.id()] = updates
 
-            # Apply updates via provider (more efficient for batch)
-            if attribute_updates:
-                target_layer.dataProvider().changeAttributeValues(attribute_updates)
-                target_layer.dataProvider().dataChanged.emit()
-                target_layer.triggerRepaint()
-            
+            self._applyAttributeUpdates(target_layer, attribute_updates)
+
             # Apply visibility AFTER populating
             self.updateFieldsVisibility(target_layer, layerName, stats_mode=False)
 
@@ -1392,17 +1340,19 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
         if not os.path.exists(binary_path):
             return
 
-        openedLayers = self.getLayers()
-        for layerName in ["Node", "Link"]:
-            resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + self.Scenario + "_" + layerName + ".shp")
-            target_layer = None
-            for layer in openedLayers:
-                if self.getLayerPath(layer) == resultLayerPath:
-                    target_layer = layer
-                    break
+        # For Min/Max: which variable provides the time-of-occurrence for each node/link field.
+        #   Node: Pressure and Head share Time_H; Demand → Time_D; Quality → Time_Q
+        #   Link: Flow, Velocity, HeadLoss, UnitHdLoss share Time_H; Quality → Time_Q
+        _TIME_PROVIDER = {
+            "Node": {"Pressure": "Time_H", "Demand": "Time_D", "Quality": "Time_Q"},
+            "Link": {"Flow": "Time_H", "Quality": "Time_Q"},
+        }
 
+        for layerName in ["Node", "Link"]:
+            target_layer = self._findResultLayer(layerName)
             if not target_layer:
                 continue
+
             if layerName == "Node":
                 results = getOut_StatNodesProperties(binary_path, stat)
             else:
@@ -1412,31 +1362,15 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                 continue
 
             first_id = next(iter(results))
-            variables = list(v[:10] for v in results[first_id].keys())
-
-            # For Min/Max: time columns per layer type.
-            #   Node: Time_H after Head (shared Pressure+Head), Time_D, Time_Q individual
-            #   Link: Time_H after UnitHdLoss (shared Flow/Velocity/HeadLoss/UnitHdLoss),
-            #         Time_FF, Time_RR, Time_Q individual
-            _TIME_FIELD_AFTER = {
-                "Node": {"Head": "Time_H", "Demand": "Time_D", "Quality": "Time_Q"},
-                "Link": {"UnitHdLoss": "Time_H", "Quality": "Time_Q"},
-            }
-            _TIME_PROVIDER = {
-                "Node": {"Pressure": "Time_H", "Demand": "Time_D", "Quality": "Time_Q"},
-                "Link": {"Flow": "Time_H", "Quality": "Time_Q"},
-            }
-            time_field_after  = _TIME_FIELD_AFTER.get(layerName, {})
-            time_field_provider = _TIME_PROVIDER.get(layerName, {})
-
-            first_id = next(iter(results))
             variables = list(results[first_id].keys())
+            field_indices = self._buildFieldIndexMap(target_layer, variables)
 
-            field_indices = {var: target_layer.fields().indexOf(var[:10]) for var in variables}
+            time_field_provider = _TIME_PROVIDER.get(layerName, {})
             time_field_indices = {}
             if is_min_max:
-                for provider_var, tf_name in time_field_provider.items():
-                    time_field_indices[provider_var] = target_layer.fields().indexOf(tf_name)
+                for provider_variable, time_col_name in time_field_provider.items():
+                    time_field_indices[provider_variable] = target_layer.fields().indexOf(time_col_name)
+
             stat_field_idx = target_layer.fields().indexOf("Statistics")
             id_field_idx = target_layer.fields().indexOf("Id")
             if id_field_idx == -1:
@@ -1444,13 +1378,13 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
 
             attribute_updates = {}
             for feature in target_layer.getFeatures():
-                elem_id = str(feature.attributes()[id_field_idx])
-                if elem_id not in results:
+                feature_id = str(feature.attributes()[id_field_idx])
+                if feature_id not in results:
                     continue
                 updates = {}
                 if stat_field_idx != -1:
                     updates[stat_field_idx] = stat_label
-                for var, val in results[elem_id].items():
+                for var, val in results[feature_id].items():
                     var_key = var[:10]
                     if var_key in field_indices and field_indices[var_key] != -1:
                         updates[field_indices[var_key]] = val["Value"] if val is not None else None
@@ -1459,11 +1393,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS):
                             updates[time_field_indices[var_key]] = seconds_to_time_str(t) if t is not None else None
                 attribute_updates[feature.id()] = updates
 
-            if attribute_updates:
-                target_layer.dataProvider().changeAttributeValues(attribute_updates)
-                target_layer.dataProvider().dataChanged.emit()
-                target_layer.triggerRepaint()
-            
+            self._applyAttributeUpdates(target_layer, attribute_updates)
+
             # Apply visibility AFTER populating
             self.updateFieldsVisibility(target_layer, layerName, stats_mode=True, stat=stat_label)
 
