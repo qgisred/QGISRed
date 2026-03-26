@@ -115,6 +115,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.initializeElementTypes()
         self.setupConnections()
         self.setupButtonIcons()
+        self.mGroupBox.setCollapsed(False)
 
 
     def setupButtonIcons(self): #TODO rename to QGISRed folder instead of BID on deploy
