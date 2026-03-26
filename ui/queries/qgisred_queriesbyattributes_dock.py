@@ -4,6 +4,7 @@ from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QColor, QIcon, QFont
 from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsVectorLayer, QgsFeatureRequest
+from qgis.gui import QgsHighlight
 import os
 from PyQt5 import sip
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
@@ -30,7 +31,28 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.clearMapSelection()
         super().closeEvent(event)
 
+    def clearHighlights(self):
+        for h in self.queryHighlights:
+            h.hide()
+        self.queryHighlights.clear()
+
+    def highlightFeatures(self, layer, expression):
+        self.clearHighlights()
+        if expression:
+            featureReq = QgsFeatureRequest().setFilterExpression(expression)
+            for feat in layer.getFeatures(featureReq):
+                h = QgsHighlight(self.canvas, feat.geometry(), layer)
+                h.setColor(QColor("red"))
+                h.setWidth(5)
+                h.show()
+                self.queryHighlights.append(h)
+            self.lastSelectedLayer = layer
+        else:
+            self.lastSelectedLayer = None
+        self.canvas.refresh()
+
     def clearMapSelection(self):
+        self.clearHighlights()
         if self.lastSelectedLayer is not None:
             try:
                 if not sip.isdeleted(self.lastSelectedLayer):
@@ -49,6 +71,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.currentResultsStatText = ""
         self.lastSelectedLayer = None
         self.lastCombinedExpression = ""
+        self.queryHighlights = []
 
         self.resultsDockVisibilityTimer = QTimer()
         self.resultsDockVisibilityTimer.setSingleShot(True)
@@ -537,13 +560,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             f"NOT ({exclusionExpressionString})" if exclusionExpressionString else ''
         ]))
         self.lastCombinedExpression = combinedExpression
-        if combinedExpression:
-            selectedLayer.selectByExpression(combinedExpression)
-            self.lastSelectedLayer = selectedLayer
-        else:
-            selectedLayer.removeSelection()
-            self.lastSelectedLayer = None
-        self.canvas.refresh()
+        self.highlightFeatures(selectedLayer, combinedExpression)
 
         allFeaturesRequest = QgsFeatureRequest().setFilterExpression(combinedExpression) if combinedExpression else QgsFeatureRequest()
         allFeatureValues = [
@@ -828,9 +845,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         selectedLayer = self.resolveLayer()
         if not selectedLayer:
             return
-        selectedLayer.selectByExpression(self.lastCombinedExpression)
-        self.lastSelectedLayer = selectedLayer
-        self.canvas.refresh()
+        self.highlightFeatures(selectedLayer, self.lastCombinedExpression)
 
     def onResultsDockVisibilityChanged(self, visible):
         if not self.isResultsDockAlive():
