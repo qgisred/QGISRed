@@ -254,8 +254,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.btClassPlus.installEventFilter(self)
 
     def configureWindow(self):
-        iconPath = os.path.join(os.path.dirname(__file__), "..", "..", "images", "iconThematicMaps.svg")
-        self.setWindowIcon(QIcon(iconPath))
+        self.setWindowIcon(QIcon(":/images/iconThematicMaps.svg"))
         self.setWindowTitle(self.tr("QGISRed: Legend Editor"))
         self.setWindowFlags(Qt.Window | Qt.WindowStaysOnTopHint | Qt.WindowCloseButtonHint)
         self.btClassPlus.setIcon(QIcon(":/images/themes/default/symbologyAdd.svg"))
@@ -307,8 +306,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.setClassCountEditable(False)
 
     def setupClassifyAllButton(self):
-        iconPath = os.path.join(os.path.dirname(__file__), "..", "..", "images", "iconClassifyAll.svg")
-        self.btClassifyAll.setIcon(QIcon(iconPath))
+        self.btClassifyAll.setIcon(QIcon(":/images/iconClassifyAll.svg"))
         self.btClassifyAll.setToolTip(self.tr("Classify All Unique Values"))
         self.btClassifyAll.clicked.connect(self.classifyAllUniqueValues)
 

@@ -66,8 +66,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         self.resize(currentWidth, self.height())
 
     def setDialogStyle(self):
-        iconPath = os.path.join(os.path.dirname(__file__), '..', '..', 'images', 'iconThematicMaps.svg')
-        self.setWindowIcon(QIcon(iconPath))
+        self.setWindowIcon(QIcon(":/images/iconThematicMaps.svg"))
 
         groupBoxes = [
             self.gbPipes,

@@ -351,7 +351,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.setWindowIcon(QIcon(iconPath))
         
         if hasattr(self, 'leElementMask'):
-            searchIcon = QIcon(os.path.join(os.path.dirname(__file__), '..', '..', 'images', 'iconFilter.svg'))
+            searchIcon = QIcon(":/images/iconFilter.svg")
             self.leElementMask.addAction(searchIcon, QLineEdit.LeadingPosition)
         
         comboStyle = """
