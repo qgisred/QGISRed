@@ -164,7 +164,7 @@ def _calculate_period_index(time_seconds, meta):
     return max(0, min(period_index, meta["num_periods"] - 1))
 
 """Metadata"""
-def get_out_file_metadata(f, include_lengths=False):
+def getOut_Metadata(f, include_lengths=False):
     """Parses the static part of the EPANET .out file and returns metadata."""
 
     prologue_fixed = f.read(15 * 4)
@@ -243,7 +243,7 @@ def getOut_TimeNodesProperties(out_file_path, time_seconds):
         return {}
 
     with open(out_file_path, 'rb') as f:
-        meta = get_out_file_metadata(f)
+        meta = getOut_Metadata(f)
         if not meta:
             return {}
         
@@ -274,7 +274,7 @@ def getOut_TimeLinksProperties(out_file_path, time_seconds):
         return {}
 
     with open(out_file_path, 'rb') as f:
-        meta = get_out_file_metadata(f, include_lengths=True)
+        meta = getOut_Metadata(f, include_lengths=True)
         if not meta:
             return {}
 
@@ -341,7 +341,7 @@ def getOut_TimeNodeProperties(out_file_path, time_seconds, node_id):
         return {}
 
     with open(out_file_path, 'rb') as f:
-        meta = get_out_file_metadata(f)
+        meta = getOut_Metadata(f)
         if not meta or node_id not in meta["node_ids"]:
             return {}
 
@@ -367,7 +367,7 @@ def getOut_TimeLinkProperties(out_file_path, time_seconds, link_id):
         return {}
 
     with open(out_file_path, 'rb') as f:
-        meta = get_out_file_metadata(f)
+        meta = getOut_Metadata(f)
         if not meta or link_id not in meta["link_ids"]:
             return {}
 
@@ -433,7 +433,7 @@ def getOut_TimesNodeProperty(out_file_path, node_id, property_name):
         return []
 
     with open(out_file_path, 'rb') as f:
-        meta = get_out_file_metadata(f)
+        meta = getOut_Metadata(f)
         var_names = ["Demand", "Head", "Pressure", "Quality"]
         if not meta or node_id not in meta["node_ids"] or property_name not in var_names:
             return []
@@ -459,7 +459,7 @@ def getOut_TimesLinkProperty(out_file_path, link_id, property_name):
         return []
 
     with open(out_file_path, 'rb') as f:
-        meta = get_out_file_metadata(f, include_lengths=(property_name == "HeadLoss"))
+        meta = getOut_Metadata(f, include_lengths=(property_name == "HeadLoss"))
         
         var_names = ["Flow", "Velocity", "UnitHdLoss", "Quality", "Status", "Setting", "ReactRate", "FricFactor"]
         calc_headloss = False
@@ -559,7 +559,7 @@ def getOut_StatNodesProperties(out_file_path, stat):
         return {}
 
     with open(out_file_path, 'rb') as f:
-        meta = get_out_file_metadata(f)
+        meta = getOut_Metadata(f)
         if not meta or meta["num_periods"] == 0:
             return {}
 
@@ -677,7 +677,7 @@ def getOut_StatLinksProperties(out_file_path, stat):
         return {}
 
     with open(out_file_path, 'rb') as f:
-        meta = get_out_file_metadata(f, include_lengths=True)
+        meta = getOut_Metadata(f, include_lengths=True)
         if not meta or meta["num_periods"] == 0:
             return {}
 

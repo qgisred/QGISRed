@@ -6,7 +6,7 @@ from qgis.core import NULL
 from .qgisred_results_binary import (
     getOut_TimeNodesProperties, getOut_TimeLinksProperties,
     getOut_StatNodesProperties, getOut_StatLinksProperties,
-    get_out_file_metadata,
+    getOut_Metadata,
 )
 
 
@@ -39,7 +39,7 @@ class _ResultsDataMixin:
         """Read time step labels from existing .out file (same format as GISRed.Compute returns)."""
         try:
             with open(self.outPath, 'rb') as f:
-                meta = get_out_file_metadata(f)
+                meta = getOut_Metadata(f)
             if meta is None:
                 return self.lbl_permanent
             n = meta["num_periods"]

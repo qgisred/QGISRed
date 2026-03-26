@@ -366,7 +366,7 @@ class AnalysisSection:
             self.iface.messageBar().pushMessage(self.tr("Time Series"), self.tr("Results file not found. Please run the model."), level=1)
             return
 
-        from ..ui.analysis.qgisred_results_binary import getOut_TimesNodeProperty, getOut_TimesLinkProperty, get_out_file_metadata
+        from ..ui.analysis.qgisred_results_binary import getOut_TimesNodeProperty, getOut_TimesLinkProperty, getOut_Metadata
 
         y_data = []
         if category == "Node":
@@ -379,7 +379,7 @@ class AnalysisSection:
 
         # Simple time series (hours)
         with open(out_path, 'rb') as f:
-            meta = get_out_file_metadata(f)
+            meta = getOut_Metadata(f)
             report_start = meta["report_start"]
             report_step = meta["report_step"]
             num_periods = meta["num_periods"]

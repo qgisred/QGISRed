@@ -12,7 +12,7 @@ if _PLUGIN_ROOT not in sys.path:
     sys.path.insert(0, _PLUGIN_ROOT)
 
 from ui.analysis.qgisred_results_binary import (
-    get_out_file_metadata,
+    getOut_Metadata,
     getOut_TimeNodesProperties,
     getOut_TimeLinksProperties,
     getOut_TimeNodeProperties,
@@ -29,13 +29,13 @@ from .helpers.epanet_out_builder import simple_network_out, pump_valve_network_o
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# 1. get_out_file_metadata — Binary header parsing
+# 1. getOut_Metadata — Binary header parsing
 # ═══════════════════════════════════════════════════════════════════════
 
-class TestGetOutFileMetadata:
+class TestGetOutMetadata:
     def test_parses_simple_network(self, simple_network_out):
         with open(simple_network_out, 'rb') as f:
-            meta = get_out_file_metadata(f)
+            meta = getOut_Metadata(f)
 
         assert meta is not None
         assert meta["n_nodes"] == 3
@@ -52,7 +52,7 @@ class TestGetOutFileMetadata:
 
     def test_node_types_reservoir(self, simple_network_out):
         with open(simple_network_out, 'rb') as f:
-            meta = get_out_file_metadata(f)
+            meta = getOut_Metadata(f)
 
         # R1 (idx 0) should be reservoir (area = 0)
         assert meta["node_types"][0] == 1  # _NT_RESERVOIR
@@ -62,7 +62,7 @@ class TestGetOutFileMetadata:
 
     def test_include_lengths(self, simple_network_out):
         with open(simple_network_out, 'rb') as f:
-            meta = get_out_file_metadata(f, include_lengths=True)
+            meta = getOut_Metadata(f, include_lengths=True)
         assert meta["link_lengths"] is not None
         assert len(meta["link_lengths"]) == 2
         assert abs(meta["link_lengths"][0] - 1000.0) < 1
@@ -70,21 +70,21 @@ class TestGetOutFileMetadata:
 
     def test_without_lengths(self, simple_network_out):
         with open(simple_network_out, 'rb') as f:
-            meta = get_out_file_metadata(f, include_lengths=False)
+            meta = getOut_Metadata(f, include_lengths=False)
         assert meta["link_lengths"] is None
 
     def test_invalid_file(self, tmp_path):
         bad_file = tmp_path / "bad.out"
         bad_file.write_bytes(b'\x00' * 100)
         with open(str(bad_file), 'rb') as f:
-            meta = get_out_file_metadata(f)
+            meta = getOut_Metadata(f)
         assert meta is None
 
     def test_too_small_file(self, tmp_path):
         bad_file = tmp_path / "tiny.out"
         bad_file.write_bytes(b'\x00' * 10)
         with open(str(bad_file), 'rb') as f:
-            meta = get_out_file_metadata(f)
+            meta = getOut_Metadata(f)
         assert meta is None
 
 
