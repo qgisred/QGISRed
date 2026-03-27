@@ -28,7 +28,8 @@ class LayerManagementSection:
         utils.removeLayers(self.ownFiles, ".dbf")
 
     def removeIssuesLayers(self):
-        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        issuesFolder = os.path.join(self.ProjectDirectory, "Issues")
+        utils = QGISRedLayerUtils(issuesFolder, self.NetworkName, self.iface)
         utils.removeLayers(self.issuesLayers)
 
     def removeLayersAndIssuesLayers(self):
@@ -36,11 +37,18 @@ class LayerManagementSection:
         utils.removeLayers(self.ownMainLayers)
         utils.removeLayers(self.ownFiles, ".dbf")
         utils.removeLayers(self.especificComplementaryLayers)
-        utils.removeLayers(self.issuesLayers)
+        issuesFolder = os.path.join(self.ProjectDirectory, "Issues")
+        issuesUtils = QGISRedLayerUtils(issuesFolder, self.NetworkName, self.iface)
+        issuesUtils.removeLayers(self.issuesLayers)
 
     def removeIssuesLayersFiles(self):
-        dirList = os.listdir(self.ProjectDirectory)
-        for fi in dirList:
+        issuesFolder = os.path.join(self.ProjectDirectory, "Issues")
+        if os.path.exists(issuesFolder):
+            for fi in os.listdir(issuesFolder):
+                if "_Issues." in fi:
+                    os.remove(os.path.join(issuesFolder, fi))
+        # Clean up any legacy files in the project root (pre-folder era)
+        for fi in os.listdir(self.ProjectDirectory):
             if "_Issues." in fi:
                 os.remove(os.path.join(self.ProjectDirectory, fi))
 
@@ -141,7 +149,8 @@ class LayerManagementSection:
 
     def openIssuesLayers(self):
         # Open layers
-        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        issuesFolder = os.path.join(self.ProjectDirectory, "Issues")
+        utils = QGISRedLayerUtils(issuesFolder, self.NetworkName, self.iface)
         issuesGroup = self.getIssuesGroup()
         utils.openIssuesLayers(issuesGroup, self.issuesLayers)
 
@@ -277,6 +286,14 @@ class LayerManagementSection:
         QApplication.setOverrideCursor(Qt.WaitCursor)
 
         resMessage = GISRed.ReplaceTemporalFiles(self.ProjectDirectory, self.tempFolder)
+
+        if self.hasToOpenIssuesLayers:
+            issuesFolder = os.path.join(self.ProjectDirectory, "Issues")
+            if not os.path.exists(issuesFolder):
+                os.mkdir(issuesFolder)
+            for fi in os.listdir(self.ProjectDirectory):
+                if "_Issues." in fi:
+                    os.rename(os.path.join(self.ProjectDirectory, fi), os.path.join(issuesFolder, fi))
 
         self.readOptions(self.ProjectDirectory, self.NetworkName)
 
