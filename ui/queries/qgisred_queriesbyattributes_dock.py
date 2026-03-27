@@ -139,6 +139,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.setupConnections()
         self.setupButtonIcons()
         self.mGroupBox.setCollapsed(False)
+        self.frameMultipleCriteria.setVisible(False)
 
 
     def setupButtonIcons(self): #TODO rename to QGISRed folder instead of BID on deploy
@@ -177,6 +178,9 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.btCriteriaSwitch.clicked.connect(self.toggleCriterionEnabled)
         self.tableWidgetCriteria.currentCellChanged.connect(self.onCriteriaSelectionChanged)
 
+        # radio criteria mode
+        self.radioMultipleCriteria.toggled.connect(self.toggleMultipleCriteria)
+
         # export
         self.btExport.clicked.connect(self.exportCriteria)
         self.btExcel.clicked.connect(self.exportStatistics)
@@ -185,6 +189,9 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.cbStatisticsFor.currentIndexChanged.connect(self.onStatisticsForChanged)
         # initial button state
         self.updateButtonsState()
+
+    def toggleMultipleCriteria(self, visible):
+        self.frameMultipleCriteria.setVisible(visible)
 
     def onStatisticsForChanged(self):
         if self.cbStatisticsFor.isEnabled():
