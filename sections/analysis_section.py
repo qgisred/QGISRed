@@ -177,8 +177,9 @@ class AnalysisSection:
                     results_ready = True
             if not results_ready and os.path.exists(self._outFilePath()):
                 self._initResultsDock()
-                self.ResultDockwidget.setProjectInfo(self.ProjectDirectory, self.NetworkName)
+                self.ResultDockwidget.loadExistingResults(self.ProjectDirectory, self.NetworkName)
                 self.ResultDockwidget.hide()
+                self.connectElementExplorerToResultsDock()
                 results_ready = True
 
             if not results_ready:
