@@ -66,10 +66,18 @@ class LayerManagementSection:
         self.removeEmptyQuerySubGroup("Connectivity")
 
     def removeSectorLayers(self):
-        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        queriesFolder = os.path.join(self.ProjectDirectory, "Queries")
+        utils = QGISRedLayerUtils(queriesFolder, self.NetworkName, self.iface)
         utils.removeLayers(["Links_" + self.Sectors, "Nodes_" + self.Sectors])
         sectorGroupName = self.getSectorGroupName()
         self.removeEmptyQuerySubGroup(sectorGroupName)
+
+    def removeSectorLayersFiles(self):
+        queriesFolder = os.path.join(self.ProjectDirectory, "Queries")
+        if os.path.exists(queriesFolder):
+            for fi in os.listdir(queriesFolder):
+                if ("_" + self.Sectors + ".") in fi:
+                    os.remove(os.path.join(queriesFolder, fi))
 
     """Open Layers"""
 
@@ -160,8 +168,9 @@ class LayerManagementSection:
         utils.openLayer(connGroup, "Links_Connectivity")
 
     def openSectorLayers(self):
-        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        if os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_Links_" + self.Sectors + ".shp")):
+        queriesFolder = os.path.join(self.ProjectDirectory, "Queries")
+        utils = QGISRedLayerUtils(queriesFolder, self.NetworkName, self.iface)
+        if os.path.exists(os.path.join(queriesFolder, self.NetworkName + "_Links_" + self.Sectors + ".shp")):
             sectorGroupName = self.getSectorGroupName()
             sectorGroup = utils.getOrCreateNestedGroup([self.NetworkName, "Queries", sectorGroupName])
             utils.openLayer(sectorGroup, "Links_" + self.Sectors, sectors=True)
@@ -282,6 +291,8 @@ class LayerManagementSection:
     def runOpenTemporaryFiles(self):
         if self.hasToOpenIssuesLayers:
             self.removeIssuesLayersFiles()
+        if self.hasToOpenSectorLayers:
+            self.removeSectorLayersFiles()
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
 
@@ -311,6 +322,12 @@ class LayerManagementSection:
             self.hasToOpenConnectivityLayers = False
 
         if self.hasToOpenSectorLayers:
+            queriesFolder = os.path.join(self.ProjectDirectory, "Queries")
+            if not os.path.exists(queriesFolder):
+                os.mkdir(queriesFolder)
+            for fi in os.listdir(self.ProjectDirectory):
+                if ("_" + self.Sectors + ".") in fi:
+                    os.replace(os.path.join(self.ProjectDirectory, fi), os.path.join(queriesFolder, fi))
             self.openSectorLayers()
             self.hasToOpenSectorLayers = False
 
