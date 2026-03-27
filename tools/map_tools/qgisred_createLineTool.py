@@ -1,6 +1,7 @@
 import math
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QSettings, QEvent, QPoint
 from PyQt5.QtGui import QColor
+from PyQt5.QtWidgets import QCheckBox, QFrame, QHBoxLayout
 from qgis.core import QgsPointXY, QgsPoint, QgsGeometry, QgsProject, QgsSnappingConfig, QgsTolerance, Qgis
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSnappingUtils
 try:
@@ -56,6 +57,9 @@ class QGISRedCreateLineTool(QgsMapTool):
         self.rubberBand2 = None
         self._gridRubberBand = None
         self._gridSpacing = 0.0
+        self._gridOverlayWidget = None
+        self._gridOverlayCb = None
+        self._showGrid = self.SHOW_GRID
         self.resetProperties()
 
     def activate(self):
@@ -73,15 +77,23 @@ class QGISRedCreateLineTool(QgsMapTool):
         self.snapper.setConfig(config)
 
         if self.SHOW_GRID:
-            self._updateGrid()
-            self.iface.mapCanvas().extentsChanged.connect(self._updateGrid)
+            self._showGrid = QSettings().value("QGISRed/showGrid", self.SHOW_GRID, type=bool)
+            self._createGridOverlay()
+            if self._showGrid:
+                self._updateGrid()
+                self.iface.mapCanvas().extentsChanged.connect(self._updateGrid)
 
     def deactivate(self):
-        if self.SHOW_GRID:
+        if self._showGrid:
             try:
                 self.iface.mapCanvas().extentsChanged.disconnect(self._updateGrid)
             except Exception:
                 pass
+        if self._gridOverlayWidget is not None:
+            self.iface.mainWindow().removeEventFilter(self)
+            self._gridOverlayWidget.deleteLater()
+            self._gridOverlayWidget = None
+            self._gridOverlayCb = None
         self._clearGrid()
         self.resetProperties()
         QgsMapTool.deactivate(self)
@@ -216,6 +228,68 @@ class QGISRedCreateLineTool(QgsMapTool):
         s = self._gridSpacing
         return QgsPointXY(round(point.x() / s) * s, round(point.y() / s) * s)
 
+    def _createGridOverlay(self):
+        """Create a floating checkbox over the top-right corner of the canvas.
+        Parented to mainWindow so it receives events independently of the canvas."""
+        main_win = self.iface.mainWindow()
+        frame = QFrame(main_win)
+        frame.setStyleSheet(
+            "QFrame { background: rgba(255,255,255,200); border-radius:4px; padding:2px; }"
+        )
+        layout = QHBoxLayout(frame)
+        layout.setContentsMargins(6, 2, 6, 2)
+        cb = QCheckBox(self._gridLabel())
+        cb.setChecked(self._showGrid)
+        cb.toggled.connect(self._onGridToggled)
+        layout.addWidget(cb)
+        frame.adjustSize()
+        self._gridOverlayCb = cb
+        self._gridOverlayWidget = frame
+        self._repositionOverlay()
+        frame.show()
+        frame.raise_()
+        main_win.installEventFilter(self)
+
+    def _repositionOverlay(self):
+        """Place the overlay at the top-right of the map canvas."""
+        if self._gridOverlayWidget is None:
+            return
+        canvas = self.iface.mapCanvas()
+        main_win = self.iface.mainWindow()
+        margin = 10
+        top_right = canvas.mapTo(main_win, QPoint(canvas.width(), 0))
+        w = self._gridOverlayWidget.width()
+        self._gridOverlayWidget.move(top_right.x() - w - margin, top_right.y() + 40)
+
+    def eventFilter(self, obj, event):
+        """Reposition the overlay when the main window is resized."""
+        if obj is self.iface.mainWindow() and event.type() == QEvent.Resize:
+            self._repositionOverlay()
+        return False
+
+    def _gridLabel(self):
+        if self._showGrid:
+            return self.tr("Hide complementary grid")
+        return self.tr("Show complementary grid")
+
+    def _onGridToggled(self, checked):
+        """Toggle grid on/off and persist the choice."""
+        self._showGrid = checked
+        QSettings().setValue("QGISRed/showGrid", checked)
+        if self._gridOverlayCb is not None:
+            self._gridOverlayCb.setText(self._gridLabel())
+            self._gridOverlayWidget.adjustSize()
+            self._repositionOverlay()
+        if checked:
+            self._updateGrid()
+            self.iface.mapCanvas().extentsChanged.connect(self._updateGrid)
+        else:
+            try:
+                self.iface.mapCanvas().extentsChanged.disconnect(self._updateGrid)
+            except Exception:
+                pass
+            self._clearGrid()
+
     """Events"""
 
     def canvasPressEvent(self, event):
@@ -227,7 +301,7 @@ class QGISRedCreateLineTool(QgsMapTool):
                     if self.SNAP_TO_SEGMENTS:
                         self.firstSnapped = True
                     point = self.objectSnapped.point()
-                elif self.SHOW_GRID and self._gridSpacing > 0:
+                elif self._showGrid and self._gridSpacing > 0:
                     point = self._snapToGrid(point)
                 self.mousePoints.append(point)
                 self.mousePoints.append(point)
@@ -268,7 +342,7 @@ class QGISRedCreateLineTool(QgsMapTool):
                 self.objectSnapped = match
                 self.startMarker.setCenter(QgsPointXY(match.point().x(), match.point().y()))
                 self.startMarker.show()
-            elif self.SHOW_GRID and self._gridSpacing > 0:
+            elif self._showGrid and self._gridSpacing > 0:
                 self.objectSnapped = None
                 gridPt = self._snapToGrid(self.toMapCoordinates(event.pos()))
                 self.startMarker.setCenter(gridPt)
@@ -289,7 +363,7 @@ class QGISRedCreateLineTool(QgsMapTool):
                 self.mousePoints[-1] = match.point()
             else:
                 self.objectSnapped = None
-                if self.SHOW_GRID and self._gridSpacing > 0:
+                if self._showGrid and self._gridSpacing > 0:
                     point = self._snapToGrid(point)
                     self.endMarker.setCenter(point)
                     self.endMarker.show()
