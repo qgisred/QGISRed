@@ -184,6 +184,9 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         # radio criteria mode
         self.radioMultipleCriteria.toggled.connect(self.toggleMultipleCriteria)
 
+        # update submit state as user types in value field
+        self.cbValue.textChanged.connect(lambda: self.updateButtonsState())
+
         # export
         self.btExport.clicked.connect(self.exportCriteria)
         self.btExcel.clicked.connect(self.exportStatistics)
@@ -194,11 +197,52 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.updateButtonsState()
 
     def toggleMultipleCriteria(self, visible):
+        if visible:
+            # Single → Multiple: auto-add current fields as first criterion
+            prop = self.cbProperty.currentText()
+            cond = self.cbCondition.currentText()
+            val_txt = self.cbValue.value()
+            if prop and cond and val_txt:
+                crit = {
+                    'property': prop,
+                    'condition': cond,
+                    'value': self.parseValue(val_txt),
+                    'operator': '+',
+                    'enabled': True
+                }
+                self.criteria.insert(0, crit)
+                self.reloadCriteriaTable()
+        else:
+            # Multiple → Single: confirm if losing criteria
+            if len(self.criteria) > 1:
+                reply = QMessageBox.question(
+                    self,
+                    self.tr("Switch to Single Criteria"),
+                    self.tr("Switching to single criteria will discard all criteria except the first one. Proceed?"),
+                    QMessageBox.Ok | QMessageBox.Cancel,
+                    QMessageBox.Cancel
+                )
+                if reply == QMessageBox.Cancel:
+                    # revert to multiple without re-triggering this handler
+                    self.radioMultipleCriteria.blockSignals(True)
+                    self.radioMultipleCriteria.setChecked(True)
+                    self.radioMultipleCriteria.blockSignals(False)
+                    return
+            # Populate single fields from first criterion if available
+            if self.criteria:
+                first = self.criteria[0]
+                self.cbProperty.setCurrentText(first['property'])
+                self.cbCondition.setCurrentText(first['condition'])
+                self.cbValue.setValue(str(first['value']))
+                self.criteria = []
+                self.reloadCriteriaTable()
+
         self.frameMultipleCriteria.setVisible(visible)
         for radio in (self.radioSingleCriteria, self.radioMultipleCriteria):
             f = radio.font()
             f.setBold(radio.isChecked())
             radio.setFont(f)
+        self.updateButtonsState()
 
     def onStatisticsForChanged(self):
         if self.cbStatisticsFor.isEnabled():
@@ -238,15 +282,20 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         return ident.startswith("qgisred_node") or ident.startswith("qgisred_link")
 
     def updateButtonsState(self):
-        has = len(self.criteria) > 0
-        sel = self.tableWidgetCriteria.currentRow() >= 0
-        self.btSubtract.setEnabled(has)
-        self.btReplace.setEnabled(has and sel)
-        self.btClear.setEnabled(has)
-        self.btSubmit.setEnabled(has)
-        # Results layers don't lock the element type selector
-        self.cbElementType.setEnabled(not has or self.isResultsMode)
-        self.cbStatisticsFor.setEnabled(has)
+        isMultiple = self.radioMultipleCriteria.isChecked()
+        if isMultiple:
+            has = len(self.criteria) > 0
+            sel = self.tableWidgetCriteria.currentRow() >= 0
+            self.btSubtract.setEnabled(has)
+            self.btReplace.setEnabled(has and sel)
+            self.btClear.setEnabled(has)
+            self.btSubmit.setEnabled(has)
+            self.cbElementType.setEnabled(not has or self.isResultsMode)
+        else:
+            hasValue = bool(self.cbValue.value())
+            self.btSubmit.setEnabled(hasValue)
+            self.cbElementType.setEnabled(True)
+        self.cbStatisticsFor.setEnabled(self.btSubmit.isEnabled())
 
     def moveCriterionUp(self):
         row = self.tableWidgetCriteria.currentRow()
@@ -516,6 +565,19 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.calculateStatistics()
 
     def effectiveCriteria(self):
+        if self.radioSingleCriteria.isChecked():
+            prop = self.cbProperty.currentText()
+            cond = self.cbCondition.currentText()
+            val_txt = self.cbValue.value()
+            if not prop or not cond or not val_txt:
+                return []
+            return [{
+                'property': prop,
+                'condition': cond,
+                'value': self.parseValue(val_txt),
+                'operator': '+',
+                'enabled': True
+            }]
         return self.criteria
 
     def calculateStatistics(self):
