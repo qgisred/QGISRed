@@ -128,7 +128,10 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
                 self.tableWidgetStatistics.horizontalHeader().setSectionResizeMode(
                     i, QHeaderView.Stretch
                 )
-
+        # Cap table height to ~4 rows
+        rowH = self.tableWidgetStatistics.verticalHeader().defaultSectionSize()
+        headerH = self.tableWidgetStatistics.horizontalHeader().height()
+        self.tableWidgetStatistics.setMaximumHeight(headerH + rowH * 4 + 2)
 
         self.criteria = []
         self.currentlyReplacingIndex = None
@@ -656,7 +659,11 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             maxValue = max(values) if count else None
             return count, totalValue, averageValue, minValue, maxValue
 
-        statsResults = [computeMetrics(vals) for vals in statsPerCriterion]
+        # In single mode, only show the combined "All" row
+        if self.radioSingleCriteria.isChecked():
+            statsResults = [computeMetrics(statsPerCriterion[-1])]
+        else:
+            statsResults = [computeMetrics(vals) for vals in statsPerCriterion]
 
         # Populate the table
         statisticsTable = self.tableWidgetStatistics
