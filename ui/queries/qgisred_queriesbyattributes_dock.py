@@ -128,10 +128,10 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
                 self.tableWidgetStatistics.horizontalHeader().setSectionResizeMode(
                     i, QHeaderView.Stretch
                 )
-        # Cap table height to ~4 rows
+        # Start empty state at half default height; grows to fit content later
         rowH = self.tableWidgetStatistics.verticalHeader().defaultSectionSize()
         headerH = self.tableWidgetStatistics.horizontalHeader().height()
-        self.tableWidgetStatistics.setMaximumHeight(headerH + rowH * 4 + 2)
+        self.tableWidgetStatistics.setFixedHeight((headerH + rowH * 2) // 2)
 
         self.criteria = []
         self.currentlyReplacingIndex = None
@@ -687,6 +687,13 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
                 item.setBackground(QColor(Qt.yellow))
         statisticsTable.verticalHeaderItem(lastRow).setBackground(QColor(Qt.yellow))
 
+        # Resize table to fit rows (up to 4-row cap)
+        rowH = statisticsTable.verticalHeader().defaultSectionSize()
+        headerH = statisticsTable.horizontalHeader().height()
+        maxH = headerH + rowH * 4 + 2
+        needed = headerH + rowH * len(statsResults) + 2
+        statisticsTable.setFixedHeight(min(needed, maxH))
+        statisticsTable.scrollToBottom()
 
     def toggleEditCriterion(self):
         """Switch in and out of edit‐mode on the selected row."""
