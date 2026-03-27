@@ -1,3 +1,4 @@
+import math
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 from qgis.core import QgsPointXY, QgsPoint, QgsGeometry, QgsProject, QgsSnappingConfig, QgsTolerance, Qgis
@@ -15,16 +16,18 @@ class QGISRedCreateLineTool(QgsMapTool):
     """Base class for line-drawing map tools (pipes, connections).
 
     Subclasses override class attributes to customize visual and snapping behavior:
-      MARKER_ICON     — QgsVertexMarker icon type
-      MARKER_SIZE     — icon size in pixels
-      SNAP_TYPE       — 1=Vertex, 3=Segment
+      MARKER_ICON      — QgsVertexMarker icon type
+      MARKER_SIZE      — icon size in pixels
+      SNAP_TYPE        — 1=Vertex, 3=Segment
       SNAP_TO_SEGMENTS — True enables firstSnapped logic and double-click to finish
+      SHOW_GRID        — True draws an adaptive grid overlay and snaps to it
     """
 
     MARKER_ICON = QgsVertexMarker.ICON_BOX
     MARKER_SIZE = 15
-    SNAP_TYPE = 1       # Vertex
+    SNAP_TYPE = 1        # Vertex
     SNAP_TO_SEGMENTS = False
+    SHOW_GRID = False
 
     def __init__(self, button, iface, projectDirectory, netwName, method):
         QgsMapTool.__init__(self, iface.mapCanvas())
@@ -51,6 +54,8 @@ class QGISRedCreateLineTool(QgsMapTool):
         self.snapper = None
         self.rubberBand1 = None
         self.rubberBand2 = None
+        self._gridRubberBand = None
+        self._gridSpacing = 0.0
         self.resetProperties()
 
     def activate(self):
@@ -67,7 +72,17 @@ class QGISRedCreateLineTool(QgsMapTool):
         config.setEnabled(True)
         self.snapper.setConfig(config)
 
+        if self.SHOW_GRID:
+            self._updateGrid()
+            self.iface.mapCanvas().extentsChanged.connect(self._updateGrid)
+
     def deactivate(self):
+        if self.SHOW_GRID:
+            try:
+                self.iface.mapCanvas().extentsChanged.disconnect(self._updateGrid)
+            except Exception:
+                pass
+        self._clearGrid()
         self.resetProperties()
         QgsMapTool.deactivate(self)
 
@@ -128,6 +143,79 @@ class QGISRedCreateLineTool(QgsMapTool):
         self.rubberBand2.setWidth(1)
         self.rubberBand2.setLineStyle(Qt.DashLine)
 
+    """Grid"""
+
+    def _calcGridSpacing(self):
+        """Return a 'nice' grid spacing (~15 columns across the visible extent)."""
+        width = self.iface.mapCanvas().extent().width()
+        if width <= 0:
+            return 1.0
+        raw = width / 15.0
+        exp = math.floor(math.log10(raw))
+        base = raw / (10 ** exp)
+        if base < 1.5:
+            nice = 1
+        elif base < 3.5:
+            nice = 2
+        else:
+            nice = 5
+        return nice * (10 ** exp)
+
+    def _clearGrid(self):
+        if self._gridRubberBand is not None:
+            self.iface.mapCanvas().scene().removeItem(self._gridRubberBand)
+            self._gridRubberBand = None
+
+    def _updateGrid(self):
+        """Redraw the grid overlay to match the current canvas extent."""
+        self._clearGrid()
+        self._gridSpacing = self._calcGridSpacing()
+        s = self._gridSpacing
+        extent = self.iface.mapCanvas().extent()
+
+        # First grid coordinate >= xmin / ymin
+        import math as _math
+        x0 = _math.ceil(extent.xMinimum() / s) * s
+        y0 = _math.ceil(extent.yMinimum() / s) * s
+
+        xs = []
+        x = x0
+        while x <= extent.xMaximum():
+            xs.append(x)
+            x += s
+        ys = []
+        y = y0
+        while y <= extent.yMaximum():
+            ys.append(y)
+            y += s
+
+        # Safety cap: max 50×50 = 2500 points
+        if len(xs) > 50:
+            xs = xs[:50]
+        if len(ys) > 50:
+            ys = ys[:50]
+
+        if not xs or not ys:
+            return
+
+        # Build multipoint geometry
+        pts = [QgsPointXY(x, y) for x in xs for y in ys]
+        geom = QgsGeometry.fromMultiPointXY(pts)
+
+        try:
+            self._gridRubberBand = QgsRubberBand(self.iface.mapCanvas(), Qgis.GeometryType.Point)
+        except:
+            self._gridRubberBand = QgsRubberBand(self.iface.mapCanvas(), True)
+        self._gridRubberBand.setToGeometry(geom, None)
+        self._gridRubberBand.setColor(QColor(100, 100, 200, 100))
+        self._gridRubberBand.setIcon(QgsRubberBand.ICON_CROSS)
+        self._gridRubberBand.setIconSize(4)
+
+    def _snapToGrid(self, point):
+        """Round a QgsPointXY to the nearest grid intersection."""
+        s = self._gridSpacing
+        return QgsPointXY(round(point.x() / s) * s, round(point.y() / s) * s)
+
     """Events"""
 
     def canvasPressEvent(self, event):
@@ -139,6 +227,8 @@ class QGISRedCreateLineTool(QgsMapTool):
                     if self.SNAP_TO_SEGMENTS:
                         self.firstSnapped = True
                     point = self.objectSnapped.point()
+                elif self.SHOW_GRID and self._gridSpacing > 0:
+                    point = self._snapToGrid(point)
                 self.mousePoints.append(point)
                 self.mousePoints.append(point)
             else:
@@ -178,6 +268,11 @@ class QGISRedCreateLineTool(QgsMapTool):
                 self.objectSnapped = match
                 self.startMarker.setCenter(QgsPointXY(match.point().x(), match.point().y()))
                 self.startMarker.show()
+            elif self.SHOW_GRID and self._gridSpacing > 0:
+                self.objectSnapped = None
+                gridPt = self._snapToGrid(self.toMapCoordinates(event.pos()))
+                self.startMarker.setCenter(gridPt)
+                self.startMarker.show()
             else:
                 self.objectSnapped = None
                 self.startMarker.hide()
@@ -194,6 +289,11 @@ class QGISRedCreateLineTool(QgsMapTool):
                 self.mousePoints[-1] = match.point()
             else:
                 self.objectSnapped = None
-                self.endMarker.hide()
+                if self.SHOW_GRID and self._gridSpacing > 0:
+                    point = self._snapToGrid(point)
+                    self.endMarker.setCenter(point)
+                    self.endMarker.show()
+                else:
+                    self.endMarker.hide()
                 self.mousePoints[-1] = point
             self.createRubberBand(self.mousePoints)
