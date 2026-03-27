@@ -675,6 +675,8 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
                 cellText = f"{value:.2f}" if isinstance(value, float) else str(value)
                 tableItem = QTableWidgetItem(cellText)
                 tableItem.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                if colIndex == 0:  # Count column
+                    tableItem.setBackground(QColor("#d0e8ff"))
                 statisticsTable.setItem(rowIndex, colIndex, tableItem)
 
             rowLabel = "All" if rowIndex == len(statsResults) - 1 else f"Cr{rowIndex+1}"
@@ -684,8 +686,8 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         for col in range(statisticsTable.columnCount()):
             item = statisticsTable.item(lastRow, col)
             if item:
-                item.setBackground(QColor(Qt.yellow))
-        statisticsTable.verticalHeaderItem(lastRow).setBackground(QColor(Qt.yellow))
+                item.setBackground(QColor("#ffd700") if col == 0 else QColor("#fff8dc"))
+        statisticsTable.verticalHeaderItem(lastRow).setBackground(QColor("#ffd700"))
 
         # Resize table to fit rows (up to 4-row cap)
         rowH = statisticsTable.verticalHeader().defaultSectionSize()
