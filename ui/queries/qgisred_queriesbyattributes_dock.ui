@@ -127,7 +127,7 @@
             <item>
              <widget class="QRadioButton" name="radioMultipleCriteria">
               <property name="text">
-               <string>Multiple Criterion</string>
+               <string>Multiple Criteria</string>
               </property>
              </widget>
             </item>
