@@ -308,7 +308,7 @@ class ToolsSection:
 
     def runTreeProcess(self):
         # Process
-        treeFolder = os.path.join(self.ProjectDirectory, "Trees")
+        treeFolder = os.path.join(self.ProjectDirectory, "Queries")
         try:  # create directory if does not exist
             os.stat(treeFolder)
         except Exception:
@@ -338,7 +338,7 @@ class ToolsSection:
     def openTreeLayers(self):
         # Open layers
         treeGroup = self.getTreeGroup()
-        treeFolder = os.path.join(self.ProjectDirectory, "Trees")
+        treeFolder = os.path.join(self.ProjectDirectory, "Queries")
         utils = QGISRedLayerUtils(treeFolder, self.NetworkName, self.iface)
         utils.openTreeLayer(treeGroup, "Links", self.treeName, link=True)
         utils.openTreeLayer(treeGroup, "Nodes", self.treeName)
@@ -351,7 +351,7 @@ class ToolsSection:
         return utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Tree: " + self.treeName])
 
     def removeTreeLayers(self):
-        treePath = os.path.join(self.ProjectDirectory, "Trees")
+        treePath = os.path.join(self.ProjectDirectory, "Queries")
         utils = QGISRedLayerUtils(treePath, self.NetworkName, self.iface)
         utils.removeLayers(["Links_Tree_" + self.treeName, "Nodes_Tree_" + self.treeName])
         self.removeEmptyQuerySubGroup("Tree")
