@@ -13,6 +13,7 @@ from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool
 from ..ui.analysis.qgisred_results_dock import QGISRedResultsDock
 from ..ui.analysis.qgisred_timeseries_dock import QGISRedTimeSeriesDock
+from ..ui.analysis.qgisred_results_data import export_results_to_csv
 
 
 class AnalysisSection:
@@ -155,6 +156,28 @@ class AnalysisSection:
             )
         elif not resMessage == "Cancelled":
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+
+    def runExportResultsToCsv(self):
+        if not self.checkDependencies():
+            return
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        scenario = getattr(self.ResultDockwidget, 'Scenario', 'Base') if self.ResultDockwidget else 'Base'
+        if not os.path.exists(self._outFilePath()):
+            self.iface.messageBar().pushMessage(
+                self.tr("Warning"), self.tr("No simulation results found"), level=1, duration=5
+            )
+            return
+
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        try:
+            export_results_to_csv(self.ProjectDirectory, self.NetworkName, scenario, self.iface, self.tr("Permanent"))
+        finally:
+            QApplication.restoreOverrideCursor()
 
     def runTimeSeries(self):
         if self.timeSeriesButton.isChecked():

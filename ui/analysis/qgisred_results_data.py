@@ -20,6 +20,104 @@ def seconds_to_time_str(seconds):
     return f"{d:02d}d {h:02d}:{m:02d}:{s:02d}"
 
 
+def _get_regional_separators():
+    """Return (list_separator, decimal_separator) from Windows regional settings, with fallback."""
+    list_sep = ","
+    decimal_sep = "."
+    try:
+        import winreg
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Control Panel\International")
+        list_sep = winreg.QueryValueEx(key, "sList")[0] or list_sep
+        decimal_sep = winreg.QueryValueEx(key, "sDecimal")[0] or decimal_sep
+        winreg.CloseKey(key)
+    except Exception:
+        import locale
+        decimal_sep = locale.localeconv().get("decimal_point", ".") or "."
+    return list_sep, decimal_sep
+
+
+def export_results_to_csv(project_directory, network_name, scenario, iface, lbl_permanent="Permanent"):
+    """Export all simulation time steps to two CSV files (Nodes and Links) in the Results folder."""
+    import csv
+
+    list_sep, decimal_sep = _get_regional_separators()
+
+    def _fmt(value):
+        if value is None or value == "":
+            return ""
+        if isinstance(value, float):
+            return str(value).replace(".", decimal_sep)
+        return value
+
+    results_path = os.path.join(project_directory, "Results")
+    binary_path = os.path.join(results_path, network_name + "_" + scenario + ".out")
+    if not os.path.exists(binary_path):
+        return
+
+    with open(binary_path, 'rb') as f:
+        meta = getOut_Metadata(f, include_lengths=False)
+    if not meta:
+        return
+
+    num_periods = meta["num_periods"]
+    report_start = meta["report_start"]
+    report_step = meta["report_step"]
+    node_ids = meta["node_ids"]
+    link_ids = meta["link_ids"]
+    node_types = meta["node_types"]
+    link_types = meta["link_types"]
+
+    node_type_names = {0: "Junction", 1: "Reservoir", 2: "Tank"}
+    link_type_names = {0: "Pipe", 1: "Pipe", 2: "Pump", 3: "Valve", 4: "Valve", 5: "Valve", 6: "Valve", 7: "Valve", 8: "Valve"}
+
+    node_rows = []
+    link_rows = []
+    node_props_keys = None
+    link_props_keys = None
+
+    for i in range(max(num_periods, 1)):
+        time_secs = report_start + i * report_step
+        time_str = seconds_to_time_str(time_secs) if num_periods > 1 else lbl_permanent
+
+        node_data = getOut_TimeNodesProperties(binary_path, time_secs)
+        link_data = getOut_TimeLinksProperties(binary_path, time_secs)
+
+        if node_props_keys is None and node_data:
+            node_props_keys = list(next(iter(node_data.values())).keys())
+        if link_props_keys is None and link_data:
+            link_props_keys = list(next(iter(link_data.values())).keys())
+
+        for j, nid in enumerate(node_ids):
+            props = node_data.get(nid, {})
+            row = [nid, node_type_names.get(node_types[j], ""), time_str]
+            row += [_fmt(props.get(k)) for k in (node_props_keys or [])]
+            node_rows.append(row)
+
+        for j, lid in enumerate(link_ids):
+            props = link_data.get(lid, {})
+            row = [lid, link_type_names.get(link_types[j], ""), time_str]
+            row += [_fmt(props.get(k)) for k in (link_props_keys or [])]
+            link_rows.append(row)
+
+    nodes_csv = os.path.join(results_path, network_name + "_" + scenario + "_Nodes.csv")
+    with open(nodes_csv, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f, delimiter=list_sep)
+        writer.writerow(["Id", "Type", "Time"] + (node_props_keys or []))
+        writer.writerows(node_rows)
+
+    links_csv = os.path.join(results_path, network_name + "_" + scenario + "_Links.csv")
+    with open(links_csv, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f, delimiter=list_sep)
+        writer.writerow(["Id", "Type", "Time"] + (link_props_keys or []))
+        writer.writerows(link_rows)
+
+    iface.messageBar().pushMessage(
+        "Information",
+        "Results exported to CSV in the Results folder",
+        level=3, duration=5
+    )
+
+
 class _ResultsDataMixin:
     """Mixin for QGISRedResultsDock: loading and populating result data from the .out binary file."""
 
@@ -203,3 +301,11 @@ class _ResultsDataMixin:
 
             # Apply visibility AFTER populating
             self.updateFieldsVisibility(target_layer, layerName, stats_mode=True, stat=stat_label)
+
+    def exportResultsToCsv(self):
+        """Export all simulation time steps to two CSV files (Nodes and Links) in the Results folder."""
+        scenario = getattr(self, 'Scenario', 'Base')
+        lbl_permanent = getattr(self, 'lbl_permanent', 'Permanent')
+        export_results_to_csv(
+            self.ProjectDirectory, self.NetworkName, scenario, self.iface, lbl_permanent
+        )

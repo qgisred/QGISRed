@@ -779,6 +779,15 @@ class MenuSection:
         self.add_to_group(action, self.analysisMenu, self.analysisToolbar)
         self.add_to_dropdown(action, analysisDropButton)
 
+        action = self._make_action(
+            ":/images/iconExportResultsToCsv.svg",
+            self.tr("Export Results to CSV"),
+            self.runExportResultsToCsv,
+            parent=self.iface.mainWindow(),
+        )
+        self.add_to_group(action, self.analysisMenu, self.analysisToolbar)
+        self.add_to_dropdown(action, analysisDropButton)
+
     def addDigitalTwinMenu(self):
         #    #Menu
         self.dtMenu = self.qgisredmenu.addMenu(self.tr("Digital Twin"))
