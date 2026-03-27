@@ -140,6 +140,9 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.setupButtonIcons()
         self.mGroupBox.setCollapsed(False)
         self.frameMultipleCriteria.setVisible(False)
+        f = self.radioSingleCriteria.font()
+        f.setBold(True)
+        self.radioSingleCriteria.setFont(f)
 
 
     def setupButtonIcons(self): #TODO rename to QGISRed folder instead of BID on deploy
@@ -192,6 +195,10 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
 
     def toggleMultipleCriteria(self, visible):
         self.frameMultipleCriteria.setVisible(visible)
+        for radio in (self.radioSingleCriteria, self.radioMultipleCriteria):
+            f = radio.font()
+            f.setBold(radio.isChecked())
+            radio.setFont(f)
 
     def onStatisticsForChanged(self):
         if self.cbStatisticsFor.isEnabled():
