@@ -4,104 +4,114 @@
 <context>
     <name>AnalysisSection</name>
     <message>
-        <location filename="../sections/analysis_section.py" line="348"/>
+        <location filename="../sections/analysis_section.py" line="390"/>
         <source>Time Series</source>
         <translation>Curvas de Evolución</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="348"/>
+        <location filename="../sections/analysis_section.py" line="390"/>
         <source>Results file not found. Please run the model.</source>
         <translation>Archivo de resultados no encontrado. Por favor, ejecute el modelo.</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="376"/>
+        <location filename="../sections/analysis_section.py" line="418"/>
         <source>Junction</source>
         <translation>Unión</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="377"/>
+        <location filename="../sections/analysis_section.py" line="419"/>
         <source>Tank</source>
         <translation>Depósito</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="378"/>
+        <location filename="../sections/analysis_section.py" line="420"/>
         <source>Reservoir</source>
         <translation>Embalse</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="379"/>
+        <location filename="../sections/analysis_section.py" line="421"/>
         <source>Pipe</source>
         <translation>Tubería</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="380"/>
+        <location filename="../sections/analysis_section.py" line="422"/>
         <source>Valve</source>
         <translation>Válvula</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="381"/>
+        <location filename="../sections/analysis_section.py" line="423"/>
         <source>Pump</source>
         <translation>Bomba</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="403"/>
+        <location filename="../sections/analysis_section.py" line="445"/>
         <source>Closed</source>
         <translation>Cerrada</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="403"/>
+        <location filename="../sections/analysis_section.py" line="445"/>
         <source>Active</source>
         <translation>Activa</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="403"/>
+        <location filename="../sections/analysis_section.py" line="445"/>
         <source>Open</source>
         <translation>Abierta</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="409"/>
+        <location filename="../sections/analysis_section.py" line="451"/>
         <source>Time</source>
         <translation>Instante</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="137"/>
+        <location filename="../sections/analysis_section.py" line="171"/>
         <source>Warning</source>
         <translation>Advertencia</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="137"/>
+        <location filename="../sections/analysis_section.py" line="154"/>
         <source>Some issues occurred in the process</source>
         <translation>Ha habido algún error en el proceso</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="141"/>
+        <location filename="../sections/analysis_section.py" line="158"/>
         <source>Error</source>
         <translation>Error</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="133"/>
+        <location filename="../sections/analysis_section.py" line="150"/>
         <source>Information</source>
         <translation>Información</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="133"/>
+        <location filename="../sections/analysis_section.py" line="150"/>
         <source>INP file successfully exported</source>
         <translation>INP exportado exitósamente</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="148"/>
+        <location filename="../sections/analysis_section.py" line="187"/>
         <source>Necessary to have a valid project and no layer on edition.</source>
         <translation>Es necesario tener un proyecto válido y ninguna capa en edición.</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="167"/>
+        <location filename="../sections/analysis_section.py" line="209"/>
         <source>It is necessary to simulate first.</source>
         <translation>Es necesario simular antes.</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="234"/>
+        <location filename="../sections/analysis_section.py" line="276"/>
         <source>No network element found at this location.</source>
         <translation>No se ha encontrado ningún elemento de la red en esta ubicación.</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="171"/>
+        <source>No simulation results found</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="178"/>
+        <source>Permanent</source>
+        <translation type="unfinished">Permanente</translation>
     </message>
 </context>
 <context>
@@ -521,7 +531,7 @@
         <translation>Máscara de ID de elemento</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="215"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="274"/>
         <source>Clear</source>
         <translation>Limpiar</translation>
     </message>
@@ -573,10 +583,10 @@
     <message>
         <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="110"/>
         <source>Criterion</source>
-        <translation>Criterio</translation>
+        <translation type="obsolete">Criterio</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="123"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="165"/>
         <source>Condition</source>
         <translation>Condición</translation>
     </message>
@@ -586,32 +596,32 @@
         <translation>Propiedad</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="143"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="175"/>
         <source>Value</source>
         <translation>Valor</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="176"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="235"/>
         <source>Add</source>
         <translation>Añadir</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="189"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="248"/>
         <source>Subtract</source>
         <translation>Restar</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="202"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="261"/>
         <source>Replace</source>
         <translation>Reemplazar</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="230"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="289"/>
         <source>Set of criteria</source>
         <translation>Conjunto de criterios</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="353"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="417"/>
         <source>Submit</source>
         <translation>Ejecutar</translation>
     </message>
@@ -679,6 +689,16 @@
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.ui" line="376"/>
         <source>Property (by Classes)</source>
         <translation>Propiedad (por Clases)</translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="114"/>
+        <source>One Criterion</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="124"/>
+        <source>Multiple Criterion</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -990,12 +1010,12 @@
 <context>
     <name>LayerManagementSection</name>
     <message>
-        <location filename="../sections/layer_management_section.py" line="251"/>
+        <location filename="../sections/layer_management_section.py" line="269"/>
         <source>Information</source>
         <translation>Información</translation>
     </message>
     <message>
-        <location filename="../sections/layer_management_section.py" line="306"/>
+        <location filename="../sections/layer_management_section.py" line="340"/>
         <source>Error</source>
         <translation>Error</translation>
     </message>
@@ -1417,148 +1437,153 @@
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="773"/>
-        <source>Export to Epanet</source>
-        <translation>Exportar a EPANET</translation>
+        <source>Export Model to Epanet</source>
+        <translation>Exportar Modelo a EPANET</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="793"/>
+        <location filename="../sections/menu_section.py" line="802"/>
         <source>Digital Twin</source>
         <translation>Gemelo Digital</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="788"/>
+        <location filename="../sections/menu_section.py" line="797"/>
         <source>QGISRed Digital Twin</source>
         <translation>Gemelo Digital de QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="803"/>
+        <location filename="../sections/menu_section.py" line="812"/>
         <source>Add service connection</source>
         <translation>Añadir acometida</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="813"/>
+        <location filename="../sections/menu_section.py" line="822"/>
         <source>Add isolation valve</source>
         <translation>Añadir válvula de seccionamiento</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="828"/>
+        <location filename="../sections/menu_section.py" line="837"/>
         <source>Add Meter</source>
         <translation>Añadir Medidor</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="834"/>
+        <location filename="../sections/menu_section.py" line="843"/>
         <source>Add meter</source>
         <translation>Añadir medidor</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="843"/>
+        <location filename="../sections/menu_section.py" line="852"/>
         <source>Add automatic meter</source>
         <translation>Añadir medidor automático</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="854"/>
+        <location filename="../sections/menu_section.py" line="863"/>
         <source>Add manometer</source>
         <translation>Añadir manómetro</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="864"/>
+        <location filename="../sections/menu_section.py" line="873"/>
         <source>Add flowmeter</source>
         <translation>Añadir caudalímetro</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="874"/>
+        <location filename="../sections/menu_section.py" line="883"/>
         <source>Add countermeter</source>
         <translation>Añadir contador</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="884"/>
+        <location filename="../sections/menu_section.py" line="893"/>
         <source>Add level sensor</source>
         <translation>Añadir sensor de nivel</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="894"/>
+        <location filename="../sections/menu_section.py" line="903"/>
         <source>Add differential manometer</source>
         <translation>Añadir manómetro diferencial</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="904"/>
+        <location filename="../sections/menu_section.py" line="913"/>
         <source>Add quality sensor</source>
         <translation>Añadir sensor de calidad</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="914"/>
+        <location filename="../sections/menu_section.py" line="923"/>
         <source>Add energy sensor</source>
         <translation>Añadir sensor de energía</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="924"/>
+        <location filename="../sections/menu_section.py" line="933"/>
         <source>Add status sensor</source>
         <translation>Añadir sensor de estado</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="934"/>
+        <location filename="../sections/menu_section.py" line="943"/>
         <source>Add valve opening</source>
         <translation>Añadir abridor de válvula</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="944"/>
+        <location filename="../sections/menu_section.py" line="953"/>
         <source>Add tachometer</source>
         <translation>Añadir tacómetro</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="974"/>
+        <location filename="../sections/menu_section.py" line="983"/>
         <source>Load meter readings...</source>
         <translation>Cargar lecturas de medidor...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="983"/>
+        <location filename="../sections/menu_section.py" line="992"/>
         <source>Set pipe&apos;s initial status from isolation valves</source>
         <translation>Establecer estado inicial de tuberías desde válvulas de seccionamiento</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="992"/>
+        <location filename="../sections/menu_section.py" line="1001"/>
         <source>Load field data...</source>
         <translation>Cargar datos de campo...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1005"/>
+        <location filename="../sections/menu_section.py" line="1014"/>
         <source>Convert service connections into pipes/nodes</source>
         <translation>Convertir acometidas en tuberías/nudos</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1025"/>
+        <location filename="../sections/menu_section.py" line="1034"/>
         <source>Queries</source>
         <translation>Consultas</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1020"/>
+        <location filename="../sections/menu_section.py" line="1029"/>
         <source>QGISRed Queries</source>
         <translation>Consultas de QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1035"/>
+        <location filename="../sections/menu_section.py" line="1044"/>
         <source>Find Elements by ID...</source>
         <translation>Encontrar elementos por Id...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1045"/>
+        <location filename="../sections/menu_section.py" line="1054"/>
         <source>Element Properties...</source>
         <translation>Propiedades de los elementos...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1055"/>
+        <location filename="../sections/menu_section.py" line="1064"/>
         <source>Thematic Maps...</source>
         <translation>Mapas temáticos...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1064"/>
+        <location filename="../sections/menu_section.py" line="1073"/>
         <source>Queries by Attributes...</source>
         <translation>Consultas por atributos...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1073"/>
+        <location filename="../sections/menu_section.py" line="1082"/>
         <source>Statistics &amp;&amp; Plots...</source>
         <translation>Estadísticas y Gráficos...</translation>
+    </message>
+    <message>
+        <location filename="../sections/menu_section.py" line="782"/>
+        <source>Export Results to CSV</source>
+        <translation>Exportar Resultados a CSV</translation>
     </message>
 </context>
 <context>
@@ -2972,108 +2997,108 @@
 <context>
     <name>QGISRedLegendsDialog</name>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="253"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="258"/>
         <source>QGISRed: Legend Editor</source>
         <translation>QGISRed: Editor de Leyenda</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="260"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="265"/>
         <source>Color</source>
         <translation>Color</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="260"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="265"/>
         <source>Size</source>
         <translation>Tamaño</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="260"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="265"/>
         <source>Value</source>
         <translation>Valor</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1278"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1282"/>
         <source>Legend</source>
         <translation>Leyenda</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="306"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="310"/>
         <source>Classify All Unique Values</source>
         <translation>Clasificar todos los valores únicos</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="374"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="378"/>
         <source>Move selected class up</source>
         <translation>Mover la clase seleccionada arriba</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="375"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="379"/>
         <source>Move selected class down</source>
         <translation>Mover la clase seleccionada abajo</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="376"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="380"/>
         <source>Remove selected class(es)</source>
         <translation>Mover la/s clase/s seleccionada/s</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="377"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="381"/>
         <source>Add all unique values as separate classes</source>
         <translation>Añadir todos los valores únicos como clases separadas</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="380"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="384"/>
         <source>Refresh color ramp</source>
         <translation>Refrescar rampa de color</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="382"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="386"/>
         <source>Load default style for this layer</source>
         <translation>Cargar estilo por defecto para esta capa</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="383"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="387"/>
         <source>Load style from global database</source>
         <translation>Cargar estilo desde la base de datos globalThis
         </translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="384"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="388"/>
         <source>Save current style to global database</source>
         <translation>Guardar estilo actual en la base de datos global</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="385"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="389"/>
         <source>Load style from project database</source>
         <translation>Cargar estilo desde la base de datos del proyecto</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="386"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="390"/>
         <source>Save current style to project database</source>
         <translation>Guardar estilo actual en la base de datos del proyecto</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="387"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="391"/>
         <source>Apply changes to layer</source>
         <translation>Aplicar cambios a la capa</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="388"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="392"/>
         <source>Cancel and close dialog</source>
         <translation>Cancelar y cerrar diálogo</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="552"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="556"/>
         <source>Legend for</source>
         <translation>Leyenda para</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="665"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="669"/>
         <source>Too Many Classes</source>
         <translation>Demasiadas clases</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="665"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="669"/>
         <source>The field &apos;{field}&apos; has {uniqueCount} unique values.
 The maximum allowed is {self.MAX_CLASSES}.
 Please filter the data or choose a different field.</source>
@@ -3082,12 +3107,12 @@ El máximo permitido es {self.MAX_CLASSES}.
 Por favor, filtre los datos o elija un campo diferente.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="678"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="682"/>
         <source>High Class Count Warning</source>
         <translation>Advertencia de número grande de clases</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="678"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="682"/>
         <source>The field &apos;{field}&apos; has {uniqueCount} unique values.
 Creating a categorized legend with more than {self.WARN_CLASSES} classes may affect performance and readability.
 
@@ -3098,64 +3123,64 @@ Crear una leyenda categorizada con más de {self.WARN_CLASSES} clases puede afec
 ¿Desea continuar?</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1473"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1477"/>
         <source>Single Symbol</source>
         <translation>Símbolo único</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1467"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1471"/>
         <source>Categorized</source>
         <translation>Categorizado</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1471"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1475"/>
         <source>Graduated</source>
         <translation>Graduado</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3750"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3752"/>
         <source>Other Values</source>
         <translation>Otros valores</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1957"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1961"/>
         <source>Info</source>
         <translation>Información</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1957"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1961"/>
         <source>All values are already classified.</source>
         <translation>Todos los valores ya han sido clasificados.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="2030"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="2034"/>
         <source>Limit Exceeded</source>
         <translation>Límite superado</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1966"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1970"/>
         <source>Adding {uniqueCountToAdd} classes would result in {totalPotential} total classes,
 which exceeds the maximum limit of {self.MAX_CLASSES}.</source>
         <translation>Añadir {uniqueCountToAdd} clases resultaría en {totalPotential} clases totales,
 lo que supera el límite de {self.MAX_CLASSES}.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1983"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1987"/>
         <source>Adding classes...</source>
         <translation>Añadiendo clases...</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1983"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1987"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="2030"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="2034"/>
         <source>Maximum of {self.MAX_CLASSES} classes reached.</source>
         <translation>Máximo de {self.MAX_CLASSES} clases alcanzado.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3300"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3302"/>
         <source>Right-click: Add a new item above the current selection
 Left-click: Add a new item below the current selection
 Double-click: Add &quot;Other values&quot; option</source>
@@ -3164,7 +3189,7 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual
 Doble click: Añadir opción &quot;Otros valores&quot; option</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3308"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3310"/>
         <source>Right-click: Add a new item above the current selection
 Left-click: Add a new item below the current selection</source>
         <translation>Click derecho: Añadir un nuevo item encima de la selección actual
@@ -3416,17 +3441,17 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
 <context>
     <name>QGISRedQueriesByAttributesDock</name>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="183"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="215"/>
         <source>Nodes</source>
         <translation>Nudos</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="185"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="217"/>
         <source>Lines</source>
         <translation>Líneas</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="456"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="501"/>
         <source>Statistics of {property} for selected Elements</source>
         <translation>Estadísticas de {property} para los elementos seleccionados</translation>
     </message>
@@ -3490,264 +3515,269 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Resultados de la simulación de QGISRed</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="339"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="386"/>
         <source>|&lt;</source>
         <translation>|&lt;</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="365"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="412"/>
         <source>&lt;</source>
         <translation>&lt;</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="404"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="451"/>
         <source>&gt;</source>
         <translation>&gt;</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="430"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="477"/>
         <source>&gt;|</source>
         <translation>&gt;|</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="517"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="564"/>
         <source>Nodes</source>
         <translation>Nudos</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="563"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="610"/>
         <source>Links</source>
         <translation>Enlaces</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="452"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="499"/>
         <source>Result Times</source>
         <translation>Tiempos de resultado</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="479"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="526"/>
         <source>Statistics</source>
         <translation>Estadísticas</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="163"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="210"/>
         <source>00d 00:00:00</source>
         <translation>00d 00:00:00</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="546"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="593"/>
         <source>Show Node Labels</source>
         <translation>Mostrar Etiquetas de Nudos</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="592"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="639"/>
         <source>Show Link Labels</source>
         <translation>Mostrar Etiquetas de Líneas</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="611"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="658"/>
         <source>Show Flow Directions</source>
         <translation>Mostrar Direcciones de Flujo</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="314"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="376"/>
         <source>Results</source>
         <translation>Resultados</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="93"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="140"/>
         <source>Timing</source>
         <translation>Tiempos</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="503"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="550"/>
         <source>Mapping</source>
         <translation>Mapa</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="632"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="679"/>
         <source>Report</source>
         <translation>Informe</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="82"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="76"/>
         <source>None</source>
         <translation>Ninguna</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="83"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="77"/>
         <source>Maximum</source>
         <translation>Máximo</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="84"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="78"/>
         <source>Minimum</source>
         <translation>Mínimo</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="85"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="79"/>
         <source>Range</source>
         <translation>Rango</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="86"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="80"/>
         <source>Average</source>
         <translation>Promedio</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="87"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="81"/>
         <source>StdDev</source>
         <translation>Desviación típica</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="88"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="82"/>
         <source>Warning</source>
         <translation>Advertencia</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="89"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="83"/>
         <source>Permanent</source>
         <translation>Permanente</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="90"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="84"/>
         <source>Pressure</source>
         <translation>Presión</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="91"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="85"/>
         <source>Head</source>
         <translation>Carga</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="92"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="86"/>
         <source>Demand</source>
         <translation>Demanda</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="93"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="87"/>
         <source>Quality</source>
         <translation>Calidad</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="94"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="88"/>
         <source>Flow</source>
         <translation>Caudal</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="95"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="89"/>
         <source>Velocity</source>
         <translation>Velocidad</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="96"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="90"/>
         <source>HeadLoss</source>
         <translation>Pérdida de carga</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="97"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="91"/>
         <source>Unit HeadLoss</source>
         <translation>Pérdida de carga unitaria</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="98"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="92"/>
         <source>Friction Factor</source>
         <translation>Factor de Fricción</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="99"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="93"/>
         <source>Status</source>
         <translation>Estado</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="100"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="94"/>
         <source>Reaction Rate</source>
         <translation>Velocidad de Reacción</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="101"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="95"/>
         <source>Flow (Signed)</source>
         <translation>Caudal (con signo)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="102"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="96"/>
         <source>Flow (Unsigned)</source>
         <translation>Caudal (en valor absoluto)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="105"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="99"/>
         <source>Maximum values</source>
         <translation>Valores máximos</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="106"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="100"/>
         <source>Minimum values</source>
         <translation>Valores mínimos</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="107"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="101"/>
         <source>Range values</source>
         <translation>Range values</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="108"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="102"/>
         <source>Average values</source>
         <translation>Valores medios</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="109"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="103"/>
         <source>Standard deviation values</source>
         <translation>Desv. típica de valores</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="160"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="222"/>
         <source>Report times</source>
         <translation>Report times</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="204"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="266"/>
         <source>The current project has been changed. Please, try again.</source>
         <translation>Se ha hecho algún cambio en el proyecto actual. Por favor, inténtelo de nuevo.</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="314"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="376"/>
         <source>{} results not found</source>
         <translation>Resultados de {} no encontrados.</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="555"/>
         <source>Some issue occurred in the process of saving the style of the layer</source>
-        <translation>Ha habido algún problema en el proceso de guardar el estilo de la capa</translation>
+        <translation type="obsolete">Ha habido algún problema en el proceso de guardar el estilo de la capa</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="596"/>
         <source>Link {}</source>
-        <translation>{} - Líneas</translation>
+        <translation type="obsolete">{} - Líneas</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="601"/>
         <source>Node {}</source>
-        <translation>{} - Nudos</translation>
+        <translation type="obsolete">{} - Nudos</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="726"/>
         <source>Some issue occurred in the process of applying the style to the layer</source>
-        <translation>Ha habido algún problema en el proceso de aplicar el estilo a la capa</translation>
+        <translation type="obsolete">Ha habido algún problema en el proceso de aplicar el estilo a la capa</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="775"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="606"/>
         <source>for {}</source>
         <translation>para {}</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1008"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="808"/>
         <source>No {} results are available</source>
         <translation>Ningún resultado de {} está disponible</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1066"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="856"/>
         <source>Some issues occurred in the process</source>
         <translation>Ha habido algún error en el proceso</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="73"/>
+        <source>Results may not reflect recent network changes</source>
+        <translation>Los resultados pueden no reflejar lo cambios recientes en la red</translation>
     </message>
 </context>
 <context>
@@ -3782,22 +3812,22 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
 <context>
     <name>QGISRedThematicMapsDialog</name>
     <message>
-        <location filename="../ui/queries/qgisred_thematicmaps_dialog.py" line="96"/>
+        <location filename="../ui/queries/qgisred_thematicmaps_dialog.py" line="95"/>
         <source>Error</source>
         <translation>Error</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_thematicmaps_dialog.py" line="96"/>
+        <location filename="../ui/queries/qgisred_thematicmaps_dialog.py" line="95"/>
         <source>group not found.</source>
         <translation>grupo no encontrado.</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_thematicmaps_dialog.py" line="330"/>
+        <location filename="../ui/queries/qgisred_thematicmaps_dialog.py" line="341"/>
         <source>Failed to create derived layer from {sourceLayer.name()}</source>
         <translation>Ha habido algún fallo al crear la capa derivada desde {sourceLayer.name()}</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_thematicmaps_dialog.py" line="511"/>
+        <location filename="../ui/queries/qgisred_thematicmaps_dialog.py" line="522"/>
         <source>Query already exists.</source>
         <translation>La consulta ya existe.</translation>
     </message>

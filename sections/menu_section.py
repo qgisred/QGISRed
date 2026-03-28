@@ -772,7 +772,7 @@ class MenuSection:
 
         action = self._make_action(
             ":/images/iconExportToEpanet.svg", 
-            self.tr("Export to Epanet"), 
+            self.tr("Export Model to Epanet"), 
             self.runExportInp,
             parent=self.iface.mainWindow(),
         )
