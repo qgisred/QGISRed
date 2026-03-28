@@ -535,11 +535,21 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
                 return layer
         return None
 
+    def _flowDirectionField(self):
+        """Return the link field name whose sign determines arrow direction, or None if N/A."""
+        if not self._statsMode:
+            return "Flow"
+        if self._currentStat in (self.lbl_minimum, self.lbl_maximum):
+            return "Flow"
+        if self._currentStat == self.lbl_average:
+            return "Flow_Sig"
+        return None  # Range, StdDev — no direction concept
+
     def _setModeWidgetsVisibility(self, is_stats_mode, is_temporal=True):
         """Show/hide time vs statistics widgets according to the current display mode."""
         self.statsDisplayWidget.setVisible(is_stats_mode)
         self.timeDisplayWidget.setVisible(not is_stats_mode)
-        self.cbFlowDirections.setVisible(not is_stats_mode)
+        self.cbFlowDirections.setVisible(self._flowDirectionField() is not None)
         self.timeControlsWidget.setVisible(not is_stats_mode and is_temporal)
 
     def _computeVisibleFields(self, layer_type, stats_mode, stat=None):
@@ -604,7 +614,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
             result_times = self.cbResultTimes.currentText()
             self.lbStatName.setText(self.stat_variables.get(new_stat, new_stat))
             self.lbStatDesc.setText(self.tr("for {}").format(result_times.lower()))
-            if self.cbFlowDirections.isChecked():
+            if self.cbFlowDirections.isChecked() and self._flowDirectionField() is None:
                 self.cbFlowDirections.setChecked(False)
             self._setModeWidgetsVisibility(True)
         else:
@@ -703,7 +713,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         if layer_to_paint:
             renderer = layer_to_paint.renderer()
             symbols = renderer.symbols(QgsRenderContext())
-            flow_field = layer_to_paint.fields().at(2).name()  # Flow field
+            flow_field = self._flowDirectionField()
             for symbol in symbols:
                 self.setArrowsVisibility(symbol, layer_to_paint, flow_field)
 

@@ -241,8 +241,7 @@ class _ResultsRenderingMixin:
 
         # Update arrow visibility
         try:
-            # Arrows always use the Flow field (index 2 in layer)
-            flow_field = layer.fields().at(2).name()
+            flow_field = self._flowDirectionField()
             symbols = renderer.symbols(QgsRenderContext())
             for symbol in symbols:
                 if symbol.type() == 1:  # line
