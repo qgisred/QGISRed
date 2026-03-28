@@ -195,6 +195,35 @@ class QGISRedFieldUtils:
 
         return ""
 
+    def getResultPropertyUnit(self, category, prop_internal):
+        """Returns unit abbreviation for a result property (category='Node'|'Link')."""
+        prop_map = {
+            ("Node", "Pressure"):   "qgisred_results_node_pressure",
+            ("Node", "Head"):       "qgisred_results_node_head",
+            ("Node", "Demand"):     "qgisred_results_node_demand",
+            ("Node", "Quality"):    "qgisred_results_node_quality",
+            ("Link", "Flow"):       "qgisred_results_link_flow",
+            ("Link", "Velocity"):   "qgisred_results_link_velocity",
+            ("Link", "HeadLoss"):   "qgisred_results_link_headloss",
+            ("Link", "UnitHdLoss"): "qgisred_results_link_unitheadloss",
+            ("Link", "FricFactor"): "qgisred_results_link_frictionfactor",
+            ("Link", "ReactRate"):  "qgisred_results_link_reactrate",
+            ("Link", "Quality"):    "qgisred_results_link_quality",
+        }
+        key = prop_map.get((category, prop_internal))
+        if not key:
+            return ""
+        unitSystem = self.getUnits()
+        unitDefs = self.loadUnitDefinitions()
+        cat_key = "Nodes" if category == "Node" else "Links"
+        unit_info = unitDefs.get(cat_key, {}).get(key, {}).get(unitSystem, {})
+        abbr = unit_info.get("abbr", "")
+        name = unit_info.get("name", "")
+        if name == "Same as Flow" or not abbr or abbr == "-":
+            flow_info = unitDefs.get("Links", {}).get("qgisred_results_link_flow", {}).get(unitSystem, {})
+            return flow_info.get("abbr", "")
+        return abbr
+
     def getFieldUnit(self, elementCategory, fieldName):
         """Get the unit abbreviation for a field based on element category and field name."""
         if not fieldName:

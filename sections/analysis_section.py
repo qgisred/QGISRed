@@ -2,13 +2,13 @@
 """Analysis and results section for QGISRed (model, results dock, time series, export)."""
 
 import os
-import json
 
 from qgis.core import QgsRectangle
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import Qt
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ..tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool
 from ..ui.analysis.qgisred_results_dock import QGISRedResultsDock
@@ -281,71 +281,6 @@ class AnalysisSection:
         self.lastTimeSeriesLayer = layer
         self.performTimeSeriesPlotUpdate(found_feature, category, layer)
 
-    def getUnitSystem(self):
-        """Determine if the project uses SI or US units based on the status bar text."""
-        if hasattr(self, 'unitsAction'):
-            text = self.unitsAction.text()
-            # Common US units in EPANET: CFS, GPM, MGD, IMGD, AFD
-            us_flow_units = ["CFS", "GPM", "MGD", "IMGD", "AFD"]
-            for unit in us_flow_units:
-                if unit in text.upper():
-                    return "US"
-        return "SI"
-
-    def getPropertyUnit(self, category, prop_internal):
-        """Fetch the unit abbreviation for a property from qgisred_units.json."""
-        try:
-            if not category or not prop_internal:
-                return ""
-
-            units_path = os.path.join(self.plugin_dir, "defaults", "qgisred_units.json")
-            if not os.path.exists(units_path):
-                return ""
-
-            with open(units_path, "r", encoding="utf-8") as f:
-                units_data = json.load(f)
-
-            system = self.getUnitSystem()
-
-            # Map internal property names to JSON keys
-            prop_map = {
-                ("Node", "Pressure"): "qgisred_results_node_pressure",
-                ("Node", "Head"): "qgisred_results_node_head",
-                ("Node", "Demand"): "qgisred_results_node_demand",
-                ("Node", "Quality"): "qgisred_results_node_quality",
-                ("Link", "Flow"): "qgisred_results_link_flow",
-                ("Link", "Velocity"): "qgisred_results_link_velocity",
-                ("Link", "HeadLoss"): "qgisred_results_link_headloss",
-                ("Link", "UnitHdLoss"): "qgisred_results_link_unitheadloss",
-                ("Link", "FricFactor"): "qgisred_results_link_frictionfactor",
-                ("Link", "ReactRate"): "qgisred_results_link_reactrate",
-                ("Link", "Quality"): "qgisred_results_link_quality"
-            }
-
-            key = prop_map.get((category, prop_internal))
-            if not key:
-                return ""
-
-            cat_key = "Nodes" if category == "Node" else "Links"
-            prop_data = units_data.get(cat_key, {}).get(key, {})
-
-            unit_info = prop_data.get(system)
-            if not unit_info:
-                return ""
-
-            abbr = unit_info.get("abbr", "")
-            name = unit_info.get("name", "")
-
-            if name == "Same as Flow" or not abbr or abbr == "-":
-                # Recursively get flow units
-                flow_key = "qgisred_results_link_flow"
-                flow_data = units_data.get("Links", {}).get(flow_key, {}).get(system, {})
-                return flow_data.get("abbr", "")
-
-            return abbr
-        except Exception:
-            return ""
-
     def performTimeSeriesPlotUpdate(self, found_feature, category, layer):
         if found_feature is None:
             return
@@ -444,7 +379,7 @@ class AnalysisSection:
             y_data = mapped_data
             y_categorical_labels = [self.tr("Closed"), self.tr("Active"), self.tr("Open")]
         else:
-            unit_abbr = self.getPropertyUnit(category, prop_internal)
+            unit_abbr = QGISRedFieldUtils().getResultPropertyUnit(category, prop_internal)
             if unit_abbr:
                 y_label_with_unit = f"{prop_display} ({unit_abbr})"
 
