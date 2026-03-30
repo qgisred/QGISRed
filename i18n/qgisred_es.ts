@@ -1765,7 +1765,7 @@
     <message>
         <location filename="../ui/general/qgisred_cloneproject_dialog.ui" line="77"/>
         <source>New Project name:</source>
-        <translation>Nombre del nuevo proyecto:</translation>
+        <translation>Nuevo nombre del proyecto:</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_cloneproject_dialog.ui" line="121"/>
@@ -1775,7 +1775,7 @@
     <message>
         <location filename="../ui/general/qgisred_cloneproject_dialog.py" line="32"/>
         <source>Not valid New Project Name</source>
-        <translation>Nombre de nuevo proyecto no válido</translation>
+        <translation>Nuevo nombre para el proyecto no válido</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_cloneproject_dialog.py" line="35"/>
@@ -3484,7 +3484,7 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     <message>
         <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="28"/>
         <source>New Project name:</source>
-        <translation>Nombre del nuevo proyecto:</translation>
+        <translation>Nuevo nombre del proyecto:</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="72"/>
@@ -3494,7 +3494,7 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     <message>
         <location filename="../ui/general/qgisred_renameproject_dialog.py" line="27"/>
         <source>Not valid New Project Name</source>
-        <translation>Nombre de nuevo proyecto no válido</translation>
+        <translation>Nuevo nombre del proyecto no válido</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_renameproject_dialog.py" line="30"/>
