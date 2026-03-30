@@ -12,14 +12,18 @@ class QGISRedRenameProjectDialog(QDialog, FORM_CLASS):
     OldNetworkName = ""
     ProjectDirectory = ""
     ProcessDone = False
+    RenameQGISProject = False
 
-    def __init__(self, parent=None, oldName="", project=""):
+    def __init__(self, parent=None, oldName="", project="", qgisProjectBase=None):
         """Constructor."""
         super(QGISRedRenameProjectDialog, self).__init__(parent)
         self.OldNetworkName = oldName
         self.ProjectDirectory = project
         self.setupUi(self)
         self.btAccept.clicked.connect(self.accept)
+        self.cbRenameQGISProject.setVisible(qgisProjectBase is not None)
+        if qgisProjectBase is not None:
+            self.resize(self.width(), self.height() + self.cbRenameQGISProject.sizeHint().height() + 6)
 
     def accept(self):
         self.NetworkName = self.tbNetworkName.text().strip()
@@ -34,5 +38,6 @@ class QGISRedRenameProjectDialog(QDialog, FORM_CLASS):
             self.lbMessage.setText(self.tr("There is already a project with this name in the project folder."))
             return
 
+        self.RenameQGISProject = self.cbRenameQGISProject.isChecked()
         self.ProcessDone = True
         self.close()

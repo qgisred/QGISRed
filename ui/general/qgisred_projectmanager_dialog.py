@@ -20,6 +20,7 @@ from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 import os
 from shutil import copyfile, rmtree
 from xml.etree import ElementTree  # nosec B314 — parses local project files only, no external input
+from zipfile import ZipFile, ZIP_DEFLATED
 
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_projectmanager_dialog.ui"))
@@ -265,6 +266,92 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         except Exception:
             pass
         return None
+
+    def _renameQGisProjectFiles(self, qgisBase, newName, projectPath):
+        """Renames the QGIS project file and its backups, then updates the metadata XML."""
+        parentDir = os.path.dirname(qgisBase)
+        oldBaseName = os.path.basename(qgisBase)
+        try:
+            newQgisPath = None
+            for f in os.listdir(parentDir):
+                filepath = os.path.join(parentDir, f)
+                if os.path.isfile(filepath):
+                    stripped = self._stripAllExtensions(filepath)
+                    if os.path.normcase(stripped) == os.path.normcase(qgisBase):
+                        extensions = f[len(oldBaseName):]
+                        newFilepath = os.path.join(parentDir, newName + extensions)
+                        try:
+                            copyfile(filepath, newFilepath)
+                            os.remove(filepath)
+                            if newQgisPath is None and (extensions.startswith(".qgs") or extensions.startswith(".qgz")):
+                                newQgisPath = newFilepath
+                        except Exception:
+                            pass
+            if newQgisPath is not None:
+                self._updateMetadataQGisProject(projectPath, newName, newQgisPath)
+        except Exception:
+            pass
+        return newQgisPath
+
+    def _updateQGisProjectContent(self, qgisPath, oldName, newName, oldFolder, newFolder):
+        """Updates layer references inside a .qgs or .qgz project file after renaming."""
+        try:
+            if qgisPath.endswith('.qgz'):
+                self._updateQGisZipContent(qgisPath, oldName, newName, oldFolder, newFolder)
+            elif qgisPath.endswith('.qgs'):
+                self._updateQGisXmlContent(qgisPath, oldName, newName, oldFolder, newFolder)
+        except Exception:
+            pass
+
+    def _updateQGisXmlContent(self, qgisPath, oldName, newName, oldFolder, newFolder):
+        with open(qgisPath, 'r', encoding='utf-8') as f:
+            content = f.read()
+        content = self._applyQGisReplacements(content, oldName, newName, oldFolder, newFolder)
+        with open(qgisPath, 'w', encoding='utf-8') as f:
+            f.write(content)
+
+    def _updateQGisZipContent(self, qgisPath, oldName, newName, oldFolder, newFolder):
+        files = {}
+        with ZipFile(qgisPath, 'r') as zin:
+            for name in zin.namelist():
+                files[name] = zin.read(name)
+        for name in list(files.keys()):
+            if name.endswith('.qgs'):
+                xml = files[name].decode('utf-8')
+                xml = self._applyQGisReplacements(xml, oldName, newName, oldFolder, newFolder)
+                files[name] = xml.encode('utf-8')
+        with ZipFile(qgisPath, 'w', ZIP_DEFLATED) as zout:
+            for name, data in files.items():
+                zout.writestr(name, data)
+
+    def _applyQGisReplacements(self, content, oldName, newName, oldFolder, newFolder):
+        if oldFolder != newFolder:
+            for sep in ('/', '\\'):
+                old = oldFolder.replace('/', sep).replace('\\', sep)
+                new = newFolder.replace('/', sep).replace('\\', sep)
+                content = content.replace(old, new)
+        content = content.replace(oldName + '_', newName + '_')
+        return content
+
+    def _updateMetadataQGisProject(self, projectPath, networkName, newQgisPath):
+        """Updates the <QGisProject> node in the metadata file to point to newQgisPath."""
+        metadataFile = os.path.join(projectPath, networkName + "_Metadata.txt")
+        if not os.path.exists(metadataFile):
+            return
+        try:
+            with open(metadataFile, "r", encoding="latin-1") as mf:
+                data = mf.read()
+            xmlRoot = ElementTree.fromstring(data)
+            updated = False
+            for node in xmlRoot.findall("./ThirdParty/QGISRed/QGisProject"):
+                if node.text and (".qgs" in node.text or ".qgz" in node.text):
+                    node.text = os.path.relpath(newQgisPath, projectPath)
+                    updated = True
+            if updated:
+                with open(metadataFile, "w", encoding="latin-1") as mf:
+                    mf.write(ElementTree.tostring(xmlRoot, encoding="unicode"))
+        except Exception:
+            pass
 
     def _stripAllExtensions(self, path):
         """Strips all extensions from a path (e.g. 'foo.qgz.bak' -> 'foo')."""
@@ -593,7 +680,8 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             if isSameProject and isSameNet:
                 self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Current project can not be renamed."), level=1, duration=5)
                 return
-            dlg = QGISRedRenameProjectDialog(None, projectNetwork, projectPath)
+            qgisBase = self._getQGisProjectBase(projectPath, projectNetwork)
+            dlg = QGISRedRenameProjectDialog(None, projectNetwork, projectPath, qgisBase)
             # Run the dialog event loop
             dlg.exec_()
             result = dlg.ProcessDone
@@ -601,7 +689,23 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 return
             newName = dlg.NetworkName
             QApplication.setOverrideCursor(Qt.WaitCursor)
+            oldProjectPath = projectPath
             self.renameFiles(projectPath, projectNetwork, newName)
+            newQgisPath = None
+            if dlg.RenameQGISProject and qgisBase:
+                newQgisPath = self._renameQGisProjectFiles(qgisBase, newName, projectPath)
+            if os.path.basename(projectPath) == projectNetwork:
+                newProjectPath = os.path.join(os.path.dirname(projectPath), newName)
+                try:
+                    os.rename(projectPath, newProjectPath)
+                    projectPath = self.getUniformedPath(newProjectPath)
+                    if newQgisPath:
+                        newQgisPath = self.getUniformedPath(newQgisPath.replace(oldProjectPath, projectPath))
+                    self.twProjectList.setItem(rowIndex, 3, QTableWidgetItem(projectPath))
+                except Exception:
+                    pass
+            if newQgisPath and os.path.exists(newQgisPath):
+                self._updateQGisProjectContent(newQgisPath, projectNetwork, newName, oldProjectPath, projectPath)
             self.twProjectList.setItem(rowIndex, 0, QTableWidgetItem(newName))
             QApplication.restoreOverrideCursor()
 
@@ -614,7 +718,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 if not i == rowIndex:
                     self.utils.writeFile(f, line)
                 else:
-                    self.utils.writeFile(f, newName + ";" + projectPath)
+                    self.utils.writeFile(f, newName + ";" + projectPath + "\n")
                 i = i + 1
             f.close()
 
