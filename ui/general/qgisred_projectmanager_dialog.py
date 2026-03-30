@@ -18,7 +18,7 @@ from ...tools.utils.qgisred_project_io import QGISRedProjectIO
 from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 
 import os
-from shutil import copyfile
+from shutil import copyfile, rmtree
 from xml.etree import ElementTree  # nosec B314 — parses local project files only, no external input
 
 
@@ -244,19 +244,69 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
     def getLayers(self):
         return QGISRedLayerUtils().getLayers()
 
-    def removeFilesFromFolder(self, folder, networkName):
+    def _getQGisProjectBase(self, folder, networkName):
+        """Returns the stem path (no extensions) of the QGIS project file if stored inside folder, else None."""
+        metadataFile = os.path.join(folder, networkName + "_Metadata.txt")
+        if not os.path.exists(metadataFile):
+            return None
+        try:
+            with open(metadataFile, "r", encoding="latin-1") as mf:
+                data = mf.read()
+            xmlRoot = ElementTree.fromstring(data)
+            for qgs in xmlRoot.findall("./ThirdParty/QGISRed/QGisProject"):
+                if qgs.text and (".qgs" in qgs.text or ".qgz" in qgs.text):
+                    qgisPath = qgs.text
+                    if not os.path.isabs(qgisPath):
+                        qgisPath = os.path.normpath(os.path.join(folder, qgisPath))
+                    qgisPath = self.getUniformedPath(qgisPath)
+                    if not os.path.normcase(qgisPath).startswith(os.path.normcase(folder)):
+                        return None
+                    return self._stripAllExtensions(qgisPath)
+        except Exception:
+            pass
+        return None
+
+    def _stripAllExtensions(self, path):
+        """Strips all extensions from a path (e.g. 'foo.qgz.bak' -> 'foo')."""
+        while True:
+            base, ext = os.path.splitext(path)
+            if not ext:
+                break
+            path = base
+        return path
+
+    def removeFilesFromFolder(self, folder, networkName, _qgisProjectBase=None):
         folder = self.getUniformedPath(folder)
+
+        if _qgisProjectBase is None:
+            _qgisProjectBase = self._getQGisProjectBase(folder, networkName)
+
         for f in os.listdir(folder):
             filepath = os.path.join(folder, f)
-            if os.path.isfile(filepath) and os.path.join(folder, networkName + "_") in filepath:
-                try:
-                    os.remove(filepath)
-                except:
-                    pass
+            if os.path.isfile(filepath):
+                shouldDelete = f.startswith(networkName + "_")
+                if not shouldDelete and _qgisProjectBase is not None:
+                    shouldDelete = os.path.normcase(self._stripAllExtensions(filepath)) == os.path.normcase(_qgisProjectBase)
+                
+                if shouldDelete:
+                    try:
+                        os.remove(filepath)
+                    except Exception:
+                        pass
             elif os.path.isdir(filepath):
-                self.removeFilesFromFolder(filepath, networkName)
-        if len(os.listdir(folder)) == 0:
-            os.rmdir(folder)
+                if os.path.basename(filepath).lower() == "layerstyles": # Temporal fix
+                    try:
+                        rmtree(filepath)
+                    except Exception:
+                        pass
+                else:
+                    self.removeFilesFromFolder(filepath, networkName, _qgisProjectBase)
+
+        try:
+            if len(os.listdir(folder)) == 0:
+                os.rmdir(folder)
+        except Exception:
+            pass
 
     def renameFiles(self, folder, oldName, newName):
         folder = self.getUniformedPath(folder)
