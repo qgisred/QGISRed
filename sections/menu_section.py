@@ -771,15 +771,6 @@ class MenuSection:
         self.analysisMenu.addSeparator()
 
         action = self._make_action(
-            ":/images/iconExportToEpanet.svg", 
-            self.tr("Export Model to Epanet"), 
-            self.runExportInp,
-            parent=self.iface.mainWindow(),
-        )
-        self.add_to_group(action, self.analysisMenu, self.analysisToolbar)
-        self.add_to_dropdown(action, analysisDropButton)
-
-        action = self._make_action(
             ":/images/iconExportResultsToCsv.svg",
             self.tr("Export Results to CSV"),
             self.runExportResultsToCsv,
@@ -787,6 +778,15 @@ class MenuSection:
         )
         self.add_to_group(action, self.analysisMenu, self.analysisToolbar)
         self.add_to_dropdown(action, analysisDropButton)
+
+        action = self._make_action(
+            ":/images/iconExportToEpanet.svg", 
+            self.tr("Export Model to Epanet"), 
+            self.runExportInp,
+            parent=self.iface.mainWindow(),
+        )
+        self.add_to_group(action, self.analysisMenu, self.analysisToolbar)
+        self.add_to_dropdown(action, analysisDropButton)    
 
     def addDigitalTwinMenu(self):
         #    #Menu
