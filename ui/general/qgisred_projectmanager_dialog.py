@@ -696,26 +696,21 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             dlg.exec_()
             result = dlg.ProcessDone
             if result:
-                for layerName in self.ownMainLayers:
-                    layerPath = os.path.join(mainFolder, mainName + "_" + layerName)
-                    # Extensions
-                    for ext in self.layerExtensions:
-                        if os.path.exists(layerPath + ext):
-                            name = dlg.NetworkName + "_" + layerName + ext
-                            copyfile(r"" + layerPath + ext, r"" + os.path.join(dlg.ProjectDirectory, name))
+                QApplication.setOverrideCursor(Qt.WaitCursor)
+                self._copyProjectFiles(mainFolder, mainName, dlg.NetworkName, dlg.ProjectDirectory)
 
-                for layerName in self.complementaryLayers:
-                    layerPath = os.path.join(mainFolder, mainName + "_" + layerName)
-                    # Extensions
-                    for ext in self.layerExtensions:
-                        if os.path.exists(layerPath + ext):
-                            name = dlg.NetworkName + "_" + layerName + ext
-                            copyfile(r"" + layerPath + ext, r"" + os.path.join(dlg.ProjectDirectory, name))
-
-                for fileName in self.ownFiles:
-                    filePath = os.path.join(mainFolder, mainName + "_" + fileName)
-                    if os.path.exists(filePath):
-                        copyfile(r"" + filePath, r"" + os.path.join(dlg.ProjectDirectory, dlg.NetworkName + "_" + fileName))
+                qgisBase = self._getQGisProjectBase(mainFolder, mainName)
+                if qgisBase:
+                    oldQgisDir = os.path.dirname(qgisBase)
+                    newQgisPath = self._copyQGisProjectFiles(qgisBase, dlg.NetworkName, dlg.ProjectDirectory)
+                    if newQgisPath:
+                        self._updateQGisProjectContent(
+                            newQgisPath, mainName, dlg.NetworkName,
+                            mainFolder, dlg.ProjectDirectory,
+                            oldQgisDir, dlg.ProjectDirectory,
+                        )
+                        self._updateMetadataQGisProject(dlg.ProjectDirectory, dlg.NetworkName, newQgisPath)
+                QApplication.restoreOverrideCursor()
 
                 self.addProjectToTable(dlg.ProjectDirectory, dlg.NetworkName)
         else:
@@ -876,6 +871,30 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         QApplication.restoreOverrideCursor()
         self.iface.messageBar().pushMessage("QGISRed", self.tr("Project has been moved to ") + targetDir, level=0, duration=5)
 
+    def _copyProjectFiles(self, folder, oldName, newName, targetDir):
+        folder = self.getUniformedPath(folder)
+        for f in os.listdir(folder):
+            filepath = os.path.join(folder, f)
+            if os.path.isfile(filepath) and f.startswith(oldName + "_"):
+                try:
+                    destName = f.replace(oldName + "_", newName + "_", 1)
+                    copyfile(filepath, os.path.join(targetDir, destName))
+                except Exception:
+                    pass
+            elif os.path.isdir(filepath):
+                if f.lower() == "layerstyles":
+                    try:
+                        destLayerStyles = os.path.join(targetDir, f)
+                        if os.path.exists(destLayerStyles):
+                            rmtree(destLayerStyles)
+                        copytree(filepath, destLayerStyles)
+                    except Exception:
+                        pass
+                else:
+                    subTarget = os.path.join(targetDir, f)
+                    os.makedirs(subTarget, exist_ok=True)
+                    self._copyProjectFiles(filepath, oldName, newName, subTarget)
+
     def _moveProjectFiles(self, folder, networkName, targetDir):
         folder = self.getUniformedPath(folder)
         for f in os.listdir(folder):
@@ -935,6 +954,30 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                     os.rmdir(parentDir)
             except Exception:
                 pass
+        except Exception:
+            pass
+        return newQgisPath
+
+    def _copyQGisProjectFiles(self, qgisBase, newName, targetDir):
+        """Copies all QGIS project files (.qgs/.qgz and backups) to targetDir,
+        renaming them with newName as the prefix. Returns the new .qgz/.qgs path, or None."""
+        parentDir = os.path.dirname(qgisBase)
+        oldBaseName = os.path.basename(qgisBase)
+        newQgisPath = None
+        try:
+            for f in os.listdir(parentDir):
+                filepath = os.path.join(parentDir, f)
+                if os.path.isfile(filepath):
+                    stripped = self._stripAllExtensions(filepath)
+                    if os.path.normcase(stripped) == os.path.normcase(qgisBase):
+                        extensions = f[len(oldBaseName):]
+                        newFilepath = os.path.join(targetDir, newName + extensions)
+                        try:
+                            copyfile(filepath, newFilepath)
+                            if newQgisPath is None and (extensions.startswith(".qgs") or extensions.startswith(".qgz")):
+                                newQgisPath = newFilepath
+                        except Exception:
+                            pass
         except Exception:
             pass
         return newQgisPath
