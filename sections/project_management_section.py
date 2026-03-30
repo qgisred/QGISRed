@@ -142,6 +142,13 @@ class ProjectManagementSection:
                         if translatedName and layer.name() != translatedName:
                             layer.setName(translatedName)
 
+    def suggestQgsProjectFilename(self):
+        """If a valid QGISRed project is open and the QGIS project has no filename yet,
+        set the last project directory so the native Save As dialog opens there by default."""
+        if self.ProjectDirectory != self.TemporalFolder and not QgsProject.instance().fileName():
+            from qgis.core import QgsSettings
+            QgsSettings().setValue("UI/lastProjectDir", self.ProjectDirectory)
+
     def clearQGisProject(self):
         QgsProject.instance().clear()
 
@@ -149,6 +156,7 @@ class ProjectManagementSection:
         self.defineCurrentProject()
         if not self.ProjectDirectory == self.TemporalFolder:
             self.updateMetadata()
+            self.iface.messageBar().pushMessage(self.tr("Info"), self.tr("QGISRed Project saved"), level=0, duration=5)
 
     def runClearedProject(self):
         # Set flag to prevent DLL calls during shutdown
@@ -336,6 +344,7 @@ class ProjectManagementSection:
             QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface).enforceAllIdentifiers()
 
             self.readOptions()
+            self.suggestQgsProjectFilename()
 
     def runCanCreateProject(self):
         if not self.checkDependencies():
@@ -364,6 +373,7 @@ class ProjectManagementSection:
         dlg.config(self.iface, self.ProjectDirectory, self.NetworkName, self)
         dlg.exec_()
         self.readOptions()
+        self.suggestQgsProjectFilename()
 
     def runCanImportData(self):
         if not self.checkDependencies():
@@ -390,6 +400,7 @@ class ProjectManagementSection:
 
         # Run the dialog event loop
         dlg.exec_()
+        self.suggestQgsProjectFilename()
 
     def runSummary(self):
         if not self.checkDependencies():
@@ -546,8 +557,17 @@ class ProjectManagementSection:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
     def runSaveActionProject(self):
-        self.iface.mainWindow().findChild(QAction, "mActionSaveProject").trigger()
-        self.iface.messageBar().pushMessage(self.tr("Info"), self.tr("Project saved"), level=0, duration=5)
+        self.defineCurrentProject()
+        if self.ProjectDirectory != self.TemporalFolder and not QgsProject.instance().fileName():
+            from PyQt5.QtWidgets import QFileDialog
+            suggested = os.path.join(self.ProjectDirectory, self.NetworkName + ".qgs")
+            path, _ = QFileDialog.getSaveFileName(
+                None, self.tr("Save QGIS project"), suggested, self.tr("QGIS Projects (*.qgs *.qgz)")
+            )
+            if path:
+                QgsProject.instance().write(path)
+        else:
+            self.iface.mainWindow().findChild(QAction, "mActionSaveProject").trigger()
 
     def runCreateBackup(self):
         self.defineCurrentProject()

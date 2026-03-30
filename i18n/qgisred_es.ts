@@ -1620,8 +1620,8 @@
     </message>
     <message>
         <location filename="../sections/project_management_section.py" line="550"/>
-        <source>Project saved</source>
-        <translation>Proyecto guardado</translation>
+        <source>QGISRed Project saved</source>
+        <translation>Proyecto de QGISRed guardado</translation>
     </message>
     <message>
         <location filename="../sections/project_management_section.py" line="99"/>

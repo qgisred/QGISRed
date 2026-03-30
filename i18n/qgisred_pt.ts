@@ -1778,7 +1778,7 @@
     </message>
     <message>
         <location filename="../sections/project_management_section.py" line="550"/>
-        <source>Project saved</source>
+        <source>QGISRed Project saved</source>
         <translation type="unfinished">Projeto salvo</translation>
     </message>
 </context>

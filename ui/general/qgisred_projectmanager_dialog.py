@@ -432,6 +432,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             self.close()
             self.ProcessDone = True
             self.parent.readOptions()
+            self.parent.suggestQgsProjectFilename()
 
     def createProject(self):
         if self.ProjectDirectory == self.parent.TemporalFolder:
