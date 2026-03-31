@@ -36,18 +36,6 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
     gplFile = ""
     utils = None
     ownMainLayers = ["Pipes", "Junctions", "Demands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
-    complementaryLayers = ["IsolationValves", "Hydrants", "WashoutValves", "AirReleaseValves", "ServiceConnections", "Meters"]
-    layerExtensions = [".shp", ".dbf", ".shx", ".prj", ".qpj"]
-    ownFiles = [
-        "DefaultValues.dbf",
-        "Options.dbf",
-        "Rules.dbf",
-        "Controls.dbf",
-        "Curves.dbf",
-        "Patterns.dbf",
-        "TitleAndNotes.txt",
-        "Metadata.txt",
-    ]
 
     def __init__(self, parent=None):
         """Constructor."""
@@ -93,8 +81,6 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
 
         self.twProjectList.cellDoubleClicked.connect(self.openProject)
 
-    """Methods"""
-
     def config(self, ifac, direct, netw, parent):
         self.parent = parent
         self.iface = ifac
@@ -105,6 +91,309 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
 
         # Rows:
         self.fillTable()
+
+    """Helpers"""
+    def _stripAllExtensions(self, path):
+        """Strips all extensions from a path (e.g. 'foo.qgz.bak' -> 'foo')."""
+        while True:
+            base, ext = os.path.splitext(path)
+            if not ext:
+                break
+            path = base
+        return path
+
+    def getUniformedPath(self, path):
+        return self.utils.getUniformedPath(path)
+
+    def getLayerPath(self, layer):
+        return self.utils.getLayerPath(layer)
+
+    def generatePath(self, folder, fileName):
+        return self.utils.generatePath(folder, fileName)
+
+    def getLayers(self):
+        return QGISRedLayerUtils().getLayers()
+
+    def _getQGisProjectBase(self, folder, networkName):
+        """Returns the stem path (no extensions) of the QGIS project file, or None if not set."""
+        metadataFile = os.path.join(folder, networkName + "_Metadata.txt")
+        if not os.path.exists(metadataFile):
+            return None
+        try:
+            with open(metadataFile, "r", encoding="latin-1") as mf:
+                data = mf.read()
+            xmlRoot = ElementTree.fromstring(data)
+            for qgs in xmlRoot.findall("./ThirdParty/QGISRed/QGisProject"):
+                if qgs.text and (".qgs" in qgs.text or ".qgz" in qgs.text):
+                    qgisPath = qgs.text
+                    if not os.path.isabs(qgisPath):
+                        qgisPath = os.path.normpath(os.path.join(folder, qgisPath))
+                    return self._stripAllExtensions(self.getUniformedPath(qgisPath))
+        except Exception:
+            pass
+        return None
+
+    def _findQGisProjectFile(self, qgisBase):
+        """Returns the actual .qgz or .qgs path from a stem, or None if not found."""
+        for ext in ('.qgz', '.qgs'):
+            p = qgisBase + ext
+            if os.path.exists(p):
+                return p
+        return None
+
+    """QGIS project file I/O"""
+    def _applyQGisReplacements(self, content, oldName, newName, oldFolder, newFolder, oldQgisDir=None, newQgisDir=None):
+        import re
+
+        oldFolderNorm = os.path.normcase(os.path.normpath(oldFolder))
+        newFolderNorm = os.path.normpath(newFolder)
+
+        def replacePathInValue(val):
+            """Given a path value from the XML (may be absolute or relative), return the updated value."""
+            # Normalize to absolute for comparison
+            if os.path.isabs(val):
+                absPath = os.path.normcase(os.path.normpath(val))
+                wasRelative = False
+            elif oldQgisDir:
+                absPath = os.path.normcase(os.path.normpath(os.path.join(oldQgisDir, val)))
+                wasRelative = True
+            else:
+                return val
+
+            # Check if this path is inside the old project folder
+            if not absPath.startswith(oldFolderNorm):
+                return val
+
+            # Rebuild the absolute path with the new folder
+            suffix = absPath[len(oldFolderNorm):]  # e.g. \Results\test130_Base_Link.shp
+            newAbsPath = newFolderNorm + suffix
+
+            # Apply name prefix replacement on the filename part
+            head, tail = os.path.split(newAbsPath)
+            tail = tail.replace(oldName + '_', newName + '_')
+            newAbsPath = os.path.join(head, tail)
+
+            # Return in the same form (relative or absolute) as the original
+            if not wasRelative:
+                return newAbsPath.replace('\\', '/')
+            else:
+                rel = os.path.relpath(newAbsPath, newQgisDir if newQgisDir else oldQgisDir)
+                return rel.replace('\\', '/')
+
+        # Replace path values in XML attributes (source="..." url="..." filename="...")
+        content = re.sub(r'(source|url|filename)(=)(")([^"]+)(")',
+                         lambda m: m.group(1) + m.group(2) + m.group(3) + replacePathInValue(m.group(4)) + m.group(5),
+                         content)
+        content = re.sub(r"(source|url|filename)(=)(')([^']+)(')",
+                         lambda m: m.group(1) + m.group(2) + m.group(3) + replacePathInValue(m.group(4)) + m.group(5),
+                         content)
+
+        # Replace path values in <datasource>...</datasource> element content
+        content = re.sub(r'(<datasource>)([^<]+)(</datasource>)',
+                         lambda m: m.group(1) + replacePathInValue(m.group(2)) + m.group(3),
+                         content)
+
+        # Name prefix replacement for any remaining occurrences (e.g. layer IDs, titles)
+        if oldName != newName:
+            content = content.replace(oldName + '_', newName + '_')
+
+        # Custom property identifier: value="qgisred_oldName" (no trailing underscore)
+        if oldName != newName:
+            content = content.replace('value="qgisred_' + oldName + '"', 'value="qgisred_' + newName + '"')
+
+        # Layer group name in the legend (stored as name="oldName" on the root network group)
+        if oldName != newName:
+            content = content.replace('name="' + oldName + '"', 'name="' + newName + '"')
+
+        return content
+
+    def _updateQGisXmlContent(self, qgisPath, oldName, newName, oldFolder, newFolder, oldQgisDir=None, newQgisDir=None):
+        with open(qgisPath, 'r', encoding='utf-8') as f:
+            content = f.read()
+        content = self._applyQGisReplacements(content, oldName, newName, oldFolder, newFolder, oldQgisDir, newQgisDir)
+        with open(qgisPath, 'w', encoding='utf-8') as f:
+            f.write(content)
+
+    def _updateQGisZipContent(self, qgisPath, oldName, newName, oldFolder, newFolder, oldQgisDir=None, newQgisDir=None):
+        files = {}
+        with ZipFile(qgisPath, 'r') as zin:
+            for name in zin.namelist():
+                files[name] = zin.read(name)
+        for name in list(files.keys()):
+            if name.endswith('.qgs'):
+                xml = files[name].decode('utf-8')
+                xml = self._applyQGisReplacements(xml, oldName, newName, oldFolder, newFolder, oldQgisDir, newQgisDir)
+                files[name] = xml.encode('utf-8')
+        with ZipFile(qgisPath, 'w', ZIP_DEFLATED) as zout:
+            for name, data in files.items():
+                zout.writestr(name, data)
+
+    def _updateQGisProjectContent(self, qgisPath, oldName, newName, oldFolder, newFolder, oldQgisDir=None, newQgisDir=None):
+        """Updates layer references inside a .qgs or .qgz project file after renaming/moving."""
+        try:
+            if qgisPath.endswith('.qgz'):
+                self._updateQGisZipContent(qgisPath, oldName, newName, oldFolder, newFolder, oldQgisDir, newQgisDir)
+            elif qgisPath.endswith('.qgs'):
+                self._updateQGisXmlContent(qgisPath, oldName, newName, oldFolder, newFolder, oldQgisDir, newQgisDir)
+        except Exception:
+            pass
+
+    def _updateMetadataQGisProject(self, projectPath, networkName, newQgisPath):
+        """Updates the <QGisProject> node in the metadata file to point to newQgisPath."""
+        metadataFile = os.path.join(projectPath, networkName + "_Metadata.txt")
+        if not os.path.exists(metadataFile):
+            return
+        try:
+            with open(metadataFile, "r", encoding="latin-1") as mf:
+                data = mf.read()
+            xmlRoot = ElementTree.fromstring(data)
+            updated = False
+            for node in xmlRoot.findall("./ThirdParty/QGISRed/QGisProject"):
+                if node.text and (".qgs" in node.text or ".qgz" in node.text):
+                    node.text = os.path.relpath(newQgisPath, projectPath)
+                    updated = True
+            if updated:
+                with open(metadataFile, "w", encoding="latin-1") as mf:
+                    mf.write(ElementTree.tostring(xmlRoot, encoding="unicode"))
+        except Exception:
+            pass
+
+    def _processQGisProjectFiles(self, qgisBase, newName, targetDir, deleteSource=False):
+        """Copia/mueve/renombra archivos QGIS (.qgz/.qgs y backups).
+        newName: nombre base de destino. targetDir: carpeta de destino.
+        deleteSource=True para mover/renombrar (borra el original).
+        Devuelve la ruta nueva del .qgz/.qgs, o None."""
+        parentDir = os.path.dirname(qgisBase)
+        oldBaseName = os.path.basename(qgisBase)
+        newQgisPath = None
+        try:
+            for f in os.listdir(parentDir):
+                filepath = os.path.join(parentDir, f)
+                if os.path.isfile(filepath):
+                    stripped = self._stripAllExtensions(filepath)
+                    if os.path.normcase(stripped) == os.path.normcase(qgisBase):
+                        extensions = f[len(oldBaseName):]
+                        newFilepath = os.path.join(targetDir, newName + extensions)
+                        try:
+                            copyfile(filepath, newFilepath)
+                            if deleteSource:
+                                os.remove(filepath)
+                            if newQgisPath is None and (extensions.startswith(".qgs") or extensions.startswith(".qgz")):
+                                newQgisPath = newFilepath
+                        except Exception:
+                            pass
+            if deleteSource:
+                try:
+                    if self.getUniformedPath(parentDir) != self.getUniformedPath(targetDir) and not os.listdir(parentDir):
+                        os.rmdir(parentDir)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+        return newQgisPath
+
+    """Helpers filesystem de proyecto"""
+    def _processProjectFiles(self, folder, oldName, newName, targetDir, deleteSource=False):
+        """Copia/mueve/renombra archivos de proyecto con prefijo oldName_ a newName_ en targetDir.
+        deleteSource=True para mover/renombrar (borra el original).
+        layerStyles se copia íntegro; otros subdirectorios se procesan recursivamente."""
+        folder = self.getUniformedPath(folder)
+        for f in os.listdir(folder):
+            filepath = os.path.join(folder, f)
+            if os.path.isfile(filepath) and f.startswith(oldName + "_"):
+                try:
+                    destName = f.replace(oldName + "_", newName + "_", 1)
+                    copyfile(filepath, os.path.join(targetDir, destName))
+                    if deleteSource:
+                        os.remove(filepath)
+                except Exception:
+                    pass
+            elif os.path.isdir(filepath):
+                if f.lower() == "layerstyles":
+                    try:
+                        destLayerStyles = os.path.join(targetDir, f)
+                        if os.path.exists(destLayerStyles):
+                            rmtree(destLayerStyles)
+                        copytree(filepath, destLayerStyles)
+                        if deleteSource:
+                            rmtree(filepath)
+                    except Exception:
+                        pass
+                else:
+                    subTarget = os.path.join(targetDir, f)
+                    os.makedirs(subTarget, exist_ok=True)
+                    self._processProjectFiles(filepath, oldName, newName, subTarget, deleteSource)
+                    if deleteSource:
+                        try:
+                            if not os.listdir(filepath):
+                                os.rmdir(filepath)
+                        except Exception:
+                            pass
+        if deleteSource:
+            try:
+                if folder != self.getUniformedPath(targetDir) and not os.listdir(folder):
+                    os.rmdir(folder)
+            except Exception:
+                pass
+
+    def removeFilesFromFolder(self, folder, networkName, _qgisProjectBase=None):
+        folder = self.getUniformedPath(folder)
+
+        if _qgisProjectBase is None:
+            _qgisProjectBase = self._getQGisProjectBase(folder, networkName)
+
+        for f in os.listdir(folder):
+            filepath = os.path.join(folder, f)
+            if os.path.isfile(filepath):
+                shouldDelete = f.startswith(networkName + "_")
+                if not shouldDelete and _qgisProjectBase is not None:
+                    shouldDelete = os.path.normcase(self._stripAllExtensions(filepath)) == os.path.normcase(_qgisProjectBase)
+
+                if shouldDelete:
+                    try:
+                        os.remove(filepath)
+                    except Exception:
+                        pass
+            elif os.path.isdir(filepath):
+                if os.path.basename(filepath).lower() == "layerstyles": # Temporal fix
+                    try:
+                        rmtree(filepath)
+                    except Exception:
+                        pass
+                else:
+                    self.removeFilesFromFolder(filepath, networkName, _qgisProjectBase)
+
+        try:
+            if len(os.listdir(folder)) == 0:
+                os.rmdir(folder)
+        except Exception:
+            pass
+
+    """Helpers de tabla/UI"""
+    def _takeRow(self, rowIndex):
+        rowItems = []
+        columns = self.twProjectList.columnCount()
+        col = 0
+        while col < columns:
+            rowItems.append(self.twProjectList.takeItem(rowIndex, col))
+            col += 1
+        return rowItems
+
+    def _setRow(self, rowIndex, rowItems):
+        columns = self.twProjectList.columnCount()
+        col = 0
+        while col < columns:
+            self.twProjectList.setItem(rowIndex, col, rowItems[col])
+            col += 1
+
+    def getSelectedRowInfo(self):
+        selectionModel = self.twProjectList.selectionModel()
+        if selectionModel.hasSelection():
+            for row in selectionModel.selectedRows():
+                project = str(self.twProjectList.item(row.row(), 3).text())
+                name = str(self.twProjectList.item(row.row(), 0).text())
+                return True, name, project, row.row()
+        return False, "", "", -1
 
     def fillTable(self):
         font = QFont()
@@ -192,22 +481,22 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         if isPipes:
             if not isMetadata:
                 self.updateMetadata(net, folder)
-            
+
             # Add project to beginning of gpl file
             newEntry = net + ";" + folder
-            
+
             # Read existing entries
             existingEntries = []
             if os.path.exists(self.gplFile):
                 with open(self.gplFile, "r") as f:
                     existingEntries = [line.strip() for line in f if line.strip() and line.strip() != newEntry]
-            
+
             # Write new entry at the beginning, followed by existing entries
             with open(self.gplFile, "w") as f:
                 f.write(newEntry + "\n")
                 for entry in existingEntries:
                     f.write(entry + "\n")
-            
+
             self.fillTable()
             self.twProjectList.setCurrentCell(0, 1)  # Select first row (newly added)
             self.twProjectList.setFocus()
@@ -235,257 +524,12 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
     def clearQGisProject(self):
         QgsProject.instance().clear()
 
-    def getUniformedPath(self, path):
-        return self.utils.getUniformedPath(path)
+    """Main methods"""
+    def up(self):
+        self.move(True)
 
-    def getLayerPath(self, layer):
-        return self.utils.getLayerPath(layer)
-
-    def generatePath(self, folder, fileName):
-        return self.utils.generatePath(folder, fileName)
-
-    def getLayers(self):
-        return QGISRedLayerUtils().getLayers()
-
-    def _getQGisProjectBase(self, folder, networkName):
-        """Returns the stem path (no extensions) of the QGIS project file, or None if not set."""
-        metadataFile = os.path.join(folder, networkName + "_Metadata.txt")
-        if not os.path.exists(metadataFile):
-            return None
-        try:
-            with open(metadataFile, "r", encoding="latin-1") as mf:
-                data = mf.read()
-            xmlRoot = ElementTree.fromstring(data)
-            for qgs in xmlRoot.findall("./ThirdParty/QGISRed/QGisProject"):
-                if qgs.text and (".qgs" in qgs.text or ".qgz" in qgs.text):
-                    qgisPath = qgs.text
-                    if not os.path.isabs(qgisPath):
-                        qgisPath = os.path.normpath(os.path.join(folder, qgisPath))
-                    return self._stripAllExtensions(self.getUniformedPath(qgisPath))
-        except Exception:
-            pass
-        return None
-
-    def _renameQGisProjectFiles(self, qgisBase, newName, projectPath):
-        """Renames the QGIS project file and its backups, then updates the metadata XML."""
-        parentDir = os.path.dirname(qgisBase)
-        oldBaseName = os.path.basename(qgisBase)
-        try:
-            newQgisPath = None
-            for f in os.listdir(parentDir):
-                filepath = os.path.join(parentDir, f)
-                if os.path.isfile(filepath):
-                    stripped = self._stripAllExtensions(filepath)
-                    if os.path.normcase(stripped) == os.path.normcase(qgisBase):
-                        extensions = f[len(oldBaseName):]
-                        newFilepath = os.path.join(parentDir, newName + extensions)
-                        try:
-                            copyfile(filepath, newFilepath)
-                            os.remove(filepath)
-                            if newQgisPath is None and (extensions.startswith(".qgs") or extensions.startswith(".qgz")):
-                                newQgisPath = newFilepath
-                        except Exception:
-                            pass
-            if newQgisPath is not None:
-                self._updateMetadataQGisProject(projectPath, newName, newQgisPath)
-        except Exception:
-            pass
-        return newQgisPath
-
-    def _findQGisProjectFile(self, qgisBase):
-        """Returns the actual .qgz or .qgs path from a stem, or None if not found."""
-        for ext in ('.qgz', '.qgs'):
-            p = qgisBase + ext
-            if os.path.exists(p):
-                return p
-        return None
-
-    def _updateQGisProjectContent(self, qgisPath, oldName, newName, oldFolder, newFolder, oldQgisDir=None, newQgisDir=None):
-        """Updates layer references inside a .qgs or .qgz project file after renaming/moving."""
-        try:
-            if qgisPath.endswith('.qgz'):
-                self._updateQGisZipContent(qgisPath, oldName, newName, oldFolder, newFolder, oldQgisDir, newQgisDir)
-            elif qgisPath.endswith('.qgs'):
-                self._updateQGisXmlContent(qgisPath, oldName, newName, oldFolder, newFolder, oldQgisDir, newQgisDir)
-        except Exception:
-            pass
-
-    def _updateQGisXmlContent(self, qgisPath, oldName, newName, oldFolder, newFolder, oldQgisDir=None, newQgisDir=None):
-        with open(qgisPath, 'r', encoding='utf-8') as f:
-            content = f.read()
-        content = self._applyQGisReplacements(content, oldName, newName, oldFolder, newFolder, oldQgisDir, newQgisDir)
-        with open(qgisPath, 'w', encoding='utf-8') as f:
-            f.write(content)
-
-    def _updateQGisZipContent(self, qgisPath, oldName, newName, oldFolder, newFolder, oldQgisDir=None, newQgisDir=None):
-        files = {}
-        with ZipFile(qgisPath, 'r') as zin:
-            for name in zin.namelist():
-                files[name] = zin.read(name)
-        for name in list(files.keys()):
-            if name.endswith('.qgs'):
-                xml = files[name].decode('utf-8')
-                xml = self._applyQGisReplacements(xml, oldName, newName, oldFolder, newFolder, oldQgisDir, newQgisDir)
-                files[name] = xml.encode('utf-8')
-        with ZipFile(qgisPath, 'w', ZIP_DEFLATED) as zout:
-            for name, data in files.items():
-                zout.writestr(name, data)
-
-    def _applyQGisReplacements(self, content, oldName, newName, oldFolder, newFolder, oldQgisDir=None, newQgisDir=None):
-        import re
-
-        oldFolderNorm = os.path.normcase(os.path.normpath(oldFolder))
-        newFolderNorm = os.path.normpath(newFolder)
-
-        def replacePathInValue(val):
-            """Given a path value from the XML (may be absolute or relative), return the updated value."""
-            # Normalize to absolute for comparison
-            if os.path.isabs(val):
-                absPath = os.path.normcase(os.path.normpath(val))
-                wasRelative = False
-            elif oldQgisDir:
-                absPath = os.path.normcase(os.path.normpath(os.path.join(oldQgisDir, val)))
-                wasRelative = True
-            else:
-                return val
-
-            # Check if this path is inside the old project folder
-            if not absPath.startswith(oldFolderNorm):
-                return val
-
-            # Rebuild the absolute path with the new folder
-            suffix = absPath[len(oldFolderNorm):]  # e.g. \Results\test130_Base_Link.shp
-            newAbsPath = newFolderNorm + suffix
-
-            # Apply name prefix replacement on the filename part
-            head, tail = os.path.split(newAbsPath)
-            tail = tail.replace(oldName + '_', newName + '_')
-            newAbsPath = os.path.join(head, tail)
-
-            # Return in the same form (relative or absolute) as the original
-            if not wasRelative:
-                return newAbsPath.replace('\\', '/')
-            else:
-                rel = os.path.relpath(newAbsPath, newQgisDir if newQgisDir else oldQgisDir)
-                return rel.replace('\\', '/')
-
-        # Replace path values in XML attributes (source="..." url="..." filename="...")
-        content = re.sub(r'(source|url|filename)(=)(")([^"]+)(")',
-                         lambda m: m.group(1) + m.group(2) + m.group(3) + replacePathInValue(m.group(4)) + m.group(5),
-                         content)
-        content = re.sub(r"(source|url|filename)(=)(')([^']+)(')",
-                         lambda m: m.group(1) + m.group(2) + m.group(3) + replacePathInValue(m.group(4)) + m.group(5),
-                         content)
-
-        # Replace path values in <datasource>...</datasource> element content
-        content = re.sub(r'(<datasource>)([^<]+)(</datasource>)',
-                         lambda m: m.group(1) + replacePathInValue(m.group(2)) + m.group(3),
-                         content)
-
-        # Name prefix replacement for any remaining occurrences (e.g. layer IDs, titles)
-        if oldName != newName:
-            content = content.replace(oldName + '_', newName + '_')
-
-        # Custom property identifier: value="qgisred_oldName" (no trailing underscore)
-        if oldName != newName:
-            content = content.replace('value="qgisred_' + oldName + '"', 'value="qgisred_' + newName + '"')
-
-        # Layer group name in the legend (stored as name="oldName" on the root network group)
-        if oldName != newName:
-            content = content.replace('name="' + oldName + '"', 'name="' + newName + '"')
-
-        return content
-
-    def _updateMetadataQGisProject(self, projectPath, networkName, newQgisPath):
-        """Updates the <QGisProject> node in the metadata file to point to newQgisPath."""
-        metadataFile = os.path.join(projectPath, networkName + "_Metadata.txt")
-        if not os.path.exists(metadataFile):
-            return
-        try:
-            with open(metadataFile, "r", encoding="latin-1") as mf:
-                data = mf.read()
-            xmlRoot = ElementTree.fromstring(data)
-            updated = False
-            for node in xmlRoot.findall("./ThirdParty/QGISRed/QGisProject"):
-                if node.text and (".qgs" in node.text or ".qgz" in node.text):
-                    node.text = os.path.relpath(newQgisPath, projectPath)
-                    updated = True
-            if updated:
-                with open(metadataFile, "w", encoding="latin-1") as mf:
-                    mf.write(ElementTree.tostring(xmlRoot, encoding="unicode"))
-        except Exception:
-            pass
-
-    def _stripAllExtensions(self, path):
-        """Strips all extensions from a path (e.g. 'foo.qgz.bak' -> 'foo')."""
-        while True:
-            base, ext = os.path.splitext(path)
-            if not ext:
-                break
-            path = base
-        return path
-
-    def removeFilesFromFolder(self, folder, networkName, _qgisProjectBase=None):
-        folder = self.getUniformedPath(folder)
-
-        if _qgisProjectBase is None:
-            _qgisProjectBase = self._getQGisProjectBase(folder, networkName)
-
-        for f in os.listdir(folder):
-            filepath = os.path.join(folder, f)
-            if os.path.isfile(filepath):
-                shouldDelete = f.startswith(networkName + "_")
-                if not shouldDelete and _qgisProjectBase is not None:
-                    shouldDelete = os.path.normcase(self._stripAllExtensions(filepath)) == os.path.normcase(_qgisProjectBase)
-                
-                if shouldDelete:
-                    try:
-                        os.remove(filepath)
-                    except Exception:
-                        pass
-            elif os.path.isdir(filepath):
-                if os.path.basename(filepath).lower() == "layerstyles": # Temporal fix
-                    try:
-                        rmtree(filepath)
-                    except Exception:
-                        pass
-                else:
-                    self.removeFilesFromFolder(filepath, networkName, _qgisProjectBase)
-
-        try:
-            if len(os.listdir(folder)) == 0:
-                os.rmdir(folder)
-        except Exception:
-            pass
-
-    def renameFiles(self, folder, oldName, newName):
-        folder = self.getUniformedPath(folder)
-        for f in os.listdir(folder):
-            filepath = os.path.join(folder, f)
-            if os.path.isfile(filepath) and os.path.join(folder, oldName + "_") in filepath:
-                try:
-                    copyfile(r"" + filepath, r"" + filepath.replace(oldName + "_", newName + "_"))
-                    os.remove(filepath)
-                except:
-                    pass
-            elif os.path.isdir(filepath):
-                self.renameFiles(filepath, oldName, newName)
-
-    def takeRow(self, rowIndex):
-        rowItems = []
-        columns = self.twProjectList.columnCount()
-        col = 0
-        while col < columns:
-            rowItems.append(self.twProjectList.takeItem(rowIndex, col))
-            col += 1
-        return rowItems
-
-    def setRow(self, rowIndex, rowItems):
-        columns = self.twProjectList.columnCount()
-        col = 0
-        while col < columns:
-            self.twProjectList.setItem(rowIndex, col, rowItems[col])
-            col += 1
+    def down(self):
+        self.move(False)
 
     def move(self, up):
         ok, _, _, sourceRow = self.getSelectedRowInfo()
@@ -498,11 +542,11 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 self.twProjectList.setFocus()
                 return
 
-            sourceItems = self.takeRow(sourceRow)
-            destItems = self.takeRow(destRow)
+            sourceItems = self._takeRow(sourceRow)
+            destItems = self._takeRow(destRow)
 
-            self.setRow(sourceRow, destItems)
-            self.setRow(destRow, sourceItems)
+            self._setRow(sourceRow, destItems)
+            self._setRow(destRow, sourceItems)
 
             self.twProjectList.setCurrentCell(destRow, 1)
             self.twProjectList.setFocus()
@@ -518,77 +562,15 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         else:
             self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Please, select a row project to move."), level=1, duration=5)
 
-    def quitProject(self, remove=False):
-        ok, projectNetwork, projectPath, rowIndex = self.getSelectedRowInfo()
-        if ok:
-            isSameProject = self.getUniformedPath(self.ProjectDirectory) == projectPath
-            isSameNet = self.NetworkName == projectNetwork
-            if isSameProject and isSameNet:
-                if remove:
-                    self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Current project cannot be removed"), level=1, duration=5)
-                else: 
-                    self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Current project cannot be unloaded"), level=1, duration=5)
-                return
-
-            if remove:
-                request = QMessageBox.question(
-                    self.iface.mainWindow(),
-                    self.tr("QGISRed"),
-                    self.tr("Project will be removed completely from your computer. Are you sure?"),
-                    QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
-                )
-                if request == QMessageBox.Yes:
-                    self.removeFilesFromFolder(projectPath, projectNetwork)
-                else:
-                    return
-            else:
-                request = QMessageBox.question(
-                    self.iface.mainWindow(),
-                    self.tr("QGISRed"),
-                    self.tr(
-                        "Project will be unloaded from this list, but will remain in your computer. You could add it back using the Load button. Do you want to continue?"
-                    ),
-                    QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
-                )
-                if request == QMessageBox.No:
-                    return
-
-            if os.path.exists(self.gplFile):
-                f = open(self.gplFile, "r")
-                lines = f.readlines()
-                f.close()
-                f = open(self.gplFile, "w")
-                i = 0
-                for line in lines:
-                    if not i == rowIndex:
-                        self.utils.writeFile(f, line)
-                    i = i + 1
-                f.close()
-            self.fillTable()
-        else:
-            word = "unload"
-            if remove:
-                word = "remove"
-            self.iface.messageBar().pushMessage(
-                self.tr("Warning"), self.tr(f"You need to select a project to {word} it."), level=1, duration=5
-            )
-
-    def getSelectedRowInfo(self):
+    def openFolder(self):
         selectionModel = self.twProjectList.selectionModel()
         if selectionModel.hasSelection():
             for row in selectionModel.selectedRows():
-                project = str(self.twProjectList.item(row.row(), 3).text())
-                name = str(self.twProjectList.item(row.row(), 0).text())
-                return True, name, project, row.row()
-        return False, "", "", -1
-
-    """MainMethods"""
-
-    def up(self):
-        self.move(True)
-
-    def down(self):
-        self.move(False)
+                mainFolder = str(self.twProjectList.item(row.row(), 3).text())
+                os.startfile(mainFolder)
+        else:
+            message = self.tr("You need to select a project to open its folder.")
+            self.iface.messageBar().pushMessage(self.tr("Warning"), message, level=1, duration=5)
 
     def openProject(self):
         ok, name, project, _ = self.getSelectedRowInfo()
@@ -688,6 +670,75 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         else:
             self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("You need to select a project to export it."), level=1, duration=5)
 
+    def loadProject(self):
+        dlg = QGISRedImportProjectDialog()
+        # Run the dialog event loop
+        dlg.exec_()
+        result = dlg.ProcessDone
+        if result:
+            self.addProjectToTable(dlg.ProjectDirectory, dlg.NetworkName)
+
+    def unloadProject(self):
+        self.quitProject()
+
+    def removeProject(self):
+        self.quitProject(True)
+
+    def quitProject(self, remove=False):
+        ok, projectNetwork, projectPath, rowIndex = self.getSelectedRowInfo()
+        if ok:
+            isSameProject = self.getUniformedPath(self.ProjectDirectory) == projectPath
+            isSameNet = self.NetworkName == projectNetwork
+            if isSameProject and isSameNet:
+                if remove:
+                    self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Current project cannot be removed"), level=1, duration=5)
+                else:
+                    self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Current project cannot be unloaded"), level=1, duration=5)
+                return
+
+            if remove:
+                request = QMessageBox.question(
+                    self.iface.mainWindow(),
+                    self.tr("QGISRed"),
+                    self.tr("Project will be removed completely from your computer. Are you sure?"),
+                    QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
+                )
+                if request == QMessageBox.Yes:
+                    self.removeFilesFromFolder(projectPath, projectNetwork)
+                else:
+                    return
+            else:
+                request = QMessageBox.question(
+                    self.iface.mainWindow(),
+                    self.tr("QGISRed"),
+                    self.tr(
+                        "Project will be unloaded from this list, but will remain in your computer. You could add it back using the Load button. Do you want to continue?"
+                    ),
+                    QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
+                )
+                if request == QMessageBox.No:
+                    return
+
+            if os.path.exists(self.gplFile):
+                f = open(self.gplFile, "r")
+                lines = f.readlines()
+                f.close()
+                f = open(self.gplFile, "w")
+                i = 0
+                for line in lines:
+                    if not i == rowIndex:
+                        self.utils.writeFile(f, line)
+                    i = i + 1
+                f.close()
+            self.fillTable()
+        else:
+            word = "unload"
+            if remove:
+                word = "remove"
+            self.iface.messageBar().pushMessage(
+                self.tr("Warning"), self.tr(f"You need to select a project to {word} it."), level=1, duration=5
+            )
+
     def cloneProject(self):
         ok, mainName, mainFolder, _ = self.getSelectedRowInfo()
         if ok:
@@ -697,12 +748,12 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             result = dlg.ProcessDone
             if result:
                 QApplication.setOverrideCursor(Qt.WaitCursor)
-                self._copyProjectFiles(mainFolder, mainName, dlg.NetworkName, dlg.ProjectDirectory)
+                self._processProjectFiles(mainFolder, mainName, dlg.NetworkName, dlg.ProjectDirectory, deleteSource=False)
 
                 qgisBase = self._getQGisProjectBase(mainFolder, mainName)
                 if qgisBase:
                     oldQgisDir = os.path.dirname(qgisBase)
-                    newQgisPath = self._copyQGisProjectFiles(qgisBase, dlg.NetworkName, dlg.ProjectDirectory)
+                    newQgisPath = self._processQGisProjectFiles(qgisBase, dlg.NetworkName, dlg.ProjectDirectory, deleteSource=False)
                     if newQgisPath:
                         self._updateQGisProjectContent(
                             newQgisPath, mainName, dlg.NetworkName,
@@ -715,20 +766,6 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 self.addProjectToTable(dlg.ProjectDirectory, dlg.NetworkName)
         else:
             self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("You need to select a project to clone."), level=1, duration=5)
-
-    def removeProject(self):
-        self.quitProject(True)
-
-    def loadProject(self):
-        dlg = QGISRedImportProjectDialog()
-        # Run the dialog event loop
-        dlg.exec_()
-        result = dlg.ProcessDone
-        if result:
-            self.addProjectToTable(dlg.ProjectDirectory, dlg.NetworkName)
-
-    def unloadProject(self):
-        self.quitProject()
 
     def changeName(self):
         ok, projectNetwork, projectPath, rowIndex = self.getSelectedRowInfo()
@@ -748,10 +785,13 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             newName = dlg.NetworkName
             QApplication.setOverrideCursor(Qt.WaitCursor)
             oldProjectPath = projectPath
-            self.renameFiles(projectPath, projectNetwork, newName)
+            self._processProjectFiles(projectPath, projectNetwork, newName, projectPath, deleteSource=True)
             newQgisPath = None
             if dlg.RenameQGISProject and qgisBase:
-                newQgisPath = self._renameQGisProjectFiles(qgisBase, newName, projectPath)
+                parentDir = os.path.dirname(qgisBase)
+                newQgisPath = self._processQGisProjectFiles(qgisBase, newName, parentDir, deleteSource=True)
+                if newQgisPath:
+                    self._updateMetadataQGisProject(projectPath, newName, newQgisPath)
             if os.path.basename(projectPath) == projectNetwork:
                 newProjectPath = os.path.join(os.path.dirname(projectPath), newName)
                 try:
@@ -825,12 +865,12 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         newQgisPath = None
 
         if dlg.MoveProjectFiles:
-            self._moveProjectFiles(projectPath, projectNetwork, targetDir)
+            self._processProjectFiles(projectPath, projectNetwork, projectNetwork, targetDir, deleteSource=True)
             projectPath = targetDir
             self.twProjectList.setItem(rowIndex, 3, QTableWidgetItem(projectPath))
 
         if dlg.MoveQGISProject and qgisBase:
-            newQgisPath = self._moveQGisProjectFiles(qgisBase, targetDir)
+            newQgisPath = self._processQGisProjectFiles(qgisBase, os.path.basename(qgisBase), targetDir, deleteSource=True)
             if newQgisPath:
                 self._updateMetadataQGisProject(projectPath, projectNetwork, newQgisPath)
 
@@ -842,7 +882,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         #   C) Only .qgz/.qgs moved → update the .qgz/.qgs at its new location;
         #                             layers stayed, but relative paths from the new .qgz location changed
         if qgisBase:
-            qgisFileMoved = newQgisPath is not None  # True when _moveQGisProjectFiles succeeded
+            qgisFileMoved = newQgisPath is not None  # True when _processQGisProjectFiles succeeded
             if qgisFileMoved:
                 # Cases A and C: .qgz/.qgs is now at its new location
                 qgisFileToUpdate = newQgisPath
@@ -870,124 +910,3 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
 
         QApplication.restoreOverrideCursor()
         self.iface.messageBar().pushMessage("QGISRed", self.tr("Project has been moved to ") + targetDir, level=0, duration=5)
-
-    def _copyProjectFiles(self, folder, oldName, newName, targetDir):
-        folder = self.getUniformedPath(folder)
-        for f in os.listdir(folder):
-            filepath = os.path.join(folder, f)
-            if os.path.isfile(filepath) and f.startswith(oldName + "_"):
-                try:
-                    destName = f.replace(oldName + "_", newName + "_", 1)
-                    copyfile(filepath, os.path.join(targetDir, destName))
-                except Exception:
-                    pass
-            elif os.path.isdir(filepath):
-                if f.lower() == "layerstyles":
-                    try:
-                        destLayerStyles = os.path.join(targetDir, f)
-                        if os.path.exists(destLayerStyles):
-                            rmtree(destLayerStyles)
-                        copytree(filepath, destLayerStyles)
-                    except Exception:
-                        pass
-                else:
-                    subTarget = os.path.join(targetDir, f)
-                    os.makedirs(subTarget, exist_ok=True)
-                    self._copyProjectFiles(filepath, oldName, newName, subTarget)
-
-    def _moveProjectFiles(self, folder, networkName, targetDir):
-        folder = self.getUniformedPath(folder)
-        for f in os.listdir(folder):
-            filepath = os.path.join(folder, f)
-            if os.path.isfile(filepath) and f.startswith(networkName + "_"):
-                try:
-                    copyfile(filepath, os.path.join(targetDir, f))
-                    os.remove(filepath)
-                except Exception:
-                    pass
-            elif os.path.isdir(filepath):
-                if f.lower() == "layerstyles": # Temportal fix
-                    try:
-                        destLayerStyles = os.path.join(targetDir, f)
-                        if os.path.exists(destLayerStyles):
-                            rmtree(destLayerStyles)
-                        copytree(filepath, destLayerStyles)
-                        rmtree(filepath)
-                    except Exception:
-                        pass
-                else:
-                    subTarget = os.path.join(targetDir, f)
-                    os.makedirs(subTarget, exist_ok=True)
-                    self._moveProjectFiles(filepath, networkName, subTarget)
-                    try:
-                        if not os.listdir(filepath):
-                            os.rmdir(filepath)
-                    except Exception:
-                        pass
-        try:
-            if folder != self.getUniformedPath(targetDir) and not os.listdir(folder):
-                os.rmdir(folder)
-        except Exception:
-            pass
-
-    def _moveQGisProjectFiles(self, qgisBase, targetDir):
-        parentDir = os.path.dirname(qgisBase)
-        baseName = os.path.basename(qgisBase)
-        newQgisPath = None
-        try:
-            for f in os.listdir(parentDir):
-                filepath = os.path.join(parentDir, f)
-                if os.path.isfile(filepath):
-                    stripped = self._stripAllExtensions(filepath)
-                    if os.path.normcase(stripped) == os.path.normcase(qgisBase):
-                        extensions = f[len(baseName):]
-                        newFilepath = os.path.join(targetDir, f)
-                        try:
-                            copyfile(filepath, newFilepath)
-                            os.remove(filepath)
-                            if newQgisPath is None and (extensions.startswith(".qgs") or extensions.startswith(".qgz")):
-                                newQgisPath = newFilepath
-                        except Exception:
-                            pass
-            try:
-                if self.getUniformedPath(parentDir) != self.getUniformedPath(targetDir) and not os.listdir(parentDir):
-                    os.rmdir(parentDir)
-            except Exception:
-                pass
-        except Exception:
-            pass
-        return newQgisPath
-
-    def _copyQGisProjectFiles(self, qgisBase, newName, targetDir):
-        """Copies all QGIS project files (.qgs/.qgz and backups) to targetDir,
-        renaming them with newName as the prefix. Returns the new .qgz/.qgs path, or None."""
-        parentDir = os.path.dirname(qgisBase)
-        oldBaseName = os.path.basename(qgisBase)
-        newQgisPath = None
-        try:
-            for f in os.listdir(parentDir):
-                filepath = os.path.join(parentDir, f)
-                if os.path.isfile(filepath):
-                    stripped = self._stripAllExtensions(filepath)
-                    if os.path.normcase(stripped) == os.path.normcase(qgisBase):
-                        extensions = f[len(oldBaseName):]
-                        newFilepath = os.path.join(targetDir, newName + extensions)
-                        try:
-                            copyfile(filepath, newFilepath)
-                            if newQgisPath is None and (extensions.startswith(".qgs") or extensions.startswith(".qgz")):
-                                newQgisPath = newFilepath
-                        except Exception:
-                            pass
-        except Exception:
-            pass
-        return newQgisPath
-
-    def openFolder(self):
-        selectionModel = self.twProjectList.selectionModel()
-        if selectionModel.hasSelection():
-            for row in selectionModel.selectedRows():
-                mainFolder = str(self.twProjectList.item(row.row(), 3).text())
-                os.startfile(mainFolder)
-        else:
-            message = self.tr("You need to select a project to open its folder.")
-            self.iface.messageBar().pushMessage(self.tr("Warning"), message, level=1, duration=5)
