@@ -17,6 +17,7 @@ from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_project_io import QGISRedProjectIO
 from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
+from ...tools.utils.qgisred_ui_utils import QGISRedBanner
 
 import os
 from shutil import rmtree
@@ -79,6 +80,8 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         self.twProjectList.setHorizontalHeaderItem(3, item)
 
         self.twProjectList.cellDoubleClicked.connect(self.openProject)
+
+        self.messageBar = QGISRedBanner.inject(self, self.gridLayout_2)
 
     def config(self, ifac, direct, netw, parent):
         self.parent = parent
@@ -265,7 +268,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             self.twProjectList.setFocus()
         else:
             message = "'" + net + "' project is not found in selected folder"
-            self.iface.messageBar().pushMessage("Warning", message, level=1, duration=5)
+            self.pushMessage("Warning", message, level=1, duration=5)
 
     def _updateMetadata(self, net, folder):
         filePath = os.path.join(folder, net + "_Metadata.txt")
@@ -286,6 +289,9 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
 
     def _clearQGisProject(self):
         QgsProject.instance().clear()
+
+    def pushMessage(self, title, text, level=0, duration=5):
+        self.messageBar.pushMessage(title, text, level, duration)
 
     """Main methods"""
     def up(self):
@@ -323,7 +329,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 rowIndex = rowIndex + 1
             f.close()
         else:
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Please, select a row project to move."), level=1, duration=5)
+            self.pushMessage(self.tr("Warning"), self.tr("Please, select a row project to move."), level=1, duration=5)
 
     def openFolder(self):
         selectionModel = self.twProjectList.selectionModel()
@@ -333,7 +339,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 os.startfile(mainFolder)
         else:
             message = self.tr("You need to select a project to open its folder.")
-            self.iface.messageBar().pushMessage(self.tr("Warning"), message, level=1, duration=5)
+            self.pushMessage(self.tr("Warning"), message, level=1, duration=5)
 
     def openProject(self):
         ok, name, project, _ = self._getSelectedRowInfo()
@@ -341,13 +347,13 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             isSameProject = self._getUniformedPath(self.ProjectDirectory) == project
             isSameNet = self.NetworkName == name
             if isSameProject and isSameNet:
-                self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Selected project is currently opened."), level=1, duration=5)
+                self.pushMessage(self.tr("Warning"), self.tr("Selected project is currently opened."), level=1, duration=5)
                 return
             valid = self.parent.isOpenedProject()
             if valid:
                 QGISRedLayerUtils().runTask(self._clearQGisProject, self.openProjectProcess)
         else:
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("You need to select a project to open it."), level=1, duration=5)
+            self.pushMessage(self.tr("Warning"), self.tr("You need to select a project to open it."), level=1, duration=5)
 
     def openProjectProcess(self):
         ok, name, project, _ = self._getSelectedRowInfo()
@@ -428,10 +434,10 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
 
             io = QGISRedProjectIO(project, name, self.iface)
             io.exportProjectToZip(zipPath)
-            self.iface.messageBar().pushMessage("QGISRed", self.tr("Zip file stored in: ") + zipPath, level=0, duration=5)
+            self.pushMessage("QGISRed", self.tr("Zip file stored in: ") + zipPath, level=0, duration=5)
             return
         else:
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("You need to select a project to export it."), level=1, duration=5)
+            self.pushMessage(self.tr("Warning"), self.tr("You need to select a project to export it."), level=1, duration=5)
 
     def loadProject(self):
         dlg = QGISRedImportProjectDialog()
@@ -454,9 +460,9 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             isSameNet = self.NetworkName == projectNetwork
             if isSameProject and isSameNet:
                 if remove:
-                    self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Current project cannot be removed"), level=1, duration=5)
+                    self.pushMessage(self.tr("Warning"), self.tr("Current project cannot be removed"), level=1, duration=5)
                 else:
-                    self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Current project cannot be unloaded"), level=1, duration=5)
+                    self.pushMessage(self.tr("Warning"), self.tr("Current project cannot be unloaded"), level=1, duration=5)
                 return
 
             if remove:
@@ -498,7 +504,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             word = "unload"
             if remove:
                 word = "remove"
-            self.iface.messageBar().pushMessage(
+            self.pushMessage(
                 self.tr("Warning"), self.tr(f"You need to select a project to {word} it."), level=1, duration=5
             )
 
@@ -529,7 +535,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
 
                 self._addProjectToTable(dlg.ProjectDirectory, dlg.NetworkName)
         else:
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("You need to select a project to clone."), level=1, duration=5)
+            self.pushMessage(self.tr("Warning"), self.tr("You need to select a project to clone."), level=1, duration=5)
 
     def changeName(self):
         ok, projectNetwork, projectPath, rowIndex = self._getSelectedRowInfo()
@@ -537,7 +543,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             isSameProject = self._getUniformedPath(self.ProjectDirectory) == projectPath
             isSameNet = self.NetworkName == projectNetwork
             if isSameProject and isSameNet:
-                self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Current project can not be renamed."), level=1, duration=5)
+                self.pushMessage(self.tr("Warning"), self.tr("Current project can not be renamed."), level=1, duration=5)
                 return
             io = self._getIO(projectPath, projectNetwork)
             qgisBase = io.getQGisProjectBase(projectPath, projectNetwork)
@@ -599,22 +605,22 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 i = i + 1
             f.close()
 
-            self.iface.messageBar().pushMessage("QGISRed", self.tr("Project name has been renamed to ") + newName, level=0, duration=5)
+            self.pushMessage("QGISRed", self.tr("Project name has been renamed to ") + newName, level=0, duration=5)
         else:
-            self.iface.messageBar().pushMessage(
+            self.pushMessage(
                 self.tr("Warning"), self.tr("You need to select a project to change its name."), level=1, duration=5
             )
 
     def moveProject(self):
         ok, projectNetwork, projectPath, rowIndex = self._getSelectedRowInfo()
         if not ok:
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("You need to select a project to move it."), level=1, duration=5)
+            self.pushMessage(self.tr("Warning"), self.tr("You need to select a project to move it."), level=1, duration=5)
             return
         io = self._getIO(projectPath, projectNetwork)
         isSameProject = self._getUniformedPath(self.ProjectDirectory) == projectPath
         isSameNet = self.NetworkName == projectNetwork
         if isSameProject and isSameNet:
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Current project can not be moved."), level=1, duration=5)
+            self.pushMessage(self.tr("Warning"), self.tr("Current project can not be moved."), level=1, duration=5)
             return
 
         qgisBase = io.getQGisProjectBase(projectPath, projectNetwork)
@@ -675,4 +681,4 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         f.close()
 
         QApplication.restoreOverrideCursor()
-        self.iface.messageBar().pushMessage("QGISRed", self.tr("Project has been moved to ") + targetDir, level=0, duration=5)
+        self.pushMessage("QGISRed", self.tr("Project has been moved to ") + targetDir, level=0, duration=5)
