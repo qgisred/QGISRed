@@ -39,7 +39,7 @@ class QGISRedIdentifierUtils:
         }
 
     def tr(self, message):
-        return QCoreApplication.translate("InputLayerNames", message)
+        return QCoreApplication.translate("QGISRedIdentifierUtils", message)
 
     def _getLayerPath(self, layer):
         from .qgisred_filesystem_utils import QGISRedFileSystemUtils

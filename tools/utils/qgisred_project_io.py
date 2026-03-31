@@ -15,6 +15,7 @@ from qgis.core import (
     QgsProject, QgsLayerTreeLayer, QgsVectorLayer,
     QgsLayerDefinition
 )
+from .qgisred_ui_utils import QGISRedUIUtils
 
 
 class QGISRedProjectIO:
@@ -25,7 +26,7 @@ class QGISRedProjectIO:
 
     """Interal Helpers"""
     def _tr(self, message):
-        return QCoreApplication.translate("InputLayerNames", message)
+        return QCoreApplication.translate("QGISRedProjectIO", message)
 
     def _fs(self):
         from .qgisred_filesystem_utils import QGISRedFileSystemUtils
@@ -408,7 +409,7 @@ class QGISRedProjectIO:
                                     nameLayer = names[len(names) - 1]
                                     styling.setStyle(vlayer, nameLayer.lower())
             else:
-                self.iface.messageBar().pushMessage("Warning", "File not found", level=1, duration=5)
+                QGISRedUIUtils.showGlobalMessage(self.iface, "Warning", "File not found", level=1, duration=5)
 
     """Zip"""
     def saveFilesInZip(self, zipPath):

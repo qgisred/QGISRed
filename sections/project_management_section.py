@@ -40,24 +40,24 @@ class ProjectManagementSection:
         layers = self.getLayers()
         for layer in layers:
             if layer.isEditable():
-                self.iface.messageBar().pushMessage(
-                    QCoreApplication.translate("QGISRed", "Warning"), QCoreApplication.translate("QGISRed", "Some layer is in Edit Mode. Plase, commit it before continuing."), level=1, duration=5
+                self.pushMessage(
+                    self.tr("Warning"), self.tr("Some layer is in Edit Mode. Plase, commit it before continuing."), level=1, duration=5
                 )
                 return False
         qgsFilename = QgsProject.instance().fileName()
         if not qgsFilename == "":
             if QgsProject.instance().isDirty():
                 # Save and continue
-                self.iface.messageBar().pushMessage(
-                    QCoreApplication.translate("QGISRed", "Warning"), QCoreApplication.translate("QGISRed", "The project has changes. Please save them before continuing."), level=1, duration=5
+                self.pushMessage(
+                    self.tr("Warning"), self.tr("The project has changes. Please save them before continuing."), level=1, duration=5
                 )
                 return False
             else:
                 # Close project and continue?
                 reply = QMessageBox.question(
                     self.iface.mainWindow(),
-                    QCoreApplication.translate("QGISRed", "Open project"),
-                    QCoreApplication.translate("QGISRed", "Do you want to close the current project and continue?"),
+                    self.tr("Open project"),
+                    self.tr("Do you want to close the current project and continue?"),
                     QMessageBox.Yes,
                     QMessageBox.No,
                 )
@@ -71,8 +71,8 @@ class ProjectManagementSection:
                 # Close files and continue?
                 reply = QMessageBox.question(
                     self.iface.mainWindow(),
-                    QCoreApplication.translate("QGISRed", "Open layers"),
-                    QCoreApplication.translate("QGISRed", "Do you want to close the current layers and continue?"),
+                    self.tr("Open layers"),
+                    self.tr("Do you want to close the current layers and continue?"),
                     QMessageBox.Yes,
                     QMessageBox.No,
                 )
@@ -96,7 +96,7 @@ class ProjectManagementSection:
 
     def isValidProject(self):
         if self.ProjectDirectory == self.TemporalFolder:
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
+            self.pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
             return False
         return True
 
@@ -109,7 +109,7 @@ class ProjectManagementSection:
 
             if layer.customProperty("qgisred_identifier") and layer.isEditable():
                 message = "Some layer is in Edit Mode. Please, commit it before continuing."
-                self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr(message), level=1)
+                self.pushMessage(self.tr("Warning"), self.tr(message), level=1)
                 return True
 
         return False
@@ -156,7 +156,7 @@ class ProjectManagementSection:
         self.defineCurrentProject()
         if not self.ProjectDirectory == self.TemporalFolder:
             self.updateMetadata()
-            self.iface.messageBar().pushMessage(self.tr("Info"), self.tr("QGISRed Project saved"), level=0, duration=5)
+            self.pushMessage(self.tr("Info"), self.tr("QGISRed Project saved"), level=0, duration=5)
 
     def runClearedProject(self):
         # Set flag to prevent DLL calls during shutdown
@@ -276,9 +276,9 @@ class ProjectManagementSection:
         if resMessage == "True":
             pass
         elif resMessage == "False":
-            self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
+            self.pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
 
     """Main methods"""
@@ -421,11 +421,11 @@ class ProjectManagementSection:
         if resMessage == "True":
             pass
         elif resMessage == "False":
-            self.iface.messageBar().pushMessage(
+            self.pushMessage(
                 self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5
             )
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
     def runCanAddData(self):
         if not self.checkDependencies():
@@ -485,14 +485,14 @@ class ProjectManagementSection:
 
         # Message
         if resMessage == "True":
-            self.iface.messageBar().pushMessage(self.tr("Info"), self.tr("Project options updated"), level=0, duration=5)
+            self.pushMessage(self.tr("Info"), self.tr("Project options updated"), level=0, duration=5)
         elif resMessage == "False":
             warningMessage = self.tr("Some issues occurred in the process")
-            self.iface.messageBar().pushMessage(self.tr("Warning"), warningMessage, level=1, duration=5)
+            self.pushMessage(self.tr("Warning"), warningMessage, level=1, duration=5)
         elif resMessage == "Cancelled":
             pass
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
     def runDefaultValues(self):
         if not self.checkDependencies():
@@ -517,13 +517,13 @@ class ProjectManagementSection:
             self.removingLayers = True
             QGISRedLayerUtils().runTask(self.removeDBFs, self.runOpenTemporaryFiles)
         elif resMessage == "False":
-            self.iface.messageBar().pushMessage(
+            self.pushMessage(
                 self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5
             )
         elif resMessage == "Cancelled":
             pass
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
     def runMaterials(self):
         if not self.checkDependencies():
@@ -548,13 +548,13 @@ class ProjectManagementSection:
             self.removingLayers = True
             QGISRedLayerUtils().runTask(self.removeDBFs, self.runOpenTemporaryFiles)
         elif resMessage == "False":
-            self.iface.messageBar().pushMessage(
+            self.pushMessage(
                 self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5
             )
         elif resMessage == "Cancelled":
             pass
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
     def runSaveActionProject(self):
         self.defineCurrentProject()
@@ -578,7 +578,7 @@ class ProjectManagementSection:
 
         io = QGISRedProjectIO(self.ProjectDirectory, self.NetworkName, self.iface)
         path = io.saveBackup()
-        self.iface.messageBar().pushMessage("QGISRed", QCoreApplication.translate("QGISRed", "Backup stored in:") + " " + path, level=0, duration=5)
+        self.pushMessage(self.tr("Info"), self.tr("Backup stored in:") + " " + path, level=3, duration=5)
 
     def runCloseProject(self):
         self.iface.newProject(True)

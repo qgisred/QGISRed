@@ -7,6 +7,7 @@ from qgis.core import (
 from PyQt5.QtGui import QColor, QFont
 
 from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils
+from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 
 
 def time_field_name(var_name, layer_type):
@@ -98,7 +99,7 @@ class _ResultsRenderingMixin:
                     scenario_renders[storage_key] = renderer.rootRule().clone()
             except:
                 message = self.tr("Some issue occurred in the process of saving the style of the layer").format(self.tr(nameLayer))
-                self.iface.messageBar().pushMessage(self.lbl_warning, message, level=1, duration=5)
+                QGISRedUIUtils.showGlobalMessage(self.iface, self.lbl_warning, message, level=1, duration=5)
 
         self.Renders[self.Scenario] = scenario_renders
 
@@ -223,7 +224,7 @@ class _ResultsRenderingMixin:
                     renderer = QgsRuleBasedRenderer(ranges.clone())
                 except:
                     message = self.tr("Some issue occurred in the process of applying the style to the layer").format(self.tr(nameLayer))
-                    self.iface.messageBar().pushMessage(self.lbl_warning, message, level=1, duration=5)
+                    QGISRedUIUtils.showGlobalMessage(self.iface, self.lbl_warning, message, level=1, duration=5)
                     return
         else:
             # We load QML if there's no saved render AND (it's not graduated OR it's the wrong variable)

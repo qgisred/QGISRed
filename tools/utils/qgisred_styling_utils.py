@@ -85,7 +85,7 @@ class QGISRedStylingUtils:
         self.NetworkName = networkName
 
     def tr(self, message):
-        return QCoreApplication.translate("InputLayerNames", message)
+        return QCoreApplication.translate("QGISRedStylingUtils", message)
 
     def _getQGISRedFolder(self):
         from .qgisred_filesystem_utils import QGISRedFileSystemUtils

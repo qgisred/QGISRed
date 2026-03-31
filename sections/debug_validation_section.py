@@ -30,7 +30,7 @@ class DebugValidationSection:
         resMessage = GISRed.Commit(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(resMessage, QCoreApplication.translate("QGISRed", "Input data is valid"))
+        self.processCsharpResult(resMessage, self.tr("Input data is valid"))
 
     def runCheckOverlappingElements(self):
         if not self.checkDependencies():
@@ -51,7 +51,7 @@ class DebugValidationSection:
         )
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(resMessage, QCoreApplication.translate("QGISRed", "No overlapping elements found"))
+        self.processCsharpResult(resMessage, self.tr("No overlapping elements found"))
 
     def runSimplifyVertices(self):
         if not self.checkDependencies():
@@ -70,7 +70,7 @@ class DebugValidationSection:
         resMessage = GISRed.CheckAlignedVertices(self.ProjectDirectory, self.NetworkName, self.tempFolder, self.linkIds)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(resMessage, QCoreApplication.translate("QGISRed", "No aligned vertices to delete"))
+        self.processCsharpResult(resMessage, self.tr("No aligned vertices to delete"))
 
     def runCheckJoinPipes(self):
         if not self.checkDependencies():
@@ -87,7 +87,7 @@ class DebugValidationSection:
         resMessage = GISRed.CheckJoinPipes(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(resMessage, QCoreApplication.translate("QGISRed", "No pipes to join"))
+        self.processCsharpResult(resMessage, self.tr("No pipes to join"))
 
     def runCheckTConncetions(self):
         if not self.checkDependencies():
@@ -104,7 +104,7 @@ class DebugValidationSection:
         resMessage = GISRed.CheckTConnections(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(resMessage, QCoreApplication.translate("QGISRed", "No T connections to create"))
+        self.processCsharpResult(resMessage, self.tr("No T connections to create"))
 
     def runCheckConnectivityM(self):
         self.runCheckConnectivity()
@@ -147,7 +147,7 @@ class DebugValidationSection:
         self.hasToOpenIssuesLayers = False
         self.hasToOpenConnectivityLayers = False
         if resMessage == "True":
-            self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Only one zone"), level=3, duration=5)
+            self.pushMessage(self.tr("Info"), self.tr("Only one zone"), level=3, duration=5)
         elif resMessage == "False":
             pass
         elif resMessage == "shps":
@@ -156,7 +156,7 @@ class DebugValidationSection:
             self.hasToOpenNewLayers = True
             self.hasToOpenConnectivityLayers = True
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
         self.removingLayers = True
         self.savedExtent = self.iface.mapCanvas().extent()
@@ -209,17 +209,17 @@ class DebugValidationSection:
 
         # Message
         if resMessage == "True":
-            self.iface.messageBar().pushMessage(
-                self.tr("Information"), QCoreApplication.translate("QGISRed", "No issues on diameter checking"), level=3, duration=5
+            self.pushMessage(
+                self.tr("Info"), self.tr("No issues on diameter checking"), level=3, duration=5
             )
         elif resMessage == "False":
-            self.iface.messageBar().pushMessage(
+            self.pushMessage(
                 self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5
             )
         elif resMessage == "pass":
             pass
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
     def runCheckMaterials(self):
         if not self.checkDependencies():
@@ -240,17 +240,17 @@ class DebugValidationSection:
 
         # Message
         if resMessage == "True":
-            self.iface.messageBar().pushMessage(
-                self.tr("Information"), self.tr("No issues on materials checking"), level=3, duration=5
+            self.pushMessage(
+                self.tr("Info"), self.tr("No issues on materials checking"), level=3, duration=5
             )
         elif resMessage == "False":
-            self.iface.messageBar().pushMessage(
+            self.pushMessage(
                 self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5
             )
         elif resMessage == "pass":
             pass
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
     def runCheckInstallationDates(self):
         if not self.checkDependencies():
@@ -271,17 +271,17 @@ class DebugValidationSection:
 
         # Message
         if resMessage == "True":
-            self.iface.messageBar().pushMessage(
-                self.tr("Information"), self.tr("No issues on installation dates checking"), level=3, duration=5
+            self.pushMessage(
+                self.tr("Info"), self.tr("No issues on installation dates checking"), level=3, duration=5
             )
         elif resMessage == "False":
-            self.iface.messageBar().pushMessage(
+            self.pushMessage(
                 self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5
             )
         elif resMessage == "pass":
             pass
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
     def runHydraulicSectors(self):
         if not self.checkDependencies():
@@ -308,7 +308,7 @@ class DebugValidationSection:
         elif resMessage == "shps":
             self.hasToOpenSectorLayers = True
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
         self.removingLayers = True
         self.savedExtent = self.iface.mapCanvas().extent()

@@ -72,7 +72,7 @@ class QGISRedFieldUtils:
         }
 
     def tr(self, message):
-        return QCoreApplication.translate("InputLayerNames", message)
+        return QCoreApplication.translate("QGISRedFieldUtils", message)
 
     def getLayerSupportsCategorized(self, layerIdentifier):
         if not layerIdentifier:

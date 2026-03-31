@@ -61,3 +61,27 @@ class QGISRedBanner(QFrame):
             # For QVBoxLayout and similar, insert at the beginning
             layout.insertWidget(0, banner)
         return banner
+
+
+class QGISRedUIUtils:
+    @staticmethod
+    def showGlobalMessage(iface, title, text, level=0, duration=5):
+        """
+        Standardized global QGIS message bar call for QGISRed.
+        level: 0=Info, 1=Warning, 2=Error, 3=Success
+        """
+        if iface is None:
+            return
+
+        types = {0: "Info", 1: "Warning", 2: "Error", 3: "Success"}
+        msg_type = types.get(level, "Info")
+
+        # Standardized title: QGISRed [Type]
+        standard_title = f"QGISRed {msg_type}"
+
+        # Prepend original title if it's different from the type
+        # (Avoid redundancy if title is already 'Info', 'Warning', etc.)
+        if title and title != msg_type:
+            text = f"[{title}] {text}"
+
+        iface.messageBar().pushMessage(standard_title, text, level=level, duration=duration)

@@ -8,7 +8,7 @@ from qgis.gui import QgsProjectionSelectionDialog as QgsGenericProjectionSelecto
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ...tools.utils.qgisred_project_io import QGISRedProjectIO
-from ...tools.utils.qgisred_ui_utils import QGISRedBanner
+from ...tools.utils.qgisred_ui_utils import QGISRedBanner, QGISRedUIUtils
 from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
 import os
@@ -137,7 +137,7 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
 
             # Message
             if resMessage == "True":
-                self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Process successfully completed"), level=3, duration=5)
+                QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("Info"), self.tr("Process successfully completed"), level=3, duration=5)
                 # Project manager list
                 QGISRedProjectIO().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
                 # open layers

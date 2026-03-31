@@ -13,6 +13,7 @@ except:
         pass
 import processing
 from ..utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
+from ..utils.qgisred_ui_utils import QGISRedUIUtils
 
 
 class QGISRedMultiLayerSelection(QgsMapTool):
@@ -159,7 +160,7 @@ class QGISRedMultiLayerSelection(QgsMapTool):
                             "qgis:selectbylocation", {"INPUT": layer, "PREDICATE": [0], "INTERSECT": poligon, "METHOD": 0}
                         )  # Set
             except Exception:
-                self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Polygon not valid for selecting elements"), level=1, duration=5)
+                QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("Warning"), self.tr("Polygon not valid for selecting elements"), level=1, duration=5)
             self.reset()
             poligon = None
             return

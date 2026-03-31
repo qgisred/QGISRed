@@ -2,6 +2,7 @@
 import os
 
 from qgis.core import NULL
+from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 
 from .qgisred_results_binary import (
     getOut_TimeNodesProperties, getOut_TimeLinksProperties,
@@ -111,8 +112,9 @@ def export_results_to_csv(project_directory, network_name, scenario, iface, lbl_
         writer.writerow(["Id", "Type", "Time"] + (link_props_keys or []))
         writer.writerows(link_rows)
 
-    iface.messageBar().pushMessage(
-        "Information",
+    QGISRedUIUtils.showGlobalMessage(
+        iface,
+        "Info",
         "Results exported to CSV in the Results folder",
         level=3, duration=5
     )

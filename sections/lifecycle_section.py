@@ -45,7 +45,7 @@ class LifecycleSection:
         self.isUnloading = False  # Flag to prevent DLL calls during shutdown
 
         if not platform.system() == "Windows":
-            self.iface.messageBar().pushMessage(self.tr("Error"), self.tr("QGISRed only works on Windows"), level=2, duration=5)
+            self.pushMessage(self.tr("Error"), self.tr("QGISRed only works on Windows"), level=2, duration=5)
             return
 
         # initialize plugin directory (sections/ is one level below the plugin root)

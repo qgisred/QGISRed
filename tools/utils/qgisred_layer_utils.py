@@ -50,7 +50,7 @@ class QGISRedLayerUtils:
         }
 
     def tr(self, message):
-        return QCoreApplication.translate("InputLayerNames", message)
+        return QCoreApplication.translate("QGISRedLayerUtils", message)
 
     def runTask(self, process, postprocess):
         process()
