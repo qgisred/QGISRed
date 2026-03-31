@@ -88,6 +88,7 @@ _mock_qgis_core.QgsPointXY = _Point
 sys.modules['PyQt5'] = MagicMock()
 sys.modules['PyQt5.QtCore'] = _mock_qtcore
 sys.modules['PyQt5.QtGui'] = MagicMock()
+sys.modules['PyQt5.QtWidgets'] = MagicMock()
 sys.modules['qgis'] = MagicMock()
 sys.modules['qgis.core'] = _mock_qgis_core
 sys.modules['qgis.gui'] = _mock_qgis_gui
@@ -240,6 +241,7 @@ class TestPressEventStateMachine:
     def test_first_click_snaps_to_grid_when_no_object_snapped(self, tool_method):
         tool, _ = tool_method
         tool.SHOW_GRID = True
+        tool._showGrid = True
         tool._gridSpacing = 10.0
         # Raw click at (13.0, 27.0), grid snap → (10.0, 30.0)
         self._left_click(tool, 13.0, 27.0)
