@@ -353,6 +353,10 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             self.btCriteriaClear.setEnabled(False)
             self.btCriteriaEdit.setEnabled(False)
             self.btCriteriaSwitch.setEnabled(False)
+        self.btClearQuery.setVisible(not isMultiple)
+        hasStats = self.tableWidgetStatistics.rowCount() > 0
+        hasValue = bool(self.cbValue.value())
+        self.btClearQuery.setEnabled(hasStats or hasValue)
         self.cbStatisticsFor.setEnabled(self.btSubmit.isEnabled())
 
     def moveCriterionUp(self):
