@@ -115,9 +115,9 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.linkResultProperties = ['Flow', 'Velocity', 'HeadLoss', 'UnitHdLoss', 'FricFactor', 'ReactRate', 'Quality']
 
         self.conditionsByType = {
-            'numeric': ['>=', '<=', '=', '>', '<', '≠'],
-            'listed': ['='],
-            'text': ['=', '≠']
+            'numeric': ['All', '>=', '<=', '=', '>', '<', '≠'],
+            'listed': ['All', '='],
+            'text': ['All', '=', '≠']
         }
 
         self.fieldTypeMapping = {
@@ -209,6 +209,8 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
 
         # update submit state as user types in value field
         self.cbValue.textChanged.connect(lambda: self.updateButtonsState())
+        # update value field enabled state when condition changes
+        self.cbCondition.currentIndexChanged.connect(self.onConditionChanged)
 
         # export
         self.btExport.clicked.connect(self.exportCriteria)
@@ -225,11 +227,11 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             prop = self.cbProperty.currentText()
             cond = self.cbCondition.currentText()
             val_txt = self.cbValue.value()
-            if prop and cond and val_txt:
+            if prop and cond and (val_txt or cond == 'All'):
                 crit = {
                     'property': prop,
                     'condition': cond,
-                    'value': self.parseValue(val_txt),
+                    'value': self.parseValue(val_txt) if cond != 'All' else '',
                     'operator': '+',
                     'enabled': True
                 }
@@ -341,7 +343,8 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             self.btCriteriaEdit.setEnabled(sel)
             self.btCriteriaSwitch.setEnabled(sel)
         else:
-            hasValue = bool(self.cbValue.value())
+            isAll = self.cbCondition.currentText() == 'All'
+            hasValue = isAll or bool(self.cbValue.value())
             self.btSubmit.setEnabled(hasValue)
             self.cbElementType.setEnabled(True)
             self.btCriteriaUp.setEnabled(False)
@@ -521,6 +524,14 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
 
         self.cbCondition.addItems(self.conditionsByType.get(cat, self.conditionsByType['text']))
         self.cbCondition.blockSignals(False)
+        self.onConditionChanged()
+
+    def onConditionChanged(self):
+        isAll = self.cbCondition.currentText() == 'All'
+        self.cbValue.setEnabled(not isAll)
+        if isAll:
+            self.cbValue.setValue('')
+        self.updateButtonsState()
 
     def updateValues(self):
         ...
@@ -639,9 +650,11 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         prop    = self.cbProperty.currentText()
         cond    = self.cbCondition.currentText()
         val_txt = self.cbValue.value()
-        if not prop or not cond or not val_txt:
+        if not prop or not cond:
             return
-        val  = self.parseValue(val_txt)
+        if cond != 'All' and not val_txt:
+            return
+        val  = self.parseValue(val_txt) if cond != 'All' else ''
         crit = {
             'property': prop,
             'condition': cond,
@@ -695,8 +708,10 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.tableWidgetStatistics.setRowCount(0)
 
     def buildExpression(self, crit):
-        fld  = f'"{crit["property"]}"'
         cond = crit['condition']
+        if cond == 'All':
+            return '1=1'
+        fld  = f'"{crit["property"]}"'
         op_map = {'=':'=', '≠':'<>', 'contains':' LIKE ', 'starts with':' LIKE ', 'ends with':' LIKE '}
         op   = op_map.get(cond, cond)
         val  = crit['value']
@@ -736,12 +751,14 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             prop = self.cbProperty.currentText()
             cond = self.cbCondition.currentText()
             val_txt = self.cbValue.value()
-            if not prop or not cond or not val_txt:
+            if not prop or not cond:
+                return []
+            if cond != 'All' and not val_txt:
                 return []
             return [{
                 'property': prop,
                 'condition': cond,
-                'value': self.parseValue(val_txt),
+                'value': self.parseValue(val_txt) if cond != 'All' else '',
                 'operator': '+',
                 'enabled': True
             }]
@@ -975,7 +992,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             except Exception:
                 val_txt = self.cbValue.currentText()
 
-        val = self.parseValue(val_txt)
+        val = self.parseValue(val_txt) if cond != 'All' else ''
 
         # preserve the original operator and enabled state
         original = self.criteria[self.editingIndex]
