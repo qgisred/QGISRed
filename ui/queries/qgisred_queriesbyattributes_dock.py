@@ -747,16 +747,20 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
 
         # Determine query layer: criteria properties may live on the results layer
         criteriaProps = [c['property'] for c in effectiveCriteria if c.get('enabled', True)]
-        allProps = criteriaProps + [targetField]
-        hasResultProp = any(self.isResultProperty(p) for p in allProps)
-        if hasResultProp and not self.isResultsMode:
+        hasCriteriaResultProp = any(self.isResultProperty(p) for p in criteriaProps)
+        targetIsResultProp = self.isResultProperty(targetField)
+        if (hasCriteriaResultProp or targetIsResultProp) and not self.isResultsMode:
             qrIdent = self.cbElementType.currentData(Qt.UserRole) or ""
             resultCategory = self.elementResultCategory.get(qrIdent)
-            queryLayer = self.resolveResultsLayer(resultCategory) if resultCategory else selectedLayer
+            resultsLayer = self.resolveResultsLayer(resultCategory) if resultCategory else None
         else:
-            queryLayer = selectedLayer
-        if not queryLayer:
-            return
+            resultsLayer = None
+
+        # Pick layers: criteria filter on the layer that has their properties,
+        # statistics target reads from the layer that has targetField
+        criteriaLayer = resultsLayer if hasCriteriaResultProp and resultsLayer else selectedLayer
+        statsLayer = resultsLayer if targetIsResultProp and resultsLayer else selectedLayer
+        highlightLayer = resultsLayer if resultsLayer else selectedLayer
 
         # Collect feature values per individual criterion
         statsPerCriterion = []
@@ -766,12 +770,26 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
 
             filterExpression = self.buildExpression(criterion)
             featureRequest = QgsFeatureRequest().setFilterExpression(filterExpression)
-            featureValues = [
-                float(feat[targetField])
-                for feat in queryLayer.getFeatures(featureRequest)
-                if feat[targetField] is not None
-                and str(feat[targetField]) not in ('', 'NULL')
-            ]
+            critLayer = resultsLayer if self.isResultProperty(criterion['property']) and resultsLayer else selectedLayer
+            if critLayer is statsLayer:
+                featureValues = [
+                    float(feat[targetField])
+                    for feat in critLayer.getFeatures(featureRequest)
+                    if feat[targetField] is not None
+                    and str(feat[targetField]) not in ('', 'NULL')
+                ]
+            else:
+                matchingIds = {
+                    str(feat['Id']) for feat in critLayer.getFeatures(featureRequest)
+                    if feat['Id'] is not None
+                }
+                featureValues = [
+                    float(feat[targetField])
+                    for feat in statsLayer.getFeatures()
+                    if str(feat['Id']) in matchingIds
+                    and feat[targetField] is not None
+                    and str(feat[targetField]) not in ('', 'NULL')
+                ]
             statsPerCriterion.append(featureValues)
 
         # Build include/exclude expressions
@@ -793,15 +811,28 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             f"NOT ({exclusionExpressionString})" if exclusionExpressionString else ''
         ]))
         self.lastCombinedExpression = combinedExpression
-        self.highlightFeatures(queryLayer, combinedExpression)
+        self.highlightFeatures(highlightLayer, combinedExpression)
 
         allFeaturesRequest = QgsFeatureRequest().setFilterExpression(combinedExpression) if combinedExpression else QgsFeatureRequest()
-        allFeatureValues = [
-            float(feat[targetField])
-            for feat in queryLayer.getFeatures(allFeaturesRequest)
-            if feat[targetField] is not None
-            and str(feat[targetField]) not in ('', 'NULL')
-        ]
+        if criteriaLayer is statsLayer:
+            allFeatureValues = [
+                float(feat[targetField])
+                for feat in criteriaLayer.getFeatures(allFeaturesRequest)
+                if feat[targetField] is not None
+                and str(feat[targetField]) not in ('', 'NULL')
+            ]
+        else:
+            matchingIds = {
+                str(feat['Id']) for feat in criteriaLayer.getFeatures(allFeaturesRequest)
+                if feat['Id'] is not None
+            }
+            allFeatureValues = [
+                float(feat[targetField])
+                for feat in statsLayer.getFeatures()
+                if str(feat['Id']) in matchingIds
+                and feat[targetField] is not None
+                and str(feat[targetField]) not in ('', 'NULL')
+            ]
         statsPerCriterion.append(allFeatureValues)
 
         # Helper to compute metrics
