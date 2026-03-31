@@ -91,11 +91,12 @@ class QGISRedProjectIO:
                     tail = tail.replace(oldNamePrefix, newNamePrefix)
                 newAbsPath = os.path.join(head, tail)
                 
-                if not wasRelative:
-                    return newAbsPath.replace('\\', '/')
-                else:
+                # Use relative path if the original was relative OR if we are exporting (collectExternal=True)
+                if wasRelative or collectExternal:
                     rel = os.path.relpath(newAbsPath, newQgisDir if newQgisDir else oldQgisDir)
                     return rel.replace('\\', '/')
+                else:
+                    return newAbsPath.replace('\\', '/')
             
             # If it's external and we want to collect it:
             if collectExternal:
@@ -121,11 +122,22 @@ class QGISRedProjectIO:
                         suffix = absPath[absPath.find('|'):]
                         
                     newExternalPath = os.path.join(externalLayersDir, os.path.basename(cleanPath)) + suffix
-                    if not wasRelative:
-                        return newExternalPath.replace('\\', '/')
-                    else:
-                        rel = os.path.relpath(newExternalPath, newQgisDir if newQgisDir else oldQgisDir)
-                        return rel.replace('\\', '/')
+                    
+                    # When collecting external layers (export), the path MUST be relative to the project
+                    # to ensure the ZIP is portable.
+                    rel = os.path.relpath(newExternalPath, newQgisDir if newQgisDir else oldQgisDir)
+                    return rel.replace('\\', '/')
+
+            # If it's external and we don't want to collect it, we might still 
+            # need to update the relative path if the original was relative.
+            if not collectExternal and wasRelative:
+                targetQgisDir = newQgisDir if newQgisDir else oldQgisDir
+                try:
+                    rel = os.path.relpath(absPath, targetQgisDir)
+                    return rel.replace('\\', '/')
+                except ValueError:
+                    # Occurs if on different drives on Windows
+                    pass
 
             return val
 
