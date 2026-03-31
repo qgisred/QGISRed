@@ -546,19 +546,28 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
                 return
             crit = self.criteria[row]
             self.currentlyReplacingIndex = row
-            self.cbProperty .setCurrentText(crit['property'])
+            self.cbProperty.setCurrentText(crit['property'])
             self.cbCondition.setCurrentText(crit['condition'])
             self.cbValue.setValue(str(crit['value']))
+            self.btReplace.setText(self.tr("Confirm"))
             self.btAdd.setEnabled(False)
             self.btSubtract.setEnabled(False)
             self.btClear.setEnabled(False)
             self.cbStatisticsFor.setEnabled(False)
         else:
             self.addCriterion(self.criteria[self.currentlyReplacingIndex]['operator'])
+            self.cancelReplaceMode()
+
+    def cancelReplaceMode(self):
+        if self.currentlyReplacingIndex is not None:
+            self.currentlyReplacingIndex = None
+        self.btReplace.setText(self.tr("Replace"))
+        self.updateButtonsState()
 
     def clearCriteria(self):
         self.criteria = []
         self.currentlyReplacingIndex = None
+        self.btReplace.setText(self.tr("Replace"))
         self.lastCombinedExpression = ""
         self.reloadCriteriaTable()
         self.clearMapSelection()
