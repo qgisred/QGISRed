@@ -117,7 +117,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.conditionsByType = {
             'numeric': ['All', '>=', '<=', '=', '>', '<', '≠'],
             'listed': ['All', '='],
-            'text': ['All', '=', '≠']
+            'text': ['All', '=', '≠', 'LIKE', 'NOT LIKE']
         }
 
         self.fieldTypeMapping = {
@@ -712,11 +712,14 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         if cond == 'All':
             return '1=1'
         fld  = f'"{crit["property"]}"'
-        op_map = {'=':'=', '≠':'<>', 'contains':' LIKE ', 'starts with':' LIKE ', 'ends with':' LIKE '}
+        op_map = {'=':'=', '≠':'<>', 'LIKE':' LIKE ', 'NOT LIKE':' NOT LIKE ',
+                  'contains':' LIKE ', 'starts with':' LIKE ', 'ends with':' LIKE '}
         op   = op_map.get(cond, cond)
         val  = crit['value']
         if isinstance(val, str):
-            if cond == 'contains':    val = f"'%{val}%'"
+            if cond == 'LIKE':          val = f"'%{val}%'"
+            elif cond == 'NOT LIKE':    val = f"'%{val}%'"
+            elif cond == 'contains':    val = f"'%{val}%'"
             elif cond == 'starts with': val = f"'{val}%'"
             elif cond == 'ends with':   val = f"'%{val}'"
             else:                       val = f"'{val}'"
