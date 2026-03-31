@@ -3131,15 +3131,19 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if os.path.exists(path):
             reply = QMessageBox.question(
                 self,
-                "Overwrite",
-                "Overwrite style?",
+                self.tr("Overwrite"),
+                self.tr("Overwrite style?"),
                 QMessageBox.Yes | QMessageBox.No,
             )
             if reply != QMessageBox.Yes:
                 return
 
         self.currentLayer.saveNamedStyle(path)
-        QMessageBox.information(self, "Saved", f"Style saved to {path}")
+        QMessageBox.information(
+            self,
+            self.tr("Saved"),
+            self.tr("Style saved as {} in the layerStyles folder of your project.").format(filename),
+        )
 
     def loadDefaultStyle(self):
         self.loadStyle(isDefault=True)
@@ -3161,20 +3165,24 @@ class QGISRedLegendsDialog(QDialog, formClass):
         projectDir = self.getProjectDirectoryFromUtils()
 
         if not projectDir:
-            QMessageBox.warning(self, "No Project", "Project directory not set.")
+            QMessageBox.warning(self, self.tr("No Project"), self.tr("Project directory not set."))
             return
 
         folder = os.path.join(projectDir, "layerStyles")
         path = os.path.join(folder, filename)
 
         if not os.path.exists(path):
-            QMessageBox.warning(self, "Not Found", f"Style file not found: {path}")
+            QMessageBox.warning(self, self.tr("Not Found"), self.tr("Style file not found: {}").format(path))
             return
 
         self.currentLayer.loadNamedStyle(path)
         self.currentLayer.triggerRepaint()
         self.onLayerChanged(self.currentLayer)
-        QMessageBox.information(self, "Loaded", f"Style loaded from {path}")
+        QMessageBox.information(
+            self,
+            self.tr("Loaded"),
+            self.tr("Style loaded from {} in the layerStyles folder of your project").format(filename),
+        )
 
     def loadStyle(self, isDefault):
         if not self.currentLayer:
@@ -3192,13 +3200,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
         path = os.path.join(folder, subfolder, filename)
 
         if not os.path.exists(path):
-            QMessageBox.warning(self, "Not Found", f"Style file not found: {path}")
+            QMessageBox.warning(self, self.tr("Not Found"), self.tr("Style file not found: {}").format(path))
             return
 
         self.currentLayer.loadNamedStyle(path)
         self.currentLayer.triggerRepaint()
         self.onLayerChanged(self.currentLayer)
-        QMessageBox.information(self, "Loaded", f"Style loaded from {path}")
+        QMessageBox.information(
+            self,
+            self.tr("Loaded"),
+            self.tr("Style loaded from {}").format(filename),
+        )
 
     def getElementNameForIdentifier(self, identifier):
         if self.utils:
@@ -3211,7 +3223,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         projectDir = self.getProjectDirectoryFromUtils()
         if not projectDir:
-            QMessageBox.warning(self, "No Project", "Project directory not set.")
+            QMessageBox.warning(self, self.tr("No Project"), self.tr("Project directory not set."))
             return None
 
         return os.path.join(projectDir, "layerStyles")
