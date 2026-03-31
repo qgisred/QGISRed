@@ -403,16 +403,6 @@ class QGISRedLayerUtils:
         originalLayerName = identifiers.getOriginalNameFromLayerName(name)
         layerPath = fs.generatePath(self.ProjectDirectory, self.NetworkName + "_" + originalLayerName + ext)
 
-        groupLayers = []
-        root = QgsProject.instance().layerTreeRoot()
-        for groupName in ["Inputs", "Queries", "Results"]:
-            group = root.findGroup(groupName)
-            if group:
-                groupLayers.extend([child.layer() for child in group.findLayers()])
-
-        if groupLayers:
-            layers = [layer for layer in layers if layer in groupLayers]
-
         for layer in layers:
             if identifiers.isThematicMapsLayer(layer):
                 continue
