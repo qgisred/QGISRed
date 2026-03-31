@@ -159,7 +159,7 @@ class DebugValidationSection:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
         self.removingLayers = True
-        self.extent = QGISRedLayerUtils().getProjectExtent()
+        self.savedExtent = self.iface.mapCanvas().extent()
         if self.hasToOpenNewLayers and self.hasToOpenConnectivityLayers:
             QGISRedLayerUtils().runTask(self.removeLayersAndConnectivity, self.runOpenTemporaryFiles)
         elif self.hasToOpenConnectivityLayers:
@@ -311,6 +311,6 @@ class DebugValidationSection:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
         self.removingLayers = True
-        self.extent = QGISRedLayerUtils().getProjectExtent()
+        self.savedExtent = self.iface.mapCanvas().extent()
         if self.hasToOpenSectorLayers:
             QGISRedLayerUtils().runTask(self.removeSectorLayers, self.runOpenTemporaryFiles)

@@ -83,14 +83,6 @@ class QGISRedLayerUtils:
             crs.createFromId(3452, QgsCoordinateReferenceSystem.InternalCrsId)
         return crs
 
-    def getProjectExtent(self):
-        fs = self._fs()
-        layerPath = fs.generatePath(self.ProjectDirectory, self.NetworkName + "_Pipes.shp")
-        for layer in self.getLayers():
-            if layerPath == fs.getLayerPath(layer):
-                return layer.extent()
-        return None
-
     def getLayers(self):
         return [treeLayer.layer() for treeLayer in QgsProject.instance().layerTreeRoot().findLayers()]
 

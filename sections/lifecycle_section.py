@@ -237,6 +237,7 @@ class LifecycleSection:
         self.selectedFids = {}
 
         self.zoomToFullExtent = False
+        self.savedExtent = None
         self.removingLayers = False
 
         self.setCulture()

@@ -513,7 +513,7 @@ class ProjectManagementSection:
         if resMessage == "True":
             self.hasToOpenNewLayers = False
             self.hasToOpenIssuesLayers = False
-            self.extent = QGISRedLayerUtils().getProjectExtent()
+            self.savedExtent = self.iface.mapCanvas().extent()
             self.removingLayers = True
             QGISRedLayerUtils().runTask(self.removeDBFs, self.runOpenTemporaryFiles)
         elif resMessage == "False":
@@ -544,7 +544,7 @@ class ProjectManagementSection:
         if resMessage == "True":
             self.hasToOpenNewLayers = False
             self.hasToOpenIssuesLayers = False
-            self.extent = QGISRedLayerUtils().getProjectExtent()
+            self.savedExtent = self.iface.mapCanvas().extent()
             self.removingLayers = True
             QGISRedLayerUtils().runTask(self.removeDBFs, self.runOpenTemporaryFiles)
         elif resMessage == "False":

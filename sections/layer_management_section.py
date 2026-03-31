@@ -83,7 +83,7 @@ class LayerManagementSection:
 
     def openRemoveSpecificLayers(self, layers, epsg):
         self.especificComplementaryLayers = self.complementaryLayers
-        self.extent = QGISRedLayerUtils().getProjectExtent()
+        self.savedExtent = self.iface.mapCanvas().extent()
         self.specificEpsg = epsg
         self.specificLayers = layers
         self.removingLayers = True
@@ -278,7 +278,7 @@ class LayerManagementSection:
             self.iface.messageBar().pushMessage(self.tr("Error"), b, level=2, duration=5)
 
         self.removingLayers = True
-        self.extent = QGISRedLayerUtils().getProjectExtent()
+        self.savedExtent = self.iface.mapCanvas().extent()
         if self.hasToOpenNewLayers and self.hasToOpenIssuesLayers:
             QGISRedLayerUtils().runTask(self.removeLayersAndIssuesLayers, self.runOpenTemporaryFiles)
         elif self.hasToOpenNewLayers:

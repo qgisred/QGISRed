@@ -22,11 +22,10 @@ class UtilsSection:
             self.iface.mapCanvas().zoomToFullExtent()
             self.iface.mapCanvas().refresh()
             self.zoomToFullExtent = False
-        else:
-            if self.extent is not None:
-                self.iface.mapCanvas().setExtent(self.extent)
-                self.iface.mapCanvas().refresh()
-                self.extent = None
+        elif self.savedExtent is not None:
+            self.iface.mapCanvas().setExtent(self.savedExtent)
+            self.iface.mapCanvas().refresh()
+            self.savedExtent = None
 
     def getTolerance(self):
         # DPI

@@ -179,7 +179,7 @@ class ToolsSection:
             self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
         self.removingLayers = True
-        self.extent = QGISRedLayerUtils().getProjectExtent()
+        self.savedExtent = self.iface.mapCanvas().extent()
         if self.hasToOpenSectorLayers:
             QGISRedLayerUtils().runTask(self.removeSectorLayers, self.runOpenTemporaryFiles)
 
