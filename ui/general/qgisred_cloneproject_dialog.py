@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtWidgets import QFileDialog, QDialog
 from qgis.PyQt import uic
+from ...tools.utils.qgisred_ui_utils import QGISRedBanner
 import os
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_cloneproject_dialog.ui"))
@@ -18,6 +19,11 @@ class QGISRedCloneProjectDialog(QDialog, FORM_CLASS):
         self.setupUi(self)
         self.btSelectDirectory.clicked.connect(self.selectDirectory)
         self.btAccept.clicked.connect(self.accept)
+        
+        self.messageBar = QGISRedBanner.inject(self, self.gridLayout)
+
+    def pushMessage(self, title, text, level=0, duration=5):
+        self.messageBar.pushMessage(title, text, level, duration)
 
     def selectDirectory(self):
         selected_directory = QFileDialog.getExistingDirectory()
@@ -29,14 +35,14 @@ class QGISRedCloneProjectDialog(QDialog, FORM_CLASS):
     def accept(self):
         self.NetworkName = self.tbNetworkName.text()
         if self.NetworkName == "":
-            self.lbMessage.setText(self.tr("Not valid New Project Name"))
+            self.pushMessage(self.tr("Validations"), self.tr("Not valid New Project Name"), level=1)
             return
         if self.ProjectDirectory == "":
-            self.lbMessage.setText(self.tr("Not valid Project Folder"))
+            self.pushMessage(self.tr("Validations"), self.tr("Not valid Project Folder"), level=1)
             return
 
         if os.path.exists(os.path.join(self.ProjectDirectory, self.NetworkName + "_Pipes.shp")):
-            self.lbMessage.setText(self.tr("There is already a project with this name in the selected project folder."))
+            self.pushMessage(self.tr("Validations"), self.tr("There is already a project with this name in the selected project folder."), level=1)
             return
 
         self.ProcessDone = True

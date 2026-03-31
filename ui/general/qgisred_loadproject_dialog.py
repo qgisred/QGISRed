@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtWidgets import QFileDialog, QDialog
 from qgis.PyQt import uic
+from ...tools.utils.qgisred_ui_utils import QGISRedBanner
 
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 
@@ -23,6 +24,11 @@ class QGISRedImportProjectDialog(QDialog, FORM_CLASS):
         self.setupUi(self)
         self.btSelectDirectory.clicked.connect(self.selectDirectory)
         self.btAccept.clicked.connect(self.accept)
+        
+        self.messageBar = QGISRedBanner.inject(self, self.gridLayout)
+
+    def pushMessage(self, title, text, level=0, duration=5):
+        self.messageBar.pushMessage(title, text, level, duration)
 
     def selectDirectory(self):
         selected_directory = QFileDialog.getExistingDirectory()
@@ -45,10 +51,10 @@ class QGISRedImportProjectDialog(QDialog, FORM_CLASS):
         valid = True
         self.NetworkName = self.cbNetworkName.currentText()
         if self.NetworkName == "":
-            self.lbMessage.setText(self.tr("Not valid Project Name"))
+            self.pushMessage(self.tr("Validations"), self.tr("Not valid Project Name"), level=1)
             valid = False
         if self.ProjectDirectory == "":
-            self.lbMessage.setText(self.tr("Not valid Project Folder"))
+            self.pushMessage(self.tr("Validations"), self.tr("Not valid Project Folder"), level=1)
             valid = False
 
         if valid:
