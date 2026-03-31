@@ -36,7 +36,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
     "$d   = $env:PS_PLUGIN_DIR;" ^
     "$out = $env:PS_OUTPUT_ZIP;" ^
     "$nm  = $env:PS_PLUGIN_NAME;" ^
-    "$exTop = @('.git','.vscode','.claude','images','scripts','.gitignore','README.md','qgisred.pro','resources.qrc');" ^
+    "$exTop = @('.git','.vscode','.claude','images','scripts','.githooks','tests','.gitignore','.gitattributes','README.md','pytest.ini','qgisred.pro','resources.qrc');" ^
     "$exDir = @('__pycache__');" ^
     "$exExt = @('.pyc','.pyo','.ts');" ^
     "Add-Type -Assembly System.IO.Compression.FileSystem;" ^

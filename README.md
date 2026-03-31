@@ -136,6 +136,30 @@ Set QGIS to the target language (*Settings → Options → General → User inte
 Install Qt5 tools → Update .ts template (pylupdate5) → Create/edit language file → Compile (lrelease) → Test in QGIS
 ```
 
+## Developer Setup
+
+### Activating the pre-commit test hook
+
+This repository ships a shared git hook that runs the test suite before every
+commit. Each contributor must opt in once after cloning:
+
+**Windows:**
+```
+scripts\setup-hooks.bat
+```
+
+What the script does: it runs `git config core.hooksPath .githooks`, which
+tells git to look for hook scripts in the committed `.githooks/` directory
+instead of the default `.git/hooks/` directory.
+
+After setup, every `git commit` will automatically run
+`python -m pytest tests/` and block the commit if any test fails.
+
+To skip the hook in exceptional circumstances (not recommended):
+```
+git commit --no-verify
+```
+
 ## Running Tests
 
 The plugin uses **pytest** for automated testing.

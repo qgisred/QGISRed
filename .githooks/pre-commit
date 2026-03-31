@@ -1,0 +1,51 @@
+#!/bin/sh
+# .githooks/pre-commit
+# Runs pytest before every commit. Blocks the commit if any test fails.
+#
+# One-time setup for each contributor:
+#   Windows:    scripts\setup-hooks.bat
+#   Linux/Mac:  git config core.hooksPath .githooks
+#
+# Requirements: python (any interpreter on PATH) with pytest installed.
+#   python -m pip install pytest
+
+# ── Resolve repo root (two levels up from .githooks/pre-commit) ─────────────
+HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$HOOK_DIR/.." && pwd)"
+
+# ── Redirect all output to stderr so git shows it in the terminal ────────────
+exec 1>&2
+
+echo "---------------------------------------------"
+echo " QGISRed pre-commit: running pytest"
+echo "---------------------------------------------"
+
+# ── Check that pytest is importable ─────────────────────────────────────────
+if ! python -m pytest --version >/dev/null 2>&1; then
+    echo ""
+    echo "ERROR: 'python -m pytest' failed."
+    echo "  Ensure pytest is installed in the Python that is on your PATH:"
+    echo "    python -m pip install pytest"
+    echo ""
+    echo "Commit blocked."
+    exit 1
+fi
+
+# ── Run the test suite ───────────────────────────────────────────────────────
+python -m pytest "$REPO_ROOT/tests/" -v --tb=short
+TEST_EXIT=$?
+
+echo ""
+if [ "$TEST_EXIT" -ne 0 ]; then
+    echo "---------------------------------------------"
+    echo " COMMIT BLOCKED: tests failed (exit $TEST_EXIT)"
+    echo " Fix the failing tests, then commit again."
+    echo " To skip (not recommended): git commit --no-verify"
+    echo "---------------------------------------------"
+else
+    echo "---------------------------------------------"
+    echo " All tests passed -- proceeding with commit."
+    echo "---------------------------------------------"
+fi
+
+exit $TEST_EXIT

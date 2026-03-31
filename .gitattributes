@@ -1,0 +1,5 @@
+# Force LF line endings for shell scripts and git hooks.
+# This prevents "bad interpreter: No such file or directory" errors
+# in Git Bash on Windows when core.autocrlf=true.
+/.githooks/pre-commit  text  eol=lf
+*.sh                   text  eol=lf
