@@ -116,13 +116,14 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
 
         self.conditionsByType = {
             'numeric': ['>=', '<=', '=', '>', '<', '≠'],
-            'listed': ['=']
+            'listed': ['='],
+            'text': ['=', '≠']
         }
 
         self.fieldTypeMapping = {
             'int': 'numeric',
             'double': 'numeric',
-            'string': 'listed',
+            'string': 'text',
             'date': 'numeric',
             'datetime': 'numeric',
             'time': 'numeric',
@@ -185,6 +186,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
     def setupConnections(self):
         # element / property updates
         self.cbElementType.currentIndexChanged.connect(self.updateProperties)
+        self.cbProperty.currentIndexChanged.connect(self.updateConditions)
         self.cbProperty.currentIndexChanged.connect(self.updateValues)
         # main buttons
         self.btAdd.clicked.connect(lambda: self.addCriterion('+'))
@@ -501,10 +503,12 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         return prop in self.nodeResultProperties or prop in self.linkResultProperties or prop == 'Flow_Unsig'
 
     def updateConditions(self):
+        self.cbCondition.blockSignals(True)
         self.cbCondition.clear()
         prop = self.cbProperty.currentText()
         layer = self.resolveLayer()
         if not layer or not prop:
+            self.cbCondition.blockSignals(False)
             return
         fieldIdx = layer.fields().indexFromName(prop)
         if fieldIdx >= 0:
@@ -515,7 +519,8 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         else:
             cat = 'text'
 
-        self.cbCondition.addItems(self.conditionsByType.get('numeric', []))
+        self.cbCondition.addItems(self.conditionsByType.get(cat, self.conditionsByType['text']))
+        self.cbCondition.blockSignals(False)
 
     def updateValues(self):
         ...
