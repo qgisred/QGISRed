@@ -4,11 +4,6 @@ import sys
 import os
 from unittest.mock import MagicMock
 
-# Add plugin root to sys.path
-_PLUGIN_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-if _PLUGIN_ROOT not in sys.path:
-    sys.path.insert(0, _PLUGIN_ROOT)
-
 # ---------------------------------------------------------------------------
 # Minimal stand-in for QgsPointXY so arithmetic in _snapToGrid works
 # ---------------------------------------------------------------------------
@@ -93,9 +88,9 @@ sys.modules['qgis'] = MagicMock()
 sys.modules['qgis.core'] = _mock_qgis_core
 sys.modules['qgis.gui'] = _mock_qgis_gui
 
-from tools.map_tools.qgisred_createLineTool import QGISRedCreateLineTool  # noqa: E402
-from tools.map_tools.qgisred_createPipe import QGISRedCreatePipeTool      # noqa: E402
-from tools.map_tools.qgisred_createConnection import QGISRedCreateConnectionTool  # noqa: E402
+from QGISRed.tools.map_tools.qgisred_createLineTool import QGISRedCreateLineTool  # noqa: E402
+from QGISRed.tools.map_tools.qgisred_createPipe import QGISRedCreatePipeTool      # noqa: E402
+from QGISRed.tools.map_tools.qgisred_createConnection import QGISRedCreateConnectionTool  # noqa: E402
 
 
 # ---------------------------------------------------------------------------

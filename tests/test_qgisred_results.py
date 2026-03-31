@@ -6,12 +6,7 @@ import os
 import sys
 import pytest
 
-# Add the plugin root to sys.path so we can import tools.qgisred_results directly
-_PLUGIN_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if _PLUGIN_ROOT not in sys.path:
-    sys.path.insert(0, _PLUGIN_ROOT)
-
-from ui.analysis.qgisred_results_binary import (
+from QGISRed.ui.analysis.qgisred_results_binary import (
     getOut_Metadata,
     getOut_TimeNodesProperties,
     getOut_TimeLinksProperties,

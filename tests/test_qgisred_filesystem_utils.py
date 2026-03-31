@@ -1,21 +1,9 @@
-# -*- coding: utf-8 -*-
 import pytest
-import sys
 import os
 import shutil
 import tempfile
-from unittest.mock import MagicMock, patch
-
-# Add plugin root to sys.path
-_PLUGIN_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-if _PLUGIN_ROOT not in sys.path:
-    sys.path.insert(0, _PLUGIN_ROOT)
-
-# Mock QGIS modules
-sys.modules['qgis'] = MagicMock()
-sys.modules['qgis.core'] = MagicMock()
-
-from tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
+from unittest.mock import patch
+from QGISRed.tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 
 class TestFileSystemUtils:
     @pytest.fixture

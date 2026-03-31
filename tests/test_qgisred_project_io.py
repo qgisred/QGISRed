@@ -1,25 +1,10 @@
-# -*- coding: utf-8 -*-
 import pytest
-import sys
 import os
 import shutil
 import tempfile
 from zipfile import ZipFile
 from unittest.mock import MagicMock, patch
-
-# Add plugin root to sys.path
-_PLUGIN_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-if _PLUGIN_ROOT not in sys.path:
-    sys.path.insert(0, _PLUGIN_ROOT)
-
-# Mock QGIS and PyQt5
-sys.modules['qgis'] = MagicMock()
-sys.modules['qgis.core'] = MagicMock()
-sys.modules['PyQt5'] = MagicMock()
-sys.modules['PyQt5.QtCore'] = MagicMock()
-sys.modules['PyQt5.QtWidgets'] = MagicMock()
-
-from tools.utils.qgisred_project_io import QGISRedProjectIO
+from QGISRed.tools.utils.qgisred_project_io import QGISRedProjectIO
 
 class TestProjectIO:
     @pytest.fixture

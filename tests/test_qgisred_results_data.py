@@ -1,21 +1,5 @@
-# -*- coding: utf-8 -*-
 import pytest
-import sys
-import os
-
-# Add plugin root to sys.path
-_PLUGIN_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-if _PLUGIN_ROOT not in sys.path:
-    sys.path.insert(0, _PLUGIN_ROOT)
-
-# Mock QGIS modules
-from unittest.mock import MagicMock
-sys.modules['qgis'] = MagicMock()
-sys.modules['qgis.core'] = MagicMock()
-sys.modules['qgis.gui'] = MagicMock()
-sys.modules['qgis.utils'] = MagicMock()
-
-from ui.analysis.qgisred_results_data import seconds_to_time_str
+from QGISRed.ui.analysis.qgisred_results_data import seconds_to_time_str
 
 class TestResultsData:
     @pytest.mark.parametrize("seconds, expected", [
