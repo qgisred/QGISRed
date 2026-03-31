@@ -702,6 +702,24 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             else:                       val = f"'{val}'"
         return f"{fld} {op} {val}"
 
+    def buildIdFilter(self, inputLayer):
+        ids = []
+        for feat in inputLayer.getFeatures():
+            fid = feat['Id']
+            if fid is not None:
+                ids.append(str(fid))
+        if not ids:
+            return ""
+        quoted = ", ".join(f"'{i}'" for i in ids)
+        return f'"Id" IN ({quoted})'
+
+    def constrainExpression(self, expression, idFilter):
+        if not idFilter:
+            return expression
+        if not expression:
+            return idFilter
+        return f"({idFilter}) AND ({expression})"
+
     def runQuery(self):
         property = self.cbProperty.currentText()
         #self.labelStatisticsProperty.setText(property)
@@ -762,6 +780,11 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         statsLayer = resultsLayer if targetIsResultProp and resultsLayer else selectedLayer
         highlightLayer = resultsLayer if resultsLayer else selectedLayer
 
+        # When querying a results layer for a specific input type, restrict by Id
+        idFilter = ""
+        if resultsLayer and not self.isResultsMode:
+            idFilter = self.buildIdFilter(selectedLayer)
+
         # Collect feature values per individual criterion
         statsPerCriterion = []
         for criterion in effectiveCriteria:
@@ -769,8 +792,9 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
                 continue
 
             filterExpression = self.buildExpression(criterion)
-            featureRequest = QgsFeatureRequest().setFilterExpression(filterExpression)
             critLayer = resultsLayer if self.isResultProperty(criterion['property']) and resultsLayer else selectedLayer
+            constrainedExpr = self.constrainExpression(filterExpression, idFilter) if critLayer is resultsLayer else filterExpression
+            featureRequest = QgsFeatureRequest().setFilterExpression(constrainedExpr)
             if critLayer is statsLayer:
                 featureValues = [
                     float(feat[targetField])
@@ -811,9 +835,11 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             f"NOT ({exclusionExpressionString})" if exclusionExpressionString else ''
         ]))
         self.lastCombinedExpression = combinedExpression
-        self.highlightFeatures(highlightLayer, combinedExpression)
+        highlightExpression = self.constrainExpression(combinedExpression, idFilter) if highlightLayer is resultsLayer else combinedExpression
+        self.highlightFeatures(highlightLayer, highlightExpression)
 
-        allFeaturesRequest = QgsFeatureRequest().setFilterExpression(combinedExpression) if combinedExpression else QgsFeatureRequest()
+        constrainedCombined = self.constrainExpression(combinedExpression, idFilter) if criteriaLayer is resultsLayer else combinedExpression
+        allFeaturesRequest = QgsFeatureRequest().setFilterExpression(constrainedCombined) if constrainedCombined else QgsFeatureRequest()
         if criteriaLayer is statsLayer:
             allFeatureValues = [
                 float(feat[targetField])
