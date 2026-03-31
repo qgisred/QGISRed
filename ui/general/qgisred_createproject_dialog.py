@@ -8,6 +8,7 @@ from qgis.gui import QgsProjectionSelectionDialog as QgsGenericProjectionSelecto
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ...tools.utils.qgisred_project_io import QGISRedProjectIO
+from ...tools.utils.qgisred_ui_utils import QGISRedBanner
 from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
 import os
@@ -21,6 +22,9 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
     NetworkName = ""
     ProjectDirectory = ""
     gplFile = ""
+
+    def pushMessage(self, title, text, level=0, duration=5):
+        self.messageBar.pushMessage(title, text, level, duration)
 
     def __init__(self, parent=None):
         """Constructor."""
@@ -36,6 +40,8 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
         except Exception:
             os.mkdir(gplFolder)
         self.gplFile = os.path.join(gplFolder, "qgisredprojectlist.gpl")
+        
+        self.messageBar = QGISRedBanner.inject(self, self.gridLayout)
 
     def config(self, ifac, direct, netw, parent):
         self.iface = ifac
@@ -71,15 +77,15 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
     def validationsCreateProject(self):
         self.NetworkName = self.tbNetworkName.text()
         if len(self.NetworkName) == 0:
-            self.iface.messageBar().pushMessage(self.tr("Validations"), self.tr("The project name is not valid"), level=1)
+            self.pushMessage(self.tr("Validations"), self.tr("The project name is not valid"), level=1)
             return False
         self.ProjectDirectory = self.tbProjectDirectory.text()
         if len(self.ProjectDirectory) == 0:
-            self.iface.messageBar().pushMessage(self.tr("Validations"), self.tr("The project folder is not valid"), level=1)
+            self.pushMessage(self.tr("Validations"), self.tr("The project folder is not valid"), level=1)
             return False
         else:
             if not os.path.exists(self.ProjectDirectory):
-                self.iface.messageBar().pushMessage(self.tr("Validations"), self.tr("The project folder does not exist"), level=1)
+                self.pushMessage(self.tr("Validations"), self.tr("The project folder does not exist"), level=1)
                 return False
             else:
                 if self.cbCreateSubfolder.isChecked():
@@ -106,7 +112,7 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
                     for layer in layers:
                         if self.NetworkName + "_" + layer + ".shp" in dirList:
                             message = self.tr("The selected folder has some files with the same project name.")
-                            self.iface.messageBar().pushMessage(self.tr("Validations"), message, level=1)
+                            self.pushMessage(self.tr("Validations"), message, level=1)
                             return False
 
         if self.cbCreateSubfolder.isChecked() and not os.path.exists(self.ProjectDirectory):
@@ -131,14 +137,14 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
 
             # Message
             if resMessage == "True":
-                self.iface.messageBar().pushMessage(self.tr("Information"), self.tr("Process successfully completed"), level=3, duration=5)
+                self.pushMessage(self.tr("Information"), self.tr("Process successfully completed"), level=3, duration=5)
                 # Project manager list
                 QGISRedProjectIO().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
                 # open layers
                 self.parent.openElementLayers(self.NetworkName, self.ProjectDirectory)
             elif resMessage == "False":
-                self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
+                self.pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
             else:
-                self.iface.messageBar().pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+                self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
 
             self.close()
