@@ -8,6 +8,7 @@ from qgis.gui import QgsProjectionSelectionDialog as QgsGenericProjectionSelecto
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
+from ...tools.utils.qgisred_ui_utils import QGISRedBanner
 from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
 import os
@@ -29,6 +30,8 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         self.btAccept.clicked.connect(self.accept)
         self.btCancel.clicked.connect(self.reject)
         self.btSelectCRS.clicked.connect(self.selectCRS)
+        
+        self.messageBar = QGISRedBanner.inject(self, self.gridLayout)
 
         self.btPipes.clicked.connect(lambda: self.createElement("Pipes"))
         self.btJunctions.clicked.connect(lambda: self.createElement("Junctions"))
@@ -302,10 +305,13 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         if resMessage == "True":
             self.parent.openElementLayer(layerName)
         elif resMessage == "False":
-            self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
+            self.pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
         else:
-            self.iface.messageBar().pushMessage("Error", resMessage, level=2, duration=5)
+            self.pushMessage("Error", resMessage, level=2, duration=5)
         self.close()
+
+    def pushMessage(self, title, text, level=0, duration=5):
+        self.messageBar.pushMessage(title, text, level, duration)
 
     def renameLayersInInputsGroup(self):
         def renameAction(layer, element_type):
