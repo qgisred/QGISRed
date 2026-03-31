@@ -61,6 +61,11 @@
         <file>images/iconPatternsAndCurves.svg</file>
         <file>images/iconLoadFieldData.svg</file>
         <file>images/iconBackUpProject.svg</file>
+        <file>images/iconCloneProject.svg</file>
+        <file>images/iconRemoveProject.svg</file>
+        <file>images/iconRenameProject.svg</file>
+        <file>images/iconMoveProject.svg</file>
+        <file>images/iconOpenFolder.svg</file>
         <file>images/iconCheckMaterials.svg</file>
         <file>images/iconMaterials.svg</file>
         <file>images/iconMergeSplitJunctions.svg</file>

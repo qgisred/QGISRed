@@ -152,6 +152,10 @@
            <property name="text">
             <string>Open</string>
            </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/images/iconOpenProject.svg</normaloff>:/images/iconOpenProject.svg</iconset>
+           </property>
           </widget>
          </item>
          <item>
@@ -176,6 +180,10 @@
            </property>
            <property name="text">
             <string>Create</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/images/iconCreateProject.svg</normaloff>:/images/iconCreateProject.svg</iconset>
            </property>
           </widget>
          </item>
@@ -202,6 +210,10 @@
            <property name="text">
             <string>Import</string>
            </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/images/iconImportProject.svg</normaloff>:/images/iconImportProject.svg</iconset>
+           </property>
           </widget>
          </item>
          <item>
@@ -226,6 +238,10 @@
            </property>
            <property name="text">
             <string>Export</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/images/iconSaveProject.svg</normaloff>:/images/iconSaveProject.svg</iconset>
            </property>
           </widget>
          </item>
@@ -252,6 +268,10 @@
            <property name="text">
             <string>Clone</string>
            </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/images/iconCloneProject.svg</normaloff>:/images/iconCloneProject.svg</iconset>
+           </property>
           </widget>
          </item>
          <item>
@@ -276,6 +296,10 @@
            </property>
            <property name="text">
             <string>Remove</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/images/iconRemoveProject.svg</normaloff>:/images/iconRemoveProject.svg</iconset>
            </property>
           </widget>
          </item>
@@ -318,6 +342,10 @@
            <property name="text">
             <string>Load</string>
            </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/images/iconAddData.svg</normaloff>:/images/iconAddData.svg</iconset>
+           </property>
           </widget>
          </item>
          <item>
@@ -342,6 +370,10 @@
            </property>
            <property name="text">
             <string>Unload</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/images/iconCloseProject.svg</normaloff>:/images/iconCloseProject.svg</iconset>
            </property>
           </widget>
          </item>
@@ -368,6 +400,10 @@
            <property name="text">
             <string>Rename</string>
            </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/images/iconRenameProject.svg</normaloff>:/images/iconRenameProject.svg</iconset>
+           </property>
           </widget>
          </item>
          <item>
@@ -393,6 +429,10 @@
            <property name="text">
             <string>Move</string>
            </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/images/iconMoveProject.svg</normaloff>:/images/iconMoveProject.svg</iconset>
+           </property>
           </widget>
          </item>
          <item>
@@ -417,6 +457,10 @@
            </property>
            <property name="text">
             <string>Go to Folder</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/images/iconOpenFolder.svg</normaloff>:/images/iconOpenFolder.svg</iconset>
            </property>
           </widget>
          </item>
