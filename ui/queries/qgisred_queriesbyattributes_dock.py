@@ -193,6 +193,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.btSubtract.clicked.connect(lambda: self.addCriterion('-'))
         self.btReplace.clicked.connect(self.replaceCriterion)
         self.btClear.clicked.connect(self.clearCriteria)
+        self.btClearQuery.clicked.connect(self.clearQuery)
         self.btSubmit.clicked.connect(self.runQuery)
 
         # criteria table buttons
@@ -696,6 +697,15 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         if self.currentlyReplacingIndex is not None:
             self.currentlyReplacingIndex = None
         self.btReplace.setText(self.tr("Replace"))
+        self.updateButtonsState()
+
+    def clearQuery(self):
+        self.cbValue.setValue('')
+        self.lastCombinedExpression = ""
+        self.clearMapSelection()
+        self.tableWidgetStatistics.setRowCount(0)
+        if self.radioMultipleCriteria.isChecked():
+            self.clearCriteria()
         self.updateButtonsState()
 
     def clearCriteria(self):
