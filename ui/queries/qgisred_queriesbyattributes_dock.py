@@ -761,8 +761,10 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
 
         val = self.parseValue(val_txt)
 
-        # preserve the original operator
-        op = self.criteria[self.editingIndex]['operator']
+        # preserve the original operator and enabled state
+        original = self.criteria[self.editingIndex]
+        op = original['operator']
+        enabled = original.get('enabled', True)
 
         # overwrite the criterion
         self.criteria[self.editingIndex] = {
@@ -770,6 +772,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             'condition': cond,
             'value': val,
             'operator': op,
+            'enabled': enabled,
         }
 
         # reset edit state
@@ -789,26 +792,6 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
 
         # refresh table (and Cr1, Cr2… headers)
         self.reloadCriteriaTable()
-
-    def moveCriterionUp(self):
-        row = self.tableWidgetCriteria.currentRow()
-        if row > 0:
-            self.criteria[row - 1], self.criteria[row] = (
-                self.criteria[row],
-                self.criteria[row - 1],
-            )
-            self.reloadCriteriaTable()
-            self.tableWidgetCriteria.selectRow(row - 1)
-
-    def moveCriterionDown(self):
-        row = self.tableWidgetCriteria.currentRow()
-        if 0 <= row < len(self.criteria) - 1:
-            self.criteria[row], self.criteria[row + 1] = (
-                self.criteria[row + 1],
-                self.criteria[row],
-            )
-            self.reloadCriteriaTable()
-            self.tableWidgetCriteria.selectRow(row + 1)
 
     def onCriteriaSelectionChanged(self, row, col):
         if row < 0 or row >= len(self.criteria):
