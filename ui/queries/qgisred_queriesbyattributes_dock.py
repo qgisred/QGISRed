@@ -96,6 +96,24 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             'Meters': 'qgisred_meters'
         }
 
+        self.digitalTwinIdentifiers = {
+            'qgisred_serviceconnections', 'qgisred_isolationvalves', 'qgisred_meters'
+        }
+
+        self.elementResultCategory = {
+            'qgisred_junctions': 'Node',
+            'qgisred_reservoirs': 'Node',
+            'qgisred_tanks': 'Node',
+            'qgisred_demands': 'Node',
+            'qgisred_sources': 'Node',
+            'qgisred_pipes': 'Link',
+            'qgisred_pumps': 'Link',
+            'qgisred_valves': 'Link',
+        }
+
+        self.nodeResultProperties = ['Pressure', 'Head', 'Demand', 'Quality']
+        self.linkResultProperties = ['Flow', 'Velocity', 'HeadLoss', 'UnitHdLoss', 'FricFactor', 'ReactRate', 'Quality']
+
         self.conditionsByType = {
             'numeric': ['>=', '<=', '=', '>', '<', '≠'],
             'listed': ['=']
@@ -284,6 +302,26 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         ident = layer.customProperty("qgisred_identifier") or ""
         return ident.startswith("qgisred_node") or ident.startswith("qgisred_link")
 
+    def getResultsExist(self):
+        resultsGroup = QgsProject.instance().layerTreeRoot().findGroup("Results")
+        if not resultsGroup:
+            return False
+        for layerNode in resultsGroup.findLayers():
+            layer = layerNode.layer()
+            if layer:
+                return True
+        return False
+
+    def getVisibleLinkResultProperties(self):
+        isStatsMode = self.isResultsDockAlive() and self.resultsDock._statsMode
+        if not isStatsMode:
+            return list(self.linkResultProperties)
+        statName = self.resultsDock._currentStat if self.isResultsDockAlive() else ""
+        averageLabel = self.resultsDock.lbl_average if self.isResultsDockAlive() else ""
+        if statName == averageLabel:
+            return ['Flow_Unsig' if p == 'Flow' else p for p in self.linkResultProperties]
+        return list(self.linkResultProperties)
+
     def updateButtonsState(self):
         isMultiple = self.radioMultipleCriteria.isChecked()
         if isMultiple:
@@ -358,15 +396,50 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
                 return layer
         return None
 
+    def resolveResultsLayer(self, category):
+        """Find the results layer (Node or Link) from the Results group."""
+        prefix = "qgisred_node" if category == "Node" else "qgisred_link"
+        resultsGroup = QgsProject.instance().layerTreeRoot().findGroup("Results")
+        if not resultsGroup:
+            return None
+        for layerNode in resultsGroup.findLayers():
+            layer = layerNode.layer()
+            if not layer:
+                continue
+            ident = layer.customProperty("qgisred_identifier") or ""
+            if ident.startswith(prefix):
+                return layer
+        return None
+
+    def resolveQueryLayer(self, prop):
+        """Return the layer that actually contains the given property field."""
+        layer = self.resolveLayer()
+        if not layer:
+            return None
+        if layer.fields().indexFromName(prop) >= 0:
+            return layer
+        qrIdent = self.cbElementType.currentData(Qt.UserRole) or ""
+        resultCategory = self.elementResultCategory.get(qrIdent)
+        if resultCategory and self.isResultProperty(prop):
+            return self.resolveResultsLayer(resultCategory)
+        return layer
+
     def updateProperties(self):
         layer = self.resolveLayer()
         if not layer:
             return
+        qrIdent = self.cbElementType.currentData(Qt.UserRole) or ""
         self.isResultsMode = self.isResultsLayer(layer)
         self.cbProperty.clear()
         self.cbStatisticsFor.clear()
-        excludedLower = {'id', 'descrip'}
+        excludedLower = {'id'}
         resultsMetaLower = {'time', 'statistics', 'time_h', 'time_d', 'time_q', 'type'}
+        resultsFieldsLower = {
+            'flow', 'flow_unsig', 'flow_sig', 'velocity', 'headloss',
+            'unithdloss', 'fricfactor', 'reactrate', 'quality',
+            'pressure', 'head', 'demand', 'status'
+        }
+
         for field in layer.fields():
             fn = field.name()
             fnl = fn.lower()
@@ -374,21 +447,58 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
                 continue
             if self.isResultsMode and fnl in resultsMetaLower:
                 continue
+            if self.isResultsMode and fnl in resultsFieldsLower:
+                continue
             self.cbProperty.addItem(fn)
             self.cbStatisticsFor.addItem(fn)
+
+        if self.isResultsMode:
+            ident = layer.customProperty("qgisred_identifier") or ""
+            isLink = ident.startswith("qgisred_link")
+            if isLink:
+                resultProps = self.getVisibleLinkResultProperties()
+            else:
+                resultProps = list(self.nodeResultProperties)
+            for prop in resultProps:
+                self.cbProperty.addItem(prop)
+                self.cbStatisticsFor.addItem(prop)
+        elif qrIdent not in self.digitalTwinIdentifiers and self.getResultsExist():
+            resultCategory = self.elementResultCategory.get(qrIdent)
+            if resultCategory == 'Link':
+                resultProps = self.getVisibleLinkResultProperties()
+            elif resultCategory == 'Node':
+                resultProps = list(self.nodeResultProperties)
+            else:
+                resultProps = []
+            for prop in resultProps:
+                self.cbProperty.addItem(prop)
+                self.cbStatisticsFor.addItem(prop)
+
         if self.cbProperty.count():
             self.updateConditions()
             self.updateValues()
-        self.labelResults.setVisible(self.isResultsMode)
-        self.lineResults.setVisible(self.isResultsMode)
-        if self.isResultsMode:
+
+        hasResults = self.isResultsMode or (
+            qrIdent not in self.digitalTwinIdentifiers
+            and self.getResultsExist()
+            and self.elementResultCategory.get(qrIdent) is not None
+        )
+        self.labelResults.setVisible(hasResults)
+        self.lineResults.setVisible(hasResults)
+        if hasResults:
             self.connectResultsDock()
             if self.resultsDock is None:
-                self.fetchTimeFromLayer(layer)
+                if self.isResultsMode:
+                    self.fetchTimeFromLayer(layer)
+                else:
+                    self.fetchTimeFromResultsLayer()
                 self.resultsDockPollTimer.start()
         else:
             self.resultsDockPollTimer.stop()
             self.disconnectResultsDock()
+
+    def isResultProperty(self, prop):
+        return prop in self.nodeResultProperties or prop in self.linkResultProperties or prop == 'Flow_Unsig'
 
     def updateConditions(self):
         self.cbCondition.clear()
@@ -396,10 +506,16 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         layer = self.resolveLayer()
         if not layer or not prop:
             return
-        field = layer.fields().field(prop)
-        cat = self.fieldTypeMapping.get(field.typeName().lower(), 'text')
+        fieldIdx = layer.fields().indexFromName(prop)
+        if fieldIdx >= 0:
+            field = layer.fields().field(fieldIdx)
+            cat = self.fieldTypeMapping.get(field.typeName().lower(), 'text')
+        elif self.isResultProperty(prop):
+            cat = 'numeric' if prop != 'Status' else 'listed'
+        else:
+            cat = 'text'
 
-        self.cbCondition.addItems(self.conditionsByType.get('numeric', [])) #all numeric for now
+        self.cbCondition.addItems(self.conditionsByType.get('numeric', []))
 
     def updateValues(self):
         ...
@@ -629,6 +745,19 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         if not effectiveCriteria:
             return
 
+        # Determine query layer: criteria properties may live on the results layer
+        criteriaProps = [c['property'] for c in effectiveCriteria if c.get('enabled', True)]
+        allProps = criteriaProps + [targetField]
+        hasResultProp = any(self.isResultProperty(p) for p in allProps)
+        if hasResultProp and not self.isResultsMode:
+            qrIdent = self.cbElementType.currentData(Qt.UserRole) or ""
+            resultCategory = self.elementResultCategory.get(qrIdent)
+            queryLayer = self.resolveResultsLayer(resultCategory) if resultCategory else selectedLayer
+        else:
+            queryLayer = selectedLayer
+        if not queryLayer:
+            return
+
         # Collect feature values per individual criterion
         statsPerCriterion = []
         for criterion in effectiveCriteria:
@@ -639,7 +768,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             featureRequest = QgsFeatureRequest().setFilterExpression(filterExpression)
             featureValues = [
                 float(feat[targetField])
-                for feat in selectedLayer.getFeatures(featureRequest)
+                for feat in queryLayer.getFeatures(featureRequest)
                 if feat[targetField] is not None
                 and str(feat[targetField]) not in ('', 'NULL')
             ]
@@ -664,12 +793,12 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             f"NOT ({exclusionExpressionString})" if exclusionExpressionString else ''
         ]))
         self.lastCombinedExpression = combinedExpression
-        self.highlightFeatures(selectedLayer, combinedExpression)
+        self.highlightFeatures(queryLayer, combinedExpression)
 
         allFeaturesRequest = QgsFeatureRequest().setFilterExpression(combinedExpression) if combinedExpression else QgsFeatureRequest()
         allFeatureValues = [
             float(feat[targetField])
-            for feat in selectedLayer.getFeatures(allFeaturesRequest)
+            for feat in queryLayer.getFeatures(allFeaturesRequest)
             if feat[targetField] is not None
             and str(feat[targetField]) not in ('', 'NULL')
         ]
@@ -924,7 +1053,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
     def onResultsTimeChanged(self, timeText):
         self.currentResultsTimeText = timeText
         self.labelResults.setText(timeText)
-        if self.effectiveCriteria() and self.isResultsMode:
+        if self.effectiveCriteria():
             self.runQuery()
 
     def onResultsStatisticsChanged(self, statName):
@@ -933,7 +1062,12 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             self.labelResults.setText(f"{statName} {self.tr('values for report times')}")
         else:
             self.labelResults.setText(self.currentResultsTimeText)
-        if self.effectiveCriteria() and self.isResultsMode:
+        previousProp = self.cbProperty.currentText()
+        self.updateProperties()
+        idx = self.cbProperty.findText(previousProp)
+        if idx >= 0:
+            self.cbProperty.setCurrentIndex(idx)
+        if self.effectiveCriteria():
             self.runQuery()
 
     def onResultsPropertyChanged(self):
@@ -983,6 +1117,16 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
                 self.currentResultsTimeText = str(time_val)
                 self.currentResultsStatText = ""
                 self.labelResults.setText(self.currentResultsTimeText)
+                return
+
+    def fetchTimeFromResultsLayer(self):
+        resultsGroup = QgsProject.instance().layerTreeRoot().findGroup("Results")
+        if not resultsGroup:
+            return
+        for layerNode in resultsGroup.findLayers():
+            layer = layerNode.layer()
+            if layer and not sip.isdeleted(layer):
+                self.fetchTimeFromLayer(layer)
                 return
 
     # --- Export ---
