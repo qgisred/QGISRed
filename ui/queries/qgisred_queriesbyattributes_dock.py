@@ -288,16 +288,27 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         isMultiple = self.radioMultipleCriteria.isChecked()
         if isMultiple:
             has = len(self.criteria) > 0
-            sel = self.tableWidgetCriteria.currentRow() >= 0
+            row = self.tableWidgetCriteria.currentRow()
+            sel = row >= 0
             self.btSubtract.setEnabled(has)
             self.btReplace.setEnabled(has and sel)
             self.btClear.setEnabled(has)
             self.btSubmit.setEnabled(has)
             self.cbElementType.setEnabled(not has or self.isResultsMode)
+            self.btCriteriaUp.setEnabled(sel and row > 0)
+            self.btCriteriaDown.setEnabled(sel and row < len(self.criteria) - 1)
+            self.btCriteriaClear.setEnabled(sel)
+            self.btCriteriaEdit.setEnabled(sel)
+            self.btCriteriaSwitch.setEnabled(sel)
         else:
             hasValue = bool(self.cbValue.value())
             self.btSubmit.setEnabled(hasValue)
             self.cbElementType.setEnabled(True)
+            self.btCriteriaUp.setEnabled(False)
+            self.btCriteriaDown.setEnabled(False)
+            self.btCriteriaClear.setEnabled(False)
+            self.btCriteriaEdit.setEnabled(False)
+            self.btCriteriaSwitch.setEnabled(False)
         self.cbStatisticsFor.setEnabled(self.btSubmit.isEnabled())
 
     def moveCriterionUp(self):
@@ -329,8 +340,13 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.currentlyReplacingIndex = None
 
         self.reloadCriteriaTable()
-
         self.tableWidgetCriteria.clearSelection()
+
+        if not self.criteria:
+            self.lastCombinedExpression = ""
+            self.clearMapSelection()
+            self.tableWidgetStatistics.setRowCount(0)
+        self.updateButtonsState()
 
     def resolveLayer(self):
         """Resolve the current qgisred_identifier from the combobox to a live QgsVectorLayer."""
