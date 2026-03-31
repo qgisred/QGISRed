@@ -412,6 +412,13 @@
                   </spacer>
                  </item>
                  <item>
+                  <widget class="QPushButton" name="btClearQuery">
+                   <property name="text">
+                    <string>Clear</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
                   <widget class="QPushButton" name="btSubmit">
                    <property name="text">
                     <string>Submit</string>
