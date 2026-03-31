@@ -9,6 +9,7 @@ from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ...tools.utils.qgisred_project_io import QGISRedProjectIO
 from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
+from ...tools.utils.qgisred_ui_utils import QGISRedBanner
 from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
 import os
 import tempfile
@@ -60,6 +61,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         # QGISRed project
         self.btSelectZip.clicked.connect(self.selectZIP)
         self.btImportProject.clicked.connect(self.importProject)
+
+        self.messageBar = QGISRedBanner.inject(self, self.gridLayout_3)
 
     def config(self, ifac, direct, netw, parent):
         self.parent = parent
@@ -161,15 +164,15 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             return True
         self.NetworkName = self.tbNetworkName.text()
         if validateName and len(self.NetworkName) == 0:
-            self.iface.messageBar().pushMessage("Validations", "The project name is not valid", level=1)
+            self.pushMessage("Validations", "The project name is not valid", level=1)
             return False
         self.ProjectDirectory = self.tbProjectDirectory.text()
         if len(self.ProjectDirectory) == 0:
-            self.iface.messageBar().pushMessage("Validations", "The project folder is not valid", level=1)
+            self.pushMessage("Validations", "The project folder is not valid", level=1)
             return False
         else:
             if not os.path.exists(self.ProjectDirectory):
-                self.iface.messageBar().pushMessage("Validations", "The project folder does not exist", level=1)
+                self.pushMessage("Validations", "The project folder does not exist", level=1)
                 return False
             elif validateName:
                 if self.cbCreateSubfolder.isChecked():
@@ -196,7 +199,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                     for layer in layers:
                         if self.NetworkName + "_" + layer + ".shp" in dirList:
                             message = self.tr("The selected folder has some files with the same project name.")
-                            self.iface.messageBar().pushMessage(self.tr("Validations"), message, level=1)
+                            self.pushMessage(self.tr("Validations"), message, level=1)
                             return False
         if self.cbCreateSubfolder.isChecked() and not os.path.exists(self.ProjectDirectory):
             try:  # create directory if does not exist
@@ -218,9 +221,9 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         # Message
         if not resMessage == "True":
             if resMessage == "False":
-                self.iface.messageBar().pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
+                self.pushMessage("Warning", "Some issues occurred in the process", level=1, duration=5)
             else:
-                self.iface.messageBar().pushMessage("Error", resMessage, level=2, duration=5)
+                self.pushMessage("Error", resMessage, level=2, duration=5)
             self.close()
             return False
 
@@ -231,6 +234,9 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
     def getInputGroup(self):
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         return utils.getOrCreateGroup("Inputs")
+
+    def pushMessage(self, title, text, level=0, duration=5):
+        self.messageBar.pushMessage(title, text, level, duration)
 
     def setZoomExtent(self, exception=None, result=None):
         self.iface.mapCanvas().zoomToFullExtent()
@@ -256,11 +262,11 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             # Validations INP
             self.InpFile = self.tbInpFile.text()
             if len(self.InpFile) == 0:
-                self.iface.messageBar().pushMessage("Validations", "INP file is not valid", level=1)
+                self.pushMessage("Validations", "INP file is not valid", level=1)
                 return
             else:
                 if not os.path.exists(self.InpFile):
-                    self.iface.messageBar().pushMessage("Validations", "INP file does not exist", level=1)
+                    self.pushMessage("Validations", "INP file does not exist", level=1)
                     return
 
             self.close()
@@ -1154,17 +1160,17 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         if isValid:
             # Validations SHP's
             if not os.path.exists(self.tbShpDirectory.text()):
-                self.iface.messageBar().pushMessage("Validations", self.tr("The SHPs folder is not valid or does not exist"), level=1)
+                self.pushMessage("Validations", self.tr("The SHPs folder is not valid or does not exist"), level=1)
                 return
             # Tolerance
             tolerance = self.tbTolerance.text()
             try:
                 t = float(tolerance)
                 if t < 0:
-                    self.iface.messageBar().pushMessage(self.tr("Validations"), self.tr("Not valid Tolerance"), level=1)
+                    self.pushMessage(self.tr("Validations"), self.tr("Not valid Tolerance"), level=1)
                     return
             except Exception:
-                self.iface.messageBar().pushMessage(self.tr("Validations"), self.tr("Not numeric Tolerance"), level=1)
+                self.pushMessage(self.tr("Validations"), self.tr("Not numeric Tolerance"), level=1)
                 return
             # ServiceConnection Length
             scLength = self.tbScLength.text()
@@ -1172,15 +1178,15 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 try:
                     t = float(scLength)
                     if t < 0:
-                        self.iface.messageBar().pushMessage(self.tr("Validations"), self.tr("Not valid Service Connection Length"), level=1)
+                        self.pushMessage(self.tr("Validations"), self.tr("Not valid Service Connection Length"), level=1)
                         return
                 except Exception:
-                    self.iface.messageBar().pushMessage(self.tr("Validations"), self.tr("Not numeric Service Connection Length"), level=1)
+                    self.pushMessage(self.tr("Validations"), self.tr("Not numeric Service Connection Length"), level=1)
                     return
             # Fields
             fields = self.createShpFields()
             if fields == "":
-                self.iface.messageBar().pushMessage(self.tr("Validations"), self.tr("Any SHP selected for importing"), level=1)
+                self.pushMessage(self.tr("Validations"), self.tr("Any SHP selected for importing"), level=1)
                 return
 
             # Process
@@ -1240,11 +1246,11 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             # Validations ZIP
             self.ZipFile = self.tbZipFile.text()
             if len(self.ZipFile) == 0:
-                self.iface.messageBar().pushMessage(self.tr("Validations"), self.tr("ZIP file is not valid"), level=1)
+                self.pushMessage(self.tr("Validations"), self.tr("ZIP file is not valid"), level=1)
                 return
             else:
                 if not os.path.exists(self.ZipFile):
-                    self.iface.messageBar().pushMessage(self.tr("Validations"), self.tr("ZIP file does not exist"), level=1)
+                    self.pushMessage(self.tr("Validations"), self.tr("ZIP file does not exist"), level=1)
                     return
 
             self.close()
@@ -1265,7 +1271,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                     break
 
             if not validProject:
-                self.iface.messageBar().pushMessage(self.tr("Warning"), self.tr("ZIP file does not contain a valid QGISRed project"), level=1)
+                self.pushMessage(self.tr("Warning"), self.tr("ZIP file does not contain a valid QGISRed project"), level=1)
                 return
 
             QGISRedFileSystemUtils().copyFolderFiles(tempFolder, self.ProjectDirectory)
