@@ -79,7 +79,7 @@ class UtilsSection:
                         id = str(feature["Id"])
                         if id == "NULL":
                             message = self.tr("Some Ids are not defined. Commit before and try again.")
-                            self.pushMessage(self.tr("Warning"), message, level=1, duration=5)
+                            self.pushMessage(message, level=1, duration=5)
                             self.selectedFids = {}
                             return False
                         if layer.geometryType() == 0:
@@ -105,7 +105,7 @@ class UtilsSection:
                         id = str(feature["Id"])
                         if id == "NULL":
                             message = self.tr("Some Ids are not defined. Commit before and try again.")
-                            self.pushMessage(self.tr("Warning"), message, level=1, duration=5)
+                            self.pushMessage(message, level=1, duration=5)
                             self.selectedFids = {}
                             return False
                         ids.append(id)
@@ -162,10 +162,9 @@ class UtilsSection:
         xform = QgsCoordinateTransform(projectCrs, pipesCrs, QgsProject.instance())
         return xform.transform(point)
 
-    def pushMessage(self, title, text, level=0, duration=5):
+    def pushMessage(self, text, level=0, duration=5):
         """
         Standardized pushMessage for QGISRed plugin.
-        Ensures title is "QGISRed [Type]" and original title is preserved in body.
         Delegates to the project-wide utility.
         """
-        QGISRedUIUtils.showGlobalMessage(self.iface, title, text, level=level, duration=duration)
+        QGISRedUIUtils.showGlobalMessage(self.iface, text, level=level, duration=duration)

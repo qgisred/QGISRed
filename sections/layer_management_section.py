@@ -264,7 +264,7 @@ class LayerManagementSection:
         self.hasToOpenIssuesLayers = False
         if b == "True":
             if not message == "":
-                self.pushMessage(self.tr("Info"), self.tr(message), level=3, duration=5)
+                self.pushMessage(self.tr(message), level=3, duration=5)
         elif b == "False" or b == "Cancelled":
             pass
         elif b == "commit":
@@ -275,7 +275,7 @@ class LayerManagementSection:
             self.hasToOpenNewLayers = True
             self.hasToOpenIssuesLayers = True
         else:
-            self.pushMessage(self.tr("Error"), b, level=2, duration=5)
+            self.pushMessage(b, level=2, duration=5)
 
         self.removingLayers = True
         self.savedExtent = self.iface.mapCanvas().extent()
@@ -335,7 +335,7 @@ class LayerManagementSection:
         if resMessage == "True":
             pass
         else:
-            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(resMessage, level=2, duration=5)
 
     def getComplementaryLayersOpened(self):
         complementary = []

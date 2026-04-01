@@ -409,7 +409,7 @@ class QGISRedProjectIO:
                                     nameLayer = names[len(names) - 1]
                                     styling.setStyle(vlayer, nameLayer.lower())
             else:
-                QGISRedUIUtils.showGlobalMessage(self.iface, "Warning", "File not found", level=1, duration=5)
+                QGISRedUIUtils.showGlobalMessage(self.iface, "File not found", level=1, duration=5)
 
     """Zip"""
     def saveFilesInZip(self, zipPath):

@@ -114,7 +114,6 @@ def export_results_to_csv(project_directory, network_name, scenario, iface, lbl_
 
     QGISRedUIUtils.showGlobalMessage(
         iface,
-        "Info",
         "Results exported to CSV in the Results folder",
         level=3, duration=5
     )

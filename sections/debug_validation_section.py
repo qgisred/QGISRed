@@ -147,7 +147,7 @@ class DebugValidationSection:
         self.hasToOpenIssuesLayers = False
         self.hasToOpenConnectivityLayers = False
         if resMessage == "True":
-            self.pushMessage(self.tr("Info"), self.tr("Only one zone"), level=3, duration=5)
+            self.pushMessage(self.tr("Only one zone"), level=3, duration=5)
         elif resMessage == "False":
             pass
         elif resMessage == "shps":
@@ -156,7 +156,7 @@ class DebugValidationSection:
             self.hasToOpenNewLayers = True
             self.hasToOpenConnectivityLayers = True
         else:
-            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(resMessage, level=2, duration=5)
 
         self.removingLayers = True
         self.savedExtent = self.iface.mapCanvas().extent()
@@ -210,16 +210,16 @@ class DebugValidationSection:
         # Message
         if resMessage == "True":
             self.pushMessage(
-                self.tr("Info"), self.tr("No issues on diameter checking"), level=3, duration=5
+                self.tr("No issues on diameter checking"), level=3, duration=5
             )
         elif resMessage == "False":
             self.pushMessage(
-                self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5
+                self.tr("Some issues occurred in the process"), level=1, duration=5
             )
         elif resMessage == "pass":
             pass
         else:
-            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(resMessage, level=2, duration=5)
 
     def runCheckMaterials(self):
         if not self.checkDependencies():
@@ -241,16 +241,16 @@ class DebugValidationSection:
         # Message
         if resMessage == "True":
             self.pushMessage(
-                self.tr("Info"), self.tr("No issues on materials checking"), level=3, duration=5
+                self.tr("No issues on materials checking"), level=3, duration=5
             )
         elif resMessage == "False":
             self.pushMessage(
-                self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5
+                self.tr("Some issues occurred in the process"), level=1, duration=5
             )
         elif resMessage == "pass":
             pass
         else:
-            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(resMessage, level=2, duration=5)
 
     def runCheckInstallationDates(self):
         if not self.checkDependencies():
@@ -272,16 +272,16 @@ class DebugValidationSection:
         # Message
         if resMessage == "True":
             self.pushMessage(
-                self.tr("Info"), self.tr("No issues on installation dates checking"), level=3, duration=5
+                self.tr("No issues on installation dates checking"), level=3, duration=5
             )
         elif resMessage == "False":
             self.pushMessage(
-                self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5
+                self.tr("Some issues occurred in the process"), level=1, duration=5
             )
         elif resMessage == "pass":
             pass
         else:
-            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(resMessage, level=2, duration=5)
 
     def runHydraulicSectors(self):
         if not self.checkDependencies():
@@ -308,7 +308,7 @@ class DebugValidationSection:
         elif resMessage == "shps":
             self.hasToOpenSectorLayers = True
         else:
-            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(resMessage, level=2, duration=5)
 
         self.removingLayers = True
         self.savedExtent = self.iface.mapCanvas().extent()

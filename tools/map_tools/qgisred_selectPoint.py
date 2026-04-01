@@ -108,7 +108,7 @@ class QGISRedSelectPointTool(QgsMapTool):
             return
         if event.button() == Qt.LeftButton:
             if self.objectSnapped is None:
-                QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("Warning"), self.tr("A not valid point was selected"), level=1, duration=5)
+                QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("A not valid point was selected"), level=1, duration=5)
                 return
             if self.type == 3 or self.type == 4 or self.type == 5:
                 if self.firstPoint is None:
@@ -136,7 +136,7 @@ class QGISRedSelectPointTool(QgsMapTool):
         if event.button() == Qt.RightButton:
             if self.type == 3 or self.type == 5:
                 if self.objectSnapped is None:
-                    QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("Warning"), self.tr("A not valid point was selected"), level=1, duration=5)
+                    QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("A not valid point was selected"), level=1, duration=5)
                     return
                 else:
                     point = self.objectSnapped.point()

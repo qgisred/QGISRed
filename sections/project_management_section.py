@@ -41,7 +41,7 @@ class ProjectManagementSection:
         for layer in layers:
             if layer.isEditable():
                 self.pushMessage(
-                    self.tr("Warning"), self.tr("Some layer is in Edit Mode. Plase, commit it before continuing."), level=1, duration=5
+                    self.tr("Some layer is in Edit Mode. Plase, commit it before continuing."), level=1, duration=5
                 )
                 return False
         qgsFilename = QgsProject.instance().fileName()
@@ -49,7 +49,7 @@ class ProjectManagementSection:
             if QgsProject.instance().isDirty():
                 # Save and continue
                 self.pushMessage(
-                    self.tr("Warning"), self.tr("The project has changes. Please save them before continuing."), level=1, duration=5
+                    self.tr("The project has changes. Please save them before continuing."), level=1, duration=5
                 )
                 return False
             else:
@@ -96,7 +96,7 @@ class ProjectManagementSection:
 
     def isValidProject(self):
         if self.ProjectDirectory == self.TemporalFolder:
-            self.pushMessage(self.tr("Warning"), self.tr("No valid project is opened"), level=1, duration=5)
+            self.pushMessage(self.tr("No valid project is opened"), level=1, duration=5)
             return False
         return True
 
@@ -109,7 +109,7 @@ class ProjectManagementSection:
 
             if layer.customProperty("qgisred_identifier") and layer.isEditable():
                 message = "Some layer is in Edit Mode. Please, commit it before continuing."
-                self.pushMessage(self.tr("Warning"), self.tr(message), level=1)
+                self.pushMessage(self.tr(message), level=1)
                 return True
 
         return False
@@ -156,7 +156,7 @@ class ProjectManagementSection:
         self.defineCurrentProject()
         if not self.ProjectDirectory == self.TemporalFolder:
             self.updateMetadata()
-            self.pushMessage(self.tr("Info"), self.tr("QGISRed Project saved"), level=0, duration=5)
+            self.pushMessage(self.tr("QGISRed Project saved"), level=0, duration=5)
 
     def runClearedProject(self):
         # Set flag to prevent DLL calls during shutdown

@@ -176,7 +176,7 @@ class ToolsSection:
         elif resMessage == "shps":
             self.hasToOpenSectorLayers = True
         else:
-            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(resMessage, level=2, duration=5)
 
         self.removingLayers = True
         self.savedExtent = self.iface.mapCanvas().extent()
@@ -228,7 +228,7 @@ class ToolsSection:
             QGISRedLayerUtils().runTask(self.removeIsolatedSegmentsLayers, self.runLoadIsolatedSegmentLayers)
         else:
             self.blockLayers(False)
-            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(resMessage, level=2, duration=5)
 
     def runLoadIsolatedSegmentLayers(self):
         # Process
@@ -249,7 +249,7 @@ class ToolsSection:
         if resMessage == "True":
             pass
         else:
-            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(resMessage, level=2, duration=5)
 
     def openIsolatedSegmentsLayers(self):
         # Open layers
@@ -304,7 +304,7 @@ class ToolsSection:
             self.removingLayers = True
             QGISRedLayerUtils().runTask(self.removeTreeLayers, self.runTreeProcess)
         else:
-            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(resMessage, level=2, duration=5)
 
     def runTreeProcess(self):
         # Process
@@ -325,7 +325,7 @@ class ToolsSection:
         if resMessage == "True":
             pass
         else:
-            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(resMessage, level=2, duration=5)
 
     def selectPointToTree(self):
         tool = "treeNode"

@@ -137,7 +137,7 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
 
             # Message
             if resMessage == "True":
-                QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("Info"), self.tr("Process successfully completed"), level=3, duration=5)
+                QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("Process successfully completed"), level=3, duration=5)
                 # Project manager list
                 QGISRedProjectIO().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
                 # open layers

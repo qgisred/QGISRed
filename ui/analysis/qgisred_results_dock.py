@@ -265,7 +265,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
 
         # If project mismatch, warn user and close the dock
         message = self.tr("The current project has been changed. Please, try again.")
-        QGISRedUIUtils.showGlobalMessage(self.iface, self.lbl_warning, message, level=1, duration=5)
+        QGISRedUIUtils.showGlobalMessage(self.iface, message, level=1, duration=5)
         self.close()
         return False
     
@@ -374,7 +374,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
             resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + scenario + "_" + file + ".shp")
             # Ensure Shapefile exists
             if not os.path.exists(resultLayerPath):
-                QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("Warning"), self.tr("{} results not found").format(self.tr(file)), level=1)
+                QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("{} results not found").format(self.tr(file)), level=1)
                 continue
 
             # Open layer if not already open
@@ -817,7 +817,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
             resultPath = os.path.join(resultsPath, filename)
             if not os.path.exists(resultPath):
                 message = self.tr("No {} results are available").format(self.tr(layerName))
-                QGISRedUIUtils.showGlobalMessage(self.iface, self.lbl_warning, message, level=1, duration=5)
+                QGISRedUIUtils.showGlobalMessage(self.iface, message, level=1, duration=5)
                 return False
 
         return True
@@ -864,7 +864,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
 
         # Message
         if resMessage == "False":
-            QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
+            QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("Some issues occurred in the process"), level=1, duration=5)
         elif resMessage == "True":
             self.outPath = os.path.join(self.getResultsPath(), self.NetworkName + "_" + self.Scenario + ".out")
             self.loadReportFile()
@@ -885,7 +885,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
                             child.setItemVisibilityChecked(False)
             return
         else:
-            QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("Error"), resMessage, level=2, duration=5)
+            QGISRedUIUtils.showGlobalMessage(self.iface, resMessage, level=2, duration=5)
 
         # If some error, close the dock
         self.close()
