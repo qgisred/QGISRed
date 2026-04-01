@@ -137,11 +137,11 @@ class LayerManagementSection:
             if not proccessPerformed:
                 utils.openElementsLayers(inputGroup, self.ownMainLayers + self.especificComplementaryLayers, processOnly=True)
             io.deleteProjectQLR(self.qlrFolder)
-            utils.removeEmptyLayersInGroup(inputGroup)
         else:
             for layer_name in self.ownMainLayers + self.especificComplementaryLayers:
                 utils.openElementsLayers(inputGroup, [layer_name])
 
+        utils.removeEmptyLayersInGroup(inputGroup)
         # Reset any scenario‑specific list
         self.especificComplementaryLayers = []
 
