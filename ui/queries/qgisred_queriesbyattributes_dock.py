@@ -10,6 +10,7 @@ from PyQt5 import sip
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from datetime import datetime
 import csv
+import math
 
 from ..analysis.qgisred_results_dock import QGISRedResultsDock
 
@@ -122,12 +123,17 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
 
         self.fieldTypeMapping = {
             'int': 'numeric',
+            'integer': 'numeric',
+            'integer64': 'numeric',
             'double': 'numeric',
+            'real': 'numeric',
+            'long': 'numeric',
             'string': 'text',
             'date': 'numeric',
             'datetime': 'numeric',
             'time': 'numeric',
-            'bool': 'listed'
+            'bool': 'listed',
+            'boolean': 'listed'
         }
 
         self.tableWidgetCriteria.setColumnCount(2)
@@ -510,6 +516,22 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
     def isResultProperty(self, prop):
         return prop in self.nodeResultProperties or prop in self.linkResultProperties or prop == 'Flow_Unsig'
 
+    def isNumericProperty(self, prop):
+        if self.isResultProperty(prop):
+            return prop != 'Status'
+        layer = self.resolveLayer()
+        if not layer:
+            return False
+        fieldIdx = layer.fields().indexFromName(prop)
+        if fieldIdx < 0:
+            return False
+        cat = self.fieldTypeMapping.get(layer.fields().field(fieldIdx).typeName().lower(), 'text')
+        return cat == 'numeric'
+
+    def usesSumColumn(self, prop):
+        sumProperties = {'Length', 'HeadLoss', 'UnitHdLoss', 'BaseDem', 'Demand'}
+        return prop in sumProperties
+
     def updateConditions(self):
         self.cbCondition.blockSignals(True)
         self.cbCondition.clear()
@@ -824,6 +846,19 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         if resultsLayer and not self.isResultsMode:
             idFilter = self.buildIdFilter(selectedLayer)
 
+        # Determine if target is numeric and if Flow abs should be used
+        targetIsNumeric = self.isNumericProperty(targetField)
+        useAbsValue = targetField in ('Flow', 'Flow_Unsig')
+
+        def extractValue(feat):
+            val = feat[targetField]
+            if val is None or str(val) in ('', 'NULL'):
+                return None
+            if not targetIsNumeric:
+                return val
+            v = float(val)
+            return abs(v) if useAbsValue else v
+
         # Collect feature values per individual criterion
         statsPerCriterion = []
         for criterion in effectiveCriteria:
@@ -836,10 +871,8 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             featureRequest = QgsFeatureRequest().setFilterExpression(constrainedExpr)
             if critLayer is statsLayer:
                 featureValues = [
-                    float(feat[targetField])
-                    for feat in critLayer.getFeatures(featureRequest)
-                    if feat[targetField] is not None
-                    and str(feat[targetField]) not in ('', 'NULL')
+                    v for feat in critLayer.getFeatures(featureRequest)
+                    if (v := extractValue(feat)) is not None
                 ]
             else:
                 matchingIds = {
@@ -847,11 +880,9 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
                     if feat['Id'] is not None
                 }
                 featureValues = [
-                    float(feat[targetField])
-                    for feat in statsLayer.getFeatures()
+                    v for feat in statsLayer.getFeatures()
                     if str(feat['Id']) in matchingIds
-                    and feat[targetField] is not None
-                    and str(feat[targetField]) not in ('', 'NULL')
+                    and (v := extractValue(feat)) is not None
                 ]
             statsPerCriterion.append(featureValues)
 
@@ -881,10 +912,8 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         allFeaturesRequest = QgsFeatureRequest().setFilterExpression(constrainedCombined) if constrainedCombined else QgsFeatureRequest()
         if criteriaLayer is statsLayer:
             allFeatureValues = [
-                float(feat[targetField])
-                for feat in criteriaLayer.getFeatures(allFeaturesRequest)
-                if feat[targetField] is not None
-                and str(feat[targetField]) not in ('', 'NULL')
+                v for feat in criteriaLayer.getFeatures(allFeaturesRequest)
+                if (v := extractValue(feat)) is not None
             ]
         else:
             matchingIds = {
@@ -892,11 +921,9 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
                 if feat['Id'] is not None
             }
             allFeatureValues = [
-                float(feat[targetField])
-                for feat in statsLayer.getFeatures()
+                v for feat in statsLayer.getFeatures()
                 if str(feat['Id']) in matchingIds
-                and feat[targetField] is not None
-                and str(feat[targetField]) not in ('', 'NULL')
+                and (v := extractValue(feat)) is not None
             ]
         statsPerCriterion.append(allFeatureValues)
 
