@@ -143,16 +143,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         h.setSectionResizeMode(0, QHeaderView.ResizeToContents)
         h.setSectionResizeMode(1, QHeaderView.Stretch)
 
-        # set up statistics table
-        if self.tableWidgetStatistics.columnCount() == 0:
-            self.tableWidgetStatistics.setColumnCount(5)
-            self.tableWidgetStatistics.setHorizontalHeaderLabels(
-                ["Count", "Sum", "Avg", "Min", "Max"]
-            )
-            for i in range(5):
-                self.tableWidgetStatistics.horizontalHeader().setSectionResizeMode(
-                    i, QHeaderView.Stretch
-                )
+        # set up statistics table (columns configured dynamically in calculateStatistics)
         # Start empty state at half default height; grows to fit content later
         rowH = self.tableWidgetStatistics.verticalHeader().defaultSectionSize()
         headerH = self.tableWidgetStatistics.horizontalHeader().height()
@@ -930,11 +921,21 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         # Helper to compute metrics
         def computeMetrics(values):
             count = len(values)
+            if not targetIsNumeric:
+                return {'count': count}
             totalValue = sum(values) if count else 0
-            averageValue = totalValue / count if count else 0
+            avgValue = totalValue / count if count else 0
             minValue = min(values) if count else None
             maxValue = max(values) if count else None
-            return count, totalValue, averageValue, minValue, maxValue
+            if self.usesSumColumn(targetField):
+                lastCol = totalValue
+            else:
+                variance = sum((v - avgValue) ** 2 for v in values) / count if count else 0
+                lastCol = math.sqrt(variance)
+            return {
+                'count': count, 'avg': avgValue,
+                'min': minValue, 'max': maxValue, 'last': lastCol
+            }
 
         # In single mode, only show the combined "All" row
         if self.radioSingleCriteria.isChecked():
@@ -942,21 +943,35 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         else:
             statsResults = [computeMetrics(vals) for vals in statsPerCriterion]
 
-        # Populate the table
+        # Configure columns based on property type
         statisticsTable = self.tableWidgetStatistics
-        statisticsTable.setRowCount(len(statsResults))
-        statisticsTable.verticalHeader().setVisible(True)
+        if targetIsNumeric:
+            lastColLabel = self.tr("Sum") if self.usesSumColumn(targetField) else self.tr("StdD")
+            columnHeaders = [self.tr("Count"), self.tr("Avg"), self.tr("Min"), self.tr("Max"), lastColLabel]
+            columnKeys = ['count', 'avg', 'min', 'max', 'last']
+        else:
+            columnHeaders = [self.tr("Count")]
+            columnKeys = ['count']
 
-        for rowIndex, (count, totalValue, averageValue, minValue, maxValue) in enumerate(statsResults):
-            for colIndex, value in enumerate((count, totalValue, averageValue, minValue, maxValue)):
-                cellText = f"{value:.2f}" if isinstance(value, float) else str(value)
+        statisticsTable.setColumnCount(len(columnHeaders))
+        statisticsTable.setHorizontalHeaderLabels(columnHeaders)
+        for i in range(len(columnHeaders)):
+            statisticsTable.horizontalHeader().setSectionResizeMode(i, QHeaderView.Stretch)
+
+        statisticsTable.verticalHeader().setVisible(True)
+        statisticsTable.setRowCount(len(statsResults))
+
+        for rowIndex, metrics in enumerate(statsResults):
+            for colIndex, key in enumerate(columnKeys):
+                value = metrics[key]
+                cellText = f"{value:.2f}" if isinstance(value, float) else str(value if value is not None else "")
                 tableItem = QTableWidgetItem(cellText)
                 tableItem.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
-                if colIndex == 0:  # Count column
+                if key == 'count':
                     tableItem.setBackground(QColor("#d0e8ff"))
                 statisticsTable.setItem(rowIndex, colIndex, tableItem)
 
-            rowLabel = "All" if rowIndex == len(statsResults) - 1 else f"Cr{rowIndex+1}"
+            rowLabel = self.tr("All") if rowIndex == len(statsResults) - 1 else f"Cr{rowIndex+1}"
             statisticsTable.setVerticalHeaderItem(rowIndex, QTableWidgetItem(rowLabel))
 
         lastRow = statisticsTable.rowCount() - 1
@@ -964,7 +979,8 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             item = statisticsTable.item(lastRow, col)
             if item:
                 item.setBackground(QColor("#ffd700") if col == 0 else QColor("#fff8dc"))
-        statisticsTable.verticalHeaderItem(lastRow).setBackground(QColor("#ffd700"))
+        if statisticsTable.verticalHeaderItem(lastRow):
+            statisticsTable.verticalHeaderItem(lastRow).setBackground(QColor("#ffd700"))
 
         # Resize table to fit rows (up to 4-row cap)
         rowH = statisticsTable.verticalHeader().defaultSectionSize()
