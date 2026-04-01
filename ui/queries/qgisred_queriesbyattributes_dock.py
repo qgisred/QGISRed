@@ -268,7 +268,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.updateButtonsState()
 
     def onStatisticsForChanged(self):
-        if self.cbStatisticsFor.isEnabled():
+        if self.cbStatisticsFor.isEnabled() and self.lastCombinedExpression:
             self.calculateStatistics()
 
     def initializeElementTypes(self):
