@@ -1350,7 +1350,7 @@
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="198"/>
-        <source>Save project</source>
+        <source>Save map</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

@@ -197,7 +197,7 @@ class MenuSection:
 
         action = self._make_action(
             ":/images/iconSaveProject.svg", 
-            self.tr("Save project"), 
+            self.tr("Save map"), 
             self.runSaveActionProject,
             parent=self.iface.mainWindow(),
         )
