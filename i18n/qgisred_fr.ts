@@ -576,7 +576,7 @@
         <translation type="obsolete">Recharger</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="274"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="417"/>
         <source>Clear</source>
         <translation>Effacer</translation>
     </message>
@@ -671,7 +671,7 @@
         <translation>Ensemble de critères</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="417"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="424"/>
         <source>Submit</source>
         <translation>Exécuter</translation>
     </message>
@@ -4201,9 +4201,6 @@ Left-click: Add a new item below the current selection</source>
     </message>
 </context>
 <context>
-    <name>QGISRedProjectIO</name>
-</context>
-<context>
     <name>QGISRedProjectManagerDialog</name>
     <message>
         <location filename="../ui/general/qgisred_projectmanager_dialog.ui" line="14"/>
@@ -4409,37 +4406,37 @@ Left-click: Add a new item below the current selection</source>
 <context>
     <name>QGISRedQueriesByAttributesDock</name>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="726"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="763"/>
         <source>Statistics of {property} for selected Elements</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="294"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="299"/>
         <source>Nodes</source>
         <translation type="unfinished">Nœuds</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="296"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="301"/>
         <source>Lines</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="239"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="244"/>
         <source>Switch to Single Criteria</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="239"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="244"/>
         <source>Switching to single criteria will discard all criteria except the first one. Proceed?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="668"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="691"/>
         <source>Confirm</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="686"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="718"/>
         <source>Replace</source>
         <translation type="unfinished">Remplacer</translation>
     </message>
