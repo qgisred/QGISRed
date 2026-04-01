@@ -8,6 +8,7 @@ import re
 from zipfile import ZipFile, ZIP_DEFLATED
 from xml.etree import ElementTree  # nosec B314 — parses local project files only, no external input
 import urllib.parse
+import xml.sax.saxutils
 
 from PyQt5.QtCore import QCoreApplication, QFileInfo
 from PyQt5.QtWidgets import QMessageBox, QFileDialog
@@ -48,11 +49,23 @@ class QGISRedProjectIO:
         externalLayersDir = os.path.join(newFolderNorm, "ExternalLayers")
         
         def replacePathInValue(val):
-            # QGIS paths in XML can be URL-encoded and might start with file://
-            val = urllib.parse.unquote(val)
+            # XML entities (like &amp;) need to be unescaped for comparison
+            # We return an unescaped string so the caller can handle the final XML escaping consistently.
+            logical_val = xml.sax.saxutils.unescape(val)
+            
+            # If it's a connection string (XYZ, WMS, etc.), don't treat it as a local path
+            # Detection: url=, crs=, type= (common in datasource), service=, request=, OR starts with http
+            if any(marker in logical_val.lower() for marker in ["url=", "crs=", "type=", "service=", "request="]) or logical_val.lower().startswith(("http://", "https://")):
+                return logical_val
+
+            # QGIS paths in XML can also be URL-encoded and might start with file://
+            val = urllib.parse.unquote(logical_val)
+            protocol = ""
             if val.startswith('file:///'):
+                protocol = 'file:///'
                 val = val[8:]
             elif val.startswith('file://'):
+                protocol = 'file://'
                 val = val[7:]
             
             # Normalize to absolute for comparison
@@ -63,41 +76,33 @@ class QGISRedProjectIO:
                 absPath = os.path.normcase(os.path.normpath(os.path.join(oldQgisDir, val)))
                 wasRelative = True
             else:
-                return val
+                return logical_val
 
             # Check if this path is inside the old project folder
             if absPath.startswith(oldFolderNorm):
-                # ... internal layer logic ...
                 suffix = absPath[len(oldFolderNorm):]
                 newAbsPath = newFolderNorm + suffix
                 head, tail = os.path.split(newAbsPath)
                 oldNamePrefix = oldName + '_'
                 newNamePrefix = newName + '_'
-                isStandardProjectFile = os.path.basename(absPath).startswith(oldNamePrefix)
                 
-                if not isStandardProjectFile and os.path.isfile(absPath) and oldFolderNorm != os.path.normcase(newFolderNorm):
-                    try:
-                        os.makedirs(head, exist_ok=True)
-                        # Copy file and companions
-                        basePath = self.stripAllExtensions(absPath)
-                        parent = os.path.dirname(absPath)
-                        for f in os.listdir(parent):
-                            current_file_path = os.path.join(parent, f)
-                            if os.path.normcase(self.stripAllExtensions(current_file_path)) == os.path.normcase(basePath):
-                                shutil.copy2(current_file_path, os.path.join(head, f))
-                    except Exception:
-                        pass
-
-                if oldName != newName:
+                # Case-insensitive replacement for the filename part (common on Windows)
+                if oldName.lower() != newName.lower():
+                    # Check if the tail starts with oldNamePrefix (case insensitive)
+                    if tail.lower().startswith(oldNamePrefix.lower()):
+                        tail = newNamePrefix + tail[len(oldNamePrefix):]
+                elif oldName != newName:
+                    # Same name different case? Just replace
                     tail = tail.replace(oldNamePrefix, newNamePrefix)
+
                 newAbsPath = os.path.join(head, tail)
                 
                 # Use relative path if the original was relative OR if we are exporting (collectExternal=True)
                 if wasRelative or collectExternal:
                     rel = os.path.relpath(newAbsPath, newQgisDir if newQgisDir else oldQgisDir)
-                    return rel.replace('\\', '/')
+                    return protocol + rel.replace('\\', '/')
                 else:
-                    return newAbsPath.replace('\\', '/')
+                    return protocol + newAbsPath.replace('\\', '/')
             
             # If it's external and we want to collect it:
             if collectExternal:
@@ -135,30 +140,44 @@ class QGISRedProjectIO:
                 targetQgisDir = newQgisDir if newQgisDir else oldQgisDir
                 try:
                     rel = os.path.relpath(absPath, targetQgisDir)
-                    return rel.replace('\\', '/')
+                    return protocol + rel.replace('\\', '/')
                 except ValueError:
                     # Occurs if on different drives on Windows
                     pass
 
-            return val
+            return logical_val
 
         # Replace path values in XML attributes (source="..." url="..." filename="...")
+        # We re-escape the result since attributes need proper XML escaping
         content = re.sub(r'(source|url|filename)(=)(")([^"]+)(")',
-                         lambda m: m.group(1) + m.group(2) + m.group(3) + replacePathInValue(m.group(4)) + m.group(5),
+                         lambda m: m.group(1) + m.group(2) + m.group(3) + xml.sax.saxutils.escape(replacePathInValue(m.group(4))) + m.group(5),
                          content)
         content = re.sub(r"(source|url|filename)(=)(')([^']+)(')",
-                         lambda m: m.group(1) + m.group(2) + m.group(3) + replacePathInValue(m.group(4)) + m.group(5),
+                         lambda m: m.group(1) + m.group(2) + m.group(3) + xml.sax.saxutils.escape(replacePathInValue(m.group(4))) + m.group(5),
                          content)
 
         # Replace path values in <datasource>...</datasource> element content
         content = re.sub(r'(<datasource>)([^<]+)(</datasource>)',
-                         lambda m: m.group(1) + replacePathInValue(m.group(2)) + m.group(3),
+                         lambda m: m.group(1) + xml.sax.saxutils.escape(replacePathInValue(m.group(2))) + m.group(3),
                          content)
 
         if oldName != newName:
+            # We must handle both the raw name and its XML-escaped version
+            # (e.g., if project name is "Red & Blue")
+            oldNameEsc = xml.sax.saxutils.escape(oldName)
+            newNameEsc = xml.sax.saxutils.escape(newName)
+
+            # Global string replacements
+            # We search for escaped versions because they are stored that way in the XML attributes and content
             content = content.replace(oldName + '_', newName + '_' )
+            if oldName != oldNameEsc:
+                content = content.replace(oldNameEsc + '_', newNameEsc + '_' )
+            
             content = content.replace('value="qgisred_' + oldName + '"', 'value="qgisred_' + newName + '"')
+            content = content.replace('value="qgisred_' + oldNameEsc + '"', 'value="qgisred_' + newNameEsc + '"')
+            
             content = content.replace('name="' + oldName + '"', 'name="' + newName + '"')
+            content = content.replace('name="' + oldNameEsc + '"', 'name="' + newNameEsc + '"')
 
         return content
 
