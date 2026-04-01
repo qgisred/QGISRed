@@ -958,7 +958,9 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         for i in range(len(columnHeaders)):
             statisticsTable.horizontalHeader().setSectionResizeMode(i, QHeaderView.Stretch)
 
-        statisticsTable.verticalHeader().setVisible(True)
+        # Show vertical header only when multiple rows
+        showCriterionColumn = len(statsResults) > 1
+        statisticsTable.verticalHeader().setVisible(showCriterionColumn)
         statisticsTable.setRowCount(len(statsResults))
 
         for rowIndex, metrics in enumerate(statsResults):
