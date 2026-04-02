@@ -154,6 +154,11 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         # track which row (if any) is being edited
         self.editingIndex = None
 
+        self.gridLayout.setColumnStretch(0, 3)
+        self.gridLayout.setColumnStretch(1, 2)
+        self.gridLayout.setColumnStretch(2, 2)
+        self.cbCondition.setMaximumWidth(100)
+
         self.initializeElementTypes()
         self.setupConnections()
         self.setupButtonIcons()
