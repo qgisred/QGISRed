@@ -519,6 +519,10 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             else:
                 staticFields.append(field)
 
+        orangeBrush = QBrush(QColor("#FFE0B2"))
+        resultProps = self.getResultProperties(layer, qrIdent)
+        numericResultProps = [p for p in resultProps if p != 'Status']
+
         # Group 1: Static properties
         for field in staticFields:
             self.cbProperty.addItem(field.name())
@@ -527,15 +531,16 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
                 self.cbStatisticsFor.addItem(field.name())
 
         # Group 2: Result properties (orange background)
-        resultProps = self.getResultProperties(layer, qrIdent)
         if resultProps:
             self.cbProperty.insertSeparator(self.cbProperty.count())
-            orangeBrush = QBrush(QColor("#FFE0B2"))
             for prop in resultProps:
                 self.cbProperty.addItem(prop)
                 self.cbProperty.setItemData(self.cbProperty.count() - 1, orangeBrush, Qt.BackgroundRole)
-                if prop != 'Status':
+            if numericResultProps:
+                self.cbStatisticsFor.insertSeparator(self.cbStatisticsFor.count())
+                for prop in numericResultProps:
                     self.cbStatisticsFor.addItem(prop)
+                    self.cbStatisticsFor.setItemData(self.cbStatisticsFor.count() - 1, orangeBrush, Qt.BackgroundRole)
 
         # Group 3: Tag / Description (dark background)
         if tagFields:
