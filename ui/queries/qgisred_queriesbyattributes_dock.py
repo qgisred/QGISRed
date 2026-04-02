@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from qgis.PyQt.QtWidgets import QDockWidget, QTableWidgetItem, QHeaderView, QAbstractItemView, QToolButton
-from qgis.PyQt.QtCore import Qt, QTimer
-from qgis.PyQt.QtGui import QColor, QIcon, QFont
+from PyQt5.QtWidgets import QDockWidget, QTableWidgetItem, QHeaderView, QAbstractItemView, QToolButton
+from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtGui import QBrush, QColor, QIcon, QFont
 from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsVectorLayer, QgsFeatureRequest
 from qgis.gui import QgsHighlight
@@ -329,6 +329,21 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             return ['Flow_Unsig' if p == 'Flow' else p for p in self.linkResultProperties]
         return list(self.linkResultProperties)
 
+    def getResultProperties(self, layer, qrIdent):
+        if self.isResultsMode:
+            ident = layer.customProperty("qgisred_identifier") or ""
+            isLink = ident.startswith("qgisred_link")
+            if isLink:
+                return self.getVisibleLinkResultProperties()
+            return list(self.nodeResultProperties)
+        if qrIdent not in self.digitalTwinIdentifiers and self.getResultsExist():
+            resultCategory = self.elementResultCategory.get(qrIdent)
+            if resultCategory == 'Link':
+                return self.getVisibleLinkResultProperties()
+            elif resultCategory == 'Node':
+                return list(self.nodeResultProperties)
+        return []
+
     def updateButtonsState(self):
         isMultiple = self.radioMultipleCriteria.isChecked()
         if isMultiple:
@@ -451,7 +466,10 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             'unithdloss', 'fricfactor', 'reactrate', 'quality',
             'pressure', 'head', 'demand', 'status'
         }
+        tagFieldsLower = {'tag', 'descrip'}
 
+        staticFields = []
+        tagFields = []
         for field in layer.fields():
             fn = field.name()
             fnl = fn.lower()
@@ -461,30 +479,36 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
                 continue
             if self.isResultsMode and fnl in resultsFieldsLower:
                 continue
-            self.cbProperty.addItem(fn)
-            self.cbStatisticsFor.addItem(fn)
+            if fnl in tagFieldsLower:
+                tagFields.append(field)
+            else:
+                staticFields.append(field)
 
-        if self.isResultsMode:
-            ident = layer.customProperty("qgisred_identifier") or ""
-            isLink = ident.startswith("qgisred_link")
-            if isLink:
-                resultProps = self.getVisibleLinkResultProperties()
-            else:
-                resultProps = list(self.nodeResultProperties)
+        # Group 1: Static properties
+        for field in staticFields:
+            self.cbProperty.addItem(field.name())
+            cat = self.fieldTypeMapping.get(field.typeName().lower(), 'text')
+            if cat == 'numeric':
+                self.cbStatisticsFor.addItem(field.name())
+
+        # Group 2: Result properties (orange background)
+        resultProps = self.getResultProperties(layer, qrIdent)
+        if resultProps:
+            self.cbProperty.insertSeparator(self.cbProperty.count())
+            orangeBrush = QBrush(QColor("#FFE0B2"))
             for prop in resultProps:
                 self.cbProperty.addItem(prop)
-                self.cbStatisticsFor.addItem(prop)
-        elif qrIdent not in self.digitalTwinIdentifiers and self.getResultsExist():
-            resultCategory = self.elementResultCategory.get(qrIdent)
-            if resultCategory == 'Link':
-                resultProps = self.getVisibleLinkResultProperties()
-            elif resultCategory == 'Node':
-                resultProps = list(self.nodeResultProperties)
-            else:
-                resultProps = []
-            for prop in resultProps:
-                self.cbProperty.addItem(prop)
-                self.cbStatisticsFor.addItem(prop)
+                self.cbProperty.setItemData(self.cbProperty.count() - 1, orangeBrush, Qt.BackgroundRole)
+                if prop != 'Status':
+                    self.cbStatisticsFor.addItem(prop)
+
+        # Group 3: Tag / Description (dark background)
+        if tagFields:
+            self.cbProperty.insertSeparator(self.cbProperty.count())
+            darkBrush = QBrush(QColor("#B0B0B0"))
+            for field in tagFields:
+                self.cbProperty.addItem(field.name())
+                self.cbProperty.setItemData(self.cbProperty.count() - 1, darkBrush, Qt.BackgroundRole)
 
         if self.cbProperty.count():
             self.updateConditions()
