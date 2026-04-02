@@ -17,6 +17,7 @@ class QGISRedRenameProjectDialog(QDialog, FORM_CLASS):
     ProcessDone = False
     RenameProject = False
     RenameQGISProject = False
+    RenameBackups = False
 
     def __init__(self, parent=None, oldName="", project="", qgisProjectBase=None):
         """Constructor."""
@@ -30,15 +31,25 @@ class QGISRedRenameProjectDialog(QDialog, FORM_CLASS):
         self.tbNetworkName.setText(oldName)
 
         qgisRowVisible = qgisProjectBase is not None
-        self.cbRenameQGISProject.setVisible(qgisRowVisible)
-        self.tbQGISName.setVisible(qgisRowVisible)
+        self.containerQgis.setVisible(qgisRowVisible)
         if qgisRowVisible:
             self.tbQGISName.setText(os.path.basename(qgisProjectBase))
+
+        # Backups detection
+        backupsFolder = os.path.join(self.ProjectDirectory, "backups")
+        hasBackups = False
+        if os.path.isdir(backupsFolder):
+            for f in os.listdir(backupsFolder):
+                if f.startswith(self.OldNetworkName + "_") and f.endswith(".zip"):
+                    hasBackups = True
+                    break
+        self.containerBackups.setVisible(hasBackups)
 
         self.cbRenameProject.toggled.connect(self.tbNetworkName.setEnabled)
         self.cbRenameQGISProject.toggled.connect(self.tbQGISName.setEnabled)
 
         self.messageBar = QGISRedBanner.inject(self, self.gridLayout)
+        self.adjustSize()
 
     def pushMessage(self, title, text, level=0, duration=5):
         self.messageBar.pushMessage(title, text, level, duration)
@@ -81,5 +92,6 @@ class QGISRedRenameProjectDialog(QDialog, FORM_CLASS):
 
         self.RenameProject = doProject
         self.RenameQGISProject = doQgis
+        self.RenameBackups = self.cbRenameBackups.isChecked() and self.cbRenameBackups.isVisible()
         self.ProcessDone = True
         self.close()

@@ -220,8 +220,10 @@ class QGISRedProjectIO:
             return qgisBase + ".qgs"
         return None
 
-    def processProjectFiles(self, folder, oldName, newName, targetDir, deleteSource=False):
+    def processProjectFiles(self, folder, oldName, newName, targetDir, deleteSource=False, excludeDirs=None):
         """Copies/moves project files (oldName_*) and layerStyles recursively to targetDir."""
+        if excludeDirs is None:
+            excludeDirs = []
         folder = self._fs().getUniformedPath(folder)
         if not os.path.exists(targetDir):
             os.makedirs(targetDir, exist_ok=True)
@@ -249,10 +251,12 @@ class QGISRedProjectIO:
                     except Exception:
                         pass
                 else:
+                    if f.lower() in [d.lower() for d in excludeDirs]:
+                        continue
                     subTarget = os.path.join(targetDir, f)
                     if self._fs().getUniformedPath(folder) != self._fs().getUniformedPath(targetDir):
                          os.makedirs(subTarget, exist_ok=True)
-                    self.processProjectFiles(filepath, oldName, newName, subTarget, deleteSource)
+                    self.processProjectFiles(filepath, oldName, newName, subTarget, deleteSource, excludeDirs)
                     if deleteSource:
                         try:
                             if not os.listdir(filepath):
@@ -442,7 +446,8 @@ class QGISRedProjectIO:
         with ZipFile(zipPath, "w", ZIP_DEFLATED) as zipFile:
             for file in filePaths:
                 if self._fs().getUniformedPath(self.ProjectDirectory) + os.sep + self.NetworkName + "_" in file:
-                    zipFile.write(file, file.replace(self._fs().getUniformedPath(self.ProjectDirectory), ""))
+                    relPath = os.path.relpath(file, self.ProjectDirectory)
+                    zipFile.write(file, relPath)
 
     def exportProjectToZip(self, zipPath):
         """Comprehensive export of the project to a ZIP file."""
@@ -483,6 +488,36 @@ class QGISRedProjectIO:
     def unzipFile(self, zipfile, directory):
         with ZipFile(zipfile, "r") as zipRef:
             zipRef.extractall(directory)
+
+    def renameFilesInZip(self, zipPath, oldPrefix, newPrefix):
+        """Renames files inside a ZIP archive that start with oldPrefix to start with newPrefix."""
+        if not os.path.exists(zipPath):
+            return
+
+        temp_fd, temp_path = tempfile.mkstemp(suffix=".zip")
+        os.close(temp_fd)
+
+        try:
+            with ZipFile(zipPath, 'r') as zin:
+                with ZipFile(temp_path, 'w', ZIP_DEFLATED) as zout:
+                    for item in zin.infolist():
+                        filename = item.filename
+                        # Zip entries may have leading slashes depending on how they were created.
+                        # Also, ensure we compare using standard slashes.
+                        clean_filename = filename.lstrip('/\\')
+                        if clean_filename.startswith(oldPrefix):
+                            idx = filename.find(oldPrefix)
+                            new_filename = filename[:idx] + newPrefix + filename[idx + len(oldPrefix):]
+                        else:
+                            new_filename = filename
+                        zout.writestr(new_filename, zin.read(item.filename))
+
+            # Replace original with renamed version
+            os.remove(zipPath)
+            shutil.move(temp_path, zipPath)
+        except Exception:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
 
     def saveBackup(self):
         dirpath = os.path.join(self.ProjectDirectory, "backups")

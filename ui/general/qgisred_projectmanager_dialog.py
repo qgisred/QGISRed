@@ -563,8 +563,25 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             if newQgisBasename and qgisBase:
                 parentDir = os.path.dirname(qgisBase)
                 newQgisPath = io.processQGisProjectFiles(qgisBase, newQgisBasename, parentDir, deleteSource=True)
+            if dlg.RenameBackups:
+                backupsFolder = os.path.join(projectPath, "backups")
+                if os.path.isdir(backupsFolder):
+                    oldPrefix = projectNetwork + "_"
+                    newPrefix = (newProjectName or projectNetwork) + "_"
+                    for f in os.listdir(backupsFolder):
+                        if f.startswith(oldPrefix) and f.endswith(".zip"):
+                            zipPath = os.path.join(backupsFolder, f)
+                            # 1. Rename inner files
+                            io.renameFilesInZip(zipPath, oldPrefix, newPrefix)
+                            # 2. Rename zip file itself
+                            newZipName = f.replace(oldPrefix, newPrefix, 1)
+                            newZipPath = os.path.join(backupsFolder, newZipName)
+                            try:
+                                os.rename(zipPath, newZipPath)
+                            except Exception:
+                                pass
             if newProjectName:
-                io.processProjectFiles(projectPath, projectNetwork, newProjectName, projectPath, deleteSource=True)
+                io.processProjectFiles(projectPath, projectNetwork, newProjectName, projectPath, deleteSource=True, excludeDirs=['backups'])
             if newQgisPath:
                 io.updateMetadataQGisProject(projectPath, newProjectName or projectNetwork, newQgisPath)
             if newProjectName and canRenameFolder:
