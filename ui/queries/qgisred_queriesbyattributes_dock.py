@@ -743,13 +743,16 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
                   'contains':' LIKE ', 'starts with':' LIKE ', 'ends with':' LIKE '}
         op   = op_map.get(cond, cond)
         val  = crit['value']
-        if isinstance(val, str):
+        isTextComparison = isinstance(val, str)
+        if isTextComparison:
             if cond == 'LIKE':          val = f"'%{val}%'"
             elif cond == 'NOT LIKE':    val = f"'%{val}%'"
             elif cond == 'contains':    val = f"'%{val}%'"
             elif cond == 'starts with': val = f"'{val}%'"
             elif cond == 'ends with':   val = f"'%{val}'"
             else:                       val = f"'{val}'"
+        if isTextComparison:
+            return f"lower({fld}) {op} lower({val})"
         return f"{fld} {op} {val}"
 
     def buildIdFilter(self, inputLayer):
@@ -775,6 +778,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         #self.labelStatisticsProperty.setText(property)
         self.labelStatisticsPropertyFor.setText(self.tr(f"Statistics of {property} for selected Elements"))
         self.calculateStatistics()
+        self.updateButtonsState()
 
     def effectiveCriteria(self):
         if self.radioSingleCriteria.isChecked():
