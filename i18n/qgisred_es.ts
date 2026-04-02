@@ -9,74 +9,74 @@
         <translation type="obsolete">Curvas de Evolución</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="325"/>
+        <location filename="../sections/analysis_section.py" line="315"/>
         <source>Results file not found. Please run the model.</source>
         <translation>Archivo de resultados no encontrado. Por favor, ejecute el modelo.</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="353"/>
+        <location filename="../sections/analysis_section.py" line="343"/>
         <source>Junction</source>
         <translation>Unión</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="354"/>
+        <location filename="../sections/analysis_section.py" line="344"/>
         <source>Tank</source>
         <translation>Depósito</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="355"/>
+        <location filename="../sections/analysis_section.py" line="345"/>
         <source>Reservoir</source>
         <translation>Embalse</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="356"/>
+        <location filename="../sections/analysis_section.py" line="346"/>
         <source>Pipe</source>
         <translation>Tubería</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="357"/>
+        <location filename="../sections/analysis_section.py" line="347"/>
         <source>Valve</source>
         <translation>Válvula</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="358"/>
+        <location filename="../sections/analysis_section.py" line="348"/>
         <source>Pump</source>
         <translation>Bomba</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="380"/>
+        <location filename="../sections/analysis_section.py" line="370"/>
         <source>Closed</source>
         <translation>Cerrada</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="380"/>
+        <location filename="../sections/analysis_section.py" line="370"/>
         <source>Active</source>
         <translation>Activa</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="380"/>
+        <location filename="../sections/analysis_section.py" line="370"/>
         <source>Open</source>
         <translation>Abierta</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="386"/>
+        <location filename="../sections/analysis_section.py" line="376"/>
         <source>Time</source>
         <translation>Instante</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="325"/>
         <source>Warning</source>
-        <translation>Advertencia</translation>
+        <translation type="obsolete">Advertencia</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="154"/>
+        <location filename="../sections/analysis_section.py" line="150"/>
         <source>Some issues occurred in the process</source>
         <translation>Ha habido algún error en el proceso</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="158"/>
         <source>Error</source>
-        <translation>Error</translation>
+        <translation type="obsolete">Error</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="150"/>
@@ -84,39 +84,39 @@
         <translation type="obsolete">Información</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="150"/>
+        <location filename="../sections/analysis_section.py" line="148"/>
         <source>INP file successfully exported</source>
         <translation>INP exportado exitósamente</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="187"/>
+        <location filename="../sections/analysis_section.py" line="179"/>
         <source>Necessary to have a valid project and no layer on edition.</source>
         <translation>Es necesario tener un proyecto válido y ninguna capa en edición.</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="209"/>
+        <location filename="../sections/analysis_section.py" line="200"/>
         <source>It is necessary to simulate first.</source>
         <translation>Es necesario simular antes.</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="276"/>
+        <location filename="../sections/analysis_section.py" line="266"/>
         <source>No network element found at this location.</source>
         <translation>No se ha encontrado ningún elemento de la red en esta ubicación.</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="171"/>
+        <location filename="../sections/analysis_section.py" line="165"/>
         <source>No simulation results found</source>
         <translation>No se han encontrado resultados de simulación</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="178"/>
+        <location filename="../sections/analysis_section.py" line="170"/>
         <source>Permanent</source>
         <translation>Permanente</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="150"/>
         <source>Info</source>
-        <translation>Información</translation>
+        <translation type="obsolete">Información</translation>
     </message>
 </context>
 <context>
@@ -134,7 +134,7 @@
     <message>
         <location filename="../sections/debug_validation_section.py" line="311"/>
         <source>Error</source>
-        <translation>Error</translation>
+        <translation type="obsolete">Error</translation>
     </message>
     <message>
         <location filename="../sections/debug_validation_section.py" line="191"/>
@@ -144,7 +144,7 @@
     <message>
         <location filename="../sections/debug_validation_section.py" line="278"/>
         <source>Warning</source>
-        <translation>Advertencia</translation>
+        <translation type="obsolete">Advertencia</translation>
     </message>
     <message>
         <location filename="../sections/debug_validation_section.py" line="278"/>
@@ -189,7 +189,7 @@
     <message>
         <location filename="../sections/debug_validation_section.py" line="274"/>
         <source>Info</source>
-        <translation>Información</translation>
+        <translation type="obsolete">Información</translation>
     </message>
     <message>
         <location filename="../sections/debug_validation_section.py" line="212"/>
@@ -530,7 +530,7 @@
     <message>
         <location filename="../sections/digital_twin_section.py" line="243"/>
         <source>Warning</source>
-        <translation>Advertencia</translation>
+        <translation type="obsolete">Advertencia</translation>
     </message>
     <message>
         <location filename="../sections/digital_twin_section.py" line="219"/>
@@ -1057,12 +1057,12 @@
     <message>
         <location filename="../sections/layer_management_section.py" line="338"/>
         <source>Error</source>
-        <translation>Error</translation>
+        <translation type="obsolete">Error</translation>
     </message>
     <message>
         <location filename="../sections/layer_management_section.py" line="267"/>
         <source>Info</source>
-        <translation>Información</translation>
+        <translation type="obsolete">Información</translation>
     </message>
 </context>
 <context>
@@ -1100,7 +1100,7 @@
     <message>
         <location filename="../sections/lifecycle_section.py" line="48"/>
         <source>Error</source>
-        <translation>Error</translation>
+        <translation type="obsolete">Error</translation>
     </message>
     <message>
         <location filename="../sections/lifecycle_section.py" line="48"/>
@@ -1636,17 +1636,17 @@
     <message>
         <location filename="../sections/project_management_section.py" line="551"/>
         <source>Warning</source>
-        <translation>Advertencia</translation>
+        <translation type="obsolete">Advertencia</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="551"/>
+        <location filename="../sections/project_management_section.py" line="547"/>
         <source>Some issues occurred in the process</source>
         <translation>Ha habido algún error en el proceso</translation>
     </message>
     <message>
         <location filename="../sections/project_management_section.py" line="557"/>
         <source>Error</source>
-        <translation>Error</translation>
+        <translation type="obsolete">Error</translation>
     </message>
     <message>
         <location filename="../sections/project_management_section.py" line="332"/>
@@ -1656,17 +1656,17 @@
     <message>
         <location filename="../sections/project_management_section.py" line="581"/>
         <source>Info</source>
-        <translation>Información</translation>
+        <translation type="obsolete">Información</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="488"/>
+        <location filename="../sections/project_management_section.py" line="486"/>
         <source>Project options updated</source>
         <translation>Opciones de proyecto actualizadas</translation>
     </message>
     <message>
         <location filename="../sections/project_management_section.py" line="159"/>
         <source>QGISRed Project saved</source>
-        <translation>Proyecto de QGISRed guardado</translation>
+        <translation type="obsolete">Proyecto de QGISRed guardado</translation>
     </message>
     <message>
         <location filename="../sections/project_management_section.py" line="99"/>
@@ -1674,12 +1674,12 @@
         <translation>No hay ningún proyecto válido abierto</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="564"/>
+        <location filename="../sections/project_management_section.py" line="558"/>
         <source>Save QGIS project</source>
         <translation>Guardar proyecto de QGIS</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="564"/>
+        <location filename="../sections/project_management_section.py" line="558"/>
         <source>QGIS Projects (*.qgs *.qgz)</source>
         <translation>Proyectos de QGIS (*.qgs *.qgz)</translation>
     </message>
@@ -1714,9 +1714,14 @@
         <translation>¿Desea cerrar las capas actuales antes de continuar?</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="581"/>
+        <location filename="../sections/project_management_section.py" line="575"/>
         <source>Backup stored in:</source>
         <translation>Copia de seguridad almacenada en:</translation>
+    </message>
+    <message>
+        <location filename="../sections/project_management_section.py" line="159"/>
+        <source>Project saved</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2139,7 +2144,7 @@
     <message>
         <location filename="../ui/general/qgisred_createproject_dialog.py" line="140"/>
         <source>Info</source>
-        <translation>Información</translation>
+        <translation type="obsolete">Información</translation>
     </message>
 </context>
 <context>
@@ -3409,7 +3414,7 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     <message>
         <location filename="../tools/map_tools/qgisred_multilayerSelection.py" line="163"/>
         <source>Warning</source>
-        <translation>Advertencia</translation>
+        <translation type="obsolete">Advertencia</translation>
     </message>
     <message>
         <location filename="../tools/map_tools/qgisred_multilayerSelection.py" line="163"/>
@@ -3523,7 +3528,7 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Carpeta</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="623"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="646"/>
         <source>Warning</source>
         <translation>Advertencia</translation>
     </message>
@@ -3593,12 +3598,12 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>El proyecto actual no puede ser renombrado.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="608"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="631"/>
         <source>Project name has been renamed to </source>
         <translation>Se ha renombrado el proyecto a </translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="610"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="633"/>
         <source>You need to select a project to change its name.</source>
         <translation>Es necesario seleccionar un proyecto para cambiar su nombre.</translation>
     </message>
@@ -3613,17 +3618,17 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Mover</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="617"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="640"/>
         <source>You need to select a project to move it.</source>
         <translation>Necesitas seleccionar un proyecto para moverlo</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="623"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="646"/>
         <source>Current project can not be moved.</source>
         <translation>No se puede mover el proyecto actual.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="684"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="707"/>
         <source>Project has been moved to </source>
         <translation>Se ha movido el proyecto a </translation>
     </message>
@@ -3631,39 +3636,74 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
 <context>
     <name>QGISRedQueriesByAttributesDock</name>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="299"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="296"/>
         <source>Nodes</source>
         <translation>Nudos</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="301"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="298"/>
         <source>Lines</source>
         <translation>Líneas</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="763"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="776"/>
         <source>Statistics of {property} for selected Elements</source>
         <translation>Estadísticas de {property} para los elementos seleccionados</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="244"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="241"/>
         <source>Switch to Single Criteria</source>
         <translation>Cambiar a Criterio Único</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="244"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="241"/>
         <source>Switching to single criteria will discard all criteria except the first one. Proceed?</source>
         <translation>Cambiar a criterio único descartará todos los criterios excepto el primero. Continuar?</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="691"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="704"/>
         <source>Confirm</source>
         <translation>Confirmar</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="718"/>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="731"/>
         <source>Replace</source>
         <translation>Reemplazar</translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="949"/>
+        <source>Sum</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="949"/>
+        <source>StdD</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="953"/>
+        <source>Count</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="950"/>
+        <source>Avg</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="950"/>
+        <source>Min</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="950"/>
+        <source>Max</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="976"/>
+        <source>All</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -3694,37 +3734,67 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     <message>
         <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="28"/>
         <source>New Project name:</source>
-        <translation>Nuevo nombre del proyecto:</translation>
+        <translation type="obsolete">Nuevo nombre del proyecto:</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="82"/>
+        <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="141"/>
         <source>Accept</source>
         <translation>Aceptar</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="37"/>
+        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="68"/>
         <source>Not valid New Project Name</source>
         <translation>Nuevo nombre del proyecto no válido</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_renameproject_dialog.py" line="40"/>
         <source>Project name can not be the same that the original</source>
-        <translation>El nombre del proyecto no puede ser el mismo que el original</translation>
+        <translation type="obsolete">El nombre del proyecto no puede ser el mismo que el original</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="44"/>
+        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="73"/>
         <source>There is already a project with this name in the project folder.</source>
         <translation>Ya hay un proyecto con este nombre en la carpeta de proyectos.</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="44"/>
         <source>Also rename QGIS project file</source>
-        <translation>Renombrar también el archivo del proyecto de QGIS</translation>
+        <translation type="obsolete">Renombrar también el archivo del proyecto de QGIS</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="44"/>
+        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="90"/>
         <source>Validations</source>
         <translation>Validaciones</translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="28"/>
+        <source>Rename project:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="78"/>
+        <source>Rename files in backups folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="106"/>
+        <source>Rename QGIS file:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="62"/>
+        <source>At least one option must be selected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="81"/>
+        <source>Not valid QGIS file name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="90"/>
+        <source>At least one name must be different from the original</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -3845,7 +3915,7 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Desviación típica</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="867"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="83"/>
         <source>Warning</source>
         <translation>Advertencia</translation>
     </message>
@@ -4002,7 +4072,7 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="888"/>
         <source>Error</source>
-        <translation>Error</translation>
+        <translation type="obsolete">Error</translation>
     </message>
 </context>
 <context>
@@ -4010,7 +4080,7 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     <message>
         <location filename="../tools/map_tools/qgisred_selectPoint.py" line="139"/>
         <source>Warning</source>
-        <translation>Advertencia</translation>
+        <translation type="obsolete">Advertencia</translation>
     </message>
     <message>
         <location filename="../tools/map_tools/qgisred_selectPoint.py" line="139"/>
@@ -4021,7 +4091,7 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
 <context>
     <name>QGISRedStylingUtils</name>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="309"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="265"/>
         <source>{field} field not found in layer {layer.name()}</source>
         <translation>Campo {field} no encontrado en la capa {layer.name()}</translation>
     </message>
@@ -4111,7 +4181,7 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     <message>
         <location filename="../sections/tools_section.py" line="328"/>
         <source>Error</source>
-        <translation>Error</translation>
+        <translation type="obsolete">Error</translation>
     </message>
 </context>
 <context>
@@ -4124,7 +4194,7 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     <message>
         <location filename="../sections/utils_section.py" line="108"/>
         <source>Warning</source>
-        <translation>Advertencia</translation>
+        <translation type="obsolete">Advertencia</translation>
     </message>
 </context>
 </TS>
