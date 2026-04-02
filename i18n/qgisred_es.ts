@@ -4,11 +4,6 @@
 <context>
     <name>AnalysisSection</name>
     <message>
-        <location filename="../sections/analysis_section.py" line="325"/>
-        <source>Time Series</source>
-        <translation type="obsolete">Curvas de Evolución</translation>
-    </message>
-    <message>
         <location filename="../sections/analysis_section.py" line="315"/>
         <source>Results file not found. Please run the model.</source>
         <translation>Archivo de resultados no encontrado. Por favor, ejecute el modelo.</translation>
@@ -64,24 +59,9 @@
         <translation>Instante</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="325"/>
-        <source>Warning</source>
-        <translation type="obsolete">Advertencia</translation>
-    </message>
-    <message>
         <location filename="../sections/analysis_section.py" line="150"/>
         <source>Some issues occurred in the process</source>
         <translation>Ha habido algún error en el proceso</translation>
-    </message>
-    <message>
-        <location filename="../sections/analysis_section.py" line="158"/>
-        <source>Error</source>
-        <translation type="obsolete">Error</translation>
-    </message>
-    <message>
-        <location filename="../sections/analysis_section.py" line="150"/>
-        <source>Information</source>
-        <translation type="obsolete">Información</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="148"/>
@@ -113,38 +93,18 @@
         <source>Permanent</source>
         <translation>Permanente</translation>
     </message>
-    <message>
-        <location filename="../sections/analysis_section.py" line="150"/>
-        <source>Info</source>
-        <translation type="obsolete">Información</translation>
-    </message>
 </context>
 <context>
     <name>DebugValidationSection</name>
-    <message>
-        <location filename="../sections/debug_validation_section.py" line="274"/>
-        <source>Information</source>
-        <translation type="obsolete">Información</translation>
-    </message>
     <message>
         <location filename="../sections/debug_validation_section.py" line="150"/>
         <source>Only one zone</source>
         <translation>Solo una zona</translation>
     </message>
     <message>
-        <location filename="../sections/debug_validation_section.py" line="311"/>
-        <source>Error</source>
-        <translation type="obsolete">Error</translation>
-    </message>
-    <message>
         <location filename="../sections/debug_validation_section.py" line="191"/>
         <source>No pipe length out of tolerance</source>
         <translation>Ninguna longitud de tubería está fuera de la tolerancia.</translation>
-    </message>
-    <message>
-        <location filename="../sections/debug_validation_section.py" line="278"/>
-        <source>Warning</source>
-        <translation type="obsolete">Advertencia</translation>
     </message>
     <message>
         <location filename="../sections/debug_validation_section.py" line="278"/>
@@ -185,11 +145,6 @@
         <location filename="../sections/debug_validation_section.py" line="107"/>
         <source>No T connections to create</source>
         <translation>No hay conexiones en T para crear</translation>
-    </message>
-    <message>
-        <location filename="../sections/debug_validation_section.py" line="274"/>
-        <source>Info</source>
-        <translation type="obsolete">Información</translation>
     </message>
     <message>
         <location filename="../sections/debug_validation_section.py" line="212"/>
@@ -528,11 +483,6 @@
 <context>
     <name>DigitalTwinSection</name>
     <message>
-        <location filename="../sections/digital_twin_section.py" line="243"/>
-        <source>Warning</source>
-        <translation type="obsolete">Advertencia</translation>
-    </message>
-    <message>
         <location filename="../sections/digital_twin_section.py" line="219"/>
         <source>The Isolation Valves SHP file does not exist</source>
         <translation>El archivo SHP de Válvulas de seccionamiento no existe</translation>
@@ -619,11 +569,6 @@
         <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="26"/>
         <source>Queries by Attributes</source>
         <translation>Consultas por atributos</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="110"/>
-        <source>Criterion</source>
-        <translation type="obsolete">Criterio</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="171"/>
@@ -1048,24 +993,6 @@
     </message>
 </context>
 <context>
-    <name>LayerManagementSection</name>
-    <message>
-        <location filename="../sections/layer_management_section.py" line="269"/>
-        <source>Information</source>
-        <translation type="obsolete">Información</translation>
-    </message>
-    <message>
-        <location filename="../sections/layer_management_section.py" line="338"/>
-        <source>Error</source>
-        <translation type="obsolete">Error</translation>
-    </message>
-    <message>
-        <location filename="../sections/layer_management_section.py" line="267"/>
-        <source>Info</source>
-        <translation type="obsolete">Información</translation>
-    </message>
-</context>
-<context>
     <name>LifecycleSection</name>
     <message>
         <location filename="../sections/lifecycle_section.py" line="246"/>
@@ -1096,11 +1023,6 @@
         <location filename="../sections/lifecycle_section.py" line="492"/>
         <source>QGISRed plugin has a new version ({}). You can upgrade it from the QGis plugin manager. Do you want to remember it again?</source>
         <translation>El complemento QGISRed tiene una nueva versión ({}). Puedes actualizarlo desde el gestor de complementos de QGIS. ¿Quieres volver a recordar este mensaje?</translation>
-    </message>
-    <message>
-        <location filename="../sections/lifecycle_section.py" line="48"/>
-        <source>Error</source>
-        <translation type="obsolete">Error</translation>
     </message>
     <message>
         <location filename="../sections/lifecycle_section.py" line="48"/>
@@ -1634,19 +1556,9 @@
 <context>
     <name>ProjectManagementSection</name>
     <message>
-        <location filename="../sections/project_management_section.py" line="551"/>
-        <source>Warning</source>
-        <translation type="obsolete">Advertencia</translation>
-    </message>
-    <message>
         <location filename="../sections/project_management_section.py" line="547"/>
         <source>Some issues occurred in the process</source>
         <translation>Ha habido algún error en el proceso</translation>
-    </message>
-    <message>
-        <location filename="../sections/project_management_section.py" line="557"/>
-        <source>Error</source>
-        <translation type="obsolete">Error</translation>
     </message>
     <message>
         <location filename="../sections/project_management_section.py" line="332"/>
@@ -1654,19 +1566,9 @@
         <translation>QGISRed: Abrir proyecto</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="581"/>
-        <source>Info</source>
-        <translation type="obsolete">Información</translation>
-    </message>
-    <message>
         <location filename="../sections/project_management_section.py" line="486"/>
         <source>Project options updated</source>
         <translation>Opciones de proyecto actualizadas</translation>
-    </message>
-    <message>
-        <location filename="../sections/project_management_section.py" line="159"/>
-        <source>QGISRed Project saved</source>
-        <translation type="obsolete">Proyecto de QGISRed guardado</translation>
     </message>
     <message>
         <location filename="../sections/project_management_section.py" line="99"/>
@@ -1722,79 +1624,6 @@
         <location filename="../sections/project_management_section.py" line="159"/>
         <source>Project saved</source>
         <translation>Proyecto guardado</translation>
-    </message>
-</context>
-<context>
-    <name>QGISRed</name>
-    <message>
-        <location filename="../sections/project_management_section.py" line="581"/>
-        <source>Backup stored in:</source>
-        <translation type="obsolete">Copia de seguridad almacenada en:</translation>
-    </message>
-    <message>
-        <location filename="../sections/project_management_section.py" line="51"/>
-        <source>Warning</source>
-        <translation type="obsolete">Advertencia</translation>
-    </message>
-    <message>
-        <location filename="../sections/project_management_section.py" line="43"/>
-        <source>Some layer is in Edit Mode. Plase, commit it before continuing.</source>
-        <translation type="obsolete">Alguna capa está en modo edición. Por favor, guarde los cambies antes de continuar.</translation>
-    </message>
-    <message>
-        <location filename="../sections/project_management_section.py" line="51"/>
-        <source>The project has changes. Please save them before continuing.</source>
-        <translation type="obsolete">El proyecto tiene cambios. Por favor, guárdelos antes de continuar.</translation>
-    </message>
-    <message>
-        <location filename="../sections/project_management_section.py" line="57"/>
-        <source>Open project</source>
-        <translation type="obsolete">Abrir proyecto</translation>
-    </message>
-    <message>
-        <location filename="../sections/project_management_section.py" line="57"/>
-        <source>Do you want to close the current project and continue?</source>
-        <translation type="obsolete">¿Desea cerrar el proyecto antes de continuar?</translation>
-    </message>
-    <message>
-        <location filename="../sections/project_management_section.py" line="72"/>
-        <source>Open layers</source>
-        <translation type="obsolete">Abrir capas</translation>
-    </message>
-    <message>
-        <location filename="../sections/project_management_section.py" line="72"/>
-        <source>Do you want to close the current layers and continue?</source>
-        <translation type="obsolete">¿Desea cerrar las capas actuales antes de continuar?</translation>
-    </message>
-    <message>
-        <location filename="../sections/debug_validation_section.py" line="33"/>
-        <source>Input data is valid</source>
-        <translation type="obsolete">Los datos de entrada son válidos</translation>
-    </message>
-    <message>
-        <location filename="../sections/debug_validation_section.py" line="54"/>
-        <source>No overlapping elements found</source>
-        <translation type="obsolete">No se han encontrado elementos superpuestos.</translation>
-    </message>
-    <message>
-        <location filename="../sections/debug_validation_section.py" line="73"/>
-        <source>No aligned vertices to delete</source>
-        <translation type="obsolete">No hay vértices alineados para eliminar</translation>
-    </message>
-    <message>
-        <location filename="../sections/debug_validation_section.py" line="90"/>
-        <source>No pipes to join</source>
-        <translation type="obsolete">No hay tuberías para unir</translation>
-    </message>
-    <message>
-        <location filename="../sections/debug_validation_section.py" line="107"/>
-        <source>No T connections to create</source>
-        <translation type="obsolete">No hay conexiones en T para crear</translation>
-    </message>
-    <message>
-        <location filename="../sections/debug_validation_section.py" line="212"/>
-        <source>No issues on diameter checking</source>
-        <translation type="obsolete">No ha habido problemas en la comprobación de diámetros</translation>
     </message>
 </context>
 <context>
@@ -2117,11 +1946,6 @@
         <translation>La carpeta seleccionada tiene algunos elementos con el mismo nombre de proyecto.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_createproject_dialog.py" line="134"/>
-        <source>Information</source>
-        <translation type="obsolete">Información</translation>
-    </message>
-    <message>
         <location filename="../ui/general/qgisred_createproject_dialog.py" line="140"/>
         <source>Process successfully completed</source>
         <translation>Proceso completado con éxito</translation>
@@ -2140,11 +1964,6 @@
         <location filename="../ui/general/qgisred_createproject_dialog.py" line="148"/>
         <source>Error</source>
         <translation>Error</translation>
-    </message>
-    <message>
-        <location filename="../ui/general/qgisred_createproject_dialog.py" line="140"/>
-        <source>Info</source>
-        <translation type="obsolete">Información</translation>
     </message>
 </context>
 <context>
@@ -3413,26 +3232,8 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     <name>QGISRedMultiLayerSelection</name>
     <message>
         <location filename="../tools/map_tools/qgisred_multilayerSelection.py" line="163"/>
-        <source>Warning</source>
-        <translation type="obsolete">Advertencia</translation>
-    </message>
-    <message>
-        <location filename="../tools/map_tools/qgisred_multilayerSelection.py" line="163"/>
         <source>Polygon not valid for selecting elements</source>
         <translation>Polígono no válido para seleccionar elementos</translation>
-    </message>
-</context>
-<context>
-    <name>QGISRedProjectIO</name>
-    <message>
-        <location filename="../tools/utils/qgisred_project_io.py" line="60"/>
-        <source>QGISRed project</source>
-        <translation type="obsolete">Proyecto de QGISRed</translation>
-    </message>
-    <message>
-        <location filename="../tools/utils/qgisred_project_io.py" line="60"/>
-        <source>We cannot find the qgis project file. Do you want to find this file manually? If not, we will open only the layers from the Inputs group.</source>
-        <translation type="obsolete">No podemos encontrar el archivo del proyecto QGIS. ¿Desea encontrarlo manualmente? Si no, abriremos solamente las capas del grupo de Entradas.</translation>
     </message>
 </context>
 <context>
@@ -3732,11 +3533,6 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>QGISRed: Renombrar proyecto</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="28"/>
-        <source>New Project name:</source>
-        <translation type="obsolete">Nuevo nombre del proyecto:</translation>
-    </message>
-    <message>
         <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="141"/>
         <source>Accept</source>
         <translation>Aceptar</translation>
@@ -3747,19 +3543,9 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Nuevo nombre del proyecto no válido</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_renameproject_dialog.py" line="40"/>
-        <source>Project name can not be the same that the original</source>
-        <translation type="obsolete">El nombre del proyecto no puede ser el mismo que el original</translation>
-    </message>
-    <message>
         <location filename="../ui/general/qgisred_renameproject_dialog.py" line="73"/>
         <source>There is already a project with this name in the project folder.</source>
         <translation>Ya hay un proyecto con este nombre en la carpeta de proyectos.</translation>
-    </message>
-    <message>
-        <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="44"/>
-        <source>Also rename QGIS project file</source>
-        <translation type="obsolete">Renombrar también el archivo del proyecto de QGIS</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_renameproject_dialog.py" line="90"/>
@@ -4030,26 +3816,6 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Resultados de {} no encontrados.</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="555"/>
-        <source>Some issue occurred in the process of saving the style of the layer</source>
-        <translation type="obsolete">Ha habido algún problema en el proceso de guardar el estilo de la capa</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="596"/>
-        <source>Link {}</source>
-        <translation type="obsolete">{} - Líneas</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="601"/>
-        <source>Node {}</source>
-        <translation type="obsolete">{} - Nudos</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="726"/>
-        <source>Some issue occurred in the process of applying the style to the layer</source>
-        <translation type="obsolete">Ha habido algún problema en el proceso de aplicar el estilo a la capa</translation>
-    </message>
-    <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="617"/>
         <source>for {}</source>
         <translation>para {}</translation>
@@ -4069,19 +3835,9 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <source>Results may not reflect recent network changes</source>
         <translation>Los resultados pueden no reflejar lo cambios recientes en la red</translation>
     </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="888"/>
-        <source>Error</source>
-        <translation type="obsolete">Error</translation>
-    </message>
 </context>
 <context>
     <name>QGISRedSelectPointTool</name>
-    <message>
-        <location filename="../tools/map_tools/qgisred_selectPoint.py" line="139"/>
-        <source>Warning</source>
-        <translation type="obsolete">Advertencia</translation>
-    </message>
     <message>
         <location filename="../tools/map_tools/qgisred_selectPoint.py" line="139"/>
         <source>A not valid point was selected</source>
@@ -4141,24 +3897,6 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     </message>
 </context>
 <context>
-    <name>QGISRedUtils</name>
-    <message>
-        <location filename="../tools/qgisred_utils.py" line="808"/>
-        <source>QGISRed project</source>
-        <translation type="obsolete">Proyecto de QGISRed</translation>
-    </message>
-    <message>
-        <location filename="../tools/qgisred_utils.py" line="808"/>
-        <source>We cannot find the qgis project file. Do you want to find this file manually? If not, we will open only the layers from the Inputs group.</source>
-        <translation type="obsolete">No podemos encontrar el archivo del proyecto QGIS. ¿Desea encontrarlo manualmente? Si no, abriremos solamente las capas del grupo de Entradas.</translation>
-    </message>
-    <message>
-        <location filename="../tools/qgisred_utils.py" line="1181"/>
-        <source>{field} field not found in layer {layer.name()}</source>
-        <translation type="obsolete">Campo {field} no encontrado en la capa {layer.name()}</translation>
-    </message>
-</context>
-<context>
     <name>TimeSeriesPlotWidget</name>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="94"/>
@@ -4178,11 +3916,6 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <source>Any elevation has been estimated</source>
         <translation>No se ha estimado ninguna cota.</translation>
     </message>
-    <message>
-        <location filename="../sections/tools_section.py" line="328"/>
-        <source>Error</source>
-        <translation type="obsolete">Error</translation>
-    </message>
 </context>
 <context>
     <name>UtilsSection</name>
@@ -4190,11 +3923,6 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <location filename="../sections/utils_section.py" line="107"/>
         <source>Some Ids are not defined. Commit before and try again.</source>
         <translation>Algunos Ids no están definidos. Guarde antes e inténtelo de nuevo.</translation>
-    </message>
-    <message>
-        <location filename="../sections/utils_section.py" line="108"/>
-        <source>Warning</source>
-        <translation type="obsolete">Advertencia</translation>
     </message>
 </context>
 </TS>
