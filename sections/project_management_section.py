@@ -156,7 +156,7 @@ class ProjectManagementSection:
         self.defineCurrentProject()
         if not self.ProjectDirectory == self.TemporalFolder:
             self.updateMetadata()
-            self.pushMessage(self.tr("QGISRed Project saved"), level=0, duration=5)
+            self.pushMessage(self.tr("Project saved"), level=0, duration=5)
 
     def runClearedProject(self):
         # Set flag to prevent DLL calls during shutdown
@@ -276,9 +276,9 @@ class ProjectManagementSection:
         if resMessage == "True":
             pass
         elif resMessage == "False":
-            self.pushMessage(self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5)
+            self.pushMessage(self.tr("Some issues occurred in the process"), level=1, duration=5)
         else:
-            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(resMessage, level=2, duration=5)
 
 
     """Main methods"""
@@ -421,11 +421,9 @@ class ProjectManagementSection:
         if resMessage == "True":
             pass
         elif resMessage == "False":
-            self.pushMessage(
-                self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5
-            )
+            self.pushMessage(self.tr("Some issues occurred in the process"), level=1, duration=5)
         else:
-            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(resMessage, level=2, duration=5)
 
     def runCanAddData(self):
         if not self.checkDependencies():
@@ -485,14 +483,14 @@ class ProjectManagementSection:
 
         # Message
         if resMessage == "True":
-            self.pushMessage(self.tr("Info"), self.tr("Project options updated"), level=0, duration=5)
+            self.pushMessage(self.tr("Project options updated"), level=0, duration=5)
         elif resMessage == "False":
             warningMessage = self.tr("Some issues occurred in the process")
-            self.pushMessage(self.tr("Warning"), warningMessage, level=1, duration=5)
+            self.pushMessage(warningMessage, level=1, duration=5)
         elif resMessage == "Cancelled":
             pass
         else:
-            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(resMessage, level=2, duration=5)
 
     def runDefaultValues(self):
         if not self.checkDependencies():
@@ -517,13 +515,11 @@ class ProjectManagementSection:
             self.removingLayers = True
             QGISRedLayerUtils().runTask(self.removeDBFs, self.runOpenTemporaryFiles)
         elif resMessage == "False":
-            self.pushMessage(
-                self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5
-            )
+            self.pushMessage(self.tr("Some issues occurred in the process"), level=1, duration=5)
         elif resMessage == "Cancelled":
             pass
         else:
-            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(resMessage, level=2, duration=5)
 
     def runMaterials(self):
         if not self.checkDependencies():
@@ -548,13 +544,11 @@ class ProjectManagementSection:
             self.removingLayers = True
             QGISRedLayerUtils().runTask(self.removeDBFs, self.runOpenTemporaryFiles)
         elif resMessage == "False":
-            self.pushMessage(
-                self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5
-            )
+            self.pushMessage(self.tr("Some issues occurred in the process"), level=1, duration=5)
         elif resMessage == "Cancelled":
             pass
         else:
-            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(resMessage, level=2, duration=5)
 
     def runSaveActionProject(self):
         self.defineCurrentProject()
@@ -578,9 +572,7 @@ class ProjectManagementSection:
 
         io = QGISRedProjectIO(self.ProjectDirectory, self.NetworkName, self.iface)
         path = io.saveBackup()
-        self.pushMessage(self.tr("Info"), self.tr("Backup stored in:") + " " + path, level=3, duration=5)
+        self.pushMessage(self.tr("Backup stored in:") + " " + path, level=3, duration=5)
 
     def runCloseProject(self):
-        self.iface.newProject(True)
-
-
+        self.iface.newProject(True)

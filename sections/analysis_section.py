@@ -50,13 +50,11 @@ class AnalysisSection:
         elif resMessage == "commit":
             self.processCsharpResult(resMessage, "Pipe's roughness converted")
         elif resMessage == "False":
-            self.pushMessage(
-                self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5
-            )
+            self.pushMessage(self.tr("Some issues occurred in the process"), level=1, duration=5)
         elif resMessage == "Cancelled":
             pass
         else:
-            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(resMessage, level=2, duration=5)
 
     def _outFilePath(self):
         scenario = getattr(self.ResultDockwidget, 'Scenario', 'Base') if self.ResultDockwidget else 'Base'
@@ -147,15 +145,11 @@ class AnalysisSection:
 
         # Message
         if resMessage == "True":
-            self.pushMessage(
-                self.tr("Info"), self.tr("INP file successfully exported"), level=3, duration=5
-            )
+            self.pushMessage(self.tr("INP file successfully exported"), level=3, duration=5)
         elif resMessage == "False":
-            self.pushMessage(
-                self.tr("Warning"), self.tr("Some issues occurred in the process"), level=1, duration=5
-            )
+            self.pushMessage(self.tr("Some issues occurred in the process"), level=1, duration=5)
         elif not resMessage == "Cancelled":
-            self.pushMessage(self.tr("Error"), resMessage, level=2, duration=5)
+            self.pushMessage(resMessage, level=2, duration=5)
 
     def runExportResultsToCsv(self):
         if not self.checkDependencies():
@@ -168,9 +162,7 @@ class AnalysisSection:
 
         scenario = getattr(self.ResultDockwidget, 'Scenario', 'Base') if self.ResultDockwidget else 'Base'
         if not os.path.exists(self._outFilePath()):
-            self.pushMessage(
-                self.tr("Warning"), self.tr("No simulation results found"), level=1, duration=5
-            )
+            self.pushMessage(self.tr("No simulation results found"), level=1, duration=5)
             return
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
@@ -185,7 +177,6 @@ class AnalysisSection:
             self.defineCurrentProject()
             if not self.isValidProject() or self.isLayerOnEdition():
                 self.pushMessage(
-                    self.tr("Warning"),
                     self.tr("Necessary to have a valid project and no layer on edition."),
                     level=1, duration=5
                 )
@@ -207,7 +198,6 @@ class AnalysisSection:
 
             if not results_ready:
                 self.pushMessage(
-                    self.tr("Warning"),
                     self.tr("It is necessary to simulate first."),
                     level=1, duration=5
                 )
@@ -273,7 +263,7 @@ class AnalysisSection:
             if found_feature: break
 
         if not found_feature:
-            self.pushMessage(self.tr("Warning"), self.tr("No network element found at this location."), level=1)
+            self.pushMessage(self.tr("No network element found at this location."), level=1)
             return
 
         self.lastTimeSeriesFeature = found_feature
@@ -322,7 +312,7 @@ class AnalysisSection:
 
         out_path = getattr(self.ResultDockwidget, "outPath", "")
         if not os.path.exists(out_path):
-            self.pushMessage(self.tr("Warning"), self.tr("Results file not found. Please run the model."), level=1)
+            self.pushMessage(self.tr("Results file not found. Please run the model."), level=1)
             return
 
         from ..ui.analysis.qgisred_results_binary import getOut_TimesNodeProperty, getOut_TimesLinkProperty, getOut_Metadata
