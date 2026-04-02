@@ -993,9 +993,6 @@
     </message>
 </context>
 <context>
-    <name>LayerManagementSection</name>
-</context>
-<context>
     <name>LifecycleSection</name>
     <message>
         <location filename="../sections/lifecycle_section.py" line="246"/>

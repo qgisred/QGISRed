@@ -1721,7 +1721,7 @@
     <message>
         <location filename="../sections/project_management_section.py" line="159"/>
         <source>Project saved</source>
-        <translation type="unfinished"></translation>
+        <translation>Proyecto guardado</translation>
     </message>
 </context>
 <context>
@@ -3673,37 +3673,37 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     <message>
         <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="949"/>
         <source>Sum</source>
-        <translation type="unfinished"></translation>
+        <translation>Suma</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="949"/>
         <source>StdD</source>
-        <translation type="unfinished"></translation>
+        <translation>Desv. Típica</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="953"/>
         <source>Count</source>
-        <translation type="unfinished"></translation>
+        <translation>Recuento</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="950"/>
         <source>Avg</source>
-        <translation type="unfinished"></translation>
+        <translation>Promedio</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="950"/>
         <source>Min</source>
-        <translation type="unfinished"></translation>
+        <translation>Mínimo</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="950"/>
         <source>Max</source>
-        <translation type="unfinished"></translation>
+        <translation>Máximo</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="976"/>
         <source>All</source>
-        <translation type="unfinished"></translation>
+        <translation>Todo</translation>
     </message>
 </context>
 <context>
@@ -3769,32 +3769,32 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     <message>
         <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="28"/>
         <source>Rename project:</source>
-        <translation type="unfinished"></translation>
+        <translation>Renombrar proyecto:</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="78"/>
         <source>Rename files in backups folder</source>
-        <translation type="unfinished"></translation>
+        <translation>Renombrar archivos en la carpeta de copias de seguridad</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="106"/>
         <source>Rename QGIS file:</source>
-        <translation type="unfinished"></translation>
+        <translation>Renombrar archivo de QGIS:</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_renameproject_dialog.py" line="62"/>
         <source>At least one option must be selected</source>
-        <translation type="unfinished"></translation>
+        <translation>Al menos debe haber una opción seleccionada</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_renameproject_dialog.py" line="81"/>
         <source>Not valid QGIS file name</source>
-        <translation type="unfinished"></translation>
+        <translation>Nombre de archivo de QGIS no válido</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_renameproject_dialog.py" line="90"/>
         <source>At least one name must be different from the original</source>
-        <translation type="unfinished"></translation>
+        <translation>Al menos un nombre debe ser diferente del original</translation>
     </message>
 </context>
 <context>
