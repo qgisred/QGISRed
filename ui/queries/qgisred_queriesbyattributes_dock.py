@@ -278,16 +278,21 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
 
     def initializeElementTypes(self):
         self.cbElementType.clear()
+
+        # Collect available input layers by identifier
+        availableLayers = {}
         inputsGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
         if inputsGroup:
             identifiers = set(self.elementIdentifiers.values())
             for layerNode in inputsGroup.findLayers():
                 layer = layerNode.layer()
                 if layer and layer.customProperty("qgisred_identifier") in identifiers:
-                    self.cbElementType.addItem(layer.name(), layer.customProperty("qgisred_identifier"))
+                    availableLayers[layer.customProperty("qgisred_identifier")] = layer.name()
+
+        # Collect results layers
+        nodeIdent = linkIdent = None
         resultsGroup = QgsProject.instance().layerTreeRoot().findGroup("Results")
         if resultsGroup:
-            nodeIdent = linkIdent = None
             for layerNode in resultsGroup.findLayers():
                 layer = layerNode.layer()
                 if not layer:
@@ -297,10 +302,40 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
                     nodeIdent = ident
                 elif ident.startswith("qgisred_link") and linkIdent is None:
                     linkIdent = ident
+
+        hasResults = nodeIdent or linkIdent
+
+        # Results first (if they exist)
+        if hasResults:
             if nodeIdent:
                 self.cbElementType.addItem(self.tr("Nodes"), nodeIdent)
             if linkIdent:
                 self.cbElementType.addItem(self.tr("Lines"), linkIdent)
+            self.cbElementType.insertSeparator(self.cbElementType.count())
+
+        # Input layers in fixed order
+        inputOrder = [
+            'qgisred_junctions', 'qgisred_tanks', 'qgisred_reservoirs',
+            'qgisred_pipes', 'qgisred_valves', 'qgisred_pumps',
+            'qgisred_demands', 'qgisred_sources'
+        ]
+        addedInput = False
+        for ident in inputOrder:
+            if ident in availableLayers:
+                self.cbElementType.addItem(availableLayers[ident], ident)
+                addedInput = True
+
+        # Digital twin layers
+        digitalTwinOrder = [
+            'qgisred_serviceconnections', 'qgisred_isolationvalves', 'qgisred_meters'
+        ]
+        hasTwin = any(ident in availableLayers for ident in digitalTwinOrder)
+        if addedInput and hasTwin:
+            self.cbElementType.insertSeparator(self.cbElementType.count())
+        for ident in digitalTwinOrder:
+            if ident in availableLayers:
+                self.cbElementType.addItem(availableLayers[ident], ident)
+
         self.updateProperties()
 
     def isResultsLayer(self, layer):
