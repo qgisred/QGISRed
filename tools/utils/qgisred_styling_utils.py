@@ -113,9 +113,7 @@ class QGISRedStylingUtils:
         pluginPath = _plugin_root()
         defaultStylePath = os.path.join(pluginPath, "defaults", "layerStyles")
         qmlPath = os.path.join(defaultStylePath, name + ".qml.bak")
-        tempStylePath = self.replaceSvgPathInQml(qmlPath, self.defaultSvgPathText, pluginPath)
-        if os.path.exists(tempStylePath):
-            layer.loadNamedStyle(tempStylePath)
+        layer.loadNamedStyle(qmlPath)
 
     def setResultStyle(self, layer, name=""):
         # Convert result layer name to QML filename (e.g., "Link_Flow" -> "LinkFlow")
@@ -141,28 +139,7 @@ class QGISRedStylingUtils:
             pluginPath = _plugin_root()
             defaultStylePath = os.path.join(pluginPath, "defaults", "layerStyles")
             qmlPath = os.path.join(defaultStylePath, qmlName + ".qml.bak")
-            tempStylePath = self.replaceSvgPathInQml(qmlPath, self.defaultSvgPathText, pluginPath)
-            if os.path.exists(tempStylePath):
-                layer.loadNamedStyle(tempStylePath)
-                return
-
-    def replaceSvgPathInQml(self, qmlPath, defaultSvgPath, pluginPath):
-        if not os.path.exists(qmlPath):
-            return qmlPath
-
-        try:
-            with open(qmlPath, 'r', encoding='utf-8', errors='ignore') as f:
-                content = f.read()
-
-            newContent = content.replace(defaultSvgPath, pluginPath)
-
-            tempPath = os.path.join(tempfile.gettempdir(), next(tempfile._get_candidate_names()) + ".qml")
-            with open(tempPath, 'w', encoding='utf-8') as f:
-                f.write(newContent)
-
-            return tempPath
-        except Exception:
-            return qmlPath
+            layer.loadNamedStyle(qmlPath)
 
     def setSectorsStyle(self, layer):
         # get unique values
@@ -279,28 +256,7 @@ class QGISRedStylingUtils:
             qmlBasePath = os.path.join(stylePath, "isolatedSegmentsNodes.qml.bak")
         else:
             qmlBasePath = os.path.join(stylePath, "isolatedSegmentsLinks.qml.bak")
-        if os.path.exists(qmlBasePath):
-            f = open(qmlBasePath, "r")
-            contents = f.read()
-            f.close()
-            qmlPath = ""
-            if layer.geometryType() == 0:  # Point
-                svgPath = os.path.join(stylePath, "tanksResults.svg")
-                contents = contents.replace("tanks.svg", svgPath)
-                svgPath = os.path.join(stylePath, "reservoirsResults.svg")
-                contents = contents.replace("reservoirs.svg", svgPath)
-                qmlPath = os.path.join(stylePath, "nodeResults.qml")
-            else:
-                svgPath = os.path.join(stylePath, "pumps.svg")
-                contents = contents.replace("pumps.svg", svgPath)
-                svgPath = os.path.join(stylePath, "valves.svg")
-                contents = contents.replace("valves.svg", svgPath)
-                qmlPath = os.path.join(stylePath, "linkResults.qml")
-            f = open(qmlPath, "w+")
-            f.write(contents)
-            f.close()
-            layer.loadNamedStyle(qmlPath)
-            os.remove(qmlPath)
+        layer.loadNamedStyle(qmlBasePath)
 
     def applyCategorizedRenderer(self, layer, field, qmlFile):
         fieldIndex = layer.fields().indexFromName(field)
