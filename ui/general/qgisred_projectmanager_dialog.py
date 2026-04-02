@@ -553,18 +553,20 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             result = dlg.ProcessDone
             if not result:
                 return
-            newName = dlg.NetworkName
+            newProjectName = dlg.NewNetworkName if dlg.RenameProject else None
+            newQgisBasename = dlg.NewQGISName if dlg.RenameQGISProject else None
             QApplication.setOverrideCursor(Qt.WaitCursor)
             oldProjectPath = projectPath
-            io.processProjectFiles(projectPath, projectNetwork, newName, projectPath, deleteSource=True)
+            if newProjectName:
+                io.processProjectFiles(projectPath, projectNetwork, newProjectName, projectPath, deleteSource=True)
             newQgisPath = None
-            if dlg.RenameQGISProject and qgisBase:
+            if newQgisBasename and qgisBase:
                 parentDir = os.path.dirname(qgisBase)
-                newQgisPath = io.processQGisProjectFiles(qgisBase, newName, parentDir, deleteSource=True)
+                newQgisPath = io.processQGisProjectFiles(qgisBase, newQgisBasename, parentDir, deleteSource=True)
                 if newQgisPath:
-                    io.updateMetadataQGisProject(projectPath, newName, newQgisPath)
-            if os.path.basename(projectPath) == projectNetwork:
-                newProjectPath = os.path.join(os.path.dirname(projectPath), newName)
+                    io.updateMetadataQGisProject(projectPath, newProjectName or projectNetwork, newQgisPath)
+            if newProjectName and os.path.basename(projectPath) == projectNetwork:
+                newProjectPath = os.path.join(os.path.dirname(projectPath), newProjectName)
                 try:
                     os.rename(projectPath, newProjectPath)
                     projectPath = self._getUniformedPath(newProjectPath)
@@ -583,13 +585,15 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                     # folder was renamed but .qgz was not — update it in its new location
                     renamedBase = qgisBase.replace(oldProjectPath, projectPath)
                     newQgisDir = os.path.dirname(renamedBase)
-                    qgisFileToUpdate = self._findQGisProjectFile(renamedBase)
+                    qgisFileToUpdate = io.findQGisProjectFile(renamedBase)
                 else:
                     qgisFileToUpdate = None
                     newQgisDir = None
                 if qgisFileToUpdate and os.path.exists(qgisFileToUpdate):
-                    io.updateQGisProjectContent(qgisFileToUpdate, projectNetwork, newName, oldProjectPath, projectPath, oldQgisDir, newQgisDir)
-            self.twProjectList.setItem(rowIndex, 0, QTableWidgetItem(newName))
+                    effectiveName = newProjectName or projectNetwork
+                    io.updateQGisProjectContent(qgisFileToUpdate, projectNetwork, effectiveName, oldProjectPath, projectPath, oldQgisDir, newQgisDir)
+            effectiveName = newProjectName or projectNetwork
+            self.twProjectList.setItem(rowIndex, 0, QTableWidgetItem(effectiveName))
             QApplication.restoreOverrideCursor()
 
             f = open(self.gplFile, "r")
@@ -601,11 +605,11 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 if not i == rowIndex:
                     self.utils.writeFile(f, line)
                 else:
-                    self.utils.writeFile(f, newName + ";" + projectPath + "\n")
+                    self.utils.writeFile(f, effectiveName + ";" + projectPath + "\n")
                 i = i + 1
             f.close()
 
-            self.pushMessage("QGISRed", self.tr("Project name has been renamed to ") + newName, level=0, duration=5)
+            self.pushMessage("QGISRed", self.tr("Project name has been renamed to ") + effectiveName, level=0, duration=5)
         else:
             self.pushMessage(
                 self.tr("Warning"), self.tr("You need to select a project to change its name."), level=1, duration=5
