@@ -4,7 +4,7 @@
 
 [general]
 name=QGISRed
-qgisMinimumVersion=3.2
+qgisMinimumVersion=3.28
 qgisMaximumVersion=3.99
 description=Free professional software to build and analyze advanced water distribution network models and Digital Twins.
 version=0.17.2
