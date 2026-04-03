@@ -2,7 +2,7 @@
 """Utility helper methods for QGISRed."""
 
 from qgis.core import QgsCoordinateTransform, QgsProject
-from PyQt5.QtGui import QCursor
+from qgis.PyQt.QtGui import QCursor
 from ctypes import windll
 
 from ..tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils

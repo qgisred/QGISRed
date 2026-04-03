@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from PyQt5.QtGui import QColor, QPixmap, QPainter, QIcon
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QDoubleSpinBox, QLabel, QVBoxLayout, QStyle
-from PyQt5.QtWidgets import QToolButton, QComboBox, QApplication, QStylePainter, QStyleOptionComboBox
-from PyQt5.QtCore import pyqtSignal, Qt, QEvent, QSize, QObject, QPoint, QItemSelectionModel, QItemSelection
+from qgis.PyQt.QtGui import QColor, QPixmap, QPainter, QIcon
+from ...compat import PAINTER_ANTIALIASING
+from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QDoubleSpinBox, QLabel, QVBoxLayout, QStyle
+from qgis.PyQt.QtWidgets import QToolButton, QComboBox, QApplication, QStylePainter, QStyleOptionComboBox
+from qgis.PyQt.QtCore import pyqtSignal, Qt, QEvent, QSize, QObject, QPoint, QItemSelectionModel, QItemSelection
 
 from qgis.gui import QgsSymbolButton, QgsColorDialog
 from qgis.core import QgsMarkerSymbol, QgsLineSymbol, QgsFillSymbol, QgsColorRamp
@@ -47,7 +48,7 @@ class QGISRedRangeEditDialog(QDialog):
         return self.tr(f"{baseName}:")
 
     def addStandardButtons(self, layout):
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         buttonBox.accepted.connect(self.accept)
         buttonBox.rejected.connect(self.reject)
         layout.addWidget(buttonBox)
@@ -96,7 +97,7 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
         return self.fillType
 
     def configureWidgetStyle(self):
-        self.setPopupMode(QToolButton.DelayedPopup)
+        self.setPopupMode(QToolButton.ToolButtonPopupMode.DelayedPopup)
         self.setStyleSheet(
             "QToolButton::menu-indicator { image: none; width: 0px; } "
             "QToolButton { padding-right: 4px; background-color: transparent; border: none; }"
@@ -172,7 +173,7 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
         if watched is not self:
             return super().eventFilter(watched, event)
 
-        if event.type() == QEvent.Wheel:
+        if event.type() == QEvent.Type.Wheel:
             return True
 
         if self.useDoubleClick:
@@ -181,10 +182,10 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
         return self.handleSingleClickLogic(event)
 
     def handleDoubleClickLogic(self, event):
-        if event.type() == QEvent.MouseButtonPress and event.button() == Qt.LeftButton:
+        if event.type() == QEvent.Type.MouseButtonPress and event.button() == Qt.MouseButton.LeftButton:
             return True
 
-        if event.type() == QEvent.MouseButtonDblClick and event.button() == Qt.LeftButton:
+        if event.type() == QEvent.Type.MouseButtonDblClick and event.button() == Qt.MouseButton.LeftButton:
             if self.isEnabled():
                 self.openColorPicker()
             return True
@@ -192,7 +193,7 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
         return False
 
     def handleSingleClickLogic(self, event):
-        if event.type() == QEvent.MouseButtonPress and event.button() == Qt.LeftButton:
+        if event.type() == QEvent.Type.MouseButtonPress and event.button() == Qt.MouseButton.LeftButton:
             self.openColorPicker()
             return True
 
@@ -303,10 +304,10 @@ class QGISRedColorRampSelector(QComboBox):
 
     def generateGradientPixmap(self, ramp, width, height):
         pixmap = QPixmap(width, height)
-        pixmap.fill(Qt.transparent)
+        pixmap.fill(Qt.GlobalColor.transparent)
 
         painter = QPainter(pixmap)
-        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setRenderHint(PAINTER_ANTIALIASING)
 
         self.drawRampLines(painter, ramp, width, height)
 
@@ -326,8 +327,8 @@ class QGISRedRowSelectionFilter(QObject):
         self.targetTable = table
 
     def eventFilter(self, widget, event):
-        isFocusEvent = event.type() == QEvent.FocusIn
-        isClickEvent = event.type() == QEvent.MouseButtonPress and event.button() == Qt.LeftButton
+        isFocusEvent = event.type() == QEvent.Type.FocusIn
+        isClickEvent = event.type() == QEvent.Type.MouseButtonPress and event.button() == Qt.MouseButton.LeftButton
 
         if isFocusEvent or isClickEvent:
             self.synchronizeSelectionToWidget(widget)
@@ -352,12 +353,12 @@ class QGISRedRowSelectionFilter(QObject):
     def determineSelectionCommand(self):
         modifiers = QApplication.keyboardModifiers()
 
-        if modifiers & Qt.ControlModifier:
-            return QItemSelectionModel.Toggle
-        if modifiers & Qt.ShiftModifier:
-            return QItemSelectionModel.Select
+        if modifiers & Qt.KeyboardModifier.ControlModifier:
+            return QItemSelectionModel.SelectionFlag.Toggle
+        if modifiers & Qt.KeyboardModifier.ShiftModifier:
+            return QItemSelectionModel.SelectionFlag.Select
 
-        return QItemSelectionModel.ClearAndSelect
+        return QItemSelectionModel.SelectionFlag.ClearAndSelect
 
     def createFullRowSelection(self, rowIndex):
         model = self.targetTable.model()

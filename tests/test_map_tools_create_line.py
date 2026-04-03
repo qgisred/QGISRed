@@ -67,10 +67,10 @@ class _QgsRubberBand:
 
 
 _mock_qtcore = MagicMock()
-_mock_qtcore.Qt.LeftButton = 1
-_mock_qtcore.Qt.RightButton = 2
-_mock_qtcore.Qt.SolidLine = 1
-_mock_qtcore.Qt.DashLine = 2
+_mock_qtcore.Qt.MouseButton.LeftButton = 1
+_mock_qtcore.Qt.MouseButton.RightButton = 2
+_mock_qtcore.Qt.PenStyle.SolidLine = 1
+_mock_qtcore.Qt.PenStyle.DashLine = 2
 
 _mock_qgis_gui = MagicMock()
 _mock_qgis_gui.QgsMapTool = _QgsMapTool
@@ -79,6 +79,22 @@ _mock_qgis_gui.QgsRubberBand = _QgsRubberBand
 
 _mock_qgis_core = MagicMock()
 _mock_qgis_core.QgsPointXY = _Point
+_mock_qgis_core.QgsSnappingConfig.Vertex = 1
+_mock_qgis_core.QgsSnappingConfig.Segment = 2
+_mock_qgis_core.QgsSnappingConfig.VertexAndSegment = 3
+_mock_qgis_core.QgsWkbTypes.LineGeometry = 2
+_mock_qgis_core.QgsWkbTypes.PointGeometry = 1
+
+_mock_qgis_pyqt = MagicMock()
+_mock_qgis_pyqt.__path__ = []  # Make it look like a package
+_mock_qgis_pyqt_qtcore = MagicMock()
+_mock_qgis_pyqt_qtgui = MagicMock()
+_mock_qgis_pyqt_qtwidgets = MagicMock()
+_mock_qgis_pyqt_qtcore.Qt = _mock_qtcore.Qt
+_mock_qgis_pyqt_qtgui.QAction = MagicMock()
+_mock_qgis_pyqt_qtwidgets.QStyle = MagicMock()
+_mock_qgis_pyqt_qtwidgets.QStyle.CC_ComboBox = 1
+_mock_qgis_pyqt_qtwidgets.QStyle.CE_ComboBoxLabel = 2
 
 sys.modules['PyQt5'] = MagicMock()
 sys.modules['PyQt5.QtCore'] = _mock_qtcore
@@ -87,6 +103,10 @@ sys.modules['PyQt5.QtWidgets'] = MagicMock()
 sys.modules['qgis'] = MagicMock()
 sys.modules['qgis.core'] = _mock_qgis_core
 sys.modules['qgis.gui'] = _mock_qgis_gui
+sys.modules['qgis.PyQt'] = _mock_qgis_pyqt
+sys.modules['qgis.PyQt.QtCore'] = _mock_qgis_pyqt_qtcore
+sys.modules['qgis.PyQt.QtGui'] = _mock_qgis_pyqt_qtgui
+sys.modules['qgis.PyQt.QtWidgets'] = _mock_qgis_pyqt_qtwidgets
 
 from QGISRed.tools.map_tools.qgisred_createLineTool import QGISRedCreateLineTool  # noqa: E402
 from QGISRed.tools.map_tools.qgisred_createPipe import QGISRedCreatePipeTool      # noqa: E402
@@ -176,12 +196,12 @@ class TestPressEventStateMachine:
         """Simulate a left-click at map coordinates (x, y)."""
         tool.toMapCoordinates = lambda pos: _Point(x, y)
         event = MagicMock()
-        event.button.return_value = 1  # Qt.LeftButton
+        event.button.return_value = 1  # Qt.MouseButton.LeftButton
         tool.canvasPressEvent(event)
 
     def _right_click(self, tool):
         event = MagicMock()
-        event.button.return_value = 2  # Qt.RightButton
+        event.button.return_value = 2  # Qt.MouseButton.RightButton
         tool.canvasPressEvent(event)
 
     # --- first left click ---

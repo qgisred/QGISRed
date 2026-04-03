@@ -5,11 +5,12 @@ import random
 import math
 import statistics
 
-from PyQt5.QtGui import QIcon, QColor
-from PyQt5.QtWidgets import QDialog, QMessageBox, QHeaderView, QLineEdit, QAbstractItemView
-from PyQt5.QtWidgets import QCheckBox, QSpinBox, QApplication, QProgressDialog, QWidget, QHBoxLayout
-from PyQt5.QtCore import QVariant, Qt, QTimer, QEvent
+from qgis.PyQt.QtGui import QIcon, QColor
+from qgis.PyQt.QtWidgets import QDialog, QMessageBox, QHeaderView, QLineEdit, QAbstractItemView
+from qgis.PyQt.QtWidgets import QCheckBox, QSpinBox, QApplication, QProgressDialog, QWidget, QHBoxLayout
+from qgis.PyQt.QtCore import Qt, QTimer, QEvent
 from qgis.PyQt import uic
+from ...compat import QVariantInt, QVariantDouble, QVariantLongLong
 
 from qgis.core import QgsProject, QgsVectorLayer, QgsMessageLog, Qgis, QgsGraduatedSymbolRenderer
 from qgis.core import QgsCategorizedSymbolRenderer, QgsRendererRange, QgsRendererCategory, QgsSymbol
@@ -256,7 +257,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def configureWindow(self):
         self.setWindowIcon(QIcon(":/images/iconThematicMaps.svg"))
         self.setWindowTitle(self.tr("QGISRed: Legend Editor"))
-        self.setWindowFlags(Qt.Window | Qt.WindowStaysOnTopHint | Qt.WindowCloseButtonHint)
+        self.setWindowFlags(Qt.Window | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.WindowCloseButtonHint)
         self.btClassPlus.setIcon(QIcon(":/images/themes/default/symbologyAdd.svg"))
         self.btClassMinus.setIcon(QIcon(":/images/themes/default/symbologyRemove.svg"))
 
@@ -268,22 +269,22 @@ class QGISRedLegendsDialog(QDialog, formClass):
         header = self.tableView.horizontalHeader()
 
         # Visibility checkbox
-        header.setSectionResizeMode(0, QHeaderView.Fixed)
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)
         self.tableView.setColumnWidth(0, 30)
 
         # Color
-        header.setSectionResizeMode(1, QHeaderView.Fixed)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Fixed)
         self.tableView.setColumnWidth(1, 40)
 
         # Size
-        header.setSectionResizeMode(2, QHeaderView.Fixed)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)
         self.tableView.setColumnWidth(2, 60)
 
-        header.setSectionResizeMode(3, QHeaderView.Stretch) # Value
-        header.setSectionResizeMode(4, QHeaderView.Stretch) # Legend
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch) # Value
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch) # Legend
 
-        self.tableView.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.tableView.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.tableView.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.tableView.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         self.tableView.setAlternatingRowColors(False)
         self.tableView.verticalHeader().setVisible(False)
         self.tableView.setShowGrid(True)
@@ -1487,9 +1488,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
             fieldIdx = layer.fields().indexOf(fieldName)
 
             if fieldIdx >= 0 and layer.fields().field(fieldIdx).type() in [
-                QVariant.Int,
-                QVariant.Double,
-                QVariant.LongLong,
+                QVariantInt,
+                QVariantDouble,
+                QVariantLongLong,
             ]:
                 return self.FIELD_TYPE_NUMERIC, fieldName
 
@@ -1645,7 +1646,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         layout = QHBoxLayout(container)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(2)
-        layout.addWidget(checkbox, 0, Qt.AlignVCenter | Qt.AlignHCenter)
+        layout.addWidget(checkbox, 0, Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter)
         container.setAutoFillBackground(False)
 
         self.tableView.setCellWidget(row, 0, container)
@@ -1681,7 +1682,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         layout.setSpacing(0)
         colorSelector.installEventFilter(self.rowSelectionFilter)
         layout.addStretch()
-        layout.addWidget(colorSelector, 0, Qt.AlignVCenter)
+        layout.addWidget(colorSelector, 0, Qt.AlignmentFlag.AlignVCenter)
         layout.addStretch()
         container.setAutoFillBackground(False)
         container.installEventFilter(self.rowSelectionFilter)
@@ -1692,7 +1693,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         size = symbol.width() if geometryHint == "line" else symbol.size()
         sizeWidget = QLineEdit(str(size))
         sizeWidget.setEnabled(self.isEditing)
-        sizeWidget.setAlignment(Qt.AlignCenter)
+        sizeWidget.setAlignment(Qt.AlignmentFlag.AlignCenter)
         sizeWidget.setStyleSheet(self.getBaseLineEditStyle())
         sizeWidget.installEventFilter(self.rowSelectionFilter)
         sizeWidget.textChanged.connect(lambda text, r=row: self.onSizeChanged(r, text))
@@ -1702,7 +1703,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def setValueWidget(self, row, valueText, isReadOnlyValue):
         valueWidget = QLineEdit(valueText)
         valueWidget.setReadOnly(True)
-        valueWidget.setAlignment(Qt.AlignCenter)
+        valueWidget.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         if self.isInputLayer():
             valueWidget.setEnabled(False)
@@ -1991,7 +1992,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 uniqueCountToAdd,
                 self,
             )
-            progress.setWindowModality(Qt.WindowModal)
+            progress.setWindowModality(Qt.WindowModality.WindowModal)
             progress.setMinimumDuration(0)
             progress.setValue(0)
 
@@ -2187,7 +2188,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         layout = QHBoxLayout(container)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(2)
-        layout.addWidget(checkbox, 0, Qt.AlignVCenter | Qt.AlignHCenter)
+        layout.addWidget(checkbox, 0, Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter)
         container.setAutoFillBackground(False)
 
         self.tableView.setCellWidget(row, column, container)
@@ -2232,7 +2233,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if isReadOnly:
             lineEdit.setReadOnly(True)
             if column == 3:
-                lineEdit.setAlignment(Qt.AlignCenter)
+                lineEdit.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 if hasDoubleClick:
                     lineEdit.setStyleSheet(self.getBaseLineEditStyle())
                     lineEdit.mouseDoubleClickEvent = (
@@ -2246,7 +2247,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             lineEdit.setStyleSheet(self.getBaseLineEditStyle())
 
         if column == 2:
-            lineEdit.setAlignment(Qt.AlignCenter)
+            lineEdit.setAlignment(Qt.AlignmentFlag.AlignCenter)
             lineEdit.textChanged.connect(lambda t, r=row: self.onSizeChanged(r, t))
 
         lineEdit.installEventFilter(self.rowSelectionFilter)
@@ -2652,7 +2653,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         unitAbbr = self.getCurrentLayerUnitAbbr()
         dialog = QGISRedRangeEditDialog(currentRange[0], currentRange[1], self, unitAbbreviation=unitAbbr)
 
-        if dialog.exec_():
+        if dialog.exec():
             newLower, newUpper = dialog.getRangeValues()
 
             if not self.validateRangeEdit(row, newLower, newUpper):
@@ -3793,14 +3794,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.close()
 
     def eventFilter(self, obj, event):
-        if obj == self.btClassPlus and event.type() == QEvent.MouseButtonPress:
-            if event.button() == Qt.RightButton and self.btClassPlus.isEnabled():
+        if obj == self.btClassPlus and event.type() == QEvent.Type.MouseButtonPress:
+            if event.button() == Qt.MouseButton.RightButton and self.btClassPlus.isEnabled():
                 self.addClassBeforeSelection = True
                 self.executeAddClass()
                 self.addClassBeforeSelection = False
                 return True
 
-        if obj == self and event.type() == QEvent.MouseButtonPress:
+        if obj == self and event.type() == QEvent.Type.MouseButtonPress:
             clickPos = event.pos()
             tableGeometry = self.tableView.geometry()
             if not tableGeometry.contains(clickPos):

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from PyQt5.QtWidgets import QDialog, QApplication
-from PyQt5.QtCore import Qt
+from qgis.PyQt.QtWidgets import QDialog, QApplication
+from qgis.PyQt.QtCore import Qt
 from qgis.core import QgsCoordinateReferenceSystem, QgsVectorLayer, QgsProject
 from qgis.PyQt import uic
 from qgis.gui import QgsProjectionSelectionDialog as QgsGenericProjectionSelector
@@ -226,7 +226,7 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
 
     def selectCRS(self):
         projSelector = QgsGenericProjectionSelector()
-        if projSelector.exec_():
+        if projSelector.exec():
             crsId = projSelector.crs().srsid()
             if not crsId == 0:
                 self.crs = QgsCoordinateReferenceSystem()
@@ -298,7 +298,7 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         layer = "" if complementary else layerName
         complLayer = layerName if complementary else ""
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.CreateLayer(self.ProjectDirectory, self.NetworkName, layer, complLayer)
         QApplication.restoreOverrideCursor()
 

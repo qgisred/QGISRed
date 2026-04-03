@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
-from PyQt5.QtWidgets import QDockWidget, QVBoxLayout, QWidget
-from PyQt5.QtCore import Qt, QPointF, QRectF
-from PyQt5.QtGui import QPainter, QPen, QColor, QFont, QPainterPath, QFontMetrics
+from qgis.PyQt.QtWidgets import QDockWidget, QVBoxLayout, QWidget
+from qgis.PyQt.QtCore import Qt, QPointF, QRectF
+from qgis.PyQt.QtGui import QPainter, QPen, QColor, QFont, QPainterPath, QFontMetrics
+from ...compat import PAINTER_ANTIALIASING
 from qgis.PyQt import uic
 
 # Load UI
@@ -91,17 +92,17 @@ class TimeSeriesPlotWidget(QWidget):
     def paintEvent(self, event):
         if not self.data_x or not self.data_y:
             painter = QPainter(self)
-            painter.drawText(self.rect(), Qt.AlignCenter, self.tr("No data to display, please select an element on the map."))
+            painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, self.tr("No data to display, please select an element on the map."))
             return
 
         painter = QPainter(self)
-        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setRenderHint(PAINTER_ANTIALIASING)
 
         w = self.width()
         h = self.height()
         
         # Draw Background
-        painter.fillRect(self.rect(), Qt.white)
+        painter.fillRect(self.rect(), Qt.GlobalColor.white)
         
         # Draw Title
         if self.title:
@@ -109,8 +110,8 @@ class TimeSeriesPlotWidget(QWidget):
             font_title = QFont("Arial", 12)
             font_title.setBold(True)
             painter.setFont(font_title)
-            painter.setPen(Qt.black)
-            painter.drawText(QRectF(0, 0, w, self.margin_top), Qt.AlignCenter | Qt.AlignBottom, self.title)
+            painter.setPen(Qt.GlobalColor.black)
+            painter.drawText(QRectF(0, 0, w, self.margin_top), Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignBottom, self.title)
             painter.restore()
 
         plot_rect, local_margin_left = self.getPlotRect()
@@ -150,7 +151,7 @@ class TimeSeriesPlotWidget(QWidget):
 
         # Draw Grid & Axes
         painter.setFont(QFont("Arial", 9))
-        pen_grid = QPen(QColor(220, 232, 245), 1, Qt.SolidLine)
+        pen_grid = QPen(QColor(220, 232, 245), 1, Qt.PenStyle.SolidLine)
         painter.setPen(pen_grid)
         
         # Horizontal lines (Y axis)
@@ -164,9 +165,9 @@ class TimeSeriesPlotWidget(QWidget):
                 
             pt = to_screen(min_x, val_y)
             painter.drawLine(QPointF(plot_rect.left(), pt.y()), QPointF(plot_rect.right(), pt.y()))
-            painter.setPen(Qt.black)
+            painter.setPen(Qt.GlobalColor.black)
             # Draw text relative to dynamic margin
-            painter.drawText(QRectF(0, pt.y() - 10, local_margin_left - 5, 20), Qt.AlignRight | Qt.AlignVCenter, label_text)
+            painter.drawText(QRectF(0, pt.y() - 10, local_margin_left - 5, 20), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, label_text)
             painter.setPen(pen_grid)
 
         # Vertical lines (X axis)
@@ -186,12 +187,12 @@ class TimeSeriesPlotWidget(QWidget):
                 painter.setPen(pen_grid)
                 painter.drawLine(QPointF(pt.x(), plot_rect.top()), QPointF(pt.x(), plot_rect.bottom()))
                 
-                painter.setPen(Qt.black)
+                painter.setPen(Qt.GlobalColor.black)
                 label_x = f"{int(val_x)}" if abs(val_x - int(val_x)) < 0.001 else f"{val_x:.1f}"
-                painter.drawText(QRectF(pt.x() - 30, plot_rect.bottom() + 5, 60, 20), Qt.AlignCenter, label_x)
+                painter.drawText(QRectF(pt.x() - 30, plot_rect.bottom() + 5, 60, 20), Qt.AlignmentFlag.AlignCenter, label_x)
 
         # Main Axes
-        painter.setPen(QPen(Qt.black, 2))
+        painter.setPen(QPen(Qt.GlobalColor.black, 2))
         painter.drawLine(plot_rect.bottomLeft(), plot_rect.bottomRight())
         painter.drawLine(plot_rect.bottomLeft(), plot_rect.topLeft())
 
@@ -201,10 +202,10 @@ class TimeSeriesPlotWidget(QWidget):
         # Position title properly within the dynamic margin area
         painter.translate(local_margin_left / 2 - 15, h/2)
         painter.rotate(-90)
-        painter.drawText(QRectF(-100, -15, 200, 30), Qt.AlignCenter, self.y_label)
+        painter.drawText(QRectF(-100, -15, 200, 30), Qt.AlignmentFlag.AlignCenter, self.y_label)
         painter.restore()
         
-        painter.drawText(QRectF(local_margin_left, h - self.margin_bottom + 20, plot_rect.width(), 20), Qt.AlignCenter, self.x_label)
+        painter.drawText(QRectF(local_margin_left, h - self.margin_bottom + 20, plot_rect.width(), 20), Qt.AlignmentFlag.AlignCenter, self.x_label)
 
         # Draw Curve
         hover_pt = None
@@ -234,13 +235,13 @@ class TimeSeriesPlotWidget(QWidget):
             pt = to_screen(val_x, val_y)
             
             # Crosshair (Soft Red / Coral)
-            painter.setPen(QPen(QColor(255, 110, 110), 1, Qt.DashLine))
+            painter.setPen(QPen(QColor(255, 110, 110), 1, Qt.PenStyle.DashLine))
             painter.drawLine(QPointF(pt.x(), plot_rect.top()), QPointF(pt.x(), plot_rect.bottom()))
             painter.drawLine(QPointF(plot_rect.left(), pt.y()), QPointF(plot_rect.right(), pt.y()))
             
             # Highlight point
             painter.setPen(QPen(QColor(0, 120, 215), 2))
-            painter.setBrush(Qt.white)
+            painter.setBrush(Qt.GlobalColor.white)
             painter.drawEllipse(pt, 4, 4)
             
             # Tooltip box
@@ -263,7 +264,7 @@ class TimeSeriesPlotWidget(QWidget):
             fm = painter.fontMetrics()
             
             # Use flags to correctly handle multi-line text bonding box
-            rect_tt = fm.boundingRect(self.rect(), Qt.AlignCenter, text)
+            rect_tt = fm.boundingRect(self.rect(), Qt.AlignmentFlag.AlignCenter, text)
             rect_tt.adjust(-5, -5, 5, 5)
             
             # Position tooltip box
@@ -279,9 +280,9 @@ class TimeSeriesPlotWidget(QWidget):
             rect_tt.moveTo(tt_x, tt_y)
             
             painter.setPen(QPen(QColor(0, 128, 0), 1))
-            painter.setBrush(Qt.white)
+            painter.setBrush(Qt.GlobalColor.white)
             painter.drawRect(rect_tt)
-            painter.drawText(rect_tt, Qt.AlignCenter, text)
+            painter.drawText(rect_tt, Qt.AlignmentFlag.AlignCenter, text)
 
     def leaveEvent(self, event):
         if self.hover_index is not None:

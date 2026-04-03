@@ -1,7 +1,8 @@
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QCursor, QColor
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QCursor, QColor
 from qgis.core import QgsPointXY, QgsPoint, QgsFeatureRequest, QgsFeature, QgsGeometry, QgsProject, QgsVector
 from qgis.core import QgsVectorLayerEditUtils, QgsSnappingConfig, QgsTolerance
+from ...compat import SNAP_TYPE_VERTEX
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSnappingUtils
 try:
     from qgis.gui import Qgis
@@ -52,7 +53,7 @@ class QGISRedMoveNodesTool(QgsMapTool):
 
     def activate(self):
         cursor = QCursor()
-        cursor.setShape(Qt.ArrowCursor)
+        cursor.setShape(Qt.CursorShape.ArrowCursor)
         self.iface.mapCanvas().setCursor(cursor)
 
         myLayers = []
@@ -70,7 +71,7 @@ class QGISRedMoveNodesTool(QgsMapTool):
         self.snapper = QgsMapCanvasSnappingUtils(self.iface.mapCanvas())
         self.snapper.setMapSettings(self.iface.mapCanvas().mapSettings())
         config = QgsSnappingConfig(QgsProject.instance())
-        config.setType(1)  # Vertex
+        config.setType(SNAP_TYPE_VERTEX)
         config.setMode(QgsSnappingConfig.SnappingMode.AllLayers)  # All layers
         config.setTolerance(1)
         config.setUnits(QgsTolerance.UnitType.ProjectUnits)
@@ -171,7 +172,7 @@ class QGISRedMoveNodesTool(QgsMapTool):
         self.rubberBand.setToGeometry(QgsGeometry.fromPolyline(myPoints), None)
         self.rubberBand.setColor(QColor(55, 198, 5))
         self.rubberBand.setWidth(1)
-        self.rubberBand.setLineStyle(Qt.DashLine)
+        self.rubberBand.setLineStyle(Qt.PenStyle.DashLine)
         self.newVertexMarker.setCenter(QgsPointXY(points[0].x(), points[0].y()))
         self.newVertexMarker.show()
 
@@ -210,11 +211,11 @@ class QGISRedMoveNodesTool(QgsMapTool):
             self.clickedPoint = None
             return
 
-        if event.button() == Qt.RightButton:
+        if event.button() == Qt.MouseButton.RightButton:
             self.mouseClicked = False
             self.clickedPoint = None
 
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             self.mouseClicked = True
             self.clickedPoint = self.objectSnapped.point()
 

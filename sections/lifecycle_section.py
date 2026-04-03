@@ -13,9 +13,10 @@ from ctypes import windll, c_uint16, c_uint, wstring_at, byref, cast
 from ctypes import create_string_buffer, c_void_p, Structure, POINTER
 
 from qgis.core import QgsProject, QgsMessageLog, QgsApplication
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QAction, QMessageBox, QMenu, QToolButton
-from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
+from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtWidgets import QMessageBox, QMenu, QToolButton
+from qgis.PyQt.QtCore import Qt, QSettings, QTranslator, qVersion, QCoreApplication
+from ..compat import QAction, QGIS_INFO
 
 from .. import resources3x  # noqa: F401  (registers Qt resources)
 from ..tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
@@ -74,7 +75,7 @@ class LifecycleSection:
         self.toolbar.setObjectName("QGISRed")
         # Status Bar
         self.unitsButton = QToolButton()
-        self.unitsButton.setToolButtonStyle(2)
+        self.unitsButton.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
         icon = QIcon(":/images/iconGeneralMenu.svg")
         self.unitsAction = QAction(icon, "QGISRed: LPS | H-W", None)
         self.unitsAction.setToolTip(self.tr("Click to change it"))
@@ -137,7 +138,7 @@ class LifecycleSection:
         menu = QMenu()
         button.setMenu(menu)
         button.setDefaultAction(action)
-        button.setPopupMode(QToolButton.MenuButtonPopup)
+        button.setPopupMode(QToolButton.ToolButtonPopupMode.MenuButtonPopup)
         toolbar.addWidget(button)
 
     def add_to_group(self, action, submenu, toolbar=None):
@@ -154,10 +155,10 @@ class LifecycleSection:
         if menu is None:
             menu = QMenu()
             button.setMenu(menu)
-            button.setPopupMode(QToolButton.MenuButtonPopup)
+            button.setPopupMode(QToolButton.ToolButtonPopupMode.MenuButtonPopup)
         menu.addAction(action)
         button.setMenu(menu)
-        button.setPopupMode(QToolButton.MenuButtonPopup)
+        button.setPopupMode(QToolButton.ToolButtonPopupMode.MenuButtonPopup)
 
     def add_simple_action(self, icon_path, text, callback, menu, toolbar, checkable=False, enabled_flag=True, parent=None):
         """Create an action and add it directly to *menu* and *toolbar* (no dropdowns)."""
@@ -243,7 +244,7 @@ class LifecycleSection:
         self.setCulture()
         # QgsMessageLog.logMessage("Culture set to " + definedCulture, "QGISRed", level=0)
 
-        QgsMessageLog.logMessage(self.tr("Loaded sucssesfully"), "QGISRed", level=0)
+        QgsMessageLog.logMessage(self.tr("Loaded sucssesfully"), "QGISRed", level=QGIS_INFO)
 
     def cleanupDocks(self):
         """Disconnects signals and removes all plugin docks to ensure a clean state."""

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from PyQt5.QtWidgets import QDialog
+from qgis.PyQt.QtWidgets import QDialog
 from qgis.PyQt import uic
 import os
 import webbrowser
@@ -21,7 +21,7 @@ class QGISRedAboutDialog(QDialog, FORM_CLASS):
         self.lbOfflineManual.mousePressEvent = self.offlineManual
         self.lbIssues.mousePressEvent = self.issuesRepository
 
-        from PyQt5.QtCore import QSettings
+        from qgis.PyQt.QtCore import QSettings
         locale = QSettings().value("locale/userLocale", "")[0:2]
         if locale == "es":
             self.online_manual = "https://qgisred.gitbook.io/manual-de-usuario"

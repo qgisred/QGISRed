@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 
-from PyQt5.QtCore import QCoreApplication, QTimer
+from qgis.PyQt.QtCore import QCoreApplication, QTimer
 from qgis.core import (
     QgsProject, QgsLayerTreeGroup, QgsLayerTreeLayer,
     QgsVectorLayer, QgsCoordinateReferenceSystem

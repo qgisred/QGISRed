@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """Network editing section for QGISRed (pipes, tanks, reservoirs, valves, pumps, editing operations)."""
 
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import Qt
+from qgis.PyQt.QtWidgets import QApplication
+from qgis.PyQt.QtCore import Qt
 
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..tools.map_tools.qgisred_createPipe import QGISRedCreatePipeTool
@@ -50,7 +50,7 @@ class NetworkEditingSection:
             p = self.transformPoint(p)
             pipePoints = pipePoints + str(p.x()) + ":" + str(p.y()) + ";"
         # Process:
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.AddPipe(self.ProjectDirectory, self.NetworkName, self.tempFolder, pipePoints)
         QApplication.restoreOverrideCursor()
 
@@ -79,7 +79,7 @@ class NetworkEditingSection:
         point = str(point.x()) + ":" + str(point.y())
 
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.AddTank(self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
         QApplication.restoreOverrideCursor()
 
@@ -108,7 +108,7 @@ class NetworkEditingSection:
         point = str(point.x()) + ":" + str(point.y())
 
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.AddReservoir(self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
         QApplication.restoreOverrideCursor()
 
@@ -137,7 +137,7 @@ class NetworkEditingSection:
         point = str(point.x()) + ":" + str(point.y())
 
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.InsertValve(self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
         QApplication.restoreOverrideCursor()
 
@@ -166,7 +166,7 @@ class NetworkEditingSection:
         point = str(point.x()) + ":" + str(point.y())
 
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.InsertPump(self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
         QApplication.restoreOverrideCursor()
 
@@ -202,7 +202,7 @@ class NetworkEditingSection:
                 self.moveElementsButton, self.iface, self.ProjectDirectory, self.NetworkName
             )
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
-            self.setCursor(Qt.CrossCursor)
+            self.setCursor(Qt.CursorShape.CrossCursor)
 
     def runEditLinkGeometry(self):
         # Validations
@@ -226,7 +226,7 @@ class NetworkEditingSection:
                 self.moveVertexsButton, self.iface, self.ProjectDirectory, self.NetworkName
             )
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
-            self.setCursor(Qt.CrossCursor)
+            self.setCursor(Qt.CursorShape.CrossCursor)
 
     def canReverseLink(self):
         if not self.checkDependencies():
@@ -281,7 +281,7 @@ class NetworkEditingSection:
 
         # Process
         self.especificComplementaryLayers = ["ServiceConnections"]
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.ReverseLink(self.ProjectDirectory, self.NetworkName, self.tempFolder, pointText, ids)
         QApplication.restoreOverrideCursor()
 
@@ -310,7 +310,7 @@ class NetworkEditingSection:
         point = str(point.x()) + ":" + str(point.y())
 
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.SplitPipe(self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
         QApplication.restoreOverrideCursor()
 
@@ -344,7 +344,7 @@ class NetworkEditingSection:
             point2 = str(point2.x()) + ":" + str(point2.y())
 
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.SplitMergeJunction(self.ProjectDirectory, self.NetworkName, self.tempFolder, point1, point2)
         QApplication.restoreOverrideCursor()
 
@@ -380,7 +380,7 @@ class NetworkEditingSection:
             point2 = str(point2.x()) + ":" + str(point2.y())
 
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.CreateReverseTConnection(self.ProjectDirectory, self.NetworkName, self.tempFolder, point1, point2)
         QApplication.restoreOverrideCursor()
 
@@ -411,7 +411,7 @@ class NetworkEditingSection:
         tolerance = str(self.getTolerance())
 
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.CreateReverseCrossings(self.ProjectDirectory, self.NetworkName, self.tempFolder, point1, tolerance)
         QApplication.restoreOverrideCursor()
 
@@ -442,7 +442,7 @@ class NetworkEditingSection:
         point2 = str(point2.x()) + ":" + str(point2.y())
 
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.MoveValvePump(self.ProjectDirectory, self.NetworkName, self.tempFolder, point1, point2)
         QApplication.restoreOverrideCursor()
 
@@ -472,7 +472,7 @@ class NetworkEditingSection:
 
         # Process
         self.especificComplementaryLayers = ["IsolationValves", "Meters", "ServiceConnections"]
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.ChangeStatus(self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
         QApplication.restoreOverrideCursor()
 
@@ -530,7 +530,7 @@ class NetworkEditingSection:
 
         # Process
         self.especificComplementaryLayers = self.getComplementaryLayersOpened()
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.RemoveElements(self.ProjectDirectory, self.NetworkName, self.tempFolder, pointText, ids)
         QApplication.restoreOverrideCursor()
 
@@ -568,7 +568,7 @@ class NetworkEditingSection:
         self.especificComplementaryLayers = self.getComplementaryLayersOpened()
         if self.gisredDll is None:
             self.gisredDll = GISRed.CreateInstance()
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.EditElements(self.gisredDll, self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
         QApplication.restoreOverrideCursor()
 
@@ -598,7 +598,7 @@ class NetworkEditingSection:
             return
 
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.EditPatternsCurves(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
@@ -615,7 +615,7 @@ class NetworkEditingSection:
             return
 
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.EditControls(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 

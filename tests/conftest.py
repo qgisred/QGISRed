@@ -22,6 +22,16 @@ if 'qgis.gui' not in sys.modules:
     sys.modules['qgis.gui'] = MagicMock()
 if 'qgis.utils' not in sys.modules:
     sys.modules['qgis.utils'] = MagicMock()
+if 'qgis.PyQt' not in sys.modules:
+    mock_pyqt = MagicMock()
+    mock_pyqt.__path__ = []
+    sys.modules['qgis.PyQt'] = mock_pyqt
+if 'qgis.PyQt.QtCore' not in sys.modules:
+    sys.modules['qgis.PyQt.QtCore'] = MagicMock()
+if 'qgis.PyQt.QtGui' not in sys.modules:
+    sys.modules['qgis.PyQt.QtGui'] = MagicMock()
+if 'qgis.PyQt.QtWidgets' not in sys.modules:
+    sys.modules['qgis.PyQt.QtWidgets'] = MagicMock()
 if 'PyQt5' not in sys.modules:
     sys.modules['PyQt5'] = MagicMock()
 if 'PyQt5.QtCore' not in sys.modules:

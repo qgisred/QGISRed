@@ -1,7 +1,8 @@
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QApplication
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QColor
+from qgis.PyQt.QtWidgets import QApplication
 from qgis.core import QgsPointXY, QgsPoint, QgsGeometry, QgsFeature, QgsRectangle, QgsVectorLayer, QgsMapLayer
+from ...compat import LAYER_TYPE_RASTER
 from qgis.gui import QgsMapTool, QgsRubberBand
 from qgis.utils import Qgis
 try:
@@ -86,7 +87,7 @@ class QGISRedMultiLayerSelection(QgsMapTool):
         self.rubberBand1.setToGeometry(QgsGeometry.fromPolyline(myPoints1), None)
         self.rubberBand1.setColor(QColor(240, 40, 40))
         self.rubberBand1.setWidth(1)
-        self.rubberBand1.setLineStyle(Qt.SolidLine)
+        self.rubberBand1.setLineStyle(Qt.PenStyle.SolidLine)
 
         myPoints2 = []
         myPoints2.append(QgsPoint(points[-2].x(), points[-2].y()))
@@ -101,7 +102,7 @@ class QGISRedMultiLayerSelection(QgsMapTool):
         self.rubberBand2.setToGeometry(QgsGeometry.fromPolyline(myPoints2), None)
         self.rubberBand2.setColor(QColor(240, 40, 40))
         self.rubberBand2.setWidth(1)
-        self.rubberBand2.setLineStyle(Qt.DashLine)
+        self.rubberBand2.setLineStyle(Qt.PenStyle.DashLine)
 
     def showRectangle(self, initialPoint, finalPoint):
         try:  # From QGis 3.30
@@ -132,7 +133,7 @@ class QGISRedMultiLayerSelection(QgsMapTool):
     """Events"""
 
     def canvasPressEvent(self, e):
-        if e.button() == Qt.RightButton and len(self.mousePoints) > 0:
+        if e.button() == Qt.MouseButton.RightButton and len(self.mousePoints) > 0:
             poligon = QgsVectorLayer("Polygon?crs=" + self.crs, "poly", "memory")
             pr = poligon.dataProvider()
             poly = QgsFeature()
@@ -144,14 +145,14 @@ class QGISRedMultiLayerSelection(QgsMapTool):
             layers = self.canvas.layers()
             try:
                 for layer in layers:
-                    if layer.type() == QgsMapLayer.RasterLayer:
+                    if layer.type() == LAYER_TYPE_RASTER:
                         continue
                     modifiers = QApplication.keyboardModifiers()
-                    if modifiers == Qt.ShiftModifier:
+                    if modifiers == Qt.KeyboardModifier.ShiftModifier:
                         processing.run(
                             "qgis:selectbylocation", {"INPUT": layer, "PREDICATE": [0], "INTERSECT": poligon, "METHOD": 3}
                         )  # Remove
-                    elif modifiers == Qt.ControlModifier:
+                    elif modifiers == Qt.KeyboardModifier.ControlModifier:
                         processing.run(
                             "qgis:selectbylocation", {"INPUT": layer, "PREDICATE": [0], "INTERSECT": poligon, "METHOD": 1}
                         )  # Add
@@ -164,7 +165,7 @@ class QGISRedMultiLayerSelection(QgsMapTool):
             self.reset()
             poligon = None
             return
-        elif e.button() == Qt.RightButton:
+        elif e.button() == Qt.MouseButton.RightButton:
             self.canvas.unsetMapTool(self)
             self.deactivate()
             return
@@ -190,21 +191,21 @@ class QGISRedMultiLayerSelection(QgsMapTool):
             self.mousePoints = []
             layers = self.canvas.layers()
             for layer in layers:
-                if layer.type() == QgsMapLayer.RasterLayer:
+                if layer.type() == LAYER_TYPE_RASTER:
                     continue
                 lRect = self.canvas.mapSettings().mapToLayerCoordinates(layer, rect)
                 modifiers = QApplication.keyboardModifiers()
                 try:
-                    if modifiers == Qt.ShiftModifier:
+                    if modifiers == Qt.KeyboardModifier.ShiftModifier:
                         layer.selectByRect(lRect, Qgis.SelectBehavior.RemoveFromSelection)  # Remove
-                    elif modifiers == Qt.ControlModifier:
+                    elif modifiers == Qt.KeyboardModifier.ControlModifier:
                         layer.selectByRect(lRect, Qgis.SelectBehavior.AddToSelection)  # Add
                     else:
                         layer.selectByRect(lRect, Qgis.SelectBehavior.SetSelection)  # Set
                 except:
-                    if modifiers == Qt.ShiftModifier:
+                    if modifiers == Qt.KeyboardModifier.ShiftModifier:
                         layer.selectByRect(lRect, 3)  # Remove
-                    elif modifiers == Qt.ControlModifier:
+                    elif modifiers == Qt.KeyboardModifier.ControlModifier:
                         layer.selectByRect(lRect, 1)  # Add
                     else:
                         layer.selectByRect(lRect, 0)  # Set

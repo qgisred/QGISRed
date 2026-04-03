@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
-from PyQt5.QtCore import Qt, pyqtSlot, pyqtSignal, QEvent, QTimer
-from PyQt5.QtGui import QIcon, QFont, QColor
-from PyQt5.QtWidgets import QDockWidget, QWidget, QMessageBox, QLineEdit, QListWidgetItem, QTableWidgetItem, QHeaderView, QAbstractItemView, QFrame
+from qgis.PyQt.QtCore import Qt, pyqtSlot, pyqtSignal, QEvent, QTimer
+from qgis.PyQt.QtGui import QIcon, QFont, QColor
+from qgis.PyQt.QtWidgets import QDockWidget, QWidget, QMessageBox, QLineEdit, QListWidgetItem, QTableWidgetItem, QHeaderView, QAbstractItemView, QFrame
 from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsVectorLayer, QgsSettings, QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsLayerMetadata, QgsSpatialIndex, Qgis
 from qgis.utils import iface
@@ -44,7 +44,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.setupEventFilters() 
         self.setObjectName(self.__class__.__name__)
         self.setFloating(False)
-        iface.addDockWidget(Qt.RightDockWidgetArea, self)
+        iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self)
 
         self.canvas = canvas
         self.findElementsVisible = showFindElements
@@ -321,13 +321,13 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
     def eventFilter(self, obj, event):
         # Intercept Show events on conditional labels to keep them hidden if empty
-        if event.type() == QEvent.Show and obj in (self.labelFoundElementTag, self.labelFoundElementDescription):
+        if event.type() == QEvent.Type.Show and obj in (self.labelFoundElementTag, self.labelFoundElementDescription):
             text = obj.text().strip()
             if not text or text == "-":
                 obj.hide()
                 return True
 
-        if event.type() == QEvent.FocusIn:
+        if event.type() == QEvent.Type.FocusIn:
             if obj != self and self.isAncestorOf(obj):
                 self.reestablishIdentifyTool()
         return super(QGISRedElementExplorerDock, self).eventFilter(obj, event)
@@ -1064,7 +1064,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     def onListItemDoubleClicked(self, item):
         self.leElementMask.clear()
         singularType, selectedId, fullId = self.extractTypeAndId(item.text())
-        identifier = item.data(Qt.UserRole)
+        identifier = item.data(Qt.ItemDataRole.UserRole)
         if identifier:
             invertedIdentifiers = {v: k for k, v in self.elementIdentifiers.items()}
             singularType = invertedIdentifiers.get(identifier, singularType)
@@ -1131,7 +1131,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
             valueItem = QTableWidgetItem(displayValue)
             # Center-align the Value column
-            valueItem.setTextAlignment(Qt.AlignCenter)
+            valueItem.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             # Add tooltip with exact/complete value
             valueItem.setToolTip(displayValue)
 
@@ -1144,7 +1144,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 fieldUnit = self.getFieldUnitWithHeadlossLogic(utils, layerIdentifier, fieldName, headloss, unitSystem)
                 unitFullName = self.getFieldUnitFullNameWithHeadlossLogic(utils, layerIdentifier, fieldName, headloss, unitSystem)
             unitItem = QTableWidgetItem(fieldUnit if fieldUnit and fieldUnit != "-" else "")
-            unitItem.setTextAlignment(Qt.AlignCenter)
+            unitItem.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             if unitFullName:
                 unitItem.setToolTip(unitFullName)
 
@@ -1258,14 +1258,14 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.setDataTableWidgetColumns()
         self.dataTableWidget.setShowGrid(False)
         self.dataTableWidget.setStyleSheet("QTableWidget::item { padding: 1px; }")
-        self.dataTableWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.dataTableWidget.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.dataTableWidget.verticalHeader().setDefaultSectionSize(20)
         self.dataTableWidget.verticalHeader().setVisible(False)
 
         self.setResultsTableColumns()
         self.tableResults.setShowGrid(False)
         self.tableResults.setStyleSheet("QTableWidget::item { padding: 1px; }")
-        self.tableResults.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.tableResults.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.tableResults.verticalHeader().setDefaultSectionSize(20)
         self.tableResults.verticalHeader().setVisible(False)
 
@@ -1278,9 +1278,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         # Allow smaller column sizes (default minimum is ~20px)
         header.setMinimumSectionSize(10)
         # All columns: interactive so the user can resize them by dragging
-        header.setSectionResizeMode(0, QHeaderView.Interactive)
-        header.setSectionResizeMode(1, QHeaderView.Interactive)
-        header.setSectionResizeMode(2, QHeaderView.Interactive)
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Interactive)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Interactive)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Interactive)
         header.setStretchLastSection(True)
         # Set initial widths (will be adjusted once widget has a real size)
         self.dataTableWidget.setColumnWidth(0, 200)
@@ -1806,14 +1806,14 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
     def addAdjacencyItem(self, itemText, identifier):
         newItem = QListWidgetItem(self.tr(itemText))
-        newItem.setData(Qt.UserRole, identifier)
+        newItem.setData(Qt.ItemDataRole.UserRole, identifier)
         self.listWidget.addItem(newItem)
 
     def sortListWidgetItems(self):
         items = []
         for i in range(self.listWidget.count()):
             item = self.listWidget.item(i)
-            items.append((item.text(), item.data(Qt.UserRole)))
+            items.append((item.text(), item.data(Qt.ItemDataRole.UserRole)))
         self.listWidget.clear()
 
         def sortKey(entry):
@@ -1824,7 +1824,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 return len(self.elementIdentifiers)
         for text, identifier in sorted(items, key=sortKey):
             newItem = QListWidgetItem(text)
-            newItem.setData(Qt.UserRole, identifier)
+            newItem.setData(Qt.ItemDataRole.UserRole, identifier)
             self.listWidget.addItem(newItem)
 
     def addServiceConnectionAdjacencies(self, currentGeom, tolerance):
@@ -2352,9 +2352,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         header = self.tableResults.horizontalHeader()
         header.setStyleSheet("QHeaderView::section { font-weight: normal; }")
         header.setMinimumSectionSize(10)
-        header.setSectionResizeMode(0, QHeaderView.Interactive)
-        header.setSectionResizeMode(1, QHeaderView.Interactive)
-        header.setSectionResizeMode(2, QHeaderView.Interactive)
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Interactive)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Interactive)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Interactive)
         header.setStretchLastSection(True)
         self.tableResults.setColumnWidth(0, 200)
         self.tableResults.setColumnWidth(1, 100)
@@ -2491,7 +2491,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                     except (ValueError, TypeError):
                         displayValue = str(value)
                 valueItem = QTableWidgetItem(displayValue)
-                valueItem.setTextAlignment(Qt.AlignCenter)
+                valueItem.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 valueItem.setToolTip(displayValue)
 
                 # Units
@@ -2511,7 +2511,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                         unitFullName = projectFlowUnit
 
                 unitItem = QTableWidgetItem(fieldUnit if fieldUnit and fieldUnit != "-" else "")
-                unitItem.setTextAlignment(Qt.AlignCenter)
+                unitItem.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 if unitFullName:
                     unitItem.setToolTip(unitFullName)
 

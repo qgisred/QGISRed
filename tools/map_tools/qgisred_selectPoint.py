@@ -1,9 +1,10 @@
-from PyQt5.QtGui import QColor, QCursor, QPixmap
-from PyQt5.QtCore import Qt
+from qgis.PyQt.QtGui import QColor, QCursor, QPixmap
+from qgis.PyQt.QtCore import Qt
 from qgis.core import QgsPointXY, QgsProject, QgsSnappingConfig, QgsTolerance
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsMapCanvasSnappingUtils
 from ..utils.qgisred_styling_utils import create_combined_cursor
 from ..utils.qgisred_ui_utils import QGISRedUIUtils
+from ...compat import SNAP_TYPE_VERTEX, SNAP_TYPE_SEGMENT
 
 
 class QGISRedSelectPointTool(QgsMapTool):
@@ -24,7 +25,7 @@ class QGISRedSelectPointTool(QgsMapTool):
         elif isinstance(cursor, (str, QPixmap)):
             self.custom_cursor = create_combined_cursor(cursor, self.iface, self.icon_size)
         elif cursor is None:
-            self.custom_cursor = Qt.CrossCursor
+            self.custom_cursor = Qt.CursorShape.CrossCursor
 
         # type 1: points; 2: lines; 3: 2-points; 4: 2-line; 5: point-line
         self.startMarker = QgsVertexMarker(self.iface.mapCanvas())
@@ -62,10 +63,10 @@ class QGISRedSelectPointTool(QgsMapTool):
         if self.custom_cursor:
             self.canvas.setCursor(self.custom_cursor)
 
-        type = 1
+        snap_type = SNAP_TYPE_VERTEX
         if self.type == 2 or self.type == 4:
-            type = 2
-        self.configSnapper(type)
+            snap_type = SNAP_TYPE_SEGMENT
+        self.configSnapper(snap_type)
 
     def deactivate(self):
         self.resetProperties()
@@ -82,12 +83,12 @@ class QGISRedSelectPointTool(QgsMapTool):
 
     """Methods"""
 
-    def configSnapper(self, type):
+    def configSnapper(self, snapping_type):
         # Snapping
         self.snapper = QgsMapCanvasSnappingUtils(self.iface.mapCanvas())
         self.snapper.setMapSettings(self.iface.mapCanvas().mapSettings())
         config = QgsSnappingConfig(QgsProject.instance())
-        config.setType(type)  # 1: Vertex; 2:Segment
+        config.setType(snapping_type)  # SNAP_TYPE_VERTEX or SNAP_TYPE_SEGMENT
         config.setMode(QgsSnappingConfig.SnappingMode.AllLayers)  # All layers
         config.setTolerance(10)
         config.setUnits(QgsTolerance.UnitType.Pixels)
@@ -106,7 +107,7 @@ class QGISRedSelectPointTool(QgsMapTool):
         # Guard against calls during shutdown
         if hasattr(self.parent, 'isUnloading') and self.parent.isUnloading:
             return
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             if self.objectSnapped is None:
                 QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("A not valid point was selected"), level=1, duration=5)
                 return
@@ -114,7 +115,7 @@ class QGISRedSelectPointTool(QgsMapTool):
                 if self.firstPoint is None:
                     self.firstPoint = self.objectSnapped.point()
                     if self.type == 5:
-                        self.configSnapper(2)
+                        self.configSnapper(SNAP_TYPE_SEGMENT)
                 else:
                     point1 = self.firstPoint
                     point2 = self.objectSnapped.point()
@@ -133,7 +134,7 @@ class QGISRedSelectPointTool(QgsMapTool):
                 self.method(point)
 
                 # self.resetProperties()
-        if event.button() == Qt.RightButton:
+        if event.button() == Qt.MouseButton.RightButton:
             if self.type == 3 or self.type == 5:
                 if self.objectSnapped is None:
                     QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("A not valid point was selected"), level=1, duration=5)

@@ -4,9 +4,10 @@
 import os
 
 from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeLayer
-from PyQt5.QtWidgets import QApplication, QMessageBox, QAction
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import Qt, QCoreApplication
+from qgis.PyQt.QtWidgets import QApplication, QMessageBox
+from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtCore import Qt, QCoreApplication
+from ..compat import QAction
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
@@ -251,7 +252,7 @@ class ProjectManagementSection:
                     layersNames = layersNames.strip(";")
 
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         GISRed.UpdateMetadata(project, net, layersNames)
         QApplication.restoreOverrideCursor()
 
@@ -269,7 +270,7 @@ class ProjectManagementSection:
 
     def runChangeCrs(self):
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.ChangeCrs(self.ProjectDirectory, self.NetworkName, self.specificEpsg)
         QApplication.restoreOverrideCursor()
 
@@ -296,7 +297,7 @@ class ProjectManagementSection:
         self.selectedFids = {}
 
         # Run the dialog event loop
-        dlg.exec_()
+        dlg.exec()
         result = dlg.ProcessDone
         if result:
             self.NetworkName = dlg.NetworkName
@@ -331,7 +332,7 @@ class ProjectManagementSection:
         dlg.setWindowIcon(QIcon(icon_path))
         dlg.setWindowTitle(self.tr("QGISRed: Open project"))
         # Run the dialog event loop
-        dlg.exec_()
+        dlg.exec()
         result = dlg.ProcessDone
         if result:
             self.NetworkName = dlg.NetworkName
@@ -371,7 +372,7 @@ class ProjectManagementSection:
         self.selectedFids = {}
         dlg = QGISRedCreateProjectDialog()
         dlg.config(self.iface, self.ProjectDirectory, self.NetworkName, self)
-        dlg.exec_()
+        dlg.exec()
         self.readOptions()
         self.suggestQgsProjectFilename()
 
@@ -399,7 +400,7 @@ class ProjectManagementSection:
         dlg.config(self.iface, self.ProjectDirectory, self.NetworkName, self)
 
         # Run the dialog event loop
-        dlg.exec_()
+        dlg.exec()
         self.suggestQgsProjectFilename()
 
     def runSummary(self):
@@ -413,7 +414,7 @@ class ProjectManagementSection:
             return
 
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.Summary(self.ProjectDirectory, self.NetworkName)
         QApplication.restoreOverrideCursor()
 
@@ -450,7 +451,7 @@ class ProjectManagementSection:
         dlg = QGISRedLayerManagementDialog()
         dlg.config(self.iface, self.ProjectDirectory, self.NetworkName, self)
         # Run the dialog event loop
-        dlg.exec_()
+        dlg.exec()
 
     def runLegends(self):
         if not self.checkDependencies():
@@ -477,7 +478,7 @@ class ProjectManagementSection:
             return
 
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.EditSettings(self.ProjectDirectory, self.NetworkName)
         QApplication.restoreOverrideCursor()
 
@@ -503,7 +504,7 @@ class ProjectManagementSection:
             return
 
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.DefaultValues(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
@@ -532,7 +533,7 @@ class ProjectManagementSection:
             return
 
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.Materials(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
@@ -553,7 +554,7 @@ class ProjectManagementSection:
     def runSaveActionProject(self):
         self.defineCurrentProject()
         if self.ProjectDirectory != self.TemporalFolder and not QgsProject.instance().fileName():
-            from PyQt5.QtWidgets import QFileDialog
+            from qgis.PyQt.QtWidgets import QFileDialog
             suggested = os.path.join(self.ProjectDirectory, self.NetworkName + ".qgs")
             path, _ = QFileDialog.getSaveFileName(
                 None, self.tr("Save QGIS project"), suggested, self.tr("QGIS Projects (*.qgs *.qgz)")
@@ -575,4 +576,4 @@ class ProjectManagementSection:
         self.pushMessage(self.tr("Backup stored in:") + " " + path, level=3, duration=5)
 
     def runCloseProject(self):
-        self.iface.newProject(True)
+        self.iface.newProject(True)

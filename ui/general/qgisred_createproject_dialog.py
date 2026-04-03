@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from PyQt5.QtWidgets import QFileDialog, QDialog, QApplication
-from PyQt5.QtCore import Qt
+from qgis.PyQt.QtWidgets import QFileDialog, QDialog, QApplication
+from qgis.PyQt.QtCore import Qt
 from qgis.core import QgsCoordinateReferenceSystem
 from qgis.PyQt import uic
 from qgis.gui import QgsProjectionSelectionDialog as QgsGenericProjectionSelector
@@ -67,7 +67,7 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
 
     def selectCRS(self):
         projSelector = QgsGenericProjectionSelector()
-        if projSelector.exec_():
+        if projSelector.exec():
             crsId = projSelector.crs().srsid()
             if not crsId == 0:
                 self.crs = QgsCoordinateReferenceSystem()
@@ -131,7 +131,7 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
             units = self.cbUnits.currentText()
             headloss = self.cbHeadloss.currentText()
             # Process
-            QApplication.setOverrideCursor(Qt.WaitCursor)
+            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
             resMessage = GISRed.CreateProject(self.ProjectDirectory, self.NetworkName, epsg, units, headloss)
             QApplication.restoreOverrideCursor()
 

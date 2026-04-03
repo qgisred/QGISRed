@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from PyQt5.QtWidgets import QTableWidgetItem, QDialog, QFileDialog, QMessageBox, QApplication
-from PyQt5.QtCore import Qt, QDateTime
-from PyQt5.QtGui import QFont
+from qgis.PyQt.QtWidgets import QTableWidgetItem, QDialog, QFileDialog, QMessageBox, QApplication
+from qgis.PyQt.QtCore import Qt, QDateTime
+from qgis.PyQt.QtGui import QFont
 from qgis.core import QgsProject
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QHeaderView
@@ -66,10 +66,10 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         # Columns:
         self.twProjectList.setColumnCount(4)
         header = self.twProjectList.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(3, QHeaderView.Stretch)
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
         item = QTableWidgetItem(self.tr("Name"))
         self.twProjectList.setHorizontalHeaderItem(0, item)
         item = QTableWidgetItem(self.tr("Last update"))
@@ -398,7 +398,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         dlg.config(self.iface, "Temporal folder", "Network", self.parent)
         # Run the dialog event loop
         self.close()
-        dlg.exec_()
+        dlg.exec()
         self.parent.readOptions()
 
         self.ProjectDirectory = dlg.ProjectDirectory
@@ -418,7 +418,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         dlg.config(self.iface, self.ProjectDirectory, self.NetworkName, self.parent)
         # Run the dialog event loop
         self.close()
-        dlg.exec_()
+        dlg.exec()
 
     def exportData(self):
         ok, name, project, _ = self._getSelectedRowInfo()
@@ -442,7 +442,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
     def loadProject(self):
         dlg = QGISRedImportProjectDialog()
         # Run the dialog event loop
-        dlg.exec_()
+        dlg.exec()
         result = dlg.ProcessDone
         if result:
             self._addProjectToTable(dlg.ProjectDirectory, dlg.NetworkName)
@@ -514,10 +514,10 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             io = self._getIO(mainFolder, mainName)
             dlg = QGISRedCloneProjectDialog()
             # Run the dialog event loop
-            dlg.exec_()
+            dlg.exec()
             result = dlg.ProcessDone
             if result:
-                QApplication.setOverrideCursor(Qt.WaitCursor)
+                QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
                 io.processProjectFiles(mainFolder, mainName, dlg.NetworkName, dlg.ProjectDirectory, deleteSource=False)
 
                 qgisBase = io.getQGisProjectBase(mainFolder, mainName)
@@ -549,13 +549,13 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             qgisBase = io.getQGisProjectBase(projectPath, projectNetwork)
             dlg = QGISRedRenameProjectDialog(None, projectNetwork, projectPath, qgisBase)
             # Run the dialog event loop
-            dlg.exec_()
+            dlg.exec()
             result = dlg.ProcessDone
             if not result:
                 return
             newProjectName = dlg.NewNetworkName if dlg.RenameProject else None
             newQgisBasename = dlg.NewQGISName if dlg.RenameQGISProject else None
-            QApplication.setOverrideCursor(Qt.WaitCursor)
+            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
             oldProjectPath = projectPath
             metadataFiles = [f for f in os.listdir(projectPath) if f.endswith("_Metadata.txt")]
             canRenameFolder = os.path.basename(projectPath) == projectNetwork and len(metadataFiles) == 1
@@ -648,12 +648,12 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
 
         qgisBase = io.getQGisProjectBase(projectPath, projectNetwork)
         dlg = QGISRedMoveProjectDialog(None, projectPath, projectNetwork, qgisBase)
-        dlg.exec_()
+        dlg.exec()
         if not dlg.ProcessDone:
             return
 
         targetDir = self._getUniformedPath(dlg.TargetDirectory)
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
 
         oldProjectPath = projectPath
         oldQgisDir = os.path.dirname(qgisBase) if qgisBase else None

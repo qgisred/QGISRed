@@ -3,8 +3,8 @@
 
 import os
 
-from PyQt5.QtWidgets import QApplication, QFileDialog
-from PyQt5.QtCore import Qt
+from qgis.PyQt.QtWidgets import QApplication, QFileDialog
+from qgis.PyQt.QtCore import Qt
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
@@ -32,7 +32,7 @@ class ToolsSection:
         for key in self.selectedIds:
             ids = ids + key + ":" + str(self.selectedIds[key]) + ";"
 
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.CalculateLengths(self.ProjectDirectory, self.NetworkName, self.tempFolder, ids)
         QApplication.restoreOverrideCursor()
 
@@ -58,7 +58,7 @@ class ToolsSection:
                 self.ElevationFiles = self.ElevationFiles + fil + ";"
 
             # Process
-            QApplication.setOverrideCursor(Qt.WaitCursor)
+            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
             resMessage = GISRed.ElevationInterpolation(
                 self.ProjectDirectory, self.NetworkName, self.tempFolder, self.ElevationFiles
             )
@@ -79,7 +79,7 @@ class ToolsSection:
         # Process
         if not self.getSelectedFeaturesIds():
             return
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.SetRoughness(self.ProjectDirectory, self.NetworkName, self.tempFolder, self.linkIds)
         QApplication.restoreOverrideCursor()
 
@@ -98,7 +98,7 @@ class ToolsSection:
         # Process
         if not self.getSelectedFeaturesIds():
             return
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.ConvertRoughness(self.ProjectDirectory, self.NetworkName, self.tempFolder, self.linkIds)
         QApplication.restoreOverrideCursor()
 
@@ -120,7 +120,7 @@ class ToolsSection:
             ids = "Junctions:" + str(self.selectedIds["Junctions"]) + ";"
 
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.DemandsManager(self.ProjectDirectory, self.NetworkName, self.tempFolder, ids)
         QApplication.restoreOverrideCursor()
 
@@ -145,7 +145,7 @@ class ToolsSection:
             ids = ids + key + ":" + str(self.selectedIds[key]) + ";"
 
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.ScenarioManager(self.ProjectDirectory, self.NetworkName, self.tempFolder, ids)
         QApplication.restoreOverrideCursor()
 
@@ -163,7 +163,7 @@ class ToolsSection:
 
         self.Sectors = "DemandSectors"
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.DemandSectors(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
@@ -207,7 +207,7 @@ class ToolsSection:
             # Process
             if self.gisredDll is None:
                 self.gisredDll = GISRed.CreateInstance()
-            QApplication.setOverrideCursor(Qt.WaitCursor)
+            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
             resMessage = GISRed.IsolatedSegments(self.gisredDll, self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
             QApplication.restoreOverrideCursor()
 
@@ -238,7 +238,7 @@ class ToolsSection:
         except Exception:
             os.mkdir(queriesFolder)
 
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.ReplaceTemporalFiles(queriesFolder, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
@@ -290,7 +290,7 @@ class ToolsSection:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
 
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.Tree(self.ProjectDirectory, self.NetworkName, self.tempFolder, point1)
         QApplication.restoreOverrideCursor()
 
@@ -314,7 +314,7 @@ class ToolsSection:
         except Exception:
             os.mkdir(treeFolder)
 
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.ReplaceTemporalFiles(treeFolder, self.tempFolder)
         QApplication.restoreOverrideCursor()
 

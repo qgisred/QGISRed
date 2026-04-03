@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
 
-from PyQt5.QtGui import QPainter
-from PyQt5.QtWidgets import QDockWidget, QVBoxLayout, QGraphicsView, QGraphicsScene
+from qgis.PyQt.QtGui import QPainter
+from ...compat import PAINTER_ANTIALIASING
+from qgis.PyQt.QtWidgets import QDockWidget, QVBoxLayout, QGraphicsView, QGraphicsScene
 from qgis.PyQt import uic
 
 # load UI
@@ -26,7 +27,7 @@ class QGISRedStatisticsAndPlotsDock(QDockWidget, formClass):
         self.graphicsView = QGraphicsView(self.scene)
 
         # Configure the view properties
-        self.graphicsView.setRenderHint(QPainter.Antialiasing)
+        self.graphicsView.setRenderHint(PAINTER_ANTIALIASING)
         self.graphicsView.setDragMode(QGraphicsView.ScrollHandDrag)
 
         # Create a layout for the graphWidget and add the graphics view

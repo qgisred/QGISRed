@@ -4,7 +4,7 @@ from qgis.core import (
     QgsProperty, QgsRenderContext,
     QgsGraduatedSymbolRenderer, QgsRuleBasedRenderer,
 )
-from PyQt5.QtGui import QColor, QFont
+from qgis.PyQt.QtGui import QColor, QFont
 
 from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils

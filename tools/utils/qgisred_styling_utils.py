@@ -4,8 +4,9 @@ import tempfile
 import random
 from random import randrange
 
-from PyQt5.QtCore import QCoreApplication
-from PyQt5.QtGui import QColor
+from qgis.PyQt.QtCore import QCoreApplication
+from ...compat import PAINTER_ANTIALIASING
+from qgis.PyQt.QtGui import QColor
 from qgis.core import (
     QgsVectorLayer, QgsSymbol, Qgis, QgsLayerTreeGroup,
     QgsLineSymbol, QgsSimpleLineSymbolLayer, QgsSimpleMarkerSymbolLayer,
@@ -27,8 +28,8 @@ def create_combined_cursor(icon, iface=None, icon_size=24):
     iface: optional QGIS iface, used for devicePixelRatioF (falls back to 1.0).
     icon_size: size in logical pixels for the overlaid icon (default 24).
     """
-    from PyQt5.QtGui import QCursor, QPixmap, QPainter, QPainterPath, QPen, QColor
-    from PyQt5.QtCore import Qt
+    from qgis.PyQt.QtGui import QCursor, QPixmap, QPainter, QPainterPath, QPen, QColor
+    from qgis.PyQt.QtCore import Qt
 
     if isinstance(icon, QCursor):
         return icon
@@ -43,10 +44,10 @@ def create_combined_cursor(icon, iface=None, icon_size=24):
     canvas_size = max(32, 12 + icon_size)
     pixmap = QPixmap(int(canvas_size * ratio), int(canvas_size * ratio))
     pixmap.setDevicePixelRatio(ratio)
-    pixmap.fill(Qt.transparent)
+    pixmap.fill(Qt.GlobalColor.transparent)
 
     painter = QPainter(pixmap)
-    painter.setRenderHint(QPainter.Antialiasing, True)
+    painter.setRenderHint(PAINTER_ANTIALIASING, True)
 
     path = QPainterPath()
     path.moveTo(0, 0)
@@ -58,15 +59,15 @@ def create_combined_cursor(icon, iface=None, icon_size=24):
     path.lineTo(11, 11)
     path.closeSubpath()
 
-    painter.setPen(QPen(QColor(Qt.black), 0, Qt.SolidLine, Qt.SquareCap, Qt.MiterJoin))
-    painter.setBrush(Qt.white)
+    painter.setPen(QPen(QColor(Qt.GlobalColor.black), 0, Qt.PenStyle.SolidLine, Qt.PenCapStyle.SquareCap, Qt.PenJoinStyle.MiterJoin))
+    painter.setBrush(Qt.GlobalColor.white)
     painter.drawPath(path)
 
     icon_pixmap = icon if isinstance(icon, QPixmap) else QPixmap(icon)
     if not icon_pixmap.isNull():
         scaled = icon_pixmap.scaled(
             int(icon_size * ratio), int(icon_size * ratio),
-            Qt.KeepAspectRatio, Qt.SmoothTransformation
+            Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation
         )
         scaled.setDevicePixelRatio(ratio)
         offset = 11 if icon_size > 20 else 13

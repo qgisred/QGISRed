@@ -10,8 +10,8 @@ from xml.etree import ElementTree  # nosec B314 — parses local project files o
 import urllib.parse
 import xml.sax.saxutils
 
-from PyQt5.QtCore import QCoreApplication, QFileInfo
-from PyQt5.QtWidgets import QMessageBox, QFileDialog
+from qgis.PyQt.QtCore import QCoreApplication, QFileInfo
+from qgis.PyQt.QtWidgets import QMessageBox, QFileDialog
 from qgis.core import (
     QgsProject, QgsLayerTreeLayer, QgsVectorLayer,
     QgsLayerDefinition

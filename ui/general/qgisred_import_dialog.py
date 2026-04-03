@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-from PyQt5.QtWidgets import QFileDialog, QDialog, QApplication
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
-from qgis.core import QgsVectorLayer, QgsProject, QgsCoordinateReferenceSystem, QgsWkbTypes
+from qgis.PyQt.QtWidgets import QFileDialog, QDialog, QApplication
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QIcon
+from qgis.core import QgsVectorLayer, QgsProject, QgsCoordinateReferenceSystem
+from ...compat import WKB_LINE_GEOMETRY, WKB_POINT_GEOMETRY
 from qgis.PyQt import uic
 from qgis.gui import QgsProjectionSelectionDialog as QgsGenericProjectionSelector
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
@@ -126,7 +127,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
 
     def selectCRS(self):
         projSelector = QgsGenericProjectionSelector()
-        if projSelector.exec_():
+        if projSelector.exec():
             crsId = projSelector.crs().srsid()
             if not crsId == 0:
                 self.crs = QgsCoordinateReferenceSystem()
@@ -214,7 +215,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         units = self.cbUnits.currentText()
         headloss = self.cbHeadloss.currentText()
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.CreateProject(self.ProjectDirectory, self.NetworkName, epsg, units, headloss)
         QApplication.restoreOverrideCursor()
 
@@ -273,7 +274,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             # Process
             self.parent.zoomToFullExtent = True
             epsg = self.crs.authid().replace("EPSG:", "")
-            QApplication.setOverrideCursor(Qt.WaitCursor)
+            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
             resMessage = GISRed.ImportFromInp(self.ProjectDirectory, self.NetworkName, self.parent.tempFolder, self.InpFile, epsg)
             QApplication.restoreOverrideCursor()
             self.parent.ProjectDirectory = self.ProjectDirectory
@@ -327,17 +328,17 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
                 for feature in features:
                     featureType = feature.geometry().type()
                     name = os.path.splitext(os.path.basename(file))[0]
-                    if featureType == QgsWkbTypes.LineGeometry:
+                    if featureType == WKB_LINE_GEOMETRY:
                         self.cbPipeLayer.addItem(name)
-                    if featureType == QgsWkbTypes.LineGeometry or featureType == QgsWkbTypes.PointGeometry:
-                        if featureType == QgsWkbTypes.LineGeometry:
+                    if featureType == WKB_LINE_GEOMETRY or featureType == WKB_POINT_GEOMETRY:
+                        if featureType == WKB_LINE_GEOMETRY:
                             self.layerGeometryType[name] = "Line"
                         else:
                             self.layerGeometryType[name] = "Point"
                         self.cbValveLayer.addItem(name)
                         self.cbPumpLayer.addItem(name)
                         self.cbServiceConnectionLayer.addItem(name)
-                    if featureType == QgsWkbTypes.PointGeometry:
+                    if featureType == WKB_POINT_GEOMETRY:
                         self.cbTankLayer.addItem(name)
                         self.cbReservoirLayer.addItem(name)
                         self.cbJunctionLayer.addItem(name)
@@ -1202,7 +1203,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             # fields = self.createShpFields()
 
             # Process
-            QApplication.setOverrideCursor(Qt.WaitCursor)
+            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
             resMessage = GISRed.ImportFromShps(
                 self.ProjectDirectory, self.NetworkName, self.parent.tempFolder, shapes, fields, epsg, tolerance, scLength
             )
@@ -1256,7 +1257,7 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             self.close()
             # Process
             self.parent.zoomToFullExtent = True
-            QApplication.setOverrideCursor(Qt.WaitCursor)
+            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
             # Unzip
             tempFolder = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names())
             QGISRedProjectIO().unzipFile(self.ZipFile, tempFolder)

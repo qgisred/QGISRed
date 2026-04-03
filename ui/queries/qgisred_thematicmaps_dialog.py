@@ -4,9 +4,9 @@
 import os
 
 # Third-party imports
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QDialog, QMessageBox, QWidget
-from PyQt5 import sip
+from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtWidgets import QDialog, QMessageBox, QWidget
+from ...compat import sip
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import QVariant
 

@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-from PyQt5.QtWidgets import QDockWidget, QTableWidgetItem, QHeaderView, QAbstractItemView, QToolButton
-from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtGui import QColor, QIcon, QFont
+from qgis.PyQt.QtWidgets import QDockWidget, QTableWidgetItem, QHeaderView, QAbstractItemView, QToolButton
+from qgis.PyQt.QtCore import Qt, QTimer
+from qgis.PyQt.QtGui import QColor, QIcon, QFont
 from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsVectorLayer, QgsFeatureRequest
 from qgis.gui import QgsHighlight
 import os
-from PyQt5 import sip
-from PyQt5.QtWidgets import QFileDialog, QMessageBox
+from ...compat import sip
+from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox
 from datetime import datetime
 import csv
 import math
@@ -140,8 +140,8 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         self.tableWidgetCriteria.setHorizontalHeaderLabels(["   Oper   ", "Criteria"])
         self.tableWidgetCriteria.verticalHeader().setVisible(False)
         h = self.tableWidgetCriteria.horizontalHeader()
-        h.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        h.setSectionResizeMode(1, QHeaderView.Stretch)
+        h.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        h.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
 
         # set up statistics table (columns configured dynamically in calculateStatistics)
         # Start empty state at half default height; grows to fit content later
@@ -395,7 +395,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
 
     def resolveLayer(self):
         """Resolve the current qgisred_identifier from the combobox to a live QgsVectorLayer."""
-        qrIdent = self.cbElementType.currentData(Qt.UserRole)
+        qrIdent = self.cbElementType.currentData(Qt.ItemDataRole.UserRole)
         if not qrIdent:
             return None
         for layer in QgsProject.instance().mapLayers().values():
@@ -425,7 +425,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             return None
         if layer.fields().indexFromName(prop) >= 0:
             return layer
-        qrIdent = self.cbElementType.currentData(Qt.UserRole) or ""
+        qrIdent = self.cbElementType.currentData(Qt.ItemDataRole.UserRole) or ""
         resultCategory = self.elementResultCategory.get(qrIdent)
         if resultCategory and self.isResultProperty(prop):
             return self.resolveResultsLayer(resultCategory)
@@ -435,7 +435,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         layer = self.resolveLayer()
         if not layer:
             return
-        qrIdent = self.cbElementType.currentData(Qt.UserRole) or ""
+        qrIdent = self.cbElementType.currentData(Qt.ItemDataRole.UserRole) or ""
         self.isResultsMode = self.isResultsLayer(layer)
         self.cbProperty.clear()
         self.cbStatisticsFor.clear()
@@ -628,27 +628,27 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
 
             # Operator cell
             operItem = QTableWidgetItem(op)
-            operItem.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+            operItem.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled)
             font = QFont()
             font.setPointSize(12)
             operItem.setFont(font)
             if op == '-':
-                operItem.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                operItem.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
             else:
-                operItem.setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+                operItem.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
             # Criteria text cell
             critText = f"{crit['property']} {crit['condition']} {crit['value']}"
             critItem = QTableWidgetItem(critText)
-            critItem.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
-            critItem.setTextAlignment(Qt.AlignCenter)
+            critItem.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled)
+            critItem.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             expr = self.buildExpression(crit)
-            critItem.setData(Qt.UserRole, {'expression': expr, 'operator': op, 'enabled': enabled})
+            critItem.setData(Qt.ItemDataRole.UserRole, {'expression': expr, 'operator': op, 'enabled': enabled})
 
             # Grey out & strike-through if disabled
             if not enabled:
                 for item in (operItem, critItem):
-                    item.setForeground(QColor(Qt.gray))
+                    item.setForeground(QColor(Qt.GlobalColor.gray))
                     f2 = item.font()
                     f2.setStrikeOut(True)
                     item.setFont(f2)
@@ -820,7 +820,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         hasCriteriaResultProp = any(self.isResultProperty(p) for p in criteriaProps)
         targetIsResultProp = self.isResultProperty(targetField)
         if (hasCriteriaResultProp or targetIsResultProp) and not self.isResultsMode:
-            qrIdent = self.cbElementType.currentData(Qt.UserRole) or ""
+            qrIdent = self.cbElementType.currentData(Qt.ItemDataRole.UserRole) or ""
             resultCategory = self.elementResultCategory.get(qrIdent)
             resultsLayer = self.resolveResultsLayer(resultCategory) if resultCategory else None
         else:
@@ -956,7 +956,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         statisticsTable.setColumnCount(len(columnHeaders))
         statisticsTable.setHorizontalHeaderLabels(columnHeaders)
         for i in range(len(columnHeaders)):
-            statisticsTable.horizontalHeader().setSectionResizeMode(i, QHeaderView.Stretch)
+            statisticsTable.horizontalHeader().setSectionResizeMode(i, QHeaderView.ResizeMode.Stretch)
 
         # Show vertical header only when multiple rows
         showCriterionColumn = len(statsResults) > 1
@@ -968,7 +968,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
                 value = metrics[key]
                 cellText = f"{value:.2f}" if isinstance(value, float) else str(value if value is not None else "")
                 tableItem = QTableWidgetItem(cellText)
-                tableItem.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                tableItem.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled)
                 if key == 'count':
                     tableItem.setBackground(QColor("#d0e8ff"))
                 statisticsTable.setItem(rowIndex, colIndex, tableItem)
@@ -1120,7 +1120,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         return self.resultsDock is not None and not sip.isdeleted(self.resultsDock)
 
     def findResultsDock(self):
-        from PyQt5.QtWidgets import QDockWidget as _QDW
+        from qgis.PyQt.QtWidgets import QDockWidget as _QDW
         for widget in self.iface.mainWindow().findChildren(_QDW):
             if isinstance(widget, QGISRedResultsDock) and not sip.isdeleted(widget) and widget.isVisible():
                 return widget

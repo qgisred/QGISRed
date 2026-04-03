@@ -2,7 +2,7 @@
 # Translatable strings that pylupdate5 cannot extract automatically.
 # Calling QCoreApplication.translate() directly with literal strings
 # so pylupdate5 picks them up when generating/updating .ts files.
-from PyQt5.QtCore import QCoreApplication
+from qgis.PyQt.QtCore import QCoreApplication
 
 # Common fields
 QCoreApplication.translate('FieldPrettyNames', "Identifier")

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from PyQt5.QtWidgets import QDialog
+from qgis.PyQt.QtWidgets import QDialog
 from qgis.PyQt import uic
 from ...tools.utils.qgisred_ui_utils import QGISRedBanner
 import os

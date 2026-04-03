@@ -4,8 +4,8 @@
 import os
 
 from qgis.core import QgsProject, QgsVectorLayer
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import Qt
+from qgis.PyQt.QtWidgets import QApplication
+from qgis.PyQt.QtCore import Qt
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.utils.qgisred_project_io import QGISRedProjectIO
@@ -292,7 +292,7 @@ class LayerManagementSection:
         if self.hasToOpenSectorLayers:
             self.removeSectorLayersFiles()
 
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
 
         resMessage = GISRed.ReplaceTemporalFiles(self.ProjectDirectory, self.tempFolder)
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from PyQt5.QtWidgets import QFrame, QLabel, QHBoxLayout, QPushButton, QGridLayout
-from PyQt5.QtCore import QTimer
+from qgis.PyQt.QtWidgets import QFrame, QLabel, QHBoxLayout, QPushButton, QGridLayout
+from qgis.PyQt.QtCore import QTimer
 
 
 class QGISRedBanner(QFrame):

@@ -6,7 +6,10 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore
+try:
+    from qgis.PyQt import QtCore  # QGIS 3 (Qt5) and QGIS 4 (Qt6) compatible
+except ImportError:
+    from PyQt5 import QtCore
 
 qt_resource_data = b"\
 \x00\x00\x04\xef\

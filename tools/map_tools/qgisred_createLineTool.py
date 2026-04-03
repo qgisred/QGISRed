@@ -1,8 +1,9 @@
 import math
-from PyQt5.QtCore import Qt, QSettings, QEvent, QPoint
-from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QCheckBox, QFrame, QHBoxLayout
+from qgis.PyQt.QtCore import Qt, QSettings, QEvent, QPoint
+from qgis.PyQt.QtGui import QColor
+from qgis.PyQt.QtWidgets import QCheckBox, QFrame, QHBoxLayout
 from qgis.core import QgsPointXY, QgsPoint, QgsGeometry, QgsProject, QgsSnappingConfig, QgsTolerance, Qgis
+from ...compat import SNAP_TYPE_VERTEX
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSnappingUtils
 try:
     from qgis.gui import Qgis
@@ -26,7 +27,7 @@ class QGISRedCreateLineTool(QgsMapTool):
 
     MARKER_ICON = QgsVertexMarker.ICON_BOX
     MARKER_SIZE = 15
-    SNAP_TYPE = 1        # Vertex
+    SNAP_TYPE = SNAP_TYPE_VERTEX
     SNAP_TO_SEGMENTS = False
     SHOW_GRID = False
 
@@ -139,7 +140,7 @@ class QGISRedCreateLineTool(QgsMapTool):
         self.rubberBand1.setToGeometry(QgsGeometry.fromPolyline(myPoints1), None)
         self.rubberBand1.setColor(QColor(240, 40, 40))
         self.rubberBand1.setWidth(1)
-        self.rubberBand1.setLineStyle(Qt.SolidLine)
+        self.rubberBand1.setLineStyle(Qt.PenStyle.SolidLine)
 
         myPoints2 = []
         myPoints2.append(QgsPoint(points[-2].x(), points[-2].y()))
@@ -153,7 +154,7 @@ class QGISRedCreateLineTool(QgsMapTool):
         self.rubberBand2.setToGeometry(QgsGeometry.fromPolyline(myPoints2), None)
         self.rubberBand2.setColor(QColor(240, 40, 40))
         self.rubberBand2.setWidth(1)
-        self.rubberBand2.setLineStyle(Qt.DashLine)
+        self.rubberBand2.setLineStyle(Qt.PenStyle.DashLine)
 
     """Grid"""
 
@@ -263,7 +264,7 @@ class QGISRedCreateLineTool(QgsMapTool):
 
     def eventFilter(self, obj, event):
         """Reposition the overlay when the main window is resized."""
-        if obj is self.iface.mainWindow() and event.type() == QEvent.Resize:
+        if obj is self.iface.mainWindow() and event.type() == QEvent.Type.Resize:
             self._repositionOverlay()
         return False
 
@@ -293,7 +294,7 @@ class QGISRedCreateLineTool(QgsMapTool):
     """Events"""
 
     def canvasPressEvent(self, event):
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             if not self.firstClicked:
                 self.firstClicked = True
                 point = self.toMapCoordinates(event.pos())
@@ -313,7 +314,7 @@ class QGISRedCreateLineTool(QgsMapTool):
                 self.mousePoints.append(self.mousePoints[-1])
             self.createRubberBand(self.mousePoints)
 
-        if event.button() == Qt.RightButton:
+        if event.button() == Qt.MouseButton.RightButton:
             self.mousePoints.remove(self.mousePoints[-1])
             if self.firstClicked:
                 if len(self.mousePoints) == 2 and self.mousePoints[0] == self.mousePoints[1]:

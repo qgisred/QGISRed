@@ -4,8 +4,8 @@
 import os
 
 from qgis.core import QgsRectangle
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import Qt
+from qgis.PyQt.QtWidgets import QApplication
+from qgis.PyQt.QtCore import Qt
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.utils.qgisred_field_utils import QGISRedFieldUtils
@@ -34,7 +34,7 @@ class AnalysisSection:
             return
 
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.AnalysisOptions(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
@@ -64,7 +64,7 @@ class AnalysisSection:
         if self.ResultDockwidget is None:
             self.readOptions()
             self.ResultDockwidget = QGISRedResultsDock(self.iface)
-            self.iface.addDockWidget(Qt.RightDockWidgetArea, self.ResultDockwidget)
+            self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.ResultDockwidget)
             # activeInputGroup is defined in LayerManagementSection
             self.ResultDockwidget.visibilityChanged.connect(self.activeInputGroup)
             self.ResultDockwidget.simulationFinished.connect(self.refreshTimeSeries)
@@ -139,7 +139,7 @@ class AnalysisSection:
             return
 
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.ExportToInp(self.ProjectDirectory, self.NetworkName)
         QApplication.restoreOverrideCursor()
 
@@ -165,7 +165,7 @@ class AnalysisSection:
             self.pushMessage(self.tr("No simulation results found"), level=1, duration=5)
             return
 
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         try:
             export_results_to_csv(self.ProjectDirectory, self.NetworkName, scenario, self.iface, self.tr("Permanent"))
         finally:
@@ -208,7 +208,7 @@ class AnalysisSection:
             if not hasattr(self, 'timeSeriesDock') or self.timeSeriesDock is None:
                 self.timeSeriesDock = QGISRedTimeSeriesDock(self.iface)
                 self.timeSeriesDock.visibilityChanged.connect(self.timeSeriesDockVisibilityChanged)
-                self.iface.addDockWidget(Qt.BottomDockWidgetArea, self.timeSeriesDock)
+                self.iface.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.timeSeriesDock)
             self.timeSeriesDock.show()
             self.timeSeriesDock.raise_()
             self.timeSeriesDock.setFocus()

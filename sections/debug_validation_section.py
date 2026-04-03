@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """Debug and validation section for QGISRed (network checks, commit, connectivity, sectors)."""
 
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import Qt, QCoreApplication
+from qgis.PyQt.QtWidgets import QApplication
+from qgis.PyQt.QtCore import Qt, QCoreApplication
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
@@ -26,7 +26,7 @@ class DebugValidationSection:
 
         # Process
         self.especificComplementaryLayers = self.getComplementaryLayersOpened()
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.Commit(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
@@ -45,7 +45,7 @@ class DebugValidationSection:
         # Process
         if not self.getSelectedFeaturesIds():
             return
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.CheckOverlappingElements(
             self.ProjectDirectory, self.NetworkName, self.tempFolder, self.nodeIds, self.linkIds
         )
@@ -66,7 +66,7 @@ class DebugValidationSection:
         # Process
         if not self.getSelectedFeaturesIds():
             return
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.CheckAlignedVertices(self.ProjectDirectory, self.NetworkName, self.tempFolder, self.linkIds)
         QApplication.restoreOverrideCursor()
 
@@ -83,7 +83,7 @@ class DebugValidationSection:
             return
 
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.CheckJoinPipes(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
@@ -100,7 +100,7 @@ class DebugValidationSection:
             return
 
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.CheckTConnections(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
@@ -126,7 +126,7 @@ class DebugValidationSection:
         if toCommit:
             dlg = QGISRedConnectivityToolDialog()
             # Run the dialog event loop
-            dlg.exec_()
+            dlg.exec()
             result = dlg.ProcessDone
             if result:
                 linesToDelete = dlg.Lines
@@ -138,7 +138,7 @@ class DebugValidationSection:
             step = "commit"
 
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.CheckConnectivity(self.ProjectDirectory, self.NetworkName, linesToDelete, step, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
@@ -177,12 +177,12 @@ class DebugValidationSection:
 
         dlg = QGISRedLengthToolDialog()
         # Run the dialog event loop
-        dlg.exec_()
+        dlg.exec()
         if dlg.ProcessDone:
             # Process
             if not self.getSelectedFeaturesIds():
                 return
-            QApplication.setOverrideCursor(Qt.WaitCursor)
+            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
             resMessage = GISRed.CheckLengths(
                 self.ProjectDirectory, self.NetworkName, dlg.Tolerance, self.tempFolder, self.linkIds
             )
@@ -203,7 +203,7 @@ class DebugValidationSection:
         # Process
         if not self.getSelectedFeaturesIds():
             return
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.CheckDiameters(self.ProjectDirectory, self.NetworkName, self.linkIds)
         QApplication.restoreOverrideCursor()
 
@@ -234,7 +234,7 @@ class DebugValidationSection:
         # Process
         if not self.getSelectedFeaturesIds():
             return
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.CheckMaterials(self.ProjectDirectory, self.NetworkName, self.linkIds)
         QApplication.restoreOverrideCursor()
 
@@ -265,7 +265,7 @@ class DebugValidationSection:
         # Process
         if not self.getSelectedFeaturesIds():
             return
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.CheckInstallationDates(self.ProjectDirectory, self.NetworkName, self.linkIds)
         QApplication.restoreOverrideCursor()
 
@@ -295,7 +295,7 @@ class DebugValidationSection:
 
         self.Sectors = "HydraulicSectors"
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.HydarulicSectors(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 

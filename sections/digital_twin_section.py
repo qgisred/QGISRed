@@ -3,8 +3,8 @@
 
 import os
 
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import Qt
+from qgis.PyQt.QtWidgets import QApplication
+from qgis.PyQt.QtCore import Qt
 
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool
@@ -45,7 +45,7 @@ class DigitalTwinSection:
             pipePoints = pipePoints + str(p.x()) + ":" + str(p.y()) + ";"
         # Process:
         self.especificComplementaryLayers = ["ServiceConnections"]
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.AddConnection(self.ProjectDirectory, self.NetworkName, self.tempFolder, pipePoints)
         QApplication.restoreOverrideCursor()
 
@@ -75,7 +75,7 @@ class DigitalTwinSection:
 
         # Process
         self.especificComplementaryLayers = ["IsolationValves"]
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.AddIsolationValve(self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
         QApplication.restoreOverrideCursor()
 
@@ -163,7 +163,7 @@ class DigitalTwinSection:
 
         # Process
         self.especificComplementaryLayers = ["Meters"]
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.AddMeter(self.ProjectDirectory, self.NetworkName, self.tempFolder, point, self.currentMeter)
         QApplication.restoreOverrideCursor()
 
@@ -181,7 +181,7 @@ class DigitalTwinSection:
 
         # Process
         self.especificComplementaryLayers = ["ServiceConnections"]
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.LoadReadings(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
@@ -199,7 +199,7 @@ class DigitalTwinSection:
 
         # Process
         self.especificComplementaryLayers = ["Meters"]
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.LoadScada(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
@@ -223,7 +223,7 @@ class DigitalTwinSection:
 
         # Process
         self.especificComplementaryLayers = ["IsolationValves"]
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.SetInitialStatusPipes(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
@@ -248,7 +248,7 @@ class DigitalTwinSection:
         # Question
         dlg = QGISRedServiceConnectionsToolDialog()
         # Run the dialog event loop
-        dlg.exec_()
+        dlg.exec()
         if not dlg.ProcessDone:
             return
 
@@ -258,7 +258,7 @@ class DigitalTwinSection:
 
         # Process
         self.especificComplementaryLayers = ["ServiceConnections"]
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.AddConnections(self.ProjectDirectory, self.NetworkName, asNode, self.tempFolder)
         QApplication.restoreOverrideCursor()
 

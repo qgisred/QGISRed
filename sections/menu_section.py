@@ -3,8 +3,8 @@
 
 import webbrowser
 
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMenu, QToolButton
+from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtWidgets import QMenu, QToolButton
 
 from ..ui.general.qgisred_about_dialog import QGISRedAboutDialog
 
@@ -54,7 +54,6 @@ class MenuSection:
         #    #Toolbar
         self.generalToolbar = self.iface.addToolBar(self.tr("QGISRed General"))
         self.generalToolbar.setObjectName(self.tr("QGISRed General"))
-        self.generalToolbar.visibilityChanged.connect(self.changeGeneralToolbarVisibility)
         self.generalToolbar.setVisible(False)
         #    #Buttons
         generalDropButton = QToolButton()
@@ -66,6 +65,7 @@ class MenuSection:
         )
         self.setup_dropdown_button(action, generalDropButton, self.toolbar)
         self.generalDropButton = generalDropButton
+        self.generalToolbar.visibilityChanged.connect(self.changeGeneralToolbarVisibility)
 
         action = self._make_action(
             ":/images/iconProjectManager.svg", 
@@ -110,7 +110,6 @@ class MenuSection:
         #    #Toolbar
         self.projectToolbar = self.iface.addToolBar(self.tr("QGISRed Project"))
         self.projectToolbar.setObjectName(self.tr("QGISRed Project"))
-        self.projectToolbar.visibilityChanged.connect(self.changeProjectToolbarVisibility)
         self.projectToolbar.setVisible(False)
         #    #Buttons
         projectDropButton = QToolButton()
@@ -123,6 +122,7 @@ class MenuSection:
         )
         self.setup_dropdown_button(action, projectDropButton, self.toolbar)
         self.projectDropButton = projectDropButton
+        self.projectToolbar.visibilityChanged.connect(self.changeProjectToolbarVisibility)
 
         action = self._make_action(
             ":/images/iconSummary.svg", 
@@ -229,7 +229,6 @@ class MenuSection:
         #    #Toolbar
         self.editionToolbar = self.iface.addToolBar(self.tr("QGISRed Edition"))
         self.editionToolbar.setObjectName(self.tr("QGISRed Edition"))
-        self.editionToolbar.visibilityChanged.connect(self.changeEditionToolbarVisibility)
         self.editionToolbar.setVisible(False)
 
         #    #Buttons
@@ -243,6 +242,7 @@ class MenuSection:
         )
         self.setup_dropdown_button(action, editDropButton, self.toolbar)
         self.editDropButton = editDropButton
+        self.editionToolbar.visibilityChanged.connect(self.changeEditionToolbarVisibility)
 
         self.addPipeButton = self._make_action(
             ":/images/iconAddPipe.svg", self.tr("Add pipe"), self.runPaintPipe,
@@ -444,7 +444,6 @@ class MenuSection:
         #    #Toolbar
         self.debugToolbar = self.iface.addToolBar(self.tr("QGISRed Debug"))
         self.debugToolbar.setObjectName(self.tr("QGISRed Debug"))
-        self.debugToolbar.visibilityChanged.connect(self.changeDebugToolbarVisibility)
         self.debugToolbar.setVisible(False)
         #    #Buttons
         debugDropButton = QToolButton()
@@ -457,6 +456,7 @@ class MenuSection:
         )
         self.setup_dropdown_button(action, debugDropButton, self.toolbar)
         self.debugDropButton = debugDropButton
+        self.debugToolbar.visibilityChanged.connect(self.changeDebugToolbarVisibility)
 
         action = self._make_action(
             ":/images/iconDebugMenu.svg", 
@@ -585,7 +585,6 @@ class MenuSection:
         #    #Toolbar
         self.toolsToolbar = self.iface.addToolBar(self.tr("QGISRed Tools"))
         self.toolsToolbar.setObjectName(self.tr("QGISRed Tools"))
-        self.toolsToolbar.visibilityChanged.connect(self.changeToolsToolbarVisibility)
         self.toolsToolbar.setVisible(False)
         #    #Buttons
         toolDropButton = QToolButton()
@@ -598,6 +597,7 @@ class MenuSection:
         )
         self.setup_dropdown_button(action, toolDropButton, self.toolbar)
         self.toolsDropButton = toolDropButton
+        self.toolsToolbar.visibilityChanged.connect(self.changeToolsToolbarVisibility)
 
         action = self._make_action(
             ":/images/iconCalculatePipeLengths.svg", 
@@ -696,7 +696,6 @@ class MenuSection:
         #    #Toolbar
         self.analysisToolbar = self.iface.addToolBar(self.tr("QGISRed Analysis"))
         self.analysisToolbar.setObjectName(self.tr("QGISRed Analysis"))
-        self.analysisToolbar.visibilityChanged.connect(self.changeAnalysisToolbarVisibility)
         self.analysisToolbar.setVisible(False)
         #    #Buttons
         analysisDropButton = QToolButton()
@@ -709,6 +708,7 @@ class MenuSection:
         )
         self.setup_dropdown_button(action, analysisDropButton, self.toolbar)
         self.analysisDropButton = analysisDropButton
+        self.analysisToolbar.visibilityChanged.connect(self.changeAnalysisToolbarVisibility)
 
         # Run model sub-dropdown (groups Run model / Results browser / Status report)
         dropButton = QToolButton()
@@ -795,7 +795,6 @@ class MenuSection:
         #    #Toolbar
         self.dtToolbar = self.iface.addToolBar(self.tr("QGISRed Digital Twin"))
         self.dtToolbar.setObjectName(self.tr("QGISRed Digital Twin"))
-        self.dtToolbar.visibilityChanged.connect(self.changeDtToolbarVisibility)
         self.dtToolbar.setVisible(False)
         #    #Buttons
         dtDropButton = QToolButton()
@@ -808,6 +807,7 @@ class MenuSection:
         )
         self.setup_dropdown_button(action, dtDropButton, self.toolbar)
         self.dtDropButton = dtDropButton
+        self.dtToolbar.visibilityChanged.connect(self.changeDtToolbarVisibility)
 
         self.addServConnButton = self._make_action(
             ":/images/iconAddConnection.svg", 
@@ -1027,7 +1027,6 @@ class MenuSection:
         #    #Toolbar
         self.queriesToolbar = self.iface.addToolBar(self.tr("QGISRed Queries"))
         self.queriesToolbar.setObjectName(self.tr("QGISRed Queries"))
-        self.queriesToolbar.visibilityChanged.connect(self.changeQueriesToolbarVisibility)
         self.queriesToolbar.setVisible(False)
         #    #Buttons
         queriesDropButton = QToolButton()
@@ -1040,6 +1039,7 @@ class MenuSection:
         )
         self.setup_dropdown_button(action, queriesDropButton, self.toolbar)
         self.queriesDropButton = queriesDropButton
+        self.queriesToolbar.visibilityChanged.connect(self.changeQueriesToolbarVisibility)
 
         self.openFindElementsDialog = self._make_action(
             ":/images/iconFindElements.svg", 
@@ -1151,7 +1151,7 @@ class MenuSection:
     def runAbout(self):
         # show the dialog
         dlg = QGISRedAboutDialog()
-        dlg.exec_()
+        dlg.exec()
 
     def runReportIssues(self):
         webbrowser.open("https://github.com/qgisred/QGISRed/issues")

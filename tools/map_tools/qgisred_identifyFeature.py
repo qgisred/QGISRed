@@ -2,9 +2,10 @@ from ...ui.queries.qgisred_element_explorer_dock import QGISRedElementExplorerDo
 from qgis.gui import QgsMapToolIdentify, QgsHighlight
 from qgis.utils import iface
 from qgis.core import QgsProject, QgsVectorLayer
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QColor
+from qgis.PyQt.QtCore import Qt, pyqtSignal
+from qgis.PyQt.QtGui import QColor
 from qgis.core import QgsPointXY, QgsProject, QgsSnappingConfig, QgsTolerance
+from ...compat import SNAP_TYPE_SEGMENT
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsMapCanvasSnappingUtils
 from ..utils.qgisred_styling_utils import create_combined_cursor
 
@@ -80,7 +81,7 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
         self.snapper = QgsMapCanvasSnappingUtils(self.canvas)
         self.snapper.setMapSettings(self.canvas.mapSettings())
         config = QgsSnappingConfig(QgsProject.instance())
-        config.setType(2)
+        config.setType(SNAP_TYPE_SEGMENT)
         config.setMode(QgsSnappingConfig.SnappingMode.AllLayers)
         config.setTolerance(10)
         config.setUnits(QgsTolerance.UnitType.Pixels)
@@ -169,9 +170,9 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
     def highlightFeature(self, layer, feature):
         self.clearHighlights()
         self.currentHighlight = QgsHighlight(self.canvas, feature.geometry(), layer)
-        self.currentHighlight.setColor(Qt.red)
+        self.currentHighlight.setColor(Qt.GlobalColor.red)
         self.currentHighlight.setWidth(4)
-        self.currentHighlight.setFillColor(Qt.transparent)
+        self.currentHighlight.setFillColor(Qt.GlobalColor.transparent)
         self.currentHighlight.show()
 
     def clearHighlights(self):
@@ -208,7 +209,7 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
 
         wasHidden = not self.dock.isVisible()
         if wasHidden:
-            iface.addDockWidget(Qt.RightDockWidgetArea, self.dock)
+            iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dock)
             self.dock.show()
             self.dock.raise_()
             self.dock.activateWindow()
@@ -286,7 +287,7 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
             self.objectSnapped = None
 
     def keyReleaseEvent(self, e):
-        if e.key() == Qt.Key_Escape:
+        if e.key() == Qt.Key.Key_Escape:
             self.deactivate()
 
     # -------------------------------

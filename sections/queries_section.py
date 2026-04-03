@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Queries and exploration section for QGISRed."""
 
-from PyQt5.QtCore import Qt
+from qgis.PyQt.QtCore import Qt
 
 from ..ui.queries.qgisred_thematicmaps_dialog import QGISRedThematicMapsDialog
 from ..ui.queries.qgisred_element_explorer_dock import QGISRedElementExplorerDock
@@ -68,7 +68,7 @@ class QueriesSection:
 
         dlg = QGISRedThematicMapsDialog()
         dlg.config(self.iface, self.ProjectDirectory, self.NetworkName)
-        dlg.exec_()
+        dlg.exec()
 
     def runFindElements(self):
         if not self.validateProject(self.openFindElementsDialog):
@@ -98,7 +98,7 @@ class QueriesSection:
                     showElementProperties=False
                 )
 
-                self.iface.addDockWidget(Qt.RightDockWidgetArea, dock)
+                self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
                 dock.show()
                 dock.raise_()
                 dock.activateWindow()
@@ -141,7 +141,7 @@ class QueriesSection:
                     showFindElements=True,
                     showElementProperties=True
                 )
-                self.iface.addDockWidget(Qt.RightDockWidgetArea, dock)
+                self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
                 dock.show()
                 dock.raise_()
                 dock.activateWindow()
@@ -166,7 +166,7 @@ class QueriesSection:
             return
 
         self.queriesByAttributesDock = QGISRedQueriesByAttributesDock(self.iface)
-        self.iface.addDockWidget(Qt.RightDockWidgetArea, self.queriesByAttributesDock)
+        self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.queriesByAttributesDock)
 
     def runStatisticsAndPlots(self):
         if not self.checkDependencies():
@@ -179,4 +179,4 @@ class QueriesSection:
             return
 
         self.statisticsAndPlotsDock = QGISRedStatisticsAndPlotsDock(self.iface)
-        self.iface.addDockWidget(Qt.RightDockWidgetArea, self.statisticsAndPlotsDock)
+        self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.statisticsAndPlotsDock)

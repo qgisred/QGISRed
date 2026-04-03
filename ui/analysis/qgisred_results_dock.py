@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-from PyQt5.QtWidgets import QDockWidget, QApplication
-from PyQt5.QtCore import Qt, pyqtSignal, QVariant, QTimer
-from PyQt5.QtGui import QPixmap
+from qgis.PyQt.QtWidgets import QDockWidget, QApplication
+from qgis.PyQt.QtCore import Qt, pyqtSignal, QTimer
+from qgis.PyQt.QtGui import QPixmap
 from qgis.PyQt import uic
 from qgis.core import (
     QgsProject, QgsLayerTreeGroup, QgsField, QgsAttributeTableConfig, QgsRenderContext, NULL,
 )
 from qgis.gui import QgsDualView
-import sip
+from ...compat import sip, QVariantString, QVariantDouble, ATCOL_TYPE_FIELD
 
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
@@ -123,7 +123,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self.btLessTime.clicked.connect(self.previousTime)
         self.btInitTime.clicked.connect(self.initTime)
         self.cbTimes.setStyleSheet(comboStyle)
-        self.cbTimes.view().setVerticalScrollBarPolicy(0)
+        self.cbTimes.view().setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.cbTimes.currentIndexChanged.connect(self.timeChanged)
         self.timeSlider.valueChanged.connect(self.sliderChanged)
         self.timeSlider.sliderMoved.connect(self.sliderDragging)
@@ -168,7 +168,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self._staleCheckTimer.setInterval(5000)
         self._staleCheckTimer.timeout.connect(self._checkResultsStale)
         self.visibilityChanged.connect(self._onVisibilityChanged)
-        _pixmap = QPixmap(":/images/iconWarning.svg").scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        _pixmap = QPixmap(":/images/iconWarning.svg").scaled(16, 16, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
         self.lbWarnIcon.setPixmap(_pixmap)
 
     """Methods"""
@@ -420,13 +420,13 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         new_fields = []
         
         type_map = {
-            "String": QVariant.String,
-            "Double": QVariant.Double
+            "String": QVariantString,
+            "Double": QVariantDouble
         }
-        
+
         for name, type_str, *extra in fields_def:
             if name not in existing_fields:
-                qgs_type = type_map.get(type_str, QVariant.String)
+                qgs_type = type_map.get(type_str, QVariantString)
                 length = extra[0] if extra else 0
                 if length:
                     new_fields.append(QgsField(name=name, type=qgs_type, len=length))
@@ -457,7 +457,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
             col_name_upper = col.name.upper()
             if col_name_upper in all_result_fields_upper:
                 columns[i].hidden = col_name_upper not in truncated_visible_upper
-                columns[i].type = 0  # treat as a field column
+                columns[i].type = ATCOL_TYPE_FIELD
 
         config.setColumns(columns)
         layer.setAttributeTableConfig(config)
@@ -626,7 +626,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
 
         # 3. Heavy operations (only if not computing)
         if not self.Computing:
-            QApplication.setOverrideCursor(Qt.WaitCursor)
+            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
             try:
                 if self.validationsOpenResult():
                     self.ensureResultsLayersAreOpen()
@@ -656,7 +656,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         if not self.validationsOpenResult():
             return
 
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         try:
             self.saveCurrentRender()
             self.ensureResultsLayersAreOpen()
@@ -683,7 +683,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         if not self.validationsOpenResult():
             return
 
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         try:
             self.saveCurrentRender()
             self.ensureResultsLayersAreOpen()
@@ -768,7 +768,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         if not self.validationsOpenResult():
             return
 
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         try:
             self.ensureResultsLayersAreOpen()
 
@@ -858,7 +858,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
 
     def simulationProcess(self):
         # Process
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.Compute(self.ProjectDirectory, self.NetworkName)
         QApplication.restoreOverrideCursor()
 
