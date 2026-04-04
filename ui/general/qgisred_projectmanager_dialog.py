@@ -20,7 +20,7 @@ from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ...tools.utils.qgisred_ui_utils import QGISRedBanner
 
 import os
-from shutil import rmtree
+from shutil import copytree, rmtree
 from xml.etree import ElementTree  # nosec B314 — parses local project files only, no external input
 
 
@@ -586,14 +586,16 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 io.updateMetadataQGisProject(projectPath, newProjectName or projectNetwork, newQgisPath)
             if newProjectName and canRenameFolder:
                 newProjectPath = os.path.join(os.path.dirname(projectPath), newProjectName)
-                try:
-                    os.rename(projectPath, newProjectPath)
-                    projectPath = self._getUniformedPath(newProjectPath)
-                    if newQgisPath:
-                        newQgisPath = self._getUniformedPath(newQgisPath.replace(oldProjectPath, projectPath))
-                    self.twProjectList.setItem(rowIndex, 3, QTableWidgetItem(projectPath))
-                except Exception:
-                    pass
+                if not os.path.exists(newProjectPath):
+                    try:
+                        copytree(projectPath, newProjectPath)
+                        rmtree(projectPath)
+                        projectPath = self._getUniformedPath(newProjectPath)
+                        if newQgisPath:
+                            newQgisPath = self._getUniformedPath(newQgisPath.replace(oldProjectPath, projectPath))
+                        self.twProjectList.setItem(rowIndex, 3, QTableWidgetItem(projectPath))
+                    except Exception:
+                        pass
             if qgisBase:
                 oldQgisDir = os.path.dirname(qgisBase)
                 if newQgisPath and os.path.exists(newQgisPath):
