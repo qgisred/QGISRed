@@ -1971,7 +1971,7 @@
     </message>
     <message>
         <location filename="../qgisred.py" line="631"/>
-        <source>Save map</source>
+        <source>Save project map</source>
         <translation type="obsolete">Enregistrer la carte</translation>
     </message>
     <message>
