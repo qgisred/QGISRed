@@ -1125,7 +1125,7 @@
     <message>
         <location filename="../sections/menu_section.py" line="198"/>
         <source>Save project map</source>
-        <translation>Guardar proyecto del mapa</translation>
+        <translation>Guardar mapa del proyecto</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="207"/>
