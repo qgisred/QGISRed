@@ -167,6 +167,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         f = self.radioSingleCriteria.font()
         f.setBold(True)
         self.radioSingleCriteria.setFont(f)
+        self.updateProperties()
 
 
     def setupButtonIcons(self): #TODO rename to QGISRed folder instead of BID on deploy
