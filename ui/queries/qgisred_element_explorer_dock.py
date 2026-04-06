@@ -1062,9 +1062,10 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                     return
 
     def onListItemDoubleClicked(self, item):
-        self.leElementMask.clear()
-        singularType, selectedId, fullId = self.extractTypeAndId(item.text())
+        itemText = item.text()
         identifier = item.data(Qt.ItemDataRole.UserRole)
+        self.leElementMask.clear()
+        singularType, selectedId, fullId = self.extractTypeAndId(itemText)
         if identifier:
             invertedIdentifiers = {v: k for k, v in self.elementIdentifiers.items()}
             singularType = invertedIdentifiers.get(identifier, singularType)
