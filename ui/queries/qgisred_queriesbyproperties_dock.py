@@ -495,7 +495,6 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.isResultsMode = self.isResultsLayer(layer)
         self.cbProperty.clear()
         self.cbStatisticsFor.clear()
-        excludedLower = {'id'}
         resultsMetaLower = {'time', 'statistics', 'time_h', 'time_d', 'time_q', 'type'}
         resultsFieldsLower = {
             'flow', 'flow_unsig', 'flow_sig', 'velocity', 'headloss',
@@ -509,8 +508,6 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         for field in layer.fields():
             fn = field.name()
             fnl = fn.lower()
-            if fnl in excludedLower:
-                continue
             if self.isResultsMode and fnl in resultsMetaLower:
                 continue
             if self.isResultsMode and fnl in resultsFieldsLower:
