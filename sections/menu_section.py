@@ -1071,7 +1071,7 @@ class MenuSection:
         self.add_to_dropdown(self.openThematicMapsDialog, queriesDropButton)
 
         self.openLiveQueriesDialog = self._make_action(
-            ":/images/iconQueryByAttributes.svg",
+            ":/images/iconQueryByProperties.svg",
             self.tr("Queries by Properties..."),
             self.runQueriesByProperties,
             parent=self.iface.mainWindow(),
