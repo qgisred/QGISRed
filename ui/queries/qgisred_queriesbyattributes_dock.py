@@ -546,7 +546,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
         # Group 3: Tag / Description (dark background)
         if tagFields:
             self.cbProperty.insertSeparator(self.cbProperty.count())
-            darkBrush = QBrush(QColor("#B0B0B0"))
+            darkBrush = QBrush(QColor("#D8D8D8"))
             for field in tagFields:
                 self.cbProperty.addItem(field.name())
                 self.cbProperty.setItemData(self.cbProperty.count() - 1, darkBrush, Qt.BackgroundRole)
