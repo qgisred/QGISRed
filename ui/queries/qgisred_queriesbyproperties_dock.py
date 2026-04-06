@@ -43,7 +43,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             featureReq = QgsFeatureRequest().setFilterExpression(expression)
             for feat in layer.getFeatures(featureReq):
                 h = QgsHighlight(self.canvas, feat.geometry(), layer)
-                h.setColor(QColor("red"))
+                h.setColor(QColor("magenta"))
                 h.setWidth(5)
                 h.show()
                 self.queryHighlights.append(h)
