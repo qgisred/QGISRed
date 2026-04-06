@@ -172,7 +172,9 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
 
     def setupButtonIcons(self): #TODO rename to QGISRed folder instead of BID on deploy
         self.btImport.setIcon(QIcon(":/images/iconStatisticsImport.svg"))
+        self.btImport.setToolTip(self.tr("Import criteria from file"))
         self.btExport.setIcon(QIcon(":/images/iconStatisticsExport.svg"))
+        self.btExport.setToolTip(self.tr("Export criteria to file"))
 
         self.btCriteriaUp.setIcon(QIcon(":/images/iconStatisticsArrowUp.svg"))
         self.btCriteriaDown.setIcon(QIcon(":/images/iconStatisticsArrowDown.svg"))
@@ -185,6 +187,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.btCriteriaSwitch.setIcon(self.iconSwitchEnabled)
 
         self.btExcel.setIcon(QIcon(":/images/iconStatisticsExcel.svg"))
+        self.btExcel.setToolTip(self.tr("Export statistics to file"))
 
     def setupConnections(self):
         # element / property updates
