@@ -216,7 +216,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         # update value field enabled state when condition changes
         self.cbCondition.currentIndexChanged.connect(self.onConditionChanged)
 
-        # export
+        # import / export
+        self.btImport.clicked.connect(self.importCriteria)
         self.btExport.clicked.connect(self.exportCriteria)
         self.btExcel.clicked.connect(self.exportStatistics)
 
@@ -1379,7 +1380,96 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             QMessageBox.critical(self, "Export failed", str(e))
 
     def exportCriteria(self):
-        self.exportTableWidgetCsv(self.tableWidgetCriteria, "QGISRed_Properties_Criterias")
+        defaultName = f"QGISRed_Properties_Criterias_{datetime.now().strftime('%Y%m%d_%H%M%S')}.qrp"
+        fname, _ = QFileDialog.getSaveFileName(
+            self,
+            self.tr("Save criteria file"),
+            os.path.join(str(QgsProject.instance().homePath()), defaultName),
+            "QGISRed Query (*.qrp)"
+        )
+        if not fname:
+            return
+        try:
+            projectName = QgsProject.instance().baseName()
+            elementType = self.cbElementType.currentText()
+            with open(fname, 'w', encoding='utf-8') as f:
+                f.write(f";{projectName}\n")
+                f.write(f"{elementType}\n")
+                for c in self.effectiveCriteria():
+                    prefix = "" if c.get('enabled', True) else "#"
+                    op = c['operator']
+                    prop = c['property']
+                    cond = c['condition']
+                    val = c['value']
+                    if cond == 'All':
+                        f.write(f"{prefix}{op}{prop}\n")
+                    else:
+                        f.write(f"{prefix}{op}{prop} {cond} {val}\n")
+            QMessageBox.information(self, self.tr("Export successful"), self.tr("Saved to:\n") + fname)
+        except Exception as e:
+            QMessageBox.critical(self, self.tr("Export failed"), str(e))
+
+    def importCriteria(self):
+        fname, _ = QFileDialog.getOpenFileName(
+            self,
+            self.tr("Open criteria file"),
+            str(QgsProject.instance().homePath()),
+            "QGISRed Query (*.qrp)"
+        )
+        if not fname:
+            return
+        try:
+            with open(fname, 'r', encoding='utf-8') as f:
+                lines = [line.rstrip('\n') for line in f.readlines()]
+            if len(lines) < 2:
+                return
+            elementType = lines[1]
+            for i in range(self.cbElementType.count()):
+                if self.cbElementType.itemText(i) == elementType:
+                    self.cbElementType.setCurrentIndex(i)
+                    break
+            parsedCriteria = []
+            for line in lines[2:]:
+                if not line.strip():
+                    continue
+                enabled = True
+                if line.startswith('#'):
+                    enabled = False
+                    line = line[1:]
+                if not line or line[0] not in ('+', '-'):
+                    continue
+                op = line[0]
+                rest = line[1:].strip()
+                propEnd = rest.find(' ')
+                if propEnd < 0:
+                    prop = rest
+                    cond = 'All'
+                    val = ''
+                else:
+                    prop = rest[:propEnd]
+                    condVal = rest[propEnd + 1:].strip()
+                    if not condVal:
+                        cond = 'All'
+                        val = ''
+                    elif condVal.upper().startswith('NOT LIKE '):
+                        cond = 'NOT LIKE'
+                        val = self.parseValue(condVal[9:].strip())
+                    else:
+                        condParts = condVal.split(None, 1)
+                        cond = condParts[0] if condParts else 'All'
+                        val = self.parseValue(condParts[1].strip()) if len(condParts) > 1 else ''
+                parsedCriteria.append({
+                    'property': prop,
+                    'condition': cond,
+                    'value': val,
+                    'operator': op,
+                    'enabled': enabled
+                })
+            self.radioMultipleCriteria.setChecked(True)
+            self.criteria = parsedCriteria
+            self.reloadCriteriaTable()
+        except Exception as e:
+            QMessageBox.critical(self, self.tr("Import failed"), str(e))
 
     def exportStatistics(self):
         self.exportTableWidgetCsv(self.tableWidgetStatistics, "QGISRed_Properties_Statistics")
