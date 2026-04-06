@@ -15,15 +15,15 @@ import math
 from ..analysis.qgisred_results_dock import QGISRedResultsDock
 
 # load UI
-FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),"qgisred_queriesbyattributes_dock.ui"))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),"qgisred_queriesbyproperties_dock.ui"))
 
-class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
+class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
     def __init__(self, iface, parent=None):
-        super(QGISRedQueriesByAttributesDock, self).__init__(parent or iface.mainWindow())
+        super(QGISRedQueriesByPropertiesDock, self).__init__(parent or iface.mainWindow())
         self.setupUi(self)
         self.iface = iface
         self.canvas = iface.mapCanvas()
-        self.initializeQueriesByAttributes()
+        self.initializeQueriesByProperties()
 
     def closeEvent(self, event):
         self.resultsDockVisibilityTimer.stop()
@@ -63,7 +63,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             self.lastSelectedLayer = None
             self.canvas.refresh()
 
-    def initializeQueriesByAttributes(self):
+    def initializeQueriesByProperties(self):
         self.criteria = []
         self.currentlyReplacingIndex = None
         self.isResultsMode = False
@@ -1382,7 +1382,7 @@ class QGISRedQueriesByAttributesDock(QDockWidget, FORM_CLASS):
             QMessageBox.critical(self, "Export failed", str(e))
 
     def exportCriteria(self):
-        self.exportTableWidgetCsv(self.tableWidgetCriteria, "QGISRed_Criterias")
+        self.exportTableWidgetCsv(self.tableWidgetCriteria, "QGISRed_Properties_Criterias")
 
     def exportStatistics(self):
-        self.exportTableWidgetCsv(self.tableWidgetStatistics, "QGISRed_Statistics")
+        self.exportTableWidgetCsv(self.tableWidgetStatistics, "QGISRed_Properties_Statistics")

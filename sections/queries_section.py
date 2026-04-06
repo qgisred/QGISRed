@@ -5,7 +5,7 @@ from qgis.PyQt.QtCore import Qt
 
 from ..ui.queries.qgisred_thematicmaps_dialog import QGISRedThematicMapsDialog
 from ..ui.queries.qgisred_element_explorer_dock import QGISRedElementExplorerDock
-from ..ui.queries.qgisred_queriesbyattributes_dock import QGISRedQueriesByAttributesDock
+from ..ui.queries.qgisred_queriesbyproperties_dock import QGISRedQueriesByPropertiesDock
 from ..ui.queries.qgisred_statisticsandgraphs_dock import QGISRedStatisticsAndPlotsDock
 from ..tools.map_tools.qgisred_identifyFeature import QGISRedIdentifyFeature
 
@@ -155,7 +155,7 @@ class QueriesSection:
         self.connectElementExplorerToResultsDock()
         self.switchToIdentifyTool(tool, self.openElementsPropertyDialog, True, dock)
 
-    def runQueriesByAttributes(self):
+    def runQueriesByProperties(self):
         if not self.checkDependencies():
             return
         # Validations
@@ -165,8 +165,8 @@ class QueriesSection:
         if self.isLayerOnEdition():
             return
 
-        self.queriesByAttributesDock = QGISRedQueriesByAttributesDock(self.iface)
-        self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.queriesByAttributesDock)
+        self.queriesByPropertiesDock = QGISRedQueriesByPropertiesDock(self.iface)
+        self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.queriesByPropertiesDock)
 
     def runStatisticsAndPlots(self):
         if not self.checkDependencies():
