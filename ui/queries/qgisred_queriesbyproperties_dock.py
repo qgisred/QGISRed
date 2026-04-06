@@ -1380,12 +1380,12 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             QMessageBox.critical(self, "Export failed", str(e))
 
     def exportCriteria(self):
-        defaultName = f"QGISRed_Properties_Criterias_{datetime.now().strftime('%Y%m%d_%H%M%S')}.qrp"
+        defaultName = f"QGISRed_Properties_Criterias_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
         fname, _ = QFileDialog.getSaveFileName(
             self,
             self.tr("Save criteria file"),
             os.path.join(str(QgsProject.instance().homePath()), defaultName),
-            "QGISRed Query (*.qrp)"
+            "Text Files (*.txt)"
         )
         if not fname:
             return
@@ -1414,7 +1414,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             self,
             self.tr("Open criteria file"),
             str(QgsProject.instance().homePath()),
-            "QGISRed Query (*.qrp)"
+            "Text Files (*.txt)"
         )
         if not fname:
             return
@@ -1465,9 +1465,20 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                     'operator': op,
                     'enabled': enabled
                 })
-            self.radioMultipleCriteria.setChecked(True)
-            self.criteria = parsedCriteria
-            self.reloadCriteriaTable()
+            if len(parsedCriteria) == 1:
+                c = parsedCriteria[0]
+                self.radioSingleCriteria.setChecked(True)
+                propIdx = self.cbProperty.findText(c['property'])
+                if propIdx >= 0:
+                    self.cbProperty.setCurrentIndex(propIdx)
+                condIdx = self.cbCondition.findText(c['condition'])
+                if condIdx >= 0:
+                    self.cbCondition.setCurrentIndex(condIdx)
+                self.cbValue.setValue(str(c['value']) if c['value'] != '' else '')
+            else:
+                self.radioMultipleCriteria.setChecked(True)
+                self.criteria = parsedCriteria
+                self.reloadCriteriaTable()
         except Exception as e:
             QMessageBox.critical(self, self.tr("Import failed"), str(e))
 
