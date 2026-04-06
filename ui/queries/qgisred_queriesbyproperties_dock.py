@@ -1472,4 +1472,51 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             QMessageBox.critical(self, self.tr("Import failed"), str(e))
 
     def exportStatistics(self):
-        self.exportTableWidgetCsv(self.tableWidgetStatistics, "QGISRed_Properties_Statistics")
+        defaultName = f"QGISRed_Properties_Statistics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        fname, _ = QFileDialog.getSaveFileName(
+            self,
+            self.tr("Save statistics file"),
+            os.path.join(str(QgsProject.instance().homePath()), defaultName),
+            "CSV Files (*.csv)"
+        )
+        if not fname:
+            return
+        try:
+            projectName = QgsProject.instance().baseName()
+            activeCriteria = self.effectiveCriteria()
+            queryLabel = self.tr("Query") if len(activeCriteria) == 1 else self.tr("Queries")
+            timeText = self.currentResultsTimeText.strip()
+            queryHeader = queryLabel + (f" @{timeText}" if timeText else "")
+
+            table = self.tableWidgetStatistics
+            headers = [
+                table.horizontalHeaderItem(col).text() if table.horizontalHeaderItem(col) else ''
+                for col in range(table.columnCount())
+            ]
+
+            with open(fname, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                f.write(f"Project: {projectName}\n")
+                f.write(f"Scenario: base\n")
+                f.write(f"{queryHeader}\n")
+                for c in activeCriteria:
+                    op = c['operator']
+                    prop = c['property']
+                    cond = c['condition']
+                    val = c['value']
+                    if cond == 'All':
+                        f.write(f"{op} {prop}\n")
+                    else:
+                        f.write(f"{op} {prop} {cond} {val}\n")
+                f.write("\n")
+                writer.writerow(headers)
+                for row in range(table.rowCount()):
+                    rowdata = [
+                        table.item(row, col).text() if table.item(row, col) else ''
+                        for col in range(table.columnCount())
+                    ]
+                    writer.writerow(rowdata)
+
+            QMessageBox.information(self, self.tr("Export successful"), self.tr("Saved to:\n") + fname)
+        except Exception as e:
+            QMessageBox.critical(self, self.tr("Export failed"), str(e))
