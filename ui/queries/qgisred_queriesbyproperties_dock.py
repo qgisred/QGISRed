@@ -188,7 +188,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
 
     def setupConnections(self):
         # element / property updates
-        self.cbElementType.currentIndexChanged.connect(self.updateProperties)
+        self.cbElementType.currentIndexChanged.connect(self.onElementTypeChanged)
         self.cbProperty.currentIndexChanged.connect(self.updateConditions)
         self.cbProperty.currentIndexChanged.connect(self.updateValues)
         # main buttons
@@ -488,6 +488,23 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             return self.resolveResultsLayer(resultCategory)
         return layer
 
+    def onElementTypeChanged(self):
+        hasActiveState = (
+            self.lastCombinedExpression
+            or self.tableWidgetStatistics.rowCount() > 0
+            or self.criteria
+            or bool(self.cbValue.value())
+        )
+        if hasActiveState:
+            self.lastCombinedExpression = ""
+            self.cbValue.setValue('')
+            self.criteria = []
+            self.currentlyReplacingIndex = None
+            self.reloadCriteriaTable()
+            self.clearMapSelection()
+            self.tableWidgetStatistics.setRowCount(0)
+        self.updateProperties()
+
     def updateProperties(self):
         layer = self.resolveLayer()
         if not layer:
@@ -536,7 +553,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 self.cbProperty.addItem(prop)
                 self.cbProperty.setItemData(self.cbProperty.count() - 1, orangeBrush, Qt.BackgroundRole)
             if numericResultProps:
-                self.cbStatisticsFor.insertSeparator(self.cbStatisticsFor.count())
+                if self.cbStatisticsFor.count() > 0:
+                    self.cbStatisticsFor.insertSeparator(self.cbStatisticsFor.count())
                 for prop in numericResultProps:
                     self.cbStatisticsFor.addItem(prop)
                     self.cbStatisticsFor.setItemData(self.cbStatisticsFor.count() - 1, orangeBrush, Qt.BackgroundRole)
@@ -552,6 +570,11 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         if self.cbProperty.count():
             self.updateConditions()
             self.updateValues()
+        if self.cbStatisticsFor.count() > 0 and not self.cbStatisticsFor.currentText():
+            for i in range(self.cbStatisticsFor.count()):
+                if self.cbStatisticsFor.itemText(i):
+                    self.cbStatisticsFor.setCurrentIndex(i)
+                    break
 
         hasResults = self.isResultsMode or (
             qrIdent not in self.digitalTwinIdentifiers
@@ -1392,8 +1415,9 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         try:
             projectName = QgsProject.instance().baseName()
             elementType = self.cbElementType.currentText()
+            mode = 'single criteria' if self.radioSingleCriteria.isChecked() else 'multiple criteria'
             with open(fname, 'w', encoding='utf-8') as f:
-                f.write(f";{projectName}\n")
+                f.write(f";{projectName};{mode}\n")
                 f.write(f"{elementType}\n")
                 for c in self.effectiveCriteria():
                     prefix = "" if c.get('enabled', True) else "#"
@@ -1423,6 +1447,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 lines = [line.rstrip('\n') for line in f.readlines()]
             if len(lines) < 2:
                 return
+            headerParts = lines[0].lstrip(';').split(';')
+            savedMode = headerParts[1].strip().lower() if len(headerParts) > 1 else None
             elementType = lines[1]
             for i in range(self.cbElementType.count()):
                 if self.cbElementType.itemText(i) == elementType:
@@ -1465,7 +1491,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                     'operator': op,
                     'enabled': enabled
                 })
-            if len(parsedCriteria) == 1:
+            useSingle = savedMode == 'single criteria' if savedMode else len(parsedCriteria) == 1
+            if useSingle and parsedCriteria:
                 c = parsedCriteria[0]
                 self.radioSingleCriteria.setChecked(True)
                 propIdx = self.cbProperty.findText(c['property'])
