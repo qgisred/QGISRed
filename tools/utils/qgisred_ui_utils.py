@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from qgis.PyQt.QtWidgets import QFrame, QLabel, QHBoxLayout, QPushButton, QGridLayout
 from qgis.PyQt.QtCore import QTimer
+from ...compat import QGIS_INFO, QGIS_WARNING, QGIS_CRITICAL, QGIS_SUCCESS
 
 
 class QGISRedBanner(QFrame):
@@ -72,4 +73,12 @@ class QGISRedUIUtils:
         """
         if iface is None:
             return
-        iface.messageBar().pushMessage("QGISRed", text, level=level, duration=duration)
+        # Integer to Qgis.MessageLevel mapping for v3/v4 compatibility
+        levels = {
+            0: QGIS_INFO,
+            1: QGIS_WARNING,
+            2: QGIS_CRITICAL,
+            3: QGIS_SUCCESS
+        }
+        qgis_level = levels.get(level, QGIS_INFO)
+        iface.messageBar().pushMessage("QGISRed", text, level=qgis_level, duration=duration)
