@@ -4,7 +4,7 @@ import tempfile
 import random
 from random import randrange
 
-from qgis.PyQt.QtCore import QCoreApplication
+from qgis.PyQt.QtCore import QCoreApplication, Qt
 from ...compat import PAINTER_ANTIALIASING
 from qgis.PyQt.QtGui import QColor
 from qgis.core import (
@@ -229,7 +229,7 @@ class QGISRedStylingUtils:
                 if "Branch" in uniqueValue:
                     lineSymbol.setColor(QColor(22, 139, 251))
                 else:
-                    lineSymbol.setPenStyle(3)
+                    lineSymbol.setPenStyle(Qt.PenStyle.DashLine)
                     lineSymbol.setWidth(1.5)
                 symbol.appendSymbolLayer(lineSymbol)
 
