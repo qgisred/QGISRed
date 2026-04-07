@@ -73,6 +73,7 @@ class QueriesSection:
     def runFindElements(self):
         if not self.validateProject(self.openFindElementsDialog):
             return
+        self.readOptions()
 
         existingDock = QGISRedElementExplorerDock._instance
 
@@ -115,6 +116,7 @@ class QueriesSection:
     def runElementsProperty(self):
         if not self.validateProject(self.openElementsPropertyDialog):
             return
+        self.readOptions()
 
         existingDock = QGISRedElementExplorerDock._instance
 
