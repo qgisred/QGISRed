@@ -10,7 +10,9 @@ from qgis.PyQt.QtGui import QColor
 from qgis.core import (
     QgsVectorLayer, QgsSymbol, Qgis, QgsLayerTreeGroup,
     QgsLineSymbol, QgsSimpleLineSymbolLayer, QgsSimpleMarkerSymbolLayer,
-    QgsRendererCategory, QgsCategorizedSymbolRenderer, QgsVectorLayerCache, NULL
+    QgsRendererCategory, QgsCategorizedSymbolRenderer, QgsVectorLayerCache, NULL,
+    QgsGraduatedSymbolRenderer, QgsRuleBasedRenderer, QgsProject, QgsRenderContext,
+    QgsMapLayerLegend
 )
 from qgis.gui import QgsAttributeTableFilterModel, QgsAttributeTableModel, QgsAttributeTableView
 from qgis.utils import iface as _iface
@@ -75,6 +77,24 @@ def create_combined_cursor(icon, iface=None, icon_size=24):
 
     painter.end()
     return QCursor(pixmap, 0, 0)
+
+
+# Sentinel label used to identify the hidden NULL/else rule across calls.
+_NULL_RULE_LABEL = "\x00__qgisred_null__"
+
+
+class _NullHiddenLegend(QgsMapLayerLegend):
+    """Vector legend wrapper that hides the NULL/else rule from the legend panel."""
+
+    def __init__(self, layer):
+        super().__init__()
+        self._layer = layer
+        # Delegate to a default legend; keep the reference so it is not GC'd.
+        self._default = QgsMapLayerLegend.defaultVectorLegend(layer)
+
+    def createLayerTreeModelLegendNodes(self, nodeLayer):
+        nodes = self._default.createLayerTreeModelLegendNodes(nodeLayer)
+        return [n for n in nodes if n.data(0) != _NULL_RULE_LABEL]  # 0 == Qt.DisplayRole
 
 
 class QGISRedStylingUtils:
@@ -330,3 +350,81 @@ class QGISRedStylingUtils:
         layer.setAttributeTableConfig(config)
         attributeTableFilterModel.setAttributeTableConfig(config)
         attributeTableView.setAttributeTableConfig(config)
+
+    def applyNullStyle(self, layer):
+        """Add a gray symbol for NULL values mimicking the original style complexity recursively."""
+        renderer = layer.renderer()
+        if renderer is None:
+            return
+
+        def make_gray(symbol):
+            if not symbol:
+                return
+            for i in range(symbol.symbolLayerCount()):
+                sl = symbol.symbolLayer(i)
+                try:
+                    # Most layers respond to setColor
+                    sl.setColor(QColor(192, 192, 192))
+                    if hasattr(sl, "setStrokeColor"):
+                        sl.setStrokeColor(QColor(160, 160, 160))
+                except:
+                    pass
+                # Handle sub-symbols recursively (needed for arrows, marker lines, etc.)
+                if hasattr(sl, "subSymbol") and sl.subSymbol():
+                    make_gray(sl.subSymbol())
+
+        # Obtain a template symbol from the existing renderer to preserve complexity
+        context = QgsRenderContext()
+        symbols = renderer.symbols(context)
+        if symbols:
+            null_symbol = symbols[0].clone()
+            make_gray(null_symbol)
+        else:
+            null_symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+            null_symbol.setColor(QColor(192, 192, 192))
+
+        if isinstance(renderer, QgsCategorizedSymbolRenderer):
+            # For categorized, we stay consistent
+            found = False
+            for cat in renderer.categories():
+                if cat.value() == NULL or cat.label() == "#NA":
+                    found = True
+                    break
+            if not found:
+                category = QgsRendererCategory(NULL, null_symbol.clone(), "#NA", True)
+                renderer.addCategory(category)
+                layer.setRenderer(renderer.clone())
+
+        elif isinstance(renderer, QgsGraduatedSymbolRenderer):
+            # QgsGraduatedSymbolRenderer skips NULL features entirely, so we
+            # must convert to rule-based. We build the rules manually instead of
+            # using convertFromRenderer() because convertFromRenderer wraps the
+            # classAttribute in double quotes (treating it as a field name), which
+            # breaks when classAttribute is an expression like abs(Flow).
+            class_attr = renderer.classAttribute()
+            ranges = renderer.ranges()
+            root_rule = QgsRuleBasedRenderer.Rule(None)
+
+            for i, r in enumerate(ranges):
+                rule = QgsRuleBasedRenderer.Rule(r.symbol().clone())
+                rule.setLabel(r.label())
+                lo, hi = r.lowerValue(), r.upperValue()
+                # First range: inclusive lower bound; subsequent: exclusive lower bound
+                lo_op = ">=" if i == 0 else ">"
+                expr = f"({class_attr}) {lo_op} {lo} AND ({class_attr}) <= {hi}"
+                rule.setFilterExpression(expr)
+                root_rule.appendChild(rule)
+
+            null_rule = QgsRuleBasedRenderer.Rule(null_symbol.clone())
+            null_rule.setIsElse(True)
+            null_rule.setLabel(_NULL_RULE_LABEL)
+            root_rule.appendChild(null_rule)
+
+            new_renderer = QgsRuleBasedRenderer(root_rule)
+            layer.setRenderer(new_renderer)
+
+            # Hide the NULL rule from the legend via a custom legend wrapper.
+            # _NullHiddenLegend filters nodes whose display text equals
+            # _NULL_RULE_LABEL, which is only ever set on the null/else rule.
+            if not isinstance(layer.legend(), _NullHiddenLegend):
+                layer.setLegend(_NullHiddenLegend(layer))

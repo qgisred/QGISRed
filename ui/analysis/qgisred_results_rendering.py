@@ -251,4 +251,5 @@ class _ResultsRenderingMixin:
             pass
 
         layer.setRenderer(renderer)
+        QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface).applyNullStyle(layer)
         layer.triggerRepaint()
