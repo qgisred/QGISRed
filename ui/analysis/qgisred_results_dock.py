@@ -81,7 +81,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self.lbl_average         = self.tr("Average")
         self.lbl_std_deviation   = self.tr("StdDev")
         self.lbl_warning         = self.tr("Warning")
-        self.lbl_permanent       = self.tr("Permanent")
+        self.lbl_singlePeriod       = self.tr("Single Period")
         self.lbl_pressure        = self.tr("Pressure")
         self.lbl_head            = self.tr("Head")
         self.lbl_demand          = self.tr("Demand")
@@ -220,7 +220,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
     # ------------------------------------------------------------------
 
     def populateResultStatsComboboxes(self):
-        self.cbResultTimes.addItems([self.tr("Report times")])
+        self.cbResultTimes.addItems([self.tr("Step times")])
         self.cbStatistics.addItems([
             self.lbl_none,
             self.lbl_maximum,
@@ -950,8 +950,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self.TimeLabels = []
         self.cbTimes.clear()
         if len(time_label_list) == 1:
-            self.TimeLabels.append(self.lbl_permanent)
-            self.cbTimes.addItem(self.lbl_permanent)
+            self.TimeLabels.append(self.lbl_singlePeriod)
+            self.cbTimes.addItem(self.lbl_singlePeriod)
         else:
             for item in time_label_list:
                 self.TimeLabels.append(item)

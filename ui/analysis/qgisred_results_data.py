@@ -42,7 +42,7 @@ def export_results_to_csv(binary_path, nodes_path, links_path, iface, list_sep, 
     """Export all simulation time steps to two CSV files (Nodes and Links)."""
     import csv
 
-    lbl_permanent = QCoreApplication.translate("QGISRedResultsDock", "Permanent")
+    lbl_singlePeriod = QCoreApplication.translate("QGISRedResultsDock", "Single Period")
 
     def _fmt(value):
         if value is None or value == "":
@@ -77,7 +77,7 @@ def export_results_to_csv(binary_path, nodes_path, links_path, iface, list_sep, 
 
     for i in range(max(num_periods, 1)):
         time_secs = report_start + i * report_step
-        time_str = seconds_to_time_str(time_secs) if num_periods > 1 else lbl_permanent
+        time_str = seconds_to_time_str(time_secs) if num_periods > 1 else lbl_singlePeriod
 
         node_data = getOut_TimeNodesProperties(binary_path, time_secs)
         link_data = getOut_TimeLinksProperties(binary_path, time_secs)
@@ -137,10 +137,10 @@ class _ResultsDataMixin:
             with open(self.outPath, 'rb') as f:
                 meta = getOut_Metadata(f)
             if meta is None:
-                return self.lbl_permanent
+                return self.lbl_singlePeriod
             n = meta["num_periods"]
             if n <= 1:
-                return self.lbl_permanent
+                return self.lbl_singlePeriod
             start = meta["report_start"]
             step = meta["report_step"]
             labels = []
@@ -148,7 +148,7 @@ class _ResultsDataMixin:
                 labels.append(seconds_to_time_str(start + i * step))
             return ";".join(labels)
         except Exception:
-            return self.lbl_permanent
+            return self.lbl_singlePeriod
 
     def loadReportFile(self):
         rpt_path = os.path.join(self.getResultsPath(), self.NetworkName + "_" + self.Scenario + ".rpt")
@@ -163,7 +163,7 @@ class _ResultsDataMixin:
 
         # Parse time strings like "00d 01:23:45" to seconds
         time_text = self.cbTimes.currentText()
-        if time_text == self.lbl_permanent:
+        if time_text == self.lbl_singlePeriod:
             time_seconds = 0
         else:
             try:

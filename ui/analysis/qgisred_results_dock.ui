@@ -496,7 +496,7 @@
                           </font>
                          </property>
                          <property name="text">
-                          <string>Result Times</string>
+                          <string>Reported Times</string>
                          </property>
                         </widget>
                        </item>
