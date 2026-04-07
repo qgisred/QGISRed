@@ -35,13 +35,15 @@ The plugin uses the Qt resource system to bundle images. All images are stored i
    ```
 
 3. **Compile the resources**  
-   Run the `ResourcesCompile.bat` script located at the root of the plugin directory. This regenerates `resources3x.py` from `resources.qrc`:
+   Run the `scripts\CompileImages.bat` script located in the `scripts/` folder. This regenerates `resources3x.py` from `resources.qrc`:
 
    ```bat
-   ResourcesCompile.bat
+   scripts\CompileImages.bat
    ```
 
    > **Note:** The script uses the Python interpreter available on the system PATH. Make sure it is the Python bundled with QGIS (or that PyQt5 is installed in the active environment). If the compilation fails, set the `PATH` environment variable to point to the QGIS Python folder before running the script.
+   >
+   > **Note for QGIS 4.0:** The current system uses a compiled Python module (`resources3x.py`) to maintain dual compatibility (using a post-processing patch to replace `PyQt5` imports). However, when the plugin transitions to supporting only QGIS 4.0+, this management should be updated to use the native Qt6 `.rcc` binary format instead of the Python-compiled `.py` file.
 
 4. **Use the image in your code**  
    Import the compiled resources module and reference the image via its Qt resource path:
