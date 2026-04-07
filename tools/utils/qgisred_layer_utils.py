@@ -146,7 +146,7 @@ class QGISRedLayerUtils:
 
     @classmethod
     def setGroupIdentifier(cls, group, keyOrName):
-        if not group:
+        if group is None:
             return
         normalizedName = keyOrName.lower().replace(" ", "")
         identifier = f"qgisred_{normalizedName}"
@@ -171,57 +171,69 @@ class QGISRedLayerUtils:
 
     def _getOrCreateNetGroup(self, root):
         netGroup = self._findGroupByNameRecursive(root, self.NetworkName)
-        if not netGroup:
+        if netGroup is None:
             netGroup = root.insertGroup(0, self.NetworkName)
             self.setGroupIdentifier(netGroup, self.NetworkName)
         return netGroup
 
-    def _ensureMainGroupOrder(self, netGroup):
-        """Reorder MAIN_GROUP_ORDER groups as direct children of netGroup (top→bottom)."""
-        for groupName in reversed(self.MAIN_GROUP_ORDER):
-            group = None
-            identifier = self.groupIdentifiers.get(groupName)
-            if identifier:
-                for child in netGroup.children():
-                    if isinstance(child, QgsLayerTreeGroup):
-                        if child.customProperty("qgisred_identifier") == identifier:
-                            group = child
-                            break
-            if not group:
-                for child in netGroup.children():
-                    if isinstance(child, QgsLayerTreeGroup) and child.name() == groupName:
-                        group = child
-                        break
-            if group:
-                cloned = group.clone()
-                netGroup.insertChildNode(0, cloned)
-                netGroup.removeChildNode(group)
+    def _getInsertPosition(self, netGroup, groupName):
+        """Return the correct insert index within netGroup for groupName per MAIN_GROUP_ORDER."""
+        if groupName not in self.MAIN_GROUP_ORDER:
+            return 0
+        desiredIdx = self.MAIN_GROUP_ORDER.index(groupName)
+        insertPos = 0
+        for i, child in enumerate(netGroup.children()):
+            if not isinstance(child, QgsLayerTreeGroup):
+                continue
+            childId = child.customProperty("qgisred_identifier")
+            childName = child.name()
+            for j, orderedName in enumerate(self.MAIN_GROUP_ORDER):
+                ident = self.groupIdentifiers.get(orderedName)
+                if (ident and childId == ident) or childName == orderedName:
+                    if j < desiredIdx:
+                        insertPos = i + 1
+                    break
+        return insertPos
 
     def getOrCreateGroup(self, groupName):
         root = QgsProject.instance().layerTreeRoot()
         identifier = self.groupIdentifiers.get(groupName)
-        if identifier:
-            group = self.findGroupByIdentifier(identifier)
-            if group:
-                return group
-        group = self._findGroupByNameRecursive(root, groupName)
-        if group:
-            self.setGroupIdentifier(group, groupName)
-            return group
+
+        # Resolve netGroup first so we can search its children directly.
+        # In QGIS 4 / PyQt6, re-calling layerTreeRoot() may return a different
+        # wrapper whose children() doesn't reflect the real tree, and PyQt6
+        # QgsLayerTreeGroup objects are falsy when the C++ object is invalid,
+        # so always use `is None` checks instead of truthiness.
         netGroup = None
         if self.NetworkName:
             netGroup = self._getOrCreateNetGroup(root)
-        parent = netGroup if netGroup else root
-        newGroup = parent.insertGroup(0, groupName)
+
+        # Search within netGroup first (avoids re-calling layerTreeRoot internally)
+        if netGroup is not None:
+            for child in netGroup.children():
+                if not isinstance(child, QgsLayerTreeGroup):
+                    continue
+                if identifier and child.customProperty("qgisred_identifier") == identifier:
+                    return child
+                if child.name() == groupName:
+                    self.setGroupIdentifier(child, groupName)
+                    return child
+
+        # Fallback: search rest of tree using the root we already have
+        found = self._findGroupByIdentifierRecursive(root, identifier) if identifier else None
+        if found is not None:
+            return found
+        found = self._findGroupByNameRecursive(root, groupName)
+        if found is not None:
+            self.setGroupIdentifier(found, groupName)
+            return found
+
+        if netGroup is not None:
+            pos = self._getInsertPosition(netGroup, groupName)
+            newGroup = netGroup.insertGroup(pos, groupName)
+        else:
+            newGroup = root.insertGroup(0, groupName)
         self.setGroupIdentifier(newGroup, groupName)
-        if netGroup:
-            self._ensureMainGroupOrder(netGroup)
-            # Re-find after reorder since the node may have been cloned
-            identifier = self.groupIdentifiers.get(groupName)
-            if identifier:
-                refound = self.findGroupByIdentifier(identifier)
-                if refound:
-                    return refound
         return newGroup
 
     def getOrCreateNestedGroup(self, path):
@@ -239,33 +251,22 @@ class QGISRedLayerUtils:
                         if child.customProperty("qgisred_identifier") == identifier:
                             foundGroup = child
                             break
-            if not foundGroup:
+            if foundGroup is None:
                 for child in currentParent.children():
                     if isinstance(child, QgsLayerTreeGroup) and child.name() == groupName:
                         foundGroup = child
                         break
-            if not foundGroup:
-                foundGroup = currentParent.insertGroup(0, groupName)
+            if foundGroup is None:
+                if i == 1 and netGroup is not None:
+                    pos = self._getInsertPosition(netGroup, groupName)
+                    foundGroup = currentParent.insertGroup(pos, groupName)
+                else:
+                    foundGroup = currentParent.insertGroup(0, groupName)
                 self.setGroupIdentifier(foundGroup, groupName)
             else:
                 self.setGroupIdentifier(foundGroup, groupName)
-            # Track the network group (first level) to enforce main group order
             if i == 0 and self.NetworkName and groupName == self.NetworkName:
                 netGroup = foundGroup
-            # After resolving the level directly inside the network group, reorder
-            if i == 1 and netGroup is not None:
-                self._ensureMainGroupOrder(netGroup)
-                # Re-find foundGroup in case it was cloned during reorder
-                identifier = self.groupIdentifiers.get(groupName)
-                if identifier:
-                    refound = None
-                    for child in netGroup.children():
-                        if isinstance(child, QgsLayerTreeGroup):
-                            if child.customProperty("qgisred_identifier") == identifier:
-                                refound = child
-                                break
-                    if refound:
-                        foundGroup = refound
             currentParent = foundGroup
         return currentParent
 
