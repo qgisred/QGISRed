@@ -57,10 +57,21 @@ class QGISRedExportCsvDialog(QDialog, FORM_CLASS):
     # --- Private helpers ---
 
     def _display_path(self, abs_path):
+        if not abs_path:
+            return ""
         try:
-            return os.path.relpath(abs_path, self._project_directory)
-        except ValueError:
-            return abs_path
+            # Check if it is inside the project directory
+            rel = os.path.relpath(abs_path, self._project_directory)
+            if rel.startswith(".."):
+                # Outside: show absolute path (without ../..)
+                return os.path.abspath(abs_path).replace("\\", "/")
+            else:
+                # Inside: show relative path starting with ../
+                # We achieve this by making it relative to the parent of the project directory
+                proj_part = os.path.basename(os.path.abspath(self._project_directory).rstrip(os.path.sep))
+                return os.path.join("..", proj_part, rel).replace("\\", "/")
+        except Exception:
+            return abs_path.replace("\\", "/")
 
     def _browse(self, current_abs, line_edit, setter):
         qfd = QFileDialog()
