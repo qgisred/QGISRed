@@ -218,12 +218,12 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="fillColor">
                   <Option type="bool" value="true" name="active"/>
-                  <Option type="QString" value="if(Status is 'CLOSED', '#ff0f13', if(Status is 'OPEN', '#0f1291', if(Status is 'TO CLOSE', '#ff00ff', if(Status is 'NOT AVAILABLE', '#7d8b8f', if(Status is 'TO OPEN', '#00ffee','#0f1291')))))" name="expression"/>
+                  <Option type="QString" value="if(Status is 'CLOSED', '#ff0f13', if(Status is 'POSSIBLE', '#e7ca65', if(Status is 'OPEN', '#0f1291', if(Status is 'TO CLOSE', '#ff00ff', if(Status is 'NOT AVAILABLE', '#7d8b8f', if(Status is 'TO OPEN', '#00ffee','#0f1291'))))))" name="expression"/>
                   <Option type="int" value="3" name="type"/>
                 </Option>
                 <Option type="Map" name="outlineColor">
                   <Option type="bool" value="true" name="active"/>
-                  <Option type="QString" value="if(Status is 'CLOSED', '#ff0f13', if(Status is 'OPEN', '#0f1291', if(Status is 'TO CLOSE', '#ff00ff', if(Status is 'NOT AVAILABLE', '#7d8b8f', if(Status is 'TO OPEN', '#00ffee','#0f1291')))))" name="expression"/>
+                  <Option type="QString" value="if(Status is 'CLOSED', '#ff0f13', if(Status is 'POSSIBLE', '#e7ca65', if(Status is 'OPEN', '#0f1291', if(Status is 'TO CLOSE', '#ff00ff', if(Status is 'NOT AVAILABLE', '#7d8b8f', if(Status is 'TO OPEN', '#00ffee','#0f1291'))))))" name="expression"/>
                   <Option type="int" value="3" name="type"/>
                 </Option>
                 <Option type="Map" name="size">
@@ -283,7 +283,7 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="outlineColor">
                   <Option type="bool" value="true" name="active"/>
-                  <Option type="QString" value="if(Id LIKE '%_Isolated%','#eec07a' ,'#ff9900' )" name="expression"/>
+                  <Option type="QString" value="if(Status is 'POSSIBLE', '#e7ca65', '#ff9900')" name="expression"/>
                   <Option type="int" value="3" name="type"/>
                 </Option>
                 <Option type="Map" name="size">

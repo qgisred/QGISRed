@@ -136,7 +136,7 @@
                 </Option>
                 <Option type="Map" name="outlineColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if (ElemType is 'PIPE', if(Id LIKE '%_Isolated%', if(Status is 'TO OPEN','#00ffee','#eec07a'),'#ff9900' ), if(Status is 'CLOSED', '#ff0f13', if(Status is 'ACTIVE','#ff9900', if(Status is 'OPEN', '#85b66f', if(Status is 'TO CLOSE', '#ff00ff', if(Status is 'TO OPEN','#00ffee','#ff9900'))))))" type="QString" name="expression"/>
+                  <Option value="if (ElemType is 'PIPE', if(Id LIKE '%_Isolated%', if(Status is 'TO OPEN','#00ffee','#f1e131'),'#ff9900' ), if(Status is 'CLOSED', '#ff0f13', if(Status is 'ACTIVE','#ff9900', if(Status is 'OPEN', '#85b66f', if(Status is 'TO CLOSE', '#ff00ff', if(Status is 'TO OPEN','#00ffee','#ff9900'))))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="outlineStyle">
