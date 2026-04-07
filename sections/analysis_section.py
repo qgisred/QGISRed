@@ -9,6 +9,7 @@ from qgis.PyQt.QtCore import Qt
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.utils.qgisred_field_utils import QGISRedFieldUtils
+from ..compat import DIALOG_ACCEPTED
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool
 from ..ui.analysis.qgisred_results_dock import QGISRedResultsDock
@@ -176,7 +177,7 @@ class AnalysisSection:
             default_nodes, default_links, list_sep, decimal_sep,
             self.ProjectDirectory, parent=self.iface.mainWindow()
         )
-        if dlg.exec() != QDialog.Accepted:
+        if dlg.exec() != DIALOG_ACCEPTED:
             return
 
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)

@@ -141,6 +141,7 @@ except AttributeError:
     SNAP_TYPE_BOTH    = _QgsSnap.SnappingType.VertexAndSegment
 
 from qgis.core import QgsAttributeTableConfig as _QgsATC
+from qgis.PyQt.QtWidgets import QDialog as _QDialog
 
 try:
     ATCOL_TYPE_FIELD   = _QgsATC.Field
@@ -148,3 +149,10 @@ try:
 except AttributeError:
     ATCOL_TYPE_FIELD   = _QgsATC.Type.Field
     ATCOL_TYPE_ACTION  = _QgsATC.Type.Action
+
+try:
+    DIALOG_ACCEPTED = _QDialog.Accepted
+    DIALOG_REJECTED = _QDialog.Rejected
+except AttributeError:
+    DIALOG_ACCEPTED = _QDialog.DialogCode.Accepted
+    DIALOG_REJECTED = _QDialog.DialogCode.Rejected
