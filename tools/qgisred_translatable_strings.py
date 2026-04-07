@@ -12,7 +12,7 @@ QCoreApplication.translate('FieldPrettyNames', "Description")
 # Pipes
 QCoreApplication.translate('FieldPrettyNames', "Length")
 QCoreApplication.translate('FieldPrettyNames', "Diameter")
-QCoreApplication.translate('FieldPrettyNames', "Roughness Coefficient")
+QCoreApplication.translate('FieldPrettyNames', "Roughness")
 QCoreApplication.translate('FieldPrettyNames', "Loss Coefficient")
 QCoreApplication.translate('FieldPrettyNames', "Material")
 QCoreApplication.translate('FieldPrettyNames', "Installation Date")
@@ -29,14 +29,14 @@ QCoreApplication.translate('FieldPrettyNames', "Initial Quality")
 
 # Tanks
 QCoreApplication.translate('FieldPrettyNames', "Initial Level")
-QCoreApplication.translate('FieldPrettyNames', "Minimum Level")
+QCoreApplication.translate('FieldPrettyNames', "MinimumLevel")
 QCoreApplication.translate('FieldPrettyNames', "Maximum Level")
 QCoreApplication.translate('FieldPrettyNames', "Minimum Volume")
 QCoreApplication.translate('FieldPrettyNames', "Volume Curve")
 QCoreApplication.translate('FieldPrettyNames', "Overflow")
 QCoreApplication.translate('FieldPrettyNames', "Mixing Model")
 QCoreApplication.translate('FieldPrettyNames', "Mixing Fraction")
-QCoreApplication.translate('FieldPrettyNames', "Reaction Coefficient")
+QCoreApplication.translate('FieldPrettyNames', "Bulk Coefficient")
 
 # Reservoirs
 QCoreApplication.translate('FieldPrettyNames', "Total Head")
