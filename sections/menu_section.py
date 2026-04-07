@@ -525,7 +525,7 @@ class MenuSection:
         self.add_to_group(action, self.debugMenu)
         self.add_to_dropdown(action, dropButton)
 
-        dropButton.menu().addSeparator()
+        debugDropButton.menu().addSeparator()
         self.debugToolbar.addSeparator()
         self.debugMenu.addSeparator()
 
@@ -565,7 +565,7 @@ class MenuSection:
         self.add_to_group(action, self.debugMenu, self.debugToolbar)
         self.add_to_dropdown(action, debugDropButton)
 
-        dropButton.menu().addSeparator()
+        debugDropButton.menu().addSeparator()
         self.debugToolbar.addSeparator()
         self.debugMenu.addSeparator()
 
