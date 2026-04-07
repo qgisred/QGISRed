@@ -1079,14 +1079,14 @@ class MenuSection:
         self.add_to_group(self.openLiveQueriesDialog, self.queriesMenu, self.queriesToolbar)
         self.add_to_dropdown(self.openLiveQueriesDialog, queriesDropButton)
 
-        self.openStatisticsAndPlotsDialog = self._make_action(
-            ":/images/iconStatisticsAndPlots.svg", 
-            self.tr("Statistics && Plots..."), 
-            self.runStatisticsAndPlots,
-            parent=self.iface.mainWindow(),
-        )
-        self.add_to_group(self.openStatisticsAndPlotsDialog, self.queriesMenu, self.queriesToolbar)
-        self.add_to_dropdown(self.openStatisticsAndPlotsDialog, queriesDropButton)
+        # self.openStatisticsAndPlotsDialog = self._make_action(
+        #     ":/images/iconStatisticsAndPlots.svg", 
+        #     self.tr("Statistics && Plots..."), 
+        #     self.runStatisticsAndPlots,
+        #     parent=self.iface.mainWindow(),
+        # )
+        # self.add_to_group(self.openStatisticsAndPlotsDialog, self.queriesMenu, self.queriesToolbar)
+        # self.add_to_dropdown(self.openStatisticsAndPlotsDialog, queriesDropButton)
 
     """Toolbar visibility toggles"""
 
