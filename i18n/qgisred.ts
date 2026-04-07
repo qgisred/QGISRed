@@ -4,57 +4,57 @@
 <context>
     <name>AnalysisSection</name>
     <message>
-        <location filename="../sections/analysis_section.py" line="315"/>
+        <location filename="../sections/analysis_section.py" line="332"/>
         <source>Results file not found. Please run the model.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="343"/>
+        <location filename="../sections/analysis_section.py" line="360"/>
         <source>Junction</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="344"/>
+        <location filename="../sections/analysis_section.py" line="361"/>
         <source>Tank</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="345"/>
+        <location filename="../sections/analysis_section.py" line="362"/>
         <source>Reservoir</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="346"/>
+        <location filename="../sections/analysis_section.py" line="363"/>
         <source>Pipe</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="347"/>
+        <location filename="../sections/analysis_section.py" line="364"/>
         <source>Valve</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="348"/>
+        <location filename="../sections/analysis_section.py" line="365"/>
         <source>Pump</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="370"/>
+        <location filename="../sections/analysis_section.py" line="387"/>
         <source>Closed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="370"/>
+        <location filename="../sections/analysis_section.py" line="387"/>
         <source>Active</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="370"/>
+        <location filename="../sections/analysis_section.py" line="387"/>
         <source>Open</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="376"/>
+        <location filename="../sections/analysis_section.py" line="393"/>
         <source>Time</source>
         <translation type="unfinished"></translation>
     </message>
@@ -69,28 +69,23 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="179"/>
+        <location filename="../sections/analysis_section.py" line="196"/>
         <source>Necessary to have a valid project and no layer on edition.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="200"/>
+        <location filename="../sections/analysis_section.py" line="217"/>
         <source>It is necessary to simulate first.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="266"/>
+        <location filename="../sections/analysis_section.py" line="283"/>
         <source>No network element found at this location.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="165"/>
         <source>No simulation results found</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../sections/analysis_section.py" line="170"/>
-        <source>Permanent</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -995,52 +990,52 @@
 <context>
     <name>LifecycleSection</name>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="246"/>
+        <location filename="../sections/lifecycle_section.py" line="247"/>
         <source>Loaded sucssesfully</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="433"/>
+        <location filename="../sections/lifecycle_section.py" line="434"/>
         <source>QGISRed Dependencies</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="433"/>
+        <location filename="../sections/lifecycle_section.py" line="434"/>
         <source>QGISRed plugin only runs in Windows OS and requires some dependencies (v{}). Do you want to install them now?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="433"/>
+        <location filename="../sections/lifecycle_section.py" line="434"/>
         <source>At the end, the QGISRed web page will be open to show the news, where you can also register if you wish to receive the newsletters.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="492"/>
+        <location filename="../sections/lifecycle_section.py" line="493"/>
         <source>QGISRed Updates</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="492"/>
+        <location filename="../sections/lifecycle_section.py" line="493"/>
         <source>QGISRed plugin has a new version ({}). You can upgrade it from the QGis plugin manager. Do you want to remember it again?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="48"/>
+        <location filename="../sections/lifecycle_section.py" line="49"/>
         <source>QGISRed only works on Windows</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="80"/>
+        <location filename="../sections/lifecycle_section.py" line="81"/>
         <source>Click to change it</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="185"/>
+        <location filename="../sections/lifecycle_section.py" line="186"/>
         <source>About...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="190"/>
+        <location filename="../sections/lifecycle_section.py" line="191"/>
         <source>Report issues or comments...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1048,7 +1043,7 @@
 <context>
     <name>MenuSection</name>
     <message>
-        <location filename="../sections/menu_section.py" line="61"/>
+        <location filename="../sections/menu_section.py" line="60"/>
         <source>General</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1078,7 +1073,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="117"/>
+        <location filename="../sections/menu_section.py" line="116"/>
         <source>Project</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1138,7 +1133,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="237"/>
+        <location filename="../sections/menu_section.py" line="236"/>
         <source>Edition</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1243,7 +1238,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="451"/>
+        <location filename="../sections/menu_section.py" line="450"/>
         <source>Debug</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1313,7 +1308,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="592"/>
+        <location filename="../sections/menu_section.py" line="591"/>
         <source>Tools</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1368,7 +1363,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="703"/>
+        <location filename="../sections/menu_section.py" line="702"/>
         <source>Analysis</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1408,7 +1403,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="802"/>
+        <location filename="../sections/menu_section.py" line="801"/>
         <source>Digital Twin</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1513,7 +1508,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1034"/>
+        <location filename="../sections/menu_section.py" line="1033"/>
         <source>Queries</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1556,72 +1551,72 @@
 <context>
     <name>ProjectManagementSection</name>
     <message>
-        <location filename="../sections/project_management_section.py" line="99"/>
+        <location filename="../sections/project_management_section.py" line="100"/>
         <source>No valid project is opened</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="547"/>
+        <location filename="../sections/project_management_section.py" line="548"/>
         <source>Some issues occurred in the process</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="332"/>
+        <location filename="../sections/project_management_section.py" line="333"/>
         <source>QGISRed: Open project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="486"/>
+        <location filename="../sections/project_management_section.py" line="487"/>
         <source>Project options updated</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="558"/>
+        <location filename="../sections/project_management_section.py" line="559"/>
         <source>Save QGIS project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="558"/>
+        <location filename="../sections/project_management_section.py" line="559"/>
         <source>QGIS Projects (*.qgs *.qgz)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="43"/>
+        <location filename="../sections/project_management_section.py" line="44"/>
         <source>Some layer is in Edit Mode. Plase, commit it before continuing.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="51"/>
+        <location filename="../sections/project_management_section.py" line="52"/>
         <source>The project has changes. Please save them before continuing.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="57"/>
+        <location filename="../sections/project_management_section.py" line="58"/>
         <source>Open project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="57"/>
+        <location filename="../sections/project_management_section.py" line="58"/>
         <source>Do you want to close the current project and continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="72"/>
+        <location filename="../sections/project_management_section.py" line="73"/>
         <source>Open layers</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="72"/>
+        <location filename="../sections/project_management_section.py" line="73"/>
         <source>Do you want to close the current layers and continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="575"/>
+        <location filename="../sections/project_management_section.py" line="576"/>
         <source>Backup stored in:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="159"/>
+        <location filename="../sections/project_management_section.py" line="160"/>
         <source>Project saved</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2302,7 +2297,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="300"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="301"/>
         <source>None</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2657,72 +2652,72 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="74"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="75"/>
         <source>Degrees</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="93"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="94"/>
         <source>QGISRed: Add data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="201"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="202"/>
         <source>The selected folder has some files with the same project name.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1253"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1254"/>
         <source>Validations</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1163"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1164"/>
         <source>The SHPs folder is not valid or does not exist</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1170"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1171"/>
         <source>Not valid Tolerance</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1173"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1174"/>
         <source>Not numeric Tolerance</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1181"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1182"/>
         <source>Not valid Service Connection Length</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1184"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1185"/>
         <source>Not numeric Service Connection Length</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1189"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1190"/>
         <source>Any SHP selected for importing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1249"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1250"/>
         <source>ZIP file is not valid</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1253"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1254"/>
         <source>ZIP file does not exist</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1274"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1275"/>
         <source>Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.py" line="1274"/>
+        <location filename="../ui/general/qgisred_import_dialog.py" line="1275"/>
         <source>ZIP file does not contain a valid QGISRed project</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2931,119 +2926,119 @@
 <context>
     <name>QGISRedLegendsDialog</name>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="258"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="259"/>
         <source>QGISRed: Legend Editor</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="265"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="266"/>
         <source>Color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="265"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="266"/>
         <source>Size</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="265"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="266"/>
         <source>Value</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1282"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1283"/>
         <source>Legend</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="310"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="311"/>
         <source>Classify All Unique Values</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="378"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="379"/>
         <source>Move selected class up</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="379"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="380"/>
         <source>Move selected class down</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="380"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="381"/>
         <source>Remove selected class(es)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="381"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="382"/>
         <source>Add all unique values as separate classes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="384"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="385"/>
         <source>Refresh color ramp</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="386"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="387"/>
         <source>Load default style for this layer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="387"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="388"/>
         <source>Load style from global database</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="388"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="389"/>
         <source>Save current style to global database</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="389"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="390"/>
         <source>Load style from project database</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="390"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="391"/>
         <source>Save current style to project database</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="391"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="392"/>
         <source>Apply changes to layer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="392"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="393"/>
         <source>Cancel and close dialog</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="556"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="557"/>
         <source>Legend for</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="669"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="670"/>
         <source>Too Many Classes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="669"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="670"/>
         <source>The field &apos;{field}&apos; has {uniqueCount} unique values.
 The maximum allowed is {self.MAX_CLASSES}.
 Please filter the data or choose a different field.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="682"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="683"/>
         <source>High Class Count Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="682"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="683"/>
         <source>The field &apos;{field}&apos; has {uniqueCount} unique values.
 Creating a categorized legend with more than {self.WARN_CLASSES} classes may affect performance and readability.
 
@@ -3051,126 +3046,126 @@ Do you want to proceed?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1477"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1478"/>
         <source>Single Symbol</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1471"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1472"/>
         <source>Categorized</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1475"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1476"/>
         <source>Graduated</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3764"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3765"/>
         <source>Other Values</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1961"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1962"/>
         <source>Info</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1961"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1962"/>
         <source>All values are already classified.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="2034"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="2035"/>
         <source>Limit Exceeded</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1970"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1971"/>
         <source>Adding {uniqueCountToAdd} classes would result in {totalPotential} total classes,
 which exceeds the maximum limit of {self.MAX_CLASSES}.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1987"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1988"/>
         <source>Adding classes...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="1987"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="1988"/>
         <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="2034"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="2035"/>
         <source>Maximum of {self.MAX_CLASSES} classes reached.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3314"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3315"/>
         <source>Right-click: Add a new item above the current selection
 Left-click: Add a new item below the current selection
 Double-click: Add &quot;Other values&quot; option</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3322"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3323"/>
         <source>Right-click: Add a new item above the current selection
 Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3132"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3133"/>
         <source>Overwrite</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3132"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3133"/>
         <source>Overwrite style?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3142"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3143"/>
         <source>Saved</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3142"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3143"/>
         <source>Style saved as {} in the layerStyles folder of your project.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3226"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3227"/>
         <source>No Project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3226"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3227"/>
         <source>Project directory not set.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3203"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3204"/>
         <source>Not Found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3203"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3204"/>
         <source>Style file not found: {}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3209"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3210"/>
         <source>Loaded</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3181"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3182"/>
         <source>Style loaded from {} in the layerStyles folder of your project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3209"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3210"/>
         <source>Style loaded from {}</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3221,7 +3216,7 @@ Left-click: Add a new item below the current selection</source>
 <context>
     <name>QGISRedMultiLayerSelection</name>
     <message>
-        <location filename="../tools/map_tools/qgisred_multilayerSelection.py" line="163"/>
+        <location filename="../tools/map_tools/qgisred_multilayerSelection.py" line="164"/>
         <source>Polygon not valid for selecting elements</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3319,7 +3314,7 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="646"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="648"/>
         <source>Warning</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3389,12 +3384,12 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="631"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="633"/>
         <source>Project name has been renamed to </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="633"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="635"/>
         <source>You need to select a project to change its name.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3409,17 +3404,17 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="640"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="642"/>
         <source>You need to select a project to move it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="646"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="648"/>
         <source>Current project can not be moved.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="707"/>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="709"/>
         <source>Project has been moved to </source>
         <translation type="unfinished"></translation>
     </message>
@@ -3500,17 +3495,17 @@ Left-click: Add a new item below the current selection</source>
 <context>
     <name>QGISRedRangeEditDialog</name>
     <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="23"/>
+        <location filename="../ui/project/qgisred_custom_dialogs.py" line="24"/>
         <source>Edit Range</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="46"/>
+        <location filename="../ui/project/qgisred_custom_dialogs.py" line="47"/>
         <source>{baseName} ({self.unitAbbreviation}):</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="47"/>
+        <location filename="../ui/project/qgisred_custom_dialogs.py" line="48"/>
         <source>{baseName}:</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3829,7 +3824,7 @@ Left-click: Add a new item below the current selection</source>
 <context>
     <name>QGISRedSelectPointTool</name>
     <message>
-        <location filename="../tools/map_tools/qgisred_selectPoint.py" line="139"/>
+        <location filename="../tools/map_tools/qgisred_selectPoint.py" line="140"/>
         <source>A not valid point was selected</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3837,7 +3832,7 @@ Left-click: Add a new item below the current selection</source>
 <context>
     <name>QGISRedStylingUtils</name>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="265"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="266"/>
         <source>{field} field not found in layer {layer.name()}</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3845,7 +3840,7 @@ Left-click: Add a new item below the current selection</source>
 <context>
     <name>QGISRedSymbolColorSelector</name>
     <message>
-        <location filename="../ui/project/qgisred_custom_dialogs.py" line="104"/>
+        <location filename="../ui/project/qgisred_custom_dialogs.py" line="105"/>
         <source>Click to pick a color.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3889,7 +3884,7 @@ Left-click: Add a new item below the current selection</source>
 <context>
     <name>TimeSeriesPlotWidget</name>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="94"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="95"/>
         <source>No data to display, please select an element on the map.</source>
         <translation type="unfinished"></translation>
     </message>

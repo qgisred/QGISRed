@@ -2,6 +2,7 @@
 import os
 
 from qgis.core import NULL
+from qgis.PyQt.QtCore import QCoreApplication
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 
 from .qgisred_results_binary import (
@@ -21,7 +22,7 @@ def seconds_to_time_str(seconds):
     return f"{d:02d}d {h:02d}:{m:02d}:{s:02d}"
 
 
-def _get_regional_separators():
+def get_regional_separators():
     """Return (list_separator, decimal_separator) from Windows regional settings, with fallback."""
     list_sep = ","
     decimal_sep = "."
@@ -37,11 +38,11 @@ def _get_regional_separators():
     return list_sep, decimal_sep
 
 
-def export_results_to_csv(project_directory, network_name, scenario, iface, lbl_permanent="Permanent"):
-    """Export all simulation time steps to two CSV files (Nodes and Links) in the Results folder."""
+def export_results_to_csv(binary_path, nodes_path, links_path, iface, list_sep, decimal_sep):
+    """Export all simulation time steps to two CSV files (Nodes and Links)."""
     import csv
 
-    list_sep, decimal_sep = _get_regional_separators()
+    lbl_permanent = QCoreApplication.translate("QGISRedResultsDock", "Permanent")
 
     def _fmt(value):
         if value is None or value == "":
@@ -50,8 +51,6 @@ def export_results_to_csv(project_directory, network_name, scenario, iface, lbl_
             return str(value).replace(".", decimal_sep)
         return value
 
-    results_path = os.path.join(project_directory, "Results")
-    binary_path = os.path.join(results_path, network_name + "_" + scenario + ".out")
     if not os.path.exists(binary_path):
         return
 
@@ -100,21 +99,19 @@ def export_results_to_csv(project_directory, network_name, scenario, iface, lbl_
             row += [_fmt(props.get(k)) for k in (link_props_keys or [])]
             link_rows.append(row)
 
-    nodes_csv = os.path.join(results_path, network_name + "_" + scenario + "_Nodes.csv")
-    with open(nodes_csv, "w", newline="", encoding="utf-8") as f:
+    with open(nodes_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f, delimiter=list_sep)
         writer.writerow(["Id", "Type", "Time"] + (node_props_keys or []))
         writer.writerows(node_rows)
 
-    links_csv = os.path.join(results_path, network_name + "_" + scenario + "_Links.csv")
-    with open(links_csv, "w", newline="", encoding="utf-8") as f:
+    with open(links_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f, delimiter=list_sep)
         writer.writerow(["Id", "Type", "Time"] + (link_props_keys or []))
         writer.writerows(link_rows)
 
     QGISRedUIUtils.showGlobalMessage(
         iface,
-        "Results exported to CSV in the Results folder",
+        "Results exported to CSV",
         level=3, duration=5
     )
 
@@ -303,10 +300,3 @@ class _ResultsDataMixin:
             # Apply visibility AFTER populating
             self.updateFieldsVisibility(target_layer, layerName, stats_mode=True, stat=stat_label)
 
-    def exportResultsToCsv(self):
-        """Export all simulation time steps to two CSV files (Nodes and Links) in the Results folder."""
-        scenario = getattr(self, 'Scenario', 'Base')
-        lbl_permanent = getattr(self, 'lbl_permanent', 'Permanent')
-        export_results_to_csv(
-            self.ProjectDirectory, self.NetworkName, scenario, self.iface, lbl_permanent
-        )

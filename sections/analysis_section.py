@@ -4,7 +4,7 @@
 import os
 
 from qgis.core import QgsRectangle
-from qgis.PyQt.QtWidgets import QApplication
+from qgis.PyQt.QtWidgets import QApplication, QDialog
 from qgis.PyQt.QtCore import Qt
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
@@ -13,7 +13,7 @@ from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool
 from ..ui.analysis.qgisred_results_dock import QGISRedResultsDock
 from ..ui.analysis.qgisred_timeseries_dock import QGISRedTimeSeriesDock
-from ..ui.analysis.qgisred_results_data import export_results_to_csv
+from ..ui.analysis.qgisred_results_data import export_results_to_csv, get_regional_separators
 
 
 class AnalysisSection:
@@ -165,9 +165,26 @@ class AnalysisSection:
             self.pushMessage(self.tr("No simulation results found"), level=1, duration=5)
             return
 
+        results_dir = os.path.join(self.ProjectDirectory, "Results")
+        base = "{}_{}".format(self.NetworkName, scenario)
+        default_nodes = os.path.join(results_dir, base + "_Nodes.csv")
+        default_links = os.path.join(results_dir, base + "_Links.csv")
+        list_sep, decimal_sep = get_regional_separators()
+        binary_path = self._outFilePath()
+        from ..ui.analysis.qgisred_export_csv_dialog import QGISRedExportCsvDialog
+        dlg = QGISRedExportCsvDialog(
+            default_nodes, default_links, list_sep, decimal_sep,
+            self.ProjectDirectory, parent=self.iface.mainWindow()
+        )
+        if dlg.exec() != QDialog.Accepted:
+            return
+
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         try:
-            export_results_to_csv(self.ProjectDirectory, self.NetworkName, scenario, self.iface, self.tr("Permanent"))
+            export_results_to_csv(
+                binary_path, dlg.nodes_path, dlg.links_path,
+                self.iface, dlg.list_sep, dlg.decimal_sep
+            )
         finally:
             QApplication.restoreOverrideCursor()
 
