@@ -156,3 +156,27 @@ try:
 except AttributeError:
     DIALOG_ACCEPTED = _QDialog.DialogCode.Accepted
     DIALOG_REJECTED = _QDialog.DialogCode.Rejected
+
+# ---------------------------------------------------------------------------
+# QLineEdit action position constants.
+# QGIS 3 / Qt5: QLineEdit.LeadingPosition / TrailingPosition (flat)
+# QGIS 4 / Qt6: QLineEdit.ActionPosition.LeadingPosition / TrailingPosition (scoped)
+# ---------------------------------------------------------------------------
+from qgis.PyQt.QtWidgets import QLineEdit as _QLineEdit
+
+try:
+    LINEEDIT_LEADING_POSITION  = _QLineEdit.LeadingPosition
+    LINEEDIT_TRAILING_POSITION = _QLineEdit.TrailingPosition
+except AttributeError:
+    LINEEDIT_LEADING_POSITION  = _QLineEdit.ActionPosition.LeadingPosition
+    LINEEDIT_TRAILING_POSITION = _QLineEdit.ActionPosition.TrailingPosition
+
+# ---------------------------------------------------------------------------
+# QgsVertexMarker icon type constants.
+# QGIS 3: QgsVertexMarker.ICON_TRIANGLE / ICON_CROSS / … (flat)
+# QGIS 4: QgsVertexMarker.IconType.ICON_TRIANGLE / … (scoped)
+# ---------------------------------------------------------------------------
+from qgis.gui import QgsVertexMarker as _QgsVertexMarker
+
+_vertex_icon_ns = getattr(_QgsVertexMarker, 'IconType', _QgsVertexMarker)
+VERTEX_ICON_TRIANGLE = getattr(_vertex_icon_ns, 'ICON_TRIANGLE', None)

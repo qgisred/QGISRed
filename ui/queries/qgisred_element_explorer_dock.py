@@ -9,6 +9,7 @@ from qgis.utils import iface
 from qgis.gui import QgsHighlight
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ..analysis.qgisred_results_dock import QGISRedResultsDock
+from ...compat import LINEEDIT_LEADING_POSITION
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_element_explorer_dock.ui"))
 
@@ -352,7 +353,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         
         if hasattr(self, 'leElementMask'):
             searchIcon = QIcon(":/images/iconFilter.svg")
-            self.leElementMask.addAction(searchIcon, QLineEdit.LeadingPosition)
+            self.leElementMask.addAction(searchIcon, LINEEDIT_LEADING_POSITION)
         
         comboStyle = """
             QComboBox { 

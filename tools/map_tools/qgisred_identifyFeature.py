@@ -5,7 +5,7 @@ from qgis.core import QgsProject, QgsVectorLayer
 from qgis.PyQt.QtCore import Qt, pyqtSignal
 from qgis.PyQt.QtGui import QColor
 from qgis.core import QgsPointXY, QgsProject, QgsSnappingConfig, QgsTolerance
-from ...compat import SNAP_TYPE_SEGMENT
+from ...compat import SNAP_TYPE_SEGMENT, VERTEX_ICON_TRIANGLE
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsMapCanvasSnappingUtils
 from ..utils.qgisred_styling_utils import create_combined_cursor
 
@@ -92,14 +92,14 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
         self.startMarker = QgsVertexMarker(self.canvas)
         self.startMarker.setColor(QColor(255, 87, 51))
         self.startMarker.setIconSize(15)
-        self.startMarker.setIconType(QgsVertexMarker.ICON_TRIANGLE) 
+        self.startMarker.setIconType(VERTEX_ICON_TRIANGLE) 
         self.startMarker.setPenWidth(3)
         self.startMarker.hide()
 
         self.endMarker = QgsVertexMarker(self.canvas)
         self.endMarker.setColor(QColor(0, 128, 0))
         self.endMarker.setIconSize(15)
-        self.endMarker.setIconType(QgsVertexMarker.ICON_TRIANGLE)
+        self.endMarker.setIconType(VERTEX_ICON_TRIANGLE)
         self.endMarker.setPenWidth(3)
         self.endMarker.hide()
         self.firstPoint = None
