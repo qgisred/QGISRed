@@ -275,20 +275,21 @@ class QGISRedFieldUtils:
                             continue
                         element   = line[0].strip()
                         fieldName = line[1].strip()
-                        prop      = line[3].strip()
-                        si_dec_s  = line[6].strip()
-                        us_dec_s  = line[9].strip()
+                        prop      = line[2].strip()
+                        si_dec_s  = line[5].strip()
+                        us_dec_s  = line[8].strip()
                         row = {
                             "element":         element,
                             "fieldName":       fieldName,
-                            "condition_value": line[2].strip(),
                             "property":        prop,
-                            "si_name":         line[4].strip(),
-                            "si_abbr":         line[5].strip(),
+                            "si_name":         line[3].strip(),
+                            "si_abbr":         line[4].strip(),
                             "si_dec":          int(si_dec_s) if si_dec_s.isdigit() else None,
-                            "us_name":         line[7].strip(),
-                            "us_abbr":         line[8].strip(),
+                            "us_name":         line[6].strip(),
+                            "us_abbr":         line[7].strip(),
                             "us_dec":          int(us_dec_s) if us_dec_s.isdigit() else None,
+                            "condition_value": line[9].strip()  if len(line) > 9  else "",
+                            "notes":           line[10].strip() if len(line) > 10 else "",
                         }
                         rows.append(row)
                         # prettyNames: primer match por (element_norm, fieldName)
@@ -379,12 +380,16 @@ class QGISRedFieldUtils:
         return abbr
 
     def _getMassAbbr(self):
-        """Return the mass unit prefix for the current project (e.g. 'mg' or 'ug').
+        """Return the mass unit abbreviation for the current project (e.g. 'mg' or 'ug').
 
-        Reads the concentration units stored in the project (e.g. 'mg/L', 'ug/L')
-        and returns the numerator part, which is the mass abbreviation.
+        Looks up the Global/Mass CSV row whose ConditionValue matches the project
+        concentration units (case-insensitive). Falls back to splitting the
+        concentration units string if no CSV row is found.
         """
         concUnits = self.getConcentrationUnits()
+        row = self._getRowByCondition("Global", "Mass", concUnits)
+        if row:
+            return row["si_abbr"] or row["us_abbr"]
         return concUnits.split("/")[0] if "/" in concUnits else concUnits
 
     def _getPressureFieldAbbr(self):

@@ -98,13 +98,13 @@ class TestResolveAbbr:
 
     def test_same_as_mass_mg(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
-            MockProj.instance.return_value = _make_project(concentration_units="mg/L")
+            MockProj.instance.return_value = _make_project(concentration_units="mg/l")
             assert fu._resolveAbbr("Same as Mass/L") == "mg/L"
 
     def test_same_as_mass_ug(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
-            MockProj.instance.return_value = _make_project(concentration_units="ug/L")
-            assert fu._resolveAbbr("Same as Mass/L") == "ug/L"
+            MockProj.instance.return_value = _make_project(concentration_units="µg/L")
+            assert fu._resolveAbbr("Same as Mass/L") == "µg/L"
 
     def test_same_as_mass_per_day(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
@@ -189,8 +189,8 @@ class TestGetMassAbbr:
 
     def test_ug(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
-            MockProj.instance.return_value = _make_project(concentration_units="ug/L")
-            assert fu._getMassAbbr() == "ug"
+            MockProj.instance.return_value = _make_project(concentration_units="µg/L")
+            assert fu._getMassAbbr() == "µg"
 
     def test_no_slash_returns_full(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
