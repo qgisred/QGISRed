@@ -1523,8 +1523,12 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             projectName = QgsProject.instance().baseName()
             activeCriteria = self.effectiveCriteria()
             queryLabel = self.tr("Query") if len(activeCriteria) == 1 else self.tr("Queries")
-            timeText = self.currentResultsTimeText.strip()
-            queryHeader = queryLabel + (f" @{timeText}" if timeText else "")
+            timeText = (self.currentResultsTimeText or self.labelResults.text() or "").strip()
+            statsProp = self.cbStatisticsFor.currentText()
+            hasDynamic = self.isResultProperty(statsProp) or any(
+                self.isResultProperty(c['property']) for c in activeCriteria
+            )
+            queryHeader = queryLabel + (f" @{timeText}" if timeText and hasDynamic else "")
 
             table = self.tableWidgetStatistics
             headers = [
