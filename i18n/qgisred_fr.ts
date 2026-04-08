@@ -3074,6 +3074,44 @@
     </message>
 </context>
 <context>
+    <name>QGISRedExportCsvDialog</name>
+    <message>
+        <location filename="../ui/analysis/qgisred_export_csv_dialog.ui" line="14"/>
+        <source>QGISRed: Export Results to CSV</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_export_csv_dialog.ui" line="24"/>
+        <source>Nodes file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_export_csv_dialog.ui" line="84"/>
+        <source>...</source>
+        <translation type="unfinished">...</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_export_csv_dialog.ui" line="59"/>
+        <source>Links file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_export_csv_dialog.ui" line="94"/>
+        <source>Format</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_export_csv_dialog.ui" line="100"/>
+        <source>List separator:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_export_csv_dialog.ui" line="110"/>
+        <source>Decimal separator:</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>QGISRedImportDialog</name>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="14"/>

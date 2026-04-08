@@ -62,6 +62,7 @@ FORMS = ui/general/qgisred_about_dialog.ui \
         ui/queries/qgisred_thematicmaps_dialog.ui \
         ui/analysis/qgisred_results_dock.ui \
         ui/analysis/qgisred_timeseries_dock.ui \
+        ui/analysis/qgisred_export_csv_dialog.ui \
         ui/debug/qgisred_toolConnectivity_dialog.ui \
         ui/debug/qgisred_toolLength_dialog.ui \
         ui/digitaltwin/qgisred_toolConnections_dialog.ui
