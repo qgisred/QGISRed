@@ -142,7 +142,7 @@
                 </Option>
                 <Option type="Map" name="outlineStyle">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(&quot;ElemType&quot;='SERVICECONNECTION', 'no', if(&quot;ElemType&quot;='PIPE', if( &quot;Status&quot;='OPEN', 'solid', if (&quot;Status&quot;='TO OPEN', null, 'no')), 'solid'))" type="QString" name="expression"/>
+                  <Option value="if(&quot;ElemType&quot;='SERVICECONNECTION', 'no', if(&quot;ElemType&quot;='PIPE', if( &quot;Status&quot;='INITIAL' OR &quot;Status&quot;='POSSIBLE', 'solid', if (&quot;Status&quot;='INITIAL' OR &quot;Status&quot;='POSSIBLE', null, 'no')), 'solid'))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
               </Option>
