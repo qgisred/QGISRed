@@ -142,6 +142,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         h = self.tableWidgetCriteria.horizontalHeader()
         h.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         h.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        self.multipleCriteriaComment.setPlaceholderText(self.tr("Optional comment for this set of criteria"))
 
         # set up statistics table (columns configured dynamically in calculateStatistics)
         # Start empty state at half default height; grows to fit content later
@@ -1421,9 +1422,12 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         try:
             projectName = QgsProject.instance().baseName()
             elementType = self.cbElementType.currentText()
+            comment = self.multipleCriteriaComment.text().strip() if self.radioMultipleCriteria.isChecked() else ""
             with open(fname, 'w', encoding='utf-8') as f:
                 f.write(f";{projectName}\n")
                 f.write(f"{elementType}\n")
+                if comment:
+                    f.write(f";;{comment}\n")
                 for c in self.effectiveCriteria():
                     prefix = "" if c.get('enabled', True) else "#"
                     op = c['operator']
@@ -1458,8 +1462,12 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                     self.cbElementType.setCurrentIndex(i)
                     break
             parsedCriteria = []
+            importedComment = ''
             for line in lines[2:]:
                 if not line.strip():
+                    continue
+                if line.startswith(';;'):
+                    importedComment = line[2:].strip()
                     continue
                 enabled = True
                 if line.startswith('#'):
@@ -1498,6 +1506,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             if useSingle and parsedCriteria:
                 c = parsedCriteria[0]
                 self.radioSingleCriteria.setChecked(True)
+                self.multipleCriteriaComment.setText('')
                 propIdx = self.cbProperty.findText(c['property'])
                 if propIdx >= 0:
                     self.cbProperty.setCurrentIndex(propIdx)
@@ -1508,6 +1517,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             else:
                 self.radioMultipleCriteria.setChecked(True)
                 self.criteria = parsedCriteria
+                self.multipleCriteriaComment.setText(importedComment)
                 self.reloadCriteriaTable()
         except Exception as e:
             QMessageBox.critical(self, self.tr("Import failed"), str(e))
@@ -1553,6 +1563,9 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                         f.write(f"{op} {prop}\n")
                     else:
                         f.write(f"{op} {prop} {cond} {val}\n")
+                comment = self.multipleCriteriaComment.text().strip() if self.radioMultipleCriteria.isChecked() else ""
+                if comment:
+                    f.write(f"Comment: {comment}\n")
                 f.write("\n")
                 writer.writerow(headers)
                 for row in range(table.rowCount()):
