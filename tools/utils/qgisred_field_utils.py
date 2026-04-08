@@ -273,21 +273,22 @@ class QGISRedFieldUtils:
                         if len(line) < 9 or not line[0].strip():
                             continue
                         element   = line[0].strip()
-                        prop      = line[1].strip()
-                        fieldName = line[2].strip()
+                        fieldName = line[1].strip()
+                        prop      = line[2].strip()
                         si_dec_s  = line[5].strip()
                         us_dec_s  = line[8].strip()
                         row = {
-                            "element":   element,
-                            "property":  prop,
-                            "fieldName": fieldName,
-                            "si_name":   line[3].strip(),
-                            "si_abbr":   line[4].strip(),
-                            "si_dec":    int(si_dec_s) if si_dec_s.isdigit() else None,
-                            "us_name":   line[6].strip(),
-                            "us_abbr":   line[7].strip(),
-                            "us_dec":    int(us_dec_s) if us_dec_s.isdigit() else None,
-                            "notes":     line[9].strip() if len(line) > 9 else "",
+                            "element":         element,
+                            "property":        prop,
+                            "fieldName":       fieldName,
+                            "si_name":         line[3].strip(),
+                            "si_abbr":         line[4].strip(),
+                            "si_dec":          int(si_dec_s) if si_dec_s.isdigit() else None,
+                            "us_name":         line[6].strip(),
+                            "us_abbr":         line[7].strip(),
+                            "us_dec":          int(us_dec_s) if us_dec_s.isdigit() else None,
+                            "condition_value": line[10].strip() if len(line) > 10 else "",
+                            "notes":           line[11].strip() if len(line) > 11 else "",
                         }
                         rows.append(row)
                         # prettyNames: primer match por (element_norm, fieldName)
@@ -317,6 +318,33 @@ class QGISRedFieldUtils:
                 return row
         return {}
 
+    def _getRowByCondition(self, element, fieldName, conditionValue):
+        """Return the CSV row matching (element, fieldName, conditionValue).
+
+        Within a given (element, fieldName) pair, conditionValue is always unique,
+        so no conditionType discriminator is needed.
+        Falls back to the first unconditional row for that (element, fieldName), then
+        to _getFirstRow(), so callers always get a usable result even for unknown values.
+        FieldName comparison is case-insensitive to tolerate minor CSV inconsistencies.
+        """
+        normEl = element.replace(" ", "").lower()
+        cvLow  = conditionValue.lower()
+        for row in self.loadUnitDefinitions().get("rows", []):
+            if row["element"].replace(" ", "").lower() != normEl:
+                continue
+            if row["fieldName"].lower() != fieldName.lower():
+                continue
+            if row["condition_value"].lower() == cvLow:
+                return row
+        # Fallback 1: first unconditional row (condition_value is empty)
+        for row in self.loadUnitDefinitions().get("rows", []):
+            if (row["element"].replace(" ", "").lower() == normEl
+                    and row["fieldName"].lower() == fieldName.lower()
+                    and not row["condition_value"]):
+                return row
+        # Fallback 2: absolute first match
+        return self._getFirstRow(element, fieldName)
+
     def _getFirstRowByProperty(self, element, propertyName):
         """Return first CSV row matching (element, property display name), case-insensitive."""
         normEl = element.replace(" ", "").lower()
@@ -332,24 +360,49 @@ class QGISRedFieldUtils:
         row = self._getFirstRow(element, fieldName) or self._getFirstRowByProperty(element, fieldName)
         if not row:
             return ""
-        name = row["si_name"] if unitSystem == "SI" else row["us_name"]
-        if name == "Same as Flow":
-            return self._getFlowFieldAbbr()
         abbr = row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
-        return abbr if abbr and name not in ("Text", "") else ""
+        if abbr == "Same as Flow":
+            return self._getFlowFieldAbbr()
+        if abbr == "Same as Pressure":
+            return self._getPressureFieldAbbr()
+        if abbr and abbr.startswith("Same as Mass"):
+            return abbr.replace("Same as Mass", self._getMassAbbr())
+        return abbr if abbr else ""
+
+    def _getMassAbbr(self):
+        """Return the mass unit prefix for the current project (e.g. 'mg' or 'ug').
+
+        Reads the concentration units stored in the project (e.g. 'mg/L', 'ug/L')
+        and returns the numerator part, which is the mass abbreviation.
+        """
+        concUnits = self.getConcentrationUnits()
+        return concUnits.split("/")[0] if "/" in concUnits else concUnits
+
+    def _getPressureFieldAbbr(self):
+        """Return the pressure unit abbreviation for the current project.
+
+        Defaults to METERS (SI) or PSI (US) until the exact pressure unit setting
+        is exposed from the native library.
+        """
+        unitSystem = self.getUnits()
+        condVal = "METERS" if unitSystem == "SI" else "PSI"
+        row = self._getRowByCondition("Nodes", "Pressure", condVal)
+        if row:
+            return row["si_abbr"] or row["us_abbr"]
+        return self._lookupFieldAbbr("Nodes", "Pressure", unitSystem)
 
     def _getFlowFieldAbbr(self):
-        """Return the exact flow unit abbreviation for the current project (e.g. lpm, gpm)."""
+        """Return the exact flow unit abbreviation for the current project (e.g. lpm, gpm).
+
+        The CSV has one row per flow unit (not SI+US in the same row), with ConditionValue
+        equal to the EPANET unit code (LPS, GPM, MLD, etc.). The non-empty abbr in that
+        row is the abbreviation to display.
+        """
         flowUnit, _ = QgsProject.instance().readEntry("QGISRed", "project_units", "LPS")
-        flowUnitUpper = flowUnit.upper()
-        unitSystem = self.getUnits()
-        for row in self.loadUnitDefinitions().get("rows", []):
-            if row["element"] != "Links" or row["fieldName"] != "Flow":
-                continue
-            if flowUnitUpper in row["notes"].upper():
-                abbr = row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
-                return abbr if abbr else row["si_abbr"]  # CMS has no us_abbr
-        return self._lookupFieldAbbr("Links", "Flow", unitSystem)
+        row = self._getRowByCondition("Links", "Flow", flowUnit)
+        if row:
+            return row["si_abbr"] or row["us_abbr"]
+        return self._lookupFieldAbbr("Links", "Flow", self.getUnits())
 
     def getUnits(self):
         units, ok = QgsProject.instance().readEntry("QGISRed", "project_units", "LPS")
@@ -364,9 +417,9 @@ class QGISRedFieldUtils:
         else:
             return 'SI'
 
-    def getMassUnits(self):
+    def getConcentrationUnits(self):
         """Returns concentration units string, e.g. 'mg/L' or 'µg/L'."""
-        units, _ = QgsProject.instance().readEntry("QGISRed", "project_massunits", "mg/L")
+        units, _ = QgsProject.instance().readEntry("QGISRed", "project_concentrationunits", "mg/L")
         return units
 
     def getUnitAbbreviationForLayer(self, layerIdentifier):
@@ -405,15 +458,7 @@ class QGISRedFieldUtils:
             return self._getFlowFieldAbbr()
 
         unitSystem = self.getUnits()
-        abbr = self._lookupFieldAbbr(element, fieldName, unitSystem)
-
-        # Fallback for "Same as Flow" fields (Demand, etc.)
-        if not abbr:
-            row = self._getFirstRow(element, fieldName)
-            name = row.get("si_name" if unitSystem == "SI" else "us_name", "")
-            if name == "Same as Flow":
-                return self._getFlowFieldAbbr()
-        return abbr
+        return self._lookupFieldAbbr(element, fieldName, unitSystem)
 
     def getFieldUnit(self, elementCategory, fieldName):
         """Get the unit abbreviation for a field based on element category and field name."""
@@ -427,13 +472,14 @@ class QGISRedFieldUtils:
         if not row:
             return ""
 
-        name = row["si_name"] if unitSystem == "SI" else row["us_name"]
-        # "Same as Flow" → exact project flow unit
-        if name == "Same as Flow":
-            return self._getFlowFieldAbbr()
-
         abbr = row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
-        return abbr if abbr and name not in ("Text", "") else ""
+        if abbr == "Same as Flow":
+            return self._getFlowFieldAbbr()
+        if abbr == "Same as Pressure":
+            return self._getPressureFieldAbbr()
+        if abbr and abbr.startswith("Same as Mass"):
+            return abbr.replace("Same as Mass", self._getMassAbbr())
+        return abbr if abbr else ""
 
     def getFieldUnitFullName(self, elementCategory, fieldName):
         """Get the full unit name for a field (for tooltips)."""

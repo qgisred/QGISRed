@@ -1103,7 +1103,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         # Get quality model settings for quality-related unit handling
         qualityModel = utils.getQualityModel()
-        massUnits = utils.getMassUnits()
+        massUnits = utils.getConcentrationUnits()
 
         displayRow = 0
         for field_idx, field in enumerate(fields):
@@ -2472,7 +2472,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
             utils = QGISRedFieldUtils()
             qualityModel = utils.getQualityModel()
-            massUnits = utils.getMassUnits()
+            massUnits = utils.getConcentrationUnits()
             for row, fieldName in enumerate(displayFields):
                 value = matchedFeature.attribute(fieldName)
 

@@ -192,7 +192,7 @@ class ProjectManagementSection:
         units = "LPS"
         headloss = "D-W"
         qualityModel = "Chemical"
-        massUnits = "mg/L"
+        concentrationUnits = "mg/L"
         statistics = "None"
         if self.ProjectDirectory == "Temporal Folder":
             return
@@ -205,15 +205,15 @@ class ProjectManagementSection:
                 headloss = attrs[2]
             if attrs[1].upper() == "QUALITY TYPE":
                 qualityModel = attrs[2]
-            if attrs[1].upper() == "MASSUNITS":
-                massUnits = attrs[2]
+            if attrs[1].upper() == "CONCENTRATION UNITS":
+                concentrationUnits = attrs[2]
             if attrs[1].upper() == "STATISTIC":
                 statistics = attrs[2]
 
         QgsProject.instance().writeEntry("QGISRed", "project_units", units)
         QgsProject.instance().writeEntry("QGISRed", "project_headloss", headloss)
         QgsProject.instance().writeEntry("QGISRed", "project_qualitymodel", qualityModel)
-        QgsProject.instance().writeEntry("QGISRed", "project_massunits", massUnits)
+        QgsProject.instance().writeEntry("QGISRed", "project_concentrationunits", concentrationUnits)
         QgsProject.instance().writeEntry("QGISRed", "project_statistics", statistics)
 
         del dbf
