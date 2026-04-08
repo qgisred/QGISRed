@@ -267,28 +267,27 @@ class QGISRedFieldUtils:
         if os.path.exists(csvPath):
             try:
                 with open(csvPath, 'r', encoding='utf-8-sig', errors='replace') as f:
-                    reader = _csv.reader(f, delimiter=';')
+                    reader = _csv.reader(f, delimiter=',')
                     next(reader)  # skip header
                     for line in reader:
                         if len(line) < 9 or not line[0].strip():
                             continue
                         element   = line[0].strip()
                         fieldName = line[1].strip()
-                        prop      = line[2].strip()
-                        si_dec_s  = line[5].strip()
-                        us_dec_s  = line[8].strip()
+                        prop      = line[3].strip()
+                        si_dec_s  = line[6].strip()
+                        us_dec_s  = line[9].strip()
                         row = {
                             "element":         element,
-                            "property":        prop,
                             "fieldName":       fieldName,
-                            "si_name":         line[3].strip(),
-                            "si_abbr":         line[4].strip(),
+                            "condition_value": line[2].strip(),
+                            "property":        prop,
+                            "si_name":         line[4].strip(),
+                            "si_abbr":         line[5].strip(),
                             "si_dec":          int(si_dec_s) if si_dec_s.isdigit() else None,
-                            "us_name":         line[6].strip(),
-                            "us_abbr":         line[7].strip(),
+                            "us_name":         line[7].strip(),
+                            "us_abbr":         line[8].strip(),
                             "us_dec":          int(us_dec_s) if us_dec_s.isdigit() else None,
-                            "condition_value": line[10].strip() if len(line) > 10 else "",
-                            "notes":           line[11].strip() if len(line) > 11 else "",
                         }
                         rows.append(row)
                         # prettyNames: primer match por (element_norm, fieldName)
