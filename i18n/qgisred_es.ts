@@ -1597,8 +1597,8 @@
     </message>
     <message>
         <location filename="../sections/project_management_section.py" line="559"/>
-        <source>QGIS Projects (*.qgs *.qgz)</source>
-        <translation>Proyectos de QGIS (*.qgs *.qgz)</translation>
+        <source>QGIS Projects (*.qgz *.qgs)</source>
+        <translation>Proyectos de QGIS (*.qgz *.qgs)</translation>
     </message>
     <message>
         <location filename="../sections/project_management_section.py" line="44"/>

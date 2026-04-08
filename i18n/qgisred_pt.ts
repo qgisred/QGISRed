@@ -1818,7 +1818,7 @@
     </message>
     <message>
         <location filename="../sections/project_management_section.py" line="559"/>
-        <source>QGIS Projects (*.qgs *.qgz)</source>
+        <source>QGIS Projects (*.qgz *.qgs)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

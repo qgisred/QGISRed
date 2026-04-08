@@ -555,9 +555,9 @@ class ProjectManagementSection:
         self.defineCurrentProject()
         if self.ProjectDirectory != self.TemporalFolder and not QgsProject.instance().fileName():
             from qgis.PyQt.QtWidgets import QFileDialog
-            suggested = os.path.join(self.ProjectDirectory, self.NetworkName + ".qgs")
+            suggested = os.path.join(self.ProjectDirectory, self.NetworkName + ".qgz")
             path, _ = QFileDialog.getSaveFileName(
-                None, self.tr("Save QGIS project"), suggested, self.tr("QGIS Projects (*.qgs *.qgz)")
+                None, self.tr("Save QGIS project"), suggested, self.tr("QGIS Projects (*.qgz *.qgs)")
             )
             if path:
                 QgsProject.instance().write(path)
