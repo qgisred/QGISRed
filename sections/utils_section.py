@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Utility helper methods for QGISRed."""
 
-from qgis.core import QgsCoordinateTransform, QgsProject
+from qgis.core import QgsCoordinateTransform, QgsProject, QgsRectangle
 from qgis.PyQt.QtGui import QCursor
 from ctypes import windll
 
@@ -140,17 +140,60 @@ class UtilsSection:
         layers = self.getLayers()
         layer = None
 
-        layer_identifier = f"qgisred_{layerName.lower()}"
+        # Robust identifier resolution (handling singular/plural and spaces)
+        mapping = {
+            'pipe': 'qgisred_pipes',
+            'junction': 'qgisred_junctions',
+            'demand': 'qgisred_demands',
+            'reservoir': 'qgisred_reservoirs',
+            'tank': 'qgisred_tanks',
+            'pump': 'qgisred_pumps',
+            'valve': 'qgisred_valves',
+            'source': 'qgisred_sources',
+            'serviceconnection': 'qgisred_serviceconnections',
+            'isolationvalve': 'qgisred_isolationvalves',
+            'meter': 'qgisred_meters'
+        }
+        
+        normalized_name = layerName.lower().replace(" ", "")
+        target_id = mapping.get(normalized_name, f"qgisred_{normalized_name}")
 
         for la in layers:
-            if la.customProperty("qgisred_identifier") == layer_identifier:
+            found_id = la.customProperty("qgisred_identifier")
+            if found_id == target_id:
                 layer = la
                 break
 
         if layer:
-            features = layer.getFeatures('"Id"=\'' + elementId + "'")
+            # elementId is the user-facing "Id" field
+            features = layer.getFeatures(f'"Id" = \'{elementId}\'')
             for feat in features:
-                box = feat.geometry().boundingBox()
+                # Select feature for visual feedback
+                layer.selectByIds([feat.id()])
+
+                geom = feat.geometry()
+                if geom.isNull():
+                    continue
+
+                box = geom.boundingBox()
+
+                # Compute a canvas-relative buffer: 10% of the current canvas extent.
+                # This keeps the zoom proportional for both large and small networks.
+                canvas_extent = self.iface.mapCanvas().extent()
+                buffer = max(canvas_extent.width(), canvas_extent.height()) * 0.10
+
+                if box.width() == 0 or box.height() == 0:
+                    # Point feature: center the view with the adaptive buffer
+                    center = box.center()
+                    box = QgsRectangle(
+                        center.x() - buffer, center.y() - buffer,
+                        center.x() + buffer, center.y() + buffer
+                    )
+                else:
+                    # Line/polygon feature: expand the bounding box by the same buffer
+                    # so the feature is never shown edge-to-edge of the canvas
+                    box.grow(buffer * 0.15)
+
                 self.iface.mapCanvas().setExtent(box)
                 self.iface.mapCanvas().refresh()
                 return
