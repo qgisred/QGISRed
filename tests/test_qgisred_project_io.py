@@ -221,16 +221,20 @@ class TestProjectIO:
         finally:
             shutil.rmtree(dst)
 
-    def test_processProjectFiles_copies_layerstyles(self, io_utils, temp_project_dir):
+    def test_processProjectFiles_recurses_subdirectory(self, io_utils, temp_project_dir):
         src = temp_project_dir
         dst = tempfile.mkdtemp()
         try:
-            ls_dir = os.path.join(src, "layerstyles")
-            os.makedirs(ls_dir)
-            open(os.path.join(ls_dir, "style.qml"), "w").close()
+            sub_dir = os.path.join(src, "subdir")
+            os.makedirs(sub_dir)
+            open(os.path.join(sub_dir, "oldNet_data.txt"), "w").close()
+            open(os.path.join(sub_dir, "other.txt"), "w").close()
             with patch.object(QGISRedProjectIO, '_fs', return_value=self._make_mock_fs()):
                 io_utils.processProjectFiles(src, "oldNet", "newNet", dst)
-            assert os.path.exists(os.path.join(dst, "layerstyles", "style.qml"))
+            # Prefixed file inside subdir gets renamed
+            assert os.path.exists(os.path.join(dst, "subdir", "newNet_data.txt"))
+            # Non-prefixed file is not copied
+            assert not os.path.exists(os.path.join(dst, "subdir", "other.txt"))
         finally:
             shutil.rmtree(dst)
 

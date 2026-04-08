@@ -221,7 +221,7 @@ class QGISRedProjectIO:
         return None
 
     def processProjectFiles(self, folder, oldName, newName, targetDir, deleteSource=False, excludeDirs=None):
-        """Copies/moves project files (oldName_*) and layerStyles recursively to targetDir."""
+        """Copies/moves project files (oldName_*) recursively to targetDir, renaming any file that starts with oldName_."""
         if excludeDirs is None:
             excludeDirs = []
         folder = self._fs().getUniformedPath(folder)
@@ -239,30 +239,18 @@ class QGISRedProjectIO:
                 except Exception:
                     pass
             elif os.path.isdir(filepath):
-                if f.lower() == "layerstyles":
+                if f.lower() in [d.lower() for d in excludeDirs]:
+                    continue
+                subTarget = os.path.join(targetDir, f)
+                if self._fs().getUniformedPath(folder) != self._fs().getUniformedPath(targetDir):
+                     os.makedirs(subTarget, exist_ok=True)
+                self.processProjectFiles(filepath, oldName, newName, subTarget, deleteSource, excludeDirs)
+                if deleteSource:
                     try:
-                        destLayerStyles = os.path.join(targetDir, f)
-                        if self._fs().getUniformedPath(filepath) != self._fs().getUniformedPath(destLayerStyles):
-                            if os.path.exists(destLayerStyles):
-                                shutil.rmtree(destLayerStyles)
-                            shutil.copytree(filepath, destLayerStyles)
-                            if deleteSource:
-                                shutil.rmtree(filepath)
+                        if not os.listdir(filepath):
+                            os.rmdir(filepath)
                     except Exception:
                         pass
-                else:
-                    if f.lower() in [d.lower() for d in excludeDirs]:
-                        continue
-                    subTarget = os.path.join(targetDir, f)
-                    if self._fs().getUniformedPath(folder) != self._fs().getUniformedPath(targetDir):
-                         os.makedirs(subTarget, exist_ok=True)
-                    self.processProjectFiles(filepath, oldName, newName, subTarget, deleteSource, excludeDirs)
-                    if deleteSource:
-                        try:
-                            if not os.listdir(filepath):
-                                os.rmdir(filepath)
-                        except Exception:
-                            pass
         if deleteSource:
             try:
                 if self._fs().getUniformedPath(folder) != self._fs().getUniformedPath(targetDir) and not os.listdir(folder):
