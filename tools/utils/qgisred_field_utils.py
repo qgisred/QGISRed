@@ -376,8 +376,14 @@ class QGISRedFieldUtils:
             abbr = abbr.replace("Same as Flow", self._getFlowFieldAbbr())
             abbr = abbr.replace("Same as Pressure", self._getPressureFieldAbbr())
             abbr = abbr.replace("Same as Mass", self._getMassAbbr())
+            abbr = abbr.replace("Same as Currency", self._getCurrencyAbbr())
         abbr = re.sub(r'sqr\(([^)]+)\)', r'√\1', abbr)
         return abbr
+
+    def _getCurrencyAbbr(self):
+        """Return the currency abbreviation (first Global/Currency row in the CSV)."""
+        row = self._getFirstRow("Global", "Currency")
+        return row.get("si_abbr") or row.get("us_abbr") or ""
 
     def _getMassAbbr(self):
         """Return the mass unit abbreviation for the current project (e.g. 'mg' or 'ug').
