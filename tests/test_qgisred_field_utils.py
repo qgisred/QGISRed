@@ -192,10 +192,24 @@ class TestGetMassAbbr:
             MockProj.instance.return_value = _make_project(concentration_units="µg/L")
             assert fu._getMassAbbr() == "µg"
 
-    def test_no_slash_returns_full(self, fu):
+    def test_uses_si_abbr_for_si_project(self, fu):
+        fake_row = {"si_abbr": "mg_si", "us_abbr": "mg_us", "condition_value": "mg/L"}
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
-            MockProj.instance.return_value = _make_project(concentration_units="mg")
-            assert fu._getMassAbbr() == "mg"
+            MockProj.instance.return_value = _make_project("LPS", "mg/L")
+            with patch.object(fu, "_getRowByCondition", return_value=fake_row):
+                assert fu._getMassAbbr() == "mg_si"
+
+    def test_uses_us_abbr_for_us_project(self, fu):
+        fake_row = {"si_abbr": "mg_si", "us_abbr": "mg_us", "condition_value": "mg/L"}
+        with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project("GPM", "mg/L")
+            with patch.object(fu, "_getRowByCondition", return_value=fake_row):
+                assert fu._getMassAbbr() == "mg_us"
+
+    def test_unknown_concentration_returns_empty(self, fu):
+        with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project(concentration_units="unknown/L")
+            assert fu._getMassAbbr() == ""
 
 
 # ---------------------------------------------------------------------------
@@ -334,3 +348,28 @@ class TestGetResultPropertyUnit:
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project()
             assert fu.getResultPropertyUnit("Node", "Unknown") == ""
+
+
+# ---------------------------------------------------------------------------
+# _getCurrencyAbbr — unitSystem branch
+# ---------------------------------------------------------------------------
+class TestGetCurrencyAbbr:
+    def test_uses_si_abbr_for_si_project(self, fu):
+        fake_row = {"si_abbr": "$_si", "us_abbr": "$_us"}
+        with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project("LPS")
+            with patch.object(fu, "_getFirstRow", return_value=fake_row):
+                assert fu._getCurrencyAbbr() == "$_si"
+
+    def test_uses_us_abbr_for_us_project(self, fu):
+        fake_row = {"si_abbr": "$_si", "us_abbr": "$_us"}
+        with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project("GPM")
+            with patch.object(fu, "_getFirstRow", return_value=fake_row):
+                assert fu._getCurrencyAbbr() == "$_us"
+
+    def test_no_row_returns_empty(self, fu):
+        with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project()
+            with patch.object(fu, "_getFirstRow", return_value={}):
+                assert fu._getCurrencyAbbr() == ""

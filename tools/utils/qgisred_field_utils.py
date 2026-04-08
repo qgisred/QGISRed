@@ -383,7 +383,10 @@ class QGISRedFieldUtils:
     def _getCurrencyAbbr(self):
         """Return the currency abbreviation (first Global/Currency row in the CSV)."""
         row = self._getFirstRow("Global", "Currency")
-        return row.get("si_abbr") or row.get("us_abbr") or ""
+        if not row:
+            return ""
+        unitSystem = self.getUnits()
+        return row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
 
     def _getMassAbbr(self):
         """Return the mass unit abbreviation for the current project (e.g. 'mg' or 'ug').
@@ -394,9 +397,10 @@ class QGISRedFieldUtils:
         """
         concUnits = self.getConcentrationUnits()
         row = self._getRowByCondition("Global", "Mass", concUnits)
-        if row:
-            return row["si_abbr"] or row["us_abbr"]
-        return concUnits.split("/")[0] if "/" in concUnits else concUnits
+        if row and row["condition_value"].lower() == concUnits.lower():
+            unitSystem = self.getUnits()
+            return row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
+        return ""
 
     def _getPressureFieldAbbr(self):
         """Return the pressure unit abbreviation for the current project.
