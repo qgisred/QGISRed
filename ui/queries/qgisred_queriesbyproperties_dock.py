@@ -522,10 +522,11 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             'unithdloss', 'fricfactor', 'reactrate', 'quality',
             'pressure', 'head', 'demand', 'status'
         }
-        tagFieldsLower = {'tag', 'descrip'}
+        idTagFieldsLower = {'id', 'tag', 'descrip'}
+        idTagOrder = ['id', 'tag', 'descrip']
 
         staticFields = []
-        tagFields = []
+        idTagFieldsByKey = {}
         for field in layer.fields():
             fn = field.name()
             fnl = fn.lower()
@@ -533,16 +534,26 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 continue
             if self.isResultsMode and fnl in resultsFieldsLower:
                 continue
-            if fnl in tagFieldsLower:
-                tagFields.append(field)
+            if fnl in idTagFieldsLower:
+                idTagFieldsByKey[fnl] = field
             else:
                 staticFields.append(field)
+        idTagFields = [idTagFieldsByKey[k] for k in idTagOrder if k in idTagFieldsByKey]
 
         orangeBrush = QBrush(QColor("#FFE0B2"))
+        darkBrush = QBrush(QColor("#D8D8D8"))
         resultProps = self.getResultProperties(layer, qrIdent)
         numericResultProps = [p for p in resultProps if p != 'Status']
 
-        # Group 1: Static properties
+        # Group 1: Id / Tag / Description (dark background)
+        if idTagFields:
+            for field in idTagFields:
+                self.cbProperty.addItem(field.name())
+                self.cbProperty.setItemData(self.cbProperty.count() - 1, darkBrush, Qt.BackgroundRole)
+            if staticFields or resultProps:
+                self.cbProperty.insertSeparator(self.cbProperty.count())
+
+        # Group 2: Static properties
         for field in staticFields:
             self.cbProperty.addItem(field.name())
             cat = self.fieldTypeMapping.get(field.typeName().lower(), 'text')
@@ -561,14 +572,6 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 for prop in numericResultProps:
                     self.cbStatisticsFor.addItem(prop)
                     self.cbStatisticsFor.setItemData(self.cbStatisticsFor.count() - 1, orangeBrush, Qt.BackgroundRole)
-
-        # Group 3: Tag / Description (dark background)
-        if tagFields:
-            self.cbProperty.insertSeparator(self.cbProperty.count())
-            darkBrush = QBrush(QColor("#D8D8D8"))
-            for field in tagFields:
-                self.cbProperty.addItem(field.name())
-                self.cbProperty.setItemData(self.cbProperty.count() - 1, darkBrush, Qt.BackgroundRole)
 
         if self.cbProperty.count():
             self.updateConditions()
