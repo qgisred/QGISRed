@@ -12,7 +12,7 @@ Pipes;Leak Expansion Rate;LeakExpRat;sq mm per unit press;mm2/pressure;2;sq mm p
 Pipes;Initial Status;IniStatus;Text;;;Text;;;;;;;
 Pipes;Bulk Coefficient;BulkCoeff;Per day;1/day;2;Per day;1/day;2;1st order (according to Project bulk order);;;;
 Pipes;Wall Coefficient;WallCoeff;mass/L/day;massunits/L/day;3;Mass/L/day;massunits/L/day;3;0 order  (according to Project wall order & mass units);;;;
-Pipes;Wall Coefficient;Wall Coefficient;Per day;1/day;2;Per day;1/day;2;1st order (according to Project bulk order);;;;
+Pipes;Wall Coefficient;WallCoeff;Per day;1/day;2;Per day;1/day;2;1st order (according to Project bulk order);;;;
 Pipes;Tag;Tag;Text;;;Text;;;;;;;
 Pipes;Description;Descrip;Text;;;Text;;;;;;;
 Valves;Identifier;Id;Text;;;Text;;;;;;;
