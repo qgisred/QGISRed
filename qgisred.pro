@@ -43,6 +43,7 @@ SOURCES = qgisred.py \
           ui/queries/qgisred_thematicmaps_dialog.py \
           ui/analysis/qgisred_results_dock.py \
           ui/analysis/qgisred_timeseries_dock.py \
+          ui/analysis/qgisred_export_csv_dialog.py \
           ui/debug/qgisred_toolConnectivity_dialog.py \
           ui/debug/qgisred_toolLength_dialog.py \
           ui/digitaltwin/qgisred_toolConnections_dialog.py

@@ -2161,6 +2161,36 @@
         <source>Decimal separator:</source>
         <translation>Separador decimal:</translation>
     </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_export_csv_dialog.py" line="25"/>
+        <source>; (semicolon)</source>
+        <translation>; (punto y coma)</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_export_csv_dialog.py" line="27"/>
+        <source>, (comma)</source>
+        <translation>, (coma)</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_export_csv_dialog.py" line="25"/>
+        <source>Tab</source>
+        <translation>Tabulador</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_export_csv_dialog.py" line="25"/>
+        <source>Space</source>
+        <translation>Espacio</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_export_csv_dialog.py" line="27"/>
+        <source>. (period)</source>
+        <translation>. (punto)</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_export_csv_dialog.py" line="78"/>
+        <source>Select CSV file</source>
+        <translation>Seleccionar archivo CSV</translation>
+    </message>
 </context>
 <context>
     <name>QGISRedImportDialog</name>
