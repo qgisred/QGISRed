@@ -3118,7 +3118,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not name:
             return
 
-        filename = name.replace(" ", "") + ".qml"
+        filename = name.replace(" ", "") + ".qml" if globalStyle else self.getProjectStyleFilename(name)
         folder = self.getStyleFolder(globalStyle)
 
         if not folder:
@@ -3162,7 +3162,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not name:
             return
 
-        filename = name.replace(" ", "") + ".qml"
+        filename = self.getProjectStyleFilename(name)
         projectDir = self.getProjectDirectoryFromUtils()
 
         if not projectDir:
@@ -3217,6 +3217,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if self.utils:
             return self.utils.identifierToElementName.get(identifier)
         return QGISRedIdentifierUtils().identifierToElementName.get(identifier)
+
+    def getProjectStyleFilename(self, name):
+        base = name.replace(" ", "")
+        if self.networkName:
+            return f"{self.networkName}_{base}.qml"
+        return base + ".qml"
 
     def getStyleFolder(self, globalStyle):
         if globalStyle:
