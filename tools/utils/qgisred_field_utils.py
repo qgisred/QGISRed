@@ -332,8 +332,10 @@ class QGISRedFieldUtils:
         row = self._getFirstRow(element, fieldName) or self._getFirstRowByProperty(element, fieldName)
         if not row:
             return ""
-        abbr = row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
         name = row["si_name"] if unitSystem == "SI" else row["us_name"]
+        if name == "Same as Flow":
+            return self._getFlowFieldAbbr()
+        abbr = row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
         return abbr if abbr and name not in ("Text", "") else ""
 
     def _getFlowFieldAbbr(self):
