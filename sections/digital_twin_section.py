@@ -7,7 +7,7 @@ from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtCore import Qt
 
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
-from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool
+from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool, SelectPointType
 from ..tools.map_tools.qgisred_createConnection import QGISRedCreateConnectionTool
 from ..ui.digitaltwin.qgisred_toolConnections_dialog import QGISRedServiceConnectionsToolDialog
 
@@ -57,7 +57,7 @@ class DigitalTwinSection:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.addIsolationValveButton.setChecked(False)
         else:
-            self.myMapTools[tool] = QGISRedSelectPointTool(self.addIsolationValveButton, self, self.runAddIsolationValve, 2, cursor=":/images/iconAddIsolationValve.svg")
+            self.myMapTools[tool] = QGISRedSelectPointTool(self.addIsolationValveButton, self, self.runAddIsolationValve, SelectPointType.Line, cursor=":/images/iconAddIsolationValve.svg")
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runAddIsolationValve(self, point):
@@ -87,7 +87,7 @@ class DigitalTwinSection:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             action.setChecked(False)
         else:
-            self.myMapTools[tool] = QGISRedSelectPointTool(action, self, self.runAddMeter, 2, cursor=action.icon().pixmap(24, 24))
+            self.myMapTools[tool] = QGISRedSelectPointTool(action, self, self.runAddMeter, SelectPointType.Line, cursor=action.icon().pixmap(24, 24))
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runSelectDefaultMeterPoint(self):

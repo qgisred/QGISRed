@@ -8,7 +8,7 @@ from qgis.PyQt.QtCore import Qt
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
-from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool
+from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool, SelectPointType
 
 
 class ToolsSection:
@@ -215,7 +215,7 @@ class ToolsSection:
             return
         elif resMessage == "Select":
             self.blockLayers(True)
-            self.myMapTools[tool] = QGISRedSelectPointTool(self.isolatedSegmentsButton, self, self.runIsolatedSegments, 2, cursor=":/images/iconIsolatedSegments.svg")
+            self.myMapTools[tool] = QGISRedSelectPointTool(self.isolatedSegmentsButton, self, self.runIsolatedSegments, SelectPointType.Line, cursor=":/images/iconIsolatedSegments.svg")
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
         elif "shps" in resMessage:
             if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
@@ -332,7 +332,7 @@ class ToolsSection:
         if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
         else:
-            self.myMapTools[tool] = QGISRedSelectPointTool(None, self, self.runTree, 1)
+            self.myMapTools[tool] = QGISRedSelectPointTool(None, self, self.runTree, SelectPointType.Point)
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def openTreeLayers(self):

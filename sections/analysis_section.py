@@ -11,7 +11,7 @@ from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ..compat import DIALOG_ACCEPTED
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
-from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool
+from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool, SelectPointType
 from ..ui.analysis.qgisred_results_dock import QGISRedResultsDock
 from ..ui.analysis.qgisred_timeseries_dock import QGISRedTimeSeriesDock
 from ..ui.analysis.qgisred_results_data import export_results_to_csv, get_regional_separators
@@ -235,7 +235,7 @@ class AnalysisSection:
                 self.iface.mapCanvas().unsetMapTool(self.myMapTools["TimeSeries"])
 
     def runTimeSeriesSelectPointTool(self):
-        self.myMapTools["TimeSeries"] = QGISRedSelectPointTool(self.timeSeriesButton, self, self.timeSeriesCallback, 2, cursor=":/images/iconTimeSeries.svg")
+        self.myMapTools["TimeSeries"] = QGISRedSelectPointTool(self.timeSeriesButton, self, self.timeSeriesCallback, SelectPointType.Line, cursor=":/images/iconTimeSeries.svg")
         self.iface.mapCanvas().setMapTool(self.myMapTools["TimeSeries"])
 
     def timeSeriesDockVisibilityChanged(self, visible):

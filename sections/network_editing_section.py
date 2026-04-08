@@ -6,7 +6,7 @@ from qgis.PyQt.QtCore import Qt
 
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..tools.map_tools.qgisred_createPipe import QGISRedCreatePipeTool
-from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool
+from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool, SelectPointType
 from ..tools.map_tools.qgisred_moveNodes import QGISRedMoveNodesTool
 from ..tools.map_tools.qgisred_multilayerSelection import QGISRedMultiLayerSelection
 from ..tools.map_tools.qgisred_editLinksGeometry import QGISRedEditLinksGeometryTool
@@ -62,7 +62,7 @@ class NetworkEditingSection:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.addTankButton.setChecked(False)
         else:
-            self.myMapTools[tool] = QGISRedSelectPointTool(self.addTankButton, self, self.runAddTank, cursor=":/images/iconAddTank.svg")
+            self.myMapTools[tool] = QGISRedSelectPointTool(self.addTankButton, self, self.runAddTank, SelectPointType.Point, cursor=":/images/iconAddTank.svg")
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runAddTank(self, point):
@@ -91,7 +91,7 @@ class NetworkEditingSection:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.addReservoirButton.setChecked(False)
         else:
-            self.myMapTools[tool] = QGISRedSelectPointTool(self.addReservoirButton, self, self.runAddReservoir, cursor=":/images/iconAddReservoir.svg")
+            self.myMapTools[tool] = QGISRedSelectPointTool(self.addReservoirButton, self, self.runAddReservoir, SelectPointType.Point, cursor=":/images/iconAddReservoir.svg")
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runAddReservoir(self, point):
@@ -120,7 +120,7 @@ class NetworkEditingSection:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.insertValveButton.setChecked(False)
         else:
-            self.myMapTools[tool] = QGISRedSelectPointTool(self.insertValveButton, self, self.runInsertValve, 2, cursor=":/images/iconAddValve.svg")
+            self.myMapTools[tool] = QGISRedSelectPointTool(self.insertValveButton, self, self.runInsertValve, SelectPointType.Line, cursor=":/images/iconAddValve.svg")
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runInsertValve(self, point):
@@ -149,7 +149,7 @@ class NetworkEditingSection:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.insertPumpButton.setChecked(False)
         else:
-            self.myMapTools[tool] = QGISRedSelectPointTool(self.insertPumpButton, self, self.runInsertPump, 2, cursor=":/images/iconAddPump.svg")
+            self.myMapTools[tool] = QGISRedSelectPointTool(self.insertPumpButton, self, self.runInsertPump, SelectPointType.Line, cursor=":/images/iconAddPump.svg")
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runInsertPump(self, point):
@@ -257,7 +257,7 @@ class NetworkEditingSection:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.reverseLinkButton.setChecked(False)
         else:
-            self.myMapTools[tool] = QGISRedSelectPointTool(self.reverseLinkButton, self, self.runReverseLink, 2, cursor=":/images/iconReverseElements.svg")
+            self.myMapTools[tool] = QGISRedSelectPointTool(self.reverseLinkButton, self, self.runReverseLink, SelectPointType.Line, cursor=":/images/iconReverseElements.svg")
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runReverseLink(self, point):
@@ -293,7 +293,7 @@ class NetworkEditingSection:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.splitPipeButton.setChecked(False)
         else:
-            self.myMapTools[tool] = QGISRedSelectPointTool(self.splitPipeButton, self, self.runSplitPipe, 2, cursor=":/images/iconSplitJoinPipes.svg")
+            self.myMapTools[tool] = QGISRedSelectPointTool(self.splitPipeButton, self, self.runSplitPipe, SelectPointType.Line, cursor=":/images/iconSplitJoinPipes.svg")
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runSplitPipe(self, point):
@@ -322,7 +322,7 @@ class NetworkEditingSection:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.mergeSplitJunctionButton.setChecked(False)
         else:
-            self.myMapTools[tool] = QGISRedSelectPointTool(self.mergeSplitJunctionButton, self, self.runMergeSplitPoints, 3, cursor=":/images/iconMergeSplitJunctions.svg")
+            self.myMapTools[tool] = QGISRedSelectPointTool(self.mergeSplitJunctionButton, self, self.runMergeSplitPoints, SelectPointType.TwoPoints, cursor=":/images/iconMergeSplitJunctions.svg")
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runMergeSplitPoints(self, point1, point2):
@@ -357,7 +357,7 @@ class NetworkEditingSection:
             self.createReverseTconButton.setChecked(False)
         else:
             self.myMapTools[tool] = QGISRedSelectPointTool(
-                self.createReverseTconButton, self, self.runCreateRemoveTconnections, 5, cursor=":/images/iconCreateRemoveTConnections.svg"
+                self.createReverseTconButton, self, self.runCreateRemoveTconnections, SelectPointType.PointLine, cursor=":/images/iconCreateRemoveTConnections.svg"
             )
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
@@ -392,7 +392,7 @@ class NetworkEditingSection:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.createReverseCrossButton.setChecked(False)
         else:
-            self.myMapTools[tool] = QGISRedSelectPointTool(self.createReverseCrossButton, self, self.runCreateRemoveCrossings, 2, cursor=":/images/iconCreateRemoveCrossings.svg")
+            self.myMapTools[tool] = QGISRedSelectPointTool(self.createReverseCrossButton, self, self.runCreateRemoveCrossings, SelectPointType.Line, cursor=":/images/iconCreateRemoveCrossings.svg")
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runCreateRemoveCrossings(self, point1):
@@ -423,7 +423,7 @@ class NetworkEditingSection:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.moveValvePumpButton.setChecked(False)
         else:
-            self.myMapTools[tool] = QGISRedSelectPointTool(self.moveValvePumpButton, self, self.runMoveValvePump, 4, cursor=":/images/iconMoveElements.svg")
+            self.myMapTools[tool] = QGISRedSelectPointTool(self.moveValvePumpButton, self, self.runMoveValvePump, SelectPointType.TwoLines, cursor=":/images/iconMoveElements.svg")
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runMoveValvePump(self, point1, point2):
@@ -454,7 +454,7 @@ class NetworkEditingSection:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.changeStatusButton.setChecked(False)
         else:
-            self.myMapTools[tool] = QGISRedSelectPointTool(self.changeStatusButton, self, self.runChangeStatus, 2, cursor=":/images/iconChangeStatus.svg")
+            self.myMapTools[tool] = QGISRedSelectPointTool(self.changeStatusButton, self, self.runChangeStatus, SelectPointType.Line, cursor=":/images/iconChangeStatus.svg")
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runChangeStatus(self, point):
@@ -506,7 +506,7 @@ class NetworkEditingSection:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.removeElementsButton.setChecked(False)
         else:
-            self.myMapTools[tool] = QGISRedSelectPointTool(self.removeElementsButton, self, self.runDeleteElement, 2, cursor=":/images/iconDeleteElements.svg")
+            self.myMapTools[tool] = QGISRedSelectPointTool(self.removeElementsButton, self, self.runDeleteElement, SelectPointType.Line, cursor=":/images/iconDeleteElements.svg")
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runDeleteElement(self, point):
@@ -544,7 +544,7 @@ class NetworkEditingSection:
             self.editElementButton.setChecked(False)
         else:
             self.gisredDll = None
-            self.myMapTools[tool] = QGISRedSelectPointTool(self.editElementButton, self, self.runProperties, 2, cursor=":/images/pencil.svg")
+            self.myMapTools[tool] = QGISRedSelectPointTool(self.editElementButton, self, self.runProperties, SelectPointType.Line, cursor=":/images/pencil.svg")
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
     def runProperties(self, point):

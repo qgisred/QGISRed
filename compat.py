@@ -180,3 +180,6 @@ from qgis.gui import QgsVertexMarker as _QgsVertexMarker
 
 _vertex_icon_ns = getattr(_QgsVertexMarker, 'IconType', _QgsVertexMarker)
 VERTEX_ICON_TRIANGLE = getattr(_vertex_icon_ns, 'ICON_TRIANGLE', None)
+VERTEX_ICON_BOX = getattr(_vertex_icon_ns, 'ICON_BOX', None)
+VERTEX_ICON_X = getattr(_vertex_icon_ns, 'ICON_X', None)
+VERTEX_ICON_CROSS = getattr(_vertex_icon_ns, 'ICON_CROSS', None)

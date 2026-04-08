@@ -1,14 +1,27 @@
+from enum import IntEnum
 from qgis.PyQt.QtGui import QColor, QCursor, QPixmap
 from qgis.PyQt.QtCore import Qt
 from qgis.core import QgsPointXY, QgsProject, QgsSnappingConfig, QgsTolerance
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsMapCanvasSnappingUtils
 from ..utils.qgisred_styling_utils import create_combined_cursor
 from ..utils.qgisred_ui_utils import QGISRedUIUtils
-from ...compat import SNAP_TYPE_VERTEX, SNAP_TYPE_SEGMENT
+from ...compat import (
+    SNAP_TYPE_VERTEX, SNAP_TYPE_SEGMENT, SNAP_TYPE_BOTH,
+    VERTEX_ICON_BOX, VERTEX_ICON_TRIANGLE
+)
+
+
+class SelectPointType(IntEnum):
+    Point = 1
+    Line = 2
+    TwoPoints = 3
+    TwoLines = 4
+    PointLine = 5
 
 
 class QGISRedSelectPointTool(QgsMapTool):
-    def __init__(self, button, parent, method, type=1, cursor=None, icon_size=24):
+    def __init__(self, button, parent, method, type=SelectPointType.Point, cursor=None, icon_size=24):
+        # type 1: points; 2: lines; 3: 2-points; 4: 2-line; 5: point-line
         QgsMapTool.__init__(self, parent.iface.mapCanvas())
         self.canvas = parent.iface.mapCanvas()
         self.iface = parent.iface
@@ -27,14 +40,13 @@ class QGISRedSelectPointTool(QgsMapTool):
         elif cursor is None:
             self.custom_cursor = Qt.CursorShape.CrossCursor
 
-        # type 1: points; 2: lines; 3: 2-points; 4: 2-line; 5: point-line
         self.startMarker = QgsVertexMarker(self.iface.mapCanvas())
         self.startMarker.setColor(QColor(255, 87, 51))
-        if self.type == 3 or self.type == 4 or self.type == 5:
+        if self.type == SelectPointType.TwoPoints or self.type == SelectPointType.TwoLines or self.type == SelectPointType.PointLine:
             self.startMarker.setColor(QColor(139, 0, 0))
         self.startMarker.setIconSize(15)
         self.startMarker.setIconType(QgsVertexMarker.ICON_BOX)
-        if self.type == 2 or self.type == 4:
+        if self.type == SelectPointType.Line or self.type == SelectPointType.TwoLines:
             try:
                 self.startMarker.setIconType(QgsVertexMarker.ICON_TRIANGLE)
             except:
@@ -46,7 +58,7 @@ class QGISRedSelectPointTool(QgsMapTool):
         self.endMarker.setColor(QColor(0, 128, 0))
         self.endMarker.setIconSize(15)
         self.endMarker.setIconType(QgsVertexMarker.ICON_BOX)
-        if self.type == 4 or self.type == 5:
+        if self.type == SelectPointType.TwoLines or self.type == SelectPointType.PointLine:
             self.endMarker.setIconType(QgsVertexMarker.ICON_X)
         self.endMarker.setPenWidth(3)
         self.endMarker.hide()
@@ -64,7 +76,9 @@ class QGISRedSelectPointTool(QgsMapTool):
             self.canvas.setCursor(self.custom_cursor)
 
         snap_type = SNAP_TYPE_VERTEX
-        if self.type == 2 or self.type == 4:
+        if self.type == SelectPointType.Line:
+            snap_type = SNAP_TYPE_BOTH
+        elif self.type == SelectPointType.TwoLines:
             snap_type = SNAP_TYPE_SEGMENT
         self.configSnapper(snap_type)
 
@@ -111,10 +125,10 @@ class QGISRedSelectPointTool(QgsMapTool):
             if self.objectSnapped is None:
                 QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("A not valid point was selected"), level=1, duration=5)
                 return
-            if self.type == 3 or self.type == 4 or self.type == 5:
+            if self.type == SelectPointType.TwoPoints or self.type == SelectPointType.TwoLines or self.type == SelectPointType.PointLine:
                 if self.firstPoint is None:
                     self.firstPoint = self.objectSnapped.point()
-                    if self.type == 5:
+                    if self.type == SelectPointType.PointLine:
                         self.configSnapper(SNAP_TYPE_SEGMENT)
                 else:
                     point1 = self.firstPoint
@@ -135,7 +149,7 @@ class QGISRedSelectPointTool(QgsMapTool):
 
                 # self.resetProperties()
         if event.button() == Qt.MouseButton.RightButton:
-            if self.type == 3 or self.type == 5:
+            if self.type == SelectPointType.TwoPoints or self.type == SelectPointType.PointLine:
                 if self.objectSnapped is None:
                     QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("A not valid point was selected"), level=1, duration=5)
                     return
@@ -156,6 +170,14 @@ class QGISRedSelectPointTool(QgsMapTool):
         match = self.snapper.snapToMap(self.toMapCoordinates(event.pos()))
         if match.isValid():
             self.objectSnapped = match
+
+            if self.type == SelectPointType.Line:
+                marker = self.startMarker if self.firstPoint is None else self.endMarker
+                if match.hasVertex():
+                    marker.setIconType(VERTEX_ICON_BOX)
+                elif match.hasEdge():
+                    marker.setIconType(VERTEX_ICON_TRIANGLE)
+
             if self.firstPoint is None:
                 self.startMarker.setCenter(QgsPointXY(match.point().x(), match.point().y()))
                 self.startMarker.show()
