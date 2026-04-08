@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import re
 import csv as _csv
 
 from qgis.PyQt.QtCore import QCoreApplication
@@ -360,13 +361,22 @@ class QGISRedFieldUtils:
         if not row:
             return ""
         abbr = row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
-        if abbr == "Same as Flow":
-            return self._getFlowFieldAbbr()
-        if abbr == "Same as Pressure":
-            return self._getPressureFieldAbbr()
-        if abbr and abbr.startswith("Same as Mass"):
-            return abbr.replace("Same as Mass", self._getMassAbbr())
-        return abbr if abbr else ""
+        return self._resolveAbbr(abbr)
+
+    def _resolveAbbr(self, abbr):
+        """Resolve all 'Same as X' tokens in an abbreviation string.
+
+        Handles composite abbreviations like 'Same as Flow/sqr(Same as Pressure)'
+        by replacing every known token with its runtime value.
+        """
+        if not abbr:
+            return abbr
+        if "Same as" in abbr:
+            abbr = abbr.replace("Same as Flow", self._getFlowFieldAbbr())
+            abbr = abbr.replace("Same as Pressure", self._getPressureFieldAbbr())
+            abbr = abbr.replace("Same as Mass", self._getMassAbbr())
+        abbr = re.sub(r'sqr\(([^)]+)\)', r'√\1', abbr)
+        return abbr
 
     def _getMassAbbr(self):
         """Return the mass unit prefix for the current project (e.g. 'mg' or 'ug').
@@ -472,13 +482,7 @@ class QGISRedFieldUtils:
             return ""
 
         abbr = row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
-        if abbr == "Same as Flow":
-            return self._getFlowFieldAbbr()
-        if abbr == "Same as Pressure":
-            return self._getPressureFieldAbbr()
-        if abbr and abbr.startswith("Same as Mass"):
-            return abbr.replace("Same as Mass", self._getMassAbbr())
-        return abbr if abbr else ""
+        return self._resolveAbbr(abbr)
 
     def getFieldUnitFullName(self, elementCategory, fieldName):
         """Get the full unit name for a field (for tooltips)."""
