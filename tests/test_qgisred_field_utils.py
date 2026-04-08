@@ -321,12 +321,9 @@ class TestGetResultPropertyUnit:
             assert fu.getResultPropertyUnit("Node", "Pressure") == "m"
 
     def test_pressure_us(self, fu):
-        # getResultPropertyUnit delegates to _lookupFieldAbbr which returns the
-        # first Pressure row (METERS variant, abbr="m"). The US pressure unit
-        # is resolved by _getPressureFieldAbbr — test that directly.
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("GPM")
-            assert fu._getPressureFieldAbbr() == "psi"
+            assert fu.getResultPropertyUnit("Node", "Pressure") == "psi"
 
     def test_demand_resolves_same_as_flow(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:

@@ -462,9 +462,10 @@ class QGISRedFieldUtils:
             return ""
         element, fieldName = field_key
 
-        # Return exact project flow unit (lpm, gpm, etc.)
         if element == "Links" and fieldName == "Flow":
             return self._getFlowFieldAbbr()
+        if element == "Nodes" and fieldName == "Pressure":
+            return self._getPressureFieldAbbr()
 
         unitSystem = self.getUnits()
         return self._lookupFieldAbbr(element, fieldName, unitSystem)
