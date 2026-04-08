@@ -148,9 +148,9 @@ Nodes,FullDem,Full demand,Same as Flow,Same as Flow,,Same as Flow,Same as Flow,,
 Nodes,DemDeficit,Demand Deficit,Same as Flow,Same as Flow,,Same as Flow,Same as Flow,,,Not yet available
 Nodes,Leaks,Leakage Flow,Same as Flow,Same as Flow,,Same as Flow,Same as Flow,,,Not yet available
 Nodes,EmittFlow,Emitter Flow,Same as Flow,Same as Flow,,Same as Flow,Same as Flow,,,Not yet available
-Nodes,Quality,Chemical Quality,Mass/Liter,Same as Mass/L,2,mass/Liter,Same as Mass/L,2,,
-Nodes,Quality,Percentage Trace,Percent,%,1,Percent,%,1,,
-Nodes,Quality,Water Age,Hours,hr,1,Hours,hr,1,,
+Nodes,Quality,Chemical Quality,Mass/Liter,Same as Mass/L,2,mass/Liter,Same as Mass/L,2,Chemical,Quality model
+Nodes,Quality,Percentage Trace,Percent,%,1,Percent,%,1,Trace,Quality model
+Nodes,Quality,Water Age,Hours,hr,1,Hours,hr,1,Age,Quality model
 Links,Id,Indentifier,Text,,,Text,,,,
 Links,Type,Element Type,Text,,,Text,,,,
 Links,Time,Simulation Time,Time as Text,,,Time as Text,,,,

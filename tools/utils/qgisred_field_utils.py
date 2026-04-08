@@ -18,6 +18,8 @@ _COMMON_PRETTY_NAMES = {
     "Descrip": "Description",
 }
 
+_NON_CHEMICAL_MODELS = frozenset({"none", "trace", "age"})
+
 _CATEGORIZED_LAYER_IDS = {
     'qgisred_query_pipes_length',
     'qgisred_query_pipes_diameter',
@@ -402,6 +404,43 @@ class QGISRedFieldUtils:
             return row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
         return ""
 
+    def _getQualityResultAbbr(self, element):
+        """Return unit abbreviation for Quality result fields based on the quality model.
+
+        Chemical (or any model not in None/Trace/Age) → resolved mass/L abbr
+        Trace → %
+        Age → hr
+        None → ""
+        """
+        modelLow = self.getQualityModel().lower()
+        if modelLow == "none":
+            return ""
+        if modelLow in ("trace", "age"):
+            condVal = modelLow.capitalize()  # "Trace" or "Age" — matches CSV ConditionValue
+        else:
+            condVal = "Chemical"
+        row = self._getRowByCondition(element, "Quality", condVal)
+        if not row:
+            return ""
+        unitSystem = self.getUnits()
+        abbr = row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
+        return self._resolveAbbr(abbr)
+
+    def _getIniQualityAbbr(self, element):
+        """Return unit abbreviation for IniQuality fields.
+
+        Returns "" if the quality model is None, Trace, or Age (IniQuality is inapplicable).
+        For Chemical (or any other model name), resolves the mass/L abbreviation.
+        """
+        if self.getQualityModel().lower() in _NON_CHEMICAL_MODELS:
+            return ""
+        row = self._getFirstRow(element, "IniQuality")
+        if not row:
+            return ""
+        unitSystem = self.getUnits()
+        abbr = row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
+        return self._resolveAbbr(abbr)
+
     def _getPressureFieldAbbr(self):
         """Return the pressure unit abbreviation for the current project.
 
@@ -477,6 +516,8 @@ class QGISRedFieldUtils:
             return ""
         element, fieldName = field_key
 
+        if fieldName == "Quality":
+            return self._getQualityResultAbbr(element)
         if element == "Links" and fieldName == "Flow":
             return self._getFlowFieldAbbr()
         if element == "Nodes" and fieldName == "Pressure":
@@ -492,6 +533,9 @@ class QGISRedFieldUtils:
 
         unitSystem = self.getUnits()
         category = self.identifierToElementName.get(elementCategory, elementCategory)
+
+        if fieldName == "IniQuality":
+            return self._getIniQualityAbbr(category)
 
         row = self._getFirstRow(category, fieldName) or self._getFirstRowByProperty(category, fieldName)
         if not row:
