@@ -716,7 +716,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="15"/>
         <source>Roughness Coefficient</source>
-        <translation>Coeficiente de rugosidad</translation>
+        <translation type="obsolete">Coeficiente de rugosidad</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="16"/>
@@ -739,7 +739,7 @@
         <translation>Estado inicial</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="20"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="39"/>
         <source>Bulk Coefficient</source>
         <translation>Coef. de Reacción Global</translation>
     </message>
@@ -781,7 +781,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="32"/>
         <source>Minimum Level</source>
-        <translation>Nivel mínimo</translation>
+        <translation type="obsolete">Nivel mínimo</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="33"/>
@@ -816,7 +816,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="39"/>
         <source>Reaction Coefficient</source>
-        <translation>Coeficiente de Reacción</translation>
+        <translation type="obsolete">Coeficiente de Reacción</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="42"/>
@@ -917,6 +917,16 @@
         <location filename="../tools/qgisred_translatable_strings.py" line="75"/>
         <source>Available</source>
         <translation>Disponible</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="15"/>
+        <source>Roughness</source>
+        <translation>Rugosidad</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="32"/>
+        <source>MinimumLevel</source>
+        <translation>Nivel Mínimo</translation>
     </message>
 </context>
 <context>
@@ -1545,7 +1555,7 @@
     <message>
         <location filename="../sections/menu_section.py" line="1082"/>
         <source>Statistics &amp;&amp; Plots...</source>
-        <translation>Estadísticas y Gráficos...</translation>
+        <translation type="obsolete">Estadísticas y Gráficos...</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="773"/>
@@ -1555,7 +1565,7 @@
     <message>
         <location filename="../sections/menu_section.py" line="1073"/>
         <source>Queries by Properties...</source>
-        <translation type="unfinished"></translation>
+        <translation>Consultas por Propiedades...</translation>
     </message>
 </context>
 <context>
@@ -1974,142 +1984,142 @@
 <context>
     <name>QGISRedElementExplorerDock</name>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="86"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="87"/>
         <source>Pipe</source>
         <translation>Tubería</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="87"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="88"/>
         <source>Junction</source>
         <translation>Unión</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2531"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2532"/>
         <source>Demand</source>
         <translation>Demanda</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="89"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="90"/>
         <source>Reservoir</source>
         <translation>Embalse</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="90"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="91"/>
         <source>Tank</source>
         <translation>Depósito</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="91"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="92"/>
         <source>Pump</source>
         <translation>Bomba</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="92"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="93"/>
         <source>Valve</source>
         <translation>Válvula</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="93"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="94"/>
         <source>Source</source>
         <translation>Fuente</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="94"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="95"/>
         <source>Service Connection</source>
         <translation>Acometida</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="95"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="96"/>
         <source>Isolation Valve</source>
         <translation>Válvula de seccionamiento</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="96"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="97"/>
         <source>Meter</source>
         <translation>Medidor</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="985"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="986"/>
         <source>Info</source>
         <translation>Información</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="985"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="986"/>
         <source>Feature not found</source>
         <translation>Característica no encontrada</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2350"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2351"/>
         <source>Property</source>
         <translation>Propiedad</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2350"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2351"/>
         <source>Value</source>
         <translation>Valor</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2350"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2351"/>
         <source>Units</source>
         <translation>Unidades</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2237"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2238"/>
         <source>No Layers Found</source>
         <translation>No se ha encontrado ninguna capa</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2237"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2238"/>
         <source>No layers found in the Inputs or Results group.</source>
         <translation>No se ha encontrado ninguna capa en el grupo de Inputs o Results.</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2529"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2530"/>
         <source>Pressure</source>
         <translation>Presión</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2530"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2531"/>
         <source>Head</source>
         <translation>Carga</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2532"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2533"/>
         <source>Quality</source>
         <translation>Calidad</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2533"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2534"/>
         <source>Flow</source>
         <translation>Caudal</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2534"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2535"/>
         <source>Velocity</source>
         <translation>Velocidad</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2535"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2536"/>
         <source>HeadLoss</source>
         <translation>Pérdida de carga</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2537"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2538"/>
         <source>Unit HeadLoss</source>
         <translation>Pérdida de carga unitaria</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2538"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2539"/>
         <source>Friction Factor</source>
         <translation>Factor de Fricción</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2539"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2540"/>
         <source>Status</source>
         <translation>Estado</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2540"/>
+        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2541"/>
         <source>Reaction Rate</source>
         <translation>Velocidad de Reacción</translation>
     </message>
@@ -3077,7 +3087,7 @@ Crear una leyenda categorizada con más de {self.WARN_CLASSES} clases puede afec
         <translation>Graduado</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3765"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3771"/>
         <source>Other Values</source>
         <translation>Otros valores</translation>
     </message>
@@ -3119,7 +3129,7 @@ lo que supera el límite de {self.MAX_CLASSES}.</translation>
         <translation>Máximo de {self.MAX_CLASSES} clases alcanzado.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3315"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3321"/>
         <source>Right-click: Add a new item above the current selection
 Left-click: Add a new item below the current selection
 Double-click: Add &quot;Other values&quot; option</source>
@@ -3128,7 +3138,7 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual
 Doble click: Añadir opción &quot;Otros valores&quot; option</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3323"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3329"/>
         <source>Right-click: Add a new item above the current selection
 Left-click: Add a new item below the current selection</source>
         <translation>Click derecho: Añadir un nuevo item encima de la selección actual
@@ -3155,12 +3165,12 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Estilo guardado como {} en la carpeta layerStyles de tu proyecto.</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3227"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3233"/>
         <source>No Project</source>
         <translation>No hay proyecto</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3227"/>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3233"/>
         <source>Project directory not set.</source>
         <translation>Directorio del proyecto no configurado.</translation>
     </message>
@@ -3848,7 +3858,7 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="84"/>
         <source>Single Period</source>
-        <translation type="unfinished"></translation>
+        <translation>Periodo Único</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="223"/>
@@ -3867,7 +3877,7 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
 <context>
     <name>QGISRedStylingUtils</name>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="266"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="286"/>
         <source>{field} field not found in layer {layer.name()}</source>
         <translation>Campo {field} no encontrado en la capa {layer.name()}</translation>
     </message>
