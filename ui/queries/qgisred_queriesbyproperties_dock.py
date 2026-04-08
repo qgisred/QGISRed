@@ -1418,9 +1418,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         try:
             projectName = QgsProject.instance().baseName()
             elementType = self.cbElementType.currentText()
-            mode = 'single criteria' if self.radioSingleCriteria.isChecked() else 'multiple criteria'
             with open(fname, 'w', encoding='utf-8') as f:
-                f.write(f";{projectName};{mode}\n")
+                f.write(f";{projectName}\n")
                 f.write(f"{elementType}\n")
                 for c in self.effectiveCriteria():
                     prefix = "" if c.get('enabled', True) else "#"
@@ -1450,8 +1449,6 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 lines = [line.rstrip('\n') for line in f.readlines()]
             if len(lines) < 2:
                 return
-            headerParts = lines[0].lstrip(';').split(';')
-            savedMode = headerParts[1].strip().lower() if len(headerParts) > 1 else None
             elementType = lines[1]
             for i in range(self.cbElementType.count()):
                 if self.cbElementType.itemText(i) == elementType:
@@ -1494,7 +1491,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                     'operator': op,
                     'enabled': enabled
                 })
-            useSingle = savedMode == 'single criteria' if savedMode else len(parsedCriteria) == 1
+            useSingle = len(parsedCriteria) == 1
             if useSingle and parsedCriteria:
                 c = parsedCriteria[0]
                 self.radioSingleCriteria.setChecked(True)
