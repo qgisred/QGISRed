@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
+import re
+
 from qgis.core import (
     QgsPalLayerSettings, QgsVectorLayerSimpleLabeling, QgsTextFormat,
     QgsProperty, QgsRenderContext,
-    QgsGraduatedSymbolRenderer, QgsRuleBasedRenderer,
+    QgsGraduatedSymbolRenderer, QgsRuleBasedRenderer, QgsRendererRange,
+    QgsProject,
 )
 from qgis.PyQt.QtGui import QColor, QFont
 
-from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils
+from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils, _NULL_RULE_LABEL, _NullHiddenLegend
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 
 
@@ -96,7 +99,22 @@ class _ResultsRenderingMixin:
                 if renderer.type() == "graduatedSymbol":
                     scenario_renders[storage_key] = renderer.ranges()
                 elif renderer.type() == "RuleRenderer":
-                    scenario_renders[storage_key] = renderer.rootRule().clone()
+                    root = renderer.rootRule()
+                    children = root.children()
+                    child_labels = {c.label() for c in children}
+                    if _NULL_RULE_LABEL in child_labels:
+                        if var_key != "Status":
+                            ranges = []
+                            for rule in children:
+                                if rule.label() == _NULL_RULE_LABEL:
+                                    continue
+                                m = re.search(r'[>]=? ?([\d.eE+\-]+) AND .+?<= ?([\d.eE+\-]+)', rule.filterExpression())
+                                if m:
+                                    ranges.append(QgsRendererRange(float(m.group(1)), float(m.group(2)), rule.symbol().clone(), rule.label()))
+                            if ranges:
+                                scenario_renders[storage_key] = ranges
+                    else:
+                        scenario_renders[storage_key] = root.clone()
             except:
                 message = self.tr("Some issue occurred in the process of saving the style of the layer").format(self.tr(nameLayer))
                 QGISRedUIUtils.showGlobalMessage(self.iface, message, level=1, duration=5)
@@ -213,8 +231,10 @@ class _ResultsRenderingMixin:
 
         # Ensure correct renderer type
         if is_status:
-            # Check if we need to load default QML
-            if not hasRender and not isinstance(renderer, QgsRuleBasedRenderer):
+            # Load QML when we have no cached render and the current renderer does not already
+            # belong to Status.
+            displaying = self.displayingLinkField if "Link" in nameLayer else self.displayingNodeField
+            if not hasRender and displaying != db_field_name:
                 qmlName = nameLayer.split("_")[0] + "_" + db_field_name
                 utils.setResultStyle(layer, qmlName)
                 renderer = layer.renderer()
@@ -227,9 +247,15 @@ class _ResultsRenderingMixin:
                     QGISRedUIUtils.showGlobalMessage(self.iface, message, level=1, duration=5)
                     return
         else:
-            # We load QML if there's no saved render AND (it's not graduated OR it's the wrong variable)
-            wrong_variable = isinstance(renderer, QgsGraduatedSymbolRenderer) and renderer.classAttribute() != field
-            if not hasRender and (not isinstance(renderer, QgsGraduatedSymbolRenderer) or len(renderer.ranges()) == 0 or wrong_variable):
+            if isinstance(renderer, QgsGraduatedSymbolRenderer):
+                renderer_correct = renderer.classAttribute() == field and len(renderer.ranges()) > 0
+            elif isinstance(renderer, QgsRuleBasedRenderer):
+                displaying = self.displayingLinkField if "Link" in nameLayer else self.displayingNodeField
+                renderer_correct = (displaying == db_field_name)
+            else:
+                renderer_correct = False
+
+            if not hasRender and not renderer_correct:
                 qmlName = nameLayer.split("_")[0] + "_" + qml_field_name
                 utils.setResultStyle(layer, qmlName)
                 renderer = layer.renderer()
@@ -252,4 +278,16 @@ class _ResultsRenderingMixin:
 
         layer.setRenderer(renderer)
         QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface).applyNullStyle(layer)
+
+        final_renderer = layer.renderer()
+        if isinstance(final_renderer, QgsRuleBasedRenderer):
+            final_labels = {c.label() for c in final_renderer.rootRule().children()}
+            if _NULL_RULE_LABEL not in final_labels and isinstance(layer.legend(), _NullHiddenLegend):
+                layer.setLegend(_NullHiddenLegend(layer))
+
         layer.triggerRepaint()
+
+        # It does not work in QGIS 4 (no other option found)
+        node = QgsProject.instance().layerTreeRoot().findLayer(layer)
+        if node and not node.isExpanded():
+            node.setExpanded(True)

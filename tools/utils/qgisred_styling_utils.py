@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os
-import tempfile
 import random
 from random import randrange
 
@@ -424,7 +423,4 @@ class QGISRedStylingUtils:
             layer.setRenderer(new_renderer)
 
             # Hide the NULL rule from the legend via a custom legend wrapper.
-            # _NullHiddenLegend filters nodes whose display text equals
-            # _NULL_RULE_LABEL, which is only ever set on the null/else rule.
-            if not isinstance(layer.legend(), _NullHiddenLegend):
-                layer.setLegend(_NullHiddenLegend(layer))
+            layer.setLegend(_NullHiddenLegend(layer))
