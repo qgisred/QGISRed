@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>280</width>
-    <height>312</height>
+    <height>291</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -41,7 +41,7 @@
          <x>0</x>
          <y>0</y>
          <width>251</width>
-         <height>646</height>
+         <height>675</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -375,6 +375,19 @@
                          </widget>
                         </item>
                         <item>
+                         <widget class="QPushButton" name="btCommentCriteria">
+                          <property name="maximumSize">
+                           <size>
+                            <width>20</width>
+                            <height>16777215</height>
+                           </size>
+                          </property>
+                          <property name="text">
+                           <string/>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
                          <spacer name="verticalSpacer_2">
                           <property name="orientation">
                            <enum>Qt::Vertical</enum>
@@ -391,10 +404,10 @@
                       </item>
                      </layout>
                     </item>
+                    <item>
+                     <widget class="QLineEdit" name="multipleCriteriaComment"/>
+                    </item>
                    </layout>
-                  </item>
-                  <item>
-                   <widget class="QLineEdit" name="multipleCriteriaComment"/>
                   </item>
                  </layout>
                 </widget>

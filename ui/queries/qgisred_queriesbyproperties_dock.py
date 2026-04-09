@@ -196,6 +196,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.setupButtonIcons()
         self.mGroupBox.setCollapsed(False)
         self.frameMultipleCriteria.setVisible(False)
+        self.multipleCriteriaComment.setVisible(False)
         f = self.radioSingleCriteria.font()
         f.setBold(True)
         self.radioSingleCriteria.setFont(f)
@@ -212,6 +213,10 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.btCriteriaDown.setIcon(QIcon(":/images/iconStatisticsArrowDown.svg"))
         self.btCriteriaClear.setIcon(QIcon(":/images/iconStatisticsDelete.svg"))
         self.btCriteriaEdit.setIcon(QIcon(":/images/iconStatisticsEdit.svg"))
+        self.btCommentCriteria.setIcon(QIcon(":/images/iconComment.svg"))
+        self.btCommentCriteria.setToolTip(self.tr("Show/hide comment for this set of criteria"))
+        self.btCommentCriteria.setCheckable(True)
+        self.btCommentCriteria.toggled.connect(self.multipleCriteriaComment.setVisible)
 
         self.iconSwitchEnabled  = QIcon(":/images/iconSwitchEnabled.svg")
         self.iconSwitchDisabled = QIcon(":/images/iconSwitchDisabled.svg")
