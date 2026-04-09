@@ -88,11 +88,6 @@
         <source>No simulation results found</source>
         <translation>No se han encontrado resultados de simulación</translation>
     </message>
-    <message>
-        <location filename="../sections/analysis_section.py" line="170"/>
-        <source>Permanent</source>
-        <translation type="obsolete">Permanente</translation>
-    </message>
 </context>
 <context>
     <name>DebugValidationSection</name>
@@ -566,11 +561,6 @@
         <translation>Controles</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="26"/>
-        <source>Queries by Attributes</source>
-        <translation type="obsolete">Consultas por atributos</translation>
-    </message>
-    <message>
         <location filename="../ui/queries/qgisred_queriesbyproperties_dock.ui" line="171"/>
         <source>Condition</source>
         <translation>Condición</translation>
@@ -719,11 +709,6 @@
         <translation>Diámetro</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="15"/>
-        <source>Roughness Coefficient</source>
-        <translation type="obsolete">Coeficiente de rugosidad</translation>
-    </message>
-    <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="16"/>
         <source>Loss Coefficient</source>
         <translation>Coeficiente de pérdidas</translation>
@@ -784,11 +769,6 @@
         <translation>Nivel inicial</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="32"/>
-        <source>Minimum Level</source>
-        <translation type="obsolete">Nivel mínimo</translation>
-    </message>
-    <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="33"/>
         <source>Maximum Level</source>
         <translation>Nivel máximo</translation>
@@ -817,11 +797,6 @@
         <location filename="../tools/qgisred_translatable_strings.py" line="38"/>
         <source>Mixing Fraction</source>
         <translation>Fracción de mezcla</translation>
-    </message>
-    <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="39"/>
-        <source>Reaction Coefficient</source>
-        <translation type="obsolete">Coeficiente de Reacción</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="42"/>
@@ -1551,16 +1526,6 @@
         <location filename="../sections/menu_section.py" line="1064"/>
         <source>Thematic Maps...</source>
         <translation>Mapas temáticos...</translation>
-    </message>
-    <message>
-        <location filename="../sections/menu_section.py" line="1073"/>
-        <source>Queries by Attributes...</source>
-        <translation type="obsolete">Consultas por atributos...</translation>
-    </message>
-    <message>
-        <location filename="../sections/menu_section.py" line="1082"/>
-        <source>Statistics &amp;&amp; Plots...</source>
-        <translation type="obsolete">Estadísticas y Gráficos...</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="773"/>
@@ -3129,7 +3094,7 @@
         <source>The field &apos;{field}&apos; has {uniqueCount} unique values.
 The maximum allowed is {self.MAX_CLASSES}.
 Please filter the data or choose a different field.</source>
-        <translation>El campo '{field}' tiene {uniqueCount} valores únicos.
+        <translation>El campo &apos;{field}&apos; tiene {uniqueCount} valores únicos.
 El máximo permitido es {self.MAX_CLASSES}.
 Por favor, filtre los datos o elija un campo diferente.</translation>
     </message>
@@ -3144,7 +3109,7 @@ Por favor, filtre los datos o elija un campo diferente.</translation>
 Creating a categorized legend with more than {self.WARN_CLASSES} classes may affect performance and readability.
 
 Do you want to proceed?</source>
-        <translation>El campo '{field}' tiene {uniqueCount} valores únicos.
+        <translation>El campo &apos;{field}&apos; tiene {uniqueCount} valores únicos.
 Crear una leyenda categorizada con más de {self.WARN_CLASSES} clases puede afectar al rendimiento y a la legibilidad.
 
 ¿Desea continuar?</translation>
@@ -3529,76 +3494,6 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
 </context>
 <context>
     <name>QGISRedQueriesByAttributesDock</name>
-    <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="296"/>
-        <source>Nodes</source>
-        <translation type="obsolete">Nudos</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="298"/>
-        <source>Lines</source>
-        <translation type="obsolete">Líneas</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="776"/>
-        <source>Statistics of {property} for selected Elements</source>
-        <translation type="obsolete">Estadísticas de {property} para los elementos seleccionados</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="241"/>
-        <source>Switch to Single Criteria</source>
-        <translation type="obsolete">Cambiar a Criterio Único</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="241"/>
-        <source>Switching to single criteria will discard all criteria except the first one. Proceed?</source>
-        <translation type="obsolete">Cambiar a criterio único descartará todos los criterios excepto el primero. Continuar?</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="704"/>
-        <source>Confirm</source>
-        <translation type="obsolete">Confirmar</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="731"/>
-        <source>Replace</source>
-        <translation type="obsolete">Reemplazar</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="949"/>
-        <source>Sum</source>
-        <translation type="obsolete">Suma</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="949"/>
-        <source>StdD</source>
-        <translation type="obsolete">Desv. Típica</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="953"/>
-        <source>Count</source>
-        <translation type="obsolete">Recuento</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="950"/>
-        <source>Avg</source>
-        <translation type="obsolete">Promedio</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="950"/>
-        <source>Min</source>
-        <translation type="obsolete">Mínimo</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="950"/>
-        <source>Max</source>
-        <translation type="obsolete">Máximo</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="976"/>
-        <source>All</source>
-        <translation type="obsolete">Todo</translation>
-    </message>
 </context>
 <context>
     <name>QGISRedQueriesByPropertiesDock</name>
@@ -3884,11 +3779,6 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Enlaces</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="499"/>
-        <source>Result Times</source>
-        <translation type="obsolete">Tiempos de resultado</translation>
-    </message>
-    <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="526"/>
         <source>Statistics</source>
         <translation>Estadísticas</translation>
@@ -3967,11 +3857,6 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <location filename="../ui/analysis/qgisred_results_dock.py" line="99"/>
         <source>Warning</source>
         <translation>Advertencia</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="84"/>
-        <source>Permanent</source>
-        <translation type="obsolete">Permanente</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="101"/>
@@ -4062,11 +3947,6 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <location filename="../ui/analysis/qgisred_results_dock.py" line="120"/>
         <source>Standard deviation values</source>
         <translation>Desv. típica de valores</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="223"/>
-        <source>Report times</source>
-        <translation type="obsolete">Tiempos reportados</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="283"/>
@@ -4181,24 +4061,9 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
 </context>
 <context>
     <name>ResultsDataMixin</name>
-    <message>
-        <location filename="../ui/analysis/qgisred_results_data.py" line="60"/>
-        <source>Single Period</source>
-        <translation type="obsolete">Periodo Único</translation>
-    </message>
 </context>
 <context>
     <name>ResultsRenderingMixin</name>
-    <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="142"/>
-        <source>Link {}</source>
-        <translation type="obsolete">{} en Enlace</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="147"/>
-        <source>Node {}</source>
-        <translation type="obsolete">{} en Nudo</translation>
-    </message>
 </context>
 <context>
     <name>TimeSeriesPlotWidget</name>
