@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from qgis.PyQt.QtWidgets import QDockWidget, QTableWidgetItem, QHeaderView, QAbstractItemView, QToolButton
+from qgis.PyQt.QtWidgets import QDockWidget, QTableWidgetItem, QHeaderView, QAbstractItemView, QToolButton, QCompleter
 from qgis.PyQt.QtCore import Qt, QTimer
 from qgis.PyQt.QtGui import QBrush, QColor, QIcon, QFont
 from qgis.PyQt import uic
@@ -31,6 +31,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.disconnectResultsDock()
         self.clearHighlights()
         self.clearMapSelection()
+        self.lastCombinedExpression = ""
         super().closeEvent(event)
 
     def hideEvent(self, event):
@@ -78,6 +79,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.lastSelectedLayer = None
         self.lastCombinedExpression = ""
         self.queryHighlights = []
+        self.queryHasBeenSubmitted = False
 
         self.resultsDockVisibilityTimer = QTimer()
         self.resultsDockVisibilityTimer.setSingleShot(True)
@@ -181,6 +183,14 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.gridLayout.setColumnStretch(2, 2)
         self.cbCondition.setMaximumWidth(100)
 
+        for widget in (self.cbElementType, self.cbProperty, self.cbCondition,
+                       self.cbValue, self.cbStatisticsFor):
+            widget.setStyleSheet(
+                "QComboBox { background-color: white; }"
+                "QComboBox QAbstractItemView { background-color: white; }"
+                "QLineEdit { background-color: white; }"
+            )
+
         self.initializeElementTypes()
         self.setupConnections()
         self.setupButtonIcons()
@@ -240,6 +250,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.cbValue.textChanged.connect(lambda: self.updateButtonsState())
         # update value field enabled state when condition changes
         self.cbCondition.currentIndexChanged.connect(self.onConditionChanged)
+        self.cbCondition.currentIndexChanged.connect(self.updateValues)
 
         # import / export
         self.btImport.clicked.connect(self.importCriteria)
@@ -298,6 +309,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             f.setBold(radio.isChecked())
             radio.setFont(f)
         self.updateButtonsState()
+        if self.queryHasBeenSubmitted and self.effectiveCriteria():
+            self.runQuery()
 
     def onStatisticsForChanged(self):
         if self.cbStatisticsFor.isEnabled() and self.lastCombinedExpression:
@@ -435,10 +448,11 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             self.btCriteriaClear.setEnabled(False)
             self.btCriteriaEdit.setEnabled(False)
             self.btCriteriaSwitch.setEnabled(False)
-        self.btClearQuery.setVisible(not isMultiple)
+        self.btClearQuery.setVisible(True)
         hasStats = self.tableWidgetStatistics.rowCount() > 0
         hasValue = bool(self.cbValue.value())
-        self.btClearQuery.setEnabled(hasStats or hasValue)
+        hasCriteria = len(self.criteria) > 0
+        self.btClearQuery.setEnabled(hasStats or hasValue or hasCriteria)
         self.cbStatisticsFor.setEnabled(self.btSubmit.isEnabled())
 
     def moveCriterionUp(self):
@@ -532,6 +546,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             self.clearHighlights()
             self.clearMapSelection()
             self.tableWidgetStatistics.setRowCount(0)
+        self.queryHasBeenSubmitted = False
         self.updateProperties()
 
     def updateProperties(self):
@@ -716,31 +731,37 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.updateButtonsState()
 
     def updateValues(self):
-        ...
-        # self.cbValue.clear()
-        # prop = self.cbProperty.currentText()
-        # layer = self.resolveLayer()
-        # if not layer or not prop:
-        #     return
-        # field = layer.fields().field(prop)
-        # cat = self.fieldTypeMapping.get(field.typeName().lower(), 'text')
-        # if cat == 'boolean':
-        #     self.cbValue.addItems(['true','false'])
-        # elif cat == 'numeric':
-        #     mn, mx = self.getFieldMinMax(layer, prop)
-        #     if mn is not None and mx is not None:
-        #         interval = (mx - mn) / 5.0
-        #         for i in range(5):
-        #             start = mn + i*interval
-        #             end   = mn + (i+1)*interval
-        #             if i == 4:
-        #                 end = mx
-        #             self.cbValue.addItem(f"{start:.2f} - {end:.2f}")
-        # else:
-        #     vals = self.getUniqueFieldValues(layer, prop)
-        #     for v in vals:
-        #         if v is not None:
-        #             self.cbValue.addItem(str(v))
+        prop = self.cbProperty.currentText()
+        cond = self.cbCondition.currentText()
+
+        if cond not in ('=', '≠'):
+            self.cbValue.setCompleter(None)
+            return
+
+        layer = self.resolveQueryLayer(prop)
+        if not layer:
+            self.cbValue.setCompleter(None)
+            return
+
+        fieldIdx = layer.fields().indexFromName(prop)
+        if fieldIdx < 0:
+            self.cbValue.setCompleter(None)
+            return
+
+        field = layer.fields().field(fieldIdx)
+        cat = self.fieldTypeMapping.get(field.typeName().lower(), 'text')
+
+        if cat in ('text', 'listed'):
+            uniqueVals = self.getUniqueFieldValues(layer, prop)
+            strVals = [str(v) for v in uniqueVals if v is not None and str(v).strip()]
+            if strVals:
+                completer = QCompleter(strVals, self)
+                completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+                completer.setFilterMode(Qt.MatchFlag.MatchContains)
+                self.cbValue.setCompleter(completer)
+                return
+
+        self.cbValue.setCompleter(None)
 
     def getFieldMinMax(self, layer, name):
         mn = mx = None
@@ -883,6 +904,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
     def clearQuery(self):
         self.cbValue.setValue('')
         self.lastCombinedExpression = ""
+        self.queryHasBeenSubmitted = False
         self.clearHighlights()
         self.clearMapSelection()
         self.tableWidgetStatistics.setRowCount(0)
@@ -940,6 +962,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         return f"({idFilter}) AND ({expression})"
 
     def runQuery(self):
+        self.queryHasBeenSubmitted = True
         property = self.cbProperty.currentText()
         #self.labelStatisticsProperty.setText(property)
         self.labelStatisticsPropertyFor.setText(self.tr(f"Statistics of {property} for selected Elements"))
@@ -1364,7 +1387,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
     def onResultsTimeChanged(self, timeText):
         self.currentResultsTimeText = timeText
         self.labelResults.setText(timeText)
-        if self.effectiveCriteria():
+        if self.queryHasBeenSubmitted and self.effectiveCriteria():
             self.runQuery()
 
     def onResultsStatisticsChanged(self, statName):
@@ -1378,7 +1401,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         idx = self.cbProperty.findText(previousProp)
         if idx >= 0:
             self.cbProperty.setCurrentIndex(idx)
-        if self.effectiveCriteria():
+        # Task 7: Only re-run if user has explicitly submitted a query
+        if self.queryHasBeenSubmitted and self.effectiveCriteria():
             self.runQuery()
 
     def onResultsPropertyChanged(self):
