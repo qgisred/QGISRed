@@ -167,7 +167,18 @@ class QueriesSection:
         if self.isLayerOnEdition():
             return
 
+        existing = getattr(self, 'queriesByPropertiesDock', None)
+        if existing is not None:
+            try:
+                existing.raise_()
+                return
+            except RuntimeError:
+                pass
         self.queriesByPropertiesDock = QGISRedQueriesByPropertiesDock(self.iface)
+        self.queriesByPropertiesDock.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+        self.queriesByPropertiesDock.destroyed.connect(
+            lambda: setattr(self, 'queriesByPropertiesDock', None)
+        )
         self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.queriesByPropertiesDock)
 
     def runStatisticsAndPlots(self):
