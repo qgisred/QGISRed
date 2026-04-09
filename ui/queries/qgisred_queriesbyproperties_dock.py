@@ -165,6 +165,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         h.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         h.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         self.multipleCriteriaComment.setPlaceholderText(self.tr("Optional comment for this set of criteria"))
+        self.multipleCriteriaComment.setMaxLength(128)
 
         # set up statistics table (columns configured dynamically in calculateStatistics)
         # Start empty state at half default height; grows to fit content later
