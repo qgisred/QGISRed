@@ -29,12 +29,17 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.resultsDockVisibilityTimer.stop()
         self.resultsDockPollTimer.stop()
         self.disconnectResultsDock()
+        self.clearHighlights()
         self.clearMapSelection()
         super().closeEvent(event)
 
+    def hideEvent(self, event):
+        self.clearHighlights()
+        super().hideEvent(event)
+
     def clearHighlights(self):
         for h in self.queryHighlights:
-            h.hide()
+            self.canvas.scene().removeItem(h)
         self.queryHighlights.clear()
 
     def highlightFeatures(self, layer, expression):
@@ -505,6 +510,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             self.criteria = []
             self.currentlyReplacingIndex = None
             self.reloadCriteriaTable()
+            self.clearHighlights()
             self.clearMapSelection()
             self.tableWidgetStatistics.setRowCount(0)
         self.updateProperties()
@@ -817,6 +823,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
     def clearQuery(self):
         self.cbValue.setValue('')
         self.lastCombinedExpression = ""
+        self.clearHighlights()
         self.clearMapSelection()
         self.tableWidgetStatistics.setRowCount(0)
         if self.radioMultipleCriteria.isChecked():
