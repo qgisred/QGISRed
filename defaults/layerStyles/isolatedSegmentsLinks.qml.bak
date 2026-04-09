@@ -26,7 +26,7 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="outlineColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(Id LIKE '%_Isolated%','#eec07a' ,'#ff9900' )" type="QString" name="expression"/>
+                  <Option value="if(Status is 'POSSIBLE','#e7ca65' ,'#ff9900' )" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="outlineStyle">
@@ -93,7 +93,7 @@
                   <Option type="Map" name="properties">
                     <Option type="Map" name="outlineColor">
                       <Option value="true" type="bool" name="active"/>
-                      <Option value="if(Id LIKE '%_Isolated%','#eec07a' ,'#ff9900' )" type="QString" name="expression"/>
+                      <Option value="if(Status is 'POSSIBLE','#e7ca65' ,'#ff9900' )" type="QString" name="expression"/>
                       <Option value="3" type="int" name="type"/>
                     </Option>
                     <Option type="Map" name="size">
