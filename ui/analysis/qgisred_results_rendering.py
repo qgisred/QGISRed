@@ -102,11 +102,11 @@ class _ResultsRenderingMixin:
                     root = renderer.rootRule()
                     children = root.children()
                     child_labels = {c.label() for c in children}
-                    if _NULL_RULE_LABEL in child_labels:
+                    if any(_NULL_RULE_LABEL in lbl for lbl in child_labels):
                         if var_key != "Status":
                             ranges = []
                             for rule in children:
-                                if rule.label() == _NULL_RULE_LABEL:
+                                if _NULL_RULE_LABEL in rule.label():
                                     continue
                                 m = re.search(r'[>]=? ?([\d.eE+\-]+) AND .+?<= ?([\d.eE+\-]+)', rule.filterExpression())
                                 if m:
@@ -282,7 +282,7 @@ class _ResultsRenderingMixin:
         final_renderer = layer.renderer()
         if isinstance(final_renderer, QgsRuleBasedRenderer):
             final_labels = {c.label() for c in final_renderer.rootRule().children()}
-            if _NULL_RULE_LABEL not in final_labels and isinstance(layer.legend(), _NullHiddenLegend):
+            if not any(_NULL_RULE_LABEL in lbl for lbl in final_labels) and isinstance(layer.legend(), _NullHiddenLegend):
                 layer.setLegend(_NullHiddenLegend(layer))
 
         layer.triggerRepaint()

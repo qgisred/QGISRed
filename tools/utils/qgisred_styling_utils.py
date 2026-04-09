@@ -79,7 +79,7 @@ def create_combined_cursor(icon, iface=None, icon_size=24):
 
 
 # Sentinel label used to identify the hidden NULL/else rule across calls.
-_NULL_RULE_LABEL = "\x00__qgisred_null__"
+_NULL_RULE_LABEL = "__qgisred_null__"
 
 
 class _NullHiddenLegend(QgsMapLayerLegend):
@@ -93,7 +93,7 @@ class _NullHiddenLegend(QgsMapLayerLegend):
 
     def createLayerTreeModelLegendNodes(self, nodeLayer):
         nodes = self._default.createLayerTreeModelLegendNodes(nodeLayer)
-        return [n for n in nodes if n.data(0) != _NULL_RULE_LABEL]  # 0 == Qt.DisplayRole
+        return [n for n in nodes if _NULL_RULE_LABEL not in str(n.data(0))]  # 0 == Qt.DisplayRole
 
 
 class QGISRedStylingUtils:
@@ -354,6 +354,15 @@ class QGISRedStylingUtils:
         """Add a gray symbol for NULL values mimicking the original style complexity recursively."""
         renderer = layer.renderer()
         if renderer is None:
+            return
+
+        # If already rule-based (NullRule was applied in a previous session), the
+        # _NullHiddenLegend wrapper is not serialized to .qgs, so re-attach it.
+        if isinstance(renderer, QgsRuleBasedRenderer):
+            for rule in renderer.rootRule().children():
+                if _NULL_RULE_LABEL in rule.label():
+                    layer.setLegend(_NullHiddenLegend(layer))
+                    break
             return
 
         def make_gray(symbol):

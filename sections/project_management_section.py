@@ -125,6 +125,10 @@ class ProjectManagementSection:
 
         self.readOptions(self.ProjectDirectory, self.NetworkName)
 
+        # Style update runs BEFORE assignLayerIdentifiers so that layers from old
+        # projects (no identifier saved in .qgs yet) are still detectable.
+        self._updateStylesOnProjectOpen()
+
         identifiers = QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         identifiers.assignLayerIdentifiers()
 
@@ -574,6 +578,51 @@ class ProjectManagementSection:
         io = QGISRedProjectIO(self.ProjectDirectory, self.NetworkName, self.iface)
         path = io.saveBackup()
         self.pushMessage(self.tr("Backup stored in:") + " " + path, level=3, duration=5)
+
+    def _updateStylesOnProjectOpen(self):
+        """Apply default styles to unidentified Inputs layers and NullRule to Results layers."""
+        import os
+        from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
+
+        styling = QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        root = QgsProject.instance().layerTreeRoot()
+
+        # Inputs: layers WITHOUT qgisred_identifier → apply default style inferred from filename
+        inputs_group = root.findGroup("Inputs")
+        if inputs_group:
+            for tree_item in inputs_group.findLayers():
+                layer = tree_item.layer()
+                if not layer:
+                    continue
+                if not layer.customProperty("qgisred_identifier"):
+                    uri = layer.dataProvider().dataSourceUri()
+                    filename = os.path.splitext(os.path.basename(uri.split("|")[0]))[0]
+                    prefix = self.NetworkName + "_"
+                    if filename.startswith(prefix):
+                        element_name = filename[len(prefix):]
+                        styling.setStyle(layer, element_name.lower())
+                        layer.triggerRepaint()
+
+        # Results: layers WITHOUT identifier → warn; WITH identifier → apply NullRule
+        results_group = root.findGroup("Results")
+        if results_group:
+            needs_resimulation = False
+            for tree_item in results_group.findLayers():
+                layer = tree_item.layer()
+                if not layer:
+                    continue
+                if not layer.customProperty("qgisred_identifier"):
+                    needs_resimulation = True
+                else:
+                    styling.applyNullStyle(layer)
+                    layer.triggerRepaint()
+
+            if needs_resimulation:
+                self.pushMessage(
+                    self.tr("Simulation results need to be reloaded. Please run the simulation again."),
+                    level=1,
+                    duration=10,
+                )
 
     def runCloseProject(self):
         self.iface.newProject(True)
