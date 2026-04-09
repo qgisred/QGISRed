@@ -71,64 +71,64 @@ class TestResolveAbbr:
     def test_same_as_flow_lps(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS")
-            assert fu._resolveAbbr("Same as Flow") == "lps"
+            assert fu._resolveAbbr("See FlowUnits") == "lps"
 
     def test_same_as_flow_lpm(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPM")
-            assert fu._resolveAbbr("Same as Flow") == "lpm"
+            assert fu._resolveAbbr("See FlowUnits") == "lpm"
 
     def test_same_as_flow_gpm(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("GPM")
-            assert fu._resolveAbbr("Same as Flow") == "gpm"
+            assert fu._resolveAbbr("See FlowUnits") == "gpm"
 
     def test_same_as_flow_cms(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("CMS")
-            assert fu._resolveAbbr("Same as Flow") == "cms"
+            assert fu._resolveAbbr("See FlowUnits") == "cms"
 
     def test_same_as_pressure_si(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS")
-            assert fu._resolveAbbr("Same as Pressure") == "m"
+            assert fu._resolveAbbr("See PressUnits") == "m"
 
     def test_same_as_pressure_us(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("GPM")
-            assert fu._resolveAbbr("Same as Pressure") == "psi"
+            assert fu._resolveAbbr("See PressUnits") == "psi"
 
     def test_same_as_mass_mg(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project(concentration_units="mg/l")
-            assert fu._resolveAbbr("Same as Mass/L") == "mg/L"
+            assert fu._resolveAbbr("See MassUnits/L") == "mg/L"
 
     def test_same_as_mass_ug(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project(concentration_units="µg/L")
-            assert fu._resolveAbbr("Same as Mass/L") == "µg/L"
+            assert fu._resolveAbbr("See MassUnits/L") == "µg/L"
 
     def test_same_as_mass_per_day(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project(concentration_units="mg/L")
-            assert fu._resolveAbbr("Same as Mass/L/day") == "mg/L/day"
+            assert fu._resolveAbbr("See MassUnits/L/day") == "mg/L/day"
 
     def test_same_as_mass_per_min(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project(concentration_units="mg/L")
-            assert fu._resolveAbbr("Same as Mass/min") == "mg/min"
+            assert fu._resolveAbbr("See MassUnits/min") == "mg/min"
 
     def test_composite_flow_and_pressure(self, fu):
-        """Emitter coefficient: Same as Flow/sqr(Same as Pressure)"""
+        """Emitter coefficient: See FlowUnits/sqr(See PressUnits)"""
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS")
-            result = fu._resolveAbbr("Same as Flow/sqr(Same as Pressure)")
+            result = fu._resolveAbbr("See FlowUnits/sqr(See PressUnits)")
             assert result == "lps/√m"
 
     def test_composite_flow_and_pressure_us(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("GPM")
-            result = fu._resolveAbbr("Same as Flow/sqr(Same as Pressure)")
+            result = fu._resolveAbbr("See FlowUnits/sqr(See PressUnits)")
             assert result == "gpm/√psi"
 
     def test_sqr_replaced_with_sqrt_symbol(self, fu):
@@ -236,8 +236,8 @@ class TestCsvLoading:
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project()
             row = fu._getRowByCondition("Pipes", "WallCoeff", "0")
-            # order-0: mass/L/day units (expressed as "Same as Mass/L/day" in the CSV)
-            assert "Same as Mass" in row["si_abbr"]
+            # order-0: mass/L/day units (expressed as "See MassUnits/L/day" in the CSV)
+            assert "See MassUnits" in row["si_abbr"]
 
     def test_wall_coeff_condition_1(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
@@ -249,12 +249,13 @@ class TestCsvLoading:
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS")
             row = fu._getRowByCondition("Valves", "Setting", "FCV")
-            assert row["si_abbr"] == "Same as Flow"
+            assert row["si_abbr"] == "See FlowUnits"
 
     def test_nodes_pressure_condition_kpa(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project()
-            row = fu._getRowByCondition("Nodes", "Pressure", "KPA")
+            # Pressure options moved to Global/PressUnits; Nodes/Pressure now references See PressUnits
+            row = fu._getRowByCondition("Global", "PressUnits", "KPA")
             assert row["si_abbr"] == "kPa"
 
     def test_unknown_condition_falls_back_to_first_row(self, fu):

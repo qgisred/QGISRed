@@ -367,18 +367,18 @@ class QGISRedFieldUtils:
         return self._resolveAbbr(abbr)
 
     def _resolveAbbr(self, abbr):
-        """Resolve all 'Same as X' tokens in an abbreviation string.
+        """Resolve all 'See X' tokens in an abbreviation string.
 
-        Handles composite abbreviations like 'Same as Flow/sqr(Same as Pressure)'
+        Handles composite abbreviations like 'See FlowUnits/sqr(See PressUnits)'
         by replacing every known token with its runtime value.
         """
         if not abbr:
             return abbr
-        if "Same as" in abbr:
-            abbr = abbr.replace("Same as Flow", self._getFlowFieldAbbr())
-            abbr = abbr.replace("Same as Pressure", self._getPressureFieldAbbr())
-            abbr = abbr.replace("Same as Mass", self._getMassAbbr())
-            abbr = abbr.replace("Same as Currency", self._getCurrencyAbbr())
+        if "See " in abbr:
+            abbr = abbr.replace("See FlowUnits", self._getFlowFieldAbbr())
+            abbr = abbr.replace("See PressUnits", self._getPressureFieldAbbr())
+            abbr = abbr.replace("See MassUnits", self._getMassAbbr())
+            abbr = abbr.replace("See Currency", self._getCurrencyAbbr())
         abbr = re.sub(r'sqr\(([^)]+)\)', r'√\1', abbr)
         return abbr
 
@@ -398,7 +398,7 @@ class QGISRedFieldUtils:
         concentration units string if no CSV row is found.
         """
         concUnits = self.getConcentrationUnits()
-        row = self._getRowByCondition("Global", "Mass", concUnits)
+        row = self._getRowByCondition("Global", "MassUnits", concUnits)
         if row and row["condition_value"].lower() == concUnits.lower():
             unitSystem = self.getUnits()
             return row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
@@ -449,10 +449,10 @@ class QGISRedFieldUtils:
         """
         unitSystem = self.getUnits()
         condVal = "METERS" if unitSystem == "SI" else "PSI"
-        row = self._getRowByCondition("Nodes", "Pressure", condVal)
+        row = self._getRowByCondition("Global", "PressUnits", condVal)
         if row:
             return row["si_abbr"] or row["us_abbr"]
-        return self._lookupFieldAbbr("Nodes", "Pressure", unitSystem)
+        return self._lookupFieldAbbr("Global", "PressUnits", unitSystem)
 
     def _getFlowFieldAbbr(self):
         """Return the exact flow unit abbreviation for the current project (e.g. lpm, gpm).
@@ -462,10 +462,10 @@ class QGISRedFieldUtils:
         row is the abbreviation to display.
         """
         flowUnit, _ = QgsProject.instance().readEntry("QGISRed", "project_units", "LPS")
-        row = self._getRowByCondition("Links", "Flow", flowUnit)
+        row = self._getRowByCondition("Global", "FlowUnits", flowUnit)
         if row:
             return row["si_abbr"] or row["us_abbr"]
-        return self._lookupFieldAbbr("Links", "Flow", self.getUnits())
+        return self._lookupFieldAbbr("Global", "FlowUnits", self.getUnits())
 
     def getUnits(self):
         units, ok = QgsProject.instance().readEntry("QGISRed", "project_units", "LPS")

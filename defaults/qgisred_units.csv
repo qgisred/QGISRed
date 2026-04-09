@@ -8,20 +8,20 @@ Pipes,Material,Material,Text,,,Text,,,,
 Pipes,InstalDate,Installation Date,Year as Text,,,Year as Text,,,,
 Pipes,Age,Age,Years,yr,1,Years,yr,1,,
 Pipes,LeakArea,Leak Area,sq mm per 100 m,mm2/100,2,sq mm per 100 m,mm2/100,2,,Not yet available
-Pipes,LeakExpRat,Leak Expansion Rate,sq mm per unit press,mm2/Same as Pressure,2,sq mm per unit press,mm2/Same as Pressure,2,,Not yet available
+Pipes,LeakExpRat,Leak Expansion Rate,sq mm per unit press,mm2/See PressUnits,2,sq mm per unit press,mm2/See PressUnits,2,,Not yet available
 Pipes,IniStatus,Initial Status,Text,,,Text,,,,
 Pipes,BulkCoeff,Bulk Coefficient,Per day,1/day,2,Per day,1/day,2,1,Bulk reaction order. Leave blank for other order
-Pipes,WallCoeff,Wall Coefficient,mass/L/day,Same as Mass/L/day,3,Mass/L/day,Same as Mass/L/day,3,0,Wall reaction order
+Pipes,WallCoeff,Wall Coefficient,mass/L/day,See MassUnits/L/day,3,Mass/L/day,See MassUnits/L/day,3,0,Wall reaction order
 Pipes,WallCoeff,Wall Coefficient,Per day,1/day,2,Per day,1/day,2,1,Wall reaction order
 Pipes,Tag,Tag,Text,,,Text,,,,
 Pipes,Descrip,Description,Text,,,Text,,,,
 Valves,Id,Identifier,Text,,,Text,,,,
 Valves,Diameter,Diameter,Millimeters,mm,1,Inches,in,2,,
 Valves,Type,Type,Text,,,Text,,,,
-Valves,Setting,Setting,Same as Pressure,Same as Pressure,,Same as Pressure,Same as Pressure,,PRV,Type of valve
-Valves,Setting,Setting,Same as Pressure,Same as Pressure,,Same as Pressure,Same as Pressure,,PSV,Type of valve
-Valves,Setting,Setting,Same as Pressure,Same as Pressure,,Same as Pressure,Same as Pressure,,PBV,Type of valve
-Valves,Setting,Setting,Same as Flow,Same as Flow,,Same as Flow,Same as Flow,,FCV,Type of valve
+Valves,Setting,Setting,See PressUnits,See PressUnits,,See PressUnits,See PressUnits,,PRV,Type of valve
+Valves,Setting,Setting,See PressUnits,See PressUnits,,See PressUnits,See PressUnits,,PSV,Type of valve
+Valves,Setting,Setting,See PressUnits,See PressUnits,,See PressUnits,See PressUnits,,PBV,Type of valve
+Valves,Setting,Setting,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,FCV,Type of valve
 Valves,Setting,Setting,Unitless,,2,Unitless,,2,TCV,Type of valve
 Valves,Setting,Setting,Text,,,Text,,,GPV,Type of valve
 Valves,Setting,Setting,Text,,,Text,,,PCV,Type of valve (not yet available)
@@ -37,16 +37,16 @@ Pumps,Speed,Speed,Unitless,,2,Unitless,,2,,
 Pumps,IdSpeedPat,Speed Pattern,Text,,,Text,,,,
 Pumps,IniStatus,Initial Status,Text,,,Text,,,,
 Pumps,IdEffiCur,Efficiency Curve,Text,,,Text,,,,
-Pumps,EnergyPric,Energy Price,Currency /kWh,Same as Currency/kWh,2,Currency /kWh,Same as Currency/kWh,2,,Not yet available. Default $/kWh
+Pumps,EnergyPric,Energy Price,Currency /kWh,See Currency/kWh,2,Currency /kWh,See Currency/kWh,2,,Not yet available. Default $/kWh
 Pumps,IdPricePat,Price Pattern,Text,,,Text,,,,
 Pumps,Tag,Tag,Text,,,Text,,,,
 Pumps,Descrip,Description,Text,,,Text,,,,
 Junctions,Id,Identifier,Text,,,Text,,,,
 Junctions,Elevation,Elevation,Meters,m,2,Feet,ft,2,,
-Junctions,BaseDem,Base Demand,Same as Flow,Same as Flow,,Same as Flow,Same as Flow,,,
+Junctions,BaseDem,Base Demand,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,
 Junctions,IdPattDem,Pattern Demand,Text,,,Text,,,,
-Junctions,EmittCoef,Emitter Coefficient,Flow/sqr(Pressure),Same as Flow/sqr(Same as Pressure),2,Flow/sqr(Pressure),Same as Flow/sqr(Same as Pressure),2,,
-Junctions,IniQuality,Initial Quality,mass/Liter,Same as Mass/L,3,Mass/Liter,Same as Mass/L,3,Chemical,Leave blank for other Quality Models
+Junctions,EmittCoef,Emitter Coefficient,Flow/sqr(Pressure),See FlowUnits/sqr(See PressUnits),2,Flow/sqr(Pressure),See FlowUnits/sqr(See PressUnits),2,,
+Junctions,IniQuality,Initial Quality,mass/Liter,See MassUnits/L,3,Mass/Liter,See MassUnits/L,3,Chemical,Leave blank for other Quality Models
 Junctions,Tag,Tag,Text,,,Text,,,,
 Junctions,Descrip,Description,Text,,,Text,,,,
 Tanks,Id,Identifier,Text,,,Text,,,,
@@ -61,23 +61,23 @@ Tanks,Overflow,Overflow Condition,Text,,,Text,,,,
 Tanks,MixingMod,Mixing Model,Text,,,Text,,,,
 Tanks,MixingFrac,Mixing Fraction,Unitless,,2,Unitless,,2,,
 Tanks,ReactCoef,Bulk Coefficient,Per day,1/day,2,Per day,1/day,2,1,Bulk reaction order. Leave blank for other Order
-Tanks,IniQuality,Initial Quality,mass/Liter,Same as Mass/L,3,Mass/Liter,Same as Mass/L,3,Chemical,Leave blank for other Quality Models
+Tanks,IniQuality,Initial Quality,mass/Liter,See MassUnits/L,3,Mass/Liter,See MassUnits/L,3,Chemical,Leave blank for other Quality Models
 Tanks,Tag,Tag,Text,,,Text,,,,
 Tanks,Descrip,Description,Text,,,Text,,,,
 Reservoirs,Id,Identifier,Text,,,Text,,,,
 Reservoirs,TotalHead,Total Head,Meters,m,,Feet,ft,,,
 Reservoirs,IdHeadPatt,Head Pattern,Text,,,Text,,,,
-Reservoirs,IniQuality,Initial Quality,mass/Liter,Same as Mass/L,3,Mass/Liter,Same as Mass/L,3,Chemical,Leave blank for other Quality Models
+Reservoirs,IniQuality,Initial Quality,mass/Liter,See MassUnits/L,3,Mass/Liter,See MassUnits/L,3,Chemical,Leave blank for other Quality Models
 Reservoirs,Tag,Tag,Text,,,Text,-,,,
 Reservoirs,Descrip,Description,Text,,,Text,,,,
 Curves,CurveID,Identifier,,,,,,,,
 Curves,Xvalue,Value X axis,Cubic meters,m3,1,Cubic feet,ft3,1,Volume,Curve type
 Curves,Yvalue,Value Y axis,Meters,m,2,Feet,ft,2,Volume,Curve type
-Curves,XValue,Value X axis,Same as Flow,Same as Flow,,Same as Flow,Same as Flow,,Pump,Curve type
-Curves,Yvalue,Value Y axis,Same as Pressure,Same as Pressure,,Same as Pressure,Same as Pressure,,Pump,Curve type
-Curves,XValue,Value X axis,Same as Flow,Same as Flow,,Same as Flow,Same as Flow,,Efficiency,Curve type
+Curves,XValue,Value X axis,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,Pump,Curve type
+Curves,Yvalue,Value Y axis,See PressUnits,See PressUnits,,See PressUnits,See PressUnits,,Pump,Curve type
+Curves,XValue,Value X axis,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,Efficiency,Curve type
 Curves,Yvalue,Value Y axis,Percent,%,1,Percent,%,1,Efficiency,Curve type
-Curves,XValue,Value X axis,Same as Flow,Same as Flow,,Same as Flow,Same as Flow,,HeadLoss,Curve type
+Curves,XValue,Value X axis,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,HeadLoss,Curve type
 Curves,Yvalue,Value Y axis,Meters water colum ,m,2,Feet,ft,2,HeadLoss,Curve type
 Curves,XValue,Value X axis,Unitless,,2,Unitless,,2,Generic,Curve type
 Curves,Yvalue,Value Y axis,Unitless,,2,Unitless,,2,Generic,Curve type
@@ -85,26 +85,26 @@ Curves,Xvalue,Value X axis,Percent,%,1,Percent,%,1,Valve,Curve type. Not yet ava
 Curves,Yvalue,Value Y axis,Percent,%,1,Percent,%,1,Valve,Curve type. Not yet available
 Curves,Type,Type,Text,,,Text,,,,
 Curves,Descrip,Description,Text,,,Text,,,,
-Sources,BaseValue,Source Quality,Mass/Liter,Same as Mass/L,2,Mass/Liter,Same as Mass/L,2,Concentration,
-Sources,BaseValue,Source Quality,Mass/minute,Same as Mass/min,2,Mass/minute,Same as Mass/min,2,Mass Booster,
-Sources,BaseValue,Source Quality,Mass/Liter,Same as Mass/L,2,Mass/Liter,Same as Mass/L,2,Set Point Booster,
-Sources,BaseValue,Source Quality,Mass/Liter,Same as Mass/L,2,Mass/Liter,Same as Mass/L,2,Flow Paced Booster,
+Sources,BaseValue,Source Quality,Mass/Liter,See MassUnits/L,2,Mass/Liter,See MassUnits/L,2,Concentration,
+Sources,BaseValue,Source Quality,Mass/minute,See MassUnits/min,2,Mass/minute,See MassUnits/min,2,Mass Booster,
+Sources,BaseValue,Source Quality,Mass/Liter,See MassUnits/L,2,Mass/Liter,See MassUnits/L,2,Set Point Booster,
+Sources,BaseValue,Source Quality,Mass/Liter,See MassUnits/L,2,Mass/Liter,See MassUnits/L,2,Flow Paced Booster,
 Sources,IdPattern,Source Pattern,Text,,,Text,,,,
 Options,Name,Specific Gravity,Unitless,,2,Unitless,,2,,
 Options,Name,Viscosity,Unitless,,2,Unitless,,2,,
 Options,Name,Demand Multiplier,Unitless,,2,Unitless,,2,,
 Options,Name,Emitter Exponent,Unitless,,2,Unitless,,2,,
-Options,Name,Minimum Pressure,Same as Pressure,Same as Pressure,,Same as Pressure,Same as Pressure,,,
-Options,Name,Required Pressure,Same as Pressure,Same as Pressure,,Same as Pressure,Same as Pressure,,,
+Options,Name,Minimum Pressure,See PressUnits,See PressUnits,,See PressUnits,See PressUnits,,,
+Options,Name,Required Pressure,See PressUnits,See PressUnits,,See PressUnits,See PressUnits,,,
 Options,Name,Pressure Exponent,Unitless,,2,Unitless,,2,,
 Options,Name,Diffusivity,Unitless,,2,Unitless,,2,,
 Options,Name,Global Bulk,Per day,1/day,2,Per day,1/day,2,1,Bulk reaction order. Leave blank for other order
-Options,Name,Global Wall,mass/L/day,Same as Mass/L/day,3,Mass/L/day,Same as Mass/L/day,3,0,Wall reaction order
+Options,Name,Global Wall,mass/L/day,See MassUnits/L/day,3,Mass/L/day,See MassUnits/L/day,3,0,Wall reaction order
 Options,Name,Global Wall,Per day,1/day,2,Per day,1/day,2,1,Wall reaction order
-Options,Name,Limiting Potential,mass/Liter,Same as Mass/L,2,Mass/Liter,Same as Mass/L,2,,For some raction model
+Options,Name,Limiting Potential,mass/Liter,See MassUnits/L,2,Mass/Liter,See MassUnits/L,2,,For some raction model
 Options,Name,Global Efficiency,Percent,%,1,Percent,%,1,,
-Options,Name,Global Price,Currency /kWh,Same as Currency/kWh,2,Currency /kWh,Same as Currency/kWh,2,,Not yet available. Default $/kWh
-Options,Name,Demand Charge,Currency /Max kW,Same as Currency/kW,2,Currency /Max kW,Same as Currency/kW,2,,Not yet available. Default $/kWh
+Options,Name,Global Price,Currency /kWh,See Currency/kWh,2,Currency /kWh,See Currency/kWh,2,,Not yet available. Default $/kWh
+Options,Name,Demand Charge,Currency /Max kW,See Currency/kW,2,Currency /Max kW,See Currency/kW,2,,Not yet available. Default $/kWh
 Service Connection,Id,Identifier,Text,,,Text,,,,
 Service Connection,Length,Length,Meters,m,2,Feet,ft,2,,
 Service Connection,Diameter,Diameter,Millimeters,mm,1,Inches,in,2,,
@@ -112,7 +112,7 @@ Service Connection,Roughness,Roughness,Millimeters,mm,4,Millifeet,mft,6,D-W,Head
 Service Connection,Material,Material,Text,,,Text,,,,
 Service Connection,InstDate,Installation Date,Year as Text,,,Year as Text,,,,
 Service Connection,Age,Age,Years,yr,1,Years,yr,1,,
-Service Connection,BaseDemand,Base Demand,Same as Flow,Same as Flow,,Same as Flow,Same as Flow,,,
+Service Connection,BaseDemand,Base Demand,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,
 Service Connection,Pattern,Pattern Demand,Text,,,Text,,,,
 Service Connection,Reliabilit,Reliability,Unitless,,2,Unitless,,2,,
 Service Connection,IsActive,IsActive,Text,,,Text,,,,
@@ -137,46 +137,48 @@ Meters,Descrip,Description,Text,,,Text,,,,
 Nodes,Id,Indentifier,Text,,,Text,,,,
 Nodes,Type,Element Type,Text,,,Text,,,,
 Nodes,Time,Simulation Time,Time as Text,,,Time as Text,,,,
-Nodes,Pressure,Pressure,Meters water colum ,m,2,,,,METERS,Not yet available
-Nodes,Pressure,Pressure,,,,Pounds/ sq inch,psi,2,PSI,
-Nodes,Pressure,Pressure,KiloPascals,kPa,1,,,,KPA,Not yet available
-Nodes,Pressure,Pressure,,,,Feet water colum,ft,2,FEET,
-Nodes,Pressure,Pressure,bars,bar,3,,,,BAR,Not yet available
+Nodes,Pressure,Pressure,See PressUnits,See PressUnits,,See PressUnits,See PressUnits,,,
 Nodes,Head,Head,Meters,m,2,Feet,ft,2,,
-Nodes,Demand,Demand,Same as Flow,Same as Flow,,Same as Flow,Same as Flow,,,
-Nodes,FullDem,Full demand,Same as Flow,Same as Flow,,Same as Flow,Same as Flow,,,Not yet available
-Nodes,DemDeficit,Demand Deficit,Same as Flow,Same as Flow,,Same as Flow,Same as Flow,,,Not yet available
-Nodes,Leaks,Leakage Flow,Same as Flow,Same as Flow,,Same as Flow,Same as Flow,,,Not yet available
-Nodes,EmittFlow,Emitter Flow,Same as Flow,Same as Flow,,Same as Flow,Same as Flow,,,Not yet available
-Nodes,Quality,Chemical Quality,Mass/Liter,Same as Mass/L,2,mass/Liter,Same as Mass/L,2,Chemical,Quality model
+Nodes,Demand,Demand,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,
+Nodes,FullDem,Full demand,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,Not yet available
+Nodes,DemDeficit,Demand Deficit,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,Not yet available
+Nodes,Leaks,Leakage Flow,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,Not yet available
+Nodes,EmittFlow,Emitter Flow,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,Not yet available
+Nodes,Quality,Chemical Quality,Mass/Liter,See MassUnits/L,2,mass/Liter,See MassUnits/L,2,Chemical,Quality model
 Nodes,Quality,Percentage Trace,Percent,%,1,Percent,%,1,Trace,Quality model
 Nodes,Quality,Water Age,Hours,hr,1,Hours,hr,1,Age,Quality model
 Links,Id,Indentifier,Text,,,Text,,,,
 Links,Type,Element Type,Text,,,Text,,,,
 Links,Time,Simulation Time,Time as Text,,,Time as Text,,,,
 Links,Status,Status,Text,,,Text,,,,
-Links,Flow,Flow,liters/sec,lps,2,,,,LPS,
-Links,Flow,Flow,liters/min,lpm,1,,,,LPM,
-Links,Flow,Flow,megaliters/day,mld,2,,,,MLD,
-Links,Flow,Flow,cubic meters/sec,cms,2,,,,CMS,Not yet available
-Links,Flow,Flow,cubic metres/hr,cmh,2,,,,CMH,
-Links,Flow,Flow,cubic metres/day,cmd,2,,,,CMD,
-Links,Flow,Flow,,,,Cubic feet/sec,cfs,2,CFS,
-Links,Flow,Flow,,,,Gallons/min,gpm,1,GPM,
-Links,Flow,Flow,,,,Million gal/day,mgd,2,MGD,
-Links,Flow,Flow,,,,Imperial MGD,imgd,2,IMGD,
-Links,Flow,Flow,,,,Acre-feet/day,afd,2,AFD,
+Links,Flow,Flow,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,
 Links,Velocity,Velocity,Meters/second,m/s,2,feet/second,ft/s,2,,
 Links,HeadLoss,HeadLoss,Meters water colum ,m,2,Feet,ft,2,,
 Links,UnitHdLoss,Unit HeadLoss,Meters per 1000 m,m/Km,2,Feet per 1000 ft,ft/Kft,2,,
 Links,FricFactor,Friction factor,Unitless,,3,Unitless,,3,,
 Links,Energy,Energy,Kilowatt - hours,kWh,2,Kilowatt - hours,kWh,2,,
-Links,ReactRate,Reaction Rate,mass/L/day,Same as Mass/L/day,3,mass/L/day,Same as Mass/L/day,3,Chemical,Quality model
-Links,Quality,Chemical Quality,mass/L,Same as Mass/L,3,mass/L,Same as Mass/L,3,Chemical,Quality model
+Links,ReactRate,Reaction Rate,mass/L/day,See MassUnits/L/day,3,mass/L/day,See MassUnits/L/day,3,Chemical,Quality model
+Links,Quality,Chemical Quality,mass/L,See MassUnits/L,3,mass/L,See MassUnits/L,3,Chemical,Quality model
 Links,Quality,Percentage Trace,Percent,%,1,Percent,%,1,Trace,Quality model
 Links,Quality,Water Age,Hours,hr,1,Hours,hr,1,Age,Quality model
-Global,Mass,Mass,Miligrams,mg,2,Miligrams,mg,2,mg/L,Concentration units
-Global,Mass,Mass,Micrograms,µg,2,Micrograms,µg,2,µg/L,Concentration units
+Global,FlowUnits,FlowUnits,liters/sec,lps,2,,,,LPS,
+Global,FlowUnits,FlowUnits,liters/min,lpm,1,,,,LPM,
+Global,FlowUnits,FlowUnits,megaliters/day,mld,2,,,,MLD,
+Global,FlowUnits,FlowUnits,cubic meters/sec,cms,2,,,,CMS,Not yet available
+Global,FlowUnits,FlowUnits,cubic metres/hr,cmh,2,,,,CMH,
+Global,FlowUnits,FlowUnits,cubic metres/day,cmd,2,,,,CMD,
+Global,FlowUnits,FlowUnits,,,,Cubic feet/sec,cfs,2,CFS,
+Global,FlowUnits,FlowUnits,,,,Gallons/min,gpm,1,GPM,
+Global,FlowUnits,FlowUnits,,,,Million gal/day,mgd,2,MGD,
+Global,FlowUnits,FlowUnits,,,,Imperial MGD,imgd,2,IMGD,
+Global,FlowUnits,FlowUnits,,,,Acre-feet/day,afd,2,AFD,
+Global,PressUnits,PressureUnits,Meters water colum ,m,2,,,,METERS,
+Global,PressUnits,PressureUnits,,,,Pounds/ sq inch,psi,2,PSI,
+Global,PressUnits,PressureUnits,KiloPascals,kPa,1,,,,KPA,Not yet available
+Global,PressUnits,PressureUnits,,,,Feet water colum,ft,2,FEET,Not yet available
+Global,PressUnits,PressureUnits,bars,bar,3,,,,BAR,Not yet available
+Global,MassUnits,MassUnits,Miligrams,mg,2,Miligrams,mg,2,mg/L,Concentration units
+Global,MassUnits,MassUnits,Micrograms,µg,2,Micrograms,µg,2,µg/L,Concentration units
 Global,Currency,Currency,USDollars,$,2,USDollars,$,2,USD,Not yet available
 Global,Currency,Currency,GBPounds,£,2,GBPounds,£,2,GBP,Not yet available
 Global,Currency,Currency,Euros,€,2,Euros,€,2,EU,Not yet available
