@@ -247,6 +247,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.btCriteriaEdit.clicked.connect(self.toggleEditCriterion)
         self.btCriteriaSwitch.clicked.connect(self.toggleCriterionEnabled)
         self.tableWidgetCriteria.currentCellChanged.connect(self.onCriteriaSelectionChanged)
+        self.tableWidgetCriteria.itemSelectionChanged.connect(self.updateButtonsState)
 
         # radio criteria mode
         self.radioMultipleCriteria.toggled.connect(self.toggleMultipleCriteria)
@@ -432,7 +433,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         if isMultiple:
             has = len(self.criteria) > 0
             row = self.tableWidgetCriteria.currentRow()
-            sel = row >= 0
+            sel = row >= 0 and bool(self.tableWidgetCriteria.selectedIndexes())
             self.btSubtract.setEnabled(has)
             self.btReplace.setEnabled(has and sel)
             self.btClear.setEnabled(has)
@@ -487,6 +488,9 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         else:
             self.criteria = []
         self.currentlyReplacingIndex = None
+        if self.editingIndex is not None:
+            self.editingIndex = None
+            self.btCriteriaEdit.setChecked(False)
 
         self.reloadCriteriaTable()
         self.tableWidgetCriteria.clearSelection()
@@ -1232,12 +1236,20 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         for btn in (
             self.btAdd,
             self.btSubtract,
+            self.btReplace,
+            self.btClear,
             self.btCriteriaUp,
             self.btCriteriaDown,
             self.btCriteriaClear,
+            self.btCriteriaSwitch,
             self.btSubmit,
+            self.btClearQuery,
+            self.radioSingleCriteria,
+            self.radioMultipleCriteria,
+            self.cbElementType,
         ):
             btn.setEnabled(False)
+        self.tableWidgetCriteria.setEnabled(False)
 
     def commitCriterionEdit(self):
         # read back the controls
@@ -1272,19 +1284,21 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.editingIndex = None
         self.btCriteriaEdit.setChecked(False)
 
-        # re-enable buttons
+        # re-enable controls that were blanket-disabled during edit
         for btn in (
             self.btAdd,
-            self.btSubtract,
-            self.btCriteriaUp,
-            self.btCriteriaDown,
-            self.btCriteriaClear,
-            self.btSubmit,
+            self.btReplace,
+            self.btClear,
+            self.radioSingleCriteria,
+            self.radioMultipleCriteria,
         ):
             btn.setEnabled(True)
+        self.tableWidgetCriteria.setEnabled(True)
 
         # refresh table (and Cr1, Cr2… headers)
         self.reloadCriteriaTable()
+        # let updateButtonsState restore per-state enable for the rest
+        self.updateButtonsState()
 
     def onCriteriaSelectionChanged(self, row, col):
         if row < 0 or row >= len(self.criteria):
@@ -1294,6 +1308,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             self.btCriteriaSwitch.setIcon(
             self.iconSwitchEnabled  if enabled  else
             self.iconSwitchDisabled )
+        self.updateButtonsState()
 
     def toggleCriterionEnabled(self):
         row = self.tableWidgetCriteria.currentRow()
