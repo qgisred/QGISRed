@@ -198,9 +198,9 @@
                          <font>
                           <family>Calibri</family>
                           <pointsize>18</pointsize>
-                          <weight>9</weight>
+                          <weight>75</weight>
                           <italic>false</italic>
-                          <bold>false</bold>
+                          <bold>true</bold>
                          </font>
                         </property>
                         <property name="styleSheet">
@@ -267,9 +267,9 @@
                          <font>
                           <family>Calibri</family>
                           <pointsize>18</pointsize>
-                          <weight>9</weight>
+                          <weight>75</weight>
                           <italic>false</italic>
-                          <bold>false</bold>
+                          <bold>true</bold>
                          </font>
                         </property>
                         <property name="styleSheet">
@@ -375,7 +375,7 @@
                           </property>
                           <property name="font">
                            <font>
-                            <family>Arial Black</family>
+                            <family>Arial</family>
                             <weight>75</weight>
                             <bold>true</bold>
                             <stylestrategy>PreferDefault</stylestrategy>
@@ -403,7 +403,7 @@
                           </property>
                           <property name="font">
                            <font>
-                            <family>Arial Black</family>
+                            <family>Arial</family>
                             <weight>75</weight>
                             <bold>true</bold>
                            </font>
@@ -442,7 +442,7 @@
                           </property>
                           <property name="font">
                            <font>
-                            <family>Arial Black</family>
+                            <family>Arial</family>
                             <weight>75</weight>
                             <bold>true</bold>
                            </font>
@@ -468,7 +468,7 @@
                           </property>
                           <property name="font">
                            <font>
-                            <family>Arial Black</family>
+                            <family>Arial</family>
                             <weight>75</weight>
                             <bold>true</bold>
                            </font>
@@ -494,6 +494,9 @@
                            <weight>75</weight>
                            <bold>true</bold>
                           </font>
+                         </property>
+                         <property name="styleSheet">
+                          <string notr="true">font-weight: bold;</string>
                          </property>
                          <property name="text">
                           <string>Reported Times</string>
@@ -521,6 +524,9 @@
                            <weight>75</weight>
                            <bold>true</bold>
                           </font>
+                         </property>
+                         <property name="styleSheet">
+                          <string notr="true">font-weight: bold;</string>
                          </property>
                          <property name="text">
                           <string>Statistics</string>
@@ -559,6 +565,9 @@
                          <weight>75</weight>
                          <bold>true</bold>
                         </font>
+                       </property>
+                       <property name="styleSheet">
+                        <string notr="true">font-weight: bold;</string>
                        </property>
                        <property name="text">
                         <string>Nodes</string>
@@ -605,6 +614,9 @@
                          <weight>75</weight>
                          <bold>true</bold>
                         </font>
+                       </property>
+                       <property name="styleSheet">
+                        <string notr="true">font-weight: bold;</string>
                        </property>
                        <property name="text">
                         <string>Links</string>
