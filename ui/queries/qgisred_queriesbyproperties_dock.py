@@ -126,6 +126,22 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             'text': ['All', '=', '≠', 'ILIKE', 'NOT ILIKE', 'LIKE', 'NOT LIKE']
         }
 
+        self.defaultProperties = {
+            'Nodes': ['Pressure'],
+            'Links': ['Flow'],
+            'qgisred_pipes': ['Flow', 'Diameter'],
+            'qgisred_valves': ['Flow', 'Diameter'],
+            'qgisred_pumps': ['Flow', 'IdHFCurve'],
+            'qgisred_junctions': ['Pressure', 'BaseDemand'],
+            'qgisred_tanks': ['Pressure', 'Elevation'],
+            'qgisred_reservoirs': ['Pressure', 'TotalHead'],
+            'qgisred_demands': ['Pressure', 'BaseDemand'],
+            'qgisred_sources': ['Quality', 'Pressure', 'BaseValue'],
+            'qgisred_serviceconnections': ['BaseDemand'],
+            'qgisred_isolationvalves': ['Status'],
+            'qgisred_meters': ['Type'],
+        }
+
         self.fieldTypeMapping = {
             'int': 'numeric',
             'integer': 'numeric',
@@ -318,10 +334,13 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
 
         # Results first (if they exist)
         if hasResults:
+            resultsBrush = QBrush(QColor("#FFF8DC"))
             if nodeIdent:
                 self.cbElementType.addItem(self.tr("Nodes"), nodeIdent)
+                self.cbElementType.setItemData(self.cbElementType.count() - 1, resultsBrush, Qt.BackgroundRole)
             if linkIdent:
-                self.cbElementType.addItem(self.tr("Lines"), linkIdent)
+                self.cbElementType.addItem(self.tr("Links"), linkIdent)
+                self.cbElementType.setItemData(self.cbElementType.count() - 1, resultsBrush, Qt.BackgroundRole)
             self.cbElementType.insertSeparator(self.cbElementType.count())
 
         # Input layers in fixed order
@@ -547,40 +566,72 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 staticFields.append(field)
         idTagFields = [idTagFieldsByKey[k] for k in idTagOrder if k in idTagFieldsByKey]
 
-        orangeBrush = QBrush(QColor("#FFE0B2"))
+        resultsBrush = QBrush(QColor("#FFF8DC"))
         darkBrush = QBrush(QColor("#D8D8D8"))
         resultProps = self.getResultProperties(layer, qrIdent)
         numericResultProps = [p for p in resultProps if p != 'Status']
 
-        # Group 1: Id / Tag / Description (dark background)
-        if idTagFields:
-            for field in idTagFields:
+        if not self.isResultsMode:
+            if resultProps:
+                for prop in resultProps:
+                    self.cbProperty.addItem(prop)
+                    self.cbProperty.setItemData(self.cbProperty.count() - 1, resultsBrush, Qt.BackgroundRole)
+                if numericResultProps:
+                    for prop in numericResultProps:
+                        self.cbStatisticsFor.addItem(prop)
+                        self.cbStatisticsFor.setItemData(self.cbStatisticsFor.count() - 1, resultsBrush, Qt.BackgroundRole)
+                if idTagFields or staticFields:
+                    self.cbProperty.insertSeparator(self.cbProperty.count())
+
+            if idTagFields:
+                for field in idTagFields:
+                    self.cbProperty.addItem(field.name())
+                    self.cbProperty.setItemData(self.cbProperty.count() - 1, darkBrush, Qt.BackgroundRole)
+                if staticFields:
+                    self.cbProperty.insertSeparator(self.cbProperty.count())
+
+            for field in staticFields:
                 self.cbProperty.addItem(field.name())
-                self.cbProperty.setItemData(self.cbProperty.count() - 1, darkBrush, Qt.BackgroundRole)
-            if staticFields or resultProps:
+                cat = self.fieldTypeMapping.get(field.typeName().lower(), 'text')
+                if cat == 'numeric':
+                    self.cbStatisticsFor.addItem(field.name())
+
+            if numericResultProps and self.cbStatisticsFor.count() > len(numericResultProps):
+                self.cbStatisticsFor.insertSeparator(len(numericResultProps))
+        else:
+            if idTagFields:
+                for field in idTagFields:
+                    self.cbProperty.addItem(field.name())
+                    self.cbProperty.setItemData(self.cbProperty.count() - 1, darkBrush, Qt.BackgroundRole)
+                if staticFields or resultProps:
+                    self.cbProperty.insertSeparator(self.cbProperty.count())
+
+            for field in staticFields:
+                self.cbProperty.addItem(field.name())
+                cat = self.fieldTypeMapping.get(field.typeName().lower(), 'text')
+                if cat == 'numeric':
+                    self.cbStatisticsFor.addItem(field.name())
+
+            if resultProps:
                 self.cbProperty.insertSeparator(self.cbProperty.count())
-
-        # Group 2: Static properties
-        for field in staticFields:
-            self.cbProperty.addItem(field.name())
-            cat = self.fieldTypeMapping.get(field.typeName().lower(), 'text')
-            if cat == 'numeric':
-                self.cbStatisticsFor.addItem(field.name())
-
-        # Group 2: Result properties (orange background)
-        if resultProps:
-            self.cbProperty.insertSeparator(self.cbProperty.count())
-            for prop in resultProps:
-                self.cbProperty.addItem(prop)
-                self.cbProperty.setItemData(self.cbProperty.count() - 1, orangeBrush, Qt.BackgroundRole)
-            if numericResultProps:
-                if self.cbStatisticsFor.count() > 0:
-                    self.cbStatisticsFor.insertSeparator(self.cbStatisticsFor.count())
-                for prop in numericResultProps:
-                    self.cbStatisticsFor.addItem(prop)
-                    self.cbStatisticsFor.setItemData(self.cbStatisticsFor.count() - 1, orangeBrush, Qt.BackgroundRole)
+                for prop in resultProps:
+                    self.cbProperty.addItem(prop)
+                    self.cbProperty.setItemData(self.cbProperty.count() - 1, resultsBrush, Qt.BackgroundRole)
+                if numericResultProps:
+                    if self.cbStatisticsFor.count() > 0:
+                        self.cbStatisticsFor.insertSeparator(self.cbStatisticsFor.count())
+                    for prop in numericResultProps:
+                        self.cbStatisticsFor.addItem(prop)
+                        self.cbStatisticsFor.setItemData(self.cbStatisticsFor.count() - 1, resultsBrush, Qt.BackgroundRole)
 
         if self.cbProperty.count():
+            elementText = self.cbElementType.currentText()
+            defaults = self.defaultProperties.get(elementText, self.defaultProperties.get(qrIdent, []))
+            for defaultProp in defaults:
+                idx = self.cbProperty.findText(defaultProp)
+                if idx >= 0:
+                    self.cbProperty.setCurrentIndex(idx)
+                    break
             self.updateConditions()
             self.updateValues()
         if self.cbStatisticsFor.count() > 0 and not self.cbStatisticsFor.currentText():
@@ -645,6 +696,15 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             cat = 'text'
 
         self.cbCondition.addItems(self.conditionsByType.get(cat, self.conditionsByType['text']))
+
+        if cat == 'numeric':
+            idx = self.cbCondition.findText('<=')
+            if idx >= 0:
+                self.cbCondition.setCurrentIndex(idx)
+        elif cat == 'text':
+            idx = self.cbCondition.findText('ILIKE')
+            if idx >= 0:
+                self.cbCondition.setCurrentIndex(idx)
         self.cbCondition.blockSignals(False)
         self.onConditionChanged()
 
