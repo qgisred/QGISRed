@@ -38,10 +38,12 @@ SOURCES = qgisred.py \
           ui/project/qgisred_layermanagement_dialog.py \
           ui/project/qgisred_legends_dialog.py \
           ui/queries/qgisred_element_explorer_dock.py \
-          ui/queries/qgisred_queriesbyattributes_dock.py \
+          ui/queries/qgisred_queriesbyproperties_dock.py \
           ui/queries/qgisred_statisticsandgraphs_dock.py \
           ui/queries/qgisred_thematicmaps_dialog.py \
           ui/analysis/qgisred_results_dock.py \
+          ui/analysis/qgisred_results_data.py \
+          ui/analysis/qgisred_results_rendering.py \
           ui/analysis/qgisred_timeseries_dock.py \
           ui/analysis/qgisred_export_csv_dialog.py \
           ui/debug/qgisred_toolConnectivity_dialog.py \
@@ -58,7 +60,7 @@ FORMS = ui/general/qgisred_about_dialog.ui \
         ui/project/qgisred_layermanagement_dialog.ui \
         ui/project/qgisred_legends_dialog.ui \
         ui/queries/qgisred_element_explorer_dock.ui \
-        ui/queries/qgisred_queriesbyattributes_dock.ui \
+        ui/queries/qgisred_queriesbyproperties_dock.ui \
         ui/queries/qgisred_statisticsandgraphs_dock.ui \
         ui/queries/qgisred_thematicmaps_dialog.ui \
         ui/analysis/qgisred_results_dock.ui \

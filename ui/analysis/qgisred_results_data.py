@@ -111,7 +111,7 @@ def export_results_to_csv(binary_path, nodes_path, links_path, iface, list_sep, 
 
     QGISRedUIUtils.showGlobalMessage(
         iface,
-        "Results exported to CSV",
+        QCoreApplication.translate("QGISRedResultsDock", "Results exported to CSV"),
         level=3, duration=5
     )
 

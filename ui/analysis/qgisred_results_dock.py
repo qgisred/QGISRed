@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from qgis.PyQt.QtWidgets import QDockWidget, QApplication
-from qgis.PyQt.QtCore import Qt, pyqtSignal, QTimer
+from qgis.PyQt.QtCore import Qt, pyqtSignal, QTimer, QCoreApplication
 from qgis.PyQt.QtGui import QPixmap
 from qgis.PyQt import uic
 from qgis.core import (
@@ -66,6 +66,22 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
     Computing = False
     TimeLabels = []
     outPath = ""
+    _RESULTS_CONTEXTS = [
+        "QGISRedResultsDock",
+        "_ResultsRenderingMixin",
+        "_ResultsDataMixin",
+        "QGISRed",
+        "AnalysisSection",
+    ]
+
+    def tr(self, message):
+        """Get the translation for a string searching across multiple results-related contexts."""
+        for ctx in self._RESULTS_CONTEXTS:
+            result = QCoreApplication.translate(ctx, message)
+            if result != message:
+                return result
+        return message
+
 
     def __init__(self, iface):
         """Constructor."""
