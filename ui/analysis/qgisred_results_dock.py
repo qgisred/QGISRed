@@ -667,6 +667,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
                 self.updateFieldsVisibility(link_layer, "Link", self._statsMode, self._currentStat)
 
             self.paintIntervalTimeResults(True)
+            QTimer.singleShot(300, self.forceFinalFieldsVisibility)
         finally:
             QApplication.restoreOverrideCursor()
         self.resultPropertyChanged.emit()
@@ -694,6 +695,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
                 self.updateFieldsVisibility(node_layer, "Node", self._statsMode, self._currentStat)
 
             self.paintIntervalTimeResults(True)
+            QTimer.singleShot(300, self.forceFinalFieldsVisibility)
         finally:
             QApplication.restoreOverrideCursor()
         self.resultPropertyChanged.emit()
