@@ -81,6 +81,10 @@ def create_combined_cursor(icon, iface=None, icon_size=24):
 # Sentinel label used to identify the hidden NULL/else rule across calls.
 _NULL_RULE_LABEL = "__qgisred_null__"
 
+# In QGIS 4 / PyQt6, subclassing QgsMapLayerLegend from Python and calling
+# layer.setLegend() causes a fatal access violation.  Skip it there.
+_QGIS4 = Qgis.QGIS_VERSION_INT >= 40000
+
 
 class _NullHiddenLegend(QgsMapLayerLegend):
     """Vector legend wrapper that hides the NULL/else rule from the legend panel."""
@@ -359,10 +363,11 @@ class QGISRedStylingUtils:
         # If already rule-based (NullRule was applied in a previous session), the
         # _NullHiddenLegend wrapper is not serialized to .qgs, so re-attach it.
         if isinstance(renderer, QgsRuleBasedRenderer):
-            for rule in renderer.rootRule().children():
-                if _NULL_RULE_LABEL in rule.label():
-                    layer.setLegend(_NullHiddenLegend(layer))
-                    break
+            if not _QGIS4:
+                for rule in renderer.rootRule().children():
+                    if _NULL_RULE_LABEL in rule.label():
+                        layer.setLegend(_NullHiddenLegend(layer))
+                        break
             return
 
         def make_gray(symbol):
@@ -432,4 +437,7 @@ class QGISRedStylingUtils:
             layer.setRenderer(new_renderer)
 
             # Hide the NULL rule from the legend via a custom legend wrapper.
-            layer.setLegend(_NullHiddenLegend(layer))
+            # Skipped on QGIS 4: subclassing QgsMapLayerLegend from Python
+            # and calling setLegend() causes a fatal crash there.
+            if not _QGIS4:
+                layer.setLegend(_NullHiddenLegend(layer))

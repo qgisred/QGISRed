@@ -6,7 +6,7 @@ import os
 from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeLayer
 from qgis.PyQt.QtWidgets import QApplication, QMessageBox
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtCore import Qt, QCoreApplication
+from qgis.PyQt.QtCore import Qt, QCoreApplication, QTimer
 from ..compat import QAction
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
@@ -125,9 +125,9 @@ class ProjectManagementSection:
 
         self.readOptions(self.ProjectDirectory, self.NetworkName)
 
-        # Style update runs BEFORE assignLayerIdentifiers so that layers from old
-        # projects (no identifier saved in .qgs yet) are still detectable.
-        self._updateStylesOnProjectOpen()
+        # Snapshot which layers lack a QGISRed identifier BEFORE assignLayerIdentifiers
+        # runs — this is how we detect old projects where identifiers were never saved.
+        style_snapshot = self._collectStyleSnapshot()
 
         identifiers = QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         identifiers.assignLayerIdentifiers()
@@ -146,6 +146,10 @@ class ProjectManagementSection:
                         translatedName = identifiers.getTranslatedNameForIdentifier(identifier)
                         if translatedName and layer.name() != translatedName:
                             layer.setName(translatedName)
+
+        # Defer style application to after QgsProject.read() fully unwinds —
+        # calling setLegend() during readProject signal crashes QGIS 4.
+        QTimer.singleShot(0, lambda: self._applyStyleUpdates(style_snapshot))
 
     def suggestQgsProjectFilename(self):
         """If a valid QGISRed project is open and the QGIS project has no filename yet,
@@ -579,50 +583,68 @@ class ProjectManagementSection:
         path = io.saveBackup()
         self.pushMessage(self.tr("Backup stored in:") + " " + path, level=3, duration=5)
 
-    def _updateStylesOnProjectOpen(self):
-        """Apply default styles to unidentified Inputs layers and NullRule to Results layers."""
-        import os
-        from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
+    def _collectStyleSnapshot(self):
+        """Collect which layers need style updates BEFORE assignLayerIdentifiers() runs.
 
-        styling = QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        Returns a dict with:
+          - inputs_to_restyle: list of (layer_id, style_name) for Inputs layers without identifier
+          - results_no_id:     True if any Results layer has no identifier (re-simulation needed)
+          - results_with_id:   list of layer_ids for Results layers that need NullRule applied
+        """
+        snapshot = {"inputs_to_restyle": [], "results_no_id": False, "results_with_id": []}
         root = QgsProject.instance().layerTreeRoot()
 
-        # Inputs: layers WITHOUT qgisred_identifier → apply default style inferred from filename
         inputs_group = root.findGroup("Inputs")
         if inputs_group:
             for tree_item in inputs_group.findLayers():
                 layer = tree_item.layer()
-                if not layer:
+                if not layer or layer.customProperty("qgisred_identifier"):
                     continue
-                if not layer.customProperty("qgisred_identifier"):
-                    uri = layer.dataProvider().dataSourceUri()
-                    filename = os.path.splitext(os.path.basename(uri.split("|")[0]))[0]
-                    prefix = self.NetworkName + "_"
-                    if filename.startswith(prefix):
-                        element_name = filename[len(prefix):]
-                        styling.setStyle(layer, element_name.lower())
-                        layer.triggerRepaint()
+                uri = layer.dataProvider().dataSourceUri()
+                filename = os.path.splitext(os.path.basename(uri.split("|")[0]))[0]
+                prefix = self.NetworkName + "_"
+                if filename.startswith(prefix):
+                    element_name = filename[len(prefix):]
+                    snapshot["inputs_to_restyle"].append((layer.id(), element_name.lower()))
 
-        # Results: layers WITHOUT identifier → warn; WITH identifier → apply NullRule
         results_group = root.findGroup("Results")
         if results_group:
-            needs_resimulation = False
             for tree_item in results_group.findLayers():
                 layer = tree_item.layer()
                 if not layer:
                     continue
                 if not layer.customProperty("qgisred_identifier"):
-                    needs_resimulation = True
+                    snapshot["results_no_id"] = True
                 else:
-                    styling.applyNullStyle(layer)
-                    layer.triggerRepaint()
+                    snapshot["results_with_id"].append(layer.id())
 
-            if needs_resimulation:
-                self.pushMessage(
-                    self.tr("Simulation results need to be reloaded. Please run the simulation again."),
-                    level=1,
-                    duration=10,
-                )
+        return snapshot
+
+    def _applyStyleUpdates(self, snapshot):
+        """Apply style updates deferred from project open (runs after QgsProject.read() unwinds)."""
+        from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
+
+        styling = QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        project = QgsProject.instance()
+
+        for layer_id, style_name in snapshot["inputs_to_restyle"]:
+            layer = project.mapLayer(layer_id)
+            if layer:
+                styling.setStyle(layer, style_name)
+                layer.triggerRepaint()
+
+        for layer_id in snapshot["results_with_id"]:
+            layer = project.mapLayer(layer_id)
+            if layer:
+                styling.applyNullStyle(layer)
+                layer.triggerRepaint()
+
+        if snapshot["results_no_id"]:
+            self.pushMessage(
+                self.tr("Simulation results need to be reloaded. Please run the simulation again."),
+                level=1,
+                duration=10,
+            )
 
     def runCloseProject(self):
         self.iface.newProject(True)
