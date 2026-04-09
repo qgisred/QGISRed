@@ -1516,7 +1516,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             with open(fname, 'w', encoding='utf-8') as f:
                 f.write(f"{elementType}\n")
                 if comment:
-                    f.write(f";;{comment}\n")
+                    f.write(f"{comment}\n")
                 for c in self.effectiveCriteria():
                     prefix = "" if c.get('enabled', True) else "#"
                     op = c['operator']
@@ -1555,15 +1555,15 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             for line in lines[1:]:
                 if not line.strip():
                     continue
-                if line.startswith(';;'):
-                    importedComment = line[2:].strip()
-                    continue
                 enabled = True
-                if line.startswith('#'):
+                candidate = line
+                if candidate.startswith('#'):
                     enabled = False
-                    line = line[1:]
-                if not line or line[0] not in ('+', '-'):
+                    candidate = candidate[1:]
+                if not candidate or candidate[0] not in ('+', '-'):
+                    importedComment = line.strip()
                     continue
+                line = candidate
                 op = line[0]
                 rest = line[1:].strip()
                 propEnd = rest.find(' ')
@@ -1630,10 +1630,10 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             queryLabel = self.tr("Query") if len(activeCriteria) == 1 else self.tr("Queries")
             timeText = (self.currentResultsTimeText or self.labelResults.text() or "").strip()
             statsProp = self.cbStatisticsFor.currentText()
-            hasDynamic = self.isResultProperty(statsProp) or any(
+            hasDynamicCriterion = any(
                 self.isResultProperty(c['property']) for c in activeCriteria
             )
-            queryHeader = queryLabel + (f" @{timeText}" if timeText and hasDynamic else "")
+            queryHeader = queryLabel + (f" @{timeText}" if timeText and hasDynamicCriterion else "")
 
             table = self.tableWidgetStatistics
             headers = [
@@ -1645,7 +1645,9 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 writer = csv.writer(f)
                 f.write(f"Project: {projectName}\n")
                 f.write(f"Scenario: base\n")
-                f.write(f"{queryHeader}\n")
+                if hasDynamicCriterion:
+                    f.write(f"{queryHeader}\n")
+                f.write(f"Property: {statsProp}\n")
                 for c in activeCriteria:
                     op = c['operator']
                     prop = c['property']
