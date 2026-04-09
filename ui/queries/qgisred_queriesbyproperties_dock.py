@@ -123,7 +123,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.conditionsByType = {
             'numeric': ['All', '>=', '<=', '=', '>', '<', '≠'],
             'listed': ['All', '='],
-            'text': ['All', '=', '≠', 'LIKE', 'NOT LIKE']
+            'text': ['All', '=', '≠', 'ILIKE', 'NOT ILIKE', 'LIKE', 'NOT LIKE']
         }
 
         self.fieldTypeMapping = {
@@ -845,18 +845,19 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             return '1=1'
         fld  = f'"{crit["property"]}"'
         op_map = {'=':'=', '≠':'<>', 'LIKE':' LIKE ', 'NOT LIKE':' NOT LIKE ',
+                  'ILIKE':' ILIKE ', 'NOT ILIKE':' NOT ILIKE ',
                   'contains':' LIKE ', 'starts with':' LIKE ', 'ends with':' LIKE '}
         op   = op_map.get(cond, cond)
         val  = crit['value']
         isTextComparison = isinstance(val, str)
+        isCaseInsensitive = cond in ('ILIKE', 'NOT ILIKE')
         if isTextComparison:
-            if cond == 'LIKE':          val = f"'%{val}%'"
-            elif cond == 'NOT LIKE':    val = f"'%{val}%'"
-            elif cond == 'contains':    val = f"'%{val}%'"
+            if cond in ('LIKE', 'NOT LIKE', 'ILIKE', 'NOT ILIKE', 'contains'):
+                val = f"'%{val}%'"
             elif cond == 'starts with': val = f"'{val}%'"
             elif cond == 'ends with':   val = f"'%{val}'"
             else:                       val = f"'{val}'"
-        if isTextComparison:
+        if isTextComparison and not isCaseInsensitive:
             return f"lower({fld}) {op} lower({val})"
         return f"{fld} {op} {val}"
 
@@ -1495,6 +1496,9 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                     if not condVal:
                         cond = 'All'
                         val = ''
+                    elif condVal.upper().startswith('NOT ILIKE '):
+                        cond = 'NOT ILIKE'
+                        val = self.parseValue(condVal[10:].strip())
                     elif condVal.upper().startswith('NOT LIKE '):
                         cond = 'NOT LIKE'
                         val = self.parseValue(condVal[9:].strip())
