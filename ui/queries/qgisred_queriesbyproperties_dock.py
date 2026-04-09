@@ -1511,11 +1511,9 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         if not fname:
             return
         try:
-            projectName = QgsProject.instance().baseName()
             elementType = self.cbElementType.currentText()
             comment = self.multipleCriteriaComment.text().strip() if self.radioMultipleCriteria.isChecked() else ""
             with open(fname, 'w', encoding='utf-8') as f:
-                f.write(f";{projectName}\n")
                 f.write(f"{elementType}\n")
                 if comment:
                     f.write(f";;{comment}\n")
@@ -1545,16 +1543,16 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         try:
             with open(fname, 'r', encoding='utf-8') as f:
                 lines = [line.rstrip('\n') for line in f.readlines()]
-            if len(lines) < 2:
+            if len(lines) < 1:
                 return
-            elementType = lines[1]
+            elementType = lines[0]
             for i in range(self.cbElementType.count()):
                 if self.cbElementType.itemText(i) == elementType:
                     self.cbElementType.setCurrentIndex(i)
                     break
             parsedCriteria = []
             importedComment = ''
-            for line in lines[2:]:
+            for line in lines[1:]:
                 if not line.strip():
                     continue
                 if line.startswith(';;'):
