@@ -240,7 +240,6 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.btAdd.clicked.connect(lambda: self.addCriterion('+'))
         self.btSubtract.clicked.connect(lambda: self.addCriterion('-'))
         self.btReplace.clicked.connect(self.replaceCriterion)
-        self.btClear.clicked.connect(self.clearCriteria)
         self.btClearQuery.clicked.connect(self.clearQuery)
         self.btSubmit.clicked.connect(self.runQuery)
 
@@ -441,7 +440,6 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             sel = row >= 0 and bool(self.tableWidgetCriteria.selectedIndexes())
             self.btSubtract.setEnabled(has)
             self.btReplace.setEnabled(has and sel)
-            self.btClear.setEnabled(has)
             self.btSubmit.setEnabled(has)
             self.cbElementType.setEnabled(not has or self.isResultsMode)
             self.btCriteriaUp.setEnabled(sel and row > 0)
@@ -903,7 +901,6 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             self.btReplace.setText(self.tr("Confirm"))
             self.btAdd.setEnabled(False)
             self.btSubtract.setEnabled(False)
-            self.btClear.setEnabled(False)
             self.cbStatisticsFor.setEnabled(False)
         else:
             self.addCriterion(self.criteria[self.currentlyReplacingIndex]['operator'])
@@ -1242,7 +1239,6 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             self.btAdd,
             self.btSubtract,
             self.btReplace,
-            self.btClear,
             self.btCriteriaUp,
             self.btCriteriaDown,
             self.btCriteriaClear,
@@ -1293,7 +1289,6 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         for btn in (
             self.btAdd,
             self.btReplace,
-            self.btClear,
             self.radioSingleCriteria,
             self.radioMultipleCriteria,
         ):
