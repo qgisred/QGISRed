@@ -71,7 +71,6 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
 
     def initializeQueriesByProperties(self):
         self.criteria = []
-        self.currentlyReplacingIndex = None
         self.isResultsMode = False
         self.resultsDock = None
         self.currentResultsTimeText = ""
@@ -174,7 +173,6 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.tableWidgetStatistics.setFixedHeight((headerH + rowH * 2) // 2)
 
         self.criteria = []
-        self.currentlyReplacingIndex = None
         # track which row (if any) is being edited
         self.editingIndex = None
 
@@ -239,7 +237,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         # main buttons
         self.btAdd.clicked.connect(lambda: self.addCriterion('+'))
         self.btSubtract.clicked.connect(lambda: self.addCriterion('-'))
-        self.btReplace.clicked.connect(self.replaceCriterion)
+        self.btReplace.clicked.connect(self.commitCriterionEdit)
         self.btClearQuery.clicked.connect(self.clearQuery)
         self.btSubmit.clicked.connect(self.runQuery)
 
@@ -433,13 +431,15 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         return []
 
     def updateButtonsState(self):
+        if self.editingIndex is not None:
+            return
         isMultiple = self.radioMultipleCriteria.isChecked()
         if isMultiple:
             has = len(self.criteria) > 0
             row = self.tableWidgetCriteria.currentRow()
             sel = row >= 0 and bool(self.tableWidgetCriteria.selectedIndexes())
             self.btSubtract.setEnabled(has)
-            self.btReplace.setEnabled(has and sel)
+            self.btReplace.setEnabled(False)
             self.btSubmit.setEnabled(has)
             self.cbElementType.setEnabled(not has or self.isResultsMode)
             self.btCriteriaUp.setEnabled(sel and row > 0)
@@ -451,6 +451,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             isAll = self.cbCondition.currentText() == 'All'
             hasValue = isAll or bool(self.cbValue.value())
             self.btSubmit.setEnabled(hasValue)
+            self.btReplace.setEnabled(False)
             self.cbElementType.setEnabled(True)
             self.btCriteriaUp.setEnabled(False)
             self.btCriteriaDown.setEnabled(False)
@@ -490,7 +491,6 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             self.criteria.pop(row)
         else:
             self.criteria = []
-        self.currentlyReplacingIndex = None
         if self.editingIndex is not None:
             self.editingIndex = None
             self.btCriteriaEdit.setChecked(False)
@@ -553,7 +553,6 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             self.lastCombinedExpression = ""
             self.cbValue.setValue('')
             self.criteria = []
-            self.currentlyReplacingIndex = None
             self.reloadCriteriaTable()
             self.clearHighlights()
             self.clearMapSelection()
@@ -877,40 +876,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             'operator':  operator,
             'enabled':   True
         }
-        if self.currentlyReplacingIndex is None:
-            self.criteria.append(crit)
-        else:
-            # preserve the original operator (and enabled flag)
-            old = self.criteria[self.currentlyReplacingIndex]
-            crit['operator'] = old['operator']
-            crit['enabled']  = old.get('enabled', True)
-            self.criteria[self.currentlyReplacingIndex] = crit
-            self.currentlyReplacingIndex = None
+        self.criteria.append(crit)
         self.reloadCriteriaTable()
-
-    def replaceCriterion(self):
-        row = self.tableWidgetCriteria.currentRow()
-        if self.currentlyReplacingIndex is None:
-            if row < 0:
-                return
-            crit = self.criteria[row]
-            self.currentlyReplacingIndex = row
-            self.cbProperty.setCurrentText(crit['property'])
-            self.cbCondition.setCurrentText(crit['condition'])
-            self.cbValue.setValue(str(crit['value']))
-            self.btReplace.setText(self.tr("Confirm"))
-            self.btAdd.setEnabled(False)
-            self.btSubtract.setEnabled(False)
-            self.cbStatisticsFor.setEnabled(False)
-        else:
-            self.addCriterion(self.criteria[self.currentlyReplacingIndex]['operator'])
-            self.cancelReplaceMode()
-
-    def cancelReplaceMode(self):
-        if self.currentlyReplacingIndex is not None:
-            self.currentlyReplacingIndex = None
-        self.btReplace.setText(self.tr("Replace"))
-        self.updateButtonsState()
 
     def clearQuery(self):
         self.cbValue.setValue('')
@@ -925,8 +892,6 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
 
     def clearCriteria(self):
         self.criteria = []
-        self.currentlyReplacingIndex = None
-        self.btReplace.setText(self.tr("Replace"))
         self.lastCombinedExpression = ""
         self.reloadCriteriaTable()
         self.clearMapSelection()
@@ -1201,7 +1166,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         if self.btCriteriaEdit.isChecked():
             self.startCriterionEdit()
         else:
-            self.commitCriterionEdit()
+            self.cancelCriterionEdit()
 
     def startCriterionEdit(self):
         row = self.tableWidgetCriteria.currentRow()
@@ -1238,7 +1203,6 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         for btn in (
             self.btAdd,
             self.btSubtract,
-            self.btReplace,
             self.btCriteriaUp,
             self.btCriteriaDown,
             self.btCriteriaClear,
@@ -1250,9 +1214,24 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             self.cbElementType,
         ):
             btn.setEnabled(False)
+        self.btReplace.setEnabled(True)
         self.tableWidgetCriteria.setEnabled(False)
 
+    def cancelCriterionEdit(self):
+        self.editingIndex = None
+        self.btCriteriaEdit.setChecked(False)
+        for btn in (
+            self.btAdd,
+            self.radioSingleCriteria,
+            self.radioMultipleCriteria,
+        ):
+            btn.setEnabled(True)
+        self.tableWidgetCriteria.setEnabled(True)
+        self.updateButtonsState()
+
     def commitCriterionEdit(self):
+        if self.editingIndex is None:
+            return
         # read back the controls
         prop = self.cbProperty.currentText()
         cond = self.cbCondition.currentText()
@@ -1288,7 +1267,6 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         # re-enable controls that were blanket-disabled during edit
         for btn in (
             self.btAdd,
-            self.btReplace,
             self.radioSingleCriteria,
             self.radioMultipleCriteria,
         ):
