@@ -210,9 +210,14 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.btExport.setToolTip(self.tr("Export criteria to file"))
 
         self.btCriteriaUp.setIcon(QIcon(":/images/iconStatisticsArrowUp.svg"))
+        self.btCriteriaUp.setToolTip(self.tr("Move selected criterion up"))
         self.btCriteriaDown.setIcon(QIcon(":/images/iconStatisticsArrowDown.svg"))
+        self.btCriteriaDown.setToolTip(self.tr("Move selected criterion down"))
         self.btCriteriaClear.setIcon(QIcon(":/images/iconStatisticsDelete.svg"))
+        self.btCriteriaClear.setToolTip(self.tr("Delete selected criterion"))
+        self.btCriteriaSwitch.setToolTip(self.tr("Enable/disable selected criterion"))
         self.btCriteriaEdit.setIcon(QIcon(":/images/iconStatisticsEdit.svg"))
+        self.btCriteriaEdit.setToolTip(self.tr("Edit selected criterion"))
         self.btCommentCriteria.setIcon(QIcon(":/images/iconComment.svg"))
         self.btCommentCriteria.setToolTip(self.tr("Show/hide comment for this set of criteria"))
         self.btCommentCriteria.setCheckable(True)
@@ -1302,7 +1307,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
 
     def onCriteriaSelectionChanged(self, row, col):
         if row < 0 or row >= len(self.criteria):
-            self.btCriteriaSwitch.setIcon(self.iconSwitchDisabled)
+            self.btCriteriaSwitch.setIcon(self.iconSwitchEnabled)
         else:
             enabled = self.criteria[row].get('enabled', True)
             self.btCriteriaSwitch.setIcon(
