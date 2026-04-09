@@ -2451,7 +2451,7 @@
     </message>
     <message>
         <location filename="../qgisred.py" line="2729"/>
-        <source>Project saved</source>
+        <source>Map project saved</source>
         <translation type="obsolete">Projet enregistré</translation>
     </message>
     <message>

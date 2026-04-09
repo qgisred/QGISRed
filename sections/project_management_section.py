@@ -165,7 +165,7 @@ class ProjectManagementSection:
         self.defineCurrentProject()
         if not self.ProjectDirectory == self.TemporalFolder:
             self.updateMetadata()
-            self.pushMessage(self.tr("Project saved"), level=0, duration=5)
+            self.pushMessage(self.tr("Map project saved"), level=0, duration=5)
 
     def runClearedProject(self):
         # Set flag to prevent DLL calls during shutdown

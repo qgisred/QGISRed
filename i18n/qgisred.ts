@@ -1607,7 +1607,7 @@
     </message>
     <message>
         <location filename="../sections/project_management_section.py" line="164"/>
-        <source>Project saved</source>
+        <source>Map project saved</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
