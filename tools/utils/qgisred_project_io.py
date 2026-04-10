@@ -220,6 +220,19 @@ class QGISRedProjectIO:
             return qgisBase + ".qgs"
         return None
 
+    def _hasProjectFiles(self, folder, prefix):
+        """Returns True if folder (recursively) contains any file starting with prefix + '_'."""
+        try:
+            for f in os.listdir(folder):
+                filepath = os.path.join(folder, f)
+                if os.path.isfile(filepath) and f.startswith(prefix + "_"):
+                    return True
+                if os.path.isdir(filepath) and self._hasProjectFiles(filepath, prefix):
+                    return True
+        except Exception:
+            pass
+        return False
+
     def processProjectFiles(self, folder, oldName, newName, targetDir, deleteSource=False, excludeDirs=None):
         """Copies/moves project files (oldName_*) recursively to targetDir, renaming any file that starts with oldName_."""
         if excludeDirs is None:
@@ -240,6 +253,14 @@ class QGISRedProjectIO:
                     pass
             elif os.path.isdir(filepath):
                 if f.lower() in [d.lower() for d in excludeDirs]:
+                    continue
+                # Skip subdirectories that are the target or contain the target (would cause infinite recursion)
+                normalizedFilepath = self._fs().getUniformedPath(filepath)
+                normalizedTarget = self._fs().getUniformedPath(targetDir)
+                if normalizedTarget == normalizedFilepath or normalizedTarget.startswith(normalizedFilepath + '/'):
+                    continue
+                # Skip subdirectories that contain no project files (avoid creating empty target dirs)
+                if not self._hasProjectFiles(filepath, oldName):
                     continue
                 subTarget = os.path.join(targetDir, f)
                 if self._fs().getUniformedPath(folder) != self._fs().getUniformedPath(targetDir):
