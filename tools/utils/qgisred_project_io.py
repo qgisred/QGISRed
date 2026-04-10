@@ -26,7 +26,7 @@ class QGISRedProjectIO:
         self.NetworkName = networkName
 
     """Interal Helpers"""
-    def _tr(self, message):
+    def tr(self, message):
         return QCoreApplication.translate("QGISRedProjectIO", message)
 
     def _fs(self):
