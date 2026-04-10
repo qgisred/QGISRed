@@ -970,9 +970,6 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             fid = feat['Id']
             if fid is not None:
                 ids.append(str(fid))
-        return self.buildIdFilterFromSet(ids)
-
-    def buildIdFilterFromSet(self, ids):
         if not ids:
             return ""
         quoted = ", ".join(f"'{i}'" for i in ids)
@@ -1047,6 +1044,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         # statistics target reads from the layer that has targetField
         criteriaLayer = resultsLayer if hasCriteriaResultProp and resultsLayer else selectedLayer
         statsLayer = resultsLayer if targetIsResultProp and resultsLayer else selectedLayer
+        highlightLayer = resultsLayer if resultsLayer else selectedLayer
 
         # When querying a results layer for a specific input type, restrict by Id
         idFilter = ""
@@ -1112,17 +1110,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             f"NOT ({exclusionExpressionString})" if exclusionExpressionString else ''
         ]))
         self.lastCombinedExpression = combinedExpression
-        if resultsLayer and not self.isResultsMode:
-            constrainedHighlight = self.constrainExpression(combinedExpression, idFilter)
-            featureReq = QgsFeatureRequest().setFilterExpression(constrainedHighlight)
-            matchedIds = {
-                str(feat['Id']) for feat in resultsLayer.getFeatures(featureReq)
-                if feat['Id'] is not None
-            }
-            highlightIdFilter = self.buildIdFilterFromSet(matchedIds)
-            self.highlightFeatures(selectedLayer, highlightIdFilter)
-        else:
-            self.highlightFeatures(selectedLayer, combinedExpression)
+        highlightExpression = self.constrainExpression(combinedExpression, idFilter) if highlightLayer is resultsLayer else combinedExpression
+        self.highlightFeatures(highlightLayer, highlightExpression)
 
         constrainedCombined = self.constrainExpression(combinedExpression, idFilter) if criteriaLayer is resultsLayer else combinedExpression
         allFeaturesRequest = QgsFeatureRequest().setFilterExpression(constrainedCombined) if constrainedCombined else QgsFeatureRequest()
