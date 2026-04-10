@@ -799,7 +799,9 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 if fieldIdx >= 0:
                     field = layer.fields().field(fieldIdx)
                     cat = self.fieldTypeMapping.get(field.typeName().lower(), 'text')
-                    if cat == 'text':
+                    freeTextFields = {'Id', 'Descrip', 'InstalDate',
+                                       'Time', 'Time_H', 'Time_Q', 'Time_D'}
+                    if cat == 'text' and prop not in freeTextFields:
                         uniqueVals = self.getUniqueFieldValues(layer, prop)
                         strVals = sorted({str(v) for v in uniqueVals if v is not None and str(v).strip()})
                         useList = bool(strVals)
