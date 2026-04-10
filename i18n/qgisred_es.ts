@@ -1541,17 +1541,17 @@
 <context>
     <name>ProjectManagementSection</name>
     <message>
-        <location filename="../sections/project_management_section.py" line="552"/>
+        <location filename="../sections/project_management_section.py" line="556"/>
         <source>Some issues occurred in the process</source>
         <translation>Ha habido algún error en el proceso</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="337"/>
+        <location filename="../sections/project_management_section.py" line="341"/>
         <source>QGISRed: Open project</source>
         <translation>QGISRed: Abrir proyecto</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="491"/>
+        <location filename="../sections/project_management_section.py" line="495"/>
         <source>Project options updated</source>
         <translation>Opciones de proyecto actualizadas</translation>
     </message>
@@ -1561,12 +1561,12 @@
         <translation>No hay ningún proyecto válido abierto</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="563"/>
+        <location filename="../sections/project_management_section.py" line="567"/>
         <source>Save QGIS project</source>
         <translation>Guardar proyecto de QGIS</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="563"/>
+        <location filename="../sections/project_management_section.py" line="567"/>
         <source>QGIS Projects (*.qgz *.qgs)</source>
         <translation>Proyectos de QGIS (*.qgz *.qgs)</translation>
     </message>
@@ -1601,17 +1601,17 @@
         <translation>¿Desea cerrar las capas actuales antes de continuar?</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="580"/>
+        <location filename="../sections/project_management_section.py" line="584"/>
         <source>Backup stored in:</source>
         <translation>Copia de seguridad almacenada en:</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="164"/>
+        <location filename="../sections/project_management_section.py" line="168"/>
         <source>Map project saved</source>
         <translation>Mapa del proyecto guardado</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="621"/>
+        <location filename="../sections/project_management_section.py" line="643"/>
         <source>Simulation results need to be reloaded. Please run the simulation again.</source>
         <translation>Los resultados de la simulación se deben recargar. Por favor, simula de nuevo.</translation>
     </message>
@@ -3094,7 +3094,7 @@
         <source>The field &apos;{field}&apos; has {uniqueCount} unique values.
 The maximum allowed is {self.MAX_CLASSES}.
 Please filter the data or choose a different field.</source>
-        <translation>El campo &apos;{field}&apos; tiene {uniqueCount} valores únicos.
+        <translation>El campo '{field}' tiene {uniqueCount} valores únicos.
 El máximo permitido es {self.MAX_CLASSES}.
 Por favor, filtre los datos o elija un campo diferente.</translation>
     </message>
@@ -3109,7 +3109,7 @@ Por favor, filtre los datos o elija un campo diferente.</translation>
 Creating a categorized legend with more than {self.WARN_CLASSES} classes may affect performance and readability.
 
 Do you want to proceed?</source>
-        <translation>El campo &apos;{field}&apos; tiene {uniqueCount} valores únicos.
+        <translation>El campo '{field}' tiene {uniqueCount} valores únicos.
 Crear una leyenda categorizada con más de {self.WARN_CLASSES} clases puede afectar al rendimiento y a la legibilidad.
 
 ¿Desea continuar?</translation>
@@ -3292,6 +3292,19 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <location filename="../tools/map_tools/qgisred_multilayerSelection.py" line="164"/>
         <source>Polygon not valid for selecting elements</source>
         <translation>Polígono no válido para seleccionar elementos</translation>
+    </message>
+</context>
+<context>
+    <name>QGISRedProjectIO</name>
+    <message>
+        <location filename="../tools/utils/qgisred_project_io.py" line="383"/>
+        <source>QGISRed Project</source>
+        <translation>Proyecto QGISRed</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_project_io.py" line="383"/>
+        <source>We cannot find the QGIS project file. Do you want to find this file manually? If not, we will open only the layers from the Inputs group.</source>
+        <translation>No podemos encontrar el archivo del proyecto de QGIS. ¿Quieres encontrarlo manualmente? Si no, abriremos solamente las capas del grupo Inputs.</translation>
     </message>
 </context>
 <context>
@@ -3493,174 +3506,171 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     </message>
 </context>
 <context>
-    <name>QGISRedQueriesByAttributesDock</name>
-</context>
-<context>
     <name>QGISRedQueriesByPropertiesDock</name>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="168"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="167"/>
         <source>Optional comment for this set of criteria</source>
         <translation>Comentario opcional para este conjunto de criterios</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="208"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="207"/>
         <source>Import criteria from file</source>
         <translation>Importar criterios desde archivo</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="210"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="209"/>
         <source>Export criteria to file</source>
         <translation>Exportar criterios a archivo</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="232"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="231"/>
         <source>Export statistics to file</source>
         <translation>Exportar estadísticas a archivo</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="294"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="293"/>
         <source>Switch to Single Criteria</source>
         <translation>Cambiar a Criterio Único</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="294"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="293"/>
         <source>Switching to single criteria will discard all criteria except the first one. Proceed?</source>
         <translation>Cambiar a criterio único descartará todos los criterios excepto el primero. Continuar?</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="362"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="361"/>
         <source>Nodes</source>
         <translation>Nudos</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="365"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="364"/>
         <source>Links</source>
         <translation>Líneas</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="901"/>
         <source>Confirm</source>
-        <translation>Confirmar</translation>
+        <translation type="obsolete">Confirmar</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="929"/>
         <source>Replace</source>
-        <translation>Reemplazar</translation>
+        <translation type="obsolete">Reemplazar</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="979"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="945"/>
         <source>Statistics of {property} for selected Elements</source>
         <translation>Estadísticas de {property} para los elementos seleccionados</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1153"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1119"/>
         <source>Sum</source>
         <translation>Suma</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1153"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1119"/>
         <source>StdD</source>
         <translation>Desv. Típica</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1157"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1123"/>
         <source>Count</source>
         <translation>Recuento</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1154"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1120"/>
         <source>Avg</source>
         <translation>Promedio</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1154"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1120"/>
         <source>Min</source>
         <translation>Mínimo</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1154"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1120"/>
         <source>Max</source>
         <translation>Máximo</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1180"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1146"/>
         <source>All</source>
         <translation>Todo</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1526"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1505"/>
         <source>Save criteria file</source>
         <translation>Guardar archivo de criterios</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1693"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1672"/>
         <source>Export successful</source>
         <translation>Exportación exitosa</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1693"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1672"/>
         <source>Saved to:
 </source>
         <translation>Guardado en:
 </translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1695"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1674"/>
         <source>Export failed</source>
         <translation>Exportación fallida</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1558"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1535"/>
         <source>Open criteria file</source>
         <translation>Abrir archivo de criterios</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1638"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1615"/>
         <source>Import failed</source>
         <translation>Importación fallida</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1642"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1619"/>
         <source>Save statistics file</source>
         <translation>Guardar archivo de estadísticas</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1653"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1630"/>
         <source>Query</source>
         <translation>Consulta</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1653"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1630"/>
         <source>Queries</source>
         <translation>Consultas</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="213"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="212"/>
         <source>Move selected criterion up</source>
         <translation>Mover el criterio seleccionado arriba</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="215"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="214"/>
         <source>Move selected criterion down</source>
         <translation>Mover el criterio seleccionado abajo</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="217"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="216"/>
         <source>Delete selected criterion</source>
         <translation>Eliminar el criterio seleccionado</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="218"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="217"/>
         <source>Enable/disable selected criterion</source>
         <translation>Habilitar/deshabilitar el criterio seleccionado</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="220"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="219"/>
         <source>Edit selected criterion</source>
         <translation>Editar criterio seleccionado</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="222"/>
+        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="221"/>
         <source>Show/hide comment for this set of criteria</source>
         <translation>Mostrar/ocultar comentario para este conjunto de criterios</translation>
     </message>
@@ -3769,17 +3779,17 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>&gt;|</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="564"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="573"/>
         <source>Nodes</source>
         <translation>Nudos</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="610"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="622"/>
         <source>Links</source>
         <translation>Enlaces</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="526"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="532"/>
         <source>Statistics</source>
         <translation>Estadísticas</translation>
     </message>
@@ -3789,17 +3799,17 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>00d 00:00:00</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="593"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="602"/>
         <source>Show Node Labels</source>
         <translation>Mostrar Etiquetas de Nudos</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="639"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="651"/>
         <source>Show Link Labels</source>
         <translation>Mostrar Etiquetas de Líneas</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="658"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="670"/>
         <source>Show Flow Directions</source>
         <translation>Mostrar Direcciones de Flujo</translation>
     </message>
@@ -3814,12 +3824,12 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Tiempos</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="550"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="556"/>
         <source>Mapping</source>
         <translation>Mapa</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="679"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="691"/>
         <source>Report</source>
         <translation>Informe</translation>
     </message>
@@ -3979,7 +3989,7 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Los resultados pueden no reflejar lo cambios recientes en la red</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="499"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="502"/>
         <source>Reported Times</source>
         <translation>Instantes Reportados</translation>
     </message>
@@ -4010,7 +4020,7 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
 <context>
     <name>QGISRedStylingUtils</name>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="285"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="289"/>
         <source>{field} field not found in layer {layer.name()}</source>
         <translation>Campo {field} no encontrado en la capa {layer.name()}</translation>
     </message>
@@ -4058,12 +4068,6 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <source>Selection required...</source>
         <translation>Selección requerida</translation>
     </message>
-</context>
-<context>
-    <name>ResultsDataMixin</name>
-</context>
-<context>
-    <name>ResultsRenderingMixin</name>
 </context>
 <context>
     <name>TimeSeriesPlotWidget</name>
