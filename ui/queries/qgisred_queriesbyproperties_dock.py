@@ -1255,7 +1255,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         for rowIndex, metrics in enumerate(statsResults):
             for colIndex, key in enumerate(columnKeys):
                 value = metrics[key]
-                cellText = f"{value:.2f}" if isinstance(value, float) else str(value if value is not None else "")
+                cellText = f"{value:.2f}" if isinstance(value, float) else str(value if value is not None else 0)
                 tableItem = QTableWidgetItem(cellText)
                 tableItem.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled)
                 if key == 'count':
