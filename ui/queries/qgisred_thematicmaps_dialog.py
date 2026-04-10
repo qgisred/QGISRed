@@ -6,7 +6,7 @@ import os
 # Third-party imports
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QDialog, QMessageBox, QWidget
-from ...compat import sip
+from ...compat import sip, NODE_TYPE_LAYER, NODE_TYPE_GROUP
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import QVariant
 
@@ -110,9 +110,22 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         self.removeQueryLayersByIdentifiers(toRemoveIdentifiers)
 
         # cleanup empty groups first
-        queriesGroup = self.findGroupByName(rootGroup, 'Queries')
-        if queriesGroup:
-            thematicGroup = self.findGroupByName(queriesGroup, 'Thematic Maps')
+        queriesGroup = None
+        for child in rootGroup.children():
+            if child.nodeType() == NODE_TYPE_GROUP and child.name() == 'Queries':
+                queriesGroup = child
+                break
+            if child.customProperty("qgisred_identifier") == "qgisred_queries":
+                queriesGroup = child
+                break
+
+        if queriesGroup is not None:
+            thematicGroup = None
+            for child in queriesGroup.children():
+                if child.nodeType() == NODE_TYPE_GROUP and (child.name() == 'Thematic Maps' or child.customProperty("qgisred_identifier") == "qgisred_thematicmaps"):
+                    thematicGroup = child
+                    break
+            
             if thematicGroup and not thematicGroup.children():
                 queriesGroup.removeChildNode(thematicGroup)
             if not queriesGroup.children():
@@ -120,8 +133,9 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                 if parent:
                     parent.removeChildNode(queriesGroup)
 
-        # Re-fetch inputsGroup since tree modifications may have invalidated it
-        inputsGroup = self.findGroupByName(rootGroup, 'Inputs')
+        # Re-fetch inputsGroup using identifier utility
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        inputsGroup = utils.getOrCreateGroup("Inputs")
         if inputsGroup is None:
             super().accept()
             return
@@ -130,8 +144,8 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             # now ensure Queries → Thematic Maps hierarchy exists
             thematicGroup = self.getOrCreateQueriesGroup(rootGroup, inputsGroup)
 
-            # Re-fetch inputsGroup since getOrCreateQueriesGroup may have modified the tree
-            inputsGroup = self.findGroupByName(rootGroup, 'Inputs')
+            # Re-fetch inputsGroup using identifier utility
+            inputsGroup = utils.getOrCreateGroup("Inputs")
             if inputsGroup is None:
                 super().accept()
                 return
@@ -219,13 +233,13 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                         return layer
             else:
                 # Search by layer name (original behavior)
-                if child.nodeType() == QgsLayerTreeNode.NodeLayer and child.name() == layerName and child.checkedLayers():
+                if child.nodeType() == NODE_TYPE_LAYER and child.name() == layerName and child.checkedLayers():
                     return child.checkedLayers()[0]
                 elif isinstance(child, QgsLayerTreeLayer) and child.name() == layerName:
                     return child.layer()
             
             # Recursively search in subgroups
-            if isinstance(child, QgsLayerTreeGroup):
+            if child.nodeType() == NODE_TYPE_GROUP:
                 layer = self.findLayerInGroup(child, layerName, custom_property)
                 if layer is not None:
                     return layer
@@ -253,7 +267,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                 layerId = None
                 if isinstance(existingLayer, QgsLayerTreeLayer) and existingLayer.layer():
                     layerId = existingLayer.layer().id()
-                elif existingLayer.nodeType() == QgsLayerTreeNode.NodeLayer and existingLayer.checkedLayers():
+                elif existingLayer.nodeType() == NODE_TYPE_LAYER and existingLayer.checkedLayers():
                     layerId = existingLayer.checkedLayers()[0].id()
                     
                 if layerId and QgsProject.instance().mapLayer(layerId):
@@ -280,9 +294,11 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         QgsProject.instance().addMapLayer(derivedLayer, False)
         QGISRedStylingUtils().hideFields(derivedLayer, field)
 
-        if parentGroup and not sip.isdeleted(parentGroup):
-            layerTreeLayer = parentGroup.insertLayer(layerPosition, derivedLayer)
-            layerTreeLayer.setCustomProperty("showFeatureCount", True)
+        if parentGroup is not None and not sip.isdeleted(parentGroup):
+            # Use insertChildNode with a new QgsLayerTreeLayer instance for better QGIS 4 compatibility
+            layerTreeLayer = parentGroup.insertChildNode(layerPosition, QgsLayerTreeLayer(derivedLayer))
+            if layerTreeLayer is not None:
+                layerTreeLayer.setCustomProperty("showFeatureCount", True)
 
         mainLayer.dataChanged.connect(lambda: self.syncLayers(mainLayer, derivedLayer))
         mainLayer.styleChanged.connect(lambda: self.syncLayers(mainLayer, derivedLayer))
@@ -296,11 +312,11 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             return None, None
             
         for i, child in enumerate(parentGroup.children()):
-            if isinstance(child, QgsLayerTreeLayer):
+            if child.nodeType() == NODE_TYPE_LAYER:
                 layerIdentifier = child.customProperty("qgisred_identifier")
                 if layerIdentifier == identifier:
                     return child, i
-            elif isinstance(child, QgsLayerTreeGroup):
+            elif child.nodeType() == NODE_TYPE_GROUP:
                 foundLayer, foundPosition = self.findLayerByIdentifier(child, identifier)
                 if foundLayer is not None:
                     return foundLayer, foundPosition
@@ -511,7 +527,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                         checkbox = identifierMapping[layerIdentifier]
                         checkbox.setChecked(True)
                         checkbox.setToolTip(self.tr("Query already exists."))
-            elif child.nodeType() == QgsLayerTreeNode.NodeLayer:
+            elif child.nodeType() == NODE_TYPE_LAYER:
                 layers = child.checkedLayers()
                 if layers:
                     layer = layers[0]

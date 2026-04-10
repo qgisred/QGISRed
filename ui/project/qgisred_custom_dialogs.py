@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from qgis.PyQt.QtGui import QColor, QPixmap, QPainter, QIcon
-from ...compat import PAINTER_ANTIALIASING
+from ...compat import PAINTER_ANTIALIASING, STYLE_CC_COMBOBOX, STYLE_CE_COMBOBOXLABEL
 from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QDoubleSpinBox, QLabel, QVBoxLayout, QStyle
 from qgis.PyQt.QtWidgets import QToolButton, QComboBox, QApplication, QStylePainter, QStyleOptionComboBox
 from qgis.PyQt.QtCore import pyqtSignal, Qt, QEvent, QSize, QObject, QPoint, QItemSelectionModel, QItemSelection
@@ -231,8 +231,8 @@ class QGISRedColorRampSelector(QComboBox):
         painter = QStylePainter(self)
         option = self.prepareStyleOption()
 
-        painter.drawComplexControl(QStyle.CC_ComboBox, option)
-        painter.drawControl(QStyle.CE_ComboBoxLabel, option)
+        painter.drawComplexControl(STYLE_CC_COMBOBOX, option)
+        painter.drawControl(STYLE_CE_COMBOBOXLABEL, option)
 
         self.renderRampPreview(painter)
 

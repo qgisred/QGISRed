@@ -257,7 +257,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def configureWindow(self):
         self.setWindowIcon(QIcon(":/images/iconThematicMaps.svg"))
         self.setWindowTitle(self.tr("QGISRed: Legend Editor"))
-        self.setWindowFlags(Qt.Window | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.WindowCloseButtonHint)
+        self.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.WindowCloseButtonHint)
         self.btClassPlus.setIcon(QIcon(":/images/themes/default/symbologyAdd.svg"))
         self.btClassMinus.setIcon(QIcon(":/images/themes/default/symbologyRemove.svg"))
 
@@ -3336,13 +3336,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def setClassCountEditable(self, editable):
         if editable:
             self.leClassCount.setReadOnly(False)
-            self.leClassCount.setButtonSymbols(QSpinBox.UpDownArrows)
+            self.leClassCount.setButtonSymbols(QSpinBox.ButtonSymbols.UpDownArrows)
             self.leClassCount.setStyleSheet(
                 "QSpinBox { background-color: white; color: #2b2b2b; }"
             )
         else:
             self.leClassCount.setReadOnly(True)
-            self.leClassCount.setButtonSymbols(QSpinBox.NoButtons)
+            self.leClassCount.setButtonSymbols(QSpinBox.ButtonSymbols.NoButtons)
             self.leClassCount.setStyleSheet(
                 "QSpinBox { background-color: #F0F0F0; color: #808080; }"
             )
@@ -3443,9 +3443,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.spinIntervalRange.setEnabled(not isInput)
         self.leClassCount.setReadOnly(isInput)
         if isInput:
-            self.leClassCount.setButtonSymbols(QSpinBox.NoButtons)
+            self.leClassCount.setButtonSymbols(QSpinBox.ButtonSymbols.NoButtons)
         else:
-            self.leClassCount.setButtonSymbols(QSpinBox.UpDownArrows)
+            self.leClassCount.setButtonSymbols(QSpinBox.ButtonSymbols.UpDownArrows)
 
         # Class action buttons
         self.btClassPlus.setEnabled(not isInput)

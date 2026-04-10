@@ -359,10 +359,10 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             resultsBrush = QBrush(QColor("#FFF8DC"))
             if nodeIdent:
                 self.cbElementType.addItem(self.tr("Nodes"), nodeIdent)
-                self.cbElementType.setItemData(self.cbElementType.count() - 1, resultsBrush, Qt.BackgroundRole)
+                self.cbElementType.setItemData(self.cbElementType.count() - 1, resultsBrush, Qt.ItemDataRole.BackgroundRole)
             if linkIdent:
                 self.cbElementType.addItem(self.tr("Links"), linkIdent)
-                self.cbElementType.setItemData(self.cbElementType.count() - 1, resultsBrush, Qt.BackgroundRole)
+                self.cbElementType.setItemData(self.cbElementType.count() - 1, resultsBrush, Qt.ItemDataRole.BackgroundRole)
             self.cbElementType.insertSeparator(self.cbElementType.count())
 
         # Input layers in fixed order
@@ -602,18 +602,18 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             if resultProps:
                 for prop in resultProps:
                     self.cbProperty.addItem(prop)
-                    self.cbProperty.setItemData(self.cbProperty.count() - 1, resultsBrush, Qt.BackgroundRole)
+                    self.cbProperty.setItemData(self.cbProperty.count() - 1, resultsBrush, Qt.ItemDataRole.BackgroundRole)
                 if numericResultProps:
                     for prop in numericResultProps:
                         self.cbStatisticsFor.addItem(prop)
-                        self.cbStatisticsFor.setItemData(self.cbStatisticsFor.count() - 1, resultsBrush, Qt.BackgroundRole)
+                        self.cbStatisticsFor.setItemData(self.cbStatisticsFor.count() - 1, resultsBrush, Qt.ItemDataRole.BackgroundRole)
                 if idTagFields or staticFields:
                     self.cbProperty.insertSeparator(self.cbProperty.count())
 
             if idTagFields:
                 for field in idTagFields:
                     self.cbProperty.addItem(field.name())
-                    self.cbProperty.setItemData(self.cbProperty.count() - 1, darkBrush, Qt.BackgroundRole)
+                    self.cbProperty.setItemData(self.cbProperty.count() - 1, darkBrush, Qt.ItemDataRole.BackgroundRole)
                 if staticFields:
                     self.cbProperty.insertSeparator(self.cbProperty.count())
 
@@ -629,7 +629,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             if idTagFields:
                 for field in idTagFields:
                     self.cbProperty.addItem(field.name())
-                    self.cbProperty.setItemData(self.cbProperty.count() - 1, darkBrush, Qt.BackgroundRole)
+                    self.cbProperty.setItemData(self.cbProperty.count() - 1, darkBrush, Qt.ItemDataRole.BackgroundRole)
                 if staticFields or resultProps:
                     self.cbProperty.insertSeparator(self.cbProperty.count())
 
@@ -643,13 +643,13 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 self.cbProperty.insertSeparator(self.cbProperty.count())
                 for prop in resultProps:
                     self.cbProperty.addItem(prop)
-                    self.cbProperty.setItemData(self.cbProperty.count() - 1, resultsBrush, Qt.BackgroundRole)
+                    self.cbProperty.setItemData(self.cbProperty.count() - 1, resultsBrush, Qt.ItemDataRole.BackgroundRole)
                 if numericResultProps:
                     if self.cbStatisticsFor.count() > 0:
                         self.cbStatisticsFor.insertSeparator(self.cbStatisticsFor.count())
                     for prop in numericResultProps:
                         self.cbStatisticsFor.addItem(prop)
-                        self.cbStatisticsFor.setItemData(self.cbStatisticsFor.count() - 1, resultsBrush, Qt.BackgroundRole)
+                        self.cbStatisticsFor.setItemData(self.cbStatisticsFor.count() - 1, resultsBrush, Qt.ItemDataRole.BackgroundRole)
 
         if self.cbProperty.count():
             elementText = self.cbElementType.currentText()

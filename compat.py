@@ -182,4 +182,16 @@ _vertex_icon_ns = getattr(_QgsVertexMarker, 'IconType', _QgsVertexMarker)
 VERTEX_ICON_TRIANGLE = getattr(_vertex_icon_ns, 'ICON_TRIANGLE', None)
 VERTEX_ICON_BOX = getattr(_vertex_icon_ns, 'ICON_BOX', None)
 VERTEX_ICON_X = getattr(_vertex_icon_ns, 'ICON_X', None)
-VERTEX_ICON_CROSS = getattr(_vertex_icon_ns, 'ICON_CROSS', None)
+# ---------------------------------------------------------------------------
+# QgsLayerTreeNode node-type constants.
+# QGIS 3: QgsLayerTreeNode.NodeLayer / NodeGroup (flat)
+# QGIS 4: QgsLayerTreeNode.NodeType.NodeLayer / NodeGroup (scoped)
+# ---------------------------------------------------------------------------
+from qgis.core import QgsLayerTreeNode as _QgsLTN
+
+try:
+    NODE_TYPE_LAYER = _QgsLTN.NodeLayer
+    NODE_TYPE_GROUP = _QgsLTN.NodeGroup
+except AttributeError:
+    NODE_TYPE_LAYER = _QgsLTN.NodeType.NodeLayer
+    NODE_TYPE_GROUP = _QgsLTN.NodeType.NodeGroup
