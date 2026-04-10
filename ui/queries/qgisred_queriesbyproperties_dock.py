@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from qgis.PyQt.QtWidgets import QDockWidget, QTableWidgetItem, QHeaderView, QAbstractItemView, QToolButton, QComboBox, QStackedWidget
+from qgis.PyQt.QtWidgets import QDockWidget, QTableWidgetItem, QHeaderView, QAbstractItemView, QToolButton, QComboBox, QStackedWidget, QLabel
 from qgis.PyQt.QtCore import Qt, QTimer
 from qgis.PyQt.QtGui import QBrush, QColor, QIcon, QFont
 from qgis.PyQt import uic
@@ -13,6 +13,7 @@ import csv
 import math
 
 from ..analysis.qgisred_results_dock import QGISRedResultsDock
+from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 
 # load UI
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),"qgisred_queriesbyproperties_dock.ui"))
@@ -186,7 +187,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                        self.cbValue, self.cbStatisticsFor):
             widget.setStyleSheet(
                 "QComboBox { background-color: white; }"
-                "QComboBox QAbstractItemView { background-color: white; }"
+                "QComboBox QAbstractItemView { background-color: white; selection-background-color: #3399ff; selection-color: white; }"
                 "QLineEdit { background-color: white; }"
             )
 
@@ -237,6 +238,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.cbElementType.currentIndexChanged.connect(self.onElementTypeChanged)
         self.cbProperty.currentIndexChanged.connect(self.updateConditions)
         self.cbProperty.currentIndexChanged.connect(self.updateValues)
+        self.cbProperty.currentIndexChanged.connect(self.updateValueUnitLabel)
         # main buttons
         self.btAdd.clicked.connect(lambda: self.addCriterion('+'))
         self.btSubtract.clicked.connect(lambda: self.addCriterion('-'))
@@ -277,7 +279,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
     def toggleMultipleCriteria(self, visible):
         if visible:
             # Single → Multiple: auto-add current fields as first criterion
-            prop = self.cbProperty.currentText()
+            prop = self.getComboInternalName(self.cbProperty)
             cond = self.cbCondition.currentText()
             val_txt = self.currentValueText()
             if prop and cond and (val_txt or cond == 'All'):
@@ -602,15 +604,30 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         resultProps = self.getResultProperties(layer, qrIdent)
         numericResultProps = [p for p in resultProps if p != 'Status']
 
+        def addResultPropToCombo(combo, prop, brush=None):
+            displayName = "Flow" if prop == "Flow_Unsig" else prop
+            combo.addItem(displayName)
+            idx = combo.count() - 1
+            combo.setItemData(idx, prop, Qt.ItemDataRole.UserRole)
+            if brush:
+                combo.setItemData(idx, brush, Qt.BackgroundRole)
+
         if not self.isResultsMode:
             if resultProps:
                 for prop in resultProps:
+<<<<<<< HEAD
                     self.cbProperty.addItem(prop)
                     self.cbProperty.setItemData(self.cbProperty.count() - 1, resultsBrush, Qt.ItemDataRole.BackgroundRole)
                 if numericResultProps:
                     for prop in numericResultProps:
                         self.cbStatisticsFor.addItem(prop)
                         self.cbStatisticsFor.setItemData(self.cbStatisticsFor.count() - 1, resultsBrush, Qt.ItemDataRole.BackgroundRole)
+=======
+                    addResultPropToCombo(self.cbProperty, prop, resultsBrush)
+                if numericResultProps:
+                    for prop in numericResultProps:
+                        addResultPropToCombo(self.cbStatisticsFor, prop, resultsBrush)
+>>>>>>> 1803744 (Queries by Prop: Display Flow instead of Flow_Unsig in UI with alias mapping)
                 if idTagFields or staticFields:
                     self.cbProperty.insertSeparator(self.cbProperty.count())
 
@@ -646,14 +663,22 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             if resultProps:
                 self.cbProperty.insertSeparator(self.cbProperty.count())
                 for prop in resultProps:
+<<<<<<< HEAD
                     self.cbProperty.addItem(prop)
                     self.cbProperty.setItemData(self.cbProperty.count() - 1, resultsBrush, Qt.ItemDataRole.BackgroundRole)
+=======
+                    addResultPropToCombo(self.cbProperty, prop, resultsBrush)
+>>>>>>> 1803744 (Queries by Prop: Display Flow instead of Flow_Unsig in UI with alias mapping)
                 if numericResultProps:
                     if self.cbStatisticsFor.count() > 0:
                         self.cbStatisticsFor.insertSeparator(self.cbStatisticsFor.count())
                     for prop in numericResultProps:
+<<<<<<< HEAD
                         self.cbStatisticsFor.addItem(prop)
                         self.cbStatisticsFor.setItemData(self.cbStatisticsFor.count() - 1, resultsBrush, Qt.ItemDataRole.BackgroundRole)
+=======
+                        addResultPropToCombo(self.cbStatisticsFor, prop, resultsBrush)
+>>>>>>> 1803744 (Queries by Prop: Display Flow instead of Flow_Unsig in UI with alias mapping)
 
         if self.cbProperty.count():
             elementText = self.cbElementType.currentText()
@@ -670,6 +695,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 if self.cbStatisticsFor.itemText(i):
                     self.cbStatisticsFor.setCurrentIndex(i)
                     break
+        self.updateValueUnitLabel()
 
         hasResults = self.isResultsMode or (
             qrIdent not in self.digitalTwinIdentifiers
@@ -690,10 +716,21 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.updateStatisticsTimeVisibility()
 
     def updateStatisticsTimeVisibility(self):
-        prop = self.cbStatisticsFor.currentText()
+        prop = self.getComboInternalName(self.cbStatisticsFor)
         visible = self.isResultProperty(prop) if prop else False
         self.labelResults.setVisible(visible)
         self.lineResults.setVisible(visible)
+
+    def getComboInternalName(self, combo):
+        data = combo.currentData(Qt.ItemDataRole.UserRole)
+        return data if data else combo.currentText()
+
+    def findComboByInternalName(self, combo, internalName):
+        for i in range(combo.count()):
+            data = combo.itemData(i, Qt.ItemDataRole.UserRole)
+            if data == internalName:
+                return i
+        return combo.findText(internalName)
 
     def isResultProperty(self, prop):
         return prop in self.nodeResultProperties or prop in self.linkResultProperties or prop == 'Flow_Unsig'
@@ -724,7 +761,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.cbValueList.setSizePolicy(sizePolicy)
         self.cbValueList.setStyleSheet(
             "QComboBox { background-color: white; }"
-            "QComboBox QAbstractItemView { background-color: white; }"
+            "QComboBox QAbstractItemView { background-color: white; selection-background-color: #3399ff; selection-color: white; }"
         )
 
         self.valueStack = QStackedWidget(self)
@@ -733,6 +770,10 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.valueStack.addWidget(self.cbValue)
         self.valueStack.addWidget(self.cbValueList)
         self.gridLayout.addWidget(self.valueStack, row, col, rowSpan, colSpan)
+
+        self.labelValueUnit = QLabel(self)
+        self.labelValueUnit.setVisible(False)
+        self.gridLayout.addWidget(self.labelValueUnit, row, col + colSpan)
 
     def isValueListActive(self):
         return self.valueStack.currentWidget() is self.cbValueList
@@ -755,7 +796,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
     def updateConditions(self):
         self.cbCondition.blockSignals(True)
         self.cbCondition.clear()
-        prop = self.cbProperty.currentText()
+        prop = self.getComboInternalName(self.cbProperty)
         layer = self.resolveLayer()
         if not layer or not prop:
             self.cbCondition.blockSignals(False)
@@ -791,7 +832,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.updateButtonsState()
 
     def updateValues(self):
-        prop = self.cbProperty.currentText()
+        prop = self.getComboInternalName(self.cbProperty)
         cond = self.cbCondition.currentText()
 
         self.cbValue.setCompleter(None)
@@ -824,6 +865,30 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             self.valueStack.setCurrentWidget(self.cbValueList)
         else:
             self.valueStack.setCurrentWidget(self.cbValue)
+
+    def updateValueUnitLabel(self):
+        prop = self.cbProperty.currentText()
+        if not prop:
+            self.labelValueUnit.setVisible(False)
+            return
+        qrIdent = self.cbElementType.currentData(Qt.ItemDataRole.UserRole) or ""
+        fieldUtils = QGISRedFieldUtils()
+        unit = ""
+        if self.isResultProperty(prop):
+            category = self.elementResultCategory.get(qrIdent)
+            if self.isResultsMode:
+                layer = self.resolveLayer()
+                ident = (layer.customProperty("qgisred_identifier") or "") if layer else ""
+                category = "Link" if ident.startswith("qgisred_link") else "Node"
+            if category:
+                unit = fieldUtils.getResultPropertyUnit(category, prop)
+        else:
+            unit = fieldUtils.getFieldUnit(qrIdent, prop)
+        if unit:
+            self.labelValueUnit.setText(f"({unit})")
+            self.labelValueUnit.setVisible(True)
+        else:
+            self.labelValueUnit.setVisible(False)
 
     def getFieldMinMax(self, layer, name):
         mn = mx = None
@@ -885,7 +950,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 operItem.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
             # Criteria text cell
-            critText = f"{crit['property']} {crit['condition']} {crit['value']}"
+            displayProp = "Flow" if crit['property'] == "Flow_Unsig" else crit['property']
+            critText = f"{displayProp} {crit['condition']} {crit['value']}"
             critItem = QTableWidgetItem(critText)
             critItem.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled)
             critItem.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -912,7 +978,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
 
 
     def addCriterion(self, operator):
-        prop    = self.cbProperty.currentText()
+        prop    = self.getComboInternalName(self.cbProperty)
         cond    = self.cbCondition.currentText()
         val_txt = self.currentValueText()
         if not prop or not cond:
@@ -993,12 +1059,15 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         property = self.cbProperty.currentText()
         #self.labelStatisticsProperty.setText(property)
         self.labelStatisticsPropertyFor.setText(self.tr(f"Statistics of {property} for selected Elements"))
+        statsIdx = self.cbStatisticsFor.findText(property)
+        if statsIdx >= 0:
+            self.cbStatisticsFor.setCurrentIndex(statsIdx)
         self.calculateStatistics()
         self.updateButtonsState()
 
     def effectiveCriteria(self):
         if self.radioSingleCriteria.isChecked():
-            prop = self.cbProperty.currentText()
+            prop = self.getComboInternalName(self.cbProperty)
             cond = self.cbCondition.currentText()
             val_txt = self.currentValueText()
             if not prop or not cond:
@@ -1027,7 +1096,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             except RuntimeError:
                 pass
 
-        targetField = self.cbStatisticsFor.currentText()
+        targetField = self.getComboInternalName(self.cbStatisticsFor)
         if not targetField:
             return
 
@@ -1230,7 +1299,9 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         crit = self.criteria[row]
 
         # load into the controls
-        self.cbProperty.setCurrentText(crit['property'])
+        propIdx = self.findComboByInternalName(self.cbProperty, crit['property'])
+        if propIdx >= 0:
+            self.cbProperty.setCurrentIndex(propIdx)
         self.updateConditions()
         self.cbCondition.setCurrentText(crit['condition'])
         self.updateValues()
@@ -1250,6 +1321,10 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             self.radioSingleCriteria,
             self.radioMultipleCriteria,
             self.cbElementType,
+            self.btExport,
+            self.btImport,
+            self.btCommentCriteria,
+            self.btExcel,
         ):
             btn.setEnabled(False)
         self.btReplace.setEnabled(True)
@@ -1262,6 +1337,10 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             self.btAdd,
             self.radioSingleCriteria,
             self.radioMultipleCriteria,
+            self.btExport,
+            self.btImport,
+            self.btCommentCriteria,
+            self.btExcel,
         ):
             btn.setEnabled(True)
         self.tableWidgetCriteria.setEnabled(True)
@@ -1271,7 +1350,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         if self.editingIndex is None:
             return
         # read back the controls
-        prop = self.cbProperty.currentText()
+        prop = self.getComboInternalName(self.cbProperty)
         cond = self.cbCondition.currentText()
 
         val_txt = self.currentValueText()
@@ -1301,6 +1380,10 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             self.btAdd,
             self.radioSingleCriteria,
             self.radioMultipleCriteria,
+            self.btExport,
+            self.btImport,
+            self.btCommentCriteria,
+            self.btExcel,
         ):
             btn.setEnabled(True)
         self.tableWidgetCriteria.setEnabled(True)
@@ -1630,7 +1713,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 c = parsedCriteria[0]
                 self.radioSingleCriteria.setChecked(True)
                 self.multipleCriteriaComment.setText('')
-                propIdx = self.cbProperty.findText(c['property'])
+                propIdx = self.findComboByInternalName(self.cbProperty, c['property'])
                 if propIdx >= 0:
                     self.cbProperty.setCurrentIndex(propIdx)
                 condIdx = self.cbCondition.findText(c['condition'])
