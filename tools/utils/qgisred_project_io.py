@@ -382,8 +382,8 @@ class QGISRedProjectIO:
                     else:
                         request = QMessageBox.question(
                             self.iface.mainWindow(),
-                            self._tr("QGISRed project"),
-                            self._tr("We cannot find the qgis project file. Do you want to find this file manually? If not, we will open only the layers from the Inputs group."),
+                            self.tr("QGISRed Project"),
+                            self.tr("We cannot find the QGIS project file. Do you want to find this file manually? If not, we will open only the layers from the Inputs group."),
                             QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
                         )
                         if request == QMessageBox.Yes:
