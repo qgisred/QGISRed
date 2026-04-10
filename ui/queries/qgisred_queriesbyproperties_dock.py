@@ -325,6 +325,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             self.runQuery()
 
     def onStatisticsForChanged(self):
+        self.updateStatisticsTimeVisibility()
         if self.cbStatisticsFor.isEnabled() and self.lastCombinedExpression:
             self.calculateStatistics()
 
@@ -675,8 +676,6 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             and self.getResultsExist()
             and self.elementResultCategory.get(qrIdent) is not None
         )
-        self.labelResults.setVisible(hasResults)
-        self.lineResults.setVisible(hasResults)
         if hasResults:
             self.connectResultsDock()
             if self.resultsDock is None:
@@ -688,6 +687,13 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         else:
             self.resultsDockPollTimer.stop()
             self.disconnectResultsDock()
+        self.updateStatisticsTimeVisibility()
+
+    def updateStatisticsTimeVisibility(self):
+        prop = self.cbStatisticsFor.currentText()
+        visible = self.isResultProperty(prop) if prop else False
+        self.labelResults.setVisible(visible)
+        self.lineResults.setVisible(visible)
 
     def isResultProperty(self, prop):
         return prop in self.nodeResultProperties or prop in self.linkResultProperties or prop == 'Flow_Unsig'
