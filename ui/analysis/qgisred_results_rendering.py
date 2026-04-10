@@ -9,7 +9,7 @@ from qgis.core import (
 )
 from qgis.PyQt.QtGui import QColor, QFont
 
-from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils, _NULL_RULE_LABEL, _NullHiddenLegend, _QGIS4
+from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils, _NULL_RULE_LABEL, _NullHiddenLegend
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 
 
@@ -280,10 +280,11 @@ class _ResultsRenderingMixin:
         QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface).applyNullStyle(layer)
 
         final_renderer = layer.renderer()
-        if isinstance(final_renderer, QgsRuleBasedRenderer) and not _QGIS4:
+        if isinstance(final_renderer, QgsRuleBasedRenderer):
             final_labels = {c.label() for c in final_renderer.rootRule().children()}
-            if not any(_NULL_RULE_LABEL in lbl for lbl in final_labels) and isinstance(layer.legend(), _NullHiddenLegend):
-                layer.setLegend(_NullHiddenLegend(layer))
+            if not any(_NULL_RULE_LABEL in lbl for lbl in final_labels):
+                if isinstance(layer.legend(), _NullHiddenLegend):
+                    layer.setLegend(_NullHiddenLegend(layer))
 
         layer.triggerRepaint()
 
