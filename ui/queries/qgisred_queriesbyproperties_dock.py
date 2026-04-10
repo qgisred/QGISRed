@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from qgis.PyQt.QtWidgets import QDockWidget, QTableWidgetItem, QHeaderView, QAbstractItemView, QToolButton, QCompleter
+from qgis.PyQt.QtWidgets import QDockWidget, QTableWidgetItem, QHeaderView, QAbstractItemView, QToolButton, QComboBox, QStackedWidget
 from qgis.PyQt.QtCore import Qt, QTimer
 from qgis.PyQt.QtGui import QBrush, QColor, QIcon, QFont
 from qgis.PyQt import uic
@@ -190,6 +190,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 "QLineEdit { background-color: white; }"
             )
 
+        self.setupValueStack()
+
         self.initializeElementTypes()
         self.setupConnections()
         self.setupButtonIcons()
@@ -257,6 +259,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
 
         # update submit state as user types in value field
         self.cbValue.textChanged.connect(lambda: self.updateButtonsState())
+        self.cbValueList.currentTextChanged.connect(lambda: self.updateButtonsState())
         # update value field enabled state when condition changes
         self.cbCondition.currentIndexChanged.connect(self.onConditionChanged)
         self.cbCondition.currentIndexChanged.connect(self.updateValues)
@@ -276,7 +279,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             # Single → Multiple: auto-add current fields as first criterion
             prop = self.cbProperty.currentText()
             cond = self.cbCondition.currentText()
-            val_txt = self.cbValue.value()
+            val_txt = self.currentValueText()
             if prop and cond and (val_txt or cond == 'All'):
                 crit = {
                     'property': prop,
@@ -308,7 +311,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 first = self.criteria[0]
                 self.cbProperty.setCurrentText(first['property'])
                 self.cbCondition.setCurrentText(first['condition'])
-                self.cbValue.setValue(str(first['value']))
+                self.setCurrentValueText(str(first['value']))
                 self.criteria = []
                 self.reloadCriteriaTable()
 
@@ -450,7 +453,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             self.btCriteriaSwitch.setEnabled(sel)
         else:
             isAll = self.cbCondition.currentText() == 'All'
-            hasValue = isAll or bool(self.cbValue.value())
+            hasValue = isAll or bool(self.currentValueText())
             self.btSubmit.setEnabled(hasValue)
             self.btReplace.setEnabled(False)
             self.cbElementType.setEnabled(True)
@@ -461,7 +464,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             self.btCriteriaSwitch.setEnabled(False)
         self.btClearQuery.setVisible(True)
         hasStats = self.tableWidgetStatistics.rowCount() > 0
-        hasValue = bool(self.cbValue.value())
+        hasValue = bool(self.currentValueText())
         hasCriteria = len(self.criteria) > 0
         self.btClearQuery.setEnabled(hasStats or hasValue or hasCriteria)
         self.cbStatisticsFor.setEnabled(self.btSubmit.isEnabled())
@@ -548,11 +551,11 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             self.lastCombinedExpression
             or self.tableWidgetStatistics.rowCount() > 0
             or self.criteria
-            or bool(self.cbValue.value())
+            or bool(self.currentValueText())
         )
         if hasActiveState:
             self.lastCombinedExpression = ""
-            self.cbValue.setValue('')
+            self.setCurrentValueText('')
             self.criteria = []
             self.reloadCriteriaTable()
             self.clearHighlights()
@@ -705,6 +708,44 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         sumProperties = {'Length', 'HeadLoss', 'UnitHdLoss', 'BaseDem', 'Demand'}
         return prop in sumProperties
 
+    def setupValueStack(self):
+        idx = self.gridLayout.indexOf(self.cbValue)
+        row, col, rowSpan, colSpan = self.gridLayout.getItemPosition(idx)
+        sizePolicy = self.cbValue.sizePolicy()
+
+        self.cbValueList = QComboBox(self)
+        self.cbValueList.setEditable(False)
+        self.cbValueList.setSizePolicy(sizePolicy)
+        self.cbValueList.setStyleSheet(
+            "QComboBox { background-color: white; }"
+            "QComboBox QAbstractItemView { background-color: white; }"
+        )
+
+        self.valueStack = QStackedWidget(self)
+        self.valueStack.setSizePolicy(sizePolicy)
+        self.gridLayout.removeWidget(self.cbValue)
+        self.valueStack.addWidget(self.cbValue)
+        self.valueStack.addWidget(self.cbValueList)
+        self.gridLayout.addWidget(self.valueStack, row, col, rowSpan, colSpan)
+
+    def isValueListActive(self):
+        return self.valueStack.currentWidget() is self.cbValueList
+
+    def currentValueText(self):
+        if self.isValueListActive():
+            return self.cbValueList.currentText()
+        return self.cbValue.value()
+
+    def setCurrentValueText(self, text):
+        text = '' if text is None else str(text)
+        if self.isValueListActive():
+            i = self.cbValueList.findText(text)
+            if i >= 0:
+                self.cbValueList.setCurrentIndex(i)
+            else:
+                self.cbValueList.setCurrentIndex(0)
+        self.cbValue.setValue(text)
+
     def updateConditions(self):
         self.cbCondition.blockSignals(True)
         self.cbCondition.clear()
@@ -738,42 +779,43 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
     def onConditionChanged(self):
         isAll = self.cbCondition.currentText() == 'All'
         self.cbValue.setEnabled(not isAll)
+        self.cbValueList.setEnabled(not isAll)
         if isAll:
-            self.cbValue.setValue('')
+            self.setCurrentValueText('')
         self.updateButtonsState()
 
     def updateValues(self):
         prop = self.cbProperty.currentText()
         cond = self.cbCondition.currentText()
 
-        if cond not in ('=', '≠'):
-            self.cbValue.setCompleter(None)
-            return
-
-        layer = self.resolveQueryLayer(prop)
-        if not layer:
-            self.cbValue.setCompleter(None)
-            return
-
-        fieldIdx = layer.fields().indexFromName(prop)
-        if fieldIdx < 0:
-            self.cbValue.setCompleter(None)
-            return
-
-        field = layer.fields().field(fieldIdx)
-        cat = self.fieldTypeMapping.get(field.typeName().lower(), 'text')
-
-        if cat in ('text', 'listed'):
-            uniqueVals = self.getUniqueFieldValues(layer, prop)
-            strVals = [str(v) for v in uniqueVals if v is not None and str(v).strip()]
-            if strVals:
-                completer = QCompleter(strVals, self)
-                completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
-                completer.setFilterMode(Qt.MatchFlag.MatchContains)
-                self.cbValue.setCompleter(completer)
-                return
-
         self.cbValue.setCompleter(None)
+
+        useList = False
+        strVals = []
+        if cond in ('=', '≠'):
+            layer = self.resolveQueryLayer(prop)
+            if layer:
+                fieldIdx = layer.fields().indexFromName(prop)
+                if fieldIdx >= 0:
+                    field = layer.fields().field(fieldIdx)
+                    cat = self.fieldTypeMapping.get(field.typeName().lower(), 'text')
+                    if cat == 'text':
+                        uniqueVals = self.getUniqueFieldValues(layer, prop)
+                        strVals = sorted({str(v) for v in uniqueVals if v is not None and str(v).strip()})
+                        useList = bool(strVals)
+
+        if useList:
+            previous = self.cbValueList.currentText() if self.isValueListActive() else self.cbValue.value()
+            self.cbValueList.blockSignals(True)
+            self.cbValueList.clear()
+            self.cbValueList.addItem('')
+            self.cbValueList.addItems(strVals)
+            i = self.cbValueList.findText(previous)
+            self.cbValueList.setCurrentIndex(i if i >= 0 else 0)
+            self.cbValueList.blockSignals(False)
+            self.valueStack.setCurrentWidget(self.cbValueList)
+        else:
+            self.valueStack.setCurrentWidget(self.cbValue)
 
     def getFieldMinMax(self, layer, name):
         mn = mx = None
@@ -864,7 +906,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
     def addCriterion(self, operator):
         prop    = self.cbProperty.currentText()
         cond    = self.cbCondition.currentText()
-        val_txt = self.cbValue.value()
+        val_txt = self.currentValueText()
         if not prop or not cond:
             return
         if cond != 'All' and not val_txt:
@@ -881,7 +923,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.reloadCriteriaTable()
 
     def clearQuery(self):
-        self.cbValue.setValue('')
+        self.setCurrentValueText('')
         self.lastCombinedExpression = ""
         self.queryHasBeenSubmitted = False
         self.clearHighlights()
@@ -950,7 +992,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         if self.radioSingleCriteria.isChecked():
             prop = self.cbProperty.currentText()
             cond = self.cbCondition.currentText()
-            val_txt = self.cbValue.value()
+            val_txt = self.currentValueText()
             if not prop or not cond:
                 return []
             if cond != 'All' and not val_txt:
@@ -1185,20 +1227,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.cbCondition.setCurrentText(crit['condition'])
         self.updateValues()
 
-        # cbValue may be a QLineEdit (QgsFilterLineEdit) or spinbox or combo:
-        val = crit['value']
-        if hasattr(self.cbValue, 'setText'):
-            # line‐edit style
-            self.cbValue.setText(str(val))
-        else:
-            # spinbox style
-            try:
-                self.cbValue.setValue(val)
-            except Exception:
-                # combo‐box fallback
-                idx = self.cbValue.findText(str(val))
-                if idx >= 0:
-                    self.cbValue.setCurrentIndex(idx)
+        self.setCurrentValueText(crit['value'])
 
         # disable other actions while editing
         for btn in (
@@ -1237,13 +1266,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         prop = self.cbProperty.currentText()
         cond = self.cbCondition.currentText()
 
-        if hasattr(self.cbValue, 'text'):
-            val_txt = self.cbValue.text()
-        else:
-            try:
-                val_txt = self.cbValue.value()
-            except Exception:
-                val_txt = self.cbValue.currentText()
+        val_txt = self.currentValueText()
 
         val = self.parseValue(val_txt) if cond != 'All' else ''
 
@@ -1605,7 +1628,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 condIdx = self.cbCondition.findText(c['condition'])
                 if condIdx >= 0:
                     self.cbCondition.setCurrentIndex(condIdx)
-                self.cbValue.setValue(str(c['value']) if c['value'] != '' else '')
+                self.updateValues()
+                self.setCurrentValueText(str(c['value']) if c['value'] != '' else '')
             else:
                 self.radioMultipleCriteria.setChecked(True)
                 self.criteria = parsedCriteria
