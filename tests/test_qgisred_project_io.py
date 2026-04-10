@@ -252,6 +252,43 @@ class TestProjectIO:
             if os.path.exists(dst):
                 shutil.rmtree(dst)
 
+    def test_processProjectFiles_target_inside_source_no_infinite_recursion(self, io_utils):
+        """targetDir is a subdirectory of folder — must not recurse infinitely."""
+        parent = tempfile.mkdtemp()
+        src = os.path.join(parent, "MyProject")
+        os.makedirs(src)
+        dst = os.path.join(src, "Moved")  # target is INSIDE source
+        try:
+            open(os.path.join(src, "Net_pipes.shp"), "w").close()
+            with patch.object(QGISRedProjectIO, '_fs', return_value=self._make_mock_fs()):
+                # Must complete without RecursionError / FileNotFoundError
+                io_utils.processProjectFiles(src, "Net", "Net", dst)
+            assert os.path.exists(os.path.join(dst, "Net_pipes.shp"))
+            # The target dir must NOT have been created inside itself
+            assert not os.path.exists(os.path.join(dst, "Moved"))
+        finally:
+            shutil.rmtree(parent, ignore_errors=True)
+
+    def test_processProjectFiles_skips_subdirs_without_project_files(self, io_utils, temp_project_dir):
+        """Subdirectories with no oldName_* files must not be created in the target."""
+        src = temp_project_dir
+        dst = tempfile.mkdtemp()
+        try:
+            # Subdir with a project file → should be created
+            sub_with = os.path.join(src, "WithFiles")
+            os.makedirs(sub_with)
+            open(os.path.join(sub_with, "Net_data.txt"), "w").close()
+            # Subdir without any project file → must NOT be created
+            sub_empty = os.path.join(src, "NoFiles")
+            os.makedirs(sub_empty)
+            open(os.path.join(sub_empty, "readme.txt"), "w").close()
+            with patch.object(QGISRedProjectIO, '_fs', return_value=self._make_mock_fs()):
+                io_utils.processProjectFiles(src, "Net", "Net", dst)
+            assert os.path.isdir(os.path.join(dst, "WithFiles"))
+            assert not os.path.exists(os.path.join(dst, "NoFiles"))
+        finally:
+            shutil.rmtree(dst)
+
     def test_processProjectFiles_creates_target_dir(self, io_utils):
         parent = tempfile.mkdtemp()
         src = os.path.join(parent, "src")
