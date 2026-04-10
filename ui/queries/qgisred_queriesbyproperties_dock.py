@@ -615,19 +615,10 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         if not self.isResultsMode:
             if resultProps:
                 for prop in resultProps:
-<<<<<<< HEAD
-                    self.cbProperty.addItem(prop)
-                    self.cbProperty.setItemData(self.cbProperty.count() - 1, resultsBrush, Qt.ItemDataRole.BackgroundRole)
-                if numericResultProps:
-                    for prop in numericResultProps:
-                        self.cbStatisticsFor.addItem(prop)
-                        self.cbStatisticsFor.setItemData(self.cbStatisticsFor.count() - 1, resultsBrush, Qt.ItemDataRole.BackgroundRole)
-=======
                     addResultPropToCombo(self.cbProperty, prop, resultsBrush)
                 if numericResultProps:
                     for prop in numericResultProps:
                         addResultPropToCombo(self.cbStatisticsFor, prop, resultsBrush)
->>>>>>> 1803744 (Queries by Prop: Display Flow instead of Flow_Unsig in UI with alias mapping)
                 if idTagFields or staticFields:
                     self.cbProperty.insertSeparator(self.cbProperty.count())
 
@@ -663,22 +654,12 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             if resultProps:
                 self.cbProperty.insertSeparator(self.cbProperty.count())
                 for prop in resultProps:
-<<<<<<< HEAD
-                    self.cbProperty.addItem(prop)
-                    self.cbProperty.setItemData(self.cbProperty.count() - 1, resultsBrush, Qt.ItemDataRole.BackgroundRole)
-=======
                     addResultPropToCombo(self.cbProperty, prop, resultsBrush)
->>>>>>> 1803744 (Queries by Prop: Display Flow instead of Flow_Unsig in UI with alias mapping)
                 if numericResultProps:
                     if self.cbStatisticsFor.count() > 0:
                         self.cbStatisticsFor.insertSeparator(self.cbStatisticsFor.count())
                     for prop in numericResultProps:
-<<<<<<< HEAD
-                        self.cbStatisticsFor.addItem(prop)
-                        self.cbStatisticsFor.setItemData(self.cbStatisticsFor.count() - 1, resultsBrush, Qt.ItemDataRole.BackgroundRole)
-=======
                         addResultPropToCombo(self.cbStatisticsFor, prop, resultsBrush)
->>>>>>> 1803744 (Queries by Prop: Display Flow instead of Flow_Unsig in UI with alias mapping)
 
         if self.cbProperty.count():
             elementText = self.cbElementType.currentText()
@@ -1442,6 +1423,15 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
     def syncResultsLabel(self, resultsDock):
         if sip.isdeleted(resultsDock):
             return
+        if getattr(self, '_syncingResults', False):
+            return
+        self._syncingResults = True
+        try:
+            self._doSyncResultsLabel(resultsDock)
+        finally:
+            self._syncingResults = False
+
+    def _doSyncResultsLabel(self, resultsDock):
         if resultsDock._statsMode:
             self.onResultsStatisticsChanged(resultsDock._currentStat)
         else:
