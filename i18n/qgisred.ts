@@ -1784,6 +1784,19 @@
     </message>
 </context>
 <context>
+    <name>QGISRedCreateLineTool</name>
+    <message>
+        <location filename="../tools/map_tools/qgisred_createLineTool.py" line="273"/>
+        <source>Hide complementary grid</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/map_tools/qgisred_createLineTool.py" line="274"/>
+        <source>Show complementary grid</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>QGISRedCreateProjectDialog</name>
     <message>
         <location filename="../ui/general/qgisred_createproject_dialog.ui" line="14"/>

@@ -22,6 +22,7 @@ SOURCES = qgisred.py \
           tools/utils/qgisred_project_io.py \
           tools/map_tools/qgisred_createConnection.py \
           tools/map_tools/qgisred_createPipe.py \
+          tools/map_tools/qgisred_createLineTool.py \
           tools/map_tools/qgisred_editLinksGeometry.py \
           tools/map_tools/qgisred_identifyFeature.py \
           tools/map_tools/qgisred_moveNodes.py \
