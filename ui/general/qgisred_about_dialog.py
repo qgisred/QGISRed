@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from qgis.PyQt.QtWidgets import QDialog
+from qgis.core import QgsApplication
+
 from qgis.PyQt import uic
 import os
 import webbrowser
@@ -21,14 +23,23 @@ class QGISRedAboutDialog(QDialog, FORM_CLASS):
         self.lbOfflineManual.mousePressEvent = self.offlineManual
         self.lbIssues.mousePressEvent = self.issuesRepository
 
-        from qgis.PyQt.QtCore import QSettings
-        locale = QSettings().value("locale/userLocale", "")[0:2]
+        locale = QgsApplication.locale()[0:2]
         if locale == "es":
             self.online_manual = "https://qgisred.gitbook.io/manual-de-usuario"
             self.offline_manual_file = "usermanual_es.pdf"
         else:
             self.online_manual = "https://qgisred.gitbook.io/usermanual"
             self.offline_manual_file = "usermanual_en.pdf"
+
+        # BID URL
+        if locale == "es":
+            self.bid_url = "https://www.iadb.org/es"
+        elif locale == "pt":
+            self.bid_url = "https://www.iadb.org/pt-br"
+        elif locale == "fr":
+            self.bid_url = "https://www.iadb.org/fr"
+        else:
+            self.bid_url = "https://www.iadb.org/en"
 
         # version
         metadata = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "metadata.txt")
@@ -51,7 +62,7 @@ class QGISRedAboutDialog(QDialog, FORM_CLASS):
         webbrowser.open("https://www.iiama.upv.es/iiama/en/")
 
     def linkBidImage(self, event):
-        webbrowser.open("https://www.iadb.org/")
+        webbrowser.open(self.bid_url)
 
     def linkUpv(self, event):
         webbrowser.open("http://www.upv.es/index-en.html")
