@@ -137,14 +137,21 @@
                 <Option type="Map" name="outlineColor">
                   <Option value="true" type="bool" name="active"/>
                   <Option value="if (&quot;ElemType&quot; = 'PIPE', 
-                    if(&quot;Status&quot; = 'TO OPEN','#00ffee', if(&quot;Status&quot; = 'POSSIBLE', '#e7ca65', '#ff9900')), if(&quot;Status&quot; = 'CLOSED', '#ff0f13', if(&quot;Status&quot; = 'ACTIVE','#ff9900', if(&quot;Status&quot; = 'OPEN', '#85b66f', if(&quot;Status&quot; = 'TO CLOSE', '#ff00ff', if(&quot;Status&quot; = 'TO OPEN','#00ffee','#ff9900'))))))" type="QString" name="expression"/>
+                    if(&quot;Status&quot; = 'TO OPEN','#00ffee', if(&quot;Status&quot; = 'POSSIBLE', '#e7ca65', if(&quot;Status&quot; = 'CLOSED', '#ff0f13', '#ff9900'))), if(&quot;Status&quot; = 'CLOSED', '#ff0f13', if(&quot;Status&quot; = 'ACTIVE','#ff9900', if(&quot;Status&quot; = 'OPEN', '#85b66f', if(&quot;Status&quot; = 'TO CLOSE', '#ff00ff', if(&quot;Status&quot; = 'TO OPEN','#00ffee','#ff9900'))))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="outlineStyle">
-                  <Option value="true" type="bool" name="active"/>
-                  <Option value="if(&quot;ElemType&quot;='SERVICECONNECTION', 'no', if(&quot;ElemType&quot;='PIPE', if( &quot;Status&quot;='ISOLATED' OR &quot;Status&quot;='POSSIBLE', 'solid', if (&quot;Status&quot;='ISOLATED' OR &quot;Status&quot;='POSSIBLE', null, 'no')), 'solid'))" type="QString" name="expression"/>
-                  <Option value="3" type="int" name="type"/>
-                </Option>
+                <Option value="true" type="bool" name="active"/>
+                <Option value="if(&quot;ElemType&quot;='SERVICECONNECTION', 'no',
+                                if(&quot;ElemType&quot;='PIPE',
+                                  if(&quot;Status&quot;='CLOSED', 'dash',
+                                      if(&quot;Status&quot;='ISOLATED' OR &quot;Status&quot;='POSSIBLE', 'solid', 'no')
+                                  ),
+                                  'solid'
+                  )
+               )" type="QString" name="expression"/>
+  <Option value="3" type="int" name="type"/>
+</Option>
               </Option>
               <Option value="collection" type="QString" name="type"/>
             </Option>
