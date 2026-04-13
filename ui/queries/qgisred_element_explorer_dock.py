@@ -302,8 +302,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 self.scrollArea.verticalScrollBar().setValue(scrollValue)
 
             return True
-        except Exception as e:
-            print(f"Error refreshing current element: {str(e)}")
+        except Exception:
             return False
 
     # ------------------------------

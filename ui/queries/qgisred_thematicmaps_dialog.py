@@ -151,7 +151,6 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                 return
 
             pipesLayer = self.findLayerInGroup(inputsGroup, 'Pipes', 'qgisred_pipes')
-            print("pipesLayer : ", pipesLayer)
             if pipesLayer is None:
                 super().accept()
                 return
@@ -276,9 +275,9 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                 if parentGroup and not sip.isdeleted(parentGroup):
                     parentGroup.removeChildNode(existingLayer)
                     
-            except Exception as e:
-                print(f"Error removing layer: {e}")
-        
+            except Exception:
+                pass
+
         derivedLayer = self.createDerivedLayer(mainLayer, layerName, field)
         
         derivedLayer.setCustomProperty("query_field", field)
