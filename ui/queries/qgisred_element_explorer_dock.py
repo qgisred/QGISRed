@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 from qgis.PyQt.QtCore import Qt, pyqtSlot, pyqtSignal, QEvent, QTimer
-from qgis.PyQt.QtGui import QIcon, QFont, QColor
+from qgis.PyQt.QtGui import QIcon, QFont, QColor, QBrush
 from qgis.PyQt.QtWidgets import QDockWidget, QWidget, QMessageBox, QLineEdit, QListWidgetItem, QTableWidgetItem, QHeaderView, QAbstractItemView, QFrame
 from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsVectorLayer, QgsSettings, QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsLayerMetadata, QgsSpatialIndex, Qgis
@@ -1089,6 +1089,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         # Skip the Id field (already shown in the title label)
         skipFields = {"Id"}
+        # Fields that get a light grey background on Value/Unit columns
+        idTagDescFields = {"Tag", "Descrip"}
+        greyBrush = QBrush(QColor("#D8D8D8"))
         numDisplayFields = sum(1 for f in fields if f.name() not in skipFields)
         self.dataTableWidget.setRowCount(numDisplayFields)
 
@@ -1133,6 +1136,11 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             unitItem.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             if unitFullName:
                 unitItem.setToolTip(unitFullName)
+
+            # Apply light grey background to Value/Unit for identity fields (Tag, Description)
+            if fieldName in idTagDescFields:
+                valueItem.setBackground(greyBrush)
+                unitItem.setBackground(greyBrush)
 
             self.dataTableWidget.setItem(displayRow, 0, fieldItem)
             self.dataTableWidget.setItem(displayRow, 1, valueItem)
@@ -2343,6 +2351,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.tableResults.setRowCount(len(displayFields))
 
             utils = QGISRedFieldUtils()
+            resultsBrush = QBrush(QColor("#FFF8DC"))
             for row, fieldName in enumerate(displayFields):
                 value = matchedFeature.attribute(fieldName)
 
@@ -2377,6 +2386,10 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 unitItem.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 if unitFullName:
                     unitItem.setToolTip(unitFullName)
+
+                # Apply yellow background to Value/Unit columns for results data
+                valueItem.setBackground(resultsBrush)
+                unitItem.setBackground(resultsBrush)
 
                 self.tableResults.setItem(row, 0, propertyItem)
                 self.tableResults.setItem(row, 1, valueItem)
