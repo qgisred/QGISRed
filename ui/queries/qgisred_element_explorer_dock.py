@@ -2314,6 +2314,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
     def onResultsTimeChanged(self, timeText):
         """Handle time changes from the results dock."""
+        if timeText == "NULL":
+            timeText = "N/A"
         self.resultsCurrentTimeText = timeText
         self.labelResultsTime.show()
         self.labelResultsTime.setText(timeText)
@@ -2441,6 +2443,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                         matchedFeature = feat
                         if feat.fields().indexFromName("Time") >= 0:
                             timeText = str(feat.attribute("Time"))
+                            if timeText == "NULL":
+                                timeText = "N/A"
                         break
                     if not timeText:
                         timeText = "00d 00:00:00"
