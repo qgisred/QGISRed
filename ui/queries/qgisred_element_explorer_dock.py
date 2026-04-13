@@ -1278,14 +1278,12 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         header.setStyleSheet("QHeaderView::section { font-weight: normal; }")
         # Allow smaller column sizes (default minimum is ~20px)
         header.setMinimumSectionSize(10)
-        # All columns: interactive so the user can resize them by dragging
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Interactive)
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Interactive)
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Interactive)
-        header.setStretchLastSection(True)
-        # Set initial widths (will be adjusted once widget has a real size)
-        self.dataTableWidget.setColumnWidth(0, 200)
-        self.dataTableWidget.setColumnWidth(1, 100)
+        header.setStretchLastSection(False)
+        self.dataTableWidget.setColumnWidth(1, 80)
+        self.dataTableWidget.setColumnWidth(2, 60)
 
     def loadFeature(self, layer, feature, featureIdText=""):
         if not layer or not feature:
@@ -2353,12 +2351,12 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         header = self.tableResults.horizontalHeader()
         header.setStyleSheet("QHeaderView::section { font-weight: normal; }")
         header.setMinimumSectionSize(10)
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Interactive)
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Interactive)
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Interactive)
-        header.setStretchLastSection(True)
-        self.tableResults.setColumnWidth(0, 200)
-        self.tableResults.setColumnWidth(1, 100)
+        header.setStretchLastSection(False)
+        self.tableResults.setColumnWidth(1, 80)
+        self.tableResults.setColumnWidth(2, 60)
 
     def findResultsLayerForElement(self, isNode):
         """Find the Results group layer matching the element type (node or link).
