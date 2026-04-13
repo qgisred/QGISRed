@@ -52,7 +52,7 @@ class LifecycleSection:
         # initialize plugin directory (sections/ is one level below the plugin root)
         self.plugin_dir = os.path.dirname(os.path.dirname(__file__))
         # initialize locale
-        locale = QSettings().value("locale/userLocale")[0:2]
+        locale = QgsApplication.locale()[0:2]
         locale_path = os.path.join(self.plugin_dir, "i18n", "qgisred_{}.qm".format(locale))
 
         if os.path.exists(locale_path):
