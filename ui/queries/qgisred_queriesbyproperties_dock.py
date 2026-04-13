@@ -866,7 +866,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         else:
             unit = fieldUtils.getFieldUnit(qrIdent, prop)
         if unit:
-            self.labelValueUnit.setText(f"({unit})")
+            self.labelValueUnit.setText(f"{unit}")
             self.labelValueUnit.setVisible(True)
         else:
             self.labelValueUnit.setVisible(False)
