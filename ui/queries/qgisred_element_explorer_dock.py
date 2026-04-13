@@ -1096,14 +1096,6 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         layerIdentifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else None
         utils = QGISRedFieldUtils()
 
-        # Get headloss formula for roughness unit handling
-        headloss, _ = QgsProject.instance().readEntry("QGISRed", "project_headloss", "H-W")
-        unitSystem = utils.getUnits()  # Returns 'SI' or 'US'
-
-        # Get quality model settings for quality-related unit handling
-        qualityModel = utils.getQualityModel()
-        massUnits = utils.getConcentrationUnits()
-
         displayRow = 0
         for field_idx, field in enumerate(fields):
             fieldName = field.name()
@@ -1131,19 +1123,12 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                         pass
 
             valueItem = QTableWidgetItem(displayValue)
-            # Center-align the Value column
             valueItem.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            # Add tooltip with exact/complete value
             valueItem.setToolTip(displayValue)
 
-            # Get unit for the field with special handling for quality and roughness
-            qualityUnit = self.getFieldUnitWithQualityLogic(fieldName, qualityModel, massUnits)
-            if qualityUnit is not None:
-                fieldUnit = qualityUnit
-                unitFullName = self.getFieldUnitFullNameWithQualityLogic(fieldName, qualityModel, massUnits) or ""
-            else:
-                fieldUnit = self.getFieldUnitWithHeadlossLogic(utils, layerIdentifier, fieldName, headloss, unitSystem)
-                unitFullName = self.getFieldUnitFullNameWithHeadlossLogic(utils, layerIdentifier, fieldName, headloss, unitSystem)
+            # Get unit for the field
+            fieldUnit = utils.getFieldUnit(layerIdentifier, fieldName)
+            unitFullName = utils.getFieldUnitFullName(layerIdentifier, fieldName) or ""
             unitItem = QTableWidgetItem(fieldUnit if fieldUnit and fieldUnit != "-" else "")
             unitItem.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             if unitFullName:
@@ -1153,106 +1138,6 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.dataTableWidget.setItem(displayRow, 1, valueItem)
             self.dataTableWidget.setItem(displayRow, 2, unitItem)
             displayRow += 1
-
-    def getFieldUnitWithHeadlossLogic(self, utils, layerIdentifier, fieldName, headloss, unitSystem):
-        """Get field unit with special handling for roughness based on headloss formula."""
-        # Check if this is a roughness field
-        roughnessFields = ["RoughCoeff", "Roughness", "roughcoeff", "roughness"]
-
-        if fieldName in roughnessFields:
-            # Roughness units only apply when headloss is Darcy-Weisbach (D-W)
-            if headloss == "D-W":
-                if unitSystem == "SI":
-                    return "mm"
-                else:  # US units
-                    return "millifeet"
-            else:
-                # For H-W (Hazen-Williams) and C-M (Chezy-Manning), roughness is dimensionless
-                return ""
-
-        # For all other fields, use the standard unit lookup
-        return utils.getFieldUnit(layerIdentifier, fieldName)
-
-    def getFieldUnitFullNameWithHeadlossLogic(self, _utils, _layerIdentifier, fieldName, headloss, unitSystem):
-        """Get full unit name with special handling for roughness based on headloss formula (for tooltips)."""
-        # Check if this is a roughness field
-        roughnessFields = ["RoughCoeff", "Roughness", "roughcoeff", "roughness"]
-
-        if fieldName in roughnessFields:
-            # Roughness units only apply when headloss is Darcy-Weisbach (D-W)
-            if headloss == "D-W":
-                if unitSystem == "SI":
-                    return "Millimeters"
-                else:  # US units
-                    return "Millifeet"
-            else:
-                # For H-W (Hazen-Williams) and C-M (Chezy-Manning), roughness is dimensionless
-                return "Dimensionless"
-
-        # For all other fields, return empty string (full name method not available)
-        return ""
-
-    def getFieldUnitWithQualityLogic(self, fieldName, qualityModel, massUnits):
-        """Get field unit with special handling for quality-related fields.
-        Returns the unit string, or None if the field is not quality-related."""
-        qualityFields = ["IniQuality", "InitQuality", "Quality"]
-        reactionRateFields = ["ReactRate", "Reaction Rate"]
-        sourceFields = ["BaseValue"]
-
-        if fieldName in qualityFields:
-            if qualityModel == "Age":
-                return "hr"
-            elif qualityModel == "Trace":
-                return "%"
-            else:  # Chemical
-                return massUnits
-
-        if fieldName in reactionRateFields:
-            if qualityModel in ("Age", "Trace"):
-                return ""
-            else:  # Chemical
-                massPrefix = massUnits.split("/")[0] if "/" in massUnits else massUnits
-                return f"{massPrefix}/h"
-
-        if fieldName in sourceFields:
-            if qualityModel in ("Age", "Trace"):
-                return ""
-            else:  # Chemical
-                massPrefix = massUnits.split("/")[0] if "/" in massUnits else massUnits
-                return f"{massPrefix}/min"
-
-        return None
-
-    def getFieldUnitFullNameWithQualityLogic(self, fieldName, qualityModel, massUnits):
-        """Get full unit name for quality-related fields (for tooltips).
-        Returns the full name string, or None if the field is not quality-related."""
-        qualityFields = ["IniQuality", "InitQuality", "Quality"]
-        reactionRateFields = ["ReactRate", "Reaction Rate"]
-        sourceFields = ["BaseValue"]
-
-        if fieldName in qualityFields:
-            if qualityModel == "Age":
-                return "Hours"
-            elif qualityModel == "Trace":
-                return "Percentage"
-            else:  # Chemical
-                return massUnits
-
-        if fieldName in reactionRateFields:
-            if qualityModel in ("Age", "Trace"):
-                return ""
-            else:  # Chemical
-                massPrefix = massUnits.split("/")[0] if "/" in massUnits else massUnits
-                return f"{massPrefix} per hour"
-
-        if fieldName in sourceFields:
-            if qualityModel in ("Age", "Trace"):
-                return ""
-            else:  # Chemical
-                massPrefix = massUnits.split("/")[0] if "/" in massUnits else massUnits
-                return f"{massPrefix} per minute"
-
-        return None
 
     def initTableWidgets(self):
         """One-time setup for dataTableWidget and tableResults. Called once from __init__."""
@@ -2377,21 +2262,6 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         return ["Status", "Flow", "Velocity", "HeadLoss", "UnitHdLoss", "FricFactor", "ReactRate", "Quality"]
 
-    def mapFieldToUnitProperty(self, fieldName):
-        """Map a Results layer field name to the property name used in qgisred_units.json."""
-        fieldToProperty = {
-            "UnitHdLoss": "Unit HeadLoss",
-            "UnitHeadLoss": "Unit HeadLoss",
-            "FricFactor": "Friction factor",
-            "ReactRate": "Reaction Rate",
-        }
-        return fieldToProperty.get(fieldName, fieldName)
-
-    def getProjectFlowUnit(self):
-        """Get the project's flow unit abbreviation (e.g., LPS, GPM)."""
-        flowUnit, _ = QgsProject.instance().readEntry("QGISRed", "project_units", "LPS")
-        return flowUnit
-
     def populateResultsTable(self):
         """Populate tableResults with per-element results from the Results group layer attribute table."""
         if not self.isLayerValid(self.currentLayer) or not self.currentFeature:
@@ -2458,7 +2328,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 self.clearResultsTable()
                 return
 
-            unitCategory = "Nodes" if isNode else "Links"
+            elementCategory = "Nodes" if isNode else "Links"
+            resultCategory = "Node" if isNode else "Link"
 
             # Get field order and filter to fields that exist in the layer
             fieldOrder = self.getResultsFieldOrder(isNode)
@@ -2472,13 +2343,11 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.tableResults.setRowCount(len(displayFields))
 
             utils = QGISRedFieldUtils()
-            qualityModel = utils.getQualityModel()
-            massUnits = utils.getConcentrationUnits()
             for row, fieldName in enumerate(displayFields):
                 value = matchedFeature.attribute(fieldName)
 
                 # Property name
-                prettyName = self.getResultPrettyName(fieldName)
+                prettyName = self.tr(utils.getFieldPrettyName(elementCategory, fieldName))
                 propertyItem = QTableWidgetItem(prettyName)
                 propertyItem.setToolTip(prettyName)
 
@@ -2490,7 +2359,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                         numValue = float(value)
                         if fieldName == "Flow":
                             numValue = abs(numValue)
-                        displayValue = f"{numValue:.2f}"
+                        decimals = utils.getFieldDecimals(elementCategory, fieldName, default=2)
+                        displayValue = f"{numValue:.{decimals}f}"
                     except (ValueError, TypeError):
                         displayValue = str(value)
                 valueItem = QTableWidgetItem(displayValue)
@@ -2498,20 +2368,10 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 valueItem.setToolTip(displayValue)
 
                 # Units
-                qualityUnit = self.getFieldUnitWithQualityLogic(fieldName, qualityModel, massUnits)
-                if qualityUnit is not None:
-                    fieldUnit = qualityUnit
-                    unitFullName = self.getFieldUnitFullNameWithQualityLogic(fieldName, qualityModel, massUnits) or ""
-                else:
-                    unitLookupKey = self.mapFieldToUnitProperty(fieldName)
-                    fieldUnit = utils.getFieldUnit(unitCategory, unitLookupKey)
-                    unitFullName = utils.getFieldUnitFullName(unitCategory, unitLookupKey)
-
-                    # For fields with "Same as Flow" units, use the project flow unit
-                    if unitFullName == "Same as Flow" or (not fieldUnit and fieldName in ("Demand", "Flow")):
-                        projectFlowUnit = self.getProjectFlowUnit()
-                        fieldUnit = projectFlowUnit
-                        unitFullName = projectFlowUnit
+                fieldUnit = utils.getResultPropertyUnit(resultCategory, fieldName)
+                unitFullName = utils.getFieldUnitFullName(elementCategory, fieldName) or ""
+                if "See " in unitFullName:
+                    unitFullName = fieldUnit
 
                 unitItem = QTableWidgetItem(fieldUnit if fieldUnit and fieldUnit != "-" else "")
                 unitItem.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -2525,23 +2385,6 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         except Exception:
             self.clearResultsTable()
 
-    def getResultPrettyName(self, key):
-        """Get a user-friendly name for a result property key."""
-        prettyNames = {
-            "Pressure": self.tr("Pressure"),
-            "Head": self.tr("Head"),
-            "Demand": self.tr("Demand"),
-            "Quality": self.tr("Quality"),
-            "Flow": self.tr("Flow"),
-            "Velocity": self.tr("Velocity"),
-            "HeadLoss": self.tr("HeadLoss"),
-            "UnitHdLoss": self.tr("Unit HeadLoss"),
-            "UnitHeadLoss": self.tr("Unit HeadLoss"),
-            "FricFactor": self.tr("Friction Factor"),
-            "Status": self.tr("Status"),
-            "ReactRate": self.tr("Reaction Rate"),
-        }
-        return prettyNames.get(key, key)
     def updateResultsTabVisibility(self):
         """Show or hide the Results tab based on Results group layers and current element type."""
         # Always hide for complementary elements
