@@ -13,7 +13,7 @@ from .qgisred_results_binary import (
 
 
 def seconds_to_time_str(seconds):
-    """Convert seconds to 'NNd HH:MM:SS' or 'HH:MM:SS' (when d==0) format."""
+    """Convert seconds to 'Nd h:MM:SS' or 'h:MM:SS' (when d==0) format."""
     d = seconds // 86400
     rem = seconds % 86400
     h = rem // 3600
@@ -22,6 +22,14 @@ def seconds_to_time_str(seconds):
     if d == 0:
         return f"{h}:{m:02d}:{s:02d}"
     return f"{d}d {h}:{m:02d}:{s:02d}"
+
+
+def seconds_to_csv_time_str(seconds):
+    """Convert seconds to 'h:MM:SS' format without days (total hours), for CSV export."""
+    h = seconds // 3600
+    m = (seconds % 3600) // 60
+    s = seconds % 60
+    return f"{h}:{m:02d}:{s:02d}"
 
 
 def get_regional_separators():
@@ -79,7 +87,7 @@ def export_results_to_csv(binary_path, nodes_path, links_path, iface, list_sep, 
 
     for i in range(max(num_periods, 1)):
         time_secs = report_start + i * report_step
-        time_str = seconds_to_time_str(time_secs) if num_periods > 1 else lbl_singlePeriod
+        time_str = seconds_to_csv_time_str(time_secs) if num_periods > 1 else lbl_singlePeriod
 
         node_data = getOut_TimeNodesProperties(binary_path, time_secs)
         link_data = getOut_TimeLinksProperties(binary_path, time_secs)
