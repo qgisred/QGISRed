@@ -13,12 +13,14 @@ from .qgisred_results_binary import (
 
 
 def seconds_to_time_str(seconds):
-    """Convert seconds to 'NNd HH:MM:SS' format."""
+    """Convert seconds to 'NNd HH:MM:SS' or 'HH:MM:SS' (when d==0) format."""
     d = seconds // 86400
     rem = seconds % 86400
     h = rem // 3600
     m = (rem % 3600) // 60
     s = rem % 60
+    if d == 0:
+        return f"{h:02d}:{m:02d}:{s:02d}"
     return f"{d:02d}d {h:02d}:{m:02d}:{s:02d}"
 
 
@@ -167,11 +169,15 @@ class _ResultsDataMixin:
             time_seconds = 0
         else:
             try:
-                # Format: "00d 00:00:00"
-                parts = time_text.split(" ")
-                days = int(parts[0].replace("d", ""))
-                hms = parts[1].split(":")
-                time_seconds = days * 86400 + int(hms[0]) * 3600 + int(hms[1]) * 60 + int(hms[2])
+                # Format: "NNd HH:MM:SS" (>=24h) or "HH:MM:SS" (<24h)
+                if "d" in time_text:
+                    parts = time_text.split(" ")
+                    days = int(parts[0].replace("d", ""))
+                    hms = parts[1].split(":")
+                    time_seconds = days * 86400 + int(hms[0]) * 3600 + int(hms[1]) * 60 + int(hms[2])
+                else:
+                    hms = time_text.split(":")
+                    time_seconds = int(hms[0]) * 3600 + int(hms[1]) * 60 + int(hms[2])
             except Exception:
                 time_seconds = 0
 

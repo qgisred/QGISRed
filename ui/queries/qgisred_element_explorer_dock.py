@@ -2183,7 +2183,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.resultsDock = None
         self.resultsCurrentTimeText = ""
         self.resultsCurrentStat = ""
-        self.labelResultsTime.setText("00d 00:00:00")
+        self.labelResultsTime.setText("00:00:00")
         self.populateResultsTable()
         self.updateResultsTabVisibility()
 
@@ -2325,7 +2325,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                                 timeText = "N/A"
                         break
                     if not timeText:
-                        timeText = "00d 00:00:00"
+                        timeText = "00:00:00"
                 labelText = timeText
 
             # Show the time/statistics label

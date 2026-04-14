@@ -4,6 +4,7 @@ from qgis.PyQt.QtWidgets import QDockWidget, QVBoxLayout, QWidget
 from qgis.PyQt.QtCore import Qt, QPointF, QRectF
 from qgis.PyQt.QtGui import QPainter, QPen, QColor, QFont, QPainterPath, QFontMetrics
 from ...compat import PAINTER_ANTIALIASING
+from .qgisred_results_data import seconds_to_time_str
 from qgis.PyQt import uic
 
 # Load UI
@@ -250,13 +251,8 @@ class TimeSeriesPlotWidget(QWidget):
             else:
                 val_y_str = f"{val_y:.2f}"
             
-            # Format time as 00d 00:00:00
             total_seconds = int(round(val_x * 3600))
-            days = total_seconds // 86400
-            hours_part = (total_seconds % 86400) // 3600
-            minutes_part = (total_seconds % 3600) // 60
-            seconds_part = total_seconds % 60
-            time_str = f"{days:02d}d {hours_part:02d}:{minutes_part:02d}:{seconds_part:02d}"
+            time_str = seconds_to_time_str(total_seconds)
             
             text = f"{val_y_str}\n{time_str}"
             font_tt = QFont("Arial", 8)
