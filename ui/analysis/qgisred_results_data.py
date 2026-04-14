@@ -20,8 +20,8 @@ def seconds_to_time_str(seconds):
     m = (rem % 3600) // 60
     s = rem % 60
     if d == 0:
-        return f"{h:02d}:{m:02d}:{s:02d}"
-    return f"{d:02d}d {h:02d}:{m:02d}:{s:02d}"
+        return f"{h}:{m:02d}:{s:02d}"
+    return f"{d}d {h}:{m:02d}:{s:02d}"
 
 
 def get_regional_separators():
