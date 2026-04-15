@@ -1137,11 +1137,11 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
             # Get unit for the field
             fieldUnit = utils.getFieldUnit(layerIdentifier, fieldName)
-            unitFullName = utils.getFieldUnitFullName(layerIdentifier, fieldName) or ""
-            unitItem = QTableWidgetItem(fieldUnit if fieldUnit and fieldUnit != "-" else "")
+            unitDisplay = fieldUnit if fieldUnit and fieldUnit != "-" else ""
+            unitItem = QTableWidgetItem(unitDisplay)
             unitItem.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            if unitFullName:
-                unitItem.setToolTip(unitFullName)
+            if unitDisplay:
+                unitItem.setToolTip(unitDisplay)
 
             self.dataTableWidget.setItem(displayRow, 0, fieldItem)
             self.dataTableWidget.setItem(displayRow, 1, valueItem)
@@ -1177,7 +1177,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Interactive)
         header.setStretchLastSection(False)
         self.dataTableWidget.setColumnWidth(1, 80)
-        self.dataTableWidget.setColumnWidth(2, 60)
+        self.dataTableWidget.setColumnWidth(2, 36)
 
     def loadFeature(self, layer, feature, featureIdText=""):
         if not layer or not feature:
@@ -2252,7 +2252,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Interactive)
         header.setStretchLastSection(False)
         self.tableResults.setColumnWidth(1, 80)
-        self.tableResults.setColumnWidth(2, 60)
+        self.tableResults.setColumnWidth(2, 36)
 
     def findResultsLayerForElement(self, isNode):
         """Find the Results group layer matching the element type (node or link).
@@ -2379,14 +2379,11 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
                 # Units
                 fieldUnit = utils.getResultPropertyUnit(resultCategory, fieldName)
-                unitFullName = utils.getFieldUnitFullName(elementCategory, fieldName) or ""
-                if "See " in unitFullName:
-                    unitFullName = fieldUnit
-
-                unitItem = QTableWidgetItem(fieldUnit if fieldUnit and fieldUnit != "-" else "")
+                unitDisplay = fieldUnit if fieldUnit and fieldUnit != "-" else ""
+                unitItem = QTableWidgetItem(unitDisplay)
                 unitItem.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                if unitFullName:
-                    unitItem.setToolTip(unitFullName)
+                if unitDisplay:
+                    unitItem.setToolTip(unitDisplay)
 
                 # Apply yellow background to Value/Unit columns for results data
                 valueItem.setBackground(resultsBrush)
