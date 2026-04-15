@@ -6,6 +6,8 @@ import os
 from qgis.core import QgsRectangle
 from qgis.PyQt.QtWidgets import QApplication, QDialog
 from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QColor
+from qgis.gui import QgsHighlight
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.utils.qgisred_field_utils import QGISRedFieldUtils
@@ -226,23 +228,75 @@ class AnalysisSection:
             if not hasattr(self, 'timeSeriesDock') or self.timeSeriesDock is None:
                 self.timeSeriesDock = QGISRedTimeSeriesDock(self.iface)
                 self.timeSeriesDock.visibilityChanged.connect(self.timeSeriesDockVisibilityChanged)
+                self.timeSeriesDock.destroyed.connect(self._onTimeSeriesDockDestroyed)
                 self.iface.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.timeSeriesDock)
+            self._ensureTimeSeriesMapToolSignal()
             self.timeSeriesDock.show()
             self.timeSeriesDock.raise_()
             self.timeSeriesDock.setFocus()
         else:
             if "TimeSeries" in self.myMapTools and self.iface.mapCanvas().mapTool() == self.myMapTools["TimeSeries"]:
                 self.iface.mapCanvas().unsetMapTool(self.myMapTools["TimeSeries"])
+            self._clearTimeSeriesHighlight()
 
     def runTimeSeriesSelectPointTool(self):
         self.myMapTools["TimeSeries"] = QGISRedSelectPointTool(self.timeSeriesButton, self, self.timeSeriesCallback, SelectPointType.Line, cursor=":/images/iconTimeSeries.svg")
         self.iface.mapCanvas().setMapTool(self.myMapTools["TimeSeries"])
+
+    def _ensureTimeSeriesMapToolSignal(self):
+        """Clear highlight when TimeSeries tool is no longer the active map tool."""
+        if getattr(self, "_timeSeriesMapToolSignalConnected", False):
+            return
+        try:
+            self.iface.mapCanvas().mapToolSet.connect(self._onMapToolSetForTimeSeries)
+            self._timeSeriesMapToolSignalConnected = True
+        except Exception:
+            # Some test/mocked environments may not expose this signal.
+            self._timeSeriesMapToolSignalConnected = False
+
+    def _onMapToolSetForTimeSeries(self, tool):
+        try:
+            ts_tool = self.myMapTools.get("TimeSeries")
+        except Exception:
+            ts_tool = None
+        if ts_tool is None:
+            self._clearTimeSeriesHighlight()
+            return
+        if tool is not ts_tool:
+            self._clearTimeSeriesHighlight()
+
+    def _onTimeSeriesDockDestroyed(self, *_args):
+        self.timeSeriesDock = None
+        self._clearTimeSeriesHighlight()
 
     def timeSeriesDockVisibilityChanged(self, visible):
         if not visible:
             self.timeSeriesButton.setChecked(False)
             if "TimeSeries" in self.myMapTools and self.iface.mapCanvas().mapTool() == self.myMapTools.get("TimeSeries"):
                 self.iface.mapCanvas().unsetMapTool(self.myMapTools["TimeSeries"])
+            self._clearTimeSeriesHighlight()
+
+    def _clearTimeSeriesHighlight(self):
+        highlight = getattr(self, "timeSeriesHighlight", None)
+        if highlight is not None:
+            try:
+                highlight.hide()
+            except Exception:
+                pass
+        self.timeSeriesHighlight = None
+
+    def _setTimeSeriesHighlight(self, layer, feature):
+        self._clearTimeSeriesHighlight()
+        if layer is None or feature is None:
+            return
+        try:
+            highlight = QgsHighlight(self.iface.mapCanvas(), feature.geometry(), layer)
+            highlight.setColor(QColor("blue"))
+            highlight.setWidth(5)
+            highlight.show()
+            self.timeSeriesHighlight = highlight
+        except Exception:
+            self.timeSeriesHighlight = None
 
     def timeSeriesCallback(self, point):
         self.updateTimeSeriesPlot(point)
@@ -287,6 +341,7 @@ class AnalysisSection:
         self.lastTimeSeriesFeature = found_feature
         self.lastTimeSeriesCategory = category
         self.lastTimeSeriesLayer = layer
+        self._setTimeSeriesHighlight(layer, found_feature)
         self.performTimeSeriesPlotUpdate(found_feature, category, layer)
 
     def performTimeSeriesPlotUpdate(self, found_feature, category, layer):
