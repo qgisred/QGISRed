@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import re
 import random
 import math
 import statistics
@@ -16,8 +17,10 @@ from qgis.core import QgsProject, QgsVectorLayer, QgsMessageLog, Qgis, QgsGradua
 from qgis.core import QgsCategorizedSymbolRenderer, QgsRendererRange, QgsRendererCategory, QgsSymbol
 from qgis.core import QgsLayerTreeGroup, QgsLayerTreeLayer, QgsGradientColorRamp, QgsClassificationJenks
 from qgis.core import QgsClassificationPrettyBreaks, QgsStyle, QgsPresetSchemeColorRamp, QgsProperty, QgsSymbolLayer
+from qgis.core import QgsRuleBasedRenderer
 from qgis.utils import iface
 
+from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL
 from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
@@ -480,8 +483,20 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not groupPath:
             return
 
-        if layer.renderer().type() not in ("graduatedSymbol", "categorizedSymbol"):
-            return
+        rendererType = layer.renderer().type() if layer.renderer() else ""
+        if rendererType not in ("graduatedSymbol", "categorizedSymbol", "RuleRenderer"):
+            if rendererType != "singleSymbol":
+                return
+            identifier = layer.customProperty("qgisred_identifier") or ""
+            isResultLayer = identifier.startswith("qgisred_link") or identifier.startswith("qgisred_node")
+            isInputLayer = identifier in {
+                "qgisred_pipes", "qgisred_pumps", "qgisred_valves",
+                "qgisred_junctions", "qgisred_reservoirs", "qgisred_tanks",
+                "qgisred_sources", "qgisred_serviceconnections",
+                "qgisred_isolationvalves", "qgisred_meters", "qgisred_demands"
+            }
+            if not isResultLayer and not isInputLayer:
+                return
 
         currentGroupPath = self.cbGroups.currentData()
         if currentGroupPath != groupPath:
@@ -565,6 +580,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def syncLegendTypeComboBox(self, layer):
         rendererType = layer.renderer().type()
+        if rendererType == "RuleRenderer":
+            rendererType = "graduatedSymbol"
         index = self.cbLegendsType.findData(rendererType)
 
         if index != -1:
@@ -1339,8 +1356,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
                         "qgisred_sources", "qgisred_serviceconnections",
                         "qgisred_isolationvalves", "qgisred_meters", "qgisred_demands"
                     }
-                    if rendererType in ("graduatedSymbol", "categorizedSymbol") or (
-                        rendererType == "singleSymbol" and isInputLayer
+                    if rendererType in ("graduatedSymbol", "categorizedSymbol", "RuleRenderer") or (
+                        rendererType == "singleSymbol" and (isInputLayer or recurseIntoSubgroups)
                     ):
                         layers.append(layer)
             elif isinstance(child, QgsLayerTreeGroup) and recurseIntoSubgroups:
@@ -1472,16 +1489,42 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.cbLegendsType.addItem(
                 self.tr("Categorized"), "categorizedSymbol"
             )
-        elif currentRendererType == "graduatedSymbol":
+        elif currentRendererType in ("graduatedSymbol", "RuleRenderer"):
             self.cbLegendsType.addItem(self.tr("Graduated"), "graduatedSymbol")
         else:
             self.cbLegendsType.addItem(self.tr("Single Symbol"), "singleSymbol")
+
+    def ruleBasedAsGraduated(self, renderer):
+        """Convert a QgsRuleBasedRenderer (created by applyNullStyle) back to QgsGraduatedSymbolRenderer."""
+        if not isinstance(renderer, QgsRuleBasedRenderer):
+            return None
+        rules = [r for r in renderer.rootRule().children() if _NULL_RULE_LABEL not in r.label()]
+        if not rules:
+            return None
+        match = re.match(r'\((.+?)\)\s*>=', rules[0].filterExpression())
+        if not match:
+            return None
+        classAttr = match.group(1)
+        ranges = []
+        for rule in rules:
+            nums = re.findall(r'[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?', rule.filterExpression())
+            if len(nums) >= 2:
+                lo, hi = float(nums[0]), float(nums[1])
+                ranges.append(QgsRendererRange(lo, hi, rule.symbol().clone(), rule.label()))
+        if not ranges:
+            return None
+        return QgsGraduatedSymbolRenderer(classAttr, ranges)
 
     def detectFieldType(self, layer):
         renderer = layer.renderer()
 
         if isinstance(renderer, QgsGraduatedSymbolRenderer):
             return self.FIELD_TYPE_NUMERIC, renderer.classAttribute()
+
+        if isinstance(renderer, QgsRuleBasedRenderer):
+            graduated = self.ruleBasedAsGraduated(renderer)
+            if graduated:
+                return self.FIELD_TYPE_NUMERIC, graduated.classAttribute()
 
         if isinstance(renderer, QgsCategorizedSymbolRenderer):
             fieldName = renderer.classAttribute()
@@ -1520,6 +1563,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         renderer = self._workingRenderer or self.currentLayer.renderer()
         self._workingRenderer = None
+        if isinstance(renderer, QgsRuleBasedRenderer):
+            renderer = self.ruleBasedAsGraduated(renderer)
         if not isinstance(renderer, QgsGraduatedSymbolRenderer):
             return
 
@@ -2971,6 +3016,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         # Get existing renderer to clone symbols from (preserving complex symbol structures)
         existingRenderer = self.currentLayer.renderer()
+        if isinstance(existingRenderer, QgsRuleBasedRenderer):
+            existingRenderer = self.ruleBasedAsGraduated(existingRenderer)
         existingRanges = existingRenderer.ranges() if isinstance(existingRenderer, QgsGraduatedSymbolRenderer) else []
 
         for row in range(self.tableView.rowCount()):
