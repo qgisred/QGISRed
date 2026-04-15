@@ -2,7 +2,7 @@
 import os
 from qgis.PyQt.QtCore import Qt, pyqtSlot, pyqtSignal, QEvent, QTimer
 from qgis.PyQt.QtGui import QIcon, QFont, QColor, QBrush
-from qgis.PyQt.QtWidgets import QDockWidget, QWidget, QMessageBox, QLineEdit, QListWidgetItem, QTableWidgetItem, QHeaderView, QAbstractItemView, QFrame
+from qgis.PyQt.QtWidgets import QDockWidget, QWidget, QMessageBox, QLineEdit, QListWidgetItem, QTableWidgetItem, QHeaderView, QAbstractItemView, QFrame, QLabel, QTabBar
 from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsVectorLayer, QgsSettings, QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsLayerMetadata, QgsSpatialIndex, Qgis
 from qgis.utils import iface
@@ -385,6 +385,15 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             text = self.tabWidget.tabText(i)
             if text and not text.startswith(" "):
                 self.tabWidget.setTabText(i, f" {text} ")
+        self.styleResultsTab()
+
+    def styleResultsTab(self):
+        resultsTabIndex = 1
+        tabText = self.tabWidget.tabText(resultsTabIndex)
+        self.tabWidget.setTabText(resultsTabIndex, "")
+        label = QLabel(tabText)
+        label.setStyleSheet("background-color: #FFF8DC; font-weight: bold; padding: 4px 6px;")
+        self.tabWidget.tabBar().setTabButton(resultsTabIndex, QTabBar.ButtonPosition.LeftSide, label)
 
     def setComponentVisibility(self, showFindElements, showElementProperties):
         self.findElementsVisible = showFindElements
