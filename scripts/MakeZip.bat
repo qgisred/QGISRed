@@ -37,13 +37,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
     "$out = $env:PS_OUTPUT_ZIP;" ^
     "$nm  = $env:PS_PLUGIN_NAME;" ^
     "$exTop = @('.git','.vscode','.claude','images','scripts','.githooks','tests','.gitignore','.gitattributes','README.md','pytest.ini','qgisred.pro','resources.qrc');" ^
-    "$exDir = @('__pycache__');" ^
+    "$exDir = @('__pycache__','.pytest_cache');" ^
     "$exExt = @('.pyc','.pyo','.ts');" ^
     "Add-Type -Assembly System.IO.Compression.FileSystem;" ^
     "$zip = [System.IO.Compression.ZipFile]::Open($out, 'Create');" ^
     "Get-ChildItem -Path $d -Recurse -File | ForEach-Object {" ^
     "    $rel   = $_.FullName.Substring($d.Length + 1);" ^
-    "    $parts = $rel -split '\\\\';" ^
+    "    $parts = $rel -split '\\';" ^
     "    $skip  = $exTop -contains $parts[0];" ^
     "    for ($i = 0; $i -lt $parts.Length - 1; $i++) {" ^
     "        if ($exDir -contains $parts[$i]) { $skip = $true }" ^
