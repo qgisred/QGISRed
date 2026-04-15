@@ -234,6 +234,13 @@ class AnalysisSection:
             self.timeSeriesDock.show()
             self.timeSeriesDock.raise_()
             self.timeSeriesDock.setFocus()
+            try:
+                last_feat = getattr(self, "lastTimeSeriesFeature", None)
+                last_layer = getattr(self, "lastTimeSeriesLayer", None)
+                if last_feat is not None and last_layer is not None:
+                    self._setTimeSeriesHighlight(last_layer, last_feat)
+            except Exception:
+                pass
         else:
             if "TimeSeries" in self.myMapTools and self.iface.mapCanvas().mapTool() == self.myMapTools["TimeSeries"]:
                 self.iface.mapCanvas().unsetMapTool(self.myMapTools["TimeSeries"])
@@ -251,7 +258,6 @@ class AnalysisSection:
             self.iface.mapCanvas().mapToolSet.connect(self._onMapToolSetForTimeSeries)
             self._timeSeriesMapToolSignalConnected = True
         except Exception:
-            # Some test/mocked environments may not expose this signal.
             self._timeSeriesMapToolSignalConnected = False
 
     def _onMapToolSetForTimeSeries(self, tool):
