@@ -2,3 +2,4 @@
 .vscode
 /layerStyles/*.qml
 *.qml
+scripts/.ftp_credentials

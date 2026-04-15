@@ -190,6 +190,68 @@ If you are running from a standard Windows console and `python` does not point t
 
 All test logic and helpers are located in the `tests/` directory.
 
+## Releasing a new version
+
+The `scripts/` folder contains three scripts that automate the full release process:
+update version numbers, generate the ZIP, and upload it to the FTP server.
+
+### Scripts
+
+| Script | Description |
+|---|---|
+| `scripts/release_beta.bat` | Double-click shortcut — proposes **patch+1** (e.g. `0.17.3 → 0.17.4`) |
+| `scripts/release_official.bat` | Double-click shortcut — proposes **minor+1** (e.g. `0.17.3 → 0.18.0`) |
+| `scripts/release.py` | Main Python script, called by the `.bat` wrappers |
+
+### What it does
+
+1. Reads the current version from `metadata.txt`.
+2. Suggests the next version based on the release type (or asks for it manually).
+3. You can accept the suggestion by pressing **Enter**, or type a different version.
+4. Updates `metadata.txt` (`version=X.Y.Z`) and `qgisred.py` (`DependenciesVersion`).
+5. Calls `MakeZip.bat` to generate `QGISRed_vX.Y.Z.zip` in the parent folder.
+6. Uploads the ZIP to the FTP server.
+7. Optionally deletes the local ZIP.
+
+You can also invoke the script directly for full manual control:
+
+```bat
+python scripts\release.py              :: asks for version, no suggestion
+python scripts\release.py --beta       :: suggests patch+1
+python scripts\release.py --official   :: suggests minor+1
+```
+
+### FTP credentials
+
+Credentials are stored in `scripts/.ftp_credentials` (never committed — already in `.gitignore`).
+A template is provided in the repository at `scripts/.ftp_credentials.template`.
+
+Fields:
+
+| Field | Description |
+|---|---|
+| `host` | FTP server hostname |
+| `port` | FTP port (default `21`) |
+| `user` | FTP username |
+| `password` | FTP password |
+| `remote_dir` | Remote directory where the ZIP will be uploaded |
+| `tls` | Set to `true` if the server requires FTPS (FTP over TLS) |
+
+As an alternative to the file, you can set environment variables:
+`FTP_HOST`, `FTP_PORT`, `FTP_USER`, `FTP_PASS`, `FTP_DIR`, `FTP_TLS`.
+
+If the file does not exist and no environment variables are set, the script will ask
+for the credentials interactively and offer to save them.
+
+### First-time setup
+
+1. Copy the template and rename it:
+   ```bat
+   copy scripts\.ftp_credentials.template scripts\.ftp_credentials
+   ```
+2. Open `scripts\.ftp_credentials` and fill in the real values.
+3. Run `scripts\release_beta.bat` or `scripts\release_official.bat`.
+
 ## Adding a new Section
 
 
