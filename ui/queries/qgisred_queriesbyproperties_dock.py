@@ -202,6 +202,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         f = self.radioSingleCriteria.font()
         f.setBold(True)
         self.radioSingleCriteria.setFont(f)
+        self.labelStatisticsUnit.setVisible(False)
         self.updateProperties()
 
 
@@ -273,6 +274,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
 
         # stats property change
         self.cbStatisticsFor.currentIndexChanged.connect(self.onStatisticsForChanged)
+        self.cbStatisticsFor.currentIndexChanged.connect(self.updateStatisticsUnitLabel)
         # initial button state
         self.updateButtonsState()
 
@@ -677,6 +679,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                     self.cbStatisticsFor.setCurrentIndex(i)
                     break
         self.updateValueUnitLabel()
+        self.updateStatisticsUnitLabel()
 
         hasResults = self.isResultsMode or (
             qrIdent not in self.digitalTwinIdentifiers
@@ -870,6 +873,32 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             self.labelValueUnit.setVisible(True)
         else:
             self.labelValueUnit.setVisible(False)
+
+    def updateStatisticsUnitLabel(self):
+        prop = self.getComboInternalName(self.cbStatisticsFor)
+        if not prop:
+            self.labelStatisticsUnit.setVisible(False)
+            return
+        qrIdent = self.cbElementType.currentData(Qt.ItemDataRole.UserRole) or ""
+        fieldUtils = QGISRedFieldUtils()
+        unit = ""
+        if self.isResultProperty(prop):
+            category = self.elementResultCategory.get(qrIdent)
+            if self.isResultsMode:
+                layer = self.resolveLayer()
+                ident = (layer.customProperty("qgisred_identifier") or "") if layer else ""
+                category = "Link" if ident.startswith("qgisred_link") else "Node"
+            if category:
+                unit = fieldUtils.getResultPropertyUnit(category, prop)
+        else:
+            unit = fieldUtils.getFieldUnit(qrIdent, prop)
+        if unit:
+            self.labelStatisticsUnit.setText(f"{unit}")
+            self.labelStatisticsUnit.setToolTip(unit)
+            self.labelStatisticsUnit.setVisible(True)
+        else:
+            self.labelStatisticsUnit.setToolTip("")
+            self.labelStatisticsUnit.setVisible(False)
 
     def getFieldMinMax(self, layer, name):
         mn = mx = None
