@@ -1087,11 +1087,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         fields = self.currentLayer.fields()
         attributes = self.currentFeature.attributes()
 
-        # Skip the Id field (already shown in the title label)
-        skipFields = {"Id"}
-        # Fields that get a light grey background on Value/Unit columns
-        idTagDescFields = {"Tag", "Descrip"}
-        greyBrush = QBrush(QColor("#D8D8D8"))
+        # Skip fields already shown in the header labels
+        skipFields = {"Id", "Tag", "Descrip"}
         numDisplayFields = sum(1 for f in fields if f.name() not in skipFields)
         self.dataTableWidget.setRowCount(numDisplayFields)
 
@@ -1136,11 +1133,6 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             unitItem.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             if unitFullName:
                 unitItem.setToolTip(unitFullName)
-
-            # Apply light grey background to Value/Unit for identity fields (Tag, Description)
-            if fieldName in idTagDescFields:
-                valueItem.setBackground(greyBrush)
-                unitItem.setBackground(greyBrush)
 
             self.dataTableWidget.setItem(displayRow, 0, fieldItem)
             self.dataTableWidget.setItem(displayRow, 1, valueItem)
