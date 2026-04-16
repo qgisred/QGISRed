@@ -264,7 +264,7 @@ class QGISRedFieldUtils:
         if cached is not None and isinstance(cached.get("rows"), list):
             return cached
 
-        csvPath = os.path.join(_plugin_root(), "defaults", "qgisred_units.csv")
+        csvPath = os.path.join(_plugin_root(), "defaults", "qgisred_properties_units_decimals.csv")
         rows, prettyNames = [], {}
 
         if os.path.exists(csvPath):
