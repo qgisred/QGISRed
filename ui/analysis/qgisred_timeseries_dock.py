@@ -5,6 +5,13 @@ from qgis.PyQt.QtCore import Qt, QPointF, QRectF
 from qgis.PyQt.QtGui import QPainter, QPen, QColor, QFont, QPainterPath, QFontMetrics
 from ...compat import PAINTER_ANTIALIASING
 from .qgisred_results_data import seconds_to_time_str
+from ...tools.utils.qgisred_axis_scale_utils import (
+    compute_nice_scale,
+    compute_nice_time_scale_hours,
+    estimate_max_ticks,
+    format_number_tick,
+    format_time_tick_hours,
+)
 from qgis.PyQt import uic
 
 # Load UI
@@ -68,17 +75,18 @@ class TimeSeriesPlotWidget(QWidget):
                 max_y += y_range * 0.1
                 
             max_label_w = 0
-            num_ticks_y = 5
             if self.y_categorical_labels:
                 num_ticks_y = len(self.y_categorical_labels) - 1
+                tick_values = list(range(num_ticks_y + 1))
+                tick_labels = [self.y_categorical_labels[i] for i in tick_values]
+            else:
+                plot_h_est = h - (self.margin_top + 10) - self.margin_bottom
+                max_ticks_y = estimate_max_ticks(plot_h_est, fm.height() + 6, min_ticks=2, max_ticks=10)
+                scale = compute_nice_scale(min_y, max_y, max_ticks_y)
+                tick_values = scale.ticks()
+                tick_labels = [format_number_tick(v, scale.step) for v in tick_values]
             
-            for i in range(num_ticks_y + 1):
-                if self.y_categorical_labels:
-                    label_text = self.y_categorical_labels[i]
-                else:
-                    val_y = min_y + i * (max_y - min_y) / num_ticks_y
-                    label_text = f"{val_y:.2f}"
-                
+            for label_text in tick_labels:
                 label_w = fm.horizontalAdvance(label_text)
                 if label_w > max_label_w:
                     max_label_w = label_w
@@ -86,9 +94,15 @@ class TimeSeriesPlotWidget(QWidget):
             local_margin_left = max_label_w + 40
             if local_margin_left < 60: local_margin_left = 60
             
-        return QRectF(local_margin_left, self.margin_top + 10, 
+        # Ajuste de margen inferior si el eje X usa etiquetas en 2 líneas (tiempo)
+        local_margin_bottom = self.margin_bottom
+        if self.data_x and len(self.data_x) > 1:
+            # 2 líneas + padding para que no pise el label del eje X
+            local_margin_bottom = max(local_margin_bottom, fm.height() * 2 + 28)
+
+        return QRectF(local_margin_left, self.margin_top + 10,
                       w - local_margin_left - self.margin_right, 
-                      h - (self.margin_top + 10) - self.margin_bottom), local_margin_left
+                      h - (self.margin_top + 10) - local_margin_bottom), local_margin_left
 
     def paintEvent(self, event):
         if not self.data_x or not self.data_y:
@@ -128,6 +142,7 @@ class TimeSeriesPlotWidget(QWidget):
             min_y = 0
             max_y = len(self.y_categorical_labels) - 1
             num_ticks_y = max_y
+            y_tick_values = list(range(num_ticks_y + 1))
         else:
             min_y, max_y = min(self.data_y), max(self.data_y)
             num_ticks_y = 5
@@ -140,10 +155,24 @@ class TimeSeriesPlotWidget(QWidget):
             min_y -= y_range * 0.1
             max_y += y_range * 0.1
 
+        if not self.y_categorical_labels:
+            max_ticks_y = estimate_max_ticks(plot_rect.height(), painter.fontMetrics().height() + 6, min_ticks=2, max_ticks=10)
+            y_scale = compute_nice_scale(min_y, max_y, max_ticks_y)
+            min_y, max_y = y_scale.axis_min, y_scale.axis_max
+            num_ticks_y = y_scale.divisions
+            y_tick_values = y_scale.ticks()
+
         # Calculate X scale
         min_x, max_x = min(self.data_x), max(self.data_x)
+        if max_x == min_x:
+            max_x = min_x + 1
+
+        max_ticks_x = estimate_max_ticks(plot_rect.width(), 60, min_ticks=2, max_ticks=12)
+        x_scale = compute_nice_time_scale_hours(min_x, max_x, max_ticks_x)
+        min_x, max_x = x_scale.axis_min, x_scale.axis_max
         x_range = max_x - min_x
-        if x_range == 0: x_range = 1
+        if x_range == 0:
+            x_range = 1
 
         def to_screen(x, y):
             sx = plot_rect.left() + (x - min_x) / x_range * plot_rect.width()
@@ -158,11 +187,11 @@ class TimeSeriesPlotWidget(QWidget):
         # Horizontal lines (Y axis)
         for i in range(num_ticks_y + 1):
             if self.y_categorical_labels:
-                val_y = i 
+                val_y = i
                 label_text = self.y_categorical_labels[i]
             else:
-                val_y = min_y + i * (max_y - min_y) / num_ticks_y
-                label_text = f"{val_y:.2f}"
+                val_y = y_tick_values[i]
+                label_text = format_number_tick(val_y, y_scale.step)
                 
             pt = to_screen(min_x, val_y)
             painter.drawLine(QPointF(plot_rect.left(), pt.y()), QPointF(plot_rect.right(), pt.y()))
@@ -173,24 +202,16 @@ class TimeSeriesPlotWidget(QWidget):
 
         # Vertical lines (X axis)
         if len(self.data_x) > 1:
-            # We want to use values from data_x to ensure they are "real" time steps
-            # but if there are too many, we take a subset
-            max_ticks_x = 10
-            step = max(1, len(self.data_x) // max_ticks_x)
-            tick_indices = list(range(0, len(self.data_x), step))
-            # Ensure last point is included if not already
-            if (len(self.data_x) - 1) not in tick_indices:
-                tick_indices.append(len(self.data_x) - 1)
-                
-            for idx in tick_indices:
-                val_x = self.data_x[idx]
+            fm_x = painter.fontMetrics()
+            tick_h = fm_x.height() * 2 + 6
+            for val_x in x_scale.ticks():
                 pt = to_screen(val_x, min_y)
                 painter.setPen(pen_grid)
                 painter.drawLine(QPointF(pt.x(), plot_rect.top()), QPointF(pt.x(), plot_rect.bottom()))
-                
+
                 painter.setPen(Qt.GlobalColor.black)
-                label_x = f"{int(val_x)}" if abs(val_x - int(val_x)) < 0.001 else f"{val_x:.1f}"
-                painter.drawText(QRectF(pt.x() - 30, plot_rect.bottom() + 5, 60, 20), Qt.AlignmentFlag.AlignCenter, label_x)
+                label_x = format_time_tick_hours(val_x, x_scale.step)
+                painter.drawText(QRectF(pt.x() - 40, plot_rect.bottom() + 8, 80, tick_h), Qt.AlignmentFlag.AlignCenter, label_x)
 
         # Main Axes
         painter.setPen(QPen(Qt.GlobalColor.black, 2))
