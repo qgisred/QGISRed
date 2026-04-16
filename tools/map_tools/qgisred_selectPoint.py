@@ -1,4 +1,5 @@
 from enum import IntEnum
+import inspect
 from qgis.PyQt.QtGui import QColor, QCursor, QPixmap
 from qgis.PyQt.QtCore import Qt
 from qgis.core import QgsPointXY, QgsProject, QgsSnappingConfig, QgsTolerance
@@ -20,7 +21,7 @@ class SelectPointType(IntEnum):
 
 
 class QGISRedSelectPointTool(QgsMapTool):
-    def __init__(self, button, parent, method, type=SelectPointType.Point, cursor=None, icon_size=24):
+    def __init__(self, button, parent, method, type=SelectPointType.Point, cursor=None, icon_size=24, pass_modifiers=False):
         # type 1: points; 2: lines; 3: 2-points; 4: 2-line; 5: point-line
         QgsMapTool.__init__(self, parent.iface.mapCanvas())
         self.canvas = parent.iface.mapCanvas()
@@ -30,6 +31,7 @@ class QGISRedSelectPointTool(QgsMapTool):
         self.setAction(button)
         self.type = type
         self.icon_size = icon_size
+        self.pass_modifiers = bool(pass_modifiers)
         
         # Handle cursor: can be a string path, a QPixmap, or a QCursor
         self.custom_cursor = None
@@ -145,7 +147,17 @@ class QGISRedSelectPointTool(QgsMapTool):
                 # Call to parent method
                 self.deactivate()
                 self.activate()
-                self.method(point)
+                try:
+                    sig = inspect.signature(self.method)
+                    if self.pass_modifiers and len(sig.parameters) >= 2:
+                        self.method(point, event.modifiers())
+                    else:
+                        self.method(point)
+                except Exception:
+                    try:
+                        self.method(point)
+                    except Exception:
+                        return
 
                 # self.resetProperties()
         if event.button() == Qt.MouseButton.RightButton:
