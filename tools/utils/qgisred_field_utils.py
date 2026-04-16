@@ -2,8 +2,10 @@
 import os
 import re
 import csv as _csv
+import shutil
 
 from qgis.PyQt.QtCore import QCoreApplication
+from .qgisred_filesystem_utils import QGISRedFileSystemUtils
 from qgis.core import QgsProject, QgsMessageLog, Qgis
 
 
@@ -264,7 +266,14 @@ class QGISRedFieldUtils:
         if cached is not None and isinstance(cached.get("rows"), list):
             return cached
 
-        csvPath = os.path.join(_plugin_root(), "defaults", "qgisred_properties_units_decimals.csv")
+        _CSV_FILENAME = "qgisred_properties_units_decimals.csv"
+        globalDir = os.path.join(QGISRedFileSystemUtils().getQGISRedFolder(), "global_defaults")
+        csvPath = os.path.join(globalDir, _CSV_FILENAME)
+        if not os.path.exists(csvPath):
+            fallback = os.path.join(_plugin_root(), "defaults", _CSV_FILENAME)
+            if os.path.exists(fallback):
+                os.makedirs(globalDir, exist_ok=True)
+                shutil.copy2(fallback, csvPath)
         rows, prettyNames = [], {}
 
         if os.path.exists(csvPath):
