@@ -274,15 +274,36 @@ class TimeSeriesPlotWidget(QWidget):
             
             total_seconds = int(round(val_x * 3600))
             time_str = seconds_to_time_str(total_seconds)
-            
-            text = f"{val_y_str}\n{time_str}"
+
+            # Try to infer units from y_label, e.g. "Caudal (m³/s)" or "Caudal [m³/s]"
+            units = ""
+            y_label = self.y_label or ""
+            if "(" in y_label and ")" in y_label:
+                start = y_label.rfind("(")
+                end = y_label.rfind(")")
+                if 0 <= start < end:
+                    units = y_label[start + 1 : end].strip()
+            elif "[" in y_label and "]" in y_label:
+                start = y_label.rfind("[")
+                end = y_label.rfind("]")
+                if 0 <= start < end:
+                    units = y_label[start + 1 : end].strip()
+
             font_tt = QFont("Arial", 8)
-            painter.setFont(font_tt)
-            fm = painter.fontMetrics()
-            
-            # Use flags to correctly handle multi-line text bonding box
-            rect_tt = fm.boundingRect(self.rect(), Qt.AlignmentFlag.AlignCenter, text)
-            rect_tt.adjust(-5, -5, 5, 5)
+            font_tt_bold = QFont(font_tt)
+            font_tt_bold.setBold(True)
+            fm = QFontMetrics(font_tt)
+            fm_bold = QFontMetrics(font_tt_bold)
+
+            units_str = f" {units}" if units else ""
+            line1_w = fm_bold.horizontalAdvance(val_y_str) + fm.horizontalAdvance(units_str)
+            line2_w = fm.horizontalAdvance(time_str)
+            text_w = max(line1_w, line2_w)
+
+            pad = 5
+            gap = 2
+            text_h = fm.height() * 2 + gap
+            rect_tt = QRectF(0, 0, text_w + pad * 2, text_h + pad * 2)
             
             # Position tooltip box
             tt_x = int(pt.x() + 10)
@@ -299,7 +320,25 @@ class TimeSeriesPlotWidget(QWidget):
             painter.setPen(QPen(QColor(0, 128, 0), 1))
             painter.setBrush(Qt.GlobalColor.white)
             painter.drawRect(rect_tt)
-            painter.drawText(rect_tt, Qt.AlignmentFlag.AlignCenter, text)
+
+            # Draw centered lines manually to allow mixed weight on line 1
+            cx = rect_tt.center().x()
+            x1 = cx - (line1_w / 2.0)
+            y1 = rect_tt.top() + pad + fm.ascent()
+
+            painter.setFont(font_tt_bold)
+            painter.setPen(Qt.GlobalColor.black)
+            painter.drawText(QPointF(x1, y1), val_y_str)
+
+            if units_str:
+                x_units = x1 + fm_bold.horizontalAdvance(val_y_str)
+                painter.setFont(font_tt)
+                painter.drawText(QPointF(x_units, y1), units_str)
+
+            y2 = y1 + fm.height() + gap
+            x2 = cx - (line2_w / 2.0)
+            painter.setFont(font_tt)
+            painter.drawText(QPointF(x2, y2), time_str)
 
     def leaveEvent(self, event):
         if self.hover_index is not None:
