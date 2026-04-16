@@ -292,12 +292,22 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
             if self.isQualitySimulated:
                 if self.cbNodes.findText(self.lbl_quality) == -1:
                     self.cbNodes.addItem(self.lbl_quality)
+                if self.cbLinks.findText(self.lbl_reaction_rate) == -1:
+                    # Re-insert Reaction Rate before Quality
+                    q_idx = self.cbLinks.findText(self.lbl_quality)
+                    if q_idx != -1:
+                        self.cbLinks.insertItem(q_idx, self.lbl_reaction_rate)
+                    else:
+                        self.cbLinks.addItem(self.lbl_reaction_rate)
                 if self.cbLinks.findText(self.lbl_quality) == -1:
                     self.cbLinks.addItem(self.lbl_quality)
             else:
                 node_q_idx = self.cbNodes.findText(self.lbl_quality)
                 if node_q_idx != -1:
                     self.cbNodes.removeItem(node_q_idx)
+                link_rr_idx = self.cbLinks.findText(self.lbl_reaction_rate)
+                if link_rr_idx != -1:
+                    self.cbLinks.removeItem(link_rr_idx)
                 link_q_idx = self.cbLinks.findText(self.lbl_quality)
                 if link_q_idx != -1:
                     self.cbLinks.removeItem(link_q_idx)
@@ -575,22 +585,34 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         if not stats_mode:
             visible.add("Time")
             if layer_type == "Node":
-                visible.update(["Pressure", "Head", "Demand", "Quality"])
+                visible.update(["Pressure", "Head", "Demand"])
+                if self.isQualitySimulated:
+                    visible.add("Quality")
             else:
-                visible.update(["Status", "Flow", "Velocity", "HeadLoss", "UnitHdLoss", "FricFactor", "ReactRate", "Quality"])
+                visible.update(["Status", "Flow", "Velocity", "HeadLoss", "UnitHdLoss", "FricFactor"])
+                if self.isQualitySimulated:
+                    visible.update(["ReactRate", "Quality"])
         else:
             visible.add("Statistics")
             if layer_type == "Node":
-                visible.update(["Pressure", "Head", "Demand", "Quality"])
+                visible.update(["Pressure", "Head", "Demand"])
+                if self.isQualitySimulated:
+                    visible.add("Quality")
                 if stat in (self.lbl_maximum, self.lbl_minimum):
-                    visible.update(["Time_H", "Time_D", "Time_Q"])
+                    visible.update(["Time_H", "Time_D"])
+                    if self.isQualitySimulated:
+                        visible.add("Time_Q")
             else:
-                visible.update(["Flow", "Velocity", "HeadLoss", "UnitHdLoss", "FricFactor", "ReactRate", "Quality"])
+                visible.update(["Flow", "Velocity", "HeadLoss", "UnitHdLoss", "FricFactor"])
+                if self.isQualitySimulated:
+                    visible.update(["ReactRate", "Quality"])
                 if stat == self.lbl_average:
                     visible.discard("Flow")
                     visible.update(["Flow_Unsig", "Flow_Sig"])
                 if stat in (self.lbl_maximum, self.lbl_minimum):
-                    visible.update(["Time_H", "Time_Q"])
+                    visible.add("Time_H")
+                    if self.isQualitySimulated:
+                        visible.add("Time_Q")
         return visible
 
     def _applyFieldVisibilityToOpenTables(self, layer, config):
