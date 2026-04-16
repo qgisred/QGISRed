@@ -4,13 +4,11 @@ from qgis.PyQt.QtWidgets import QDockWidget, QVBoxLayout, QWidget
 from qgis.PyQt.QtCore import Qt, QPointF, QRectF, pyqtSignal
 from qgis.PyQt.QtGui import QPainter, QPen, QColor, QFont, QPainterPath, QFontMetrics, QPolygonF
 from ...compat import PAINTER_ANTIALIASING
-from .qgisred_results_data import seconds_to_time_str
 from ...tools.utils.qgisred_axis_scale_utils import (
     compute_nice_scale,
     compute_nice_time_scale_hours,
     estimate_max_ticks,
     format_number_tick,
-    format_time_tick_hours,
 )
 from qgis.PyQt import uic
 
@@ -211,10 +209,25 @@ class TimeSeriesPlotWidget(QWidget):
                     return y_label[start + 1 : end].strip()
         return ""
 
+    def _format_absolute_time_hours(self, hours):
+        total_seconds = int(round(hours * 3600))
+        sign = "-" if total_seconds < 0 else ""
+        abs_seconds = abs(total_seconds)
+        d = abs_seconds // 86400
+        rem = abs_seconds % 86400
+        h = rem // 3600
+        m = (rem % 3600) // 60
+        if d > 0:
+            return f"{sign}{d}d {h:02d}:{m:02d}"
+        return f"{sign}{h}:{m:02d}"
+
     def _expand_range(self, minimum, maximum):
         value_range = maximum - minimum
         if value_range == 0:
-            return minimum - 1, maximum + 1
+            pad = abs(maximum) * 0.1
+            if pad == 0:
+                pad = 1
+            return minimum - pad, maximum + pad
         return minimum - value_range * 0.1, maximum + value_range * 0.1
 
     def _computeYAxisState(self, all_y, plot_rect, painter):
@@ -233,7 +246,6 @@ class TimeSeriesPlotWidget(QWidget):
             }
 
         min_y, max_y = min(all_y), max(all_y)
-        min_y, max_y = self._expand_range(min_y, max_y)
         max_ticks_y = estimate_max_ticks(
             plot_rect.height(),
             painter.fontMetrics().height() + 6,
@@ -294,14 +306,14 @@ class TimeSeriesPlotWidget(QWidget):
         # Vertical lines (X axis)
         if len(self.data_x) > 1:
             fm_x = painter.fontMetrics()
-            tick_h = fm_x.height() * 2 + 6
+            tick_h = fm_x.height() + 6
             for val_x in x_state["x_scale"].ticks():
                 pt = self._to_screen(val_x, y_state["min_y"], plot_rect, x_state, y_state)
                 painter.setPen(pen_grid)
                 painter.drawLine(QPointF(pt.x(), plot_rect.top()), QPointF(pt.x(), plot_rect.bottom()))
 
                 painter.setPen(Qt.GlobalColor.black)
-                label_x = format_time_tick_hours(val_x, x_state["x_scale"].step)
+                label_x = self._format_absolute_time_hours(val_x)
                 painter.drawText(
                     QRectF(pt.x() - 40, plot_rect.bottom() + 8, 80, tick_h),
                     Qt.AlignmentFlag.AlignCenter,
@@ -467,9 +479,7 @@ class TimeSeriesPlotWidget(QWidget):
         painter.setPen(QPen(QColor(255, 110, 110), 1, Qt.PenStyle.DashLine))
         painter.drawLine(QPointF(pt_rule.x(), plot_rect.top()), QPointF(pt_rule.x(), plot_rect.bottom()))
 
-        total_seconds = int(round(val_x * 3600))
-        time_str = seconds_to_time_str(total_seconds)
-        header_text = f"{self.tr('Tiempo')}: {time_str}"
+        header_text = f"{self.tr('Tiempo')}: {self._format_absolute_time_hours(val_x)}"
         tooltip_lines, marker_pts = self._collectHoverTooltipData(
             self.hover_index,
             val_x,
@@ -642,15 +652,7 @@ class TimeSeriesPlotWidget(QWidget):
                 max_y = len(y_categorical_labels) - 1
             else:
                 min_y, max_y = min(all_y), max(all_y)
-            
-            y_range = max_y - min_y
-            if y_range == 0:
-                min_y -= 1
-                max_y += 1
-            else:
-                min_y -= y_range * 0.1
-                max_y += y_range * 0.1
-                
+
             max_label_w = 0
             if self.y_categorical_labels:
                 num_ticks_y = len(self.y_categorical_labels) - 1
@@ -674,8 +676,7 @@ class TimeSeriesPlotWidget(QWidget):
         # Ajuste de margen inferior si el eje X usa etiquetas en 2 líneas (tiempo)
         local_margin_bottom = self.margin_bottom
         if self.data_x and len(self.data_x) > 1:
-            # 2 líneas + padding para que no pise el label del eje X
-            local_margin_bottom = max(local_margin_bottom, fm.height() * 2 + 28)
+            local_margin_bottom = max(local_margin_bottom, fm.height() + 20)
 
         local_margin_right = self.margin_right + (self._legend_reserved_w + 10 if self._legend_reserved_w else 0)
         return QRectF(local_margin_left, self.margin_top + 10,

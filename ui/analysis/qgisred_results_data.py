@@ -24,6 +24,13 @@ def seconds_to_time_str(seconds):
     return f"{d}d {h}:{m:02d}:{s:02d}"
 
 
+def seconds_to_time_str_no_seconds(seconds):
+    h = seconds // 3600
+    rem = seconds % 3600
+    m = (rem % 3600) // 60
+    return f"{h}:{m:02d}"
+
+
 def seconds_to_csv_time_str(seconds):
     """Convert seconds to 'h:MM:SS' format without days (total hours), for CSV export."""
     h = seconds // 3600

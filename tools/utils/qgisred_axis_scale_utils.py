@@ -117,15 +117,12 @@ def compute_nice_time_scale_hours(
     data_min_hours: float,
     data_max_hours: float,
     max_ticks: int,
-    *,
-    preferred_day_fractions: Sequence[float] = (0.1, 0.2, 0.4, 0.6, 0.8),
-    day_hours: float = 24.0,
 ) -> NiceScale:
     """
     Autoescalado para eje temporal medido en horas (puede abarcar días).
 
-    Preferencias: fracciones del día (0.1, 0.2, 0.4, 0.6, 0.8) * 24h,
-    y sus múltiplos por días (1d, 2d, 5d, 10d, ...).
+    Usa pasos en horas enteras (1, 2, 3, 4, 6, 8, 12, 24, 48, ...) para que
+    los ticks caigan siempre en horas exactas (9:00, 10:00, etc.).
     """
     if max_ticks < 2:
         max_ticks = 2
@@ -139,11 +136,11 @@ def compute_nice_time_scale_hours(
 
     raw_step = raw_range / (max_ticks - 1)
 
-    base_day_steps = [f * day_hours for f in preferred_day_fractions]
-    # Incluimos pasos exactos en días y algunos múltiplos típicos para rangos largos
-    day_multipliers = [1, 2, 5, 10, 20, 50, 100]
-    day_steps = [m * day_hours for m in day_multipliers]
-    candidates = _sorted_unique(base_day_steps + day_steps)
+    # Pasos en horas enteras: subbora, hora, múltiplos de hora, días
+    candidates = _sorted_unique([
+        0.25, 0.5, 1, 2, 3, 4, 6, 8, 12,
+        24, 48, 72, 120, 168, 240, 360, 480, 720,
+    ])
 
     # Elegimos el candidato más cercano al ideal, pero penalizando exceso de ticks.
     def score(step: float) -> Tuple[float, float]:
