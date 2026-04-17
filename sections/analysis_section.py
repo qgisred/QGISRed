@@ -235,13 +235,7 @@ class AnalysisSection:
             self.timeSeriesDock.show()
             self.timeSeriesDock.raise_()
             self.timeSeriesDock.setFocus()
-            try:
-                last_feat = getattr(self, "lastTimeSeriesFeature", None)
-                last_layer = getattr(self, "lastTimeSeriesLayer", None)
-                if last_feat is not None and last_layer is not None:
-                    self._setTimeSeriesHighlight(last_layer, last_feat)
-            except Exception:
-                pass
+            self._restoreTimeSeriesState()
         else:
             if "TimeSeries" in self.myMapTools and self.iface.mapCanvas().mapTool() == self.myMapTools["TimeSeries"]:
                 self.iface.mapCanvas().unsetMapTool(self.myMapTools["TimeSeries"])
@@ -293,6 +287,34 @@ class AnalysisSection:
                 self.iface.mapCanvas().unsetMapTool(self.myMapTools["TimeSeries"])
             self._clearTimeSeriesHighlight()
             self._clearTimeSeriesMapSelection()
+        else:
+            self._restoreTimeSeriesState()
+
+    def _restoreTimeSeriesState(self):
+        """Restaura el gráfico, los highlights y la selección del mapa desde timeSeriesSelection."""
+        selection = getattr(self, "timeSeriesSelection", [])
+        if not selection:
+            return
+        # Restaurar selección en las capas QGIS
+        fids_by_layer = {}
+        for it in selection:
+            layer = it.get("layer")
+            feat = it.get("feature")
+            if layer is None or feat is None:
+                continue
+            try:
+                fids_by_layer.setdefault(layer, []).append(feat.id())
+            except Exception:
+                pass
+        for layer, fids in fids_by_layer.items():
+            try:
+                layer.selectByIds(fids)
+            except Exception:
+                pass
+        # Restaurar highlights en el mapa
+        self._syncTimeSeriesHighlights()
+        # Restaurar el gráfico
+        self._renderTimeSeriesSelection()
 
     def _clearTimeSeriesHighlight(self):
         # Clear all stored highlights for Time Series selections
