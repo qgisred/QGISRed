@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>480</width>
-    <height>220</height>
+    <height>250</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -93,26 +93,40 @@
      <property name="title">
       <string>Format</string>
      </property>
-     <layout class="QFormLayout" name="formLayout">
-      <item row="0" column="0">
-       <widget class="QLabel" name="lblListSep">
+     <layout class="QVBoxLayout" name="verticalLayout_format">
+      <item>
+       <widget class="QCheckBox" name="chkCustomSeparators">
         <property name="text">
-         <string>List separator:</string>
+         <string>Customize separators</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QComboBox" name="cbListSep"/>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="lblDecimalSep">
-        <property name="text">
-         <string>Decimal separator:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QComboBox" name="cbDecimalSep"/>
+      <item>
+       <layout class="QFormLayout" name="formLayout">
+        <item row="0" column="0">
+         <widget class="QLabel" name="lblDecimalSep">
+          <property name="text">
+           <string>Decimal separator:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QComboBox" name="cbDecimalSep"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="lblListSep">
+          <property name="text">
+           <string>List separator:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QComboBox" name="cbListSep"/>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>

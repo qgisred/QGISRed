@@ -3,6 +3,7 @@ import os
 
 from qgis.PyQt.QtWidgets import QDialog, QFileDialog
 from qgis.PyQt import uic
+from ...tools.utils.qgisred_ui_utils import QGISRedBanner
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_export_csv_dialog.ui"))
 
@@ -32,10 +33,17 @@ class QGISRedExportCsvDialog(QDialog, FORM_CLASS):
         if decimal_sep in self._decimal_sep_values:
             self.cbDecimalSep.setCurrentIndex(self._decimal_sep_values.index(decimal_sep))
 
+        # Banner for inline validation messages
+        self._banner = QGISRedBanner.inject(self, self.verticalLayout)
+
+        # Combos disabled by default (system defaults, checkbox unchecked)
+        self._setSeparatorEditable(False)
+
         # Connections
         self.btnBrowseNodes.clicked.connect(self._browseNodes)
         self.btnBrowseLinks.clicked.connect(self._browseLinks)
-        self.buttonBox.accepted.connect(self.accept)
+        self.chkCustomSeparators.toggled.connect(self._setSeparatorEditable)
+        self.buttonBox.accepted.connect(self._onAccepted)
         self.buttonBox.rejected.connect(self.reject)
 
     @property
@@ -53,6 +61,22 @@ class QGISRedExportCsvDialog(QDialog, FORM_CLASS):
     @property
     def decimal_sep(self):
         return self._decimal_sep_values[self.cbDecimalSep.currentIndex()]
+
+    def _setSeparatorEditable(self, enabled):
+        self.cbDecimalSep.setEnabled(enabled)
+        self.cbListSep.setEnabled(enabled)
+        self.lblDecimalSep.setEnabled(enabled)
+        self.lblListSep.setEnabled(enabled)
+
+    def _onAccepted(self):
+        if self.decimal_sep == self.list_sep:
+            self._banner.pushMessage(
+                self.tr("Validations"),
+                self.tr("The decimal separator and the list separator cannot be the same character."),
+                level=1, duration=0
+            )
+            return
+        self.accept()
 
     # --- Private helpers ---
 
