@@ -513,7 +513,7 @@ class AnalysisSection:
             self._timeSeriesSelectionKey = key
         elif self._timeSeriesSelectionKey != key:
             self.pushMessage(
-                self.tr("To overlay curves, keep the same element type and the same result magnitude."),
+                self.tr("La curva a superponer debe ser del mismo tipo de la ya representada"),
                 level=1, duration=5
             )
             return
