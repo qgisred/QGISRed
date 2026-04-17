@@ -137,7 +137,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             'qgisred_junctions': ['Pressure', 'BaseDem'],
             'qgisred_tanks': ['Pressure', 'Elevation'],
             'qgisred_reservoirs': ['Pressure', 'TotalHead'],
-            'qgisred_demands': ['BaseDem', 'Pressure'],
+            'qgisred_demands': ['BaseValue', 'Pressure'],
             'qgisred_sources': ['Quality', 'Pressure', 'BaseValue'],
             'qgisred_serviceconnections': ['BaseDemand'],
             'qgisred_isolationvalves': ['Status'],
@@ -162,6 +162,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.suppressUnitProperties = {
             ('qgisred_valves', 'Setting'),
             ('qgisred_sources', 'BaseValue'),
+            ('qgisred_demands', 'BaseValue'),
         }
 
         self.enumeratedFields = {'IsActive', 'Available'}
