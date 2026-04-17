@@ -843,7 +843,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             if idx >= 0:
                 self.cbCondition.setCurrentIndex(idx)
         elif cat == 'text':
-            idx = self.cbCondition.findText('ILIKE')
+            idx = self.cbCondition.findText('=')
             if idx >= 0:
                 self.cbCondition.setCurrentIndex(idx)
         self.cbCondition.blockSignals(False)
