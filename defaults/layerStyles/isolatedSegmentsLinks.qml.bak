@@ -26,7 +26,7 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="outlineColor">
                   <Option value="true" type="bool" name="active"/>
-                  <Option value="if(Status is 'POSSIBLE','#e7ca65' ,'#ff9900' )" type="QString" name="expression"/>
+                  <Option value="if(Status is 'TO RECOVER','#e7ca65' ,'#ff9900' )" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="outlineStyle">
@@ -93,7 +93,7 @@
                   <Option type="Map" name="properties">
                     <Option type="Map" name="outlineColor">
                       <Option value="true" type="bool" name="active"/>
-                      <Option value="if(Status is 'POSSIBLE','#e7ca65' ,'#ff9900' )" type="QString" name="expression"/>
+                      <Option value="if(Status is 'TO RECOVER','#e7ca65' ,'#ff9900' )" type="QString" name="expression"/>
                       <Option value="3" type="int" name="type"/>
                     </Option>
                     <Option type="Map" name="size">
@@ -137,15 +137,15 @@
                 <Option type="Map" name="outlineColor">
                   <Option value="true" type="bool" name="active"/>
                   <Option value="if (&quot;ElemType&quot; = 'PIPE', 
-                    if(&quot;Status&quot; = 'TO OPEN','#00ffee', if(&quot;Status&quot; = 'POSSIBLE', '#e7ca65', if(&quot;Status&quot; = 'CLOSED', '#ff0f13', '#ff9900'))), if(&quot;Status&quot; = 'CLOSED', '#ff0f13', if(&quot;Status&quot; = 'ACTIVE','#ff9900', if(&quot;Status&quot; = 'OPEN', '#85b66f', if(&quot;Status&quot; = 'TO CLOSE', '#ff00ff', if(&quot;Status&quot; = 'TO OPEN','#00ffee','#ff9900'))))))" type="QString" name="expression"/>
+                    if(&quot;Status&quot; = 'TO OPEN','#00ffee', if(&quot;Status&quot; = 'TO RECOVER', '#e7ca65', if(&quot;Status&quot; = 'NOW CLOSED', '#ff0f13', '#ff9900'))), if(&quot;Status&quot; = 'NOW CLOSED', '#ff0f13', if(&quot;Status&quot; = 'ACTIVE','#ff9900', if(&quot;Status&quot; = 'OPEN', '#85b66f', if(&quot;Status&quot; = 'TO CLOSE', '#ff00ff', if(&quot;Status&quot; = 'TO OPEN','#00ffee','#ff9900'))))))" type="QString" name="expression"/>
                   <Option value="3" type="int" name="type"/>
                 </Option>
                 <Option type="Map" name="outlineStyle">
                 <Option value="true" type="bool" name="active"/>
                 <Option value="if(&quot;ElemType&quot;='SERVICECONNECTION', 'no',
                                 if(&quot;ElemType&quot;='PIPE',
-                                  if(&quot;Status&quot;='CLOSED', 'dash',
-                                      if(&quot;Status&quot;='ISOLATED' OR &quot;Status&quot;='POSSIBLE', 'solid', 'no')
+                                  if(&quot;Status&quot;='NOW CLOSED', 'dash',
+                                      if(&quot;Status&quot;='ISOLATED' OR &quot;Status&quot;='TO RECOVER', 'solid', 'no')
                                   ),
                                   'solid'
                   )
@@ -205,7 +205,7 @@
                   <Option type="Map" name="properties">
                     <Option type="Map" name="fillColor">
                       <Option value="true" type="bool" name="active"/>
-                      <Option value="if(Status is 'CLOSED', '#ff0f13', if(Status is 'ACTIVE','#ff9900', if(Status is 'OPEN', '#85b66f', if(Status is 'TO CLOSE', '#ff00ff', if(Status is 'TO OPEN','#00ffee','#ff9900')))))" type="QString" name="expression"/>
+                      <Option value="if(Status is 'NOW CLOSED', '#ff0f13', if(Status is 'ACTIVE','#ff9900', if(Status is 'OPEN', '#85b66f', if(Status is 'TO CLOSE', '#ff00ff', if(Status is 'TO OPEN','#00ffee','#ff9900')))))" type="QString" name="expression"/>
                       <Option value="3" type="int" name="type"/>
                     </Option>
                     <Option type="Map" name="size">
@@ -268,7 +268,7 @@
                   <Option type="Map" name="properties">
                     <Option type="Map" name="fillColor">
                       <Option value="true" type="bool" name="active"/>
-                      <Option value="if(Status is 'CLOSED', '#ff0f13', if(Status is 'ACTIVE','#ff9900', if(Status is 'OPEN', '#85b66f', if(Status is 'TO CLOSE', '#ff00ff', if(Status is 'TO OPEN','#00ffee','#ff9900')))))" type="QString" name="expression"/>
+                      <Option value="if(Status is 'NOW CLOSED', '#ff0f13', if(Status is 'ACTIVE','#ff9900', if(Status is 'OPEN', '#85b66f', if(Status is 'TO CLOSE', '#ff00ff', if(Status is 'TO OPEN','#00ffee','#ff9900')))))" type="QString" name="expression"/>
                       <Option value="3" type="int" name="type"/>
                     </Option>
                     <Option type="Map" name="size">
