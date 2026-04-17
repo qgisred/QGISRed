@@ -49,6 +49,11 @@ Junctions,EmittCoef,Emitter Coefficient,Flow/sqr(Pressure),See FlowUnits/sqr(See
 Junctions,IniQuality,Initial Quality,mass/Liter,See MassUnits/L,3,Mass/Liter,See MassUnits/L,3,Chemical,Leave blank for other Quality Models
 Junctions,Tag,Tag,Text,,,Text,,,,
 Junctions,Descrip,Description,Text,,,Text,,,,
+Demands,Id,Identifier,Text,,,Text,,,,
+Demands,BaseDem,Base Demand,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,
+Demands,IdPattDem,Pattern Demand,Text,,,Text,,,,
+Demands,Tag,Tag,Text,,,Text,,,,
+Demands,Descrip,Description,Text,,,Text,,,,
 Tanks,Id,Identifier,Text,,,Text,,,,
 Tanks,Elevation,Elevation,Meters,m,2,Feet,ft,2,,
 Tanks,IniLevel,Initial Level,Meters,m,2,Feet,ft,2,,
