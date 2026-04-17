@@ -692,6 +692,11 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                     break
             self.updateConditions()
             self.updateValues()
+        if self.cbStatisticsFor.count() > 0:
+            self.cbStatisticsFor.insertSeparator(self.cbStatisticsFor.count())
+        self.cbStatisticsFor.addItem(self.tr("None"))
+        self.cbStatisticsFor.setItemData(self.cbStatisticsFor.count() - 1, '_none_', Qt.ItemDataRole.UserRole)
+
         if self.cbStatisticsFor.count() > 0 and not self.cbStatisticsFor.currentText():
             for i in range(self.cbStatisticsFor.count()):
                 if self.cbStatisticsFor.itemText(i):
@@ -1094,6 +1099,10 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         statsIdx = self.findComboByInternalName(self.cbStatisticsFor, propertyInternal)
         if statsIdx >= 0:
             self.cbStatisticsFor.setCurrentIndex(statsIdx)
+        elif not self.isNumericProperty(propertyInternal):
+            noneIdx = self.findComboByInternalName(self.cbStatisticsFor, '_none_')
+            if noneIdx >= 0:
+                self.cbStatisticsFor.setCurrentIndex(noneIdx)
         self.calculateStatistics()
         self.updateButtonsState()
 
@@ -1159,10 +1168,13 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             idFilter = self.buildIdFilter(selectedLayer)
 
         # Determine if target is numeric and if Flow abs should be used
-        targetIsNumeric = self.isNumericProperty(targetField)
-        useAbsValue = targetField in ('Flow', 'Flow_Unsig')
+        isNoneTarget = targetField == '_none_'
+        targetIsNumeric = False if isNoneTarget else self.isNumericProperty(targetField)
+        useAbsValue = not isNoneTarget and targetField in ('Flow', 'Flow_Unsig')
 
         def extractValue(feat):
+            if isNoneTarget:
+                return 1
             val = feat[targetField]
             if val is None or str(val) in ('', 'NULL'):
                 return None
@@ -1266,7 +1278,10 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
 
         # Configure columns based on property type
         statisticsTable = self.tableWidgetStatistics
-        if targetIsNumeric:
+        if isNoneTarget:
+            columnHeaders = [self.tr("Count")]
+            columnKeys = ['count']
+        elif targetIsNumeric:
             lastColLabel = self.tr("Sum") if self.usesSumColumn(targetField) else self.tr("StdD")
             columnHeaders = [self.tr("Count"), self.tr("Avg"), self.tr("Min"), self.tr("Max"), lastColLabel]
             columnKeys = ['count', 'avg', 'min', 'max', 'last']
@@ -1292,6 +1307,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 tableItem.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled)
                 if key == 'count':
                     tableItem.setBackground(QColor("#d0e8ff"))
+                    tableItem.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 statisticsTable.setItem(rowIndex, colIndex, tableItem)
 
             rowLabel = self.tr("All") if rowIndex == len(statsResults) - 1 else f"Cr{rowIndex+1}"
