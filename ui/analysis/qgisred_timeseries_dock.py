@@ -37,6 +37,7 @@ class TimeSeriesPlotWidget(QWidget):
         self.hover_index = None
         self.y_categorical_labels = None # Optional list of strings for Y ticks
         self.setMouseTracking(True)
+        self.setMinimumSize(220, 170)
         self._legend_reserved_w = 0
         self._legend_hitboxes = []  # list of (QRectF, series_index)
         self._hover_series_idx = None
@@ -217,9 +218,10 @@ class TimeSeriesPlotWidget(QWidget):
         rem = abs_seconds % 86400
         h = rem // 3600
         m = (rem % 3600) // 60
+        time_str = f"{sign}24" if (d > 0 and h == 0 and m == 0) else (f"{sign}{h}" if m == 0 else f"{sign}{h}:{m:02d}")
         if d > 0:
-            return f"{sign}{d}d {h:02d}:{m:02d}"
-        return f"{sign}{h}:{m:02d}"
+            return f"{time_str}\n{sign}{d}d"
+        return time_str
 
     def _expand_range(self, minimum, maximum):
         value_range = maximum - minimum
@@ -306,7 +308,8 @@ class TimeSeriesPlotWidget(QWidget):
         # Vertical lines (X axis)
         if len(self.data_x) > 1:
             fm_x = painter.fontMetrics()
-            tick_h = fm_x.height() + 6
+            has_days = x_state["max_x"] >= 24
+            tick_h = fm_x.height() * 2 + 4 if has_days else fm_x.height() + 6
             for val_x in x_state["x_scale"].ticks():
                 pt = self._to_screen(val_x, y_state["min_y"], plot_rect, x_state, y_state)
                 painter.setPen(pen_grid)
@@ -676,7 +679,9 @@ class TimeSeriesPlotWidget(QWidget):
         # Ajuste de margen inferior si el eje X usa etiquetas en 2 líneas (tiempo)
         local_margin_bottom = self.margin_bottom
         if self.data_x and len(self.data_x) > 1:
-            local_margin_bottom = max(local_margin_bottom, fm.height() + 20)
+            has_days = max(self.data_x) >= 24
+            extra = fm.height() * 2 + 16 if has_days else fm.height() + 20
+            local_margin_bottom = max(local_margin_bottom, extra)
 
         local_margin_right = self.margin_right + (self._legend_reserved_w + 10 if self._legend_reserved_w else 0)
         return QRectF(local_margin_left, self.margin_top + 10,

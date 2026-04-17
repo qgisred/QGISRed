@@ -138,7 +138,7 @@ def compute_nice_time_scale_hours(
 
     # Pasos en horas enteras: subbora, hora, múltiplos de hora, días
     candidates = _sorted_unique([
-        0.25, 0.5, 1, 2, 3, 4, 6, 8, 12,
+        1, 2, 3, 4, 6, 8, 12,
         24, 48, 72, 120, 168, 240, 360, 480, 720,
     ])
 
