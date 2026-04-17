@@ -159,6 +159,13 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             'boolean': 'listed'
         }
 
+        self.suppressUnitProperties = {
+            ('qgisred_valves', 'Setting'),
+            ('qgisred_sources', 'BaseValue'),
+        }
+
+        self.enumeratedFields = {'IsActive', 'Available'}
+
         self.tableWidgetCriteria.setColumnCount(2)
         self.tableWidgetCriteria.setHorizontalHeaderLabels(["   Oper   ", "Criteria"])
         self.tableWidgetCriteria.verticalHeader().setVisible(False)
@@ -835,6 +842,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             cat = 'numeric' if prop != 'Status' else 'listed'
         else:
             cat = 'text'
+        if prop in self.enumeratedFields:
+            cat = 'listed'
 
         self.cbCondition.addItems(self.conditionsByType.get(cat, self.conditionsByType['text']))
 
@@ -872,9 +881,11 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 if fieldIdx >= 0:
                     field = layer.fields().field(fieldIdx)
                     cat = self.fieldTypeMapping.get(field.typeName().lower(), 'text')
-                    freeTextFields = {'Id', 'Descrip', 'InstalDate',
+                    if prop in self.enumeratedFields:
+                        cat = 'listed'
+                    freeTextFields = {'Id', 'Descrip', 'InstalDate', 'InstDate',
                                        'Time', 'Time_H', 'Time_Q', 'Time_D'}
-                    if cat == 'text' and prop not in freeTextFields:
+                    if (cat == 'text' and prop not in freeTextFields) or cat == 'listed':
                         uniqueVals = self.getUniqueFieldValues(layer, prop)
                         strVals = sorted({str(v) for v in uniqueVals if v is not None and str(v).strip()})
                         useList = bool(strVals)
@@ -910,6 +921,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 unit = fieldUtils.getResultPropertyUnit(category, prop)
         else:
             unit = fieldUtils.getFieldUnit(qrIdent, prop)
+        if (qrIdent, prop) in self.suppressUnitProperties:
+            unit = ""
         if unit:
             self.labelValueUnit.setText(f"{unit}")
             self.labelValueUnit.setVisible(True)
@@ -934,6 +947,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 unit = fieldUtils.getResultPropertyUnit(category, prop)
         else:
             unit = fieldUtils.getFieldUnit(qrIdent, prop)
+        if (qrIdent, prop) in self.suppressUnitProperties:
+            unit = ""
         if unit:
             self.labelStatisticsUnit.setText(f"{unit}")
             self.labelStatisticsUnit.setToolTip(unit)
