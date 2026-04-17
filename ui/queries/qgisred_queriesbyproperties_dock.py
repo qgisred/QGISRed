@@ -237,6 +237,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
     def setupConnections(self):
         # element / property updates
         self.cbElementType.currentIndexChanged.connect(self.onElementTypeChanged)
+        self.cbElementType.currentIndexChanged.connect(lambda: self.updateComboBoxBackground(self.cbElementType))
+        self.cbProperty.currentIndexChanged.connect(lambda: self.updateComboBoxBackground(self.cbProperty))
         self.cbProperty.currentIndexChanged.connect(self.updateConditions)
         self.cbProperty.currentIndexChanged.connect(self.updateValues)
         self.cbProperty.currentIndexChanged.connect(self.updateValueUnitLabel)
@@ -273,6 +275,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.btExcel.clicked.connect(self.exportStatistics)
 
         # stats property change
+        self.cbStatisticsFor.currentIndexChanged.connect(lambda: self.updateComboBoxBackground(self.cbStatisticsFor))
         self.cbStatisticsFor.currentIndexChanged.connect(self.onStatisticsForChanged)
         self.cbStatisticsFor.currentIndexChanged.connect(self.updateStatisticsUnitLabel)
         # initial button state
@@ -399,6 +402,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 self.cbElementType.addItem(availableLayers[ident], ident)
 
         self.updateProperties()
+        self.updateComboBoxBackground(self.cbElementType)
 
     def isResultsLayer(self, layer):
         if not layer:
@@ -704,6 +708,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                     break
         self.updateValueUnitLabel()
         self.updateStatisticsUnitLabel()
+        self.updateComboBoxBackground(self.cbProperty)
+        self.updateComboBoxBackground(self.cbStatisticsFor)
 
         hasResults = self.isResultsMode or (
             qrIdent not in self.digitalTwinIdentifiers
@@ -782,6 +788,18 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.labelValueUnit = QLabel(self)
         self.labelValueUnit.setVisible(False)
         self.gridLayout.addWidget(self.labelValueUnit, row, col + colSpan)
+
+    def updateComboBoxBackground(self, combo):
+        brush = combo.currentData(Qt.BackgroundRole)
+        if brush and isinstance(brush, QBrush) and brush.color() != QColor(0, 0, 0, 255):
+            color = brush.color().name()
+        else:
+            color = "white"
+        combo.setStyleSheet(
+            f"QComboBox {{ background-color: {color}; }}"
+            "QComboBox QAbstractItemView { background-color: white; selection-background-color: #3399ff; selection-color: white; }"
+            "QLineEdit { background-color: white; }"
+        )
 
     def isValueListActive(self):
         return self.valueStack.currentWidget() is self.cbValueList
