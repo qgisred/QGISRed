@@ -431,6 +431,17 @@ class AnalysisSection:
             return
 
         if not add_mode:
+            if len(getattr(self, "timeSeriesSelection", [])) > 1:
+                from qgis.PyQt.QtWidgets import QMessageBox
+                reply = QMessageBox.question(
+                    None,
+                    self.tr("Borrar selección"),
+                    self.tr("Se perderán todas las curvas seleccionadas. ¿Continuar?"),
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                    QMessageBox.StandardButton.No,
+                )
+                if reply != QMessageBox.StandardButton.Yes:
+                    return
             self._timeSeriesResetSelection()
             self._clearTimeSeriesMapSelection()
 
