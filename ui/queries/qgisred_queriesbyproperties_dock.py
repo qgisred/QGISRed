@@ -210,6 +210,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         f.setBold(True)
         self.radioSingleCriteria.setFont(f)
         self.labelStatisticsUnit.setVisible(False)
+        self.labelStatisticsUnit.setMaximumWidth(50)
         self.updateProperties()
 
 
@@ -852,7 +853,10 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             if idx >= 0:
                 self.cbCondition.setCurrentIndex(idx)
         elif cat == 'text':
-            idx = self.cbCondition.findText('=')
+            freeTextFields = {'Id', 'Descrip', 'InstalDate', 'InstDate',
+                              'Time', 'Time_H', 'Time_Q', 'Time_D'}
+            defaultCond = 'ILIKE' if prop in freeTextFields else '='
+            idx = self.cbCondition.findText(defaultCond)
             if idx >= 0:
                 self.cbCondition.setCurrentIndex(idx)
         self.cbCondition.blockSignals(False)
@@ -950,7 +954,9 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         if (qrIdent, prop) in self.suppressUnitProperties:
             unit = ""
         if unit:
-            self.labelStatisticsUnit.setText(f"{unit}")
+            metrics = self.labelStatisticsUnit.fontMetrics()
+            elided = metrics.elidedText(unit, Qt.TextElideMode.ElideRight, self.labelStatisticsUnit.maximumWidth())
+            self.labelStatisticsUnit.setText(elided)
             self.labelStatisticsUnit.setToolTip(unit)
             self.labelStatisticsUnit.setVisible(True)
         else:
