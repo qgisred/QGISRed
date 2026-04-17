@@ -154,7 +154,7 @@ class QGISRedFieldUtils:
             'qgisred_pumps': 'Pumps',
             'qgisred_valves': 'Valves',
             'qgisred_sources': 'Sources',
-            'qgisred_serviceconnections': 'Service Connections',
+            'qgisred_serviceconnections': 'Service Connection',
             'qgisred_isolationvalves': 'Isolation Valves',
             'qgisred_meters': 'Meters',
             'qgisred_link_flow': 'Link Flow',
