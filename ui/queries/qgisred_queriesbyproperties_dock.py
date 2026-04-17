@@ -137,7 +137,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             'qgisred_junctions': ['Pressure', 'BaseDem'],
             'qgisred_tanks': ['Pressure', 'Elevation'],
             'qgisred_reservoirs': ['Pressure', 'TotalHead'],
-            'qgisred_demands': ['Pressure', 'BaseDem'],
+            'qgisred_demands': ['BaseDem', 'Pressure'],
             'qgisred_sources': ['Quality', 'Pressure', 'BaseValue'],
             'qgisred_serviceconnections': ['BaseDemand'],
             'qgisred_isolationvalves': ['Status'],
@@ -769,9 +769,20 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         cat = self.fieldTypeMapping.get(layer.fields().field(fieldIdx).typeName().lower(), 'text')
         return cat == 'numeric'
 
-    def usesSumColumn(self, prop):
-        sumProperties = {'Length', 'HeadLoss', 'UnitHdLoss', 'BaseDem', 'Demand'}
-        return prop in sumProperties
+    def usesSumColumn(self, prop, qrIdent=''):
+        if prop == 'Length' and qrIdent == 'qgisred_pipes':
+            return True
+        if prop == 'HeadLoss':
+            cat = self.elementResultCategory.get(qrIdent)
+            if cat == 'Link' or qrIdent.startswith('qgisred_link'):
+                return True
+        if prop == 'BaseDem' and qrIdent == 'qgisred_junctions':
+            return True
+        if prop == 'Demand':
+            cat = self.elementResultCategory.get(qrIdent)
+            if cat == 'Node' or qrIdent.startswith('qgisred_node'):
+                return True
+        return False
 
     def setupValueStack(self):
         idx = self.gridLayout.indexOf(self.cbValue)
@@ -1167,6 +1178,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         selectedLayer = self.resolveLayer()
         if not selectedLayer:
             return
+        qrIdent = self.cbElementType.currentData(Qt.ItemDataRole.UserRole) or ""
 
         # Clear previous layer's selection if the target layer changed
         if self.lastSelectedLayer is not None and self.lastSelectedLayer is not selectedLayer:
@@ -1189,7 +1201,6 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         hasCriteriaResultProp = any(self.isResultProperty(p) for p in criteriaProps)
         targetIsResultProp = self.isResultProperty(targetField)
         if (hasCriteriaResultProp or targetIsResultProp) and not self.isResultsMode:
-            qrIdent = self.cbElementType.currentData(Qt.ItemDataRole.UserRole) or ""
             resultCategory = self.elementResultCategory.get(qrIdent)
             resultsLayer = self.resolveResultsLayer(resultCategory) if resultCategory else None
         else:
@@ -1299,7 +1310,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             avgValue = totalValue / count if count else 0
             minValue = min(values) if count else None
             maxValue = max(values) if count else None
-            if self.usesSumColumn(targetField):
+            if self.usesSumColumn(targetField, qrIdent):
                 lastCol = totalValue
             else:
                 variance = sum((v - avgValue) ** 2 for v in values) / count if count else 0
@@ -1321,7 +1332,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             columnHeaders = [self.tr("Count")]
             columnKeys = ['count']
         elif targetIsNumeric:
-            lastColLabel = self.tr("Sum") if self.usesSumColumn(targetField) else self.tr("StdD")
+            lastColLabel = self.tr("Sum") if self.usesSumColumn(targetField, qrIdent) else self.tr("StdD")
             columnHeaders = [self.tr("Count"), self.tr("Avg"), self.tr("Min"), self.tr("Max"), lastColLabel]
             columnKeys = ['count', 'avg', 'min', 'max', 'last']
         else:
