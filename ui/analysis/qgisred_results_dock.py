@@ -395,8 +395,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
             group = resultGroup.addGroup(scenario)
             QGISRedLayerUtils.setGroupIdentifier(group, scenario)
 
-        openedLayersPaths = [self.getLayerPath(l) for l in self.getLayers()]
-
         files = [nameLayer] if nameLayer else ["Node", "Link"]
         for file in files:
             resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + scenario + "_" + file + ".shp")
@@ -405,14 +403,22 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
                 QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("{} results not found").format(self.tr(file)), level=1)
                 continue
 
-            # Open layer if not already open
-            if resultLayerPath not in openedLayersPaths:
+            existingLayer = next(
+                (l for l in self.getLayers() if self.getLayerPath(l) == resultLayerPath), None
+            )
+            if existingLayer is None:
+                # Layer not open yet — open it fresh and prepare its fields
                 utils.openLayer(group, file, results=True)
+                existingLayer = next(
+                    (l for l in self.getLayers() if self.getLayerPath(l) == resultLayerPath), None
+                )
+            else:
+                # Layer already open — reload OGR data (new shapefile written in-place)
+                existingLayer.dataProvider().reloadData()
+                existingLayer.updateExtents()
+            if existingLayer is not None:
                 # Ensure all possible fields are created in the correct order
-                for layer in self.getLayers():
-                    if self.getLayerPath(layer) == resultLayerPath:
-                        self.prepareResultFields(layer, file)
-                        break
+                self.prepareResultFields(existingLayer, file)
 
     def removeResults(self):
         resultPath = self.getResultsPath()
@@ -895,8 +901,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self.Scenario = "Base"
         self.saveCurrentRender()
 
-        # Remove results layers previous to simulate
-        QGISRedLayerUtils().runTask(self.removeResults, self.simulationProcess)
+        # Run simulation — result layers stay open and are refreshed in-place
+        self.simulationProcess()
 
     def simulationProcess(self):
         # Write results to a temp folder so the DLL never deletes files that other
@@ -1030,9 +1036,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         if not self.validationsOpenResult():
             return
 
-        # Task is necessary because after remove layers, DBF files are in use. With the task,
-        # the remove process finishs and filer are not in use
-        QGISRedLayerUtils().runTask(self.removeResults, self.openAllResultsProcess)
+        self.openAllResultsProcess()
 
     def openAllResultsProcess(self):
         # Ensure result layers are opened

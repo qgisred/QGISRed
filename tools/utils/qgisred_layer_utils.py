@@ -283,10 +283,35 @@ class QGISRedLayerUtils:
                 return True
         return False
 
+    def _tryReloadExistingLayer(self, layerPath):
+        """If a layer at *layerPath* is already open, reload its OGR data in-place and
+        return True. Returns False if no open layer matches, meaning the caller should
+        open it fresh."""
+        fs = self._fs()
+        for layer in self.getLayers():
+            if fs.getLayerPath(layer) == layerPath:
+                layer.dataProvider().reloadData()
+                layer.updateExtents()
+                layer.triggerRepaint()
+                return True
+        return False
+
+    def _reloadOpenLayer(self, layerName):
+        """Reload OGR data for an already-open network layer (file was overwritten in-place)."""
+        fs = self._fs()
+        identifiers = self._identifiers()
+        originalLayerName = identifiers.getOriginalNameFromLayerName(layerName)
+        layerPath = fs.generatePath(self.ProjectDirectory, self.NetworkName + "_" + originalLayerName + ".shp")
+        self._tryReloadExistingLayer(layerPath)
+
     def openElementsLayers(self, group, ownMainLayers, processOnly=False):
         if not processOnly:
             for fileName in ownMainLayers:
-                self.openLayer(group, fileName)
+                if self.isLayerOpened(fileName):
+                    # Layer already open — reload its data in-place (no remove/reopen flicker)
+                    self._reloadOpenLayer(fileName)
+                else:
+                    self.openLayer(group, fileName)
         if len(ownMainLayers) > 0:
             self.orderLayers(group)
         for child in group.children():
@@ -304,8 +329,12 @@ class QGISRedLayerUtils:
         name = name.replace(" ", "")
         originalName = identifiers.getOriginalNameFromLayerName(name)
         layerName = self.NetworkName + "_" + originalName
-        if os.path.exists(os.path.join(self.ProjectDirectory, layerName + ext)):
-            vlayer = QgsVectorLayer(os.path.join(self.ProjectDirectory, layerName + ext), showName, "ogr")
+        layerPath = os.path.join(self.ProjectDirectory, layerName + ext)
+        if os.path.exists(layerPath):
+            # If the layer is already open, reload its data in-place (no duplicate added)
+            if self._tryReloadExistingLayer(layerPath):
+                return
+            vlayer = QgsVectorLayer(layerPath, showName, "ogr")
             if not ext == ".dbf":
                 if results:
                     styling.setResultStyle(vlayer, originalName)
@@ -335,6 +364,8 @@ class QGISRedLayerUtils:
         originalName = identifiers.getOriginalNameFromLayerName(name)
         layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + originalName + "_Tree_" + treeName + ".shp")
         if os.path.exists(layerPath):
+            if self._tryReloadExistingLayer(layerPath):
+                return
             vlayer = QgsVectorLayer(layerPath, name, "ogr")
             if link:
                 self._styling().setTreeStyle(vlayer)
@@ -349,6 +380,8 @@ class QGISRedLayerUtils:
         originalName = identifiers.getOriginalNameFromLayerName(name)
         layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_IsolatedSegments_" + originalName + ".shp")
         if os.path.exists(layerPath):
+            if self._tryReloadExistingLayer(layerPath):
+                return
             vlayer = QgsVectorLayer(layerPath, name, "ogr")
             self._styling().setIsolatedSegmentsStyle(vlayer)
             QgsProject.instance().addMapLayer(vlayer, group is None)

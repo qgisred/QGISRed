@@ -181,7 +181,7 @@ class ToolsSection:
         self.removingLayers = True
         self.savedExtent = self.iface.mapCanvas().extent()
         if self.hasToOpenSectorLayers:
-            QGISRedLayerUtils().runTask(self.removeSectorLayers, self.runOpenTemporaryFiles)
+            self.runOpenTemporaryFiles()
 
     """Isolated Segments"""
 
@@ -225,7 +225,7 @@ class ToolsSection:
             self.blockLayers(False)
             # self.treeName = resMessage.split("^")[1]
             self.removingLayers = True
-            QGISRedLayerUtils().runTask(self.removeIsolatedSegmentsLayers, self.runLoadIsolatedSegmentLayers)
+            self.runLoadIsolatedSegmentLayers()
         else:
             self.blockLayers(False)
             self.pushMessage(resMessage, level=2, duration=5)
@@ -302,7 +302,7 @@ class ToolsSection:
         elif "shps" in resMessage:
             self.treeName = resMessage.split("^")[1]
             self.removingLayers = True
-            QGISRedLayerUtils().runTask(self.removeTreeLayers, self.runTreeProcess)
+            self.runTreeProcess()
         else:
             self.pushMessage(resMessage, level=2, duration=5)
 

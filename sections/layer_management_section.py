@@ -2,13 +2,13 @@
 """Layer management section for QGISRed (open/remove layers, groups, metadata, processCsharpResult)."""
 
 import os
+import shutil
 
 from qgis.core import QgsProject, QgsVectorLayer
 from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtCore import Qt
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
-from ..tools.utils.qgisred_project_io import QGISRedProjectIO
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
 
@@ -123,23 +123,10 @@ class LayerManagementSection:
         # Prepare for opening
         self.opendedLayers = False
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        io = QGISRedProjectIO(self.ProjectDirectory, self.NetworkName, self.iface)
         inputGroup = self.getInputGroup()
 
-        if self.storeQLRSucess:
-            io.loadProjectFromQLR(self.qlrFolder)
-            inputGroup = self.getInputGroup()
-            proccessPerformed = False
-            for layer_name in self.ownMainLayers + self.especificComplementaryLayers:
-                if not utils.isLayerOpened(layer_name):
-                    utils.openElementsLayers(inputGroup, [layer_name])
-                    proccessPerformed = True
-            if not proccessPerformed:
-                utils.openElementsLayers(inputGroup, self.ownMainLayers + self.especificComplementaryLayers, processOnly=True)
-            io.deleteProjectQLR(self.qlrFolder)
-        else:
-            for layer_name in self.ownMainLayers + self.especificComplementaryLayers:
-                utils.openElementsLayers(inputGroup, [layer_name])
+        for layer_name in self.ownMainLayers + self.especificComplementaryLayers:
+            utils.openElementsLayers(inputGroup, [layer_name])
 
         utils.removeEmptyLayersInGroup(inputGroup)
         # Reset any scenario‑specific list
@@ -257,8 +244,6 @@ class LayerManagementSection:
     """Others"""
 
     def processCsharpResult(self, b, message):
-        io = QGISRedProjectIO(self.ProjectDirectory, self.NetworkName, self.iface)
-        self.storeQLRSucess, self.qlrFolder = io.saveProjectAsQLR()
         # Action
         self.hasToOpenNewLayers = False
         self.hasToOpenIssuesLayers = False
@@ -279,19 +264,12 @@ class LayerManagementSection:
 
         self.removingLayers = True
         self.savedExtent = self.iface.mapCanvas().extent()
-        if self.hasToOpenNewLayers and self.hasToOpenIssuesLayers:
-            QGISRedLayerUtils().runTask(self.removeLayersAndIssuesLayers, self.runOpenTemporaryFiles)
-        elif self.hasToOpenNewLayers:
-            QGISRedLayerUtils().runTask(self.removeLayers, self.runOpenTemporaryFiles)
-        elif self.hasToOpenIssuesLayers:
-            QGISRedLayerUtils().runTask(self.removeIssuesLayers, self.runOpenTemporaryFiles)
+        if self.hasToOpenNewLayers or self.hasToOpenIssuesLayers:
+            # All layer types stay open — files are overwritten in-place and each
+            # open*Layers() method reloads existing layers via reloadData().
+            self.runOpenTemporaryFiles()
 
     def runOpenTemporaryFiles(self):
-        if self.hasToOpenIssuesLayers:
-            self.removeIssuesLayersFiles()
-        if self.hasToOpenSectorLayers:
-            self.removeSectorLayersFiles()
-
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
 
         resMessage = GISRed.ReplaceTemporalFiles(self.ProjectDirectory, self.tempFolder)
@@ -302,7 +280,11 @@ class LayerManagementSection:
                 os.mkdir(issuesFolder)
             for fi in os.listdir(self.ProjectDirectory):
                 if "_Issues." in fi:
-                    os.rename(os.path.join(self.ProjectDirectory, fi), os.path.join(issuesFolder, fi))
+                    src = os.path.join(self.ProjectDirectory, fi)
+                    dst = os.path.join(issuesFolder, fi)
+                    # Overwrite in-place so existing QGIS handles remain valid
+                    shutil.copy2(src, dst)
+                    os.remove(src)
 
         self.readOptions(self.ProjectDirectory, self.NetworkName)
 
@@ -325,7 +307,11 @@ class LayerManagementSection:
                 os.mkdir(queriesFolder)
             for fi in os.listdir(self.ProjectDirectory):
                 if ("_" + self.Sectors + ".") in fi:
-                    os.replace(os.path.join(self.ProjectDirectory, fi), os.path.join(queriesFolder, fi))
+                    src = os.path.join(self.ProjectDirectory, fi)
+                    dst = os.path.join(queriesFolder, fi)
+                    # Overwrite in-place so existing QGIS handles remain valid
+                    shutil.copy2(src, dst)
+                    os.remove(src)
             self.openSectorLayers()
             self.hasToOpenSectorLayers = False
 

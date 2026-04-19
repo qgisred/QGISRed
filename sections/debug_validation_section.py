@@ -313,4 +313,4 @@ class DebugValidationSection:
         self.removingLayers = True
         self.savedExtent = self.iface.mapCanvas().extent()
         if self.hasToOpenSectorLayers:
-            QGISRedLayerUtils().runTask(self.removeSectorLayers, self.runOpenTemporaryFiles)
+            self.runOpenTemporaryFiles()

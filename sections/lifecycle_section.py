@@ -42,7 +42,6 @@ class LifecycleSection:
         """
         # Save reference to the QGIS interface
         self.iface = iface
-        self.storeQLRSucess = False
         self.isUnloading = False  # Flag to prevent DLL calls during shutdown
 
         if not platform.system() == "Windows":
