@@ -283,17 +283,24 @@ class QGISRedLayerUtils:
                 return True
         return False
 
+    def _findLayerByPath(self, layerPath):
+        """Return the open QgsVectorLayer whose source file matches *layerPath*, or None."""
+        fs = self._fs()
+        for layer in self.getLayers():
+            if fs.getLayerPath(layer) == layerPath:
+                return layer
+        return None
+
     def _tryReloadExistingLayer(self, layerPath):
         """If a layer at *layerPath* is already open, reload its OGR data in-place and
         return True. Returns False if no open layer matches, meaning the caller should
         open it fresh."""
-        fs = self._fs()
-        for layer in self.getLayers():
-            if fs.getLayerPath(layer) == layerPath:
-                layer.dataProvider().reloadData()
-                layer.updateExtents()
-                layer.triggerRepaint()
-                return True
+        layer = self._findLayerByPath(layerPath)
+        if layer is not None:
+            layer.dataProvider().reloadData()
+            layer.updateExtents()
+            layer.triggerRepaint()
+            return True
         return False
 
     def _reloadOpenLayer(self, layerName):
@@ -333,6 +340,12 @@ class QGISRedLayerUtils:
         if os.path.exists(layerPath):
             # If the layer is already open, reload its data in-place (no duplicate added)
             if self._tryReloadExistingLayer(layerPath):
+                if sectors:
+                    # Categorized sector style depends on unique field values — must be
+                    # rebuilt after every reload since the DLL may produce new categories.
+                    existingLayer = self._findLayerByPath(layerPath)
+                    if existingLayer is not None:
+                        styling.setSectorsStyle(existingLayer)
                 return
             vlayer = QgsVectorLayer(layerPath, showName, "ogr")
             if not ext == ".dbf":

@@ -1,12 +1,12 @@
-# Layer Lifecycle — Developer Reference
+# QGISRed — Developer Internals
 
 > **Audience**: QGISRed plugin developers.
-> This document describes how the plugin manages QGIS vector layers (opening, refreshing,
-> and moving files) without removing and re-adding layers to the QGIS project.
+> Internal design decisions and implementation patterns that are not obvious from reading
+> the code alone.
 
 ---
 
-## Background: why layers must never be removed
+## 1. Layer lifecycle — why layers must never be removed
 
 On Windows, OGR opens shapefiles with `FILE_SHARE_READ | FILE_SHARE_WRITE` (not exclusive).
 This means another process can overwrite the file contents while QGIS has it open — and QGIS
@@ -14,7 +14,8 @@ will see the new content after a `reloadData()` call.
 
 However, **deleting a file and creating a new one at the same path creates a new inode**.
 Any process that had the original file open gets a *zombie handle* — the directory entry is
-gone but the old data persists until all handles close.
+gone but the old data persists until all handles close.  QGIS layers pointing to the zombie
+inode lose their CRS (`.prj` gone) and appear as `(null)` in the legend.
 
 **Rule**: never call `QgsProject.instance().removeMapLayer()` on a QGISRed layer unless the
 layer file is also being permanently deleted.  Instead, overwrite the file in-place and call
@@ -22,7 +23,7 @@ layer file is also being permanently deleted.  Instead, overwrite the file in-pl
 
 ---
 
-## In-place overwrite vs. delete + recreate
+## 2. In-place overwrite vs. delete + recreate
 
 | Operation | inode preserved? | QGIS handle valid? | Safe pattern |
 |-----------|:-:|:-:|---|
@@ -37,19 +38,23 @@ rewrites the existing file without changing its inode**.  Existing OGR handles r
 
 ---
 
-## Core reload helper
+## 3. Core reload helpers
 
-`tools/utils/qgisred_layer_utils.py` → `QGISRedLayerUtils._tryReloadExistingLayer(layerPath)`
+Both live in `tools/utils/qgisred_layer_utils.py` → `QGISRedLayerUtils`.
 
+### `_findLayerByPath(layerPath)`
+
+Returns the open `QgsVectorLayer` whose source file matches `layerPath`, or `None`.
+Used internally whenever a reload or post-reload action needs a reference to the layer.
+
+### `_tryReloadExistingLayer(layerPath)`
+
+Calls `_findLayerByPath`, and if a match is found, runs:
 ```python
-def _tryReloadExistingLayer(self, layerPath):
-    for layer in self.getLayers():
-        if fs.getLayerPath(layer) == layerPath:
-            layer.dataProvider().reloadData()
-            layer.updateExtents()
-            layer.triggerRepaint()
-            return True
-    return False
+layer.dataProvider().reloadData()
+layer.updateExtents()
+layer.triggerRepaint()
+return True   # False if not found
 ```
 
 Called by `openLayer()`, `openTreeLayer()`, `openIsolatedSegmentsLayer()`.
@@ -58,7 +63,42 @@ Returns `False` → layer not open yet, caller opens it fresh.
 
 ---
 
-## Layer types and their file movement patterns
+## 4. Post-reload style refresh
+
+`reloadData()` refreshes the underlying OGR data but **does not update the renderer**.
+For layers whose style is computed from the actual data values (e.g. categorized renderers),
+the style must be re-applied after every reload so that new values are reflected in the
+legend.
+
+### Current case: sector layers
+
+Sector layers (hydraulic / demand) use a **categorized renderer** built from the unique
+values of the `Class` field (demand) or `SubNet` field (hydraulic).  Each DLL run can
+produce a different set of sectors, so the renderer must be rebuilt on every reload.
+
+`openLayer()` handles this transparently: when `_tryReloadExistingLayer()` returns `True`
+and `sectors=True`, it immediately calls `setSectorsStyle(layer)` on the reloaded layer.
+
+```python
+# Inside openLayer(), after _tryReloadExistingLayer() returns True:
+if sectors:
+    existingLayer = self._findLayerByPath(layerPath)
+    if existingLayer is not None:
+        styling.setSectorsStyle(existingLayer)
+return
+```
+
+### Generalising to other layer types
+
+If a future layer type also needs post-reload style work, the right place is the same
+pattern inside `openLayer()` — add an `elif` branch for the new flag (e.g. `issues`,
+`results`, or a new one).  If the number of cases grows, consider replacing the individual
+boolean flags with an enum or a `post_reload` callback parameter so callers can inject
+arbitrary post-reload logic without modifying `openLayer()` itself.
+
+---
+
+## 5. Layer types and their file movement patterns
 
 ### Network (input) layers — `sections/layer_management_section.py`
 
@@ -79,11 +119,12 @@ shutil.copy2(src, dst)   # overwrite in-place at destination, preserving inode
 os.remove(src)           # remove the source temp file
 ```
 
-### Sector layers (hydraulic / demand) — same pattern as Issues
+### Sector layers (hydraulic / demand)
 
 DLL writes `*_HydraulicSectors.*` / `*_DemandSectors.*` to `projectDir` root.
 Python moves them to `projectDir/Queries/` using `shutil.copy2()` + `os.remove()`.
-`openSectorLayers()` → `openLayer()` → `_tryReloadExistingLayer()`.
+`openSectorLayers()` → `openLayer(..., sectors=True)` → `_tryReloadExistingLayer()` +
+`setSectorsStyle()` (see §4).
 
 ### Tree and Isolated Segments layers — `sections/tools_section.py`
 
@@ -109,7 +150,7 @@ are added by Python.
 
 ---
 
-## runTask is no longer used for layer management
+## 6. `runTask` is no longer used for layer management
 
 `QGISRedLayerUtils.runTask(A, B)` runs `A()` synchronously then schedules `B()` via
 `QTimer.singleShot(0, B)`.  It was originally needed to give the event loop time to process
@@ -127,7 +168,7 @@ methods call their process functions **directly**:
 
 ---
 
-## QLR mechanism — removed
+## 7. QLR mechanism — removed
 
 `saveProjectAsQLR()` / `loadProjectFromQLR()` saved all open QGISRed layers to `.qlr` files
 before a DLL operation, then restored them afterwards.  It was used to preserve layer styles
@@ -143,10 +184,12 @@ This mechanism was **removed** because:
 
 ---
 
-## Adding a new DLL operation — checklist
+## 8. Adding a new DLL operation — checklist
 
 1. DLL writes output to `tempFolder` (third parameter), not directly to `projectDir`.
 2. Python copies files from `tempFolder` → final destination with `shutil.copy2()` + `os.remove()`.
 3. Call the appropriate `open*Layers()` method — it uses `_tryReloadExistingLayer()` internally.
 4. Do **not** call `removeLayers()` / `removeMapLayer()` before step 2.
 5. Do **not** use `runTask(remove..., open...)` — call the open method directly.
+6. If the layer uses a data-driven style (categorized, graduated…), add a post-reload style
+   refresh inside `openLayer()` following the pattern in §4.
