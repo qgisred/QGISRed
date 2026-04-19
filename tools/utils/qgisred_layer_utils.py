@@ -423,7 +423,7 @@ class QGISRedLayerUtils:
 
     def removeEmptyLayersInGroup(self, group, exceptions=None):
         if exceptions is None:
-            exceptions = ["Pipes"]
+            exceptions = [self.tr("Pipes")]
         project = QgsProject.instance()
 
         for node in list(group.children()):
