@@ -210,10 +210,6 @@ class AnalysisSection:
                 if out_path and os.path.exists(out_path) and self.ResultDockwidget.isCurrentProject():
                     results_ready = True
             if not results_ready and os.path.exists(self._outFilePath()):
-                self._initResultsDock()
-                self.ResultDockwidget.loadExistingResults(self.ProjectDirectory, self.NetworkName)
-                self.ResultDockwidget.hide()
-                self.connectElementExplorerToResultsDock()
                 results_ready = True
 
             if not results_ready:
@@ -581,34 +577,16 @@ class AnalysisSection:
         y_categorical_labels = None
         y_label_with_unit = ""
 
-        if not (hasattr(self, 'ResultDockwidget') and self.ResultDockwidget):
-            self.pushMessage(self.tr("Results panel not available."), level=1, duration=5)
-            return None
+        dock = self.ResultDockwidget if (hasattr(self, 'ResultDockwidget') and self.ResultDockwidget) else None
 
         if category == "Node":
-            prop_display = self.ResultDockwidget.cbNodes.currentText()
-            mapping = {
-                self.ResultDockwidget.lbl_pressure: "Pressure",
-                self.ResultDockwidget.lbl_head: "Head",
-                self.ResultDockwidget.lbl_demand: "Demand",
-                self.ResultDockwidget.lbl_quality: "Quality"
-            }
-            prop_internal = mapping.get(prop_display, "Pressure")
+            prop_display = dock.cbNodes.currentText() if dock else self.tr("Pressure")
+            node_map = {dock.lbl_pressure: "Pressure", dock.lbl_head: "Head", dock.lbl_demand: "Demand", dock.lbl_quality: "Quality"} if dock else {}
+            prop_internal = node_map.get(prop_display, "Pressure")
         else:
-            prop_display = self.ResultDockwidget.cbLinks.currentText()
-            mapping = {
-                self.ResultDockwidget.lbl_flow: "Flow",
-                self.ResultDockwidget.lbl_velocity: "Velocity",
-                self.ResultDockwidget.lbl_headloss: "HeadLoss",
-                self.ResultDockwidget.lbl_unit_headloss: "UnitHdLoss",
-                self.ResultDockwidget.lbl_friction_factor: "FricFactor",
-                self.ResultDockwidget.lbl_status: "Status",
-                self.ResultDockwidget.lbl_reaction_rate: "ReactRate",
-                self.ResultDockwidget.lbl_quality: "Quality",
-                self.ResultDockwidget.lbl_signed_flow: "Flow",
-                self.ResultDockwidget.lbl_unsigned_flow: "Flow"
-            }
-            prop_internal = mapping.get(prop_display, "Flow")
+            prop_display = dock.cbLinks.currentText() if dock else self.tr("Flow")
+            link_map = {dock.lbl_flow: "Flow", dock.lbl_velocity: "Velocity", dock.lbl_headloss: "HeadLoss", dock.lbl_unit_headloss: "UnitHdLoss", dock.lbl_friction_factor: "FricFactor", dock.lbl_status: "Status", dock.lbl_reaction_rate: "ReactRate", dock.lbl_quality: "Quality", dock.lbl_signed_flow: "Flow", dock.lbl_unsigned_flow: "Flow"} if dock else {}
+            prop_internal = link_map.get(prop_display, "Flow")
             if prop_internal == "Status":
                 is_stepped = True
                 y_categorical_labels = [self.tr("Closed"), self.tr("Active"), self.tr("Open")]
@@ -630,7 +608,7 @@ class AnalysisSection:
 
         category, layer_identifier, prop_internal, prop_display, is_stepped, y_categorical_labels, y_label_with_unit = self._timeSeriesSelectionKey
 
-        out_path = getattr(self.ResultDockwidget, "outPath", "")
+        out_path = self._outFilePath()
         if not os.path.exists(out_path):
             self.pushMessage(self.tr("Results file not found. Please run the model."), level=1)
             return
