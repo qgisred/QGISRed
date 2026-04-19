@@ -317,14 +317,15 @@ class QGISRedDependencies:
         return QGISRedDependencies.toString(b)
 
     @staticmethod
-    def Compute(projectFolder, networkName):
+    def Compute(projectFolder, networkName, tempFolder):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
+        tempFolder = QGISRedDependencies.encode(tempFolder)
 
         mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
-        mydll.Compute.argtypes = (c_char_p, c_char_p)
+        mydll.Compute.argtypes = (c_char_p, c_char_p, c_char_p)
         mydll.Compute.restype = c_char_p
-        b = mydll.Compute(projectFolder, networkName)
+        b = mydll.Compute(projectFolder, networkName, tempFolder)
         return QGISRedDependencies.toString(b)
 
     @staticmethod

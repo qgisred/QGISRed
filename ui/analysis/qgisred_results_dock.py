@@ -19,6 +19,8 @@ from .qgisred_results_data import _ResultsDataMixin
 
 import os
 import glob as _glob
+import shutil
+import tempfile
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_results_dock.ui"))
 
@@ -897,10 +899,23 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         QGISRedLayerUtils().runTask(self.removeResults, self.simulationProcess)
 
     def simulationProcess(self):
-        # Process
-        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        resMessage = GISRed.Compute(self.ProjectDirectory, self.NetworkName)
-        QApplication.restoreOverrideCursor()
+        # Write results to a temp folder so the DLL never deletes files that other
+        # QGIS instances may have open. Python then copies them in-place into Results/,
+        # keeping the existing inodes valid for any other open handle.
+        tempFolder = tempfile.mkdtemp(prefix="QGISRed_")
+        try:
+            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+            resMessage = GISRed.Compute(self.ProjectDirectory, self.NetworkName, tempFolder)
+            QApplication.restoreOverrideCursor()
+
+            if resMessage == "True":
+                resultsPath = self.getResultsPath()
+                if not os.path.exists(resultsPath):
+                    os.makedirs(resultsPath)
+                for fname in os.listdir(tempFolder):
+                    shutil.copy2(os.path.join(tempFolder, fname), os.path.join(resultsPath, fname))
+        finally:
+            shutil.rmtree(tempFolder, ignore_errors=True)
 
         # Message
         if resMessage == "False":
