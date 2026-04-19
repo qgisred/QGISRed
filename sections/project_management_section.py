@@ -37,11 +37,13 @@ class ProjectManagementSection:
                 fileNameWithoutExt = os.path.splitext(os.path.basename(layerUri))[0]
                 self.NetworkName = fileNameWithoutExt.replace("_" + layerName, "")
 
-    def isOpenedProject(self):
+    def isOpenedProject(self, push_fn=None):
+        if push_fn is None:
+            push_fn = lambda msg, level=0, duration=5: self.pushMessage(msg, level=level, duration=duration)
         layers = self.getLayers()
         for layer in layers:
             if layer.isEditable():
-                self.pushMessage(
+                push_fn(
                     self.tr("Some layer is in Edit Mode. Plase, commit it before continuing."), level=1, duration=5
                 )
                 return False
@@ -49,7 +51,7 @@ class ProjectManagementSection:
         if not qgsFilename == "":
             if QgsProject.instance().isDirty():
                 # Save and continue
-                self.pushMessage(
+                push_fn(
                     self.tr("The project has changes. Please save them before continuing."), level=1, duration=5
                 )
                 return False

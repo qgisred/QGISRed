@@ -346,6 +346,9 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             message = self.tr("You need to select a project to open its folder.")
             self.pushMessage(self.tr("Warning"), message, level=1, duration=5)
 
+    def _pushWarning(self, msg, level=0, duration=5):
+        self.pushMessage(self.tr("Warning"), msg, level=level, duration=duration)
+
     def openProject(self):
         ok, name, project, _ = self._getSelectedRowInfo()
         if ok:
@@ -354,7 +357,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             if isSameProject and isSameNet:
                 self.pushMessage(self.tr("Warning"), self.tr("Selected project is currently opened."), level=1, duration=5)
                 return
-            valid = self.parent.isOpenedProject()
+            valid = self.parent.isOpenedProject(push_fn=self._pushWarning)
             if valid:
                 QGISRedLayerUtils().runTask(self._clearQGisProject, self.openProjectProcess)
         else:
@@ -394,7 +397,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         if self.ProjectDirectory == self.parent.TemporalFolder:
             self.createProjectProcess()
         else:
-            valid = self.parent.isOpenedProject()
+            valid = self.parent.isOpenedProject(push_fn=self._pushWarning)
             if valid:
                 QGISRedLayerUtils().runTask(self._clearQGisProject, self.createProjectProcess)
 
@@ -414,7 +417,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         if self.ProjectDirectory == self.parent.TemporalFolder:
             self.importDataProcess()
         else:
-            valid = self.parent.isOpenedProject()
+            valid = self.parent.isOpenedProject(push_fn=self._pushWarning)
             if valid:
                 QGISRedLayerUtils().runTask(self._clearQGisProject, self.importDataProcess)
 
