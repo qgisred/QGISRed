@@ -211,20 +211,26 @@ class ProjectManagementSection:
         dbf = QgsVectorLayer(os.path.join(self.ProjectDirectory, self.NetworkName + "_Options.dbf"), "Options", "ogr")
         for feature in dbf.getFeatures():
             attrs = feature.attributes()
+            # QGIS may return DBF attributes as QVariant; QgsProject.writeEntry expects native types.
+            def _as_str(v):
+                try:
+                    return "" if v is None else str(v)
+                except Exception:
+                    return ""
             if attrs[1].upper() == "UNITS":
-                units = attrs[2]
+                units = _as_str(attrs[2])
             if attrs[0].upper() == "HYDRAULICS" and attrs[1].upper() == "HEADLOSS":
-                headloss = attrs[2]
+                headloss = _as_str(attrs[2])
             if attrs[1].upper() == "QUALITY TYPE":
-                qualityModel = attrs[2]
+                qualityModel = _as_str(attrs[2])
             if attrs[1].upper() == "CONCENTRATION UNITS":
-                concentrationUnits = attrs[2]
+                concentrationUnits = _as_str(attrs[2])
             if attrs[1].upper() == "STATISTIC":
-                statistics = attrs[2]
+                statistics = _as_str(attrs[2])
             if attrs[1].upper() == "CHEMICAL LABEL":
-                chemicalLabel = attrs[2]
+                chemicalLabel = _as_str(attrs[2])
             if attrs[1].upper() == "TRACEID":
-                traceNode = attrs[2]
+                traceNode = _as_str(attrs[2])
 
         QgsProject.instance().writeEntry("QGISRed", "project_units", units)
         QgsProject.instance().writeEntry("QGISRed", "project_headloss", headloss)

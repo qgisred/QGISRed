@@ -96,12 +96,57 @@ class TimeSeriesPlotWidget(QWidget):
             self.y_categorical_labels = None
         self.update()
 
+    def _format_value_full(self, value):
+        if value is None:
+            return ""
+        try:
+            v = float(value)
+            s = format(v, ".3g")
+            if s in ("-0", "-0.0", "-0.00"):
+                s = "0"
+            return s
+        except Exception:
+            return str(value)
+
+    def _series_value_for_legend(self, s):
+        ys = s.get("y", []) or []
+        if not ys:
+            return None
+
+        try:
+            hi = self.hover_index
+            if hi is not None and 0 <= int(hi) < len(ys):
+                v = ys[int(hi)]
+                if v is not None:
+                    return v
+        except Exception:
+            pass
+
+        for v in reversed(ys):
+            if v is not None:
+                return v
+        return None
+
+    def _legendDisplayLabel(self, series_dict):
+        base = (series_dict.get("label") or "").strip() or self.tr("Series")
+        series_y_labels = series_dict.get("y_categorical_labels") or self.y_categorical_labels
+        v = self._series_value_for_legend(series_dict)
+        if v is None:
+            return base
+        if series_y_labels:
+            try:
+                v_str = series_y_labels[int(round(v))]
+            except Exception:
+                v_str = str(v)
+        else:
+            v_str = self._format_value_full(v)
+        # Legend should not show units (units already appear in axis label / tooltip).
+        return f"{base}: {v_str}"
+
     def update(self):
-        # Trigger recalculation of margins if needed before painting
         super(TimeSeriesPlotWidget, self).update()
 
     def _globalSeriesData(self):
-        """Compute global x/y lists and shared categorical labels (if any)."""
         if not self.series:
             return [], [], None, False
 
@@ -123,7 +168,6 @@ class TimeSeriesPlotWidget(QWidget):
             if s.get("is_stepped"):
                 any_stepped = True
 
-        # Use categorical labels only if all series share the same labels
         if any_categorical:
             for s in self.series:
                 if s.get("y_categorical_labels") != y_categorical_labels:
@@ -153,11 +197,9 @@ class TimeSeriesPlotWidget(QWidget):
             w_label = fm.horizontalAdvance(label)
             if w_label > max_w:
                 max_w = w_label
-        # icon (12px) + gap (6px) + label + padding (12px)
         return 12 + 6 + max_w + 12
 
     def _drawLegendIcon(self, painter, x, y, size, legend_type, color, muted=False, highlighted=False):
-        """Draw a small icon matching the element type."""
         c = QColor(color)
         if muted:
             c.setAlpha(80)
@@ -169,7 +211,6 @@ class TimeSeriesPlotWidget(QWidget):
         cx = x + size / 2
         cy = y + size / 2
 
-        # Default: small line (for unknown)
         if "qgisred_pipes" in t or t == "link" or "pipe" in t:
             painter.drawLine(QPointF(x, cy), QPointF(x + size, cy))
             return
@@ -188,7 +229,6 @@ class TimeSeriesPlotWidget(QWidget):
             diamond = QPolygonF([QPointF(cx, y + 2), QPointF(x + size - 2, cy), QPointF(cx, y + size - 2), QPointF(x + 2, cy)])
             painter.drawPolygon(diamond)
             return
-        # Junctions and generic nodes: circle
         painter.drawEllipse(QPointF(cx, cy), (size - 4) / 2, (size - 4) / 2)
 
     def _drawNoDataMessage(self, painter):
@@ -199,7 +239,6 @@ class TimeSeriesPlotWidget(QWidget):
         )
 
     def _extract_units_from_label(self):
-        """Infer units from labels like 'Flow (m3/s)' or 'Flow [m3/s]'."""
         y_label = self.y_label or ""
         unit_delimiters = [("(", ")"), ("[", "]")]
         for start_char, end_char in unit_delimiters:
@@ -437,6 +476,7 @@ class TimeSeriesPlotWidget(QWidget):
             painter.setFont(font)
             painter.setPen(QColor(0, 0, 0, 120) if muted else Qt.GlobalColor.black)
             text_rect = QRectF(x0 + 18, y0, max_x - (x0 + 18), 14)
+            # Legend shows ONLY element name (no value, no units)
             painter.drawText(text_rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, label)
             hit_rect = QRectF(x0, y0, self._legend_reserved_w, 14)
             self._legend_hitboxes.append((hit_rect, series_idx))
@@ -451,8 +491,8 @@ class TimeSeriesPlotWidget(QWidget):
         painter.restore()
 
     def _collectHoverTooltipData(self, hover_index, val_x, plot_rect, x_state, y_state):
-        units = self._extract_units_from_label()
-        units_str = f" {units}" if units else ""
+        # Do not show units in the legend/tooltip box; units are already in axis label.
+        units_str = ""
         tooltip_lines = []
         marker_pts = []
 
@@ -479,10 +519,7 @@ class TimeSeriesPlotWidget(QWidget):
                 except Exception:
                     val_y_str = str(val_y)
             else:
-                try:
-                    val_y_str = f"{float(val_y):.2f}"
-                except Exception:
-                    val_y_str = str(val_y)
+                val_y_str = self._format_value_full(val_y)
 
             tooltip_lines.append((color, muted, f"{label}: ", val_y_str, units_str))
             marker_pts.append((color, muted, self._to_screen(val_x, val_y, plot_rect, x_state, y_state)))
@@ -671,7 +708,6 @@ class TimeSeriesPlotWidget(QWidget):
 
         _all_x, all_y, y_categorical_labels, _any_stepped = self._globalSeriesData()
         legend_w = self._legendRequiredWidth()
-        # Reserve space on the right for the legend (outside plot)
         self._legend_reserved_w = legend_w
 
         if not all_y:
@@ -703,7 +739,6 @@ class TimeSeriesPlotWidget(QWidget):
             local_margin_left = max_label_w + 40
             if local_margin_left < 60: local_margin_left = 60
             
-        # Ajuste de margen inferior si el eje X usa etiquetas en 2 líneas (tiempo)
         local_margin_bottom = self.margin_bottom
         if self.data_x and len(self.data_x) > 1:
             has_days = max(self.data_x) >= 24
@@ -745,7 +780,6 @@ class TimeSeriesPlotWidget(QWidget):
         if not all_x or not all_y:
             self._drawNoDataMessage(painter)
             return
-        # Keep fields coherent for any legacy uses
         self.data_x = all_x
         self.data_y = all_y
         self.y_categorical_labels = y_categorical_labels
