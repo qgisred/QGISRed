@@ -271,9 +271,24 @@ class QGISRedLayerUtils:
             # parent. Index 0 is either the network root or a top-level group we don't
             # own, so we never touch its siblings.
             if i > 0:
-                for sibling in currentParent.children():
-                    if isinstance(sibling, QgsLayerTreeGroup):
-                        sibling.setItemVisibilityChecked(sibling == foundGroup)
+                if i == 1 and groupName not in ("Inputs", "Results"):
+                    # Non-Results/Inputs top-level group: hide all siblings except the
+                    # active group. Inputs also stays visible for groups that show network
+                    # edits alongside the map: Issues and Isolated Segments.
+                    keepInputs = groupName == "Issues" or (
+                        groupName == "Queries" and path[-1] == "Isolated Segments"
+                    )
+                    inputsId = self.groupIdentifiers.get("Inputs")
+                    for sibling in currentParent.children():
+                        if isinstance(sibling, QgsLayerTreeGroup):
+                            sibId = sibling.customProperty("qgisred_identifier")
+                            visible = sibling == foundGroup or (keepInputs and sibId == inputsId)
+                            sibling.setItemVisibilityChecked(visible)
+                else:
+                    # Inputs, Results, or deeper levels: hide all siblings except the active one.
+                    for sibling in currentParent.children():
+                        if isinstance(sibling, QgsLayerTreeGroup):
+                            sibling.setItemVisibilityChecked(sibling == foundGroup)
             currentParent = foundGroup
         return currentParent
 
