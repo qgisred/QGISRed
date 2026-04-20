@@ -380,9 +380,6 @@ class QGISRedLayerUtils:
                 else:
                     styling.setStyle(vlayer, name.lower())
 
-            # disable labels by default
-            vlayer.setLabelsEnabled(False)
-
             QgsProject.instance().addMapLayer(vlayer, group is None)
             identifiers.setLayerIdentifier(vlayer, name)
             if group is not None:
@@ -446,8 +443,6 @@ class QGISRedLayerUtils:
 
             if vlayer is not None:
                 styling.setStyle(vlayer, layerName.lower())
-                # Disable labels by default
-                vlayer.setLabelsEnabled(False)
         if groupName == "Inputs":
             for child in treeGroup.children():
                 child.setCustomProperty("showFeatureCount", True)

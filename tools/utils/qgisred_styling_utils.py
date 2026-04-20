@@ -124,6 +124,7 @@ class QGISRedStylingUtils:
         qmlPath = os.path.join(projectStylePath, name + ".qml")
         if os.path.exists(qmlPath):
             layer.loadNamedStyle(qmlPath)
+            layer.setLabelsEnabled(False)
             return
 
         # 2- global style
@@ -131,6 +132,7 @@ class QGISRedStylingUtils:
         qmlPath = os.path.join(stylePath, name + ".qml")
         if os.path.exists(qmlPath):
             layer.loadNamedStyle(qmlPath)
+            layer.setLabelsEnabled(False)
             return
 
         # 3- default style
@@ -138,6 +140,7 @@ class QGISRedStylingUtils:
         defaultStylePath = os.path.join(pluginPath, "defaults", "layerStyles")
         qmlPath = os.path.join(defaultStylePath, name + ".qml.bak")
         layer.loadNamedStyle(qmlPath)
+        layer.setLabelsEnabled(False)
 
     def setResultStyle(self, layer, name=""):
         # Convert result layer name to QML filename (e.g., "Link_Flow" -> "LinkFlow")
@@ -150,6 +153,7 @@ class QGISRedStylingUtils:
             qmlPath = os.path.join(projectStylePath, qmlName + ".qml")
             if os.path.exists(qmlPath):
                 layer.loadNamedStyle(qmlPath)
+                layer.setLabelsEnabled(False)
                 return
 
             # 2- global style
@@ -157,6 +161,7 @@ class QGISRedStylingUtils:
             qmlPath = os.path.join(globalStylesPath, qmlName + ".qml")
             if os.path.exists(qmlPath):
                 layer.loadNamedStyle(qmlPath)
+                layer.setLabelsEnabled(False)
                 return
 
             # 3- default style
@@ -164,6 +169,7 @@ class QGISRedStylingUtils:
             defaultStylePath = os.path.join(pluginPath, "defaults", "layerStyles")
             qmlPath = os.path.join(defaultStylePath, qmlName + ".qml.bak")
             layer.loadNamedStyle(qmlPath)
+            layer.setLabelsEnabled(False)
 
     def setSectorsStyle(self, layer):
         # get unique values
@@ -218,6 +224,7 @@ class QGISRedStylingUtils:
         # assign the created renderer to the layer
         if renderer is not None:
             layer.setRenderer(renderer)
+        layer.setLabelsEnabled(False)
 
     def setTreeStyle(self, layer):
         # get unique values
@@ -271,6 +278,7 @@ class QGISRedStylingUtils:
         # assign the created renderer to the layer
         if renderer is not None:
             layer.setRenderer(renderer)
+        layer.setLabelsEnabled(False)
 
     def setIsolatedSegmentsStyle(self, layer):
         stylePath = os.path.join(_plugin_root(), "defaults", "layerStyles")
@@ -281,6 +289,7 @@ class QGISRedStylingUtils:
         else:
             qmlBasePath = os.path.join(stylePath, "isolatedSegmentsLinks.qml.bak")
         layer.loadNamedStyle(qmlBasePath)
+        layer.setLabelsEnabled(False)
 
     def applyCategorizedRenderer(self, layer, field, qmlFile):
         fieldIndex = layer.fields().indexFromName(field)
