@@ -403,7 +403,8 @@ class AnalysisSection:
         try:
             if modifiers is None:
                 return False
-            return bool(modifiers & (Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.ShiftModifier))
+            # Shift se usa para superponer/gestionar curvas; Ctrl debe ignorarse.
+            return bool(modifiers & Qt.KeyboardModifier.ShiftModifier)
         except Exception:
             return False
 
@@ -414,6 +415,12 @@ class AnalysisSection:
     def updateTimeSeriesPlot(self, point, modifiers=None):
         if not hasattr(self, 'timeSeriesDock') or self.timeSeriesDock is None:
             return
+        # Con Ctrl pulsado no se deben añadir curvas desde el mapa al timeseries.
+        try:
+            if modifiers is not None and bool(modifiers & Qt.KeyboardModifier.ControlModifier):
+                return
+        except Exception:
+            pass
         add_mode = self._timeSeriesIsAdditive(modifiers)
         try:
             is_shift = bool(modifiers & Qt.KeyboardModifier.ShiftModifier) if modifiers is not None else False
