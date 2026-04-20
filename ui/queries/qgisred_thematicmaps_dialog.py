@@ -353,7 +353,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         derivedLayer = QgsVectorLayer(uri, newLayerName, providerType)
         
         if not derivedLayer.isValid():
-            raise Exception(self.tr(f"Failed to create derived layer from {sourceLayer.name()}"))
+            raise Exception(self.tr("Failed to create derived layer from %1").replace("%1", sourceLayer.name()))
 
         derivedLayer.setCrs(sourceLayer.crs())
         

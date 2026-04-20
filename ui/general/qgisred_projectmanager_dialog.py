@@ -513,7 +513,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             if remove:
                 word = "remove"
             self.pushMessage(
-                self.tr("Warning"), self.tr(f"You need to select a project to {word} it."), level=1, duration=5
+                self.tr("Warning"), self.tr("You need to select a project to %1 it.").replace("%1", word), level=1, duration=5
             )
 
     def cloneProject(self):
@@ -638,7 +638,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                 i = i + 1
             f.close()
 
-            self.pushMessage("QGISRed", self.tr("Project name has been renamed to ") + effectiveName, level=0, duration=5)
+            self.pushMessage("QGISRed", self.tr("Project name has been renamed to %1").replace("%1", effectiveName), level=0, duration=5)
         else:
             self.pushMessage(
                 self.tr("Warning"), self.tr("You need to select a project to change its name."), level=1, duration=5
@@ -714,4 +714,4 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         f.close()
 
         QApplication.restoreOverrideCursor()
-        self.pushMessage("QGISRed", self.tr("Project has been moved to ") + targetDir, level=0, duration=5)
+        self.pushMessage("QGISRed", self.tr("Project has been moved to %1").replace("%1", targetDir), level=0, duration=5)

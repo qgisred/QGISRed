@@ -1147,7 +1147,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.queryHasBeenSubmitted = True
         propertyDisplay = self.cbProperty.currentText()
         propertyInternal = self.getComboInternalName(self.cbProperty)
-        self.labelStatisticsPropertyFor.setText(self.tr(f"Statistics of {propertyDisplay} for selected Elements"))
+        self.labelStatisticsPropertyFor.setText(self.tr("Statistics of %1 for selected Elements").replace("%1", propertyDisplay))
         statsIdx = self.findComboByInternalName(self.cbStatisticsFor, propertyInternal)
         if statsIdx >= 0:
             self.cbStatisticsFor.setCurrentIndex(statsIdx)

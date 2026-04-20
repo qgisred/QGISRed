@@ -224,7 +224,7 @@ class QGISRedFieldUtils:
             return self.tr("Age")
         if model == "TRACE":
             node = self.getTraceNode()
-            return self.tr("Trace {0}").format(node).strip() if node else self.tr("Trace")
+            return self.tr("Trace %1").replace("%1", str(node)).strip() if node else self.tr("Trace")
         # CHEMICAL or any other active model
         label = self.getChemicalLabel()
         return label if label else self.tr("Chemical")

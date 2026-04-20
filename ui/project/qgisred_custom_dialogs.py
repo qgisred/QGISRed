@@ -44,8 +44,8 @@ class QGISRedRangeEditDialog(QDialog):
 
     def formatLabelText(self, baseName):
         if self.unitAbbreviation:
-            return self.tr(f"{baseName} ({self.unitAbbreviation}):")
-        return self.tr(f"{baseName}:")
+            return self.tr("%1 (%2):").replace("%1", baseName).replace("%2", self.unitAbbreviation)
+        return self.tr("%1:").replace("%1", baseName)
 
     def addStandardButtons(self, layout):
         buttonBox = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)

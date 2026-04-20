@@ -286,7 +286,7 @@ class QGISRedStylingUtils:
         fieldIndex = layer.fields().indexFromName(field)
 
         if fieldIndex == -1:
-            raise ValueError(self.tr(f'{field} field not found in layer {layer.name()}'))
+            raise ValueError(self.tr("%1 field not found in layer %2").replace("%1", field).replace("%2", layer.name()))
 
         uniqueValues = layer.uniqueValues(fieldIndex)
         categories = []

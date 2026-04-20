@@ -116,7 +116,7 @@ class _ResultsRenderingMixin:
                     else:
                         scenario_renders[storage_key] = root.clone()
             except:
-                message = self.tr("Some issue occurred in the process of saving the style of the layer").format(self.tr(nameLayer))
+                message = self.tr("Some issue occurred in the process of saving the style of the layer %1").replace("%1", self.tr(nameLayer))
                 QGISRedUIUtils.showGlobalMessage(self.iface, message, level=1, duration=5)
 
         self.Renders[self.Scenario] = scenario_renders
@@ -138,12 +138,12 @@ class _ResultsRenderingMixin:
                     if self.cbLinks.currentIndex() > 0:
                         selected_variable_text = self.cbLinks.currentText()
                         field = self._link_field_map.get(selected_variable_text, "")
-                        display_name = self.tr("Link {}").format(selected_variable_text)
+                        display_name = self.tr("Link %1").replace("%1", selected_variable_text)
                 else:
                     if self.cbNodes.currentIndex() > 0:
                         selected_variable_text = self.cbNodes.currentText()
                         field = self._node_field_map.get(selected_variable_text, "")
-                        display_name = self.tr("Node {}").format(selected_variable_text)
+                        display_name = self.tr("Node %1").replace("%1", selected_variable_text)
 
                 if field:
                     self.setGraduatedPalette(layer_to_paint, field, setRender, nameLayer)
@@ -243,7 +243,7 @@ class _ResultsRenderingMixin:
                 try:
                     renderer = QgsRuleBasedRenderer(ranges.clone())
                 except:
-                    message = self.tr("Some issue occurred in the process of applying the style to the layer").format(self.tr(nameLayer))
+                    message = self.tr("Some issue occurred in the process of applying the style to the layer %1").replace("%1", self.tr(nameLayer))
                     QGISRedUIUtils.showGlobalMessage(self.iface, message, level=1, duration=5)
                     return
         else:

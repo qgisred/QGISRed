@@ -546,7 +546,7 @@ class TimeSeriesPlotWidget(QWidget):
         painter.setPen(QPen(QColor(255, 110, 110), 1, Qt.PenStyle.DashLine))
         painter.drawLine(QPointF(pt_rule.x(), plot_rect.top()), QPointF(pt_rule.x(), plot_rect.bottom()))
 
-        header_text = f"{self.tr('Tiempo')}: {self._format_absolute_time_hours(val_x)}"
+        header_text = self.tr("Time: %1").replace("%1", self._format_absolute_time_hours(val_x))
         tooltip_lines, marker_pts = self._collectHoverTooltipData(
             self.hover_index,
             val_x,

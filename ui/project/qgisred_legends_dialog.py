@@ -2080,7 +2080,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         QMessageBox.critical(
             self,
             self.tr("Limit Exceeded"),
-            self.tr(f"Maximum of {self.MAX_CLASSES} classes reached."),
+            self.tr("Maximum of %1 classes reached.").replace("%1", str(self.MAX_CLASSES)),
         )
 
     # ============================================================
@@ -3190,7 +3190,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         QMessageBox.information(
             self,
             self.tr("Saved"),
-            self.tr("Style saved as {} in the layerStyles folder of your project.").format(filename),
+            self.tr("Style saved as %1 in the layerStyles folder of your project.").replace("%1", filename),
         )
 
     def loadDefaultStyle(self):
@@ -3220,7 +3220,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         path = os.path.join(folder, filename)
 
         if not os.path.exists(path):
-            QMessageBox.warning(self, self.tr("Not Found"), self.tr("Style file not found: {}").format(path))
+            QMessageBox.warning(self, self.tr("Not Found"), self.tr("Style file not found: %1").replace("%1", path))
             return
 
         self.currentLayer.loadNamedStyle(path)
@@ -3229,7 +3229,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         QMessageBox.information(
             self,
             self.tr("Loaded"),
-            self.tr("Style loaded from {} in the layerStyles folder of your project").format(filename),
+            self.tr("Style loaded from %1 in the layerStyles folder of your project").replace("%1", filename),
         )
 
     def loadStyle(self, isDefault):
@@ -3248,7 +3248,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         path = os.path.join(folder, subfolder, filename)
 
         if not os.path.exists(path):
-            QMessageBox.warning(self, self.tr("Not Found"), self.tr("Style file not found: {}").format(path))
+            QMessageBox.warning(self, self.tr("Not Found"), self.tr("Style file not found: %1").replace("%1", path))
             return
 
         self.currentLayer.loadNamedStyle(path)
@@ -3257,7 +3257,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         QMessageBox.information(
             self,
             self.tr("Loaded"),
-            self.tr("Style loaded from {}").format(filename),
+            self.tr("Style loaded from %1").replace("%1", filename),
         )
 
     def getElementNameForIdentifier(self, identifier):

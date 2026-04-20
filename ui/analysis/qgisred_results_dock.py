@@ -412,7 +412,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
             resultLayerPath = self.generatePath(resultPath, self.NetworkName + "_" + scenario + "_" + file + ".shp")
             # Ensure Shapefile exists
             if not os.path.exists(resultLayerPath):
-                QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("{} results not found").format(self.tr(file)), level=1)
+                QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("%1 results not found").replace("%1", self.tr(file)), level=1)
                 continue
 
             existingLayer = next(
@@ -677,7 +677,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
             self.updateLinksComboboxForStat(new_stat)
             result_times = self.cbResultTimes.currentText()
             self.lbStatName.setText(self.stat_variables.get(new_stat, new_stat))
-            self.lbStatDesc.setText(self.tr("for {}").format(result_times.lower()))
+            self.lbStatDesc.setText(self.tr("for %1").replace("%1", result_times.lower()))
             if self.cbFlowDirections.isChecked() and self._flowDirectionField() is None:
                 self.cbFlowDirections.setChecked(False)
             self._setModeWidgetsVisibility(True)
@@ -881,7 +881,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
             filename = self.NetworkName + "_" + self.Scenario + "_" + layerName + ".shp"
             resultPath = os.path.join(resultsPath, filename)
             if not os.path.exists(resultPath):
-                message = self.tr("No {} results are available").format(self.tr(layerName))
+                message = self.tr("No %1 results are available").replace("%1", self.tr(layerName))
                 QGISRedUIUtils.showGlobalMessage(self.iface, message, level=1, duration=5)
                 return False
 

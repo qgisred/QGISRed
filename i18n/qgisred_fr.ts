@@ -3218,17 +3218,17 @@
     </message>
     <message>
         <location filename="../tools/utils/qgisred_field_utils.py" line="227"/>
-        <source>Trace {0}</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../tools/utils/qgisred_field_utils.py" line="227"/>
         <source>Trace</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../tools/utils/qgisred_field_utils.py" line="230"/>
         <source>Chemical</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_field_utils.py" line="227"/>
+        <source>Trace %1</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -4213,11 +4213,6 @@ which exceeds the maximum limit of {self.MAX_CLASSES}.</source>
         <translation type="unfinished">Annuler</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="2080"/>
-        <source>Maximum of {self.MAX_CLASSES} classes reached.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="3368"/>
         <source>Right-click: Add a new item above the current selection
 Left-click: Add a new item below the current selection
@@ -4266,11 +4261,6 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3190"/>
-        <source>Style saved as {} in the layerStyles folder of your project.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="3280"/>
         <source>No Project</source>
         <translation type="unfinished"></translation>
@@ -4286,23 +4276,33 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_legends_dialog.py" line="3251"/>
-        <source>Style file not found: {}</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="3257"/>
         <source>Loaded</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="2080"/>
+        <source>Maximum of %1 classes reached.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3190"/>
+        <source>Style saved as %1 in the layerStyles folder of your project.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_legends_dialog.py" line="3251"/>
+        <source>Style file not found: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="3229"/>
-        <source>Style loaded from {} in the layerStyles folder of your project</source>
+        <source>Style loaded from %1 in the layerStyles folder of your project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="3257"/>
-        <source>Style loaded from {}</source>
+        <source>Style loaded from %1</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -4473,11 +4473,6 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="515"/>
-        <source>You need to select a project to {word} it.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="358"/>
         <source>Selected project is currently opened.</source>
         <translation type="unfinished"></translation>
@@ -4505,11 +4500,6 @@ Left-click: Add a new item below the current selection</source>
     <message>
         <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="554"/>
         <source>Current project can not be renamed.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="641"/>
-        <source>Project name has been renamed to </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4573,8 +4563,18 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="515"/>
+        <source>You need to select a project to %1 it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="641"/>
+        <source>Project name has been renamed to %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="717"/>
-        <source>Project has been moved to </source>
+        <source>Project has been moved to %1</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -4756,7 +4756,7 @@ Left-click: Add a new item below the current selection</source>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1150"/>
-        <source>Statistics of {propertyDisplay} for selected Elements</source>
+        <source>Statistics of %1 for selected Elements</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -4769,12 +4769,12 @@ Left-click: Add a new item below the current selection</source>
     </message>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="47"/>
-        <source>{baseName} ({self.unitAbbreviation}):</source>
+        <source>%1 (%2):</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="48"/>
-        <source>{baseName}:</source>
+        <source>%1:</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -5064,16 +5064,6 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished">Résultats</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="415"/>
-        <source>{} results not found</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="884"/>
-        <source>No {} results are available</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="140"/>
         <source>Timing</source>
         <translation type="unfinished"></translation>
@@ -5101,11 +5091,6 @@ Left-click: Add a new item below the current selection</source>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="116"/>
         <source>Flow (Unsigned)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="680"/>
-        <source>for {}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5168,6 +5153,21 @@ Left-click: Add a new item below the current selection</source>
         <source>00:00:00</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="415"/>
+        <source>%1 results not found</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="680"/>
+        <source>for %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="884"/>
+        <source>No %1 results are available</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>QGISRedSelectPointTool</name>
@@ -5186,7 +5186,7 @@ Left-click: Add a new item below the current selection</source>
     <name>QGISRedStylingUtils</name>
     <message>
         <location filename="../tools/utils/qgisred_styling_utils.py" line="289"/>
-        <source>{field} field not found in layer {layer.name()}</source>
+        <source>%1 field not found in layer %2</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -5211,13 +5211,13 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_thematicmaps_dialog.py" line="356"/>
-        <source>Failed to create derived layer from {sourceLayer.name()}</source>
+        <location filename="../ui/queries/qgisred_thematicmaps_dialog.py" line="537"/>
+        <source>Query already exists.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_thematicmaps_dialog.py" line="537"/>
-        <source>Query already exists.</source>
+        <location filename="../ui/queries/qgisred_thematicmaps_dialog.py" line="356"/>
+        <source>Failed to create derived layer from %1</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -5244,6 +5244,11 @@ Left-click: Add a new item below the current selection</source>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="473"/>
         <source>Series</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="512"/>
+        <source>Time: %1</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -5282,22 +5287,22 @@ Left-click: Add a new item below the current selection</source>
     <name>_ResultsRenderingMixin</name>
     <message>
         <location filename="../ui/analysis/qgisred_results_rendering.py" line="119"/>
-        <source>Some issue occurred in the process of saving the style of the layer</source>
+        <source>Some issue occurred in the process of saving the style of the layer %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_rendering.py" line="141"/>
-        <source>Link {}</source>
+        <source>Link %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_rendering.py" line="146"/>
-        <source>Node {}</source>
+        <source>Node %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_rendering.py" line="246"/>
-        <source>Some issue occurred in the process of applying the style to the layer</source>
+        <source>Some issue occurred in the process of applying the style to the layer %1</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
