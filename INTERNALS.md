@@ -150,7 +150,52 @@ are added by Python.
 
 ---
 
-## 6. `runTask` is no longer used for layer management
+## 6. Group visibility — automatic activation via `getOrCreateNestedGroup`
+
+### Goal
+
+Whenever layers are loaded into a group (Inputs, Results, Queries/Tree, Issues…), the
+QGIS legend should automatically:
+- **Show** the group that just received layers (and all its ancestors).
+- **Hide** its sibling groups at the same level.
+
+For example, opening a Tree result should show `NetworkName → Queries → Tree: X` and
+hide `Inputs`, `Results`, and `Issues` at the network level.
+
+### Implementation
+
+The visibility logic is baked into `getOrCreateNestedGroup()` in
+`tools/utils/qgisred_layer_utils.py`.  After resolving or creating each group along the
+path, it applies visibility to all groups at that level **from path index 1 onwards**
+(index 0 is the network root or a top-level group that is never hidden):
+
+```python
+if i > 0:
+    for sibling in currentParent.children():
+        if isinstance(sibling, QgsLayerTreeGroup):
+            sibling.setItemVisibilityChecked(sibling == foundGroup)
+```
+
+Because every `open*Layers()` method calls `getOrCreateNestedGroup()` before opening
+layers, this fires automatically with no extra code at call sites.
+
+### Why index 0 is excluded
+
+`path[0]` is the network root group (e.g. `"Network987"`).  A project can have multiple
+networks loaded simultaneously, so hiding sibling network groups would be wrong.  The
+rule only applies from the first child level downwards (`i > 0`).
+
+### Callers that do NOT use `getOrCreateNestedGroup`
+
+`getOrCreateGroup(name)` is a thin wrapper that looks up a single group by name within
+the current network root.  It does **not** apply visibility logic.  It is used only by
+methods that need a group reference for purposes other than immediately loading layers
+into it (e.g. `activeInputGroup()`, `getResultGroup()`).  Do not add visibility side
+effects there.
+
+---
+
+## 7. `runTask` is no longer used for layer management
 
 `QGISRedLayerUtils.runTask(A, B)` runs `A()` synchronously then schedules `B()` via
 `QTimer.singleShot(0, B)`.  It was originally needed to give the event loop time to process
@@ -168,7 +213,7 @@ methods call their process functions **directly**:
 
 ---
 
-## 7. QLR mechanism — removed
+## 8. QLR mechanism — removed
 
 `saveProjectAsQLR()` / `loadProjectFromQLR()` saved all open QGISRed layers to `.qlr` files
 before a DLL operation, then restored them afterwards.  It was used to preserve layer styles
@@ -184,7 +229,7 @@ This mechanism was **removed** because:
 
 ---
 
-## 8. Adding a new DLL operation — checklist
+## 9. Adding a new DLL operation — checklist
 
 1. DLL writes output to `tempFolder` (third parameter), not directly to `projectDir`.
 2. Python copies files from `tempFolder` → final destination with `shutil.copy2()` + `os.remove()`.

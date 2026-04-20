@@ -386,14 +386,13 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
     def getLayers(self):
         return QGISRedLayerUtils().getLayers()
 
-    def openLayerResults(self, scenario, nameLayer=None):
+    def openOrReloadLayerResults(self, scenario, nameLayer=None):
         resultPath = self.getResultsPath()
         utils = QGISRedLayerUtils(resultPath, self.NetworkName + "_" + scenario, self.iface)
-        resultGroup = self.getResultGroup()
-        group = resultGroup.findGroup(scenario)
-        if group is None:
-            group = resultGroup.addGroup(scenario)
-            QGISRedLayerUtils.setGroupIdentifier(group, scenario)
+        # Navigation utils uses the plain NetworkName so getOrCreateNestedGroup can match
+        # the network root group and apply group-visibility logic along the path.
+        navUtils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        group = navUtils.getOrCreateNestedGroup([self.NetworkName, "Results", scenario])
 
         files = [nameLayer] if nameLayer else ["Node", "Link"]
         for file in files:
@@ -413,9 +412,14 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
                     (l for l in self.getLayers() if self.getLayerPath(l) == resultLayerPath), None
                 )
             else:
-                # Layer already open — reload OGR data (new shapefile written in-place)
+                # Layer already open — reload OGR data (new shapefile written in-place).
+                # The DLL writes only base fields; copy2 overwrites the DBF, so the
+                # extra result fields added by prepareResultFields are gone.
+                # updateFields() syncs the layer's field cache with the provider so that
+                # prepareResultFields() correctly detects the missing fields and re-adds them.
                 existingLayer.dataProvider().reloadData()
                 existingLayer.updateExtents()
+                existingLayer.updateFields()
             if existingLayer is not None:
                 # Ensure all possible fields are created in the correct order
                 self.prepareResultFields(existingLayer, file)
@@ -871,7 +875,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         return True
 
     def ensureResultsLayersAreOpen(self):
-        """Open result layers that are needed based on combobox state but not yet open."""
+        """Open or reload result layers based on combobox state."""
         if not self.isCurrentProject():
             return
 
@@ -882,8 +886,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
             if layer_combobox[nameLayer].currentIndex() == 0:
                 continue
 
-            if self._findResultLayer(nameLayer) is None:
-                self.openLayerResults(self.Scenario, nameLayer)
+            self.openOrReloadLayerResults(self.Scenario, nameLayer)
 
     def simulate(self, direct, netw):
         self.Computing = True
@@ -936,14 +939,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
             self._startStaleCheckTimer()
             self.show()
             self.simulationFinished.emit()
-            # Hide all sibling groups except Results
-            netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
-            if netGroup is not None:
-                for child in netGroup.children():
-                    if isinstance(child, QgsLayerTreeGroup):
-                        groupId = child.customProperty("qgisred_identifier")
-                        if groupId != "qgisred_results" and child.name() != "Results":
-                            child.setItemVisibilityChecked(False)
             return
         else:
             QGISRedUIUtils.showGlobalMessage(self.iface, resMessage, level=2, duration=5)

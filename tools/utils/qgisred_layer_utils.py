@@ -267,6 +267,13 @@ class QGISRedLayerUtils:
                 self.setGroupIdentifier(foundGroup, groupName)
             if i == 0 and self.NetworkName and groupName == self.NetworkName:
                 netGroup = foundGroup
+            # From index 1 onwards: show this group and hide its siblings within the
+            # parent. Index 0 is either the network root or a top-level group we don't
+            # own, so we never touch its siblings.
+            if i > 0:
+                for sibling in currentParent.children():
+                    if isinstance(sibling, QgsLayerTreeGroup):
+                        sibling.setItemVisibilityChecked(sibling == foundGroup)
             currentParent = foundGroup
         return currentParent
 

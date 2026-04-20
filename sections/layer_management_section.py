@@ -123,7 +123,7 @@ class LayerManagementSection:
         # Prepare for opening
         self.opendedLayers = False
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        inputGroup = self.getInputGroup()
+        inputGroup = utils.getOrCreateNestedGroup([self.NetworkName, "Inputs"])
 
         for layer_name in self.ownMainLayers + self.especificComplementaryLayers:
             utils.openElementsLayers(inputGroup, [layer_name])
@@ -144,7 +144,7 @@ class LayerManagementSection:
         # Open layers
         issuesFolder = os.path.join(self.ProjectDirectory, "Issues")
         utils = QGISRedLayerUtils(issuesFolder, self.NetworkName, self.iface)
-        issuesGroup = self.getIssuesGroup()
+        issuesGroup = utils.getOrCreateNestedGroup([self.NetworkName, "Issues"])
         utils.openIssuesLayers(issuesGroup, self.issuesLayers)
 
     def openConnectivityLayer(self):

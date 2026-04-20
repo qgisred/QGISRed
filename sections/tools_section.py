@@ -342,9 +342,6 @@ class ToolsSection:
         utils = QGISRedLayerUtils(treeFolder, self.NetworkName, self.iface)
         utils.openTreeLayer(treeGroup, "Links", self.treeName, link=True)
         utils.openTreeLayer(treeGroup, "Nodes", self.treeName)
-        group = self.getInputGroup()
-        if group is not None:
-            group.setItemVisibilityChecked(False)
 
     def getTreeGroup(self):
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
