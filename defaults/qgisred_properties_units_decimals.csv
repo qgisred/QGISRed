@@ -2,7 +2,9 @@ Element,FieldName,Property,SI Unit Name,SI Unit Abbr,SI Decimals,US Unit Name,US
 Pipes,Id,Identifier,Text,,,Text,,,,
 Pipes,Length,Length,Meters,m,2,Feet,ft,2,,
 Pipes,Diameter,Diameter,Millimeters,mm,1,Inches,in,2,,
-Pipes,RoughCoeff,Roughness,Millimeters,mm,4,Millifeet,mft,6,D-W,HeadLoss formulae. Leave blank for other formula
+Pipes,RoughCoeff,Roughness Coeff,Millimeters,mm,4,Millifeet,mft,6,D-W,HeadLoss formulae
+Pipes,RoughCoeff,Roughness Coeff,Unitless,,1,Unitless,,1,H-W,HeadLoss formulae
+Pipes,RoughCoeff,Roughness Coeff,seconds/meters(1/3),s/m^(1/3),2,seconds/meters(1/3),s/m^(1/3),2,C-M,HeadLoss formulae
 Pipes,LossCoeff,Loss Coefficient,Unitless,,2,Unitless,,2,,
 Pipes,Material,Material,Text,,,Text,,,,
 Pipes,InstalDate,Installation Date,Year as Text,,,Year as Text,,,,
@@ -49,11 +51,9 @@ Junctions,EmittCoef,Emitter Coefficient,Flow/sqr(Pressure),See FlowUnits/sqr(See
 Junctions,IniQuality,Initial Quality,mass/Liter,See MassUnits/L,3,Mass/Liter,See MassUnits/L,3,Chemical,Leave blank for other Quality Models
 Junctions,Tag,Tag,Text,,,Text,,,,
 Junctions,Descrip,Description,Text,,,Text,,,,
-Demands,Id,Identifier,Text,,,Text,,,,
-Demands,BaseValue,Base Value,Text,,,Text,,,,
-Demands,IdPattern,Pattern Demand,Text,,,Text,,,,
-Demands,Tag,Tag,Text,,,Text,,,,
-Demands,Descrip,Description,Text,,,Text,,,,
+Multiple Demands,BaseDemand,Base Demand,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,
+Multiple Demands,IdPattern,Pattern Demand,Text,,,Text,,,,
+Multiple Demands,Descrip,Description,Text,,,Text,,,,
 Tanks,Id,Identifier,Text,,,Text,,,,
 Tanks,Elevation,Elevation,Meters,m,2,Feet,ft,2,,
 Tanks,IniLevel,Initial Level,Meters,m,2,Feet,ft,2,,
@@ -113,7 +113,9 @@ Options,Name,Demand Charge,Currency /Max kW,See Currency/kW,2,Currency /Max kW,S
 Service Connection,Id,Identifier,Text,,,Text,,,,
 Service Connection,Length,Length,Meters,m,2,Feet,ft,2,,
 Service Connection,Diameter,Diameter,Millimeters,mm,1,Inches,in,2,,
-Service Connection,Roughness,Roughness,Millimeters,mm,4,Millifeet,mft,6,D-W,HeadLoss formulae. Leave blank for other formula
+Service Connection,Roughness,Roughness Coeff,Millimeters,mm,4,Millifeet,mft,6,D-W,HeadLoss formulae
+Service Connection,RoughCoeff,Roughness Coeff,Unitless,,1,Unitless,,1,H-W,HeadLoss formulae
+Service Connection,RoughCoeff,Roughness Coeff,seconds/meters(1/3),s/m(1/3),2,seconds/meters(1/3),s/m(1/3),2,C-M,HeadLoss formulae
 Service Connection,Material,Material,Text,,,Text,,,,
 Service Connection,InstDate,Installation Date,Year as Text,,,Year as Text,,,,
 Service Connection,Age,Age,Years,yr,1,Years,yr,1,,
@@ -183,7 +185,7 @@ Global,PressUnits,PressureUnits,KiloPascals,kPa,1,,,,KPA,Not yet available
 Global,PressUnits,PressureUnits,,,,Feet water colum,ft,2,FEET,Not yet available
 Global,PressUnits,PressureUnits,bars,bar,3,,,,BAR,Not yet available
 Global,MassUnits,MassUnits,Miligrams,mg,2,Miligrams,mg,2,mg/L,Concentration units
-Global,MassUnits,MassUnits,Micrograms,µg,2,Micrograms,µg,2,µg/L,Concentration units
+Global,MassUnits,MassUnits,Micrograms,µg,2,Micrograms,µg,2,ug/L,Concentration units
 Global,Currency,Currency,USDollars,$,2,USDollars,$,2,USD,Not yet available
 Global,Currency,Currency,GBPounds,£,2,GBPounds,£,2,GBP,Not yet available
 Global,Currency,Currency,Euros,€,2,Euros,€,2,EU,Not yet available

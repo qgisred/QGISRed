@@ -105,7 +105,7 @@ class TestResolveAbbr:
 
     def test_same_as_mass_ug(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
-            MockProj.instance.return_value = _make_project(concentration_units="µg/L")
+            MockProj.instance.return_value = _make_project(concentration_units="ug/L")
             assert fu._resolveAbbr("See MassUnits/L") == "µg/L"
 
     def test_same_as_mass_per_day(self, fu):
@@ -191,7 +191,7 @@ class TestGetMassAbbr:
 
     def test_ug(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
-            MockProj.instance.return_value = _make_project(concentration_units="µg/L")
+            MockProj.instance.return_value = _make_project(concentration_units="ug/L")
             assert fu._getMassAbbr() == "µg"
 
     def test_uses_si_abbr_for_si_project(self, fu):

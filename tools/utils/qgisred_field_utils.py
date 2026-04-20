@@ -148,7 +148,7 @@ class QGISRedFieldUtils:
         self.identifierToElementName = {
             'qgisred_pipes': 'Pipes',
             'qgisred_junctions': 'Junctions',
-            'qgisred_demands': 'Demands',
+            'qgisred_demands': 'Multiple Demands',
             'qgisred_reservoirs': 'Reservoirs',
             'qgisred_tanks': 'Tanks',
             'qgisred_pumps': 'Pumps',
@@ -269,10 +269,10 @@ class QGISRedFieldUtils:
         _CSV_FILENAME = "qgisred_properties_units_decimals.csv"
         globalDir = os.path.join(QGISRedFileSystemUtils().getQGISRedFolder(), "global_defaults")
         csvPath = os.path.join(globalDir, _CSV_FILENAME)
-        if not os.path.exists(csvPath):
-            fallback = os.path.join(_plugin_root(), "defaults", _CSV_FILENAME)
-            if os.path.exists(fallback):
-                os.makedirs(globalDir, exist_ok=True)
+        fallback = os.path.join(_plugin_root(), "defaults", _CSV_FILENAME)
+        if os.path.exists(fallback):
+            os.makedirs(globalDir, exist_ok=True)
+            if not os.path.exists(csvPath) or os.path.getmtime(fallback) > os.path.getmtime(csvPath):
                 shutil.copy2(fallback, csvPath)
         rows, prettyNames = [], {}
 
