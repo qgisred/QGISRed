@@ -5,7 +5,7 @@ import os
 
 from qgis.core import QgsRectangle
 from qgis.PyQt.QtWidgets import QApplication, QDialog
-from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtCore import Qt, QTimer
 from qgis.PyQt.QtGui import QColor
 from qgis.gui import QgsHighlight
 
@@ -249,7 +249,6 @@ class AnalysisSection:
         self.iface.mapCanvas().setMapTool(self.myMapTools["TimeSeries"])
 
     def _ensureTimeSeriesMapToolSignal(self):
-        """Clear highlight when TimeSeries tool is no longer the active map tool."""
         if getattr(self, "_timeSeriesMapToolSignalConnected", False):
             return
         try:
@@ -277,17 +276,32 @@ class AnalysisSection:
         self._clearTimeSeriesMapSelection()
 
     def timeSeriesDockVisibilityChanged(self, visible):
-        if not visible:
-            self.timeSeriesButton.setChecked(False)
-            if "TimeSeries" in self.myMapTools and self.iface.mapCanvas().mapTool() == self.myMapTools.get("TimeSeries"):
-                self.iface.mapCanvas().unsetMapTool(self.myMapTools["TimeSeries"])
-            self._clearTimeSeriesHighlight()
-            self._clearTimeSeriesMapSelection()
+        if not hasattr(self, "timeSeriesDock") or self.timeSeriesDock is None:
+            return
+
+        def _apply_visibility_state():
+            dock = getattr(self, "timeSeriesDock", None)
+            if dock is None:
+                return
+            really_visible = bool(dock.isVisible())
+            if not really_visible:
+                self.timeSeriesButton.setChecked(False)
+                if (
+                    "TimeSeries" in self.myMapTools
+                    and self.iface.mapCanvas().mapTool() == self.myMapTools.get("TimeSeries")
+                ):
+                    self.iface.mapCanvas().unsetMapTool(self.myMapTools["TimeSeries"])
+                self._clearTimeSeriesHighlight()
+                self._clearTimeSeriesMapSelection()
+            else:
+                self._restoreTimeSeriesState()
+
+        if visible:
+            _apply_visibility_state()
         else:
-            self._restoreTimeSeriesState()
+            QTimer.singleShot(0, _apply_visibility_state)
 
     def _restoreTimeSeriesState(self):
-        """Restaura el gráfico, los highlights y la selección del mapa desde timeSeriesSelection."""
         selection = getattr(self, "timeSeriesSelection", [])
         if not selection:
             return
@@ -326,7 +340,6 @@ class AnalysisSection:
         self.timeSeriesHighlight = None
 
     def _clearTimeSeriesMapSelection(self):
-        """Clear QGIS feature selection performed by the Time Series tool."""
         try:
             layers = QGISRedLayerUtils().getLayers()
         except Exception:
@@ -346,7 +359,6 @@ class AnalysisSection:
                     pass
 
     def _setTimeSeriesHighlight(self, layer, feature, color=None, width=5):
-        """Add/update highlight for a single feature (does not clear others)."""
         if layer is None or feature is None:
             return
         try:
@@ -357,7 +369,6 @@ class AnalysisSection:
             highlight.setWidth(int(width) if width else 5)
             highlight.show()
             key = (layer.id(), str(feature.attribute("ID")))
-            # Replace previous highlight for same key
             old = self.timeSeriesHighlights.get(key)
             if old is not None:
                 try:
@@ -370,8 +381,6 @@ class AnalysisSection:
             self.timeSeriesHighlight = None
 
     def _syncTimeSeriesHighlights(self, last_clicked_layer=None, last_clicked_feature=None):
-        """Ensure all selected items keep a visible highlight."""
-        # Rebuild highlights from current selection for simplicity/robustness
         self._clearTimeSeriesHighlight()
         selection = getattr(self, "timeSeriesSelection", None) or []
         if not selection:
@@ -415,7 +424,7 @@ class AnalysisSection:
         if not hasattr(self, "_timeSeriesSelectionKey"):
             self._timeSeriesSelectionKey = None
 
-        # Identify element
+        # Identify element  
         # Tolerance in map units
         tolerance = self.iface.mapCanvas().getCoordinateTransform().mapUnitsPerPixel() * 10
         rect = QgsRectangle(point.x() - tolerance, point.y() - tolerance, point.x() + tolerance, point.y() + tolerance)
@@ -463,7 +472,6 @@ class AnalysisSection:
             self._timeSeriesResetSelection()
             self._clearTimeSeriesMapSelection()
 
-        # Append new selection if not already present
         try:
             fid = found_feature.id()
         except Exception:
@@ -471,7 +479,6 @@ class AnalysisSection:
         element_id = str(found_feature.attribute("ID"))
         layer_identifier = layer.customProperty("qgisred_identifier") if layer else ""
 
-        # Stable color per element (do not depend on current order)
         palette = [
             QColor(0, 120, 215), QColor(220, 57, 18), QColor(16, 150, 24),
             QColor(153, 0, 153), QColor(0, 153, 198), QColor(255, 153, 0),
@@ -497,14 +504,12 @@ class AnalysisSection:
             "color": existing_color,
         }
 
-        # Check if already selected (for shift-toggle)
         existing_idx = None
         for i, it in enumerate(self.timeSeriesSelection):
             if it.get("layer_identifier") == layer_identifier and it.get("element_id") == element_id:
                 existing_idx = i
                 break
 
-        # Shift+click toggles: if already selected, remove it and refresh
         if is_shift and existing_idx is not None:
             try:
                 self.timeSeriesSelection.pop(existing_idx)
@@ -521,7 +526,6 @@ class AnalysisSection:
                     pass
                 return
 
-            # Update map selection for the relevant layer
             try:
                 remaining_ids = [it.get("feature_id") for it in self.timeSeriesSelection if it.get("layer_identifier") == layer_identifier and it.get("feature_id") is not None]
                 if layer is not None:
@@ -529,12 +533,10 @@ class AnalysisSection:
             except Exception:
                 pass
 
-            # Keep highlights and plot in sync
             self._syncTimeSeriesHighlights(self.lastTimeSeriesLayer, self.lastTimeSeriesFeature)
             self._renderTimeSeriesSelection()
             return
 
-        # Set/validate selection key: (category, layer_identifier, prop_internal)
         key = self._getCurrentTimeSeriesKey(category, layer)
         if key is None:
             return
@@ -550,7 +552,6 @@ class AnalysisSection:
         if existing_idx is None:
             self.timeSeriesSelection.append(sel_item)
 
-        # Keep QGIS selection in sync (real map selection)
         try:
             selected_ids = []
             for it in self.timeSeriesSelection:
@@ -561,7 +562,6 @@ class AnalysisSection:
         except Exception:
             pass
 
-        # Keep highlights for all selected elements (and emphasize last clicked)
         self.lastTimeSeriesFeature = found_feature
         self.lastTimeSeriesCategory = category
         self.lastTimeSeriesLayer = layer
@@ -570,7 +570,6 @@ class AnalysisSection:
         self._renderTimeSeriesSelection()
 
     def _getCurrentTimeSeriesKey(self, category, layer):
-        """Return (category, layer_identifier, prop_internal, prop_display, is_stepped, y_categorical_labels, y_label_with_unit)."""
         prop_internal = ""
         prop_display = ""
         is_stepped = False
@@ -615,7 +614,6 @@ class AnalysisSection:
 
         from ..ui.analysis.qgisred_results_binary import getOut_TimesNodeProperty, getOut_TimesLinkProperty, getOut_Metadata
 
-        # X values (hours)
         with open(out_path, 'rb') as f:
             meta = getOut_Metadata(f)
             report_start = meta["report_start"]
@@ -636,7 +634,6 @@ class AnalysisSection:
             if not y_data:
                 continue
 
-            # Status mapping if needed
             if prop_internal == "Status":
                 mapped_data = []
                 for status in y_data:
@@ -651,7 +648,6 @@ class AnalysisSection:
                         mapped_data.append(0)
                 y_data = mapped_data
 
-            # Label uses specific type if available
             label = f"{element_id}"
             legend_type = category
             if layer:
@@ -687,7 +683,6 @@ class AnalysisSection:
         self.timeSeriesDock.updatePlotSeries(series, title, f"{translated_time} (h)", y_label_with_unit)
 
     def _onTimeSeriesSeriesReordered(self, order_keys):
-        """Reorder selected elements based on legend drag & drop."""
         try:
             if not order_keys or not hasattr(self, "timeSeriesSelection") or not self.timeSeriesSelection:
                 return
@@ -700,7 +695,6 @@ class AnalysisSection:
             for k in order_keys:
                 if k in key_to_item:
                     new_sel.append(key_to_item[k])
-            # Keep any items not present (e.g. legend limit) at the end
             for it in self.timeSeriesSelection:
                 li = it.get("layer_identifier") or ""
                 eid = it.get("element_id") or ""
@@ -709,7 +703,6 @@ class AnalysisSection:
                     new_sel.append(it)
             self.timeSeriesSelection = new_sel
             self._renderTimeSeriesSelection()
-            # Preserve highlights emphasis on last clicked
             try:
                 self._syncTimeSeriesHighlights(self.lastTimeSeriesLayer, self.lastTimeSeriesFeature)
             except Exception:
@@ -835,11 +828,9 @@ class AnalysisSection:
 
     def refreshTimeSeries(self):
         if hasattr(self, 'timeSeriesDock') and self.timeSeriesDock:
-            # Nothing selected yet
             if not hasattr(self, "lastTimeSeriesFeature") or not hasattr(self, "lastTimeSeriesCategory") or not hasattr(self, "lastTimeSeriesLayer"):
                 return
             if hasattr(self, "timeSeriesSelection") and self.timeSeriesSelection:
-                # Recompute key and rerender all series for current magnitude
                 try:
                     key = self._getCurrentTimeSeriesKey(self.lastTimeSeriesCategory, self.lastTimeSeriesLayer)
                     if key is not None:
