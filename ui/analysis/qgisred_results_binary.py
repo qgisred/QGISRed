@@ -449,8 +449,7 @@ def getOut_TimesNodeProperty(out_file_path, node_id, property_name):
             pos = results_offset + (p * period_size) + (var_index * meta["n_nodes"] * 4) + (node_index * 4)
             f.seek(pos)
             val = struct.unpack('f', f.read(4))[0]
-            # Keep full float32 precision for time series display (no rounding).
-            time_series.append(float(val))
+            time_series.append(round(float(val), ROUNDING_PRECISION))
             
         return time_series
 
@@ -534,8 +533,7 @@ def getOut_TimesLinkProperty(out_file_path, link_id, property_name):
                 else:
                     final_val = (final_val * length) / 1000.0
 
-            # Keep full float32 precision for time series display (no rounding).
-            time_series.append(float(final_val))
+            time_series.append(round(final_val, ROUNDING_PRECISION))
 
         return time_series
 
