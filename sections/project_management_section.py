@@ -149,6 +149,8 @@ class ProjectManagementSection:
                         if translatedName and layer.name() != translatedName:
                             layer.setName(translatedName)
 
+        self._writePluginVersionToProject()
+
         # Defer style application to after QgsProject.read() fully unwinds —
         # calling setLegend() during readProject signal crashes QGIS 4.
         QTimer.singleShot(0, lambda: self._applyStyleUpdates(style_snapshot))
@@ -599,29 +601,57 @@ class ProjectManagementSection:
         path = io.saveBackup()
         self.pushMessage(self.tr("Backup stored in:") + " " + path, level=3, duration=5)
 
+    def _getPluginVersion(self):
+        """Read the plugin version from metadata.txt."""
+        metadata = os.path.join(os.path.dirname(os.path.dirname(__file__)), "metadata.txt")
+        if os.path.exists(metadata):
+            with open(metadata, "r") as f:
+                for line in f:
+                    if line.startswith("version="):
+                        return line.replace("version=", "").strip()
+        return ""
+
+    def _writePluginVersionToProject(self):
+        """Persist the current plugin version in the QGIS project file."""
+        version = self._getPluginVersion()
+        if version:
+            QgsProject.instance().writeEntry("QGISRed", "plugin_version", version)
+
     def _collectStyleSnapshot(self):
         """Collect which layers need style updates BEFORE assignLayerIdentifiers() runs.
 
         Returns a dict with:
-          - inputs_to_restyle: list of (layer_id, style_name) for Inputs layers without identifier
+          - inputs_to_restyle: list of (layer_id, style_name) for Inputs layers to restyle
           - results_no_id:     True if any Results layer has no identifier (re-simulation needed)
           - results_with_id:   list of layer_ids for Results layers that need NullRule applied
+
+        Detection logic:
+          - Inputs are restyled whenever the saved plugin_version differs from the current one
+            (covers both "no version" and "version outdated" cases).
+          - Results: if a version was previously saved, all results layers get null style applied;
+            otherwise fall back to the per-layer identifier check (backward compatibility).
         """
+        saved_version = QgsProject.instance().readEntry("QGISRed", "plugin_version", "")[0]
+        current_version = self._getPluginVersion()
+        has_version = bool(saved_version)
+        version_changed = saved_version != current_version
+
         snapshot = {"inputs_to_restyle": [], "results_no_id": False, "results_with_id": []}
         root = QgsProject.instance().layerTreeRoot()
 
-        inputs_group = root.findGroup("Inputs")
-        if inputs_group:
-            for tree_item in inputs_group.findLayers():
-                layer = tree_item.layer()
-                if not layer or layer.customProperty("qgisred_identifier"):
-                    continue
-                uri = layer.dataProvider().dataSourceUri()
-                filename = os.path.splitext(os.path.basename(uri.split("|")[0]))[0]
-                prefix = self.NetworkName + "_"
-                if filename.startswith(prefix):
-                    element_name = filename[len(prefix):]
-                    snapshot["inputs_to_restyle"].append((layer.id(), element_name.lower()))
+        if version_changed:
+            inputs_group = root.findGroup("Inputs")
+            if inputs_group:
+                for tree_item in inputs_group.findLayers():
+                    layer = tree_item.layer()
+                    if not layer:
+                        continue
+                    uri = layer.dataProvider().dataSourceUri()
+                    filename = os.path.splitext(os.path.basename(uri.split("|")[0]))[0]
+                    prefix = self.NetworkName + "_"
+                    if filename.startswith(prefix):
+                        element_name = filename[len(prefix):]
+                        snapshot["inputs_to_restyle"].append((layer.id(), element_name.lower()))
 
         results_group = root.findGroup("Results")
         if results_group:
@@ -629,10 +659,13 @@ class ProjectManagementSection:
                 layer = tree_item.layer()
                 if not layer:
                     continue
-                if not layer.customProperty("qgisred_identifier"):
-                    snapshot["results_no_id"] = True
-                else:
+                if has_version:
                     snapshot["results_with_id"].append(layer.id())
+                else:
+                    if not layer.customProperty("qgisred_identifier"):
+                        snapshot["results_no_id"] = True
+                    else:
+                        snapshot["results_with_id"].append(layer.id())
 
         return snapshot
 

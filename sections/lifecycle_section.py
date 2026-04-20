@@ -15,7 +15,7 @@ from ctypes import create_string_buffer, c_void_p, Structure, POINTER
 from qgis.core import QgsProject, QgsMessageLog, QgsApplication
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QMessageBox, QMenu, QToolButton
-from qgis.PyQt.QtCore import Qt, QSettings, QTranslator, qVersion, QCoreApplication
+from qgis.PyQt.QtCore import Qt, QSettings, QTranslator, qVersion, QCoreApplication, QTimer
 from ..compat import QAction, QGIS_INFO
 
 from .. import resources3x  # noqa: F401  (registers Qt resources)
@@ -244,6 +244,11 @@ class LifecycleSection:
         # QgsMessageLog.logMessage("Culture set to " + definedCulture, "QGISRed", level=0)
 
         QgsMessageLog.logMessage(self.tr("Loaded sucssesfully"), "QGISRed", level=QGIS_INFO)
+
+        # If a project is already open when the plugin loads, trigger the open handler now
+        # (readProject won't fire again for an already-loaded project)
+        if QgsProject.instance().fileName():
+            QTimer.singleShot(0, self.runOpenedQgisProject)
 
     def cleanupDocks(self):
         """Disconnects signals and removes all plugin docks to ensure a clean state."""
