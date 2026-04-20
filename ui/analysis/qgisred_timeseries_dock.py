@@ -263,18 +263,44 @@ class TimeSeriesPlotWidget(QWidget):
             "y_step": y_scale.step,
         }
 
-    def _computeXAxisState(self, all_x, plot_rect):
+    def _estimateXAxisLabelPixelSize(self, painter, *, has_days: bool) -> float:
+        """
+        Estima cuánto ancho (en px) necesita una etiqueta del eje X para evitar solapes.
+        Se usa para calcular dinámicamente cuántos ticks caben según el ancho del widget.
+        """
+        fm = painter.fontMetrics()
+        if has_days:
+            # Etiqueta en 2 líneas (hora arriba, días abajo)
+            w_top = fm.horizontalAdvance("24")
+            w_bottom = fm.horizontalAdvance("999d")
+            return max(w_top, w_bottom) + 18  # padding + algo de margen
+        # Formatos típicos: "0", "12", "23:59"
+        return fm.horizontalAdvance("23:59") + 18
+
+    def _computeXAxisState(self, all_x, plot_rect, painter):
         min_x, max_x = min(all_x), max(all_x)
         if max_x == min_x:
             max_x = min_x + 1
 
-        max_ticks_x = estimate_max_ticks(plot_rect.width(), 60, min_ticks=2, max_ticks=12)
+        # Estimación realista del tamaño de etiqueta para que el step responda al tamaño de ventana.
+        has_days = max_x >= 24
+        label_px = self._estimateXAxisLabelPixelSize(painter, has_days=has_days)
+        # En pantallas grandes queremos permitir más ticks (y por tanto steps más pequeños como 2h),
+        # sin depender de un tope rígido demasiado bajo.
+        max_ticks_x = estimate_max_ticks(plot_rect.width(), label_px, min_ticks=2, max_ticks=30)
         x_scale = compute_nice_time_scale_hours(min_x, max_x, max_ticks_x)
         min_x, max_x = x_scale.axis_min, x_scale.axis_max
         x_range = max_x - min_x
         if x_range == 0:
             x_range = 1
-        return {"min_x": min_x, "max_x": max_x, "x_range": x_range, "x_scale": x_scale}
+        return {
+            "min_x": min_x,
+            "max_x": max_x,
+            "x_range": x_range,
+            "x_scale": x_scale,
+            "has_days": has_days,
+            "label_px": label_px,
+        }
 
     def _to_screen(self, x, y, plot_rect, x_state, y_state):
         sx = plot_rect.left() + (x - x_state["min_x"]) / x_state["x_range"] * plot_rect.width()
@@ -308,8 +334,9 @@ class TimeSeriesPlotWidget(QWidget):
         # Vertical lines (X axis)
         if len(self.data_x) > 1:
             fm_x = painter.fontMetrics()
-            has_days = x_state["max_x"] >= 24
+            has_days = bool(x_state.get("has_days", x_state["max_x"] >= 24))
             tick_h = fm_x.height() * 2 + 4 if has_days else fm_x.height() + 6
+            tick_w = float(x_state.get("label_px", self._estimateXAxisLabelPixelSize(painter, has_days=has_days)))
             for val_x in x_state["x_scale"].ticks():
                 pt = self._to_screen(val_x, y_state["min_y"], plot_rect, x_state, y_state)
                 painter.setPen(pen_grid)
@@ -318,7 +345,7 @@ class TimeSeriesPlotWidget(QWidget):
                 painter.setPen(Qt.GlobalColor.black)
                 label_x = self._format_absolute_time_hours(val_x)
                 painter.drawText(
-                    QRectF(pt.x() - 40, plot_rect.bottom() + 8, 80, tick_h),
+                    QRectF(pt.x() - tick_w / 2, plot_rect.bottom() + 8, tick_w, tick_h),
                     Qt.AlignmentFlag.AlignCenter,
                     label_x,
                 )
@@ -734,7 +761,9 @@ class TimeSeriesPlotWidget(QWidget):
         painter.drawRect(plot_rect)
 
         y_state = self._computeYAxisState(all_y, plot_rect, painter)
-        x_state = self._computeXAxisState(self.data_x, plot_rect)
+        # Asegura que el cálculo de ticks use las mismas métricas de fuente que el render.
+        painter.setFont(QFont("Arial", 9))
+        x_state = self._computeXAxisState(self.data_x, plot_rect, painter)
         self._drawGridAndAxes(painter, plot_rect, local_margin_left, x_state, y_state)
 
         # Main Axes
