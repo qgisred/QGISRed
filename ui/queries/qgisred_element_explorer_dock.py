@@ -2266,10 +2266,19 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         return None
 
     def getResultsFieldOrder(self, isNode):
+        fu = QGISRedFieldUtils()
+        isQuality = fu.getQualityModel().upper() != "NONE"
         if isNode:
-            return ["Pressure", "Head", "Demand", "Quality"]
-
-        return ["Status", "Flow", "Velocity", "HeadLoss", "UnitHdLoss", "FricFactor", "ReactRate", "Quality"]
+            fields = ["Pressure", "Head", "Demand"]
+            if isQuality:
+                fields.append("Quality")
+            return fields
+        fields = ["Status", "Flow", "Velocity", "HeadLoss", "UnitHdLoss", "FricFactor"]
+        if isQuality:
+            if fu.showReactRate():
+                fields.append("ReactRate")
+            fields.append("Quality")
+        return fields
 
     def populateResultsTable(self):
         """Populate tableResults with per-element results from the Results group layer attribute table."""

@@ -619,9 +619,10 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         resultsBrush = QBrush(QColor("#FFF8DC"))
         darkBrush = QBrush(QColor("#D8D8D8"))
         resultProps = self.getResultProperties(layer, qrIdent)
-        numericResultProps = [p for p in resultProps if p != 'Status']
-
         fieldUtils = QGISRedFieldUtils()
+        if not fieldUtils.showReactRate():
+            resultProps = [p for p in resultProps if p != "ReactRate"]
+        numericResultProps = [p for p in resultProps if p != 'Status']
         ident = layer.customProperty("qgisred_identifier") or ""
         if ident.startswith("qgisred_node"):
             resultCategory = "Nodes"

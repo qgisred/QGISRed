@@ -151,9 +151,9 @@ Nodes,FullDem,Full demand,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUni
 Nodes,DemDeficit,Demand Deficit,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,Not yet available
 Nodes,Leaks,Leakage Flow,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,Not yet available
 Nodes,EmittFlow,Emitter Flow,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,Not yet available
-Nodes,Quality,Chemical Quality,Mass/Liter,See MassUnits/L,2,mass/Liter,See MassUnits/L,2,Chemical,Quality model
-Nodes,Quality,Percentage Trace,Percent,%,1,Percent,%,1,Trace,Quality model
-Nodes,Quality,Water Age,Hours,hr,1,Hours,hr,1,Age,Quality model
+Nodes,Quality,Chemical ,Mass/Liter,See MassUnits/L,2,mass/Liter,See MassUnits/L,2,Chemical,Quality model
+Nodes,Quality,Trace,Percent,%,1,Percent,%,1,Trace,Quality model
+Nodes,Quality,Age,Hours,hr,1,Hours,hr,1,Age,Quality model
 Links,Id,Indentifier,Text,,,Text,,,,
 Links,Type,Element Type,Text,,,Text,,,,
 Links,Time,Simulation Time,Time as Text,,,Time as Text,,,,
@@ -165,9 +165,9 @@ Links,UnitHdLoss,Unit HeadLoss,Meters per 1000 m,m/Km,2,Feet per 1000 ft,ft/Kft,
 Links,FricFactor,Friction factor,Unitless,,3,Unitless,,3,,
 Links,Energy,Energy,Kilowatt - hours,kWh,2,Kilowatt - hours,kWh,2,,
 Links,ReactRate,Reaction Rate,mass/L/day,See MassUnits/L/day,3,mass/L/day,See MassUnits/L/day,3,Chemical,Quality model
-Links,Quality,Chemical Quality,mass/L,See MassUnits/L,3,mass/L,See MassUnits/L,3,Chemical,Quality model
-Links,Quality,Percentage Trace,Percent,%,1,Percent,%,1,Trace,Quality model
-Links,Quality,Water Age,Hours,hr,1,Hours,hr,1,Age,Quality model
+Links,Quality,Chemical ,mass/L,See MassUnits/L,3,mass/L,See MassUnits/L,3,Chemical,Quality model
+Links,Quality,Trace,Percent,%,1,Percent,%,1,Trace,Quality model
+Links,Quality,Age,Hours,hr,1,Hours,hr,1,Age,Quality model
 Global,FlowUnits,FlowUnits,liters/sec,lps,2,,,,LPS,
 Global,FlowUnits,FlowUnits,liters/min,lpm,1,,,,LPM,
 Global,FlowUnits,FlowUnits,megaliters/day,mld,2,,,,MLD,

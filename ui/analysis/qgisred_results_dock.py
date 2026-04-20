@@ -12,6 +12,7 @@ from ...compat import sip, QVariantString, QVariantDouble, ATCOL_TYPE_FIELD
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
+from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
 from .qgisred_results_rendering import _ResultsRenderingMixin, time_field_name
@@ -168,17 +169,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self.statsDisplayWidget.setVisible(False)
         self.timeDisplayWidget.setVisible(True)
 
+        self._showReactRate = True
+
         # Maps combobox display text → layer field name (keys use self.tr to support translations)
-        self._node_field_map = {
-            self.lbl_pressure: "Pressure", self.lbl_head: "Head",
-            self.lbl_demand: "Demand", self.lbl_quality: "Quality",
-        }
-        self._link_field_map = {
-            self.lbl_flow: "Flow", self.lbl_unsigned_flow: "Flow_Unsig", self.lbl_signed_flow: "Flow_Sig",
-            self.lbl_velocity: "Velocity", self.lbl_headloss: "HeadLoss", self.lbl_unit_headloss: "UnitHdLoss",
-            self.lbl_friction_factor: "FricFactor", self.lbl_status: "Status",
-            self.lbl_reaction_rate: "ReactRate", self.lbl_quality: "Quality",
-        }
+        self._rebuildFieldMaps()
 
         # Stale results warning
         self._resultsStale = False
@@ -190,6 +184,19 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self.lbWarnIcon.setPixmap(_pixmap)
 
     """Methods"""
+
+    def _rebuildFieldMaps(self):
+        """Rebuild display-label → field-name maps. Call after lbl_quality changes."""
+        self._node_field_map = {
+            self.lbl_pressure: "Pressure", self.lbl_head: "Head",
+            self.lbl_demand: "Demand", self.lbl_quality: "Quality",
+        }
+        self._link_field_map = {
+            self.lbl_flow: "Flow", self.lbl_unsigned_flow: "Flow_Unsig", self.lbl_signed_flow: "Flow_Sig",
+            self.lbl_velocity: "Velocity", self.lbl_headloss: "HeadLoss", self.lbl_unit_headloss: "UnitHdLoss",
+            self.lbl_friction_factor: "FricFactor", self.lbl_status: "Status",
+            self.lbl_reaction_rate: "ReactRate", self.lbl_quality: "Quality",
+        }
 
     """Stale results detection"""
     def _getNetworkFiles(self):
@@ -294,13 +301,19 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
             if self.isQualitySimulated:
                 if self.cbNodes.findText(self.lbl_quality) == -1:
                     self.cbNodes.addItem(self.lbl_quality)
-                if self.cbLinks.findText(self.lbl_reaction_rate) == -1:
-                    # Re-insert Reaction Rate before Quality
-                    q_idx = self.cbLinks.findText(self.lbl_quality)
-                    if q_idx != -1:
-                        self.cbLinks.insertItem(q_idx, self.lbl_reaction_rate)
-                    else:
-                        self.cbLinks.addItem(self.lbl_reaction_rate)
+                if self._showReactRate:
+                    if self.cbLinks.findText(self.lbl_reaction_rate) == -1:
+                        # Re-insert Reaction Rate before Quality
+                        q_idx = self.cbLinks.findText(self.lbl_quality)
+                        if q_idx != -1:
+                            self.cbLinks.insertItem(q_idx, self.lbl_reaction_rate)
+                        else:
+                            self.cbLinks.addItem(self.lbl_reaction_rate)
+                else:
+                    # Age / Trace: ReactRate has no meaning — remove it
+                    rr_idx = self.cbLinks.findText(self.lbl_reaction_rate)
+                    if rr_idx != -1:
+                        self.cbLinks.removeItem(rr_idx)
                 if self.cbLinks.findText(self.lbl_quality) == -1:
                     self.cbLinks.addItem(self.lbl_quality)
             else:
@@ -993,6 +1006,19 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
     def updateQualityOptions(self):
         qualityModel, _ = QgsProject.instance().readEntry("QGISRed", "project_qualitymodel", "Chemical")
         self.isQualitySimulated = qualityModel.upper() != "NONE"
+
+        fieldUtils = QGISRedFieldUtils()
+        new_lbl = fieldUtils.getQualityDisplayName() if self.isQualitySimulated else self.tr("Quality")
+        self._showReactRate = fieldUtils.showReactRate() if self.isQualitySimulated else False
+
+        if new_lbl != self.lbl_quality:
+            # Rename existing combo items in place before updating the label
+            for cb in (self.cbNodes, self.cbLinks):
+                idx = cb.findText(self.lbl_quality)
+                if idx != -1:
+                    cb.setItemText(idx, new_lbl)
+            self.lbl_quality = new_lbl
+            self._rebuildFieldMaps()
 
     def openBaseResults(self, labels):
         # Select comboboxes item

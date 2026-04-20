@@ -207,11 +207,44 @@ class QGISRedFieldUtils:
         model, _ = QgsProject.instance().readEntry("QGISRed", "project_qualitymodel", "Chemical")
         return model
 
+    def getChemicalLabel(self):
+        """Returns the chemical substance label defined in Analysis Options, or ''."""
+        label, _ = QgsProject.instance().readEntry("QGISRed", "project_chemicallabel", "")
+        return label.strip()
+
+    def getTraceNode(self):
+        """Returns the Trace source node ID defined in Analysis Options, or ''."""
+        node, _ = QgsProject.instance().readEntry("QGISRed", "project_tracenode", "")
+        return node.strip()
+
+    def getQualityDisplayName(self):
+        """Returns the display name for the Quality result field based on the quality model."""
+        model = self.getQualityModel().upper()
+        if model == "AGE":
+            return self.tr("Age")
+        if model == "TRACE":
+            node = self.getTraceNode()
+            return self.tr("Trace {0}").format(node).strip() if node else self.tr("Trace")
+        # CHEMICAL or any other active model
+        label = self.getChemicalLabel()
+        return label if label else self.tr("Chemical")
+
+    def showReactRate(self):
+        """ReactRate is only meaningful for Chemical quality simulations."""
+        return self.getQualityModel().upper() not in ("NONE", "AGE", "TRACE")
+
     """Fields"""
     def getFieldPrettyName(self, elementCategory, fieldName):
         """Get the pretty display name for a field from the CSV-derived prettyNames."""
         if not fieldName:
             return fieldName
+
+        # Dynamic override: Quality in result layers uses the quality-model-specific name
+        if fieldName == "Quality":
+            category = self.identifierToElementName.get(elementCategory, elementCategory)
+            if category in ("Nodes", "Links"):
+                if self.getQualityModel().upper() != "NONE":
+                    return self.getQualityDisplayName()
 
         prettyNames = self.loadUnitDefinitions().get("prettyNames", {})
         category = self.identifierToElementName.get(elementCategory, elementCategory)

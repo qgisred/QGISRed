@@ -204,6 +204,8 @@ class ProjectManagementSection:
         qualityModel = "Chemical"
         concentrationUnits = "mg/L"
         statistics = "None"
+        chemicalLabel = ""
+        traceNode = ""
         if self.ProjectDirectory == "Temporal Folder":
             return
         dbf = QgsVectorLayer(os.path.join(self.ProjectDirectory, self.NetworkName + "_Options.dbf"), "Options", "ogr")
@@ -219,12 +221,18 @@ class ProjectManagementSection:
                 concentrationUnits = attrs[2]
             if attrs[1].upper() == "STATISTIC":
                 statistics = attrs[2]
+            if attrs[1].upper() == "CHEMICAL LABEL":
+                chemicalLabel = attrs[2]
+            if attrs[1].upper() == "TRACEID":
+                traceNode = attrs[2]
 
         QgsProject.instance().writeEntry("QGISRed", "project_units", units)
         QgsProject.instance().writeEntry("QGISRed", "project_headloss", headloss)
         QgsProject.instance().writeEntry("QGISRed", "project_qualitymodel", qualityModel)
         QgsProject.instance().writeEntry("QGISRed", "project_concentrationunits", concentrationUnits)
         QgsProject.instance().writeEntry("QGISRed", "project_statistics", statistics)
+        QgsProject.instance().writeEntry("QGISRed", "project_chemicallabel", chemicalLabel)
+        QgsProject.instance().writeEntry("QGISRed", "project_tracenode", traceNode)
 
         del dbf
 
