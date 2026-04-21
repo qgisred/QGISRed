@@ -73,6 +73,43 @@ class AnalysisSection:
             self.ResultDockwidget.simulationFinished.connect(self.refreshTimeSeries)
             self.ResultDockwidget.resultPropertyChanged.connect(self.refreshTimeSeries)
 
+    def _ensureResultsDockVisibleForTimeSeries(self):
+        """
+        Ensure the simulation results dock is visible whenever the Time Series dock is opened.
+        Time Series may rely on an existing .out file even if the results dock wasn't opened yet.
+        """
+        self._initResultsDock()
+        try:
+            self.defineCurrentProject()
+        except Exception:
+            # If project context can't be determined, do nothing.
+            return
+
+        if not self.isValidProject():
+            return
+
+        # If the dock hasn't loaded a report yet, try to load existing results
+        # (Time Series already validated that results exist).
+        try:
+            has_loaded = bool(getattr(self.ResultDockwidget, "outPath", "")) and bool(self.ResultDockwidget.TimeLabels)
+        except Exception:
+            has_loaded = False
+
+        if not has_loaded:
+            out_path = self._outFilePath()
+            if os.path.exists(out_path):
+                try:
+                    self.ResultDockwidget.loadExistingResults(self.ProjectDirectory, self.NetworkName)
+                except Exception:
+                    # Fall back to just showing the dock; Time Series can still render from .out
+                    pass
+
+        try:
+            self.ResultDockwidget.show()
+            self.ResultDockwidget.raise_()
+        except Exception:
+            pass
+
     def runModel(self):
         if not self.checkDependencies():
             return
@@ -219,6 +256,9 @@ class AnalysisSection:
                 )
                 self.timeSeriesButton.setChecked(False)
                 return
+
+            # Keep results dock open whenever Time Series is open
+            self._ensureResultsDockVisibleForTimeSeries()
 
             self.runTimeSeriesSelectPointTool()
             if not hasattr(self, 'timeSeriesDock') or self.timeSeriesDock is None:
