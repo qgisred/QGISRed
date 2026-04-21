@@ -66,10 +66,10 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         # Columns:
         self.twProjectList.setColumnCount(4)
         header = self.twProjectList.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Interactive)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Interactive)
         item = QTableWidgetItem(self.tr("Name"))
         self.twProjectList.setHorizontalHeaderItem(0, item)
         item = QTableWidgetItem(self.tr("Last update"))
@@ -79,6 +79,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         item = QTableWidgetItem(self.tr("Folder"))
         self.twProjectList.setHorizontalHeaderItem(3, item)
 
+        self.twProjectList.setWordWrap(False)
         self.twProjectList.cellDoubleClicked.connect(self.openProject)
 
         self.messageBar = QGISRedBanner.inject(self, self.gridLayout_2)
