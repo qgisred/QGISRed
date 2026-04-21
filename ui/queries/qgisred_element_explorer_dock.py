@@ -41,8 +41,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         super(self.__class__, self).__init__(parent)
         self.setupUi(self)
         self.initTableWidgets()
-        self.mElementPropertiesGroupBox.setVisible(False)
-        self.setupEventFilters() 
+        self.mElementPropertiesGroupBox.setCollapsed(True)
+        self.setupEventFilters()
         self.setObjectName(self.__class__.__name__)
         self.setFloating(False)
         iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self)
@@ -663,7 +663,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.cbElementId.blockSignals(False)
 
             hasSelection = self.cbElementId.currentIndex() >= 0 and bool(self.cbElementId.currentText())
-            self.mElementPropertiesGroupBox.setVisible(hasSelection)
+            self.mElementPropertiesGroupBox.setCollapsed(not hasSelection)
             if not hasSelection:
                 self.mConnectedElementsGroupBox.setVisible(False)
 
@@ -943,9 +943,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         try:
             if index >= 0 and self.cbElementId.currentText():
                 self.findElement()
-                self.mElementPropertiesGroupBox.setVisible(True)
+                self.mElementPropertiesGroupBox.setCollapsed(False)
             else:
-                self.mElementPropertiesGroupBox.setVisible(False)
+                self.mElementPropertiesGroupBox.setCollapsed(True)
                 self.mConnectedElementsGroupBox.setVisible(False)
                 self.clearHighlights()
                 self.clearAllLayerSelections()

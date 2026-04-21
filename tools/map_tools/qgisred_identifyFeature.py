@@ -219,8 +219,6 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
         if wasHidden and self.useElementPropertiesDock:
             self.dock.scrollToElementProperties()
 
-        self.dock.updateCollapsibleWidgetsState(collapseFindElements=True)
-
     def closeDock(self):
         if self.dock:
             self.dock.close()
