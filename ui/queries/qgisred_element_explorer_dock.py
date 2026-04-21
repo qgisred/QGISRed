@@ -1098,55 +1098,156 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         # Skip fields already shown in the header labels
         skipFields = {"Id", "Tag", "Descrip"}
-        numDisplayFields = sum(1 for f in fields if f.name() not in skipFields)
-        self.dataTableWidget.setRowCount(numDisplayFields)
 
         # Get the layer identifier for pretty name lookup
         layerIdentifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else None
         utils = QGISRedFieldUtils()
 
+        # For node layers, collect attached demands and source
+        isNodeLayer = layerIdentifier in ["qgisred_junctions", "qgisred_reservoirs", "qgisred_tanks"]
+        nodeDemands = []
+        demandLayer = None
+        nodeSource = None
+        sourceLayer = None
+        if isNodeLayer:
+            nodeGeom = self.currentFeature.geometry()
+            nodeDemands, demandLayer = self.getAllDemandsForNode(nodeGeom)
+            nodeSource, sourceLayer = self.getSourceForNode(nodeGeom)
+
+        hasTotalDemandsRow = len(nodeDemands) > 1
+        numDisplayFields = sum(1 for f in fields if f.name() not in skipFields)
+        demandRowsCount = 3 * len(nodeDemands)
+        sourceRowsCount = 3 if nodeSource else 0
+        totalRows = (1 if hasTotalDemandsRow else 0) + numDisplayFields + demandRowsCount + sourceRowsCount
+        self.dataTableWidget.setRowCount(totalRows)
+
         displayRow = 0
+
+        if hasTotalDemandsRow:
+            self.setDataRow(displayRow, self.tr("Total Demands"), str(len(nodeDemands)), "")
+            displayRow += 1
+
         for field_idx, field in enumerate(fields):
             fieldName = field.name()
             if fieldName in skipFields:
                 continue
 
-            # Get pretty name for the field
             prettyName = self.tr(utils.getFieldPrettyName(layerIdentifier, fieldName))
-            fieldItem = QTableWidgetItem(prettyName)
-            fieldItem.setToolTip(prettyName)
-
-            # Get raw value and format display value
             rawValue = attributes[field_idx]
-            if rawValue is None or str(rawValue) == "NULL" or str(rawValue).strip() == "":
-                displayValue = ""
-            else:
-                displayValue = str(rawValue)
+            displayValue = self.formatFieldValue(rawValue, layerIdentifier, fieldName, utils)
 
             # Handle Energy Price with $ prefix
-            if fieldName in ["EnergyPric", "EnergyPrice"]:
-                if rawValue is not None and str(rawValue).strip() != "":
-                    try:
-                        displayValue = f"${rawValue}"
-                    except (ValueError, TypeError):
-                        pass
+            if fieldName in ["EnergyPric", "EnergyPrice"] and displayValue:
+                displayValue = f"${displayValue}"
 
-            valueItem = QTableWidgetItem(displayValue)
-            valueItem.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            valueItem.setToolTip(displayValue)
-
-            # Get unit for the field
             fieldUnit = utils.getFieldUnit(layerIdentifier, fieldName)
             unitDisplay = fieldUnit if fieldUnit and fieldUnit != "-" else ""
-            unitItem = QTableWidgetItem(unitDisplay)
-            unitItem.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            if unitDisplay:
-                unitItem.setToolTip(unitDisplay)
 
-            self.dataTableWidget.setItem(displayRow, 0, fieldItem)
-            self.dataTableWidget.setItem(displayRow, 1, valueItem)
-            self.dataTableWidget.setItem(displayRow, 2, unitItem)
+            self.setDataRow(displayRow, prettyName, displayValue, unitDisplay)
             displayRow += 1
+
+        # Append one triplet per attached demand
+        if nodeDemands and demandLayer:
+            displayRow = self.appendDemandRows(displayRow, nodeDemands, demandLayer, utils)
+
+        # Append source triplet
+        if nodeSource and sourceLayer:
+            displayRow = self.appendSourceRows(displayRow, nodeSource, sourceLayer, utils)
+
+    def setDataRow(self, row, propertyName, value, unit):
+        fieldItem = QTableWidgetItem(propertyName)
+        fieldItem.setToolTip(propertyName)
+        valueItem = QTableWidgetItem(value)
+        valueItem.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        valueItem.setToolTip(value)
+        unitItem = QTableWidgetItem(unit)
+        unitItem.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        if unit:
+            unitItem.setToolTip(unit)
+        self.dataTableWidget.setItem(row, 0, fieldItem)
+        self.dataTableWidget.setItem(row, 1, valueItem)
+        self.dataTableWidget.setItem(row, 2, unitItem)
+
+    def formatFieldValue(self, rawValue, layerIdentifier, fieldName, utils):
+        if rawValue is None or str(rawValue) == "NULL" or str(rawValue).strip() == "":
+            return ""
+        try:
+            numeric = float(rawValue)
+            decimals = utils.getFieldDecimals(layerIdentifier, fieldName, default=2)
+            return f"{numeric:.{decimals}f}"
+        except (ValueError, TypeError):
+            return str(rawValue)
+
+    def appendDemandRows(self, startRow, demandFeatures, demandLayer, utils):
+        layerIdentifier = demandLayer.customProperty("qgisred_identifier") or "qgisred_demands"
+        skipFields = {"Id"}
+        row = startRow
+        multiple = len(demandFeatures) > 1
+        for idx, demandFeat in enumerate(demandFeatures, start=1):
+            fields = demandFeat.fields()
+            attributes = demandFeat.attributes()
+            for fieldIndex, field in enumerate(fields):
+                fieldName = field.name()
+                if fieldName in skipFields:
+                    continue
+                prettyName = self.tr(utils.getFieldPrettyName(layerIdentifier, fieldName))
+                if multiple:
+                    prettyName = f"{prettyName} {idx}"
+                displayValue = self.formatFieldValue(attributes[fieldIndex], layerIdentifier, fieldName, utils)
+                fieldUnit = utils.getFieldUnit(layerIdentifier, fieldName)
+                unitDisplay = fieldUnit if fieldUnit and fieldUnit != "-" else ""
+                self.setDataRow(row, prettyName, displayValue, unitDisplay)
+                row += 1
+        return row
+
+    def appendSourceRows(self, startRow, sourceFeature, sourceLayer, utils):
+        layerIdentifier = sourceLayer.customProperty("qgisred_identifier") or "qgisred_sources"
+        skipFields = {"Id"}
+        row = startRow
+        fields = sourceFeature.fields()
+        attributes = sourceFeature.attributes()
+        for fieldIndex, field in enumerate(fields):
+            fieldName = field.name()
+            if fieldName in skipFields:
+                continue
+            prettyName = self.tr(utils.getFieldPrettyName(layerIdentifier, fieldName))
+            displayValue = self.formatFieldValue(attributes[fieldIndex], layerIdentifier, fieldName, utils)
+            fieldUnit = utils.getFieldUnit(layerIdentifier, fieldName)
+            unitDisplay = fieldUnit if fieldUnit and fieldUnit != "-" else ""
+            self.setDataRow(row, prettyName, displayValue, unitDisplay)
+            row += 1
+        return row
+
+    def getAllDemandsForNode(self, nodeGeom):
+        if nodeGeom.isEmpty():
+            return [], None
+        if self.demandSpatialIndex is None or self.demandSpatialLayer is None:
+            return [], None
+        point = nodeGeom.asPoint()
+        searchRect = QgsRectangle(point.x() - 1e-6, point.y() - 1e-6,
+                                  point.x() + 1e-6, point.y() + 1e-6)
+        candidateIds = self.demandSpatialIndex.intersects(searchRect)
+        demands = []
+        for fid in candidateIds:
+            feat = self.demandSpatialLayer.getFeature(fid)
+            if not feat.geometry().isEmpty() and self.areOverlappedPoints(nodeGeom, feat.geometry()):
+                demands.append(feat)
+        return demands, self.demandSpatialLayer
+
+    def getSourceForNode(self, nodeGeom):
+        if nodeGeom.isEmpty():
+            return None, None
+        if self.sourceSpatialIndex is None or self.sourceSpatialLayer is None:
+            return None, None
+        point = nodeGeom.asPoint()
+        searchRect = QgsRectangle(point.x() - 1e-6, point.y() - 1e-6,
+                                  point.x() + 1e-6, point.y() + 1e-6)
+        candidateIds = self.sourceSpatialIndex.intersects(searchRect)
+        for fid in candidateIds:
+            feat = self.sourceSpatialLayer.getFeature(fid)
+            if not feat.geometry().isEmpty() and self.areOverlappedPoints(nodeGeom, feat.geometry()):
+                return feat, self.sourceSpatialLayer
+        return None, None
 
     def initTableWidgets(self):
         """One-time setup for dataTableWidget and tableResults. Called once from __init__."""
@@ -1177,7 +1278,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Interactive)
         header.setStretchLastSection(False)
         self.dataTableWidget.setColumnWidth(1, 80)
-        self.dataTableWidget.setColumnWidth(2, 24)
+        self.dataTableWidget.setColumnWidth(2, 30)
 
     def loadFeature(self, layer, feature, featureIdText=""):
         if not layer or not feature:
@@ -2263,7 +2364,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Interactive)
         header.setStretchLastSection(False)
         self.tableResults.setColumnWidth(1, 80)
-        self.tableResults.setColumnWidth(2, 36)
+        self.tableResults.setColumnWidth(2, 30)
 
     def findResultsLayerForElement(self, isNode):
         """Find the Results group layer matching the element type (node or link).
