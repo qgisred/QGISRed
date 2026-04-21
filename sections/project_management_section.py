@@ -101,6 +101,16 @@ class ProjectManagementSection:
         if self.ProjectDirectory == self.TemporalFolder:
             self.pushMessage(self.tr("No valid project is opened"), level=1, duration=5)
             return False
+        pipesPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_Pipes.shp")
+        for layer in self.getLayers():
+            if self.getLayerPath(layer) == pipesPath:
+                if not layer.customProperty("qgisred_identifier"):
+                    self.pushMessage(
+                        self.tr("Please open the project from the QGISRed Project Manager"),
+                        level=1, duration=5
+                    )
+                    return False
+                break
         return True
 
     def isLayerOnEdition(self):
