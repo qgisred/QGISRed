@@ -1719,6 +1719,17 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             newItem = QListWidgetItem(text)
             newItem.setData(Qt.ItemDataRole.UserRole, identifier)
             self.listWidget.addItem(newItem)
+        self.adjustConnectedElementsHeight()
+
+    def adjustConnectedElementsHeight(self):
+        maxVisibleRows = 4
+        count = self.listWidget.count()
+        rowHeight = self.listWidget.sizeHintForRow(0) if count > 0 else 16
+        if rowHeight <= 0:
+            rowHeight = 16
+        visibleRows = min(max(count, 1), maxVisibleRows)
+        frameBorder = 2 * self.listWidget.frameWidth()
+        self.listWidget.setFixedHeight(rowHeight * visibleRows + frameBorder)
 
     def addServiceConnectionAdjacencies(self, currentGeom, tolerance):
         serviceLayers = [
