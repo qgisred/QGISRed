@@ -160,6 +160,8 @@ class LayerManagementSection:
             sectorGroup = utils.getOrCreateNestedGroup([self.NetworkName, "Queries", sectorGroupName])
             utils.openLayer(sectorGroup, "Links_" + self.Sectors, sectors=True)
             utils.openLayer(sectorGroup, "Nodes_" + self.Sectors, sectors=True)
+            if self.Sectors == "HydraulicSectors":
+                utils.openLayer(sectorGroup, "HydraulicSectors_IsolatedDemands", sectors=True)
 
     """Groups"""
 

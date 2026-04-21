@@ -96,7 +96,9 @@ class QGISRedLayerUtils:
             if ind != 0:
                 original = original[:ind] + " " + original[ind:]
 
-        if "Demands" in original:
+        if "Isolated Demands" in original:
+            original = "Isolated Demands"
+        elif "Demands" in original:
             original = "Multiple Demands"
         return original
 
