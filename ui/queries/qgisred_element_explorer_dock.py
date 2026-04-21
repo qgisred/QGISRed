@@ -1151,15 +1151,15 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     def initTableWidgets(self):
         """One-time setup for dataTableWidget and tableResults. Called once from __init__."""
         self.setDataTableWidgetColumns()
-        self.dataTableWidget.setShowGrid(False)
-        self.dataTableWidget.setStyleSheet("QTableWidget::item { padding: 1px; }")
+        self.dataTableWidget.setShowGrid(True)
+        self.dataTableWidget.setStyleSheet("QTableWidget { gridline-color: #E0E0E0; } QTableWidget::item { padding: 1px; }")
         self.dataTableWidget.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.dataTableWidget.verticalHeader().setDefaultSectionSize(20)
         self.dataTableWidget.verticalHeader().setVisible(False)
 
         self.setResultsTableColumns()
-        self.tableResults.setShowGrid(False)
-        self.tableResults.setStyleSheet("QTableWidget::item { padding: 1px; }")
+        self.tableResults.setShowGrid(True)
+        self.tableResults.setStyleSheet("QTableWidget { gridline-color: #E0E0E0; } QTableWidget::item { padding: 1px; }")
         self.tableResults.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.tableResults.verticalHeader().setDefaultSectionSize(20)
         self.tableResults.verticalHeader().setVisible(False)
@@ -1177,7 +1177,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Interactive)
         header.setStretchLastSection(False)
         self.dataTableWidget.setColumnWidth(1, 80)
-        self.dataTableWidget.setColumnWidth(2, 36)
+        self.dataTableWidget.setColumnWidth(2, 24)
 
     def loadFeature(self, layer, feature, featureIdText=""):
         if not layer or not feature:
