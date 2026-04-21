@@ -133,6 +133,7 @@ class ProjectManagementSection:
 
         identifiers = QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         identifiers.assignLayerIdentifiers()
+        identifiers.enforceGroupIdentifiers()
 
         QGISRedProjectIO().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
 
