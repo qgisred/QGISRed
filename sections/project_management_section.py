@@ -216,7 +216,10 @@ class ProjectManagementSection:
             # QGIS may return DBF attributes as QVariant; QgsProject.writeEntry expects native types.
             def _as_str(v):
                 try:
-                    return "" if v is None else str(v)
+                    if v is None:
+                        return ""
+                    s = str(v)
+                    return "" if s == "NULL" else s
                 except Exception:
                     return ""
             if attrs[1].upper() == "UNITS":
