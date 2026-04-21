@@ -392,7 +392,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         tabText = self.tabWidget.tabText(resultsTabIndex)
         self.tabWidget.setTabText(resultsTabIndex, "")
         label = QLabel(tabText)
-        label.setStyleSheet("background-color: #FFF8DC; font-weight: bold; padding: 4px 6px;")
+        label.setStyleSheet("background-color: #FFEB3B; font-weight: bold; padding: 4px 6px;")
         self.tabWidget.tabBar().setTabButton(resultsTabIndex, QTabBar.ButtonPosition.LeftSide, label)
 
     def setComponentVisibility(self, showFindElements, showElementProperties):
