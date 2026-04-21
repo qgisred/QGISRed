@@ -54,7 +54,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.elementTypes = [
             self.tr('Pipe'),
             self.tr('Junction'),
-            self.tr('Demand'),
+            self.tr('Multiple Demand'),
             self.tr('Reservoir'),
             self.tr('Tank'),
             self.tr('Pump'),
@@ -68,7 +68,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.elementIdentifiers = {
             'Pipe': 'qgisred_pipes',
             'Junction': 'qgisred_junctions',
-            'Demand': 'qgisred_demands',
+            'Multiple Demand': 'qgisred_demands',
             'Reservoir': 'qgisred_reservoirs',
             'Tank': 'qgisred_tanks',
             'Pump': 'qgisred_pumps',
@@ -86,7 +86,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.singularForms = {
             "Pipes": self.tr("Pipe"),
             "Junctions": self.tr("Junction"),
-            "Demands": self.tr("Demand"),
+            "Demands": self.tr("Multiple Demand"),
             "Reservoirs": self.tr("Reservoir"),
             "Tanks": self.tr("Tank"),
             "Pumps": self.tr("Pump"),
@@ -978,7 +978,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         if layer:
             if layer.customProperty("qgisred_identifier") in self.sourcesAndDemands:
-                foundFeature, foundFeatureLayer = self.findSourceOrDemandForNodeId(selectedId)
+                foundFeatureLayer, foundFeature = self.findNodeLayer(selectedId)
             else:
                 for feature in layer.getFeatures():
                     if self.getFeatureIdValue(feature, layer) == selectedId:
@@ -998,15 +998,15 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.currentFeature = foundFeature
 
         finalTitleText = self.updateFoundElementLabel(selectedId, foundFeatureLayer)
-        highlight = QgsHighlight(iface.mapCanvas(), foundFeature.geometry(), layer)
+        highlight = QgsHighlight(iface.mapCanvas(), foundFeature.geometry(), foundFeatureLayer)
         highlight.setColor(QColor("red"))
         highlight.setWidth(5)
         highlight.show()
         self.mainHighlight = highlight
         self.adjustMapView(foundFeature)
 
-        self.refreshConnectedElements(foundFeature, layer)
-        self.loadFeature(layer, foundFeature, finalTitleText)
+        self.refreshConnectedElements(foundFeature, foundFeatureLayer)
+        self.loadFeature(foundFeatureLayer, foundFeature, finalTitleText)
 
     @pyqtSlot()
     def updateElementIds(self):
