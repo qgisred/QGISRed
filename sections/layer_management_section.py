@@ -306,7 +306,7 @@ class LayerManagementSection:
             if not os.path.exists(queriesFolder):
                 os.mkdir(queriesFolder)
             for fi in os.listdir(self.ProjectDirectory):
-                if ("_" + self.Sectors + ".") in fi:
+                if fi.startswith(self.NetworkName) and "Sectors" in fi:
                     src = os.path.join(self.ProjectDirectory, fi)
                     dst = os.path.join(queriesFolder, fi)
                     # Overwrite in-place so existing QGIS handles remain valid
