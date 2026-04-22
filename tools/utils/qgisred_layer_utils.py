@@ -369,14 +369,20 @@ class QGISRedLayerUtils:
                     # rebuilt after every reload since the DLL may produce new categories.
                     existingLayer = self._findLayerByPath(layerPath)
                     if existingLayer is not None:
-                        styling.setSectorsStyle(existingLayer)
+                        if "IsolatedDemands" in originalName:
+                            styling.setIsolatedDemandsStyle(existingLayer)
+                        else:
+                            styling.setSectorsStyle(existingLayer)
                 return
             vlayer = QgsVectorLayer(layerPath, showName, "ogr")
             if not ext == ".dbf":
                 if results:
                     styling.setResultStyle(vlayer, originalName)
                 elif sectors:
-                    styling.setSectorsStyle(vlayer)
+                    if "IsolatedDemands" in originalName:
+                        styling.setIsolatedDemandsStyle(vlayer)
+                    else:
+                        styling.setSectorsStyle(vlayer)
                 elif issues:
                     pass
                 else:

@@ -11,7 +11,7 @@ from qgis.core import (
     QgsLineSymbol, QgsSimpleLineSymbolLayer, QgsSimpleMarkerSymbolLayer,
     QgsRendererCategory, QgsCategorizedSymbolRenderer, QgsVectorLayerCache, NULL,
     QgsGraduatedSymbolRenderer, QgsRuleBasedRenderer, QgsProject, QgsRenderContext,
-    QgsMapLayerLegend
+    QgsMapLayerLegend, QgsSingleSymbolRenderer
 )
 from qgis.gui import QgsAttributeTableFilterModel, QgsAttributeTableModel, QgsAttributeTableView
 from qgis.utils import iface as _iface
@@ -224,6 +224,25 @@ class QGISRedStylingUtils:
         # assign the created renderer to the layer
         if renderer is not None:
             layer.setRenderer(renderer)
+        layer.setLabelsEnabled(False)
+
+    
+    def setIsolatedDemandsStyle(self, layer):
+        symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+
+        if layer.geometryType() == 0:  # Point
+            layerStyle = {
+                "name": "circle",
+                "color": "255,0,0",
+                "outline_color": "255,0,0",
+                "size": "3"
+            }
+            symbolLayer = QgsSimpleMarkerSymbolLayer.create(layerStyle)
+            if symbolLayer is not None:
+                symbol.changeSymbolLayer(0, symbolLayer)
+
+        renderer = QgsSingleSymbolRenderer(symbol)
+        layer.setRenderer(renderer)
         layer.setLabelsEnabled(False)
 
     def setTreeStyle(self, layer):
