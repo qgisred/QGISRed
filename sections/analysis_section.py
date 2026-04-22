@@ -443,7 +443,6 @@ class AnalysisSection:
         try:
             if modifiers is None:
                 return False
-            # Shift se usa para superponer/gestionar curvas; Ctrl debe ignorarse.
             return bool(modifiers & Qt.KeyboardModifier.ShiftModifier)
         except Exception:
             return False
@@ -455,7 +454,6 @@ class AnalysisSection:
     def updateTimeSeriesPlot(self, point, modifiers=None):
         if not hasattr(self, 'timeSeriesDock') or self.timeSeriesDock is None:
             return
-        # Con Ctrl pulsado no se deben añadir curvas desde el mapa al timeseries.
         try:
             if modifiers is not None and bool(modifiers & Qt.KeyboardModifier.ControlModifier):
                 return
@@ -471,8 +469,6 @@ class AnalysisSection:
         if not hasattr(self, "_timeSeriesSelectionKey"):
             self._timeSeriesSelectionKey = None
 
-        # Identify element  
-        # Tolerance in map units
         tolerance = self.iface.mapCanvas().getCoordinateTransform().mapUnitsPerPixel() * 10
         rect = QgsRectangle(point.x() - tolerance, point.y() - tolerance, point.x() + tolerance, point.y() + tolerance)
 
@@ -526,6 +522,34 @@ class AnalysisSection:
         element_id = str(found_feature.attribute("ID"))
         layer_identifier = layer.customProperty("qgisred_identifier") if layer else ""
 
+        prop_internal = ""
+        prop_display = ""
+        is_stepped = False
+        y_categorical_labels = None
+        y_label_with_unit = ""
+        try:
+            dock = self.ResultDockwidget if (hasattr(self, 'ResultDockwidget') and self.ResultDockwidget) else None
+        except Exception:
+            dock = None
+
+        if category == "Node":
+            prop_display = dock.cbNodes.currentText() if dock else self.tr("Pressure")
+            node_map = {dock.lbl_pressure: "Pressure", dock.lbl_head: "Head", dock.lbl_demand: "Demand", dock.lbl_quality: "Quality"} if dock else {}
+            prop_internal = node_map.get(prop_display, "Pressure")
+        else:
+            prop_display = dock.cbLinks.currentText() if dock else self.tr("Flow")
+            link_map = {dock.lbl_flow: "Flow", dock.lbl_velocity: "Velocity", dock.lbl_headloss: "HeadLoss", dock.lbl_unit_headloss: "UnitHdLoss", dock.lbl_friction_factor: "FricFactor", dock.lbl_status: "Status", dock.lbl_reaction_rate: "ReactRate", dock.lbl_quality: "Quality", dock.lbl_signed_flow: "Flow", dock.lbl_unsigned_flow: "Flow"} if dock else {}
+            prop_internal = link_map.get(prop_display, "Flow")
+            if prop_internal == "Status":
+                is_stepped = True
+                y_categorical_labels = [self.tr("Closed"), self.tr("Active"), self.tr("Open")]
+
+        unit_abbr = QGISRedFieldUtils().getResultPropertyUnit(category, prop_internal)
+        if unit_abbr:
+            y_label_with_unit = f"{prop_display} ({unit_abbr})"
+        else:
+            y_label_with_unit = prop_display
+
         palette = [
             QColor(0, 120, 215), QColor(220, 57, 18), QColor(16, 150, 24),
             QColor(153, 0, 153), QColor(0, 153, 198), QColor(255, 153, 0),
@@ -533,7 +557,12 @@ class AnalysisSection:
         ]
         existing_color = None
         for it in self.timeSeriesSelection:
-            if it.get("layer_identifier") == layer_identifier and it.get("element_id") == element_id:
+            if (
+                it.get("layer_identifier") == layer_identifier
+                and it.get("element_id") == element_id
+                and it.get("category") == category
+                and it.get("prop_internal") == prop_internal
+            ):
                 existing_color = it.get("color")
                 break
         if existing_color is None:
@@ -549,11 +578,21 @@ class AnalysisSection:
             "category": category,
             "element_id": element_id,
             "color": existing_color,
+            "prop_internal": prop_internal,
+            "prop_display": prop_display,
+            "y_label_with_unit": y_label_with_unit,
+            "is_stepped": bool(is_stepped),
+            "y_categorical_labels": y_categorical_labels,
         }
 
         existing_idx = None
         for i, it in enumerate(self.timeSeriesSelection):
-            if it.get("layer_identifier") == layer_identifier and it.get("element_id") == element_id:
+            if (
+                it.get("layer_identifier") == layer_identifier
+                and it.get("element_id") == element_id
+                and it.get("category") == category
+                and it.get("prop_internal") == prop_internal
+            ):
                 existing_idx = i
                 break
 
@@ -574,7 +613,11 @@ class AnalysisSection:
                 return
 
             try:
-                remaining_ids = [it.get("feature_id") for it in self.timeSeriesSelection if it.get("layer_identifier") == layer_identifier and it.get("feature_id") is not None]
+                remaining_ids = [
+                    it.get("feature_id")
+                    for it in self.timeSeriesSelection
+                    if it.get("layer_identifier") == layer_identifier and it.get("feature_id") is not None
+                ]
                 if layer is not None:
                     layer.selectByIds(remaining_ids)
             except Exception:
@@ -582,18 +625,6 @@ class AnalysisSection:
 
             self._syncTimeSeriesHighlights(self.lastTimeSeriesLayer, self.lastTimeSeriesFeature)
             self._renderTimeSeriesSelection()
-            return
-
-        key = self._getCurrentTimeSeriesKey(category, layer)
-        if key is None:
-            return
-        if self._timeSeriesSelectionKey is None:
-            self._timeSeriesSelectionKey = key
-        elif self._timeSeriesSelectionKey != key:
-            self.pushMessage(
-                self.tr("La curva a superponer debe ser del mismo tipo de la ya representada"),
-                level=1, duration=5
-            )
             return
 
         if existing_idx is None:
@@ -617,6 +648,10 @@ class AnalysisSection:
         self._renderTimeSeriesSelection()
 
     def _getCurrentTimeSeriesKey(self, category, layer):
+        """
+        Legacy helper retained to keep older call sites safe.
+        New multi-magnitude mode stores magnitude per-series in self.timeSeriesSelection.
+        """
         prop_internal = ""
         prop_display = ""
         is_stepped = False
@@ -649,10 +684,6 @@ class AnalysisSection:
     def _renderTimeSeriesSelection(self):
         if not self.timeSeriesSelection:
             return
-        if self._timeSeriesSelectionKey is None:
-            return
-
-        category, layer_identifier, prop_internal, prop_display, is_stepped, y_categorical_labels, y_label_with_unit = self._timeSeriesSelectionKey
 
         out_path = self._outFilePath()
         if not os.path.exists(out_path):
@@ -672,6 +703,13 @@ class AnalysisSection:
         for idx, it in enumerate(self.timeSeriesSelection):
             element_id = it.get("element_id")
             layer = it.get("layer")
+            category = it.get("category") or ""
+            prop_internal = it.get("prop_internal") or ""
+            prop_display = it.get("prop_display") or ""
+            y_label_with_unit = it.get("y_label_with_unit") or prop_display
+            is_stepped = bool(it.get("is_stepped", False))
+            y_categorical_labels = it.get("y_categorical_labels")
+            layer_identifier = it.get("layer_identifier") or ""
             if not element_id:
                 continue
             if category == "Node":
@@ -719,15 +757,16 @@ class AnalysisSection:
                 "is_stepped": bool(is_stepped),
                 "y_categorical_labels": y_categorical_labels,
                 "legend_type": legend_type,
-                "series_key": f"{layer_identifier}:{element_id}",
+                "series_key": f"{category}:{layer_identifier}:{prop_internal}:{element_id}",
+                "magnitude": y_label_with_unit or prop_display,
             })
 
         if not series:
             return
 
         translated_time = self.tr("Time")
-        title = f"{prop_display}"
-        self.timeSeriesDock.updatePlotSeries(series, title, f"{translated_time} (h)", y_label_with_unit)
+        # No chart title (user requested removing it); magnitudes appear in legend groups.
+        self.timeSeriesDock.updatePlotSeries(series, "", f"{translated_time} (h)", self.tr("Value"))
 
     def _onTimeSeriesSeriesReordered(self, order_keys):
         try:
@@ -737,7 +776,9 @@ class AnalysisSection:
             for it in self.timeSeriesSelection:
                 li = it.get("layer_identifier") or ""
                 eid = it.get("element_id") or ""
-                key_to_item[f"{li}:{eid}"] = it
+                cat = it.get("category") or ""
+                prop = it.get("prop_internal") or ""
+                key_to_item[f"{cat}:{li}:{prop}:{eid}"] = it
             new_sel = []
             for k in order_keys:
                 if k in key_to_item:
@@ -745,7 +786,9 @@ class AnalysisSection:
             for it in self.timeSeriesSelection:
                 li = it.get("layer_identifier") or ""
                 eid = it.get("element_id") or ""
-                k = f"{li}:{eid}"
+                cat = it.get("category") or ""
+                prop = it.get("prop_internal") or ""
+                k = f"{cat}:{li}:{prop}:{eid}"
                 if k not in order_keys:
                     new_sel.append(it)
             self.timeSeriesSelection = new_sel

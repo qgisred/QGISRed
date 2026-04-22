@@ -47,6 +47,11 @@ class TimeSeriesPlotWidget(QWidget):
         self._legend_drop_target_idx = None
         self._legend_pressed_modifiers = None
         self._legend_moved = False
+        # Dual Y-axis support (up to 2 magnitudes)
+        self._y_label_left = ""
+        self._y_label_right = ""
+        self._right_axis_active = False
+        self._right_axis_label_w = 0
 
     def setData(self, x, y, title="", x_label="Time", y_label="Value", is_stepped=False, y_categorical_labels=None, series_label=""):
         self.data_x = x
@@ -80,9 +85,30 @@ class TimeSeriesPlotWidget(QWidget):
                 s["highlighted"] = False
             if "series_key" not in s:
                 s["series_key"] = ""
+            if "y_axis" not in s:
+                s["y_axis"] = ""
         self.title = title
         self.x_label = x_label
         self.y_label = y_label
+
+        # Auto-assign Y axis per magnitude (first magnitude left, second right).
+        magnitudes = []
+        for s in self.series:
+            m = (s.get("magnitude") or "").strip()
+            if m and m not in magnitudes:
+                magnitudes.append(m)
+        left_mag = magnitudes[0] if magnitudes else ""
+        right_mag = magnitudes[1] if len(magnitudes) > 1 else ""
+        for s in self.series:
+            m = (s.get("magnitude") or "").strip()
+            if right_mag and m == right_mag:
+                s["y_axis"] = "right"
+            else:
+                s["y_axis"] = "left"
+        self._y_label_left = left_mag or self.y_label
+        self._y_label_right = right_mag
+        self._right_axis_active = bool(right_mag)
+
         # Keep single-series fields coherent for legacy helpers
         if len(self.series) == 1:
             self.data_x = self.series[0].get("x", [])
@@ -95,6 +121,43 @@ class TimeSeriesPlotWidget(QWidget):
             self.is_stepped = False
             self.y_categorical_labels = None
         self.update()
+
+    def _seriesByAxis(self):
+        left = []
+        right = []
+        for s in self.series:
+            if (s.get("y_axis") or "left") == "right":
+                right.append(s)
+            else:
+                left.append(s)
+        return left, right
+
+    def _axisSeriesData(self, axis_series):
+        """Compute (x,y,categorical_labels,any_stepped) for a subset of series."""
+        if not axis_series:
+            return [], [], None, False
+        all_x = []
+        all_y = []
+        y_categorical_labels = None
+        any_categorical = False
+        any_stepped = False
+        for s in axis_series:
+            xs = s.get("x", []) or []
+            ys = s.get("y", []) or []
+            if xs and ys:
+                all_x.extend(xs)
+                all_y.extend(ys)
+            if s.get("y_categorical_labels"):
+                any_categorical = True
+                y_categorical_labels = s.get("y_categorical_labels")
+            if s.get("is_stepped"):
+                any_stepped = True
+        if any_categorical:
+            for s in axis_series:
+                if s.get("y_categorical_labels") != y_categorical_labels:
+                    y_categorical_labels = None
+                    break
+        return all_x, all_y, y_categorical_labels, any_stepped
 
     def _format_value_full(self, value):
         if value is None:
@@ -182,21 +245,45 @@ class TimeSeriesPlotWidget(QWidget):
             label = (s.get("label") or "").strip()
             if label:
                 legend_type = (s.get("legend_type") or "").strip()
-                items.append((idx, (s.get("color") or QColor(0, 120, 215)), label, legend_type))
+                magnitude = (s.get("magnitude") or "").strip()
+                items.append((idx, (s.get("color") or QColor(0, 120, 215)), label, legend_type, magnitude))
         if limit is None:
             return items
         return items[:limit]
 
+    def _legendGroups(self):
+        """Return legend entries grouped by magnitude, preserving current series order."""
+        groups = []
+        current_mag = None
+        current_items = []
+        for series_idx, color, label, legend_type, magnitude in self._legendItems():
+            mag = magnitude or self.tr("Magnitude")
+            if current_mag is None:
+                current_mag = mag
+            if mag != current_mag:
+                groups.append((current_mag, current_items))
+                current_mag = mag
+                current_items = []
+            current_items.append((series_idx, color, label, legend_type))
+        if current_mag is not None:
+            groups.append((current_mag, current_items))
+        return groups
+
     def _legendRequiredWidth(self):
-        items = self._legendItems()
-        if not items:
+        groups = self._legendGroups()
+        if not groups:
             return 0
         fm = QFontMetrics(QFont("Arial", 8))
+        fm_hdr = QFontMetrics(QFont("Arial", 8, QFont.Weight.Bold))
         max_w = 0
-        for _idx, _color, label, _legend_type in items:
-            w_label = fm.horizontalAdvance(label)
-            if w_label > max_w:
-                max_w = w_label
+        for mag, items in groups:
+            w_hdr = fm_hdr.horizontalAdvance(mag)
+            if w_hdr > max_w:
+                max_w = w_hdr
+            for _idx, _color, label, _legend_type in items:
+                w_label = fm.horizontalAdvance(label)
+                if w_label > max_w:
+                    max_w = w_label
         return 12 + 6 + max_w + 12
 
     def _drawLegendIcon(self, painter, x, y, size, legend_type, color, muted=False, highlighted=False):
@@ -302,6 +389,39 @@ class TimeSeriesPlotWidget(QWidget):
             "y_step": y_scale.step,
         }
 
+    def _computeYAxisStateFor(self, all_y, y_categorical_labels, plot_rect, painter):
+        """Build Y-axis state for a given subset (left/right axis)."""
+        if y_categorical_labels:
+            min_y = 0
+            max_y = len(y_categorical_labels) - 1
+            min_y, max_y = self._expand_range(min_y, max_y)
+            y_tick_values = list(range(len(y_categorical_labels)))
+            return {
+                "min_y": min_y,
+                "max_y": max_y,
+                "num_ticks_y": len(y_tick_values) - 1,
+                "y_tick_values": y_tick_values,
+                "y_step": None,
+                "y_categorical_labels": y_categorical_labels,
+            }
+
+        min_y, max_y = min(all_y), max(all_y)
+        max_ticks_y = estimate_max_ticks(
+            plot_rect.height(),
+            painter.fontMetrics().height() + 6,
+            min_ticks=2,
+            max_ticks=10,
+        )
+        y_scale = compute_nice_scale(min_y, max_y, max_ticks_y)
+        return {
+            "min_y": y_scale.axis_min,
+            "max_y": y_scale.axis_max,
+            "num_ticks_y": y_scale.divisions,
+            "y_tick_values": y_scale.ticks(),
+            "y_step": y_scale.step,
+            "y_categorical_labels": None,
+        }
+
     def _estimateXAxisLabelPixelSize(self, painter, *, has_days: bool) -> float:
         """
         Estima cuánto ancho (en px) necesita una etiqueta del eje X para evitar solapes.
@@ -346,22 +466,24 @@ class TimeSeriesPlotWidget(QWidget):
         sy = plot_rect.bottom() - (y - y_state["min_y"]) / (y_state["max_y"] - y_state["min_y"]) * plot_rect.height()
         return QPointF(sx, sy)
 
-    def _drawGridAndAxes(self, painter, plot_rect, local_margin_left, x_state, y_state):
+    def _drawGridAndAxes(self, painter, plot_rect, local_margin_left, right_axis_label_w, x_state, y_state_left, y_state_right=None):
         painter.setFont(QFont("Arial", 9))
         pen_grid = QPen(QColor(220, 232, 245), 1, Qt.PenStyle.SolidLine)
         painter.setPen(pen_grid)
 
         # Horizontal lines (Y axis)
-        for i in range(y_state["num_ticks_y"] + 1):
-            if self.y_categorical_labels:
+        for i in range(y_state_left["num_ticks_y"] + 1):
+            y_cat = y_state_left.get("y_categorical_labels") or self.y_categorical_labels
+            if y_cat:
                 val_y = i
-                label_text = self.y_categorical_labels[i]
+                label_text = y_cat[i]
             else:
-                val_y = y_state["y_tick_values"][i]
-                label_text = format_number_tick(val_y, y_state["y_step"])
+                val_y = y_state_left["y_tick_values"][i]
+                label_text = format_number_tick(val_y, y_state_left["y_step"])
 
-            pt = self._to_screen(x_state["min_x"], val_y, plot_rect, x_state, y_state)
+            pt = self._to_screen(x_state["min_x"], val_y, plot_rect, x_state, y_state_left)
             painter.drawLine(QPointF(plot_rect.left(), pt.y()), QPointF(plot_rect.right(), pt.y()))
+            # Ensure tick labels are always drawn with strong contrast
             painter.setPen(Qt.GlobalColor.black)
             painter.drawText(
                 QRectF(0, pt.y() - 10, local_margin_left - 5, 20),
@@ -370,6 +492,26 @@ class TimeSeriesPlotWidget(QWidget):
             )
             painter.setPen(pen_grid)
 
+        # Right Y tick labels (no extra grid lines)
+        if y_state_right is not None and right_axis_label_w and right_axis_label_w > 0:
+            for i in range(y_state_right["num_ticks_y"] + 1):
+                y_cat_r = y_state_right.get("y_categorical_labels")
+                if y_cat_r:
+                    val_y = i
+                    label_text = y_cat_r[i]
+                else:
+                    val_y = y_state_right["y_tick_values"][i]
+                    label_text = format_number_tick(val_y, y_state_right["y_step"])
+                pt = self._to_screen(x_state["min_x"], val_y, plot_rect, x_state, y_state_right)
+                # Ensure tick labels are always drawn with strong contrast
+                painter.setPen(Qt.GlobalColor.black)
+                painter.drawText(
+                    QRectF(plot_rect.right() + 5, pt.y() - 10, right_axis_label_w - 10, 20),
+                    Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+                    label_text,
+                )
+                painter.setPen(pen_grid)
+
         # Vertical lines (X axis)
         if len(self.data_x) > 1:
             fm_x = painter.fontMetrics()
@@ -377,7 +519,7 @@ class TimeSeriesPlotWidget(QWidget):
             tick_h = fm_x.height() * 2 + 4 if has_days else fm_x.height() + 6
             tick_w = float(x_state.get("label_px", self._estimateXAxisLabelPixelSize(painter, has_days=has_days)))
             for val_x in x_state["x_scale"].ticks():
-                pt = self._to_screen(val_x, y_state["min_y"], plot_rect, x_state, y_state)
+                pt = self._to_screen(val_x, y_state_left["min_y"], plot_rect, x_state, y_state_left)
                 painter.setPen(pen_grid)
                 painter.drawLine(QPointF(pt.x(), plot_rect.top()), QPointF(pt.x(), plot_rect.bottom()))
 
@@ -389,20 +531,43 @@ class TimeSeriesPlotWidget(QWidget):
                     label_x,
                 )
 
-    def _drawAxisTitles(self, painter, plot_rect, local_margin_left, widget_h):
+    def _drawAxisTitles(self, painter, plot_rect, local_margin_left, right_axis_label_w, widget_h):
         painter.setFont(QFont("Arial", 9))
-        painter.save()
-        painter.translate(local_margin_left / 2 - 15, widget_h / 2)
-        painter.rotate(-90)
-        painter.drawText(QRectF(-100, -15, 200, 30), Qt.AlignmentFlag.AlignCenter, self.y_label)
-        painter.restore()
+
+        # Draw Y-axis titles (magnitudes) using a much smaller font
+        small_font = QFont("Arial", 7)
+        small_font.setBold(False)
+        title_pen = QPen(QColor(40, 40, 40))
+
+        left_title = (self._y_label_left or self.y_label or "").strip()
+        if left_title:
+            painter.save()
+            painter.setFont(small_font)
+            painter.setPen(title_pen)
+            painter.translate(local_margin_left / 2 - 15, widget_h / 2)
+            painter.rotate(-90)
+            painter.drawText(QRectF(-120, -10, 240, 20), Qt.AlignmentFlag.AlignCenter, left_title)
+            painter.restore()
+
+        if self._right_axis_active and right_axis_label_w and right_axis_label_w > 0:
+            right_title = (self._y_label_right or "").strip()
+            if right_title:
+                painter.save()
+                painter.setFont(small_font)
+                painter.setPen(title_pen)
+                title_x = plot_rect.right() + right_axis_label_w + 4
+                painter.translate(title_x, widget_h / 2)
+                painter.rotate(90)
+                painter.drawText(QRectF(-120, -10, 240, 20), Qt.AlignmentFlag.AlignCenter, right_title)
+                painter.restore()
+
         painter.drawText(
             QRectF(local_margin_left, widget_h - self.margin_bottom + 20, plot_rect.width(), 20),
             Qt.AlignmentFlag.AlignCenter,
             self.x_label,
         )
 
-    def _drawSeriesCurves(self, painter, plot_rect, x_state, y_state):
+    def _drawSeriesCurves(self, painter, plot_rect, x_state, y_state_left, y_state_right=None):
         if not any(len((s.get("x") or [])) > 1 for s in self.series):
             return
 
@@ -428,6 +593,8 @@ class TimeSeriesPlotWidget(QWidget):
             painter.setPen(QPen(draw_color, width))
             path = QPainterPath()
 
+            axis = (s.get("y_axis") or "left")
+            y_state = y_state_right if (axis == "right" and y_state_right is not None) else y_state_left
             start_pt = self._to_screen(xs[0], ys[0], plot_rect, x_state, y_state)
             path.moveTo(start_pt)
             for i in range(1, len(xs)):
@@ -442,56 +609,71 @@ class TimeSeriesPlotWidget(QWidget):
             painter.drawPath(path)
 
     def _drawLegend(self, painter, plot_rect):
-        legend_items = self._legendItems()
-        if not legend_items or not self._legend_reserved_w:
+        groups = self._legendGroups()
+        if not groups or not self._legend_reserved_w:
             return
 
         painter.save()
         painter.setFont(QFont("Arial", 8))
-        x0 = plot_rect.right() + 10
+        # Start legend after the optional right Y-axis labels
+        x0 = plot_rect.right() + 10 + (self._right_axis_label_w if getattr(self, "_right_axis_label_w", 0) else 0) + 20
         y0 = plot_rect.top() + 10
         max_x = self.width() - 5
-        for series_idx, color, label, legend_type in legend_items:
+        for mag_title, items in groups:
             if x0 >= max_x:
                 break
             if (y0 + 14) > (plot_rect.bottom() - 4):
                 break
-            s = self.series[series_idx]
-            muted = bool(s.get("muted", False))
-            highlighted = bool(s.get("highlighted", False))
 
-            self._drawLegendIcon(
-                painter,
-                x0,
-                y0 + 1,
-                12,
-                legend_type,
-                color,
-                muted=muted,
-                highlighted=highlighted,
-            )
-
-            font = QFont("Arial", 8)
-            font.setBold(highlighted)
-            painter.setFont(font)
-            painter.setPen(QColor(0, 0, 0, 120) if muted else Qt.GlobalColor.black)
-            text_rect = QRectF(x0 + 18, y0, max_x - (x0 + 18), 14)
-            # Legend shows ONLY element name (no value, no units)
-            painter.drawText(text_rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, label)
-            hit_rect = QRectF(x0, y0, self._legend_reserved_w, 14)
-            self._legend_hitboxes.append((hit_rect, series_idx))
-
-            if self._legend_drag_active and self._legend_drop_target_idx == series_idx:
-                painter.setPen(QPen(QColor(30, 30, 30), 2))
-                painter.drawLine(
-                    QPointF(hit_rect.left(), hit_rect.top() - 1),
-                    QPointF(hit_rect.right(), hit_rect.top() - 1),
-                )
+            # Magnitude header
+            hdr_font = QFont("Arial", 8)
+            hdr_font.setBold(True)
+            painter.setFont(hdr_font)
+            painter.setPen(QColor(20, 20, 20))
+            hdr_rect = QRectF(x0, y0, max_x - x0, 14)
+            painter.drawText(hdr_rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, mag_title)
             y0 += 16
+
+            # Items under header
+            for series_idx, color, label, legend_type in items:
+                if (y0 + 14) > (plot_rect.bottom() - 4):
+                    break
+                s = self.series[series_idx]
+                muted = bool(s.get("muted", False))
+                highlighted = bool(s.get("highlighted", False))
+
+                self._drawLegendIcon(
+                    painter,
+                    x0,
+                    y0 + 1,
+                    12,
+                    legend_type,
+                    color,
+                    muted=muted,
+                    highlighted=highlighted,
+                )
+
+                font = QFont("Arial", 8)
+                font.setBold(highlighted)
+                painter.setFont(font)
+                painter.setPen(QColor(0, 0, 0, 120) if muted else Qt.GlobalColor.black)
+                text_rect = QRectF(x0 + 18, y0, max_x - (x0 + 18), 14)
+                painter.drawText(text_rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, label)
+                hit_rect = QRectF(x0, y0, self._legend_reserved_w, 14)
+                self._legend_hitboxes.append((hit_rect, series_idx))
+
+                if self._legend_drag_active and self._legend_drop_target_idx == series_idx:
+                    painter.setPen(QPen(QColor(30, 30, 30), 2))
+                    painter.drawLine(
+                        QPointF(hit_rect.left(), hit_rect.top() - 1),
+                        QPointF(hit_rect.right(), hit_rect.top() - 1),
+                    )
+                y0 += 16
+
+            y0 += 6
         painter.restore()
 
-    def _collectHoverTooltipData(self, hover_index, val_x, plot_rect, x_state, y_state):
-        # Do not show units in the legend/tooltip box; units are already in axis label.
+    def _collectHoverTooltipData(self, hover_index, val_x, plot_rect, x_state, y_state_left, y_state_right=None):
         units_str = ""
         tooltip_lines = []
         marker_pts = []
@@ -512,7 +694,7 @@ class TimeSeriesPlotWidget(QWidget):
             muted = bool(s.get("muted", False))
             label = (s.get("label") or "").strip() or self.tr("Series")
             val_y = ys[hover_index]
-            series_y_labels = s.get("y_categorical_labels") or self.y_categorical_labels
+            series_y_labels = s.get("y_categorical_labels") or (y_state_left.get("y_categorical_labels") if y_state_left else None)
             if series_y_labels:
                 try:
                     val_y_str = series_y_labels[int(round(val_y))]
@@ -522,11 +704,13 @@ class TimeSeriesPlotWidget(QWidget):
                 val_y_str = self._format_value_full(val_y)
 
             tooltip_lines.append((color, muted, f"{label}: ", val_y_str, units_str))
+            axis = (s.get("y_axis") or "left")
+            y_state = y_state_right if (axis == "right" and y_state_right is not None) else y_state_left
             marker_pts.append((color, muted, self._to_screen(val_x, val_y, plot_rect, x_state, y_state)))
 
         return tooltip_lines, marker_pts
 
-    def _drawHoverOverlay(self, painter, plot_rect, x_state, y_state):
+    def _drawHoverOverlay(self, painter, plot_rect, x_state, y_state_left, y_state_right=None):
         hover_series = None
         if self._hover_series_idx is not None and 0 <= self._hover_series_idx < len(self.series):
             hover_series = self.series[self._hover_series_idx]
@@ -542,6 +726,8 @@ class TimeSeriesPlotWidget(QWidget):
         xs0 = hover_series.get("x", []) or []
         val_x = xs0[self.hover_index]
 
+        axis = (hover_series.get("y_axis") or "left")
+        y_state = y_state_right if (axis == "right" and y_state_right is not None) else y_state_left
         pt_rule = self._to_screen(val_x, y_state["min_y"], plot_rect, x_state, y_state)
         painter.setPen(QPen(QColor(255, 110, 110), 1, Qt.PenStyle.DashLine))
         painter.drawLine(QPointF(pt_rule.x(), plot_rect.top()), QPointF(pt_rule.x(), plot_rect.bottom()))
@@ -552,7 +738,8 @@ class TimeSeriesPlotWidget(QWidget):
             val_x,
             plot_rect,
             x_state,
-            y_state,
+            y_state_left,
+            y_state_right,
         )
 
         for color, muted, pt in marker_pts:
@@ -701,29 +888,29 @@ class TimeSeriesPlotWidget(QWidget):
         w = self.width()
         h = self.height()
         
-        # Calculate max label width to adjust margin dynamically
-        # We use a temporary font to measure
         font = QFont("Arial", 9)
         fm = QFontMetrics(font)
 
-        _all_x, all_y, y_categorical_labels, _any_stepped = self._globalSeriesData()
+        left_series, right_series = self._seriesByAxis()
+        _all_x, all_y_left, y_cat_left, _any_stepped_left = self._axisSeriesData(left_series)
+        _all_x_r, all_y_right, y_cat_right, _any_stepped_right = self._axisSeriesData(right_series)
         legend_w = self._legendRequiredWidth()
         self._legend_reserved_w = legend_w
 
-        if not all_y:
+        if not all_y_left:
             local_margin_left = 60
         else:
-            if y_categorical_labels:
+            if y_cat_left:
                 min_y = 0
-                max_y = len(y_categorical_labels) - 1
+                max_y = len(y_cat_left) - 1
             else:
-                min_y, max_y = min(all_y), max(all_y)
+                min_y, max_y = min(all_y_left), max(all_y_left)
 
             max_label_w = 0
-            if self.y_categorical_labels:
-                num_ticks_y = len(self.y_categorical_labels) - 1
+            if y_cat_left:
+                num_ticks_y = len(y_cat_left) - 1
                 tick_values = list(range(num_ticks_y + 1))
-                tick_labels = [self.y_categorical_labels[i] for i in tick_values]
+                tick_labels = [y_cat_left[i] for i in tick_values]
             else:
                 plot_h_est = h - (self.margin_top + 10) - self.margin_bottom
                 max_ticks_y = estimate_max_ticks(plot_h_est, fm.height() + 6, min_ticks=2, max_ticks=10)
@@ -739,16 +926,37 @@ class TimeSeriesPlotWidget(QWidget):
             local_margin_left = max_label_w + 40
             if local_margin_left < 60: local_margin_left = 60
             
+        right_axis_label_w = 0
+        if all_y_right:
+            max_label_w_r = 0
+            if y_cat_right:
+                num_ticks_y = len(y_cat_right) - 1
+                tick_values = list(range(num_ticks_y + 1))
+                tick_labels = [y_cat_right[i] for i in tick_values]
+            else:
+                min_yr, max_yr = min(all_y_right), max(all_y_right)
+                plot_h_est = h - (self.margin_top + 10) - self.margin_bottom
+                max_ticks_y = estimate_max_ticks(plot_h_est, fm.height() + 6, min_ticks=2, max_ticks=10)
+                scale = compute_nice_scale(min_yr, max_yr, max_ticks_y)
+                tick_values = scale.ticks()
+                tick_labels = [format_number_tick(v, scale.step) for v in tick_values]
+            for label_text in tick_labels:
+                lw = fm.horizontalAdvance(label_text)
+                if lw > max_label_w_r:
+                    max_label_w_r = lw
+            right_axis_label_w = max(0, max_label_w_r + 18)
+
         local_margin_bottom = self.margin_bottom
         if self.data_x and len(self.data_x) > 1:
             has_days = max(self.data_x) >= 24
             extra = fm.height() * 2 + 16 if has_days else fm.height() + 20
             local_margin_bottom = max(local_margin_bottom, extra)
 
-        local_margin_right = self.margin_right + (self._legend_reserved_w + 10 if self._legend_reserved_w else 0)
+        self._right_axis_label_w = right_axis_label_w
+        local_margin_right = self.margin_right + right_axis_label_w + (self._legend_reserved_w + 10 if self._legend_reserved_w else 0)
         return QRectF(local_margin_left, self.margin_top + 10,
                       w - local_margin_left - local_margin_right,
-                      h - (self.margin_top + 10) - local_margin_bottom), local_margin_left
+                      h - (self.margin_top + 10) - local_margin_bottom), local_margin_left, right_axis_label_w
 
     def paintEvent(self, event):
         if not self.series:
@@ -785,7 +993,7 @@ class TimeSeriesPlotWidget(QWidget):
         self.y_categorical_labels = y_categorical_labels
         self.is_stepped = any_stepped
 
-        plot_rect, local_margin_left = self.getPlotRect()
+        plot_rect, local_margin_left, right_axis_label_w = self.getPlotRect()
         self._legend_hitboxes = []
 
         # Draw plot area background (very light blue)
@@ -794,21 +1002,28 @@ class TimeSeriesPlotWidget(QWidget):
         painter.setPen(QPen(QColor(200, 200, 200), 1))
         painter.drawRect(plot_rect)
 
-        y_state = self._computeYAxisState(all_y, plot_rect, painter)
-        # Asegura que el cálculo de ticks use las mismas métricas de fuente que el render.
+        left_series, right_series = self._seriesByAxis()
+        _lx, all_y_left, y_cat_left, _st_left = self._axisSeriesData(left_series)
+        _rx, all_y_right, y_cat_right, _st_right = self._axisSeriesData(right_series)
+        y_state_left = self._computeYAxisStateFor(all_y_left, y_cat_left, plot_rect, painter)
+        y_state_right = None
+        if all_y_right:
+            y_state_right = self._computeYAxisStateFor(all_y_right, y_cat_right, plot_rect, painter)
         painter.setFont(QFont("Arial", 9))
         x_state = self._computeXAxisState(self.data_x, plot_rect, painter)
-        self._drawGridAndAxes(painter, plot_rect, local_margin_left, x_state, y_state)
+        self._drawGridAndAxes(painter, plot_rect, local_margin_left, right_axis_label_w, x_state, y_state_left, y_state_right)
 
         # Main Axes
         painter.setPen(QPen(Qt.GlobalColor.black, 2))
         painter.drawLine(plot_rect.bottomLeft(), plot_rect.bottomRight())
         painter.drawLine(plot_rect.bottomLeft(), plot_rect.topLeft())
+        if y_state_right is not None and right_axis_label_w and right_axis_label_w > 0:
+            painter.drawLine(plot_rect.bottomRight(), plot_rect.topRight())
 
-        self._drawAxisTitles(painter, plot_rect, local_margin_left, h)
-        self._drawSeriesCurves(painter, plot_rect, x_state, y_state)
+        self._drawAxisTitles(painter, plot_rect, local_margin_left, right_axis_label_w, h)
+        self._drawSeriesCurves(painter, plot_rect, x_state, y_state_left, y_state_right)
         self._drawLegend(painter, plot_rect)
-        self._drawHoverOverlay(painter, plot_rect, x_state, y_state)
+        self._drawHoverOverlay(painter, plot_rect, x_state, y_state_left, y_state_right)
 
     def leaveEvent(self, event):
         if self.hover_index is not None:
@@ -817,7 +1032,6 @@ class TimeSeriesPlotWidget(QWidget):
             self.update()
 
     def mousePressEvent(self, event):
-        # Legend interaction: click to mute/highlight; drag to reorder
         if event.button() != Qt.MouseButton.LeftButton:
             return
 
@@ -936,7 +1150,7 @@ class TimeSeriesPlotWidget(QWidget):
         if w <= (self.margin_left + self.margin_right) or h <= (self.margin_top + 10 + self.margin_bottom):
             return
 
-        plot_rect, local_margin_left = self.getPlotRect()
+        plot_rect, local_margin_left, _right_axis_label_w = self.getPlotRect()
         
         if not plot_rect.contains(QPointF(mouse_pos)):
             if self.hover_index is not None:
