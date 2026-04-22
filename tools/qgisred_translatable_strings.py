@@ -8,42 +8,49 @@ from qgis.PyQt.QtCore import QCoreApplication
 QCoreApplication.translate('FieldPrettyNames', "Identifier")
 QCoreApplication.translate('FieldPrettyNames', "Tag")
 QCoreApplication.translate('FieldPrettyNames', "Description")
+QCoreApplication.translate('FieldPrettyNames', "Age")
+QCoreApplication.translate('FieldPrettyNames', "Installation Date")
+QCoreApplication.translate('FieldPrettyNames', "Initial Status")
+QCoreApplication.translate('FieldPrettyNames', "Type")
+QCoreApplication.translate('FieldPrettyNames', "Status")
+QCoreApplication.translate('FieldPrettyNames', "IsActive")
 
 # Pipes
 QCoreApplication.translate('FieldPrettyNames', "Length")
 QCoreApplication.translate('FieldPrettyNames', "Diameter")
-QCoreApplication.translate('FieldPrettyNames', "Roughness")
+QCoreApplication.translate('FieldPrettyNames', "Roughness Coeff")
 QCoreApplication.translate('FieldPrettyNames', "Loss Coefficient")
 QCoreApplication.translate('FieldPrettyNames', "Material")
-QCoreApplication.translate('FieldPrettyNames', "Installation Date")
-QCoreApplication.translate('FieldPrettyNames', "Initial Status")
+QCoreApplication.translate('FieldPrettyNames', "Leak Area")
+QCoreApplication.translate('FieldPrettyNames', "Leak Expansion Rate")
 QCoreApplication.translate('FieldPrettyNames', "Bulk Coefficient")
 QCoreApplication.translate('FieldPrettyNames', "Wall Coefficient")
 
 # Junctions
 QCoreApplication.translate('FieldPrettyNames', "Elevation")
 QCoreApplication.translate('FieldPrettyNames', "Base Demand")
-QCoreApplication.translate('FieldPrettyNames', "Demand Pattern")
+QCoreApplication.translate('FieldPrettyNames', "Pattern Demand")
 QCoreApplication.translate('FieldPrettyNames', "Emitter Coefficient")
 QCoreApplication.translate('FieldPrettyNames', "Initial Quality")
+
+# Multiple Demands
+QCoreApplication.translate('FieldPrettyNames', "Base Demand")
 
 # Tanks
 QCoreApplication.translate('FieldPrettyNames', "Initial Level")
 QCoreApplication.translate('FieldPrettyNames', "MinimumLevel")
 QCoreApplication.translate('FieldPrettyNames', "Maximum Level")
-QCoreApplication.translate('FieldPrettyNames', "Minimum Volume")
+QCoreApplication.translate('FieldPrettyNames', "Volume")
 QCoreApplication.translate('FieldPrettyNames', "Volume Curve")
-QCoreApplication.translate('FieldPrettyNames', "Overflow")
+QCoreApplication.translate('FieldPrettyNames', "Overflow Condition")
 QCoreApplication.translate('FieldPrettyNames', "Mixing Model")
 QCoreApplication.translate('FieldPrettyNames', "Mixing Fraction")
-QCoreApplication.translate('FieldPrettyNames', "Bulk Coefficient")
 
 # Reservoirs
 QCoreApplication.translate('FieldPrettyNames', "Total Head")
 QCoreApplication.translate('FieldPrettyNames', "Head Pattern")
 
 # Valves
-QCoreApplication.translate('FieldPrettyNames', "Type")
 QCoreApplication.translate('FieldPrettyNames', "Setting")
 QCoreApplication.translate('FieldPrettyNames', "HeadLoss Curve")
 
@@ -56,23 +63,61 @@ QCoreApplication.translate('FieldPrettyNames', "Efficiency Curve")
 QCoreApplication.translate('FieldPrettyNames', "Energy Price")
 QCoreApplication.translate('FieldPrettyNames', "Price Pattern")
 
+# Curves
+QCoreApplication.translate('FieldPrettyNames', "Value X axis")
+QCoreApplication.translate('FieldPrettyNames', "Value Y axis")
+
 # Sources
-QCoreApplication.translate('FieldPrettyNames', "Base Value")
-QCoreApplication.translate('FieldPrettyNames', "Pattern")
-
-# Meters
-QCoreApplication.translate('FieldPrettyNames', "Is Active")
-
-# Demands
-QCoreApplication.translate('FieldPrettyNames', "Node Identifier")
-QCoreApplication.translate('FieldPrettyNames', "Category")
+QCoreApplication.translate('FieldPrettyNames', "Source Quality")
+QCoreApplication.translate('FieldPrettyNames', "Source Pattern")
 
 # Service Connections
 QCoreApplication.translate('FieldPrettyNames', "Reliability")
 
 # Isolation Valves
-QCoreApplication.translate('FieldPrettyNames', "Status")
 QCoreApplication.translate('FieldPrettyNames', "Available")
+
+# Options
+QCoreApplication.translate('FieldPrettyNames', "Specific Gravity")
+QCoreApplication.translate('FieldPrettyNames', "Viscosity")
+QCoreApplication.translate('FieldPrettyNames', "Demand Multiplier")
+QCoreApplication.translate('FieldPrettyNames', "Emitter Exponent")
+QCoreApplication.translate('FieldPrettyNames', "Minimum Pressure")
+QCoreApplication.translate('FieldPrettyNames', "Required Pressure")
+QCoreApplication.translate('FieldPrettyNames', "Pressure Exponent")
+QCoreApplication.translate('FieldPrettyNames', "Diffusivity")
+QCoreApplication.translate('FieldPrettyNames', "Global Bulk")
+QCoreApplication.translate('FieldPrettyNames', "Global Wall")
+QCoreApplication.translate('FieldPrettyNames', "Limiting Potential")
+QCoreApplication.translate('FieldPrettyNames', "Global Efficiency")
+QCoreApplication.translate('FieldPrettyNames', "Global Price")
+QCoreApplication.translate('FieldPrettyNames', "Demand Charge")
+
+# Result nodes
+QCoreApplication.translate('FieldPrettyNames', "Pressure")
+QCoreApplication.translate('FieldPrettyNames', "Head")
+QCoreApplication.translate('FieldPrettyNames', "Demand")
+QCoreApplication.translate('FieldPrettyNames', "Full demand")
+QCoreApplication.translate('FieldPrettyNames', "Demand Deficit")
+QCoreApplication.translate('FieldPrettyNames', "Leakage Flow")
+QCoreApplication.translate('FieldPrettyNames', "Emitter Flow")
+
+# Result links
+QCoreApplication.translate('FieldPrettyNames', "Flow")
+QCoreApplication.translate('FieldPrettyNames', "Velocity")
+QCoreApplication.translate('FieldPrettyNames', "HeadLoss")
+QCoreApplication.translate('FieldPrettyNames', "Unit HeadLoss")
+QCoreApplication.translate('FieldPrettyNames', "Friction factor")
+QCoreApplication.translate('FieldPrettyNames', "Energy")
+QCoreApplication.translate('FieldPrettyNames', "Reaction Rate")
+
+# Result nodes and links
+QCoreApplication.translate('FieldPrettyNames', "Element Type")
+QCoreApplication.translate('FieldPrettyNames', "Simulation Time")
+
+# Quality results (dynamic — also translated via getQualityDisplayName)
+QCoreApplication.translate('FieldPrettyNames', "Chemical")
+QCoreApplication.translate('FieldPrettyNames', "Trace")
 
 # Layer names shown in QGIS legend (Inputs group)
 QCoreApplication.translate('InputLayerNames', "Pipes")
