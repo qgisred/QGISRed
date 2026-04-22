@@ -195,25 +195,123 @@ effects there.
 
 ---
 
-## 7. `runTask` is no longer used for layer management
+## 7. Centralized DLL result handling — `processCsharpResult`
 
-`QGISRedLayerUtils.runTask(A, B)` runs `A()` synchronously then schedules `B()` via
-`QTimer.singleShot(0, B)`.  It was originally needed to give the event loop time to process
-layer removal and release OGR file handles before the next operation.
+Every DLL call returns a string. `processCsharpResult` in
+`sections/layer_management_section.py` is the single method that interprets that string
+and triggers the appropriate layer-opening flow.
 
-Since layers are never removed, the event loop delay is unnecessary.  All layer management
-methods call their process functions **directly**:
+### Return values and their meaning
 
-| Method | Before | After |
-|--------|--------|-------|
-| `runTree()` | `runTask(removeTreeLayers, runTreeProcess)` | `runTreeProcess()` |
-| `runIsolatedSegments()` | `runTask(removeIsolatedSegmentsLayers, runLoadIsolatedSegmentLayers)` | `runLoadIsolatedSegmentLayers()` |
-| `runDemandSectors()` | `runTask(removeSectorLayers, runOpenTemporaryFiles)` | `runOpenTemporaryFiles()` |
-| `runHydraulicSectors()` | `runTask(removeSectorLayers, runOpenTemporaryFiles)` | `runOpenTemporaryFiles()` |
+| Return value | Meaning |
+|---|---|
+| `"True"` | Operation succeeded; show optional success message. No layers to open. |
+| `"False"` | Silent no-op (caller may show a specific message before calling). |
+| `"Cancelled"` | User cancelled in the DLL dialog. No-op. |
+| `"commit"` | Network changed; reload all input layers. |
+| `"shps"` | New query/result shapefiles ready; open the appropriate layer group. |
+| `"commit/shps"` | Both of the above. |
+| anything else | Error message; displayed via `pushMessage(level=2)`. |
+
+### Signature
+
+```python
+def processCsharpResult(self, b, message, layerType="issues", onOpenLayers=None):
+```
+
+- `message` — shown via `pushMessage(level=3)` only when `b == "True"` and message is non-empty.
+- `layerType` — controls which flag is set when `b` is `"shps"` or `"commit/shps"`:
+  - `"issues"` (default) → `hasToOpenIssuesLayers = True`
+  - `"sectors"` → `hasToOpenSectorLayers = True`
+  - `"connectivity"` → `hasToOpenConnectivityLayers = True`
+- `onOpenLayers` — optional callback that replaces `runOpenTemporaryFiles()` as the
+  layer-opening step. Used by operations whose files land in a non-standard folder
+  (e.g. Tree and IsolatedSegments write to `Queries/`, not `projectDir`).
+
+### Flow
+
+```
+processCsharpResult(b, ...)
+  └─ sets hasToOpen* flags
+  └─ if any flag set:
+       layerOperationInProgress = True
+       onOpenLayers()  OR  runOpenTemporaryFiles()
+         ├─ GISRed.ReplaceTemporalFiles(projectDir, tempFolder)
+         ├─ move *_Issues.* → Issues/          [if hasToOpenIssuesLayers]
+         ├─ openElementLayers() + setExtent()  [if hasToOpenNewLayers]
+         ├─ openIssuesLayers()                 [if hasToOpenIssuesLayers]
+         ├─ openConnectivityLayer()            [if hasToOpenConnectivityLayers]
+         └─ move *Sectors.* → Queries/ + openSectorLayers()  [if hasToOpenSectorLayers]
+         └─ layerOperationInProgress = False
+     else:
+       layerOperationInProgress = False
+```
+
+### Operations that bypass `processCsharpResult` (by design)
+
+`IsolatedSegments` and `Tree` have an interactive point-selection state (`"Select"`)
+that must be handled before any result dispatch.  Their pattern is:
+
+```python
+if resMessage in ("False", "Cancelled"):
+    return
+if resMessage == "Select":
+    # activate map tool
+    return
+# For "shps" and errors, clean up tool state then:
+self.processCsharpResult(resMessage, "", onOpenLayers=self.runLoadIsolatedSegmentLayers)
+```
+
+`AnalysisOptions` pre-processes the `"True:units text"` response to extract the units
+label before normalising to `"commit"` and calling `processCsharpResult`.
 
 ---
 
-## 8. QLR mechanism — removed
+## 8. `layerOperationInProgress` flag
+
+`runLegendChanged` is connected to QGIS's `layerTreeRoot().layerOrderChanged` and
+`nameChanged` signals.  When any layer is added to the legend (even during an in-place
+reload that adds a layer for the first time), these signals fire and `runLegendChanged`
+would call `defineCurrentProject()` and `updateMetadata()` in the middle of the
+layer-opening operation.
+
+`layerOperationInProgress` guards against this:
+
+```python
+def runLegendChanged(self):
+    if self.isUnloading:
+        return
+    if not self.layerOperationInProgress:
+        self.defineCurrentProject()
+        ...
+        self.updateMetadata()
+```
+
+`processCsharpResult` sets it to `True` before opening layers and `runOpenTemporaryFiles`
+(or the custom `onOpenLayers` callback) resets it to `False` when done.
+When no layers need to be opened, `processCsharpResult` resets it to `False` immediately.
+
+`openRemoveSpecificLayers` (Layer Management dialog) also sets it to `True` before its
+own remove+reopen sequence.
+
+---
+
+## 9. `runTask` — where it is still used
+
+`QGISRedLayerUtils.runTask(A, B)` runs `A()` synchronously then schedules `B()` via
+`QTimer.singleShot(0, B)`.
+
+The DLL result flow (§7) no longer uses it — all open calls are direct.  It survives
+in two places:
+
+| Call site | A | B | Why kept |
+|-----------|---|---|---|
+| `openRemoveSpecificLayers` | `removeLayers` | `openSpecificLayers` | Layer Management dialog explicitly removes layers before reopening with a different CRS or set |
+| `openSpecificLayers` | `openSpecificLayersProcess` | `setExtent` | Defers extent zoom until after layers are rendered |
+
+---
+
+## 10. QLR mechanism — removed
 
 `saveProjectAsQLR()` / `loadProjectFromQLR()` saved all open QGISRed layers to `.qlr` files
 before a DLL operation, then restored them afterwards.  It was used to preserve layer styles
@@ -229,7 +327,7 @@ This mechanism was **removed** because:
 
 ---
 
-## 9. Adding a new DLL operation — checklist
+## 11. Adding a new DLL operation — checklist
 
 1. DLL writes output to `tempFolder` (third parameter), not directly to `projectDir`.
 2. Python copies files from `tempFolder` → final destination with `shutil.copy2()` + `os.remove()`.

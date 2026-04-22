@@ -548,19 +548,10 @@ class ProjectManagementSection:
         resMessage = GISRed.DefaultValues(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        # Message
-        if resMessage == "True":
-            self.hasToOpenNewLayers = False
-            self.hasToOpenIssuesLayers = False
-            self.savedExtent = self.iface.mapCanvas().extent()
-            self.removingLayers = True
-            QGISRedLayerUtils().runTask(self.removeDBFs, self.runOpenTemporaryFiles)
-        elif resMessage == "False":
+        if resMessage == "False":
             self.pushMessage(self.tr("Some issues occurred in the process"), level=1, duration=5)
-        elif resMessage == "Cancelled":
-            pass
-        else:
-            self.pushMessage(resMessage, level=2, duration=5)
+            return
+        self.processCsharpResult("commit" if resMessage == "True" else resMessage, "")
 
     def runMaterials(self):
         if not self.checkDependencies():
@@ -577,19 +568,10 @@ class ProjectManagementSection:
         resMessage = GISRed.Materials(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        # Message
-        if resMessage == "True":
-            self.hasToOpenNewLayers = False
-            self.hasToOpenIssuesLayers = False
-            self.savedExtent = self.iface.mapCanvas().extent()
-            self.removingLayers = True
-            QGISRedLayerUtils().runTask(self.removeDBFs, self.runOpenTemporaryFiles)
-        elif resMessage == "False":
+        if resMessage == "False":
             self.pushMessage(self.tr("Some issues occurred in the process"), level=1, duration=5)
-        elif resMessage == "Cancelled":
-            pass
-        else:
-            self.pushMessage(resMessage, level=2, duration=5)
+            return
+        self.processCsharpResult("commit" if resMessage == "True" else resMessage, "")
 
     def runSaveActionProject(self):
         self.defineCurrentProject()

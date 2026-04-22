@@ -237,8 +237,7 @@ class LifecycleSection:
         self.selectedFids = {}
 
         self.zoomToFullExtent = False
-        self.savedExtent = None
-        self.removingLayers = False
+        self.layerOperationInProgress = False
 
         self.setCulture()
         # QgsMessageLog.logMessage("Culture set to " + definedCulture, "QGISRed", level=0)

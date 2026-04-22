@@ -41,23 +41,15 @@ class AnalysisSection:
         resMessage = GISRed.AnalysisOptions(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        # Message
         if "True" in resMessage:
-            resMessage = resMessage.replace("True:", "")
-            self.unitsAction.setText("QGISRed: " + resMessage)
-            self.hasToOpenNewLayers = False
-            self.hasToOpenIssuesLayers = False
-            self.savedExtent = self.iface.mapCanvas().extent()
-            self.removingLayers = True
-            QGISRedLayerUtils().runTask(self.removeDBFs, self.runOpenTemporaryFiles)
+            self.unitsAction.setText("QGISRed: " + resMessage.replace("True:", ""))
+            self.processCsharpResult("commit", "")
         elif resMessage == "commit":
             self.processCsharpResult(resMessage, "Pipe's roughness converted")
         elif resMessage == "False":
             self.pushMessage(self.tr("Some issues occurred in the process"), level=1, duration=5)
-        elif resMessage == "Cancelled":
-            pass
         else:
-            self.pushMessage(resMessage, level=2, duration=5)
+            self.processCsharpResult(resMessage, "")
 
     def _outFilePath(self):
         scenario = getattr(self.ResultDockwidget, 'Scenario', 'Base') if self.ResultDockwidget else 'Base'

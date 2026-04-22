@@ -4,7 +4,6 @@
 from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtCore import Qt, QCoreApplication
 
-from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..ui.debug.qgisred_toolLength_dialog import QGISRedLengthToolDialog
 from ..ui.debug.qgisred_toolConnectivity_dialog import QGISRedConnectivityToolDialog
@@ -142,28 +141,7 @@ class DebugValidationSection:
         resMessage = GISRed.CheckConnectivity(self.ProjectDirectory, self.NetworkName, linesToDelete, step, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        # Action
-        self.hasToOpenNewLayers = False
-        self.hasToOpenIssuesLayers = False
-        self.hasToOpenConnectivityLayers = False
-        if resMessage == "True":
-            self.pushMessage(self.tr("Only one zone"), level=3, duration=5)
-        elif resMessage == "False":
-            pass
-        elif resMessage == "shps":
-            self.hasToOpenConnectivityLayers = True
-        elif resMessage == "commit/shps":
-            self.hasToOpenNewLayers = True
-            self.hasToOpenConnectivityLayers = True
-        else:
-            self.pushMessage(resMessage, level=2, duration=5)
-
-        self.removingLayers = True
-        self.savedExtent = self.iface.mapCanvas().extent()
-        if self.hasToOpenNewLayers and self.hasToOpenConnectivityLayers:
-            QGISRedLayerUtils().runTask(self.removeLayersAndConnectivity, self.runOpenTemporaryFiles)
-        elif self.hasToOpenConnectivityLayers:
-            QGISRedLayerUtils().runTask(self.removeLayersConnectivity, self.runOpenTemporaryFiles)
+        self.processCsharpResult(resMessage, "Only one zone", layerType="connectivity")
 
     def runCheckLengths(self):
         if not self.checkDependencies():
@@ -299,18 +277,4 @@ class DebugValidationSection:
         resMessage = GISRed.HydarulicSectors(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        # Action
-        self.hasToOpenNewLayers = False
-        self.hasToOpenIssuesLayers = False
-        self.hasToOpenSectorLayers = False
-        if resMessage == "False":
-            pass
-        elif resMessage == "shps":
-            self.hasToOpenSectorLayers = True
-        else:
-            self.pushMessage(resMessage, level=2, duration=5)
-
-        self.removingLayers = True
-        self.savedExtent = self.iface.mapCanvas().extent()
-        if self.hasToOpenSectorLayers:
-            self.runOpenTemporaryFiles()
+        self.processCsharpResult(resMessage, "", layerType="sectors")

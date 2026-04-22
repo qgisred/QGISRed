@@ -167,21 +167,7 @@ class ToolsSection:
         resMessage = GISRed.DemandSectors(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        # Action
-        self.hasToOpenNewLayers = False
-        self.hasToOpenIssuesLayers = False
-        self.hasToOpenSectorLayers = False
-        if resMessage == "False":
-            pass
-        elif resMessage == "shps":
-            self.hasToOpenSectorLayers = True
-        else:
-            self.pushMessage(resMessage, level=2, duration=5)
-
-        self.removingLayers = True
-        self.savedExtent = self.iface.mapCanvas().extent()
-        if self.hasToOpenSectorLayers:
-            self.runOpenTemporaryFiles()
+        self.processCsharpResult(resMessage, "", layerType="sectors")
 
     """Isolated Segments"""
 
@@ -211,24 +197,20 @@ class ToolsSection:
             resMessage = GISRed.IsolatedSegments(self.gisredDll, self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
             QApplication.restoreOverrideCursor()
 
-        if resMessage == "False" or resMessage == "Cancelled":
+        if resMessage in ("False", "Cancelled"):
             return
-        elif resMessage == "Select":
+        if resMessage == "Select":
             self.blockLayers(True)
             self.myMapTools[tool] = QGISRedSelectPointTool(self.isolatedSegmentsButton, self, self.runIsolatedSegments, SelectPointType.Line, cursor=":/images/iconIsolatedSegments.svg")
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
-        elif "shps" in resMessage:
+            return
+        if "shps" in resMessage:
             if tool in self.myMapTools.keys() and self.iface.mapCanvas().mapTool() is self.myMapTools[tool]:
                 self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
                 self.isolatedSegmentsButton.setChecked(False)
             self.gisredDll = None
-            self.blockLayers(False)
-            # self.treeName = resMessage.split("^")[1]
-            self.removingLayers = True
-            self.runLoadIsolatedSegmentLayers()
-        else:
-            self.blockLayers(False)
-            self.pushMessage(resMessage, level=2, duration=5)
+        self.blockLayers(False)
+        self.processCsharpResult(resMessage, "", onOpenLayers=self.runLoadIsolatedSegmentLayers)
 
     def runLoadIsolatedSegmentLayers(self):
         # Process
@@ -243,7 +225,7 @@ class ToolsSection:
         QApplication.restoreOverrideCursor()
 
         self.openIsolatedSegmentsLayers()
-        self.removingLayers = False
+        self.layerOperationInProgress = False
 
         # Message
         if resMessage == "True":
@@ -294,17 +276,15 @@ class ToolsSection:
         resMessage = GISRed.Tree(self.ProjectDirectory, self.NetworkName, self.tempFolder, point1)
         QApplication.restoreOverrideCursor()
 
-        # Action
-        if resMessage == "False" or resMessage == "Cancelled":
+        if resMessage in ("False", "Cancelled"):
             return
-        elif resMessage == "Select":
+        if resMessage == "Select":
             self.selectPointToTree()
-        elif "shps" in resMessage:
+            return
+        if "shps" in resMessage:
             self.treeName = resMessage.split("^")[1]
-            self.removingLayers = True
-            self.runTreeProcess()
-        else:
-            self.pushMessage(resMessage, level=2, duration=5)
+            resMessage = "shps"
+        self.processCsharpResult(resMessage, "", onOpenLayers=self.runTreeProcess)
 
     def runTreeProcess(self):
         # Process
@@ -319,7 +299,7 @@ class ToolsSection:
         QApplication.restoreOverrideCursor()
 
         self.openTreeLayers()
-        self.removingLayers = False
+        self.layerOperationInProgress = False
 
         # Message
         if resMessage == "True":

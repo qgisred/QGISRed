@@ -23,10 +23,6 @@ class LayerManagementSection:
         utils.removeLayers(self.ownFiles, ".dbf")
         utils.removeLayers(self.especificComplementaryLayers)
 
-    def removeDBFs(self):
-        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        utils.removeLayers(self.ownFiles, ".dbf")
-
     def removeIssuesLayers(self):
         issuesFolder = os.path.join(self.ProjectDirectory, "Issues")
         utils = QGISRedLayerUtils(issuesFolder, self.NetworkName, self.iface)
@@ -83,10 +79,9 @@ class LayerManagementSection:
 
     def openRemoveSpecificLayers(self, layers, epsg):
         self.especificComplementaryLayers = self.complementaryLayers
-        self.savedExtent = self.iface.mapCanvas().extent()
         self.specificEpsg = epsg
         self.specificLayers = layers
-        self.removingLayers = True
+        self.layerOperationInProgress = True
         QGISRedLayerUtils().runTask(self.removeLayers, self.openSpecificLayers)
 
     def openSpecificLayers(self):
@@ -105,7 +100,7 @@ class LayerManagementSection:
             inputGroup = self.getInputGroup()
             utils.openElementsLayers(inputGroup, self.specificLayers)
             self.updateMetadata()
-            self.removingLayers = False
+            self.layerOperationInProgress = False
 
     def openElementLayer(self, nameLayer):
         # Open layers
@@ -169,7 +164,7 @@ class LayerManagementSection:
         # Guard against calls during shutdown
         if self.isUnloading:
             return
-        if not self.removingLayers:
+        if not self.layerOperationInProgress:
             # Validations
             self.defineCurrentProject()
             if self.ProjectDirectory == self.TemporalFolder:
@@ -245,10 +240,12 @@ class LayerManagementSection:
 
     """Others"""
 
-    def processCsharpResult(self, b, message):
+    def processCsharpResult(self, b, message, layerType="issues", onOpenLayers=None):
         # Action
         self.hasToOpenNewLayers = False
         self.hasToOpenIssuesLayers = False
+        self.hasToOpenSectorLayers = False
+        self.hasToOpenConnectivityLayers = False
         if b == "True":
             if not message == "":
                 self.pushMessage(self.tr(message), level=3, duration=5)
@@ -257,19 +254,29 @@ class LayerManagementSection:
         elif b == "commit":
             self.hasToOpenNewLayers = True
         elif b == "shps":
-            self.hasToOpenIssuesLayers = True
+            if layerType == "sectors":
+                self.hasToOpenSectorLayers = True
+            elif layerType == "connectivity":
+                self.hasToOpenConnectivityLayers = True
+            else:
+                self.hasToOpenIssuesLayers = True
         elif b == "commit/shps":
             self.hasToOpenNewLayers = True
-            self.hasToOpenIssuesLayers = True
+            if layerType == "sectors":
+                self.hasToOpenSectorLayers = True
+            elif layerType == "connectivity":
+                self.hasToOpenConnectivityLayers = True
+            else:
+                self.hasToOpenIssuesLayers = True
         else:
             self.pushMessage(b, level=2, duration=5)
 
-        self.removingLayers = True
-        self.savedExtent = self.iface.mapCanvas().extent()
-        if self.hasToOpenNewLayers or self.hasToOpenIssuesLayers:
-            # All layer types stay open — files are overwritten in-place and each
-            # open*Layers() method reloads existing layers via reloadData().
-            self.runOpenTemporaryFiles()
+        if self.hasToOpenNewLayers or self.hasToOpenIssuesLayers or self.hasToOpenSectorLayers or self.hasToOpenConnectivityLayers:
+            self.layerOperationInProgress = True
+            openFn = onOpenLayers if onOpenLayers else self.runOpenTemporaryFiles
+            openFn()
+        else:
+            self.layerOperationInProgress = False
 
     def runOpenTemporaryFiles(self):
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
@@ -291,8 +298,8 @@ class LayerManagementSection:
         self.readOptions(self.ProjectDirectory, self.NetworkName)
 
         if self.hasToOpenNewLayers:
-            self.opendedLayers = False
-            QGISRedLayerUtils().runTask(self.openElementLayers, self.setExtent)
+            self.openElementLayers()
+            self.setExtent()
             self.openNewLayers = False
 
         if self.hasToOpenIssuesLayers:
@@ -318,7 +325,7 @@ class LayerManagementSection:
             self.hasToOpenSectorLayers = False
 
         QApplication.restoreOverrideCursor()
-        self.removingLayers = False
+        self.layerOperationInProgress = False
 
         if resMessage == "True":
             pass
