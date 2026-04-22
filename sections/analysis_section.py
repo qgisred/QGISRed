@@ -465,8 +465,6 @@ class AnalysisSection:
             else:
                 raw = [
                     dock.lbl_flow,
-                    getattr(dock, "lbl_signed_flow", None),
-                    getattr(dock, "lbl_unsigned_flow", None),
                     dock.lbl_velocity,
                     dock.lbl_headloss,
                     dock.lbl_unit_headloss,
