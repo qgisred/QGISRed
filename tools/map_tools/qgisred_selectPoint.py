@@ -149,7 +149,9 @@ class QGISRedSelectPointTool(QgsMapTool):
                 self.activate()
                 try:
                     sig = inspect.signature(self.method)
-                    if self.pass_modifiers and len(sig.parameters) >= 2:
+                    if self.pass_modifiers and len(sig.parameters) >= 3:
+                        self.method(point, event.modifiers(), event.button())
+                    elif self.pass_modifiers and len(sig.parameters) >= 2:
                         self.method(point, event.modifiers())
                     else:
                         self.method(point)
@@ -174,6 +176,30 @@ class QGISRedSelectPointTool(QgsMapTool):
                     self.activate()
                     # self.resetProperties()
             else:
+                # For tools that opted-in to receive modifiers, allow right-click callbacks too
+                # (e.g. Time Series uses right-click to pick a magnitude).
+                if self.pass_modifiers:
+                    if self.objectSnapped is None:
+                        QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("A not valid point was selected"), level=1, duration=5)
+                        return
+                    point = self.objectSnapped.point()
+                    self.deactivate()
+                    self.activate()
+                    try:
+                        sig = inspect.signature(self.method)
+                        if len(sig.parameters) >= 3:
+                            self.method(point, event.modifiers(), event.button())
+                        elif len(sig.parameters) >= 2:
+                            self.method(point, event.modifiers())
+                        else:
+                            self.method(point)
+                    except Exception:
+                        try:
+                            self.method(point)
+                        except Exception:
+                            return
+                    return
+
                 self.canvas.unsetMapTool(self)
                 self.deactivate()
                 return

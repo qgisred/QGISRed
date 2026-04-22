@@ -436,8 +436,8 @@ class AnalysisSection:
             width = 7 if is_last else 5
             self._setTimeSeriesHighlight(layer, feat, color=color, width=width)
 
-    def timeSeriesCallback(self, point, modifiers=None):
-        self.updateTimeSeriesPlot(point, modifiers)
+    def timeSeriesCallback(self, point, modifiers=None, mouse_button=None):
+        self.updateTimeSeriesPlot(point, modifiers, mouse_button)
 
     def _timeSeriesIsAdditive(self, modifiers):
         try:
@@ -451,7 +451,68 @@ class AnalysisSection:
         self.timeSeriesSelection = []
         self._timeSeriesSelectionKey = None
 
-    def updateTimeSeriesPlot(self, point, modifiers=None):
+    def _timeSeriesMagnitudeChoices(self, category, dock):
+        """
+        Returns a list of display labels for magnitudes, depending on whether the
+        clicked element is a Node or a Link. Labels are taken from Results dock
+        to stay consistent with combobox text and internal mappings.
+        """
+        if dock is None:
+            return []
+        try:
+            if category == "Node":
+                raw = [dock.lbl_pressure, dock.lbl_head, dock.lbl_demand, dock.lbl_quality]
+            else:
+                raw = [
+                    dock.lbl_flow,
+                    getattr(dock, "lbl_signed_flow", None),
+                    getattr(dock, "lbl_unsigned_flow", None),
+                    dock.lbl_velocity,
+                    dock.lbl_headloss,
+                    dock.lbl_unit_headloss,
+                    dock.lbl_friction_factor,
+                    dock.lbl_status,
+                    dock.lbl_reaction_rate,
+                    dock.lbl_quality,
+                ]
+        except Exception:
+            return []
+        out = []
+        for v in raw:
+            if not v:
+                continue
+            s = str(v).strip()
+            if not s or s in out:
+                continue
+            out.append(s)
+        return out
+
+    def _timeSeriesPickMagnitudeFromMenu(self, category, dock):
+        try:
+            from qgis.PyQt.QtWidgets import QMenu
+            from qgis.PyQt.QtGui import QCursor
+        except Exception:
+            return None
+
+        choices = self._timeSeriesMagnitudeChoices(category, dock)
+        if not choices:
+            return None
+
+        menu = QMenu()
+        menu.setTitle(self.tr("Magnitud"))
+        actions = []
+        for label in choices:
+            actions.append(menu.addAction(label))
+
+        selected = menu.exec_(QCursor.pos())
+        if selected is None:
+            return None
+        try:
+            return str(selected.text())
+        except Exception:
+            return None
+
+    def updateTimeSeriesPlot(self, point, modifiers=None, mouse_button=None):
         if not hasattr(self, 'timeSeriesDock') or self.timeSeriesDock is None:
             return
         try:
@@ -532,12 +593,30 @@ class AnalysisSection:
         except Exception:
             dock = None
 
+        is_right_click = False
+        try:
+            is_right_click = (mouse_button == Qt.MouseButton.RightButton)
+        except Exception:
+            is_right_click = False
+
         if category == "Node":
-            prop_display = dock.cbNodes.currentText() if dock else self.tr("Pressure")
+            if is_right_click:
+                picked = self._timeSeriesPickMagnitudeFromMenu(category, dock)
+                if not picked:
+                    return
+                prop_display = picked
+            else:
+                prop_display = dock.cbNodes.currentText() if dock else self.tr("Pressure")
             node_map = {dock.lbl_pressure: "Pressure", dock.lbl_head: "Head", dock.lbl_demand: "Demand", dock.lbl_quality: "Quality"} if dock else {}
             prop_internal = node_map.get(prop_display, "Pressure")
         else:
-            prop_display = dock.cbLinks.currentText() if dock else self.tr("Flow")
+            if is_right_click:
+                picked = self._timeSeriesPickMagnitudeFromMenu(category, dock)
+                if not picked:
+                    return
+                prop_display = picked
+            else:
+                prop_display = dock.cbLinks.currentText() if dock else self.tr("Flow")
             link_map = {dock.lbl_flow: "Flow", dock.lbl_velocity: "Velocity", dock.lbl_headloss: "HeadLoss", dock.lbl_unit_headloss: "UnitHdLoss", dock.lbl_friction_factor: "FricFactor", dock.lbl_status: "Status", dock.lbl_reaction_rate: "ReactRate", dock.lbl_quality: "Quality", dock.lbl_signed_flow: "Flow", dock.lbl_unsigned_flow: "Flow"} if dock else {}
             prop_internal = link_map.get(prop_display, "Flow")
             if prop_internal == "Status":
