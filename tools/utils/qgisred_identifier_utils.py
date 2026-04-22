@@ -39,27 +39,27 @@ class QGISRedIdentifierUtils:
         }
 
         self.identifierToLegendName = {
-            'qgisred_pipes': self.tr('Pipes'),
-            'qgisred_junctions': self.tr('Junctions'),
-            'qgisred_demands': self.tr('Multiple Demands'),
-            'qgisred_reservoirs': self.tr('Reservoirs'),
-            'qgisred_tanks': self.tr('Tanks'),
-            'qgisred_pumps': self.tr('Pumps'),
-            'qgisred_valves': self.tr('Valves'),
-            'qgisred_sources': self.tr('Sources'),
-            'qgisred_serviceconnections': self.tr('Service Connections'),
-            'qgisred_isolationvalves': self.tr('Isolation Valves'),
-            'qgisred_meters': self.tr('Meters'),
-            'qgisred_links_connectivity': self.tr('Links Connectivity'),
-            'qgisred_links_hydraulicsectors': self.tr('Links HS'),
-            'qgisred_nodes_hydraulicsectors': self.tr('Nodes HS'),
-            'qgisred_isolateddemands_hydraulicsectors': self.tr('Isolated Demands HS'),
-            'qgisred_links_demandsectors': self.tr('Links DS'),
-            'qgisred_nodes_demandsectors': self.tr('Nodes DS'),
-            'qgisred_isolatedsegments_links': self.tr('Links IS'),
-            'qgisred_isolatedsegments_nodes': self.tr('Nodes IS'),
-            'qgisred_tree_links': self.tr('Links T'),
-            'qgisred_tree_nodes': self.tr('Nodes T'),
+            'qgisred_pipes': 'Pipes',
+            'qgisred_junctions': 'Junctions',
+            'qgisred_demands': 'Multiple Demands',
+            'qgisred_reservoirs': 'Reservoirs',
+            'qgisred_tanks': 'Tanks',
+            'qgisred_pumps': 'Pumps',
+            'qgisred_valves': 'Valves',
+            'qgisred_sources': 'Sources',
+            'qgisred_serviceconnections': 'Service Connections',
+            'qgisred_isolationvalves': 'Isolation Valves',
+            'qgisred_meters': 'Meters',
+            'qgisred_links_connectivity': 'Links Connectivity',
+            'qgisred_links_hydraulicsectors': 'Links HS',
+            'qgisred_nodes_hydraulicsectors': 'Nodes HS',
+            'qgisred_isolateddemands_hydraulicsectors': 'Isolated Demands HS',
+            'qgisred_links_demandsectors': 'Links DS',
+            'qgisred_nodes_demandsectors': 'Nodes DS',
+            'qgisred_isolatedsegments_links': 'Links IS',
+            'qgisred_isolatedsegments_nodes': 'Nodes IS',
+            'qgisred_tree_links': 'Links T',
+            'qgisred_tree_nodes': 'Nodes T',
         }
 
     def tr(self, message):
@@ -159,7 +159,10 @@ class QGISRedIdentifierUtils:
 
     def getTranslatedNameForIdentifier(self, identifier):
         """Returns the translated legend name for a qgisred_identifier, or None if unknown."""
-        return self.identifierToLegendName.get(identifier)
+        source = self.identifierToLegendName.get(identifier)
+        if source is None:
+            return None
+        return self.tr(source)
 
     """Thematic Maps"""
     def isThematicMapsLayer(self, layer):
