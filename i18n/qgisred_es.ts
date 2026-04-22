@@ -114,22 +114,22 @@
         <translation>Caudal</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="456"/>
-        <source>Magnitud</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../sections/analysis_section.py" line="794"/>
         <source>Value</source>
         <translation>Valor</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="456"/>
+        <source>Magnitude</source>
+        <translation>Magnitud</translation>
     </message>
 </context>
 <context>
     <name>DebugValidationSection</name>
     <message>
-        <location filename="../sections/debug_validation_section.py" line="150"/>
+        <location filename="../sections/debug_validation_section.py" line="144"/>
         <source>Only one zone</source>
-        <translation type="obsolete">Solo una zona</translation>
+        <translation>Solo una zona</translation>
     </message>
     <message>
         <location filename="../sections/debug_validation_section.py" line="169"/>
@@ -1070,6 +1070,21 @@
         <location filename="../tools/qgisred_translatable_strings.py" line="103"/>
         <source>%1 I</source>
         <translation>%1 I</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="105"/>
+        <source>Pipe Diameters</source>
+        <translation>Diámetros de Tubería</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="106"/>
+        <source>Pipe Lengths</source>
+        <translation>Longitudes de Tubería</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="107"/>
+        <source>Pipe Materials</source>
+        <translation>Materiales de Tubería</translation>
     </message>
 </context>
 <context>

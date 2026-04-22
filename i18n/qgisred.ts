@@ -109,13 +109,13 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="456"/>
-        <source>Magnitud</source>
+        <location filename="../sections/analysis_section.py" line="794"/>
+        <source>Value</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="794"/>
-        <source>Value</source>
+        <location filename="../sections/analysis_section.py" line="456"/>
+        <source>Magnitude</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -169,6 +169,11 @@
     <message>
         <location filename="../sections/debug_validation_section.py" line="190"/>
         <source>No issues on diameter checking</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/debug_validation_section.py" line="144"/>
+        <source>Only one zone</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1059,6 +1064,21 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="103"/>
         <source>%1 I</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="105"/>
+        <source>Pipe Diameters</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="106"/>
+        <source>Pipe Lengths</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="107"/>
+        <source>Pipe Materials</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

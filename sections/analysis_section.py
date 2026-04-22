@@ -453,7 +453,7 @@ class AnalysisSection:
             return None
 
         menu = QMenu()
-        menu.setTitle(self.tr("Magnitud"))
+        menu.setTitle(self.tr("Magnitude"))
         actions = []
         for label in choices:
             actions.append(menu.addAction(label))

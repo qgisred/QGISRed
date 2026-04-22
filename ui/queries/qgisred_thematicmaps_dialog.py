@@ -8,7 +8,7 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QDialog, QMessageBox, QWidget
 from ...compat import sip, NODE_TYPE_LAYER, NODE_TYPE_GROUP
 from qgis.PyQt import uic
-from qgis.PyQt.QtCore import QVariant
+from qgis.PyQt.QtCore import QVariant, QCoreApplication
 
 # QGIS imports
 from qgis.core import QgsLayerTreeGroup, QgsLayerTreeLayer, QgsLayerTreeNode, QgsProject
@@ -245,7 +245,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         return None
     
     def processQuery(self, query, mainLayer, queriesGroup):
-        layerName = query['layer_name']
+        layerName = QCoreApplication.translate('InputLayerNames', query['layer_name'])
         field = query['field']
         qmlFile = query['qml_file']
         tooltipPrefix = query['tooltip_prefix']

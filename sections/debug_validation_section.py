@@ -141,7 +141,7 @@ class DebugValidationSection:
         resMessage = GISRed.CheckConnectivity(self.ProjectDirectory, self.NetworkName, linesToDelete, step, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(resMessage, "Only one zone", layerType="connectivity")
+        self.processCsharpResult(resMessage, self.tr("Only one zone"), layerType="connectivity")
 
     def runCheckLengths(self):
         if not self.checkDependencies():
