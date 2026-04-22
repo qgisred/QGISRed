@@ -157,6 +157,7 @@ class LayerManagementSection:
             utils.openLayer(sectorGroup, "Nodes_" + self.Sectors, sectors=True)
             if self.Sectors == "HydraulicSectors":
                 utils.openLayer(sectorGroup, "IsolatedDemands_HydraulicSectors", sectors=True)
+                utils.removeEmptyLayersInGroup(sectorGroup, exceptions=[])
 
     """Groups"""
 
