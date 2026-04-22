@@ -825,6 +825,8 @@ class AnalysisSection:
                 prop_display = self.ResultDockwidget.cbLinks.currentText()
                 mapping = {
                     self.ResultDockwidget.lbl_flow: "Flow",
+                    self.ResultDockwidget.lbl_signed_flow: "Flow",
+                    self.ResultDockwidget.lbl_unsigned_flow: "Flow",
                     self.ResultDockwidget.lbl_velocity: "Velocity",
                     self.ResultDockwidget.lbl_headloss: "HeadLoss",
                     self.ResultDockwidget.lbl_unit_headloss: "UnitHdLoss",
