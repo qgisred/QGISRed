@@ -365,12 +365,10 @@ class QGISRedLayerUtils:
             # If the layer is already open, reload its data in-place (no duplicate added)
             if self._tryReloadExistingLayer(layerPath):
                 if sectors:
-                    # Categorized sector style depends on unique field values — must be
-                    # rebuilt after every reload since the DLL may produce new categories.
                     existingLayer = self._findLayerByPath(layerPath)
                     if existingLayer is not None:
-                        if "IsolatedDemands" in originalName:
-                            styling.setIsolatedDemandsStyle(existingLayer)
+                        if "HydraulicSectors" in originalName:
+                            styling.setHydraulicSectorStyle(existingLayer, originalName.replace("_", ""))
                         else:
                             styling.setSectorsStyle(existingLayer)
                 return
@@ -379,8 +377,8 @@ class QGISRedLayerUtils:
                 if results:
                     styling.setResultStyle(vlayer, originalName)
                 elif sectors:
-                    if "IsolatedDemands" in originalName:
-                        styling.setIsolatedDemandsStyle(vlayer)
+                    if "HydraulicSectors" in originalName:
+                        styling.setHydraulicSectorStyle(vlayer, originalName.replace("_", ""))
                     else:
                         styling.setSectorsStyle(vlayer)
                 elif issues:
