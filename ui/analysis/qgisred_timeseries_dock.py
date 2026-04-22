@@ -378,7 +378,10 @@ class TimeSeriesPlotWidget(QWidget):
             plot_rect.height(),
             painter.fontMetrics().height() + 6,
             min_ticks=2,
-            max_ticks=10,
+            # Allow more ticks when there's more vertical space available.
+            # The tick density is still bounded by estimate_max_ticks() using font metrics,
+            # so increasing this cap will only add ticks when labels won't overlap.
+            max_ticks=30,
         )
         y_scale = compute_nice_scale(min_y, max_y, max_ticks_y)
         return {
@@ -410,7 +413,8 @@ class TimeSeriesPlotWidget(QWidget):
             plot_rect.height(),
             painter.fontMetrics().height() + 6,
             min_ticks=2,
-            max_ticks=10,
+            # Allow more ticks when there's more vertical space available.
+            max_ticks=30,
         )
         y_scale = compute_nice_scale(min_y, max_y, max_ticks_y)
         return {
@@ -913,7 +917,7 @@ class TimeSeriesPlotWidget(QWidget):
                 tick_labels = [y_cat_left[i] for i in tick_values]
             else:
                 plot_h_est = h - (self.margin_top + 10) - self.margin_bottom
-                max_ticks_y = estimate_max_ticks(plot_h_est, fm.height() + 6, min_ticks=2, max_ticks=10)
+                max_ticks_y = estimate_max_ticks(plot_h_est, fm.height() + 6, min_ticks=2, max_ticks=30)
                 scale = compute_nice_scale(min_y, max_y, max_ticks_y)
                 tick_values = scale.ticks()
                 tick_labels = [format_number_tick(v, scale.step) for v in tick_values]
@@ -936,7 +940,7 @@ class TimeSeriesPlotWidget(QWidget):
             else:
                 min_yr, max_yr = min(all_y_right), max(all_y_right)
                 plot_h_est = h - (self.margin_top + 10) - self.margin_bottom
-                max_ticks_y = estimate_max_ticks(plot_h_est, fm.height() + 6, min_ticks=2, max_ticks=10)
+                max_ticks_y = estimate_max_ticks(plot_h_est, fm.height() + 6, min_ticks=2, max_ticks=30)
                 scale = compute_nice_scale(min_yr, max_yr, max_ticks_y)
                 tick_values = scale.ticks()
                 tick_labels = [format_number_tick(v, scale.step) for v in tick_values]
