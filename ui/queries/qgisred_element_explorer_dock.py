@@ -1132,7 +1132,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             if fieldName in skipFields:
                 continue
 
-            prettyName = self.tr(utils.getFieldPrettyName(layerIdentifier, fieldName))
+            prettyName = utils.getFieldPrettyName(layerIdentifier, fieldName)
             rawValue = attributes[field_idx]
             displayValue = self.formatFieldValue(rawValue, layerIdentifier, fieldName, utils)
 
@@ -1190,7 +1190,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 fieldName = field.name()
                 if fieldName in skipFields:
                     continue
-                prettyName = self.tr(utils.getFieldPrettyName(layerIdentifier, fieldName))
+                prettyName = utils.getFieldPrettyName(layerIdentifier, fieldName)
                 if multiple:
                     prettyName = f"{prettyName} {idx}"
                 displayValue = self.formatFieldValue(attributes[fieldIndex], layerIdentifier, fieldName, utils)
@@ -1210,7 +1210,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             fieldName = field.name()
             if fieldName in skipFields:
                 continue
-            prettyName = self.tr(utils.getFieldPrettyName(layerIdentifier, fieldName))
+            prettyName = utils.getFieldPrettyName(layerIdentifier, fieldName)
             displayValue = self.formatFieldValue(attributes[fieldIndex], layerIdentifier, fieldName, utils)
             fieldUnit = utils.getFieldUnit(layerIdentifier, fieldName)
             unitDisplay = fieldUnit if fieldUnit and fieldUnit != "-" else ""
@@ -2478,7 +2478,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 value = matchedFeature.attribute(fieldName)
 
                 # Property name
-                prettyName = self.tr(utils.getFieldPrettyName(elementCategory, fieldName))
+                prettyName = utils.getFieldPrettyName(elementCategory, fieldName)
                 propertyItem = QTableWidgetItem(prettyName)
                 propertyItem.setToolTip(prettyName)
 

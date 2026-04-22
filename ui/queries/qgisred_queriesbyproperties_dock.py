@@ -634,7 +634,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
 
         def addResultPropToCombo(combo, prop, brush=None):
             rawProp = "Flow" if prop == "Flow_Unsig" else prop
-            prettyName = self.tr(fieldUtils.getFieldPrettyName(resultCategory, rawProp))
+            prettyName = fieldUtils.getFieldPrettyName(resultCategory, rawProp)
             combo.addItem(prettyName)
             idx = combo.count() - 1
             combo.setItemData(idx, prop, Qt.ItemDataRole.UserRole)
@@ -642,7 +642,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 combo.setItemData(idx, brush, Qt.BackgroundRole)
 
         def addFieldToCombo(combo, fieldName, brush=None):
-            prettyName = self.tr(fieldUtils.getFieldPrettyName(qrIdent, fieldName))
+            prettyName = fieldUtils.getFieldPrettyName(qrIdent, fieldName)
             combo.addItem(prettyName)
             idx = combo.count() - 1
             combo.setItemData(idx, fieldName, Qt.ItemDataRole.UserRole)
@@ -1039,7 +1039,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
 
             # Criteria text cell
             rawProp = "Flow" if crit['property'] == "Flow_Unsig" else crit['property']
-            displayProp = self.tr(fieldUtils.getFieldPrettyName(qrIdent, rawProp))
+            displayProp = fieldUtils.getFieldPrettyName(qrIdent, rawProp)
             critText = f"{displayProp} {crit['condition']} {crit['value']}"
             critItem = QTableWidgetItem(critText)
             critItem.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled)
