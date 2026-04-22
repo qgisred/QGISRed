@@ -427,10 +427,10 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                     layer = child.layer()
                     if layer:
                         identifier = layer.customProperty("qgisred_identifier")
-                        if identifier:
+                        if identifier and identifier.startswith("qgisred_query_"):
                             identifiers.add(identifier)
                 elif isinstance(child, QgsLayerTreeGroup):
-                    recursiveCollect(child)  # FIXED: Pass 'child' instead of 'g'
+                    recursiveCollect(child)
         recursiveCollect(group)
         return identifiers
 
