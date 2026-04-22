@@ -20,23 +20,15 @@ from ..ui.analysis.qgisred_results_data import export_results_to_csv, get_region
 
 
 class AnalysisSection:
-    """Analysis options, model simulation, results dock, time series, export to INP.
-
-    Note: runModel connects self.ResultDockwidget.visibilityChanged to self.activeInputGroup,
-    which is defined in LayerManagementSection.
-    """
-
     def runAnalysisOptions(self):
         if not self.checkDependencies():
             return
-        # Validations
         self.defineCurrentProject()
         if not self.isValidProject():
             return
         if self.isLayerOnEdition():
             return
 
-        # Process
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.AnalysisOptions(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
@@ -60,28 +52,19 @@ class AnalysisSection:
             self.readOptions()
             self.ResultDockwidget = QGISRedResultsDock(self.iface)
             self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.ResultDockwidget)
-            # activeInputGroup is defined in LayerManagementSection
             self.ResultDockwidget.visibilityChanged.connect(self.activeInputGroup)
             self.ResultDockwidget.simulationFinished.connect(self.refreshTimeSeries)
             self.ResultDockwidget.resultPropertyChanged.connect(self.refreshTimeSeries)
 
     def _ensureResultsDockVisibleForTimeSeries(self):
-        """
-        Ensure the simulation results dock is visible whenever the Time Series dock is opened.
-        Time Series may rely on an existing .out file even if the results dock wasn't opened yet.
-        """
         self._initResultsDock()
         try:
             self.defineCurrentProject()
         except Exception:
-            # If project context can't be determined, do nothing.
             return
 
         if not self.isValidProject():
             return
-
-        # If the dock hasn't loaded a report yet, try to load existing results
-        # (Time Series already validated that results exist).
         try:
             has_loaded = bool(getattr(self.ResultDockwidget, "outPath", "")) and bool(self.ResultDockwidget.TimeLabels)
         except Exception:
@@ -93,7 +76,6 @@ class AnalysisSection:
                 try:
                     self.ResultDockwidget.loadExistingResults(self.ProjectDirectory, self.NetworkName)
                 except Exception:
-                    # Fall back to just showing the dock; Time Series can still render from .out
                     pass
 
         try:
@@ -105,7 +87,6 @@ class AnalysisSection:
     def runModel(self):
         if not self.checkDependencies():
             return
-        # Validations
         self.defineCurrentProject()
         if not self.isValidProject():
             return
@@ -119,7 +100,6 @@ class AnalysisSection:
     def runShowResultsDock(self):
         if not self.checkDependencies():
             return
-        # Validations
         self.defineCurrentProject()
         if not self.isValidProject():
             return
@@ -140,7 +120,6 @@ class AnalysisSection:
     def runOpenStatusReport(self):
         if not self.checkDependencies():
             return
-        # Validations
         self.defineCurrentProject()
         if not self.isValidProject():
             return
@@ -163,19 +142,16 @@ class AnalysisSection:
     def runExportInp(self):
         if not self.checkDependencies():
             return
-        # Validations
         self.defineCurrentProject()
         if not self.isValidProject():
             return
         if self.isLayerOnEdition():
             return
 
-        # Process
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.ExportToInp(self.ProjectDirectory, self.NetworkName)
         QApplication.restoreOverrideCursor()
 
-        # Message
         if resMessage == "True":
             self.pushMessage(self.tr("INP file successfully exported"), level=3, duration=5)
         elif resMessage == "False":
@@ -222,7 +198,6 @@ class AnalysisSection:
 
     def runTimeSeries(self):
         if self.timeSeriesButton.isChecked():
-            # 1. Basic Validations
             self.defineCurrentProject()
             if not self.isValidProject() or self.isLayerOnEdition():
                 self.pushMessage(
@@ -232,7 +207,6 @@ class AnalysisSection:
                 self.timeSeriesButton.setChecked(False)
                 return
 
-            # 2. Results Validation
             results_ready = False
             if self.ResultDockwidget:
                 out_path = getattr(self.ResultDockwidget, 'outPath', '')
@@ -249,7 +223,6 @@ class AnalysisSection:
                 self.timeSeriesButton.setChecked(False)
                 return
 
-            # Keep results dock open whenever Time Series is open
             self._ensureResultsDockVisibleForTimeSeries()
 
             self.runTimeSeriesSelectPointTool()
@@ -337,7 +310,6 @@ class AnalysisSection:
         selection = getattr(self, "timeSeriesSelection", [])
         if not selection:
             return
-        # Restaurar selección en las capas QGIS
         fids_by_layer = {}
         for it in selection:
             layer = it.get("layer")
@@ -353,13 +325,10 @@ class AnalysisSection:
                 layer.selectByIds(fids)
             except Exception:
                 pass
-        # Restaurar highlights en el mapa
         self._syncTimeSeriesHighlights()
-        # Restaurar el gráfico
         self._renderTimeSeriesSelection()
 
     def _clearTimeSeriesHighlight(self):
-        # Clear all stored highlights for Time Series selections
         highlights = getattr(self, "timeSeriesHighlights", None)
         if isinstance(highlights, dict):
             for _k, h in list(highlights.items()):
@@ -444,11 +413,6 @@ class AnalysisSection:
         self._timeSeriesSelectionKey = None
 
     def _timeSeriesMagnitudeChoices(self, category, dock):
-        """
-        Returns a list of display labels for magnitudes, depending on whether the
-        clicked element is a Node or a Link. Labels are taken from Results dock
-        to stay consistent with combobox text and internal mappings.
-        """
         if dock is None:
             return []
         try:
@@ -524,16 +488,14 @@ class AnalysisSection:
         rect = QgsRectangle(point.x() - tolerance, point.y() - tolerance, point.x() + tolerance, point.y() + tolerance)
 
         found_feature = None
-        category = "" # "Node" or "Link"
+        category = ""
 
-        # Priority layers by their QGISRed identifier
         layers_to_check = [
             ("qgisred_junctions", "Node"), ("qgisred_tanks", "Node"), ("qgisred_reservoirs", "Node"),
             ("qgisred_pipes", "Link"), ("qgisred_valves", "Link"), ("qgisred_pumps", "Link")
         ]
 
         for identifier, cat in layers_to_check:
-            # Find layer by identifier
             layer = None
             for l in QGISRedLayerUtils().getLayers():
                 if l.customProperty("qgisred_identifier") == identifier:
@@ -674,7 +636,6 @@ class AnalysisSection:
                 self._timeSeriesResetSelection()
                 self._clearTimeSeriesMapSelection()
                 self._clearTimeSeriesHighlight()
-                # Clear plot
                 try:
                     self.timeSeriesDock.updatePlotSeries([], "", "", "")
                 except Exception:
@@ -717,10 +678,6 @@ class AnalysisSection:
         self._renderTimeSeriesSelection()
 
     def _getCurrentTimeSeriesKey(self, category, layer):
-        """
-        Legacy helper retained to keep older call sites safe.
-        New multi-magnitude mode stores magnitude per-series in self.timeSeriesSelection.
-        """
         prop_internal = ""
         prop_display = ""
         is_stepped = False
@@ -834,7 +791,6 @@ class AnalysisSection:
             return
 
         translated_time = self.tr("Time")
-        # No chart title (user requested removing it); magnitudes appear in legend groups.
         self.timeSeriesDock.updatePlotSeries(series, "", f"{translated_time} (h)", self.tr("Value"))
 
     def _onTimeSeriesSeriesReordered(self, order_keys):
@@ -874,7 +830,6 @@ class AnalysisSection:
             return
         element_id = str(found_feature.attribute("ID"))
 
-        # Get current magnitude from resultsDock
         prop_internal = ""
         prop_display = ""
         is_stepped = False
@@ -882,7 +837,6 @@ class AnalysisSection:
         if hasattr(self, 'ResultDockwidget') and self.ResultDockwidget:
             if category == "Node":
                 prop_display = self.ResultDockwidget.cbNodes.currentText()
-                # Map display name to internal
                 mapping = {
                     self.ResultDockwidget.lbl_pressure: "Pressure",
                     self.ResultDockwidget.lbl_head: "Head",
@@ -926,7 +880,6 @@ class AnalysisSection:
         if not y_data:
             return
 
-        # Simple time series (hours)
         with open(out_path, 'rb') as f:
             meta = getOut_Metadata(f)
             report_start = meta["report_start"]
@@ -937,7 +890,6 @@ class AnalysisSection:
         element_label = f"{category} {element_id}"
         title = f"{element_label}: {prop_display}"
 
-        # Refine title with specific type from layer if possible
         if layer:
             identifier = layer.customProperty("qgisred_identifier")
             type_mapping = {
@@ -956,7 +908,6 @@ class AnalysisSection:
         y_label_with_unit = prop_display
         if prop_internal == "Status":
             is_stepped = True
-            # Map category strings to numbers: Closed -> 0, Active -> 1, Open -> 2
             mapped_data = []
             for status in y_data:
                 status_upper = str(status).upper()
@@ -967,7 +918,7 @@ class AnalysisSection:
                 elif "OPEN" in status_upper:
                     mapped_data.append(2)
                 else:
-                    mapped_data.append(0) # Default to closed if unknown
+                    mapped_data.append(0)
             y_data = mapped_data
             y_categorical_labels = [self.tr("Closed"), self.tr("Active"), self.tr("Open")]
         else:
