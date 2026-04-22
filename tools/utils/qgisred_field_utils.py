@@ -216,9 +216,11 @@ class QGISRedFieldUtils:
 
         if category and category in prettyNames:
             if fieldName in prettyNames[category]:
-                return prettyNames[category][fieldName]
+                prop = prettyNames[category][fieldName]
+                return QCoreApplication.translate("FieldPrettyNames", prop)
 
-        return prettyNames.get("Common", {}).get(fieldName, fieldName)
+        prop = prettyNames.get("Common", {}).get(fieldName, fieldName)
+        return QCoreApplication.translate("FieldPrettyNames", prop)
 
     def getFieldRawName(self, elementCategory, prettyName):
         """Get the raw field name from a pretty display name."""
