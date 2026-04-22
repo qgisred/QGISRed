@@ -355,9 +355,15 @@ class QGISRedLayerUtils:
     def openLayer(self, group, name, ext=".shp", results=False, toEnd=False, sectors=False, issues=False):
         styling = self._styling()
         identifiers = self._identifiers()
-        showName = self.getLayerNameToLegend(name)
-        showName = self.tr(showName)
         name = name.replace(" ", "")
+        identifier = f"qgisred_{name.lower()}"
+        if issues:
+            baseName = name.replace("_Issues", "")
+            baseIdentifier = f"qgisred_{baseName.lower()}"
+            translatedBase = identifiers.getTranslatedNameForIdentifier(baseIdentifier) or self.tr(self.getLayerNameToLegend(baseName))
+            showName = self.tr("%1 I").replace("%1", translatedBase)
+        else:
+            showName = identifiers.getTranslatedNameForIdentifier(identifier) or self.tr(self.getLayerNameToLegend(name))
         originalName = identifiers.getOriginalNameFromLayerName(name)
         layerName = self.NetworkName + "_" + originalName
         layerPath = os.path.join(self.ProjectDirectory, layerName + ext)
@@ -381,6 +387,8 @@ class QGISRedLayerUtils:
                         styling.setHydraulicSectorStyle(vlayer, originalName.replace("_", ""))
                     else:
                         styling.setSectorsStyle(vlayer)
+                elif "IsolatedSegments" in originalName:
+                    styling.setIsolatedSegmentsStyle(vlayer)
                 elif issues:
                     pass
                 else:
@@ -399,31 +407,19 @@ class QGISRedLayerUtils:
 
     def openTreeLayer(self, group, name, treeName, link=False):
         identifiers = self._identifiers()
+        identifierKey = "Tree_Links" if link else "Tree_Nodes"
+        identifier = f"qgisred_{identifierKey.lower()}"
+        showName = identifiers.getTranslatedNameForIdentifier(identifier) or self.tr(name)
         originalName = identifiers.getOriginalNameFromLayerName(name)
         layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + originalName + "_Tree_" + treeName + ".shp")
         if os.path.exists(layerPath):
             if self._tryReloadExistingLayer(layerPath):
                 return
-            vlayer = QgsVectorLayer(layerPath, name, "ogr")
+            vlayer = QgsVectorLayer(layerPath, showName, "ogr")
             if link:
                 self._styling().setTreeStyle(vlayer)
             QgsProject.instance().addMapLayer(vlayer, group is None)
-            identifiers.setLayerIdentifier(vlayer, name)
-            if group is not None:
-                group.insertChildNode(0, QgsLayerTreeLayer(vlayer))
-            del vlayer
-
-    def openIsolatedSegmentsLayer(self, group, name):
-        identifiers = self._identifiers()
-        originalName = identifiers.getOriginalNameFromLayerName(name)
-        layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_IsolatedSegments_" + originalName + ".shp")
-        if os.path.exists(layerPath):
-            if self._tryReloadExistingLayer(layerPath):
-                return
-            vlayer = QgsVectorLayer(layerPath, name, "ogr")
-            self._styling().setIsolatedSegmentsStyle(vlayer)
-            QgsProject.instance().addMapLayer(vlayer, group is None)
-            identifiers.setLayerIdentifier(vlayer, name)
+            identifiers.setLayerIdentifier(vlayer, identifierKey)
             if group is not None:
                 group.insertChildNode(0, QgsLayerTreeLayer(vlayer))
             del vlayer

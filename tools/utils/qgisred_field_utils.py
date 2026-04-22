@@ -143,8 +143,6 @@ class QGISRedFieldUtils:
         self.ProjectDirectory = directory
         self.NetworkName = networkName
 
-        units = self.getUnits()
-
         self.identifierToElementName = {
             'qgisred_pipes': 'Pipes',
             'qgisred_junctions': 'Junctions',
@@ -157,42 +155,8 @@ class QGISRedFieldUtils:
             'qgisred_serviceconnections': 'Service Connection',
             'qgisred_isolationvalves': 'Isolation Valves',
             'qgisred_meters': 'Meters',
-            'qgisred_link_flow': 'Link Flow',
-            'qgisred_link_velocity': 'Link Velocity',
-            'qgisred_link_headloss': 'Link HeadLoss',
-            'qgisred_link_unitheadloss': 'Link UnitHeadLoss',
-            'qgisred_link_status': 'Link Status',
-            'qgisred_link_quality': 'Link Quality',
-            'qgisred_node_pressure': 'Node Pressure',
-            'qgisred_node_head': 'Node Head',
-            'qgisred_node_demand': 'Node Demand',
-            'qgisred_node_quality': 'Node Quality',
-            'qgisred_links_connectivity': 'Links Connectivity',
-            'qgisred_links_hydraulicsectors': 'Links_ HydraulicSectors',
-            'qgisred_nodes_hydraulicsectors': 'Nodes_ HydraulicSectors',
-            'qgisred_links_demandsectors': 'Links_ Demand Sectors',
-            'qgisred_nodes_demandsectors': 'Nodes_ Demand Sectors',
-            'qgisred_isolatedsegments_links': 'IsolatedSegments Links',
-            'qgisred_isolatedsegments_nodes': 'IsolatedSegments Nodes',
-            'qgisred_pipes_issues': 'Pipes Issues',
-            'qgisred_junctions_issues': 'Junctions Issues',
-            'qgisred_demands_issues': 'Demands Issues',
-            'qgisred_valves_issues': 'Valves Issues',
-            'qgisred_pumps_issues': 'Pumps Issues',
-            'qgisred_tanks_issues': 'Tanks Issues',
-            'qgisred_reservoirs_issues': 'Reservoirs Issues',
-            'qgisred_sources_issues': 'Sources Issues',
-            'qgisred_isolationvalves_issues': 'Isolation Valves Issues',
-            'qgisred_hydrants_issues': 'Hydrants Issues',
-            'qgisred_washoutvalves_issues': 'WashoutValves Issues',
-            'qgisred_airreleasevalves_issues': 'AirReleaseValves Issues',
-            'qgisred_serviceconnections_issues': 'Service Connections Issues',
-            'qgisred_meters_issues': 'Meters Issues',
             'qgisred_links': 'Links',
             'qgisred_nodes': 'Nodes',
-            'qgisred_query_diameter_diam': f'Pipe Diameters {units}',
-            'qgisred_query_length_len': f'Pipe Lengths {units}',
-            'qgisred_query_material_mat': 'Pipe Materials',
         }
 
     def tr(self, message):

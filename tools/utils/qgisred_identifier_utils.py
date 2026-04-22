@@ -38,6 +38,30 @@ class QGISRedIdentifierUtils:
             'qgisred_isolatedsegments': 'IsolatedSegments'
         }
 
+        self.identifierToLegendName = {
+            'qgisred_pipes': self.tr('Pipes'),
+            'qgisred_junctions': self.tr('Junctions'),
+            'qgisred_demands': self.tr('Multiple Demands'),
+            'qgisred_reservoirs': self.tr('Reservoirs'),
+            'qgisred_tanks': self.tr('Tanks'),
+            'qgisred_pumps': self.tr('Pumps'),
+            'qgisred_valves': self.tr('Valves'),
+            'qgisred_sources': self.tr('Sources'),
+            'qgisred_serviceconnections': self.tr('Service Connections'),
+            'qgisred_isolationvalves': self.tr('Isolation Valves'),
+            'qgisred_meters': self.tr('Meters'),
+            'qgisred_links_connectivity': self.tr('Links Connectivity'),
+            'qgisred_links_hydraulicsectors': self.tr('Links HS'),
+            'qgisred_nodes_hydraulicsectors': self.tr('Nodes HS'),
+            'qgisred_isolateddemands_hydraulicsectors': self.tr('Isolated Demands HS'),
+            'qgisred_links_demandsectors': self.tr('Links DS'),
+            'qgisred_nodes_demandsectors': self.tr('Nodes DS'),
+            'qgisred_isolatedsegments_links': self.tr('Links IS'),
+            'qgisred_isolatedsegments_nodes': self.tr('Nodes IS'),
+            'qgisred_tree_links': self.tr('Links T'),
+            'qgisred_tree_nodes': self.tr('Nodes T'),
+        }
+
     def tr(self, message):
         return QCoreApplication.translate("InputLayerNames", message)
 
@@ -135,12 +159,7 @@ class QGISRedIdentifierUtils:
 
     def getTranslatedNameForIdentifier(self, identifier):
         """Returns the translated legend name for a qgisred_identifier, or None if unknown."""
-        englishName = self.identifierToElementName.get(identifier)
-        if not englishName:
-            return None
-        if englishName == "Demands":
-            englishName = "Multiple Demands"
-        return self.tr(englishName)
+        return self.identifierToLegendName.get(identifier)
 
     """Thematic Maps"""
     def isThematicMapsLayer(self, layer):

@@ -238,8 +238,8 @@ class ToolsSection:
         isoaltedSegmentsGroup = self.getIsolatedSegmentsGroup()
         queriesFolder = os.path.join(self.ProjectDirectory, "Queries")
         utils = QGISRedLayerUtils(queriesFolder, self.NetworkName, self.iface)
-        utils.openIsolatedSegmentsLayer(isoaltedSegmentsGroup, "Links")
-        utils.openIsolatedSegmentsLayer(isoaltedSegmentsGroup, "Nodes")
+        utils.openLayer(isoaltedSegmentsGroup, "IsolatedSegments_Links")
+        utils.openLayer(isoaltedSegmentsGroup, "IsolatedSegments_Nodes")
 
     def getIsolatedSegmentsGroup(self):
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
