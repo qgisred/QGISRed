@@ -176,56 +176,108 @@ class QGISRedStylingUtils:
         field = "Class"
         fni = layer.fields().indexFromName(field)
 
-        if fni == -1:  # Hydraulic sectors
+        if fni == -1:  # Hydraulic sectors without Class field
             field = "SubNet"
             fni = layer.fields().indexFromName(field)
 
         uniqueValues = layer.dataProvider().uniqueValues(fni)
         uniqueValues = sorted(uniqueValues)
 
-        # define categories
-        categories = []
-        for uniqueValue in uniqueValues:
-            # initialize the default symbol for this geometry type
-            symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+        class_colors = {
+            "H-Q": "77, 255, 136",
+            "H-nQ": "128, 255, 255",
+            "nH-nQ": "255, 255, 179",
+            "nH-Q": "255, 166, 77"
+        }
 
-            # configure a symbol layer
-            symbolLayer = None
-            if layer.geometryType() == 0:  # Point
+        if layer.geometryType() == 0:
+            categories = []
+            for uniqueValue in uniqueValues:
+                symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+
                 layerStyle = dict()
-                layerStyle["color"] = "%d, %d, %d" % (randrange(0, 256), randrange(0, 256), randrange(0, 256))
+                if field == "Class" and str(uniqueValue) in class_colors:
+                    layerStyle["color"] = class_colors[str(uniqueValue)]
+                else:
+                    layerStyle["color"] = "%d, %d, %d" % (
+                        randrange(0, 256), randrange(0, 256), randrange(0, 256))
+
                 layerStyle["size"] = str(2)
                 symbolLayer = QgsSimpleMarkerSymbolLayer.create(layerStyle)
+                if symbolLayer is not None:
+                    symbol.changeSymbolLayer(0, symbolLayer)
+
+                category = QgsRendererCategory(uniqueValue, symbol, str(uniqueValue))
+                categories.append(category)
+
+            renderer = QgsCategorizedSymbolRenderer(field, categories)
+            if renderer is not None:
+                layer.setRenderer(renderer)
+            layer.setLabelsEnabled(False)
+            return
+
+        root_rule = QgsRuleBasedRenderer.Rule(None)
+
+        for class_value, color_str in class_colors.items():
+            rgb = [int(x.strip()) for x in color_str.split(",")]
+
+            # Special rule: nH-nQ + ClosedLinks -> black
+            if class_value == "nH-nQ":
+                black_symbol = QgsLineSymbol().createSimple({})
+                black_symbol.deleteSymbolLayer(0)
+
+                black_line = QgsSimpleLineSymbolLayer()
+                try:
+                    black_line.setWidthUnit(Qgis.RenderUnit.RenderPixels)
+                except:
+                    black_line.setWidthUnit(2)
+                black_line.setWidth(2)
+                black_line.setColor(QColor(153, 153, 153))
+                black_symbol.appendSymbolLayer(black_line)
+
+                black_rule = QgsRuleBasedRenderer.Rule(black_symbol)
+                black_rule.setLabel("nH-nQ ClosedLinks")
+                black_rule.setFilterExpression("\"Class\" = 'nH-nQ' AND \"SubNet\" = 'ClosedLinks'")
+                root_rule.appendChild(black_rule)
+
+                normal_symbol = QgsLineSymbol().createSimple({})
+                normal_symbol.deleteSymbolLayer(0)
+
+                normal_line = QgsSimpleLineSymbolLayer()
+                try:
+                    normal_line.setWidthUnit(Qgis.RenderUnit.RenderPixels)
+                except:
+                    normal_line.setWidthUnit(2)
+                normal_line.setWidth(2)
+                normal_line.setColor(QColor(rgb[0], rgb[1], rgb[2]))
+                normal_symbol.appendSymbolLayer(normal_line)
+
+                normal_rule = QgsRuleBasedRenderer.Rule(normal_symbol)
+                normal_rule.setLabel("nH-nQ")
+                normal_rule.setFilterExpression("\"Class\" = 'nH-nQ' AND \"SubNet\" <> 'ClosedLinks'")
+                root_rule.appendChild(normal_rule)
+
             else:
                 symbol = QgsLineSymbol().createSimple({})
                 symbol.deleteSymbolLayer(0)
-                # Line
+
                 lineSymbol = QgsSimpleLineSymbolLayer()
-                try:  # From QGis 3.30
-                    lineSymbol.setWidthUnit(Qgis.RenderUnit.RenderPixels)  # Pixels
+                try:
+                    lineSymbol.setWidthUnit(Qgis.RenderUnit.RenderPixels)
                 except:
-                    lineSymbol.setWidthUnit(2)  # Pixels
+                    lineSymbol.setWidthUnit(2)
                 lineSymbol.setWidth(2)
-                lineSymbol.setColor(QColor(randrange(0, 256), randrange(0, 256), randrange(0, 256)))
+                lineSymbol.setColor(QColor(rgb[0], rgb[1], rgb[2]))
                 symbol.appendSymbolLayer(lineSymbol)
 
-            # replace default symbol layer with the configured one
-            if symbolLayer is not None:
-                symbol.changeSymbolLayer(0, symbolLayer)
+                rule = QgsRuleBasedRenderer.Rule(symbol)
+                rule.setLabel(class_value)
+                rule.setFilterExpression(f"\"Class\" = '{class_value}'")
+                root_rule.appendChild(rule)
 
-            # create renderer object
-            category = QgsRendererCategory(uniqueValue, symbol, str(uniqueValue))
-            # entry for the list of category items
-            categories.append(category)
-
-        # create renderer object
-        renderer = QgsCategorizedSymbolRenderer(field, categories)
-
-        # assign the created renderer to the layer
-        if renderer is not None:
-            layer.setRenderer(renderer)
+        renderer = QgsRuleBasedRenderer(root_rule)
+        layer.setRenderer(renderer)
         layer.setLabelsEnabled(False)
-
     
     def setIsolatedDemandsStyle(self, layer):
         symbol = QgsSymbol.defaultSymbol(layer.geometryType())
@@ -233,8 +285,9 @@ class QGISRedStylingUtils:
         if layer.geometryType() == 0:  # Point
             layerStyle = {
                 "name": "circle",
-                "color": "255,0,0",
-                "outline_color": "255,0,0",
+                "color": "0,0,0,0",             
+                "outline_color": "255,0,0",   
+                "outline_width": "0.9",       
                 "size": "3"
             }
             symbolLayer = QgsSimpleMarkerSymbolLayer.create(layerStyle)
