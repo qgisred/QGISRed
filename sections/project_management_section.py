@@ -669,7 +669,7 @@ class ProjectManagementSection:
         """Remove stale result layers and files when opening a project without a QGIS file."""
         import re
         results_dir = os.path.join(self.ProjectDirectory, "Results")
-        pattern = re.compile(r'^' + re.escape(self.NetworkName) + r'_[^_]+_(Node|Link)', re.IGNORECASE)
+        pattern = re.compile(r'^' + re.escape(self.NetworkName) + r'_[^_]+_(Node|Link)_', re.IGNORECASE)
 
         if not os.path.isdir(results_dir):
             return
@@ -700,12 +700,12 @@ class ProjectManagementSection:
         )
 
     def _deleteOldResultFiles(self):
-        """Delete shapefile-family files from Results/ matching NetworkName_Scenario_(Node|Link)[_Variable] pattern."""
+        """Delete shapefile-family files from Results/ matching old format NetworkName_Scenario_(Node|Link)_Variable."""
         import re
         results_dir = os.path.join(self.ProjectDirectory, "Results")
         if not os.path.isdir(results_dir):
             return
-        pattern = re.compile(r'^' + re.escape(self.NetworkName) + r'_[^_]+_(Node|Link)', re.IGNORECASE)
+        pattern = re.compile(r'^' + re.escape(self.NetworkName) + r'_[^_]+_(Node|Link)_', re.IGNORECASE)
         for fname in os.listdir(results_dir):
             base = fname.split('.')[0]
             if pattern.match(base):
