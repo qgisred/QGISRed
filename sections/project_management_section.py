@@ -139,7 +139,7 @@ class ProjectManagementSection:
 
         # Snapshot which layers lack a QGISRed identifier BEFORE assignLayerIdentifiers
         # runs — this is how we detect old projects where identifiers were never saved.
-        style_snapshot = self._collectStyleSnapshot()
+        style_snapshot = self._collectOpenSnapshot()
 
         identifiers = QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         identifiers.assignLayerIdentifiers()
@@ -164,7 +164,7 @@ class ProjectManagementSection:
 
         # Defer style application to after QgsProject.read() fully unwinds —
         # calling setLegend() during readProject signal crashes QGIS 4.
-        QTimer.singleShot(0, lambda: self._applyStyleUpdates(style_snapshot))
+        QTimer.singleShot(0, lambda: self._applyOpenSnapshot(style_snapshot))
 
     def suggestQgsProjectFilename(self):
         """If a valid QGISRed project is open and the QGIS project has no filename yet,
@@ -613,13 +613,14 @@ class ProjectManagementSection:
         if version:
             QgsProject.instance().writeEntry("QGISRed", "plugin_version", version)
 
-    def _collectStyleSnapshot(self):
+    def _collectOpenSnapshot(self):
         """Collect which layers need style updates BEFORE assignLayerIdentifiers() runs.
 
         Returns a dict with:
-          - inputs_to_restyle: list of (layer_id, style_name) for Inputs layers to restyle
-          - results_no_id:     True if any Results layer has no identifier (re-simulation needed)
-          - results_with_id:   list of layer_ids for Results layers that need NullRule applied
+          - inputs_to_restyle:  list of (layer_id, style_name) for Inputs layers to restyle
+          - results_no_id:      True if any Results layer has no identifier (old project, cleanup needed)
+          - results_with_id:    list of layer_ids for Results layers that need NullRule applied
+          - results_to_remove:  list of layer_ids of ALL Results layers to remove when results_no_id
 
         Detection logic:
           - Inputs are restyled whenever the saved plugin_version differs from the current one
@@ -632,7 +633,7 @@ class ProjectManagementSection:
         has_version = bool(saved_version)
         version_changed = saved_version != current_version
 
-        snapshot = {"inputs_to_restyle": [], "results_no_id": False, "results_with_id": []}
+        snapshot = {"inputs_to_restyle": [], "results_no_id": False, "results_with_id": [], "results_to_remove": []}
         root = QgsProject.instance().layerTreeRoot()
 
         if version_changed:
@@ -658,6 +659,7 @@ class ProjectManagementSection:
                 if has_version:
                     snapshot["results_with_id"].append(layer.id())
                 else:
+                    snapshot["results_to_remove"].append(layer.id())
                     if not layer.customProperty("qgisred_identifier"):
                         snapshot["results_no_id"] = True
                     else:
@@ -665,8 +667,23 @@ class ProjectManagementSection:
 
         return snapshot
 
-    def _applyStyleUpdates(self, snapshot):
-        """Apply style updates deferred from project open (runs after QgsProject.read() unwinds)."""
+    def _deleteOldResultFiles(self):
+        """Delete shapefile-family files from Results/ matching NetworkName_Scenario_(Node|Link)[_Variable] pattern."""
+        import re
+        results_dir = os.path.join(self.ProjectDirectory, "Results")
+        if not os.path.isdir(results_dir):
+            return
+        pattern = re.compile(r'^' + re.escape(self.NetworkName) + r'_[^_]+_(Node|Link)', re.IGNORECASE)
+        for fname in os.listdir(results_dir):
+            base = fname.split('.')[0]
+            if pattern.match(base):
+                try:
+                    os.remove(os.path.join(results_dir, fname))
+                except OSError:
+                    pass
+
+    def _applyOpenSnapshot(self, snapshot):
+        """Apply deferred layer updates from project open (runs after QgsProject.read() unwinds)."""
         from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 
         styling = QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface)
@@ -678,18 +695,26 @@ class ProjectManagementSection:
                 styling.setStyle(layer, style_name)
                 layer.triggerRepaint()
 
-        for layer_id in snapshot["results_with_id"]:
-            layer = project.mapLayer(layer_id)
-            if layer:
-                styling.applyNullStyle(layer)
-                layer.triggerRepaint()
-
         if snapshot["results_no_id"]:
+            for layer_id in snapshot["results_to_remove"]:
+                if project.mapLayer(layer_id):
+                    project.removeMapLayer(layer_id)
+            root = project.layerTreeRoot()
+            results_group = root.findGroup("Results")
+            if results_group and not results_group.findLayers():
+                results_group.parent().removeChildNode(results_group)
+            self._deleteOldResultFiles()
             self.pushMessage(
-                self.tr("Simulation results need to be reloaded. Please run the simulation again."),
+                self.tr("Old simulation results have been removed. Please run the simulation again."),
                 level=1,
                 duration=10,
             )
+        else:
+            for layer_id in snapshot["results_with_id"]:
+                layer = project.mapLayer(layer_id)
+                if layer:
+                    styling.applyNullStyle(layer)
+                    layer.triggerRepaint()
 
     def runCloseProject(self):
         self.iface.newProject(True)
