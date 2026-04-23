@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>QGISRed: Export Results to CSV</string>
+   <string>QGISRed: Export Results to CSV...</string>
   </property>
   <property name="windowIcon">
    <iconset>

@@ -184,7 +184,7 @@ class MenuSection:
 
         action = self._make_action(
             ":/images/iconMaterials.svg", 
-            self.tr("Materials Table..."), 
+            self.tr("Materials table..."), 
             self.runMaterials,
             parent=self.iface.mainWindow(),
         )
@@ -460,7 +460,7 @@ class MenuSection:
 
         action = self._make_action(
             ":/images/iconDebugMenu.svg", 
-            self.tr("Check && Commit data"), 
+            self.tr("Check && commit data"), 
             self.runCommit,
             parent=self.iface.mainWindow(),
         )
@@ -487,7 +487,7 @@ class MenuSection:
 
         action = self._make_action(
             ":/images/iconJoinPipes.svg", 
-            self.tr("Join consecutive pipes (diameter, material and year)"), 
+            self.tr("Join consecutive pipes (= diameter, material and year)"), 
             self.runCheckJoinPipes,
             parent=self.iface.mainWindow(),
         )
@@ -496,7 +496,7 @@ class MenuSection:
 
         action = self._make_action(
             ":/images/iconCreateTConnections.svg", 
-            self.tr("Create T Connections"), 
+            self.tr("Create T connections"), 
             self.runCheckTConncetions,
             parent=self.iface.mainWindow(),
         )
@@ -601,7 +601,7 @@ class MenuSection:
 
         action = self._make_action(
             ":/images/iconCalculatePipeLengths.svg", 
-            self.tr("Automatically Calculate Pipe Lengths"), 
+            self.tr("Automatically calculate pipe lengths"), 
             self.runCalculateLengths,
             parent=self.iface.mainWindow(),
         )
@@ -641,7 +641,7 @@ class MenuSection:
 
         action = self._make_action(
             ":/images/iconDemandBuilder.svg", 
-            self.tr("Nodal Demand Builder..."), 
+            self.tr("Nodal demand builder..."), 
             self.runDemandsManager,
             parent=self.iface.mainWindow(),
         )
@@ -650,7 +650,7 @@ class MenuSection:
 
         action = self._make_action(
             ":/images/iconScenarioBuilder.svg", 
-            self.tr("Scenario Builder..."), 
+            self.tr("Scenario builder..."), 
             self.runScenarioManager,
             parent=self.iface.mainWindow(),
         )
@@ -659,7 +659,7 @@ class MenuSection:
 
         self.isolatedSegmentsButton = self._make_action(
             ":/images/iconIsolatedSegments.svg", 
-            self.tr("Isolated Segments"), 
+            self.tr("Isolated segments"), 
             self.runIsolatedSegments,
             checkable=True, 
             parent=self.iface.mainWindow(),
@@ -682,7 +682,7 @@ class MenuSection:
 
         action = self._make_action(
             ":/images/iconGraphTree.svg", 
-            self.tr("Tree Graph..."), 
+            self.tr("Tree graph..."), 
             self.runTree,
             parent=self.iface.mainWindow(),
         )
@@ -758,7 +758,7 @@ class MenuSection:
 
         self.timeSeriesButton = self._make_action(
             ":/images/iconTimeSeries.svg", 
-            self.tr("Time Series"), 
+            self.tr("Time series..."), 
             self.runTimeSeries,
             checkable=True, 
             parent=self.iface.mainWindow(),
@@ -772,7 +772,7 @@ class MenuSection:
 
         action = self._make_action(
             ":/images/iconExportResultsToCsv.svg",
-            self.tr("Export Results to CSV"),
+            self.tr("Export results to CSV..."),
             self.runExportResultsToCsv,
             parent=self.iface.mainWindow(),
         )
@@ -781,7 +781,7 @@ class MenuSection:
 
         action = self._make_action(
             ":/images/iconExportToEpanet.svg", 
-            self.tr("Export Model to Epanet"), 
+            self.tr("Export model to INP..."), 
             self.runExportInp,
             parent=self.iface.mainWindow(),
         )
@@ -830,7 +830,7 @@ class MenuSection:
         self.add_to_dropdown(self.addIsolationValveButton, dtDropButton)
 
         # Create submenu for the main menu
-        self.meterSubMenu = self.dtMenu.addMenu(self.tr("Add Meter"))
+        self.meterSubMenu = self.dtMenu.addMenu(self.tr("Add meter"))
         self.meterSubMenu.setIcon(QIcon(":/images/iconAddDefaultMeter.svg"))
 
         # Create a separate submenu for the toolbar dropdown
@@ -1043,7 +1043,7 @@ class MenuSection:
 
         self.openFindElementsDialog = self._make_action(
             ":/images/iconFindElements.svg", 
-            self.tr("Find Elements by ID..."), 
+            self.tr("Find elements by ID..."), 
             self.runFindElements,
             checkable=True, 
             parent=self.iface.mainWindow(),
@@ -1063,7 +1063,7 @@ class MenuSection:
 
         self.openThematicMapsDialog = self._make_action(
             ":/images/iconThematicMaps.svg", 
-            self.tr("Thematic Maps..."), 
+            self.tr("Thematic maps..."), 
             self.runThematicMaps,
             parent=self.iface.mainWindow(),
         )
@@ -1072,7 +1072,7 @@ class MenuSection:
 
         self.openLiveQueriesDialog = self._make_action(
             ":/images/iconQueryByProperties.svg",
-            self.tr("Queries by Properties..."),
+            self.tr("Queries by properties..."),
             self.runQueriesByProperties,
             parent=self.iface.mainWindow(),
         )
