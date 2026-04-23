@@ -1115,6 +1115,15 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             nodeSource, sourceLayer = self.getSourceForNode(nodeGeom)
 
         hasTotalDemandsRow = len(nodeDemands) > 1
+        isJunction = layerIdentifier == "qgisred_junctions"
+        hasMultipleDemands = isJunction and hasTotalDemandsRow
+        hasSource = isJunction and nodeSource is not None
+        if hasMultipleDemands:
+            skipFields = skipFields | {"BaseDem", "IdPattDem"}
+        preDemandFieldNames = {"Elevation"} if hasMultipleDemands else set()
+        postSourceFieldNames = {"EmittCoef", "IniQuality"} if hasSource else set()
+        middleExcludeFieldNames = preDemandFieldNames | postSourceFieldNames
+
         numDisplayFields = sum(1 for f in fields if f.name() not in skipFields)
         demandRowsCount = 3 * len(nodeDemands)
         sourceRowsCount = 3 if nodeSource else 0
@@ -1123,38 +1132,60 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         displayRow = 0
 
+        if hasMultipleDemands:
+            displayRow = self.emitNodeFields(displayRow, fields, attributes, skipFields, layerIdentifier, utils,
+                                             onlyFieldNames=preDemandFieldNames)
+
         if hasTotalDemandsRow:
-            self.setDataRow(displayRow, self.tr("Total Demands"), str(len(nodeDemands)), "")
+            self.setDataRow(displayRow, self.tr("Total Demands"), str(len(nodeDemands)), "",
+                            backgroundBrush=self.demandBrush)
             displayRow += 1
 
-        for field_idx, field in enumerate(fields):
-            fieldName = field.name()
-            if fieldName in skipFields:
-                continue
+        if hasMultipleDemands and nodeDemands and demandLayer:
+            displayRow = self.appendDemandRows(displayRow, nodeDemands, demandLayer, utils)
 
-            prettyName = utils.getFieldPrettyName(layerIdentifier, fieldName)
-            rawValue = attributes[field_idx]
-            displayValue = self.formatFieldValue(rawValue, layerIdentifier, fieldName, utils)
+        displayRow = self.emitNodeFields(displayRow, fields, attributes, skipFields, layerIdentifier, utils,
+                                         excludeFieldNames=middleExcludeFieldNames)
 
-            # Handle Energy Price with $ prefix
-            if fieldName in ["EnergyPric", "EnergyPrice"] and displayValue:
-                displayValue = f"${displayValue}"
-
-            fieldUnit = utils.getFieldUnit(layerIdentifier, fieldName)
-            unitDisplay = fieldUnit if fieldUnit and fieldUnit != "-" else ""
-
-            self.setDataRow(displayRow, prettyName, displayValue, unitDisplay)
-            displayRow += 1
-
-        # Append one triplet per attached demand
-        if nodeDemands and demandLayer:
+        # Append one triplet per attached demand (non-junction or single-demand case)
+        if not hasMultipleDemands and nodeDemands and demandLayer:
             displayRow = self.appendDemandRows(displayRow, nodeDemands, demandLayer, utils)
 
         # Append source triplet
         if nodeSource and sourceLayer:
             displayRow = self.appendSourceRows(displayRow, nodeSource, sourceLayer, utils)
 
-    def setDataRow(self, row, propertyName, value, unit):
+        if hasSource:
+            displayRow = self.emitNodeFields(displayRow, fields, attributes, skipFields, layerIdentifier, utils,
+                                             onlyFieldNames=postSourceFieldNames)
+
+    def emitNodeFields(self, startRow, fields, attributes, skipFields, layerIdentifier, utils,
+                       onlyFieldNames=None, excludeFieldNames=None):
+        row = startRow
+        for fieldIdx, field in enumerate(fields):
+            fieldName = field.name()
+            if fieldName in skipFields:
+                continue
+            if onlyFieldNames is not None and fieldName not in onlyFieldNames:
+                continue
+            if excludeFieldNames and fieldName in excludeFieldNames:
+                continue
+
+            prettyName = utils.getFieldPrettyName(layerIdentifier, fieldName)
+            rawValue = attributes[fieldIdx]
+            displayValue = self.formatFieldValue(rawValue, layerIdentifier, fieldName, utils)
+
+            if fieldName in ["EnergyPric", "EnergyPrice"] and displayValue:
+                displayValue = f"${displayValue}"
+
+            fieldUnit = utils.getFieldUnit(layerIdentifier, fieldName)
+            unitDisplay = fieldUnit if fieldUnit and fieldUnit != "-" else ""
+
+            self.setDataRow(row, prettyName, displayValue, unitDisplay)
+            row += 1
+        return row
+
+    def setDataRow(self, row, propertyName, value, unit, backgroundBrush=None):
         fieldItem = QTableWidgetItem(propertyName)
         fieldItem.setToolTip(propertyName)
         valueItem = QTableWidgetItem(value)
@@ -1164,6 +1195,10 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         unitItem.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
         if unit:
             unitItem.setToolTip(unit)
+        if backgroundBrush:
+            fieldItem.setBackground(backgroundBrush)
+            valueItem.setBackground(backgroundBrush)
+            unitItem.setBackground(backgroundBrush)
         self.dataTableWidget.setItem(row, 0, fieldItem)
         self.dataTableWidget.setItem(row, 1, valueItem)
         self.dataTableWidget.setItem(row, 2, unitItem)
@@ -1196,7 +1231,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 displayValue = self.formatFieldValue(attributes[fieldIndex], layerIdentifier, fieldName, utils)
                 fieldUnit = utils.getFieldUnit(layerIdentifier, fieldName)
                 unitDisplay = fieldUnit if fieldUnit and fieldUnit != "-" else ""
-                self.setDataRow(row, prettyName, displayValue, unitDisplay)
+                self.setDataRow(row, prettyName, displayValue, unitDisplay, backgroundBrush=self.demandBrush)
                 row += 1
         return row
 
@@ -1214,7 +1249,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             displayValue = self.formatFieldValue(attributes[fieldIndex], layerIdentifier, fieldName, utils)
             fieldUnit = utils.getFieldUnit(layerIdentifier, fieldName)
             unitDisplay = fieldUnit if fieldUnit and fieldUnit != "-" else ""
-            self.setDataRow(row, prettyName, displayValue, unitDisplay)
+            self.setDataRow(row, prettyName, displayValue, unitDisplay, backgroundBrush=self.sourceBrush)
             row += 1
         return row
 
@@ -1251,6 +1286,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
     def initTableWidgets(self):
         """One-time setup for dataTableWidget and tableResults. Called once from __init__."""
+        self.sourceBrush = QBrush(QColor("#FFE0FF"))
+        self.demandBrush = QBrush(QColor("#FFE4CC"))
+
         self.setDataTableWidgetColumns()
         self.dataTableWidget.setShowGrid(True)
         self.dataTableWidget.setStyleSheet("QTableWidget { gridline-color: #E0E0E0; } QTableWidget::item { padding: 1px; }")
