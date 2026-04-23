@@ -41,6 +41,107 @@ class QGISRedProjectIO:
         from .qgisred_layer_utils import QGISRedLayerUtils
         return QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
 
+    _GROUP_SUBDIR = {
+        "Inputs":                   "",
+        "Issues":                   "Issues",
+        "Results":                  "Results",
+        "Queries/Connectivity":     "",
+        "Queries/HydraulicSectors": "Queries",
+        "Queries/DemandSectors":    "Queries",
+        "Queries/IsolatedSegments": "Queries",
+    }
+
+    _GROUP_TREE_PATH = {
+        "Inputs":                   ["Inputs"],
+        "Issues":                   ["Issues"],
+        "Results":                  ["Results"],
+        "Queries/Connectivity":     ["Queries", "Connectivity"],
+        "Queries/HydraulicSectors": ["Queries", "Hydraulic Sectors"],
+        "Queries/DemandSectors":    ["Queries", "Demand Sectors"],
+        "Queries/IsolatedSegments": ["Queries", "Isolated Segments"],
+    }
+
+    _GROUP_OPEN_FLAGS = {
+        "Inputs":                   {},
+        "Issues":                   {"issues": True},
+        "Results":                  {"results": True},
+        "Queries/Connectivity":     {},
+        "Queries/HydraulicSectors": {"sectors": True},
+        "Queries/DemandSectors":    {"sectors": True},
+        "Queries/IsolatedSegments": {},
+    }
+
+    def _openGroupByName(self, groupName, layerNames):
+        from .qgisred_layer_utils import QGISRedLayerUtils
+        from .qgisred_styling_utils import QGISRedStylingUtils
+
+        # Try full path as key (e.g. "Queries/HydraulicSectors", or legacy "HydraulicSectors")
+        tree_path = self._GROUP_TREE_PATH.get(groupName)
+        subdir = self._GROUP_SUBDIR.get(groupName, "")
+        flags = self._GROUP_OPEN_FLAGS.get(groupName, {})
+        full_tree_path = tree_path
+
+        if tree_path is None:
+            # Dynamic paths — e.g. "Results/Base": use top-level key + sub-parts
+            parts = groupName.split("/")
+            top = parts[0]
+            sub_parts = parts[1:]
+            tree_path = self._GROUP_TREE_PATH.get(top)
+            if tree_path is None:
+                return  # unknown group — skip silently
+            subdir = self._GROUP_SUBDIR.get(top, "")
+            flags = self._GROUP_OPEN_FLAGS.get(top, {})
+            full_tree_path = tree_path + sub_parts
+
+        top = groupName.split("/")[0]
+        layersDir = os.path.join(self.ProjectDirectory, subdir) if subdir else self.ProjectDirectory
+        utils = QGISRedLayerUtils(layersDir, self.NetworkName, self.iface)
+        group = utils.getOrCreateNestedGroup([self.NetworkName] + full_tree_path)
+
+        if top == "Results":
+            styling = QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+            for name in reversed(layerNames):
+                # "Base_Node_Pressure" → file_name="Base_Node", layer_type="Node", variable="Pressure"
+                m = re.match(r'^(.+_(Node|Link))_(.+)$', name, re.IGNORECASE)
+                if m:
+                    file_name, layer_type, variable = m.group(1), m.group(2), m.group(3)
+                else:
+                    file_name, layer_type, variable = name, None, None
+                utils.openLayer(group, file_name, **flags)
+                if not variable or not layer_type:
+                    continue
+                layer_path = utils._fs().generatePath(layersDir, self.NetworkName + "_" + file_name + ".shp")
+                opened = utils._findLayerByPath(layer_path)
+                if not opened:
+                    continue
+                scenario = file_name.rsplit("_", 1)[0]  # "Base_Node" → "Base"
+                QgsProject.instance().writeEntry("QGISRed", f"results_{scenario}_{layer_type}", variable)
+                styling.setResultStyle(opened, layer_type + "_" + variable)
+                template = QCoreApplication.translate("QGISRedResultsDock", layer_type + " %1")
+                translated_var = QCoreApplication.translate("QGISRedResultsDock", variable)
+                opened.setName(template.replace("%1", translated_var))
+                opened.triggerRepaint()
+        else:
+            for name in reversed(layerNames):
+                utils.openLayer(group, name, **flags)
+            if top == "Inputs":
+                for child in group.children():
+                    child.setCustomProperty("showFeatureCount", True)
+
+    def _openGroupsNode(self, node, parent_path):
+        """Recursively open layers from a nested <Groups> XML subtree."""
+        for child in node:
+            if child.tag == "Layer":
+                continue
+            tag = child.tag.replace(" ", "")
+            current_path = (parent_path + "/" if parent_path else "") + tag
+            layer_children = [c.text for c in child if c.tag == "Layer" and c.text]
+            if layer_children:
+                self._openGroupByName(current_path, layer_children)
+            sub_groups = [c for c in child if c.tag != "Layer"]
+            if sub_groups:
+                self._openGroupsNode(child, current_path)
+
     def _applyQGisReplacements(self, content, oldName, newName, oldFolder, newFolder, oldQgisDir=None, newQgisDir=None, collectExternal=False):
         """Standard path replacement in QGIS project XML. 
         If collectExternal is True, it will also copy external layers to newFolder/ExternalLayers."""
@@ -397,15 +498,10 @@ class QGISRedProjectIO:
                                 return True
                         else:
                             layers = ["Pipes", "Junctions", "Demands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
-                            self._layers().openGroupLayers("Inputs", layers)
+                            self._openGroupByName("Inputs", layers)
                     return False
-            for groups in root.findall("./ThirdParty/QGISRed/Groups"):
-                for group in groups:
-                    groupName = group.tag
-                    layers = []
-                    for lay in group.iter("Layer"):
-                        layers.append(lay.text)
-                    self._layers().openGroupLayers(groupName, layers)
+            for groups_node in root.findall("./ThirdParty/QGISRed/Groups"):
+                self._openGroupsNode(groups_node, "")
             return False
 
         else:  # old file

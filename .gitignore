@@ -3,3 +3,4 @@
 /layerStyles/*.qml
 *.qml
 scripts/.ftp_credentials
+CLAUDE.md

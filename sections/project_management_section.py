@@ -3,7 +3,7 @@
 
 import os
 
-from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeLayer
+from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer
 from qgis.PyQt.QtWidgets import QApplication, QMessageBox
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtCore import Qt, QCoreApplication, QTimer
@@ -277,36 +277,69 @@ class ProjectManagementSection:
             project = self.ProjectDirectory
             net = self.NetworkName
 
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         if layersNames == "":
             qgsFilename = QgsProject.instance().fileName()
-            if not qgsFilename == "":
-                layersNames = os.path.relpath(qgsFilename, project)
+            if qgsFilename:
+                GISRed.UpdateMetadata(project, net, os.path.relpath(qgsFilename, project))
             else:
-                layers = self.getLayers()
-                # Inputs
-                groupName = "Inputs"
-                dataGroup = QgsProject.instance().layerTreeRoot().findGroup(groupName)
-                if dataGroup is not None:
-                    layersNames = layersNames + "[Inputs]"
-                    layersNames = layersNames + self.writeLayersOfGroups(groupName, layers)
-                    layersNames = layersNames.strip(";")
-
-        # Process
-        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        GISRed.UpdateMetadata(project, net, layersNames)
+                groupsStr = self._buildGroupsString(net)
+                if groupsStr:
+                    GISRed.UpdateMetadata(project, net, groupsStr)
+        else:
+            GISRed.UpdateMetadata(project, net, layersNames)
         QApplication.restoreOverrideCursor()
 
-    def writeLayersOfGroups(self, groupName, layers):
+    def _buildGroupsString(self, net):
         root = QgsProject.instance().layerTreeRoot()
-        paths = ""
-        for layer in reversed(layers):
-            parent = root.findLayer(layer.id())
-            if parent is not None:
-                if parent.parent().name() == groupName:
-                    rutaLayer = self.getLayerPath(layer)
-                    layerName = os.path.splitext(os.path.basename(rutaLayer))[0].replace(self.NetworkName + "_", "")
-                    paths = paths + layerName + ";"
-        return paths
+        net_group = next(
+            (c for c in root.children() if isinstance(c, QgsLayerTreeGroup) and c.name() == net),
+            None,
+        )
+        if net_group is None:
+            return ""
+
+        parts = []
+
+        def collect_group(group, path_prefix=""):
+            direct_layers = []
+            in_results = path_prefix == "Results" or path_prefix.startswith("Results/")
+            for child in group.children():
+                if isinstance(child, QgsLayerTreeLayer):
+                    layer = child.layer()
+                    if layer and layer.customProperty("qgisred_identifier"):
+                        path = self.getLayerPath(layer)
+                        name = os.path.splitext(os.path.basename(path))[0]
+                        prefix = net + "_"
+                        if name.startswith(prefix):
+                            name = name[len(prefix):]
+                        if in_results:
+                            # name is e.g. "Base_Node" — extract scenario and layer type
+                            parts_name = name.rsplit("_", 1)
+                            if len(parts_name) == 2 and parts_name[1] in ("Node", "Link"):
+                                scenario, layer_type = parts_name
+                                variable = QgsProject.instance().readEntry(
+                                    "QGISRed", f"results_{scenario}_{layer_type}", ""
+                                )[0]
+                            else:
+                                variable = ""
+                            if variable:
+                                name = name + "_" + variable
+                        direct_layers.append(name)
+            # XML tags cannot have spaces ("Hydraulic Sectors" → "HydraulicSectors")
+            tag = group.name().replace(" ", "")
+            current_path = (path_prefix + "/" if path_prefix else "") + tag
+            if direct_layers:
+                parts.append("[" + current_path + "]" + ";".join(direct_layers))
+            for child in group.children():
+                if isinstance(child, QgsLayerTreeGroup):
+                    collect_group(child, current_path)
+
+        for child in net_group.children():
+            if isinstance(child, QgsLayerTreeGroup):
+                collect_group(child)
+
+        return "?".join(parts)
 
     def runChangeCrs(self):
         # Process

@@ -387,10 +387,15 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                     f.write(entry + "\n")
 
             io = QGISRedProjectIO(self.ProjectDirectory, self.NetworkName, self.iface)
-            loaded_qgis = io.openProjectInQgis()
-            if not loaded_qgis:
-                self.parent.removeOldResultLayers()
-            QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface).enforceAllIdentifiers()
+            self.parent.layerOperationInProgress = True
+            try:
+                loaded_qgis = io.openProjectInQgis()
+                if not loaded_qgis:
+                    self.parent.removeOldResultLayers()
+                QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface).enforceAllIdentifiers()
+            finally:
+                self.parent.layerOperationInProgress = False
+            self.parent.updateMetadata()
             self.close()
             self.ProcessDone = True
             self.parent.readOptions()

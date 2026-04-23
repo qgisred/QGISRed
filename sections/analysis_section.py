@@ -54,7 +54,9 @@ class AnalysisSection:
             self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.ResultDockwidget)
             self.ResultDockwidget.visibilityChanged.connect(self.activeInputGroup)
             self.ResultDockwidget.simulationFinished.connect(self.refreshTimeSeries)
+            self.ResultDockwidget.simulationFinished.connect(self.updateMetadata)
             self.ResultDockwidget.resultPropertyChanged.connect(self.refreshTimeSeries)
+            self.ResultDockwidget.resultPropertyChanged.connect(self.updateMetadata)
 
     def _ensureResultsDockVisibleForTimeSeries(self):
         self._initResultsDock()

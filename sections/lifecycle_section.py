@@ -196,6 +196,7 @@ class LifecycleSection:
         QgsProject.instance().projectSaved.connect(self.runSaveProject)
         QgsProject.instance().cleared.connect(self.runClearedProject)
         QgsProject.instance().layersRemoved.connect(self.runLegendChanged)
+        QgsProject.instance().layersAdded.connect(self.runLegendChanged)
         QgsProject.instance().readProject.connect(self.runOpenedQgisProject)
 
         # MapTools
@@ -262,7 +263,15 @@ class LifecycleSection:
                     except Exception:
                         pass
                     try:
+                        self.ResultDockwidget.simulationFinished.disconnect(self.updateMetadata)
+                    except Exception:
+                        pass
+                    try:
                         self.ResultDockwidget.resultPropertyChanged.disconnect(self.refreshTimeSeries)
+                    except Exception:
+                        pass
+                    try:
+                        self.ResultDockwidget.resultPropertyChanged.disconnect(self.updateMetadata)
                     except Exception:
                         pass
             except Exception:
@@ -338,6 +347,10 @@ class LifecycleSection:
             pass
         try:
             QgsProject.instance().layersRemoved.disconnect(self.runLegendChanged)
+        except Exception:
+            pass
+        try:
+            QgsProject.instance().layersAdded.disconnect(self.runLegendChanged)
         except Exception:
             pass
         try:

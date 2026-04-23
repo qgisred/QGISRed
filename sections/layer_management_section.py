@@ -161,7 +161,7 @@ class LayerManagementSection:
 
     """Groups"""
 
-    def runLegendChanged(self):
+    def runLegendChanged(self, *args):
         # Guard against calls during shutdown
         if self.isUnloading:
             return
@@ -327,6 +327,7 @@ class LayerManagementSection:
 
         QApplication.restoreOverrideCursor()
         self.layerOperationInProgress = False
+        self.updateMetadata()
 
         if resMessage == "True":
             pass

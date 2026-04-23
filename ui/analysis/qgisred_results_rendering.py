@@ -152,6 +152,12 @@ class _ResultsRenderingMixin:
                     if "Link" in nameLayer: self.displayingLinkField = field
                     else: self.displayingNodeField = field
 
+                    # Persist variable in the QGIS project so updateMetadata can read it.
+                    # Storing on the layer itself is unreliable because orderResultLayers
+                    # clones Link layers and clone() does not copy custom properties.
+                    layer_type = "Link" if "Link" in nameLayer else "Node"
+                    QgsProject.instance().writeEntry("QGISRed", f"results_{self.Scenario}_{layer_type}", field)
+
                     # Set layer name in legend
                     layer_to_paint.setName(display_name)
 
