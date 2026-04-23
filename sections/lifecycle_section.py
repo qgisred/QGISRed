@@ -282,9 +282,9 @@ class LifecycleSection:
             docks_to_clean.append(('statisticsAndPlotsDock', self.statisticsAndPlotsDock))
             self.statisticsAndPlotsDock = None
 
-        if hasattr(self, 'queriesByAttributesDock') and self.queriesByAttributesDock is not None:
-            docks_to_clean.append(('queriesByAttributesDock', self.queriesByAttributesDock))
-            self.queriesByAttributesDock = None
+        if hasattr(self, 'queriesByPropertiesDock') and self.queriesByPropertiesDock is not None:
+            docks_to_clean.append(('queriesByPropertiesDock', self.queriesByPropertiesDock))
+            self.queriesByPropertiesDock = None
 
         # Also clean up Element Explorer if instance exists
         eeDock = QGISRedElementExplorerDock._instance
