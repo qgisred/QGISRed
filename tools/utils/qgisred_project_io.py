@@ -379,6 +379,7 @@ class QGISRedProjectIO:
 
                     if os.path.exists(qgisPath):
                         QgsProject.instance().read(qgisPath)
+                        return True
                     else:
                         request = QMessageBox.question(
                             self.iface.mainWindow(),
@@ -393,10 +394,11 @@ class QGISRedProjectIO:
                             qgisPath = f[0]
                             if not qgisPath == "":
                                 QgsProject.instance().read(qgisPath)
+                                return True
                         else:
                             layers = ["Pipes", "Junctions", "Demands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
                             self._layers().openGroupLayers("Inputs", layers)
-                    return
+                    return False
             for groups in root.findall("./ThirdParty/QGISRed/Groups"):
                 for group in groups:
                     groupName = group.tag
@@ -404,6 +406,7 @@ class QGISRedProjectIO:
                     for lay in group.iter("Layer"):
                         layers.append(lay.text)
                     self._layers().openGroupLayers(groupName, layers)
+            return False
 
         else:  # old file
             gqpFilename = os.path.join(self.ProjectDirectory, self.NetworkName + ".gqp")
@@ -414,6 +417,7 @@ class QGISRedProjectIO:
                 if ".qgs" in qgsFile or ".qgz" in qgsFile:
                     finfo = QFileInfo(qgsFile)
                     QgsProject.instance().read(finfo.filePath())
+                    return True
                 else:
                     styling = self._styling()
                     group = None
@@ -440,8 +444,10 @@ class QGISRedProjectIO:
                                     names = (os.path.splitext(os.path.basename(layerPath))[0]).split("_")
                                     nameLayer = names[len(names) - 1]
                                     styling.setStyle(vlayer, nameLayer.lower())
+                    return False
             else:
                 QGISRedUIUtils.showGlobalMessage(self.iface, "File not found", level=1, duration=5)
+                return False
 
     """Zip"""
     def saveFilesInZip(self, zipPath):

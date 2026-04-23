@@ -387,7 +387,9 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                     f.write(entry + "\n")
 
             io = QGISRedProjectIO(self.ProjectDirectory, self.NetworkName, self.iface)
-            io.openProjectInQgis()
+            loaded_qgis = io.openProjectInQgis()
+            if not loaded_qgis:
+                self.parent.removeOldResultLayers()
             QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface).enforceAllIdentifiers()
             self.close()
             self.ProcessDone = True

@@ -620,7 +620,6 @@ class ProjectManagementSection:
           - inputs_to_restyle:  list of (layer_id, style_name) for Inputs layers to restyle
           - results_no_id:      True if any Results layer has no identifier (old project, cleanup needed)
           - results_with_id:    list of layer_ids for Results layers that need NullRule applied
-          - results_to_remove:  list of layer_ids of ALL Results layers to remove when results_no_id
 
         Detection logic:
           - Inputs are restyled whenever the saved plugin_version differs from the current one
@@ -633,7 +632,7 @@ class ProjectManagementSection:
         has_version = bool(saved_version)
         version_changed = saved_version != current_version
 
-        snapshot = {"inputs_to_restyle": [], "results_no_id": False, "results_with_id": [], "results_to_remove": []}
+        snapshot = {"inputs_to_restyle": [], "results_no_id": False, "results_with_id": []}
         root = QgsProject.instance().layerTreeRoot()
 
         if version_changed:
@@ -659,13 +658,46 @@ class ProjectManagementSection:
                 if has_version:
                     snapshot["results_with_id"].append(layer.id())
                 else:
-                    snapshot["results_to_remove"].append(layer.id())
                     if not layer.customProperty("qgisred_identifier"):
                         snapshot["results_no_id"] = True
                     else:
                         snapshot["results_with_id"].append(layer.id())
 
         return snapshot
+
+    def removeOldResultLayers(self):
+        """Remove stale result layers and files when opening a project without a QGIS file."""
+        import re
+        results_dir = os.path.join(self.ProjectDirectory, "Results")
+        pattern = re.compile(r'^' + re.escape(self.NetworkName) + r'_[^_]+_(Node|Link)', re.IGNORECASE)
+
+        if not os.path.isdir(results_dir):
+            return
+        if not any(pattern.match(f.split('.')[0]) for f in os.listdir(results_dir)):
+            return
+
+        project = QgsProject.instance()
+        layers_to_remove = []
+        for layer in project.mapLayers().values():
+            uri = layer.dataProvider().dataSourceUri()
+            fname = os.path.basename(uri.split("|")[0])
+            if pattern.match(fname.split('.')[0]):
+                layers_to_remove.append(layer.id())
+        for layer_id in layers_to_remove:
+            project.removeMapLayer(layer_id)
+
+        if layers_to_remove:
+            root = project.layerTreeRoot()
+            results_group = root.findGroup("Results")
+            if results_group and not results_group.children():
+                results_group.parent().removeChildNode(results_group)
+
+        self._deleteOldResultFiles()
+        self.pushMessage(
+            self.tr("Old simulation results have been removed. Please run the simulation again."),
+            level=1,
+            duration=10,
+        )
 
     def _deleteOldResultFiles(self):
         """Delete shapefile-family files from Results/ matching NetworkName_Scenario_(Node|Link)[_Variable] pattern."""
@@ -696,19 +728,7 @@ class ProjectManagementSection:
                 layer.triggerRepaint()
 
         if snapshot["results_no_id"]:
-            for layer_id in snapshot["results_to_remove"]:
-                if project.mapLayer(layer_id):
-                    project.removeMapLayer(layer_id)
-            root = project.layerTreeRoot()
-            results_group = root.findGroup("Results")
-            if results_group and not results_group.findLayers():
-                results_group.parent().removeChildNode(results_group)
-            self._deleteOldResultFiles()
-            self.pushMessage(
-                self.tr("Old simulation results have been removed. Please run the simulation again."),
-                level=1,
-                duration=10,
-            )
+            self.removeOldResultLayers()
         else:
             for layer_id in snapshot["results_with_id"]:
                 layer = project.mapLayer(layer_id)
