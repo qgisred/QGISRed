@@ -834,7 +834,7 @@ class MenuSection:
         self.meterSubMenu.setIcon(QIcon(":/images/iconAddDefaultMeter.svg"))
 
         # Create a separate submenu for the toolbar dropdown
-        self.meterSubMenuToolbar = QMenu(self.tr("Add Meter"), self.iface.mainWindow())
+        self.meterSubMenuToolbar = QMenu(self.tr("Add meter"), self.iface.mainWindow())
         act_toolbar_meter = self.dtDropButton.menu().addMenu(self.meterSubMenuToolbar)
         act_toolbar_meter.setIcon(QIcon(":/images/iconAddDefaultMeter.svg"))
 
@@ -1053,7 +1053,7 @@ class MenuSection:
 
         self.openElementsPropertyDialog = self._make_action(
             ":/images/iconElementProperties.svg", 
-            self.tr("Element Properties..."), 
+            self.tr("Element properties..."), 
             self.runElementsProperty,
             checkable=True, 
             parent=self.iface.mainWindow(),

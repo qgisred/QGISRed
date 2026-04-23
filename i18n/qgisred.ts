@@ -1628,11 +1628,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="837"/>
-        <source>Add Meter</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../sections/menu_section.py" line="843"/>
         <source>Add meter</source>
         <translation type="unfinished"></translation>
@@ -1723,11 +1718,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="1054"/>
-        <source>Element Properties...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../sections/menu_section.py" line="488"/>
         <source>Join consecutive pipes (= diameter, material and year)</source>
         <translation type="unfinished"></translation>
@@ -1810,6 +1800,11 @@
     <message>
         <location filename="../sections/menu_section.py" line="629"/>
         <source>Convert roughness coefficients...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/menu_section.py" line="1054"/>
+        <source>Element properties...</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

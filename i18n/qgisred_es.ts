@@ -1745,7 +1745,7 @@
     <message>
         <location filename="../sections/menu_section.py" line="837"/>
         <source>Add Meter</source>
-        <translation>Añadir Medidor</translation>
+        <translation type="obsolete">Añadir Medidor</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="843"/>
@@ -1845,7 +1845,7 @@
     <message>
         <location filename="../sections/menu_section.py" line="1054"/>
         <source>Element Properties...</source>
-        <translation>Propiedades de los elementos...</translation>
+        <translation type="obsolete">Propiedades de los elementos...</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="1064"/>
@@ -1966,6 +1966,11 @@
         <location filename="../sections/menu_section.py" line="629"/>
         <source>Convert roughness coefficients...</source>
         <translation>Convertir coeficientes de rugosidad</translation>
+    </message>
+    <message>
+        <location filename="../sections/menu_section.py" line="1054"/>
+        <source>Element properties...</source>
+        <translation>Propiedades de los elementos...</translation>
     </message>
 </context>
 <context>
