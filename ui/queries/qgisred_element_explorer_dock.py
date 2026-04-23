@@ -2,7 +2,7 @@
 import os
 from qgis.PyQt.QtCore import Qt, pyqtSlot, pyqtSignal, QEvent, QTimer
 from qgis.PyQt.QtGui import QIcon, QFont, QColor, QBrush
-from qgis.PyQt.QtWidgets import QDockWidget, QWidget, QMessageBox, QLineEdit, QListWidgetItem, QTableWidgetItem, QHeaderView, QAbstractItemView, QFrame, QLabel, QTabBar
+from qgis.PyQt.QtWidgets import QDockWidget, QWidget, QMessageBox, QLineEdit, QListWidgetItem, QTableWidgetItem, QHeaderView, QAbstractItemView, QFrame, QLabel, QTabBar, QToolButton, QHBoxLayout
 from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsVectorLayer, QgsSettings, QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsLayerMetadata, QgsSpatialIndex, Qgis
 from qgis.utils import iface
@@ -128,6 +128,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.resultsDock = None
         self.resultsCurrentTimeText = ""
         self.resultsCurrentStat = ""
+
+        self.demandPageIndex = 0
+        self.demandsPerPage = 3
 
         self.resultsDockVisibilityTimer = QTimer()
         self.resultsDockVisibilityTimer.setSingleShot(True)
@@ -1091,7 +1094,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     # Map and Feature Display Methods
     # ------------------------------
     def populateDataTableWidget(self):
-        self.dataTableWidget.clearContents()
+        self.dataTableWidget.setRowCount(0)
+        self.dataTableWidget.setColumnWidth(2, 30)
 
         fields = self.currentLayer.fields()
         attributes = self.currentFeature.attributes()
@@ -1114,7 +1118,23 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             nodeDemands, demandLayer = self.getAllDemandsForNode(nodeGeom)
             nodeSource, sourceLayer = self.getSourceForNode(nodeGeom)
 
-        hasTotalDemandsRow = len(nodeDemands) > 1
+        totalDemands = len(nodeDemands)
+        paginated = totalDemands > self.demandsPerPage
+        if paginated:
+            pageCount = (totalDemands + self.demandsPerPage - 1) // self.demandsPerPage
+            if self.demandPageIndex < 0:
+                self.demandPageIndex = 0
+            elif self.demandPageIndex >= pageCount:
+                self.demandPageIndex = pageCount - 1
+            pageStart = self.demandPageIndex * self.demandsPerPage
+            pageEnd = min(pageStart + self.demandsPerPage, totalDemands)
+        else:
+            self.demandPageIndex = 0
+            pageStart = 0
+            pageEnd = totalDemands
+        visibleDemands = nodeDemands[pageStart:pageEnd]
+
+        hasTotalDemandsRow = totalDemands > 1
         isJunction = layerIdentifier == "qgisred_junctions"
         hasMultipleDemands = isJunction and hasTotalDemandsRow
         hasSource = isJunction and nodeSource is not None
@@ -1125,31 +1145,37 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         middleExcludeFieldNames = preDemandFieldNames | postSourceFieldNames
 
         numDisplayFields = sum(1 for f in fields if f.name() not in skipFields)
-        demandRowsCount = 3 * len(nodeDemands)
+        demandRowsCount = 3 * len(visibleDemands)
         sourceRowsCount = 3 if nodeSource else 0
         totalRows = (1 if hasTotalDemandsRow else 0) + numDisplayFields + demandRowsCount + sourceRowsCount
         self.dataTableWidget.setRowCount(totalRows)
 
         displayRow = 0
+        showDemandIndex = totalDemands > 1
 
         if hasMultipleDemands:
             displayRow = self.emitNodeFields(displayRow, fields, attributes, skipFields, layerIdentifier, utils,
                                              onlyFieldNames=preDemandFieldNames)
 
         if hasTotalDemandsRow:
-            self.setDataRow(displayRow, self.tr("Total Demands"), str(len(nodeDemands)), "",
+            totalDemandsRow = displayRow
+            self.setDataRow(displayRow, self.tr("Total Demands"), str(totalDemands), "",
                             backgroundBrush=self.demandBrush)
             displayRow += 1
+            if paginated:
+                self.installDemandPaginationButtons(totalDemandsRow, totalDemands)
 
-        if hasMultipleDemands and nodeDemands and demandLayer:
-            displayRow = self.appendDemandRows(displayRow, nodeDemands, demandLayer, utils)
+        if hasMultipleDemands and visibleDemands and demandLayer:
+            displayRow = self.appendDemandRows(displayRow, visibleDemands, demandLayer, utils,
+                                               startIndex=pageStart + 1, showIndex=showDemandIndex)
 
         displayRow = self.emitNodeFields(displayRow, fields, attributes, skipFields, layerIdentifier, utils,
                                          excludeFieldNames=middleExcludeFieldNames)
 
         # Append one triplet per attached demand (non-junction or single-demand case)
-        if not hasMultipleDemands and nodeDemands and demandLayer:
-            displayRow = self.appendDemandRows(displayRow, nodeDemands, demandLayer, utils)
+        if not hasMultipleDemands and visibleDemands and demandLayer:
+            displayRow = self.appendDemandRows(displayRow, visibleDemands, demandLayer, utils,
+                                               startIndex=pageStart + 1, showIndex=showDemandIndex)
 
         # Append source triplet
         if nodeSource and sourceLayer:
@@ -1213,12 +1239,13 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         except (ValueError, TypeError):
             return str(rawValue)
 
-    def appendDemandRows(self, startRow, demandFeatures, demandLayer, utils):
+    def appendDemandRows(self, startRow, demandFeatures, demandLayer, utils, startIndex=1, showIndex=None):
         layerIdentifier = demandLayer.customProperty("qgisred_identifier") or "qgisred_demands"
         skipFields = {"Id"}
         row = startRow
-        multiple = len(demandFeatures) > 1
-        for idx, demandFeat in enumerate(demandFeatures, start=1):
+        if showIndex is None:
+            showIndex = len(demandFeatures) > 1
+        for idx, demandFeat in enumerate(demandFeatures, start=startIndex):
             fields = demandFeat.fields()
             attributes = demandFeat.attributes()
             for fieldIndex, field in enumerate(fields):
@@ -1226,7 +1253,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 if fieldName in skipFields:
                     continue
                 prettyName = utils.getFieldPrettyName(layerIdentifier, fieldName)
-                if multiple:
+                if showIndex:
                     prettyName = f"{prettyName} {idx}"
                 displayValue = self.formatFieldValue(attributes[fieldIndex], layerIdentifier, fieldName, utils)
                 fieldUnit = utils.getFieldUnit(layerIdentifier, fieldName)
@@ -1234,6 +1261,43 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 self.setDataRow(row, prettyName, displayValue, unitDisplay, backgroundBrush=self.demandBrush)
                 row += 1
         return row
+
+    def installDemandPaginationButtons(self, row, totalDemands):
+        pageCount = (totalDemands + self.demandsPerPage - 1) // self.demandsPerPage
+        container = QWidget()
+        layout = QHBoxLayout(container)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+        prevButton = QToolButton(container)
+        prevButton.setText("◀")
+        prevButton.setFixedSize(18, 18)
+        prevButton.setToolTip(self.tr("Previous demand set"))
+        prevButton.setEnabled(self.demandPageIndex > 0)
+        prevButton.clicked.connect(self.onDemandPrevClicked)
+
+        nextButton = QToolButton(container)
+        nextButton.setText("▶")
+        nextButton.setFixedSize(18, 18)
+        nextButton.setToolTip(self.tr("Next demand set"))
+        nextButton.setEnabled(self.demandPageIndex < pageCount - 1)
+        nextButton.clicked.connect(self.onDemandNextClicked)
+
+        layout.addWidget(prevButton)
+        layout.addWidget(nextButton)
+        self.dataTableWidget.setColumnWidth(2, 44)
+        self.dataTableWidget.setCellWidget(row, 2, container)
+
+    @pyqtSlot()
+    def onDemandPrevClicked(self):
+        if self.demandPageIndex > 0:
+            self.demandPageIndex -= 1
+            self.populateDataTableWidget()
+
+    @pyqtSlot()
+    def onDemandNextClicked(self):
+        self.demandPageIndex += 1
+        self.populateDataTableWidget()
 
     def appendSourceRows(self, startRow, sourceFeature, sourceLayer, utils):
         layerIdentifier = sourceLayer.customProperty("qgisred_identifier") or "qgisred_sources"
@@ -1327,6 +1391,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         self.currentLayer = layer
         self.currentFeature = feature
+        self.demandPageIndex = 0
         layer.selectByIds([feature.id()])
         self.populateDataTableWidget()
         self.updateResultsTabVisibility()
