@@ -619,7 +619,7 @@ class MenuSection:
 
         action = self._make_action(
             ":/images/iconSetRoughnessFromMaterialDate.svg", 
-            self.tr("Set roughness coefficient (from Material and Date)"), 
+            self.tr("Set roughness coefficients (from Material and Date)"), 
             self.runSetRoughness,
             parent=self.iface.mainWindow(),
         )
@@ -628,7 +628,7 @@ class MenuSection:
 
         action = self._make_action(
             ":/images/iconConvertRoughnessCoeff.svg", 
-            self.tr("Convert roughness coefficient"), 
+            self.tr("Convert roughness coefficients..."), 
             self.runConvertRoughness,
             parent=self.iface.mainWindow(),
         )
@@ -659,7 +659,7 @@ class MenuSection:
 
         self.isolatedSegmentsButton = self._make_action(
             ":/images/iconIsolatedSegments.svg", 
-            self.tr("Isolated segments"), 
+            self.tr("Isolated segments..."), 
             self.runIsolatedSegments,
             checkable=True, 
             parent=self.iface.mainWindow(),

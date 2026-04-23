@@ -1836,12 +1836,12 @@
     <message>
         <location filename="../sections/menu_section.py" line="620"/>
         <source>Set roughness coefficient (from Material and Date)</source>
-        <translation type="unfinished">Definir coeficiente de rugosidade (a partir de Material e Data)</translation>
+        <translation type="obsolete">Definir coeficiente de rugosidade (a partir de Material e Data)</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="629"/>
         <source>Convert roughness coefficient</source>
-        <translation type="unfinished">Converter coeficiente de rugosidade</translation>
+        <translation type="obsolete">Converter coeficiente de rugosidade</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="660"/>
@@ -2069,11 +2069,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="660"/>
-        <source>Isolated segments</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../sections/menu_section.py" line="683"/>
         <source>Tree graph...</source>
         <translation type="unfinished"></translation>
@@ -2106,6 +2101,21 @@
     <message>
         <location filename="../sections/menu_section.py" line="1073"/>
         <source>Queries by properties...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/menu_section.py" line="660"/>
+        <source>Isolated segments...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/menu_section.py" line="620"/>
+        <source>Set roughness coefficients (from Material and Date)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/menu_section.py" line="629"/>
+        <source>Convert roughness coefficients...</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

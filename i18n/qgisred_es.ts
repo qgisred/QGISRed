@@ -1650,12 +1650,12 @@
     <message>
         <location filename="../sections/menu_section.py" line="620"/>
         <source>Set roughness coefficient (from Material and Date)</source>
-        <translation>Establecer coeficientes de rugosidad (desde Material y Fecha)</translation>
+        <translation type="obsolete">Establecer coeficientes de rugosidad (desde Material y Fecha)</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="629"/>
         <source>Convert roughness coefficient</source>
-        <translation>Convertir coeficientes de rugosidad</translation>
+        <translation type="obsolete">Convertir coeficientes de rugosidad</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="642"/>
@@ -1900,7 +1900,7 @@
     <message>
         <location filename="../sections/menu_section.py" line="660"/>
         <source>Isolated segments</source>
-        <translation>Polígonos de corte</translation>
+        <translation type="obsolete">Polígonos de corte</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="683"/>
@@ -1951,6 +1951,21 @@
         <location filename="../sections/menu_section.py" line="1073"/>
         <source>Queries by properties...</source>
         <translation>Consultas por propiedades...</translation>
+    </message>
+    <message>
+        <location filename="../sections/menu_section.py" line="660"/>
+        <source>Isolated segments...</source>
+        <translation>Polígonos de corte...</translation>
+    </message>
+    <message>
+        <location filename="../sections/menu_section.py" line="620"/>
+        <source>Set roughness coefficients (from Material and Date)</source>
+        <translation>Establecer coeficientes de rugosidad (desde Material y Fecha)</translation>
+    </message>
+    <message>
+        <location filename="../sections/menu_section.py" line="629"/>
+        <source>Convert roughness coefficients...</source>
+        <translation>Convertir coeficientes de rugosidad</translation>
     </message>
 </context>
 <context>
