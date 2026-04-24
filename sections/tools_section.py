@@ -237,6 +237,7 @@ class ToolsSection:
         utils = QGISRedLayerUtils(isoFolder, self.NetworkName, self.iface)
         utils.openLayer(isoaltedSegmentsGroup, "IsolatedSegments_Links")
         utils.openLayer(isoaltedSegmentsGroup, "IsolatedSegments_Nodes")
+        utils.openLayer(isoaltedSegmentsGroup, "IsolatedSegments_IsolatedDemands")
 
     def getIsolatedSegmentsGroup(self):
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
