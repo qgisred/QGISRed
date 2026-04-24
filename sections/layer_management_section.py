@@ -143,15 +143,15 @@ class LayerManagementSection:
         utils.openIssuesLayers(issuesGroup, self.issuesLayers)
 
     def openConnectivityLayer(self):
-        queriesFolder = os.path.join(self.ProjectDirectory, "Queries")
-        utils = QGISRedLayerUtils(queriesFolder, self.NetworkName, self.iface)
+        connFolder = os.path.join(self.ProjectDirectory, "Queries", "Connectivity")
+        utils = QGISRedLayerUtils(connFolder, self.NetworkName, self.iface)
         connGroup = utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Connectivity"])
         utils.openLayer(connGroup, "Links_Connectivity")
 
     def openSectorLayers(self):
-        queriesFolder = os.path.join(self.ProjectDirectory, "Queries")
-        utils = QGISRedLayerUtils(queriesFolder, self.NetworkName, self.iface)
-        if os.path.exists(os.path.join(queriesFolder, self.NetworkName + "_Links_" + self.Sectors + ".shp")):
+        sectorFolder = os.path.join(self.ProjectDirectory, "Queries", self.Sectors)
+        utils = QGISRedLayerUtils(sectorFolder, self.NetworkName, self.iface)
+        if os.path.exists(os.path.join(sectorFolder, self.NetworkName + "_Links_" + self.Sectors + ".shp")):
             sectorGroupName = self.getSectorGroupName()
             sectorGroup = utils.getOrCreateNestedGroup([self.NetworkName, "Queries", sectorGroupName])
             utils.openLayer(sectorGroup, "Links_" + self.Sectors, sectors=True)
@@ -309,26 +309,24 @@ class LayerManagementSection:
             self.hasToOpenIssuesLayers = False
 
         if self.hasToOpenConnectivityLayers:
-            queriesFolder = os.path.join(self.ProjectDirectory, "Queries")
-            if not os.path.exists(queriesFolder):
-                os.mkdir(queriesFolder)
+            connFolder = os.path.join(self.ProjectDirectory, "Queries", "Connectivity")
+            os.makedirs(connFolder, exist_ok=True)
             for fi in os.listdir(self.ProjectDirectory):
-                if fi.startswith(self.NetworkName) and "_Links_Connectivity." in fi:
+                if fi.startswith(self.NetworkName) and "Connectivity" in fi:
                     src = os.path.join(self.ProjectDirectory, fi)
-                    dst = os.path.join(queriesFolder, fi)
+                    dst = os.path.join(connFolder, fi)
                     shutil.copy2(src, dst)
                     os.remove(src)
             self.openConnectivityLayer()
             self.hasToOpenConnectivityLayers = False
 
         if self.hasToOpenSectorLayers:
-            queriesFolder = os.path.join(self.ProjectDirectory, "Queries")
-            if not os.path.exists(queriesFolder):
-                os.mkdir(queriesFolder)
+            sectorFolder = os.path.join(self.ProjectDirectory, "Queries", self.Sectors)
+            os.makedirs(sectorFolder, exist_ok=True)
             for fi in os.listdir(self.ProjectDirectory):
                 if fi.startswith(self.NetworkName) and "Sectors" in fi:
                     src = os.path.join(self.ProjectDirectory, fi)
-                    dst = os.path.join(queriesFolder, fi)
+                    dst = os.path.join(sectorFolder, fi)
                     # Overwrite in-place so existing QGIS handles remain valid
                     shutil.copy2(src, dst)
                     os.remove(src)

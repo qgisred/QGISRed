@@ -45,10 +45,10 @@ class QGISRedProjectIO:
         "Inputs":                   "",
         "Issues":                   "Issues",
         "Results":                  "Results",
-        "Queries/Connectivity":     "",
-        "Queries/HydraulicSectors": "Queries",
-        "Queries/DemandSectors":    "Queries",
-        "Queries/IsolatedSegments": "Queries",
+        "Queries/Connectivity":     "Queries/Connectivity",
+        "Queries/HydraulicSectors": "Queries/HydraulicSectors",
+        "Queries/DemandSectors":    "Queries/DemandSectors",
+        "Queries/IsolatedSegments": "Queries/IsolatedSegments",
     }
 
     _GROUP_TREE_PATH = {
@@ -78,7 +78,7 @@ class QGISRedProjectIO:
         # Special case: Tree subgroups — "Queries/Tree_*"
         if re.match(r'^Queries/Tree_', groupName):
             # Layer names are sanitized ASCII (e.g. "Nodes_Tree_J5_Union").
-            # Recover the actual tree name (e.g. "J5-Unión") by scanning disk.
+            # Recover the actual tree name (e.g. "J5-Unión") by scanning its subfolder.
             import glob as _glob
             import unicodedata as _ud
             sanitized_tree = None
@@ -91,7 +91,9 @@ class QGISRedProjectIO:
                 return
             queries_dir = os.path.join(self.ProjectDirectory, "Queries")
             tree_name = None
-            pattern = os.path.join(queries_dir, self.NetworkName + "_Nodes_Tree_*.shp")
+            tree_dir = None
+            # Each tree lives in its own Queries/Tree_{sanitizedName}/ subfolder
+            pattern = os.path.join(queries_dir, "Tree_*", self.NetworkName + "_Nodes_Tree_*.shp")
             for path in _glob.glob(pattern):
                 basename = os.path.splitext(os.path.basename(path))[0]
                 prefix = self.NetworkName + "_Nodes_Tree_"
@@ -101,10 +103,11 @@ class QGISRedProjectIO:
                     norm = norm.replace("-", "_")
                     if norm == sanitized_tree:
                         tree_name = candidate
+                        tree_dir = os.path.dirname(path)
                         break
-            if tree_name is None:
+            if tree_name is None or tree_dir is None:
                 return
-            utils = QGISRedLayerUtils(queries_dir, self.NetworkName, self.iface)
+            utils = QGISRedLayerUtils(tree_dir, self.NetworkName, self.iface)
             group = utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Tree: " + tree_name])
             for name in reversed(layerNames):
                 is_link = name.lower().startswith("links")

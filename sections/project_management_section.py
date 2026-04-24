@@ -767,31 +767,66 @@ class ProjectManagementSection:
                     pass
 
     def _migrateLayersToSubfolders(self):
-        """Silently migrate layers loaded from project root that belong in a subfolder.
+        """Silently migrate layers that are not yet in their correct deep subfolder.
 
-        Old projects may have Links_Connectivity, *Sectors* or *_Issues layers in the
-        project root instead of Queries/ or Issues/. For each misplaced layer:
-          1. Copy all sidecar files (shp/dbf/shx/…) to the correct subfolder.
-          2. Update the loaded layer's datasource to the new path so QGIS releases
-             the old file handle.
-          3. Defer deletion of the old root files via QTimer so the OGR handle is
-             guaranteed to be released before the os.remove call (same pattern as
-             _deleteOldResultFiles).
+        Handles two generations of old projects:
+          - Gen 1 (very old): query/issues layers sitting in the project root.
+          - Gen 2 (intermediate): query layers sitting flat in Queries/ instead of
+            Queries/{Type}/.
+
+        For each misplaced layer:
+          1. Copy all sidecar files to the correct subfolder.
+          2. Update the layer's datasource so QGIS releases the old file handle.
+          3. Defer deletion of the old files via QTimer (same pattern as
+             _deleteOldResultFiles) to guarantee the OGR handle is released first.
         """
         if not self.ProjectDirectory or self.ProjectDirectory == self.TemporalFolder:
             return
 
         netPrefix = self.NetworkName + "_"
+        queries_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, "Queries")))
         root_norm = os.path.normcase(os.path.normpath(self.ProjectDirectory))
         options = QgsDataProvider.ProviderOptions()
 
-        def _target_subfolder(base):
-            if base == self.NetworkName + "_Links_Connectivity":
-                return "Queries"
+        def _target_rel(base, layer_dir_norm):
+            """Return target path relative to ProjectDirectory, or None if already correct."""
+            # Issues: root → Issues/
             if base.startswith(netPrefix) and base.endswith("_Issues"):
-                return "Issues"
-            if base.startswith(netPrefix) and ("Sectors" in base or "IsolatedDemands" in base):
-                return "Queries"
+                issues_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, "Issues")))
+                if layer_dir_norm != issues_norm:
+                    return "Issues"
+            # Connectivity: root or Queries/ → Queries/Connectivity/
+            if base == self.NetworkName + "_Links_Connectivity":
+                target = os.path.join("Queries", "Connectivity")
+                target_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, target)))
+                if layer_dir_norm != target_norm:
+                    return target
+            # HydraulicSectors (includes IsolatedDemands_HydraulicSectors)
+            if base.startswith(netPrefix) and "HydraulicSectors" in base:
+                target = os.path.join("Queries", "HydraulicSectors")
+                target_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, target)))
+                if layer_dir_norm != target_norm:
+                    return target
+            # DemandSectors
+            if base.startswith(netPrefix) and "DemandSectors" in base:
+                target = os.path.join("Queries", "DemandSectors")
+                target_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, target)))
+                if layer_dir_norm != target_norm:
+                    return target
+            # IsolatedSegments
+            if base.startswith(netPrefix) and "_IsolatedSegments_" in base:
+                target = os.path.join("Queries", "IsolatedSegments")
+                target_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, target)))
+                if layer_dir_norm != target_norm:
+                    return target
+            # Trees: root or Queries/ flat → Queries/Tree_{sanitizedName}/
+            if base.startswith(netPrefix) and "_Tree_" in base:
+                parts = base.split("_Tree_", 1)
+                if len(parts) == 2:
+                    target = os.path.join("Queries", "Tree_" + parts[1])
+                    target_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, target)))
+                    if layer_dir_norm != target_norm:
+                        return target
             return None
 
         old_files_to_delete = []
@@ -801,29 +836,28 @@ class ProjectManagementSection:
             if not uri:
                 continue
             layer_dir = os.path.dirname(uri)
-            if os.path.normcase(os.path.normpath(layer_dir)) != root_norm:
+            layer_dir_norm = os.path.normcase(os.path.normpath(layer_dir))
+
+            # Only migrate layers inside the project root or the flat Queries/ dir
+            if layer_dir_norm not in (root_norm, queries_norm):
                 continue
 
             base = os.path.splitext(os.path.basename(uri))[0]
-            subfolder = _target_subfolder(base)
-            if subfolder is None:
+            rel_target = _target_rel(base, layer_dir_norm)
+            if rel_target is None:
                 continue
 
-            dest_dir = os.path.join(self.ProjectDirectory, subfolder)
-            if not os.path.exists(dest_dir):
-                os.makedirs(dest_dir)
+            dest_dir = os.path.join(self.ProjectDirectory, rel_target)
+            os.makedirs(dest_dir, exist_ok=True)
 
-            # Collect sidecar files before any mutation
             sidecars = [f for f in os.listdir(layer_dir) if os.path.splitext(f)[0] == base]
 
             for fname in sidecars:
                 shutil.copy2(os.path.join(layer_dir, fname), os.path.join(dest_dir, fname))
 
-            # Redirect the loaded layer to its new location
             new_uri = os.path.join(dest_dir, os.path.basename(uri))
             layer.setDataSource(new_uri, layer.name(), "ogr", options)
 
-            # Queue old files for deferred deletion
             for fname in sidecars:
                 old_files_to_delete.append(os.path.join(layer_dir, fname))
 

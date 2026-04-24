@@ -214,14 +214,11 @@ class ToolsSection:
 
     def runLoadIsolatedSegmentLayers(self):
         # Process
-        queriesFolder = os.path.join(self.ProjectDirectory, "Queries")
-        try:  # create directory if does not exist
-            os.stat(queriesFolder)
-        except Exception:
-            os.mkdir(queriesFolder)
+        isoFolder = os.path.join(self.ProjectDirectory, "Queries", "IsolatedSegments")
+        os.makedirs(isoFolder, exist_ok=True)
 
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        resMessage = GISRed.ReplaceTemporalFiles(queriesFolder, self.tempFolder)
+        resMessage = GISRed.ReplaceTemporalFiles(isoFolder, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
         self.openIsolatedSegmentsLayers()
@@ -236,8 +233,8 @@ class ToolsSection:
     def openIsolatedSegmentsLayers(self):
         # Open layers
         isoaltedSegmentsGroup = self.getIsolatedSegmentsGroup()
-        queriesFolder = os.path.join(self.ProjectDirectory, "Queries")
-        utils = QGISRedLayerUtils(queriesFolder, self.NetworkName, self.iface)
+        isoFolder = os.path.join(self.ProjectDirectory, "Queries", "IsolatedSegments")
+        utils = QGISRedLayerUtils(isoFolder, self.NetworkName, self.iface)
         utils.openLayer(isoaltedSegmentsGroup, "IsolatedSegments_Links")
         utils.openLayer(isoaltedSegmentsGroup, "IsolatedSegments_Nodes")
 
@@ -246,8 +243,8 @@ class ToolsSection:
         return utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Isolated Segments"])
 
     def removeIsolatedSegmentsLayers(self):
-        path = os.path.join(self.ProjectDirectory, "Queries")
-        utils = QGISRedLayerUtils(path, self.NetworkName, self.iface)
+        isoFolder = os.path.join(self.ProjectDirectory, "Queries", "IsolatedSegments")
+        utils = QGISRedLayerUtils(isoFolder, self.NetworkName, self.iface)
         utils.removeLayers(["IsolatedSegments_Links", "IsolatedSegments_Nodes"])
 
     """Tree"""
@@ -288,11 +285,8 @@ class ToolsSection:
 
     def runTreeProcess(self):
         # Process
-        treeFolder = os.path.join(self.ProjectDirectory, "Queries")
-        try:  # create directory if does not exist
-            os.stat(treeFolder)
-        except Exception:
-            os.mkdir(treeFolder)
+        treeFolder = os.path.join(self.ProjectDirectory, "Queries", "Tree_" + self.treeName)
+        os.makedirs(treeFolder, exist_ok=True)
 
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         resMessage = GISRed.ReplaceTemporalFiles(treeFolder, self.tempFolder)
@@ -319,7 +313,7 @@ class ToolsSection:
     def openTreeLayers(self):
         # Open layers
         treeGroup = self.getTreeGroup()
-        treeFolder = os.path.join(self.ProjectDirectory, "Queries")
+        treeFolder = os.path.join(self.ProjectDirectory, "Queries", "Tree_" + self.treeName)
         utils = QGISRedLayerUtils(treeFolder, self.NetworkName, self.iface)
         utils.openTreeLayer(treeGroup, "Links", self.treeName, link=True)
         utils.openTreeLayer(treeGroup, "Nodes", self.treeName)
@@ -329,7 +323,7 @@ class ToolsSection:
         return utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Tree: " + self.treeName])
 
     def removeTreeLayers(self):
-        treePath = os.path.join(self.ProjectDirectory, "Queries")
-        utils = QGISRedLayerUtils(treePath, self.NetworkName, self.iface)
+        treeFolder = os.path.join(self.ProjectDirectory, "Queries", "Tree_" + self.treeName)
+        utils = QGISRedLayerUtils(treeFolder, self.NetworkName, self.iface)
         utils.removeLayers(["Links_Tree_" + self.treeName, "Nodes_Tree_" + self.treeName])
         self.removeEmptyQuerySubGroup("Tree")
