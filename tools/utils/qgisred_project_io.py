@@ -75,6 +75,42 @@ class QGISRedProjectIO:
         from .qgisred_layer_utils import QGISRedLayerUtils
         from .qgisred_styling_utils import QGISRedStylingUtils
 
+        # Special case: Tree subgroups — "Queries/Tree_*"
+        if re.match(r'^Queries/Tree_', groupName):
+            # Layer names are sanitized ASCII (e.g. "Nodes_Tree_J5_Union").
+            # Recover the actual tree name (e.g. "J5-Unión") by scanning disk.
+            import glob as _glob
+            import unicodedata as _ud
+            sanitized_tree = None
+            for name in layerNames:
+                m = re.match(r'^(?:Nodes|Links)_Tree_(.+)$', name)
+                if m:
+                    sanitized_tree = m.group(1)
+                    break
+            if sanitized_tree is None:
+                return
+            queries_dir = os.path.join(self.ProjectDirectory, "Queries")
+            tree_name = None
+            pattern = os.path.join(queries_dir, self.NetworkName + "_Nodes_Tree_*.shp")
+            for path in _glob.glob(pattern):
+                basename = os.path.splitext(os.path.basename(path))[0]
+                prefix = self.NetworkName + "_Nodes_Tree_"
+                if basename.startswith(prefix):
+                    candidate = basename[len(prefix):]
+                    norm = _ud.normalize("NFKD", candidate).encode("ascii", "ignore").decode("ascii")
+                    norm = norm.replace("-", "_")
+                    if norm == sanitized_tree:
+                        tree_name = candidate
+                        break
+            if tree_name is None:
+                return
+            utils = QGISRedLayerUtils(queries_dir, self.NetworkName, self.iface)
+            group = utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Tree: " + tree_name])
+            for name in reversed(layerNames):
+                is_link = name.lower().startswith("links")
+                utils.openTreeLayer(group, "Links" if is_link else "Nodes", tree_name, link=is_link)
+            return
+
         # Try full path as key (e.g. "Queries/HydraulicSectors", or legacy "HydraulicSectors")
         tree_path = self._GROUP_TREE_PATH.get(groupName)
         subdir = self._GROUP_SUBDIR.get(groupName, "")
@@ -130,7 +166,8 @@ class QGISRedProjectIO:
 
     def _openGroupsNode(self, node, parent_path):
         """Recursively open layers from a nested <Groups> XML subtree."""
-        for child in node:
+        # Iterate in reverse so that each group inserted at position 0 ends up in original XML order
+        for child in reversed(list(node)):
             if child.tag == "Layer":
                 continue
             tag = child.tag.replace(" ", "")

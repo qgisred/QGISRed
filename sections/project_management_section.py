@@ -2,6 +2,7 @@
 """Project management section for QGISRed (define project, open/create/import, settings, backup)."""
 
 import os
+import unicodedata
 
 from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer
 from qgis.PyQt.QtWidgets import QApplication, QMessageBox
@@ -307,14 +308,14 @@ class ProjectManagementSection:
             for child in group.children():
                 if isinstance(child, QgsLayerTreeLayer):
                     layer = child.layer()
-                    if layer and layer.customProperty("qgisred_identifier"):
+                    identifier = layer.customProperty("qgisred_identifier") if layer else None
+                    if layer and identifier:
                         path = self.getLayerPath(layer)
                         name = os.path.splitext(os.path.basename(path))[0]
                         prefix = net + "_"
                         if name.startswith(prefix):
                             name = name[len(prefix):]
                         if in_results:
-                            # name is e.g. "Base_Node" — extract scenario and layer type
                             parts_name = name.rsplit("_", 1)
                             if len(parts_name) == 2 and parts_name[1] in ("Node", "Link"):
                                 scenario, layer_type = parts_name
@@ -325,9 +326,15 @@ class ProjectManagementSection:
                                 variable = ""
                             if variable:
                                 name = name + "_" + variable
+                        # Tree layer names may contain non-ASCII (accents, hyphens) that
+                        # the DLL cannot write correctly — sanitize to ASCII-only
+                        if identifier in ("qgisred_tree_links", "qgisred_tree_nodes"):
+                            name = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode("ascii")
+                            name = name.replace("-", "_")
                         direct_layers.append(name)
-            # XML tags cannot have spaces ("Hydraulic Sectors" → "HydraulicSectors")
-            tag = group.name().replace(" ", "")
+            # XML tags must be ASCII-only: normalize accents, strip spaces/colons/hyphens
+            tag = unicodedata.normalize("NFKD", group.name()).encode("ascii", "ignore").decode("ascii")
+            tag = tag.replace(": ", "_").replace(" ", "").replace(":", "_").replace("-", "_")
             current_path = (path_prefix + "/" if path_prefix else "") + tag
             if direct_layers:
                 parts.append("[" + current_path + "]" + ";".join(direct_layers))

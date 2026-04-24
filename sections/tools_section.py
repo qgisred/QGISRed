@@ -300,6 +300,7 @@ class ToolsSection:
 
         self.openTreeLayers()
         self.layerOperationInProgress = False
+        self.updateMetadata()
 
         # Message
         if resMessage == "True":
