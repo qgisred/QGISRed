@@ -943,6 +943,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 return True
         if prop == 'BaseDem' and qrIdent == 'qgisred_junctions':
             return True
+        if prop == 'BaseValue' and qrIdent == 'qgisred_demands':
+            return True
         if prop == 'Demand':
             cat = self.elementResultCategory.get(qrIdent)
             if cat == 'Node' or qrIdent.startswith('qgisred_node'):
