@@ -1095,7 +1095,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     # ------------------------------
     def populateDataTableWidget(self):
         self.dataTableWidget.setRowCount(0)
-        self.dataTableWidget.setColumnWidth(2, 30)
+        self.dataTableWidget.setColumnWidth(2, 44)
 
         fields = self.currentLayer.fields()
         attributes = self.currentFeature.attributes()
@@ -1395,7 +1395,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)
         header.setStretchLastSection(False)
         self.dataTableWidget.setColumnWidth(1, 80)
-        self.dataTableWidget.setColumnWidth(2, 30)
+        self.dataTableWidget.setColumnWidth(2, 44)
 
     def loadFeature(self, layer, feature, featureIdText=""):
         if not layer or not feature:
@@ -2482,7 +2482,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)
         header.setStretchLastSection(False)
         self.tableResults.setColumnWidth(1, 80)
-        self.tableResults.setColumnWidth(2, 30)
+        self.tableResults.setColumnWidth(2, 50)
 
     def findResultsLayerForElement(self, isNode):
         """Find the Results group layer matching the element type (node or link).
