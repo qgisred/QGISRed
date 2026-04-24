@@ -33,11 +33,11 @@ class AnalysisSection:
         resMessage = GISRed.AnalysisOptions(self.ProjectDirectory, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
-        if "True" in resMessage:
-            self.unitsAction.setText("QGISRed: " + resMessage.replace("True:", ""))
-            self.processCsharpResult("commit", "")
+        if resMessage == "True":
+            self.processCsharpResult("commit", "") #To copy temporal DBF file
+            self.readOptions()
         elif resMessage == "commit":
-            self.processCsharpResult(resMessage, "Pipe's roughness converted")
+            self.processCsharpResult(resMessage, self.tr("Pipe's roughness converted"))
         elif resMessage == "False":
             self.pushMessage(self.tr("Some issues occurred in the process"), level=1, duration=5)
         else:
