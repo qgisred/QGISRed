@@ -50,7 +50,7 @@ class LayerManagementSection:
 
     def removeLayersConnectivity(self):
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        utils.removeLayer("Links_Connectivity")
+        utils.removeLayer("Connectivity_Links")
         self.removeEmptyQuerySubGroup("Connectivity")
 
     def removeLayersAndConnectivity(self):
@@ -58,13 +58,13 @@ class LayerManagementSection:
         utils.removeLayers(self.ownMainLayers)
         utils.removeLayers(self.ownFiles, ".dbf")
         utils.removeLayers(self.especificComplementaryLayers)
-        utils.removeLayer("Links_Connectivity")
+        utils.removeLayer("Connectivity_Links")
         self.removeEmptyQuerySubGroup("Connectivity")
 
     def removeSectorLayers(self):
         queriesFolder = os.path.join(self.ProjectDirectory, "Queries")
         utils = QGISRedLayerUtils(queriesFolder, self.NetworkName, self.iface)
-        utils.removeLayers(["Links_" + self.Sectors, "Nodes_" + self.Sectors])
+        utils.removeLayers([self.Sectors + "_Links", self.Sectors + "_Nodes"])
         sectorGroupName = self.getSectorGroupName()
         self.removeEmptyQuerySubGroup(sectorGroupName)
 
@@ -72,7 +72,7 @@ class LayerManagementSection:
         queriesFolder = os.path.join(self.ProjectDirectory, "Queries")
         if os.path.exists(queriesFolder):
             for fi in os.listdir(queriesFolder):
-                if ("_" + self.Sectors + ".") in fi:
+                if ("_" + self.Sectors + "_") in fi:
                     os.remove(os.path.join(queriesFolder, fi))
 
     """Open Layers"""
@@ -146,18 +146,18 @@ class LayerManagementSection:
         connFolder = os.path.join(self.ProjectDirectory, "Queries", "Connectivity")
         utils = QGISRedLayerUtils(connFolder, self.NetworkName, self.iface)
         connGroup = utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Connectivity"])
-        utils.openLayer(connGroup, "Links_Connectivity")
+        utils.openLayer(connGroup, "Connectivity_Links")
 
     def openSectorLayers(self):
         sectorFolder = os.path.join(self.ProjectDirectory, "Queries", self.Sectors)
         utils = QGISRedLayerUtils(sectorFolder, self.NetworkName, self.iface)
-        if os.path.exists(os.path.join(sectorFolder, self.NetworkName + "_Links_" + self.Sectors + ".shp")):
+        if os.path.exists(os.path.join(sectorFolder, self.NetworkName + "_" + self.Sectors + "_Links.shp")):
             sectorGroupName = self.getSectorGroupName()
             sectorGroup = utils.getOrCreateNestedGroup([self.NetworkName, "Queries", sectorGroupName])
-            utils.openLayer(sectorGroup, "Links_" + self.Sectors, sectors=True)
-            utils.openLayer(sectorGroup, "Nodes_" + self.Sectors, sectors=True)
+            utils.openLayer(sectorGroup, self.Sectors + "_Links", sectors=True)
+            utils.openLayer(sectorGroup, self.Sectors + "_Nodes", sectors=True)
             if self.Sectors == "HydraulicSectors":
-                utils.openLayer(sectorGroup, "IsolatedDemands_HydraulicSectors", sectors=True)
+                utils.openLayer(sectorGroup, "HydraulicSectors_IsolatedDemands", sectors=True)
                 utils.removeEmptyLayersInGroup(sectorGroup, exceptions=[])
 
     """Groups"""

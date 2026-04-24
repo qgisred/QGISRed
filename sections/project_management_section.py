@@ -797,7 +797,7 @@ class ProjectManagementSection:
                 if layer_dir_norm != issues_norm:
                     return "Issues"
             # Connectivity: root or Queries/ → Queries/Connectivity/
-            if base == self.NetworkName + "_Links_Connectivity":
+            if base == self.NetworkName + "_Connectivity_Links":
                 target = os.path.join("Queries", "Connectivity")
                 target_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, target)))
                 if layer_dir_norm != target_norm:
