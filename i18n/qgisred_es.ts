@@ -1891,11 +1891,6 @@
         <translation>Por favor, aber el proyecto desde el Gestor de Proyectos de QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="696"/>
-        <source>Old simulation results have been removed. Please run the simulation again.</source>
-        <translation type="obsolete">Se han eliminado los resultados de simulaciones anteriores. Por favor, ejecuta el modelo de nuevo.</translation>
-    </message>
-    <message>
         <location filename="../sections/project_management_section.py" line="724"/>
         <source>Old simulation results found</source>
         <translation>Encontrados Resultados de simulación viejos</translation>
@@ -3470,7 +3465,7 @@ Do you also want to delete the result files from disk?</source>
         <source>The field &apos;{field}&apos; has {uniqueCount} unique values.
 The maximum allowed is {self.MAX_CLASSES}.
 Please filter the data or choose a different field.</source>
-        <translation>El campo '{field}' tiene {uniqueCount} valores únicos.
+        <translation>El campo &apos;{field}&apos; tiene {uniqueCount} valores únicos.
 El máximo permitido es {self.MAX_CLASSES}.
 Por favor, filtre los datos o elija un campo diferente.</translation>
     </message>
@@ -3485,7 +3480,7 @@ Por favor, filtre los datos o elija un campo diferente.</translation>
 Creating a categorized legend with more than {self.WARN_CLASSES} classes may affect performance and readability.
 
 Do you want to proceed?</source>
-        <translation>El campo '{field}' tiene {uniqueCount} valores únicos.
+        <translation>El campo &apos;{field}&apos; tiene {uniqueCount} valores únicos.
 Crear una leyenda categorizada con más de {self.WARN_CLASSES} clases puede afectar al rendimiento y a la legibilidad.
 
 ¿Desea continuar?</translation>
