@@ -308,10 +308,13 @@ class QGISRedStylingUtils:
         stylePath = os.path.join(_plugin_root(), "defaults", "layerStyles")
 
         # default style
-        if layer.geometryType() == 0:  # Point
+        if layer.geometryType() == 0 and "IsolatedDemands" in layer.dataProvider().dataSourceUri():
+            qmlBasePath = os.path.join(stylePath, "isolatedSegmentsIsolatedDemands.qml.bak")
+        elif layer.geometryType() == 0: # Point
             qmlBasePath = os.path.join(stylePath, "isolatedSegmentsNodes.qml.bak")
         else:
             qmlBasePath = os.path.join(stylePath, "isolatedSegmentsLinks.qml.bak")
+
         layer.loadNamedStyle(qmlBasePath)
         layer.setLabelsEnabled(False)
 
