@@ -579,6 +579,16 @@ class QGISRedFieldUtils:
         name = (row["si_name"] or row["us_name"] or "").strip().lower()
         return name in ("text", "year as text", "-")
 
+    def isDateField(self, elementCategory, fieldName):
+        if not fieldName:
+            return False
+        category = self.identifierToElementName.get(elementCategory, elementCategory)
+        row = self._getFirstRow(category, fieldName) or self._getFirstRowByProperty(category, fieldName)
+        if not row:
+            return False
+        name = (row["si_name"] or row["us_name"] or "").strip().lower()
+        return name == "year as text"
+
     def getFieldDecimals(self, elementCategory, fieldName, default=2):
         """Return decimal precision for a field per the CSV (SI Decimals / US Decimals columns).
 

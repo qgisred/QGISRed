@@ -1232,6 +1232,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     def formatFieldValue(self, rawValue, layerIdentifier, fieldName, utils):
         if rawValue is None or str(rawValue) == "NULL" or str(rawValue).strip() == "":
             return ""
+        if utils.isDateField(layerIdentifier, fieldName):
+            return self.formatDateValue(rawValue)
         if utils.isTextField(layerIdentifier, fieldName):
             return str(rawValue)
         try:
@@ -1240,6 +1242,17 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             return f"{numeric:.{decimals}f}"
         except (ValueError, TypeError):
             return str(rawValue)
+
+    def formatDateValue(self, rawValue):
+        try:
+            digits = str(int(float(rawValue)))
+        except (ValueError, TypeError):
+            return str(rawValue)
+        if len(digits) == 8:
+            year, month, day = digits[0:4], digits[4:6], digits[6:8]
+            if 1 <= int(month) <= 12 and 1 <= int(day) <= 31:
+                return f"{year}-{month}-{day}"
+        return digits
 
     def appendDemandRows(self, startRow, demandFeatures, demandLayer, utils, startIndex=1, showIndex=None):
         layerIdentifier = demandLayer.customProperty("qgisred_identifier") or "qgisred_demands"
