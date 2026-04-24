@@ -1141,8 +1141,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         if hasMultipleDemands:
             skipFields = skipFields | {"BaseDem", "IdPattDem"}
         preDemandFieldNames = {"Elevation"} if hasMultipleDemands else set()
-        postSourceFieldNames = {"EmittCoef", "IniQuality"} if hasSource else set()
-        middleExcludeFieldNames = preDemandFieldNames | postSourceFieldNames
+        preSourceFieldNames = {"EmittCoef", "IniQuality"} if hasSource else set()
+        middleExcludeFieldNames = preDemandFieldNames | preSourceFieldNames
 
         numDisplayFields = sum(1 for f in fields if f.name() not in skipFields)
         demandRowsCount = 3 * len(visibleDemands)
@@ -1177,13 +1177,13 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             displayRow = self.appendDemandRows(displayRow, visibleDemands, demandLayer, utils,
                                                startIndex=pageStart + 1, showIndex=showDemandIndex)
 
+        if hasSource:
+            displayRow = self.emitNodeFields(displayRow, fields, attributes, skipFields, layerIdentifier, utils,
+                                             onlyFieldNames=preSourceFieldNames)
+
         # Append source triplet
         if nodeSource and sourceLayer:
             displayRow = self.appendSourceRows(displayRow, nodeSource, sourceLayer, utils)
-
-        if hasSource:
-            displayRow = self.emitNodeFields(displayRow, fields, attributes, skipFields, layerIdentifier, utils,
-                                             onlyFieldNames=postSourceFieldNames)
 
     def emitNodeFields(self, startRow, fields, attributes, skipFields, layerIdentifier, utils,
                        onlyFieldNames=None, excludeFieldNames=None):
