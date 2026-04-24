@@ -901,117 +901,117 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="11"/>
         <source>Age</source>
-        <translation type="unfinished">Antigüedad</translation>
+        <translation>Antigüedad</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="16"/>
         <source>IsActive</source>
-        <translation type="unfinished"></translation>
+        <translation>Activa</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="21"/>
         <source>Roughness Coeff</source>
-        <translation type="unfinished"></translation>
+        <translation>Coef. Rugosidad</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="24"/>
         <source>Leak Area</source>
-        <translation type="unfinished"></translation>
+        <translation>Área de fuga</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="25"/>
         <source>Leak Expansion Rate</source>
-        <translation type="unfinished"></translation>
+        <translation>Tasa expansión fuga</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="32"/>
         <source>Pattern Demand</source>
-        <translation type="unfinished"></translation>
+        <translation>Patrón Demanda</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="43"/>
         <source>Volume</source>
-        <translation type="unfinished">Volumen</translation>
+        <translation>Volumen</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="45"/>
         <source>Overflow Condition</source>
-        <translation type="unfinished"></translation>
+        <translation>Condición desbordamiento</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="67"/>
         <source>Value X axis</source>
-        <translation type="unfinished"></translation>
+        <translation>Valor eje X</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="68"/>
         <source>Value Y axis</source>
-        <translation type="unfinished"></translation>
+        <translation>Valor eje Y</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="71"/>
         <source>Source Quality</source>
-        <translation type="unfinished"></translation>
+        <translation>Calidad fuente</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="72"/>
         <source>Source Pattern</source>
-        <translation type="unfinished"></translation>
+        <translation>Patrón fuente</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="81"/>
         <source>Specific Gravity</source>
-        <translation type="unfinished"></translation>
+        <translation>Gravedad específica</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="82"/>
         <source>Viscosity</source>
-        <translation type="unfinished"></translation>
+        <translation>Viscosidad</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="83"/>
         <source>Demand Multiplier</source>
-        <translation type="unfinished"></translation>
+        <translation>Multiplicador demanda</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="84"/>
         <source>Emitter Exponent</source>
-        <translation type="unfinished"></translation>
+        <translation>Exponente emisor</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="85"/>
         <source>Minimum Pressure</source>
-        <translation type="unfinished"></translation>
+        <translation>Presión mínima</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="86"/>
         <source>Required Pressure</source>
-        <translation type="unfinished"></translation>
+        <translation>Presión requerida</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="87"/>
         <source>Pressure Exponent</source>
-        <translation type="unfinished"></translation>
+        <translation>Exponente presión</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="88"/>
         <source>Diffusivity</source>
-        <translation type="unfinished"></translation>
+        <translation>Difusividad</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="89"/>
         <source>Global Bulk</source>
-        <translation type="unfinished"></translation>
+        <translation>Coef. reacción medio</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="90"/>
         <source>Global Wall</source>
-        <translation type="unfinished"></translation>
+        <translation>Coef. reacción pared</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="91"/>
         <source>Limiting Potential</source>
-        <translation type="unfinished"></translation>
+        <translation>Potencial Limitante</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="92"/>
@@ -1021,17 +1021,17 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="93"/>
         <source>Global Price</source>
-        <translation type="unfinished"></translation>
+        <translation>Precio global</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="94"/>
         <source>Demand Charge</source>
-        <translation type="unfinished"></translation>
+        <translation>Carga demanda</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="97"/>
         <source>Pressure</source>
-        <translation type="unfinished">Presión</translation>
+        <translation>Presión</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="98"/>
@@ -1041,37 +1041,37 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="99"/>
         <source>Demand</source>
-        <translation type="unfinished">Demanda</translation>
+        <translation>Demanda</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="100"/>
         <source>Full demand</source>
-        <translation type="unfinished"></translation>
+        <translation>Demanda entera</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="101"/>
         <source>Demand Deficit</source>
-        <translation type="unfinished"></translation>
+        <translation>Déficit demanda</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="102"/>
         <source>Leakage Flow</source>
-        <translation type="unfinished"></translation>
+        <translation>Caudal fugado</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="103"/>
         <source>Emitter Flow</source>
-        <translation type="unfinished"></translation>
+        <translation>Caudal emisor</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="106"/>
         <source>Flow</source>
-        <translation type="unfinished">Caudal</translation>
+        <translation>Caudal</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="107"/>
         <source>Velocity</source>
-        <translation type="unfinished">Velocidad</translation>
+        <translation>Velocidad</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="108"/>
@@ -1086,32 +1086,32 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="110"/>
         <source>Friction factor</source>
-        <translation type="unfinished"></translation>
+        <translation>Factor fricción</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="111"/>
         <source>Energy</source>
-        <translation type="unfinished"></translation>
+        <translation>Energía</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="112"/>
         <source>Reaction Rate</source>
-        <translation type="unfinished">Velocidad de Reacción</translation>
+        <translation>Velocidad de Reacción</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="115"/>
         <source>Element Type</source>
-        <translation type="unfinished">Tipo de elemento</translation>
+        <translation>Tipo de elemento</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="116"/>
         <source>Simulation Time</source>
-        <translation type="unfinished"></translation>
+        <translation>Hora simulación</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="119"/>
         <source>Chemical</source>
-        <translation type="unfinished">Químico</translation>
+        <translation>Químico</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="120"/>
@@ -1891,18 +1891,9 @@
         <translation>Por favor, aber el proyecto desde el Gestor de Proyectos de QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="720"/>
-        <source>Old simulation results found</source>
-        <translation>Encontrados Resultados de simulación obsoletos</translation>
-    </message>
-    <message>
-        <location filename="../sections/project_management_section.py" line="720"/>
-        <source>Result layers from a previous version of QGISRed have been detected.They will be removed from QGIS and you will need to run the simulation again.
-
-Do you also want to delete the result files from disk?</source>
-        <translation>Se han detectado capas de resultados de una versión anterior de QGISRed. Se eliminarán de QGIS y tendrás que volver a ejecutar la simulación.
-
-¿Quieres borrar también los archivos de resultados del disco?</translation>
+        <location filename="../sections/project_management_section.py" line="696"/>
+        <source>Old simulation results have been removed. Please run the simulation again.</source>
+        <translation>Se han eliminado los resultados de simulaciones anteriores. Por favor, ejecuta el modelo de nuevo.</translation>
     </message>
 </context>
 <context>
@@ -2358,12 +2349,12 @@ Do you also want to delete the result files from disk?</source>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1275"/>
         <source>Previous demand set</source>
-        <translation type="unfinished"></translation>
+        <translation>Cojunto de demandas anteriores</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1282"/>
         <source>Next demand set</source>
-        <translation type="unfinished"></translation>
+        <translation>Conjunto de demandas siguientes</translation>
     </message>
 </context>
 <context>
@@ -2446,7 +2437,7 @@ Do you also want to delete the result files from disk?</source>
     <message>
         <location filename="../ui/analysis/qgisred_export_csv_dialog.ui" line="14"/>
         <source>QGISRed: Export Results to CSV...</source>
-        <translation>GISRed: Exportar Resultados a CSV...</translation>
+        <translation>QGISRed: Export resultados a CSV...</translation>
     </message>
 </context>
 <context>
