@@ -242,7 +242,7 @@ class _ResultsRenderingMixin:
             displaying = self.displayingLinkField if "Link" in nameLayer else self.displayingNodeField
             if not hasRender and displaying != db_field_name:
                 qmlName = nameLayer.split("_")[0] + "_" + db_field_name
-                utils.setResultStyle(layer, qmlName)
+                utils.setStyle(layer, qmlName)
                 renderer = layer.renderer()
 
             if hasRender and isinstance(ranges, QgsRuleBasedRenderer.Rule):
@@ -263,7 +263,7 @@ class _ResultsRenderingMixin:
 
             if not hasRender and not renderer_correct:
                 qmlName = nameLayer.split("_")[0] + "_" + qml_field_name
-                utils.setResultStyle(layer, qmlName)
+                utils.setStyle(layer, qmlName)
                 renderer = layer.renderer()
 
             if hasRender and isinstance(ranges, list):

@@ -118,7 +118,8 @@ class QGISRedStylingUtils:
     def setStyle(self, layer, name):
         if name == "":
             return
-
+        name = name.replace("_", "") if name else ""
+        
         # 1- project style
         projectStylePath = os.path.join(self.ProjectDirectory, "layerStyles")
         qmlPath = os.path.join(projectStylePath, name + ".qml")
@@ -139,59 +140,6 @@ class QGISRedStylingUtils:
         pluginPath = _plugin_root()
         defaultStylePath = os.path.join(pluginPath, "defaults", "layerStyles")
         qmlPath = os.path.join(defaultStylePath, name + ".qml.bak")
-        layer.loadNamedStyle(qmlPath)
-        layer.setLabelsEnabled(False)
-
-    def setResultStyle(self, layer, name=""):
-        # Convert result layer name to QML filename (e.g., "Link_Flow" -> "LinkFlow")
-        qmlName = name.replace("_", "") if name else ""
-
-        # Search order: project folder -> layerStyles -> defaults/layerStyles
-        if qmlName:
-            # 1- project style
-            projectStylePath = os.path.join(self.ProjectDirectory, "layerStyles")
-            qmlPath = os.path.join(projectStylePath, qmlName + ".qml")
-            if os.path.exists(qmlPath):
-                layer.loadNamedStyle(qmlPath)
-                layer.setLabelsEnabled(False)
-                return
-
-            # 2- global style
-            globalStylesPath = os.path.join(self._getQGISRedFolder(), "defaults", "layerStyles")
-            qmlPath = os.path.join(globalStylesPath, qmlName + ".qml")
-            if os.path.exists(qmlPath):
-                layer.loadNamedStyle(qmlPath)
-                layer.setLabelsEnabled(False)
-                return
-
-            # 3- default style
-            pluginPath = _plugin_root()
-            defaultStylePath = os.path.join(pluginPath, "defaults", "layerStyles")
-            qmlPath = os.path.join(defaultStylePath, qmlName + ".qml.bak")
-            layer.loadNamedStyle(qmlPath)
-            layer.setLabelsEnabled(False)
-
-    def setHydraulicSectorStyle(self, layer, qmlName):
-        # 1- project style
-        projectStylePath = os.path.join(self.ProjectDirectory, "layerStyles")
-        qmlPath = os.path.join(projectStylePath, qmlName + ".qml")
-        if os.path.exists(qmlPath):
-            layer.loadNamedStyle(qmlPath)
-            layer.setLabelsEnabled(False)
-            return
-
-        # 2- global style
-        globalStylesPath = os.path.join(self._getQGISRedFolder(), "defaults", "layerStyles")
-        qmlPath = os.path.join(globalStylesPath, qmlName + ".qml")
-        if os.path.exists(qmlPath):
-            layer.loadNamedStyle(qmlPath)
-            layer.setLabelsEnabled(False)
-            return
-
-        # 3- default style
-        pluginPath = _plugin_root()
-        defaultStylePath = os.path.join(pluginPath, "defaults", "layerStyles")
-        qmlPath = os.path.join(defaultStylePath, qmlName + ".qml.bak")
         layer.loadNamedStyle(qmlPath)
         layer.setLabelsEnabled(False)
 
@@ -302,20 +250,6 @@ class QGISRedStylingUtils:
         # assign the created renderer to the layer
         if renderer is not None:
             layer.setRenderer(renderer)
-        layer.setLabelsEnabled(False)
-
-    def setIsolatedSegmentsStyle(self, layer):
-        stylePath = os.path.join(_plugin_root(), "defaults", "layerStyles")
-
-        # default style
-        if layer.geometryType() == 0 and "IsolatedDemands" in layer.dataProvider().dataSourceUri():
-            qmlBasePath = os.path.join(stylePath, "isolatedSegmentsIsolatedDemands.qml.bak")
-        elif layer.geometryType() == 0: # Point
-            qmlBasePath = os.path.join(stylePath, "isolatedSegmentsNodes.qml.bak")
-        else:
-            qmlBasePath = os.path.join(stylePath, "isolatedSegmentsLinks.qml.bak")
-
-        layer.loadNamedStyle(qmlBasePath)
         layer.setLabelsEnabled(False)
 
     def applyCategorizedRenderer(self, layer, field, qmlFile):

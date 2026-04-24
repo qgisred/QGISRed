@@ -242,12 +242,14 @@ class LayerManagementSection:
 
     """Others"""
 
-    def processCsharpResult(self, b, message, layerType="issues", onOpenLayers=None):
+    def processCsharpResult(self, b, message, layerType="issues"):
         # Action
         self.hasToOpenNewLayers = False
         self.hasToOpenIssuesLayers = False
         self.hasToOpenSectorLayers = False
         self.hasToOpenConnectivityLayers = False
+        self.hasToOpenIsolatedSegmentsLayers = False
+        self.hasToOpenTreeLayers = False
         if b == "True":
             if not message == "":
                 self.pushMessage(self.tr(message), level=3, duration=5)
@@ -260,6 +262,10 @@ class LayerManagementSection:
                 self.hasToOpenSectorLayers = True
             elif layerType == "connectivity":
                 self.hasToOpenConnectivityLayers = True
+            elif layerType == "isolatedSegments":
+                self.hasToOpenIsolatedSegmentsLayers = True
+            elif layerType == "tree":
+                self.hasToOpenTreeLayers = True
             else:
                 self.hasToOpenIssuesLayers = True
         elif b == "commit/shps":
@@ -268,15 +274,18 @@ class LayerManagementSection:
                 self.hasToOpenSectorLayers = True
             elif layerType == "connectivity":
                 self.hasToOpenConnectivityLayers = True
+            elif layerType == "isolatedSegments":
+                self.hasToOpenIsolatedSegmentsLayers = True
+            elif layerType == "tree":
+                self.hasToOpenTreeLayers = True
             else:
                 self.hasToOpenIssuesLayers = True
         else:
             self.pushMessage(b, level=2, duration=5)
 
-        if self.hasToOpenNewLayers or self.hasToOpenIssuesLayers or self.hasToOpenSectorLayers or self.hasToOpenConnectivityLayers:
+        if self.hasToOpenNewLayers or self.hasToOpenIssuesLayers or self.hasToOpenSectorLayers or self.hasToOpenConnectivityLayers or self.hasToOpenIsolatedSegmentsLayers or self.hasToOpenTreeLayers:
             self.layerOperationInProgress = True
-            openFn = onOpenLayers if onOpenLayers else self.runOpenTemporaryFiles
-            openFn()
+            self.runOpenTemporaryFiles()
         else:
             self.layerOperationInProgress = False
 
@@ -332,6 +341,30 @@ class LayerManagementSection:
                     os.remove(src)
             self.openSectorLayers()
             self.hasToOpenSectorLayers = False
+
+        if self.hasToOpenIsolatedSegmentsLayers:
+            isoFolder = os.path.join(self.ProjectDirectory, "Queries", "IsolatedSegments")
+            os.makedirs(isoFolder, exist_ok=True)
+            for fi in os.listdir(self.ProjectDirectory):
+                if fi.startswith(self.NetworkName) and "IsolatedSegments" in fi:
+                    src = os.path.join(self.ProjectDirectory, fi)
+                    dst = os.path.join(isoFolder, fi)
+                    shutil.copy2(src, dst)
+                    os.remove(src)
+            self.openIsolatedSegmentsLayers()
+            self.hasToOpenIsolatedSegmentsLayers = False
+
+        if self.hasToOpenTreeLayers:
+            treeFolder = os.path.join(self.ProjectDirectory, "Queries", "Tree_" + self.treeName)
+            os.makedirs(treeFolder, exist_ok=True)
+            for fi in os.listdir(self.ProjectDirectory):
+                if fi.startswith(self.NetworkName) and "_Tree_" in fi:
+                    src = os.path.join(self.ProjectDirectory, fi)
+                    dst = os.path.join(treeFolder, fi)
+                    shutil.copy2(src, dst)
+                    os.remove(src)
+            self.openTreeLayers()
+            self.hasToOpenTreeLayers = False
 
         QApplication.restoreOverrideCursor()
         self.layerOperationInProgress = False

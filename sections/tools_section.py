@@ -210,25 +210,7 @@ class ToolsSection:
                 self.isolatedSegmentsButton.setChecked(False)
             self.gisredDll = None
         self.blockLayers(False)
-        self.processCsharpResult(resMessage, "", onOpenLayers=self.runLoadIsolatedSegmentLayers)
-
-    def runLoadIsolatedSegmentLayers(self):
-        # Process
-        isoFolder = os.path.join(self.ProjectDirectory, "Queries", "IsolatedSegments")
-        os.makedirs(isoFolder, exist_ok=True)
-
-        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        resMessage = GISRed.ReplaceTemporalFiles(isoFolder, self.tempFolder)
-        QApplication.restoreOverrideCursor()
-
-        self.openIsolatedSegmentsLayers()
-        self.layerOperationInProgress = False
-
-        # Message
-        if resMessage == "True":
-            pass
-        else:
-            self.pushMessage(resMessage, level=2, duration=5)
+        self.processCsharpResult(resMessage, "", layerType="isolatedSegments")
 
     def openIsolatedSegmentsLayers(self):
         # Open layers
@@ -282,26 +264,7 @@ class ToolsSection:
         if "shps" in resMessage:
             self.treeName = resMessage.split("^")[1]
             resMessage = "shps"
-        self.processCsharpResult(resMessage, "", onOpenLayers=self.runTreeProcess)
-
-    def runTreeProcess(self):
-        # Process
-        treeFolder = os.path.join(self.ProjectDirectory, "Queries", "Tree_" + self.treeName)
-        os.makedirs(treeFolder, exist_ok=True)
-
-        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        resMessage = GISRed.ReplaceTemporalFiles(treeFolder, self.tempFolder)
-        QApplication.restoreOverrideCursor()
-
-        self.openTreeLayers()
-        self.layerOperationInProgress = False
-        self.updateMetadata()
-
-        # Message
-        if resMessage == "True":
-            pass
-        else:
-            self.pushMessage(resMessage, level=2, duration=5)
+        self.processCsharpResult(resMessage, "", layerType="tree")
 
     def selectPointToTree(self):
         tool = "treeNode"

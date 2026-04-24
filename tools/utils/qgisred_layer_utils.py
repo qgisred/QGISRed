@@ -433,21 +433,19 @@ class QGISRedLayerUtils:
                     existingLayer = self._findLayerByPath(layerPath)
                     if existingLayer is not None:
                         if "HydraulicSectors" in originalName:
-                            styling.setHydraulicSectorStyle(existingLayer, originalName.replace("_", ""))
+                            styling.setStyle(existingLayer, originalName)
                         else:
                             styling.setSectorsStyle(existingLayer)
                 return
             vlayer = QgsVectorLayer(layerPath, showName, "ogr")
             if not ext == ".dbf":
                 if results:
-                    styling.setResultStyle(vlayer, originalName)
+                    styling.setStyle(vlayer, originalName)
                 elif sectors:
                     if "HydraulicSectors" in originalName:
-                        styling.setHydraulicSectorStyle(vlayer, originalName.replace("_", ""))
+                        styling.setStyle(vlayer, originalName)
                     else:
                         styling.setSectorsStyle(vlayer)
-                elif "IsolatedSegments" in originalName:
-                    styling.setIsolatedSegmentsStyle(vlayer)
                 elif issues:
                     pass
                 else:
