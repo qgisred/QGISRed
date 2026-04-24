@@ -31,6 +31,19 @@ class QGISRedLayerUtils:
         'qgisred_isolatedsegments': 'IsolatedSegments'
     }
 
+    # Maps qgisred_identifier → canonical English group name (locale-independent)
+    _IDENTIFIER_TO_CANONICAL = {
+        'qgisred_inputs':           'Inputs',
+        'qgisred_issues':           'Issues',
+        'qgisred_results':          'Results',
+        'qgisred_queries':          'Queries',
+        'qgisred_thematicmaps':     'Thematic Maps',
+        'qgisred_connectivity':     'Connectivity',
+        'qgisred_hydraulicsectors': 'Hydraulic Sectors',
+        'qgisred_demandsectors':    'Demand Sectors',
+        'qgisred_isolatedsegments': 'Isolated Segments',
+    }
+
     MAIN_GROUP_ORDER = ["Results", "Queries", "Issues", "Inputs"]
 
     def __init__(self, directory="", networkName="", iface=None):
@@ -51,6 +64,33 @@ class QGISRedLayerUtils:
 
     def tr(self, message):
         return QCoreApplication.translate("InputLayerNames", message)
+
+    @classmethod
+    def _translateGroupName(cls, name):
+        """Return the translated display name for a canonical group name."""
+        # Direct QCoreApplication.translate calls so pylupdate5 indexes every string:
+        _TRANSLATIONS = {
+            "Inputs":            QCoreApplication.translate("QGISRedGroups", "Inputs"),
+            "Issues":            QCoreApplication.translate("QGISRedGroups", "Issues"),
+            "Results":           QCoreApplication.translate("QGISRedGroups", "Results"),
+            "Queries":           QCoreApplication.translate("QGISRedGroups", "Queries"),
+            "Thematic Maps":     QCoreApplication.translate("QGISRedGroups", "Thematic Maps"),
+            "Connectivity":      QCoreApplication.translate("QGISRedGroups", "Connectivity"),
+            "Hydraulic Sectors": QCoreApplication.translate("QGISRedGroups", "Hydraulic Sectors"),
+            "Demand Sectors":    QCoreApplication.translate("QGISRedGroups", "Demand Sectors"),
+            "Isolated Segments": QCoreApplication.translate("QGISRedGroups", "Isolated Segments"),
+            "Tree":              QCoreApplication.translate("QGISRedGroups", "Tree"),
+        }
+        if name.startswith("Tree: "):
+            return _TRANSLATIONS["Tree"] + ": " + name[6:]
+        return _TRANSLATIONS.get(name, name)
+
+    @classmethod
+    def getCanonicalGroupName(cls, group):
+        """Return the canonical English name for a QgsLayerTreeGroup.
+        Uses the qgisred_identifier property; falls back to group.name()."""
+        identifier = group.customProperty("qgisred_identifier")
+        return cls._IDENTIFIER_TO_CANONICAL.get(identifier, group.name())
 
     def runTask(self, process, postprocess):
         process()
@@ -210,31 +250,43 @@ class QGISRedLayerUtils:
         if self.NetworkName:
             netGroup = self._getOrCreateNetGroup(root)
 
+        translated = self._translateGroupName(groupName)
+
         # Search within netGroup first (avoids re-calling layerTreeRoot internally)
         if netGroup is not None:
             for child in netGroup.children():
                 if not isinstance(child, QgsLayerTreeGroup):
                     continue
                 if identifier and child.customProperty("qgisred_identifier") == identifier:
+                    if child.name() != translated:
+                        child.setName(translated)
                     return child
-                if child.name() == groupName:
+                if child.name() == groupName or child.name() == translated:
                     self.setGroupIdentifier(child, groupName)
+                    if child.name() != translated:
+                        child.setName(translated)
                     return child
 
         # Fallback: search rest of tree using the root we already have
         found = self._findGroupByIdentifierRecursive(root, identifier) if identifier else None
         if found is not None:
+            if found.name() != translated:
+                found.setName(translated)
             return found
         found = self._findGroupByNameRecursive(root, groupName)
+        if found is None:
+            found = self._findGroupByNameRecursive(root, translated)
         if found is not None:
             self.setGroupIdentifier(found, groupName)
+            if found.name() != translated:
+                found.setName(translated)
             return found
 
         if netGroup is not None:
             pos = self._getInsertPosition(netGroup, groupName)
-            newGroup = netGroup.insertGroup(pos, groupName)
+            newGroup = netGroup.insertGroup(pos, translated)
         else:
-            newGroup = root.insertGroup(0, groupName)
+            newGroup = root.insertGroup(0, translated)
         self.setGroupIdentifier(newGroup, groupName)
         return newGroup
 
@@ -246,6 +298,7 @@ class QGISRedLayerUtils:
         netGroup = None
         for i, groupName in enumerate(path):
             foundGroup = None
+            translated = self._translateGroupName(groupName) if i > 0 else groupName
             identifier = self.groupIdentifiers.get(groupName)
             if identifier:
                 for child in currentParent.children():
@@ -255,18 +308,22 @@ class QGISRedLayerUtils:
                             break
             if foundGroup is None:
                 for child in currentParent.children():
-                    if isinstance(child, QgsLayerTreeGroup) and child.name() == groupName:
+                    if isinstance(child, QgsLayerTreeGroup) and (
+                        child.name() == groupName or child.name() == translated
+                    ):
                         foundGroup = child
                         break
             if foundGroup is None:
                 if i == 1 and netGroup is not None:
                     pos = self._getInsertPosition(netGroup, groupName)
-                    foundGroup = currentParent.insertGroup(pos, groupName)
+                    foundGroup = currentParent.insertGroup(pos, translated)
                 else:
-                    foundGroup = currentParent.insertGroup(0, groupName)
+                    foundGroup = currentParent.insertGroup(0, translated)
                 self.setGroupIdentifier(foundGroup, groupName)
             else:
                 self.setGroupIdentifier(foundGroup, groupName)
+                if i > 0 and foundGroup.name() != translated:
+                    foundGroup.setName(translated)
             if i == 0 and self.NetworkName and groupName == self.NetworkName:
                 netGroup = foundGroup
             # From index 1 onwards: show this group and hide its siblings within the

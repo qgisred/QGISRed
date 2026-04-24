@@ -333,8 +333,9 @@ class ProjectManagementSection:
                             name = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode("ascii")
                             name = name.replace("-", "_")
                         direct_layers.append(name)
-            # XML tags must be ASCII-only: normalize accents, strip spaces/colons/hyphens
-            tag = unicodedata.normalize("NFKD", group.name()).encode("ascii", "ignore").decode("ascii")
+            # XML tags must be ASCII-only and locale-independent: use canonical English name
+            canonical = QGISRedLayerUtils.getCanonicalGroupName(group)
+            tag = unicodedata.normalize("NFKD", canonical).encode("ascii", "ignore").decode("ascii")
             tag = tag.replace(": ", "_").replace(" ", "").replace(":", "_").replace("-", "_")
             current_path = (path_prefix + "/" if path_prefix else "") + tag
             if direct_layers:

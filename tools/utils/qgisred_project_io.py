@@ -13,7 +13,7 @@ import xml.sax.saxutils
 from qgis.PyQt.QtCore import QCoreApplication, QFileInfo
 from qgis.PyQt.QtWidgets import QMessageBox, QFileDialog
 from qgis.core import (
-    QgsProject, QgsLayerTreeLayer, QgsVectorLayer,
+    QgsProject, QgsLayerTreeLayer, QgsLayerTreeGroup, QgsVectorLayer,
     QgsLayerDefinition
 )
 from .qgisred_ui_utils import QGISRedUIUtils
@@ -183,6 +183,37 @@ class QGISRedProjectIO:
             sub_groups = [c for c in child if c.tag != "Layer"]
             if sub_groups:
                 self._openGroupsNode(child, current_path)
+
+    def _renameGroupsToLocale(self):
+        """After QgsProject.read(), rename all QGISRed groups to the active locale display names."""
+        from .qgisred_layer_utils import QGISRedLayerUtils
+        self._renameGroupsRecursive(QgsProject.instance().layerTreeRoot(), QGISRedLayerUtils)
+
+    def _renameGroupsRecursive(self, parent, utils_cls):
+        for child in parent.children():
+            if not isinstance(child, QgsLayerTreeGroup):
+                continue
+            identifier = child.customProperty("qgisred_identifier")
+            canonical = utils_cls._IDENTIFIER_TO_CANONICAL.get(identifier)
+            if canonical is not None:
+                translated = utils_cls._translateGroupName(canonical)
+                if child.name() != translated:
+                    child.setName(translated)
+            else:
+                # Tree groups in canonical English form (old projects)
+                if child.name().startswith("Tree: "):
+                    new_name = utils_cls._translateGroupName(child.name())
+                    if child.name() != new_name:
+                        child.setName(new_name)
+                else:
+                    # Tree groups saved in another locale (e.g. Spanish → French)
+                    tree_word = QCoreApplication.translate("QGISRedGroups", "Tree")
+                    if child.name().startswith(tree_word + ": "):
+                        tree_name = child.name()[len(tree_word) + 2:]
+                        new_name = utils_cls._translateGroupName("Tree: " + tree_name)
+                        if child.name() != new_name:
+                            child.setName(new_name)
+            self._renameGroupsRecursive(child, utils_cls)
 
     def _applyQGisReplacements(self, content, oldName, newName, oldFolder, newFolder, oldQgisDir=None, newQgisDir=None, collectExternal=False):
         """Standard path replacement in QGIS project XML. 
@@ -522,6 +553,7 @@ class QGISRedProjectIO:
 
                     if os.path.exists(qgisPath):
                         QgsProject.instance().read(qgisPath)
+                        self._renameGroupsToLocale()
                         return True
                     else:
                         request = QMessageBox.question(
@@ -537,6 +569,7 @@ class QGISRedProjectIO:
                             qgisPath = f[0]
                             if not qgisPath == "":
                                 QgsProject.instance().read(qgisPath)
+                                self._renameGroupsToLocale()
                                 return True
                         else:
                             layers = ["Pipes", "Junctions", "Demands", "Valves", "Pumps", "Tanks", "Reservoirs", "Sources"]
@@ -555,6 +588,7 @@ class QGISRedProjectIO:
                 if ".qgs" in qgsFile or ".qgz" in qgsFile:
                     finfo = QFileInfo(qgsFile)
                     QgsProject.instance().read(finfo.filePath())
+                    self._renameGroupsToLocale()
                     return True
                 else:
                     styling = self._styling()
