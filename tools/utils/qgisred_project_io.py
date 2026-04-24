@@ -166,8 +166,10 @@ class QGISRedProjectIO:
 
     def _openGroupsNode(self, node, parent_path):
         """Recursively open layers from a nested <Groups> XML subtree."""
-        # Iterate in reverse so that each group inserted at position 0 ends up in original XML order
-        for child in reversed(list(node)):
+        # Sub-levels use insertGroup(0, ...) so reversing preserves XML order.
+        # Top-level groups (parent_path="") use _getInsertPosition and must NOT be reversed.
+        children = reversed(list(node)) if parent_path else node
+        for child in children:
             if child.tag == "Layer":
                 continue
             tag = child.tag.replace(" ", "")
