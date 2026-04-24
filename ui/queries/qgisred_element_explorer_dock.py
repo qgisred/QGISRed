@@ -130,7 +130,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.resultsCurrentStat = ""
 
         self.demandPageIndex = 0
-        self.demandsPerPage = 3
+        self.demandsPerPage = 1
 
         self.resultsDockVisibilityTimer = QTimer()
         self.resultsDockVisibilityTimer.setSingleShot(True)
@@ -1272,14 +1272,14 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         prevButton = QToolButton(container)
         prevButton.setText("◀")
         prevButton.setFixedSize(18, 18)
-        prevButton.setToolTip(self.tr("Previous demand set"))
+        prevButton.setToolTip(self.tr("Previous demand"))
         prevButton.setEnabled(self.demandPageIndex > 0)
         prevButton.clicked.connect(self.onDemandPrevClicked)
 
         nextButton = QToolButton(container)
         nextButton.setText("▶")
         nextButton.setFixedSize(18, 18)
-        nextButton.setToolTip(self.tr("Next demand set"))
+        nextButton.setToolTip(self.tr("Next demand"))
         nextButton.setEnabled(self.demandPageIndex < pageCount - 1)
         nextButton.clicked.connect(self.onDemandNextClicked)
 
