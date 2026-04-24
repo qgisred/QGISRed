@@ -153,7 +153,7 @@ class QGISRedProjectIO:
                 scenario = file_name.rsplit("_", 1)[0]  # "Base_Node" → "Base"
                 QgsProject.instance().writeEntry("QGISRed", f"results_{scenario}_{layer_type}", variable)
                 styling.setResultStyle(opened, layer_type + "_" + variable)
-                template = QCoreApplication.translate("QGISRedResultsDock", layer_type + " %1")
+                template = QCoreApplication.translate("_ResultsRenderingMixin", layer_type + " %1")
                 translated_var = QCoreApplication.translate("QGISRedResultsDock", variable)
                 opened.setName(template.replace("%1", translated_var))
                 opened.triggerRepaint()

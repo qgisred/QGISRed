@@ -6,7 +6,7 @@
     <Searchable>1</Searchable>
     <Private>0</Private>
   </flags>
-  <renderer-v2 attr="abs(Time)" graduatedMethod="GraduatedColor" enableorderby="0" forceraster="0" symbollevels="0" referencescale="-1" type="graduatedSymbol">
+  <renderer-v2 attr="abs(Flow)" graduatedMethod="GraduatedColor" enableorderby="0" forceraster="0" symbollevels="0" referencescale="-1" type="graduatedSymbol">
     <ranges>
       <range symbol="0" label="&lt;10" lower="-10000000000.000000000000000" upper="10.000000000000000" render="true" uuid="{58559b7a-898c-4ed2-8de4-d46c7713ed97}"/>
       <range symbol="1" label="10-20" lower="10.000000000000000" upper="20.000000000000000" render="true" uuid="{b31e77db-eb4d-4a45-82e8-b877858e83c0}"/>
