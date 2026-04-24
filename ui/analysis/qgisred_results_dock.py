@@ -479,10 +479,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
             if name not in existing_fields:
                 qgs_type = type_map.get(type_str, QVariantString)
                 length = extra[0] if extra else 0
+                field = QgsField(name, qgs_type)
                 if length:
-                    new_fields.append(QgsField(name, qgs_type, len=length))
-                else:
-                    new_fields.append(QgsField(name, qgs_type))
+                    field.setLength(length)
+                new_fields.append(field)
         
         if new_fields:
             layer.dataProvider().addAttributes(new_fields)
