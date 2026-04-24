@@ -72,7 +72,7 @@
      <item>
       <widget class="QGroupBox" name="gbElements">
        <property name="title">
-        <string>Basic Elements Visibility in Legend</string>
+        <string>Load/Unload basic elements in legend</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
         <item row="0" column="0">
@@ -534,7 +534,7 @@
         </size>
        </property>
        <property name="title">
-        <string>Digital Twin Visibility in Legend</string>
+        <string>Load/Unload Digital Twin elements in legend</string>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>

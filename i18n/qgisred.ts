@@ -2111,7 +2111,7 @@
     <message>
         <location filename="../ui/general/qgisred_createproject_dialog.ui" line="122"/>
         <source>CRS:</source>
-        <translation type="unfinished"></translation>
+        <translation>SRC:</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_createproject_dialog.ui" line="129"/>
@@ -2498,7 +2498,7 @@
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="124"/>
         <source>CRS:</source>
-        <translation type="unfinished"></translation>
+        <translation>SRC:</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="131"/>
@@ -2891,11 +2891,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.ui" line="3242"/>
-        <source>(when points are over elements)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3267"/>
         <source>Isolation Valves</source>
         <translation type="unfinished"></translation>
@@ -2928,11 +2923,6 @@
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3930"/>
         <source>Meter Type</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/general/qgisred_import_dialog.ui" line="3944"/>
-        <source>From layer field</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3075,6 +3065,16 @@
         <source>ZIP file does not contain a valid QGISRed project</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.ui" line="3944"/>
+        <source>Assign from field Type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.ui" line="3242"/>
+        <source>(when click over an element)</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>QGISRedImportProjectDialog</name>
@@ -3129,7 +3129,7 @@
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="28"/>
         <source>CRS:</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">SRC:</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="35"/>
@@ -3139,11 +3139,6 @@
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="66"/>
         <source>...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="75"/>
-        <source>Basic Elements Visibility in Legend</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3232,11 +3227,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="537"/>
-        <source>Digital Twin Visibility in Legend</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="552"/>
         <source>Service Connections</source>
         <translation type="unfinished"></translation>
@@ -3274,6 +3264,16 @@
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="760"/>
         <source>Cancel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="75"/>
+        <source>Load/Unload basic elements in legend</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="537"/>
+        <source>Load/Unload Digital Twin elements in legend</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

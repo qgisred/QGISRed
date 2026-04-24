@@ -3239,7 +3239,7 @@
                         </font>
                        </property>
                        <property name="text">
-                        <string>(when points are over elements)</string>
+                        <string>(when click over an element)</string>
                        </property>
                       </widget>
                      </item>
@@ -3941,7 +3941,7 @@
                        </property>
                        <item>
                         <property name="text">
-                         <string>From layer field</string>
+                         <string>Assign from field Type</string>
                         </property>
                        </item>
                        <item>

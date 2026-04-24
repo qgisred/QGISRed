@@ -4,24 +4,9 @@
 <context>
     <name>AnalysisSection</name>
     <message>
-        <location filename="../sections/analysis_section.py" line="325"/>
-        <source>Warning</source>
-        <translation type="obsolete">Avertissement</translation>
-    </message>
-    <message>
         <location filename="../sections/analysis_section.py" line="158"/>
         <source>Some issues occurred in the process</source>
         <translation type="unfinished">Des problèmes sont survenus durant le processus</translation>
-    </message>
-    <message>
-        <location filename="../sections/analysis_section.py" line="158"/>
-        <source>Error</source>
-        <translation type="obsolete">Erreur</translation>
-    </message>
-    <message>
-        <location filename="../sections/analysis_section.py" line="150"/>
-        <source>Information</source>
-        <translation type="obsolete">Information</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="156"/>
@@ -104,11 +89,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="150"/>
-        <source>Info</source>
-        <translation type="obsolete">Info</translation>
-    </message>
-    <message>
         <location filename="../sections/analysis_section.py" line="519"/>
         <source>Borrar selección</source>
         <translation type="unfinished"></translation>
@@ -142,24 +122,9 @@
 <context>
     <name>DebugValidationSection</name>
     <message>
-        <location filename="../sections/debug_validation_section.py" line="274"/>
-        <source>Information</source>
-        <translation type="obsolete">Information</translation>
-    </message>
-    <message>
         <location filename="../sections/debug_validation_section.py" line="144"/>
         <source>Only one zone</source>
         <translation type="unfinished">Une seule zone</translation>
-    </message>
-    <message>
-        <location filename="../sections/debug_validation_section.py" line="311"/>
-        <source>Error</source>
-        <translation type="obsolete">Erreur</translation>
-    </message>
-    <message>
-        <location filename="../sections/debug_validation_section.py" line="278"/>
-        <source>Warning</source>
-        <translation type="obsolete">Avertissement</translation>
     </message>
     <message>
         <location filename="../sections/debug_validation_section.py" line="256"/>
@@ -205,11 +170,6 @@
         <location filename="../sections/debug_validation_section.py" line="106"/>
         <source>No T connections to create</source>
         <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../sections/debug_validation_section.py" line="274"/>
-        <source>Info</source>
-        <translation type="obsolete">Info</translation>
     </message>
     <message>
         <location filename="../sections/debug_validation_section.py" line="190"/>
@@ -548,11 +508,6 @@
 <context>
     <name>DigitalTwinSection</name>
     <message>
-        <location filename="../sections/digital_twin_section.py" line="243"/>
-        <source>Warning</source>
-        <translation type="obsolete">Avertissement</translation>
-    </message>
-    <message>
         <location filename="../sections/digital_twin_section.py" line="219"/>
         <source>The Isolation Valves SHP file does not exist</source>
         <translation type="unfinished"></translation>
@@ -591,16 +546,6 @@
         <translation>Masque d’ID d’élément</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.ui" line="153"/>
-        <source>Find</source>
-        <translation type="obsolete">Rechercher</translation>
-    </message>
-    <message>
-        <location filename="../ui/qgisred_element_explorer_dock.ui" line="172"/>
-        <source>Reload</source>
-        <translation type="obsolete">Recharger</translation>
-    </message>
-    <message>
         <location filename="../ui/queries/qgisred_queriesbyproperties_dock.ui" line="420"/>
         <source>Clear</source>
         <translation type="unfinished">Effacer</translation>
@@ -631,11 +576,6 @@
         <translation>Résultats</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.ui" line="486"/>
-        <source>Day 1, 15:10</source>
-        <translation type="obsolete">Jour 1, 15:10</translation>
-    </message>
-    <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="409"/>
         <source>Curves</source>
         <translation>Courbes</translation>
@@ -649,16 +589,6 @@
         <location filename="../ui/queries/qgisred_element_explorer_dock.ui" line="453"/>
         <source>Controls</source>
         <translation>Contrôles</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="26"/>
-        <source>Queries by Attributes</source>
-        <translation type="obsolete">Requêtes par attributs</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.ui" line="110"/>
-        <source>Criterion</source>
-        <translation type="obsolete">Critère</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_queriesbyproperties_dock.ui" line="171"/>
@@ -944,11 +874,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="64"/>
-        <source>Is Active</source>
-        <translation type="obsolete">Actif</translation>
-    </message>
-    <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="75"/>
         <source>Reliability</source>
         <translation type="unfinished"></translation>
@@ -962,11 +887,6 @@
         <location filename="../tools/qgisred_translatable_strings.py" line="78"/>
         <source>Available</source>
         <translation type="unfinished">Disponible</translation>
-    </message>
-    <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="15"/>
-        <source>Roughness</source>
-        <translation type="obsolete">Rugosité</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="41"/>
@@ -1339,167 +1259,12 @@
 </context>
 <context>
     <name>LANGANDCODEPAGE</name>
-    <message>
-        <location filename="../qgisred.py" line="1761"/>
-        <source>QGISRed Dependencies</source>
-        <translation type="obsolete">Dépendances de QGISRed</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1761"/>
-        <source>QGISRed plugin only runs in Windows OS and requires some dependencies (v</source>
-        <translation type="obsolete">Le module QGISRed s’exécute uniquement sous Windows et nécessite certaines dépendances (v</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1819"/>
-        <source>QGISRed Updates</source>
-        <translation type="obsolete">Mises à jour de QGISRed</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1819"/>
-        <source>QGISRed plugin has a new version (</source>
-        <translation type="obsolete">Le module QGISRed dispose d’une nouvelle version (</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="4800"/>
-        <source>Warning</source>
-        <translation type="obsolete">Avertissement</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1898"/>
-        <source>Opened project</source>
-        <translation type="obsolete">Projet ouvert</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1964"/>
-        <source>No valid project is opened</source>
-        <translation type="obsolete">Aucun projet valide n’est ouvert</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="4214"/>
-        <source>Information</source>
-        <translation type="obsolete">Information</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="4868"/>
-        <source>Error</source>
-        <translation type="obsolete">Erreur</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="2458"/>
-        <source>Some Ids are not defined. Commit before and try again.</source>
-        <translation type="obsolete">Certains ID ne sont pas définis. Validez puis réessayez.</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="2763"/>
-        <source>Info</source>
-        <translation type="obsolete">Info</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="2729"/>
-        <source>Project saved</source>
-        <translation type="obsolete">Projet enregistré</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="2763"/>
-        <source>Project options updated</source>
-        <translation type="obsolete">Options du projet mises à jour</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="4218"/>
-        <source>Some issues occurred in the process</source>
-        <translation type="obsolete">Des problèmes sont survenus durant le processus</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="3059"/>
-        <source>INP file successfully exported</source>
-        <translation type="obsolete">Fichier INP exporté avec succès</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="4090"/>
-        <source>Only one zone</source>
-        <translation type="obsolete">Une seule zone</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="4146"/>
-        <source>No issues on diameter checking</source>
-        <translation type="obsolete">Aucun problème lors de la vérification des diamètres</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="4183"/>
-        <source>No issues on materials checking</source>
-        <translation type="obsolete">Aucun problème lors de la vérification des matériaux</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="4214"/>
-        <source>No issues on installation dates checking</source>
-        <translation type="obsolete">Aucun problème lors de la vérification des dates d’installation</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="3302"/>
-        <source>Junction</source>
-        <translation type="obsolete">Jonction</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="3303"/>
-        <source>Tank</source>
-        <translation type="obsolete">Château d’eau</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="3304"/>
-        <source>Reservoir</source>
-        <translation type="obsolete">Réservoir</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="3305"/>
-        <source>Pipe</source>
-        <translation type="obsolete">Conduite</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="3306"/>
-        <source>Valve</source>
-        <translation type="obsolete">Vanne</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="3307"/>
-        <source>Pump</source>
-        <translation type="obsolete">Pomp e</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="3329"/>
-        <source>Open</source>
-        <translation type="obsolete">Ouvrir</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="3335"/>
-        <source>Time</source>
-        <translation type="obsolete">Temps</translation>
-    </message>
 </context>
 <context>
     <name>LayerManagementSection</name>
-    <message>
-        <location filename="../sections/layer_management_section.py" line="269"/>
-        <source>Information</source>
-        <translation type="obsolete">Information</translation>
-    </message>
-    <message>
-        <location filename="../sections/layer_management_section.py" line="338"/>
-        <source>Error</source>
-        <translation type="obsolete">Erreur</translation>
-    </message>
-    <message>
-        <location filename="../sections/layer_management_section.py" line="267"/>
-        <source>Info</source>
-        <translation type="obsolete">Info</translation>
-    </message>
 </context>
 <context>
     <name>LifecycleSection</name>
-    <message>
-        <location filename="../sections/lifecycle_section.py" line="48"/>
-        <source>Error</source>
-        <translation type="obsolete">Erreur</translation>
-    </message>
     <message>
         <location filename="../sections/lifecycle_section.py" line="48"/>
         <source>QGISRed only works on Windows</source>
@@ -1622,11 +1387,6 @@
         <location filename="../sections/menu_section.py" line="176"/>
         <source>Default values...</source>
         <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../sections/menu_section.py" line="198"/>
-        <source>Save map</source>
-        <translation type="obsolete">Enregistrer la carte</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="207"/>
@@ -1754,11 +1514,6 @@
         <translation type="unfinished">Débogage QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="461"/>
-        <source>Check &amp;&amp; Commit data</source>
-        <translation type="obsolete">Vérifier &amp;&amp; Valider les données</translation>
-    </message>
-    <message>
         <location filename="../sections/menu_section.py" line="470"/>
         <source>Remove overlapping elements</source>
         <translation type="unfinished">Supprimer les éléments qui se chevauchent</translation>
@@ -1767,16 +1522,6 @@
         <location filename="../sections/menu_section.py" line="479"/>
         <source>Simplify link vertices</source>
         <translation type="unfinished">Simplifier les sommets des liaisons</translation>
-    </message>
-    <message>
-        <location filename="../sections/menu_section.py" line="488"/>
-        <source>Join consecutive pipes (diameter, material and year)</source>
-        <translation type="obsolete">Joindre les conduites consécutives (diamètre, matériau et année)</translation>
-    </message>
-    <message>
-        <location filename="../sections/menu_section.py" line="497"/>
-        <source>Create T Connections</source>
-        <translation type="obsolete">Créer des connexions en T</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="508"/>
@@ -1824,29 +1569,9 @@
         <translation type="unfinished">Outils QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="602"/>
-        <source>Automatically Calculate Pipe Lengths</source>
-        <translation type="obsolete">Calculer automatiquement les longueurs de conduites</translation>
-    </message>
-    <message>
         <location filename="../sections/menu_section.py" line="611"/>
         <source>Interpolate elevation from .asc files...</source>
         <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../sections/menu_section.py" line="620"/>
-        <source>Set roughness coefficient (from Material and Date)</source>
-        <translation type="obsolete">Définir le coefficient de rugosité (à partir du matériau et de la date)</translation>
-    </message>
-    <message>
-        <location filename="../sections/menu_section.py" line="629"/>
-        <source>Convert roughness coefficient</source>
-        <translation type="obsolete">Convertir le coefficient de rugosité</translation>
-    </message>
-    <message>
-        <location filename="../sections/menu_section.py" line="660"/>
-        <source>Isolated Segments</source>
-        <translation type="obsolete">Segments isolés</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="674"/>
@@ -1884,11 +1609,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="782"/>
-        <source>Export Model to Epanet</source>
-        <translation type="obsolete">Exporter le modèle vers EPANET</translation>
-    </message>
-    <message>
         <location filename="../sections/menu_section.py" line="801"/>
         <source>Digital Twin</source>
         <translation type="unfinished">Jumeau numérique</translation>
@@ -1907,11 +1627,6 @@
         <location filename="../sections/menu_section.py" line="822"/>
         <source>Add isolation valve</source>
         <translation type="unfinished">Ajouter une vanne d’isolement</translation>
-    </message>
-    <message>
-        <location filename="../sections/menu_section.py" line="837"/>
-        <source>Add Meter</source>
-        <translation type="obsolete">Ajouter un compteur</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="843"/>
@@ -2002,31 +1717,6 @@
         <location filename="../sections/menu_section.py" line="1029"/>
         <source>QGISRed Queries</source>
         <translation type="unfinished">Requêtes QGISRed</translation>
-    </message>
-    <message>
-        <location filename="../sections/menu_section.py" line="1044"/>
-        <source>Find Elements by ID...</source>
-        <translation type="obsolete">Rechercher des éléments par ID...</translation>
-    </message>
-    <message>
-        <location filename="../sections/menu_section.py" line="1054"/>
-        <source>Element Properties...</source>
-        <translation type="obsolete">Propriétés de l’élément...</translation>
-    </message>
-    <message>
-        <location filename="../sections/menu_section.py" line="1064"/>
-        <source>Thematic Maps...</source>
-        <translation type="obsolete">Cartes thématiques...</translation>
-    </message>
-    <message>
-        <location filename="../sections/menu_section.py" line="1073"/>
-        <source>Queries by Attributes...</source>
-        <translation type="obsolete">Requêtes par attributs...</translation>
-    </message>
-    <message>
-        <location filename="../sections/menu_section.py" line="1082"/>
-        <source>Statistics &amp;&amp; Plots...</source>
-        <translation type="obsolete">Statistiques &amp;&amp; Graphiques...</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="198"/>
@@ -2127,11 +1817,6 @@
 <context>
     <name>ProjectManagementSection</name>
     <message>
-        <location filename="../sections/project_management_section.py" line="551"/>
-        <source>Warning</source>
-        <translation type="obsolete">Avertissement</translation>
-    </message>
-    <message>
         <location filename="../sections/project_management_section.py" line="102"/>
         <source>No valid project is opened</source>
         <translation type="unfinished">Aucun projet valide n’est ouvert</translation>
@@ -2142,29 +1827,14 @@
         <translation type="unfinished">Des problèmes sont survenus durant le processus</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="557"/>
-        <source>Error</source>
-        <translation type="obsolete">Erreur</translation>
-    </message>
-    <message>
         <location filename="../sections/project_management_section.py" line="373"/>
         <source>QGISRed: Open project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="581"/>
-        <source>Info</source>
-        <translation type="obsolete">Info</translation>
-    </message>
-    <message>
         <location filename="../sections/project_management_section.py" line="527"/>
         <source>Project options updated</source>
         <translation type="unfinished">Options du projet mises à jour</translation>
-    </message>
-    <message>
-        <location filename="../sections/project_management_section.py" line="159"/>
-        <source>QGISRed Project saved</source>
-        <translation type="obsolete">Projet enregistré</translation>
     </message>
     <message>
         <location filename="../sections/project_management_section.py" line="581"/>
@@ -2212,11 +1882,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="164"/>
-        <source>Project saved</source>
-        <translation type="obsolete">Projet enregistré</translation>
-    </message>
-    <message>
         <location filename="../sections/project_management_section.py" line="183"/>
         <source>Map project saved</source>
         <translation type="unfinished">Projet enregistré</translation>
@@ -2234,646 +1899,6 @@
 </context>
 <context>
     <name>QGISRed</name>
-    <message>
-        <location filename="../qgisred.py" line="4868"/>
-        <source>Error</source>
-        <translation type="obsolete">Erreur</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="110"/>
-        <source>QGISRed only works on Windows</source>
-        <translation type="obsolete">QGISRed fonctionne uniquement sous Windows</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="142"/>
-        <source>Click to change it</source>
-        <translation type="obsolete">Cliquez pour le changer</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="235"/>
-        <source>About...</source>
-        <translation type="obsolete">À propos...</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="245"/>
-        <source>Report issues or comments...</source>
-        <translation type="obsolete">Signaler des problèmes ou des commentaires...</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="460"/>
-        <source>General</source>
-        <translation type="obsolete">Général</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="454"/>
-        <source>QGISRed General</source>
-        <translation type="obsolete">Général QGISRed</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="373"/>
-        <source>Project manager</source>
-        <translation type="obsolete">Gestionnaire de projets</translation>
-    </message>
-    <message>
-        <location filename="../sections/project_management_section.py" line="57"/>
-        <source>Open project</source>
-        <translation type="obsolete">Ouvrir le projet</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="395"/>
-        <source>Create project</source>
-        <translation type="obsolete">Créer un projet</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="406"/>
-        <source>Import project</source>
-        <translation type="obsolete">Importer un projet</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="532"/>
-        <source>Project</source>
-        <translation type="obsolete">Projet</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="526"/>
-        <source>QGISRed Project</source>
-        <translation type="obsolete">Projet QGISRed</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="445"/>
-        <source>Summary</source>
-        <translation type="obsolete">Résumé</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="456"/>
-        <source>Layer manager</source>
-        <translation type="obsolete">Gestionnaire de couches</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="467"/>
-        <source>Add data by import</source>
-        <translation type="obsolete">Ajouter des données par importation</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="481"/>
-        <source>Project settings</source>
-        <translation type="obsolete">Paramètres du projet</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="492"/>
-        <source>Project default values</source>
-        <translation type="obsolete">Valeurs par défaut du projet</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="503"/>
-        <source>Project materials</source>
-        <translation type="obsolete">Matériaux du projet</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="631"/>
-        <source>Save project map</source>
-        <translation type="obsolete">Enregistrer la carte</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="642"/>
-        <source>Project backup</source>
-        <translation type="obsolete">Sauvegarde du projet</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="653"/>
-        <source>Close project</source>
-        <translation type="obsolete">Fermer le projet</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="677"/>
-        <source>Edition</source>
-        <translation type="obsolete">Édition</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="670"/>
-        <source>QGISRed Edition</source>
-        <translation type="obsolete">Édition QGISRed</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="693"/>
-        <source>Add pipe</source>
-        <translation type="obsolete">Ajouter une conduite</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="705"/>
-        <source>Add tank</source>
-        <translation type="obsolete">Ajouter un château d’eau</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="717"/>
-        <source>Add reservoir</source>
-        <translation type="obsolete">Ajouter un réservoir</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="729"/>
-        <source>Insert valve in pipe</source>
-        <translation type="obsolete">Insérer une vanne dans une conduite</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="741"/>
-        <source>Insert pump in pipe</source>
-        <translation type="obsolete">Insérer une pompe dans une conduite</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="756"/>
-        <source>Select multiple elements</source>
-        <translation type="obsolete">Sélectionner plusieurs éléments</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="768"/>
-        <source>Move nodes</source>
-        <translation type="obsolete">Déplacer des nœuds</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="780"/>
-        <source>Edit link vertices</source>
-        <translation type="obsolete">Modifier les sommets des liaisons</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="792"/>
-        <source>Reverse elements</source>
-        <translation type="obsolete">Inverser les éléments</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="804"/>
-        <source>Split/Join pipes</source>
-        <translation type="obsolete">Scinder/Fusionner des conduites</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="816"/>
-        <source>Merge/Dissolve junctions</source>
-        <translation type="obsolete">Fusionner/Dissoudre des jonctions</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="828"/>
-        <source>Create/Remove T connections</source>
-        <translation type="obsolete">Créer/Supprimer des connexions en T</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="840"/>
-        <source>Create/Remove crossings</source>
-        <translation type="obsolete">Créer/Supprimer des croisements</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="852"/>
-        <source>Move valves/pumps</source>
-        <translation type="obsolete">Déplacer vannes/pompes</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="864"/>
-        <source>Change element status</source>
-        <translation type="obsolete">Changer l’état des éléments</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="876"/>
-        <source>Delete elements</source>
-        <translation type="obsolete">Supprimer des éléments</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="777"/>
-        <source>Edit element properties</source>
-        <translation type="obsolete">Modifier les propriétés de l’élément</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="789"/>
-        <source>Edit patterns and curves</source>
-        <translation type="obsolete">Modifier profils et courbes</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="800"/>
-        <source>Edit controls</source>
-        <translation type="obsolete">Modifier les contrôles</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="937"/>
-        <source>Debug</source>
-        <translation type="obsolete">Débogage</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="931"/>
-        <source>QGISRed Debug</source>
-        <translation type="obsolete">Débogage QGISRed</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="953"/>
-        <source>Check &amp;&amp; Commit data</source>
-        <translation type="obsolete">Vérifier &amp;&amp; Valider les données</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="964"/>
-        <source>Remove overlapping elements</source>
-        <translation type="obsolete">Supprimer les éléments qui se chevauchent</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="975"/>
-        <source>Simplify link vertices</source>
-        <translation type="obsolete">Simplifier les sommets des liaisons</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="986"/>
-        <source>Join consecutive pipes (diameter, material and year)</source>
-        <translation type="obsolete">Joindre les conduites consécutives (diamètre, matériau et année)</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="997"/>
-        <source>Create T Connections</source>
-        <translation type="obsolete">Créer des connexions en T</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1009"/>
-        <source>Check connectivity</source>
-        <translation type="obsolete">Vérifier la connectivité</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1021"/>
-        <source>Delete issolated subzones</source>
-        <translation type="obsolete">Supprimer les sous-zones isolées</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1035"/>
-        <source>Check pipe lengths</source>
-        <translation type="obsolete">Vérifier les longueurs de conduites</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1046"/>
-        <source>Check diameters</source>
-        <translation type="obsolete">Vérifier les diamètres</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1057"/>
-        <source>Check pipe materials</source>
-        <translation type="obsolete">Vérifier les matériaux des conduites</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1068"/>
-        <source>Check pipe installation dates</source>
-        <translation type="obsolete">Vérifier les dates d’installation des conduites</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1082"/>
-        <source>Check hydraulic sectors</source>
-        <translation type="obsolete">Vérifier les secteurs hydrauliques</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1105"/>
-        <source>Tools</source>
-        <translation type="obsolete">Outils</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1099"/>
-        <source>QGISRed Tools</source>
-        <translation type="obsolete">Outils QGISRed</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1121"/>
-        <source>Automatically Calculate Pipe Lengths</source>
-        <translation type="obsolete">Calculer automatiquement les longueurs de conduites</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1018"/>
-        <source>Interpolate elevation from .asc files</source>
-        <translation type="obsolete">Interpoler l’altitude à partir de fichiers .asc</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1143"/>
-        <source>Set roughness coefficient (from Material and Date)</source>
-        <translation type="obsolete">Définir le coefficient de rugosité (à partir du matériau et de la date)</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1154"/>
-        <source>Convert roughness coefficient</source>
-        <translation type="obsolete">Convertir le coefficient de rugosité</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1054"/>
-        <source>Nodal Demand Builder</source>
-        <translation type="obsolete">Générateur de demande nodale</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1065"/>
-        <source>Scenario Builder</source>
-        <translation type="obsolete">Générateur de scénarios</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1190"/>
-        <source>Isolated Segments</source>
-        <translation type="obsolete">Segments isolés</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1205"/>
-        <source>Obtain demand sectors</source>
-        <translation type="obsolete">Obtenir des secteurs de demande</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1102"/>
-        <source>Tree Graph</source>
-        <translation type="obsolete">Graphe arborescent</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1239"/>
-        <source>Analysis</source>
-        <translation type="obsolete">Analyse</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1233"/>
-        <source>QGISRed Analysis</source>
-        <translation type="obsolete">Analyse QGISRed</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1141"/>
-        <source>Analysis options</source>
-        <translation type="obsolete">Options d’analyse</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1256"/>
-        <source>Run model</source>
-        <translation type="obsolete">Exécuter le modèle</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1268"/>
-        <source>Results browser</source>
-        <translation type="obsolete">Navigateur de résultats</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1319"/>
-        <source>Export Model to Epanet</source>
-        <translation type="obsolete">Exporter le modèle vers EPANET</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1342"/>
-        <source>Digital Twin</source>
-        <translation type="obsolete">Jumeau numérique</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1336"/>
-        <source>QGISRed Digital Twin</source>
-        <translation type="obsolete">Jumeau numérique QGISRed</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1358"/>
-        <source>Add service connection</source>
-        <translation type="obsolete">Ajouter un raccordement de service</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1371"/>
-        <source>Add isolation valve</source>
-        <translation type="obsolete">Ajouter une vanne d’isolement</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1388"/>
-        <source>Add Meter</source>
-        <translation type="obsolete">Ajouter un compteur</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1396"/>
-        <source>Add meter</source>
-        <translation type="obsolete">Ajouter un compteur</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1412"/>
-        <source>Add automatic meter</source>
-        <translation type="obsolete">Ajouter un compteur automatique</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1426"/>
-        <source>Add manometer</source>
-        <translation type="obsolete">Ajouter un manomètre</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1439"/>
-        <source>Add flowmeter</source>
-        <translation type="obsolete">Ajouter un débitmètre</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1452"/>
-        <source>Add countermeter</source>
-        <translation type="obsolete">Ajouter un compteur</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1465"/>
-        <source>Add level sensor</source>
-        <translation type="obsolete">Ajouter un capteur de niveau</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1478"/>
-        <source>Add differential manometer</source>
-        <translation type="obsolete">Ajouter un manomètre différentiel</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1491"/>
-        <source>Add quality sensor</source>
-        <translation type="obsolete">Ajouter un capteur de qualité</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1504"/>
-        <source>Add energy sensor</source>
-        <translation type="obsolete">Ajouter un capteur d’énergie</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1517"/>
-        <source>Add status sensor</source>
-        <translation type="obsolete">Ajouter un capteur d’état</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1530"/>
-        <source>Add valve opening</source>
-        <translation type="obsolete">Ajouter une ouverture de vanne</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1543"/>
-        <source>Add tachometer</source>
-        <translation type="obsolete">Ajouter un tachymètre</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1431"/>
-        <source>Load meter readings</source>
-        <translation type="obsolete">Charger les relevés de compteurs</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1588"/>
-        <source>Set pipe&apos;s initial status from isolation valves</source>
-        <translation type="obsolete">Définir l’état initial des conduites à partir des vannes d’isolement</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1455"/>
-        <source>Load field data</source>
-        <translation type="obsolete">Charger des données de terrain</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1616"/>
-        <source>Convert service connections into pipes/nodes</source>
-        <translation type="obsolete">Convertir les raccordements de service en conduites/nœuds</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1639"/>
-        <source>Queries</source>
-        <translation type="obsolete">Requêtes</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1633"/>
-        <source>QGISRed Queries</source>
-        <translation type="obsolete">Requêtes QGISRed</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1655"/>
-        <source>Find Elements by ID...</source>
-        <translation type="obsolete">Rechercher des éléments par ID...</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1669"/>
-        <source>Element Properties...</source>
-        <translation type="obsolete">Propriétés de l’élément...</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1682"/>
-        <source>Thematic Maps...</source>
-        <translation type="obsolete">Cartes thématiques...</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1694"/>
-        <source>Queries by Attributes...</source>
-        <translation type="obsolete">Requêtes par attributs...</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1706"/>
-        <source>Statistics &amp;&amp; Plots...</source>
-        <translation type="obsolete">Statistiques &amp;&amp; Graphiques...</translation>
-    </message>
-    <message>
-        <location filename="../sections/debug_validation_section.py" line="212"/>
-        <source>No issues on diameter checking</source>
-        <translation type="obsolete">Aucun problème lors de la vérification des diamètres</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1892"/>
-        <source>Opened project</source>
-        <translation type="obsolete">Projet ouvert</translation>
-    </message>
-    <message>
-        <location filename="../sections/project_management_section.py" line="51"/>
-        <source>Warning</source>
-        <translation type="obsolete">Avertissement</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1761"/>
-        <source>QGISRed Dependencies</source>
-        <translation type="obsolete">Dépendances de QGISRed</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1762"/>
-        <source>QGISRed plugin only runs in Windows OS and requires some dependencies (v</source>
-        <translation type="obsolete">Le module QGISRed s’exécute uniquement sous Windows et nécessite certaines dépendances (v</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1816"/>
-        <source>QGISRed Updates</source>
-        <translation type="obsolete">Mises à jour de QGISRed</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1820"/>
-        <source>QGISRed plugin has a new version (</source>
-        <translation type="obsolete">Le module QGISRed dispose d’une nouvelle version (</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="1958"/>
-        <source>No valid project is opened</source>
-        <translation type="obsolete">Aucun projet valide n’est ouvert</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="4214"/>
-        <source>Information</source>
-        <translation type="obsolete">Information</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="2458"/>
-        <source>Some Ids are not defined. Commit before and try again.</source>
-        <translation type="obsolete">Certains ID ne sont pas définis. Validez puis réessayez.</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="2763"/>
-        <source>Info</source>
-        <translation type="obsolete">Info</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="2729"/>
-        <source>Map project saved</source>
-        <translation type="obsolete">Projet enregistré</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="4218"/>
-        <source>Some issues occurred in the process</source>
-        <translation type="obsolete">Des problèmes sont survenus durant le processus</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="2763"/>
-        <source>Project options updated</source>
-        <translation type="obsolete">Options du projet mises à jour</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="3059"/>
-        <source>INP file successfully exported</source>
-        <translation type="obsolete">Fichier INP exporté avec succès</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="3302"/>
-        <source>Junction</source>
-        <translation type="obsolete">Jonction</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="3303"/>
-        <source>Tank</source>
-        <translation type="obsolete">Château d’eau</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="3304"/>
-        <source>Reservoir</source>
-        <translation type="obsolete">Réservoir</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="3305"/>
-        <source>Pipe</source>
-        <translation type="obsolete">Conduite</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="3306"/>
-        <source>Valve</source>
-        <translation type="obsolete">Vanne</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="3307"/>
-        <source>Pump</source>
-        <translation type="obsolete">Pomp e</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="3329"/>
-        <source>Open</source>
-        <translation type="obsolete">Ouvrir</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="3335"/>
-        <source>Time</source>
-        <translation type="obsolete">Temps</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="4090"/>
-        <source>Only one zone</source>
-        <translation type="obsolete">Une seule zone</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="4183"/>
-        <source>No issues on materials checking</source>
-        <translation type="obsolete">Aucun problème lors de la vérification des matériaux</translation>
-    </message>
-    <message>
-        <location filename="../qgisred.py" line="4214"/>
-        <source>No issues on installation dates checking</source>
-        <translation type="obsolete">Aucun problème lors de la vérification des dates d’installation</translation>
-    </message>
 </context>
 <context>
     <name>QGISRedAboutDialog</name>
@@ -2901,16 +1926,6 @@
         <location filename="../ui/general/qgisred_about_dialog.ui" line="220"/>
         <source>Report issue or comment</source>
         <translation>Signaler un problème ou un commentaire</translation>
-    </message>
-    <message>
-        <location filename="../ui/qgisred_about_dialog.ui" line="312"/>
-        <source>User&apos;s Manual   </source>
-        <translation type="obsolete">Manuel de l’utilisateur   </translation>
-    </message>
-    <message>
-        <location filename="../ui/qgisred_about_dialog.ui" line="389"/>
-        <source>Manual de usuario   </source>
-        <translation type="obsolete">Manuel de l’utilisateur   </translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_about_dialog.ui" line="595"/>
@@ -3218,11 +2233,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_createproject_dialog.py" line="134"/>
-        <source>Information</source>
-        <translation type="obsolete">Information</translation>
-    </message>
-    <message>
         <location filename="../ui/general/qgisred_createproject_dialog.py" line="140"/>
         <source>Process successfully completed</source>
         <translation type="unfinished"></translation>
@@ -3242,69 +2252,9 @@
         <source>Error</source>
         <translation type="unfinished">Erreur</translation>
     </message>
-    <message>
-        <location filename="../ui/general/qgisred_createproject_dialog.py" line="140"/>
-        <source>Info</source>
-        <translation type="obsolete">Info</translation>
-    </message>
 </context>
 <context>
     <name>QGISRedElementExplorerDock</name>
-    <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="85"/>
-        <source>Pipes</source>
-        <translation type="obsolete">Conduites</translation>
-    </message>
-    <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="86"/>
-        <source>Junctions</source>
-        <translation type="obsolete">Jonctions</translation>
-    </message>
-    <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="87"/>
-        <source>Demands</source>
-        <translation type="obsolete">Demandes</translation>
-    </message>
-    <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="88"/>
-        <source>Reservoirs</source>
-        <translation type="obsolete">Réservoirs</translation>
-    </message>
-    <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="89"/>
-        <source>Tanks</source>
-        <translation type="obsolete">Châteaux d’eau</translation>
-    </message>
-    <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="90"/>
-        <source>Pumps</source>
-        <translation type="obsolete">Pompes</translation>
-    </message>
-    <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="91"/>
-        <source>Valves</source>
-        <translation type="obsolete">Vannes</translation>
-    </message>
-    <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="92"/>
-        <source>Sources</source>
-        <translation type="obsolete">Sources</translation>
-    </message>
-    <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="93"/>
-        <source>Service Connections</source>
-        <translation type="obsolete">Raccordements de service</translation>
-    </message>
-    <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="94"/>
-        <source>Isolation Valves</source>
-        <translation type="obsolete">Vannes d’isolement</translation>
-    </message>
-    <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="95"/>
-        <source>Meters</source>
-        <translation type="obsolete">Compteurs</translation>
-    </message>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="87"/>
         <source>Pipe</source>
@@ -3314,11 +2264,6 @@
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="88"/>
         <source>Junction</source>
         <translation>Jonction</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="89"/>
-        <source>Demand</source>
-        <translation type="obsolete">Demande</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="90"/>
@@ -3371,16 +2316,6 @@
         <translation>Élément introuvable</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="1678"/>
-        <source>{singularNodeType} {selectedId} {suffixStr}</source>
-        <translation type="obsolete">{singularNodeType} {selectedId} {suffixStr}</translation>
-    </message>
-    <message>
-        <location filename="../ui/qgisred_element_explorer_dock.py" line="1683"/>
-        <source>{singularElementType} {selectedId}</source>
-        <translation type="obsolete">{singularElementType} {selectedId}</translation>
-    </message>
-    <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2459"/>
         <source>Property</source>
         <translation type="unfinished">Propriété</translation>
@@ -3394,46 +2329,6 @@
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2459"/>
         <source>Units</source>
         <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2530"/>
-        <source>Pressure</source>
-        <translation type="obsolete">Pression</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2531"/>
-        <source>Head</source>
-        <translation type="obsolete">Charge</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2533"/>
-        <source>Quality</source>
-        <translation type="obsolete">Qualité</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2534"/>
-        <source>Flow</source>
-        <translation type="obsolete">Débit</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2535"/>
-        <source>Velocity</source>
-        <translation type="obsolete">Vitesse</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2536"/>
-        <source>HeadLoss</source>
-        <translation type="obsolete">Perte de charge</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2538"/>
-        <source>Unit HeadLoss</source>
-        <translation type="obsolete">Perte de charge unitaire</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2540"/>
-        <source>Status</source>
-        <translation type="obsolete">État</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="2344"/>
@@ -3574,61 +2469,6 @@
 </context>
 <context>
     <name>QGISRedIdentifierUtils</name>
-    <message>
-        <location filename="../tools/utils/qgisred_identifier_utils.py" line="42"/>
-        <source>Pipes</source>
-        <translation type="obsolete">Conduites</translation>
-    </message>
-    <message>
-        <location filename="../tools/utils/qgisred_identifier_utils.py" line="43"/>
-        <source>Junctions</source>
-        <translation type="obsolete">Jonctions</translation>
-    </message>
-    <message>
-        <location filename="../tools/utils/qgisred_identifier_utils.py" line="44"/>
-        <source>Multiple Demands</source>
-        <translation type="obsolete">Demandes multiples</translation>
-    </message>
-    <message>
-        <location filename="../tools/utils/qgisred_identifier_utils.py" line="45"/>
-        <source>Reservoirs</source>
-        <translation type="obsolete">Réservoirs</translation>
-    </message>
-    <message>
-        <location filename="../tools/utils/qgisred_identifier_utils.py" line="46"/>
-        <source>Tanks</source>
-        <translation type="obsolete">Châteaux d’eau</translation>
-    </message>
-    <message>
-        <location filename="../tools/utils/qgisred_identifier_utils.py" line="47"/>
-        <source>Pumps</source>
-        <translation type="obsolete">Pompes</translation>
-    </message>
-    <message>
-        <location filename="../tools/utils/qgisred_identifier_utils.py" line="48"/>
-        <source>Valves</source>
-        <translation type="obsolete">Vannes</translation>
-    </message>
-    <message>
-        <location filename="../tools/utils/qgisred_identifier_utils.py" line="49"/>
-        <source>Sources</source>
-        <translation type="obsolete">Sources</translation>
-    </message>
-    <message>
-        <location filename="../tools/utils/qgisred_identifier_utils.py" line="50"/>
-        <source>Service Connections</source>
-        <translation type="obsolete">Raccordements de service</translation>
-    </message>
-    <message>
-        <location filename="../tools/utils/qgisred_identifier_utils.py" line="51"/>
-        <source>Isolation Valves</source>
-        <translation type="obsolete">Vannes d’isolement</translation>
-    </message>
-    <message>
-        <location filename="../tools/utils/qgisred_identifier_utils.py" line="52"/>
-        <source>Meters</source>
-        <translation type="obsolete">Compteurs</translation>
-    </message>
 </context>
 <context>
     <name>QGISRedImportDialog</name>
@@ -4063,11 +2903,6 @@
         <translation>Longueur du raccordement de service</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_import_dialog.ui" line="3242"/>
-        <source>(when points are over elements)</source>
-        <translation>(lorsque les points sont au-dessus des éléments)</translation>
-    </message>
-    <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3267"/>
         <source>Isolation Valves</source>
         <translation>Vannes d’isolement</translation>
@@ -4101,11 +2936,6 @@
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3930"/>
         <source>Meter Type</source>
         <translation>Type de compteur</translation>
-    </message>
-    <message>
-        <location filename="../ui/general/qgisred_import_dialog.ui" line="3944"/>
-        <source>From layer field</source>
-        <translation>Depuis le champ de la couche</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="3949"/>
@@ -4247,6 +3077,16 @@
         <source>ZIP file does not contain a valid QGISRed project</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.ui" line="3944"/>
+        <source>Assign from field Type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_import_dialog.ui" line="3242"/>
+        <source>(when click over an element)</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>QGISRedImportProjectDialog</name>
@@ -4312,11 +3152,6 @@
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="66"/>
         <source>...</source>
         <translation>...</translation>
-    </message>
-    <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="75"/>
-        <source>Basic Elements Visibility in Legend</source>
-        <translation>Visibilité des éléments de base dans la légende</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="100"/>
@@ -4404,11 +3239,6 @@
         <translation>Créer la couche de sources</translation>
     </message>
     <message>
-        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="537"/>
-        <source>Digital Twin Visibility in Legend</source>
-        <translation>Visibilité du jumeau numérique dans la légende</translation>
-    </message>
-    <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="552"/>
         <source>Service Connections</source>
         <translation>Raccordements de service</translation>
@@ -4447,6 +3277,16 @@
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="760"/>
         <source>Cancel</source>
         <translation>Annuler</translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="75"/>
+        <source>Load/Unload basic elements in legend</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="537"/>
+        <source>Load/Unload Digital Twin elements in legend</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -4755,11 +3595,6 @@ Left-click: Add a new item below the current selection</source>
 <context>
     <name>QGISRedMultiLayerSelection</name>
     <message>
-        <location filename="../tools/map_tools/qgisred_multilayerSelection.py" line="163"/>
-        <source>Warning</source>
-        <translation type="obsolete">Avertissement</translation>
-    </message>
-    <message>
         <location filename="../tools/map_tools/qgisred_multilayerSelection.py" line="164"/>
         <source>Polygon not valid for selecting elements</source>
         <translation type="unfinished"></translation>
@@ -4854,11 +3689,6 @@ Left-click: Add a new item below the current selection</source>
         <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="491"/>
         <source>QGISRed</source>
         <translation>QGISRed</translation>
-    </message>
-    <message>
-        <location filename="../ui/qgisred_projectmanager_dialog.py" line="331"/>
-        <source>Project will be remove completely from your computer. Are you sure?</source>
-        <translation type="obsolete">Le projet sera entièrement supprimé de votre ordinateur. Êtes-vous sûr ?</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_projectmanager_dialog.py" line="491"/>
@@ -4983,16 +3813,6 @@ Left-click: Add a new item below the current selection</source>
 </context>
 <context>
     <name>QGISRedQueriesByAttributesDock</name>
-    <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="296"/>
-        <source>Nodes</source>
-        <translation type="obsolete">Nœuds</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_queriesbyattributes_dock.py" line="731"/>
-        <source>Replace</source>
-        <translation type="obsolete">Remplacer</translation>
-    </message>
 </context>
 <context>
     <name>QGISRedQueriesByPropertiesDock</name>
@@ -5035,11 +3855,6 @@ Left-click: Add a new item below the current selection</source>
         <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="386"/>
         <source>Links</source>
         <translation type="unfinished">Liens</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="929"/>
-        <source>Replace</source>
-        <translation type="obsolete">Remplacer</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="1337"/>
@@ -5189,11 +4004,6 @@ Left-click: Add a new item below the current selection</source>
         <translation>QGISRed : Renommer le projet</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="28"/>
-        <source>New Project name:</source>
-        <translation type="obsolete">Nouveau nom du projet :</translation>
-    </message>
-    <message>
         <location filename="../ui/general/qgisred_renameproject_dialog.ui" line="141"/>
         <source>Accept</source>
         <translation>Accepter</translation>
@@ -5252,31 +4062,6 @@ Left-click: Add a new item below the current selection</source>
         <translation>Résultats de simulation QGISRed</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.ui" line="38"/>
-        <source>Browser</source>
-        <translation type="obsolete">Navigateur</translation>
-    </message>
-    <message>
-        <location filename="../ui/qgisred_results_dock.ui" line="54"/>
-        <source>Scenario</source>
-        <translation type="obsolete">Scénario</translation>
-    </message>
-    <message>
-        <location filename="../ui/qgisred_results_dock.ui" line="68"/>
-        <source>Base</source>
-        <translation type="obsolete">Base</translation>
-    </message>
-    <message>
-        <location filename="../ui/qgisred_results_dock.ui" line="120"/>
-        <source>Time</source>
-        <translation type="obsolete">Temps</translation>
-    </message>
-    <message>
-        <location filename="../ui/qgisred_results_dock.ui" line="169"/>
-        <source>00h 00m 00s</source>
-        <translation type="obsolete">00h 00m 00s</translation>
-    </message>
-    <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="386"/>
         <source>|&lt;</source>
         <translation>|&lt;</translation>
@@ -5327,11 +4112,6 @@ Left-click: Add a new item below the current selection</source>
         <translation>Qualité</translation>
     </message>
     <message>
-        <location filename="../ui/qgisred_results_dock.ui" line="376"/>
-        <source>Show Nodes Labels</source>
-        <translation type="obsolete">Afficher les étiquettes des nœuds</translation>
-    </message>
-    <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="622"/>
         <source>Links</source>
         <translation>Liens</translation>
@@ -5360,41 +4140,6 @@ Left-click: Add a new item below the current selection</source>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="113"/>
         <source>Status</source>
         <translation>État</translation>
-    </message>
-    <message>
-        <location filename="../ui/qgisred_results_dock.ui" line="457"/>
-        <source>Show Links Labels</source>
-        <translation type="obsolete">Afficher les étiquettes des liens</translation>
-    </message>
-    <message>
-        <location filename="../ui/qgisred_results_dock.ui" line="478"/>
-        <source>Show Flow directions</source>
-        <translation type="obsolete">Afficher les directions de débit</translation>
-    </message>
-    <message>
-        <location filename="../ui/qgisred_results_dock.ui" line="491"/>
-        <source>Not available. Default style changed</source>
-        <translation type="obsolete">Indisponible. Style par défaut modifié</translation>
-    </message>
-    <message>
-        <location filename="../ui/qgisred_results_dock.ui" line="521"/>
-        <source>Scenario Comments:</source>
-        <translation type="obsolete">Commentaires du scénario :</translation>
-    </message>
-    <message>
-        <location filename="../ui/qgisred_results_dock.ui" line="563"/>
-        <source>Simulation Scenarios</source>
-        <translation type="obsolete">Scénarios de simulation</translation>
-    </message>
-    <message>
-        <location filename="../ui/qgisred_results_dock.ui" line="571"/>
-        <source>Save scenario results as:</source>
-        <translation type="obsolete">Enregistrer les résultats du scénario sous :</translation>
-    </message>
-    <message>
-        <location filename="../ui/qgisred_results_dock.ui" line="599"/>
-        <source>Comments:</source>
-        <translation type="obsolete">Commentaires :</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="944"/>
@@ -5527,11 +4272,6 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="888"/>
-        <source>Error</source>
-        <translation type="obsolete">Erreur</translation>
-    </message>
-    <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="502"/>
         <source>Reported Times</source>
         <translation type="unfinished"></translation>
@@ -5574,11 +4314,6 @@ Left-click: Add a new item below the current selection</source>
 </context>
 <context>
     <name>QGISRedSelectPointTool</name>
-    <message>
-        <location filename="../tools/map_tools/qgisred_selectPoint.py" line="139"/>
-        <source>Warning</source>
-        <translation type="obsolete">Avertissement</translation>
-    </message>
     <message>
         <location filename="../tools/map_tools/qgisred_selectPoint.py" line="183"/>
         <source>A not valid point was selected</source>
@@ -5662,11 +4397,6 @@ Left-click: Add a new item below the current selection</source>
         <source>Any elevation has been estimated</source>
         <translation type="unfinished"></translation>
     </message>
-    <message>
-        <location filename="../sections/tools_section.py" line="328"/>
-        <source>Error</source>
-        <translation type="obsolete">Erreur</translation>
-    </message>
 </context>
 <context>
     <name>UtilsSection</name>
@@ -5674,11 +4404,6 @@ Left-click: Add a new item below the current selection</source>
         <location filename="../sections/utils_section.py" line="103"/>
         <source>Some Ids are not defined. Commit before and try again.</source>
         <translation type="unfinished">Certains ID ne sont pas définis. Validez puis réessayez.</translation>
-    </message>
-    <message>
-        <location filename="../sections/utils_section.py" line="108"/>
-        <source>Warning</source>
-        <translation type="obsolete">Avertissement</translation>
     </message>
 </context>
 <context>
