@@ -143,7 +143,8 @@ class LayerManagementSection:
         utils.openIssuesLayers(issuesGroup, self.issuesLayers)
 
     def openConnectivityLayer(self):
-        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        queriesFolder = os.path.join(self.ProjectDirectory, "Queries")
+        utils = QGISRedLayerUtils(queriesFolder, self.NetworkName, self.iface)
         connGroup = utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Connectivity"])
         utils.openLayer(connGroup, "Links_Connectivity")
 
@@ -308,6 +309,15 @@ class LayerManagementSection:
             self.hasToOpenIssuesLayers = False
 
         if self.hasToOpenConnectivityLayers:
+            queriesFolder = os.path.join(self.ProjectDirectory, "Queries")
+            if not os.path.exists(queriesFolder):
+                os.mkdir(queriesFolder)
+            for fi in os.listdir(self.ProjectDirectory):
+                if fi.startswith(self.NetworkName) and "_Links_Connectivity." in fi:
+                    src = os.path.join(self.ProjectDirectory, fi)
+                    dst = os.path.join(queriesFolder, fi)
+                    shutil.copy2(src, dst)
+                    os.remove(src)
             self.openConnectivityLayer()
             self.hasToOpenConnectivityLayers = False
 
