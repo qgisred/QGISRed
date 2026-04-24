@@ -356,20 +356,27 @@ class QGISRedLayerUtils:
     """Open Layers"""
     def isLayerOpened(self, layerName):
         fs = self._fs()
+        identifiers = self._identifiers()
         layers = self.getLayers()
-        originalLayerName = self._identifiers().getOriginalNameFromLayerName(layerName)
+        originalLayerName = identifiers.getOriginalNameFromLayerName(layerName)
         layerPath = fs.generatePath(self.ProjectDirectory, self.NetworkName + "_" + originalLayerName + ".shp")
 
         for layer in layers:
+            if identifiers.isThematicMapsLayer(layer):
+                continue
             openedLayerPath = fs.getLayerPath(layer)
             if openedLayerPath == layerPath:
                 return True
         return False
 
     def _findLayerByPath(self, layerPath):
-        """Return the open QgsVectorLayer whose source file matches *layerPath*, or None."""
+        """Return the open QgsVectorLayer whose source file matches *layerPath*, or None.
+        Thematic-maps layers share source paths with input layers and must be excluded."""
         fs = self._fs()
+        identifiers = self._identifiers()
         for layer in self.getLayers():
+            if identifiers.isThematicMapsLayer(layer):
+                continue
             if fs.getLayerPath(layer) == layerPath:
                 return layer
         return None
