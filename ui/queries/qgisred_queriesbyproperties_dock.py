@@ -30,6 +30,23 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.resultsDockVisibilityTimer.stop()
         self.resultsDockPollTimer.stop()
         self.disconnectResultsDock()
+
+        project = QgsProject.instance()
+        self.safeDisconnect(project.layersAdded, self.onLayerTreeChanged)
+        self.safeDisconnect(project.layersRemoved, self.onLayerTreeChanged)
+        self.safeDisconnect(project.readProject, self.onProjectChanged)
+        self.safeDisconnect(project.cleared, self.onProjectChanged)
+
+        for layerNode in self.connectedLayerNodes:
+            self.disconnectLayerNode(layerNode)
+        self.connectedLayerNodes.clear()
+
+        for group in self.connectedGroups:
+            self.disconnectGroupSignals(group)
+        self.connectedGroups.clear()
+
+        self.layerTreeChangeTimer.stop()
+
         self.clearHighlights()
         self.clearMapSelection()
         self.lastCombinedExpression = ""
@@ -89,6 +106,14 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.resultsDockPollTimer = QTimer()
         self.resultsDockPollTimer.setInterval(1500)
         self.resultsDockPollTimer.timeout.connect(self.pollForResultsDock)
+
+        self.connectedLayerNodes = []
+        self.connectedGroups = []
+
+        self.layerTreeChangeTimer = QTimer()
+        self.layerTreeChangeTimer.setSingleShot(True)
+        self.layerTreeChangeTimer.setInterval(100)
+        self.layerTreeChangeTimer.timeout.connect(self.doLayerTreeChanged)
 
         self.elementIdentifiers = {
             'Pipes': 'qgisred_pipes',
@@ -289,6 +314,144 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.cbStatisticsFor.currentIndexChanged.connect(self.updateStatisticsUnitLabel)
         # initial button state
         self.updateButtonsState()
+
+        project = QgsProject.instance()
+        project.layersAdded.connect(self.onLayerTreeChanged)
+        project.layersRemoved.connect(self.onLayerTreeChanged)
+        project.readProject.connect(self.onProjectChanged)
+        project.cleared.connect(self.onProjectChanged)
+
+        root = project.layerTreeRoot()
+        for groupName in ("Inputs", "Results"):
+            group = root.findGroup(groupName)
+            if group:
+                self.connectGroupSignals(group)
+                for layerNode in group.findLayers():
+                    self.connectLayerSignals(layerNode)
+
+    def safeDisconnect(self, signal, slot):
+        try:
+            signal.disconnect(slot)
+        except (TypeError, RuntimeError):
+            pass
+
+    def connectGroupSignals(self, group):
+        try:
+            group.addedChildren.connect(self.onLayerTreeChanged)
+            group.removedChildren.connect(self.onLayerTreeChanged)
+            self.connectedGroups.append(group)
+        except Exception:
+            pass
+
+    def disconnectGroupSignals(self, group):
+        try:
+            self.safeDisconnect(group.addedChildren, self.onLayerTreeChanged)
+            self.safeDisconnect(group.removedChildren, self.onLayerTreeChanged)
+        except (RuntimeError, TypeError):
+            pass
+
+    def connectLayerSignals(self, layerNode):
+        try:
+            layerNode.nameChanged.connect(self.onLayerTreeChanged)
+            layer = layerNode.layer()
+            if layer:
+                layer.dataChanged.connect(self.onLayerTreeChanged)
+                layer.featureAdded.connect(self.onLayerTreeChanged)
+                layer.featureDeleted.connect(self.onLayerTreeChanged)
+                layer.attributeValueChanged.connect(self.onLayerTreeChanged)
+                layer.committedAttributeValuesChanges.connect(self.onLayerTreeChanged)
+            self.connectedLayerNodes.append(layerNode)
+        except Exception:
+            pass
+
+    def disconnectLayerNode(self, layerNode):
+        try:
+            self.safeDisconnect(layerNode.nameChanged, self.onLayerTreeChanged)
+            layer = layerNode.layer()
+            if layer:
+                self.safeDisconnect(layer.dataChanged, self.onLayerTreeChanged)
+                self.safeDisconnect(layer.featureAdded, self.onLayerTreeChanged)
+                self.safeDisconnect(layer.featureDeleted, self.onLayerTreeChanged)
+                self.safeDisconnect(layer.attributeValueChanged, self.onLayerTreeChanged)
+                self.safeDisconnect(layer.committedAttributeValuesChanges, self.onLayerTreeChanged)
+        except (RuntimeError, TypeError):
+            pass
+
+    def reconnectLayerSignals(self):
+        for layerNode in self.connectedLayerNodes:
+            self.disconnectLayerNode(layerNode)
+        self.connectedLayerNodes.clear()
+        for group in self.connectedGroups:
+            self.disconnectGroupSignals(group)
+        self.connectedGroups.clear()
+
+        root = QgsProject.instance().layerTreeRoot()
+        for groupName in ("Inputs", "Results"):
+            group = root.findGroup(groupName)
+            if group:
+                self.connectGroupSignals(group)
+                for layerNode in group.findLayers():
+                    self.connectLayerSignals(layerNode)
+
+    def onLayerTreeChanged(self, *args):
+        self.layerTreeChangeTimer.start()
+
+    def doLayerTreeChanged(self):
+        state = self.saveCurrentQueryState()
+        self.reconnectLayerSignals()
+
+        self.cbElementType.blockSignals(True)
+        self.cbProperty.blockSignals(True)
+        self.cbCondition.blockSignals(True)
+        self.cbValue.blockSignals(True)
+        self.cbValueList.blockSignals(True)
+        try:
+            self.initializeElementTypes()
+            self.restoreCurrentQueryState(state)
+        finally:
+            self.cbElementType.blockSignals(False)
+            self.cbProperty.blockSignals(False)
+            self.cbCondition.blockSignals(False)
+            self.cbValue.blockSignals(False)
+            self.cbValueList.blockSignals(False)
+
+        self.updateConditions()
+        self.updateValues()
+        self.setCurrentValueText(state['valueText'])
+        self.updateButtonsState()
+
+    def onProjectChanged(self):
+        self.criteria = []
+        self.clearHighlights()
+        self.clearMapSelection()
+        self.lastCombinedExpression = ""
+        self.queryHasBeenSubmitted = False
+        self.tableWidgetStatistics.setRowCount(0)
+        self.reloadCriteriaTable()
+        self.onLayerTreeChanged()
+
+    def saveCurrentQueryState(self):
+        return {
+            'elementType': self.cbElementType.currentData(Qt.ItemDataRole.UserRole),
+            'property': self.getComboInternalName(self.cbProperty),
+            'condition': self.cbCondition.currentText(),
+            'valueText': self.currentValueText(),
+        }
+
+    def restoreCurrentQueryState(self, state):
+        if state.get('elementType'):
+            idx = self.findComboByInternalName(self.cbElementType, state['elementType'])
+            if idx >= 0:
+                self.cbElementType.setCurrentIndex(idx)
+                self.updateProperties()
+        if state.get('property'):
+            idx = self.findComboByInternalName(self.cbProperty, state['property'])
+            if idx >= 0:
+                self.cbProperty.setCurrentIndex(idx)
+        if state.get('condition'):
+            idx = self.cbCondition.findText(state['condition'])
+            if idx >= 0:
+                self.cbCondition.setCurrentIndex(idx)
 
     def toggleMultipleCriteria(self, visible):
         if visible:
