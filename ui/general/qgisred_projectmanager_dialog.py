@@ -391,6 +391,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             try:
                 loaded_qgis = io.openProjectInQgis()
                 if not loaded_qgis:
+                    self.parent._migrateLayersToSubfolders()
                     self.parent.removeOldResultLayers()
                 QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface).enforceAllIdentifiers()
             finally:

@@ -2,9 +2,10 @@
 """Project management section for QGISRed (define project, open/create/import, settings, backup)."""
 
 import os
+import shutil
 import unicodedata
 
-from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer
+from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsDataProvider
 from qgis.PyQt.QtWidgets import QApplication, QMessageBox
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtCore import Qt, QCoreApplication, QTimer
@@ -421,7 +422,9 @@ class ProjectManagementSection:
             QGISRedProjectIO().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
             # Open files
             io = QGISRedProjectIO(self.ProjectDirectory, self.NetworkName, self.iface)
-            io.openProjectInQgis()
+            loaded_qgis = io.openProjectInQgis()
+            if not loaded_qgis:
+                self._migrateLayersToSubfolders()
             QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface).enforceAllIdentifiers()
 
             self.readOptions()
@@ -763,8 +766,82 @@ class ProjectManagementSection:
                 except OSError:
                     pass
 
+    def _migrateLayersToSubfolders(self):
+        """Silently migrate layers loaded from project root that belong in a subfolder.
+
+        Old projects may have Links_Connectivity, *Sectors* or *_Issues layers in the
+        project root instead of Queries/ or Issues/. For each misplaced layer:
+          1. Copy all sidecar files (shp/dbf/shx/…) to the correct subfolder.
+          2. Update the loaded layer's datasource to the new path so QGIS releases
+             the old file handle.
+          3. Defer deletion of the old root files via QTimer so the OGR handle is
+             guaranteed to be released before the os.remove call (same pattern as
+             _deleteOldResultFiles).
+        """
+        if not self.ProjectDirectory or self.ProjectDirectory == self.TemporalFolder:
+            return
+
+        netPrefix = self.NetworkName + "_"
+        root_norm = os.path.normcase(os.path.normpath(self.ProjectDirectory))
+        options = QgsDataProvider.ProviderOptions()
+
+        def _target_subfolder(base):
+            if base == self.NetworkName + "_Links_Connectivity":
+                return "Queries"
+            if base.startswith(netPrefix) and base.endswith("_Issues"):
+                return "Issues"
+            if base.startswith(netPrefix) and ("Sectors" in base or "IsolatedDemands" in base):
+                return "Queries"
+            return None
+
+        old_files_to_delete = []
+
+        for layer in QgsProject.instance().mapLayers().values():
+            uri = layer.dataProvider().dataSourceUri().split("|")[0]
+            if not uri:
+                continue
+            layer_dir = os.path.dirname(uri)
+            if os.path.normcase(os.path.normpath(layer_dir)) != root_norm:
+                continue
+
+            base = os.path.splitext(os.path.basename(uri))[0]
+            subfolder = _target_subfolder(base)
+            if subfolder is None:
+                continue
+
+            dest_dir = os.path.join(self.ProjectDirectory, subfolder)
+            if not os.path.exists(dest_dir):
+                os.makedirs(dest_dir)
+
+            # Collect sidecar files before any mutation
+            sidecars = [f for f in os.listdir(layer_dir) if os.path.splitext(f)[0] == base]
+
+            for fname in sidecars:
+                shutil.copy2(os.path.join(layer_dir, fname), os.path.join(dest_dir, fname))
+
+            # Redirect the loaded layer to its new location
+            new_uri = os.path.join(dest_dir, os.path.basename(uri))
+            layer.setDataSource(new_uri, layer.name(), "ogr", options)
+
+            # Queue old files for deferred deletion
+            for fname in sidecars:
+                old_files_to_delete.append(os.path.join(layer_dir, fname))
+
+        if old_files_to_delete:
+            QTimer.singleShot(0, lambda files=old_files_to_delete: self._deleteMigratedFiles(files))
+
+    def _deleteMigratedFiles(self, paths):
+        """Delete root-level files that were migrated to a subfolder."""
+        for path in paths:
+            try:
+                os.remove(path)
+            except OSError:
+                pass
+
     def _applyOpenSnapshot(self, snapshot):
         """Apply deferred layer updates from project open (runs after QgsProject.read() unwinds)."""
+        self._migrateLayersToSubfolders()
+
         from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 
         styling = QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface)
