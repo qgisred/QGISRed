@@ -706,15 +706,28 @@ class ProjectManagementSection:
         return snapshot
 
     def removeOldResultLayers(self):
-        """Remove stale result layers and files when opening a project without a QGIS file."""
+        """Detect old-format result layers/files, prompt the user, remove from QGIS and optionally delete files."""
         import re
         results_dir = os.path.join(self.ProjectDirectory, "Results")
         pattern = re.compile(r'^' + re.escape(self.NetworkName) + r'_[^_]+_(Node|Link)_', re.IGNORECASE)
 
         if not os.path.isdir(results_dir):
             return
-        if not any(pattern.match(f.split('.')[0]) for f in os.listdir(results_dir)):
+        old_files = [f for f in os.listdir(results_dir) if pattern.match(f.split('.')[0])]
+        if not old_files:
             return
+
+        reply = QMessageBox.question(
+            self.iface.mainWindow(),
+            self.tr("Old simulation results found"),
+            self.tr(
+                "Result layers from a previous version of QGISRed have been detected."
+                "They will be removed from QGIS and you will need to run the simulation again.\n\n"
+                "Do you also want to delete the result files from disk?"
+            ),
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
 
         project = QgsProject.instance()
         layers_to_remove = []
@@ -732,12 +745,8 @@ class ProjectManagementSection:
             if results_group and not results_group.children():
                 results_group.parent().removeChildNode(results_group)
 
-        self._deleteOldResultFiles()
-        self.pushMessage(
-            self.tr("Old simulation results have been removed. Please run the simulation again."),
-            level=1,
-            duration=10,
-        )
+        if reply == QMessageBox.StandardButton.Yes:
+            QTimer.singleShot(0, self._deleteOldResultFiles)
 
     def _deleteOldResultFiles(self):
         """Delete shapefile-family files from Results/ matching old format NetworkName_Scenario_(Node|Link)_Variable."""
