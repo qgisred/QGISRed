@@ -1232,6 +1232,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     def formatFieldValue(self, rawValue, layerIdentifier, fieldName, utils):
         if rawValue is None or str(rawValue) == "NULL" or str(rawValue).strip() == "":
             return ""
+        if utils.isTextField(layerIdentifier, fieldName):
+            return str(rawValue)
         try:
             numeric = float(rawValue)
             decimals = utils.getFieldDecimals(layerIdentifier, fieldName, default=2)
