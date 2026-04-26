@@ -149,8 +149,7 @@ class ProjectManagementSection:
 
         QGISRedProjectIO().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
 
-        root = QgsProject.instance().layerTreeRoot()
-        inputs_group = root.findGroup("Inputs")
+        inputs_group = QGISRedLayerUtils.findGroupByIdentifier("qgisred_inputs")
 
         if inputs_group:
             for child in inputs_group.children():
@@ -677,10 +676,9 @@ class ProjectManagementSection:
         version_changed = saved_version != current_version
 
         snapshot = {"inputs_to_restyle": [], "results_no_id": False, "results_with_id": []}
-        root = QgsProject.instance().layerTreeRoot()
 
         if version_changed:
-            inputs_group = root.findGroup("Inputs")
+            inputs_group = QGISRedLayerUtils.findGroupByIdentifier("qgisred_inputs")
             if inputs_group:
                 for tree_item in inputs_group.findLayers():
                     layer = tree_item.layer()
@@ -693,7 +691,7 @@ class ProjectManagementSection:
                         element_name = filename[len(prefix):]
                         snapshot["inputs_to_restyle"].append((layer.id(), element_name.lower()))
 
-        results_group = root.findGroup("Results")
+        results_group = QGISRedLayerUtils.findGroupByIdentifier("qgisred_results")
         if results_group:
             for tree_item in results_group.findLayers():
                 layer = tree_item.layer()
@@ -744,8 +742,7 @@ class ProjectManagementSection:
             project.removeMapLayer(layer_id)
 
         if layers_to_remove:
-            root = project.layerTreeRoot()
-            results_group = root.findGroup("Results")
+            results_group = QGISRedLayerUtils.findGroupByIdentifier("qgisred_results")
             if results_group and not results_group.children():
                 results_group.parent().removeChildNode(results_group)
 

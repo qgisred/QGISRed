@@ -190,13 +190,21 @@ class QGISRedProjectIO:
         self._renameGroupsRecursive(QgsProject.instance().layerTreeRoot(), QGISRedLayerUtils)
 
     def _renameGroupsRecursive(self, parent, utils_cls):
+        _canonical_names = set(utils_cls._IDENTIFIER_TO_CANONICAL.values())
         for child in parent.children():
             if not isinstance(child, QgsLayerTreeGroup):
                 continue
             identifier = child.customProperty("qgisred_identifier")
             canonical = utils_cls._IDENTIFIER_TO_CANONICAL.get(identifier)
             if canonical is not None:
+                # Group has a QGISRed identifier → rename to current locale
                 translated = utils_cls._translateGroupName(canonical)
+                if child.name() != translated:
+                    child.setName(translated)
+            elif child.name() in _canonical_names:
+                # Old project without identifier but English canonical name → rename + assign identifier
+                utils_cls.setGroupIdentifier(child, child.name())
+                translated = utils_cls._translateGroupName(child.name())
                 if child.name() != translated:
                     child.setName(translated)
             else:

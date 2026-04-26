@@ -14,6 +14,7 @@ import math
 
 from ..analysis.qgisred_results_dock import QGISRedResultsDock
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
+from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 
 # load UI
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),"qgisred_queriesbyproperties_dock.ui"))
@@ -321,9 +322,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         project.readProject.connect(self.onProjectChanged)
         project.cleared.connect(self.onProjectChanged)
 
-        root = project.layerTreeRoot()
-        for groupName in ("Inputs", "Results"):
-            group = root.findGroup(groupName)
+        for identifier in ("qgisred_inputs", "qgisred_results"):
+            group = QGISRedLayerUtils.findGroupByIdentifier(identifier)
             if group:
                 self.connectGroupSignals(group)
                 for layerNode in group.findLayers():
@@ -385,9 +385,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             self.disconnectGroupSignals(group)
         self.connectedGroups.clear()
 
-        root = QgsProject.instance().layerTreeRoot()
-        for groupName in ("Inputs", "Results"):
-            group = root.findGroup(groupName)
+        for identifier in ("qgisred_inputs", "qgisred_results"):
+            group = QGISRedLayerUtils.findGroupByIdentifier(identifier)
             if group:
                 self.connectGroupSignals(group)
                 for layerNode in group.findLayers():
@@ -515,7 +514,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
 
         # Collect available input layers by identifier
         availableLayers = {}
-        inputsGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
+        inputsGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_inputs")
         if inputsGroup:
             identifiers = set(self.elementIdentifiers.values())
             for layerNode in inputsGroup.findLayers():
@@ -525,7 +524,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
 
         # Collect results layers
         nodeIdent = linkIdent = None
-        resultsGroup = QgsProject.instance().layerTreeRoot().findGroup("Results")
+        resultsGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_results")
         if resultsGroup:
             for layerNode in resultsGroup.findLayers():
                 layer = layerNode.layer()
@@ -583,7 +582,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         return ident.startswith("qgisred_node") or ident.startswith("qgisred_link")
 
     def getResultsExist(self):
-        resultsGroup = QgsProject.instance().layerTreeRoot().findGroup("Results")
+        resultsGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_results")
         if not resultsGroup:
             return False
         for layerNode in resultsGroup.findLayers():
@@ -704,7 +703,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
     def resolveResultsLayer(self, category):
         """Find the results layer (Node or Link) from the Results group."""
         prefix = "qgisred_node" if category == "Node" else "qgisred_link"
-        resultsGroup = QgsProject.instance().layerTreeRoot().findGroup("Results")
+        resultsGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_results")
         if not resultsGroup:
             return None
         for layerNode in resultsGroup.findLayers():
@@ -1842,7 +1841,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 return
 
     def fetchTimeFromResultsLayer(self):
-        resultsGroup = QgsProject.instance().layerTreeRoot().findGroup("Results")
+        resultsGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_results")
         if not resultsGroup:
             return
         for layerNode in resultsGroup.findLayers():

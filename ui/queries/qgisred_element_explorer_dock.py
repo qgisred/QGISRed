@@ -8,6 +8,7 @@ from qgis.core import QgsProject, QgsVectorLayer, QgsSettings, QgsGeometry, QgsP
 from qgis.utils import iface
 from qgis.gui import QgsHighlight
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
+from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..analysis.qgisred_results_dock import QGISRedResultsDock
 from ...compat import LINEEDIT_LEADING_POSITION
 
@@ -450,8 +451,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         project.readProject.connect(self.onProjectChanged)
         project.cleared.connect(self.onProjectChanged)
 
-        root = project.layerTreeRoot()
-        inputsGroup = root.findGroup("Inputs")
+        inputsGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_inputs")
         if inputsGroup:
             inputsGroup.addedChildren.connect(self.onLayerTreeChanged)
             inputsGroup.removedChildren.connect(self.onLayerTreeChanged)
@@ -503,8 +503,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.connectedLayerNodes.clear()
 
         # Reconnect to current Inputs group layers
-        root = QgsProject.instance().layerTreeRoot()
-        inputsGroup = root.findGroup("Inputs")
+        inputsGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_inputs")
         if inputsGroup:
             for layerNode in inputsGroup.findLayers():
                 self.connectLayerSignals(layerNode)
@@ -584,8 +583,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 self.disconnectLayerNode(layerNode)
             self.connectedLayerNodes.clear()
 
-            root = project.layerTreeRoot()
-            inputsGroup = root.findGroup("Inputs")
+            inputsGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_inputs")
             if inputsGroup:
                 self.safeDisconnect(inputsGroup.addedChildren, self.onLayerTreeChanged)
                 self.safeDisconnect(inputsGroup.removedChildren, self.onLayerTreeChanged)
@@ -764,7 +762,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     # Element Type and Identifier Initialization
     # ------------------------------
     def initializeCustomLayerProperties(self):
-        inputsGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
+        inputsGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_inputs")
         if not inputsGroup:
             return
         for layerNode in inputsGroup.findLayers():
@@ -2278,14 +2276,14 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.loadFeature(layer, feature, finalTitleText)
 
     def getCheckedInputGroupLayers(self):
-        inputsGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
+        inputsGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_inputs")
         if not inputsGroup:
             return []
         return inputsGroup.checkedLayers()
 
     def getAllInputGroupLayers(self):
         """Get all layers from Inputs group regardless of visibility/checked state."""
-        inputsGroup = QgsProject.instance().layerTreeRoot().findGroup("Inputs")
+        inputsGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_inputs")
         if not inputsGroup:
             return []
         layers = []
@@ -2297,7 +2295,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
     def getAllResultsGroupLayers(self):
         """Get all layers from Results group regardless of visibility/checked state."""
-        resultsGroup = QgsProject.instance().layerTreeRoot().findGroup("Results")
+        resultsGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_results")
         if not resultsGroup:
             return []
         layers = []
@@ -2309,7 +2307,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
     def getCheckedResultsGroupLayers(self):
         """Get checked/visible layers from Results group."""
-        resultsGroup = QgsProject.instance().layerTreeRoot().findGroup("Results")
+        resultsGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_results")
         if not resultsGroup:
             return []
         return resultsGroup.checkedLayers()
@@ -2336,18 +2334,14 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         Returns:
             tuple: (layers_list, source_group_name) or ([], None) if no layers available
         """
-        root = QgsProject.instance().layerTreeRoot()
-
         # First, try Inputs group (regardless of visibility)
-        inputsGroup = root.findGroup("Inputs")
-        if inputsGroup:
+        if QGISRedLayerUtils.findGroupByIdentifier("qgisred_inputs"):
             inputLayers = self.getAllInputGroupLayers()
             if inputLayers:
                 return inputLayers, "Inputs"
 
         # If Inputs not available, try Results group
-        resultsGroup = root.findGroup("Results")
-        if resultsGroup:
+        if QGISRedLayerUtils.findGroupByIdentifier("qgisred_results"):
             resultsLayers = self.getAllResultsGroupLayers()
             if resultsLayers:
                 return resultsLayers, "Results"
