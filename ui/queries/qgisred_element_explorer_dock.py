@@ -1158,7 +1158,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         if hasTotalDemandsRow:
             totalDemandsRow = displayRow
             self.setDataRow(displayRow, self.tr("Total Demands"), str(totalDemands), "",
-                            backgroundBrush=self.demandBrush)
+                            backgroundBrush=self.totalDemandsBrush)
             displayRow += 1
             if paginated:
                 self.installDemandPaginationButtons(totalDemandsRow, totalDemands)
@@ -1365,6 +1365,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         """One-time setup for dataTableWidget and tableResults. Called once from __init__."""
         self.sourceBrush = QBrush(QColor("#FFE0FF"))
         self.demandBrush = QBrush(QColor("#FFE4CC"))
+        self.totalDemandsBrush = QBrush(QColor("#FFBD80"))
 
         self.setDataTableWidgetColumns()
         self.dataTableWidget.setShowGrid(True)
