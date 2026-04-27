@@ -174,7 +174,7 @@ class MenuSection:
         self.add_to_dropdown(action, projectDropButton)
 
         action = self._make_action(
-            ":/images/iconDefaultMenu.svg", 
+            ":/images/iconDefaultValues.svg", 
             self.tr("Default values..."), 
             self.runDefaultValues,
             parent=self.iface.mainWindow(),
