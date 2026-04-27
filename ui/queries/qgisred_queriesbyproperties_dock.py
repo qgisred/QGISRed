@@ -416,6 +416,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             self.cbValueList.blockSignals(False)
             self.cbStatisticsFor.blockSignals(False)
 
+        self.reloadCriteriaTable()
+
         if self.queryHasBeenSubmitted and self.effectiveCriteria():
             propertyDisplay = self.cbProperty.currentText()
             self.labelStatisticsPropertyFor.setText(
