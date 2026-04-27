@@ -1038,6 +1038,10 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             idx = self.cbCondition.findText(defaultCond)
             if idx >= 0:
                 self.cbCondition.setCurrentIndex(idx)
+        elif cat == 'listed':
+            idx = self.cbCondition.findText('=')
+            if idx >= 0:
+                self.cbCondition.setCurrentIndex(idx)
         self.cbCondition.blockSignals(False)
         self.onConditionChanged()
 
