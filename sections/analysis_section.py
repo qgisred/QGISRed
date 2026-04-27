@@ -260,6 +260,7 @@ class AnalysisSection:
                 self.timeSeriesDock.destroyed.connect(self._onTimeSeriesDockDestroyed)
                 self.timeSeriesDock.seriesReordered.connect(self._onTimeSeriesSeriesReordered)
                 self.timeSeriesDock.seriesRemoved.connect(self._onTimeSeriesSeriesRemoved)
+                self.timeSeriesDock.seriesEmphasisChanged.connect(self._onTimeSeriesSeriesEmphasisChanged)
                 self.iface.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.timeSeriesDock)
             self._ensureTimeSeriesMapToolSignal()
             self.timeSeriesDock.show()
@@ -425,6 +426,61 @@ class AnalysisSection:
             color = it.get("color") if isinstance(it.get("color"), QColor) else QColor(0, 120, 215)
             width = 7 if is_last else 5
             self._setTimeSeriesHighlight(layer, feat, color=color, width=width)
+
+    def _onTimeSeriesSeriesEmphasisChanged(self, payload: dict):
+        """Sync legend emphasis (highlight/mute) to map highlights."""
+        try:
+            highlighted = set((payload or {}).get("highlighted") or [])
+            muted = set((payload or {}).get("muted") or [])
+        except Exception:
+            highlighted = set()
+            muted = set()
+
+        selection = getattr(self, "timeSeriesSelection", None) or []
+        if not selection:
+            return
+
+        # Map series_key -> selection item, using the same key format as the plot.
+        key_to_item = {}
+        for it in selection:
+            li = it.get("layer_identifier") or ""
+            eid = it.get("element_id") or ""
+            cat = it.get("category") or ""
+            prop = it.get("prop_internal") or ""
+            k = f"{cat}:{li}:{prop}:{eid}"
+            key_to_item[k] = it
+
+        # If legend says nothing is highlighted/muted, revert to default highlight behavior.
+        if not highlighted and not muted:
+            try:
+                self._syncTimeSeriesHighlights(self.lastTimeSeriesLayer, self.lastTimeSeriesFeature)
+            except Exception:
+                self._syncTimeSeriesHighlights()
+            return
+
+        self._clearTimeSeriesHighlight()
+
+        for k, it in key_to_item.items():
+            layer = it.get("layer")
+            feat = it.get("feature")
+            if layer is None or feat is None:
+                continue
+
+            base_color = it.get("color") if isinstance(it.get("color"), QColor) else QColor(0, 120, 215)
+            c = QColor(base_color)
+            width = 5
+
+            if k in highlighted:
+                c.setAlpha(255)
+                width = 8
+            elif k in muted:
+                c.setAlpha(60)
+                width = 3
+            else:
+                c.setAlpha(180)
+                width = 5
+
+            self._setTimeSeriesHighlight(layer, feat, color=c, width=width)
 
     def timeSeriesCallback(self, point, modifiers=None, mouse_button=None):
         self.updateTimeSeriesPlot(point, modifiers, mouse_button)

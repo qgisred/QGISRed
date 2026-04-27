@@ -16,6 +16,7 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_
 class TimeSeriesPlotWidget(QWidget):
     seriesOrderChanged = pyqtSignal(list)
     seriesRemoved = pyqtSignal(str)
+    seriesEmphasisChanged = pyqtSignal(dict)
 
     def __init__(self, parent=None):
         super(TimeSeriesPlotWidget, self).__init__(parent)
@@ -246,6 +247,23 @@ class TimeSeriesPlotWidget(QWidget):
     def _resetLegendInteractionState(self):
         self._legend.reset()
 
+    def _emitSeriesEmphasisChanged(self) -> None:
+        try:
+            highlighted = []
+            muted = []
+            for s in self.series or []:
+                k = str(s.get("series_key") or "")
+                if not k:
+                    continue
+                if bool(s.get("highlighted", False)):
+                    highlighted.append(k)
+                if bool(s.get("muted", False)):
+                    muted.append(k)
+            self.seriesEmphasisChanged.emit({"highlighted": highlighted, "muted": muted})
+        except Exception:
+            # Do not break plot interaction if signal emission fails.
+            return
+
     def removeSeries(self, series_idx: int) -> bool:
         try:
             idx = int(series_idx)
@@ -326,6 +344,7 @@ class TimeSeriesPlotWidget(QWidget):
 
         if self._legend.apply_toggle_if_click():
             self.update()
+            self._emitSeriesEmphasisChanged()
 
         self._resetLegendInteractionState()
 
@@ -381,6 +400,7 @@ class TimeSeriesPlotWidget(QWidget):
 class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
     seriesReordered = pyqtSignal(list)
     seriesRemoved = pyqtSignal(str)
+    seriesEmphasisChanged = pyqtSignal(dict)
 
     def __init__(self, iface, parent=None):
         super(QGISRedTimeSeriesDock, self).__init__(parent or iface.mainWindow())
@@ -394,6 +414,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self.chartContainer.setLayout(layout)
         self.plot.seriesOrderChanged.connect(self.seriesReordered)
         self.plot.seriesRemoved.connect(self.seriesRemoved)
+        self.plot.seriesEmphasisChanged.connect(self.seriesEmphasisChanged)
 
         self.lblTitle.hide()
         
