@@ -163,6 +163,13 @@ class QGISRedSelectPointTool(QgsMapTool):
 
                 # self.resetProperties()
         if event.button() == Qt.MouseButton.RightButton:
+            if self.type in (SelectPointType.TwoPoints, SelectPointType.TwoLines, SelectPointType.PointLine):
+                if self.firstPoint is not None:
+                    # First point already selected: valid snap → do nothing; no snap → cancel
+                    if self.objectSnapped is None:
+                        self.canvas.unsetMapTool(self)
+                        self.deactivate()
+                    return
             if self.type == SelectPointType.TwoPoints or self.type == SelectPointType.PointLine:
                 if self.objectSnapped is None:
                     QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("A not valid point was selected"), level=1, duration=5)
