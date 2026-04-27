@@ -1901,15 +1901,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             elementType = self.cbElementType.currentText()
             comment = self.multipleCriteriaComment.text().strip() if self.radioMultipleCriteria.isChecked() else ""
             activeCriteria = self.effectiveCriteria()
-            hasDynamicCriterion = any(
-                self.isResultProperty(c['property']) for c in activeCriteria
-            )
             with open(fname, 'w', encoding='utf-8') as f:
                 f.write(f"{elementType}\n")
-                if hasDynamicCriterion:
-                    timeText = (self.currentResultsTimeText or self.labelResults.text() or "").strip()
-                    if timeText:
-                        f.write(f"@{timeText}\n")
                 if comment:
                     f.write(f"{comment}\n")
                 for c in activeCriteria:
@@ -1955,8 +1948,6 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 if candidate.startswith('#'):
                     enabled = False
                     candidate = candidate[1:]
-                if candidate.startswith('@'):
-                    continue
                 if not candidate or candidate[0] not in ('+', '-'):
                     importedComment = line.strip()
                     continue
