@@ -146,7 +146,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         }
 
         self.nodeResultProperties = ['Pressure', 'Head', 'Demand', 'Quality']
-        self.linkResultProperties = ['Flow', 'Velocity', 'HeadLoss', 'UnitHdLoss', 'FricFactor', 'ReactRate', 'Quality']
+        self.linkResultProperties = ['Status', 'Flow', 'Velocity', 'HeadLoss', 'UnitHdLoss', 'FricFactor', 'ReactRate', 'Quality']
 
         self.conditionsByType = {
             'numeric': ['All', '>=', '<=', '=', '>', '<', '≠'],
@@ -782,6 +782,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         darkBrush = QBrush(QColor("#D8D8D8"))
         resultProps = self.getResultProperties(layer, qrIdent)
         fieldUtils = QGISRedFieldUtils()
+        if fieldUtils.getQualityModel().upper() == "NONE":
+            resultProps = [p for p in resultProps if p != "Quality"]
         if not fieldUtils.showReactRate():
             resultProps = [p for p in resultProps if p != "ReactRate"]
         numericResultProps = [p for p in resultProps if p != 'Status']
