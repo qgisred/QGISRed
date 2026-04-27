@@ -404,6 +404,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.cbCondition.blockSignals(True)
         self.cbValue.blockSignals(True)
         self.cbValueList.blockSignals(True)
+        self.cbStatisticsFor.blockSignals(True)
         try:
             self.initializeElementTypes()
             self.restoreCurrentQueryState(state)
@@ -413,10 +414,14 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             self.cbCondition.blockSignals(False)
             self.cbValue.blockSignals(False)
             self.cbValueList.blockSignals(False)
+            self.cbStatisticsFor.blockSignals(False)
 
-        self.updateConditions()
-        self.updateValues()
-        self.setCurrentValueText(state['valueText'])
+        if self.queryHasBeenSubmitted and self.effectiveCriteria():
+            propertyDisplay = self.cbProperty.currentText()
+            self.labelStatisticsPropertyFor.setText(
+                self.tr("Statistics of %1 for selected Elements").replace("%1", propertyDisplay)
+            )
+            self.calculateStatistics()
         self.updateButtonsState()
 
     def onProjectChanged(self):
@@ -435,6 +440,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             'property': self.getComboInternalName(self.cbProperty),
             'condition': self.cbCondition.currentText(),
             'valueText': self.currentValueText(),
+            'statisticsFor': self.getComboInternalName(self.cbStatisticsFor),
         }
 
     def restoreCurrentQueryState(self, state):
@@ -442,15 +448,27 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             idx = self.findComboByInternalName(self.cbElementType, state['elementType'])
             if idx >= 0:
                 self.cbElementType.setCurrentIndex(idx)
-                self.updateProperties()
+        self.updateComboBoxBackground(self.cbElementType)
+        self.updateProperties()
         if state.get('property'):
             idx = self.findComboByInternalName(self.cbProperty, state['property'])
             if idx >= 0:
                 self.cbProperty.setCurrentIndex(idx)
+        self.updateComboBoxBackground(self.cbProperty)
+        if state.get('statisticsFor'):
+            idx = self.findComboByInternalName(self.cbStatisticsFor, state['statisticsFor'])
+            if idx >= 0:
+                self.cbStatisticsFor.setCurrentIndex(idx)
+        self.updateComboBoxBackground(self.cbStatisticsFor)
+        self.updateStatisticsUnitLabel()
+        self.updateStatisticsTimeVisibility()
+        self.updateConditions()
         if state.get('condition'):
             idx = self.cbCondition.findText(state['condition'])
             if idx >= 0:
                 self.cbCondition.setCurrentIndex(idx)
+        self.updateValues()
+        self.setCurrentValueText(state.get('valueText', ''))
 
     def toggleMultipleCriteria(self, visible):
         if visible:
