@@ -292,6 +292,8 @@ class LayerManagementSection:
     def runOpenTemporaryFiles(self):
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
 
+        activeLayerId = self.iface.activeLayer().id() if self.iface.activeLayer() else None
+
         resMessage = GISRed.ReplaceTemporalFiles(self.ProjectDirectory, self.tempFolder)
 
         if self.hasToOpenIssuesLayers:
@@ -365,6 +367,11 @@ class LayerManagementSection:
                     os.remove(src)
             self.openTreeLayers()
             self.hasToOpenTreeLayers = False
+
+        if activeLayerId:
+            activeLayer = QgsProject.instance().mapLayer(activeLayerId)
+            if activeLayer:
+                self.iface.setActiveLayer(activeLayer)
 
         QApplication.restoreOverrideCursor()
         self.layerOperationInProgress = False
