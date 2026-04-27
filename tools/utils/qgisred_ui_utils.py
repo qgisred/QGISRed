@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from qgis.PyQt.QtWidgets import QFrame, QLabel, QHBoxLayout, QPushButton, QGridLayout
-from qgis.PyQt.QtCore import QTimer
+from qgis.PyQt.QtCore import Qt, QTimer
 from ...compat import QGIS_INFO, QGIS_WARNING, QGIS_CRITICAL, QGIS_SUCCESS
 
 
@@ -65,6 +65,26 @@ class QGISRedBanner(QFrame):
 
 
 class QGISRedUIUtils:
+    @staticmethod
+    def arrangeDockOrder(mainWindow, resultsDock, explorerDock, queriesDock):
+        """Enforce dock vertical order: Results (top) > Element Explorer > Queries by Properties (bottom).
+
+        Skips floating docks — only repositions docks anchored to the main window.
+        """
+        def _docked(dock):
+            return dock is not None and dock.isVisible() and not dock.isFloating()
+
+        results = resultsDock if _docked(resultsDock) else None
+        explorer = explorerDock if _docked(explorerDock) else None
+        queries = queriesDock if _docked(queriesDock) else None
+
+        if results and explorer:
+            mainWindow.splitDockWidget(results, explorer, Qt.Orientation.Vertical)
+        if explorer and queries:
+            mainWindow.splitDockWidget(explorer, queries, Qt.Orientation.Vertical)
+        elif results and queries:
+            mainWindow.splitDockWidget(results, queries, Qt.Orientation.Vertical)
+
     @staticmethod
     def showGlobalMessage(iface, text, level=0, duration=5):
         """

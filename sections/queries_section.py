@@ -8,6 +8,7 @@ from ..ui.queries.qgisred_element_explorer_dock import QGISRedElementExplorerDoc
 from ..ui.queries.qgisred_queriesbyproperties_dock import QGISRedQueriesByPropertiesDock
 from ..ui.queries.qgisred_statisticsandgraphs_dock import QGISRedStatisticsAndPlotsDock
 from ..tools.map_tools.qgisred_identifyFeature import QGISRedIdentifyFeature
+from ..tools.utils.qgisred_ui_utils import QGISRedUIUtils
 
 
 class QueriesSection:
@@ -110,6 +111,12 @@ class QueriesSection:
                 self.openFindElementsDialog.setChecked(False)
                 return
 
+        QGISRedUIUtils.arrangeDockOrder(
+            self.iface.mainWindow(),
+            self.ResultDockwidget,
+            QGISRedElementExplorerDock._instance,
+            getattr(self, 'queriesByPropertiesDock', None)
+        )
         self.connectElementExplorerToResultsDock()
         self.openFindElementsDialog.setChecked(False) # Not a tool, don't keep it checked
 
@@ -154,6 +161,12 @@ class QueriesSection:
                 self.openElementsPropertyDialog.setChecked(False)
                 return
 
+        QGISRedUIUtils.arrangeDockOrder(
+            self.iface.mainWindow(),
+            self.ResultDockwidget,
+            QGISRedElementExplorerDock._instance,
+            getattr(self, 'queriesByPropertiesDock', None)
+        )
         self.connectElementExplorerToResultsDock()
         self.switchToIdentifyTool(tool, self.openElementsPropertyDialog, True, dock)
 
@@ -171,6 +184,12 @@ class QueriesSection:
         if existing is not None:
             try:
                 existing.raise_()
+                QGISRedUIUtils.arrangeDockOrder(
+            self.iface.mainWindow(),
+            self.ResultDockwidget,
+            QGISRedElementExplorerDock._instance,
+            getattr(self, 'queriesByPropertiesDock', None)
+        )
                 return
             except RuntimeError:
                 pass
@@ -180,6 +199,12 @@ class QueriesSection:
             lambda: setattr(self, 'queriesByPropertiesDock', None)
         )
         self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.queriesByPropertiesDock)
+        QGISRedUIUtils.arrangeDockOrder(
+            self.iface.mainWindow(),
+            self.ResultDockwidget,
+            QGISRedElementExplorerDock._instance,
+            getattr(self, 'queriesByPropertiesDock', None)
+        )
 
     def runStatisticsAndPlots(self):
         if not self.checkDependencies():

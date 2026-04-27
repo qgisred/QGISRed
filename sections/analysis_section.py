@@ -10,11 +10,13 @@ from qgis.PyQt.QtGui import QColor
 from qgis.gui import QgsHighlight
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ..tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from ..tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ..compat import DIALOG_ACCEPTED
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool, SelectPointType
 from ..ui.analysis.qgisred_results_dock import QGISRedResultsDock
+from ..ui.queries.qgisred_element_explorer_dock import QGISRedElementExplorerDock
 from ..ui.analysis.qgisred_timeseries_dock import QGISRedTimeSeriesDock
 from ..ui.analysis.qgisred_results_data import export_results_to_csv, get_regional_separators
 
@@ -83,6 +85,12 @@ class AnalysisSection:
         try:
             self.ResultDockwidget.show()
             self.ResultDockwidget.raise_()
+            QGISRedUIUtils.arrangeDockOrder(
+                self.iface.mainWindow(),
+                self.ResultDockwidget,
+                QGISRedElementExplorerDock._instance,
+                getattr(self, 'queriesByPropertiesDock', None)
+            )
         except Exception:
             pass
 
@@ -97,6 +105,12 @@ class AnalysisSection:
 
         self._initResultsDock()
         self.ResultDockwidget.simulate(self.ProjectDirectory, self.NetworkName)
+        QGISRedUIUtils.arrangeDockOrder(
+            self.iface.mainWindow(),
+            self.ResultDockwidget,
+            QGISRedElementExplorerDock._instance,
+            getattr(self, 'queriesByPropertiesDock', None)
+        )
         self.connectElementExplorerToResultsDock()
 
     def runShowResultsDock(self):
@@ -116,6 +130,12 @@ class AnalysisSection:
             self.ResultDockwidget.openAllResultsProcess()
             self.ResultDockwidget.show()
             self.ResultDockwidget.raise_()
+            QGISRedUIUtils.arrangeDockOrder(
+                self.iface.mainWindow(),
+                self.ResultDockwidget,
+                QGISRedElementExplorerDock._instance,
+                getattr(self, 'queriesByPropertiesDock', None)
+            )
         self.connectElementExplorerToResultsDock()
         self.ResultDockwidget.tabWidget.setCurrentIndex(0)
 
@@ -138,6 +158,12 @@ class AnalysisSection:
             self.ResultDockwidget.openAllResultsProcess()
             self.ResultDockwidget.show()
             self.ResultDockwidget.raise_()
+            QGISRedUIUtils.arrangeDockOrder(
+                self.iface.mainWindow(),
+                self.ResultDockwidget,
+                QGISRedElementExplorerDock._instance,
+                getattr(self, 'queriesByPropertiesDock', None)
+            )
         self.connectElementExplorerToResultsDock()
         self.ResultDockwidget.tabWidget.setCurrentIndex(1)
 
