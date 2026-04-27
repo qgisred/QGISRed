@@ -259,6 +259,7 @@ class AnalysisSection:
                 self.timeSeriesDock.visibilityChanged.connect(self.timeSeriesDockVisibilityChanged)
                 self.timeSeriesDock.destroyed.connect(self._onTimeSeriesDockDestroyed)
                 self.timeSeriesDock.seriesReordered.connect(self._onTimeSeriesSeriesReordered)
+                self.timeSeriesDock.seriesRemoved.connect(self._onTimeSeriesSeriesRemoved)
                 self.iface.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.timeSeriesDock)
             self._ensureTimeSeriesMapToolSignal()
             self.timeSeriesDock.show()
@@ -850,6 +851,66 @@ class AnalysisSection:
                 self._syncTimeSeriesHighlights(self.lastTimeSeriesLayer, self.lastTimeSeriesFeature)
             except Exception:
                 pass
+        except Exception:
+            return
+
+    def _onTimeSeriesSeriesRemoved(self, series_key: str):
+        try:
+            k = str(series_key or "").strip()
+            if not k:
+                return
+            if not hasattr(self, "timeSeriesSelection") or not self.timeSeriesSelection:
+                return
+
+            # Keys look like: "{category}:{layer_identifier}:{prop_internal}:{element_id}"
+            key_to_keep = []
+            for it in self.timeSeriesSelection:
+                li = it.get("layer_identifier") or ""
+                eid = it.get("element_id") or ""
+                cat = it.get("category") or ""
+                prop = it.get("prop_internal") or ""
+                it_key = f"{cat}:{li}:{prop}:{eid}"
+                if it_key != k:
+                    key_to_keep.append(it)
+
+            if len(key_to_keep) == len(self.timeSeriesSelection):
+                return
+
+            self.timeSeriesSelection = key_to_keep
+
+            if not self.timeSeriesSelection:
+                self._timeSeriesResetSelection()
+                self._clearTimeSeriesMapSelection()
+                self._clearTimeSeriesHighlight()
+                try:
+                    if self.timeSeriesDock is not None:
+                        self.timeSeriesDock.updatePlotSeries([], "", "", "")
+                except Exception:
+                    pass
+                return
+
+            # Rebuild map selection per layer from remaining items.
+            try:
+                fids_by_layer = {}
+                for it in self.timeSeriesSelection:
+                    layer = it.get("layer")
+                    fid = it.get("feature_id")
+                    if layer is None or fid is None:
+                        continue
+                    fids_by_layer.setdefault(layer, []).append(fid)
+                for layer, fids in fids_by_layer.items():
+                    try:
+                        layer.selectByIds(fids)
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+
+            try:
+                self._syncTimeSeriesHighlights(self.lastTimeSeriesLayer, self.lastTimeSeriesFeature)
+            except Exception:
+                self._syncTimeSeriesHighlights()
+            self._renderTimeSeriesSelection()
         except Exception:
             return
 

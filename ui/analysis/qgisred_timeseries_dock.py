@@ -15,6 +15,7 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_
 
 class TimeSeriesPlotWidget(QWidget):
     seriesOrderChanged = pyqtSignal(list)
+    seriesRemoved = pyqtSignal(str)
 
     def __init__(self, parent=None):
         super(TimeSeriesPlotWidget, self).__init__(parent)
@@ -35,6 +36,7 @@ class TimeSeriesPlotWidget(QWidget):
         self.setMinimumSize(220, 170)
         self._legend_reserved_w = 0
         self._legend_hitboxes = []
+        self._legend_delete_hitboxes = []
         self._hover_series_idx = None
         self._legend = LegendInteractionController(self)
         self._renderer = TimeSeriesPlotRenderer()
@@ -244,6 +246,34 @@ class TimeSeriesPlotWidget(QWidget):
     def _resetLegendInteractionState(self):
         self._legend.reset()
 
+    def removeSeries(self, series_idx: int) -> bool:
+        try:
+            idx = int(series_idx)
+        except Exception:
+            return False
+        if not (0 <= idx < len(self.series)):
+            return False
+
+        try:
+            removed_key = str(self.series[idx].get("series_key") or "")
+        except Exception:
+            removed_key = ""
+
+        self.series.pop(idx)
+        self._assignYAxisByMagnitude()
+
+        # Reset hover/selection state if it now points outside bounds.
+        if self._hover_series_idx is not None and self._hover_series_idx >= len(self.series):
+            self._hover_series_idx = None
+        if self.hover_index is not None and not self.series:
+            self.hover_index = None
+
+        order = [str(s.get("series_key") or "") for s in self.series]
+        self.seriesOrderChanged.emit(order)
+        if removed_key:
+            self.seriesRemoved.emit(removed_key)
+        return True
+
     def _resolveHoverSeriesIndex(self):
         for i, s in enumerate(self.series):
             if bool(s.get("highlighted", False)):
@@ -287,6 +317,11 @@ class TimeSeriesPlotWidget(QWidget):
         if self._legend.drag_active and self._legend.apply_reorder_if_needed():
             self._resetLegendInteractionState()
             self.update()
+            return
+
+        if self._legend.apply_delete_if_click():
+            self.update()
+            self._resetLegendInteractionState()
             return
 
         if self._legend.apply_toggle_if_click():
@@ -345,6 +380,7 @@ class TimeSeriesPlotWidget(QWidget):
 
 class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
     seriesReordered = pyqtSignal(list)
+    seriesRemoved = pyqtSignal(str)
 
     def __init__(self, iface, parent=None):
         super(QGISRedTimeSeriesDock, self).__init__(parent or iface.mainWindow())
@@ -357,6 +393,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         layout.addWidget(self.plot)
         self.chartContainer.setLayout(layout)
         self.plot.seriesOrderChanged.connect(self.seriesReordered)
+        self.plot.seriesRemoved.connect(self.seriesRemoved)
 
         self.lblTitle.hide()
         

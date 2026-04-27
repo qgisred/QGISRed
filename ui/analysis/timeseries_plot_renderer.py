@@ -86,6 +86,7 @@ class TimeSeriesPlotRenderer:
 
         plot_rect, local_margin_left, right_axis_label_w = widget.getPlotRect()
         widget._legend_hitboxes = []
+        widget._legend_delete_hitboxes = []
 
         painter.fillRect(plot_rect, PLOT_BG_COLOR)
         painter.setPen(QPen(BORDER_COLOR, 1))
@@ -399,6 +400,8 @@ class TimeSeriesPlotRenderer:
         x0 = plot_rect.right() + 10 + (widget._right_axis_label_w if getattr(widget, "_right_axis_label_w", 0) else 0) + 20
         y0 = plot_rect.top() + 10
         max_x = widget.width() - 5
+        btn_w = 10
+        btn_pad = 2
         for mag_title, items in groups:
             if x0 >= max_x:
                 break
@@ -422,10 +425,18 @@ class TimeSeriesPlotRenderer:
 
                 painter.setFont(qfont(8, bold=highlighted))
                 painter.setPen(QColor(0, 0, 0, 120) if muted else Qt.GlobalColor.black)
-                text_rect = QRectF(x0 + 18, y0, max_x - (x0 + 18), LEGEND_ROW_H)
+                row_right = min(max_x, x0 + widget._legend_reserved_w)
+                text_rect = QRectF(x0 + 18, y0, max(0.0, (row_right - btn_w - btn_pad) - (x0 + 18)), LEGEND_ROW_H)
                 painter.drawText(text_rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, label)
                 hit_rect = QRectF(x0, y0, widget._legend_reserved_w, LEGEND_ROW_H)
                 widget._legend_hitboxes.append((hit_rect, series_idx))
+
+                # "X" delete button at the end of the row.
+                delete_rect = QRectF(max(x0, row_right - btn_w - btn_pad), y0, btn_w, LEGEND_ROW_H)
+                widget._legend_delete_hitboxes.append((delete_rect, series_idx))
+                painter.setFont(qfont(8, bold=True))
+                painter.setPen(QColor(0, 0, 0, 120) if muted else QColor(60, 60, 60))
+                painter.drawText(delete_rect, Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter, "×")
 
                 if widget._legend.drag_active and widget._legend.drop_target_idx == series_idx:
                     painter.setPen(QPen(QColor(30, 30, 30), 2))

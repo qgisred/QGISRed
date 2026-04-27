@@ -8,6 +8,7 @@ class LegendInteractionController:
     def __init__(self, widget):
         self._w = widget
         self._drag_candidate_idx = None
+        self._delete_candidate_idx = None
         self._drag_active = False
         self._drag_start_pos = None
         self._drop_target_idx = None
@@ -16,6 +17,7 @@ class LegendInteractionController:
 
     def reset(self) -> None:
         self._drag_candidate_idx = None
+        self._delete_candidate_idx = None
         self._drag_start_pos = None
         self._drag_active = False
         self._drop_target_idx = None
@@ -23,6 +25,18 @@ class LegendInteractionController:
         self._moved = False
 
     def begin(self, pos: QPointF, modifiers) -> None:
+        # Deletion takes precedence over toggle/drag.
+        for rect, series_idx in getattr(self._w, "_legend_delete_hitboxes", []) or []:
+            if rect.contains(pos):
+                self._delete_candidate_idx = series_idx
+                self._drag_candidate_idx = None
+                self._drag_start_pos = QPointF(pos)
+                self._drag_active = False
+                self._drop_target_idx = None
+                self._pressed_modifiers = modifiers
+                self._moved = False
+                return
+
         clicked_idx = None
         for rect, series_idx in self._w._legend_hitboxes:
             if rect.contains(pos):
@@ -32,6 +46,7 @@ class LegendInteractionController:
             return
 
         self._drag_candidate_idx = clicked_idx
+        self._delete_candidate_idx = None
         self._drag_start_pos = QPointF(pos)
         self._drag_active = False
         self._drop_target_idx = clicked_idx
@@ -96,6 +111,12 @@ class LegendInteractionController:
         order = [str(s.get("series_key") or "") for s in self._w.series]
         self._w.seriesOrderChanged.emit(order)
         return True
+
+    def apply_delete_if_click(self) -> bool:
+        if self._delete_candidate_idx is None or self._moved:
+            return False
+        clicked_idx = int(self._delete_candidate_idx)
+        return bool(self._w.removeSeries(clicked_idx))
 
     def apply_toggle_if_click(self) -> bool:
         if self._drag_candidate_idx is None or self._moved:
