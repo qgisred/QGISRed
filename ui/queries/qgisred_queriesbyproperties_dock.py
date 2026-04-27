@@ -1296,6 +1296,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         return f"{fld} {op} {val}"
 
     def buildIdFilter(self, inputLayer):
+        if inputLayer.fields().indexFromName('Id') < 0:
+            return ""
         ids = []
         for feat in inputLayer.getFeatures():
             fid = feat['Id']
@@ -1305,6 +1307,14 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             return ""
         quoted = ", ".join(f"'{i}'" for i in ids)
         return f'"Id" IN ({quoted})'
+
+    def collectIdSet(self, layer, featureRequest):
+        if layer.fields().indexFromName('Id') < 0:
+            return None
+        return {
+            str(feat['Id']) for feat in layer.getFeatures(featureRequest)
+            if feat['Id'] is not None
+        }
 
     def constrainExpression(self, expression, idFilter):
         if not idFilter:
@@ -1421,15 +1431,15 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                     if (v := extractValue(feat)) is not None
                 ]
             else:
-                matchingIds = {
-                    str(feat['Id']) for feat in critLayer.getFeatures(featureRequest)
-                    if feat['Id'] is not None
-                }
-                featureValues = [
-                    v for feat in statsLayer.getFeatures()
-                    if str(feat['Id']) in matchingIds
-                    and (v := extractValue(feat)) is not None
-                ]
+                matchingIds = self.collectIdSet(critLayer, featureRequest)
+                if matchingIds is None or statsLayer.fields().indexFromName('Id') < 0:
+                    featureValues = []
+                else:
+                    featureValues = [
+                        v for feat in statsLayer.getFeatures()
+                        if str(feat['Id']) in matchingIds
+                        and (v := extractValue(feat)) is not None
+                    ]
             statsPerCriterion.append(featureValues)
 
         # Build include/exclude expressions
@@ -1462,15 +1472,15 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 if (v := extractValue(feat)) is not None
             ]
         else:
-            matchingIds = {
-                str(feat['Id']) for feat in criteriaLayer.getFeatures(allFeaturesRequest)
-                if feat['Id'] is not None
-            }
-            allFeatureValues = [
-                v for feat in statsLayer.getFeatures()
-                if str(feat['Id']) in matchingIds
-                and (v := extractValue(feat)) is not None
-            ]
+            matchingIds = self.collectIdSet(criteriaLayer, allFeaturesRequest)
+            if matchingIds is None or statsLayer.fields().indexFromName('Id') < 0:
+                allFeatureValues = []
+            else:
+                allFeatureValues = [
+                    v for feat in statsLayer.getFeatures()
+                    if str(feat['Id']) in matchingIds
+                    and (v := extractValue(feat)) is not None
+                ]
         statsPerCriterion.append(allFeatureValues)
 
         # Helper to compute metrics
