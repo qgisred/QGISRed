@@ -2016,13 +2016,12 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         try:
             projectName = QgsProject.instance().baseName()
             activeCriteria = self.effectiveCriteria()
-            queryLabel = self.tr("Query") if len(activeCriteria) == 1 else self.tr("Queries")
+            elementType = self.cbElementType.currentText()
             timeText = (self.currentResultsTimeText or self.labelResults.text() or "").strip()
-            statsProp = self.cbStatisticsFor.currentText()
             hasDynamicCriterion = any(
                 self.isResultProperty(c['property']) for c in activeCriteria
             )
-            queryHeader = queryLabel + (f" @{timeText}" if timeText and hasDynamicCriterion else "")
+            timeSuffix = f" @{timeText}" if timeText and hasDynamicCriterion else ""
 
             table = self.tableWidgetStatistics
             headers = [
@@ -2034,18 +2033,29 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 writer = csv.writer(f)
                 f.write(f"Project: {projectName}\n")
                 f.write(f"Scenario: base\n")
-                if hasDynamicCriterion:
-                    f.write(f"{queryHeader}\n")
-                f.write(f"Property: {statsProp}\n")
-                for c in activeCriteria:
+                f.write(f"Element Type: {elementType}\n")
+                if len(activeCriteria) == 1:
+                    c = activeCriteria[0]
                     op = c['operator']
                     prop = c['property']
                     cond = c['condition']
                     val = c['value']
                     if cond == 'All':
-                        f.write(f"{op} {prop}\n")
+                        criterionStr = f"{op} {prop}"
                     else:
-                        f.write(f"{op} {prop} {cond} {val}\n")
+                        criterionStr = f"{op} {prop} {cond} {val}"
+                    f.write(f"Query: {criterionStr}{timeSuffix}\n")
+                else:
+                    f.write(f"Queries{timeSuffix}\n")
+                    for c in activeCriteria:
+                        op = c['operator']
+                        prop = c['property']
+                        cond = c['condition']
+                        val = c['value']
+                        if cond == 'All':
+                            f.write(f"{op} {prop}\n")
+                        else:
+                            f.write(f"{op} {prop} {cond} {val}\n")
                 comment = self.multipleCriteriaComment.text().strip() if self.radioMultipleCriteria.isChecked() else ""
                 if comment:
                     f.write(f"Comment: {comment}\n")
