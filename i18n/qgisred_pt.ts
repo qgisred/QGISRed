@@ -4421,6 +4421,11 @@ Left-click: Add a new item below the current selection</source>
         <source>Selection required...</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="0"/>
+        <source>Clear all curves</source>
+        <translation>Apagar todas as curvas</translation>
+    </message>
 </context>
 <context>
     <name>TimeSeriesPlotWidget</name>

@@ -261,6 +261,7 @@ class AnalysisSection:
                 self.timeSeriesDock.seriesReordered.connect(self._onTimeSeriesSeriesReordered)
                 self.timeSeriesDock.seriesRemoved.connect(self._onTimeSeriesSeriesRemoved)
                 self.timeSeriesDock.seriesEmphasisChanged.connect(self._onTimeSeriesSeriesEmphasisChanged)
+                self.timeSeriesDock.clearAllRequested.connect(self._onTimeSeriesClearAllRequested)
                 self.iface.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.timeSeriesDock)
             self._ensureTimeSeriesMapToolSignal()
             self.timeSeriesDock.show()
@@ -309,6 +310,11 @@ class AnalysisSection:
         self.timeSeriesDock = None
         self._clearTimeSeriesHighlight()
         self._clearTimeSeriesMapSelection()
+
+    def _onTimeSeriesClearAllRequested(self):
+        """Clear all curves and return the dock to its initial empty state."""
+        from ..ui.analysis.timeseries_actions import clear_all_timeseries
+        clear_all_timeseries(self)
 
     def timeSeriesDockVisibilityChanged(self, visible):
         if not hasattr(self, "timeSeriesDock") or self.timeSeriesDock is None:

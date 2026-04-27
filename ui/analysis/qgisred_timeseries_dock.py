@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import os
 from typing import List
-from qgis.PyQt.QtWidgets import QDockWidget, QVBoxLayout, QWidget
-from qgis.PyQt.QtCore import Qt, QPointF, QRectF, pyqtSignal
-from qgis.PyQt.QtGui import QColor, QPainter, QFontMetrics
+from qgis.PyQt.QtWidgets import QDockWidget, QVBoxLayout, QWidget, QHBoxLayout, QToolButton, QFrame
+from qgis.PyQt.QtCore import Qt, QPointF, QRectF, pyqtSignal, QSize
+from qgis.PyQt.QtGui import QColor, QPainter, QFontMetrics, QIcon
 from qgis.PyQt import uic
+from qgis.core import QgsApplication
 
 from .timeseries_plot_layout import PlotLayoutCalculator
 from .timeseries_legend_interaction import LegendInteractionController
@@ -401,11 +402,14 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
     seriesReordered = pyqtSignal(list)
     seriesRemoved = pyqtSignal(str)
     seriesEmphasisChanged = pyqtSignal(dict)
+    clearAllRequested = pyqtSignal()
 
     def __init__(self, iface, parent=None):
         super(QGISRedTimeSeriesDock, self).__init__(parent or iface.mainWindow())
         self.iface = iface
         self.setupUi(self)
+
+        self._initToolbar()
         
         self.plot = TimeSeriesPlotWidget(self.chartContainer)
         layout = QVBoxLayout(self.chartContainer)
@@ -420,6 +424,72 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         
         self.setStyleSheet("background-color: white; border: none;")
         self.chartContainer.setStyleSheet("background-color: white;")
+
+    def _initToolbar(self) -> None:
+        try:
+            container = QWidget(self)
+            hl = QHBoxLayout(container)
+            hl.setContentsMargins(0, 0, 0, 0)
+            hl.setSpacing(0)
+            container.setFixedHeight(40)
+
+            self.btnClearAll = QToolButton(container)
+            self.btnClearAll.setObjectName("btnClearAllTimeSeries")
+            # Prefer filesystem path so we don't require regenerating resources3x.py.
+            icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "images", "iconBroom.svg"))
+            self.btnClearAll.setIcon(QIcon(icon_path))
+            # Use translations when available; otherwise fallback by locale so
+            # users don't see English if the .qm isn't regenerated yet.
+            tooltip = self.tr("Clear all curves")
+            if tooltip == "Clear all curves":
+                try:
+                    lang = (QgsApplication.locale() or "")[:2].lower()
+                except Exception:
+                    lang = ""
+                tooltip = {
+                    "es": "Borrar todas las curvas",
+                    "fr": "Effacer toutes les courbes",
+                    "pt": "Apagar todas as curvas",
+                }.get(lang, tooltip)
+            self.btnClearAll.setToolTip(tooltip)
+            self.btnClearAll.setAutoRaise(True)
+            self.btnClearAll.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
+            self.btnClearAll.setIconSize(QSize(30, 30))
+            self.btnClearAll.setFixedSize(QSize(40, 40))
+            self.btnClearAll.setStyleSheet(
+                "QToolButton {"
+                "  border: 1px solid #d0d0d0;"
+                "  border-radius: 4px;"
+                "  background-color: #ffffff;"
+                "  padding: 6px;"
+                "}"
+                "QToolButton:hover { background-color: #f3f3f3; border-color: #c2c2c2; }"
+                "QToolButton:pressed { background-color: #e9e9e9; border-color: #b8b8b8; }"
+                "QToolButton:focus { border: 1px solid #3399ff; }"
+            )
+            self.btnClearAll.clicked.connect(self.clearAllRequested)
+
+            hl.addWidget(self.btnClearAll, 0, Qt.AlignmentFlag.AlignLeft)
+
+            sep = QFrame(container)
+            sep.setFrameShape(QFrame.Shape.VLine)
+            sep.setFrameShadow(QFrame.Shadow.Plain)
+            sep.setLineWidth(1)
+            sep.setMidLineWidth(0)
+            sep.setStyleSheet("QFrame { color: #d0d0d0; }")
+            sep.setFixedHeight(28)
+            hl.addWidget(sep, 0, Qt.AlignmentFlag.AlignVCenter)
+
+            hl.addStretch(1)
+
+            # Insert at the very top of the dock.
+            try:
+                self.verticalLayout.insertWidget(0, container)
+            except Exception:
+                self.verticalLayout.addWidget(container)
+        except Exception:
+            # Do not break dock creation if UI layout changes.
+            return
 
     def updatePlot(self, x, y, title, x_label, y_label, is_stepped=False, y_categorical_labels=None, series_label=""):
         self.plot.setData(x, y, title, x_label, y_label, is_stepped, y_categorical_labels, series_label)

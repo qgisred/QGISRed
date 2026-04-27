@@ -4434,6 +4434,11 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <source>Selection required...</source>
         <translation>Selección requerida</translation>
     </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="0"/>
+        <source>Clear all curves</source>
+        <translation>Borrar todas las curvas</translation>
+    </message>
 </context>
 <context>
     <name>TimeSeriesPlotWidget</name>
