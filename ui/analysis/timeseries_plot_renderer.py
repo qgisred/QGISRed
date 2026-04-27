@@ -34,7 +34,27 @@ from .timeseries_plot_style import (
 
 class TimeSeriesPlotRenderer:
     _UNIT_RE = re.compile(r"\(([^()]+)\)\s*$")
+    _UNIT_ANY_RE = re.compile(r"\(([^()]+)\)")
     _TOOLTIP_DECIMAL_LIMIT = 100_000.0
+    _AXIS_TICK_FONT_SIZE = 10
+    _AXIS_TITLE_FONT_SIZE = 10
+
+    def _extract_unit_from_magnitude(self, magnitude: str) -> str:
+        magnitude = (magnitude or "").strip()
+        if not magnitude:
+            return ""
+        # Supports single magnitude like "Presión (m)" and multi like "Presión (m), Caudal (L/s)".
+        units = [u.strip() for u in self._UNIT_ANY_RE.findall(magnitude)]
+        if not units:
+            return ""
+        seen = set()
+        out = []
+        for u in units:
+            if not u or u in seen:
+                continue
+            seen.add(u)
+            out.append(u)
+        return ", ".join(out)
 
     def render(self, widget, painter: QPainter) -> None:
         if not widget.series:
@@ -194,7 +214,7 @@ class TimeSeriesPlotRenderer:
         return time_str
 
     def _draw_grid_and_axes(self, widget, painter, plot_rect, local_margin_left, right_axis_label_w, x_state, y_state_left, y_state_right=None):
-        painter.setFont(qfont(9))
+        painter.setFont(qfont(self._AXIS_TICK_FONT_SIZE))
         pen_grid = QPen(GRID_COLOR, 1, Qt.PenStyle.SolidLine)
         painter.setPen(pen_grid)
 
@@ -239,12 +259,16 @@ class TimeSeriesPlotRenderer:
 
                 painter.setPen(Qt.GlobalColor.black)
                 label_x = self._format_absolute_time_hours_axis(val_x)
-                painter.drawText(QRectF(pt.x() - tick_w / 2, plot_rect.bottom() + 8, tick_w, tick_h), Qt.AlignmentFlag.AlignCenter, label_x)
+                painter.drawText(
+                    QRectF(pt.x() - tick_w / 2, plot_rect.bottom() + 8, tick_w, tick_h),
+                    Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop,
+                    label_x,
+                )
 
     def _draw_axis_titles(self, widget, painter, plot_rect, local_margin_left, right_axis_label_w, widget_h):
-        painter.setFont(qfont(9))
+        painter.setFont(qfont(self._AXIS_TICK_FONT_SIZE))
 
-        small_font = qfont(7, bold=False)
+        small_font = qfont(self._AXIS_TITLE_FONT_SIZE, bold=False)
         title_pen = QPen(TEXT_AXIS)
 
         left_title = (widget._y_label_left or widget.y_label or "").strip()
@@ -258,7 +282,9 @@ class TimeSeriesPlotRenderer:
             painter.restore()
 
         if widget._right_axis_active and right_axis_label_w and right_axis_label_w > 0:
-            right_title = (widget._y_label_right or "").strip()
+            right_title_raw = (widget._y_label_right or "").strip()
+            right_unit = self._extract_unit_from_magnitude(right_title_raw)
+            right_title = right_unit or right_title_raw
             if right_title:
                 painter.save()
                 painter.setFont(small_font)
@@ -269,7 +295,25 @@ class TimeSeriesPlotRenderer:
                 painter.drawText(QRectF(-120, -10, 240, 20), Qt.AlignmentFlag.AlignCenter, right_title)
                 painter.restore()
 
-        painter.drawText(QRectF(local_margin_left, widget_h - widget.margin_bottom + 20, plot_rect.width(), 20), Qt.AlignmentFlag.AlignCenter, widget.x_label)
+        fm_x = QFontMetrics(qfont(self._AXIS_TICK_FONT_SIZE))
+        has_days = bool(widget.data_x and max(widget.data_x) >= 24)
+        tick_h = fm_x.height() * 2 + 4 if has_days else fm_x.height() + 6
+        tick_top_pad = 8
+        title_gap = 2
+        title_h = fm_x.height() + 2
+        bottom_pad = 6
+        title_top = plot_rect.bottom() + tick_top_pad + tick_h + title_gap
+
+        # Clamp so the title is never glued to the dock bottom.
+        min_y = plot_rect.bottom() + 4
+        max_y = max(min_y, float(widget_h - bottom_pad - title_h))
+        title_top = min(float(title_top), max_y)
+        title_top = max(float(title_top), float(min_y))
+        painter.drawText(
+            QRectF(local_margin_left, title_top, plot_rect.width(), title_h),
+            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter,
+            widget.x_label,
+        )
 
     def _draw_series_curves(self, widget, painter, plot_rect, x_state, y_state_left, y_state_right=None):
         if not any(len((s.get("x") or [])) > 1 for s in widget.series):
@@ -316,7 +360,8 @@ class TimeSeriesPlotRenderer:
         c = QColor(color)
         if muted:
             c.setAlpha(80)
-        pen_w = 2 if highlighted else 1
+        # Slightly thicker legend strokes to better perceive color.
+        pen_w = 3 if highlighted else 2
         painter.setPen(QPen(c, pen_w))
         painter.setBrush(Qt.GlobalColor.white)
 

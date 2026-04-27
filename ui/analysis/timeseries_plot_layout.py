@@ -16,6 +16,7 @@ from .timeseries_plot_style import AXIS_MAX_TICKS, PLOT_TOP_PAD, qfont
 
 
 class PlotLayoutCalculator:
+    _AXIS_TICK_FONT_SIZE = 10
     @staticmethod
     def _y_tick_labels_for_width(
         all_y: Sequence[float],
@@ -72,7 +73,7 @@ class PlotLayoutCalculator:
         w = widget.width()
         h = widget.height()
 
-        fm = QFontMetrics(qfont(9))
+        fm = QFontMetrics(qfont(cls._AXIS_TICK_FONT_SIZE))
 
         left_series, right_series = widget._seriesByAxis()
         _x_l, all_y_left, y_cat_left, _st_left = widget._axisSeriesData(left_series)
@@ -99,7 +100,10 @@ class PlotLayoutCalculator:
         local_margin_bottom = widget.margin_bottom
         if widget.data_x and len(widget.data_x) > 1:
             has_days = max(widget.data_x) >= 24
-            extra = fm.height() * 2 + 16 if has_days else fm.height() + 20
+            tick_block_h = fm.height() * 2 + 16 if has_days else fm.height() + 20
+            # Space for axis title + gap + bottom padding (keeps it off the dock edge)
+            axis_title_h = (fm.height() + 2 + 2 + 6) if (getattr(widget, "x_label", "") or "").strip() else 0
+            extra = tick_block_h + axis_title_h
             local_margin_bottom = max(local_margin_bottom, extra)
 
         widget._right_axis_label_w = right_axis_label_w

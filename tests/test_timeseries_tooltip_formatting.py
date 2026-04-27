@@ -118,3 +118,14 @@ class TestTooltipUnits:
         assert prefix == "Presión: "
         assert value == "2"
         assert suffix == " m"
+
+
+class TestAxisUnitExtraction:
+    def test_extracts_single_unit(self):
+        r = TimeSeriesPlotRenderer()
+        assert r._extract_unit_from_magnitude("Presión (m)") == "m"
+
+    def test_extracts_multiple_units_unique_in_order(self):
+        r = TimeSeriesPlotRenderer()
+        assert r._extract_unit_from_magnitude("Presión (m), Caudal (L/s)") == "m, L/s"
+        assert r._extract_unit_from_magnitude("A (m), B (m), C (L/s), D (m)") == "m, L/s"

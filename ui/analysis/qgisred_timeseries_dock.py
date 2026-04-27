@@ -82,16 +82,16 @@ class TimeSeriesPlotWidget(QWidget):
             if m and m not in magnitudes:
                 magnitudes.append(m)
         left_mag = magnitudes[0] if magnitudes else ""
-        right_mag = magnitudes[1] if len(magnitudes) > 1 else ""
+        right_mags = magnitudes[1:] if len(magnitudes) > 1 else []
         for s in self.series:
             m = (s.get("magnitude") or "").strip()
-            if right_mag and m == right_mag:
+            if right_mags and m in right_mags:
                 s["y_axis"] = "right"
             else:
                 s["y_axis"] = "left"
         self._y_label_left = left_mag or self.y_label
-        self._y_label_right = right_mag
-        self._right_axis_active = bool(right_mag)
+        self._y_label_right = ", ".join(right_mags)
+        self._right_axis_active = bool(right_mags)
 
     def setSeries(self, series, title="", x_label="Time", y_label="Value"):
         self.series = series or []
@@ -214,21 +214,15 @@ class TimeSeriesPlotWidget(QWidget):
         return items[:limit]
 
     def _legendGroups(self):
-        groups = []
-        current_mag = None
-        current_items = []
+        # Group by magnitude across the whole legend, not only contiguous blocks.
+        # This avoids duplicated magnitude headers when series order interleaves magnitudes.
+        grouped = {}
         for series_idx, color, label, legend_type, magnitude in self._legendItems():
-            mag = magnitude or self.tr("Magnitude")
-            if current_mag is None:
-                current_mag = mag
-            if mag != current_mag:
-                groups.append((current_mag, current_items))
-                current_mag = mag
-                current_items = []
-            current_items.append((series_idx, color, label, legend_type))
-        if current_mag is not None:
-            groups.append((current_mag, current_items))
-        return groups
+            mag = (magnitude or self.tr("Magnitude")).strip()
+            if mag not in grouped:
+                grouped[mag] = []
+            grouped[mag].append((series_idx, color, label, legend_type))
+        return list(grouped.items())
 
     def _legendRequiredWidth(self):
         groups = self._legendGroups()
