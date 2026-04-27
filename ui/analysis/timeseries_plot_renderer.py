@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
+import re
 from qgis.PyQt.QtCore import QPointF, QRectF, Qt
 from qgis.PyQt.QtGui import QColor, QFont, QFontMetrics, QPainter, QPainterPath, QPen, QPolygonF
 
@@ -32,6 +33,9 @@ from .timeseries_plot_style import (
 
 
 class TimeSeriesPlotRenderer:
+    _UNIT_RE = re.compile(r"\(([^()]+)\)\s*$")
+    _TOOLTIP_DECIMAL_LIMIT = 100_000.0
+
     def render(self, widget, painter: QPainter) -> None:
         if not widget.series:
             self._draw_no_data_message(widget, painter)
@@ -164,6 +168,26 @@ class TimeSeriesPlotRenderer:
         rem = abs_seconds % 86400
         h = rem // 3600
         m = (rem % 3600) // 60
+        if d > 0:
+            if h == 0 and m == 0:
+                return f"{sign}{d}d"
+            if m == 0:
+                return f"{sign}{d}d {h}h"
+            return f"{sign}{d}d {h}h {m:02d}m"
+
+        if m == 0:
+            return f"{sign}{h}h"
+        return f"{sign}{h}h {m:02d}m"
+
+    def _format_absolute_time_hours_axis(self, hours: float) -> str:
+        total_seconds = int(round(hours * 3600))
+        sign = "-" if total_seconds < 0 else ""
+        abs_seconds = abs(total_seconds)
+        d = abs_seconds // 86400
+        rem = abs_seconds % 86400
+        h = rem // 3600
+        m = (rem % 3600) // 60
+
         time_str = f"{sign}24" if (d > 0 and h == 0 and m == 0) else (f"{sign}{h}" if m == 0 else f"{sign}{h}:{m:02d}")
         if d > 0:
             return f"{time_str}\n{sign}{d}d"
@@ -214,7 +238,7 @@ class TimeSeriesPlotRenderer:
                 painter.drawLine(QPointF(pt.x(), plot_rect.top()), QPointF(pt.x(), plot_rect.bottom()))
 
                 painter.setPen(Qt.GlobalColor.black)
-                label_x = self._format_absolute_time_hours(val_x)
+                label_x = self._format_absolute_time_hours_axis(val_x)
                 painter.drawText(QRectF(pt.x() - tick_w / 2, plot_rect.bottom() + 8, tick_w, tick_h), Qt.AlignmentFlag.AlignCenter, label_x)
 
     def _draw_axis_titles(self, widget, painter, plot_rect, local_margin_left, right_axis_label_w, widget_h):
@@ -372,7 +396,15 @@ class TimeSeriesPlotRenderer:
             return ""
         try:
             v = float(value)
-            s = format(v, ".3g")
+            if v == 0.0:
+                return "0"
+            av = abs(v)
+            if 0 < av < self._TOOLTIP_DECIMAL_LIMIT:
+                s = format(v, ".3f")
+                if "." in s:
+                    s = s.rstrip("0").rstrip(".")
+            else:
+                s = format(v, ".3e")
             if s in ("-0", "-0.0", "-0.00"):
                 s = "0"
             return s
@@ -408,14 +440,23 @@ class TimeSeriesPlotRenderer:
             else:
                 val_y_str = self._format_value_full(val_y)
 
-            tooltip_lines.append((color, muted, f"{label}: ", val_y_str, ""))
+            unit_suffix = ""
+            try:
+                magnitude = (s.get("magnitude") or "").strip()
+                m = self._UNIT_RE.search(magnitude) if magnitude else None
+                if m:
+                    unit_suffix = f" {m.group(1).strip()}"
+            except Exception:
+                unit_suffix = ""
+
+            tooltip_lines.append((color, muted, f"{label}: ", val_y_str, unit_suffix))
             axis = (s.get("y_axis") or "left")
             y_state = y_state_right if (axis == "right" and y_state_right is not None) else y_state_left
             marker_pts.append((color, muted, self._to_screen(val_x, val_y, plot_rect, x_state, y_state)))
 
         return tooltip_lines, marker_pts
 
-    def _draw_tooltip_box(self, widget, painter, header_text, tooltip_lines, val_x, hover_val_y, plot_rect, x_state, y_state):
+    def _draw_tooltip_box(self, widget, painter, footer_text, tooltip_lines, val_x, hover_val_y, plot_rect, x_state, y_state):
         painter.save()
         font_tt = qfont(8)
         font_tt_bold = QFont(font_tt)
@@ -424,21 +465,23 @@ class TimeSeriesPlotRenderer:
         fm = painter.fontMetrics()
         fm_bold = QFontMetrics(font_tt_bold)
 
-        header_w = fm_bold.horizontalAdvance(header_text)
+        footer_w = fm_bold.horizontalAdvance(footer_text)
         series_max_w = 0
         for _c, _m, prefix, value, suffix in tooltip_lines:
             row_w = fm.horizontalAdvance(prefix) + fm_bold.horizontalAdvance(value) + fm.horizontalAdvance(suffix)
             series_max_w = max(series_max_w, row_w)
 
         bullet_extra = 16 if tooltip_lines else 0
-        max_w = max(header_w, series_max_w + bullet_extra)
+        max_w = max(footer_w, series_max_w + bullet_extra)
 
         line_h = fm.height()
         pad = 5
-        header_gap = 3
         separator_gap = 3
-        content_h = (line_h * len(tooltip_lines)) if tooltip_lines else line_h
-        rect_h = pad * 2 + line_h + header_gap + 1 + separator_gap + content_h
+        content_h = line_h * len(tooltip_lines)
+        if tooltip_lines:
+            rect_h = pad * 2 + content_h + separator_gap + 1 + separator_gap + line_h
+        else:
+            rect_h = pad * 2 + line_h
         rect_w = max_w + pad * 2
 
         pt_hover = self._to_screen(val_x, hover_val_y if hover_val_y is not None else y_state["min_y"], plot_rect, x_state, y_state)
@@ -458,18 +501,8 @@ class TimeSeriesPlotRenderer:
         painter.setBrush(Qt.GlobalColor.white)
         painter.drawRect(rect_tt)
 
-        header_x = rect_tt.left() + pad
-        header_baseline_y = rect_tt.top() + pad + fm.ascent()
-        painter.setPen(Qt.GlobalColor.black)
-        painter.setFont(font_tt_bold)
-        painter.drawText(QPointF(header_x, header_baseline_y), header_text)
-
-        sep_y = rect_tt.top() + pad + line_h + header_gap
-        painter.setPen(QPen(TOOLTIP_SEPARATOR, 1))
-        painter.drawLine(QPointF(rect_tt.left() + pad, sep_y), QPointF(rect_tt.right() - pad, sep_y))
-
         x_text = rect_tt.left() + pad
-        y_text = sep_y + separator_gap
+        y_text = rect_tt.top() + pad
         for color, muted, prefix, value, suffix in tooltip_lines:
             bullet_c = QColor(color)
             if muted:
@@ -489,6 +522,18 @@ class TimeSeriesPlotRenderer:
             painter.setFont(font_tt)
             painter.drawText(QPointF(text_x, baseline_y), suffix)
             y_text += line_h
+
+        if tooltip_lines:
+            sep_y = y_text + separator_gap
+            painter.setPen(QPen(TOOLTIP_SEPARATOR, 1))
+            painter.drawLine(QPointF(rect_tt.left() + pad, sep_y), QPointF(rect_tt.right() - pad, sep_y))
+            y_text = sep_y + separator_gap
+
+        footer_x = rect_tt.left() + pad
+        footer_baseline_y = y_text + fm.ascent()
+        painter.setPen(Qt.GlobalColor.black)
+        painter.setFont(font_tt_bold)
+        painter.drawText(QPointF(footer_x, footer_baseline_y), footer_text)
 
         painter.restore()
 
@@ -514,7 +559,7 @@ class TimeSeriesPlotRenderer:
         painter.setPen(QPen(QColor(255, 110, 110), 1, Qt.PenStyle.DashLine))
         painter.drawLine(QPointF(pt_rule.x(), plot_rect.top()), QPointF(pt_rule.x(), plot_rect.bottom()))
 
-        header_text = widget.tr("Time: %1").replace("%1", self._format_absolute_time_hours(val_x))
+        footer_text = widget.tr("Instante: %1").replace("%1", self._format_absolute_time_hours(val_x))
         tooltip_lines, marker_pts = self._collect_hover_tooltip_data(widget, widget.hover_index, val_x, plot_rect, x_state, y_state_left, y_state_right)
 
         for color, muted, pt in marker_pts:
@@ -531,5 +576,5 @@ class TimeSeriesPlotRenderer:
         except Exception:
             hover_val_y = None
 
-        self._draw_tooltip_box(widget, painter, header_text, tooltip_lines, val_x, hover_val_y, plot_rect, x_state, y_state)
+        self._draw_tooltip_box(widget, painter, footer_text, tooltip_lines, val_x, hover_val_y, plot_rect, x_state, y_state)
 
