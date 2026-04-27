@@ -38,7 +38,7 @@
               <Option type="Map" name="properties">
                 <Option type="Map" name="size">
                   <Option type="bool" name="active" value="true"/>
-                  <Option type="QString" name="expression" value="CASE&#xd;&#xa;    WHEN &quot;ElemType&quot; = 'JUNCTION' THEN 3.5&#xd;&#xa;    WHEN &quot;ElemType&quot; = 'CONNECTION' THEN 2&#xd;&#xa;    ELSE 2&#xd;&#xa;END"/>
+                  <Option type="QString" name="expression" value="CASE&#xd;&#xa;    WHEN &quot;ElemType&quot; = 'JUNCTION' THEN 3&#xd;&#xa;    WHEN &quot;ElemType&quot; = 'CONNECTION' THEN 2&#xd;&#xa;    ELSE 2&#xd;&#xa;END"/>
                   <Option type="int" name="type" value="3"/>
                 </Option>
               </Option>
