@@ -78,7 +78,7 @@ class QGISRedCreateLineTool(QgsMapTool):
         self.snapper.setConfig(config)
 
         if self.SHOW_GRID:
-            self._showGrid = QSettings().value("QGISRed/showComplementaryGrid", self.SHOW_GRID, type=bool)
+            self._showGrid = self.SHOW_GRID
             self._createGridOverlay()
             if self._showGrid:
                 self._updateGrid()
