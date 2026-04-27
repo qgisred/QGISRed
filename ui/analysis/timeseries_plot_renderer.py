@@ -292,7 +292,7 @@ class TimeSeriesPlotRenderer:
                 painter.setPen(title_pen)
                 title_x = plot_rect.right() + right_axis_label_w + 4
                 painter.translate(title_x, widget_h / 2)
-                painter.rotate(90)
+                painter.rotate(-90)
                 painter.drawText(QRectF(-120, -10, 240, 20), Qt.AlignmentFlag.AlignCenter, right_title)
                 painter.restore()
 
