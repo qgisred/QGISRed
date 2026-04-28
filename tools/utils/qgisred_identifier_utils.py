@@ -61,6 +61,7 @@ class QGISRedIdentifierUtils:
             'qgisred_isolatedsegments_isolateddemands': 'Isolated Demands IS',
             'qgisred_tree_links': 'Links T',
             'qgisred_tree_nodes': 'Nodes T',
+            'qgisred_demandbuilder_linksdemands': 'Demand Links DB',
         }
 
     def tr(self, message):
