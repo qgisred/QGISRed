@@ -2478,48 +2478,58 @@ Do you also want to delete the result files from disk?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="73"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="84"/>
         <source>Inputs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="74"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="85"/>
         <source>Issues</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="75"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="86"/>
         <source>Results</source>
         <translation type="unfinished">Résultats</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="76"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="87"/>
         <source>Queries</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="77"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="88"/>
         <source>Thematic Maps</source>
         <translation type="unfinished">Cartes thématiques</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="78"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="89"/>
         <source>Connectivity</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="79"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="90"/>
         <source>Hydraulic Sectors</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="80"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="91"/>
         <source>Demand Sectors</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="81"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="92"/>
         <source>Isolated Segments</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="94"/>
+        <source>DemandBuilder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="95"/>
+        <source>Auxiliary</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -3345,12 +3355,12 @@ Do you also want to delete the result files from disk?</source>
 <context>
     <name>QGISRedLayerUtils</name>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="555"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="568"/>
         <source>Pipes</source>
         <translation type="unfinished">Conduites</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="430"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="443"/>
         <source>%1 I</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4493,8 +4503,5 @@ Left-click: Add a new item below the current selection</source>
         <source>Some issue occurred in the process of applying the style to the layer %1</source>
         <translation type="unfinished"></translation>
     </message>
-</context>
-<context>
-    <name>widget</name>
 </context>
 </TS>

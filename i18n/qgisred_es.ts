@@ -2368,12 +2368,12 @@ Do you also want to delete the result files from disk?</source>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1288"/>
         <source>Previous demand</source>
-        <translation type="unfinished"></translation>
+        <translation>Demanda anterior</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1295"/>
         <source>Next demand</source>
-        <translation type="unfinished"></translation>
+        <translation>Siguiente demanda</translation>
     </message>
 </context>
 <context>
@@ -2490,49 +2490,59 @@ Do you also want to delete the result files from disk?</source>
         <translation>Árbol</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="73"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="84"/>
         <source>Inputs</source>
         <translation>Datos</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="74"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="85"/>
         <source>Issues</source>
         <translation>Incidencias</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="75"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="86"/>
         <source>Results</source>
         <translation>Resultados</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="76"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="87"/>
         <source>Queries</source>
         <translation>Consultas</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="77"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="88"/>
         <source>Thematic Maps</source>
         <translation>Mapas Temáticos</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="78"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="89"/>
         <source>Connectivity</source>
         <translation>Conectividad</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="79"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="90"/>
         <source>Hydraulic Sectors</source>
         <translation>Sectores Hidráulicos</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="80"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="91"/>
         <source>Demand Sectors</source>
         <translation>Sectores de Demanda</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="81"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="92"/>
         <source>Isolated Segments</source>
         <translation>Cerradas</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="94"/>
+        <source>DemandBuilder</source>
+        <translation>Constructor Demandas</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="95"/>
+        <source>Auxiliary</source>
+        <translation>Auxiliar</translation>
     </message>
 </context>
 <context>
@@ -3357,12 +3367,12 @@ Do you also want to delete the result files from disk?</source>
 <context>
     <name>QGISRedLayerUtils</name>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="555"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="568"/>
         <source>Pipes</source>
         <translation>Tuberías</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_layer_utils.py" line="430"/>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="443"/>
         <source>%1 I</source>
         <translation>%1 I</translation>
     </message>
