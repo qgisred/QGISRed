@@ -249,6 +249,7 @@ class LayerManagementSection:
         self.hasToOpenSectorLayers = False
         self.hasToOpenConnectivityLayers = False
         self.hasToOpenIsolatedSegmentsLayers = False
+        self.hasToOpenDemandBuilderLayers = False
         self.hasToOpenTreeLayers = False
         if b == "True":
             if not message == "":
@@ -266,6 +267,8 @@ class LayerManagementSection:
                 self.hasToOpenIsolatedSegmentsLayers = True
             elif layerType == "tree":
                 self.hasToOpenTreeLayers = True
+            elif layerType == "demandBuilder":
+                self.hasToOpenDemandBuilderLayers = True
             else:
                 self.hasToOpenIssuesLayers = True
         elif b == "commit/shps":
@@ -278,12 +281,14 @@ class LayerManagementSection:
                 self.hasToOpenIsolatedSegmentsLayers = True
             elif layerType == "tree":
                 self.hasToOpenTreeLayers = True
+            elif layerType == "demandBuilder":
+                self.hasToOpenDemandBuilderLayers = True
             else:
                 self.hasToOpenIssuesLayers = True
         else:
             self.pushMessage(b, level=2, duration=5)
 
-        if self.hasToOpenNewLayers or self.hasToOpenIssuesLayers or self.hasToOpenSectorLayers or self.hasToOpenConnectivityLayers or self.hasToOpenIsolatedSegmentsLayers or self.hasToOpenTreeLayers:
+        if self.hasToOpenNewLayers or self.hasToOpenIssuesLayers or self.hasToOpenSectorLayers or self.hasToOpenConnectivityLayers or self.hasToOpenIsolatedSegmentsLayers or self.hasToOpenTreeLayers or self.hasToOpenDemandBuilderLayers:
             self.layerOperationInProgress = True
             self.runOpenTemporaryFiles()
         else:
@@ -355,6 +360,18 @@ class LayerManagementSection:
                     os.remove(src)
             self.openIsolatedSegmentsLayers()
             self.hasToOpenIsolatedSegmentsLayers = False
+
+        if self.hasToOpenDemandBuilderLayers:
+            isoFolder = os.path.join(self.ProjectDirectory, "Auxiliary", "DemandBuilder")
+            os.makedirs(isoFolder, exist_ok=True)
+            for fi in os.listdir(self.ProjectDirectory):
+                if fi.startswith(self.NetworkName) and "DemandBuilder" in fi:
+                    src = os.path.join(self.ProjectDirectory, fi)
+                    dst = os.path.join(isoFolder, fi)
+                    shutil.copy2(src, dst)
+                    os.remove(src)
+            self.openDemandBuilderLayers()
+            self.hasToOpenDemandBuilderLayers = False
 
         if self.hasToOpenTreeLayers:
             treeFolder = os.path.join(self.ProjectDirectory, "Queries", "Tree_" + self.treeName)

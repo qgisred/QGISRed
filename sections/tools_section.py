@@ -124,7 +124,7 @@ class ToolsSection:
         resMessage = GISRed.DemandsManager(self.ProjectDirectory, self.NetworkName, self.tempFolder, ids)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(resMessage, "")
+        self.processCsharpResult(resMessage, "", layerType = "demandBuilder")
         self.selectedFids = {}
 
     def runScenarioManager(self):
@@ -212,6 +212,13 @@ class ToolsSection:
         self.blockLayers(False)
         self.processCsharpResult(resMessage, "", layerType="isolatedSegments")
 
+    def openDemandBuilderLayers(self):
+        # Open layers
+        demandBuilderGroup = self.getDemandBuilderGroup()
+        isoFolder = os.path.join(self.ProjectDirectory, "Auxiliary", "DemandBuilder")
+        utils = QGISRedLayerUtils(isoFolder, self.NetworkName, self.iface)
+        utils.openLayer(demandBuilderGroup, "DemandBuilder_LinksDemands")
+
     def openIsolatedSegmentsLayers(self):
         # Open layers
         isoaltedSegmentsGroup = self.getIsolatedSegmentsGroup()
@@ -224,6 +231,10 @@ class ToolsSection:
     def getIsolatedSegmentsGroup(self):
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         return utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Isolated Segments"])
+    
+    def getDemandBuilderGroup(self):
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        return utils.getOrCreateNestedGroup([self.NetworkName, "Auxiliary", "DemandBuilder"])
 
     def removeIsolatedSegmentsLayers(self):
         isoFolder = os.path.join(self.ProjectDirectory, "Queries", "IsolatedSegments")
