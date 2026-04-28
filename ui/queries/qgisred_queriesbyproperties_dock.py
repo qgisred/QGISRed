@@ -801,7 +801,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             idx = combo.count() - 1
             combo.setItemData(idx, prop, Qt.ItemDataRole.UserRole)
             if brush:
-                combo.setItemData(idx, brush, Qt.BackgroundRole)
+                combo.setItemData(idx, brush, Qt.ItemDataRole.BackgroundRole)
 
         def addFieldToCombo(combo, fieldName, brush=None):
             prettyName = fieldUtils.getFieldPrettyName(qrIdent, fieldName)
@@ -809,7 +809,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             idx = combo.count() - 1
             combo.setItemData(idx, fieldName, Qt.ItemDataRole.UserRole)
             if brush:
-                combo.setItemData(idx, brush, Qt.BackgroundRole)
+                combo.setItemData(idx, brush, Qt.ItemDataRole.BackgroundRole)
 
         if not self.isResultsMode:
             if resultProps:
@@ -975,7 +975,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.gridLayout.addWidget(self.labelValueUnit, row, col + colSpan)
 
     def updateComboBoxBackground(self, combo):
-        brush = combo.currentData(Qt.BackgroundRole)
+        brush = combo.currentData(Qt.ItemDataRole.BackgroundRole)
         if brush and isinstance(brush, QBrush) and brush.color() != QColor(0, 0, 0, 255):
             color = brush.color().name()
         else:
