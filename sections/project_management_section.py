@@ -46,7 +46,7 @@ class ProjectManagementSection:
         for layer in layers:
             if layer.isEditable():
                 push_fn(
-                    self.tr("Some layer is in Edit Mode. Plase, commit it before continuing."), level=1, duration=5
+                    self.tr("Some layer is in Edit Mode. Please, commit it before continuing."), level=1, duration=5
                 )
                 return False
         qgsFilename = QgsProject.instance().fileName()
@@ -123,8 +123,7 @@ class ProjectManagementSection:
                 continue
 
             if layer.customProperty("qgisred_identifier") and layer.isEditable():
-                message = "Some layer is in Edit Mode. Please, commit it before continuing."
-                self.pushMessage(self.tr(message), level=1)
+                self.pushMessage(self.tr("Some layer is in Edit Mode. Please, commit it before continuing."), level=1)
                 return True
 
         return False

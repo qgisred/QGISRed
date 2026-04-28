@@ -1821,33 +1821,33 @@
         <translation type="unfinished">Aucun projet valide n’est ouvert</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="615"/>
+        <location filename="../sections/project_management_section.py" line="614"/>
         <source>Some issues occurred in the process</source>
         <translation type="unfinished">Des problèmes sont survenus durant le processus</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="414"/>
+        <location filename="../sections/project_management_section.py" line="413"/>
         <source>QGISRed: Open project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="570"/>
+        <location filename="../sections/project_management_section.py" line="569"/>
         <source>Project options updated</source>
         <translation type="unfinished">Options du projet mises à jour</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="624"/>
+        <location filename="../sections/project_management_section.py" line="623"/>
         <source>Save QGIS project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="624"/>
+        <location filename="../sections/project_management_section.py" line="623"/>
         <source>QGIS Projects (*.qgz *.qgs)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="48"/>
-        <source>Some layer is in Edit Mode. Plase, commit it before continuing.</source>
+        <location filename="../sections/project_management_section.py" line="126"/>
+        <source>Some layer is in Edit Mode. Please, commit it before continuing.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1876,12 +1876,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="641"/>
+        <location filename="../sections/project_management_section.py" line="640"/>
         <source>Backup stored in:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="184"/>
+        <location filename="../sections/project_management_section.py" line="183"/>
         <source>Map project saved</source>
         <translation type="unfinished">Projet enregistré</translation>
     </message>
@@ -1891,12 +1891,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="722"/>
+        <location filename="../sections/project_management_section.py" line="721"/>
         <source>Old simulation results found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="722"/>
+        <location filename="../sections/project_management_section.py" line="721"/>
         <source>Result layers from a previous version of QGISRed have been detected.They will be removed from QGIS and you will need to run the simulation again.
 
 Do you also want to delete the result files from disk?</source>
