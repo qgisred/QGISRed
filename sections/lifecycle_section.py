@@ -259,6 +259,10 @@ class LifecycleSection:
             self.disconnectElementExplorerFromResultsDock()
             try:
                 self.ResultDockwidget.visibilityChanged.disconnect(self.activeInputGroup)
+                try:
+                    self.ResultDockwidget.visibilityChanged.disconnect(self._arrangeDocksIfVisible)
+                except Exception:
+                    pass
                 if hasattr(self, 'refreshTimeSeries'):
                     try:
                         self.ResultDockwidget.simulationFinished.disconnect(self.refreshTimeSeries)

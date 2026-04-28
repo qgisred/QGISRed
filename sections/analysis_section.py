@@ -49,12 +49,23 @@ class AnalysisSection:
         scenario = getattr(self.ResultDockwidget, 'Scenario', 'Base') if self.ResultDockwidget else 'Base'
         return os.path.join(self.ProjectDirectory, "Results", f"{self.NetworkName}_{scenario}.out")
 
+    def _arrangeDocksIfVisible(self, visible):
+        if not visible:
+            return
+        QGISRedUIUtils.arrangeDockOrder(
+            self.iface.mainWindow(),
+            self.ResultDockwidget,
+            QGISRedElementExplorerDock._instance,
+            getattr(self, 'queriesByPropertiesDock', None)
+        )
+
     def _initResultsDock(self):
         if self.ResultDockwidget is None:
             self.readOptions()
             self.ResultDockwidget = QGISRedResultsDock(self.iface)
             self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.ResultDockwidget)
             self.ResultDockwidget.visibilityChanged.connect(self.activeInputGroup)
+            self.ResultDockwidget.visibilityChanged.connect(self._arrangeDocksIfVisible)
             self.ResultDockwidget.simulationFinished.connect(self.refreshTimeSeries)
             self.ResultDockwidget.simulationFinished.connect(self.updateMetadata)
             self.ResultDockwidget.resultPropertyChanged.connect(self.refreshTimeSeries)
@@ -121,6 +132,12 @@ class AnalysisSection:
             return
 
         self._initResultsDock()
+        QGISRedUIUtils.arrangeDockOrder(
+            self.iface.mainWindow(),
+            self.ResultDockwidget,
+            QGISRedElementExplorerDock._instance,
+            getattr(self, 'queriesByPropertiesDock', None)
+        )
         if not getattr(self.ResultDockwidget, 'outPath', '') or not self.ResultDockwidget.TimeLabels:
             if os.path.exists(self._outFilePath()):
                 self.ResultDockwidget.loadExistingResults(self.ProjectDirectory, self.NetworkName)
@@ -130,12 +147,6 @@ class AnalysisSection:
             self.ResultDockwidget.openAllResultsProcess()
             self.ResultDockwidget.show()
             self.ResultDockwidget.raise_()
-            QGISRedUIUtils.arrangeDockOrder(
-                self.iface.mainWindow(),
-                self.ResultDockwidget,
-                QGISRedElementExplorerDock._instance,
-                getattr(self, 'queriesByPropertiesDock', None)
-            )
         self.connectElementExplorerToResultsDock()
         self.ResultDockwidget.tabWidget.setCurrentIndex(0)
 
@@ -149,6 +160,12 @@ class AnalysisSection:
             return
 
         self._initResultsDock()
+        QGISRedUIUtils.arrangeDockOrder(
+            self.iface.mainWindow(),
+            self.ResultDockwidget,
+            QGISRedElementExplorerDock._instance,
+            getattr(self, 'queriesByPropertiesDock', None)
+        )
         if not getattr(self.ResultDockwidget, 'outPath', '') or not self.ResultDockwidget.TimeLabels:
             if os.path.exists(self._outFilePath()):
                 self.ResultDockwidget.loadExistingResults(self.ProjectDirectory, self.NetworkName)
@@ -158,12 +175,6 @@ class AnalysisSection:
             self.ResultDockwidget.openAllResultsProcess()
             self.ResultDockwidget.show()
             self.ResultDockwidget.raise_()
-            QGISRedUIUtils.arrangeDockOrder(
-                self.iface.mainWindow(),
-                self.ResultDockwidget,
-                QGISRedElementExplorerDock._instance,
-                getattr(self, 'queriesByPropertiesDock', None)
-            )
         self.connectElementExplorerToResultsDock()
         self.ResultDockwidget.tabWidget.setCurrentIndex(1)
 
