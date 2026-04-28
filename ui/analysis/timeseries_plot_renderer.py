@@ -40,6 +40,7 @@ class TimeSeriesPlotRenderer:
     _AXIS_TITLE_FONT_SIZE = 10
     _TOOLTIP_ICON_SIZE = 8
     _HOVER_MARKER_ICON_SIZE = 10
+    _TIME_TOKEN_RE = re.compile(r"^(-?\d+)([dhms])$")
 
     def _extract_unit_from_magnitude(self, magnitude: str) -> str:
         magnitude = (magnitude or "").strip()
@@ -196,16 +197,65 @@ class TimeSeriesPlotRenderer:
         rem = abs_seconds % 86400
         h = rem // 3600
         m = (rem % 3600) // 60
-        if d > 0:
-            if h == 0 and m == 0:
-                return f"{sign}{d}d"
-            if m == 0:
-                return f"{sign}{d}d {h}h"
-            return f"{sign}{d}d {h}h {m:02d}m"
+        s = rem % 60
 
-        if m == 0:
-            return f"{sign}{h}h"
-        return f"{sign}{h}h {m:02d}m"
+        parts = []
+        if d > 0:
+            parts.append((str(d), "d"))
+            if h == 0 and m == 0 and s == 0:
+                pass
+            else:
+                parts.append((str(h), "h"))
+                if m > 0 or s > 0:
+                    parts.append((f"{m:02d}", "m"))
+                if s > 0:
+                    parts.append((f"{s:02d}", "s"))
+        else:
+            if h == 0 and m == 0 and s > 0:
+                parts.append((str(s), "s"))
+            else:
+                parts.append((str(h), "h"))
+                if m > 0 or s > 0:
+                    parts.append((f"{m:02d}", "m"))
+                if s > 0:
+                    parts.append((f"{s:02d}", "s"))
+
+        if not parts:
+            parts = [("0", "h")]
+
+        rendered = []
+        for i, (num, unit) in enumerate(parts):
+            if i == 0 and sign:
+                rendered.append(f"{sign}{num}{unit}")
+            else:
+                rendered.append(f"{num}{unit}")
+        return " ".join(rendered)
+
+    def _build_styled_footer_segments(self, widget, instant_text: str):
+        template = widget.tr("Instante: %1")
+        if "%1" in template:
+            prefix, suffix = template.split("%1", 1)
+        else:
+            prefix, suffix = (template + " "), ""
+
+        segments = []
+        if prefix:
+            segments.append((prefix, False))
+
+        tokens = [t for t in (instant_text or "").split(" ") if t]
+        for i, token in enumerate(tokens):
+            m = self._TIME_TOKEN_RE.match(token)
+            if m:
+                segments.append((m.group(1), True))
+                segments.append((m.group(2), False))
+            else:
+                segments.append((token, False))
+            if i < len(tokens) - 1:
+                segments.append((" ", False))
+
+        if suffix:
+            segments.append((suffix, False))
+        return segments
 
     def _format_absolute_time_hours_axis(self, hours: float) -> str:
         total_seconds = int(round(hours * 3600))
@@ -524,7 +574,7 @@ class TimeSeriesPlotRenderer:
 
         return tooltip_lines, marker_pts
 
-    def _draw_tooltip_box(self, widget, painter, footer_text, tooltip_lines, val_x, hover_val_y, plot_rect, x_state, y_state):
+    def _draw_tooltip_box(self, widget, painter, footer_segments, tooltip_lines, val_x, hover_val_y, plot_rect, x_state, y_state):
         painter.save()
         font_tt = qfont(8)
         font_tt_bold = QFont(font_tt)
@@ -533,7 +583,9 @@ class TimeSeriesPlotRenderer:
         fm = painter.fontMetrics()
         fm_bold = QFontMetrics(font_tt_bold)
 
-        footer_w = fm_bold.horizontalAdvance(footer_text)
+        footer_w = 0
+        for text, is_bold in footer_segments:
+            footer_w += (fm_bold.horizontalAdvance(text) if is_bold else fm.horizontalAdvance(text))
         series_max_w = 0
         for _c, _m, _legend_type, prefix, value, suffix in tooltip_lines:
             row_w = fm.horizontalAdvance(prefix) + fm_bold.horizontalAdvance(value) + fm.horizontalAdvance(suffix)
@@ -607,8 +659,11 @@ class TimeSeriesPlotRenderer:
         footer_x = rect_tt.left() + pad
         footer_baseline_y = y_text + fm.ascent()
         painter.setPen(Qt.GlobalColor.black)
-        painter.setFont(font_tt_bold)
-        painter.drawText(QPointF(footer_x, footer_baseline_y), footer_text)
+        cursor_x = footer_x
+        for text, is_bold in footer_segments:
+            painter.setFont(font_tt_bold if is_bold else font_tt)
+            painter.drawText(QPointF(cursor_x, footer_baseline_y), text)
+            cursor_x += (fm_bold.horizontalAdvance(text) if is_bold else fm.horizontalAdvance(text))
 
         painter.restore()
 
@@ -634,7 +689,8 @@ class TimeSeriesPlotRenderer:
         painter.setPen(QPen(QColor(255, 110, 110), 1, Qt.PenStyle.DashLine))
         painter.drawLine(QPointF(pt_rule.x(), plot_rect.top()), QPointF(pt_rule.x(), plot_rect.bottom()))
 
-        footer_text = widget.tr("Instante: %1").replace("%1", self._format_absolute_time_hours(val_x))
+        instant_text = self._format_absolute_time_hours(val_x)
+        footer_segments = self._build_styled_footer_segments(widget, instant_text)
         tooltip_lines, marker_pts = self._collect_hover_tooltip_data(widget, widget.hover_index, val_x, plot_rect, x_state, y_state_left, y_state_right)
 
         for color, muted, legend_type, pt in marker_pts:
@@ -656,5 +712,5 @@ class TimeSeriesPlotRenderer:
         except Exception:
             hover_val_y = None
 
-        self._draw_tooltip_box(widget, painter, footer_text, tooltip_lines, val_x, hover_val_y, plot_rect, x_state, y_state)
+        self._draw_tooltip_box(widget, painter, footer_segments, tooltip_lines, val_x, hover_val_y, plot_rect, x_state, y_state)
 

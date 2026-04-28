@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 from typing import List
-from qgis.PyQt.QtWidgets import QDockWidget, QVBoxLayout, QWidget, QHBoxLayout, QToolButton, QFrame
+from qgis.PyQt.QtWidgets import QDockWidget, QVBoxLayout, QWidget, QHBoxLayout, QToolButton
 from qgis.PyQt.QtCore import Qt, QPointF, QRectF, pyqtSignal, QSize
 from qgis.PyQt.QtGui import QColor, QPainter, QFontMetrics, QIcon
 from qgis.PyQt import uic
@@ -408,6 +408,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         super(QGISRedTimeSeriesDock, self).__init__(parent or iface.mainWindow())
         self.iface = iface
         self.setupUi(self)
+        self._toolbarWidget = None
 
         self._initToolbar()
         
@@ -417,6 +418,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         layout.addWidget(self.plot)
         self.chartContainer.setLayout(layout)
         self.plot.seriesOrderChanged.connect(self.seriesReordered)
+        self.plot.seriesOrderChanged.connect(self._onSeriesOrderChanged)
         self.plot.seriesRemoved.connect(self.seriesRemoved)
         self.plot.seriesEmphasisChanged.connect(self.seriesEmphasisChanged)
 
@@ -424,19 +426,28 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         
         self.setStyleSheet("background-color: white; border: none;")
         self.chartContainer.setStyleSheet("background-color: white;")
+        self._updateClearToolbarVisibility()
 
     def _initToolbar(self) -> None:
         try:
             container = QWidget(self)
+            self._toolbarWidget = container
             hl = QHBoxLayout(container)
-            hl.setContentsMargins(0, 0, 0, 0)
+            hl.setContentsMargins(4, 2, 4, 2)
             hl.setSpacing(0)
-            container.setFixedHeight(40)
+            container.setFixedHeight(28)
+            container.setStyleSheet(
+                "QWidget {"
+                "  background-color: #efefef;"
+                "  border: 1px solid #d2d2d2;"
+                "  border-radius: 4px;"
+                "}"
+            )
 
             self.btnClearAll = QToolButton(container)
             self.btnClearAll.setObjectName("btnClearAllTimeSeries")
             # Prefer filesystem path so we don't require regenerating resources3x.py.
-            icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "images", "iconBroom.svg"))
+            icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "images", "iconClear.svg"))
             self.btnClearAll.setIcon(QIcon(icon_path))
             # Use translations when available; otherwise fallback by locale so
             # users don't see English if the .qm isn't regenerated yet.
@@ -454,32 +465,22 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self.btnClearAll.setToolTip(tooltip)
             self.btnClearAll.setAutoRaise(True)
             self.btnClearAll.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
-            self.btnClearAll.setIconSize(QSize(30, 30))
-            self.btnClearAll.setFixedSize(QSize(40, 40))
+            self.btnClearAll.setIconSize(QSize(16, 16))
+            self.btnClearAll.setFixedSize(QSize(22, 22))
             self.btnClearAll.setStyleSheet(
                 "QToolButton {"
-                "  border: 1px solid #d0d0d0;"
-                "  border-radius: 4px;"
-                "  background-color: #ffffff;"
-                "  padding: 6px;"
+                "  border: 1px solid #c8c8c8;"
+                "  border-radius: 3px;"
+                "  background-color: #f8f8f8;"
+                "  padding: 1px;"
                 "}"
-                "QToolButton:hover { background-color: #f3f3f3; border-color: #c2c2c2; }"
-                "QToolButton:pressed { background-color: #e9e9e9; border-color: #b8b8b8; }"
+                "QToolButton:hover { background-color: #f0f0f0; border-color: #bdbdbd; }"
+                "QToolButton:pressed { background-color: #e6e6e6; border-color: #b4b4b4; }"
                 "QToolButton:focus { border: 1px solid #3399ff; }"
             )
             self.btnClearAll.clicked.connect(self.clearAllRequested)
 
             hl.addWidget(self.btnClearAll, 0, Qt.AlignmentFlag.AlignLeft)
-
-            sep = QFrame(container)
-            sep.setFrameShape(QFrame.Shape.VLine)
-            sep.setFrameShadow(QFrame.Shadow.Plain)
-            sep.setLineWidth(1)
-            sep.setMidLineWidth(0)
-            sep.setStyleSheet("QFrame { color: #d0d0d0; }")
-            sep.setFixedHeight(28)
-            hl.addWidget(sep, 0, Qt.AlignmentFlag.AlignVCenter)
-
             hl.addStretch(1)
 
             # Insert at the very top of the dock.
@@ -491,8 +492,29 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             # Do not break dock creation if UI layout changes.
             return
 
+    def _plotHasCurves(self) -> bool:
+        try:
+            for s in self.plot.series or []:
+                xs = s.get("x", []) or []
+                ys = s.get("y", []) or []
+                if xs and ys:
+                    return True
+        except Exception:
+            return False
+        return False
+
+    def _updateClearToolbarVisibility(self) -> None:
+        if self._toolbarWidget is None:
+            return
+        self._toolbarWidget.setVisible(self._plotHasCurves())
+
+    def _onSeriesOrderChanged(self, _order) -> None:
+        self._updateClearToolbarVisibility()
+
     def updatePlot(self, x, y, title, x_label, y_label, is_stepped=False, y_categorical_labels=None, series_label=""):
         self.plot.setData(x, y, title, x_label, y_label, is_stepped, y_categorical_labels, series_label)
+        self._updateClearToolbarVisibility()
 
     def updatePlotSeries(self, series, title, x_label, y_label):
         self.plot.setSeries(series, title, x_label, y_label)
+        self._updateClearToolbarVisibility()

@@ -46,8 +46,11 @@ class TestTimeFormatting:
             (0.0, "0h"),
             (10.0, "10h"),
             (10.5, "10h 30m"),
+            (15.0 / 3600.0, "15s"),
+            (10.0 + (30.0 / 60.0) + (15.0 / 3600.0), "10h 30m 15s"),
             (24.0, "1d"),
             (34.0, "1d 10h"),
+            (24.0 + (15.0 / 3600.0), "1d 0h 00m 15s"),
         ],
     )
     def test_tooltip_instant_format(self, hours, expected):
