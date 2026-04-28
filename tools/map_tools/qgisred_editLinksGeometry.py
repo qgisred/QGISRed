@@ -65,17 +65,6 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
         cursor.setShape(Qt.CursorShape.ArrowCursor)
         self.iface.mapCanvas().setCursor(cursor)
 
-        myLayers = []
-        # Editing
-        layers = self.getLayers()
-        for layer in layers:
-            openedLayerPath = self.getLayerPath(layer)
-            for name in self.ownMainLayers:
-                layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp")
-                if openedLayerPath == layerPath:
-                    myLayers.append(layer)
-                    if not layer.isEditable():
-                        layer.startEditing()
         # Snapping
         self.snapper = QgsMapCanvasSnappingUtils(self.iface.mapCanvas())
         self.snapper.setMapSettings(self.iface.mapCanvas().mapSettings())
@@ -103,17 +92,6 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
         self.pipeMarker.hide()
         
         self.toolbarButton.setChecked(False)
-        # End Editing
-        layers = self.getLayers()
-        for layer in layers:
-            openedLayerPath = self.getLayerPath(layer)
-            for name in self.ownMainLayers:
-                layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp")
-                if openedLayerPath == layerPath:
-                    if layer.isModified():
-                        layer.commitChanges()
-                    else:
-                        layer.rollBack()
 
     def isZoomTool(self):
         return False
@@ -184,48 +162,54 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
         self.newVertexMarker.setCenter(QgsPointXY(newX, newY))
 
     def moveVertexLink(self, layer, feature, newPosition, vertexIndex):
-        if layer.isEditable():
-            layer.beginEditCommand("Update link geometry")
-            try:
-                edit_utils = QgsVectorLayerEditUtils(layer)
-                edit_utils.moveVertex(newPosition.x(), newPosition.y(), feature.id(), vertexIndex)
-            except Exception as e:
-                layer.destroyEditCommand()
-                raise e
-            layer.endEditCommand()
+        layer.startEditing()
+        layer.beginEditCommand("Update link geometry")
+        try:
+            edit_utils = QgsVectorLayerEditUtils(layer)
+            edit_utils.moveVertex(newPosition.x(), newPosition.y(), feature.id(), vertexIndex)
+        except Exception as e:
+            layer.destroyEditCommand()
+            layer.rollBack()
+            raise e
+        layer.endEditCommand()
+        layer.commitChanges()
 
     def deleteVertexLink(self, layer, feature, vertexIndex):
-        if layer.isEditable():
-            layer.beginEditCommand("Update link geometry")
-            try:
-                edit_utils = QgsVectorLayerEditUtils(layer)
-                edit_utils.deleteVertex(feature.id(), vertexIndex)
-            except Exception as e:
-                layer.destroyEditCommand()
-                raise e
-            layer.endEditCommand()
+        layer.startEditing()
+        layer.beginEditCommand("Update link geometry")
+        try:
+            edit_utils = QgsVectorLayerEditUtils(layer)
+            edit_utils.deleteVertex(feature.id(), vertexIndex)
+        except Exception as e:
+            layer.destroyEditCommand()
+            layer.rollBack()
+            raise e
+        layer.endEditCommand()
+        layer.commitChanges()
 
     def insertVertexLink(self, layer, feature, newPoint):
-        if layer.isEditable():
-            layer.beginEditCommand("Update link geometry")
-            vertex = -1
-            if layer.geometryType() == 1:  # Line
-                featureGeometry = self.selectedFeature.geometry()
-                if featureGeometry.isMultipart():
-                    parts = featureGeometry.get()
-                    for part in parts:  # only one part
-                        for i in range(len(part) - 1):
-                            if self.isInPath(
-                                QgsPointXY(part[i].x(), part[i].y()), QgsPointXY(part[i + 1].x(), part[i + 1].y()), newPoint
-                            ):
-                                vertex = i + 1
-            try:
-                edit_utils = QgsVectorLayerEditUtils(layer)
-                edit_utils.insertVertex(newPoint.x(), newPoint.y(), feature.id(), vertex)
-            except Exception as e:
-                layer.destroyEditCommand()
-                raise e
-            layer.endEditCommand()
+        layer.startEditing()
+        layer.beginEditCommand("Update link geometry")
+        vertex = -1
+        if layer.geometryType() == 1:  # Line
+            featureGeometry = self.selectedFeature.geometry()
+            if featureGeometry.isMultipart():
+                parts = featureGeometry.get()
+                for part in parts:  # only one part
+                    for i in range(len(part) - 1):
+                        if self.isInPath(
+                            QgsPointXY(part[i].x(), part[i].y()), QgsPointXY(part[i + 1].x(), part[i + 1].y()), newPoint
+                        ):
+                            vertex = i + 1
+        try:
+            edit_utils = QgsVectorLayerEditUtils(layer)
+            edit_utils.insertVertex(newPoint.x(), newPoint.y(), feature.id(), vertex)
+        except Exception as e:
+            layer.destroyEditCommand()
+            layer.rollBack()
+            raise e
+        layer.endEditCommand()
+        layer.commitChanges()
 
     """Events"""
 

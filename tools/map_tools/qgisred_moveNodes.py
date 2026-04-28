@@ -56,17 +56,6 @@ class QGISRedMoveNodesTool(QgsMapTool):
         cursor.setShape(Qt.CursorShape.ArrowCursor)
         self.iface.mapCanvas().setCursor(cursor)
 
-        myLayers = []
-        # Editing
-        layers = self.getLayers()
-        for layer in layers:
-            openedLayerPath = self.getLayerPath(layer)
-            for name in self.ownMainLayers:
-                layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp")
-                if openedLayerPath == layerPath:
-                    myLayers.append(layer)
-                    if not layer.isEditable():
-                        layer.startEditing()
         # Snapping
         self.snapper = QgsMapCanvasSnappingUtils(self.iface.mapCanvas())
         self.snapper.setMapSettings(self.iface.mapCanvas().mapSettings())
@@ -83,17 +72,6 @@ class QGISRedMoveNodesTool(QgsMapTool):
         self.newVertexMarker.hide()
 
         self.toolbarButton.setChecked(False)
-        # End Editing
-        layers = self.getLayers()
-        for layer in layers:
-            openedLayerPath = self.getLayerPath(layer)
-            for name in self.ownMainLayers:
-                layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + name + ".shp")
-                if openedLayerPath == layerPath:
-                    if layer.isModified():
-                        layer.commitChanges()
-                    else:
-                        layer.rollBack()
 
     def isZoomTool(self):
         return False
@@ -183,26 +161,30 @@ class QGISRedMoveNodesTool(QgsMapTool):
         self.newVertexMarker.setCenter(QgsPointXY(newX, newY))
 
     def moveNodePoint(self, layer, nodeFeature, newPosition):
-        if layer.isEditable():
-            layer.beginEditCommand("Move node")
-            try:
-                edit_utils = QgsVectorLayerEditUtils(layer)
-                edit_utils.moveVertex(newPosition.x(), newPosition.y(), nodeFeature.id(), 0)
-            except Exception as e:
-                layer.destroyEditCommand()
-                raise e
-            layer.endEditCommand()
+        layer.startEditing()
+        layer.beginEditCommand("Move node")
+        try:
+            edit_utils = QgsVectorLayerEditUtils(layer)
+            edit_utils.moveVertex(newPosition.x(), newPosition.y(), nodeFeature.id(), 0)
+        except Exception as e:
+            layer.destroyEditCommand()
+            layer.rollBack()
+            raise e
+        layer.endEditCommand()
+        layer.commitChanges()
 
     def moveVertexLink(self, layer, feature, newPosition, vertexIndex):
-        if layer.isEditable():
-            layer.beginEditCommand("Update link geometry")
-            try:
-                edit_utils = QgsVectorLayerEditUtils(layer)
-                edit_utils.moveVertex(newPosition.x(), newPosition.y(), feature.id(), vertexIndex)
-            except Exception as e:
-                layer.destroyEditCommand()
-                raise e
-            layer.endEditCommand()
+        layer.startEditing()
+        layer.beginEditCommand("Update link geometry")
+        try:
+            edit_utils = QgsVectorLayerEditUtils(layer)
+            edit_utils.moveVertex(newPosition.x(), newPosition.y(), feature.id(), vertexIndex)
+        except Exception as e:
+            layer.destroyEditCommand()
+            layer.rollBack()
+            raise e
+        layer.endEditCommand()
+        layer.commitChanges()
 
     """Events"""
 
