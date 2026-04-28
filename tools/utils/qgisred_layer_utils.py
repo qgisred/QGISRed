@@ -11,28 +11,30 @@ from qgis.core import (
 class QGISRedLayerUtils:
     groupIdentifiers = {
         'Inputs': 'qgisred_inputs',
+        'Issues': 'qgisred_issues',
         'Results': 'qgisred_results',
         'Queries': 'qgisred_queries',
+        'Auxiliary': 'qgisred_auxiliary',
         'Thematic Maps': 'qgisred_thematicmaps',
         'Connectivity': 'qgisred_connectivity',
         'HydraulicSectors': 'qgisred_hydraulicsectors',
         'Demand Sectors': 'qgisred_demandsectors',
         'IsolatedSegments': 'qgisred_isolatedsegments',
         'DemandBuilder': 'qgisred_demandbuilder',
-        'Auxiliary': 'qgisred_auxiliary',
     }
 
     identifierToGroupName = {
         'qgisred_inputs': 'Inputs',
+        'qgisred_issues': 'Issues',
         'qgisred_results': 'Results',
         'qgisred_queries': 'Queries',
+        'qgisred_auxiliary': 'Auxiliary',
         'qgisred_thematicmaps': 'Thematic Maps',
         'qgisred_connectivity': 'Connectivity',
         'qgisred_hydraulicsectors': 'HydraulicSectors',
         'qgisred_demandsectors': 'Demand Sectors',
         'qgisred_isolatedsegments': 'IsolatedSegments',
         'qgisred_demandbuilder': 'DemandBuilder',
-        'qgisred_auxiliary': 'Auxiliary',
     }
 
     # Maps qgisred_identifier → canonical English group name (locale-independent)
@@ -41,13 +43,13 @@ class QGISRedLayerUtils:
         'qgisred_issues':           'Issues',
         'qgisred_results':          'Results',
         'qgisred_queries':          'Queries',
+        'qgisred_auxiliary':        'Auxiliary',
         'qgisred_thematicmaps':     'Thematic Maps',
         'qgisred_connectivity':     'Connectivity',
         'qgisred_hydraulicsectors': 'Hydraulic Sectors',
         'qgisred_demandsectors':    'Demand Sectors',
         'qgisred_isolatedsegments': 'Isolated Segments',
         'qgisred_demandbuilder':    'Demand Builder',
-        'qgisred_auxiliary':        'Auxiliary',
     }
 
     MAIN_GROUP_ORDER = ["Results", "Queries", "Issues", "Inputs", "Auxiliary"]
@@ -59,15 +61,16 @@ class QGISRedLayerUtils:
 
         self.identifierToGroupName = {
             'qgisred_inputs': 'Inputs',
+            'qgisred_issues': 'Issues',
             'qgisred_results': 'Results',
             'qgisred_queries': 'Queries',
+            'qgisred_auxiliary': 'Auxiliary',
             'qgisred_thematicmaps': 'Thematic Maps',
             'qgisred_connectivity': 'Connectivity',
             'qgisred_hydraulicsectors': 'HydraulicSectors',
             'qgisred_demandsectors': 'Demand Sectors',
-            'qgisred_demandbuilder': 'DemandBuilder',
             'qgisred_isolatedsegments': 'IsolatedSegments',
-            'qgisred_auxiliary': 'Auxiliary',
+            'qgisred_demandbuilder': 'DemandBuilder',
         }
 
     def tr(self, message):
