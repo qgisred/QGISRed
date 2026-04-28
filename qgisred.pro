@@ -46,6 +46,11 @@ SOURCES = qgisred.py \
           ui/analysis/qgisred_results_data.py \
           ui/analysis/qgisred_results_rendering.py \
           ui/analysis/qgisred_timeseries_dock.py \
+          ui/analysis/timeseries_actions.py \
+          ui/analysis/timeseries_legend_interaction.py \
+          ui/analysis/timeseries_plot_layout.py \
+          ui/analysis/timeseries_plot_renderer.py \
+          ui/analysis/timeseries_plot_style.py \
           ui/analysis/qgisred_export_csv_dialog.py \
           ui/debug/qgisred_toolConnectivity_dialog.py \
           ui/debug/qgisred_toolLength_dialog.py \

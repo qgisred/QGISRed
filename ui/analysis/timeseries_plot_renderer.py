@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import re
-from qgis.PyQt.QtCore import QPointF, QRectF, Qt
+from qgis.PyQt.QtCore import QCoreApplication, QPointF, QRectF, Qt
 from qgis.PyQt.QtGui import QColor, QFont, QFontMetrics, QPainter, QPainterPath, QPen, QPolygonF
 
 from ...compat import PAINTER_ANTIALIASING
@@ -124,7 +124,7 @@ class TimeSeriesPlotRenderer:
         self._draw_hover_overlay(widget, painter, plot_rect, x_state, y_state_left, y_state_right)
 
     def _draw_no_data_message(self, widget, painter: QPainter) -> None:
-        painter.drawText(widget.rect(), Qt.AlignmentFlag.AlignCenter, widget.tr("No data to display, please select an element on the map."))
+        painter.drawText(widget.rect(), Qt.AlignmentFlag.AlignCenter, QCoreApplication.translate("TimeSeriesPlotWidget", "No data to display, please select an element on the map."))
 
     def _expand_range(self, minimum: float, maximum: float) -> Tuple[float, float]:
         value_range = maximum - minimum
@@ -231,8 +231,8 @@ class TimeSeriesPlotRenderer:
                 rendered.append(f"{num}{unit}")
         return " ".join(rendered)
 
-    def _build_styled_footer_segments(self, widget, instant_text: str):
-        template = widget.tr("Instante: %1")
+    def _build_styled_footer_segments(self, instant_text: str):
+        template = QCoreApplication.translate("TimeSeriesPlotWidget", "Step: %1")
         if "%1" in template:
             prefix, suffix = template.split("%1", 1)
         else:
@@ -546,7 +546,7 @@ class TimeSeriesPlotRenderer:
 
             color = s.get("color") or DEFAULT_SERIES_COLOR
             muted = bool(s.get("muted", False))
-            label = (s.get("label") or "").strip() or widget.tr("Series")
+            label = (s.get("label") or "").strip() or QCoreApplication.translate("TimeSeriesPlotWidget", "Series")
             val_y = ys[hover_index]
             series_y_labels = s.get("y_categorical_labels") or (y_state_left.get("y_categorical_labels") if y_state_left else None)
             if series_y_labels:
@@ -690,7 +690,7 @@ class TimeSeriesPlotRenderer:
         painter.drawLine(QPointF(pt_rule.x(), plot_rect.top()), QPointF(pt_rule.x(), plot_rect.bottom()))
 
         instant_text = self._format_absolute_time_hours(val_x)
-        footer_segments = self._build_styled_footer_segments(widget, instant_text)
+        footer_segments = self._build_styled_footer_segments(instant_text)
         tooltip_lines, marker_pts = self._collect_hover_tooltip_data(widget, widget.hover_index, val_x, plot_rect, x_state, y_state_left, y_state_right)
 
         for color, muted, legend_type, pt in marker_pts:
