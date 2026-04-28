@@ -8,4 +8,4 @@ class QGISRedCreatePipeTool(QGISRedCreateLineTool):
     MARKER_SIZE = 15
     SNAP_TYPE = SNAP_TYPE_VERTEX
     SNAP_TO_SEGMENTS = False
-    SHOW_GRID = True
+    SHOW_GRID = False
