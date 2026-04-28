@@ -18,7 +18,8 @@ class QGISRedLayerUtils:
         'HydraulicSectors': 'qgisred_hydraulicsectors',
         'Demand Sectors': 'qgisred_demandsectors',
         'IsolatedSegments': 'qgisred_isolatedsegments',
-        'DemandBuilder': 'qgisred_demandbuilder'
+        'DemandBuilder': 'qgisred_demandbuilder',
+        'Auxiliary': 'qgisred_auxiliary',
     }
 
     identifierToGroupName = {
@@ -30,7 +31,8 @@ class QGISRedLayerUtils:
         'qgisred_hydraulicsectors': 'HydraulicSectors',
         'qgisred_demandsectors': 'Demand Sectors',
         'qgisred_isolatedsegments': 'IsolatedSegments',
-        'qgisred_demandbuilder': 'DemandBuilder'
+        'qgisred_demandbuilder': 'DemandBuilder',
+        'qgisred_auxiliary': 'Auxiliary',
     }
 
     # Maps qgisred_identifier → canonical English group name (locale-independent)
@@ -45,9 +47,10 @@ class QGISRedLayerUtils:
         'qgisred_demandsectors':    'Demand Sectors',
         'qgisred_isolatedsegments': 'Isolated Segments',
         'qgisred_demandbuilder':    'Demand Builder',
+        'qgisred_auxiliary':        'Auxiliary',
     }
 
-    MAIN_GROUP_ORDER = ["Results", "Queries", "Issues", "Inputs"]
+    MAIN_GROUP_ORDER = ["Results", "Queries", "Issues", "Inputs", "Auxiliary"]
 
     def __init__(self, directory="", networkName="", iface=None):
         self.iface = iface
@@ -63,7 +66,8 @@ class QGISRedLayerUtils:
             'qgisred_hydraulicsectors': 'HydraulicSectors',
             'qgisred_demandsectors': 'Demand Sectors',
             'qgisred_demandbuilder': 'DemandBuilder',
-            'qgisred_isolatedsegments': 'IsolatedSegments'
+            'qgisred_isolatedsegments': 'IsolatedSegments',
+            'qgisred_auxiliary': 'Auxiliary',
         }
 
     def tr(self, message):
@@ -85,6 +89,7 @@ class QGISRedLayerUtils:
             "Isolated Segments": QCoreApplication.translate("QGISRedGroups", "Isolated Segments"),
             "Tree":              QCoreApplication.translate("QGISRedGroups", "Tree"),
             "DemandBuilder":     QCoreApplication.translate("QGISRedGroups", "DemandBuilder"),
+            "Auxiliary":         QCoreApplication.translate("QGISRedGroups", "Auxiliary"),
         }
         if name.startswith("Tree: "):
             return _TRANSLATIONS["Tree"] + ": " + name[6:]
@@ -337,9 +342,9 @@ class QGISRedLayerUtils:
             if i > 0:
                 if i == 1:
                     # Top-level group under network root.
-                    # Issues/Queries: leave Inputs visibility unchanged; hide everything else.
+                    # Issues/Queries/Auxiliary: leave Inputs visibility unchanged; hide everything else.
                     # Results/Inputs: hide all other groups.
-                    keepInputs = groupName in ("Issues", "Queries")
+                    keepInputs = groupName in ("Issues", "Queries", "Auxiliary")
                     inputsId = self.groupIdentifiers.get("Inputs")
                     for sibling in currentParent.children():
                         if not isinstance(sibling, QgsLayerTreeGroup):
