@@ -8,4 +8,4 @@ class QGISRedCreateConnectionTool(QGISRedCreateLineTool):
     MARKER_SIZE = 10
     SNAP_TYPE = SNAP_TYPE_BOTH
     SNAP_TO_SEGMENTS = True
-    SHOW_GRID = False
+    SHOW_GRID = True

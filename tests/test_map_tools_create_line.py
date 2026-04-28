@@ -295,7 +295,7 @@ class TestSubclassConfig:
         assert QGISRedCreatePipeTool.SNAP_TO_SEGMENTS is False
 
     def test_pipe_shows_grid(self):
-        assert QGISRedCreatePipeTool.SHOW_GRID is False
+        assert QGISRedCreatePipeTool.SHOW_GRID is True
 
     def test_pipe_marker_is_box(self):
         assert QGISRedCreatePipeTool.MARKER_ICON == _QgsVertexMarker.ICON_BOX
@@ -307,7 +307,7 @@ class TestSubclassConfig:
         assert QGISRedCreateConnectionTool.SNAP_TO_SEGMENTS is True
 
     def test_connection_shows_grid(self):
-        assert QGISRedCreateConnectionTool.SHOW_GRID is False
+        assert QGISRedCreateConnectionTool.SHOW_GRID is True
 
     def test_connection_marker_is_x(self):
         assert QGISRedCreateConnectionTool.MARKER_ICON == _QgsVertexMarker.ICON_X

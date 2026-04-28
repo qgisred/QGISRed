@@ -1,5 +1,5 @@
 import math
-from qgis.PyQt.QtCore import Qt, QSettings, QEvent, QPoint, QCoreApplication
+from qgis.PyQt.QtCore import Qt, QEvent, QPoint, QCoreApplication
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QCheckBox, QFrame, QHBoxLayout
 from qgis.core import QgsPointXY, QgsPoint, QgsGeometry, QgsProject, QgsSnappingConfig, QgsTolerance, Qgis
@@ -29,7 +29,7 @@ class QGISRedCreateLineTool(QgsMapTool):
     MARKER_SIZE = 15
     SNAP_TYPE = SNAP_TYPE_VERTEX
     SNAP_TO_SEGMENTS = False
-    SHOW_GRID = False
+    SHOW_GRID = True
 
     def __init__(self, button, iface, projectDirectory, netwName, method):
         QgsMapTool.__init__(self, iface.mapCanvas())
@@ -60,7 +60,7 @@ class QGISRedCreateLineTool(QgsMapTool):
         self._gridSpacing = 0.0
         self._gridOverlayWidget = None
         self._gridOverlayCb = None
-        self._showGrid = self.SHOW_GRID
+        self._showGrid = False
         self.resetProperties()
 
     def activate(self):
@@ -78,7 +78,7 @@ class QGISRedCreateLineTool(QgsMapTool):
         self.snapper.setConfig(config)
 
         if self.SHOW_GRID:
-            self._showGrid = self.SHOW_GRID
+            self._showGrid = False
             self._createGridOverlay()
             if self._showGrid:
                 self._updateGrid()
@@ -276,7 +276,6 @@ class QGISRedCreateLineTool(QgsMapTool):
     def _onGridToggled(self, checked):
         """Toggle grid on/off and persist the choice."""
         self._showGrid = checked
-        QSettings().setValue("QGISRed/showComplementaryGrid", checked)
         if self._gridOverlayCb is not None:
             self._gridOverlayCb.setText(self._gridLabel())
             self._gridOverlayWidget.adjustSize()
