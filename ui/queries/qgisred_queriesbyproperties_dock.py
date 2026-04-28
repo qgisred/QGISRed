@@ -1110,6 +1110,24 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         else:
             self.valueStack.setCurrentWidget(self.cbValue)
 
+    def getUnitForProperty(self, prop):
+        if not prop:
+            return ""
+        qrIdent = self.cbElementType.currentData(Qt.ItemDataRole.UserRole) or ""
+        fieldUtils = QGISRedFieldUtils()
+        if self.isResultProperty(prop):
+            category = self.elementResultCategory.get(qrIdent)
+            if self.isResultsMode:
+                layer = self.resolveLayer()
+                ident = (layer.customProperty("qgisred_identifier") or "") if layer else ""
+                category = "Link" if ident.startswith("qgisred_link") else "Node"
+            unit = fieldUtils.getResultPropertyUnit(category, prop) if category else ""
+        else:
+            unit = fieldUtils.getFieldUnit(qrIdent, prop)
+        if (qrIdent, prop) in self.suppressUnitProperties:
+            unit = ""
+        return unit or ""
+
     def updateValueUnitLabel(self):
         prop = self.getComboInternalName(self.cbProperty)
         if not prop:
@@ -1201,6 +1219,42 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             except ValueError:
                 return txt
 
+    def categoryForProperty(self, propertyName):
+        qrIdent = self.cbElementType.currentData(Qt.ItemDataRole.UserRole) or ""
+        if self.isResultProperty(propertyName):
+            if self.isResultsMode:
+                layer = self.resolveLayer()
+                ident = (layer.customProperty("qgisred_identifier") or "") if layer else ""
+                return "Nodes" if ident.startswith("qgisred_node") else "Links"
+            cat = self.elementResultCategory.get(qrIdent)
+            return "Nodes" if cat == "Node" else "Links" if cat == "Link" else qrIdent
+        return qrIdent
+
+    def prettyForCriterion(self, propertyName):
+        # Flow_Unsig is preserved verbatim in exports so the criterion roundtrips losslessly
+        if propertyName == "Flow_Unsig":
+            return propertyName
+        return QGISRedFieldUtils().getFieldPrettyName(self.categoryForProperty(propertyName), propertyName)
+
+    def displayPrettyForCriterion(self, propertyName):
+        rawProp = "Flow" if propertyName == "Flow_Unsig" else propertyName
+        return QGISRedFieldUtils().getFieldPrettyName(self.categoryForProperty(rawProp), rawProp)
+
+    def rawForImportedProperty(self, prettyName):
+        if not prettyName:
+            return prettyName
+        fieldUtils = QGISRedFieldUtils()
+        if prettyName == fieldUtils.getQualityDisplayName():
+            return "Quality"
+        raw = fieldUtils.getFieldRawName(self.categoryForProperty(prettyName), prettyName)
+        if raw == prettyName:
+            qrIdent = self.cbElementType.currentData(Qt.ItemDataRole.UserRole) or ""
+            cat = self.elementResultCategory.get(qrIdent)
+            if cat:
+                resultCat = "Nodes" if cat == "Node" else "Links"
+                raw = fieldUtils.getFieldRawName(resultCat, prettyName)
+        return raw
+
     def reloadCriteriaTable(self):
         tbl = self.tableWidgetCriteria
         # Ensure two columns: operator and criteria text
@@ -1210,8 +1264,6 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         tbl.setRowCount(len(self.criteria))
         tbl.verticalHeader().setVisible(True)
 
-        qrIdent = self.cbElementType.currentData(Qt.ItemDataRole.UserRole) or ""
-        fieldUtils = QGISRedFieldUtils()
         for i, crit in enumerate(self.criteria):
             op = crit.get('operator', '+')
             enabled = crit.get('enabled', True)
@@ -1228,9 +1280,9 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 operItem.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
             # Criteria text cell
-            rawProp = "Flow" if crit['property'] == "Flow_Unsig" else crit['property']
-            displayProp = fieldUtils.getFieldPrettyName(qrIdent, rawProp)
-            critText = f"{displayProp} {crit['condition']} {crit['value']}"
+            displayProp = self.displayPrettyForCriterion(crit['property'])
+            unit = self.getUnitForProperty(crit['property']) if crit['condition'] != 'All' else ''
+            critText = f"{displayProp} {crit['condition']} {crit['value']}{(' ' + unit) if unit else ''}"
             critItem = QTableWidgetItem(critText)
             critItem.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled)
             critItem.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -1944,13 +1996,15 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 for c in activeCriteria:
                     prefix = "" if c.get('enabled', True) else "#"
                     op = c['operator']
-                    prop = c['property']
+                    prop = self.prettyForCriterion(c['property'])
                     cond = c['condition']
                     val = c['value']
                     if cond == 'All':
                         f.write(f"{prefix}{op}{prop}\n")
                     else:
-                        f.write(f"{prefix}{op}{prop} {cond} {val}\n")
+                        unit = self.getUnitForProperty(c['property'])
+                        suffix = f" {unit}" if unit else ""
+                        f.write(f"{prefix}{op}{prop} {cond} {val}{suffix}\n")
             QMessageBox.information(self, self.tr("Export successful"), self.tr("Saved to:\n") + fname)
         except Exception as e:
             QMessageBox.critical(self, self.tr("Export failed"), str(e))
@@ -1990,27 +2044,26 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 line = candidate
                 op = line[0]
                 rest = line[1:].strip()
-                propEnd = rest.find(' ')
-                if propEnd < 0:
-                    prop = rest
-                    cond = 'All'
-                    val = ''
-                else:
-                    prop = rest[:propEnd]
-                    condVal = rest[propEnd + 1:].strip()
-                    if not condVal:
-                        cond = 'All'
-                        val = ''
-                    elif condVal.upper().startswith('NOT ILIKE '):
-                        cond = 'NOT ILIKE'
-                        val = self.parseValue(condVal[10:].strip())
-                    elif condVal.upper().startswith('NOT LIKE '):
-                        cond = 'NOT LIKE'
-                        val = self.parseValue(condVal[9:].strip())
-                    else:
-                        condParts = condVal.split(None, 1)
-                        cond = condParts[0] if condParts else 'All'
-                        val = self.parseValue(condParts[1].strip()) if len(condParts) > 1 else ''
+                # Longest tokens first so '=' doesn't pre-empt '>='
+                conditionTokens = [' NOT ILIKE ', ' NOT LIKE ', ' ILIKE ', ' LIKE ',
+                                   ' >= ', ' <= ', ' ≠ ', ' = ', ' > ', ' < ']
+                restUpper = rest.upper()
+                prettyProp = rest
+                cond = 'All'
+                val = ''
+                for sep in conditionTokens:
+                    pos = restUpper.find(sep)
+                    if pos >= 0:
+                        prettyProp = rest[:pos]
+                        cond = sep.strip()
+                        val = rest[pos + len(sep):].strip()
+                        break
+                prop = self.rawForImportedProperty(prettyProp.strip())
+                if cond != 'All':
+                    unit = self.getUnitForProperty(prop)
+                    if unit and isinstance(val, str) and val.endswith(unit):
+                        val = val[:-len(unit)].rstrip()
+                    val = self.parseValue(val)
                 parsedCriteria.append({
                     'property': prop,
                     'condition': cond,
@@ -2073,25 +2126,29 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 if len(activeCriteria) == 1:
                     c = activeCriteria[0]
                     op = c['operator']
-                    prop = c['property']
+                    prop = self.prettyForCriterion(c['property'])
                     cond = c['condition']
                     val = c['value']
                     if cond == 'All':
                         criterionStr = f"{op} {prop}"
                     else:
-                        criterionStr = f"{op} {prop} {cond} {val}"
+                        unit = self.getUnitForProperty(c['property'])
+                        suffix = f" {unit}" if unit else ""
+                        criterionStr = f"{op} {prop} {cond} {val}{suffix}"
                     f.write(f"Query: {criterionStr}{timeSuffix}\n")
                 else:
                     f.write(f"Queries{timeSuffix}\n")
                     for c in activeCriteria:
                         op = c['operator']
-                        prop = c['property']
+                        prop = self.prettyForCriterion(c['property'])
                         cond = c['condition']
                         val = c['value']
                         if cond == 'All':
                             f.write(f"{op} {prop}\n")
                         else:
-                            f.write(f"{op} {prop} {cond} {val}\n")
+                            unit = self.getUnitForProperty(c['property'])
+                            suffix = f" {unit}" if unit else ""
+                            f.write(f"{op} {prop} {cond} {val}{suffix}\n")
                 comment = self.multipleCriteriaComment.text().strip() if self.radioMultipleCriteria.isChecked() else ""
                 if comment:
                     f.write(f"Comment: {comment}\n")
