@@ -38,6 +38,8 @@ class TimeSeriesPlotRenderer:
     _TOOLTIP_DECIMAL_LIMIT = 100_000.0
     _AXIS_TICK_FONT_SIZE = 10
     _AXIS_TITLE_FONT_SIZE = 10
+    _TOOLTIP_ICON_SIZE = 8
+    _HOVER_MARKER_ICON_SIZE = 10
 
     def _extract_unit_from_magnitude(self, magnitude: str) -> str:
         magnitude = (magnitude or "").strip()
@@ -55,6 +57,11 @@ class TimeSeriesPlotRenderer:
             seen.add(u)
             out.append(u)
         return ", ".join(out)
+
+    def _axis_title_from_magnitude(self, magnitude: str) -> str:
+        raw = (magnitude or "").strip()
+        unit = self._extract_unit_from_magnitude(raw)
+        return unit or raw
 
     def render(self, widget, painter: QPainter) -> None:
         if not widget.series:
@@ -209,8 +216,9 @@ class TimeSeriesPlotRenderer:
         h = rem // 3600
         m = (rem % 3600) // 60
 
-        time_str = f"{sign}24" if (d > 0 and h == 0 and m == 0) else (f"{sign}{h}" if m == 0 else f"{sign}{h}:{m:02d}")
-        if d > 0:
+        # Show day label only once per day, at 00h of that day.
+        time_str = f"{sign}{h}" if m == 0 else f"{sign}{h}:{m:02d}"
+        if d > 0 and h == 0 and m == 0:
             return f"{time_str}\n{sign}{d}d"
         return time_str
 
@@ -253,6 +261,8 @@ class TimeSeriesPlotRenderer:
             has_days = bool(x_state.get("has_days", x_state["max_x"] >= 24))
             tick_h = fm_x.height() * 2 + 4 if has_days else fm_x.height() + 6
             tick_w = float(x_state.get("label_px", self._estimate_x_axis_label_px(painter, has_days=has_days)))
+            tick_font_regular = qfont(self._AXIS_TICK_FONT_SIZE)
+            tick_font_bold = qfont(self._AXIS_TICK_FONT_SIZE, bold=True)
             for val_x in x_state["x_scale"].ticks():
                 pt = self._to_screen(val_x, y_state_left["min_y"], plot_rect, x_state, y_state_left)
                 painter.setPen(pen_grid)
@@ -260,6 +270,7 @@ class TimeSeriesPlotRenderer:
 
                 painter.setPen(Qt.GlobalColor.black)
                 label_x = self._format_absolute_time_hours_axis(val_x)
+                painter.setFont(tick_font_bold if "\n" in label_x else tick_font_regular)
                 painter.drawText(
                     QRectF(pt.x() - tick_w / 2, plot_rect.bottom() + 8, tick_w, tick_h),
                     Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop,
@@ -272,7 +283,8 @@ class TimeSeriesPlotRenderer:
         small_font = qfont(self._AXIS_TITLE_FONT_SIZE, bold=False)
         title_pen = QPen(TEXT_AXIS)
 
-        left_title = (widget._y_label_left or widget.y_label or "").strip()
+        left_title_raw = (widget._y_label_left or widget.y_label or "").strip()
+        left_title = self._axis_title_from_magnitude(left_title_raw)
         if left_title:
             painter.save()
             painter.setFont(small_font)
@@ -284,8 +296,7 @@ class TimeSeriesPlotRenderer:
 
         if widget._right_axis_active and right_axis_label_w and right_axis_label_w > 0:
             right_title_raw = (widget._y_label_right or "").strip()
-            right_unit = self._extract_unit_from_magnitude(right_title_raw)
-            right_title = right_unit or right_title_raw
+            right_title = self._axis_title_from_magnitude(right_title_raw)
             if right_title:
                 painter.save()
                 painter.setFont(small_font)
@@ -505,10 +516,11 @@ class TimeSeriesPlotRenderer:
             except Exception:
                 unit_suffix = ""
 
-            tooltip_lines.append((color, muted, f"{label}: ", val_y_str, unit_suffix))
+            legend_type = (s.get("legend_type") or "").strip()
+            tooltip_lines.append((color, muted, legend_type, f"{label}: ", val_y_str, unit_suffix))
             axis = (s.get("y_axis") or "left")
             y_state = y_state_right if (axis == "right" and y_state_right is not None) else y_state_left
-            marker_pts.append((color, muted, self._to_screen(val_x, val_y, plot_rect, x_state, y_state)))
+            marker_pts.append((color, muted, legend_type, self._to_screen(val_x, val_y, plot_rect, x_state, y_state)))
 
         return tooltip_lines, marker_pts
 
@@ -523,7 +535,7 @@ class TimeSeriesPlotRenderer:
 
         footer_w = fm_bold.horizontalAdvance(footer_text)
         series_max_w = 0
-        for _c, _m, prefix, value, suffix in tooltip_lines:
+        for _c, _m, _legend_type, prefix, value, suffix in tooltip_lines:
             row_w = fm.horizontalAdvance(prefix) + fm_bold.horizontalAdvance(value) + fm.horizontalAdvance(suffix)
             series_max_w = max(series_max_w, row_w)
 
@@ -559,13 +571,20 @@ class TimeSeriesPlotRenderer:
 
         x_text = rect_tt.left() + pad
         y_text = rect_tt.top() + pad
-        for color, muted, prefix, value, suffix in tooltip_lines:
-            bullet_c = QColor(color)
-            if muted:
-                bullet_c.setAlpha(90)
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(bullet_c)
-            painter.drawEllipse(QPointF(x_text + 5, y_text + line_h / 2), 3, 3)
+        for color, muted, legend_type, prefix, value, suffix in tooltip_lines:
+            icon_size = self._TOOLTIP_ICON_SIZE
+            icon_x = x_text + 1
+            icon_y = y_text + (line_h - icon_size) / 2
+            self._draw_legend_icon(
+                painter,
+                icon_x,
+                icon_y,
+                icon_size,
+                legend_type,
+                color,
+                muted=muted,
+                highlighted=False,
+            )
             painter.setPen(QColor(0, 0, 0, 120) if muted else Qt.GlobalColor.black)
             baseline_y = y_text + fm.ascent()
             text_x = x_text + 14
@@ -618,13 +637,18 @@ class TimeSeriesPlotRenderer:
         footer_text = widget.tr("Instante: %1").replace("%1", self._format_absolute_time_hours(val_x))
         tooltip_lines, marker_pts = self._collect_hover_tooltip_data(widget, widget.hover_index, val_x, plot_rect, x_state, y_state_left, y_state_right)
 
-        for color, muted, pt in marker_pts:
-            c = QColor(color)
-            if muted:
-                c.setAlpha(90)
-            painter.setPen(QPen(c, 2))
-            painter.setBrush(Qt.GlobalColor.white)
-            painter.drawEllipse(pt, 4, 4)
+        for color, muted, legend_type, pt in marker_pts:
+            icon_size = self._HOVER_MARKER_ICON_SIZE
+            self._draw_legend_icon(
+                painter,
+                pt.x() - icon_size / 2,
+                pt.y() - icon_size / 2,
+                icon_size,
+                legend_type,
+                color,
+                muted=muted,
+                highlighted=False,
+            )
 
         hover_val_y = None
         try:

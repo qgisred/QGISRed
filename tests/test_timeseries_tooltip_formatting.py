@@ -60,8 +60,9 @@ class TestTimeFormatting:
             (0.0, "0"),
             (10.0, "10"),
             (10.5, "10:30"),
-            (24.0, "24\n1d"),
-            (34.0, "10\n1d"),
+            (24.0, "0\n1d"),
+            (34.0, "10"),
+            (48.0, "0\n2d"),
         ],
     )
     def test_axis_tick_format(self, hours, expected):
@@ -114,10 +115,39 @@ class TestTooltipUnits:
         )
 
         assert len(lines) == 1
-        _color, _muted, prefix, value, suffix = lines[0]
+        _color, _muted, _legend_type, prefix, value, suffix = lines[0]
         assert prefix == "Presión: "
         assert value == "2"
         assert suffix == " m"
+
+    def test_tooltip_line_includes_legend_type(self):
+        r = TimeSeriesPlotRenderer()
+        w = _Widget(
+            [
+                {
+                    "x": [1.0],
+                    "y": [2.0],
+                    "label": "Tubería 1",
+                    "legend_type": "qgisred_pipes",
+                    "magnitude": "Caudal (L/s)",
+                    "color": "#00aa00",
+                }
+            ]
+        )
+
+        lines, _pts = r._collect_hover_tooltip_data(
+            w,
+            0,
+            1.0,
+            _Rect(),
+            x_state={"min_x": 0.0, "x_range": 10.0},
+            y_state_left={"min_y": 0.0, "max_y": 10.0},
+            y_state_right=None,
+        )
+
+        assert len(lines) == 1
+        _color, _muted, legend_type, _prefix, _value, _suffix = lines[0]
+        assert legend_type == "qgisred_pipes"
 
 
 class TestAxisUnitExtraction:
@@ -129,3 +159,12 @@ class TestAxisUnitExtraction:
         r = TimeSeriesPlotRenderer()
         assert r._extract_unit_from_magnitude("Presión (m), Caudal (L/s)") == "m, L/s"
         assert r._extract_unit_from_magnitude("A (m), B (m), C (L/s), D (m)") == "m, L/s"
+
+    def test_axis_title_uses_only_units_when_available(self):
+        r = TimeSeriesPlotRenderer()
+        assert r._axis_title_from_magnitude("Presión (m)") == "m"
+        assert r._axis_title_from_magnitude("Presión (m), Caudal (L/s)") == "m, L/s"
+
+    def test_axis_title_keeps_original_when_no_units(self):
+        r = TimeSeriesPlotRenderer()
+        assert r._axis_title_from_magnitude("Estado") == "Estado"
