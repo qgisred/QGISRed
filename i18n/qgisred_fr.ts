@@ -1242,23 +1242,28 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="148"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="149"/>
         <source>%1 I</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="150"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="151"/>
         <source>Pipe Diameters</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="151"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="152"/>
         <source>Pipe Lengths</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="152"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="153"/>
         <source>Pipe Materials</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="148"/>
+        <source>Demand Links DB</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

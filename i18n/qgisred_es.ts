@@ -1242,24 +1242,29 @@
         <translation>Nudos Á</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="148"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="149"/>
         <source>%1 I</source>
         <translation>%1 I</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="150"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="151"/>
         <source>Pipe Diameters</source>
         <translation>Diámetros de Tubería</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="151"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="152"/>
         <source>Pipe Lengths</source>
         <translation>Longitudes de Tubería</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="152"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="153"/>
         <source>Pipe Materials</source>
         <translation>Materiales de Tubería</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="148"/>
+        <source>Demand Links DB</source>
+        <translation>Enlaces Demanda CD</translation>
     </message>
 </context>
 <context>
