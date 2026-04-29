@@ -1824,8 +1824,8 @@
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="683"/>
-        <source>Minimum Coste Tree...</source>
-        <translation>Árbol Mínimo Coste</translation>
+        <source>Minimum Cost Tree...</source>
+        <translation>Árbol Mínimo Coste...</translation>
     </message>
 </context>
 <context>

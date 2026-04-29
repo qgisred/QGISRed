@@ -1824,7 +1824,7 @@
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="683"/>
-        <source>Minimum Coste Tree...</source>
+        <source>Minimum Cost Tree...</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
