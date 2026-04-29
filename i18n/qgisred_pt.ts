@@ -1941,23 +1941,23 @@ Do you also want to delete the result files from disk?</source>
         <translation>QGISRed é um plugin gratuito do QGIS desenvolvido para auxiliar na construção de modelos hidráulicos de redes de distribuição de água. O plugin funciona perfeitamente com o QGIS, permitindo ao usuário georreferenciar todos os elementos da rede, usar camadas de base geográficas, editar dados gráficos e alfanuméricos, usar ferramentas de geoprocessamento, visualizar dados por camadas, personalizar a simbologia etc.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_about_dialog.ui" line="220"/>
+        <location filename="../ui/general/qgisred_about_dialog.ui" line="171"/>
         <source>Report issue or comment</source>
         <translation>Reportar problema ou comentário</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_about_dialog.ui" line="595"/>
+        <location filename="../ui/general/qgisred_about_dialog.ui" line="484"/>
         <source>Funded by:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_about_dialog.ui" line="312"/>
+        <location filename="../ui/general/qgisred_about_dialog.ui" line="226"/>
         <source>User&apos;s Manual</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_about_dialog.ui" line="389"/>
-        <source>(Offline - outdated)   </source>
+        <location filename="../ui/general/qgisred_about_dialog.ui" line="266"/>
+        <source>User&apos;s Manual (offline - Outdated)</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

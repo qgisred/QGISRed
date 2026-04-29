@@ -1941,23 +1941,23 @@ Do you also want to delete the result files from disk?</source>
         <translation>QGISRed est un module gratuit pour QGIS développé pour aider à construire des modèles hydrauliques de réseaux de distribution d’eau. Le module fonctionne de manière intégrée avec QGIS, ce qui permet de géoréférencer tous les éléments du réseau, d’utiliser des couches cartographiques de fond, d’éditer des données graphiques et alphanumériques, d’utiliser des outils de géotraitement, de visualiser les données par couches, de personnaliser la symbologie, etc.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_about_dialog.ui" line="220"/>
+        <location filename="../ui/general/qgisred_about_dialog.ui" line="171"/>
         <source>Report issue or comment</source>
         <translation>Signaler un problème ou un commentaire</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_about_dialog.ui" line="595"/>
+        <location filename="../ui/general/qgisred_about_dialog.ui" line="484"/>
         <source>Funded by:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_about_dialog.ui" line="312"/>
+        <location filename="../ui/general/qgisred_about_dialog.ui" line="226"/>
         <source>User&apos;s Manual</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_about_dialog.ui" line="389"/>
-        <source>(Offline - outdated)   </source>
+        <location filename="../ui/general/qgisred_about_dialog.ui" line="266"/>
+        <source>User&apos;s Manual (offline - Outdated)</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 68 68">
+  <defs>
+    <style>
+      .cls-1 { fill: none; }
+      .cls-2 { fill: #60bcd3; }
+      .cls-3 { fill: #7fa828; }
+      .cls-4 { clip-path: url(#clippath); }
+      .cls-5 { fill: white; }
+    </style>
+    <clipPath id="clippath">
+      <rect class="cls-1" x="9.3" y="9.3" width="49.5" height="49.5"/>
+    </clipPath>
+  </defs>
+  <g>
+    <g id="Ebene_1">
+      <g class="cls-4">
+        <path class="cls-2" d="M53.8,34.2c0,10.8-8.8,19.6-19.7,19.6s-19.7-8.8-19.7-19.6,8.8-19.6,19.7-19.6,19.7,8.8,19.7,19.6M58.8,34c0-13.7-11.1-24.8-24.8-24.8s-24.8,11.1-24.8,24.8,11.1,24.8,24.8,24.8,24.8-11.1,24.8-24.8"/>
+        <path class="cls-3" d="M33,22 L18,26 L18,44 L33,46 Z"/>
+        <path class="cls-3" d="M35,22 L50,26 L50,44 L35,46 Z"/>
+        <rect class="cls-5" x="20" y="30" width="11" height="1.5"/>
+        <rect class="cls-5" x="20" y="34" width="11" height="1.5"/>
+        <rect class="cls-5" x="20" y="38" width="8" height="1.5"/>
+        <rect class="cls-5" x="37" y="30" width="11" height="1.5"/>
+        <rect class="cls-5" x="37" y="34" width="11" height="1.5"/>
+        <rect class="cls-5" x="37" y="38" width="8" height="1.5"/>
+      </g>
+    </g>
+  </g>
+</svg>

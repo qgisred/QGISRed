@@ -1941,23 +1941,23 @@ Do you also want to delete the result files from disk?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_about_dialog.ui" line="220"/>
+        <location filename="../ui/general/qgisred_about_dialog.ui" line="171"/>
         <source>Report issue or comment</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_about_dialog.ui" line="595"/>
+        <location filename="../ui/general/qgisred_about_dialog.ui" line="484"/>
         <source>Funded by:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_about_dialog.ui" line="312"/>
+        <location filename="../ui/general/qgisred_about_dialog.ui" line="226"/>
         <source>User&apos;s Manual</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_about_dialog.ui" line="389"/>
-        <source>(Offline - outdated)   </source>
+        <location filename="../ui/general/qgisred_about_dialog.ui" line="266"/>
+        <source>User&apos;s Manual (offline - Outdated)</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

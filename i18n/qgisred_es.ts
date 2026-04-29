@@ -1943,24 +1943,24 @@ Do you also want to delete the result files from disk?</source>
         <translation>QGISRed es un complemento gratuito para QGIS desarrollado para ayudar a construir modelos hidráulicos de redes de distribución de agua. El complemento funciona de forma integrada con QGIS, lo que permite al usuario georreferenciar todos los elementos de la red, utilizar capas cartográficas de fondo, editar datos gráficos y alfanuméricos, usar herramientas de geoprocesamiento, visualizar datos por capas, personalizar la simbología, etc.</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_about_dialog.ui" line="220"/>
+        <location filename="../ui/general/qgisred_about_dialog.ui" line="171"/>
         <source>Report issue or comment</source>
         <translation>Informar de una incidencia o comentario</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_about_dialog.ui" line="595"/>
+        <location filename="../ui/general/qgisred_about_dialog.ui" line="484"/>
         <source>Funded by:</source>
         <translation>Financiado por:</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_about_dialog.ui" line="312"/>
+        <location filename="../ui/general/qgisred_about_dialog.ui" line="226"/>
         <source>User&apos;s Manual</source>
         <translation>Manual de usuario</translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_about_dialog.ui" line="389"/>
-        <source>(Offline - outdated)   </source>
-        <translation>(Offline - desactualizado)     </translation>
+        <location filename="../ui/general/qgisred_about_dialog.ui" line="266"/>
+        <source>User&apos;s Manual (offline - Outdated)</source>
+        <translation>Manual de usuario (Offline - Desactualizado)</translation>
     </message>
 </context>
 <context>
