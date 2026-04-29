@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>Thematic Maps</string>
+   <string>QGISRed: Thematic Maps</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_2">
    <item>
