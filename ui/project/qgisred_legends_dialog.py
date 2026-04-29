@@ -672,6 +672,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.resetAllModesToManual()
         self.updateUiBasedOnFieldType()
         self.populateLegendTable()
+
+        if newType == "categorizedSymbol" and self.availableUniqueValues:
+            self.classifyAllUniqueValues()
+
         self.updateButtonStates()
 
     def validateCategorizedConversion(self, field, currentType):
