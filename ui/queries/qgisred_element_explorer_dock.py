@@ -451,6 +451,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         project.readProject.connect(self.onProjectChanged)
         project.cleared.connect(self.onProjectChanged)
 
+        iface.mapCanvas().mapToolSet.connect(self.onMapToolSet)
+
         inputsGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_inputs")
         if inputsGroup:
             inputsGroup.addedChildren.connect(self.onLayerTreeChanged)
@@ -577,7 +579,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.safeDisconnect(project.layersRemoved, self.onLayerTreeChanged)
             self.safeDisconnect(project.readProject, self.onProjectChanged)
             self.safeDisconnect(project.cleared, self.onProjectChanged)
-            
+
+            self.safeDisconnect(iface.mapCanvas().mapToolSet, self.onMapToolSet)
+
             # Layer tree signals
             for layerNode in self.connectedLayerNodes:
                 self.disconnectLayerNode(layerNode)
@@ -757,6 +761,15 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.clearAllCaches()
         self.clearAll()
         self.onLayerTreeChanged()
+
+    def onMapToolSet(self, tool):
+        if not self.isVisible():
+            return
+        if type(tool).__name__ == "QGISRedIdentifyFeature":
+            if self.isLayerValid(self.currentLayer) and self.currentFeature:
+                self.findElement()
+        else:
+            self.clearHighlights()
 
     # ------------------------------
     # Element Type and Identifier Initialization
