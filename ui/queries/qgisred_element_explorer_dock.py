@@ -14,6 +14,16 @@ from ...compat import LINEEDIT_LEADING_POSITION
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_element_explorer_dock.ui"))
 
+# Language-independence rules for this dock:
+# - Element types are identified by qgisred_identifier (qgisred_pipes, ...).
+#   Display names come from self.identifierSingulars; never from layer.name().
+# - Property names are raw English from the layer schema; translate only via
+#   QGISRedFieldUtils.getFieldPrettyName for display, never compare to literals.
+# - Units come from QGISRedFieldUtils.getFieldUnit / getResultPropertyUnit and
+#   may be translated; never compare unit strings to literals.
+# - List items carry identifier (UserRole), raw element id (UserRole+1) and
+#   suffix kinds (UserRole+2) so reverse parsing of translated text is avoided.
+
 class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     _instance = None
     dockVisibilityChanged = pyqtSignal(bool)
@@ -52,50 +62,37 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.findElementsVisible = showFindElements
         self.elementPropertiesVisible = showElementProperties
 
-        self.elementTypes = [
-            self.tr('Pipe'),
-            self.tr('Junction'),
-            self.tr('Multiple Demand'),
-            self.tr('Reservoir'),
-            self.tr('Tank'),
-            self.tr('Pump'),
-            self.tr('Valve'),
-            self.tr('Source'),
-            self.tr('Service Connection'),
-            self.tr('Isolation Valve'),
-            self.tr('Meter')
-        ]
-
-        self.elementIdentifiers = {
-            'Pipe': 'qgisred_pipes',
-            'Junction': 'qgisred_junctions',
-            'Multiple Demand': 'qgisred_demands',
-            'Reservoir': 'qgisred_reservoirs',
-            'Tank': 'qgisred_tanks',
-            'Pump': 'qgisred_pumps',
-            'Valve': 'qgisred_valves',
-            'Source': 'qgisred_sources',
-            'Service Connection': 'qgisred_serviceconnections',
-            'Isolation Valve': 'qgisred_isolationvalves',
-            'Meter': 'qgisred_meters'
+        # Identifier → English plural layer name as created by QGISRed.
+        # Used only at first project load to set the qgisred_identifier custom
+        # property on layers; after that all lookups go via customProperty.
+        self.identifierToLayerName = {
+            'qgisred_pipes':              'Pipes',
+            'qgisred_junctions':          'Junctions',
+            'qgisred_demands':            'Demands',
+            'qgisred_reservoirs':         'Reservoirs',
+            'qgisred_tanks':              'Tanks',
+            'qgisred_pumps':              'Pumps',
+            'qgisred_valves':             'Valves',
+            'qgisred_sources':            'Sources',
+            'qgisred_serviceconnections': 'Service Connections',
+            'qgisred_isolationvalves':    'Isolation Valves',
+            'qgisred_meters':             'Meters',
         }
 
-        # Reverse lookup: identifier → display name (singular)
-        self.identifierDisplayNames = {v: k for k, v in self.elementIdentifiers.items()}
-
-        # Maps layer name (English, as it appears in QGIS) → translated singular display name
-        self.singularForms = {
-            "Pipes": self.tr("Pipe"),
-            "Junctions": self.tr("Junction"),
-            "Demands": self.tr("Multiple Demand"),
-            "Reservoirs": self.tr("Reservoir"),
-            "Tanks": self.tr("Tank"),
-            "Pumps": self.tr("Pump"),
-            "Valves": self.tr("Valve"),
-            "Sources": self.tr("Source"),
-            "Service Connections": self.tr("Service Connection"),
-            "Isolation Valves": self.tr("Isolation Valve"),
-            "Meters": self.tr("Meter")
+        # Identifier → translated singular display name. Used for ALL display.
+        # Iteration order also defines the cbElementType combobox order.
+        self.identifierSingulars = {
+            'qgisred_pipes':              self.tr('Pipe'),
+            'qgisred_junctions':          self.tr('Junction'),
+            'qgisred_demands':            self.tr('Multiple Demand'),
+            'qgisred_reservoirs':         self.tr('Reservoir'),
+            'qgisred_tanks':              self.tr('Tank'),
+            'qgisred_pumps':              self.tr('Pump'),
+            'qgisred_valves':             self.tr('Valve'),
+            'qgisred_sources':            self.tr('Source'),
+            'qgisred_serviceconnections': self.tr('Service Connection'),
+            'qgisred_isolationvalves':    self.tr('Isolation Valve'),
+            'qgisred_meters':             self.tr('Meter'),
         }
         
         self.originalIds = []
@@ -108,7 +105,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         # Add spatial index cache for node layers
         self.nodeLayerSpatialIndices = {}  # {layer_id: (QgsSpatialIndex, layer)}
-        self.sourcesDemandToNodeCache = {}  # {(layer_identifier, feature_id): (node_id, node_layer_name)}
+        self.sourcesDemandToNodeCache = {}  # {(layer_identifier, feature_id): (node_id, node_layer_identifier)}
         # Spatial indices for source and demand layers (used by extractLayerIdsDirect)
         self.sourceSpatialIndex = None  # QgsSpatialIndex for source layer
         self.sourceSpatialLayer = None  # source layer reference
@@ -718,12 +715,12 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.sourceDemandIdCache.clear()
 
     def saveCurrentElementState(self):
-        currentType = self.cbElementType.currentData()
+        currentIdentifier = self.cbElementType.currentData()
         currentId = self.extractNodeId(self.cbElementId.currentText())
         return {
-            'currentType': currentType,
+            'currentType': currentIdentifier,
             'currentId': currentId,
-            'identifier': self.elementIdentifiers.get(currentType),
+            'identifier': currentIdentifier,
             'featureIdAttr': currentId if currentId else None,
             'labelText': self.labelFoundElement.text(),
             'tagText': self.labelFoundElementTag.text(),
@@ -808,11 +805,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         inputsGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_inputs")
         if not inputsGroup:
             return
+        layerNameToIdentifier = {v: k for k, v in self.identifierToLayerName.items()}
         for layerNode in inputsGroup.findLayers():
-            layerName = layerNode.name()
-            # Map layer name to singular display name, then look up identifier
-            displayName = self.singularForms.get(layerName, layerName)
-            identifier = self.elementIdentifiers.get(displayName)
+            identifier = layerNameToIdentifier.get(layerNode.name())
             if not identifier:
                 continue
             layerObj = layerNode.layer()
@@ -825,9 +820,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
     def initializeElementTypes(self):
         self.cbElementType.clear()
-        availableTypes = self.getAvailableElementTypes()
-        for name in availableTypes:
-            self.cbElementType.addItem(self.tr(name), name)
+        for identifier in self.getAvailableElementIdentifiers():
+            self.cbElementType.addItem(self.identifierSingulars[identifier], identifier)
         self.initializeElementIdsCache()
 
     def initializeElementIdsCache(self):
@@ -835,13 +829,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.buildNodeLayerSpatialIndices()
         self.buildSourceDemandCacheBatch()
 
-        availableTypes = self.getAvailableElementTypes()
-
-        for elementType in availableTypes:
-            layer = self.getLayerForElementType(elementType)
+        for identifier in self.getAvailableElementIdentifiers():
+            layer = self.getLayerByIdentifier(identifier)
             if layer:
-                identifier = layer.customProperty("qgisred_identifier")
-
                 if identifier in self.sourcesAndDemands:
                     # Use pre-built cache for sources/demands
                     ids = self.getCachedSourceDemandIds(identifier)
@@ -849,9 +839,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                     # Regular features - extract IDs directly without special naming
                     ids = self.extractLayerIdsDirect(layer, identifier)
 
-                self.dictOfElementIds[elementType] = sorted(set(ids))
+                self.dictOfElementIds[identifier] = sorted(set(ids))
             else:
-                self.dictOfElementIds[elementType] = []
+                self.dictOfElementIds[identifier] = []
 
     def buildSourceDemandCacheBatch(self):
         """Pre-compute all source/demand to node relationships in batch.
@@ -863,16 +853,16 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         sourceLayer = self.getLayerByIdentifier("qgisred_sources")
         demandLayer = self.getLayerByIdentifier("qgisred_demands")
 
-        for layerIdentifier, layer, suffix in [
-            ("qgisred_sources", sourceLayer, "(Source)"),
-            ("qgisred_demands", demandLayer, "(Mult.Dem)")
+        for layerIdentifier, layer, suffixKind in [
+            ("qgisred_sources", sourceLayer, "source"),
+            ("qgisred_demands", demandLayer, "mult_dem")
         ]:
             if not layer:
                 continue
 
             # Cache spatial lookups by rounded coordinates to avoid redundant lookups
             # for features at the same location (e.g., multiple demands on one junction)
-            coordCache = {}  # {(rounded_x, rounded_y): (nodeId, nodeLayerName)}
+            coordCache = {}  # {(rounded_x, rounded_y): (nodeId, nodeLayer)}
 
             for feature in layer.getFeatures():
                 cacheKey = (layerIdentifier, feature.id())
@@ -885,21 +875,21 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 coordKey = (round(point.x(), 4), round(point.y(), 4))
 
                 if coordKey in coordCache:
-                    nodeId, nodeLayerName = coordCache[coordKey]
+                    nodeId, nodeLayer = coordCache[coordKey]
                 else:
                     nodeFeature, nodeLayer = self.findOverlappingNodeOptimized(geom)
                     if nodeFeature and nodeLayer:
                         nodeId = self.extractNodeId(nodeFeature.attribute("Id"))
-                        nodeLayerName = nodeLayer.name()
                     else:
-                        nodeId, nodeLayerName = None, None
-                    coordCache[coordKey] = (nodeId, nodeLayerName)
+                        nodeId, nodeLayer = None, None
+                    coordCache[coordKey] = (nodeId, nodeLayer)
 
-                self.sourcesDemandToNodeCache[cacheKey] = (nodeId, nodeLayerName)
+                nodeIdentifier = nodeLayer.customProperty("qgisred_identifier", "") if nodeLayer else None
+                self.sourcesDemandToNodeCache[cacheKey] = (nodeId, nodeIdentifier)
 
-                if nodeId and nodeLayerName:
-                    singular = self.singularForms.get(nodeLayerName, nodeLayerName)
-                    displayId = f"{singular} {nodeId} {suffix}"
+                if nodeId and nodeLayer:
+                    singular = self.getSingularForLayer(nodeLayer)
+                    displayId = f"{singular} {nodeId} {self.getSuffixForKind(suffixKind)}"
                     self.sourceDemandIdCache[layerIdentifier].append(displayId)
 
     def getCachedSourceDemandIds(self, identifier):
@@ -933,7 +923,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                         for fid in candidateIds:
                             srcFeat = self.sourceSpatialLayer.getFeature(fid)
                             if not srcFeat.geometry().isEmpty() and self.areOverlappedPoints(featGeom, srcFeat.geometry()):
-                                suffixes.append("(Source)")
+                                suffixes.append("source")
                                 break
 
                     if hasDemandIndex:
@@ -941,11 +931,11 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                         for fid in candidateIds:
                             dmndFeat = self.demandSpatialLayer.getFeature(fid)
                             if not dmndFeat.geometry().isEmpty() and self.areOverlappedPoints(featGeom, dmndFeat.geometry()):
-                                suffixes.append("(Mult.Dem)")
+                                suffixes.append("mult_dem")
                                 break
 
                     if suffixes:
-                        idStr += " " + " ".join(suffixes)
+                        idStr += " " + self.composeSuffixText(suffixes)
 
                 ids.append(idStr)
         else:
@@ -964,8 +954,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         if not pipesLayer:
             return
 
-        displayName = self.singularForms.get(pipesLayer.name(), pipesLayer.name())
-        self.cbElementType.setCurrentText(displayName)
+        index = self.cbElementType.findData("qgisred_pipes")
+        if index >= 0:
+            self.cbElementType.setCurrentIndex(index)
         self.updateElementIds()
 
     # ------------------------------
@@ -1008,15 +999,14 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.showLayerVisibilityWarning()
             return
 
-        selectedType = self.cbElementType.currentData()
+        elementIdentifier = self.cbElementType.currentData()
         selectedId = self.extractNodeId(self.cbElementId.currentText())
-        elementIdentifier = self.elementIdentifiers.get(selectedType)
 
         if not selectedId:
             self.labelFoundElement.setText("")
             return
 
-        layer = self.getLayerForElementType(selectedType)
+        layer = self.getLayerByIdentifier(elementIdentifier) if elementIdentifier else None
         foundFeature = None
         foundFeatureLayer = None
 
@@ -1059,8 +1049,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.cbElementId.clear()
             self.labelFoundElement.setText("")
 
-            selectedType = self.cbElementType.currentData()
-            ids = self.dictOfElementIds.get(selectedType, [])
+            selectedIdentifier = self.cbElementType.currentData()
+            ids = self.dictOfElementIds.get(selectedIdentifier, [])
 
             mask = self.leElementMask.text().strip()
             if mask:
@@ -1077,8 +1067,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         try:
             mask = self.leElementMask.text().strip()
             self.cbElementId.clear()
-            selectedType = self.cbElementType.currentData()
-            ids = self.dictOfElementIds.get(selectedType, [])
+            selectedIdentifier = self.cbElementType.currentData()
+            ids = self.dictOfElementIds.get(selectedIdentifier, [])
             if mask:
                 filteredIds = [id for id in ids if mask.lower() in id.lower()]
             else:
@@ -1092,13 +1082,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.currentSelectedHighlight.hide()
             self.currentSelectedHighlight = None
 
-        singularType, selectedId, _ = self.extractTypeAndId(item.text())
-        if not singularType or not selectedId:
+        elementIdentifier, selectedId = self.extractIdentifierAndIdFromItem(item)
+        if not elementIdentifier or not selectedId:
             return
-
-        elementIdentifier = self.elementIdentifiers.get(singularType)
-        if not elementIdentifier:
-            elementIdentifier = self.getIdentifierFromLayerName(singularType)
 
         matchingLayers = [
             layer for layer in self.getAllInputGroupLayers()
@@ -1115,21 +1101,21 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                     return
 
     def onListItemDoubleClicked(self, item):
-        itemText = item.text()
-        identifier = item.data(Qt.ItemDataRole.UserRole)
         self.leElementMask.clear()
-        singularType, selectedId, fullId = self.extractTypeAndId(itemText)
-        if identifier:
-            invertedIdentifiers = {v: k for k, v in self.elementIdentifiers.items()}
-            singularType = invertedIdentifiers.get(identifier, singularType)
-        if not singularType:
+        elementIdentifier, selectedId = self.extractIdentifierAndIdFromItem(item)
+        if not elementIdentifier:
             return
 
-        self.cbElementType.setCurrentText(self.tr(singularType))
+        index = self.cbElementType.findData(elementIdentifier)
+        if index >= 0:
+            self.cbElementType.setCurrentIndex(index)
         if selectedId:
-            index = self.cbElementId.findText(fullId if fullId else selectedId)
-            if index >= 0:
-                self.cbElementId.setCurrentIndex(index)
+            suffixKinds = item.data(Qt.ItemDataRole.UserRole + 2) or []
+            suffixText = self.composeSuffixText(suffixKinds)
+            fullId = f"{selectedId} {suffixText}".strip() if suffixText else selectedId
+            idIndex = self.cbElementId.findText(fullId)
+            if idIndex >= 0:
+                self.cbElementId.setCurrentIndex(idIndex)
 
     # ------------------------------
     # Map and Feature Display Methods
@@ -1670,22 +1656,14 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         return None, None
 
-    def getAvailableElementTypes(self):
-        availableTypes = []
-        for displayName, identifier in self.elementIdentifiers.items():
+    def getAvailableElementIdentifiers(self):
+        availableIdentifiers = []
+        for identifier in self.identifierSingulars.keys():
             for layer in self.getAllInputGroupLayers():
                 if layer.customProperty("qgisred_identifier") == identifier:
-                    availableTypes.append(displayName)
+                    availableIdentifiers.append(identifier)
                     break
-        return availableTypes
-
-    def getLayerForElementType(self, elementType):
-        identifier = self.elementIdentifiers.get(elementType)
-        if identifier:
-            return self.getLayerByIdentifier(identifier)
-        # Fallback: try by layer name
-        layers = QgsProject.instance().mapLayersByName(elementType)
-        return layers[0] if layers else None
+        return availableIdentifiers
 
     def getLayerByIdentifier(self, identifier):
         for layer in self.getAllInputGroupLayers():
@@ -1714,19 +1692,19 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
                 if nodeFeature and nodeLayer:
                     nodeId = self.extractNodeId(nodeFeature.attribute("Id"))
-                    nodeLayerName = nodeLayer.name()
-                    self.sourcesDemandToNodeCache[cacheKey] = (nodeId, nodeLayerName)
+                    nodeIdentifier = nodeLayer.customProperty("qgisred_identifier", "")
+                    self.sourcesDemandToNodeCache[cacheKey] = (nodeId, nodeIdentifier)
                 else:
                     self.sourcesDemandToNodeCache[cacheKey] = (None, None)
 
             # Get from cache
-            nodeId, nodeLayerName = self.sourcesDemandToNodeCache[cacheKey]
+            nodeId, nodeIdentifier = self.sourcesDemandToNodeCache[cacheKey]
 
             if nodeId:
                 if specialNaming:
-                    singular = self.singularForms.get(nodeLayerName, nodeLayerName)
-                    suffix = "(Source)" if identifier == "qgisred_sources" else "(Mult.Dem)"
-                    return f"{singular} {nodeId} {suffix}"
+                    singular = self.identifierSingulars.get(nodeIdentifier, nodeIdentifier or "")
+                    suffixKind = "source" if identifier == "qgisred_sources" else "mult_dem"
+                    return f"{singular} {nodeId} {self.getSuffixForKind(suffixKind)}"
                 return str(nodeId)
             return ""
         else:
@@ -1741,39 +1719,21 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
                 suffixes = self.getNodeSuffixes(feature.geometry(), identifier)
                 if suffixes:
-                    idStr += " " + " ".join(suffixes)
+                    idStr += " " + self.composeSuffixText(suffixes)
 
             return idStr
 
     def extractNodeId(self, text):
-        text = text.replace(" (Source)", "").replace(" (Mult.Dem)", "")
+        for kind in ("source", "mult_dem"):
+            text = text.replace(" " + self.getSuffixForKind(kind), "")
         parts = text.strip().split()
         result = parts[-1] if len(parts) > 1 else text
         return result
 
-    def extractTypeAndId(self, text):
-        originalText = text.strip()
-        textClean = originalText.replace(" (Source)", "").replace(" (Mult.Dem)", "").strip()
-        sortedSingulars = sorted(self.singularForms.values(), key=len, reverse=True)
-        for singular in sortedSingulars:
-            if textClean.startswith(singular + " "):
-                selectedId = textClean[len(singular):].strip()
-                fullId = originalText[len(singular):].strip() if originalText.startswith(singular + " ") else selectedId
-                return singular, selectedId, fullId
-        parts = textClean.split(" ", 1)
-        if len(parts) < 2:
-            return None, None, None
-        singular = parts[0]
-        selectedId = parts[1].strip()
-        fullId = originalText[len(singular):].strip() if originalText.startswith(singular + " ") else selectedId
-        return singular, selectedId, fullId
-
-    def getIdentifierFromLayerName(self, layerName):
-        layers = QgsProject.instance().mapLayersByName(layerName)
-        if layers:
-            result = layers[0].customProperty("qgisred_identifier", None)
-            return result
-        return None
+    def extractIdentifierAndIdFromItem(self, item):
+        identifier = item.data(Qt.ItemDataRole.UserRole)
+        rawId = item.data(Qt.ItemDataRole.UserRole + 1) or ""
+        return identifier, rawId
 
     def isLayerValid(self, layer):
         """Check if a QgsVectorLayer reference is still alive (C++ object not deleted)."""
@@ -1789,8 +1749,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         return point1.distance(point2) < tolerance
 
     def getNodeSuffixes(self, nodeGeom, nodeIdentifier):
-        """Get source/demand suffixes for a node using spatial indices.
-        Returns a list like ["(Source)"] or ["(Source)", "(Mult.Dem)"] or []."""
+        """Get source/demand suffix kinds for a node using spatial indices.
+        Returns a list of kinds like ["source"] or ["source", "mult_dem"] or []."""
         if nodeGeom.isEmpty():
             return []
         if nodeIdentifier not in ["qgisred_junctions", "qgisred_reservoirs", "qgisred_tanks"]:
@@ -1806,7 +1766,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             for fid in candidateIds:
                 srcFeat = self.sourceSpatialLayer.getFeature(fid)
                 if not srcFeat.geometry().isEmpty() and self.areOverlappedPoints(nodeGeom, srcFeat.geometry()):
-                    suffixes.append("(Source)")
+                    suffixes.append("source")
                     break
 
         if nodeIdentifier == "qgisred_junctions" and self.demandSpatialIndex is not None and self.demandSpatialLayer is not None:
@@ -1814,7 +1774,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             for fid in candidateIds:
                 dmndFeat = self.demandSpatialLayer.getFeature(fid)
                 if not dmndFeat.geometry().isEmpty() and self.areOverlappedPoints(nodeGeom, dmndFeat.geometry()):
-                    suffixes.append("(Mult.Dem)")
+                    suffixes.append("mult_dem")
                     break
 
         return suffixes
@@ -1838,14 +1798,14 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         if nodeLayer and nodeFeat:
             nodeIdentifier = nodeLayer.customProperty("qgisred_identifier", "")
-            suffixes = self.getNodeSuffixes(nodeFeat.geometry(), nodeIdentifier)
-            singularNodeType = self.singularForms.get(nodeLayer.name(), nodeLayer.name())
-            suffixStr = " ".join(suffixes)
+            suffixKinds = self.getNodeSuffixes(nodeFeat.geometry(), nodeIdentifier)
+            singularNodeType = self.getSingularForLayer(nodeLayer)
+            suffixStr = self.composeSuffixText(suffixKinds)
             finalText = f"{singularNodeType} {selectedId} {suffixStr}".strip()
             self.labelFoundElement.setText(finalText)
         else:
-            elementType = self.cbElementType.currentData()
-            singularElementType = self.tr(elementType) if elementType else self.cbElementType.currentText()
+            elementIdentifier = self.cbElementType.currentData()
+            singularElementType = self.identifierSingulars.get(elementIdentifier, self.cbElementType.currentText())
             finalText = f"{singularElementType} {selectedId}"
             self.labelFoundElement.setText(finalText)
 
@@ -1958,27 +1918,53 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         result = layer.customProperty("qgisred_identifier") in self.linkLayers
         return result
 
-    def addAdjacencyItem(self, itemText, identifier):
-        newItem = QListWidgetItem(self.tr(itemText))
+    def getSingularForLayer(self, layer):
+        identifier = layer.customProperty("qgisred_identifier", "") if layer else ""
+        return self.identifierSingulars.get(identifier, layer.name() if layer else "")
+
+    def getSuffixForKind(self, kind):
+        if kind == "source":
+            return self.tr("(Source)")
+        if kind == "mult_dem":
+            return self.tr("(Mult.Dem)")
+        return ""
+
+    def composeSuffixText(self, suffixKinds):
+        if not suffixKinds:
+            return ""
+        return " ".join(self.getSuffixForKind(k) for k in suffixKinds)
+
+    def addAdjacencyItem(self, itemText, identifier, rawId="", suffixKinds=None):
+        newItem = QListWidgetItem(itemText)
         newItem.setData(Qt.ItemDataRole.UserRole, identifier)
+        newItem.setData(Qt.ItemDataRole.UserRole + 1, rawId)
+        newItem.setData(Qt.ItemDataRole.UserRole + 2, list(suffixKinds) if suffixKinds else [])
         self.listWidget.addItem(newItem)
 
     def sortListWidgetItems(self):
         items = []
         for i in range(self.listWidget.count()):
             item = self.listWidget.item(i)
-            items.append((item.text(), item.data(Qt.ItemDataRole.UserRole)))
+            items.append((
+                item.text(),
+                item.data(Qt.ItemDataRole.UserRole),
+                item.data(Qt.ItemDataRole.UserRole + 1),
+                item.data(Qt.ItemDataRole.UserRole + 2),
+            ))
         self.listWidget.clear()
 
+        identifierOrder = list(self.identifierSingulars.keys())
         def sortKey(entry):
-            _, iden = entry
+            iden = entry[1]
             try:
-                return list(self.elementIdentifiers.values()).index(iden)
+                return identifierOrder.index(iden)
             except ValueError:
-                return len(self.elementIdentifiers)
-        for text, identifier in sorted(items, key=sortKey):
+                return len(identifierOrder)
+        for text, identifier, rawId, suffixKinds in sorted(items, key=sortKey):
             newItem = QListWidgetItem(text)
             newItem.setData(Qt.ItemDataRole.UserRole, identifier)
+            newItem.setData(Qt.ItemDataRole.UserRole + 1, rawId or "")
+            newItem.setData(Qt.ItemDataRole.UserRole + 2, list(suffixKinds) if suffixKinds else [])
             self.listWidget.addItem(newItem)
         self.adjustConnectedElementsHeight()
 
@@ -2004,8 +1990,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                     continue
                 if currentGeom.intersects(serviceGeom) or currentGeom.distance(serviceGeom) < tolerance:
                     serviceId = self.getFeatureIdValue(feat, layer)
-                    singular = self.singularForms.get(layer.name(), layer.name())
-                    self.addAdjacencyItem(f"{singular} {serviceId}", layer.customProperty("qgisred_identifier"))
+                    singular = self.getSingularForLayer(layer)
+                    self.addAdjacencyItem(f"{singular} {serviceId}",
+                                          layer.customProperty("qgisred_identifier"), serviceId)
 
     def addIsolationValveAdjacencies(self, currentGeom, tolerance):
         isolationLayers = [
@@ -2019,8 +2006,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                     continue
                 if currentGeom.intersects(isoGeom) or currentGeom.distance(isoGeom) < tolerance:
                     isoId = self.getFeatureIdValue(feat, layer)
-                    singular = self.singularForms.get(layer.name(), layer.name())
-                    self.addAdjacencyItem(f"{singular} {isoId}", layer.customProperty("qgisred_identifier"))
+                    singular = self.getSingularForLayer(layer)
+                    self.addAdjacencyItem(f"{singular} {isoId}",
+                                          layer.customProperty("qgisred_identifier"), isoId)
 
     def refreshConnectedElements(self, feature, layer):
         self.listWidget.clear()
@@ -2069,14 +2057,14 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                     continue
                 if lineGeom.distance(nodeGeom) < tolerance:
                     nodeId = self.getFeatureIdValue(f, nodeLayer)
-                    layerName = nodeLayer.name()
-                    singular = self.singularForms.get(layerName, layerName)
+                    singular = self.getSingularForLayer(nodeLayer)
                     nodeSuffixes = self.getNodeSuffixes(nodeGeom, identifier)
-                    suffixStr = " " + " ".join(nodeSuffixes) if nodeSuffixes else ""
-                    nodeInfo = f"{singular} {nodeId}{suffixStr}"
-                    foundNodes.append((nodeLayer, f, nodeInfo))
-        for nodeLayer, f, nodeInfo in foundNodes:
-            self.addAdjacencyItem(nodeInfo, nodeLayer.customProperty("qgisred_identifier", ""))
+                    suffixText = self.composeSuffixText(nodeSuffixes)
+                    nodeInfo = f"{singular} {nodeId} {suffixText}".strip() if suffixText else f"{singular} {nodeId}"
+                    foundNodes.append((nodeLayer, f, nodeInfo, nodeId, nodeSuffixes))
+        for nodeLayer, f, nodeInfo, nodeId, nodeSuffixes in foundNodes:
+            self.addAdjacencyItem(nodeInfo, nodeLayer.customProperty("qgisred_identifier", ""),
+                                  nodeId, nodeSuffixes)
         self.addServiceConnectionAdjacencies(lineGeom, tolerance)
 
     def findAdjacentLinksByGeometry(self, nodeFeature, layer):
@@ -2112,9 +2100,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                         self.areOverlappedPoints(nodeG, QgsGeometry.fromPointXY(linePoints[0])) or
                         self.areOverlappedPoints(nodeG, QgsGeometry.fromPointXY(linePoints[-1]))):
                         linkId = self.getFeatureIdValue(f, linkLayer)
-                        layerName = linkLayer.name()
-                        singular = self.singularForms.get(layerName, layerName)
-                        foundLinks.append((linkLayer, f, f"{singular} {linkId}"))
+                        singular = self.getSingularForLayer(linkLayer)
+                        foundLinks.append((linkLayer, f, f"{singular} {linkId}", linkId))
             elif ident == "qgisred_meters":
                 if linkLayer.geometryType() != 0:
                     continue
@@ -2124,11 +2111,10 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                         continue
                     if nodeG.distance(meterGeom) < tolerance:
                         meterId = self.getFeatureIdValue(f, linkLayer)
-                        layerName = linkLayer.name()
-                        singular = self.singularForms.get(layerName, layerName)
-                        foundLinks.append((linkLayer, f, f"{singular} {meterId}"))
-        for linkLayer, f, linkInfo in foundLinks:
-            self.addAdjacencyItem(linkInfo, linkLayer.customProperty("qgisred_identifier"))
+                        singular = self.getSingularForLayer(linkLayer)
+                        foundLinks.append((linkLayer, f, f"{singular} {meterId}", meterId))
+        for linkLayer, f, linkInfo, linkRawId in foundLinks:
+            self.addAdjacencyItem(linkInfo, linkLayer.customProperty("qgisred_identifier"), linkRawId)
         self.addServiceConnectionAdjacencies(nodeG, tolerance)
         if layer.customProperty("qgisred_identifier") == "qgisred_junctions":
             self.addIsolationValveAdjacencies(nodeG, tolerance)
@@ -2153,10 +2139,12 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             dummyFeature.setGeometry(QgsGeometry.fromPointXY(pt))
             nodeFeature, nodeLayer = self.findOverlappedNode(dummyFeature, currentLayer)
             if nodeFeature and nodeLayer.customProperty("qgisred_identifier") == "qgisred_junctions":
-                junctionItemText = self.getFeatureIdValue(nodeFeature, nodeLayer, True)
-                singularName = self.singularForms.get(nodeLayer.name(), nodeLayer.name())
-                junctionFullName = singularName + ' ' + junctionItemText
-                self.addAdjacencyItem(junctionFullName, nodeLayer.customProperty("qgisred_identifier"))
+                rawId = str(nodeFeature.attribute("Id"))
+                suffixKinds = self.getNodeSuffixes(nodeFeature.geometry(), "qgisred_junctions")
+                singularName = self.getSingularForLayer(nodeLayer)
+                suffixText = self.composeSuffixText(suffixKinds)
+                fullName = f"{singularName} {rawId} {suffixText}".strip() if suffixText else f"{singularName} {rawId}"
+                self.addAdjacencyItem(fullName, nodeLayer.customProperty("qgisred_identifier"), rawId, suffixKinds)
                 return
         for pt in endpoints:
             ptGeom = QgsGeometry.fromPointXY(pt)
@@ -2168,9 +2156,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                             continue
                         if ptGeom.distance(pipeGeom) < tolerance:
                             pipeId = self.getFeatureIdValue(f, lyr)
-                            singular = self.singularForms.get(lyr.name(), lyr.name())
+                            singular = self.getSingularForLayer(lyr)
                             fullName = f"{singular} {pipeId}"
-                            self.addAdjacencyItem(fullName, lyr.customProperty("qgisred_identifier"))
+                            self.addAdjacencyItem(fullName, lyr.customProperty("qgisred_identifier"), pipeId)
                             return
 
     def findIsolationValveAdjacency(self, feature, currentLayer):
@@ -2180,10 +2168,12 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         tolerance = 1e-6
         nodeFeature, nodeLayer = self.findOverlappedNode(feature, currentLayer)
         if nodeFeature and nodeLayer.customProperty("qgisred_identifier") == "qgisred_junctions":
-            nodeItemText = self.getFeatureIdValue(nodeFeature, nodeLayer, True)
-            singularName = self.singularForms.get(nodeLayer.name(), nodeLayer.name())
-            nodeFullName = singularName + ' ' + nodeItemText
-            self.addAdjacencyItem(nodeFullName, nodeLayer.customProperty("qgisred_identifier"))
+            rawId = str(nodeFeature.attribute("Id"))
+            suffixKinds = self.getNodeSuffixes(nodeFeature.geometry(), "qgisred_junctions")
+            singularName = self.getSingularForLayer(nodeLayer)
+            suffixText = self.composeSuffixText(suffixKinds)
+            nodeFullName = f"{singularName} {rawId} {suffixText}".strip() if suffixText else f"{singularName} {rawId}"
+            self.addAdjacencyItem(nodeFullName, nodeLayer.customProperty("qgisred_identifier"), rawId, suffixKinds)
             return
         for lyr in self.getAllInputGroupLayers():
             if lyr.customProperty("qgisred_identifier") == "qgisred_pipes":
@@ -2193,9 +2183,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                         continue
                     if geom.distance(pipeGeom) < tolerance:
                         pipeId = self.getFeatureIdValue(f, lyr)
-                        singular = self.singularForms.get(lyr.name(), lyr.name())
+                        singular = self.getSingularForLayer(lyr)
                         fullName = f"{singular} {pipeId}"
-                        self.addAdjacencyItem(fullName, lyr.customProperty("qgisred_identifier"))
+                        self.addAdjacencyItem(fullName, lyr.customProperty("qgisred_identifier"), pipeId)
                         return
 
     def findMeterAdjacency(self, feature, currentLayer):
@@ -2205,10 +2195,13 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         tolerance = 1e-6
         nodeFeature, nodeLayer = self.findOverlappedNode(feature, currentLayer)
         if nodeFeature:
-            nodeId = self.getFeatureIdValue(nodeFeature, nodeLayer, True)
-            singularName = self.singularForms.get(nodeLayer.name(), nodeLayer.name())
-            nodeItemText = singularName + ' ' + nodeId
-            self.addAdjacencyItem(nodeItemText, nodeLayer.customProperty("qgisred_identifier"))
+            rawId = str(nodeFeature.attribute("Id"))
+            nodeIdentifier = nodeLayer.customProperty("qgisred_identifier", "")
+            suffixKinds = self.getNodeSuffixes(nodeFeature.geometry(), nodeIdentifier)
+            singularName = self.getSingularForLayer(nodeLayer)
+            suffixText = self.composeSuffixText(suffixKinds)
+            nodeItemText = f"{singularName} {rawId} {suffixText}".strip() if suffixText else f"{singularName} {rawId}"
+            self.addAdjacencyItem(nodeItemText, nodeIdentifier, rawId, suffixKinds)
             return
         for lyr in self.getAllInputGroupLayers():
             if lyr.customProperty("qgisred_identifier") != "qgisred_meters":
@@ -2218,9 +2211,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                         continue
                     if geom.distance(linkGeom) < tolerance:
                         adjId = self.getFeatureIdValue(f, lyr)
-                        singular = self.singularForms.get(lyr.name(), lyr.name())
+                        singular = self.getSingularForLayer(lyr)
                         fullName = f"{singular} {adjId}"
-                        self.addAdjacencyItem(fullName, lyr.customProperty("qgisred_identifier"))
+                        self.addAdjacencyItem(fullName, lyr.customProperty("qgisred_identifier"), adjId)
                         return
 
     def resolveToInputElement(self, layer, feature):
@@ -2228,7 +2221,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         identifier = layer.customProperty("qgisred_identifier", "")
 
         # Already an Inputs layer
-        if identifier in self.elementIdentifiers.values():
+        if identifier in self.identifierSingulars:
             return layer, feature
 
         # Determine which Inputs identifiers to search
@@ -2243,7 +2236,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             if len(parts) >= 3:
                 layerType = parts[2]
                 inputIdentifier = f"qgisred_{layerType}"
-                if inputIdentifier in self.elementIdentifiers.values():
+                if inputIdentifier in self.identifierSingulars:
                     searchIdentifiers = [inputIdentifier]
 
         if not searchIdentifiers:
@@ -2278,8 +2271,10 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         # Resolve Results/Queries layer to its Inputs counterpart
         layer, feature = self.resolveToInputElement(layer, feature)
 
-        elementTypeText = self.singularForms.get(layer.name(), layer.name())
-        self.cbElementType.setCurrentText(elementTypeText)
+        layerIdentifier = layer.customProperty("qgisred_identifier", "")
+        index = self.cbElementType.findData(layerIdentifier)
+        if index >= 0:
+            self.cbElementType.setCurrentIndex(index)
 
         self.updateElementIds()
 
