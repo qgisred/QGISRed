@@ -628,6 +628,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.safeDisconnect(self.mElementPropertiesGroupBox.collapsedStateChanged, self.onElementPropertiesToggled)
             self.safeDisconnect(self.mFindElementsGroupBox.collapsedStateChanged, self.onFindElementsToggled)
 
+            if self.resultsDock is not None:
+                self.disconnectResultsDock()
+
             self.layerTreeChangeTimer.stop()
             self.resultsDockVisibilityTimer.stop()
 
@@ -2415,6 +2418,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         resultsDock.timeTextChanged.connect(self.onResultsTimeChanged)
         resultsDock.statisticsModeChanged.connect(self.onResultsStatisticsChanged)
         resultsDock.visibilityChanged.connect(self.onResultsDockVisibilityChanged)
+        resultsDock.simulationFinished.connect(self.onResultsSimulationFinished)
+        resultsDock.resultPropertyChanged.connect(self.onResultsSimulationFinished)
         # Initial sync
         if resultsDock._statsMode:
             self.onResultsStatisticsChanged(resultsDock._currentStat)
@@ -2444,6 +2449,14 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 pass
             try:
                 self.resultsDock.visibilityChanged.disconnect(self.onResultsDockVisibilityChanged)
+            except (TypeError, RuntimeError):
+                pass
+            try:
+                self.resultsDock.simulationFinished.disconnect(self.onResultsSimulationFinished)
+            except (TypeError, RuntimeError):
+                pass
+            try:
+                self.resultsDock.resultPropertyChanged.disconnect(self.onResultsSimulationFinished)
             except (TypeError, RuntimeError):
                 pass
             self.resultsDock = None
@@ -2489,6 +2502,10 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.labelResultsTime.setText(self.formatStatsLabelText(statName))
         else:
             self.labelResultsTime.setText(self.resultsCurrentTimeText)
+        self.updateResultsTabVisibility()
+        self.populateResultsTable()
+
+    def onResultsSimulationFinished(self):
         self.updateResultsTabVisibility()
         self.populateResultsTable()
 
