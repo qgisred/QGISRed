@@ -1242,22 +1242,22 @@
         <translation>Nudos Á</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="149"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="150"/>
         <source>%1 I</source>
         <translation>%1 I</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="151"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="152"/>
         <source>Pipe Diameters</source>
         <translation>Diámetros de Tubería</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="152"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="153"/>
         <source>Pipe Lengths</source>
         <translation>Longitudes de Tubería</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="153"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="154"/>
         <source>Pipe Materials</source>
         <translation>Materiales de Tubería</translation>
     </message>
@@ -1265,6 +1265,11 @@
         <location filename="../tools/qgisred_translatable_strings.py" line="148"/>
         <source>Demand Links DB</source>
         <translation>Enlaces Demanda CD</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="149"/>
+        <source>Consumption Points DB</source>
+        <translation>Consumos Puntuales CD</translation>
     </message>
 </context>
 <context>
@@ -2080,12 +2085,12 @@ Do you also want to delete the result files from disk?</source>
 <context>
     <name>QGISRedCreateLineTool</name>
     <message>
-        <location filename="../tools/map_tools/qgisred_createLineTool.py" line="273"/>
+        <location filename="../tools/map_tools/qgisred_createLineTool.py" line="312"/>
         <source>Hide complementary grid</source>
         <translation>Ocultar rejilla complementaria</translation>
     </message>
     <message>
-        <location filename="../tools/map_tools/qgisred_createLineTool.py" line="274"/>
+        <location filename="../tools/map_tools/qgisred_createLineTool.py" line="313"/>
         <source>Show complementary grid</source>
         <translation>Mostrar rejilla complementaria</translation>
     </message>

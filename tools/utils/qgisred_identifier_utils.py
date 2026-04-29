@@ -62,6 +62,7 @@ class QGISRedIdentifierUtils:
             'qgisred_tree_links': 'Links T',
             'qgisred_tree_nodes': 'Nodes T',
             'qgisred_demandbuilder_demandlinks': 'Demand Links DB',
+            'qgisred_demandbuilder_consumptionpoints': 'Consumption Points DB'
         }
 
     def tr(self, message):

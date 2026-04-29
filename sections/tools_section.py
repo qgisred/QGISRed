@@ -218,6 +218,7 @@ class ToolsSection:
         isoFolder = os.path.join(self.ProjectDirectory, "Auxiliary", "DemandBuilder")
         utils = QGISRedLayerUtils(isoFolder, self.NetworkName, self.iface)
         utils.openLayer(demandBuilderGroup, "DemandBuilder_DemandLinks")
+        utils.openLayer(demandBuilderGroup, "DemandBuilder_ConsumptionPoints")
 
     def openIsolatedSegmentsLayers(self):
         # Open layers
