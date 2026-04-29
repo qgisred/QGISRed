@@ -1232,6 +1232,33 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             return "Nodes" if cat == "Node" else "Links" if cat == "Link" else qrIdent
         return qrIdent
 
+    def englishElementTypeForIdentifier(self, qrIdent):
+        if not qrIdent:
+            return ""
+        if qrIdent.startswith("qgisred_node"):
+            return "Nodes"
+        if qrIdent.startswith("qgisred_link"):
+            return "Links"
+        for englishName, ident in self.elementIdentifiers.items():
+            if ident == qrIdent:
+                return englishName
+        return qrIdent
+
+    def findElementTypeIndexByEnglish(self, englishName):
+        for englishKey, ident in self.elementIdentifiers.items():
+            if englishKey == englishName:
+                for i in range(self.cbElementType.count()):
+                    if self.cbElementType.itemData(i, Qt.ItemDataRole.UserRole) == ident:
+                        return i
+                break
+        if englishName in ("Nodes", "Links"):
+            prefix = "qgisred_node" if englishName == "Nodes" else "qgisred_link"
+            for i in range(self.cbElementType.count()):
+                ident = self.cbElementType.itemData(i, Qt.ItemDataRole.UserRole) or ""
+                if ident.startswith(prefix):
+                    return i
+        return -1
+
     def prettyForCriterion(self, propertyName):
         # Flow_Unsig is preserved verbatim in exports so the criterion roundtrips losslessly
         if propertyName == "Flow_Unsig":
@@ -2005,7 +2032,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         if not fname:
             return
         try:
-            elementType = self.cbElementType.currentText()
+            qrIdent = self.cbElementType.currentData(Qt.ItemDataRole.UserRole) or ""
+            elementType = self.englishElementTypeForIdentifier(qrIdent)
             comment = self.multipleCriteriaComment.text().strip() if self.radioMultipleCriteria.isChecked() else ""
             activeCriteria = self.effectiveCriteria()
             with open(fname, 'w', encoding='utf-8') as f:
@@ -2043,10 +2071,9 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             if len(lines) < 1:
                 return
             elementType = lines[0]
-            for i in range(self.cbElementType.count()):
-                if self.cbElementType.itemText(i) == elementType:
-                    self.cbElementType.setCurrentIndex(i)
-                    break
+            idx = self.findElementTypeIndexByEnglish(elementType)
+            if idx >= 0:
+                self.cbElementType.setCurrentIndex(idx)
             parsedCriteria = []
             importedComment = ''
             for line in lines[1:]:
@@ -2124,7 +2151,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         try:
             projectName = QgsProject.instance().baseName()
             activeCriteria = self.effectiveCriteria()
-            elementType = self.cbElementType.currentText()
+            qrIdent = self.cbElementType.currentData(Qt.ItemDataRole.UserRole) or ""
+            elementType = self.englishElementTypeForIdentifier(qrIdent)
             hasDynamicCriterion = any(
                 self.isResultProperty(c['property']) for c in activeCriteria
             )
