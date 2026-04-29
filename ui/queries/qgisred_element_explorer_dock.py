@@ -124,6 +124,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.specialLayers = ["qgisred_serviceconnections"]
         self.sourcesAndDemands = ["qgisred_sources", "qgisred_demands"]
         self.connectedLayerNodes = []
+        self.connectedGroups = []
 
         # Results tab state
         self.resultsDock = None
@@ -453,12 +454,27 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         iface.mapCanvas().mapToolSet.connect(self.onMapToolSet)
 
-        inputsGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_inputs")
-        if inputsGroup:
-            inputsGroup.addedChildren.connect(self.onLayerTreeChanged)
-            inputsGroup.removedChildren.connect(self.onLayerTreeChanged)
-            for layerNode in inputsGroup.findLayers():
-                self.connectLayerSignals(layerNode)
+        for identifier in ("qgisred_inputs", "qgisred_results"):
+            group = QGISRedLayerUtils.findGroupByIdentifier(identifier)
+            if group:
+                self.connectGroupSignals(group)
+                for layerNode in group.findLayers():
+                    self.connectLayerSignals(layerNode)
+
+    def connectGroupSignals(self, group):
+        try:
+            group.addedChildren.connect(self.onLayerTreeChanged)
+            group.removedChildren.connect(self.onLayerTreeChanged)
+            self.connectedGroups.append(group)
+        except Exception:
+            pass
+
+    def disconnectGroupSignals(self, group):
+        try:
+            self.safeDisconnect(group.addedChildren, self.onLayerTreeChanged)
+            self.safeDisconnect(group.removedChildren, self.onLayerTreeChanged)
+        except (RuntimeError, TypeError):
+            pass
 
     def connectLayerSignals(self, layerNode):
         try:
@@ -466,8 +482,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             if layerNode.layer():
                 layer = layerNode.layer()
                 layer.dataChanged.connect(self.onLayerTreeChanged)
-                layer.featureAdded.connect(self.updateElementIds)
-                layer.featureDeleted.connect(self.updateElementIds)
+                if not self.isResultsLayer(layer):
+                    layer.featureAdded.connect(self.updateElementIds)
+                    layer.featureDeleted.connect(self.updateElementIds)
             self.connectedLayerNodes.append(layerNode)
         except Exception:
             pass
@@ -478,10 +495,15 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             layer = layerNode.layer()
             if layer:
                 self.safeDisconnect(layer.dataChanged, self.onLayerTreeChanged)
-                self.safeDisconnect(layer.featureAdded, self.updateElementIds)
-                self.safeDisconnect(layer.featureDeleted, self.updateElementIds)
+                if not self.isResultsLayer(layer):
+                    self.safeDisconnect(layer.featureAdded, self.updateElementIds)
+                    self.safeDisconnect(layer.featureDeleted, self.updateElementIds)
         except (RuntimeError, TypeError):
             pass
+
+    def isResultsLayer(self, layer):
+        identifier = layer.customProperty("qgisred_identifier", "") if layer else ""
+        return identifier.startswith("qgisred_node") or identifier.startswith("qgisred_link")
 
     def disconnectLayerSignals(self, layer):
         try:
@@ -499,16 +521,21 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             pass
 
     def reconnectLayerSignals(self):
-        # Disconnect all previously connected layer nodes
+        # Disconnect all previously connected layer nodes and groups
         for layerNode in self.connectedLayerNodes:
             self.disconnectLayerNode(layerNode)
         self.connectedLayerNodes.clear()
+        for group in self.connectedGroups:
+            self.disconnectGroupSignals(group)
+        self.connectedGroups.clear()
 
-        # Reconnect to current Inputs group layers
-        inputsGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_inputs")
-        if inputsGroup:
-            for layerNode in inputsGroup.findLayers():
-                self.connectLayerSignals(layerNode)
+        # Reconnect to current Inputs and Results group layers
+        for identifier in ("qgisred_inputs", "qgisred_results"):
+            group = QGISRedLayerUtils.findGroupByIdentifier(identifier)
+            if group:
+                self.connectGroupSignals(group)
+                for layerNode in group.findLayers():
+                    self.connectLayerSignals(layerNode)
 
     # ------------------------------
     # Clear and Reset Methods
@@ -587,10 +614,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 self.disconnectLayerNode(layerNode)
             self.connectedLayerNodes.clear()
 
-            inputsGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_inputs")
-            if inputsGroup:
-                self.safeDisconnect(inputsGroup.addedChildren, self.onLayerTreeChanged)
-                self.safeDisconnect(inputsGroup.removedChildren, self.onLayerTreeChanged)
+            for group in self.connectedGroups:
+                self.disconnectGroupSignals(group)
+            self.connectedGroups.clear()
             
             self.safeDisconnect(self.cbElementType.currentIndexChanged, self.updateElementIds)
             self.safeDisconnect(self.leElementMask.textChanged, self.filterElementIds)
@@ -674,6 +700,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
             self.reacquireCurrentElement(prevState)
             self.updateResultsTabVisibility()
+            self.populateResultsTable()
         finally:
             self.setUpdatesEnabled(True)
 
