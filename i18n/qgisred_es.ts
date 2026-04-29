@@ -1269,7 +1269,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="149"/>
         <source>DemBuil_Demand Links</source>
-        <translation>ConstDem_Líneas Demanda</translation>
+        <translation>ConstDem_Enlaces Demanda</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="150"/>
