@@ -35,7 +35,7 @@ class TimeSeriesPlotWidget(QWidget):
         self.hover_index = None
         self.y_categorical_labels = None
         self.setMouseTracking(True)
-        self.setMinimumSize(220, 170)
+        self.setMinimumSize(260, 170)
         self._legend_reserved_w = 0
         self._legend_hitboxes = []
         self._legend_delete_hitboxes = []
@@ -44,13 +44,15 @@ class TimeSeriesPlotWidget(QWidget):
         self._renderer = TimeSeriesPlotRenderer()
         self._y_label_left = ""
         self._y_label_right = ""
+        self._y_magnitudes_left = []
+        self._y_magnitudes_right = []
         self._right_axis_active = False
         self._right_axis_label_w = 0
 
     def setData(self, x, y, title="", x_label="Time", y_label="Value", is_stepped=False, y_categorical_labels=None, series_label=""):
         self.data_x = x
         self.data_y = y
-        self.title = title
+        self.title = title if (title or "").strip() else self.tr("Curvas de evolución temporal")
         self.x_label = x_label
         self.y_label = y_label
         self.is_stepped = is_stepped
@@ -66,6 +68,11 @@ class TimeSeriesPlotWidget(QWidget):
             "highlighted": False,
             "series_key": series_label or "",
         }]
+        self._y_label_left = self.y_label
+        self._y_label_right = ""
+        self._y_magnitudes_left = [self.y_label] if (self.y_label or "").strip() else []
+        self._y_magnitudes_right = []
+        self._right_axis_active = False
         self.update()
 
     def _normalizeSeriesState(self) -> None:
@@ -95,12 +102,14 @@ class TimeSeriesPlotWidget(QWidget):
                 s["y_axis"] = "left"
         self._y_label_left = left_mag or self.y_label
         self._y_label_right = ", ".join(right_mags)
+        self._y_magnitudes_left = [left_mag] if left_mag else ([self.y_label] if (self.y_label or "").strip() else [])
+        self._y_magnitudes_right = right_mags[:]
         self._right_axis_active = bool(right_mags)
 
     def setSeries(self, series, title="", x_label="Time", y_label="Value"):
         self.series = series or []
         self._normalizeSeriesState()
-        self.title = title
+        self.title = title if (title or "").strip() else self.tr("Curvas de evolución temporal")
         self.x_label = x_label
         self.y_label = y_label
         self._assignYAxisByMagnitude()

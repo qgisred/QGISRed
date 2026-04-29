@@ -64,6 +64,18 @@ class TimeSeriesPlotRenderer:
         unit = self._extract_unit_from_magnitude(raw)
         return unit or raw
 
+    def _axis_title_for_count(self, title_raw: str, magnitude_count: int) -> str:
+        raw = (title_raw or "").strip()
+        if not raw:
+            return ""
+        # Keep full "Nombre (unidad)" when there is a single variable.
+        # For crowded axes (more than two variables), collapse to units only.
+        if magnitude_count <= 1:
+            return raw
+        if magnitude_count > 2:
+            return self._axis_title_from_magnitude(raw)
+        return raw
+
     def render(self, widget, painter: QPainter) -> None:
         if not widget.series:
             self._draw_no_data_message(widget, painter)
@@ -74,13 +86,6 @@ class TimeSeriesPlotRenderer:
         h = widget.height()
 
         painter.fillRect(widget.rect(), Qt.GlobalColor.white)
-
-        if widget.title:
-            painter.save()
-            painter.setFont(qfont(12, bold=True))
-            painter.setPen(Qt.GlobalColor.black)
-            painter.drawText(QRectF(0, 0, w, widget.margin_top), Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignBottom, widget.title)
-            painter.restore()
 
         all_x, all_y, y_categorical_labels, any_stepped = widget._axisSeriesData(widget.series)
         if not all_x or not all_y:
@@ -95,6 +100,17 @@ class TimeSeriesPlotRenderer:
         plot_rect, local_margin_left, right_axis_label_w = widget.getPlotRect()
         widget._legend_hitboxes = []
         widget._legend_delete_hitboxes = []
+
+        if widget.title:
+            painter.save()
+            painter.setFont(qfont(10, bold=True))
+            painter.setPen(Qt.GlobalColor.black)
+            painter.drawText(
+                QRectF(plot_rect.left(), 0, plot_rect.width(), widget.margin_top),
+                Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignBottom,
+                widget.title,
+            )
+            painter.restore()
 
         painter.fillRect(plot_rect, PLOT_BG_COLOR)
         painter.setPen(QPen(BORDER_COLOR, 1))
@@ -207,18 +223,18 @@ class TimeSeriesPlotRenderer:
             else:
                 parts.append((str(h), "h"))
                 if m > 0 or s > 0:
-                    parts.append((f"{m:02d}", "m"))
+                    parts.append((str(m), "m"))
                 if s > 0:
-                    parts.append((f"{s:02d}", "s"))
+                    parts.append((str(s), "s"))
         else:
             if h == 0 and m == 0 and s > 0:
                 parts.append((str(s), "s"))
             else:
                 parts.append((str(h), "h"))
                 if m > 0 or s > 0:
-                    parts.append((f"{m:02d}", "m"))
+                    parts.append((str(m), "m"))
                 if s > 0:
-                    parts.append((f"{s:02d}", "s"))
+                    parts.append((str(s), "s"))
 
         if not parts:
             parts = [("0", "h")]
@@ -313,9 +329,15 @@ class TimeSeriesPlotRenderer:
             tick_w = float(x_state.get("label_px", self._estimate_x_axis_label_px(painter, has_days=has_days)))
             tick_font_regular = qfont(self._AXIS_TICK_FONT_SIZE)
             tick_font_bold = qfont(self._AXIS_TICK_FONT_SIZE, bold=True)
+            pen_grid_day_start = QPen(QColor(180, 180, 180), 2, Qt.PenStyle.SolidLine)
             for val_x in x_state["x_scale"].ticks():
                 pt = self._to_screen(val_x, y_state_left["min_y"], plot_rect, x_state, y_state_left)
-                painter.setPen(pen_grid)
+
+                is_day_start = False
+                if has_days:
+                    mod_24 = val_x % 24.0
+                    is_day_start = abs(mod_24) < 1e-6 or abs(mod_24 - 24.0) < 1e-6
+                painter.setPen(pen_grid_day_start if is_day_start else pen_grid)
                 painter.drawLine(QPointF(pt.x(), plot_rect.top()), QPointF(pt.x(), plot_rect.bottom()))
 
                 painter.setPen(Qt.GlobalColor.black)
@@ -334,7 +356,10 @@ class TimeSeriesPlotRenderer:
         title_pen = QPen(TEXT_AXIS)
 
         left_title_raw = (widget._y_label_left or widget.y_label or "").strip()
-        left_title = self._axis_title_from_magnitude(left_title_raw)
+        left_count = len(getattr(widget, "_y_magnitudes_left", []) or [])
+        if left_count == 0 and left_title_raw:
+            left_count = 1
+        left_title = self._axis_title_for_count(left_title_raw, left_count)
         if left_title:
             painter.save()
             painter.setFont(small_font)
@@ -346,7 +371,8 @@ class TimeSeriesPlotRenderer:
 
         if widget._right_axis_active and right_axis_label_w and right_axis_label_w > 0:
             right_title_raw = (widget._y_label_right or "").strip()
-            right_title = self._axis_title_from_magnitude(right_title_raw)
+            right_count = len(getattr(widget, "_y_magnitudes_right", []) or [])
+            right_title = self._axis_title_for_count(right_title_raw, right_count)
             if right_title:
                 painter.save()
                 painter.setFont(small_font)
@@ -462,7 +488,7 @@ class TimeSeriesPlotRenderer:
         y0 = plot_rect.top() + 10
         max_x = widget.width() - 5
         btn_w = 10
-        btn_pad = 2
+        btn_pad = 0
         for mag_title, items in groups:
             if x0 >= max_x:
                 break
@@ -484,16 +510,22 @@ class TimeSeriesPlotRenderer:
 
                 self._draw_legend_icon(painter, x0, y0 + 1, LEGEND_ICON_SIZE, legend_type, color, muted=muted, highlighted=highlighted)
 
-                painter.setFont(qfont(8, bold=highlighted))
+                row_font = qfont(8, bold=highlighted)
+                painter.setFont(row_font)
                 painter.setPen(QColor(0, 0, 0, 120) if muted else Qt.GlobalColor.black)
                 row_right = min(max_x, x0 + widget._legend_reserved_w)
-                text_rect = QRectF(x0 + 18, y0, max(0.0, (row_right - btn_w - btn_pad) - (x0 + 18)), LEGEND_ROW_H)
+                text_left = x0 + 18
+                label_w = QFontMetrics(row_font).horizontalAdvance(label)
+                max_text_w = max(0.0, (row_right - btn_w - btn_pad) - text_left)
+                text_draw_w = min(float(label_w), max_text_w)
+                text_rect = QRectF(text_left, y0, max(0.0, text_draw_w), LEGEND_ROW_H)
                 painter.drawText(text_rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, label)
                 hit_rect = QRectF(x0, y0, widget._legend_reserved_w, LEGEND_ROW_H)
                 widget._legend_hitboxes.append((hit_rect, series_idx))
 
                 # "X" delete button at the end of the row.
-                delete_rect = QRectF(max(x0, row_right - btn_w - btn_pad), y0, btn_w, LEGEND_ROW_H)
+                delete_x = min(row_right - btn_w, text_left + text_draw_w + 2)
+                delete_rect = QRectF(max(x0, delete_x), y0, btn_w, LEGEND_ROW_H)
                 widget._legend_delete_hitboxes.append((delete_rect, series_idx))
                 painter.setFont(qfont(8, bold=True))
                 painter.setPen(QColor(0, 0, 0, 120) if muted else QColor(60, 60, 60))
@@ -584,8 +616,8 @@ class TimeSeriesPlotRenderer:
         fm_bold = QFontMetrics(font_tt_bold)
 
         footer_w = 0
-        for text, is_bold in footer_segments:
-            footer_w += (fm_bold.horizontalAdvance(text) if is_bold else fm.horizontalAdvance(text))
+        for text, _is_bold in footer_segments:
+            footer_w += fm_bold.horizontalAdvance(text)
         series_max_w = 0
         for _c, _m, _legend_type, prefix, value, suffix in tooltip_lines:
             row_w = fm.horizontalAdvance(prefix) + fm_bold.horizontalAdvance(value) + fm.horizontalAdvance(suffix)
@@ -623,6 +655,7 @@ class TimeSeriesPlotRenderer:
 
         x_text = rect_tt.left() + pad
         y_text = rect_tt.top() + pad
+
         for color, muted, legend_type, prefix, value, suffix in tooltip_lines:
             icon_size = self._TOOLTIP_ICON_SIZE
             icon_x = x_text + 1
@@ -656,14 +689,14 @@ class TimeSeriesPlotRenderer:
             painter.drawLine(QPointF(rect_tt.left() + pad, sep_y), QPointF(rect_tt.right() - pad, sep_y))
             y_text = sep_y + separator_gap
 
-        footer_x = rect_tt.left() + pad
+        footer_x = rect_tt.left() + pad + 14
         footer_baseline_y = y_text + fm.ascent()
         painter.setPen(Qt.GlobalColor.black)
         cursor_x = footer_x
-        for text, is_bold in footer_segments:
-            painter.setFont(font_tt_bold if is_bold else font_tt)
+        for text, _is_bold in footer_segments:
+            painter.setFont(font_tt_bold)
             painter.drawText(QPointF(cursor_x, footer_baseline_y), text)
-            cursor_x += (fm_bold.horizontalAdvance(text) if is_bold else fm.horizontalAdvance(text))
+            cursor_x += fm_bold.horizontalAdvance(text)
 
         painter.restore()
 
