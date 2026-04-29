@@ -1192,16 +1192,6 @@
         <translation>Ventosas</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="147"/>
-        <source>Links T</source>
-        <translation>Líneas Á</translation>
-    </message>
-    <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="148"/>
-        <source>Nodes T</source>
-        <translation>Nudos Á</translation>
-    </message>
-    <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="151"/>
         <source>%1 I</source>
         <translation>%1 I</translation>
@@ -1275,6 +1265,16 @@
         <location filename="../tools/qgisred_translatable_strings.py" line="138"/>
         <source>Links_Connect</source>
         <translation>Líneas_Conect</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="147"/>
+        <source>Links_Tree</source>
+        <translation>Líneas_Arbol</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="148"/>
+        <source>Nodes_Tree</source>
+        <translation>Nudos_Arbol</translation>
     </message>
 </context>
 <context>
@@ -4455,7 +4455,7 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Selección requerida</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="454"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="463"/>
         <source>Clear all curves</source>
         <translation>Borrar todas las curvas</translation>
     </message>
@@ -4468,24 +4468,29 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
 <context>
     <name>TimeSeriesPlotWidget</name>
     <message>
-        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="549"/>
+        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="581"/>
         <source>Series</source>
         <translation>Series</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="225"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="234"/>
         <source>Magnitude</source>
         <translation>Magnitud</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="127"/>
+        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="143"/>
         <source>No data to display, please select an element on the map.</source>
         <translation>No hay datos que mostrar. Selecciona una ubicación en el mapa.</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="235"/>
+        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="251"/>
         <source>Step: %1</source>
         <translation>Instante: %1</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="112"/>
+        <source>Curvas de evolución temporal</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

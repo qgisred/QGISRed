@@ -59,8 +59,8 @@ class QGISRedIdentifierUtils:
             'qgisred_isolatedsegments_links': 'Links_IsolSeg',
             'qgisred_isolatedsegments_nodes': 'Nodes_IsolSeg',
             'qgisred_isolatedsegments_isolateddemands': 'Isolated Demands_IsolSeg',
-            'qgisred_tree_links': 'Links T',
-            'qgisred_tree_nodes': 'Nodes T',
+            'qgisred_tree_links': 'Links_Tree',
+            'qgisred_tree_nodes': 'Nodes_Tree',
             'qgisred_demandbuilder_demandlinks': 'Demand Links DB',
             'qgisred_demandbuilder_consumptionpoints': 'Consumption Points DB'
         }
