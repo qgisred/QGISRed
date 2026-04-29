@@ -140,6 +140,19 @@ except AttributeError:
     SNAP_TYPE_SEGMENT = _QgsSnap.SnappingType.Segment
     SNAP_TYPE_BOTH    = _QgsSnap.SnappingType.VertexAndSegment
 
+# QgsPointLocator snap-match type constants.
+# QGIS 3: QgsPointLocator.Vertex / Edge (flat)
+# QGIS 4: QgsPointLocator.Type.Vertex / Edge (scoped)
+# ---------------------------------------------------------------------------
+from qgis.core import QgsPointLocator as _QgsPointLocator
+
+try:
+    SNAP_MATCH_VERTEX = _QgsPointLocator.Type.Vertex
+    SNAP_MATCH_EDGE   = _QgsPointLocator.Type.Edge
+except AttributeError:
+    SNAP_MATCH_VERTEX = _QgsPointLocator.Vertex
+    SNAP_MATCH_EDGE   = _QgsPointLocator.Edge
+
 from qgis.core import QgsAttributeTableConfig as _QgsATC
 from qgis.PyQt.QtWidgets import QDialog as _QDialog
 

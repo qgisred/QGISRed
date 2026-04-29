@@ -5,7 +5,7 @@ from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtCore import Qt
 
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
-from ..tools.map_tools.qgisred_createPipe import QGISRedCreatePipeTool
+from ..tools.map_tools.qgisred_createLineTool import QGISRedCreateLineTool
 from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool, SelectPointType
 from ..tools.map_tools.qgisred_moveNodes import QGISRedMoveNodesTool
 from ..tools.map_tools.qgisred_multilayerSelection import QGISRedMultiLayerSelection
@@ -39,7 +39,7 @@ class NetworkEditingSection:
             if self.isLayerOnEdition():
                 self.addPipeButton.setChecked(False)
                 return
-            self.myMapTools[tool] = QGISRedCreatePipeTool(
+            self.myMapTools[tool] = QGISRedCreateLineTool(
                 self.addPipeButton, self.iface, self.ProjectDirectory, self.NetworkName, self.runCreatePipe
             )
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])

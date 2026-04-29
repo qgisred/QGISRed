@@ -8,7 +8,7 @@ from qgis.PyQt.QtCore import Qt
 
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool, SelectPointType
-from ..tools.map_tools.qgisred_createConnection import QGISRedCreateConnectionTool
+from ..tools.map_tools.qgisred_createLineTool import QGISRedCreateLineTool
 from ..ui.digitaltwin.qgisred_toolConnections_dialog import QGISRedServiceConnectionsToolDialog
 
 
@@ -29,7 +29,7 @@ class DigitalTwinSection:
             if self.isLayerOnEdition():
                 self.addServConnButton.setChecked(False)
                 return
-            self.myMapTools[tool] = QGISRedCreateConnectionTool(
+            self.myMapTools[tool] = QGISRedCreateLineTool(
                 self.addServConnButton,
                 self.iface,
                 self.ProjectDirectory,

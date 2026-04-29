@@ -1,9 +1,11 @@
 import math
+import os
 from qgis.PyQt.QtCore import Qt, QEvent, QPoint, QCoreApplication
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QCheckBox, QFrame, QHBoxLayout
-from qgis.core import QgsPointXY, QgsPoint, QgsGeometry, QgsProject, QgsSnappingConfig, QgsTolerance, Qgis
-from ...compat import SNAP_TYPE_VERTEX
+from qgis.core import (QgsPointXY, QgsPoint, QgsGeometry, QgsProject, QgsSnappingConfig,
+                       QgsTolerance, QgsVectorLayer, Qgis)
+from ...compat import SNAP_TYPE_BOTH, SNAP_TYPE_VERTEX, SNAP_MATCH_EDGE
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSnappingUtils
 try:
     from qgis.gui import Qgis
@@ -18,18 +20,18 @@ class QGISRedCreateLineTool(QgsMapTool):
     """Base class for line-drawing map tools (pipes, connections).
 
     Subclasses override class attributes to customize visual and snapping behavior:
-      MARKER_ICON      — QgsVertexMarker icon type
-      MARKER_SIZE      — icon size in pixels
-      SNAP_TYPE        — 1=Vertex, 3=Segment
-      SNAP_TO_SEGMENTS — True enables firstSnapped logic and double-click to finish
-      SHOW_GRID        — True draws an adaptive grid overlay and snaps to it
+      MARKER_SIZE             — icon size in pixels (marker icon is dynamic: box=vertex, X=segment)
+      SNAP_TYPE               — QgsSnappingConfig type (vertex, segment, both)
+      SNAP_TO_SEGMENTS        — True enables firstSnapped logic and double-click to finish
+      SHOW_GRID               — True draws an adaptive grid overlay and snaps to it
+      EXCLUDE_SEGMENT_LAYERS  — list of layer-name suffixes where segment snaps are ignored
     """
 
-    MARKER_ICON = QgsVertexMarker.ICON_BOX
     MARKER_SIZE = 15
-    SNAP_TYPE = SNAP_TYPE_VERTEX
-    SNAP_TO_SEGMENTS = False
+    SNAP_TYPE = SNAP_TYPE_BOTH
+    SNAP_TO_SEGMENTS = True
     SHOW_GRID = True
+    EXCLUDE_SEGMENT_LAYERS = ["Pumps", "Valves"]
 
     def __init__(self, button, iface, projectDirectory, netwName, method):
         QgsMapTool.__init__(self, iface.mapCanvas())
@@ -42,14 +44,14 @@ class QGISRedCreateLineTool(QgsMapTool):
         self.startMarker = QgsVertexMarker(self.iface.mapCanvas())
         self.startMarker.setColor(QColor(255, 87, 51))
         self.startMarker.setIconSize(self.MARKER_SIZE)
-        self.startMarker.setIconType(self.MARKER_ICON)
+        self.startMarker.setIconType(QgsVertexMarker.ICON_BOX)
         self.startMarker.setPenWidth(3)
         self.startMarker.hide()
 
         self.endMarker = QgsVertexMarker(self.iface.mapCanvas())
         self.endMarker.setColor(QColor(255, 87, 51))
         self.endMarker.setIconSize(self.MARKER_SIZE)
-        self.endMarker.setIconType(self.MARKER_ICON)
+        self.endMarker.setIconType(QgsVertexMarker.ICON_BOX)
         self.endMarker.setPenWidth(3)
         self.endMarker.hide()
 
@@ -69,13 +71,7 @@ class QGISRedCreateLineTool(QgsMapTool):
         # Snapping
         self.snapper = QgsMapCanvasSnappingUtils(self.iface.mapCanvas())
         self.snapper.setMapSettings(self.iface.mapCanvas().mapSettings())
-        config = QgsSnappingConfig(QgsProject.instance())
-        config.setType(self.SNAP_TYPE)
-        config.setMode(QgsSnappingConfig.SnappingMode.AllLayers)
-        config.setTolerance(10)
-        config.setUnits(QgsTolerance.UnitType.Pixels)
-        config.setEnabled(True)
-        self.snapper.setConfig(config)
+        self.snapper.setConfig(self._buildSnappingConfig())
 
         if self.SHOW_GRID:
             self._showGrid = False
@@ -155,6 +151,49 @@ class QGISRedCreateLineTool(QgsMapTool):
         self.rubberBand2.setColor(QColor(240, 40, 40))
         self.rubberBand2.setWidth(1)
         self.rubberBand2.setLineStyle(Qt.PenStyle.DashLine)
+
+    def _buildSnappingConfig(self):
+        """Build a QgsSnappingConfig for this tool.
+
+        When EXCLUDE_SEGMENT_LAYERS is set, uses AdvancedConfiguration so that
+        those layers snap only to vertices (the QGIS engine filters segments,
+        avoiding enum-comparison fragility in Python).
+        Layer detection uses the source path (file name) because QGIS layer
+        names are translated display names, not file-based names."""
+        if not self.EXCLUDE_SEGMENT_LAYERS:
+            config = QgsSnappingConfig(QgsProject.instance())
+            config.setType(self.SNAP_TYPE)
+            config.setMode(QgsSnappingConfig.SnappingMode.AllLayers)
+            config.setTolerance(10)
+            config.setUnits(QgsTolerance.UnitType.Pixels)
+            config.setEnabled(True)
+            return config
+
+        try:
+            adv_mode = QgsSnappingConfig.SnappingMode.AdvancedConfiguration
+        except AttributeError:
+            adv_mode = QgsSnappingConfig.AdvancedConfiguration
+
+        config = QgsSnappingConfig()
+        config.setEnabled(True)
+        config.setMode(adv_mode)
+
+        units = QgsTolerance.UnitType.Pixels
+
+        for layer in QgsProject.instance().mapLayers().values():
+            if not isinstance(layer, QgsVectorLayer):
+                continue
+            # Detect by source filename (layer.name() is the translated display name)
+            source_base = os.path.splitext(os.path.basename(layer.source()))[0]
+            if any(source_base.endswith("_" + s) for s in self.EXCLUDE_SEGMENT_LAYERS):
+                snap_type = SNAP_TYPE_VERTEX
+            else:
+                snap_type = self.SNAP_TYPE
+            # IndividualLayerSettings() default ctor sets mValid=False; must use parameterized ctor
+            ind = QgsSnappingConfig.IndividualLayerSettings(True, snap_type, 10, units)
+            config.setIndividualLayerSettings(layer, ind)
+
+        return config
 
     """Grid"""
 
@@ -290,6 +329,22 @@ class QGISRedCreateLineTool(QgsMapTool):
                 pass
             self._clearGrid()
 
+    """Snapping helpers"""
+
+    def _markerIcon(self, match):
+        if match is not None:
+            try:
+                if match.type() & SNAP_MATCH_EDGE:
+                    return QgsVertexMarker.ICON_X
+            except Exception:
+                pass
+        return QgsVertexMarker.ICON_BOX
+
+    def _filterMatch(self, match):
+        if not match.isValid():
+            return None
+        return match
+
     """Events"""
 
     def canvasPressEvent(self, event):
@@ -338,12 +393,15 @@ class QGISRedCreateLineTool(QgsMapTool):
         # Mouse not clicked
         if not self.firstClicked:
             match = self.snapper.snapToMap(self.toMapCoordinates(event.pos()))
-            if match.isValid():
-                self.objectSnapped = match
-                self.startMarker.setCenter(QgsPointXY(match.point().x(), match.point().y()))
+            filtered = self._filterMatch(match)
+            if filtered is not None:
+                self.objectSnapped = filtered
+                self.startMarker.setIconType(self._markerIcon(filtered))
+                self.startMarker.setCenter(QgsPointXY(filtered.point().x(), filtered.point().y()))
                 self.startMarker.show()
             elif self._showGrid and self._gridSpacing > 0:
                 self.objectSnapped = None
+                self.startMarker.setIconType(QgsVertexMarker.ICON_BOX)
                 gridPt = self._snapToGrid(self.toMapCoordinates(event.pos()))
                 self.startMarker.setCenter(gridPt)
                 self.startMarker.show()
@@ -356,13 +414,16 @@ class QGISRedCreateLineTool(QgsMapTool):
                 self.startMarker.hide()
             point = self.toMapCoordinates(event.pos())
             match = self.snapper.snapToMap(point)
-            if match.isValid():
-                self.objectSnapped = match
-                self.endMarker.setCenter(QgsPointXY(match.point().x(), match.point().y()))
+            filtered = self._filterMatch(match)
+            if filtered is not None:
+                self.objectSnapped = filtered
+                self.endMarker.setIconType(self._markerIcon(filtered))
+                self.endMarker.setCenter(QgsPointXY(filtered.point().x(), filtered.point().y()))
                 self.endMarker.show()
-                self.mousePoints[-1] = match.point()
+                self.mousePoints[-1] = filtered.point()
             else:
                 self.objectSnapped = None
+                self.endMarker.setIconType(QgsVertexMarker.ICON_BOX)
                 if self._showGrid and self._gridSpacing > 0:
                     point = self._snapToGrid(point)
                     self.endMarker.setCenter(point)

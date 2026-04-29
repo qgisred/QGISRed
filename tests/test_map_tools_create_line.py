@@ -109,8 +109,6 @@ sys.modules['qgis.PyQt.QtGui'] = _mock_qgis_pyqt_qtgui
 sys.modules['qgis.PyQt.QtWidgets'] = _mock_qgis_pyqt_qtwidgets
 
 from QGISRed.tools.map_tools.qgisred_createLineTool import QGISRedCreateLineTool  # noqa: E402
-from QGISRed.tools.map_tools.qgisred_createPipe import QGISRedCreatePipeTool      # noqa: E402
-from QGISRed.tools.map_tools.qgisred_createConnection import QGISRedCreateConnectionTool  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
@@ -283,35 +281,17 @@ class TestPressEventStateMachine:
 
 
 # ---------------------------------------------------------------------------
-# 4. Subclass configuration — attributes of Pipe vs Connection
+# 4. Base class configuration — unified attributes
 # ---------------------------------------------------------------------------
-class TestSubclassConfig:
-    """Verify that CreatePipe and CreateConnection declare the correct class attributes."""
+class TestBaseClassConfig:
+    """Verify that QGISRedCreateLineTool declares the correct unified class attributes."""
 
-    def test_pipe_snap_type_is_vertex(self):
-        assert QGISRedCreatePipeTool.SNAP_TYPE == 1
+    def test_snaps_to_vertices_and_segments(self):
+        assert QGISRedCreateLineTool.SNAP_TO_SEGMENTS is True
 
-    def test_pipe_does_not_snap_to_segments(self):
-        assert QGISRedCreatePipeTool.SNAP_TO_SEGMENTS is False
+    def test_shows_grid(self):
+        assert QGISRedCreateLineTool.SHOW_GRID is True
 
-    def test_pipe_shows_grid(self):
-        assert QGISRedCreatePipeTool.SHOW_GRID is True
-
-    def test_pipe_marker_is_box(self):
-        assert QGISRedCreatePipeTool.MARKER_ICON == _QgsVertexMarker.ICON_BOX
-
-    def test_connection_snap_type_is_segment(self):
-        assert QGISRedCreateConnectionTool.SNAP_TYPE == 3
-
-    def test_connection_snaps_to_segments(self):
-        assert QGISRedCreateConnectionTool.SNAP_TO_SEGMENTS is True
-
-    def test_connection_shows_grid(self):
-        assert QGISRedCreateConnectionTool.SHOW_GRID is True
-
-    def test_connection_marker_is_x(self):
-        assert QGISRedCreateConnectionTool.MARKER_ICON == _QgsVertexMarker.ICON_X
-
-    def test_pipe_and_connection_are_subclasses_of_base(self):
-        assert issubclass(QGISRedCreatePipeTool, QGISRedCreateLineTool)
-        assert issubclass(QGISRedCreateConnectionTool, QGISRedCreateLineTool)
+    def test_excludes_pump_and_valve_segment_snaps(self):
+        assert "Pumps" in QGISRedCreateLineTool.EXCLUDE_SEGMENT_LAYERS
+        assert "Valves" in QGISRedCreateLineTool.EXCLUDE_SEGMENT_LAYERS
