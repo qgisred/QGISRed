@@ -476,7 +476,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return
 
         layerNode = QgsProject.instance().layerTreeRoot().findLayer(layer)
-        if not layerNode or not layerNode.isVisible():
+        if not layerNode:
             return
 
         groupPath = self.findGroupPathForLayer(layerNode)
@@ -1306,21 +1306,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 currentPath = pathParts + [child.name()]
                 identifier = child.customProperty("qgisred_identifier")
 
-                if (
-                    child.isVisible()
-                    and identifier in self.ALLOWED_GROUP_IDENTIFIERS
-                ):
+                if identifier in self.ALLOWED_GROUP_IDENTIFIERS:
                     isResultsGroup = identifier == "qgisred_results" # Results group bypasses empty layer check (layers are in subgroups)
-                    if isResultsGroup or self.groupHasVisibleLayers(child):
+                    if isResultsGroup or self.groupHasAnyLayers(child):
                         results.append((currentPath[-1], " / ".join(currentPath), child))
 
                 self.collectGroupsRecursive(child, currentPath, results)
 
-    def groupHasVisibleLayers(self, group):
-        return any(
-            isinstance(child, QgsLayerTreeLayer) and child.isVisible()
-            for child in group.children()
-        )
+    def groupHasAnyLayers(self, group):
+        return any(isinstance(child, QgsLayerTreeLayer) for child in group.children())
 
     def getRenderableLayersInSelectedGroup(self):
         path = self.cbGroups.currentData()
@@ -1346,7 +1340,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         isInputGroup = groupIdentifier == "qgisred_inputs"
 
         for child in group.children():
-            if isinstance(child, QgsLayerTreeLayer) and child.isVisible():
+            if isinstance(child, QgsLayerTreeLayer):
                 layer = child.layer()
                 if layer and isinstance(layer, QgsVectorLayer):
                     rendererType = layer.renderer().type() if layer.renderer() else ""
