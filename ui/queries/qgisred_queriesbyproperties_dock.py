@@ -885,6 +885,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             defaults = self.defaultProperties.get(elementText, self.defaultProperties.get(qrIdent, []))
             for defaultProp in defaults:
                 idx = self.findComboByInternalName(self.cbProperty, defaultProp)
+                if idx < 0 and defaultProp == 'Flow':
+                    idx = self.findComboByInternalName(self.cbProperty, 'Flow_Unsig')
                 if idx >= 0:
                     self.cbProperty.setCurrentIndex(idx)
                     break
