@@ -90,9 +90,9 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
 
     def accept(self):
         rootGroup = self.getRootGroup()
-        inputsGroup = self.findGroupByName(rootGroup, 'Inputs')
+        inputsGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_inputs")
         if inputsGroup is None:
-            QMessageBox.critical(self, self.tr('Error'),'Inputs ' + self.tr('group not found.'))
+            QMessageBox.critical(self, self.tr('Error'), self.tr('Inputs group not found.'))
             return
 
         selectedQueries = self.getSelectedQueries()
@@ -110,27 +110,16 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         self.removeQueryLayersByIdentifiers(toRemoveIdentifiers)
 
         # cleanup empty groups first
-        queriesGroup = None
-        for child in rootGroup.children():
-            if child.nodeType() == NODE_TYPE_GROUP and child.name() == 'Queries':
-                queriesGroup = child
-                break
-            if child.customProperty("qgisred_identifier") == "qgisred_queries":
-                queriesGroup = child
-                break
-
+        queriesGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_queries")
         if queriesGroup is not None:
-            thematicGroup = None
-            for child in queriesGroup.children():
-                if child.nodeType() == NODE_TYPE_GROUP and (child.name() == 'Thematic Maps' or child.customProperty("qgisred_identifier") == "qgisred_thematicmaps"):
-                    thematicGroup = child
-                    break
-            
-            if thematicGroup and not thematicGroup.children():
-                queriesGroup.removeChildNode(thematicGroup)
+            thematicGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_thematicmaps")
+            if thematicGroup is not None and not thematicGroup.children():
+                thematicParent = thematicGroup.parent()
+                if thematicParent is not None:
+                    thematicParent.removeChildNode(thematicGroup)
             if not queriesGroup.children():
                 parent = queriesGroup.parent()
-                if parent:
+                if parent is not None:
                     parent.removeChildNode(queriesGroup)
 
         # Re-fetch inputsGroup using identifier utility
@@ -169,24 +158,23 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
     def removeQueryLayersByIdentifiers(self, identifiersToRemove):
         if not identifiersToRemove:
             return
-        root = QgsProject.instance().layerTreeRoot()
 
         # Prefer Queries → Thematic Maps, but fall back to Queries (for legacy layers)
-        queriesGroup = self.findGroupByName(root, 'Queries')
-        targetGroup = None
-        if queriesGroup:
-            thematicGroup = self.findGroupByName(queriesGroup, 'Thematic Maps')
-            targetGroup = thematicGroup or queriesGroup
+        queriesGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_queries")
+        thematicGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_thematicmaps")
+        targetGroup = thematicGroup or queriesGroup
 
         if targetGroup:
             self.recursiveRemoveByIdentifiers(targetGroup, identifiersToRemove)
 
             # tidy up if groups become empty
-            if thematicGroup and not thematicGroup.children():
-                queriesGroup.removeChildNode(thematicGroup)
-            if queriesGroup and not queriesGroup.children():
+            if thematicGroup is not None and not thematicGroup.children():
+                thematicParent = thematicGroup.parent()
+                if thematicParent is not None:
+                    thematicParent.removeChildNode(thematicGroup)
+            if queriesGroup is not None and not queriesGroup.children():
                 parent = queriesGroup.parent()
-                if parent:
+                if parent is not None:
                     parent.removeChildNode(queriesGroup)
 
     def recursiveRemoveByIdentifiers(self, group, identifiers):
@@ -207,9 +195,6 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             return root
         else:
             return root.rootGroup()
-
-    def findGroupByName(self, parentGroup, groupName):
-        return parentGroup.findGroup(groupName)
 
     def getOrCreateQueriesGroup(self, rootGroup, inputsGroup):
         inputsParent = inputsGroup.parent()
@@ -408,9 +393,8 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         layer.triggerRepaint()
     
     def updateCheckboxStates(self):
-        root = QgsProject.instance().layerTreeRoot()
-        queriesGroup = self.findGroupByName(root, 'Queries')
-        thematicGroup = self.findGroupByName(queriesGroup, 'Thematic Maps') if queriesGroup else None
+        queriesGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_queries")
+        thematicGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_thematicmaps")
         targetGroup = thematicGroup or queriesGroup  # support legacy placement
 
         checkboxMapping = self.createIdentifierCheckboxMapping()
