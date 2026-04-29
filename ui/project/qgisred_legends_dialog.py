@@ -42,9 +42,20 @@ class QGISRedLegendsDialog(QDialog, formClass):
     ALLOWED_GROUP_IDENTIFIERS = [
         "qgisred_thematicmaps",
         "qgisred_results",
+        "qgisred_inputs",
+        "qgisred_connectivity",
+        "qgisred_hydraulicsectors",
         "qgisred_demandsectors",
-        "qgisred_inputs"
+        "qgisred_isolatedsegments"
     ]
+
+    QUERIES_GROUP_PREFIXES = (
+        "qgisred_connectivity",
+        "qgisred_hydraulicsectors",
+        "qgisred_demandsectors",
+        "qgisred_isolatedsegments",
+        "qgisred_tree",
+    )
 
     # ============================================================
     # INITIALIZATION
@@ -1308,14 +1319,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
         for child in parent.children():
             if isinstance(child, QgsLayerTreeGroup):
                 currentPath = pathParts + [child.name()]
-                identifier = child.customProperty("qgisred_identifier")
+                identifier = child.customProperty("qgisred_identifier") or ""
 
-                if identifier in self.ALLOWED_GROUP_IDENTIFIERS:
-                    isResultsGroup = identifier == "qgisred_results" # Results group bypasses empty layer check (layers are in subgroups)
-                    if isResultsGroup or self.groupHasAnyLayers(child):
+                isAllowed = identifier in self.ALLOWED_GROUP_IDENTIFIERS or self.isQueriesGroup(identifier)
+                if isAllowed:
+                    isResultsOrQueries = identifier == "qgisred_results" or self.isQueriesGroup(identifier)
+                    if isResultsOrQueries or self.groupHasAnyLayers(child):
                         results.append((currentPath[-1], " / ".join(currentPath), child))
 
                 self.collectGroupsRecursive(child, currentPath, results)
+
+    def isQueriesGroup(self, identifier):
+        return any(identifier.startswith(prefix) for prefix in self.QUERIES_GROUP_PREFIXES)
 
     def groupHasAnyLayers(self, group):
         return any(isinstance(child, QgsLayerTreeLayer) for child in group.children())
@@ -1329,16 +1344,16 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not group:
             return []
 
-        # Check if this is a qgisred_results group to enable recursive layer collection
-        identifier = group.customProperty("qgisred_identifier")
-        isResultsGroup = identifier == "qgisred_results"
+        identifier = group.customProperty("qgisred_identifier") or ""
+        recurseIntoSubgroups = identifier == "qgisred_results" or self.isQueriesGroup(identifier)
+        isQueriesGroup = self.isQueriesGroup(identifier)
 
         layers = []
-        self.collectRenderableLayersRecursive(group, layers, isResultsGroup)
+        self.collectRenderableLayersRecursive(group, layers, recurseIntoSubgroups, isQueriesGroup)
 
         return layers
 
-    def collectRenderableLayersRecursive(self, group, layers, recurseIntoSubgroups):
+    def collectRenderableLayersRecursive(self, group, layers, recurseIntoSubgroups, isQueriesGroup=False):
         """Collects renderable layers from a group, optionally recursing into subgroups."""
         groupIdentifier = group.customProperty("qgisred_identifier") or ""
         isInputGroup = groupIdentifier == "qgisred_inputs"
@@ -1355,12 +1370,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
                         "qgisred_isolationvalves", "qgisred_meters", "qgisred_demands"
                     }
                     if rendererType in ("graduatedSymbol", "categorizedSymbol", "RuleRenderer") or (
-                        rendererType == "singleSymbol" and (isInputLayer or recurseIntoSubgroups)
+                        rendererType == "singleSymbol" and (isInputLayer or recurseIntoSubgroups or isQueriesGroup)
                     ):
                         layers.append(layer)
             elif isinstance(child, QgsLayerTreeGroup) and recurseIntoSubgroups:
-                # Recursively collect layers from nested subgroups
-                self.collectRenderableLayersRecursive(child, layers, recurseIntoSubgroups)
+                self.collectRenderableLayersRecursive(child, layers, recurseIntoSubgroups, isQueriesGroup)
 
     def findGroupByPath(self, pathStr):
         current = QgsProject.instance().layerTreeRoot()
