@@ -803,10 +803,18 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         darkBrush = QBrush(QColor("#D8D8D8"))
         resultProps = self.getResultProperties(layer, qrIdent)
         fieldUtils = QGISRedFieldUtils()
-        if fieldUtils.getQualityModel().upper() == "NONE":
-            resultProps = [p for p in resultProps if p != "Quality"]
-        if not fieldUtils.showReactRate():
-            resultProps = [p for p in resultProps if p != "ReactRate"]
+        qualityModel = fieldUtils.getQualityModel().upper()
+        if qualityModel == "NONE":
+            resultProps = [p for p in resultProps if p not in ("Quality", "ReactRate")]
+        if qualityModel in ("NONE", "AGE", "TRACE"):
+            nonChemicalStaticFields = {
+                'qgisred_pipes': {'bulkcoeff', 'wallcoeff'},
+                'qgisred_tanks': {'reactcoef', 'iniquality'},
+                'qgisred_reservoirs': {'iniquality'},
+                'qgisred_junctions': {'iniquality'},
+            }.get(qrIdent, set())
+            if nonChemicalStaticFields:
+                staticFields = [f for f in staticFields if f.name().lower() not in nonChemicalStaticFields]
         numericResultProps = [p for p in resultProps if p != 'Status']
         ident = layer.customProperty("qgisred_identifier") or ""
         if ident.startswith("qgisred_node"):
