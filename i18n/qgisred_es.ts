@@ -2551,8 +2551,8 @@ Do you also want to delete the result files from disk?</source>
     </message>
     <message>
         <location filename="../tools/utils/qgisred_layer_utils.py" line="95"/>
-        <source>Auxiliary</source>
-        <translation>Auxiliar</translation>
+        <source>Auxiliary Layers</source>
+        <translation>Capas Auxiliares</translation>
     </message>
 </context>
 <context>

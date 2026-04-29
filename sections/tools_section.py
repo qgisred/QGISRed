@@ -215,7 +215,7 @@ class ToolsSection:
     def openDemandBuilderLayers(self):
         # Open layers
         demandBuilderGroup = self.getDemandBuilderGroup()
-        isoFolder = os.path.join(self.ProjectDirectory, "Auxiliary", "DemandBuilder")
+        isoFolder = os.path.join(self.ProjectDirectory, "Auxiliary Layers", "DemandBuilder")
         utils = QGISRedLayerUtils(isoFolder, self.NetworkName, self.iface)
         utils.openLayer(demandBuilderGroup, "DemandBuilder_DemandLinks")
         utils.openLayer(demandBuilderGroup, "DemandBuilder_ConsumptionPoints")
@@ -235,7 +235,7 @@ class ToolsSection:
     
     def getDemandBuilderGroup(self):
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        return utils.getOrCreateNestedGroup([self.NetworkName, "Auxiliary", "DemandBuilder"])
+        return utils.getOrCreateNestedGroup([self.NetworkName, "Auxiliary Layers", "DemandBuilder"])
 
     def removeIsolatedSegmentsLayers(self):
         isoFolder = os.path.join(self.ProjectDirectory, "Queries", "IsolatedSegments")

@@ -816,9 +816,9 @@ class ProjectManagementSection:
                 target_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, target)))
                 if layer_dir_norm != target_norm:
                     return target
-            # DemandBuilder: root or Queries/ flat → Auxiliary/DemandBuilder/
+            # DemandBuilder: root or Queries/ flat → Auxiliary Layers/DemandBuilder/
             if base.startswith(netPrefix) and "_DemandBuilder_" in base:
-                target = os.path.join("Auxiliary", "DemandBuilder")
+                target = os.path.join("Auxiliary Layers", "DemandBuilder")
                 target_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, target)))
                 if layer_dir_norm != target_norm:
                     return target

@@ -362,7 +362,7 @@ class LayerManagementSection:
             self.hasToOpenIsolatedSegmentsLayers = False
 
         if self.hasToOpenDemandBuilderLayers:
-            isoFolder = os.path.join(self.ProjectDirectory, "Auxiliary", "DemandBuilder")
+            isoFolder = os.path.join(self.ProjectDirectory, "Auxiliary Layers", "DemandBuilder")
             os.makedirs(isoFolder, exist_ok=True)
             for fi in os.listdir(self.ProjectDirectory):
                 if fi.startswith(self.NetworkName) and "DemandBuilder" in fi:
