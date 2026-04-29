@@ -198,13 +198,13 @@ class QGISRedFieldUtils:
         return self.getQualityModel().upper() not in ("NONE", "AGE", "TRACE")
 
     """Fields"""
-    def getFieldPrettyName(self, elementCategory, fieldName):
+    def getFieldPrettyName(self, elementCategory, fieldName, translate=True):
         """Get the pretty display name for a field from the CSV-derived prettyNames."""
         if not fieldName:
             return fieldName
 
         # Dynamic override: Quality in result layers uses the quality-model-specific name
-        if fieldName == "Quality":
+        if translate and fieldName == "Quality":
             category = self.identifierToElementName.get(elementCategory, elementCategory)
             if category in ("Nodes", "Links"):
                 if self.getQualityModel().upper() != "NONE":
@@ -217,10 +217,10 @@ class QGISRedFieldUtils:
         if category and category in prettyNames:
             if fieldName in prettyNames[category]:
                 prop = prettyNames[category][fieldName]
-                return QCoreApplication.translate("FieldPrettyNames", prop)
+                return QCoreApplication.translate("FieldPrettyNames", prop) if translate else prop
 
         prop = prettyNames.get("Common", {}).get(fieldName, fieldName)
-        return QCoreApplication.translate("FieldPrettyNames", prop)
+        return QCoreApplication.translate("FieldPrettyNames", prop) if translate else prop
 
     def getFieldRawName(self, elementCategory, prettyName):
         """Get the raw field name from a pretty display name."""

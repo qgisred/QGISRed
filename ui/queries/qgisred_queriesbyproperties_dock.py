@@ -1236,7 +1236,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         # Flow_Unsig is preserved verbatim in exports so the criterion roundtrips losslessly
         if propertyName == "Flow_Unsig":
             return propertyName
-        return QGISRedFieldUtils().getFieldPrettyName(self.categoryForProperty(propertyName), propertyName)
+        return QGISRedFieldUtils().getFieldPrettyName(self.categoryForProperty(propertyName), propertyName, translate=False)
 
     def displayPrettyForCriterion(self, propertyName):
         rawProp = "Flow" if propertyName == "Flow_Unsig" else propertyName
@@ -1245,9 +1245,9 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
     def rawForImportedProperty(self, prettyName):
         if not prettyName:
             return prettyName
-        fieldUtils = QGISRedFieldUtils()
-        if prettyName == fieldUtils.getQualityDisplayName():
+        if prettyName == "Quality":
             return "Quality"
+        fieldUtils = QGISRedFieldUtils()
         raw = fieldUtils.getFieldRawName(self.categoryForProperty(prettyName), prettyName)
         if raw == prettyName:
             qrIdent = self.cbElementType.currentData(Qt.ItemDataRole.UserRole) or ""
