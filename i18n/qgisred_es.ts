@@ -1036,7 +1036,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="98"/>
         <source>Head</source>
-        <translation>Carga</translation>
+        <translation>Altura</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="99"/>
@@ -2850,7 +2850,7 @@ Do you also want to delete the result files from disk?</source>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1511"/>
         <source>Head</source>
-        <translation>Carga</translation>
+        <translation>Altura</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1537"/>
@@ -4262,7 +4262,7 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="105"/>
         <source>Head</source>
-        <translation>Carga</translation>
+        <translation>Altura</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="106"/>
