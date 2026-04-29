@@ -1881,6 +1881,23 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         if self.queryHasBeenSubmitted and self.effectiveCriteria():
             self.runQuery()
 
+    def getDynamicContextSuffix(self):
+        if self.currentResultsStatText:
+            englishStat = self.currentResultsStatText
+            if self.isResultsDockAlive():
+                statTranslationToEnglish = {
+                    self.resultsDock.lbl_maximum:       "Maximum",
+                    self.resultsDock.lbl_minimum:       "Minimum",
+                    self.resultsDock.lbl_range:         "Range",
+                    self.resultsDock.lbl_average:       "Average",
+                    self.resultsDock.lbl_std_deviation: "StdDev",
+                }
+                englishStat = statTranslationToEnglish.get(self.currentResultsStatText, self.currentResultsStatText)
+            return f" for {englishStat} values for report times"
+        if self.currentResultsTimeText:
+            return f" @{self.currentResultsTimeText}"
+        return ""
+
     def onResultsPropertyChanged(self):
         self.reapplySelection()
 
@@ -2108,11 +2125,10 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             projectName = QgsProject.instance().baseName()
             activeCriteria = self.effectiveCriteria()
             elementType = self.cbElementType.currentText()
-            timeText = (self.currentResultsTimeText or self.labelResults.text() or "").strip()
             hasDynamicCriterion = any(
                 self.isResultProperty(c['property']) for c in activeCriteria
             )
-            timeSuffix = f" @{timeText}" if timeText and hasDynamicCriterion else ""
+            contextSuffix = self.getDynamicContextSuffix() if hasDynamicCriterion else ""
 
             table = self.tableWidgetStatistics
             headers = [
@@ -2137,9 +2153,9 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                         unit = self.getUnitForProperty(c['property'])
                         suffix = f" {unit}" if unit else ""
                         criterionStr = f"{op} {prop} {cond} {val}{suffix}"
-                    f.write(f"Query: {criterionStr}{timeSuffix}\n")
+                    f.write(f"Query: {criterionStr}{contextSuffix}\n")
                 else:
-                    f.write(f"Queries{timeSuffix}\n")
+                    f.write(f"Queries{contextSuffix}\n")
                     for c in activeCriteria:
                         op = c['operator']
                         prop = self.prettyForCriterion(c['property'])
