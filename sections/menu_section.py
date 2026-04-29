@@ -682,7 +682,7 @@ class MenuSection:
 
         action = self._make_action(
             ":/images/iconGraphTree.svg", 
-            self.tr("Tree graph..."), 
+            self.tr("Minimum Coste Tree..."), 
             self.runTree,
             parent=self.iface.mainWindow(),
         )

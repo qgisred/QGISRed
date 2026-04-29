@@ -1192,84 +1192,89 @@
         <translation>Ventosas</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="138"/>
-        <source>Links Connectivity</source>
-        <translation>Conectividad en Líneas</translation>
-    </message>
-    <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="139"/>
-        <source>Links HS</source>
-        <translation>Líneas SH</translation>
-    </message>
-    <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="140"/>
-        <source>Nodes HS</source>
-        <translation>Nudos SH</translation>
-    </message>
-    <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="141"/>
-        <source>Isolated Demands HS</source>
-        <translation>Demandas Aisladas SH</translation>
-    </message>
-    <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="142"/>
-        <source>Links DS</source>
-        <translation>Líneas SD</translation>
-    </message>
-    <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="143"/>
-        <source>Nodes DS</source>
-        <translation>Nudos SD</translation>
-    </message>
-    <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="144"/>
-        <source>Links IS</source>
-        <translation>Líneas C</translation>
-    </message>
-    <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="145"/>
-        <source>Nodes IS</source>
-        <translation>Nudos C</translation>
-    </message>
-    <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="146"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="147"/>
         <source>Links T</source>
         <translation>Líneas Á</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="147"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="148"/>
         <source>Nodes T</source>
         <translation>Nudos Á</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="150"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="151"/>
         <source>%1 I</source>
         <translation>%1 I</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="152"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="153"/>
         <source>Pipe Diameters</source>
         <translation>Diámetros de Tubería</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="153"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="154"/>
         <source>Pipe Lengths</source>
         <translation>Longitudes de Tubería</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="154"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="155"/>
         <source>Pipe Materials</source>
         <translation>Materiales de Tubería</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="148"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="149"/>
         <source>Demand Links DB</source>
         <translation>Enlaces Demanda CD</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="149"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="150"/>
         <source>Consumption Points DB</source>
         <translation>Consumos Puntuales CD</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="144"/>
+        <source>Links_IsolSeg</source>
+        <translation>Líneas_PolCorte</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="145"/>
+        <source>Nodes_IsolSeg</source>
+        <translation>Nudos_PolCorte</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="146"/>
+        <source>Isolated Demands_IsolSeg</source>
+        <translation>Demandas Aisladas_PolCorte</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="139"/>
+        <source>Links_HydSec</source>
+        <translation>Líneas_SecHid</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="140"/>
+        <source>Nodes_HydSec</source>
+        <translation>Nudos_SecHid</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="141"/>
+        <source>Isolated Demands_HydSec</source>
+        <translation>Demandas Aisladas_SecHid</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="142"/>
+        <source>Links_DemSec</source>
+        <translation>Líneas_SecDem</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="143"/>
+        <source>Nodes_DemSec</source>
+        <translation>Nudos_SecDem</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="138"/>
+        <source>Links_Connect</source>
+        <translation>Líneas_Conect</translation>
     </message>
 </context>
 <context>
@@ -1768,11 +1773,6 @@
         <translation>Constructor de escenarios...</translation>
     </message>
     <message>
-        <location filename="../sections/menu_section.py" line="683"/>
-        <source>Tree graph...</source>
-        <translation>Grafo en árbol...</translation>
-    </message>
-    <message>
         <location filename="../sections/menu_section.py" line="759"/>
         <source>Time series...</source>
         <translation>Curvas de evolución...</translation>
@@ -1821,6 +1821,11 @@
         <location filename="../sections/menu_section.py" line="1054"/>
         <source>Element properties...</source>
         <translation>Propiedades de los elementos...</translation>
+    </message>
+    <message>
+        <location filename="../sections/menu_section.py" line="683"/>
+        <source>Minimum Coste Tree...</source>
+        <translation>Árbol Mínimo Coste</translation>
     </message>
 </context>
 <context>
@@ -2366,16 +2371,6 @@ Do you also want to delete the result files from disk?</source>
         <translation>Demandas Totales</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1275"/>
-        <source>Previous demand set</source>
-        <translation type="obsolete">Cojunto de demandas anteriores</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1282"/>
-        <source>Next demand set</source>
-        <translation type="obsolete">Conjunto de demandas siguientes</translation>
-    </message>
-    <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1288"/>
         <source>Previous demand</source>
         <translation>Demanda anterior</translation>
@@ -2542,7 +2537,7 @@ Do you also want to delete the result files from disk?</source>
     <message>
         <location filename="../tools/utils/qgisred_layer_utils.py" line="92"/>
         <source>Isolated Segments</source>
-        <translation>Cerradas</translation>
+        <translation>Polígonos de Corte</translation>
     </message>
     <message>
         <location filename="../tools/utils/qgisred_layer_utils.py" line="94"/>
@@ -4455,11 +4450,6 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
 <context>
     <name>QGISRedTimeSeriesDock</name>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.ui" line="14"/>
-        <source>Time Series</source>
-        <translation type="obsolete">Curvas de Evolución</translation>
-    </message>
-    <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.ui" line="43"/>
         <source>Selection required...</source>
         <translation>Selección requerida</translation>
@@ -4540,24 +4530,6 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <location filename="../ui/analysis/qgisred_results_rendering.py" line="252"/>
         <source>Some issue occurred in the process of applying the style to the layer %1</source>
         <translation>Ha habido algún error en el proceso de aplicar el estilo a la capa %1</translation>
-    </message>
-</context>
-<context>
-    <name>widget</name>
-    <message>
-        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="127"/>
-        <source>No data to display, please select an element on the map.</source>
-        <translation type="obsolete">No hay datos que mostrar. Selecciona una ubicación en el mapa.</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="235"/>
-        <source>Step: %1</source>
-        <translation type="obsolete">Instante: %1</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="549"/>
-        <source>Series</source>
-        <translation type="obsolete">Series</translation>
     </message>
 </context>
 </TS>
