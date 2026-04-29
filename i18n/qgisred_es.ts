@@ -1212,69 +1212,69 @@
         <translation>Materiales de Tubería</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="149"/>
-        <source>Demand Links DB</source>
-        <translation>Enlaces Demanda CD</translation>
-    </message>
-    <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="150"/>
-        <source>Consumption Points DB</source>
-        <translation>Consumos Puntuales CD</translation>
-    </message>
-    <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="144"/>
-        <source>Links_IsolSeg</source>
-        <translation>Líneas_PolCorte</translation>
-    </message>
-    <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="145"/>
-        <source>Nodes_IsolSeg</source>
-        <translation>Nudos_PolCorte</translation>
-    </message>
-    <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="146"/>
-        <source>Isolated Demands_IsolSeg</source>
-        <translation>Demandas Aisladas_PolCorte</translation>
+        <location filename="../tools/qgisred_translatable_strings.py" line="138"/>
+        <source>Connect_Links</source>
+        <translation>Conect_Líneas</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="139"/>
-        <source>Links_HydSec</source>
-        <translation>Líneas_SecHid</translation>
+        <source>HydSec_Links</source>
+        <translation>SecHid_Líneas</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="140"/>
-        <source>Nodes_HydSec</source>
-        <translation>Nudos_SecHid</translation>
+        <source>HydSec_Nodes</source>
+        <translation>SecHid_Nudos</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="141"/>
-        <source>Isolated Demands_HydSec</source>
-        <translation>Demandas Aisladas_SecHid</translation>
+        <source>HydSec_Isolated Demands</source>
+        <translation>SecHid_Demandas Aisladas</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="142"/>
-        <source>Links_DemSec</source>
-        <translation>Líneas_SecDem</translation>
+        <source>DemSec_Links</source>
+        <translation>SecDem_Líneas</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="143"/>
-        <source>Nodes_DemSec</source>
-        <translation>Nudos_SecDem</translation>
+        <source>DemSec_Nodes</source>
+        <translation>SecDem_Nudos</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="138"/>
-        <source>Links_Connect</source>
-        <translation>Líneas_Conect</translation>
+        <location filename="../tools/qgisred_translatable_strings.py" line="144"/>
+        <source>IsolSeg_Links</source>
+        <translation>PolCorte_Líneas</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="145"/>
+        <source>IsolSeg_Nodes</source>
+        <translation>PolCorte_Nudos</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="146"/>
+        <source>IsolSeg_Isolated Demands</source>
+        <translation>PolCorte_Demandas Aisladas</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="147"/>
-        <source>Links_Tree</source>
-        <translation>Líneas_Arbol</translation>
+        <source>Tree_Links</source>
+        <translation>Árbol_Líneas</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="148"/>
-        <source>Nodes_Tree</source>
-        <translation>Nudos_Arbol</translation>
+        <source>Tree_Nodes</source>
+        <translation>Árbol_Nudos</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="149"/>
+        <source>DemBuil_Demand Links</source>
+        <translation>ConstDem_Líneas Demanda</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="150"/>
+        <source>DemBuil_Consumption Points</source>
+        <translation>ConstDem_Consumos Puntuales</translation>
     </message>
 </context>
 <context>

@@ -50,19 +50,19 @@ class QGISRedIdentifierUtils:
             'qgisred_serviceconnections': 'Service Connections',
             'qgisred_isolationvalves': 'Isolation Valves',
             'qgisred_meters': 'Meters',
-            'qgisred_connectivity_links': 'Links_Connect',
-            'qgisred_hydraulicsectors_links': 'Links_HydSec',
-            'qgisred_hydraulicsectors_nodes': 'Nodes_HydSec',
-            'qgisred_hydraulicsectors_isolateddemands': 'Isolated Demands_HydSec',
-            'qgisred_demandsectors_links': 'Links_DemSec',
-            'qgisred_demandsectors_nodes': 'Nodes_DemSec',
-            'qgisred_isolatedsegments_links': 'Links_IsolSeg',
-            'qgisred_isolatedsegments_nodes': 'Nodes_IsolSeg',
-            'qgisred_isolatedsegments_isolateddemands': 'Isolated Demands_IsolSeg',
-            'qgisred_tree_links': 'Links_Tree',
-            'qgisred_tree_nodes': 'Nodes_Tree',
-            'qgisred_demandbuilder_demandlinks': 'Demand Links DB',
-            'qgisred_demandbuilder_consumptionpoints': 'Consumption Points DB'
+            'qgisred_connectivity_links': 'Connect_Links',
+            'qgisred_hydraulicsectors_links': 'HydSec_Links',
+            'qgisred_hydraulicsectors_nodes': 'HydSec_Nodes',
+            'qgisred_hydraulicsectors_isolateddemands': 'HydSec_Isolated Demands',
+            'qgisred_demandsectors_links': 'DemSec_Links',
+            'qgisred_demandsectors_nodes': 'DemSec_Nodes',
+            'qgisred_isolatedsegments_links': 'IsolSeg_Links',
+            'qgisred_isolatedsegments_nodes': 'IsolSeg_Nodes',
+            'qgisred_isolatedsegments_isolateddemands': 'IsolSeg_Isolated Demands',
+            'qgisred_tree_links': 'Tree_Links',
+            'qgisred_tree_nodes': 'Tree_Nodes',
+            'qgisred_demandbuilder_demandlinks': 'DemBuil_Demand Links',
+            'qgisred_demandbuilder_consumptionpoints': 'DemBuil_Consumption Points'
         }
 
     def tr(self, message):

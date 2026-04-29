@@ -1212,68 +1212,68 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="149"/>
-        <source>Demand Links DB</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="150"/>
-        <source>Consumption Points DB</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="144"/>
-        <source>Links_IsolSeg</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="145"/>
-        <source>Nodes_IsolSeg</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="146"/>
-        <source>Isolated Demands_IsolSeg</source>
+        <location filename="../tools/qgisred_translatable_strings.py" line="138"/>
+        <source>Connect_Links</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="139"/>
-        <source>Links_HydSec</source>
+        <source>HydSec_Links</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="140"/>
-        <source>Nodes_HydSec</source>
+        <source>HydSec_Nodes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="141"/>
-        <source>Isolated Demands_HydSec</source>
+        <source>HydSec_Isolated Demands</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="142"/>
-        <source>Links_DemSec</source>
+        <source>DemSec_Links</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="143"/>
-        <source>Nodes_DemSec</source>
+        <source>DemSec_Nodes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="138"/>
-        <source>Links_Connect</source>
+        <location filename="../tools/qgisred_translatable_strings.py" line="144"/>
+        <source>IsolSeg_Links</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="145"/>
+        <source>IsolSeg_Nodes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="146"/>
+        <source>IsolSeg_Isolated Demands</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="147"/>
-        <source>Links_Tree</source>
+        <source>Tree_Links</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="148"/>
-        <source>Nodes_Tree</source>
+        <source>Tree_Nodes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="149"/>
+        <source>DemBuil_Demand Links</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="150"/>
+        <source>DemBuil_Consumption Points</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
