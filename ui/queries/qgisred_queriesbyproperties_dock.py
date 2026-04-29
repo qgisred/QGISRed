@@ -209,6 +209,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.tableWidgetStatistics.setFixedHeight((headerH + rowH * 2) // 2)
 
         self.criteria = []
+        self.lastStatisticsEnglishHeaders = []
         # track which row (if any) is being edited
         self.editingIndex = None
 
@@ -881,8 +882,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                         addResultPropToCombo(self.cbStatisticsFor, prop, resultsBrush)
 
         if self.cbProperty.count():
-            elementText = self.cbElementType.currentText()
-            defaults = self.defaultProperties.get(elementText, self.defaultProperties.get(qrIdent, []))
+            englishElement = self.englishElementTypeForIdentifier(qrIdent)
+            defaults = self.defaultProperties.get(englishElement, self.defaultProperties.get(qrIdent, []))
             for defaultProp in defaults:
                 idx = self.findComboByInternalName(self.cbProperty, defaultProp)
                 if idx < 0 and defaultProp == 'Flow':
@@ -1613,14 +1614,21 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         statisticsTable = self.tableWidgetStatistics
         if isNoneTarget:
             columnHeaders = [self.tr("Count")]
+            englishHeaders = ["Count"]
             columnKeys = ['count']
         elif targetIsNumeric:
-            lastColLabel = self.tr("Sum") if self.usesSumColumn(targetField, qrIdent) else self.tr("StdD")
+            useSum = self.usesSumColumn(targetField, qrIdent)
+            lastColLabel = self.tr("Sum") if useSum else self.tr("StdD")
+            lastColEnglish = "Sum" if useSum else "StdD"
             columnHeaders = [self.tr("Count"), self.tr("Avg"), self.tr("Min"), self.tr("Max"), lastColLabel]
+            englishHeaders = ["Count", "Avg", "Min", "Max", lastColEnglish]
             columnKeys = ['count', 'avg', 'min', 'max', 'last']
         else:
             columnHeaders = [self.tr("Count")]
+            englishHeaders = ["Count"]
             columnKeys = ['count']
+
+        self.lastStatisticsEnglishHeaders = englishHeaders
 
         statisticsTable.setColumnCount(len(columnHeaders))
         statisticsTable.setHorizontalHeaderLabels(columnHeaders)
@@ -2159,10 +2167,14 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             contextSuffix = self.getDynamicContextSuffix() if hasDynamicCriterion else ""
 
             table = self.tableWidgetStatistics
-            headers = [
-                table.horizontalHeaderItem(col).text() if table.horizontalHeaderItem(col) else ''
-                for col in range(table.columnCount())
-            ]
+            englishHeaders = list(getattr(self, 'lastStatisticsEnglishHeaders', []) or [])
+            if len(englishHeaders) == table.columnCount() and englishHeaders:
+                headers = englishHeaders
+            else:
+                headers = [
+                    table.horizontalHeaderItem(col).text() if table.horizontalHeaderItem(col) else ''
+                    for col in range(table.columnCount())
+                ]
 
             with open(fname, 'w', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
