@@ -20,7 +20,7 @@ class QGISRedNewsDialog(QDialog):
         layout.setSpacing(6)
 
         self._browser = QTextBrowser()
-        self._browser.setOpenExternalLinks(False)
+        self._browser.setOpenLinks(False)
         self._browser.anchorClicked.connect(self._openLink)
         self._browser.setHtml(html_content)
         layout.addWidget(self._browser)
