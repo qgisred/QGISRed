@@ -7,7 +7,7 @@ from qgis.PyQt.QtGui import QIcon
 
 
 class QGISRedNewsDialog(QDialog):
-    def __init__(self, html_content, title, news_id, parent=None):
+    def __init__(self, html_content, title, news_id, show_dont_ask=True, parent=None):
         super().__init__(parent)
         self._news_id = news_id
         self.setWindowTitle(title)
@@ -27,6 +27,7 @@ class QGISRedNewsDialog(QDialog):
 
         bottom = QHBoxLayout()
         self._checkDontShow = QCheckBox(self.tr("Don't show this news again"))
+        self._checkDontShow.setVisible(show_dont_ask)
         bottom.addWidget(self._checkDontShow)
         bottom.addStretch()
         closeBtn = QPushButton(self.tr("Close"))

@@ -497,7 +497,7 @@ class LifecycleSection:
 
         return valid
 
-    def checkForNews(self):
+    def checkForNews(self, force=False):
         """Fetch language-specific news from the server; show the dialog if the id is new."""
         language = "es" if QgsApplication.locale()[0:2] == "es" else "en"
         news_url = "https://qgisred.upv.es/files/news/" + language + "/news.json"
@@ -510,14 +510,15 @@ class LifecycleSection:
             if not news_id or not html_url:
                 return
 
-            # Check if this id was already seen
-            seen_file = os.path.join(os.path.join(os.getenv("APPDATA"), "QGISRed"), "seenNews.dat")
-            seen_ids = []
-            if os.path.exists(seen_file):
-                with open(seen_file, "r", encoding="utf-8") as f:
-                    seen_ids = [line.strip() for line in f if line.strip()]
-            if news_id in seen_ids:
-                return
+            # Check if this id was already seen (skip when forced from toolbar)
+            if not force:
+                seen_file = os.path.join(os.path.join(os.getenv("APPDATA"), "QGISRed"), "seenNews.dat")
+                seen_ids = []
+                if os.path.exists(seen_file):
+                    with open(seen_file, "r", encoding="utf-8") as f:
+                        seen_ids = [line.strip() for line in f if line.strip()]
+                if news_id in seen_ids:
+                    return
 
             # Resolve html_url relative to the news JSON URL
             resolved_html_url = urllib.parse.urljoin(news_url, html_url)
@@ -527,23 +528,23 @@ class LifecycleSection:
             self._latestNewsId = news_id
             self._latestNewsTitle = title
             self._latestNewsHtml = html_content
-            self.runNewsDialog(force=False)
+            self.runNewsDialog(force=force)
         except Exception:
             pass
 
     def runNewsDialog(self, force=False):
-        """Open the news dialog. force=True ignores the seen-ids list (toolbar button)."""
+        """Open the news dialog. force=True: skip seen-ids check and hide the 'don't show' checkbox."""
         if self._latestNewsHtml is None:
             if not force:
                 return
-            # Re-fetch when opened from toolbar and nothing is cached yet
-            self.checkForNews()
+            self.checkForNews(force=True)
             return
 
         dlg = QGISRedNewsDialog(
             self._latestNewsHtml,
             self._latestNewsTitle or self.tr("QGISRed News"),
             self._latestNewsId or "",
+            show_dont_ask=not force,
             parent=self.iface.mainWindow(),
         )
         dlg.exec()
