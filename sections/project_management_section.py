@@ -99,18 +99,20 @@ class ProjectManagementSection:
             return False
         return True
 
-    def isValidProject(self):
+    def isValidProject(self, silent=False):
         if self.ProjectDirectory == self.TemporalFolder:
-            self.pushMessage(self.tr("No valid project is opened"), level=1, duration=5)
+            if not silent:
+                self.pushMessage(self.tr("No valid project is opened"), level=1, duration=5)
             return False
         pipesPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_Pipes.shp")
         for layer in self.getLayers():
             if self.getLayerPath(layer) == pipesPath:
                 if not layer.customProperty("qgisred_identifier"):
-                    self.pushMessage(
-                        self.tr("Please open the project from the QGISRed Project Manager"),
-                        level=1, duration=5
-                    )
+                    if not silent:
+                        self.pushMessage(
+                            self.tr("Please, open the project from the QGISRed Project Manager"),
+                            level=1, duration=5
+                        )
                     return False
                 break
         return True
@@ -272,7 +274,7 @@ class ProjectManagementSection:
         # Validations
         if project == "" and net == "":  # Comes from ProjectManager
             self.defineCurrentProject()
-            if not self.isValidProject():
+            if not self.isValidProject(silent=True):
                 return
             project = self.ProjectDirectory
             net = self.NetworkName
@@ -419,12 +421,17 @@ class ProjectManagementSection:
             self.ProjectDirectory = dlg.ProjectDirectory
             # Write .gql file
             QGISRedProjectIO().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
-            # Open files
-            io = QGISRedProjectIO(self.ProjectDirectory, self.NetworkName, self.iface)
-            loaded_qgis = io.openProjectInQgis()
-            if not loaded_qgis:
-                self._migrateLayersToSubfolders()
-            QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface).enforceAllIdentifiers()
+            # Open files — guard against runLegendChanged firing isValidProject() before
+            # identifiers are assigned (layers load before enforceAllIdentifiers runs)
+            self.layerOperationInProgress = True
+            try:
+                io = QGISRedProjectIO(self.ProjectDirectory, self.NetworkName, self.iface)
+                loaded_qgis = io.openProjectInQgis()
+                if not loaded_qgis:
+                    self._migrateLayersToSubfolders()
+                QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface).enforceAllIdentifiers()
+            finally:
+                self.layerOperationInProgress = False
 
             self.readOptions()
             self.suggestQgsProjectFilename()
@@ -726,8 +733,8 @@ class ProjectManagementSection:
                 "They will be removed from QGIS and you will need to run the simulation again.\n\n"
                 "Do you also want to delete the result files from disk?"
             ),
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No,
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
         )
 
         project = QgsProject.instance()
@@ -745,7 +752,7 @@ class ProjectManagementSection:
             if results_group and not results_group.children():
                 results_group.parent().removeChildNode(results_group)
 
-        if reply == QMessageBox.StandardButton.Yes:
+        if reply == QMessageBox.Yes:
             QTimer.singleShot(0, self._deleteOldResultFiles)
 
     def _deleteOldResultFiles(self):
