@@ -14,6 +14,7 @@ except:
 
 from ..utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ..utils.qgisred_layer_utils import QGISRedLayerUtils
+from ..utils.qgisred_styling_utils import create_combined_cursor
 
 
 class QGISRedMoveNodesTool(QgsMapTool):
@@ -26,6 +27,8 @@ class QGISRedMoveNodesTool(QgsMapTool):
         self.ProjectDirectory = projectDirectory
         self.NetworkName = netwName
         self.toolbarButton = button
+
+        self._customCursor = create_combined_cursor(":/images/iconMoveNodes.svg", iface, 24)
 
         self.snapper = None
         self.vertexMarker = QgsVertexMarker(self.iface.mapCanvas())
@@ -52,9 +55,7 @@ class QGISRedMoveNodesTool(QgsMapTool):
         self.newVertexMarker.hide()
 
     def activate(self):
-        cursor = QCursor()
-        cursor.setShape(Qt.CursorShape.ArrowCursor)
-        self.iface.mapCanvas().setCursor(cursor)
+        self.iface.mapCanvas().setCursor(self._customCursor)
 
         self._connectedEditLayers = []
         for layer in self.getLayers():
@@ -85,6 +86,8 @@ class QGISRedMoveNodesTool(QgsMapTool):
         self._connectedEditLayers = []
 
     def _deactivateDueToEdit(self):
+        if getattr(self, "_ownEditing", False):
+            return
         self.iface.mapCanvas().unsetMapTool(self)
 
     def isZoomTool(self):
@@ -175,30 +178,38 @@ class QGISRedMoveNodesTool(QgsMapTool):
         self.newVertexMarker.setCenter(QgsPointXY(newX, newY))
 
     def moveNodePoint(self, layer, nodeFeature, newPosition):
-        layer.startEditing()
-        layer.beginEditCommand("Move node")
+        self._ownEditing = True
         try:
-            edit_utils = QgsVectorLayerEditUtils(layer)
-            edit_utils.moveVertex(newPosition.x(), newPosition.y(), nodeFeature.id(), 0)
-        except Exception as e:
-            layer.destroyEditCommand()
-            layer.rollBack()
-            raise e
-        layer.endEditCommand()
-        layer.commitChanges()
+            layer.startEditing()
+            layer.beginEditCommand("Move node")
+            try:
+                edit_utils = QgsVectorLayerEditUtils(layer)
+                edit_utils.moveVertex(newPosition.x(), newPosition.y(), nodeFeature.id(), 0)
+            except Exception as e:
+                layer.destroyEditCommand()
+                layer.rollBack()
+                raise e
+            layer.endEditCommand()
+            layer.commitChanges()
+        finally:
+            self._ownEditing = False
 
     def moveVertexLink(self, layer, feature, newPosition, vertexIndex):
-        layer.startEditing()
-        layer.beginEditCommand("Update link geometry")
+        self._ownEditing = True
         try:
-            edit_utils = QgsVectorLayerEditUtils(layer)
-            edit_utils.moveVertex(newPosition.x(), newPosition.y(), feature.id(), vertexIndex)
-        except Exception as e:
-            layer.destroyEditCommand()
-            layer.rollBack()
-            raise e
-        layer.endEditCommand()
-        layer.commitChanges()
+            layer.startEditing()
+            layer.beginEditCommand("Update link geometry")
+            try:
+                edit_utils = QgsVectorLayerEditUtils(layer)
+                edit_utils.moveVertex(newPosition.x(), newPosition.y(), feature.id(), vertexIndex)
+            except Exception as e:
+                layer.destroyEditCommand()
+                layer.rollBack()
+                raise e
+            layer.endEditCommand()
+            layer.commitChanges()
+        finally:
+            self._ownEditing = False
 
     """Events"""
 
@@ -258,9 +269,7 @@ class QGISRedMoveNodesTool(QgsMapTool):
                 self.objectSnapped = None
                 self.selectedNodeFeature = None
                 self.vertexMarker.hide()
-                cursor = QCursor()
-                cursor.setShape(Qt.CursorShape.ArrowCursor)
-                self.iface.mapCanvas().setCursor(cursor)
+                self.iface.mapCanvas().setCursor(self._customCursor)
         # Mouse clicked
         else:
             # Update rubber band
