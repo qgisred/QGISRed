@@ -655,8 +655,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return
 
         newType = self.cbLegendsType.currentData()
-        effectiveRenderer = self._workingRenderer or (self.currentLayer.renderer() if self.currentLayer else None)
-        currentType = effectiveRenderer.type() if effectiveRenderer else None
+        currentType = self.getCurrentRendererType()
 
         if newType == currentType:
             return
@@ -1556,6 +1555,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return self.FIELD_TYPE_SINGLE, None
 
         return self.FIELD_TYPE_UNKNOWN, None
+
+    def getCurrentRendererType(self):
+        if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
+            return "categorizedSymbol"
+        if self.currentFieldType == self.FIELD_TYPE_NUMERIC:
+            return "graduatedSymbol"
+        if self.currentFieldType == self.FIELD_TYPE_SINGLE:
+            return "singleSymbol"
+        return None
 
     def resetToEmptyState(self):
         self.frameLegends.setEnabled(False)
