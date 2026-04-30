@@ -1218,6 +1218,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
     def emitNodeFields(self, startRow, fields, attributes, skipFields, layerIdentifier, utils,
                        onlyFieldNames=None, excludeFieldNames=None):
+        qualityFieldNames = {"MixingMod", "MixingFrac", "ReactCoef", "IniQuality", "BulkCoeff", "WallCoeff"}
+        demandFieldNames = {"BaseDem", "IdPattDem"} if layerIdentifier == "qgisred_junctions" else set()
         row = startRow
         for fieldIdx, field in enumerate(fields):
             fieldName = field.name()
@@ -1238,7 +1240,14 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             fieldUnit = utils.getFieldUnit(layerIdentifier, fieldName)
             unitDisplay = fieldUnit if fieldUnit and fieldUnit != "-" else ""
 
-            self.setDataRow(row, prettyName, displayValue, unitDisplay)
+            if fieldName in qualityFieldNames:
+                backgroundBrush = self.sourceBrush
+            elif fieldName in demandFieldNames:
+                backgroundBrush = self.totalDemandsBrush
+            else:
+                backgroundBrush = None
+
+            self.setDataRow(row, prettyName, displayValue, unitDisplay, backgroundBrush=backgroundBrush)
             row += 1
         return row
 
