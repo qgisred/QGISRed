@@ -116,6 +116,7 @@
         <file>images/iconTimeSeries.svg</file>
         <file>images/iconClear.svg</file>
         <file>images/iconWarning.svg</file>
+        <file>images/iconNews.svg</file>
         <file>images/qgisred.svg</file>
         <file>images/aboutBid.png</file>
     </qresource>

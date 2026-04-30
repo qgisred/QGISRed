@@ -1290,54 +1290,64 @@
 <context>
     <name>LifecycleSection</name>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="248"/>
+        <location filename="../sections/lifecycle_section.py" line="260"/>
         <source>Loaded sucssesfully</source>
         <translation>Cargado exitósamente</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="456"/>
+        <location filename="../sections/lifecycle_section.py" line="468"/>
         <source>QGISRed Dependencies</source>
         <translation>Dependencias de QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="456"/>
+        <location filename="../sections/lifecycle_section.py" line="468"/>
         <source>QGISRed plugin only runs in Windows OS and requires some dependencies (v{}). Do you want to install them now?</source>
         <translation>El complemento QGISRed solo se ejecuta en Windows y requiere algunas dependencias (v{}). ¿Quieres instalarlas ahora?</translation>
     </message>
     <message>
         <location filename="../sections/lifecycle_section.py" line="456"/>
         <source>At the end, the QGISRed web page will be open to show the news, where you can also register if you wish to receive the newsletters.</source>
-        <translation>Al final, se abrirá la página web de QGISRed para mostrar las últimas novedades, donde también podrás registrarte si deseas recibir los boletines informativos.</translation>
+        <translation type="obsolete">Al final, se abrirá la página web de QGISRed para mostrar las últimas novedades, donde también podrás registrarte si deseas recibir los boletines informativos.</translation>
     </message>
     <message>
         <location filename="../sections/lifecycle_section.py" line="515"/>
         <source>QGISRed Updates</source>
-        <translation>Actualizaciones de QGISRed</translation>
+        <translation type="obsolete">Actualizaciones de QGISRed</translation>
     </message>
     <message>
         <location filename="../sections/lifecycle_section.py" line="515"/>
         <source>QGISRed plugin has a new version ({}). You can upgrade it from the QGis plugin manager. Do you want to remember it again?</source>
-        <translation>El complemento QGISRed tiene una nueva versión ({}). Puedes actualizarlo desde el gestor de complementos de QGIS. ¿Quieres volver a recordar este mensaje?</translation>
+        <translation type="obsolete">El complemento QGISRed tiene una nueva versión ({}). Puedes actualizarlo desde el gestor de complementos de QGIS. ¿Quieres volver a recordar este mensaje?</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="48"/>
+        <location filename="../sections/lifecycle_section.py" line="50"/>
         <source>QGISRed only works on Windows</source>
         <translation>QGISRed solo funciona en Windows</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="80"/>
+        <location filename="../sections/lifecycle_section.py" line="82"/>
         <source>Click to change it</source>
         <translation>Pincha para cambiar</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="185"/>
+        <location filename="../sections/lifecycle_section.py" line="197"/>
         <source>About...</source>
         <translation>Acerca de...</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="190"/>
+        <location filename="../sections/lifecycle_section.py" line="202"/>
         <source>Report issues or comments...</source>
         <translation>Informar de incidencias o comentarios...</translation>
+    </message>
+    <message>
+        <location filename="../sections/lifecycle_section.py" line="192"/>
+        <source>News...</source>
+        <translation>Noticias...</translation>
+    </message>
+    <message>
+        <location filename="../sections/lifecycle_section.py" line="543"/>
+        <source>QGISRed News</source>
+        <translation>Noticias QGISRed</translation>
     </message>
 </context>
 <context>
@@ -3711,6 +3721,19 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     </message>
 </context>
 <context>
+    <name>QGISRedNewsDialog</name>
+    <message>
+        <location filename="../ui/general/qgisred_news_dialog.py" line="29"/>
+        <source>Don&apos;t show this news again</source>
+        <translation>No mostrar las noticias otra vez</translation>
+    </message>
+    <message>
+        <location filename="../ui/general/qgisred_news_dialog.py" line="32"/>
+        <source>Close</source>
+        <translation>Cerrar</translation>
+    </message>
+</context>
+<context>
     <name>QGISRedProjectIO</name>
     <message>
         <location filename="../tools/utils/qgisred_project_io.py" line="567"/>
@@ -4490,7 +4513,7 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Selección requerida</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="463"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="456"/>
         <source>Clear all curves</source>
         <translation>Borrar todas las curvas</translation>
     </message>
@@ -4503,22 +4526,22 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
 <context>
     <name>TimeSeriesPlotWidget</name>
     <message>
-        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="581"/>
+        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="574"/>
         <source>Series</source>
         <translation>Series</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="234"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="232"/>
         <source>Magnitude</source>
         <translation>Magnitud</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="143"/>
+        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="140"/>
         <source>No data to display, please select an element on the map.</source>
         <translation>No hay datos que mostrar. Selecciona una ubicación en el mapa.</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="251"/>
+        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="248"/>
         <source>Step: %1</source>
         <translation>Instante: %1</translation>
     </message>

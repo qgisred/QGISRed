@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 68 68">
+  <defs>
+    <style>
+      .cls-1 { fill: none; }
+      .cls-2 { fill: #60bcd3; }
+      .cls-3 { fill: #7fa828; }
+    </style>
+  </defs>
+  <!-- Documento/periódico en cyan -->
+  <rect class="cls-2" x="10" y="11" width="38" height="47" rx="3" ry="3"/>
+  <!-- Líneas de texto (blanco) -->
+  <rect fill="#ffffff" x="15" y="19" width="28" height="3.5" rx="1.5"/>
+  <rect fill="#ffffff" x="15" y="27" width="28" height="3.5" rx="1.5"/>
+  <rect fill="#ffffff" x="15" y="35" width="20" height="3.5" rx="1.5"/>
+  <rect fill="#ffffff" x="15" y="43" width="24" height="3.5" rx="1.5"/>
+  <!-- Badge verde con "!" para indicar novedad -->
+  <circle class="cls-3" cx="48" cy="48" r="11"/>
+  <rect fill="#ffffff" x="46.5" y="40.5" width="3" height="9" rx="1.5"/>
+  <circle fill="#ffffff" cx="48" cy="53.5" r="1.8"/>
+</svg>

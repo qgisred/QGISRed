@@ -1148,6 +1148,9 @@ class MenuSection:
         self.dtDropButton.setChecked(self.dtToolbar.isVisible())
         self.queriesDropButton.setChecked(self.queriesToolbar.isVisible())
 
+    def runNewsDialogForced(self):
+        self.runNewsDialog(force=True)
+
     def runAbout(self):
         # show the dialog
         dlg = QGISRedAboutDialog()

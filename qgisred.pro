@@ -20,8 +20,6 @@ SOURCES = qgisred.py \
           tools/utils/qgisred_identifier_utils.py \
           tools/utils/qgisred_layer_utils.py \
           tools/utils/qgisred_project_io.py \
-          tools/map_tools/qgisred_createConnection.py \
-          tools/map_tools/qgisred_createPipe.py \
           tools/map_tools/qgisred_createLineTool.py \
           tools/map_tools/qgisred_editLinksGeometry.py \
           tools/map_tools/qgisred_identifyFeature.py \
@@ -29,6 +27,7 @@ SOURCES = qgisred.py \
           tools/map_tools/qgisred_multilayerSelection.py \
           tools/map_tools/qgisred_selectPoint.py \
           ui/general/qgisred_about_dialog.py \
+          ui/general/qgisred_news_dialog.py \
           ui/general/qgisred_cloneproject_dialog.py \
           ui/general/qgisred_createproject_dialog.py \
           ui/general/qgisred_import_dialog.py \

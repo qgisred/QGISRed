@@ -6,8 +6,9 @@ import tempfile
 import platform
 import subprocess
 import base64
-import webbrowser
+import json
 import urllib.request
+import urllib.parse
 import ssl
 from ctypes import windll, c_uint16, c_uint, wstring_at, byref, cast
 from ctypes import create_string_buffer, c_void_p, Structure, POINTER
@@ -22,6 +23,7 @@ from .. import resources3x  # noqa: F401  (registers Qt resources)
 from ..tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..ui.queries.qgisred_element_explorer_dock import QGISRedElementExplorerDock
+from ..ui.general.qgisred_news_dialog import QGISRedNewsDialog
 
 
 class LANGANDCODEPAGE(Structure):
@@ -30,7 +32,7 @@ class LANGANDCODEPAGE(Structure):
 
 class LifecycleSection:
     """Plugin lifecycle: __init__, tr, action builders, initGui, cleanupDocks, unload,
-    setCulture, getVersion, checkDependencies, checkForUpdates, openNewFeaturesWebpage,
+    setCulture, getVersion, checkDependencies, checkForNews, runNewsDialog,
     removeTempFolders."""
 
     def __init__(self, iface):
@@ -85,6 +87,11 @@ class LifecycleSection:
 
         # To allow downloads from qgisred web page
         ssl._create_default_https_context = ssl._create_unverified_context
+
+        # News system state (populated by checkForNews, reused by runNewsDialog)
+        self._latestNewsId = None
+        self._latestNewsTitle = None
+        self._latestNewsHtml = None
 
     # All contexts that pylupdate5 assigns to section classes (since they are not QObject
     # subclasses, self.tr() always resolves here via MRO instead of using the class name).
@@ -181,6 +188,11 @@ class LifecycleSection:
         self.addDigitalTwinMenu()
         self.addQueriesMenu()
 
+        # News
+        self.add_simple_action(
+            ":/images/iconNews.svg", self.tr("News..."), self.runNewsDialogForced,
+            self.qgisredmenu, self.toolbar, parent=self.iface.mainWindow(),
+        )
         # About
         self.add_simple_action(
             ":/images/iconAbout.svg", self.tr("About..."), self.runAbout,
@@ -206,8 +218,8 @@ class LifecycleSection:
         self.dllTempFolderFile = os.path.join(QGISRedFileSystemUtils().getQGISRedFolder(), "dllTempFolders.dat")
         QGISRedFileSystemUtils().copyDependencies()
         self.removeTempFolders()
-        # QGISRed updates
-        self.checkForUpdates()
+        # QGISRed news
+        QTimer.singleShot(2000, self.checkForNews)
 
         self.gplFolder = os.path.join(os.getenv("APPDATA"), "QGISRed")
         try:  # create directory if does not exist
@@ -457,12 +469,10 @@ class LifecycleSection:
                 self.iface.mainWindow(),
                 self.tr("QGISRed Dependencies"),
                 self.tr(
-                    "QGISRed plugin only runs in Windows OS and requires some dependencies (v{}). Do you want to install them now?").format(self.DependenciesVersion) +
-                    "\n\n" + self.tr("At the end, the QGISRed web page will be open to show the news, where you can also register if you wish to receive the newsletters."),
+                    "QGISRed plugin only runs in Windows OS and requires some dependencies (v{}). Do you want to install them now?").format(self.DependenciesVersion),
                 QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
             )
             if request == QMessageBox.Yes:
-                self.openNewFeaturesWebpage()
                 # Remove previous dependencies version
                 if not self.DependenciesVersion.endswith(".0"):
                     uninstallFile = os.path.join(
@@ -487,67 +497,60 @@ class LifecycleSection:
 
         return valid
 
-    def checkForUpdates(self):
-        link = "https://qgisred.upv.es/files/versions.txt"
-        tempLocalFile = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names()) + ".txt"
+    def checkForNews(self):
+        """Fetch language-specific news from the server; show the dialog if the id is new."""
+        language = "es" if QgsApplication.locale()[0:2] == "es" else "en"
+        news_url = "https://qgisred.upv.es/files/news/" + language + "/news.json"
         try:
-            # Read online file
-            if not link.startswith("https://"):
+            with urllib.request.urlopen(news_url, timeout=10) as response:
+                data = json.loads(response.read().decode("utf-8"))
+            news_id = data.get("id", "")
+            title = data.get("title", self.tr("QGISRed News"))
+            html_url = data.get("html_url", "")
+            if not news_id or not html_url:
                 return
-            urllib.request.urlretrieve(link, tempLocalFile)
-            f = open(tempLocalFile, "r")
-            contents = f.read()  # 0.11
-            f.close()
-            newVersion = contents
-            if len(contents.split(".")) == 2:
-                newVersion += ".0"  # 0.11.0
-            newVersion = "1." + newVersion  # 1.0.11.0
-            if int(newVersion.replace(".", "")) > int(self.DependenciesVersion.replace(".", "")):
-                # Read local file with versions that user don't want to remember
-                fileVersions = os.path.join(os.path.join(os.getenv("APPDATA"), "QGISRed"), "updateVersions.dat")
-                oldVersions = ""
-                if os.path.exists(fileVersions):
-                    f = open(fileVersions, "r")
-                    oldVersions = f.read()
-                    f.close()
-                # Review if in local file is the current online version
-                if contents not in oldVersions:
-                    response = QMessageBox.question(
-                        self.iface.mainWindow(),
-                        self.tr("QGISRed Updates"),
-                        self.tr(
-                            "QGISRed plugin has a new version ({}). You can upgrade it from the QGis plugin manager. Do you want to remember it again?"
-                        ).format(contents),
-                        QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
-                    )
 
-                    # If user don't want to remember a local file is written with this version
-                    if response == QMessageBox.No:
-                        f = open(fileVersions, "w+")
-                        f.write(contents + "\n")
-                        f.close()
-            os.remove(tempLocalFile)
+            # Check if this id was already seen
+            seen_file = os.path.join(os.path.join(os.getenv("APPDATA"), "QGISRed"), "seenNews.dat")
+            seen_ids = []
+            if os.path.exists(seen_file):
+                with open(seen_file, "r", encoding="utf-8") as f:
+                    seen_ids = [line.strip() for line in f if line.strip()]
+            if news_id in seen_ids:
+                return
+
+            # Resolve html_url relative to the news JSON URL
+            resolved_html_url = urllib.parse.urljoin(news_url, html_url)
+            with urllib.request.urlopen(resolved_html_url, timeout=10) as response:
+                html_content = response.read().decode("utf-8")
+
+            self._latestNewsId = news_id
+            self._latestNewsTitle = title
+            self._latestNewsHtml = html_content
+            self.runNewsDialog(force=False)
         except Exception:
             pass
 
-    def openNewFeaturesWebpage(self):
-        language = "en"
-        if QgsApplication.instance().locale() == "es":
-            language = "es"
-        link = "https://qgisred.upv.es/files/news_" + language
-        tempLocalFile = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names()) + ".txt"
-        try:
-            # Read online file
-            if not link.startswith("https://"):
+    def runNewsDialog(self, force=False):
+        """Open the news dialog. force=True ignores the seen-ids list (toolbar button)."""
+        if self._latestNewsHtml is None:
+            if not force:
                 return
-            urllib.request.urlretrieve(link, tempLocalFile)
-            f = open(tempLocalFile, "r")
-            url = f.readline()
-            f.close()
-            webbrowser.open(url)
-            return url
-        except Exception:
-            pass
+            # Re-fetch when opened from toolbar and nothing is cached yet
+            self.checkForNews()
+            return
+
+        dlg = QGISRedNewsDialog(
+            self._latestNewsHtml,
+            self._latestNewsTitle or self.tr("QGISRed News"),
+            self._latestNewsId or "",
+            parent=self.iface.mainWindow(),
+        )
+        dlg.exec()
+        if dlg.dontShowAgain() and self._latestNewsId:
+            seen_file = os.path.join(os.path.join(os.getenv("APPDATA"), "QGISRed"), "seenNews.dat")
+            with open(seen_file, "a", encoding="utf-8") as f:
+                f.write(self._latestNewsId + "\n")
 
     def removeTempFolders(self):
         if not os.path.exists(self.dllTempFolderFile):
