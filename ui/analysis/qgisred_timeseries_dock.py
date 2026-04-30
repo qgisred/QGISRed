@@ -49,6 +49,14 @@ class TimeSeriesPlotWidget(QWidget):
         self._y_magnitudes_right = []
         self._right_axis_active = False
         self._right_axis_label_w = 0
+        # Zoom/pan view state (None = auto from data)
+        self._view_x_min = None
+        self._view_x_max = None
+        # Pan interaction state
+        self._pan_mode = False
+        self._pan_active = False
+        self._pan_start_pos = None
+        self._pan_start_view = None
 
     def setData(self, x, y, title="", x_label="Time", y_label="Value", is_stepped=False, y_categorical_labels=None, series_label=""):
         self.data_x = x
@@ -74,6 +82,8 @@ class TimeSeriesPlotWidget(QWidget):
         self._y_magnitudes_left = [self.y_label] if (self.y_label or "").strip() else []
         self._y_magnitudes_right = []
         self._right_axis_active = False
+        self._view_x_min = None
+        self._view_x_max = None
         self.update()
 
     def _normalizeSeriesState(self) -> None:
@@ -125,6 +135,8 @@ class TimeSeriesPlotWidget(QWidget):
             self.data_y = []
             self.is_stepped = False
             self.y_categorical_labels = None
+        self._view_x_min = None
+        self._view_x_max = None
         self.update()
 
     def _seriesByAxis(self):
@@ -345,6 +357,85 @@ class TimeSeriesPlotWidget(QWidget):
                 best_idx = i
         return best_idx
 
+    def _getCurrentXRange(self):
+        # When explicit view limits exist, the last rendered state (nice-scaled from those limits)
+        # is the accurate mapping reference. Fall back to view limits if not yet rendered.
+        last = getattr(self, "_last_x_state", None)
+        if last:
+            return last["min_x"], last["max_x"]
+        # Fallback before first render or after resetView()
+        if self._view_x_min is not None and self._view_x_max is not None:
+            return self._view_x_min, self._view_x_max
+        all_data_x = []
+        for s in self.series:
+            all_data_x.extend(s.get("x", []) or [])
+        if not all_data_x:
+            return 0.0, 1.0
+        auto_min = min(all_data_x)
+        auto_max = max(all_data_x)
+        if auto_max == auto_min:
+            auto_max = auto_min + 1.0
+        return auto_min, auto_max
+
+    def resetView(self):
+        self._view_x_min = None
+        self._view_x_max = None
+        self._last_x_state = None
+        self.update()
+
+    def zoomIn(self, factor=1.5):
+        if not self.series:
+            return
+        x_min, x_max = self._getCurrentXRange()
+        cx = (x_min + x_max) / 2.0
+        half = (x_max - x_min) / (2.0 * factor)
+        self._view_x_min = cx - half
+        self._view_x_max = cx + half
+        self._last_x_state = None
+        self.hover_index = None
+        self.update()
+
+    def zoomOut(self, factor=1.5):
+        if not self.series:
+            return
+        x_min, x_max = self._getCurrentXRange()
+        cx = (x_min + x_max) / 2.0
+        half = (x_max - x_min) * factor / 2.0
+        new_min = cx - half
+        new_max = cx + half
+        # Use rendered auto range as clamp reference
+        auto_state = getattr(self, "_last_auto_x_state", None)
+        if auto_state:
+            auto_min, auto_max = auto_state["min_x"], auto_state["max_x"]
+        else:
+            all_data_x = []
+            for s in self.series:
+                all_data_x.extend(s.get("x", []) or [])
+            auto_min = min(all_data_x) if all_data_x else 0.0
+            auto_max = max(all_data_x) if all_data_x else 1.0
+        if new_min <= auto_min and new_max >= auto_max:
+            self._view_x_min = None
+            self._view_x_max = None
+            self._last_x_state = None
+            self.hover_index = None
+            self.update()
+            return
+        self._view_x_min = new_min
+        self._view_x_max = new_max
+        self._last_x_state = None
+        self.hover_index = None
+        self.update()
+
+    def setPanMode(self, enabled: bool):
+        self._pan_mode = enabled
+        self._pan_active = False
+        self._pan_start_pos = None
+        self._pan_start_view = None
+        if enabled:
+            self.setCursor(Qt.CursorShape.OpenHandCursor)
+        else:
+            self.unsetCursor()
+
     def getPlotRect(self):
         return PlotLayoutCalculator.compute_plot_rect(self)
 
@@ -358,14 +449,84 @@ class TimeSeriesPlotWidget(QWidget):
             self._hover_series_idx = None
             self.update()
 
-    def mousePressEvent(self, event):
-        if event.button() != Qt.MouseButton.LeftButton:
+    def wheelEvent(self, event):
+        if not self.series:
             return
-        self._legend.begin(QPointF(event.pos()), event.modifiers())
+        plot_rect, _, _ = self.getPlotRect()
+        mouse_pos = event.pos()
+        if not plot_rect.contains(QPointF(mouse_pos)):
+            return
+        delta = event.angleDelta().y()
+        if delta == 0:
+            return
+        factor = 1.3 if delta > 0 else 1.0 / 1.3
+        x_min, x_max = self._getCurrentXRange()
+        rel_x = (mouse_pos.x() - plot_rect.left()) / plot_rect.width()
+        mouse_x = x_min + rel_x * (x_max - x_min)
+        new_range = (x_max - x_min) / factor
+        new_min = mouse_x - rel_x * new_range
+        new_max = new_min + new_range
+        if factor < 1.0:
+            auto_state = getattr(self, "_last_auto_x_state", None)
+            if auto_state:
+                auto_min, auto_max = auto_state["min_x"], auto_state["max_x"]
+            else:
+                all_data_x = []
+                for s in self.series:
+                    all_data_x.extend(s.get("x", []) or [])
+                auto_min = min(all_data_x) if all_data_x else 0.0
+                auto_max = max(all_data_x) if all_data_x else 1.0
+            if new_min <= auto_min and new_max >= auto_max:
+                self._view_x_min = None
+                self._view_x_max = None
+                self._last_x_state = None
+                self.hover_index = None
+                self.update()
+                event.accept()
+                return
+        self._view_x_min = new_min
+        self._view_x_max = new_max
+        self._last_x_state = None
+        self.hover_index = None
+        self.update()
+        event.accept()
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            if self._pan_mode:
+                plot_rect, _, _ = self.getPlotRect()
+                if plot_rect.contains(QPointF(event.pos())):
+                    self._pan_active = True
+                    self._pan_start_pos = QPointF(event.pos())
+                    self._pan_start_view = self._getCurrentXRange()
+                    self.setCursor(Qt.CursorShape.ClosedHandCursor)
+                return
+            self._legend.begin(QPointF(event.pos()), event.modifiers())
+        elif event.button() == Qt.MouseButton.MiddleButton:
+            plot_rect, _, _ = self.getPlotRect()
+            if plot_rect.contains(QPointF(event.pos())):
+                self._pan_active = True
+                self._pan_start_pos = QPointF(event.pos())
+                self._pan_start_view = self._getCurrentXRange()
+                self.setCursor(Qt.CursorShape.ClosedHandCursor)
 
     def mouseReleaseEvent(self, event):
+        if self._pan_active:
+            self._pan_active = False
+            self._pan_start_pos = None
+            self._pan_start_view = None
+            if self._pan_mode:
+                self.setCursor(Qt.CursorShape.OpenHandCursor)
+            else:
+                self.unsetCursor()
+            return
+
         if event.button() != Qt.MouseButton.LeftButton:
             return
+
+        if self._pan_mode:
+            return
+
         if self._legend.drag_active and self._legend.apply_reorder_if_needed():
             self._resetLegendInteractionState()
             self.update()
@@ -382,9 +543,26 @@ class TimeSeriesPlotWidget(QWidget):
 
         self._resetLegendInteractionState()
 
-    def mouseMoveEvent(self, event):    
+    def mouseMoveEvent(self, event):
+        if self._pan_active and self._pan_start_pos is not None:
+            plot_rect, _, _ = self.getPlotRect()
+            if plot_rect.width() > 0:
+                dx_px = event.pos().x() - self._pan_start_pos.x()
+                x_min0, x_max0 = self._pan_start_view
+                x_range = x_max0 - x_min0
+                dx_data = -dx_px / plot_rect.width() * x_range
+                self._view_x_min = x_min0 + dx_data
+                self._view_x_max = x_max0 + dx_data
+                self._last_x_state = None
+                self.hover_index = None
+                self.update()
+            return
+
+        if self._pan_mode:
+            return
+
         if self._legend.update_drag(QPointF(event.pos())):
-                return
+            return
 
         if not self.series:
             return
@@ -396,16 +574,16 @@ class TimeSeriesPlotWidget(QWidget):
         xs = self.series[hover_idx].get("x", []) or []
         if not xs or len(xs) < 2:
             return
-            
+
         mouse_pos = event.pos()
         w = self.width()
         h = self.height()
-        
+
         if w <= (self.margin_left + self.margin_right) or h <= (self.margin_top + 10 + self.margin_bottom):
             return
 
         plot_rect, local_margin_left, _right_axis_label_w = self.getPlotRect()
-        
+
         if not plot_rect.contains(QPointF(mouse_pos)):
             if self.hover_index is not None:
                 self.hover_index = None
@@ -413,16 +591,17 @@ class TimeSeriesPlotWidget(QWidget):
                 self.update()
             return
 
-        min_x, max_x = min(xs), max(xs)
-        x_range = max_x - min_x
-        if x_range <= 0: x_range = 1
-        
+        x_min, x_max = self._getCurrentXRange()
+        x_range = x_max - x_min
+        if x_range <= 0:
+            x_range = 1
+
         try:
             rel_x = (mouse_pos.x() - plot_rect.left()) / plot_rect.width()
-            target_x = min_x + rel_x * x_range
-            
+            target_x = x_min + rel_x * x_range
+
             best_idx = self._nearestDataIndex(xs, target_x)
-            
+
             if self.hover_index != best_idx or self._hover_series_idx != hover_idx:
                 self.hover_index = best_idx
                 self._hover_series_idx = hover_idx
@@ -467,7 +646,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self._toolbarWidget = container
             hl = QHBoxLayout(container)
             hl.setContentsMargins(4, 2, 4, 2)
-            hl.setSpacing(0)
+            hl.setSpacing(2)
             container.setFixedHeight(28)
             container.setStyleSheet(
                 "QWidget {"
@@ -477,17 +656,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 "}"
             )
 
-            self.btnClearAll = QToolButton(container)
-            self.btnClearAll.setObjectName("btnClearAllTimeSeries")
-            icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "images", "iconClear.svg"))
-            self.btnClearAll.setIcon(QIcon(icon_path))
-            tooltip = self.tr("Clear all curves")
-            self.btnClearAll.setToolTip(tooltip)
-            self.btnClearAll.setAutoRaise(True)
-            self.btnClearAll.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
-            self.btnClearAll.setIconSize(QSize(16, 16))
-            self.btnClearAll.setFixedSize(QSize(22, 22))
-            self.btnClearAll.setStyleSheet(
+            btn_style = (
                 "QToolButton {"
                 "  border: 1px solid #c8c8c8;"
                 "  border-radius: 3px;"
@@ -496,11 +665,52 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 "}"
                 "QToolButton:hover { background-color: #f0f0f0; border-color: #bdbdbd; }"
                 "QToolButton:pressed { background-color: #e6e6e6; border-color: #b4b4b4; }"
+                "QToolButton:checked { background-color: #d0e4f7; border-color: #3399ff; }"
                 "QToolButton:focus { border: 1px solid #3399ff; }"
             )
-            self.btnClearAll.clicked.connect(self.clearAllRequested)
 
+            def _make_btn(name, icon, tooltip, checkable=False):
+                btn = QToolButton(container)
+                btn.setObjectName(name)
+                btn.setIcon(QgsApplication.getThemeIcon(icon))
+                btn.setToolTip(tooltip)
+                btn.setAutoRaise(True)
+                btn.setCheckable(checkable)
+                btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
+                btn.setIconSize(QSize(16, 16))
+                btn.setFixedSize(QSize(22, 22))
+                btn.setStyleSheet(btn_style)
+                return btn
+
+            self.btnClearAll = QToolButton(container)
+            self.btnClearAll.setObjectName("btnClearAllTimeSeries")
+            icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "images", "iconClear.svg"))
+            self.btnClearAll.setIcon(QIcon(icon_path))
+            self.btnClearAll.setToolTip(self.tr("Clear all curves"))
+            self.btnClearAll.setAutoRaise(True)
+            self.btnClearAll.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
+            self.btnClearAll.setIconSize(QSize(16, 16))
+            self.btnClearAll.setFixedSize(QSize(22, 22))
+            self.btnClearAll.setStyleSheet(btn_style)
+            self.btnClearAll.clicked.connect(self.clearAllRequested)
             hl.addWidget(self.btnClearAll, 0, Qt.AlignmentFlag.AlignLeft)
+
+            self.btnPan = _make_btn("btnPanTimeSeries", "mActionPan.svg", self.tr("Pan"), checkable=True)
+            self.btnPan.toggled.connect(self._onPanToggled)
+            hl.addWidget(self.btnPan, 0, Qt.AlignmentFlag.AlignLeft)
+
+            self.btnZoomIn = _make_btn("btnZoomInTimeSeries", "mActionZoomIn.svg", self.tr("Zoom in"))
+            self.btnZoomIn.clicked.connect(lambda: self.plot.zoomIn())
+            hl.addWidget(self.btnZoomIn, 0, Qt.AlignmentFlag.AlignLeft)
+
+            self.btnZoomOut = _make_btn("btnZoomOutTimeSeries", "mActionZoomOut.svg", self.tr("Zoom out"))
+            self.btnZoomOut.clicked.connect(lambda: self.plot.zoomOut())
+            hl.addWidget(self.btnZoomOut, 0, Qt.AlignmentFlag.AlignLeft)
+
+            self.btnFit = _make_btn("btnFitTimeSeries", "mActionZoomFullExtent.svg", self.tr("Zoom to full extent"))
+            self.btnFit.clicked.connect(self._onFitClicked)
+            hl.addWidget(self.btnFit, 0, Qt.AlignmentFlag.AlignLeft)
+
             hl.addStretch(1)
 
             try:
@@ -509,6 +719,14 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 self.verticalLayout.addWidget(container)
         except Exception:
             return
+
+    def _onPanToggled(self, checked: bool) -> None:
+        self.plot.setPanMode(checked)
+
+    def _onFitClicked(self) -> None:
+        self.plot.resetView()
+        if hasattr(self, "btnPan") and self.btnPan.isChecked():
+            self.btnPan.setChecked(False)
 
     def _plotHasCurves(self) -> bool:
         try:

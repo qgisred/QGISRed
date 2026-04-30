@@ -123,6 +123,9 @@ class TimeSeriesPlotRenderer:
 
         painter.setFont(qfont(9))
         x_state = self._compute_x_axis_state(widget, widget.data_x, plot_rect, painter)
+        widget._last_x_state = x_state
+        if widget._view_x_min is None and widget._view_x_max is None:
+            widget._last_auto_x_state = x_state
         self._draw_grid_and_axes(widget, painter, plot_rect, local_margin_left, right_axis_label_w, x_state, y_state_left, y_state_right)
 
         painter.setPen(QPen(Qt.GlobalColor.black, 2))
@@ -186,6 +189,15 @@ class TimeSeriesPlotRenderer:
     def _compute_x_axis_state(self, widget, all_x, plot_rect, painter):
         min_x, max_x = min(all_x), max(all_x)
         if max_x == min_x:
+            max_x = min_x + 1
+        # Apply zoom/pan view limits when set
+        view_x_min = getattr(widget, "_view_x_min", None)
+        view_x_max = getattr(widget, "_view_x_max", None)
+        if view_x_min is not None:
+            min_x = view_x_min
+        if view_x_max is not None:
+            max_x = view_x_max
+        if max_x <= min_x:
             max_x = min_x + 1
         has_days = max_x >= 24
         label_px = self._estimate_x_axis_label_px(painter, has_days=has_days)
@@ -402,6 +414,9 @@ class TimeSeriesPlotRenderer:
         if not any(len((s.get("x") or [])) > 1 for s in widget.series):
             return
 
+        painter.save()
+        painter.setClipRect(plot_rect)
+
         for s in widget.series:
             xs = s.get("x", []) or []
             ys = s.get("y", []) or []
@@ -438,6 +453,8 @@ class TimeSeriesPlotRenderer:
                 start_pt = next_pt
 
             painter.drawPath(path)
+
+        painter.restore()
 
     def _draw_legend_icon(self, painter, x, y, size, legend_type, color, muted=False, highlighted=False):
         c = QColor(color)

@@ -4490,6 +4490,26 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <source>QGISRed: Time Series</source>
         <translation>QGISRed: Curvas de evolución</translation>
     </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="695"/>
+        <source>Pan</source>
+        <translation>Desplazar</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="699"/>
+        <source>Zoom in</source>
+        <translation>Acercar</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="703"/>
+        <source>Zoom out</source>
+        <translation>Alejar</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="707"/>
+        <source>Zoom to full extent</source>
+        <translation>Encuadrar</translation>
+    </message>
 </context>
 <context>
     <name>TimeSeriesPlotWidget</name>
