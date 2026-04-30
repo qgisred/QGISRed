@@ -90,11 +90,6 @@
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="621"/>
-        <source>Borrar selección</source>
-        <translation type="obsolete">Borrar selección</translation>
-    </message>
-    <message>
-        <location filename="../sections/analysis_section.py" line="621"/>
         <source>All selected curves will be lost. Continue?</source>
         <translation>Se perderán todas las curvas seleccionadas. ¿Continuar?</translation>
     </message>
@@ -189,11 +184,6 @@
 </context>
 <context>
     <name>Dialog</name>
-    <message>
-        <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="20"/>
-        <source>Thematic Maps</source>
-        <translation type="obsolete">Mapas Temáticos</translation>
-    </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="36"/>
         <source>Basic Elements</source>
@@ -719,11 +709,6 @@
         <location filename="../ui/queries/qgisred_queriesbyproperties_dock.ui" line="130"/>
         <source>Multiple Criteria</source>
         <translation>Múltiples criterios</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.ui" line="26"/>
-        <source>Queries by Properties</source>
-        <translation type="obsolete">Consultas por Propiedades</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_queriesbyproperties_dock.ui" line="26"/>
@@ -1308,21 +1293,6 @@
         <location filename="../sections/lifecycle_section.py" line="468"/>
         <source>QGISRed plugin only runs in Windows OS and requires some dependencies (v{}). Do you want to install them now?</source>
         <translation>El complemento QGISRed solo se ejecuta en Windows y requiere algunas dependencias (v{}). ¿Quieres instalarlas ahora?</translation>
-    </message>
-    <message>
-        <location filename="../sections/lifecycle_section.py" line="456"/>
-        <source>At the end, the QGISRed web page will be open to show the news, where you can also register if you wish to receive the newsletters.</source>
-        <translation type="obsolete">Al final, se abrirá la página web de QGISRed para mostrar las últimas novedades, donde también podrás registrarte si deseas recibir los boletines informativos.</translation>
-    </message>
-    <message>
-        <location filename="../sections/lifecycle_section.py" line="515"/>
-        <source>QGISRed Updates</source>
-        <translation type="obsolete">Actualizaciones de QGISRed</translation>
-    </message>
-    <message>
-        <location filename="../sections/lifecycle_section.py" line="515"/>
-        <source>QGISRed plugin has a new version ({}). You can upgrade it from the QGis plugin manager. Do you want to remember it again?</source>
-        <translation type="obsolete">El complemento QGISRed tiene una nueva versión ({}). Puedes actualizarlo desde el gestor de complementos de QGIS. ¿Quieres volver a recordar este mensaje?</translation>
     </message>
     <message>
         <location filename="../sections/lifecycle_section.py" line="50"/>
@@ -4064,16 +4034,6 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Guardar archivo de estadísticas</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="2028"/>
-        <source>Query</source>
-        <translation type="obsolete">Consulta</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="2028"/>
-        <source>Queries</source>
-        <translation type="obsolete">Consultas</translation>
-    </message>
-    <message>
         <location filename="../ui/queries/qgisred_queriesbyproperties_dock.py" line="252"/>
         <source>Move selected criterion up</source>
         <translation>Mover el criterio seleccionado arriba</translation>
@@ -4488,11 +4448,6 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.py" line="95"/>
         <source>Error</source>
         <translation>Error</translation>
-    </message>
-    <message>
-        <location filename="../ui/queries/qgisred_thematicmaps_dialog.py" line="95"/>
-        <source>group not found.</source>
-        <translation type="obsolete">grupo no encontrado.</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.py" line="521"/>
