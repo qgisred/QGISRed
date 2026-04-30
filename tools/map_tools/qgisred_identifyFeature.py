@@ -231,7 +231,7 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
             self.ignoreNextRelease = False
             return
 
-        allFeatures = self.identify(event.x(), event.y(), self.TopDownAll)
+        allFeatures = self.identify(event.pos().x(), event.pos().y(), self.TopDownAll)
         if not allFeatures:
             if self.dock:
                 self.dock.deselectElement()
@@ -247,7 +247,7 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
     def canvasDoubleClickEvent(self, event):
         self.ignoreNextRelease = True
 
-        allFeatures = self.identify(event.x(), event.y(), self.TopDownAll)
+        allFeatures = self.identify(event.pos().x(), event.pos().y(), self.TopDownAll)
         if not allFeatures:
             return
 
