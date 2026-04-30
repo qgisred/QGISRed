@@ -140,13 +140,15 @@ class ProjectManagementSection:
 
         self.readOptions(self.ProjectDirectory, self.NetworkName)
 
+        identifiers = QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        # Enforce group identifiers first so findGroupByIdentifier works inside
+        # _collectOpenSnapshot() even for projects saved before group ids were persisted.
+        identifiers.enforceGroupIdentifiers()
+
         # Snapshot which layers lack a QGISRed identifier BEFORE assignLayerIdentifiers
         # runs — this is how we detect old projects where identifiers were never saved.
         style_snapshot = self._collectOpenSnapshot()
-
-        identifiers = QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         identifiers.assignLayerIdentifiers()
-        identifiers.enforceGroupIdentifiers()
 
         QGISRedProjectIO().addProjectToGplFile(self.gplFile, self.NetworkName, self.ProjectDirectory)
 
@@ -680,22 +682,21 @@ class ProjectManagementSection:
         current_version = self._getPluginVersion()
         has_version = bool(saved_version)
         version_changed = saved_version != current_version
-
         snapshot = {"inputs_to_restyle": [], "results_no_id": False, "results_with_id": []}
 
         if version_changed:
             inputs_group = QGISRedLayerUtils.findGroupByIdentifier("qgisred_inputs")
             if inputs_group:
+                prefix_lower = (self.NetworkName + "_").lower()
                 for tree_item in inputs_group.findLayers():
                     layer = tree_item.layer()
                     if not layer:
                         continue
                     uri = layer.dataProvider().dataSourceUri()
-                    filename = os.path.splitext(os.path.basename(uri.split("|")[0]))[0]
-                    prefix = self.NetworkName + "_"
-                    if filename.startswith(prefix):
-                        element_name = filename[len(prefix):]
-                        snapshot["inputs_to_restyle"].append((layer.id(), element_name.lower()))
+                    filename = os.path.splitext(os.path.basename(uri.split("|")[0]))[0].lower()
+                    if filename.startswith(prefix_lower):
+                        element_name = filename[len(prefix_lower):]
+                        snapshot["inputs_to_restyle"].append((layer.id(), element_name))
 
         results_group = QGISRedLayerUtils.findGroupByIdentifier("qgisred_results")
         if results_group:
