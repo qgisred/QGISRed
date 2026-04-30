@@ -29,68 +29,63 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1031"/>
+        <location filename="../sections/analysis_section.py" line="1029"/>
         <source>Results file not found. Please run the model.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1058"/>
+        <location filename="../sections/analysis_section.py" line="1056"/>
         <source>Junction</source>
         <translation type="unfinished">Junção</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1059"/>
+        <location filename="../sections/analysis_section.py" line="1057"/>
         <source>Tank</source>
         <translation type="unfinished">Tanque</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1060"/>
+        <location filename="../sections/analysis_section.py" line="1058"/>
         <source>Reservoir</source>
         <translation type="unfinished">Reservatório</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1061"/>
+        <location filename="../sections/analysis_section.py" line="1059"/>
         <source>Pipe</source>
         <translation type="unfinished">Tubulação</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1062"/>
+        <location filename="../sections/analysis_section.py" line="1060"/>
         <source>Valve</source>
         <translation type="unfinished">Válvula</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1063"/>
+        <location filename="../sections/analysis_section.py" line="1061"/>
         <source>Pump</source>
         <translation type="unfinished">Bomba</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1085"/>
+        <location filename="../sections/analysis_section.py" line="1083"/>
         <source>Closed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1085"/>
+        <location filename="../sections/analysis_section.py" line="1083"/>
         <source>Active</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1085"/>
+        <location filename="../sections/analysis_section.py" line="1083"/>
         <source>Open</source>
         <translation type="unfinished">Abrir</translation>
     </message>
     <message>
-        <location filename="../sections/analysis_section.py" line="1091"/>
+        <location filename="../sections/analysis_section.py" line="1089"/>
         <source>Time</source>
         <translation type="unfinished">Tempo</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="212"/>
         <source>No simulation results found</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../sections/analysis_section.py" line="621"/>
-        <source>Borrar selección</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -121,6 +116,11 @@
     <message>
         <location filename="../sections/analysis_section.py" line="42"/>
         <source>Pipe&apos;s roughness converted</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="621"/>
+        <source>Clear selection</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -3701,7 +3701,7 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/general/qgisred_news_dialog.py" line="32"/>
+        <location filename="../ui/general/qgisred_news_dialog.py" line="33"/>
         <source>Close</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4475,7 +4475,7 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="456"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="484"/>
         <source>Clear all curves</source>
         <translation>Apagar todas as curvas</translation>
     </message>
@@ -4493,7 +4493,7 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="232"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="260"/>
         <source>Magnitude</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4508,7 +4508,7 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="112"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="113"/>
         <source>Time evolution curves</source>
         <translation type="unfinished"></translation>
     </message>
