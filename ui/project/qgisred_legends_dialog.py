@@ -1321,10 +1321,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 identifier = child.customProperty("qgisred_identifier") or ""
 
                 isAllowed = identifier in self.ALLOWED_GROUP_IDENTIFIERS or self.isQueriesGroup(identifier)
-                if isAllowed:
-                    isResultsOrQueries = identifier == "qgisred_results" or self.isQueriesGroup(identifier)
-                    if isResultsOrQueries or self.groupHasAnyLayers(child):
-                        results.append((currentPath[-1], " / ".join(currentPath), child))
+                if isAllowed and self.groupHasRenderableLayers(child):
+                    results.append((currentPath[-1], " / ".join(currentPath), child))
 
                 self.collectGroupsRecursive(child, currentPath, results)
 
@@ -1333,6 +1331,14 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def groupHasAnyLayers(self, group):
         return any(isinstance(child, QgsLayerTreeLayer) for child in group.children())
+
+    def groupHasRenderableLayers(self, group):
+        identifier = group.customProperty("qgisred_identifier") or ""
+        recurseIntoSubgroups = identifier == "qgisred_results" or self.isQueriesGroup(identifier)
+        isQueriesGroup = self.isQueriesGroup(identifier)
+        layers = []
+        self.collectRenderableLayersRecursive(group, layers, recurseIntoSubgroups, isQueriesGroup)
+        return len(layers) > 0
 
     def getRenderableLayersInSelectedGroup(self):
         path = self.cbGroups.currentData()
