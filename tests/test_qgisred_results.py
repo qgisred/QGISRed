@@ -19,7 +19,7 @@ from QGISRed.ui.analysis.qgisred_results_binary import (
     ROUNDING_PRECISION,
 )
 
-from .helpers.epanet_out_builder import simple_network_out, pump_valve_network_out
+from .helpers.epanet_out_builder import simple_network_out, pump_valve_network_out, simple_network_out_with_trailing
 
 
 
@@ -344,3 +344,41 @@ class TestGetOutStatLinksProperties:
     def test_invalid_stat_raises(self, simple_network_out):
         with pytest.raises(ValueError):
             getOut_StatLinksProperties(simple_network_out, "BadStat")
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 9. Trailing-bytes robustness
+#    Regression for the bug where period_size was derived from file size
+#    instead of network dimensions. Real EPANET binaries (e.g. 2.2) can
+#    append extra summary bytes before the epilogue, causing the file-size
+#    formula to overestimate period_size by 1 byte and byte-drift every
+#    period past index 0 (producing garbage / negative pressure values).
+# ═══════════════════════════════════════════════════════════════════════
+
+class TestTrailingBytesRobustness:
+    def test_period0_correct_with_trailing(self, simple_network_out_with_trailing):
+        """Period 0 must read correctly regardless of trailing bytes."""
+        results = getOut_TimeNodesProperties(simple_network_out_with_trailing, 0)
+        j1 = results["J1"]
+        assert j1["Pressure"] == round(29.43, ROUNDING_PRECISION)
+        assert j1["Head"]     == round(80.0,  ROUNDING_PRECISION)
+        assert j1["Demand"]   == round(5.0,   ROUNDING_PRECISION)
+
+    def test_period1_correct_with_trailing(self, simple_network_out_with_trailing):
+        """Period 1 must read the correct values even when extra bytes follow
+        the last period. Without the fix (file-size-based period_size) this
+        period starts 1 byte off, producing garbage floats."""
+        results = getOut_TimeNodesProperties(simple_network_out_with_trailing, 3600)
+        j1 = results["J1"]
+        assert j1["Pressure"] == round(24.52, ROUNDING_PRECISION)
+        assert j1["Head"]     == round(75.0,  ROUNDING_PRECISION)
+        assert j1["Demand"]   == round(6.0,   ROUNDING_PRECISION)
+
+    def test_no_negative_pressures_with_trailing(self, simple_network_out_with_trailing):
+        """No junction should report a negative pressure in any period."""
+        for t in (0, 3600):
+            results = getOut_TimeNodesProperties(simple_network_out_with_trailing, t)
+            for node_id, props in results.items():
+                assert props["Pressure"] >= 0.0, (
+                    f"Negative pressure {props['Pressure']} for {node_id} at t={t}s"
+                )

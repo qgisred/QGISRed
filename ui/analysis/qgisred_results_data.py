@@ -195,7 +195,7 @@ class _ResultsDataMixin:
                     time_seconds = int(hms[0]) * 3600 + int(hms[1]) * 60 + int(hms[2])
             except Exception:
                 time_seconds = 0
-
+        print(time_seconds)
         resultPath = self.getResultsPath()
         binary_path = os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + ".out")
         if not os.path.exists(binary_path):

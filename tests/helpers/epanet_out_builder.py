@@ -30,6 +30,7 @@ def build_epanet_out(
     wq_type=0,
     flow_units=0,
     pres_units=0,
+    extra_trailing_bytes=0,  # extra bytes inserted before the epilogue (simulates EPANET version-specific summary data)
 ):
     """Build a minimal EPANET .out binary file and return bytes.
 
@@ -133,6 +134,12 @@ def build_epanet_out(
             for li in range(n_links):
                 buf.extend(struct.pack('f', link_data[li][var_idx]))
 
+    # ── Optional trailing bytes before epilogue ──
+    # Simulates version-specific summary data that some EPANET builds append
+    # after the last period (e.g. EPANET 2.2 energy/quality summaries).
+    if extra_trailing_bytes > 0:
+        buf.extend(b'\xAB' * extra_trailing_bytes)
+
     # ── Epilogue (3 ints) ──
     buf.extend(struct.pack('3i', num_periods, 0, 516114521))
 
@@ -200,6 +207,68 @@ def simple_network_out(tmp_path):
     )
 
     out_path = tmp_path / "test_network.out"
+    out_path.write_bytes(data)
+    return str(out_path)
+
+
+@pytest.fixture
+def simple_network_out_with_trailing(tmp_path):
+    """Same as simple_network_out but with 16 extra bytes before the epilogue.
+
+    This simulates real EPANET binaries (e.g. EPANET 2.2) that append version-
+    specific summary data after the last results period. Without the fix, the
+    file-size-derived period_size is 1 byte larger than the true period, causing
+    byte-drift in every period after index 0.
+    """
+    node_ids = ["R1", "J1", "J2"]
+    link_ids = ["P1", "P2"]
+    link_from = [0, 1]
+    link_to = [1, 2]
+    link_types = [1, 1]
+    tank_node_indices = [0]
+    tank_areas = [0.0]
+    node_elevations = [100.0, 50.0, 30.0]
+    link_lengths = [1000.0, 500.0]
+    link_diameters = [300.0, 200.0]
+
+    p0_nodes = [
+        (-10.0, 100.0, 0.0,   0.0),
+        (5.0,   80.0,  29.43, 0.5),
+        (5.0,   60.0,  29.43, 0.3),
+    ]
+    p0_links = [
+        (10.0, 1.5, 20.0, 0.4, 3.0, 0.0, 0.0, 0.02),
+        (5.0,  1.0, 40.0, 0.3, 3.0, 0.0, 0.0, 0.03),
+    ]
+    p1_nodes = [
+        (-12.0, 100.0, 0.0,   0.0),
+        (6.0,   75.0,  24.52, 0.6),
+        (6.0,   55.0,  24.52, 0.4),
+    ]
+    p1_links = [
+        (12.0, 1.8, 25.0, 0.5, 3.0, 0.0, 0.0, 0.025),
+        (6.0,  1.2, 50.0, 0.4, 3.0, 0.0, 0.0, 0.035),
+    ]
+
+    data = build_epanet_out(
+        node_ids=node_ids,
+        link_ids=link_ids,
+        link_from=link_from,
+        link_to=link_to,
+        link_types=link_types,
+        tank_node_indices=tank_node_indices,
+        tank_areas=tank_areas,
+        node_elevations=node_elevations,
+        link_lengths=link_lengths,
+        link_diameters=link_diameters,
+        periods_node_data=[p0_nodes, p1_nodes],
+        periods_link_data=[p0_links, p1_links],
+        report_start=0,
+        report_step=3600,
+        extra_trailing_bytes=16,
+    )
+
+    out_path = tmp_path / "test_network_trailing.out"
     out_path.write_bytes(data)
     return str(out_path)
 

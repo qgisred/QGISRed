@@ -206,16 +206,15 @@ def getOut_Metadata(f, include_lengths=False):
     f.seek((28 * n_pumps) + 4, 1)
     results_offset = f.tell()
 
-    f.seek(0, 2)
-    file_size = f.tell()
     f.seek(-12, 2)
     epilogue_data = f.read(12)
     num_periods, error_code, magic2 = struct.unpack('3i', epilogue_data)
 
-    if num_periods > 0:
-        period_size = (file_size - 12 - results_offset) // num_periods
-    else:
-        period_size = 0
+    # Compute period size from network dimensions, not from file size.
+    # File-size division can be off by 1 if EPANET writes extra bytes (e.g.
+    # version-specific summary data) between the last period and the epilogue,
+    # causing cumulative byte-drift in every period past index 0.
+    period_size = (n_nodes * 4 + n_links * 8) * 4
 
     return {
         "n_nodes": n_nodes,
