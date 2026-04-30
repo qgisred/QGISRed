@@ -1134,6 +1134,17 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         layerIdentifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else None
         utils = QGISRedFieldUtils()
 
+        # Hide quality-related fields when the quality model is None, Age, or Trace
+        qualityModel = utils.getQualityModel().upper()
+        if qualityModel in ("NONE", "AGE", "TRACE"):
+            nonChemicalFields = {
+                "qgisred_pipes":      {"BulkCoeff", "WallCoeff"},
+                "qgisred_tanks":      {"ReactCoef", "IniQuality"},
+                "qgisred_reservoirs": {"IniQuality"},
+                "qgisred_junctions":  {"IniQuality"},
+            }.get(layerIdentifier, set())
+            skipFields = skipFields | nonChemicalFields
+
         # For node layers, collect attached demands and source
         isNodeLayer = layerIdentifier in ["qgisred_junctions", "qgisred_reservoirs", "qgisred_tanks"]
         nodeDemands = []
@@ -2552,8 +2563,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             return fields
         fields = ["Status", "Flow", "Velocity", "HeadLoss", "UnitHdLoss", "FricFactor"]
         if isQuality:
-            if fu.showReactRate():
-                fields.append("ReactRate")
+            fields.append("ReactRate")
             fields.append("Quality")
         return fields
 
