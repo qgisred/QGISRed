@@ -1106,11 +1106,13 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         if not elementIdentifier:
             return
 
+        # Read suffix kinds before setCurrentIndex, which may rebuild the list and delete the item
+        suffixKinds = item.data(Qt.ItemDataRole.UserRole + 2) or []
+
         index = self.cbElementType.findData(elementIdentifier)
         if index >= 0:
             self.cbElementType.setCurrentIndex(index)
         if selectedId:
-            suffixKinds = item.data(Qt.ItemDataRole.UserRole + 2) or []
             suffixText = self.composeSuffixText(suffixKinds)
             fullId = f"{selectedId} {suffixText}".strip() if suffixText else selectedId
             idIndex = self.cbElementId.findText(fullId)
