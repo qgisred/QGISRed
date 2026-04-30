@@ -487,9 +487,9 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                     self.iface.mainWindow(),
                     self.tr("QGISRed"),
                     self.tr("Project will be removed completely from your computer. Are you sure?"),
-                    QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
+                    QMessageBox.StandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No),
                 )
-                if request == QMessageBox.Yes:
+                if request == QMessageBox.StandardButton.Yes:
                     self._removeFilesFromFolder(projectPath, projectNetwork)
                 else:
                     return
@@ -500,9 +500,9 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                     self.tr(
                         "Project will be unloaded from this list, but will remain in your computer. You could add it back using the Load button. Do you want to continue?"
                     ),
-                    QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
+                    QMessageBox.StandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No),
                 )
-                if request == QMessageBox.No:
+                if request == QMessageBox.StandardButton.No:
                     return
 
             if os.path.exists(self.gplFile):

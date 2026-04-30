@@ -720,11 +720,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
                     f"may affect performance and readability.\n\n"
                     f"Do you want to proceed?"
                 ),
-                QMessageBox.Yes | QMessageBox.No,
-                QMessageBox.No,
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
             )
 
-            if reply == QMessageBox.No:
+            if reply == QMessageBox.StandardButton.No:
                 self.revertLegendTypeComboBox(currentType)
                 return False
 
@@ -3213,9 +3213,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 self,
                 self.tr("Overwrite"),
                 self.tr("Overwrite style?"),
-                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             )
-            if reply != QMessageBox.Yes:
+            if reply != QMessageBox.StandardButton.Yes:
                 return
 
         self.currentLayer.saveNamedStyle(path)

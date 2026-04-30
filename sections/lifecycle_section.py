@@ -470,9 +470,9 @@ class LifecycleSection:
                 self.tr("QGISRed Dependencies"),
                 self.tr(
                     "QGISRed plugin only runs in Windows OS and requires some dependencies (v{}). Do you want to install them now?").format(self.DependenciesVersion),
-                QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
+                QMessageBox.StandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No),
             )
-            if request == QMessageBox.Yes:
+            if request == QMessageBox.StandardButton.Yes:
                 # Remove previous dependencies version
                 if not self.DependenciesVersion.endswith(".0"):
                     uninstallFile = os.path.join(

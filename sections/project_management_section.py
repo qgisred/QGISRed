@@ -63,10 +63,10 @@ class ProjectManagementSection:
                     self.iface.mainWindow(),
                     self.tr("Open project"),
                     self.tr("Do you want to close the current project and continue?"),
-                    QMessageBox.Yes,
-                    QMessageBox.No,
+                    QMessageBox.StandardButton.Yes,
+                    QMessageBox.StandardButton.No,
                 )
-                if reply == QMessageBox.Yes:
+                if reply == QMessageBox.StandardButton.Yes:
                     # QgsProject.instance().clear()
                     return True
                 else:
@@ -78,10 +78,10 @@ class ProjectManagementSection:
                     self.iface.mainWindow(),
                     self.tr("Open layers"),
                     self.tr("Do you want to close the current layers and continue?"),
-                    QMessageBox.Yes,
-                    QMessageBox.No,
+                    QMessageBox.StandardButton.Yes,
+                    QMessageBox.StandardButton.No,
                 )
-                if reply == QMessageBox.Yes:
+                if reply == QMessageBox.StandardButton.Yes:
                     # QgsProject.instance().clear()
                     return True
                 else:
@@ -733,8 +733,8 @@ class ProjectManagementSection:
                 "They will be removed from QGIS and you will need to run the simulation again.\n\n"
                 "Do you also want to delete the result files from disk?"
             ),
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
         )
 
         project = QgsProject.instance()
@@ -752,7 +752,7 @@ class ProjectManagementSection:
             if results_group and not results_group.children():
                 results_group.parent().removeChildNode(results_group)
 
-        if reply == QMessageBox.Yes:
+        if reply == QMessageBox.StandardButton.Yes:
             QTimer.singleShot(0, self._deleteOldResultFiles)
 
     def _deleteOldResultFiles(self):

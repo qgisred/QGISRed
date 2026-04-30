@@ -496,10 +496,10 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                     self,
                     self.tr("Switch to Single Criteria"),
                     self.tr("Switching to single criteria will discard all criteria except the first one. Proceed?"),
-                    QMessageBox.Ok | QMessageBox.Cancel,
-                    QMessageBox.Cancel
+                    QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel,
+                    QMessageBox.StandardButton.Cancel
                 )
-                if reply == QMessageBox.Cancel:
+                if reply == QMessageBox.StandardButton.Cancel:
                     # revert to multiple without re-triggering this handler
                     self.radioMultipleCriteria.blockSignals(True)
                     self.radioMultipleCriteria.setChecked(True)

@@ -568,9 +568,9 @@ class QGISRedProjectIO:
                             self.iface.mainWindow(),
                             self.tr("QGISRed Project"),
                             self.tr("We cannot find the QGIS project file. Do you want to find this file manually? If not, we will open only the layers from the Inputs group."),
-                            QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No),
+                            QMessageBox.StandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No),
                         )
-                        if request == QMessageBox.Yes:
+                        if request == QMessageBox.StandardButton.Yes:
                             qfd = QFileDialog()
                             filter = "qgz(*.qgz)"
                             f = QFileDialog.getOpenFileName(qfd, "Select QGis file", "", filter)
