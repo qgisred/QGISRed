@@ -485,7 +485,7 @@ class LifecycleSection:
                 try:
                     if not link.startswith("https://"):
                         return valid
-                    urllib.request.urlretrieve(link, localFile)
+                    urllib.request.urlretrieve(link, localFile)  # nosec B310 — link already validated startswith("https://")
                     subprocess.run(["msiexec", "/i", localFile], check=False)
                     os.remove(localFile)
                 except Exception:
@@ -502,7 +502,7 @@ class LifecycleSection:
         language = "es" if QgsApplication.locale()[0:2] == "es" else "en"
         news_url = "https://qgisred.upv.es/files/news/" + language + "/news.json"
         try:
-            with urllib.request.urlopen(news_url, timeout=10) as response:
+            with urllib.request.urlopen(news_url, timeout=10) as response:  # nosec B310 — news_url is a hardcoded https:// constant
                 data = json.loads(response.read().decode("utf-8"))
             news_id = data.get("id", "")
             title = data.get("title", self.tr("QGISRed News"))
@@ -522,7 +522,9 @@ class LifecycleSection:
 
             # Resolve html_url relative to the news JSON URL
             resolved_html_url = urllib.parse.urljoin(news_url, html_url)
-            with urllib.request.urlopen(resolved_html_url, timeout=10) as response:
+            if not resolved_html_url.startswith("https://"):
+                return
+            with urllib.request.urlopen(resolved_html_url, timeout=10) as response:  # nosec B310 — validated startswith("https://") above
                 html_content = response.read().decode("utf-8")
 
             self._latestNewsId = news_id

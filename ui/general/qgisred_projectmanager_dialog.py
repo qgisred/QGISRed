@@ -198,7 +198,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                     with open(metadataFile, "r", encoding="latin-1") as content_file:
                         data = content_file.read()
                     # Parse data as XML
-                    root = ElementTree.fromstring(data)
+                    root = ElementTree.fromstring(data)  # nosec B314 — local project file written by plugin DLL, not user input
                     # Get data from nodes
                     for dl in root.iter("DateModification"):
                         dateLast = dl.text

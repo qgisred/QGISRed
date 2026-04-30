@@ -381,7 +381,7 @@ class QGISRedProjectIO:
         try:
             with open(metadataFile, "r", encoding="latin-1") as mf:
                 data = mf.read()
-            xmlRoot = ElementTree.fromstring(data)
+            xmlRoot = ElementTree.fromstring(data)  # nosec B314 — local file written by plugin DLL, not user input
             for qgs in xmlRoot.findall("./ThirdParty/QGISRed/QGisProject"):
                 if qgs.text and (".qgs" in qgs.text or ".qgz" in qgs.text):
                     qgisPath = qgs.text
@@ -527,7 +527,7 @@ class QGISRedProjectIO:
         try:
             with open(metadataFile, "r", encoding="latin-1") as mf:
                 data = mf.read()
-            xmlRoot = ElementTree.fromstring(data)
+            xmlRoot = ElementTree.fromstring(data)  # nosec B314 — local file written by plugin DLL, not user input
             updated = False
             for node in xmlRoot.findall("./ThirdParty/QGISRed/QGisProject"):
                 if node.text and (".qgs" in node.text or ".qgz" in node.text):
@@ -547,7 +547,7 @@ class QGISRedProjectIO:
             with open(metadataFile, "r", encoding="latin-1") as contentFile:
                 data = contentFile.read()
             # Parse data as XML
-            root = ElementTree.fromstring(data)
+            root = ElementTree.fromstring(data)  # nosec B314 — local project file written by plugin DLL, not user input
             # Get data from nodes
             for qgs in root.findall("./ThirdParty/QGISRed/QGisProject"):
                 if ".qgs" in qgs.text or ".qgz" in qgs.text:
@@ -735,7 +735,7 @@ class QGISRedProjectIO:
             try:
                 with open(metadataFile, "r", encoding="latin-1") as f:
                     data = f.read()
-                root = ElementTree.fromstring(data)
+                root = ElementTree.fromstring(data)  # nosec B314 — local project file written by plugin DLL, not user input
                 guidNode = root.find("Guid")
                 if guidNode is not None and guidNode.text:
                     return guidNode.text
