@@ -252,6 +252,52 @@ for the credentials interactively and offer to save them.
 2. Open `scripts\.ftp_credentials` and fill in the real values.
 3. Run `scripts\release_beta.bat` or `scripts\release_official.bat`.
 
+## Publishing news / announcements
+
+The plugin shows a news dialog on startup whenever the server publishes a new announcement.
+The source files live in `news/` (git-ignored) and must be uploaded to the FTP server manually.
+
+### Structure on the server
+
+```
+files/news/
+  es/
+    news.json       ← metadata in Spanish
+    2026-04.html    ← HTML content in Spanish
+  en/
+    news.json       ← metadata in English
+    2026-04.html    ← HTML content in English
+```
+
+### How to publish new news
+
+1. **Archive the current news.**
+   Copy the entire `news/es/` and `news/en/` folders into `news/old/<YYYY-MM-DD>/` before making any changes:
+   ```
+   news/old/es/2026-04-30/news.json
+   news/old/es/2026-04-30/2026-04.html
+   news/old/en/2026-04-30/news.json
+   news/old/en/2026-04-30/2026-04.html
+   ```
+
+2. **Update the JSON files.**
+   In both `news/es/news.json` and `news/en/news.json`, change the `id` field to a new unique string
+   (e.g. `"2026-07-v0.19"`). This is what triggers the dialog on all users' machines — as long as
+   the `id` differs from any ID stored in `%APPDATA%\QGISRed\seenNews.dat`, the dialog will appear.
+   Update `title` and `html_url` accordingly.
+
+3. **Update the HTML files.**
+   Edit `news/es/<file>.html` and `news/en/<file>.html` with the new content.
+   The `html_url` in each JSON is a relative path, so the HTML file must sit in the same folder as its JSON.
+
+4. **Upload to the FTP server.**
+   Replace the existing files on the server with the updated ones:
+   - `files/news/es/news.json`
+   - `files/news/es/<html_file>.html`
+   - `files/news/en/news.json`
+   - `files/news/en/<html_file>.html`
+
+
 ## Adding a new Section
 
 
