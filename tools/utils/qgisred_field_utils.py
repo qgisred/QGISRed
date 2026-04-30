@@ -22,6 +22,8 @@ _COMMON_PRETTY_NAMES = {
 
 _NON_CHEMICAL_MODELS = frozenset({"none", "trace", "age"})
 
+_SUPERSCRIPT_TRANSLATION = str.maketrans("0123456789/", "⁰¹²³⁴⁵⁶⁷⁸⁹ᐟ")
+
 _CATEGORIZED_LAYER_IDS = {
     'qgisred_query_pipes_length',
     'qgisred_query_pipes_diameter',
@@ -321,13 +323,23 @@ class QGISRedFieldUtils:
         return QGISRedFieldUtils._unit_definitions
 
     def _getFirstRow(self, element, fieldName):
-        """Return first CSV row matching (element, fieldName), or empty dict."""
+        """Return CSV row matching (element, fieldName).
+
+        When multiple rows discriminate on the headloss formula (notes ==
+        'HeadLoss formulae'), the row matching project_headloss is returned.
+        """
         normEl = element.replace(" ", "").lower()
-        for row in self.loadUnitDefinitions().get("rows", []):
-            if (row["element"].replace(" ", "").lower() == normEl
-                    and row["fieldName"] == fieldName):
-                return row
-        return {}
+        matches = [row for row in self.loadUnitDefinitions().get("rows", [])
+                   if row["element"].replace(" ", "").lower() == normEl
+                   and row["fieldName"] == fieldName]
+        if not matches:
+            return {}
+        if len(matches) > 1 and all(row["notes"] == "HeadLoss formulae" for row in matches):
+            active = QgsProject.instance().readEntry("QGISRed", "project_headloss", "D-W")[0]
+            for row in matches:
+                if row["condition_value"].lower() == active.lower():
+                    return row
+        return matches[0]
 
     def _getRowByCondition(self, element, fieldName, conditionValue):
         """Return the CSV row matching (element, fieldName, conditionValue).
@@ -388,7 +400,18 @@ class QGISRedFieldUtils:
             abbr = abbr.replace("See MassUnits", self._getMassAbbr())
             abbr = abbr.replace("See Currency", self._getCurrencyAbbr())
         abbr = re.sub(r'sqr\(([^)]+)\)', r'√\1', abbr)
+        abbr = self._formatExponents(abbr)
         return abbr
+
+    def _formatExponents(self, text):
+        """Convert ASCII exponent notation in unit strings to Unicode superscripts.
+
+        Supports '^(N/M)' (parenthesised, including fractions) and '^N' (bare digits),
+        e.g. 's/m^(1/3)' -> 's/m¹ᐟ³', 'm^2' -> 'm²'.
+        """
+        text = re.sub(r'\^\(([0-9/]+)\)', lambda m: m.group(1).translate(_SUPERSCRIPT_TRANSLATION), text)
+        text = re.sub(r'\^(\d+)', lambda m: m.group(1).translate(_SUPERSCRIPT_TRANSLATION), text)
+        return text
 
     def _getCurrencyAbbr(self):
         """Return the currency abbreviation (first Global/Currency row in the CSV)."""
