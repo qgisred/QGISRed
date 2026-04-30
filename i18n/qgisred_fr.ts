@@ -2277,6 +2277,14 @@ Do you also want to delete the result files from disk?</source>
     </message>
 </context>
 <context>
+    <name>QGISRedEditLinksGeometryTool</name>
+    <message>
+        <location filename="../tools/map_tools/qgisred_editLinksGeometry.py" line="206"/>
+        <source>QGISRed: Drag to move vertex · Right-click to delete</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>QGISRedElementExplorerDock</name>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="85"/>

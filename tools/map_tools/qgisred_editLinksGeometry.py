@@ -60,6 +60,22 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
         self.newVertexMarker.setPenWidth(3)
         self.newVertexMarker.hide()
 
+        self.segmentRubberBand = None
+        self.insertMarker = QgsVertexMarker(self.iface.mapCanvas())
+        self.insertMarker.setColor(QColor(55, 198, 5))
+        self.insertMarker.setFillColor(QColor(55, 198, 5))
+        self.insertMarker.setIconSize(14)
+        self.insertMarker.setIconType(QgsVertexMarker.ICON_CROSS)
+        self.insertMarker.setPenWidth(4)
+        self.insertMarker.setZValue(100)
+        self.insertMarker.hide()
+
+        self.featureRubberBand = None
+        self.vertexMarkers = []
+        self.hoveredFeatureId = None
+        self.hoveredLayerId = None
+        self.hoveredVertexIdx = -1
+
     def activate(self):
         cursor = QCursor()
         cursor.setShape(Qt.CursorShape.ArrowCursor)
@@ -87,10 +103,9 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
         self.pipeSnapper.setConfig(config)
 
     def deactivate(self):
-        self.vertexMarker.hide()
         self.newVertexMarker.hide()
         self.pipeMarker.hide()
-        
+        self._clearAllHighlights()
         self.toolbarButton.setChecked(False)
 
     def isZoomTool(self):
@@ -137,6 +152,112 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
             if abs(xEst - myPoint.x()) < 1e-9:
                 return True
         return False
+
+    def _buildFeatureHighlight(self, feature):
+        geom = feature.geometry()
+        try:
+            self.featureRubberBand = QgsRubberBand(self.iface.mapCanvas(), Qgis.GeometryType.Line)
+        except Exception:
+            self.featureRubberBand = QgsRubberBand(self.iface.mapCanvas(), False)
+        self.featureRubberBand.setToGeometry(geom, None)
+        self.featureRubberBand.setColor(QColor(255, 80, 80, 100))
+        self.featureRubberBand.setWidth(5)
+
+        for v in geom.vertices():
+            m = QgsVertexMarker(self.iface.mapCanvas())
+            m.setCenter(QgsPointXY(v.x(), v.y()))
+            m.setColor(QColor(120, 120, 120))
+            m.setFillColor(QColor(255, 255, 255, 200))
+            m.setIconSize(7)
+            m.setIconType(QgsVertexMarker.ICON_CIRCLE)
+            m.setPenWidth(2)
+            self.vertexMarkers.append(m)
+
+    def _updateHoverHighlight(self, layer, feature, isVertex, vertexIdx, snapMatch):
+        featureId = feature.id()
+        layerId = layer.id()
+        if featureId != self.hoveredFeatureId or layerId != self.hoveredLayerId:
+            self._clearAllHighlights()
+            self.hoveredFeatureId = featureId
+            self.hoveredLayerId = layerId
+            self._buildFeatureHighlight(feature)
+
+        # Reset previously enlarged vertex
+        if 0 <= self.hoveredVertexIdx < len(self.vertexMarkers):
+            m = self.vertexMarkers[self.hoveredVertexIdx]
+            m.setColor(QColor(120, 120, 120))
+            m.setFillColor(QColor(255, 255, 255, 200))
+            m.setIconSize(7)
+            m.setPenWidth(2)
+        self.hoveredVertexIdx = -1
+
+        if isVertex:
+            self._hideSegmentHighlight()
+            if 0 <= vertexIdx < len(self.vertexMarkers):
+                m = self.vertexMarkers[vertexIdx]
+                m.setColor(QColor(255, 87, 51))
+                m.setFillColor(QColor(255, 87, 51, 80))
+                m.setIconSize(20)
+                m.setPenWidth(3)
+                self.hoveredVertexIdx = vertexIdx
+            cursor = QCursor()
+            cursor.setShape(Qt.CursorShape.SizeAllCursor)
+            self.iface.mapCanvas().setCursor(cursor)
+            self.iface.mainWindow().statusBar().showMessage(
+                self.tr("QGISRed: Drag to move vertex · Right-click to delete")
+            )
+        else:
+            self.iface.mainWindow().statusBar().clearMessage()
+            self._showSegmentHighlight(feature, snapMatch)
+
+    def _clearAllHighlights(self):
+        if self.featureRubberBand is not None:
+            self.iface.mapCanvas().scene().removeItem(self.featureRubberBand)
+            self.featureRubberBand = None
+        for m in self.vertexMarkers:
+            self.iface.mapCanvas().scene().removeItem(m)
+        self.vertexMarkers = []
+        self.hoveredFeatureId = None
+        self.hoveredLayerId = None
+        self.hoveredVertexIdx = -1
+        self._hideSegmentHighlight()
+        self.iface.mainWindow().statusBar().clearMessage()
+        cursor = QCursor()
+        cursor.setShape(Qt.CursorShape.ArrowCursor)
+        self.iface.mapCanvas().setCursor(cursor)
+
+    def _showSegmentHighlight(self, feature, snapMatch):
+        featureGeometry = feature.geometry()
+        snapPoint = snapMatch.point()
+        sp = QgsPointXY(snapPoint.x(), snapPoint.y())
+        result = featureGeometry.closestSegmentWithContext(sp)
+        afterVertex = result[2]
+        if afterVertex <= 0:
+            return
+        p1 = featureGeometry.vertexAt(afterVertex - 1)
+        p2 = featureGeometry.vertexAt(afterVertex)
+        if p1.isEmpty() or p2.isEmpty():
+            return
+        if self.segmentRubberBand is not None:
+            self.iface.mapCanvas().scene().removeItem(self.segmentRubberBand)
+        try:
+            self.segmentRubberBand = QgsRubberBand(self.iface.mapCanvas(), Qgis.GeometryType.Line)
+        except Exception:
+            self.segmentRubberBand = QgsRubberBand(self.iface.mapCanvas(), False)
+        self.segmentRubberBand.setToGeometry(QgsGeometry.fromPolyline([p1, p2]), None)
+        self.segmentRubberBand.setColor(QColor(220, 50, 50, 160))
+        self.segmentRubberBand.setWidth(4)
+        self.insertMarker.setCenter(sp)
+        self.insertMarker.show()
+        cursor = QCursor()
+        cursor.setShape(Qt.CursorShape.PointingHandCursor)
+        self.iface.mapCanvas().setCursor(cursor)
+
+    def _hideSegmentHighlight(self):
+        if self.segmentRubberBand is not None:
+            self.iface.mapCanvas().scene().removeItem(self.segmentRubberBand)
+            self.segmentRubberBand = None
+        self.insertMarker.hide()
 
     def createRubberBand(self, points):
         myPoints = points
@@ -277,21 +398,17 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
                                         if (i == 0 or i == len(part) - 1) and "ServiceConnections" in snapLayerPath:
                                             self.pipeSnappedOn = True
                                         break
-                    if middleNode:
-                        self.vertexMarker.setCenter(QgsPointXY(vertex.x(), vertex.y()))
-                        self.vertexMarker.show()
-                    else:
-                        self.vertexMarker.hide()
+                    self._updateHoverHighlight(layer, self.selectedFeature, middleNode, self.vertexIndex, self.objectSnapped)
                 else:
                     self.objectSnapped = None
                     self.selectedFeature = None
                     self.selectedLayer = None
-                    self.vertexMarker.hide()
+                    self._clearAllHighlights()
             else:
                 self.objectSnapped = None
                 self.selectedFeature = None
                 self.selectedLayer = None
-                self.vertexMarker.hide()
+                self._clearAllHighlights()
         # Mouse clicked
         else:
             # Snap pipe layer
@@ -322,6 +439,7 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
                 self.updateRubberBand()
 
     def canvasReleaseEvent(self, event):
+        insertedPoint = None
         if self.mouseClicked:
             if event.button() == 1:
                 mousePoint = self.toMapCoordinates(event.pos())
@@ -335,7 +453,8 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
                 self.deleteVertexLink(self.selectedLayer, self.selectedFeature, self.vertexIndex)
         elif event.button() == 1:
             if self.objectSnapped is not None:
-                self.insertVertexLink(self.selectedLayer, self.selectedFeature, self.objectSnapped.point())
+                insertedPoint = self.objectSnapped.point()
+                self.insertVertexLink(self.selectedLayer, self.selectedFeature, insertedPoint)
         self.objectSnapped = None
         self.pipeSnapped = None
         self.selectedFeature = None
@@ -343,7 +462,7 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
         self.vertexIndex = -1
         self.iface.mapCanvas().refresh()
         # Remove vertex marker and rubber band
-        self.vertexMarker.hide()
         self.iface.mapCanvas().scene().removeItem(self.rubberBand)
         self.newVertexMarker.hide()
         self.pipeMarker.hide()
+        self._clearAllHighlights()
