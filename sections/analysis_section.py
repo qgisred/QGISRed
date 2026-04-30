@@ -620,8 +620,8 @@ class AnalysisSection:
                 from qgis.PyQt.QtWidgets import QMessageBox
                 reply = QMessageBox.question(
                     None,
-                    self.tr("Borrar selección"),
-                    self.tr("Se perderán todas las curvas seleccionadas. ¿Continuar?"),
+                    self.tr("Clear selection"),
+                    self.tr("All selected curves will be lost. Continue?"),
                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                     QMessageBox.StandardButton.No,
                 )
@@ -935,7 +935,6 @@ class AnalysisSection:
             if not hasattr(self, "timeSeriesSelection") or not self.timeSeriesSelection:
                 return
 
-            # Keys look like: "{category}:{layer_identifier}:{prop_internal}:{element_id}"
             key_to_keep = []
             for it in self.timeSeriesSelection:
                 li = it.get("layer_identifier") or ""
@@ -962,7 +961,6 @@ class AnalysisSection:
                     pass
                 return
 
-            # Rebuild map selection per layer from remaining items.
             try:
                 fids_by_layer = {}
                 for it in self.timeSeriesSelection:

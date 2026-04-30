@@ -95,8 +95,8 @@
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="621"/>
-        <source>Se perderán todas las curvas seleccionadas. ¿Continuar?</source>
-        <translation type="unfinished"></translation>
+        <source>All selected curves will be lost. Continue?</source>
+        <translation>Todas as curvas selecionadas serão perdidas. Continuar?</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="792"/>
