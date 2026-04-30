@@ -512,7 +512,7 @@
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="20"/>
         <source>QGISRed: Thematic Maps</source>
-        <translation type="unfinished"></translation>
+        <translation>QGISRed: Mapas Temáticos</translation>
     </message>
 </context>
 <context>
@@ -723,7 +723,7 @@
     <message>
         <location filename="../ui/queries/qgisred_queriesbyproperties_dock.ui" line="26"/>
         <source>QGISRed: Queries by Properties</source>
-        <translation type="unfinished"></translation>
+        <translation>QGISRed: Consultas por Propiedades</translation>
     </message>
 </context>
 <context>
@@ -2393,12 +2393,12 @@ Do you also want to delete the result files from disk?</source>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1940"/>
         <source>(Source)</source>
-        <translation type="unfinished"></translation>
+        <translation>(Fuente)</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="1942"/>
         <source>(Mult.Dem)</source>
-        <translation type="unfinished"></translation>
+        <translation>(Dem.Múlt.)</translation>
     </message>
 </context>
 <context>
@@ -4479,7 +4479,7 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.py" line="95"/>
         <source>Inputs group not found.</source>
-        <translation type="unfinished"></translation>
+        <translation>Grupo de datos no encontrado.</translation>
     </message>
 </context>
 <context>
@@ -4525,7 +4525,7 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="112"/>
         <source>Curvas de evolución temporal</source>
-        <translation type="unfinished"></translation>
+        <translation>Curvas de evolución temporal</translation>
     </message>
 </context>
 <context>
