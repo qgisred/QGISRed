@@ -46,7 +46,6 @@ class TimeSeriesPlotRenderer:
         magnitude = (magnitude or "").strip()
         if not magnitude:
             return ""
-        # Supports single magnitude like "Presión (m)" and multi like "Presión (m), Caudal (L/s)".
         units = [u.strip() for u in self._UNIT_ANY_RE.findall(magnitude)]
         if not units:
             return ""
@@ -68,8 +67,6 @@ class TimeSeriesPlotRenderer:
         raw = (title_raw or "").strip()
         if not raw:
             return ""
-        # Keep full "Nombre (unidad)" when there is a single variable.
-        # For crowded axes (more than two variables), collapse to units only.
         if magnitude_count <= 1:
             return raw
         if magnitude_count > 2:
@@ -282,7 +279,6 @@ class TimeSeriesPlotRenderer:
         h = rem // 3600
         m = (rem % 3600) // 60
 
-        # Show day label only once per day, at 00h of that day.
         time_str = f"{sign}{h}" if m == 0 else f"{sign}{h}:{m:02d}"
         if d > 0 and h == 0 and m == 0:
             return f"{time_str}\n{sign}{d}d"
@@ -392,7 +388,6 @@ class TimeSeriesPlotRenderer:
         bottom_pad = 6
         title_top = plot_rect.bottom() + tick_top_pad + tick_h + title_gap
 
-        # Clamp so the title is never glued to the dock bottom.
         min_y = plot_rect.bottom() + 4
         max_y = max(min_y, float(widget_h - bottom_pad - title_h))
         title_top = min(float(title_top), max_y)
@@ -448,7 +443,6 @@ class TimeSeriesPlotRenderer:
         c = QColor(color)
         if muted:
             c.setAlpha(80)
-        # Slightly thicker legend strokes to better perceive color.
         pen_w = 3 if highlighted else 2
         painter.setPen(QPen(c, pen_w))
         painter.setBrush(Qt.GlobalColor.white)
@@ -523,7 +517,6 @@ class TimeSeriesPlotRenderer:
                 hit_rect = QRectF(x0, y0, widget._legend_reserved_w, LEGEND_ROW_H)
                 widget._legend_hitboxes.append((hit_rect, series_idx))
 
-                # "X" delete button at the end of the row.
                 delete_x = min(row_right - btn_w, text_left + text_draw_w + 2)
                 delete_rect = QRectF(max(x0, delete_x), y0, btn_w, LEGEND_ROW_H)
                 widget._legend_delete_hitboxes.append((delete_rect, series_idx))

@@ -101,7 +101,6 @@ class PlotLayoutCalculator:
         if widget.data_x and len(widget.data_x) > 1:
             has_days = max(widget.data_x) >= 24
             tick_block_h = fm.height() * 2 + 16 if has_days else fm.height() + 20
-            # Space for axis title + gap + bottom padding (keeps it off the dock edge)
             axis_title_h = (fm.height() + 2 + 2 + 6) if (getattr(widget, "x_label", "") or "").strip() else 0
             extra = tick_block_h + axis_title_h
             local_margin_bottom = max(local_margin_bottom, extra)

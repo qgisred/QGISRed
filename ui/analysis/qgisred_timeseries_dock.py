@@ -52,7 +52,7 @@ class TimeSeriesPlotWidget(QWidget):
     def setData(self, x, y, title="", x_label="Time", y_label="Value", is_stepped=False, y_categorical_labels=None, series_label=""):
         self.data_x = x
         self.data_y = y
-        self.title = title if (title or "").strip() else self.tr("Curvas de evolución temporal")
+        self.title = title if (title or "").strip() else self.tr("Time evolution curves")
         self.x_label = x_label
         self.y_label = y_label
         self.is_stepped = is_stepped
@@ -109,7 +109,7 @@ class TimeSeriesPlotWidget(QWidget):
     def setSeries(self, series, title="", x_label="Time", y_label="Value"):
         self.series = series or []
         self._normalizeSeriesState()
-        self.title = title if (title or "").strip() else self.tr("Curvas de evolución temporal")
+        self.title = title if (title or "").strip() else self.tr("Time evolution curves")
         self.x_label = x_label
         self.y_label = y_label
         self._assignYAxisByMagnitude()
@@ -227,8 +227,6 @@ class TimeSeriesPlotWidget(QWidget):
         return items[:limit]
 
     def _legendGroups(self):
-        # Group by magnitude across the whole legend, not only contiguous blocks.
-        # This avoids duplicated magnitude headers when series order interleaves magnitudes.
         grouped = {}
         for series_idx, color, label, legend_type, magnitude in self._legendItems():
             mag = (magnitude or self.tr("Magnitude")).strip()
@@ -271,7 +269,6 @@ class TimeSeriesPlotWidget(QWidget):
                     muted.append(k)
             self.seriesEmphasisChanged.emit({"highlighted": highlighted, "muted": muted})
         except Exception:
-            # Do not break plot interaction if signal emission fails.
             return
 
     def removeSeries(self, series_idx: int) -> bool:
@@ -290,7 +287,6 @@ class TimeSeriesPlotWidget(QWidget):
         self.series.pop(idx)
         self._assignYAxisByMagnitude()
 
-        # Reset hover/selection state if it now points outside bounds.
         if self._hover_series_idx is not None and self._hover_series_idx >= len(self.series):
             self._hover_series_idx = None
         if self.hover_index is not None and not self.series:
@@ -455,22 +451,9 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
 
             self.btnClearAll = QToolButton(container)
             self.btnClearAll.setObjectName("btnClearAllTimeSeries")
-            # Prefer filesystem path so we don't require regenerating resources3x.py.
             icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "images", "iconClear.svg"))
             self.btnClearAll.setIcon(QIcon(icon_path))
-            # Use translations when available; otherwise fallback by locale so
-            # users don't see English if the .qm isn't regenerated yet.
             tooltip = self.tr("Clear all curves")
-            if tooltip == "Clear all curves":
-                try:
-                    lang = (QgsApplication.locale() or "")[:2].lower()
-                except Exception:
-                    lang = ""
-                tooltip = {
-                    "es": "Borrar todas las curvas",
-                    "fr": "Effacer toutes les courbes",
-                    "pt": "Apagar todas as curvas",
-                }.get(lang, tooltip)
             self.btnClearAll.setToolTip(tooltip)
             self.btnClearAll.setAutoRaise(True)
             self.btnClearAll.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
@@ -492,13 +475,11 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             hl.addWidget(self.btnClearAll, 0, Qt.AlignmentFlag.AlignLeft)
             hl.addStretch(1)
 
-            # Insert at the very top of the dock.
             try:
                 self.verticalLayout.insertWidget(0, container)
             except Exception:
                 self.verticalLayout.addWidget(container)
         except Exception:
-            # Do not break dock creation if UI layout changes.
             return
 
     def _plotHasCurves(self) -> bool:

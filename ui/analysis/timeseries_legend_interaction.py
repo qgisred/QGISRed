@@ -25,7 +25,6 @@ class LegendInteractionController:
         self._moved = False
 
     def begin(self, pos: QPointF, modifiers) -> None:
-        # Deletion takes precedence over toggle/drag.
         for rect, series_idx in getattr(self._w, "_legend_delete_hitboxes", []) or []:
             if rect.contains(pos):
                 self._delete_candidate_idx = series_idx

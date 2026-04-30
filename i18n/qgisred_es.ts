@@ -4524,7 +4524,7 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="112"/>
-        <source>Curvas de evolución temporal</source>
+        <source>Time evolution curves</source>
         <translation>Curvas de evolución temporal</translation>
     </message>
 </context>
