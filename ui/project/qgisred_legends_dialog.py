@@ -2793,15 +2793,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if fieldIdx < 0:
             return
 
-        uniqueValues = sorted(layer.uniqueValues(fieldIdx))
+        rawValues = layer.uniqueValues(fieldIdx)
+        nonNullValues = [v for v in rawValues if v is not None and str(v) != "NULL"]
+        hasNull = any(v is None or str(v) == "NULL" for v in rawValues)
+        uniqueValues = sorted(nonNullValues)
         categories = []
 
         unitAbbr = self.getUnitAbbrForLayer()
 
         for value in uniqueValues:
-            if value is None or str(value) == "NULL":
-                continue
-
             symbol = QgsSymbol.defaultSymbol(layer.geometryType())
             color = self.generateRandomHsvColor()
             symbol.setColor(color)
@@ -2813,6 +2813,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
             category = QgsRendererCategory(value, symbol, label)
             categories.append(category)
+
+        if hasNull:
+            symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+            symbol.setColor(self.generateRandomHsvColor())
+            self.setSymbolSizeForGeometry(symbol, layer.geometryType())
+            categories.append(QgsRendererCategory(None, symbol, "NULL"))
 
         renderer = QgsCategorizedSymbolRenderer(field, categories)
         self._workingRenderer = renderer
