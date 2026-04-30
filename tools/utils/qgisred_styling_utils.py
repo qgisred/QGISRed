@@ -239,8 +239,13 @@ class QGISRedStylingUtils:
             if symbolLayer is not None:
                 symbol.changeSymbolLayer(0, symbolLayer)
 
-            # create renderer object
-            category = QgsRendererCategory(uniqueValue, symbol, str(uniqueValue))
+            # translated legend label
+            if "Branch" in uniqueValue:
+                label = self.tr("Branches")
+            else:
+                label = self.tr("Chords")
+
+            category = QgsRendererCategory(uniqueValue, symbol, label)
             # entry for the list of category items
             categories.append(category)
 
