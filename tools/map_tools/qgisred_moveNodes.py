@@ -56,6 +56,12 @@ class QGISRedMoveNodesTool(QgsMapTool):
         cursor.setShape(Qt.CursorShape.ArrowCursor)
         self.iface.mapCanvas().setCursor(cursor)
 
+        self._connectedEditLayers = []
+        for layer in self.getLayers():
+            if layer.customProperty("qgisred_identifier"):
+                layer.editingStarted.connect(self._deactivateDueToEdit)
+                self._connectedEditLayers.append(layer)
+
         # Snapping
         self.snapper = QgsMapCanvasSnappingUtils(self.iface.mapCanvas())
         self.snapper.setMapSettings(self.iface.mapCanvas().mapSettings())
@@ -70,8 +76,16 @@ class QGISRedMoveNodesTool(QgsMapTool):
     def deactivate(self):
         self.vertexMarker.hide()
         self.newVertexMarker.hide()
-
         self.toolbarButton.setChecked(False)
+        for layer in getattr(self, "_connectedEditLayers", []):
+            try:
+                layer.editingStarted.disconnect(self._deactivateDueToEdit)
+            except Exception:
+                pass
+        self._connectedEditLayers = []
+
+    def _deactivateDueToEdit(self):
+        self.iface.mapCanvas().unsetMapTool(self)
 
     def isZoomTool(self):
         return False
@@ -237,10 +251,16 @@ class QGISRedMoveNodesTool(QgsMapTool):
                 vertex = match.point()
                 self.vertexMarker.setCenter(QgsPointXY(vertex.x(), vertex.y()))
                 self.vertexMarker.show()
+                cursor = QCursor()
+                cursor.setShape(Qt.CursorShape.SizeAllCursor)
+                self.iface.mapCanvas().setCursor(cursor)
             else:
                 self.objectSnapped = None
                 self.selectedNodeFeature = None
                 self.vertexMarker.hide()
+                cursor = QCursor()
+                cursor.setShape(Qt.CursorShape.ArrowCursor)
+                self.iface.mapCanvas().setCursor(cursor)
         # Mouse clicked
         else:
             # Update rubber band

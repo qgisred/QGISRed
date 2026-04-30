@@ -81,6 +81,12 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
         cursor.setShape(Qt.CursorShape.ArrowCursor)
         self.iface.mapCanvas().setCursor(cursor)
 
+        self._connectedEditLayers = []
+        for layer in self.getLayers():
+            if layer.customProperty("qgisred_identifier"):
+                layer.editingStarted.connect(self._deactivateDueToEdit)
+                self._connectedEditLayers.append(layer)
+
         # Snapping
         self.snapper = QgsMapCanvasSnappingUtils(self.iface.mapCanvas())
         self.snapper.setMapSettings(self.iface.mapCanvas().mapSettings())
@@ -107,6 +113,15 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
         self.pipeMarker.hide()
         self._clearAllHighlights()
         self.toolbarButton.setChecked(False)
+        for layer in getattr(self, "_connectedEditLayers", []):
+            try:
+                layer.editingStarted.disconnect(self._deactivateDueToEdit)
+            except Exception:
+                pass
+        self._connectedEditLayers = []
+
+    def _deactivateDueToEdit(self):
+        self.iface.mapCanvas().unsetMapTool(self)
 
     def isZoomTool(self):
         return False
