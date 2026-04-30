@@ -469,17 +469,17 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
     def canvasReleaseEvent(self, event):
         insertedPoint = None
         if self.mouseClicked:
-            if event.button() == 1:
+            if event.button() == Qt.MouseButton.LeftButton:
                 mousePoint = self.toMapCoordinates(event.pos())
                 if self.pipeSnapped is not None:
                     mousePoint = self.pipeSnapped.point()
                 self.mouseClicked = False
                 if self.objectSnapped is not None:
                     self.moveVertexLink(self.selectedLayer, self.selectedFeature, mousePoint, self.vertexIndex)
-        elif event.button() == 2:
+        elif event.button() == Qt.MouseButton.RightButton:
             if self.objectSnapped is not None:
                 self.deleteVertexLink(self.selectedLayer, self.selectedFeature, self.vertexIndex)
-        elif event.button() == 1:
+        elif event.button() == Qt.MouseButton.LeftButton:
             if self.objectSnapped is not None:
                 insertedPoint = self.objectSnapped.point()
                 self.insertVertexLink(self.selectedLayer, self.selectedFeature, insertedPoint)

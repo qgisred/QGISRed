@@ -283,7 +283,7 @@ class QGISRedMoveNodesTool(QgsMapTool):
         if not self.mouseClicked:
             return
 
-        if event.button() == 1:
+        if event.button() == Qt.MouseButton.LeftButton:
             self.mouseClicked = False
 
             if self.objectSnapped is not None:
