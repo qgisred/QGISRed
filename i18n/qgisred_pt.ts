@@ -1836,37 +1836,37 @@
 <context>
     <name>ProjectManagementSection</name>
     <message>
-        <location filename="../sections/project_management_section.py" line="104"/>
+        <location filename="../sections/project_management_section.py" line="105"/>
         <source>No valid project is opened</source>
         <translation type="unfinished">Nenhum projeto válido está aberto</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="614"/>
+        <location filename="../sections/project_management_section.py" line="623"/>
         <source>Some issues occurred in the process</source>
         <translation type="unfinished">Ocorreram alguns problemas no processo</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="413"/>
+        <location filename="../sections/project_management_section.py" line="417"/>
         <source>QGISRed: Open project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="569"/>
+        <location filename="../sections/project_management_section.py" line="578"/>
         <source>Project options updated</source>
         <translation type="unfinished">Opções do projeto atualizadas</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="623"/>
+        <location filename="../sections/project_management_section.py" line="632"/>
         <source>Save QGIS project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="623"/>
+        <location filename="../sections/project_management_section.py" line="632"/>
         <source>QGIS Projects (*.qgz *.qgs)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="126"/>
+        <location filename="../sections/project_management_section.py" line="128"/>
         <source>Some layer is in Edit Mode. Please, commit it before continuing.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1896,30 +1896,30 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="640"/>
+        <location filename="../sections/project_management_section.py" line="649"/>
         <source>Backup stored in:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="183"/>
+        <location filename="../sections/project_management_section.py" line="187"/>
         <source>Map project saved</source>
         <translation type="unfinished">Projeto salvo</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="110"/>
-        <source>Please open the project from the QGISRed Project Manager</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../sections/project_management_section.py" line="721"/>
+        <location filename="../sections/project_management_section.py" line="729"/>
         <source>Old simulation results found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="721"/>
+        <location filename="../sections/project_management_section.py" line="729"/>
         <source>Result layers from a previous version of QGISRed have been detected.They will be removed from QGIS and you will need to run the simulation again.
 
 Do you also want to delete the result files from disk?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/project_management_section.py" line="112"/>
+        <source>Please, open the project from the QGISRed Project Manager</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2279,7 +2279,7 @@ Do you also want to delete the result files from disk?</source>
 <context>
     <name>QGISRedEditLinksGeometryTool</name>
     <message>
-        <location filename="../tools/map_tools/qgisred_editLinksGeometry.py" line="206"/>
+        <location filename="../tools/map_tools/qgisred_editLinksGeometry.py" line="224"/>
         <source>QGISRed: Drag to move vertex · Right-click to delete</source>
         <translation type="unfinished"></translation>
     </message>

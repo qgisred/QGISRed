@@ -105,16 +105,21 @@ class ProjectManagementSection:
                 self.pushMessage(self.tr("No valid project is opened"), level=1, duration=5)
             return False
         pipesPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_Pipes.shp")
+        # Multiple layers may share the same shapefile (e.g. a Thematic Map view of Pipes).
+        # The project is valid as long as at least one of them carries the qgisred_identifier.
+        found_any = False
         for layer in self.getLayers():
-            if self.getLayerPath(layer) == pipesPath:
-                if not layer.customProperty("qgisred_identifier"):
-                    if not silent:
-                        self.pushMessage(
-                            self.tr("Please, open the project from the QGISRed Project Manager"),
-                            level=1, duration=5
-                        )
-                    return False
-                break
+            if os.path.normcase(self.getLayerPath(layer)) == os.path.normcase(pipesPath):
+                found_any = True
+                if layer.customProperty("qgisred_identifier"):
+                    return True
+        if found_any:
+            if not silent:
+                self.pushMessage(
+                    self.tr("Please, open the project from the QGISRed Project Manager"),
+                    level=1, duration=5
+                )
+            return False
         return True
 
     def isLayerOnEdition(self):

@@ -1826,37 +1826,37 @@
 <context>
     <name>ProjectManagementSection</name>
     <message>
-        <location filename="../sections/project_management_section.py" line="614"/>
+        <location filename="../sections/project_management_section.py" line="623"/>
         <source>Some issues occurred in the process</source>
         <translation>Ha habido algún error en el proceso</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="413"/>
+        <location filename="../sections/project_management_section.py" line="417"/>
         <source>QGISRed: Open project</source>
         <translation>QGISRed: Abrir proyecto</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="569"/>
+        <location filename="../sections/project_management_section.py" line="578"/>
         <source>Project options updated</source>
         <translation>Opciones de proyecto actualizadas</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="104"/>
+        <location filename="../sections/project_management_section.py" line="105"/>
         <source>No valid project is opened</source>
         <translation>No hay ningún proyecto válido abierto</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="623"/>
+        <location filename="../sections/project_management_section.py" line="632"/>
         <source>Save QGIS project</source>
         <translation>Guardar proyecto de QGIS</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="623"/>
+        <location filename="../sections/project_management_section.py" line="632"/>
         <source>QGIS Projects (*.qgz *.qgs)</source>
         <translation>Proyectos de QGIS (*.qgz *.qgs)</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="126"/>
+        <location filename="../sections/project_management_section.py" line="128"/>
         <source>Some layer is in Edit Mode. Please, commit it before continuing.</source>
         <translation>Alguna capa está en modo edición. Por favor, guarde los cambios antes de continuar.</translation>
     </message>
@@ -1886,33 +1886,33 @@
         <translation>¿Desea cerrar las capas actuales antes de continuar?</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="640"/>
+        <location filename="../sections/project_management_section.py" line="649"/>
         <source>Backup stored in:</source>
         <translation>Copia de seguridad almacenada en:</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="183"/>
+        <location filename="../sections/project_management_section.py" line="187"/>
         <source>Map project saved</source>
         <translation>Mapa del proyecto guardado</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="110"/>
-        <source>Please open the project from the QGISRed Project Manager</source>
-        <translation>Por favor, aber el proyecto desde el Gestor de Proyectos de QGISRed</translation>
-    </message>
-    <message>
-        <location filename="../sections/project_management_section.py" line="721"/>
+        <location filename="../sections/project_management_section.py" line="729"/>
         <source>Old simulation results found</source>
         <translation>Encontrados Resultados de simulación viejos</translation>
     </message>
     <message>
-        <location filename="../sections/project_management_section.py" line="721"/>
+        <location filename="../sections/project_management_section.py" line="729"/>
         <source>Result layers from a previous version of QGISRed have been detected.They will be removed from QGIS and you will need to run the simulation again.
 
 Do you also want to delete the result files from disk?</source>
         <translation>Se han detectado capas de resultados de una versión anterior de QGISRed. Se eliminarán de QGIS y tendrás que volver a ejecutar la simulación.
 
 ¿Quieres borrar también los archivos de resultados del disco?</translation>
+    </message>
+    <message>
+        <location filename="../sections/project_management_section.py" line="112"/>
+        <source>Please, open the project from the QGISRed Project Manager</source>
+        <translation>Por favor, abre el proyecto desde el Gestor de Proyectos de QGISRed</translation>
     </message>
 </context>
 <context>
@@ -2271,7 +2271,7 @@ Do you also want to delete the result files from disk?</source>
 <context>
     <name>QGISRedEditLinksGeometryTool</name>
     <message>
-        <location filename="../tools/map_tools/qgisred_editLinksGeometry.py" line="206"/>
+        <location filename="../tools/map_tools/qgisred_editLinksGeometry.py" line="224"/>
         <source>QGISRed: Drag to move vertex · Right-click to delete</source>
         <translation>QGISRed: Arrastra para mover el vértice · Botón derecho para borrarlo</translation>
     </message>

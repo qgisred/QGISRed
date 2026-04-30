@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import QgsProject, QgsLayerTreeGroup, QgsLayerMetadata
 
@@ -111,13 +112,13 @@ class QGISRedIdentifierUtils:
         return self.identifierToElementName.get(layerIdentifier, layerName)
 
     def assignLayerIdentifiers(self):
-        layersByPath = {self._getLayerPath(layer): layer for layer in self._getLayers()}
+        layersByPath = {os.path.normcase(self._getLayerPath(layer)): layer for layer in self._getLayers()}
         baseDir = self.ProjectDirectory
         networkPrefix = f"{self.NetworkName}_"
 
         for elementName, identifier in self.elementIdentifiers.items():
             expectedPath = self._generatePath(baseDir, f"{networkPrefix}{elementName}.shp")
-            if layer := layersByPath.get(expectedPath):
+            if layer := layersByPath.get(os.path.normcase(expectedPath)):
                 if not layer.customProperty("qgisred_identifier"):
                     self.setLayerIdentifier(layer, identifier)
 
@@ -143,12 +144,12 @@ class QGISRedIdentifierUtils:
                 self.enforceGroupIdentifiers(child)
 
     def enforceLayerIdentifiers(self):
-        layersByPath = {self._getLayerPath(layer): layer for layer in self._getLayers()}
+        layersByPath = {os.path.normcase(self._getLayerPath(layer)): layer for layer in self._getLayers()}
         networkPrefix = f"{self.NetworkName}_"
 
         for elementName, identifierKey in self.elementIdentifiers.items():
             expectedPath = self._generatePath(self.ProjectDirectory, f"{networkPrefix}{elementName}.shp")
-            layer = layersByPath.get(expectedPath)
+            layer = layersByPath.get(os.path.normcase(expectedPath))
             if layer is None:
                 continue
             expectedIdentifier = f"qgisred_{identifierKey}"
