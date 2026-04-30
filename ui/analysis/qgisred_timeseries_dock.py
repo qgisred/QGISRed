@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import math
 import os
 from typing import List
 from qgis.PyQt.QtWidgets import QDockWidget, QVBoxLayout, QWidget, QHBoxLayout, QToolButton
@@ -144,9 +145,36 @@ class TimeSeriesPlotWidget(QWidget):
         y_categorical_labels = None
         any_categorical = False
         any_stepped = False
+
+        def as_finite_float(v):
+            if v is None:
+                return None
+            try:
+                f = float(v)
+            except Exception:
+                return None
+            if not math.isfinite(f):
+                return None
+            return f
+
         for s in axis_series:
-            xs = s.get("x", []) or []
-            ys = s.get("y", []) or []
+            xs_raw = s.get("x", []) or []
+            ys_raw = s.get("y", []) or []
+
+            n = min(len(xs_raw), len(ys_raw))
+            xs = []
+            ys = []
+            for i in range(n):
+                x = as_finite_float(xs_raw[i])
+                y = as_finite_float(ys_raw[i])
+                if x is None or y is None:
+                    continue
+                xs.append(x)
+                ys.append(y)
+
+            s["x"] = xs
+            s["y"] = ys
+
             if xs and ys:
                 all_x.extend(xs)
                 all_y.extend(ys)
