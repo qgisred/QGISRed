@@ -2038,7 +2038,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             QMessageBox.critical(self, "Export failed", str(e))
 
     def exportCriteria(self):
-        defaultName = f"QGISRed_Properties_Criterias_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        projectName = QgsProject.instance().baseName() or "QGISRed"
+        defaultName = f"{projectName}_Query_Criteria_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
         fname, _ = QFileDialog.getSaveFileName(
             self,
             self.tr("Save criteria file"),
@@ -2155,7 +2156,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             QMessageBox.critical(self, self.tr("Import failed"), str(e))
 
     def exportStatistics(self):
-        defaultName = f"QGISRed_Properties_Statistics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        projectName = QgsProject.instance().baseName() or "QGISRed"
+        defaultName = f"{projectName}_Query_Statistics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
         fname, _ = QFileDialog.getSaveFileName(
             self,
             self.tr("Save statistics file"),
