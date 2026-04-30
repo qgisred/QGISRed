@@ -99,11 +99,20 @@ def compute_nice_scale(
         axis_max = axis_min + step
 
     # Si por redondeos quedaron demasiados ticks, subimos el step al siguiente 'nice'
+    _prev_divisions = divisions
+    _iters = 0
     while divisions + 1 > max_ticks and step > 0:
+        _iters += 1
         step = _nice_num(step * 1.01, round_=False, nice_fractions=nice_fractions)
         axis_min = math.floor(data_min / step) * step
         axis_max = math.ceil(data_max / step) * step
         divisions = int(round((axis_max - axis_min) / step))
+        # Si no progresamos o llevamos demasiadas iteraciones, forzar 1 sola división
+        if _iters > 50 or divisions >= _prev_divisions:
+            divisions = max_ticks - 1
+            axis_max = axis_min + step
+            break
+        _prev_divisions = divisions
 
     return NiceScale(axis_min=axis_min, axis_max=axis_max, step=step, divisions=divisions)
 
