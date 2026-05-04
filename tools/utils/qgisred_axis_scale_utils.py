@@ -198,11 +198,17 @@ def format_time_tick_hours(hours: float, step_hours: float | None = None) -> str
     return f"{h:02d}:{m:02d}\n{d}d"
 
 
-def format_number_tick(value: float, step: float) -> str:
+def format_number_tick(value: float, step: float, *, decimal_places: int | None = None) -> str:
     """
     Formatea valores numéricos evitando decimales innecesarios.
-    El número de decimales depende del step.
+    El número de decimales depende del step, salvo que decimal_places fuerce el formato.
     """
+    if decimal_places is not None and decimal_places >= 0:
+        v = round(float(value), int(decimal_places))
+        if int(decimal_places) == 0:
+            return str(int(round(v)))
+        return f"{v:.{int(decimal_places)}f}"
+
     if step == 0 or not math.isfinite(step):
         return str(value)
 

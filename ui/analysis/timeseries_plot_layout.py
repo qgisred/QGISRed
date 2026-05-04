@@ -1,37 +1,22 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-from typing import List, Optional, Sequence, Tuple
+from typing import Optional, Sequence, Tuple
 
 from qgis.PyQt.QtCore import QRectF
-from qgis.PyQt.QtGui import QFontMetrics
+from qgis.PyQt.QtGui import QFont, QFontMetrics
 
-from ...tools.utils.qgisred_axis_scale_utils import (
-    compute_nice_scale,
-    estimate_max_ticks,
-    format_number_tick,
-)
-
-from .timeseries_plot_style import AXIS_MAX_TICKS, PLOT_TOP_PAD, qfont
+from .timeseries_axis_settings import preview_y_tick_labels
+from .timeseries_plot_style import FONT_FAMILY, PLOT_TOP_PAD
 
 
 class PlotLayoutCalculator:
-    _AXIS_TICK_FONT_SIZE = 10
     @staticmethod
-    def _y_tick_labels_for_width(
-        all_y: Sequence[float],
-        y_cat: Optional[Sequence[str]],
-        fm: QFontMetrics,
-        plot_h: float,
-    ) -> List[str]:
-        if y_cat:
-            return [y_cat[i] for i in range(len(y_cat))]
-        if not all_y:
-            return []
-        min_y, max_y = min(all_y), max(all_y)
-        max_ticks_y = estimate_max_ticks(plot_h, fm.height() + 6, min_ticks=2, max_ticks=AXIS_MAX_TICKS)
-        scale = compute_nice_scale(min_y, max_y, max_ticks_y)
-        return [format_number_tick(v, scale.step) for v in scale.ticks()]
+    def _effective_x_title(widget) -> str:
+        cfg = getattr(widget, "_axis_cfg_x", None)
+        if cfg and (cfg.title or "").strip():
+            return (cfg.title or "").strip()
+        return (getattr(widget, "x_label", "") or "").strip()
 
     @classmethod
     def _compute_left_margin(
@@ -42,8 +27,12 @@ class PlotLayoutCalculator:
         y_cat_left: Optional[Sequence[str]],
         fm: QFontMetrics,
         plot_h: float,
+        widget,
     ) -> float:
-        tick_labels = cls._y_tick_labels_for_width(all_y_left, y_cat_left, fm, plot_h)
+        cfg = getattr(widget, "_axis_cfg_y_left", None)
+        if cfg is None:
+            return float(base_margin_left)
+        tick_labels = preview_y_tick_labels(all_y_left, y_cat_left, cfg, plot_h, float(fm.height()))
         if not tick_labels:
             return float(base_margin_left)
         max_label_w = 0
@@ -59,8 +48,12 @@ class PlotLayoutCalculator:
         y_cat_right: Optional[Sequence[str]],
         fm: QFontMetrics,
         plot_h: float,
+        widget,
     ) -> float:
-        tick_labels = cls._y_tick_labels_for_width(all_y_right, y_cat_right, fm, plot_h)
+        cfg = getattr(widget, "_axis_cfg_y_right", None)
+        if cfg is None:
+            return 0.0
+        tick_labels = preview_y_tick_labels(all_y_right, y_cat_right, cfg, plot_h, float(fm.height()))
         if not tick_labels:
             return 0.0
         max_label_w = 0
@@ -73,7 +66,18 @@ class PlotLayoutCalculator:
         w = widget.width()
         h = widget.height()
 
-        fm = QFontMetrics(qfont(cls._AXIS_TICK_FONT_SIZE))
+        cfg_yl = getattr(widget, "_axis_cfg_y_left", None)
+        cfg_yr = getattr(widget, "_axis_cfg_y_right", None)
+        cfg_x = getattr(widget, "_axis_cfg_x", None)
+        sz_l = max(5, min(int(getattr(cfg_yl, "tick_font_size", 10) or 10), 48)) if cfg_yl else 10
+        sz_r = max(5, min(int(getattr(cfg_yr, "tick_font_size", 10) or 10), 48)) if cfg_yr else 10
+        sz_x = max(5, min(int(getattr(cfg_x, "tick_font_size", 10) or 10), 48)) if cfg_x else 10
+        fam_l = cfg_yl.resolved_font_family() if cfg_yl else FONT_FAMILY
+        fam_r = cfg_yr.resolved_font_family() if cfg_yr else FONT_FAMILY
+        fam_x = cfg_x.resolved_font_family() if cfg_x else FONT_FAMILY
+        fm_left = QFontMetrics(QFont(fam_l, sz_l))
+        fm_right = QFontMetrics(QFont(fam_r, sz_r))
+        fm_x = QFontMetrics(QFont(fam_x, sz_x))
 
         left_series, right_series = widget._seriesByAxis()
         _x_l, all_y_left, y_cat_left, _st_left = widget._axisSeriesData(left_series)
@@ -87,21 +91,27 @@ class PlotLayoutCalculator:
             base_margin_left=float(widget.margin_left),
             all_y_left=all_y_left,
             y_cat_left=y_cat_left,
-            fm=fm,
+            fm=fm_left,
             plot_h=plot_h_est,
+            widget=widget,
         )
         right_axis_label_w = cls._compute_right_axis_label_width(
             all_y_right=all_y_right,
             y_cat_right=y_cat_right,
-            fm=fm,
+            fm=fm_right,
             plot_h=plot_h_est,
+            widget=widget,
         )
 
         local_margin_bottom = widget.margin_bottom
         if widget.data_x and len(widget.data_x) > 1:
-            has_days = max(widget.data_x) >= 24
-            tick_block_h = fm.height() * 2 + 16 if has_days else fm.height() + 20
-            axis_title_h = (fm.height() + 2 + 2 + 6) if (getattr(widget, "x_label", "") or "").strip() else 0
+            if cfg_x and not cfg_x.auto_scale:
+                eff_max = float(cfg_x.fixed_max)
+            else:
+                eff_max = max(widget.data_x)
+            has_days = eff_max >= 24
+            tick_block_h = fm_x.height() * 2 + 16 if has_days else fm_x.height() + 20
+            axis_title_h = (fm_x.height() + 2 + 2 + 6) if cls._effective_x_title(widget) else 0
             extra = tick_block_h + axis_title_h
             local_margin_bottom = max(local_margin_bottom, extra)
 

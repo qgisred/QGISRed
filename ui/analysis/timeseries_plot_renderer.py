@@ -15,6 +15,7 @@ from ...tools.utils.qgisred_axis_scale_utils import (
     format_number_tick,
 )
 
+from .timeseries_axis_settings import TimeSeriesAxisSettings, build_fixed_linear_scale
 from .timeseries_plot_style import (
     AXIS_MAX_TICKS,
     BORDER_COLOR,
@@ -24,7 +25,6 @@ from .timeseries_plot_style import (
     LEGEND_ROW_GAP,
     LEGEND_ROW_H,
     PLOT_BG_COLOR,
-    TEXT_AXIS,
     TEXT_DARK,
     TOOLTIP_BORDER,
     TOOLTIP_SEPARATOR,
@@ -116,15 +116,20 @@ class TimeSeriesPlotRenderer:
         left_series, right_series = widget._seriesByAxis()
         _lx, all_y_left, y_cat_left, _st_left = widget._axisSeriesData(left_series)
         _rx, all_y_right, y_cat_right, _st_right = widget._axisSeriesData(right_series)
-        y_state_left = self._compute_y_axis_state(widget, all_y_left, y_cat_left, plot_rect, painter)
+        y_state_left = self._compute_y_axis_state(widget, all_y_left, y_cat_left, plot_rect, painter, y_axis_side="left")
         y_state_right = None
         if all_y_right:
-            y_state_right = self._compute_y_axis_state(widget, all_y_right, y_cat_right, plot_rect, painter)
+            y_state_right = self._compute_y_axis_state(widget, all_y_right, y_cat_right, plot_rect, painter, y_axis_side="right")
 
         painter.setFont(qfont(9))
         x_state = self._compute_x_axis_state(widget, widget.data_x, plot_rect, painter)
         widget._last_x_state = x_state
-        if widget._view_x_min is None and widget._view_x_max is None:
+        if (
+            getattr(widget, "_axis_cfg_x", None) is not None
+            and widget._axis_cfg_x.auto_scale
+            and widget._view_x_min is None
+            and widget._view_x_max is None
+        ):
             widget._last_auto_x_state = x_state
         self._draw_grid_and_axes(widget, painter, plot_rect, local_margin_left, right_axis_label_w, x_state, y_state_left, y_state_right)
 
@@ -142,6 +147,11 @@ class TimeSeriesPlotRenderer:
     def _draw_no_data_message(self, widget, painter: QPainter) -> None:
         painter.drawText(widget.rect(), Qt.AlignmentFlag.AlignCenter, QCoreApplication.translate("TimeSeriesPlotWidget", "No data to display, please select an element on the map."))
 
+    def _tick_qfont(self, cfg: TimeSeriesAxisSettings, *, bold: bool = False) -> QFont:
+        f = QFont(cfg.resolved_font_family(), max(5, min(int(cfg.tick_font_size), 48)))
+        f.setBold(bold)
+        return f
+
     def _expand_range(self, minimum: float, maximum: float) -> Tuple[float, float]:
         value_range = maximum - minimum
         if value_range == 0:
@@ -151,12 +161,19 @@ class TimeSeriesPlotRenderer:
             return minimum - pad, maximum + pad
         return minimum - value_range * 0.1, maximum + value_range * 0.1
 
-    def _compute_y_axis_state(self, widget, all_y, y_categorical_labels, plot_rect, painter):
+    def _compute_y_axis_state(self, widget, all_y, y_categorical_labels, plot_rect, painter, *, y_axis_side: str = "left"):
+        cfg = widget._axis_cfg_y_left if y_axis_side == "left" else widget._axis_cfg_y_right
+        painter.save()
+        painter.setFont(self._tick_qfont(cfg))
+        fm_h = painter.fontMetrics().height()
+        dec = cfg.decimal_places_or_none()
+
         if y_categorical_labels:
             min_y = 0
             max_y = len(y_categorical_labels) - 1
             min_y, max_y = self._expand_range(min_y, max_y)
             y_tick_values = list(range(len(y_categorical_labels)))
+            painter.restore()
             return {
                 "min_y": min_y,
                 "max_y": max_y,
@@ -164,11 +181,33 @@ class TimeSeriesPlotRenderer:
                 "y_tick_values": y_tick_values,
                 "y_step": None,
                 "y_categorical_labels": y_categorical_labels,
+                "axis_cfg": cfg,
+                "decimals": dec,
+            }
+
+        if not all_y:
+            painter.restore()
+            return {
+                "min_y": 0.0,
+                "max_y": 1.0,
+                "num_ticks_y": 1,
+                "y_tick_values": [0.0, 1.0],
+                "y_step": 0.5,
+                "y_categorical_labels": None,
+                "axis_cfg": cfg,
+                "decimals": dec,
             }
 
         min_y, max_y = min(all_y), max(all_y)
-        max_ticks_y = estimate_max_ticks(plot_rect.height(), painter.fontMetrics().height() + 6, min_ticks=2, max_ticks=AXIS_MAX_TICKS)
-        y_scale = compute_nice_scale(min_y, max_y, max_ticks_y)
+        if cfg.auto_scale:
+            max_ticks_y = estimate_max_ticks(plot_rect.height(), fm_h + 6, min_ticks=2, max_ticks=AXIS_MAX_TICKS)
+            y_scale = compute_nice_scale(min_y, max_y, max_ticks_y)
+        else:
+            lo, hi = float(cfg.fixed_min), float(cfg.fixed_max)
+            if hi <= lo:
+                hi = lo + 1.0
+            y_scale = build_fixed_linear_scale(lo, hi, cfg.fixed_divisions)
+        painter.restore()
         return {
             "min_y": y_scale.axis_min,
             "max_y": y_scale.axis_max,
@@ -176,6 +215,8 @@ class TimeSeriesPlotRenderer:
             "y_tick_values": y_scale.ticks(),
             "y_step": y_scale.step,
             "y_categorical_labels": None,
+            "axis_cfg": cfg,
+            "decimals": dec,
         }
 
     def _estimate_x_axis_label_px(self, painter, *, has_days: bool) -> float:
@@ -187,27 +228,49 @@ class TimeSeriesPlotRenderer:
         return fm.horizontalAdvance("23:59") + 18
 
     def _compute_x_axis_state(self, widget, all_x, plot_rect, painter):
-        min_x, max_x = min(all_x), max(all_x)
-        if max_x == min_x:
-            max_x = min_x + 1
-        # Apply zoom/pan view limits when set
-        view_x_min = getattr(widget, "_view_x_min", None)
-        view_x_max = getattr(widget, "_view_x_max", None)
-        if view_x_min is not None:
-            min_x = view_x_min
-        if view_x_max is not None:
-            max_x = view_x_max
-        if max_x <= min_x:
-            max_x = min_x + 1
+        cfg = widget._axis_cfg_x
+        painter.save()
+        painter.setFont(self._tick_qfont(cfg))
+        data_min, data_max = min(all_x), max(all_x)
+        if data_max == data_min:
+            data_max = data_min + 1
+
+        if cfg.auto_scale:
+            min_x, max_x = data_min, data_max
+            view_x_min = getattr(widget, "_view_x_min", None)
+            view_x_max = getattr(widget, "_view_x_max", None)
+            if view_x_min is not None:
+                min_x = view_x_min
+            if view_x_max is not None:
+                max_x = view_x_max
+            if max_x <= min_x:
+                max_x = min_x + 1
+        else:
+            min_x, max_x = float(cfg.fixed_min), float(cfg.fixed_max)
+            if max_x <= min_x:
+                max_x = min_x + 1
+
         has_days = max_x >= 24
         label_px = self._estimate_x_axis_label_px(painter, has_days=has_days)
-        max_ticks_x = estimate_max_ticks(plot_rect.width(), label_px, min_ticks=2, max_ticks=AXIS_MAX_TICKS)
-        x_scale = compute_nice_time_scale_hours(min_x, max_x, max_ticks_x)
+        if cfg.auto_scale:
+            max_ticks_x = estimate_max_ticks(plot_rect.width(), label_px, min_ticks=2, max_ticks=AXIS_MAX_TICKS)
+            x_scale = compute_nice_time_scale_hours(min_x, max_x, max_ticks_x)
+        else:
+            x_scale = build_fixed_linear_scale(min_x, max_x, cfg.fixed_divisions)
         min_x, max_x = x_scale.axis_min, x_scale.axis_max
         x_range = max_x - min_x
         if x_range == 0:
             x_range = 1
-        return {"min_x": min_x, "max_x": max_x, "x_range": x_range, "x_scale": x_scale, "has_days": has_days, "label_px": label_px}
+        painter.restore()
+        return {
+            "min_x": min_x,
+            "max_x": max_x,
+            "x_range": x_range,
+            "x_scale": x_scale,
+            "has_days": has_days,
+            "label_px": label_px,
+            "axis_cfg": cfg,
+        }
 
     def _to_screen(self, x, y, plot_rect, x_state, y_state):
         sx = plot_rect.left() + (x - x_state["min_x"]) / x_state["x_range"] * plot_rect.width()
@@ -296,10 +359,22 @@ class TimeSeriesPlotRenderer:
             return f"{time_str}\n{sign}{d}d"
         return time_str
 
+    def _format_tick_number(self, value: float, step: float, dec: int | None) -> str:
+        if dec is None:
+            return format_number_tick(value, step)
+        try:
+            return format_number_tick(value, step, decimal_places=dec)
+        except TypeError:
+            return format_number_tick(value, step)
+
     def _draw_grid_and_axes(self, widget, painter, plot_rect, local_margin_left, right_axis_label_w, x_state, y_state_left, y_state_right=None):
-        painter.setFont(qfont(self._AXIS_TICK_FONT_SIZE))
+        cfg_x = x_state.get("axis_cfg") or widget._axis_cfg_x
+        cfg_yl = y_state_left.get("axis_cfg") or widget._axis_cfg_y_left
         pen_grid = QPen(GRID_COLOR, 1, Qt.PenStyle.SolidLine)
-        painter.setPen(pen_grid)
+        pen_grid_day_start = QPen(QColor(180, 180, 180), 2, Qt.PenStyle.SolidLine)
+
+        painter.setFont(self._tick_qfont(cfg_yl))
+        dec_yl = y_state_left.get("decimals")
 
         for i in range(y_state_left["num_ticks_y"] + 1):
             y_cat = y_state_left.get("y_categorical_labels") or widget.y_categorical_labels
@@ -308,15 +383,21 @@ class TimeSeriesPlotRenderer:
                 label_text = y_cat[i]
             else:
                 val_y = y_state_left["y_tick_values"][i]
-                label_text = format_number_tick(val_y, y_state_left["y_step"])
+                y_step = y_state_left.get("y_step") or 1.0
+                label_text = self._format_tick_number(val_y, y_step, dec_yl)
 
             pt = self._to_screen(x_state["min_x"], val_y, plot_rect, x_state, y_state_left)
-            painter.drawLine(QPointF(plot_rect.left(), pt.y()), QPointF(plot_rect.right(), pt.y()))
-            painter.setPen(Qt.GlobalColor.black)
+            if cfg_yl.show_grid:
+                painter.setPen(pen_grid)
+                painter.drawLine(QPointF(plot_rect.left(), pt.y()), QPointF(plot_rect.right(), pt.y()))
+            painter.setPen(QPen(cfg_yl.tick_qcolor(), 1))
+            painter.setFont(self._tick_qfont(cfg_yl))
             painter.drawText(QRectF(0, pt.y() - 10, local_margin_left - 5, 20), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, label_text)
-            painter.setPen(pen_grid)
 
         if y_state_right is not None and right_axis_label_w and right_axis_label_w > 0:
+            cfg_yr = y_state_right.get("axis_cfg") or widget._axis_cfg_y_right
+            dec_yr = y_state_right.get("decimals")
+            painter.setFont(self._tick_qfont(cfg_yr))
             for i in range(y_state_right["num_ticks_y"] + 1):
                 y_cat_r = y_state_right.get("y_categorical_labels")
                 if y_cat_r:
@@ -324,20 +405,24 @@ class TimeSeriesPlotRenderer:
                     label_text = y_cat_r[i]
                 else:
                     val_y = y_state_right["y_tick_values"][i]
-                    label_text = format_number_tick(val_y, y_state_right["y_step"])
+                    y_step_r = y_state_right.get("y_step") or 1.0
+                    label_text = self._format_tick_number(val_y, y_step_r, dec_yr)
                 pt = self._to_screen(x_state["min_x"], val_y, plot_rect, x_state, y_state_right)
-                painter.setPen(Qt.GlobalColor.black)
+                if cfg_yr.show_grid:
+                    painter.setPen(pen_grid)
+                    painter.drawLine(QPointF(plot_rect.left(), pt.y()), QPointF(plot_rect.right(), pt.y()))
+                painter.setPen(QPen(cfg_yr.tick_qcolor(), 1))
+                painter.setFont(self._tick_qfont(cfg_yr))
                 painter.drawText(QRectF(plot_rect.right() + 5, pt.y() - 10, right_axis_label_w - 10, 20), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, label_text)
-                painter.setPen(pen_grid)
 
         if len(widget.data_x) > 1:
+            painter.setFont(self._tick_qfont(cfg_x))
             fm_x = painter.fontMetrics()
             has_days = bool(x_state.get("has_days", x_state["max_x"] >= 24))
             tick_h = fm_x.height() * 2 + 4 if has_days else fm_x.height() + 6
             tick_w = float(x_state.get("label_px", self._estimate_x_axis_label_px(painter, has_days=has_days)))
-            tick_font_regular = qfont(self._AXIS_TICK_FONT_SIZE)
-            tick_font_bold = qfont(self._AXIS_TICK_FONT_SIZE, bold=True)
-            pen_grid_day_start = QPen(QColor(180, 180, 180), 2, Qt.PenStyle.SolidLine)
+            tick_font_regular = self._tick_qfont(cfg_x)
+            tick_font_bold = self._tick_qfont(cfg_x, bold=True)
             for val_x in x_state["x_scale"].ticks():
                 pt = self._to_screen(val_x, y_state_left["min_y"], plot_rect, x_state, y_state_left)
 
@@ -345,10 +430,11 @@ class TimeSeriesPlotRenderer:
                 if has_days:
                     mod_24 = val_x % 24.0
                     is_day_start = abs(mod_24) < 1e-6 or abs(mod_24 - 24.0) < 1e-6
-                painter.setPen(pen_grid_day_start if is_day_start else pen_grid)
-                painter.drawLine(QPointF(pt.x(), plot_rect.top()), QPointF(pt.x(), plot_rect.bottom()))
+                if cfg_x.show_grid:
+                    painter.setPen(pen_grid_day_start if is_day_start else pen_grid)
+                    painter.drawLine(QPointF(pt.x(), plot_rect.top()), QPointF(pt.x(), plot_rect.bottom()))
 
-                painter.setPen(Qt.GlobalColor.black)
+                painter.setPen(QPen(cfg_x.tick_qcolor(), 1))
                 label_x = self._format_absolute_time_hours_axis(val_x)
                 painter.setFont(tick_font_bold if "\n" in label_x else tick_font_regular)
                 painter.drawText(
@@ -358,40 +444,43 @@ class TimeSeriesPlotRenderer:
                 )
 
     def _draw_axis_titles(self, widget, painter, plot_rect, local_margin_left, right_axis_label_w, widget_h):
-        painter.setFont(qfont(self._AXIS_TICK_FONT_SIZE))
+        cfg_x = widget._axis_cfg_x
+        cfg_yl = widget._axis_cfg_y_left
+        cfg_yr = widget._axis_cfg_y_right
 
-        small_font = qfont(self._AXIS_TITLE_FONT_SIZE, bold=False)
-        title_pen = QPen(TEXT_AXIS)
-
-        left_title_raw = (widget._y_label_left or widget.y_label or "").strip()
-        left_count = len(getattr(widget, "_y_magnitudes_left", []) or [])
-        if left_count == 0 and left_title_raw:
-            left_count = 1
-        left_title = self._axis_title_for_count(left_title_raw, left_count)
+        left_title = (cfg_yl.title or "").strip()
+        if not left_title:
+            left_title_raw = (widget._y_label_left or widget.y_label or "").strip()
+            left_count = len(getattr(widget, "_y_magnitudes_left", []) or [])
+            if left_count == 0 and left_title_raw:
+                left_count = 1
+            left_title = self._axis_title_for_count(left_title_raw, left_count)
         if left_title:
             painter.save()
-            painter.setFont(small_font)
-            painter.setPen(title_pen)
+            painter.setFont(self._tick_qfont(cfg_yl))
+            painter.setPen(QPen(cfg_yl.tick_qcolor(), 1))
             painter.translate(local_margin_left / 2 - 15, widget_h / 2)
             painter.rotate(-90)
             painter.drawText(QRectF(-120, -10, 240, 20), Qt.AlignmentFlag.AlignCenter, left_title)
             painter.restore()
 
         if widget._right_axis_active and right_axis_label_w and right_axis_label_w > 0:
-            right_title_raw = (widget._y_label_right or "").strip()
-            right_count = len(getattr(widget, "_y_magnitudes_right", []) or [])
-            right_title = self._axis_title_for_count(right_title_raw, right_count)
+            right_title = (cfg_yr.title or "").strip()
+            if not right_title:
+                right_title_raw = (widget._y_label_right or "").strip()
+                right_count = len(getattr(widget, "_y_magnitudes_right", []) or [])
+                right_title = self._axis_title_for_count(right_title_raw, right_count)
             if right_title:
                 painter.save()
-                painter.setFont(small_font)
-                painter.setPen(title_pen)
+                painter.setFont(self._tick_qfont(cfg_yr))
+                painter.setPen(QPen(cfg_yr.tick_qcolor(), 1))
                 title_x = plot_rect.right() + right_axis_label_w + 4
                 painter.translate(title_x, widget_h / 2)
                 painter.rotate(-90)
                 painter.drawText(QRectF(-120, -10, 240, 20), Qt.AlignmentFlag.AlignCenter, right_title)
                 painter.restore()
 
-        fm_x = QFontMetrics(qfont(self._AXIS_TICK_FONT_SIZE))
+        fm_x = QFontMetrics(self._tick_qfont(cfg_x))
         has_days = bool(widget.data_x and max(widget.data_x) >= 24)
         tick_h = fm_x.height() * 2 + 4 if has_days else fm_x.height() + 6
         tick_top_pad = 8
@@ -404,11 +493,15 @@ class TimeSeriesPlotRenderer:
         max_y = max(min_y, float(widget_h - bottom_pad - title_h))
         title_top = min(float(title_top), max_y)
         title_top = max(float(title_top), float(min_y))
-        painter.drawText(
-            QRectF(local_margin_left, title_top, plot_rect.width(), title_h),
-            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter,
-            widget.x_label,
-        )
+        x_title = (cfg_x.title or widget.x_label or "").strip()
+        if x_title:
+            painter.setFont(self._tick_qfont(cfg_x))
+            painter.setPen(QPen(cfg_x.tick_qcolor(), 1))
+            painter.drawText(
+                QRectF(local_margin_left, title_top, plot_rect.width(), title_h),
+                Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter,
+                x_title,
+            )
 
     def _draw_series_curves(self, widget, painter, plot_rect, x_state, y_state_left, y_state_right=None):
         if not any(len((s.get("x") or [])) > 1 for s in widget.series):

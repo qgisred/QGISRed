@@ -4510,6 +4510,144 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <source>Zoom to full extent</source>
         <translation>Encuadrar</translation>
     </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="735"/>
+        <source>Axis options…</source>
+        <translation>Opciones de ejes…</translation>
+    </message>
+</context>
+<context>
+    <name>TimeSeriesAxisOptionsDialog</name>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>QGISRed — axis options</source>
+        <translation>QGISRed — opciones de ejes</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Time (X)</source>
+        <translation>Tiempo (X)</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Y left</source>
+        <translation>Y izquierda</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Y right</source>
+        <translation>Y derecha</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Axis appearance</source>
+        <translation>Apariencia de ejes</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Configure labels, scale, grid and tick style for each axis.</source>
+        <translation>Configura etiquetas, escala, rejilla y estilo de marcas para cada eje.</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Axis title</source>
+        <translation>Título del eje</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Leave empty for default label</source>
+        <translation>Deja vacío para usar la etiqueta por defecto</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Scale</source>
+        <translation>Escala</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Mode:</source>
+        <translation>Modo:</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Automatic</source>
+        <translation>Automática</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Fixed (min, max, divisions)</source>
+        <translation>Fija (mín, máx, divisiones)</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Minimum:</source>
+        <translation>Mínimo:</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Maximum:</source>
+        <translation>Máximo:</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Divisions:</source>
+        <translation>Divisiones:</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Grid</source>
+        <translation>Rejilla</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Show grid lines for this axis</source>
+        <translation>Mostrar líneas de rejilla para este eje</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Tick labels</source>
+        <translation>Etiquetas de marcas</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Font size:</source>
+        <translation>Tamaño de fuente:</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Font:</source>
+        <translation>Fuente:</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Tick color</source>
+        <translation>Color de marcas</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Color:</source>
+        <translation>Color:</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Numeric format</source>
+        <translation>Formato numérico</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Decimal places for Y tick values (-1 = automatic).</source>
+        <translation>Decimales en las marcas Y (-1 = automático).</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Auto</source>
+        <translation>Auto</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>The time axis uses clock-style labels; decimals do not apply here.</source>
+        <translation>El eje temporal usa etiquetas tipo reloj; aquí no se aplican decimales.</translation>
+    </message>
 </context>
 <context>
     <name>TimeSeriesPlotWidget</name>

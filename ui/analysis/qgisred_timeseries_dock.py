@@ -8,6 +8,10 @@ from qgis.PyQt.QtGui import QColor, QPainter, QFontMetrics, QIcon
 from qgis.PyQt import uic
 from qgis.core import QgsApplication
 
+from ...compat import DIALOG_ACCEPTED
+
+from .qgisred_timeseries_axis_dialog import TimeSeriesAxisOptionsDialog
+from .timeseries_axis_settings import default_axis_settings
 from .timeseries_plot_layout import PlotLayoutCalculator
 from .timeseries_legend_interaction import LegendInteractionController
 from .timeseries_plot_renderer import TimeSeriesPlotRenderer
@@ -49,14 +53,15 @@ class TimeSeriesPlotWidget(QWidget):
         self._y_magnitudes_right = []
         self._right_axis_active = False
         self._right_axis_label_w = 0
-        # Zoom/pan view state (None = auto from data)
         self._view_x_min = None
         self._view_x_max = None
-        # Pan interaction state
         self._pan_mode = False
         self._pan_active = False
         self._pan_start_pos = None
         self._pan_start_view = None
+        self._axis_cfg_x = default_axis_settings()
+        self._axis_cfg_y_left = default_axis_settings()
+        self._axis_cfg_y_right = default_axis_settings()
 
     def setData(self, x, y, title="", x_label="Time", y_label="Value", is_stepped=False, y_categorical_labels=None, series_label=""):
         self.data_x = x
@@ -361,12 +366,14 @@ class TimeSeriesPlotWidget(QWidget):
         return best_idx
 
     def _getCurrentXRange(self):
-        # When explicit view limits exist, the last rendered state (nice-scaled from those limits)
-        # is the accurate mapping reference. Fall back to view limits if not yet rendered.
+        if not getattr(self, "_axis_cfg_x", None).auto_scale:
+            lo, hi = float(self._axis_cfg_x.fixed_min), float(self._axis_cfg_x.fixed_max)
+            if hi <= lo:
+                hi = lo + 1.0
+            return lo, hi
         last = getattr(self, "_last_x_state", None)
         if last:
             return last["min_x"], last["max_x"]
-        # Fallback before first render or after resetView()
         if self._view_x_min is not None and self._view_x_max is not None:
             return self._view_x_min, self._view_x_max
         all_data_x = []
@@ -389,6 +396,8 @@ class TimeSeriesPlotWidget(QWidget):
     def zoomIn(self, factor=1.5):
         if not self.series:
             return
+        if not self._axis_cfg_x.auto_scale:
+            return
         x_min, x_max = self._getCurrentXRange()
         cx = (x_min + x_max) / 2.0
         half = (x_max - x_min) / (2.0 * factor)
@@ -401,12 +410,13 @@ class TimeSeriesPlotWidget(QWidget):
     def zoomOut(self, factor=1.5):
         if not self.series:
             return
+        if not self._axis_cfg_x.auto_scale:
+            return
         x_min, x_max = self._getCurrentXRange()
         cx = (x_min + x_max) / 2.0
         half = (x_max - x_min) * factor / 2.0
         new_min = cx - half
         new_max = cx + half
-        # Use rendered auto range as clamp reference
         auto_state = getattr(self, "_last_auto_x_state", None)
         if auto_state:
             auto_min, auto_max = auto_state["min_x"], auto_state["max_x"]
@@ -455,6 +465,8 @@ class TimeSeriesPlotWidget(QWidget):
     def wheelEvent(self, event):
         if not self.series:
             return
+        if not self._axis_cfg_x.auto_scale:
+            return
         plot_rect, _, _ = self.getPlotRect()
         mouse_pos = event.pos()
         if not plot_rect.contains(QPointF(mouse_pos)):
@@ -497,6 +509,8 @@ class TimeSeriesPlotWidget(QWidget):
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             if self._pan_mode:
+                if not self._axis_cfg_x.auto_scale:
+                    return
                 plot_rect, _, _ = self.getPlotRect()
                 if plot_rect.contains(QPointF(event.pos())):
                     self._pan_active = True
@@ -506,6 +520,8 @@ class TimeSeriesPlotWidget(QWidget):
                 return
             self._legend.begin(QPointF(event.pos()), event.modifiers())
         elif event.button() == Qt.MouseButton.MiddleButton:
+            if not self._axis_cfg_x.auto_scale:
+                return
             plot_rect, _, _ = self.getPlotRect()
             if plot_rect.contains(QPointF(event.pos())):
                 self._pan_active = True
@@ -548,6 +564,8 @@ class TimeSeriesPlotWidget(QWidget):
 
     def mouseMoveEvent(self, event):
         if self._pan_active and self._pan_start_pos is not None:
+            if not self._axis_cfg_x.auto_scale:
+                return
             plot_rect, _, _ = self.getPlotRect()
             if plot_rect.width() > 0:
                 dx_px = event.pos().x() - self._pan_start_pos.x()
@@ -714,6 +732,10 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self.btnFit.clicked.connect(self._onFitClicked)
             hl.addWidget(self.btnFit, 0, Qt.AlignmentFlag.AlignLeft)
 
+            self.btnAxes = _make_btn("btnAxesTimeSeries", "mActionOptions.svg", self.tr("Axis options…"))
+            self.btnAxes.clicked.connect(self._onAxisOptionsClicked)
+            hl.addWidget(self.btnAxes, 0, Qt.AlignmentFlag.AlignLeft)
+
             hl.addStretch(1)
 
             try:
@@ -730,6 +752,13 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self.plot.resetView()
         if hasattr(self, "btnPan") and self.btnPan.isChecked():
             self.btnPan.setChecked(False)
+
+    def _onAxisOptionsClicked(self) -> None:
+        dlg = TimeSeriesAxisOptionsDialog(self.plot, self.window())
+        if dlg.exec() == DIALOG_ACCEPTED and not self.plot._axis_cfg_x.auto_scale:
+            if hasattr(self, "btnPan") and self.btnPan.isChecked():
+                self.btnPan.setChecked(False)
+            self.plot.setPanMode(False)
 
     def _plotHasCurves(self) -> bool:
         try:

@@ -14,6 +14,12 @@ from QGISRed.tools.utils.qgisred_axis_scale_utils import (
 )
 
 
+class TestFormatNumberTickDecimals:
+    def test_forced_decimal_places(self):
+        assert format_number_tick(1.2345, 0.1, decimal_places=2) == "1.23"
+        assert format_number_tick(5.0, 1.0, decimal_places=0) == "5"
+
+
 class TestEstimateMaxTicks:
     def test_label_size_zero_returns_max(self):
         assert estimate_max_ticks(200, 0) == 12
