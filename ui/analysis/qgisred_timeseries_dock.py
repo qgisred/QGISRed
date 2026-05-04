@@ -118,6 +118,9 @@ class TimeSeriesPlotWidget(QWidget):
         self._right_axis_active = bool(right_mags)
 
     def setSeries(self, series, title="", x_label="Time", y_label="Value"):
+        self.hover_index = None
+        self._hover_series_idx = None
+        self._resetLegendInteractionState()
         self.series = series or []
         self._normalizeSeriesState()
         self.title = title if (title or "").strip() else self.tr("Time evolution curves")

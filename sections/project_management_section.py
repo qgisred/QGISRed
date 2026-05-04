@@ -21,6 +21,7 @@ from ..ui.project.qgisred_layermanagement_dialog import QGISRedLayerManagementDi
 from ..ui.project.qgisred_legends_dialog import QGISRedLegendsDialog
 from ..ui.general.qgisred_import_dialog import QGISRedImportDialog
 from ..ui.general.qgisred_loadproject_dialog import QGISRedImportProjectDialog
+from ..ui.analysis.timeseries_actions import clear_all_timeseries
 
 
 class ProjectManagementSection:
@@ -216,6 +217,11 @@ class ProjectManagementSection:
         # Disconnect and close all dock widgets
         self.cleanupDocks()
 
+        # Time series: selection and QgsHighlight overlays survive project clear unless reset here.
+        try:
+            clear_all_timeseries(self)
+        except Exception:
+            pass
 
     """Read/Write methods"""
     def readOptions(self, folder="", network=""):

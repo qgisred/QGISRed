@@ -377,15 +377,33 @@ class AnalysisSection:
 
     def _clearTimeSeriesHighlight(self):
         highlights = getattr(self, "timeSeriesHighlights", None)
+        canvas = None
+        scene = None
+        try:
+            canvas = self.iface.mapCanvas()
+            scene = canvas.scene() if canvas is not None else None
+        except Exception:
+            scene = None
         if isinstance(highlights, dict):
             for _k, h in list(highlights.items()):
                 try:
                     h.hide()
                 except Exception:
                     pass
+                if scene is not None and h is not None:
+                    try:
+                        if h.scene() is scene:
+                            scene.removeItem(h)
+                    except Exception:
+                        pass
             highlights.clear()
         self.timeSeriesHighlights = {}
         self.timeSeriesHighlight = None
+        if canvas is not None:
+            try:
+                canvas.refresh()
+            except Exception:
+                pass
 
     def _clearTimeSeriesMapSelection(self):
         try:
