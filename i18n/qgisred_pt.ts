@@ -4650,6 +4650,61 @@ Left-click: Add a new item below the current selection</source>
         <source>The time axis uses clock-style labels; decimals do not apply here.</source>
         <translation type="unfinished">O eixo de tempo usa rótulos tipo relógio; decimais não se aplicam aqui.</translation>
     </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>General</source>
+        <translation type="unfinished">Geral</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Plot title</source>
+        <translation type="unfinished">Título do gráfico</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Leave empty to use the default title</source>
+        <translation type="unfinished">Deixe vazio para usar o título padrão</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Colors</source>
+        <translation type="unfinished">Cores</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Widget background</source>
+        <translation type="unfinished">Fundo do painel</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Widget background:</source>
+        <translation type="unfinished">Fundo do painel:</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Plot background</source>
+        <translation type="unfinished">Fundo do gráfico</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Plot background:</source>
+        <translation type="unfinished">Fundo do gráfico:</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Frame</source>
+        <translation type="unfinished">Moldura</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Frame color</source>
+        <translation type="unfinished">Cor da moldura</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Width:</source>
+        <translation type="unfinished">Largura:</translation>
+    </message>
 </context>
 <context>
     <name>TimeSeriesPlotWidget</name>

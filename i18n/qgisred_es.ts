@@ -4648,6 +4648,61 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <source>The time axis uses clock-style labels; decimals do not apply here.</source>
         <translation>El eje temporal usa etiquetas tipo reloj; aquí no se aplican decimales.</translation>
     </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>General</source>
+        <translation>General</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Plot title</source>
+        <translation>Título del gráfico</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Leave empty to use the default title</source>
+        <translation>Deja vacío para usar el título por defecto</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Colors</source>
+        <translation>Colores</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Widget background</source>
+        <translation>Fondo del panel</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Widget background:</source>
+        <translation>Fondo del panel:</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Plot background</source>
+        <translation>Fondo del gráfico</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Plot background:</source>
+        <translation>Fondo del gráfico:</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Frame</source>
+        <translation>Marco</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Frame color</source>
+        <translation>Color del marco</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1"/>
+        <source>Width:</source>
+        <translation>Ancho:</translation>
+    </message>
 </context>
 <context>
     <name>TimeSeriesPlotWidget</name>

@@ -82,7 +82,11 @@ class TimeSeriesPlotRenderer:
         w = widget.width()
         h = widget.height()
 
-        painter.fillRect(widget.rect(), Qt.GlobalColor.white)
+        gen = getattr(widget, "_general_cfg", None)
+        if gen is not None:
+            painter.fillRect(widget.rect(), gen.widget_bg_qcolor())
+        else:
+            painter.fillRect(widget.rect(), Qt.GlobalColor.white)
 
         all_x, all_y, y_categorical_labels, any_stepped = widget._axisSeriesData(widget.series)
         if not all_x or not all_y:
@@ -98,19 +102,29 @@ class TimeSeriesPlotRenderer:
         widget._legend_hitboxes = []
         widget._legend_delete_hitboxes = []
 
-        if widget.title:
+        title_txt = ""
+        if gen is not None and (getattr(gen, "title", "") or "").strip():
+            title_txt = (gen.title or "").strip()
+        elif widget.title:
+            title_txt = widget.title
+
+        if title_txt:
             painter.save()
             painter.setFont(qfont(10, bold=True))
             painter.setPen(Qt.GlobalColor.black)
             painter.drawText(
                 QRectF(plot_rect.left(), 0, plot_rect.width(), widget.margin_top),
                 Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignBottom,
-                widget.title,
+                title_txt,
             )
             painter.restore()
 
-        painter.fillRect(plot_rect, PLOT_BG_COLOR)
-        painter.setPen(QPen(BORDER_COLOR, 1))
+        if gen is not None:
+            painter.fillRect(plot_rect, gen.plot_bg_qcolor())
+            painter.setPen(QPen(gen.frame_qcolor(), max(1, int(getattr(gen, "frame_width", 1) or 1))))
+        else:
+            painter.fillRect(plot_rect, PLOT_BG_COLOR)
+            painter.setPen(QPen(BORDER_COLOR, 1))
         painter.drawRect(plot_rect)
 
         left_series, right_series = widget._seriesByAxis()
@@ -133,7 +147,11 @@ class TimeSeriesPlotRenderer:
             widget._last_auto_x_state = x_state
         self._draw_grid_and_axes(widget, painter, plot_rect, local_margin_left, right_axis_label_w, x_state, y_state_left, y_state_right)
 
-        painter.setPen(QPen(Qt.GlobalColor.black, 2))
+        if gen is not None:
+            axis_pen = QPen(gen.frame_qcolor(), max(1, int(getattr(gen, "frame_width", 1) or 1)))
+        else:
+            axis_pen = QPen(Qt.GlobalColor.black, 2)
+        painter.setPen(axis_pen)
         painter.drawLine(plot_rect.bottomLeft(), plot_rect.bottomRight())
         painter.drawLine(plot_rect.bottomLeft(), plot_rect.topLeft())
         if y_state_right is not None and right_axis_label_w and right_axis_label_w > 0:

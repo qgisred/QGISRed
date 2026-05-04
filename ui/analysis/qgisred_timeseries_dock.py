@@ -11,7 +11,7 @@ from qgis.core import QgsApplication
 from ...compat import DIALOG_ACCEPTED
 
 from .qgisred_timeseries_axis_dialog import TimeSeriesAxisOptionsDialog
-from .timeseries_axis_settings import default_axis_settings
+from .timeseries_axis_settings import default_axis_settings, default_general_settings
 from .timeseries_plot_layout import PlotLayoutCalculator
 from .timeseries_legend_interaction import LegendInteractionController
 from .timeseries_plot_renderer import TimeSeriesPlotRenderer
@@ -62,6 +62,7 @@ class TimeSeriesPlotWidget(QWidget):
         self._axis_cfg_x = default_axis_settings()
         self._axis_cfg_y_left = default_axis_settings()
         self._axis_cfg_y_right = default_axis_settings()
+        self._general_cfg = default_general_settings()
 
     def setData(self, x, y, title="", x_label="Time", y_label="Value", is_stepped=False, y_categorical_labels=None, series_label=""):
         self.data_x = x

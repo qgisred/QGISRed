@@ -14,7 +14,7 @@ from ...tools.utils.qgisred_axis_scale_utils import (
     format_number_tick,
 )
 
-from .timeseries_plot_style import AXIS_MAX_TICKS, FONT_FAMILY
+from .timeseries_plot_style import AXIS_MAX_TICKS, BORDER_COLOR, FONT_FAMILY, PLOT_BG_COLOR
 
 
 @dataclass
@@ -51,6 +51,43 @@ def default_axis_settings() -> TimeSeriesAxisSettings:
 
 
 def clone_axis_settings(s: TimeSeriesAxisSettings) -> TimeSeriesAxisSettings:
+    return copy.copy(s)
+
+
+@dataclass
+class TimeSeriesGeneralSettings:
+    """Opciones generales del gráfico (título, fondos y marcos)."""
+
+    title: str = ""
+    widget_bg_hex: str = "#ffffff"
+    plot_bg_hex: str = ""
+    frame_color_hex: str = ""
+    frame_width: int = 1
+
+    def widget_bg_qcolor(self) -> QColor:
+        c = QColor(self.widget_bg_hex)
+        return c if c.isValid() else QColor("#ffffff")
+
+    def plot_bg_qcolor(self) -> QColor:
+        raw = (self.plot_bg_hex or "").strip()
+        if not raw:
+            return QColor(PLOT_BG_COLOR)
+        c = QColor(raw)
+        return c if c.isValid() else QColor(PLOT_BG_COLOR)
+
+    def frame_qcolor(self) -> QColor:
+        raw = (self.frame_color_hex or "").strip()
+        if not raw:
+            return QColor(BORDER_COLOR)
+        c = QColor(raw)
+        return c if c.isValid() else QColor(BORDER_COLOR)
+
+
+def default_general_settings() -> TimeSeriesGeneralSettings:
+    return TimeSeriesGeneralSettings()
+
+
+def clone_general_settings(s: TimeSeriesGeneralSettings) -> TimeSeriesGeneralSettings:
     return copy.copy(s)
 
 

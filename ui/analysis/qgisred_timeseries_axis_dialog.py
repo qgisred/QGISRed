@@ -26,7 +26,7 @@ from qgis.PyQt.QtWidgets import (
     QWidget,
 )
 
-from .timeseries_axis_settings import TimeSeriesAxisSettings, clone_axis_settings
+from .timeseries_axis_settings import TimeSeriesAxisSettings, TimeSeriesGeneralSettings, clone_axis_settings, clone_general_settings
 
 
 def _qgisred_icon_path() -> str:
@@ -49,6 +49,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._cfg_x = clone_axis_settings(plot_widget._axis_cfg_x)
         self._cfg_yl = clone_axis_settings(plot_widget._axis_cfg_y_left)
         self._cfg_yr = clone_axis_settings(plot_widget._axis_cfg_y_right)
+        self._cfg_gen = clone_general_settings(getattr(plot_widget, "_general_cfg", TimeSeriesGeneralSettings()))
 
         root = QVBoxLayout(self)
         root.setSpacing(10)
@@ -57,6 +58,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         root.addWidget(self._build_header(ip))
 
         tabs = QTabWidget(self)
+        tabs.addTab(self._build_general_tab(self._cfg_gen), self.tr("General"))
         tabs.addTab(self._build_tab(self._cfg_x, show_decimals=False), self.tr("Time (X)"))
         tabs.addTab(self._build_tab(self._cfg_yl, show_decimals=True), self.tr("Y left"))
         tabs.addTab(self._build_tab(self._cfg_yr, show_decimals=True), self.tr("Y right"))
@@ -70,6 +72,97 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         root.addWidget(buttons)
 
         self._tabs = tabs
+
+    def _build_general_tab(self, cfg: TimeSeriesGeneralSettings) -> QWidget:
+        w = QWidget()
+        lay = QVBoxLayout(w)
+        lay.setSpacing(10)
+        lay.setContentsMargins(8, 8, 8, 8)
+
+        title_grp = QGroupBox(self.tr("Plot title"))
+        title_lay = QVBoxLayout(title_grp)
+        ed_title = QLineEdit()
+        ed_title.setText((cfg.title or "").strip())
+        ed_title.setPlaceholderText(self.tr("Leave empty to use the default title"))
+        ed_title.setClearButtonEnabled(True)
+        ed_title.setMinimumHeight(26)
+        title_lay.addWidget(ed_title)
+        lay.addWidget(title_grp)
+
+        colors_grp = QGroupBox(self.tr("Colors"))
+        colors_form = QFormLayout(colors_grp)
+        colors_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        colors_form.setHorizontalSpacing(12)
+        colors_form.setVerticalSpacing(8)
+
+        w._picked_widget_bg = QColor(cfg.widget_bg_qcolor())
+        btn_widget_bg = QPushButton()
+
+        def refresh_widget_bg():
+            btn_widget_bg.setText(w._picked_widget_bg.name(QColor.NameFormat.HexRgb))
+
+        refresh_widget_bg()
+
+        def pick_widget_bg():
+            nc = QColorDialog.getColor(w._picked_widget_bg, self, self.tr("Widget background"))
+            if nc.isValid():
+                w._picked_widget_bg = nc
+                refresh_widget_bg()
+
+        btn_widget_bg.clicked.connect(pick_widget_bg)
+        colors_form.addRow(self.tr("Widget background:"), btn_widget_bg)
+
+        w._picked_plot_bg = QColor(cfg.plot_bg_qcolor())
+        btn_plot_bg = QPushButton()
+
+        def refresh_plot_bg():
+            btn_plot_bg.setText(w._picked_plot_bg.name(QColor.NameFormat.HexRgb))
+
+        refresh_plot_bg()
+
+        def pick_plot_bg():
+            nc = QColorDialog.getColor(w._picked_plot_bg, self, self.tr("Plot background"))
+            if nc.isValid():
+                w._picked_plot_bg = nc
+                refresh_plot_bg()
+
+        btn_plot_bg.clicked.connect(pick_plot_bg)
+        colors_form.addRow(self.tr("Plot background:"), btn_plot_bg)
+        lay.addWidget(colors_grp)
+
+        frame_grp = QGroupBox(self.tr("Frame"))
+        frame_form = QFormLayout(frame_grp)
+        frame_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        frame_form.setHorizontalSpacing(12)
+        frame_form.setVerticalSpacing(8)
+
+        w._picked_frame = QColor(cfg.frame_qcolor())
+        btn_frame = QPushButton()
+
+        def refresh_frame():
+            btn_frame.setText(w._picked_frame.name(QColor.NameFormat.HexRgb))
+
+        refresh_frame()
+
+        def pick_frame():
+            nc = QColorDialog.getColor(w._picked_frame, self, self.tr("Frame color"))
+            if nc.isValid():
+                w._picked_frame = nc
+                refresh_frame()
+
+        btn_frame.clicked.connect(pick_frame)
+        sp_w = QSpinBox()
+        sp_w.setRange(1, 6)
+        sp_w.setValue(max(1, int(cfg.frame_width or 1)))
+        frame_form.addRow(self.tr("Color:"), btn_frame)
+        frame_form.addRow(self.tr("Width:"), sp_w)
+        lay.addWidget(frame_grp)
+
+        lay.addStretch(1)
+
+        w._gen_title = ed_title
+        w._gen_frame_w = sp_w
+        return w
 
     def _build_header(self, icon_path: str) -> QWidget:
         w = QWidget()
@@ -258,14 +351,22 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             cfg.decimal_places = -1
 
     def _on_accept(self) -> None:
-        self._read_tab(self._tabs.widget(0), self._cfg_x)
-        self._read_tab(self._tabs.widget(1), self._cfg_yl)
-        self._read_tab(self._tabs.widget(2), self._cfg_yr)
+        gen_tab = self._tabs.widget(0)
+        self._cfg_gen.title = gen_tab._gen_title.text().strip()
+        self._cfg_gen.widget_bg_hex = gen_tab._picked_widget_bg.name(QColor.NameFormat.HexRgb)
+        self._cfg_gen.plot_bg_hex = gen_tab._picked_plot_bg.name(QColor.NameFormat.HexRgb)
+        self._cfg_gen.frame_color_hex = gen_tab._picked_frame.name(QColor.NameFormat.HexRgb)
+        self._cfg_gen.frame_width = int(gen_tab._gen_frame_w.value())
+
+        self._read_tab(self._tabs.widget(1), self._cfg_x)
+        self._read_tab(self._tabs.widget(2), self._cfg_yl)
+        self._read_tab(self._tabs.widget(3), self._cfg_yr)
         if not self._cfg_x.auto_scale:
             self._plot._view_x_min = None
             self._plot._view_x_max = None
         self._plot._axis_cfg_x = self._cfg_x
         self._plot._axis_cfg_y_left = self._cfg_yl
         self._plot._axis_cfg_y_right = self._cfg_yr
+        self._plot._general_cfg = self._cfg_gen
         self._plot.update()
         self.accept()
