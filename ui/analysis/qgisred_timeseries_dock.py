@@ -414,6 +414,45 @@ class TimeSeriesPlotWidget(QWidget):
             auto_max = auto_min + 1.0
         return auto_min, auto_max
 
+    def _simulationXBounds(self):
+        all_data_x = []
+        try:
+            for s in self.series or []:
+                all_data_x.extend(s.get("x", []) or [])
+        except Exception:
+            all_data_x = []
+        if not all_data_x:
+            return 0.0, 1.0
+        try:
+            max_x = float(max(all_data_x))
+        except Exception:
+            max_x = 1.0
+        if not math.isfinite(max_x):
+            max_x = 1.0
+        if max_x <= 0.0:
+            max_x = 1.0
+        return 0.0, max_x
+
+    def _clampViewToSimulationBounds(self, new_min: float, new_max: float):
+        sim_min, sim_max = self._simulationXBounds()
+        if new_max <= new_min:
+            return None, None
+        view_range = new_max - new_min
+        sim_range = sim_max - sim_min
+        if view_range >= sim_range:
+            return None, None
+        if new_min < sim_min:
+            new_min = sim_min
+            new_max = new_min + view_range
+        if new_max > sim_max:
+            new_max = sim_max
+            new_min = new_max - view_range
+        if new_min < sim_min:
+            new_min = sim_min
+        if new_max > sim_max:
+            new_max = sim_max
+        return new_min, new_max
+
     def resetView(self):
         self._view_x_min = None
         self._view_x_max = None
@@ -428,8 +467,10 @@ class TimeSeriesPlotWidget(QWidget):
         x_min, x_max = self._getCurrentXRange()
         cx = (x_min + x_max) / 2.0
         half = (x_max - x_min) / (2.0 * factor)
-        self._view_x_min = cx - half
-        self._view_x_max = cx + half
+        new_min, new_max = cx - half, cx + half
+        new_min, new_max = self._clampViewToSimulationBounds(new_min, new_max)
+        self._view_x_min = new_min
+        self._view_x_max = new_max
         self._last_x_state = None
         self.hover_index = None
         self.update()
@@ -444,22 +485,7 @@ class TimeSeriesPlotWidget(QWidget):
         half = (x_max - x_min) * factor / 2.0
         new_min = cx - half
         new_max = cx + half
-        auto_state = getattr(self, "_last_auto_x_state", None)
-        if auto_state:
-            auto_min, auto_max = auto_state["min_x"], auto_state["max_x"]
-        else:
-            all_data_x = []
-            for s in self.series:
-                all_data_x.extend(s.get("x", []) or [])
-            auto_min = min(all_data_x) if all_data_x else 0.0
-            auto_max = max(all_data_x) if all_data_x else 1.0
-        if new_min <= auto_min and new_max >= auto_max:
-            self._view_x_min = None
-            self._view_x_max = None
-            self._last_x_state = None
-            self.hover_index = None
-            self.update()
-            return
+        new_min, new_max = self._clampViewToSimulationBounds(new_min, new_max)
         self._view_x_min = new_min
         self._view_x_max = new_max
         self._last_x_state = None
@@ -508,24 +534,7 @@ class TimeSeriesPlotWidget(QWidget):
         new_range = (x_max - x_min) / factor
         new_min = mouse_x - rel_x * new_range
         new_max = new_min + new_range
-        if factor < 1.0:
-            auto_state = getattr(self, "_last_auto_x_state", None)
-            if auto_state:
-                auto_min, auto_max = auto_state["min_x"], auto_state["max_x"]
-            else:
-                all_data_x = []
-                for s in self.series:
-                    all_data_x.extend(s.get("x", []) or [])
-                auto_min = min(all_data_x) if all_data_x else 0.0
-                auto_max = max(all_data_x) if all_data_x else 1.0
-            if new_min <= auto_min and new_max >= auto_max:
-                self._view_x_min = None
-                self._view_x_max = None
-                self._last_x_state = None
-                self.hover_index = None
-                self.update()
-                event.accept()
-                return
+        new_min, new_max = self._clampViewToSimulationBounds(new_min, new_max)
         self._view_x_min = new_min
         self._view_x_max = new_max
         self._last_x_state = None
@@ -599,8 +608,11 @@ class TimeSeriesPlotWidget(QWidget):
                 x_min0, x_max0 = self._pan_start_view
                 x_range = x_max0 - x_min0
                 dx_data = -dx_px / plot_rect.width() * x_range
-                self._view_x_min = x_min0 + dx_data
-                self._view_x_max = x_max0 + dx_data
+                new_min = x_min0 + dx_data
+                new_max = x_max0 + dx_data
+                new_min, new_max = self._clampViewToSimulationBounds(new_min, new_max)
+                self._view_x_min = new_min
+                self._view_x_max = new_max
                 self._last_x_state = None
                 self.hover_index = None
                 self.update()
@@ -688,6 +700,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self.setStyleSheet("background-color: white; border: none;")
         self.chartContainer.setStyleSheet("background-color: white;")
         self._updateClearToolbarVisibility()
+        self._updatePanAvailability()
 
     def _updateMinimumWidthForDockTitle(self) -> None:
         title = (self.windowTitle() or "").strip()
@@ -775,11 +788,11 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             hl.addWidget(self.btnPan, 0, Qt.AlignmentFlag.AlignLeft)
 
             self.btnZoomIn = _make_btn("btnZoomInTimeSeries", "mActionZoomIn.svg", self.tr("Zoom in"))
-            self.btnZoomIn.clicked.connect(lambda: self.plot.zoomIn())
+            self.btnZoomIn.clicked.connect(self._onZoomInClicked)
             hl.addWidget(self.btnZoomIn, 0, Qt.AlignmentFlag.AlignLeft)
 
             self.btnZoomOut = _make_btn("btnZoomOutTimeSeries", "mActionZoomOut.svg", self.tr("Zoom out"))
-            self.btnZoomOut.clicked.connect(lambda: self.plot.zoomOut())
+            self.btnZoomOut.clicked.connect(self._onZoomOutClicked)
             hl.addWidget(self.btnZoomOut, 0, Qt.AlignmentFlag.AlignLeft)
 
             self.btnFit = _make_btn("btnFitTimeSeries", "mActionZoomFullExtent.svg", self.tr("Zoom to full extent"))
@@ -789,7 +802,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self.btnAxes = _make_btn("btnAxesTimeSeries", "mActionOptions.svg", self.tr("Axis options…"))
             self.btnAxes.clicked.connect(self._onAxisOptionsClicked)
             hl.addWidget(self.btnAxes, 0, Qt.AlignmentFlag.AlignLeft)
-            hl.addWidget(self.btnClearAll, 0, Qt.AlignmentFlag.AlignLeft)
+            hl.addWidget(self.btnClearAll, 0, Qt.AlignmentFlag.AlignRight)
 
             hl.addStretch(1)
 
@@ -803,16 +816,41 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
     def _onPanToggled(self, checked: bool) -> None:
         self.plot.setPanMode(checked)
 
+    def _onZoomInClicked(self) -> None:
+        self.plot.zoomIn()
+        self._updatePanAvailability()
+
+    def _onZoomOutClicked(self) -> None:
+        self.plot.zoomOut()
+        self._updatePanAvailability()
+
     def _onFitClicked(self) -> None:
         self.plot.resetView()
         if hasattr(self, "btnPan") and self.btnPan.isChecked():
             self.btnPan.setChecked(False)
+        self._updatePanAvailability()
 
     def _onAxisOptionsClicked(self) -> None:
         dlg = TimeSeriesAxisOptionsDialog(self.plot, self.window())
         if dlg.exec() == DIALOG_ACCEPTED and not self.plot._axis_cfg_x.auto_scale:
             if hasattr(self, "btnPan") and self.btnPan.isChecked():
                 self.btnPan.setChecked(False)
+            self.plot.setPanMode(False)
+        self._updatePanAvailability()
+
+    def _updatePanAvailability(self) -> None:
+        if not hasattr(self, "btnPan") or self.btnPan is None:
+            return
+        if not self._plotHasCurves():
+            self.btnPan.setEnabled(False)
+        elif not getattr(self.plot, "_axis_cfg_x", None) or not bool(self.plot._axis_cfg_x.auto_scale):
+            self.btnPan.setEnabled(False)
+        else:
+            zoomed = (getattr(self.plot, "_view_x_min", None) is not None) and (getattr(self.plot, "_view_x_max", None) is not None)
+            self.btnPan.setEnabled(bool(zoomed))
+
+        if not self.btnPan.isEnabled() and self.btnPan.isChecked():
+            self.btnPan.setChecked(False)
             self.plot.setPanMode(False)
 
     def _plotHasCurves(self) -> bool:
@@ -833,11 +871,14 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
 
     def _onSeriesOrderChanged(self, _order) -> None:
         self._updateClearToolbarVisibility()
+        self._updatePanAvailability()
 
     def updatePlot(self, x, y, title, x_label, y_label, is_stepped=False, y_categorical_labels=None, series_label=""):
         self.plot.setData(x, y, title, x_label, y_label, is_stepped, y_categorical_labels, series_label)
         self._updateClearToolbarVisibility()
+        self._updatePanAvailability()
 
     def updatePlotSeries(self, series, title, x_label, y_label):
         self.plot.setSeries(series, title, x_label, y_label)
         self._updateClearToolbarVisibility()
+        self._updatePanAvailability()
