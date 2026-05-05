@@ -2,7 +2,7 @@
 import math
 import os
 from typing import List
-from qgis.PyQt.QtWidgets import QDockWidget, QVBoxLayout, QWidget, QHBoxLayout, QToolButton
+from qgis.PyQt.QtWidgets import QDockWidget, QVBoxLayout, QWidget, QHBoxLayout, QToolButton, QRubberBand
 from qgis.PyQt.QtCore import QCoreApplication, QEvent, Qt, QPointF, QRectF, pyqtSignal, QSize
 from qgis.PyQt.QtGui import QColor, QPainter, QFontMetrics, QIcon
 from qgis.PyQt import uic
@@ -65,6 +65,10 @@ class TimeSeriesPlotWidget(QWidget):
         self._pan_active = False
         self._pan_start_pos = None
         self._pan_start_view = None
+        self._zoom_window_mode = False
+        self._zoom_window_active = False
+        self._zoom_window_start_pos = None
+        self._zoom_rubber_band = QRubberBand(QRubberBand.Shape.Rectangle, self)
         self._axis_cfg_x = default_axis_settings()
         self._axis_cfg_y_left = default_axis_settings()
         self._axis_cfg_y_right = default_axis_settings()
@@ -498,9 +502,29 @@ class TimeSeriesPlotWidget(QWidget):
         self._pan_start_pos = None
         self._pan_start_view = None
         if enabled:
+            self.setZoomWindowMode(False)
+        if enabled:
             self.setCursor(Qt.CursorShape.OpenHandCursor)
         else:
             self.unsetCursor()
+
+    def setZoomWindowMode(self, enabled: bool) -> None:
+        self._zoom_window_mode = bool(enabled)
+        self._zoom_window_active = False
+        self._zoom_window_start_pos = None
+        try:
+            self._zoom_rubber_band.hide()
+        except Exception:
+            pass
+        if enabled:
+            self._pan_mode = False
+            self._pan_active = False
+            self._pan_start_pos = None
+            self._pan_start_view = None
+            self.setCursor(Qt.CursorShape.CrossCursor)
+        else:
+            if not self._pan_mode:
+                self.unsetCursor()
 
     def getPlotRect(self):
         return PlotLayoutCalculator.compute_plot_rect(self)
@@ -544,6 +568,16 @@ class TimeSeriesPlotWidget(QWidget):
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
+            if self._zoom_window_mode:
+                if not self._axis_cfg_x.auto_scale:
+                    return
+                plot_rect, _, _ = self.getPlotRect()
+                if plot_rect.contains(QPointF(event.pos())):
+                    self._zoom_window_active = True
+                    self._zoom_window_start_pos = QPointF(event.pos())
+                    self._zoom_rubber_band.setGeometry(QRectF(self._zoom_window_start_pos, self._zoom_window_start_pos).toRect())
+                    self._zoom_rubber_band.show()
+                return
             if self._pan_mode:
                 if not self._axis_cfg_x.auto_scale:
                     return
@@ -566,6 +600,39 @@ class TimeSeriesPlotWidget(QWidget):
                 self.setCursor(Qt.CursorShape.ClosedHandCursor)
 
     def mouseReleaseEvent(self, event):
+        if self._zoom_window_active:
+            self._zoom_window_active = False
+            try:
+                self._zoom_rubber_band.hide()
+            except Exception:
+                pass
+            if event.button() == Qt.MouseButton.LeftButton and self._axis_cfg_x.auto_scale:
+                plot_rect, _, _ = self.getPlotRect()
+                if plot_rect.width() > 0:
+                    start = self._zoom_window_start_pos
+                    end = QPointF(event.pos())
+                    if start is not None:
+                        left_px = min(start.x(), end.x())
+                        right_px = max(start.x(), end.x())
+                        sel_w = right_px - left_px
+                        if sel_w >= 6:
+                            x_min, x_max = self._getCurrentXRange()
+                            x_range = x_max - x_min
+                            rel_l = (left_px - plot_rect.left()) / plot_rect.width()
+                            rel_r = (right_px - plot_rect.left()) / plot_rect.width()
+                            rel_l = max(0.0, min(1.0, rel_l))
+                            rel_r = max(0.0, min(1.0, rel_r))
+                            new_min = x_min + rel_l * x_range
+                            new_max = x_min + rel_r * x_range
+                            new_min, new_max = self._clampViewToSimulationBounds(new_min, new_max)
+                            self._view_x_min = new_min
+                            self._view_x_max = new_max
+                            self._last_x_state = None
+                            self.hover_index = None
+                            self.update()
+            self._zoom_window_start_pos = None
+            return
+
         if self._pan_active:
             self._pan_active = False
             self._pan_start_pos = None
@@ -599,6 +666,20 @@ class TimeSeriesPlotWidget(QWidget):
         self._resetLegendInteractionState()
 
     def mouseMoveEvent(self, event):
+        if self._zoom_window_active and self._zoom_window_start_pos is not None:
+            plot_rect, _, _ = self.getPlotRect()
+            if plot_rect.contains(QPointF(self._zoom_window_start_pos)) and plot_rect.contains(QPointF(event.pos())):
+                start = self._zoom_window_start_pos
+                cur = QPointF(event.pos())
+                rect = QRectF(start, cur).normalized()
+                self._zoom_rubber_band.setGeometry(rect.toRect())
+            else:
+                start = self._zoom_window_start_pos
+                cur = QPointF(event.pos())
+                rect = QRectF(start, cur).normalized()
+                self._zoom_rubber_band.setGeometry(rect.toRect())
+            return
+
         if self._pan_active and self._pan_start_pos is not None:
             if not self._axis_cfg_x.auto_scale:
                 return
@@ -787,6 +868,10 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self.btnPan.toggled.connect(self._onPanToggled)
             hl.addWidget(self.btnPan, 0, Qt.AlignmentFlag.AlignLeft)
 
+            self.btnZoomWindow = _make_btn("btnZoomWindowTimeSeries", "mActionZoomToLayer.svg", self.tr("Zoom window"), checkable=True)
+            self.btnZoomWindow.toggled.connect(self._onZoomWindowToggled)
+            hl.addWidget(self.btnZoomWindow, 0, Qt.AlignmentFlag.AlignLeft)
+
             self.btnZoomIn = _make_btn("btnZoomInTimeSeries", "mActionZoomIn.svg", self.tr("Zoom in"))
             self.btnZoomIn.clicked.connect(self._onZoomInClicked)
             hl.addWidget(self.btnZoomIn, 0, Qt.AlignmentFlag.AlignLeft)
@@ -814,18 +899,31 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             return
 
     def _onPanToggled(self, checked: bool) -> None:
+        if hasattr(self, "btnZoomWindow") and self.btnZoomWindow is not None and checked and self.btnZoomWindow.isChecked():
+            self.btnZoomWindow.setChecked(False)
         self.plot.setPanMode(checked)
 
+    def _onZoomWindowToggled(self, checked: bool) -> None:
+        if hasattr(self, "btnPan") and self.btnPan is not None and checked and self.btnPan.isChecked():
+            self.btnPan.setChecked(False)
+        self.plot.setZoomWindowMode(checked)
+
     def _onZoomInClicked(self) -> None:
+        if hasattr(self, "btnZoomWindow") and self.btnZoomWindow is not None and self.btnZoomWindow.isChecked():
+            self.btnZoomWindow.setChecked(False)
         self.plot.zoomIn()
         self._updatePanAvailability()
 
     def _onZoomOutClicked(self) -> None:
+        if hasattr(self, "btnZoomWindow") and self.btnZoomWindow is not None and self.btnZoomWindow.isChecked():
+            self.btnZoomWindow.setChecked(False)
         self.plot.zoomOut()
         self._updatePanAvailability()
 
     def _onFitClicked(self) -> None:
         self.plot.resetView()
+        if hasattr(self, "btnZoomWindow") and self.btnZoomWindow is not None and self.btnZoomWindow.isChecked():
+            self.btnZoomWindow.setChecked(False)
         if hasattr(self, "btnPan") and self.btnPan.isChecked():
             self.btnPan.setChecked(False)
         self._updatePanAvailability()
@@ -836,6 +934,9 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             if hasattr(self, "btnPan") and self.btnPan.isChecked():
                 self.btnPan.setChecked(False)
             self.plot.setPanMode(False)
+            if hasattr(self, "btnZoomWindow") and self.btnZoomWindow is not None and self.btnZoomWindow.isChecked():
+                self.btnZoomWindow.setChecked(False)
+            self.plot.setZoomWindowMode(False)
         self._updatePanAvailability()
 
     def _updatePanAvailability(self) -> None:
@@ -852,6 +953,12 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         if not self.btnPan.isEnabled() and self.btnPan.isChecked():
             self.btnPan.setChecked(False)
             self.plot.setPanMode(False)
+
+        if hasattr(self, "btnZoomWindow") and self.btnZoomWindow is not None:
+            self.btnZoomWindow.setEnabled(bool(self._plotHasCurves()) and bool(getattr(self.plot, "_axis_cfg_x", None) and self.plot._axis_cfg_x.auto_scale))
+            if not self.btnZoomWindow.isEnabled() and self.btnZoomWindow.isChecked():
+                self.btnZoomWindow.setChecked(False)
+                self.plot.setZoomWindowMode(False)
 
     def _plotHasCurves(self) -> bool:
         try:
