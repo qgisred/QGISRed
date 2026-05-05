@@ -389,7 +389,7 @@ class TimeSeriesPlotRenderer:
         cfg_x = x_state.get("axis_cfg") or widget._axis_cfg_x
         cfg_yl = y_state_left.get("axis_cfg") or widget._axis_cfg_y_left
         pen_grid = QPen(GRID_COLOR, 1, Qt.PenStyle.SolidLine)
-        pen_grid_day_start = QPen(QColor(180, 180, 180), 2, Qt.PenStyle.SolidLine)
+        pen_grid_day_start = QPen(QColor(210, 210, 210), 1, Qt.PenStyle.SolidLine)
 
         painter.setFont(self._tick_qfont(cfg_yl))
         dec_yl = y_state_left.get("decimals")
@@ -737,15 +737,16 @@ class TimeSeriesPlotRenderer:
         fm_bold = QFontMetrics(font_tt_bold)
 
         footer_w = 0
-        for text, _is_bold in footer_segments:
-            footer_w += fm_bold.horizontalAdvance(text)
+        for text, is_bold in footer_segments:
+            footer_w += (fm_bold if is_bold else fm).horizontalAdvance(text)
         series_max_w = 0
         for _c, _m, _legend_type, prefix, value, suffix in tooltip_lines:
             row_w = fm.horizontalAdvance(prefix) + fm_bold.horizontalAdvance(value) + fm.horizontalAdvance(suffix)
             series_max_w = max(series_max_w, row_w)
 
         bullet_extra = 16 if tooltip_lines else 0
-        max_w = max(footer_w, series_max_w + bullet_extra)
+        footer_indent = 14
+        max_w = max(footer_w + footer_indent, series_max_w + bullet_extra)
 
         line_h = fm.height()
         pad = 5
@@ -810,14 +811,14 @@ class TimeSeriesPlotRenderer:
             painter.drawLine(QPointF(rect_tt.left() + pad, sep_y), QPointF(rect_tt.right() - pad, sep_y))
             y_text = sep_y + separator_gap
 
-        footer_x = rect_tt.left() + pad + 14
+        footer_x = rect_tt.left() + pad + footer_indent
         footer_baseline_y = y_text + fm.ascent()
         painter.setPen(Qt.GlobalColor.black)
         cursor_x = footer_x
-        for text, _is_bold in footer_segments:
-            painter.setFont(font_tt_bold)
+        for text, is_bold in footer_segments:
+            painter.setFont(font_tt_bold if is_bold else font_tt)
             painter.drawText(QPointF(cursor_x, footer_baseline_y), text)
-            cursor_x += fm_bold.horizontalAdvance(text)
+            cursor_x += (fm_bold if is_bold else fm).horizontalAdvance(text)
 
         painter.restore()
 

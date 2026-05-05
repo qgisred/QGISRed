@@ -3,7 +3,7 @@ import math
 import os
 from typing import List
 from qgis.PyQt.QtWidgets import QDockWidget, QVBoxLayout, QWidget, QHBoxLayout, QToolButton
-from qgis.PyQt.QtCore import Qt, QPointF, QRectF, pyqtSignal, QSize
+from qgis.PyQt.QtCore import QCoreApplication, QEvent, Qt, QPointF, QRectF, pyqtSignal, QSize
 from qgis.PyQt.QtGui import QColor, QPainter, QFontMetrics, QIcon
 from qgis.PyQt import uic
 from qgis.core import QgsApplication
@@ -24,6 +24,10 @@ class TimeSeriesPlotWidget(QWidget):
     seriesRemoved = pyqtSignal(str)
     seriesEmphasisChanged = pyqtSignal(dict)
 
+    def tr(self, message: str) -> str:
+        # QWidget may not provide self.tr() in some test environments.
+        return QCoreApplication.translate("TimeSeriesPlotWidget", message)
+
     def __init__(self, parent=None):
         super(TimeSeriesPlotWidget, self).__init__(parent)
         self.data_x = []
@@ -40,7 +44,9 @@ class TimeSeriesPlotWidget(QWidget):
         self.hover_index = None
         self.y_categorical_labels = None
         self.setMouseTracking(True)
-        self.setMinimumSize(260, 170)
+        self._base_min_w = 260
+        self._base_min_h = 170
+        self.setMinimumSize(self._base_min_w, self._base_min_h)
         self._legend_reserved_w = 0
         self._legend_hitboxes = []
         self._legend_delete_hitboxes = []
@@ -63,6 +69,24 @@ class TimeSeriesPlotWidget(QWidget):
         self._axis_cfg_y_left = default_axis_settings()
         self._axis_cfg_y_right = default_axis_settings()
         self._general_cfg = default_general_settings()
+        self._updateMinimumWidthForTitle()
+
+    def _updateMinimumWidthForTitle(self) -> None:
+        title = (self.title or "").strip()
+        if not title:
+            title = self.tr("Time evolution curves")
+        title_font = qfont(10, bold=True)
+        title_w = QFontMetrics(title_font).horizontalAdvance(title)
+        pad = 24
+        min_w = max(int(self._base_min_w), int(title_w + pad))
+        if hasattr(self, "setMinimumWidth"):
+            self.setMinimumWidth(min_w)
+        else:
+            try:
+                cur_min_h = int(getattr(self, "minimumHeight", lambda: self._base_min_h)())
+            except Exception:
+                cur_min_h = int(self._base_min_h)
+            self.setMinimumSize(min_w, max(int(self._base_min_h), cur_min_h))
 
     def setData(self, x, y, title="", x_label="Time", y_label="Value", is_stepped=False, y_categorical_labels=None, series_label=""):
         self.data_x = x
@@ -90,6 +114,7 @@ class TimeSeriesPlotWidget(QWidget):
         self._right_axis_active = False
         self._view_x_min = None
         self._view_x_max = None
+        self._updateMinimumWidthForTitle()
         self.update()
 
     def _normalizeSeriesState(self) -> None:
@@ -133,6 +158,7 @@ class TimeSeriesPlotWidget(QWidget):
         self.x_label = x_label
         self.y_label = y_label
         self._assignYAxisByMagnitude()
+        self._updateMinimumWidthForTitle()
 
         if len(self.series) == 1:
             self.data_x = self.series[0].get("x", [])
@@ -645,6 +671,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self._toolbarWidget = None
 
         self._initToolbar()
+        self._updateMinimumWidthForDockTitle()
         
         self.plot = TimeSeriesPlotWidget(self.chartContainer)
         layout = QVBoxLayout(self.chartContainer)
@@ -661,6 +688,33 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self.setStyleSheet("background-color: white; border: none;")
         self.chartContainer.setStyleSheet("background-color: white;")
         self._updateClearToolbarVisibility()
+
+    def _updateMinimumWidthForDockTitle(self) -> None:
+        title = (self.windowTitle() or "").strip()
+        if not title:
+            return
+        fm = QFontMetrics(self.font())
+        extra = 260
+        min_w = int(fm.horizontalAdvance(title) + extra)
+        if min_w > 0:
+            self.setMinimumWidth(max(int(self.minimumWidth()), min_w))
+
+    def changeEvent(self, event) -> None:
+        try:
+            if event is not None and event.type() == QEvent.Type.LanguageChange:
+                self.retranslateUi(self)
+                self._updateMinimumWidthForDockTitle()
+        except Exception:
+            pass
+        super(QGISRedTimeSeriesDock, self).changeEvent(event)
+
+    def event(self, event):
+        try:
+            if event is not None and event.type() == QEvent.Type.WindowTitleChange:
+                self._updateMinimumWidthForDockTitle()
+        except Exception:
+            pass
+        return super(QGISRedTimeSeriesDock, self).event(event)
 
     def _initToolbar(self) -> None:
         try:
