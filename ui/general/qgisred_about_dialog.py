@@ -19,18 +19,7 @@ class QGISRedAboutDialog(QDialog, FORM_CLASS):
         self.labelIiama.mousePressEvent = self.linkIiama
         self.labelBidImage.mousePressEvent = self.linkBidImage
         self.labelUpv.mousePressEvent = self.linkUpv
-        self.lbManual.mousePressEvent = self.userManual
-        self.lbOfflineManual.mousePressEvent = self.offlineManual
-        self.lbIssues.mousePressEvent = self.issuesRepository
-
         locale = QgsApplication.locale()[0:2]
-        if locale == "es":
-            self.online_manual = "https://qgisred.gitbook.io/manual-de-usuario"
-            self.offline_manual_file = "usermanual_es.pdf"
-        else:
-            self.online_manual = "https://qgisred.gitbook.io/usermanual"
-            self.offline_manual_file = "usermanual_en.pdf"
-
         # BID URL
         if locale == "es":
             self.bid_url = "https://www.iadb.org/es"
@@ -66,13 +55,3 @@ class QGISRedAboutDialog(QDialog, FORM_CLASS):
 
     def linkUpv(self, event):
         webbrowser.open("http://www.upv.es/index-en.html")
-
-    def userManual(self, event):
-        webbrowser.open(self.online_manual)
-
-    def offlineManual(self, event):
-        pdf = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "manuals", self.offline_manual_file)
-        webbrowser.open(pdf)
-
-    def issuesRepository(self, event):
-        webbrowser.open("https://github.com/neslerel/QGISRed/issues")

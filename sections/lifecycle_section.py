@@ -188,21 +188,7 @@ class LifecycleSection:
         self.addDigitalTwinMenu()
         self.addQueriesMenu()
 
-        # News
-        self.add_simple_action(
-            ":/images/iconNews.svg", self.tr("News..."), self.runNewsDialogForced,
-            self.qgisredmenu, self.toolbar, parent=self.iface.mainWindow(),
-        )
-        # About
-        self.add_simple_action(
-            ":/images/iconAbout.svg", self.tr("About..."), self.runAbout,
-            self.qgisredmenu, self.toolbar, parent=self.iface.mainWindow(),
-        )
-        # Report issues
-        self.add_simple_action(
-            ":/images/iconGitHub.svg", self.tr("Report issues or comments..."), self.runReportIssues,
-            self.qgisredmenu, self.toolbar, parent=self.iface.mainWindow(),
-        )
+        self.addInfoMenu()
 
         # Connecting QGis Events
         QgsProject.instance().projectSaved.connect(self.runSaveProject)

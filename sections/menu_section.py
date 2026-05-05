@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 """Menu section for QGISRed (build all toolbars/menus, toolbar visibility toggles, about/report)."""
 
+import os
 import webbrowser
 
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QMenu, QToolButton
+from qgis.core import QgsApplication
 
 from ..ui.general.qgisred_about_dialog import QGISRedAboutDialog
 
@@ -102,6 +104,32 @@ class MenuSection:
         )
         self.add_to_group(action, self.generalMenu, self.generalToolbar)
         self.add_to_dropdown(action, generalDropButton)
+
+    def addInfoMenu(self):
+        self.infoMenu = self.qgisredmenu.addMenu(self.tr("Info"))
+        self.infoMenu.setIcon(QIcon(":/images/iconAbout.svg"))
+        self.infoToolbar = self.iface.addToolBar(self.tr("QGISRed Info"))
+        self.infoToolbar.setObjectName(self.tr("QGISRed Info"))
+        self.infoToolbar.setVisible(False)
+        infoDropButton = QToolButton()
+        action = self._make_action(
+            ":/images/iconAbout.svg", self.tr("Info"),
+            self.runInfoToolbar, checkable=True, parent=self.iface.mainWindow(),
+        )
+        self.setup_dropdown_button(action, infoDropButton, self.toolbar)
+        self.infoDropButton = infoDropButton
+        self.infoToolbar.visibilityChanged.connect(self.changeInfoToolbarVisibility)
+
+        for icon, text, cb in [
+            (":/images/iconNews.svg",    self.tr("News..."),                          self.runNewsDialogForced),
+            (":/images/iconGitHub.svg",  self.tr("Report issues or comments..."),     self.runReportIssues),
+            (":/images/iconGitBook.svg", self.tr("User manual"),                      self.runUserManual),
+            (":/images/iconPDF.svg",     self.tr("User manual (offline - Outdated)"), self.runOfflineManual),
+            (":/images/iconAbout.svg",   self.tr("About..."),                         self.runAbout),
+        ]:
+            action = self._make_action(icon, text, cb, parent=self.iface.mainWindow())
+            self.add_to_group(action, self.infoMenu, self.infoToolbar)
+            self.add_to_dropdown(action, infoDropButton)
 
     def addProjectMenu(self):
         #    #Menu
@@ -1138,6 +1166,12 @@ class MenuSection:
     def changeQueriesToolbarVisibility(self, status):
         self.queriesDropButton.setChecked(status)
 
+    def runInfoToolbar(self):
+        self.infoToolbar.setVisible(not self.infoToolbar.isVisible())
+
+    def changeInfoToolbarVisibility(self, status):
+        self.infoDropButton.setChecked(status)
+
     def updateCheckables(self):
         self.generalDropButton.setChecked(self.generalToolbar.isVisible())
         self.projectDropButton.setChecked(self.projectToolbar.isVisible())
@@ -1147,6 +1181,7 @@ class MenuSection:
         self.analysisDropButton.setChecked(self.analysisToolbar.isVisible())
         self.dtDropButton.setChecked(self.dtToolbar.isVisible())
         self.queriesDropButton.setChecked(self.queriesToolbar.isVisible())
+        self.infoDropButton.setChecked(self.infoToolbar.isVisible())
 
     def runNewsDialogForced(self):
         self.runNewsDialog(force=True)
@@ -1158,3 +1193,14 @@ class MenuSection:
 
     def runReportIssues(self):
         webbrowser.open("https://github.com/qgisred/QGISRed/issues")
+
+    def runUserManual(self):
+        locale = QgsApplication.locale()[0:2]
+        url = "https://qgisred.gitbook.io/manual-de-usuario" if locale == "es" else "https://qgisred.gitbook.io/usermanual"
+        webbrowser.open(url)
+
+    def runOfflineManual(self):
+        locale = QgsApplication.locale()[0:2]
+        filename = "usermanual_es.pdf" if locale == "es" else "usermanual_en.pdf"
+        pdf = os.path.join(os.path.dirname(os.path.dirname(__file__)), "manuals", filename)
+        webbrowser.open(pdf)
