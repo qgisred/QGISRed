@@ -769,7 +769,6 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self.btnClearAll.setFixedSize(QSize(22, 22))
             self.btnClearAll.setStyleSheet(btn_style)
             self.btnClearAll.clicked.connect(self.clearAllRequested)
-            hl.addWidget(self.btnClearAll, 0, Qt.AlignmentFlag.AlignLeft)
 
             self.btnPan = _make_btn("btnPanTimeSeries", "mActionPan.svg", self.tr("Pan"), checkable=True)
             self.btnPan.toggled.connect(self._onPanToggled)
@@ -790,6 +789,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self.btnAxes = _make_btn("btnAxesTimeSeries", "mActionOptions.svg", self.tr("Axis options…"))
             self.btnAxes.clicked.connect(self._onAxisOptionsClicked)
             hl.addWidget(self.btnAxes, 0, Qt.AlignmentFlag.AlignLeft)
+            hl.addWidget(self.btnClearAll, 0, Qt.AlignmentFlag.AlignLeft)
 
             hl.addStretch(1)
 
