@@ -4515,6 +4515,11 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <source>Axis options…</source>
         <translation>Opciones de ejes…</translation>
     </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="871"/>
+        <source>Zoom window</source>
+        <translation>Zoom de ventana</translation>
+    </message>
 </context>
 <context>
     <name>TimeSeriesAxisOptionsDialog</name>
@@ -4522,6 +4527,16 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="41"/>
         <source>QGISRed — axis options</source>
         <translation>QGISRed — opciones de ejes</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="62"/>
+        <source>General</source>
+        <translation>General</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="64"/>
+        <source>Axes</source>
+        <translation>Ejes</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="62"/>

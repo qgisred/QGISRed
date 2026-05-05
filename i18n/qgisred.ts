@@ -4502,12 +4502,27 @@ Left-click: Add a new item below the current selection</source>
         <source>Axis options…</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="871"/>
+        <source>Zoom window</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>TimeSeriesAxisOptionsDialog</name>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="41"/>
         <source>QGISRed — axis options</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="62"/>
+        <source>General</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="64"/>
+        <source>Axes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

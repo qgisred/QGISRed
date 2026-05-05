@@ -59,9 +59,9 @@ class TimeSeriesAxisOptionsDialog(QDialog):
 
         tabs = QTabWidget(self)
         tabs.addTab(self._build_general_tab(self._cfg_gen), self.tr("General"))
-        tabs.addTab(self._build_tab(self._cfg_x, show_decimals=False), self.tr("Time (X)"))
-        tabs.addTab(self._build_tab(self._cfg_yl, show_decimals=True), self.tr("Y left"))
-        tabs.addTab(self._build_tab(self._cfg_yr, show_decimals=True), self.tr("Y right"))
+
+        axes_tab, axes_tabs = self._build_axes_tab()
+        tabs.addTab(axes_tab, self.tr("Axes"))
         root.addWidget(tabs, 1)
 
         buttons = QDialogButtonBox(
@@ -72,6 +72,21 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         root.addWidget(buttons)
 
         self._tabs = tabs
+        self._axes_tabs = axes_tabs
+
+    def _build_axes_tab(self) -> tuple[QWidget, QTabWidget]:
+        w = QWidget()
+        lay = QVBoxLayout(w)
+        lay.setSpacing(8)
+        lay.setContentsMargins(8, 8, 8, 8)
+
+        tabs = QTabWidget(w)
+        tabs.addTab(self._build_tab(self._cfg_x, show_decimals=False), self.tr("Time (X)"))
+        tabs.addTab(self._build_tab(self._cfg_yl, show_decimals=True), self.tr("Y left"))
+        tabs.addTab(self._build_tab(self._cfg_yr, show_decimals=True), self.tr("Y right"))
+        lay.addWidget(tabs, 1)
+
+        return w, tabs
 
     def _build_general_tab(self, cfg: TimeSeriesGeneralSettings) -> QWidget:
         w = QWidget()
@@ -358,9 +373,9 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._cfg_gen.frame_color_hex = gen_tab._picked_frame.name(QColor.NameFormat.HexRgb)
         self._cfg_gen.frame_width = int(gen_tab._gen_frame_w.value())
 
-        self._read_tab(self._tabs.widget(1), self._cfg_x)
-        self._read_tab(self._tabs.widget(2), self._cfg_yl)
-        self._read_tab(self._tabs.widget(3), self._cfg_yr)
+        self._read_tab(self._axes_tabs.widget(0), self._cfg_x)
+        self._read_tab(self._axes_tabs.widget(1), self._cfg_yl)
+        self._read_tab(self._axes_tabs.widget(2), self._cfg_yr)
         if not self._cfg_x.auto_scale:
             self._plot._view_x_min = None
             self._plot._view_x_max = None
