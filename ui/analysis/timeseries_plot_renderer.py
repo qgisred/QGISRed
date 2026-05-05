@@ -240,10 +240,37 @@ class TimeSeriesPlotRenderer:
     def _estimate_x_axis_label_px(self, painter, *, has_days: bool) -> float:
         fm = painter.fontMetrics()
         if has_days:
-            w_top = fm.horizontalAdvance("24")
+            w_top = max(fm.horizontalAdvance("24"), fm.horizontalAdvance("23:59:59"))
             w_bottom = fm.horizontalAdvance("999d")
             return max(w_top, w_bottom) + 18
-        return fm.horizontalAdvance("23:59") + 18
+        return max(fm.horizontalAdvance("23:59"), fm.horizontalAdvance("23:59:59")) + 18
+
+    def _format_time_axis_tick(self, hours: float, *, hour_format: str, day_format: str) -> str:
+        total_seconds = int(round(hours * 3600))
+        sign = "-" if total_seconds < 0 else ""
+        abs_seconds = abs(total_seconds)
+        d = abs_seconds // 86400
+        rem = abs_seconds % 86400
+        h = rem // 3600
+        m = (rem % 3600) // 60
+        s = rem % 60
+
+        hour_format = (hour_format or "hm").strip()
+        day_format = (day_format or "split_days").strip()
+
+        if day_format == "total_hours":
+            total_h = abs_seconds // 3600
+            if hour_format == "hms":
+                return f"{sign}{total_h}:{m:02d}:{s:02d}"
+            return f"{sign}{total_h}:{m:02d}"
+
+        if hour_format == "hms":
+            top = f"{sign}{h}:{m:02d}:{s:02d}"
+        else:
+            top = f"{sign}{h}" if m == 0 else f"{sign}{h}:{m:02d}"
+        if d > 0 and h == 0 and m == 0 and s == 0:
+            return f"{top}\n{sign}{d}d"
+        return top
 
     def _compute_x_axis_state(self, widget, all_x, plot_rect, painter):
         cfg = widget._axis_cfg_x
@@ -268,7 +295,9 @@ class TimeSeriesPlotRenderer:
             if max_x <= min_x:
                 max_x = min_x + 1
 
-        has_days = max_x >= 24
+        hour_format = (getattr(cfg, "x_hour_format", "") or "hm").strip()
+        day_format = (getattr(cfg, "x_day_format", "") or "split_days").strip()
+        has_days = (max_x >= 24) and (day_format == "split_days")
         label_px = self._estimate_x_axis_label_px(painter, has_days=has_days)
         if cfg.auto_scale:
             max_ticks_x = estimate_max_ticks(plot_rect.width(), label_px, min_ticks=2, max_ticks=AXIS_MAX_TICKS)
@@ -363,19 +392,14 @@ class TimeSeriesPlotRenderer:
             segments.append((suffix, False))
         return segments
 
-    def _format_absolute_time_hours_axis(self, hours: float) -> str:
-        total_seconds = int(round(hours * 3600))
-        sign = "-" if total_seconds < 0 else ""
-        abs_seconds = abs(total_seconds)
-        d = abs_seconds // 86400
-        rem = abs_seconds % 86400
-        h = rem // 3600
-        m = (rem % 3600) // 60
-
-        time_str = f"{sign}{h}" if m == 0 else f"{sign}{h}:{m:02d}"
-        if d > 0 and h == 0 and m == 0:
-            return f"{time_str}\n{sign}{d}d"
-        return time_str
+    def _format_absolute_time_hours_axis(
+        self,
+        hours: float,
+        *,
+        hour_format: str = "hm",
+        day_format: str = "split_days",
+    ) -> str:
+        return self._format_time_axis_tick(hours, hour_format=hour_format, day_format=day_format)
 
     def _format_tick_number(self, value: float, step: float, dec: int | None) -> str:
         if dec is None:
@@ -434,13 +458,15 @@ class TimeSeriesPlotRenderer:
                 painter.drawText(QRectF(plot_rect.right() + 5, pt.y() - 10, right_axis_label_w - 10, 20), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, label_text)
 
         if len(widget.data_x) > 1:
-            painter.setFont(self._tick_qfont(cfg_x))
+            tick_font_regular = self._tick_qfont(cfg_x)
+            tick_font_bold = self._tick_qfont(cfg_x, bold=True)
+            painter.setFont(tick_font_regular)
             fm_x = painter.fontMetrics()
             has_days = bool(x_state.get("has_days", x_state["max_x"] >= 24))
             tick_h = fm_x.height() * 2 + 4 if has_days else fm_x.height() + 6
             tick_w = float(x_state.get("label_px", self._estimate_x_axis_label_px(painter, has_days=has_days)))
-            tick_font_regular = self._tick_qfont(cfg_x)
-            tick_font_bold = self._tick_qfont(cfg_x, bold=True)
+            hour_format = (getattr(cfg_x, "x_hour_format", "") or "hm").strip()
+            day_format = (getattr(cfg_x, "x_day_format", "") or "split_days").strip()
             for val_x in x_state["x_scale"].ticks():
                 pt = self._to_screen(val_x, y_state_left["min_y"], plot_rect, x_state, y_state_left)
 
@@ -453,13 +479,33 @@ class TimeSeriesPlotRenderer:
                     painter.drawLine(QPointF(pt.x(), plot_rect.top()), QPointF(pt.x(), plot_rect.bottom()))
 
                 painter.setPen(QPen(cfg_x.tick_qcolor(), 1))
-                label_x = self._format_absolute_time_hours_axis(val_x)
-                painter.setFont(tick_font_bold if "\n" in label_x else tick_font_regular)
-                painter.drawText(
-                    QRectF(pt.x() - tick_w / 2, plot_rect.bottom() + 8, tick_w, tick_h),
-                    Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop,
-                    label_x,
-                )
+                label_x = self._format_absolute_time_hours_axis(val_x, hour_format=hour_format, day_format=day_format)
+                rect = QRectF(pt.x() - tick_w / 2, plot_rect.bottom() + 8, tick_w, tick_h)
+                if "\n" in label_x:
+                    top, bottom = (label_x.split("\n", 1) + [""])[:2]
+                    if not is_day_start:
+                        bottom = ""
+                    fm_reg = QFontMetrics(tick_font_regular)
+                    fm_bold = QFontMetrics(tick_font_bold)
+                    pad_y = 0
+
+                    painter.setFont(tick_font_regular)
+                    painter.drawText(
+                        QRectF(rect.left(), rect.top() + pad_y, rect.width(), fm_reg.height()),
+                        Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop,
+                        top,
+                    )
+
+                    if bottom:
+                        painter.setFont(tick_font_bold)
+                        painter.drawText(
+                            QRectF(rect.left(), rect.top() + pad_y + fm_reg.height(), rect.width(), fm_bold.height()),
+                            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop,
+                            bottom,
+                        )
+                else:
+                    painter.setFont(tick_font_regular)
+                    painter.drawText(rect, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, label_x)
 
     def _draw_axis_titles(self, widget, painter, plot_rect, local_margin_left, right_axis_label_w, widget_h):
         cfg_x = widget._axis_cfg_x

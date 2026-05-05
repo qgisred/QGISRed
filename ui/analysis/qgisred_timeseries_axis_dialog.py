@@ -6,6 +6,7 @@ import os
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor, QFont, QIcon, QPixmap
 from qgis.PyQt.QtWidgets import (
+    QApplication,
     QCheckBox,
     QComboBox,
     QColorDialog,
@@ -19,6 +20,7 @@ from qgis.PyQt.QtWidgets import (
     QLabel,
     QLineEdit,
     QPushButton,
+    QScrollArea,
     QSizePolicy,
     QSpinBox,
     QTabWidget,
@@ -39,7 +41,13 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         super().__init__(win if win is not None else parent)
         self._plot = plot_widget
         self.setWindowTitle(self.tr("QGISRed — axis options"))
-        self.resize(440, 480)
+        try:
+            screen = QApplication.primaryScreen()
+            if screen is not None:
+                self.setMaximumHeight(max(320, int(screen.availableGeometry().height() * 0.90)))
+        except Exception:
+            pass
+        self.resize(440, 460)
         self.setMinimumWidth(400)
 
         ip = _qgisred_icon_path()
@@ -62,7 +70,20 @@ class TimeSeriesAxisOptionsDialog(QDialog):
 
         axes_tab, axes_tabs = self._build_axes_tab()
         tabs.addTab(axes_tab, self.tr("Axes"))
-        root.addWidget(tabs, 1)
+
+        scroll = QScrollArea(self)
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QScrollArea.Shape.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+
+        scroll_body = QWidget(scroll)
+        body_lay = QVBoxLayout(scroll_body)
+        body_lay.setContentsMargins(0, 0, 0, 0)
+        body_lay.setSpacing(0)
+        body_lay.addWidget(tabs)
+        scroll.setWidget(scroll_body)
+
+        root.addWidget(scroll, 1)
 
         buttons = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
@@ -81,9 +102,9 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         lay.setContentsMargins(8, 8, 8, 8)
 
         tabs = QTabWidget(w)
-        tabs.addTab(self._build_tab(self._cfg_x, show_decimals=False), self.tr("Time (X)"))
-        tabs.addTab(self._build_tab(self._cfg_yl, show_decimals=True), self.tr("Y left"))
-        tabs.addTab(self._build_tab(self._cfg_yr, show_decimals=True), self.tr("Y right"))
+        tabs.addTab(self._build_tab(self._cfg_x, show_decimals=False, is_time_axis=True), self.tr("Time (X)"))
+        tabs.addTab(self._build_tab(self._cfg_yl, show_decimals=True, is_time_axis=False), self.tr("Y left"))
+        tabs.addTab(self._build_tab(self._cfg_yr, show_decimals=True, is_time_axis=False), self.tr("Y right"))
         lay.addWidget(tabs, 1)
 
         return w, tabs
@@ -205,11 +226,36 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         row.addLayout(text_col, 1)
         return w
 
-    def _build_tab(self, cfg: TimeSeriesAxisSettings, *, show_decimals: bool) -> QWidget:
+    def _build_tab(self, cfg: TimeSeriesAxisSettings, *, show_decimals: bool, is_time_axis: bool) -> QWidget:
         w = QWidget()
         lay = QVBoxLayout(w)
         lay.setSpacing(10)
         lay.setContentsMargins(8, 8, 8, 8)
+
+        if is_time_axis:
+            time_grp = QGroupBox(self.tr("Time format"))
+            time_form = QFormLayout(time_grp)
+            time_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+            time_form.setHorizontalSpacing(12)
+            time_form.setVerticalSpacing(8)
+
+            combo_hour = QComboBox()
+            combo_hour.addItem(self.tr("HH:mm"), "hm")
+            combo_hour.addItem(self.tr("HH:mm:ss"), "hms")
+            cur_h = (getattr(cfg, "x_hour_format", "") or "hm").strip()
+            idx_h = combo_hour.findData(cur_h)
+            combo_hour.setCurrentIndex(idx_h if idx_h >= 0 else 0)
+
+            combo_days = QComboBox()
+            combo_days.addItem(self.tr("Days as 1d, 2d…"), "split_days")
+            combo_days.addItem(self.tr("Accumulate days into hours (>24)"), "total_hours")
+            cur_d = (getattr(cfg, "x_day_format", "") or "split_days").strip()
+            idx_d = combo_days.findData(cur_d)
+            combo_days.setCurrentIndex(idx_d if idx_d >= 0 else 0)
+
+            time_form.addRow(self.tr("Hour:"), combo_hour)
+            time_form.addRow(self.tr("Days:"), combo_days)
+            lay.addWidget(time_grp)
 
         title_grp = QGroupBox(self.tr("Axis title"))
         title_lay = QVBoxLayout(title_grp)
@@ -347,6 +393,10 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         w._sp_size = sp_size
         w._font_combo = font_combo
         w._sp_dec = sp_dec
+        w._is_time_axis = bool(is_time_axis)
+        if is_time_axis:
+            w._combo_hour = combo_hour
+            w._combo_days = combo_days
         return w
 
     def _read_tab(self, tab: QWidget, cfg: TimeSeriesAxisSettings) -> None:
@@ -364,6 +414,16 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             cfg.decimal_places = -1 if dv < 0 else dv
         else:
             cfg.decimal_places = -1
+
+        if getattr(tab, "_is_time_axis", False):
+            try:
+                cfg.x_hour_format = str(tab._combo_hour.currentData() or "hm")
+            except Exception:
+                cfg.x_hour_format = "hm"
+            try:
+                cfg.x_day_format = str(tab._combo_days.currentData() or "split_days")
+            except Exception:
+                cfg.x_day_format = "split_days"
 
     def _on_accept(self) -> None:
         gen_tab = self._tabs.widget(0)

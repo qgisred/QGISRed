@@ -30,6 +30,9 @@ class TimeSeriesAxisSettings:
     tick_color_hex: str = "#000000"
     decimal_places: int = -1
 
+    x_hour_format: str = "hm"
+    x_day_format: str = "split_days"
+
     def resolved_font_family(self) -> str:
         f = (self.tick_font_family or "").strip()
         return f or FONT_FAMILY
@@ -56,8 +59,6 @@ def clone_axis_settings(s: TimeSeriesAxisSettings) -> TimeSeriesAxisSettings:
 
 @dataclass
 class TimeSeriesGeneralSettings:
-    """Opciones generales del gráfico (título, fondos y marcos)."""
-
     title: str = ""
     widget_bg_hex: str = "#ffffff"
     plot_bg_hex: str = ""
