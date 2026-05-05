@@ -15,7 +15,12 @@ from .timeseries_axis_settings import default_axis_settings, default_general_set
 from .timeseries_plot_layout import PlotLayoutCalculator
 from .timeseries_legend_interaction import LegendInteractionController
 from .timeseries_plot_renderer import TimeSeriesPlotRenderer
-from .timeseries_plot_style import DEFAULT_SERIES_COLOR, LEGEND_ICON_SIZE, qfont
+from .timeseries_plot_style import DEFAULT_SERIES_COLOR, LEGEND_ICON_SIZE, LEGEND_ROW_GAP, qfont
+
+try:
+    _LEGEND_ROW_GAP = int(LEGEND_ROW_GAP)
+except Exception:
+    _LEGEND_ROW_GAP = 16
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_timeseries_dock.ui"))
 
@@ -25,7 +30,6 @@ class TimeSeriesPlotWidget(QWidget):
     seriesEmphasisChanged = pyqtSignal(dict)
 
     def tr(self, message: str) -> str:
-        # QWidget may not provide self.tr() in some test environments.
         return QCoreApplication.translate("TimeSeriesPlotWidget", message)
 
     def __init__(self, parent=None):
@@ -48,6 +52,7 @@ class TimeSeriesPlotWidget(QWidget):
         self._base_min_h = 170
         self.setMinimumSize(self._base_min_w, self._base_min_h)
         self._legend_reserved_w = 0
+        self._legend_reserved_h = 0
         self._legend_hitboxes = []
         self._legend_delete_hitboxes = []
         self._hover_series_idx = None
@@ -318,6 +323,11 @@ class TimeSeriesPlotWidget(QWidget):
         groups = self._legendGroups()
         if not groups:
             return 0
+        gen = getattr(self, "_general_cfg", None)
+        sym = int(getattr(gen, "legend_symbol_size", LEGEND_ICON_SIZE) or LEGEND_ICON_SIZE) if gen is not None else LEGEND_ICON_SIZE
+        sym = max(6, min(sym, 24))
+        cols = int(getattr(gen, "legend_columns", 1) or 1) if gen is not None else 1
+        cols = max(1, min(cols, 6))
         fm = QFontMetrics(qfont(8))
         fm_hdr = QFontMetrics(qfont(8, bold=True))
         max_w = 0
@@ -329,7 +339,31 @@ class TimeSeriesPlotWidget(QWidget):
                 w_label = fm.horizontalAdvance(label)
                 if w_label > max_w:
                     max_w = w_label
-        return LEGEND_ICON_SIZE + 6 + max_w + 12
+        btn_w = 10
+        col_w = sym + 6 + max_w + btn_w + 16
+        gap = 8
+        return int(cols * col_w + (cols - 1) * gap)
+
+    def _legendRequiredHeight(self) -> int:
+        groups = self._legendGroups()
+        if not groups:
+            return 0
+        gen = getattr(self, "_general_cfg", None)
+        cols = int(getattr(gen, "legend_columns", 1) or 1) if gen is not None else 1
+        cols = max(1, min(cols, 6))
+
+        row_steps = 0
+        for _mag, items in groups:
+            row_steps += 1
+            row_steps += len(items)
+            row_steps += 1
+
+        import math
+
+        rows_per_col = int(math.ceil(float(row_steps) / float(cols))) if cols > 0 else row_steps
+        top_pad = 10
+        bottom_pad = 10
+        return int(top_pad + rows_per_col * _LEGEND_ROW_GAP + bottom_pad)
 
     def _resetLegendInteractionState(self):
         self._legend.reset()

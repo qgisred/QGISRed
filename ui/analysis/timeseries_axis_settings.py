@@ -64,6 +64,11 @@ class TimeSeriesGeneralSettings:
     plot_bg_hex: str = ""
     frame_color_hex: str = ""
     frame_width: int = 1
+    legend_position: str = "right"
+    legend_show_frame: bool = False
+    legend_show_background: bool = False
+    legend_symbol_size: int = 12
+    legend_columns: int = 1
 
     def widget_bg_qcolor(self) -> QColor:
         c = QColor(self.widget_bg_hex)
@@ -109,7 +114,6 @@ def build_fixed_linear_scale(axis_min: float, axis_max: float, divisions: int) -
 
 
 def _format_tick_number(value: float, step: float, dec: Optional[int]) -> str:
-    """Compat: soporta format_number_tick viejo y nuevo."""
     if dec is None:
         return format_number_tick(value, step)
     try:

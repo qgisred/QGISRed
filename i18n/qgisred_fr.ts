@@ -4541,6 +4541,16 @@ Left-click: Add a new item below the current selection</source>
         <translation>Axes</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="74"/>
+        <source>Legend</source>
+        <translation>Légende</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="76"/>
+        <source>Curves</source>
+        <translation>Courbes</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="62"/>
         <source>Time (X)</source>
         <translation type="unfinished">Temps (X)</translation>
@@ -4719,6 +4729,81 @@ Left-click: Add a new item below the current selection</source>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="158"/>
         <source>Width:</source>
         <translation type="unfinished">Épaisseur :</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="219"/>
+        <source>Legend</source>
+        <translation>Légende</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="236"/>
+        <source>Right (outside)</source>
+        <translation>Droite (extérieur)</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="237"/>
+        <source>Left (outside)</source>
+        <translation>Gauche (extérieur)</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="238"/>
+        <source>Top (outside)</source>
+        <translation>Haut (extérieur)</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="239"/>
+        <source>Bottom (outside)</source>
+        <translation>Bas (extérieur)</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="240"/>
+        <source>Inside — top right</source>
+        <translation>À l’intérieur — en haut à droite</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="241"/>
+        <source>Inside — top left</source>
+        <translation>À l’intérieur — en haut à gauche</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="242"/>
+        <source>Inside — bottom right</source>
+        <translation>À l’intérieur — en bas à droite</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="243"/>
+        <source>Inside — bottom left</source>
+        <translation>À l’intérieur — en bas à gauche</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="248"/>
+        <source>Draw frame</source>
+        <translation>Afficher le cadre</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="250"/>
+        <source>Fill background</source>
+        <translation>Remplir l’arrière-plan</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="261"/>
+        <source>Position:</source>
+        <translation>Position :</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="262"/>
+        <source>Columns:</source>
+        <translation>Colonnes :</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="263"/>
+        <source>Symbol size:</source>
+        <translation>Taille du symbole :</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="125"/>
+        <source>Curve options will be implemented here (line style, width, markers, etc.).</source>
+        <translation>Les options des courbes seront implémentées ici (style de ligne, épaisseur, marqueurs, etc.).</translation>
     </message>
 </context>
 <context>

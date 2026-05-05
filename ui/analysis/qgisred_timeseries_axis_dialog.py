@@ -66,10 +66,14 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         root.addWidget(self._build_header(ip))
 
         tabs = QTabWidget(self)
-        tabs.addTab(self._build_general_tab(self._cfg_gen), self.tr("General"))
-
+        tab_general = self._build_general_tab(self._cfg_gen)
+        tabs.addTab(tab_general, self.tr("General"))
         axes_tab, axes_tabs = self._build_axes_tab()
         tabs.addTab(axes_tab, self.tr("Axes"))
+        tab_legend = self._build_legend_tab(self._cfg_gen)
+        tabs.addTab(tab_legend, self.tr("Legend"))
+        tab_curves = self._build_curves_tab()
+        tabs.addTab(tab_curves, self.tr("Curves"))
 
         scroll = QScrollArea(self)
         scroll.setWidgetResizable(True)
@@ -94,6 +98,9 @@ class TimeSeriesAxisOptionsDialog(QDialog):
 
         self._tabs = tabs
         self._axes_tabs = axes_tabs
+        self._tab_general = tab_general
+        self._tab_legend = tab_legend
+        self._tab_curves = tab_curves
 
     def _build_axes_tab(self) -> tuple[QWidget, QTabWidget]:
         w = QWidget()
@@ -108,6 +115,19 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         lay.addWidget(tabs, 1)
 
         return w, tabs
+
+    def _build_curves_tab(self) -> QWidget:
+        w = QWidget()
+        lay = QVBoxLayout(w)
+        lay.setSpacing(10)
+        lay.setContentsMargins(8, 8, 8, 8)
+
+        info = QLabel(self.tr("Curve options will be implemented here (line style, width, markers, etc.)."))
+        info.setWordWrap(True)
+        info.setStyleSheet("color: palette(mid);")
+        lay.addWidget(info)
+        lay.addStretch(1)
+        return w
 
     def _build_general_tab(self, cfg: TimeSeriesGeneralSettings) -> QWidget:
         w = QWidget()
@@ -198,6 +218,60 @@ class TimeSeriesAxisOptionsDialog(QDialog):
 
         w._gen_title = ed_title
         w._gen_frame_w = sp_w
+        return w
+
+    def _build_legend_tab(self, cfg: TimeSeriesGeneralSettings) -> QWidget:
+        w = QWidget()
+        lay = QVBoxLayout(w)
+        lay.setSpacing(10)
+        lay.setContentsMargins(8, 8, 8, 8)
+
+        legend_grp = QGroupBox(self.tr("Legend"))
+        legend_form = QFormLayout(legend_grp)
+        legend_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        legend_form.setHorizontalSpacing(12)
+        legend_form.setVerticalSpacing(8)
+
+        cb_pos = QComboBox()
+        cb_pos.addItem(self.tr("Right (outside)"), "right")
+        cb_pos.addItem(self.tr("Left (outside)"), "left")
+        cb_pos.addItem(self.tr("Top (outside)"), "top")
+        cb_pos.addItem(self.tr("Bottom (outside)"), "bottom")
+        cb_pos.addItem(self.tr("Inside — top right"), "inside_top_right")
+        cb_pos.addItem(self.tr("Inside — top left"), "inside_top_left")
+        cb_pos.addItem(self.tr("Inside — bottom right"), "inside_bottom_right")
+        cb_pos.addItem(self.tr("Inside — bottom left"), "inside_bottom_left")
+        cur_pos = (getattr(cfg, "legend_position", "") or "right").strip()
+        idx_pos = cb_pos.findData(cur_pos)
+        cb_pos.setCurrentIndex(idx_pos if idx_pos >= 0 else 0)
+
+        chk_frame = QCheckBox(self.tr("Draw frame"))
+        chk_frame.setChecked(bool(getattr(cfg, "legend_show_frame", False)))
+        chk_bg = QCheckBox(self.tr("Fill background"))
+        chk_bg.setChecked(bool(getattr(cfg, "legend_show_background", False)))
+
+        sp_sym = QSpinBox()
+        sp_sym.setRange(6, 24)
+        sp_sym.setValue(max(6, min(int(getattr(cfg, "legend_symbol_size", 12) or 12), 24)))
+
+        sp_cols = QSpinBox()
+        sp_cols.setRange(1, 6)
+        sp_cols.setValue(max(1, int(getattr(cfg, "legend_columns", 1) or 1)))
+
+        legend_form.addRow(self.tr("Position:"), cb_pos)
+        legend_form.addRow(self.tr("Columns:"), sp_cols)
+        legend_form.addRow(self.tr("Symbol size:"), sp_sym)
+        legend_form.addRow("", chk_bg)
+        legend_form.addRow("", chk_frame)
+        lay.addWidget(legend_grp)
+
+        lay.addStretch(1)
+
+        w._legend_pos = cb_pos
+        w._legend_frame = chk_frame
+        w._legend_bg = chk_bg
+        w._legend_sym = sp_sym
+        w._legend_cols = sp_cols
         return w
 
     def _build_header(self, icon_path: str) -> QWidget:
@@ -426,12 +500,21 @@ class TimeSeriesAxisOptionsDialog(QDialog):
                 cfg.x_day_format = "split_days"
 
     def _on_accept(self) -> None:
-        gen_tab = self._tabs.widget(0)
+        gen_tab = self._tab_general
+        legend_tab = self._tab_legend
         self._cfg_gen.title = gen_tab._gen_title.text().strip()
         self._cfg_gen.widget_bg_hex = gen_tab._picked_widget_bg.name(QColor.NameFormat.HexRgb)
         self._cfg_gen.plot_bg_hex = gen_tab._picked_plot_bg.name(QColor.NameFormat.HexRgb)
         self._cfg_gen.frame_color_hex = gen_tab._picked_frame.name(QColor.NameFormat.HexRgb)
         self._cfg_gen.frame_width = int(gen_tab._gen_frame_w.value())
+        try:
+            self._cfg_gen.legend_position = str(legend_tab._legend_pos.currentData() or "right")
+        except Exception:
+            self._cfg_gen.legend_position = "right"
+        self._cfg_gen.legend_show_frame = bool(legend_tab._legend_frame.isChecked())
+        self._cfg_gen.legend_show_background = bool(legend_tab._legend_bg.isChecked())
+        self._cfg_gen.legend_symbol_size = int(legend_tab._legend_sym.value())
+        self._cfg_gen.legend_columns = int(legend_tab._legend_cols.value())
 
         self._read_tab(self._axes_tabs.widget(0), self._cfg_x)
         self._read_tab(self._axes_tabs.widget(1), self._cfg_yl)

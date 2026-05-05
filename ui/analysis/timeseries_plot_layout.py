@@ -83,8 +83,12 @@ class PlotLayoutCalculator:
         _x_l, all_y_left, y_cat_left, _st_left = widget._axisSeriesData(left_series)
         _x_r, all_y_right, y_cat_right, _st_right = widget._axisSeriesData(right_series)
 
+        gen = getattr(widget, "_general_cfg", None)
+        legend_pos = (getattr(gen, "legend_position", "") or "right").strip() if gen is not None else "right"
         legend_w = widget._legendRequiredWidth()
-        widget._legend_reserved_w = legend_w
+        legend_h = widget._legendRequiredHeight()
+        widget._legend_reserved_w = int(legend_w) if legend_pos in ("right", "left") else 0
+        widget._legend_reserved_h = int(legend_h) if legend_pos in ("top", "bottom") else 0
 
         plot_h_est = h - (widget.margin_top + PLOT_TOP_PAD) - widget.margin_bottom
         local_margin_left = cls._compute_left_margin(
@@ -115,14 +119,26 @@ class PlotLayoutCalculator:
             extra = tick_block_h + axis_title_h
             local_margin_bottom = max(local_margin_bottom, extra)
 
+        if legend_pos == "bottom" and getattr(widget, "_legend_reserved_h", 0):
+            local_margin_bottom += float(widget._legend_reserved_h)
+
+        if legend_pos == "left" and widget._legend_reserved_w:
+            local_margin_left += float(widget._legend_reserved_w + 10)
+
+        local_margin_top = widget.margin_top + PLOT_TOP_PAD
+        if legend_pos == "top" and getattr(widget, "_legend_reserved_h", 0):
+            local_margin_top += float(widget._legend_reserved_h)
+
         widget._right_axis_label_w = right_axis_label_w
-        local_margin_right = widget.margin_right + right_axis_label_w + (widget._legend_reserved_w + 10 if widget._legend_reserved_w else 0)
+        local_margin_right = widget.margin_right + right_axis_label_w
+        if legend_pos == "right" and widget._legend_reserved_w:
+            local_margin_right += float(widget._legend_reserved_w + 10)
 
         plot_rect = QRectF(
             local_margin_left,
-            widget.margin_top + PLOT_TOP_PAD,
+            local_margin_top,
             w - local_margin_left - local_margin_right,
-            h - (widget.margin_top + PLOT_TOP_PAD) - local_margin_bottom,
+            h - local_margin_top - local_margin_bottom,
         )
         return plot_rect, local_margin_left, right_axis_label_w
 
