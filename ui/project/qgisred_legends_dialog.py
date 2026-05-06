@@ -3021,6 +3021,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             "qgisred_junctions": self._applyJunctionsLegend,
             "qgisred_pipes": self._applyPipesLegend,
             "qgisred_valves": self._applyValvesLegend,
+            "qgisred_pumps": self._applyPumpsLegend,
             "qgisred_isolationvalves": self._applyIsolationValvesLegend,
         }
 
@@ -3130,6 +3131,18 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 f"if(IniStatus is 'CLOSED', '#ff0f13', "
                 f"if(IniStatus !='ACTIVE', '{userHex}','#ff9900')))"
             )
+            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyStrokeColor, colorExpr)
+            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyFillColor, colorExpr)
+        if size is not None:
+            self._setLineWidth(symbol, size)
+            self._scaleMarkerLineMarkerSize(
+                symbol, self.VALVE_PUMP_DEFAULT_MARKER_SIZE, size, self.PIPE_DEFAULT_WIDTH
+            )
+
+    def _applyPumpsLegend(self, symbol, color, size):
+        if color is not None:
+            userHex = color.name().lower()
+            colorExpr = f"if(IniStatus is NULL, '{userHex}',if(IniStatus !='CLOSED', '{userHex}','#ff0f13'))"
             self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyStrokeColor, colorExpr)
             self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyFillColor, colorExpr)
         if size is not None:
@@ -3666,10 +3679,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         """Apply per-element-type color/size column restrictions for input layers."""
         identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else ""
 
-        COLOR_LOCKED = {
-            "qgisred_pumps",
-            "qgisred_reservoirs", "qgisred_tanks", "qgisred_sources"
-        }
+        COLOR_LOCKED = {"qgisred_reservoirs", "qgisred_tanks", "qgisred_sources"}
 
         if identifier in COLOR_LOCKED:
             self._disableColorColumnInTable()
