@@ -1723,12 +1723,16 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.tableView.setCellWidget(row, 0, container)
 
     def setColorWidget(self, row, symbol, geometryHint):
-        # For marker symbols, symbol.color() doesn't reliably return fill color
-        # Get color from symbol layer instead
-        if symbol.symbolLayerCount() > 0:
-            color = symbol.symbolLayer(0).color()
-        else:
-            color = symbol.color()
+        # For input layers, the visible color is set via a data-defined expression — read it from there.
+        color = None
+        if self.isInputLayer():
+            identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else ""
+            color = self._readInputLayerColor(symbol, identifier)
+        if color is None:
+            if symbol.symbolLayerCount() > 0:
+                color = symbol.symbolLayer(0).color()
+            else:
+                color = symbol.color()
 
         colorSelector = QGISRedSymbolColorSelector(
             self.tableView,
@@ -2913,6 +2917,45 @@ class QGISRedLegendsDialog(QDialog, formClass):
             sl = symbol.symbolLayer(i)
             if sl.layerType() == "SimpleLine":
                 sl.setWidth(newWidth)
+
+    INPUT_COLOR_READERS = {
+        "qgisred_junctions": ("PropertyFillColor", r"BaseDem\s*>\s*0\s*,\s*'(#[0-9a-fA-F]{6})'"),
+        "qgisred_demands": ("PropertyFillColor", r"BaseValue\s*>\s*0\s*,\s*'(#[0-9a-fA-F]{6})'"),
+        "qgisred_pipes": ("PropertyStrokeColor", r"IniStatus is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
+        "qgisred_valves": ("PropertyStrokeColor", r"IniStatus is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
+        "qgisred_pumps": ("PropertyStrokeColor", r"IniStatus is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
+        "qgisred_meters": ("PropertyFillColor", r"IsActive is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
+        "qgisred_serviceconnections": ("PropertyStrokeColor", r"IsActive is NULL\s*,\s*'(#[0-9a-fA-F]{6})'"),
+        "qgisred_isolationvalves": ("PropertyFillColor", r'LossCoeff"\s*=\s*0\s*,\s*color_rgb\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)\)'),
+    }
+
+    def _readInputLayerColor(self, symbol, identifier):
+        entry = self.INPUT_COLOR_READERS.get(identifier)
+        if not entry:
+            return None
+        propertyName, regex = entry
+        propertyKey = getattr(QgsSymbolLayer, propertyName)
+        match = self._findExpressionMatch(symbol, propertyKey, re.compile(regex))
+        if not match:
+            return None
+        groups = match.groups()
+        if len(groups) == 1:
+            return QColor(groups[0])
+        return QColor(int(groups[0]), int(groups[1]), int(groups[2]))
+
+    def _findExpressionMatch(self, symbol, propertyKey, pattern):
+        for i in range(symbol.symbolLayerCount()):
+            sl = symbol.symbolLayer(i)
+            prop = sl.dataDefinedProperties().property(propertyKey)
+            if prop and prop.propertyType() == QgsProperty.ExpressionBasedProperty:
+                m = pattern.search(prop.expressionString())
+                if m:
+                    return m
+            if hasattr(sl, "subSymbol") and sl.subSymbol():
+                m = self._findExpressionMatch(sl.subSymbol(), propertyKey, pattern)
+                if m:
+                    return m
+        return None
 
     def getUnitAbbrForLayer(self):
         if self.utils:
