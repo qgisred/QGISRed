@@ -2991,6 +2991,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     PIPE_DEFAULT_WIDTH = 1.5
     PIPE_DEFAULT_CV_SIZE = 5
     JUNCTION_DEFAULT_SIZE = 1.3
+    VALVE_PUMP_DEFAULT_MARKER_SIZE = 5
 
     def applySingleSymbolLegend(self):
         renderer = self.currentLayer.renderer()
@@ -3019,6 +3020,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         inputAppliers = {
             "qgisred_junctions": self._applyJunctionsLegend,
             "qgisred_pipes": self._applyPipesLegend,
+            "qgisred_valves": self._applyValvesLegend,
             "qgisred_isolationvalves": self._applyIsolationValvesLegend,
         }
 
@@ -3057,6 +3059,21 @@ class QGISRedLegendsDialog(QDialog, formClass):
                         ml = markerSymbol.symbolLayer(j)
                         expr = f"if(IniStatus is NULL, 0,if(IniStatus !='CV', 0,{newCvSize}))"
                         ml.setDataDefinedProperty(QgsSymbolLayer.PropertySize, QgsProperty.fromExpression(expr))
+
+    def _scaleMarkerLineMarkerSize(self, symbol, defaultMarkerSize, newWidth, defaultWidth):
+        """Scale every marker layer inside a MarkerLine proportionally to the line width."""
+        if newWidth <= 0 or defaultWidth <= 0:
+            return
+        newSize = round(defaultMarkerSize * (newWidth / defaultWidth), 3)
+        for i in range(symbol.symbolLayerCount()):
+            sl = symbol.symbolLayer(i)
+            if sl.layerType() == "MarkerLine":
+                markerSymbol = sl.subSymbol()
+                if markerSymbol:
+                    for j in range(markerSymbol.symbolLayerCount()):
+                        ml = markerSymbol.symbolLayer(j)
+                        if hasattr(ml, "setSize"):
+                            ml.setSize(newSize)
 
     def _applyJunctionsLegend(self, symbol, color, size):
         if color is not None:
@@ -3104,6 +3121,22 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if size is not None:
             self._setLineWidth(symbol, size)
             self._scalePipeCvMarker(symbol, size)
+
+    def _applyValvesLegend(self, symbol, color, size):
+        if color is not None:
+            userHex = color.name().lower()
+            colorExpr = (
+                f"if(IniStatus is NULL, '{userHex}',"
+                f"if(IniStatus is 'CLOSED', '#ff0f13', "
+                f"if(IniStatus !='ACTIVE', '{userHex}','#ff9900')))"
+            )
+            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyStrokeColor, colorExpr)
+            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyFillColor, colorExpr)
+        if size is not None:
+            self._setLineWidth(symbol, size)
+            self._scaleMarkerLineMarkerSize(
+                symbol, self.VALVE_PUMP_DEFAULT_MARKER_SIZE, size, self.PIPE_DEFAULT_WIDTH
+            )
 
     def _applyIsolationValvesLegend(self, symbol, color, size):
         if color is not None:
@@ -3634,7 +3667,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         identifier = self.currentLayer.customProperty("qgisred_identifier") if self.currentLayer else ""
 
         COLOR_LOCKED = {
-            "qgisred_valves", "qgisred_pumps",
+            "qgisred_pumps",
             "qgisred_reservoirs", "qgisred_tanks", "qgisred_sources"
         }
 
