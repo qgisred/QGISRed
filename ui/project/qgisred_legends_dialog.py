@@ -3022,6 +3022,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             "qgisred_pipes": self._applyPipesLegend,
             "qgisred_valves": self._applyValvesLegend,
             "qgisred_pumps": self._applyPumpsLegend,
+            "qgisred_meters": self._applyMetersLegend,
             "qgisred_isolationvalves": self._applyIsolationValvesLegend,
         }
 
@@ -3150,6 +3151,32 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self._scaleMarkerLineMarkerSize(
                 symbol, self.VALVE_PUMP_DEFAULT_MARKER_SIZE, size, self.PIPE_DEFAULT_WIDTH
             )
+
+    def _applyMetersLegend(self, symbol, color, size):
+        if color is not None:
+            userHex = color.name().lower()
+            fillExpr = f"if(IsActive is NULL, '{userHex}',if(IsActive !=0, '{userHex}','#cccccc'))"
+            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyFillColor, fillExpr)
+        if size is not None:
+            self._rebuildMeterSizes(symbol, size)
+
+    def _rebuildMeterSizes(self, symbol, newSize):
+        typeRegex = re.compile(r"Type\s*=\s*'([^']+)'")
+        nullBranchRegex = re.compile(r"Type\s+is\s+NULL\s*,\s*(\d+(?:\.\d+)?)")
+        for i in range(symbol.symbolLayerCount()):
+            sl = symbol.symbolLayer(i)
+            existing = sl.dataDefinedProperties().property(QgsSymbolLayer.PropertySize)
+            if existing and existing.propertyType() == QgsProperty.ExpressionBasedProperty:
+                expr = existing.expressionString()
+                typeMatch = typeRegex.search(expr)
+                if typeMatch:
+                    meterType = typeMatch.group(1)
+                    nullMatch = nullBranchRegex.search(expr)
+                    nullSize = newSize if (nullMatch and float(nullMatch.group(1)) != 0) else 0
+                    newExpr = f"if (Type is NULL, {nullSize}, if (Type = '{meterType}', {newSize}, 0))"
+                    sl.setDataDefinedProperty(QgsSymbolLayer.PropertySize, QgsProperty.fromExpression(newExpr))
+            if hasattr(sl, 'subSymbol') and sl.subSymbol():
+                self._rebuildMeterSizes(sl.subSymbol(), newSize)
 
     def _applyIsolationValvesLegend(self, symbol, color, size):
         if color is not None:
@@ -3688,6 +3715,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         elif identifier == "qgisred_junctions":
             self._applyJunctionColumnRestrictions()
         elif identifier == "qgisred_isolationvalves":
+            pass  # color column stays enabled
+        elif identifier == "qgisred_meters":
             pass  # color column stays enabled
         else:
             # All other input elements: lock color by default
