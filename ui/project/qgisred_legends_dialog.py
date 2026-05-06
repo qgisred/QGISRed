@@ -2992,6 +2992,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
     PIPE_DEFAULT_CV_SIZE = 5
     JUNCTION_DEFAULT_SIZE = 1.3
     VALVE_PUMP_DEFAULT_MARKER_SIZE = 5
+    SERVICE_CONNECTION_DEFAULT_LINE_WIDTH = 1.4
+    SERVICE_CONNECTION_DEFAULT_DOT_SIZE = 1.5
+    SERVICE_CONNECTION_LIGHTEN_FRACTION = 0.20
 
     def applySingleSymbolLegend(self):
         renderer = self.currentLayer.renderer()
@@ -3023,6 +3026,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             "qgisred_valves": self._applyValvesLegend,
             "qgisred_pumps": self._applyPumpsLegend,
             "qgisred_meters": self._applyMetersLegend,
+            "qgisred_serviceconnections": self._applyServiceConnectionsLegend,
             "qgisred_isolationvalves": self._applyIsolationValvesLegend,
         }
 
@@ -3046,6 +3050,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 sl.setDataDefinedProperty(propertyKey, newProp)
             if hasattr(sl, 'subSymbol') and sl.subSymbol():
                 self._setExpressionOnLayers(sl.subSymbol(), propertyKey, expression)
+
+    def _lightenColor(self, color, fraction):
+        red = int(color.red() + (255 - color.red()) * fraction)
+        green = int(color.green() + (255 - color.green()) * fraction)
+        blue = int(color.blue() + (255 - color.blue()) * fraction)
+        return QColor(red, green, blue)
 
     def _scalePipeCvMarker(self, symbol, newWidth):
         if newWidth <= 0:
@@ -3177,6 +3187,23 @@ class QGISRedLegendsDialog(QDialog, formClass):
                     sl.setDataDefinedProperty(QgsSymbolLayer.PropertySize, QgsProperty.fromExpression(newExpr))
             if hasattr(sl, 'subSymbol') and sl.subSymbol():
                 self._rebuildMeterSizes(sl.subSymbol(), newSize)
+
+    def _applyServiceConnectionsLegend(self, symbol, color, size):
+        if color is not None:
+            userHex = color.name().lower()
+            lighterHex = self._lightenColor(color, self.SERVICE_CONNECTION_LIGHTEN_FRACTION).name().lower()
+            strokeExpr = f"if(IsActive is NULL, '{userHex}',if(IsActive >0, '{userHex}','#ff0f13'))"
+            fillExpr = (
+                f"if(BaseDemand>0,if(IsActive is NULL or IsActive >0,'{lighterHex}','#c7cbc5'),'#fff')"
+            )
+            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyStrokeColor, strokeExpr)
+            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyFillColor, fillExpr)
+        if size is not None:
+            self._setLineWidth(symbol, size)
+            self._scaleMarkerLineMarkerSize(
+                symbol, self.SERVICE_CONNECTION_DEFAULT_DOT_SIZE,
+                size, self.SERVICE_CONNECTION_DEFAULT_LINE_WIDTH
+            )
 
     def _applyIsolationValvesLegend(self, symbol, color, size):
         if color is not None:
@@ -3717,6 +3744,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         elif identifier == "qgisred_isolationvalves":
             pass  # color column stays enabled
         elif identifier == "qgisred_meters":
+            pass  # color column stays enabled
+        elif identifier == "qgisred_serviceconnections":
             pass  # color column stays enabled
         else:
             # All other input elements: lock color by default
