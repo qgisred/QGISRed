@@ -28,6 +28,7 @@ class TimeSeriesPlotWidget(QWidget):
     seriesOrderChanged = pyqtSignal(list)
     seriesRemoved = pyqtSignal(str)
     seriesEmphasisChanged = pyqtSignal(dict)
+    viewChanged = pyqtSignal()
 
     def tr(self, message: str) -> str:
         return QCoreApplication.translate("TimeSeriesPlotWidget", message)
@@ -496,6 +497,7 @@ class TimeSeriesPlotWidget(QWidget):
         self._view_x_max = None
         self._last_x_state = None
         self.update()
+        self.viewChanged.emit()
 
     def zoomIn(self, factor=1.5):
         if not self.series:
@@ -512,6 +514,7 @@ class TimeSeriesPlotWidget(QWidget):
         self._last_x_state = None
         self.hover_index = None
         self.update()
+        self.viewChanged.emit()
 
     def zoomOut(self, factor=1.5):
         if not self.series:
@@ -529,6 +532,7 @@ class TimeSeriesPlotWidget(QWidget):
         self._last_x_state = None
         self.hover_index = None
         self.update()
+        self.viewChanged.emit()
 
     def setPanMode(self, enabled: bool):
         self._pan_mode = enabled
@@ -598,6 +602,7 @@ class TimeSeriesPlotWidget(QWidget):
         self._last_x_state = None
         self.hover_index = None
         self.update()
+        self.viewChanged.emit()
         event.accept()
 
     def mousePressEvent(self, event):
@@ -664,6 +669,7 @@ class TimeSeriesPlotWidget(QWidget):
                             self._last_x_state = None
                             self.hover_index = None
                             self.update()
+                            self.viewChanged.emit()
             self._zoom_window_start_pos = None
             return
 
@@ -731,6 +737,7 @@ class TimeSeriesPlotWidget(QWidget):
                 self._last_x_state = None
                 self.hover_index = None
                 self.update()
+                self.viewChanged.emit()
             return
 
         if self._pan_mode:
@@ -809,6 +816,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self.plot.seriesOrderChanged.connect(self._onSeriesOrderChanged)
         self.plot.seriesRemoved.connect(self.seriesRemoved)
         self.plot.seriesEmphasisChanged.connect(self.seriesEmphasisChanged)
+        self.plot.viewChanged.connect(self._onPlotViewChanged)
 
         self.lblTitle.hide()
         
@@ -946,13 +954,11 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         if hasattr(self, "btnZoomWindow") and self.btnZoomWindow is not None and self.btnZoomWindow.isChecked():
             self.btnZoomWindow.setChecked(False)
         self.plot.zoomIn()
-        self._updatePanAvailability()
 
     def _onZoomOutClicked(self) -> None:
         if hasattr(self, "btnZoomWindow") and self.btnZoomWindow is not None and self.btnZoomWindow.isChecked():
             self.btnZoomWindow.setChecked(False)
         self.plot.zoomOut()
-        self._updatePanAvailability()
 
     def _onFitClicked(self) -> None:
         self.plot.resetView()
@@ -960,7 +966,6 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self.btnZoomWindow.setChecked(False)
         if hasattr(self, "btnPan") and self.btnPan.isChecked():
             self.btnPan.setChecked(False)
-        self._updatePanAvailability()
 
     def _onAxisOptionsClicked(self) -> None:
         dlg = TimeSeriesAxisOptionsDialog(self.plot, self.window())
@@ -971,6 +976,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             if hasattr(self, "btnZoomWindow") and self.btnZoomWindow is not None and self.btnZoomWindow.isChecked():
                 self.btnZoomWindow.setChecked(False)
             self.plot.setZoomWindowMode(False)
+        self._updateClearToolbarVisibility()
         self._updatePanAvailability()
 
     def _updatePanAvailability(self) -> None:
@@ -981,8 +987,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         elif not getattr(self.plot, "_axis_cfg_x", None) or not bool(self.plot._axis_cfg_x.auto_scale):
             self.btnPan.setEnabled(False)
         else:
-            zoomed = (getattr(self.plot, "_view_x_min", None) is not None) and (getattr(self.plot, "_view_x_max", None) is not None)
-            self.btnPan.setEnabled(bool(zoomed))
+            self.btnPan.setEnabled(bool(self._plotIsZoomed()))
 
         if not self.btnPan.isEnabled() and self.btnPan.isChecked():
             self.btnPan.setChecked(False)
@@ -1005,16 +1010,29 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             return False
         return False
 
+    def _plotIsZoomed(self) -> bool:
+        return (getattr(self.plot, "_view_x_min", None) is not None) and (getattr(self.plot, "_view_x_max", None) is not None)
+
     def _updateClearToolbarVisibility(self) -> None:
         if self._toolbarWidget is None:
             return
         self._toolbarWidget.setVisible(True)
         has_curves = self._plotHasCurves()
         auto_scale_x = bool(getattr(self.plot, "_axis_cfg_x", None) and self.plot._axis_cfg_x.auto_scale)
+        is_zoomed = self._plotIsZoomed()
         for btn_name in ("btnClearAll", "btnZoomIn", "btnZoomOut", "btnFit"):
             btn = getattr(self, btn_name, None)
             if btn is not None:
-                btn.setEnabled(bool(has_curves and auto_scale_x) if btn_name != "btnClearAll" else bool(has_curves))
+                if btn_name == "btnClearAll":
+                    btn.setEnabled(bool(has_curves))
+                elif btn_name == "btnZoomOut":
+                    btn.setEnabled(bool(has_curves and auto_scale_x and is_zoomed))
+                else:
+                    btn.setEnabled(bool(has_curves and auto_scale_x))
+
+    def _onPlotViewChanged(self) -> None:
+        self._updateClearToolbarVisibility()
+        self._updatePanAvailability()
 
     def _onSeriesOrderChanged(self, _order) -> None:
         self._updateClearToolbarVisibility()
