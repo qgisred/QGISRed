@@ -1742,7 +1742,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         colorSelector.setEnabled(self.isEditing)
         colorSelector.colorChanged.connect(self.onRowColorChanged)
 
-        size = symbol.width() if geometryHint == "line" else symbol.size()
+        size = self._getLineWidth(symbol) if geometryHint == "line" else symbol.size()
         colorSelector.updateSymbolSize(size, geometryHint == "line")
         colorSelector.setAutoFillBackground(False)
         colorSelector.setFixedSize(30, 20)
@@ -1761,7 +1761,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.tableView.setCellWidget(row, 1, container)
 
     def setSizeWidget(self, row, symbol, geometryHint):
-        size = symbol.width() if geometryHint == "line" else symbol.size()
+        size = self._getLineWidth(symbol) if geometryHint == "line" else symbol.size()
         sizeWidget = QLineEdit(str(size))
         sizeWidget.setEnabled(self.isEditing)
         sizeWidget.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -2898,6 +2898,21 @@ class QGISRedLegendsDialog(QDialog, formClass):
             symbol.setWidth(size)
         else:
             symbol.setSize(size)
+
+    def _getLineWidth(self, symbol):
+        """Return the width of the first SimpleLine layer; falls back to symbol.width()."""
+        for i in range(symbol.symbolLayerCount()):
+            sl = symbol.symbolLayer(i)
+            if sl.layerType() == "SimpleLine":
+                return sl.width()
+        return symbol.width() if hasattr(symbol, 'width') else 0.0
+
+    def _setLineWidth(self, symbol, newWidth):
+        """Set width on every SimpleLine layer directly (does not scale other layers like setWidth would)."""
+        for i in range(symbol.symbolLayerCount()):
+            sl = symbol.symbolLayer(i)
+            if sl.layerType() == "SimpleLine":
+                sl.setWidth(newWidth)
 
     def getUnitAbbrForLayer(self):
         if self.utils:
