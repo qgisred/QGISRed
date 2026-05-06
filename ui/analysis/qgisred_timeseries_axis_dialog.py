@@ -4,7 +4,7 @@ from __future__ import annotations
 import os
 
 from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtGui import QColor, QFont, QIcon, QPixmap
+from qgis.PyQt.QtGui import QColor, QFont
 from qgis.PyQt.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -20,7 +20,6 @@ from qgis.PyQt.QtWidgets import (
     QLabel,
     QLineEdit,
     QPushButton,
-    QScrollArea,
     QSizePolicy,
     QSpinBox,
     QTabWidget,
@@ -31,28 +30,19 @@ from qgis.PyQt.QtWidgets import (
 from .timeseries_axis_settings import TimeSeriesAxisSettings, TimeSeriesGeneralSettings, clone_axis_settings, clone_general_settings
 
 
-def _qgisred_icon_path() -> str:
-    return os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", "images", "qgisred.svg"))
-
-
 class TimeSeriesAxisOptionsDialog(QDialog):
     def __init__(self, plot_widget, parent=None):
         win = parent.window() if parent is not None else None
         super().__init__(win if win is not None else parent)
         self._plot = plot_widget
-        self.setWindowTitle(self.tr("QGISRed — axis options"))
+        self.setWindowTitle(self.tr("Plot options"))
         try:
             screen = QApplication.primaryScreen()
             if screen is not None:
                 self.setMaximumHeight(max(320, int(screen.availableGeometry().height() * 0.90)))
         except Exception:
             pass
-        self.resize(440, 460)
-        self.setMinimumWidth(400)
-
-        ip = _qgisred_icon_path()
-        if os.path.isfile(ip):
-            self.setWindowIcon(QIcon(ip))
+        self.setMinimumWidth(520)
 
         self._cfg_x = clone_axis_settings(plot_widget._axis_cfg_x)
         self._cfg_yl = clone_axis_settings(plot_widget._axis_cfg_y_left)
@@ -63,7 +53,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         root.setSpacing(10)
         root.setContentsMargins(12, 12, 12, 12)
 
-        root.addWidget(self._build_header(ip))
+        root.addWidget(self._build_header())
 
         tabs = QTabWidget(self)
         tab_general = self._build_general_tab(self._cfg_gen)
@@ -75,19 +65,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         tab_curves = self._build_curves_tab()
         tabs.addTab(tab_curves, self.tr("Curves"))
 
-        scroll = QScrollArea(self)
-        scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QScrollArea.Shape.NoFrame)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-
-        scroll_body = QWidget(scroll)
-        body_lay = QVBoxLayout(scroll_body)
-        body_lay.setContentsMargins(0, 0, 0, 0)
-        body_lay.setSpacing(0)
-        body_lay.addWidget(tabs)
-        scroll.setWidget(scroll_body)
-
-        root.addWidget(scroll, 1)
+        root.addWidget(tabs, 1)
 
         buttons = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
@@ -102,11 +80,26 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._tab_legend = tab_legend
         self._tab_curves = tab_curves
 
+    def _make_form_label(self, text: str) -> QLabel:
+        lbl = QLabel(text)
+        lbl.setWordWrap(True)
+        lbl.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        lbl.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
+        return lbl
+
+    def _add_form_row(self, form: QFormLayout, label_text: str, field: QWidget) -> None:
+        form.addRow(self._make_form_label(label_text), field)
+
+    def _compact_group(self, grp: QGroupBox) -> QGroupBox:
+        grp.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
+        return grp
+
     def _build_axes_tab(self) -> tuple[QWidget, QTabWidget]:
         w = QWidget()
         lay = QVBoxLayout(w)
         lay.setSpacing(8)
         lay.setContentsMargins(8, 8, 8, 8)
+        lay.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         tabs = QTabWidget(w)
         tabs.addTab(self._build_tab(self._cfg_x, show_decimals=False, is_time_axis=True), self.tr("Time (X)"))
@@ -121,12 +114,12 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         lay = QVBoxLayout(w)
         lay.setSpacing(10)
         lay.setContentsMargins(8, 8, 8, 8)
+        lay.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         info = QLabel(self.tr("Curve options will be implemented here (line style, width, markers, etc.)."))
         info.setWordWrap(True)
         info.setStyleSheet("color: palette(mid);")
         lay.addWidget(info)
-        lay.addStretch(1)
         return w
 
     def _build_general_tab(self, cfg: TimeSeriesGeneralSettings) -> QWidget:
@@ -134,8 +127,9 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         lay = QVBoxLayout(w)
         lay.setSpacing(10)
         lay.setContentsMargins(8, 8, 8, 8)
+        lay.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        title_grp = QGroupBox(self.tr("Plot title"))
+        title_grp = self._compact_group(QGroupBox(self.tr("Plot title")))
         title_lay = QVBoxLayout(title_grp)
         ed_title = QLineEdit()
         ed_title.setText((cfg.title or "").strip())
@@ -145,11 +139,15 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         title_lay.addWidget(ed_title)
         lay.addWidget(title_grp)
 
-        colors_grp = QGroupBox(self.tr("Colors"))
+        colors_grp = self._compact_group(QGroupBox(self.tr("Colors")))
         colors_form = QFormLayout(colors_grp)
         colors_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         colors_form.setHorizontalSpacing(12)
         colors_form.setVerticalSpacing(8)
+        try:
+            colors_form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
+        except Exception:
+            pass
 
         w._picked_widget_bg = QColor(cfg.widget_bg_qcolor())
         btn_widget_bg = QPushButton()
@@ -166,7 +164,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
                 refresh_widget_bg()
 
         btn_widget_bg.clicked.connect(pick_widget_bg)
-        colors_form.addRow(self.tr("Widget background:"), btn_widget_bg)
+        self._add_form_row(colors_form, self.tr("Widget background:"), btn_widget_bg)
 
         w._picked_plot_bg = QColor(cfg.plot_bg_qcolor())
         btn_plot_bg = QPushButton()
@@ -183,14 +181,18 @@ class TimeSeriesAxisOptionsDialog(QDialog):
                 refresh_plot_bg()
 
         btn_plot_bg.clicked.connect(pick_plot_bg)
-        colors_form.addRow(self.tr("Plot background:"), btn_plot_bg)
+        self._add_form_row(colors_form, self.tr("Plot background:"), btn_plot_bg)
         lay.addWidget(colors_grp)
 
-        frame_grp = QGroupBox(self.tr("Frame"))
+        frame_grp = self._compact_group(QGroupBox(self.tr("Frame")))
         frame_form = QFormLayout(frame_grp)
         frame_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         frame_form.setHorizontalSpacing(12)
         frame_form.setVerticalSpacing(8)
+        try:
+            frame_form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
+        except Exception:
+            pass
 
         w._picked_frame = QColor(cfg.frame_qcolor())
         btn_frame = QPushButton()
@@ -210,11 +212,9 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         sp_w = QSpinBox()
         sp_w.setRange(1, 6)
         sp_w.setValue(max(1, int(cfg.frame_width or 1)))
-        frame_form.addRow(self.tr("Color:"), btn_frame)
-        frame_form.addRow(self.tr("Width:"), sp_w)
+        self._add_form_row(frame_form, self.tr("Color:"), btn_frame)
+        self._add_form_row(frame_form, self.tr("Width:"), sp_w)
         lay.addWidget(frame_grp)
-
-        lay.addStretch(1)
 
         w._gen_title = ed_title
         w._gen_frame_w = sp_w
@@ -225,12 +225,17 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         lay = QVBoxLayout(w)
         lay.setSpacing(10)
         lay.setContentsMargins(8, 8, 8, 8)
+        lay.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        legend_grp = QGroupBox(self.tr("Legend"))
+        legend_grp = self._compact_group(QGroupBox(self.tr("Legend")))
         legend_form = QFormLayout(legend_grp)
         legend_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         legend_form.setHorizontalSpacing(12)
         legend_form.setVerticalSpacing(8)
+        try:
+            legend_form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
+        except Exception:
+            pass
 
         cb_pos = QComboBox()
         cb_pos.addItem(self.tr("Right (outside)"), "right")
@@ -258,14 +263,12 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         sp_cols.setRange(1, 6)
         sp_cols.setValue(max(1, int(getattr(cfg, "legend_columns", 1) or 1)))
 
-        legend_form.addRow(self.tr("Position:"), cb_pos)
-        legend_form.addRow(self.tr("Columns:"), sp_cols)
-        legend_form.addRow(self.tr("Symbol size:"), sp_sym)
+        self._add_form_row(legend_form, self.tr("Position:"), cb_pos)
+        self._add_form_row(legend_form, self.tr("Columns:"), sp_cols)
+        self._add_form_row(legend_form, self.tr("Symbol size:"), sp_sym)
         legend_form.addRow("", chk_bg)
         legend_form.addRow("", chk_frame)
         lay.addWidget(legend_grp)
-
-        lay.addStretch(1)
 
         w._legend_pos = cb_pos
         w._legend_frame = chk_frame
@@ -274,20 +277,13 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         w._legend_cols = sp_cols
         return w
 
-    def _build_header(self, icon_path: str) -> QWidget:
+    def _build_header(self) -> QWidget:
         w = QWidget()
         row = QHBoxLayout(w)
         row.setContentsMargins(0, 0, 0, 4)
         row.setSpacing(12)
-        if os.path.isfile(icon_path):
-            logo = QLabel()
-            pm = QPixmap(icon_path)
-            if not pm.isNull():
-                logo.setPixmap(pm.scaled(48, 48, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
-            logo.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-            row.addWidget(logo, 0, Qt.AlignmentFlag.AlignTop)
         text_col = QVBoxLayout()
-        title = QLabel(self.tr("Axis appearance"))
+        title = QLabel(self.tr("Plot options"))
         f = title.font()
         f.setPointSize(max(f.pointSize(), 11))
         f.setBold(True)
@@ -305,13 +301,18 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         lay = QVBoxLayout(w)
         lay.setSpacing(10)
         lay.setContentsMargins(8, 8, 8, 8)
+        lay.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         if is_time_axis:
-            time_grp = QGroupBox(self.tr("Time format"))
+            time_grp = self._compact_group(QGroupBox(self.tr("Time format")))
             time_form = QFormLayout(time_grp)
             time_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
             time_form.setHorizontalSpacing(12)
             time_form.setVerticalSpacing(8)
+            try:
+                time_form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
+            except Exception:
+                pass
 
             combo_hour = QComboBox()
             combo_hour.addItem(self.tr("HH:mm"), "hm")
@@ -327,11 +328,11 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             idx_d = combo_days.findData(cur_d)
             combo_days.setCurrentIndex(idx_d if idx_d >= 0 else 0)
 
-            time_form.addRow(self.tr("Hour:"), combo_hour)
-            time_form.addRow(self.tr("Days:"), combo_days)
+            self._add_form_row(time_form, self.tr("Hour:"), combo_hour)
+            self._add_form_row(time_form, self.tr("Days:"), combo_days)
             lay.addWidget(time_grp)
 
-        title_grp = QGroupBox(self.tr("Axis title"))
+        title_grp = self._compact_group(QGroupBox(self.tr("Axis title")))
         title_lay = QVBoxLayout(title_grp)
         title_edit = QLineEdit()
         title_edit.setText(cfg.title)
@@ -341,11 +342,15 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         title_lay.addWidget(title_edit)
         lay.addWidget(title_grp)
 
-        scale_group = QGroupBox(self.tr("Scale"))
+        scale_group = self._compact_group(QGroupBox(self.tr("Scale")))
         scale_form = QFormLayout(scale_group)
         scale_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         scale_form.setHorizontalSpacing(12)
         scale_form.setVerticalSpacing(8)
+        try:
+            scale_form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
+        except Exception:
+            pass
         try:
             scale_form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
         except AttributeError:
@@ -356,7 +361,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         combo_scale.addItem(self.tr("Fixed (min, max, divisions)"), False)
         combo_scale.setCurrentIndex(0 if cfg.auto_scale else 1)
         combo_scale.setMinimumWidth(220)
-        scale_form.addRow(self.tr("Mode:"), combo_scale)
+        self._add_form_row(scale_form, self.tr("Mode:"), combo_scale)
 
         sp_min = QDoubleSpinBox()
         sp_min.setRange(-1e12, 1e12)
@@ -375,23 +380,27 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         sp_div.setValue(int(cfg.fixed_divisions))
         sp_div.setMinimumWidth(100)
 
-        scale_form.addRow(self.tr("Minimum:"), sp_min)
-        scale_form.addRow(self.tr("Maximum:"), sp_max)
-        scale_form.addRow(self.tr("Divisions:"), sp_div)
+        self._add_form_row(scale_form, self.tr("Minimum:"), sp_min)
+        self._add_form_row(scale_form, self.tr("Maximum:"), sp_max)
+        self._add_form_row(scale_form, self.tr("Divisions:"), sp_div)
         lay.addWidget(scale_group)
 
-        grid_grp = QGroupBox(self.tr("Grid"))
+        grid_grp = self._compact_group(QGroupBox(self.tr("Grid")))
         grid_lay = QVBoxLayout(grid_grp)
         chk_grid = QCheckBox(self.tr("Show grid lines for this axis"))
         chk_grid.setChecked(cfg.show_grid)
         grid_lay.addWidget(chk_grid)
         lay.addWidget(grid_grp)
 
-        tick_grp = QGroupBox(self.tr("Tick labels"))
+        tick_grp = self._compact_group(QGroupBox(self.tr("Tick labels")))
         tick_form = QFormLayout(tick_grp)
         tick_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         tick_form.setHorizontalSpacing(12)
         tick_form.setVerticalSpacing(8)
+        try:
+            tick_form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
+        except Exception:
+            pass
         try:
             tick_form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
         except AttributeError:
@@ -409,8 +418,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         if fam:
             font_combo.setCurrentFont(QFont(fam))
 
-        tick_form.addRow(self.tr("Font size:"), sp_size)
-        tick_form.addRow(self.tr("Font:"), font_combo)
+        self._add_form_row(tick_form, self.tr("Font size:"), sp_size)
+        self._add_form_row(tick_form, self.tr("Font:"), font_combo)
 
         w._picked_color = QColor(cfg.tick_qcolor())
         btn_color = QPushButton()
@@ -428,10 +437,10 @@ class TimeSeriesAxisOptionsDialog(QDialog):
 
         btn_color.clicked.connect(pick_color)
         btn_color.setMinimumHeight(28)
-        tick_form.addRow(self.tr("Color:"), btn_color)
+        self._add_form_row(tick_form, self.tr("Color:"), btn_color)
         lay.addWidget(tick_grp)
 
-        dec_grp = QGroupBox(self.tr("Numeric format"))
+        dec_grp = self._compact_group(QGroupBox(self.tr("Numeric format")))
         dec_lay = QVBoxLayout(dec_grp)
         sp_dec = QSpinBox()
         sp_dec.setRange(-1, 10)
@@ -446,8 +455,6 @@ class TimeSeriesAxisOptionsDialog(QDialog):
                 QLabel(self.tr("The time axis uses clock-style labels; decimals do not apply here."))
             )
         lay.addWidget(dec_grp)
-
-        lay.addStretch(1)
 
         def sync_fixed_enabled():
             auto = combo_scale.currentIndex() == 0

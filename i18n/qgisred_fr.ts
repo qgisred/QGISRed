@@ -4527,8 +4527,8 @@ Left-click: Add a new item below the current selection</source>
     <name>TimeSeriesAxisOptionsDialog</name>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="41"/>
-        <source>QGISRed — axis options</source>
-        <translation type="unfinished">QGISRed — options des axes</translation>
+        <source>Plot options</source>
+        <translation>Options du graphique</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="62"/>
@@ -4553,182 +4553,182 @@ Left-click: Add a new item below the current selection</source>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="62"/>
         <source>Time (X)</source>
-        <translation type="unfinished">Temps (X)</translation>
+        <translation>Temps (X)</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="63"/>
         <source>Y left</source>
-        <translation type="unfinished">Y gauche</translation>
+        <translation>Y gauche</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="64"/>
         <source>Y right</source>
-        <translation type="unfinished">Y droite</translation>
+        <translation>Y droite</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="180"/>
-        <source>Axis appearance</source>
-        <translation type="unfinished">Apparence des axes</translation>
+        <source>Plot options</source>
+        <translation>Options du graphique</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="185"/>
         <source>Configure labels, scale, grid and tick style for each axis.</source>
-        <translation type="unfinished">Configurer les libellés, l’échelle, la grille et le style des graduations pour chaque axe.</translation>
+        <translation>Configurer les libellés, l’échelle, la grille et le style des graduations pour chaque axe.</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="199"/>
         <source>Axis title</source>
-        <translation type="unfinished">Titre de l’axe</translation>
+        <translation>Titre de l’axe</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="203"/>
         <source>Leave empty for default label</source>
-        <translation type="unfinished">Laisser vide pour le libellé par défaut</translation>
+        <translation>Laisser vide pour le libellé par défaut</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="209"/>
         <source>Scale</source>
-        <translation type="unfinished">Échelle</translation>
+        <translation>Échelle</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="224"/>
         <source>Mode:</source>
-        <translation type="unfinished">Mode :</translation>
+        <translation>Mode :</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="220"/>
         <source>Automatic</source>
-        <translation type="unfinished">Automatique</translation>
+        <translation>Automatique</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="221"/>
         <source>Fixed (min, max, divisions)</source>
-        <translation type="unfinished">Fixe (min, max, divisions)</translation>
+        <translation>Fixe (min, max, divisions)</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="243"/>
         <source>Minimum:</source>
-        <translation type="unfinished">Minimum :</translation>
+        <translation>Minimum :</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="244"/>
         <source>Maximum:</source>
-        <translation type="unfinished">Maximum :</translation>
+        <translation>Maximum :</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="245"/>
         <source>Divisions:</source>
-        <translation type="unfinished">Divisions :</translation>
+        <translation>Divisions :</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="248"/>
         <source>Grid</source>
-        <translation type="unfinished">Grille</translation>
+        <translation>Grille</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="250"/>
         <source>Show grid lines for this axis</source>
-        <translation type="unfinished">Afficher les lignes de grille pour cet axe</translation>
+        <translation>Afficher les lignes de grille pour cet axe</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="255"/>
         <source>Tick labels</source>
-        <translation type="unfinished">Libellés des graduations</translation>
+        <translation>Libellés des graduations</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="277"/>
         <source>Font size:</source>
-        <translation type="unfinished">Taille de police :</translation>
+        <translation>Taille de police :</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="278"/>
         <source>Font:</source>
-        <translation type="unfinished">Police :</translation>
+        <translation>Police :</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="289"/>
         <source>Tick color</source>
-        <translation type="unfinished">Couleur des graduations</translation>
+        <translation>Couleur des graduations</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="296"/>
         <source>Color:</source>
-        <translation type="unfinished">Couleur :</translation>
+        <translation>Couleur :</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="299"/>
         <source>Numeric format</source>
-        <translation type="unfinished">Format numérique</translation>
+        <translation>Format numérique</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="306"/>
         <source>Decimal places for Y tick values (-1 = automatic).</source>
-        <translation type="unfinished">Décimales des graduations Y (-1 = automatique).</translation>
+        <translation>Décimales des graduations Y (-1 = automatique).</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="303"/>
         <source>Auto</source>
-        <translation type="unfinished">Auto</translation>
+        <translation>Auto</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="310"/>
         <source>The time axis uses clock-style labels; decimals do not apply here.</source>
-        <translation type="unfinished">L’axe du temps utilise des libellés type horloge ; les décimales ne s’appliquent pas ici.</translation>
+        <translation>L’axe du temps utilise des libellés type horloge ; les décimales ne s’appliquent pas ici.</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="61"/>
         <source>General</source>
-        <translation type="unfinished">Général</translation>
+        <translation>Général</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="82"/>
         <source>Plot title</source>
-        <translation type="unfinished">Titre du graphique</translation>
+        <translation>Titre du graphique</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="86"/>
         <source>Leave empty to use the default title</source>
-        <translation type="unfinished">Laisser vide pour utiliser le titre par défaut</translation>
+        <translation>Laisser vide pour utiliser le titre par défaut</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="92"/>
         <source>Colors</source>
-        <translation type="unfinished">Couleurs</translation>
+        <translation>Couleurs</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="107"/>
         <source>Widget background</source>
-        <translation type="unfinished">Fond du panneau</translation>
+        <translation>Fond du panneau</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="113"/>
         <source>Widget background:</source>
-        <translation type="unfinished">Fond du panneau :</translation>
+        <translation>Fond du panneau :</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="124"/>
         <source>Plot background</source>
-        <translation type="unfinished">Fond du graphique</translation>
+        <translation>Fond du graphique</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="130"/>
         <source>Plot background:</source>
-        <translation type="unfinished">Fond du graphique :</translation>
+        <translation>Fond du graphique :</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="133"/>
         <source>Frame</source>
-        <translation type="unfinished">Cadre</translation>
+        <translation>Cadre</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="148"/>
         <source>Frame color</source>
-        <translation type="unfinished">Couleur du cadre</translation>
+        <translation>Couleur du cadre</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="158"/>
         <source>Width:</source>
-        <translation type="unfinished">Épaisseur :</translation>
+        <translation>Épaisseur :</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="219"/>

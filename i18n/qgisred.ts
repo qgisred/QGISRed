@@ -4512,7 +4512,7 @@ Left-click: Add a new item below the current selection</source>
     <name>TimeSeriesAxisOptionsDialog</name>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="41"/>
-        <source>QGISRed — axis options</source>
+        <source>Plot options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4542,7 +4542,7 @@ Left-click: Add a new item below the current selection</source>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="180"/>
-        <source>Axis appearance</source>
+        <source>Plot options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
