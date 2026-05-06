@@ -5,3 +5,5 @@
 *.qml
 scripts/.ftp_credentials
 CLAUDE.md
+._*
+.DS_Store
