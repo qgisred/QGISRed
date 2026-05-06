@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 68 68">
+  <defs>
+    <style>
+      .cls-1 { fill: none; }
+      .cls-2 { fill: #60bcd3; }
+      .cls-3 { fill: #7fa828; }
+      .cls-4 { clip-path: url(#clippath); }
+    </style>
+    <clipPath id="clippath">
+      <rect class="cls-1" x="9.3" y="9.3" width="49.5" height="49.5"/>
+    </clipPath>
+  </defs>
+  <g>
+    <g id="Ebene_1">
+      <g class="cls-4">
+        <!-- Cyan circle outline (donut) — same as other Info icons -->
+        <path class="cls-2" d="M53.8,34.2c0,10.8-8.8,19.6-19.7,19.6s-19.7-8.8-19.7-19.6,8.8-19.6,19.7-19.6,19.7,8.8,19.7,19.6M58.8,34c0-13.7-11.1-24.8-24.8-24.8s-24.8,11.1-24.8,24.8,11.1,24.8,24.8,24.8,24.8-11.1,24.8-24.8"/>
+        <!-- Green 5-pointed star centered at (34,34) -->
+        <polygon class="cls-3" points="34,20 37.35,29.39 47.31,29.67 39.42,35.76 42.23,45.33 34,39.7 25.77,45.33 28.58,35.76 20.69,29.67 30.65,29.39"/>
+      </g>
+    </g>
+  </g>
+</svg>

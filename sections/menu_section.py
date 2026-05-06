@@ -121,11 +121,13 @@ class MenuSection:
         self.infoToolbar.visibilityChanged.connect(self.changeInfoToolbarVisibility)
 
         for icon, text, cb in [
-            (":/images/iconNews.svg",    self.tr("News..."),                          self.runNewsDialogForced),
-            (":/images/iconGitHub.svg",  self.tr("Report issues or comments..."),     self.runReportIssues),
-            (":/images/iconGitBook.svg", self.tr("User manual"),                      self.runUserManual),
-            (":/images/iconPDF.svg",     self.tr("User manual (offline - Outdated)"), self.runOfflineManual),
-            (":/images/iconAbout.svg",   self.tr("About..."),                         self.runAbout),
+            (":/images/iconNews.svg",       self.tr("News..."),                          self.runNewsDialogForced),
+            (":/images/iconGitHub.svg",     self.tr("Report issues or comments..."),     self.runReportIssues),
+            (":/images/iconGitBook.svg",    self.tr("User manual"),                      self.runUserManual),
+            (":/images/iconPDF.svg",        self.tr("User manual (offline - Outdated)"), self.runOfflineManual),
+            (":/images/iconRatePlugin.svg", self.tr("Rate the plugin..."),               self.runRatePlugin),
+            (":/images/iconNewsletter.svg", self.tr("Subscribe to newsletter..."),       self.runNewsletter),
+            (":/images/iconAbout.svg",      self.tr("About..."),                         self.runAbout),
         ]:
             action = self._make_action(icon, text, cb, parent=self.iface.mainWindow())
             self.add_to_group(action, self.infoMenu, self.infoToolbar)
@@ -1204,3 +1206,11 @@ class MenuSection:
         filename = "usermanual_es.pdf" if locale == "es" else "usermanual_en.pdf"
         pdf = os.path.join(os.path.dirname(os.path.dirname(__file__)), "manuals", filename)
         webbrowser.open(pdf)
+
+    def runRatePlugin(self):
+        webbrowser.open("https://plugins.qgis.org/plugins/QGISRed/")
+
+    def runNewsletter(self):
+        locale = QgsApplication.locale()[0:2]
+        url = "https://qgisred.upv.es/#newsletter" if locale == "es" else "https://qgisred.upv.es/en/#newsletter"
+        webbrowser.open(url)

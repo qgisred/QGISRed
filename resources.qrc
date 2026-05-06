@@ -117,6 +117,8 @@
         <file>images/iconClear.svg</file>
         <file>images/iconWarning.svg</file>
         <file>images/iconNews.svg</file>
+        <file>images/iconNewsletter.svg</file>
+        <file>images/iconRatePlugin.svg</file>
         <file>images/qgisred.svg</file>
         <file>images/aboutBid.png</file>
     </qresource>

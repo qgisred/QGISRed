@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 68 68">
+  <defs>
+    <style>
+      .cls-1 { fill: none; }
+      .cls-2 { fill: #60bcd3; }
+      .cls-3 { fill: #7fa828; }
+      .cls-4 { clip-path: url(#clippath); }
+    </style>
+    <clipPath id="clippath">
+      <rect class="cls-1" x="9.3" y="9.3" width="49.5" height="49.5"/>
+    </clipPath>
+  </defs>
+  <g>
+    <g id="Ebene_1">
+      <g class="cls-4">
+        <!-- Green envelope body: 26×20 centered at (34,34), corners at r≈16.4 — inside the ring -->
+        <rect class="cls-3" x="21" y="24" width="26" height="20" rx="1.5" ry="1.5"/>
+        <!-- White top flap (V-fold, apex at 33 — 9 px below top edge, ~45% depth) -->
+        <polyline fill="none" stroke="white" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"
+                  points="21,24 34,33 47,24"/>
+        <!-- White bottom-fold lines (from bottom corners meeting at back-center) -->
+        <line fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" x1="21" y1="44" x2="34" y2="38"/>
+        <line fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" x1="47" y1="44" x2="34" y2="38"/>
+        <!-- Cyan circle outline (donut) drawn last so it frames and clips any overflow -->
+        <path class="cls-2" d="M53.8,34.2c0,10.8-8.8,19.6-19.7,19.6s-19.7-8.8-19.7-19.6,8.8-19.6,19.7-19.6,19.7,8.8,19.7,19.6M58.8,34c0-13.7-11.1-24.8-24.8-24.8s-24.8,11.1-24.8,24.8,11.1,24.8,24.8,24.8,24.8-11.1,24.8-24.8"/>
+      </g>
+    </g>
+  </g>
+</svg>
