@@ -1008,7 +1008,13 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
     def _updateClearToolbarVisibility(self) -> None:
         if self._toolbarWidget is None:
             return
-        self._toolbarWidget.setVisible(self._plotHasCurves())
+        self._toolbarWidget.setVisible(True)
+        has_curves = self._plotHasCurves()
+        auto_scale_x = bool(getattr(self.plot, "_axis_cfg_x", None) and self.plot._axis_cfg_x.auto_scale)
+        for btn_name in ("btnClearAll", "btnZoomIn", "btnZoomOut", "btnFit"):
+            btn = getattr(self, btn_name, None)
+            if btn is not None:
+                btn.setEnabled(bool(has_curves and auto_scale_x) if btn_name != "btnClearAll" else bool(has_curves))
 
     def _onSeriesOrderChanged(self, _order) -> None:
         self._updateClearToolbarVisibility()
