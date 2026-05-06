@@ -2988,11 +2988,11 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         self.currentLayer.triggerRepaint()
 
-    PIPE_DEFAULT_WIDTH = 1.5   # pixels — matches line_width in Pipes.qml.bak
-    PIPE_DEFAULT_CV_SIZE = 5   # mm — matches MarkerLine SVG size in Pipes.qml.bak
+    PIPE_DEFAULT_WIDTH = 1.5
+    PIPE_DEFAULT_CV_SIZE = 5
+    JUNCTION_DEFAULT_SIZE = 1.3
 
     def applySingleSymbolLegend(self):
-        """Apply color and size edits from the single-row table to the singleSymbol renderer."""
         renderer = self.currentLayer.renderer()
         if not renderer or renderer.type() != "singleSymbol":
             return
@@ -3005,41 +3005,49 @@ class QGISRedLegendsDialog(QDialog, formClass):
         colorContainer = self.tableView.cellWidget(0, 1)
         sizeWidget = self.tableView.cellWidget(0, 2)
 
+        newColor = None
         colorWidget = colorContainer.findChild(QGISRedSymbolColorSelector) if colorContainer else None
         if colorWidget and colorWidget.isEnabled():
             newColor = colorWidget.activeColor
-            if identifier == "qgisred_pipes":
-                self._applyPipeColorExpression(symbol, newColor)
-            elif identifier == "qgisred_junctions":
-                self._applyJunctionColorExpression(symbol, newColor)
-            elif identifier == "qgisred_isolationvalves":
-                self._clearColorExpression(symbol)
-                self.applyColorToSymbol(symbol, newColor)
-            else:
-                self.applyColorToSymbol(symbol, newColor)
 
+        newSize = None
         try:
-            size = float(sizeWidget.text())
-            self.applySizeToSymbol(symbol, size)
-            if identifier == "qgisred_pipes":
-                self._scalePipeCvMarker(symbol, size)
+            newSize = float(sizeWidget.text())
         except Exception:
             pass
 
-    def _scalePipeCvMarker(self, symbol, newWidth):
-        """Scale the CV triangle marker proportionally to the pipe line width.
+        inputAppliers = {
+            "qgisred_junctions": self._applyJunctionsLegend,
+            "qgisred_pipes": self._applyPipesLegend,
+            "qgisred_isolationvalves": self._applyIsolationValvesLegend,
+        }
 
-        In Pipes.qml.bak the MarkerLine data-defined size expression is:
-            if(IniStatus is NULL, 0, if(IniStatus !='CV', 0, 5))
-        The base CV size is 5mm at default pipe width 1.5px.
-        New CV size = PIPE_DEFAULT_CV_SIZE * (newWidth / PIPE_DEFAULT_WIDTH)
-        """
-        if newWidth <= 0:
+        applier = inputAppliers.get(identifier)
+        if applier:
+            applier(symbol, newColor, newSize)
             return
 
+        if newColor is not None:
+            self.applyColorToSymbol(symbol, newColor)
+        if newSize is not None:
+            self.applySizeToSymbol(symbol, newSize)
+
+    def _setExpressionOnLayers(self, symbol, propertyKey, expression):
+        """Set the data-defined expression on every symbol layer (recursive) that already has one for propertyKey."""
+        newProp = QgsProperty.fromExpression(expression)
+        for i in range(symbol.symbolLayerCount()):
+            sl = symbol.symbolLayer(i)
+            existing = sl.dataDefinedProperties().property(propertyKey)
+            if existing and existing.propertyType() == QgsProperty.ExpressionBasedProperty:
+                sl.setDataDefinedProperty(propertyKey, newProp)
+            if hasattr(sl, 'subSymbol') and sl.subSymbol():
+                self._setExpressionOnLayers(sl.subSymbol(), propertyKey, expression)
+
+    def _scalePipeCvMarker(self, symbol, newWidth):
+        if newWidth <= 0:
+            return
         scaleFactor = newWidth / self.PIPE_DEFAULT_WIDTH
         newCvSize = round(self.PIPE_DEFAULT_CV_SIZE * scaleFactor, 3)
-
         for i in range(symbol.symbolLayerCount()):
             sl = symbol.symbolLayer(i)
             if sl.layerType() == "MarkerLine":
@@ -3048,49 +3056,61 @@ class QGISRedLegendsDialog(QDialog, formClass):
                     for j in range(markerSymbol.symbolLayerCount()):
                         ml = markerSymbol.symbolLayer(j)
                         expr = f"if(IniStatus is NULL, 0,if(IniStatus !='CV', 0,{newCvSize}))"
-                        prop = QgsProperty.fromExpression(expr)
-                        ml.setDataDefinedProperty(QgsSymbolLayer.PropertySize, prop)
+                        ml.setDataDefinedProperty(QgsSymbolLayer.PropertySize, QgsProperty.fromExpression(expr))
 
-    def _updateExpressionColor(self, symbol, oldHex, newColor, propertyKey):
-        """Replace oldHex with newColor in a data-defined property expression on all symbol layers."""
-        newHexStr = newColor.name().lower()
-        oldLower = oldHex.lower()
+    def _applyJunctionsLegend(self, symbol, color, size):
+        if color is not None:
+            userHex = color.name().lower()
+            fillExpr = (
+                f"if (BaseDem is NULL, '#ffffff', if( BaseDem >0, '{userHex}', "
+                f"if (BaseDem <0 , '#a6cee3', '#ffffff')))"
+            )
+            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyFillColor, fillExpr)
+        if size is not None:
+            scale = size / self.JUNCTION_DEFAULT_SIZE
+            self._rebuildJunctionSize(symbol, scale)
+
+    def _rebuildJunctionSize(self, symbol, scale):
+        smallNoEmit = round(1.3 * scale, 3)
+        bigNoEmit = round(3.5 * scale, 3)
+        smallEmit = round(2.2 * scale, 3)
+        bigEmit = round(4 * scale, 3)
+        emitterExpr = (
+            f"if (EmittCoef> 0, if (BaseDem is NULL, {smallEmit}, "
+            f"if( BaseDem >0, {smallEmit}, if (BaseDem <0 , {bigEmit}, {smallEmit}))),0)"
+        )
+        noEmitterExpr = (
+            f"if (EmittCoef>0, 0, if (BaseDem is NULL, {smallNoEmit}, "
+            f"if( BaseDem >0, {smallNoEmit}, if (BaseDem <0 , {bigNoEmit}, {smallNoEmit}))))"
+        )
         for i in range(symbol.symbolLayerCount()):
             sl = symbol.symbolLayer(i)
-            prop = sl.dataDefinedProperties().property(propertyKey)
-            if prop and prop.propertyType() == QgsProperty.ExpressionBasedProperty:
-                expr = prop.expressionString()
-                updated = expr.replace(oldLower, newHexStr).replace(oldLower.upper(), newHexStr)
-                if updated != expr:
-                    sl.setDataDefinedProperty(propertyKey, QgsProperty.fromExpression(updated))
-            if hasattr(sl, 'subSymbol') and sl.subSymbol():
-                self._updateExpressionColor(sl.subSymbol(), oldHex, newColor, propertyKey)
-
-    def _applyPipeColorExpression(self, symbol, color):
-        """Update open-pipe stroke color; NULL-status branch always stays #0f1291."""
-        newHexStr = color.name().lower()
-        newExpr = f"if(IniStatus is NULL, '#0f1291',if(IniStatus !='CLOSED', '{newHexStr}','#ff0f13'))"
-        newProp = QgsProperty.fromExpression(newExpr)
-        for i in range(symbol.symbolLayerCount()):
-            sl = symbol.symbolLayer(i)
-            existing = sl.dataDefinedProperties().property(QgsSymbolLayer.PropertyStrokeColor)
+            existing = sl.dataDefinedProperties().property(QgsSymbolLayer.PropertySize)
             if existing and existing.propertyType() == QgsProperty.ExpressionBasedProperty:
-                sl.setDataDefinedProperty(QgsSymbolLayer.PropertyStrokeColor, newProp)
+                expr = existing.expressionString()
+                if re.search(r'EmittCoef\s*>\s*0\s*,\s*0\s*,', expr):
+                    newExpr = noEmitterExpr
+                else:
+                    newExpr = emitterExpr
+                sl.setDataDefinedProperty(QgsSymbolLayer.PropertySize, QgsProperty.fromExpression(newExpr))
             if hasattr(sl, 'subSymbol') and sl.subSymbol():
-                self._applyPipeColorExpression(sl.subSymbol(), color)
+                self._rebuildJunctionSize(sl.subSymbol(), scale)
 
-    def _applyJunctionColorExpression(self, symbol, color):
-        """Update no-demand junction fill color; demand colors (#fdbf6f, #a6cee3) stay unchanged."""
-        newHexStr = color.name().lower()
-        newExpr = f"if (BaseDem is NULL, '{newHexStr}', if( BaseDem >0, '#fdbf6f', if (BaseDem <0 , '#a6cee3', '{newHexStr}')))"
-        newProp = QgsProperty.fromExpression(newExpr)
-        for i in range(symbol.symbolLayerCount()):
-            sl = symbol.symbolLayer(i)
-            existing = sl.dataDefinedProperties().property(QgsSymbolLayer.PropertyFillColor)
-            if existing and existing.propertyType() == QgsProperty.ExpressionBasedProperty:
-                sl.setDataDefinedProperty(QgsSymbolLayer.PropertyFillColor, newProp)
-            if hasattr(sl, 'subSymbol') and sl.subSymbol():
-                self._applyJunctionColorExpression(sl.subSymbol(), color)
+    def _applyPipesLegend(self, symbol, color, size):
+        if color is not None:
+            userHex = color.name().lower()
+            strokeExpr = f"if(IniStatus is NULL, '{userHex}',if(IniStatus !='CLOSED', '{userHex}','#ff0f13'))"
+            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyStrokeColor, strokeExpr)
+        if size is not None:
+            self._setLineWidth(symbol, size)
+            self._scalePipeCvMarker(symbol, size)
+
+    def _applyIsolationValvesLegend(self, symbol, color, size):
+        if color is not None:
+            self._clearColorExpression(symbol)
+            self.applyColorToSymbol(symbol, color)
+        if size is not None:
+            self.applySizeToSymbol(symbol, size)
 
     def _clearColorExpression(self, symbol):
         """Remove data-defined PropertyFillColor so a subsequent flat applyColorToSymbol takes effect."""
