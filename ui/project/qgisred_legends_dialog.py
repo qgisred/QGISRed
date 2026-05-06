@@ -2991,6 +2991,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
     PIPE_DEFAULT_WIDTH = 1.5
     PIPE_DEFAULT_CV_SIZE = 5
     JUNCTION_DEFAULT_SIZE = 1.3
+    DEMANDS_DEFAULT_SIZE = 1.6
     VALVE_PUMP_DEFAULT_MARKER_SIZE = 5
     SERVICE_CONNECTION_DEFAULT_LINE_WIDTH = 1.4
     SERVICE_CONNECTION_DEFAULT_DOT_SIZE = 1.5
@@ -3028,6 +3029,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
             "qgisred_meters": self._applyMetersLegend,
             "qgisred_serviceconnections": self._applyServiceConnectionsLegend,
             "qgisred_isolationvalves": self._applyIsolationValvesLegend,
+            "qgisred_sources": self._applySourcesLegend,
+            "qgisred_demands": self._applyDemandsLegend,
         }
 
         applier = inputAppliers.get(identifier)
@@ -3207,18 +3210,38 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def _applyIsolationValvesLegend(self, symbol, color, size):
         if color is not None:
-            self._clearColorExpression(symbol)
-            self.applyColorToSymbol(symbol, color)
+            rgb = f"color_rgb({color.red()},{color.green()},{color.blue()})"
+            fillExpr = (
+                f"if( \"Available\"!=0,"
+                f"if( \"Status\"='CLOSED',color_rgb(255,19,19), "
+                f"if(\"LossCoeff\" = 0, {rgb},color_rgb(246,185,18))),"
+                f"color_rgb(125,139,143))"
+            )
+            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyFillColor, fillExpr)
         if size is not None:
             self.applySizeToSymbol(symbol, size)
 
-    def _clearColorExpression(self, symbol):
-        """Remove data-defined PropertyFillColor so a subsequent flat applyColorToSymbol takes effect."""
-        for i in range(symbol.symbolLayerCount()):
-            sl = symbol.symbolLayer(i)
-            sl.setDataDefinedProperty(QgsSymbolLayer.PropertyFillColor, QgsProperty())
-            if hasattr(sl, 'subSymbol') and sl.subSymbol():
-                self._clearColorExpression(sl.subSymbol())
+    def _applySourcesLegend(self, symbol, color, size):
+        if size is not None:
+            self.applySizeToSymbol(symbol, size)
+
+    def _applyDemandsLegend(self, symbol, color, size):
+        if color is not None:
+            userHex = color.name().lower()
+            fillExpr = (
+                f"if (BaseValue is NULL, '#ffffff', if( BaseValue >0, '{userHex}', "
+                f"if (BaseValue <0 , '#a6cee3', '#ffffff')))"
+            )
+            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertyFillColor, fillExpr)
+        if size is not None:
+            scale = size / self.DEMANDS_DEFAULT_SIZE
+            smallSize = round(1.6 * scale, 3)
+            bigSize = round(3.5 * scale, 3)
+            sizeExpr = (
+                f"if (BaseValue is NULL, {smallSize}, if( BaseValue >0, {smallSize}, "
+                f"if (BaseValue <0 , {bigSize}, {smallSize})))"
+            )
+            self._setExpressionOnLayers(symbol, QgsSymbolLayer.PropertySize, sizeExpr)
 
     def applyNumericLegend(self):
         ranges = []
@@ -3737,19 +3760,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         if identifier in COLOR_LOCKED:
             self._disableColorColumnInTable()
-        elif identifier == "qgisred_pipes":
-            self._applyPipeColumnRestrictions()
-        elif identifier == "qgisred_junctions":
-            self._applyJunctionColumnRestrictions()
-        elif identifier == "qgisred_isolationvalves":
-            pass  # color column stays enabled
-        elif identifier == "qgisred_meters":
-            pass  # color column stays enabled
-        elif identifier == "qgisred_serviceconnections":
-            pass  # color column stays enabled
-        else:
-            # All other input elements: lock color by default
-            self._disableColorColumnInTable()
 
     def _disableColorColumnInTable(self):
         """Disable color button (col 1) for every row in the table."""
@@ -3759,14 +3769,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 colorWidget = container.findChild(QGISRedSymbolColorSelector)
                 if colorWidget:
                     colorWidget.setEnabled(False)
-
-    def _applyPipeColumnRestrictions(self):
-        """Color editing allowed; CV scaling happens on Apply."""
-        pass
-
-    def _applyJunctionColumnRestrictions(self):
-        """Color column always enabled for junctions."""
-        pass
 
     # ============================================================
     # UTILITY METHODS
