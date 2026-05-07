@@ -1243,7 +1243,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             if fieldName in qualityFieldNames:
                 backgroundBrush = self.sourceBrush
             elif fieldName in demandFieldNames:
-                backgroundBrush = self.totalDemandsBrush
+                backgroundBrush = self.demandBrush
             else:
                 backgroundBrush = None
 
