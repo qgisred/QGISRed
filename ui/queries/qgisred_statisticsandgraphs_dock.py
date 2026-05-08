@@ -615,3 +615,89 @@ class QGISRedStatisticsAndPlotsDock(QDockWidget, formClass):
             item.setFont(font)
             item.setBackground(QBrush(QColor(255, 248, 220)))
         self.tbExcel.setItem(row, column, item)
+
+    def importConfig(self):
+        fileName, _selectedFilter = QFileDialog.getOpenFileName(
+            self,
+            self.tr("Import query configuration"),
+            str(QgsProject.instance().homePath() or ""),
+            "JSON Files (*.json)",
+        )
+        if not fileName:
+            return
+        try:
+            with open(fileName, "r", encoding="utf-8") as fileHandle:
+                data = json.load(fileHandle)
+            if data.get("schema") != "qgisred.statistics.v1":
+                raise ValueError(self.tr("Unrecognized configuration schema."))
+            self.applyConfig(data)
+        except Exception as ex:
+            QMessageBox.critical(self, self.tr("Import failed"), str(ex))
+
+    def applyConfig(self, data):
+        self.suspendCascade = True
+        elementIndex = self.cbElementType.findData(data.get("elementType", ""))
+        if elementIndex >= 0:
+            self.cbElementType.setCurrentIndex(elementIndex)
+        self.suspendCascade = False
+        self.onElementTypeChanged()
+
+        propertyIndex = self.cbProperty.findData(data.get("property", ""))
+        if propertyIndex >= 0:
+            self.cbProperty.setCurrentIndex(propertyIndex)
+
+        classifyIndex = self.cbClassifiedBy.findData(data.get("classifyBy", ""))
+        if classifyIndex >= 0:
+            self.cbClassifiedBy.setCurrentIndex(classifyIndex)
+
+        rangedIndex = self.cbRanged.findData(data.get("ranged", ""))
+        if rangedIndex >= 0:
+            self.cbRanged.setCurrentIndex(rangedIndex)
+
+        classes = data.get("classes")
+        if classes is not None:
+            classesIndex = self.cbClasses.findData(int(classes))
+            if classesIndex >= 0:
+                self.cbClasses.setCurrentIndex(classesIndex)
+
+        filterData = data.get("filter") or {}
+        attributeIndex = self.cbAttribute.findData(filterData.get("attribute", "") or "")
+        if attributeIndex >= 0:
+            self.cbAttribute.setCurrentIndex(attributeIndex)
+        valueIndex = self.cbValueRange.findData(filterData.get("value", "") or "")
+        if valueIndex >= 0:
+            self.cbValueRange.setCurrentIndex(valueIndex)
+        self.leFrom.setText("" if filterData.get("from") is None else str(filterData.get("from")))
+        self.leTo.setText("" if filterData.get("to") is None else str(filterData.get("to")))
+        self.cbSelectedElements.setChecked(bool(data.get("onlySelected")))
+
+    def exportConfig(self):
+        defaultFileName = "qgisred_statistics_query_{}.json".format(datetime.now().strftime("%Y%m%d_%H%M%S"))
+        fileName, _selectedFilter = QFileDialog.getSaveFileName(
+            self,
+            self.tr("Export query configuration"),
+            os.path.join(str(QgsProject.instance().homePath() or ""), defaultFileName),
+            "JSON Files (*.json)",
+        )
+        if not fileName:
+            return
+        try:
+            data = {
+                "schema": "qgisred.statistics.v1",
+                "elementType": self.cbElementType.currentData(Qt.ItemDataRole.UserRole) or "",
+                "property": self.cbProperty.currentData(Qt.ItemDataRole.UserRole) or "",
+                "classifyBy": self.cbClassifiedBy.currentData(Qt.ItemDataRole.UserRole) or "",
+                "ranged": self.cbRanged.currentData(Qt.ItemDataRole.UserRole) or "",
+                "classes": self.cbClasses.currentData(Qt.ItemDataRole.UserRole),
+                "filter": {
+                    "attribute": self.cbAttribute.currentData(Qt.ItemDataRole.UserRole) or "",
+                    "value": self.cbValueRange.currentData(Qt.ItemDataRole.UserRole) or "",
+                    "from": self.leFrom.text().strip() or None,
+                    "to": self.leTo.text().strip() or None,
+                },
+                "onlySelected": self.cbSelectedElements.isChecked(),
+            }
+            with open(fileName, "w", encoding="utf-8") as fileHandle:
+                json.dump(data, fileHandle, indent=2)
+        except Exception as ex:
+            QMessageBox.critical(self, self.tr("Export failed"), str(ex))
