@@ -94,3 +94,23 @@ class QGISRedStatisticsAndPlotsDock(QDockWidget, formClass):
         self.safeDisconnect(self.btImport.clicked, self.importConfig)
         self.safeDisconnect(self.btExport.clicked, self.exportConfig)
         self.safeDisconnect(self.btExcel.clicked, self.exportTableCsv)
+
+    def populateElementTypes(self):
+        self.suspendCascade = True
+        self.cbElementType.clear()
+        for elementIdentifier in ELEMENT_TYPE_ORDER:
+            self.cbElementType.addItem(self.displayNameForIdentifier(elementIdentifier), elementIdentifier)
+        self.suspendCascade = False
+
+    def displayNameForIdentifier(self, elementIdentifier):
+        names = {
+            "qgisred_pipes": self.tr("Pipes"),
+            "qgisred_junctions": self.tr("Junctions"),
+            "qgisred_tanks": self.tr("Tanks"),
+            "qgisred_reservoirs": self.tr("Reservoirs"),
+            "qgisred_valves": self.tr("Valves"),
+            "qgisred_pumps": self.tr("Pumps"),
+            "qgisred_serviceconnections": self.tr("Service Connections"),
+            "qgisred_isolationvalves": self.tr("Isolation Valves"),
+        }
+        return names.get(elementIdentifier, elementIdentifier)
