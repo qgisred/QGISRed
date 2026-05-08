@@ -300,3 +300,48 @@ class QGISRedStatisticsAndPlotsDock(QDockWidget, formClass):
         if isinstance(value, (int, float)) and not isinstance(value, bool):
             return str(value)
         return QgsExpression.quotedString(str(value))
+
+    def resolveBreaks(self, layer, elementIdentifier, classifyField):
+        if isCategoricalField(classifyField):
+            distinctValues = self.collectUniqueValues(layer, classifyField, limit=500)
+            return {"type": "categorical", "values": [str(value) for value in distinctValues]}
+        rangedMode = self.cbRanged.currentData(Qt.ItemDataRole.UserRole) or "Auto"
+        if rangedMode == "Preset":
+            preset = getRangedPreset(elementIdentifier, classifyField)
+            if preset and preset.get("type") == "breaks":
+                return {"type": "breaks", "edges": list(preset["values"])}
+            rangedMode = "Auto"
+        if rangedMode == "Distinct":
+            distinctValues = self.collectUniqueValues(layer, classifyField, limit=500)
+            return {"type": "categorical", "values": [str(value) for value in distinctValues]}
+        numClasses = self.cbClasses.currentData(Qt.ItemDataRole.UserRole) or DEFAULT_NUM_CLASSES
+        edges = self.computeAutoBreaks(layer, classifyField, numClasses)
+        if edges is None:
+            return None
+        return {"type": "breaks", "edges": edges}
+
+    def computeAutoBreaks(self, layer, classifyField, numClasses):
+        if layer.fields().indexFromName(classifyField) < 0:
+            return None
+        valueMin = None
+        valueMax = None
+        for feature in layer.getFeatures():
+            rawValue = feature[classifyField]
+            if rawValue is None:
+                continue
+            try:
+                numericValue = float(rawValue)
+            except (TypeError, ValueError):
+                continue
+            if valueMin is None or numericValue < valueMin:
+                valueMin = numericValue
+            if valueMax is None or numericValue > valueMax:
+                valueMax = numericValue
+        if valueMin is None or valueMax is None:
+            return None
+        if valueMin == valueMax:
+            valueMax = valueMin + 1.0
+        step = (valueMax - valueMin) / float(numClasses)
+        edges = [valueMin + i * step for i in range(numClasses + 1)]
+        edges[-1] = valueMax
+        return edges
