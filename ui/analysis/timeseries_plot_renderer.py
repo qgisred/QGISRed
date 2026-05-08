@@ -170,6 +170,27 @@ class TimeSeriesPlotRenderer:
         f.setBold(bold)
         return f
 
+    def _line_pen_style(self, style: str):
+        t = (style or "solid").strip().lower()
+        if t == "dash":
+            return Qt.PenStyle.DashLine
+        if t == "dot":
+            return Qt.PenStyle.DotLine
+        if t == "dashdot":
+            return Qt.PenStyle.DashDotLine
+        return Qt.PenStyle.SolidLine
+
+    def _legend_row_font(self, s, *, bold: bool = False) -> QFont:
+        try:
+            size = max(6, min(int(s.get("legend_font_size") or 8), 32))
+        except Exception:
+            size = 8
+        f = qfont(size, bold=bold)
+        fam = (s.get("legend_font_family") or "").strip()
+        if fam:
+            f.setFamily(fam)
+        return f
+
     def _expand_range(self, minimum: float, maximum: float) -> Tuple[float, float]:
         value_range = maximum - minimum
         if value_range == 0:
@@ -575,6 +596,8 @@ class TimeSeriesPlotRenderer:
         painter.setClipRect(plot_rect)
 
         for s in widget.series:
+            if not bool(s.get("visible", True)):
+                continue
             xs = s.get("x", []) or []
             ys = s.get("y", []) or []
             if not xs or not ys or len(xs) < 2:
@@ -585,15 +608,18 @@ class TimeSeriesPlotRenderer:
             muted = bool(s.get("muted", False))
             highlighted = bool(s.get("highlighted", False))
             draw_color = QColor(color)
-            width = 2
+            try:
+                width = max(0.5, min(float(s.get("line_width") or 2.0), 12.0))
+            except Exception:
+                width = 2.0
             if muted:
                 draw_color.setAlpha(70)
-                width = 1
+                width = max(0.5, width * 0.6)
             if highlighted:
                 draw_color.setAlpha(255)
-                width = 3
+                width = min(width + 1.0, 14.0)
 
-            painter.setPen(QPen(draw_color, width))
+            painter.setPen(QPen(draw_color, width, self._line_pen_style(s.get("line_style") or "solid")))
             path = QPainterPath()
 
             axis = (s.get("y_axis") or "left")
@@ -613,12 +639,32 @@ class TimeSeriesPlotRenderer:
 
         painter.restore()
 
-    def _draw_legend_icon(self, painter, x, y, size, legend_type, color, muted=False, highlighted=False):
+    def _draw_legend_icon(
+        self,
+        painter,
+        x,
+        y,
+        size,
+        legend_type,
+        color,
+        muted=False,
+        highlighted=False,
+        line_style="solid",
+        line_width=2.0,
+        visible=True,
+    ):
         c = QColor(color)
-        if muted:
+        if not visible:
+            c.setAlpha(45)
+        elif muted:
             c.setAlpha(80)
-        pen_w = 3 if highlighted else 2
-        painter.setPen(QPen(c, pen_w))
+        try:
+            pen_w = max(1.0, min(float(line_width or 2.0), 12.0))
+        except Exception:
+            pen_w = 2.0
+        if highlighted:
+            pen_w = min(pen_w + 1.0, 14.0)
+        painter.setPen(QPen(c, pen_w, self._line_pen_style(line_style)))
         painter.setBrush(Qt.GlobalColor.white)
 
         t = (legend_type or "").lower()
@@ -771,13 +817,31 @@ class TimeSeriesPlotRenderer:
             s = widget.series[int(series_idx)]
             muted = bool(s.get("muted", False))
             highlighted = bool(s.get("highlighted", False))
+            visible = bool(s.get("visible", True))
+            line_style = s.get("line_style") or "solid"
+            line_width = s.get("line_width") or 2.0
 
             icon_y = cy0 + (LEGEND_ROW_H - sym) / 2.0
-            self._draw_legend_icon(painter, cx0, icon_y, sym, legend_type, color, muted=muted, highlighted=highlighted)
+            self._draw_legend_icon(
+                painter,
+                cx0,
+                icon_y,
+                sym,
+                legend_type,
+                color,
+                muted=muted,
+                highlighted=highlighted,
+                line_style=line_style,
+                line_width=line_width,
+                visible=visible,
+            )
 
-            row_font = qfont(8, bold=highlighted)
+            row_font = self._legend_row_font(s, bold=highlighted)
             painter.setFont(row_font)
-            painter.setPen(QColor(0, 0, 0, 120) if muted else Qt.GlobalColor.black)
+            if not visible:
+                painter.setPen(QColor(0, 0, 0, 75))
+            else:
+                painter.setPen(QColor(0, 0, 0, 120) if muted else Qt.GlobalColor.black)
             text_left = cx0 + sym + 6
             label_w = QFontMetrics(row_font).horizontalAdvance(label)
             max_text_w = max(0.0, (row_right - btn_w - btn_pad) - text_left)
@@ -825,6 +889,8 @@ class TimeSeriesPlotRenderer:
         marker_pts = []
 
         for s in widget.series:
+            if not bool(s.get("visible", True)):
+                continue
             xs = s.get("x", []) or []
             ys = s.get("y", []) or []
             if not xs or not ys or len(xs) <= hover_index or len(ys) <= hover_index:
@@ -965,6 +1031,8 @@ class TimeSeriesPlotRenderer:
         hover_series = None
         if widget._hover_series_idx is not None and 0 <= widget._hover_series_idx < len(widget.series):
             hover_series = widget.series[widget._hover_series_idx]
+            if not bool(hover_series.get("visible", True)):
+                hover_series = None
         if hover_series is not None and widget.hover_index is not None:
             xs0 = hover_series.get("x", []) or []
             ys0 = hover_series.get("y", []) or []

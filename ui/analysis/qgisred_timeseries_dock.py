@@ -115,6 +115,11 @@ class TimeSeriesPlotWidget(QWidget):
             "y_categorical_labels": y_categorical_labels,
             "muted": False,
             "highlighted": False,
+            "visible": True,
+            "line_style": "solid",
+            "line_width": 2.0,
+            "legend_font_family": "",
+            "legend_font_size": 8,
             "series_key": series_label or "",
         }]
         self._y_label_left = self.y_label
@@ -133,6 +138,16 @@ class TimeSeriesPlotWidget(QWidget):
                 s["muted"] = False
             if "highlighted" not in s:
                 s["highlighted"] = False
+            if "visible" not in s:
+                s["visible"] = True
+            if "line_style" not in s:
+                s["line_style"] = "solid"
+            if "line_width" not in s:
+                s["line_width"] = 2.0
+            if "legend_font_family" not in s:
+                s["legend_font_family"] = ""
+            if "legend_font_size" not in s:
+                s["legend_font_size"] = 8
             if "series_key" not in s:
                 s["series_key"] = ""
             if "y_axis" not in s:
@@ -215,6 +230,8 @@ class TimeSeriesPlotWidget(QWidget):
             return f
 
         for s in axis_series:
+            if not bool(s.get("visible", True)):
+                continue
             xs_raw = s.get("x", []) or []
             ys_raw = s.get("y", []) or []
 
@@ -329,7 +346,6 @@ class TimeSeriesPlotWidget(QWidget):
         sym = max(6, min(sym, 24))
         cols = int(getattr(gen, "legend_columns", 1) or 1) if gen is not None else 1
         cols = max(1, min(cols, 6))
-        fm = QFontMetrics(qfont(8))
         fm_hdr = QFontMetrics(qfont(8, bold=True))
         max_w = 0
         for mag, items in groups:
@@ -337,7 +353,18 @@ class TimeSeriesPlotWidget(QWidget):
             if w_hdr > max_w:
                 max_w = w_hdr
             for _idx, _color, label, _legend_type in items:
-                w_label = fm.horizontalAdvance(label)
+                row_font = qfont(8)
+                try:
+                    if 0 <= int(_idx) < len(self.series):
+                        s = self.series[int(_idx)]
+                        fam = (s.get("legend_font_family") or "").strip()
+                        size = max(6, min(int(s.get("legend_font_size") or 8), 32))
+                        row_font = qfont(size)
+                        if fam:
+                            row_font.setFamily(fam)
+                except Exception:
+                    row_font = qfont(8)
+                w_label = QFontMetrics(row_font).horizontalAdvance(label)
                 if w_label > max_w:
                     max_w = w_label
         btn_w = 10
@@ -414,12 +441,15 @@ class TimeSeriesPlotWidget(QWidget):
 
     def _resolveHoverSeriesIndex(self):
         for i, s in enumerate(self.series):
-            if bool(s.get("highlighted", False)):
+            if bool(s.get("visible", True)) and bool(s.get("highlighted", False)):
                 return i
         for i, s in enumerate(self.series):
-            if not bool(s.get("muted", False)):
+            if bool(s.get("visible", True)) and not bool(s.get("muted", False)):
                 return i
-        return 0 if self.series else None
+        for i, s in enumerate(self.series):
+            if bool(s.get("visible", True)):
+                return i
+        return None
 
     def _nearestDataIndex(self, xs, target_x):
         best_idx = 0
@@ -796,6 +826,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
     seriesReordered = pyqtSignal(list)
     seriesRemoved = pyqtSignal(str)
     seriesEmphasisChanged = pyqtSignal(dict)
+    curveSettingsChanged = pyqtSignal(list)
     clearAllRequested = pyqtSignal()
 
     def __init__(self, iface, parent=None):
@@ -969,15 +1000,37 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
 
     def _onAxisOptionsClicked(self) -> None:
         dlg = TimeSeriesAxisOptionsDialog(self.plot, self.window())
-        if dlg.exec() == DIALOG_ACCEPTED and not self.plot._axis_cfg_x.auto_scale:
-            if hasattr(self, "btnPan") and self.btnPan.isChecked():
-                self.btnPan.setChecked(False)
-            self.plot.setPanMode(False)
-            if hasattr(self, "btnZoomWindow") and self.btnZoomWindow is not None and self.btnZoomWindow.isChecked():
-                self.btnZoomWindow.setChecked(False)
-            self.plot.setZoomWindowMode(False)
+        if dlg.exec() == DIALOG_ACCEPTED:
+            self._emitCurveSettingsChanged()
+            if not self.plot._axis_cfg_x.auto_scale:
+                if hasattr(self, "btnPan") and self.btnPan.isChecked():
+                    self.btnPan.setChecked(False)
+                self.plot.setPanMode(False)
+                if hasattr(self, "btnZoomWindow") and self.btnZoomWindow is not None and self.btnZoomWindow.isChecked():
+                    self.btnZoomWindow.setChecked(False)
+                self.plot.setZoomWindowMode(False)
         self._updateClearToolbarVisibility()
         self._updatePanAvailability()
+
+    def _emitCurveSettingsChanged(self) -> None:
+        settings = []
+        for s in self.plot.series or []:
+            key = str(s.get("series_key") or "").strip()
+            if not key:
+                continue
+            settings.append({
+                "series_key": key,
+                "label": (s.get("label") or "").strip(),
+                "color": s.get("color"),
+                "line_style": s.get("line_style") or "solid",
+                "line_width": s.get("line_width") or 2.0,
+                "visible": bool(s.get("visible", True)),
+                "muted": bool(s.get("muted", False)),
+                "highlighted": bool(s.get("highlighted", False)),
+                "legend_font_family": s.get("legend_font_family") or "",
+                "legend_font_size": s.get("legend_font_size") or 8,
+            })
+        self.curveSettingsChanged.emit(settings)
 
     def _updatePanAvailability(self) -> None:
         if not hasattr(self, "btnPan") or self.btnPan is None:

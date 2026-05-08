@@ -4801,9 +4801,84 @@ Left-click: Add a new item below the current selection</source>
         <translation>Taille du symbole :</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="125"/>
-        <source>Curve options will be implemented here (line style, width, markers, etc.).</source>
-        <translation>Les options des courbes seront implémentées ici (style de ligne, épaisseur, marqueurs, etc.).</translation>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="142"/>
+        <source>No curves available.</source>
+        <translation>Aucune courbe disponible.</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="148"/>
+        <source>Customize the legend name and appearance of each curve.</source>
+        <translation>Personnalisez le nom dans la légende et l’apparence de chaque courbe.</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="162"/>
+        <source>Series</source>
+        <translation>Série</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="242"/>
+        <source>Legend name:</source>
+        <translation>Nom dans la légende :</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="243"/>
+        <source>Legend font:</source>
+        <translation>Police de la légende :</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="244"/>
+        <source>Legend font size:</source>
+        <translation>Taille de police de la légende :</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="200"/>
+        <source>Curve color</source>
+        <translation>Couleur de la courbe</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="208"/>
+        <source>Solid</source>
+        <translation>Continue</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="209"/>
+        <source>Dashed</source>
+        <translation>Tirets</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="210"/>
+        <source>Dotted</source>
+        <translation>Pointillés</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="211"/>
+        <source>Dash-dot</source>
+        <translation>Tiret-point</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="246"/>
+        <source>Line style:</source>
+        <translation>Style de ligne :</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="247"/>
+        <source>Line width:</source>
+        <translation>Épaisseur de ligne :</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="222"/>
+        <source>Visible</source>
+        <translation>Visible</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="224"/>
+        <source>Dimmed</source>
+        <translation>Atténuée</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="226"/>
+        <source>Highlighted</source>
+        <translation>Mise en évidence</translation>
     </message>
 </context>
 <context>

@@ -272,6 +272,7 @@ class AnalysisSection:
                 self.timeSeriesDock.seriesReordered.connect(self._onTimeSeriesSeriesReordered)
                 self.timeSeriesDock.seriesRemoved.connect(self._onTimeSeriesSeriesRemoved)
                 self.timeSeriesDock.seriesEmphasisChanged.connect(self._onTimeSeriesSeriesEmphasisChanged)
+                self.timeSeriesDock.curveSettingsChanged.connect(self._onTimeSeriesCurveSettingsChanged)
                 self.timeSeriesDock.clearAllRequested.connect(self._onTimeSeriesClearAllRequested)
                 self.iface.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.timeSeriesDock)
             self._ensureTimeSeriesMapToolSignal()
@@ -898,13 +899,20 @@ class AnalysisSection:
             series.append({
                 "x": x_data,
                 "y": y_data,
-                "label": label,
+                "label": (it.get("legend_label") or label),
                 "color": it.get("color") if isinstance(it.get("color"), QColor) else QColor(0, 120, 215),
                 "is_stepped": bool(is_stepped),
                 "y_categorical_labels": y_categorical_labels,
                 "legend_type": legend_type,
                 "series_key": f"{category}:{layer_identifier}:{prop_internal}:{element_id}",
                 "magnitude": y_label_with_unit or prop_display,
+                "line_style": it.get("line_style") or "solid",
+                "line_width": it.get("line_width") or 2.0,
+                "visible": bool(it.get("visible", True)),
+                "muted": bool(it.get("muted", False)),
+                "highlighted": bool(it.get("highlighted", False)),
+                "legend_font_family": it.get("legend_font_family") or "",
+                "legend_font_size": it.get("legend_font_size") or 8,
             })
 
         if not series:
@@ -938,6 +946,45 @@ class AnalysisSection:
                     new_sel.append(it)
             self.timeSeriesSelection = new_sel
             self._renderTimeSeriesSelection()
+            try:
+                self._syncTimeSeriesHighlights(self.lastTimeSeriesLayer, self.lastTimeSeriesFeature)
+            except Exception:
+                pass
+        except Exception:
+            return
+
+    def _onTimeSeriesCurveSettingsChanged(self, settings):
+        try:
+            if not settings or not hasattr(self, "timeSeriesSelection") or not self.timeSeriesSelection:
+                return
+
+            key_to_item = {}
+            for it in self.timeSeriesSelection:
+                li = it.get("layer_identifier") or ""
+                eid = it.get("element_id") or ""
+                cat = it.get("category") or ""
+                prop = it.get("prop_internal") or ""
+                key_to_item[f"{cat}:{li}:{prop}:{eid}"] = it
+
+            for cfg in settings or []:
+                k = str((cfg or {}).get("series_key") or "")
+                it = key_to_item.get(k)
+                if it is None:
+                    continue
+                label = str((cfg or {}).get("label") or "").strip()
+                if label:
+                    it["legend_label"] = label
+                color = (cfg or {}).get("color")
+                qc = QColor(color)
+                if qc.isValid():
+                    it["color"] = qc
+                it["line_style"] = (cfg or {}).get("line_style") or "solid"
+                it["line_width"] = (cfg or {}).get("line_width") or 2.0
+                it["visible"] = bool((cfg or {}).get("visible", True))
+                it["muted"] = bool((cfg or {}).get("muted", False))
+                it["highlighted"] = bool((cfg or {}).get("highlighted", False))
+                it["legend_font_family"] = (cfg or {}).get("legend_font_family") or ""
+                it["legend_font_size"] = (cfg or {}).get("legend_font_size") or 8
             try:
                 self._syncTimeSeriesHighlights(self.lastTimeSeriesLayer, self.lastTimeSeriesFeature)
             except Exception:

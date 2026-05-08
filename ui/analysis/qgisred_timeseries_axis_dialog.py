@@ -15,11 +15,13 @@ from qgis.PyQt.QtWidgets import (
     QDoubleSpinBox,
     QFontComboBox,
     QFormLayout,
+    QFrame,
     QGroupBox,
     QHBoxLayout,
     QLabel,
     QLineEdit,
     QPushButton,
+    QScrollArea,
     QSizePolicy,
     QSpinBox,
     QTabWidget,
@@ -39,21 +41,38 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         try:
             screen = QApplication.primaryScreen()
             if screen is not None:
-                self.setMaximumHeight(max(320, int(screen.availableGeometry().height() * 0.90)))
+                available = screen.availableGeometry()
+                max_h = max(480, int(available.height() * 0.92))
+                max_w = max(700, int(available.width() * 0.85))
+                self.setMaximumSize(max_w, max_h)
+                self.resize(
+                    min(max_w, max(760, int(available.width() * 0.62))),
+                    min(max_h, max(640, int(available.height() * 0.82))),
+                )
         except Exception:
             pass
-        self.setMinimumWidth(520)
+        self.setMinimumSize(640, 480)
+        self.setSizeGripEnabled(True)
 
         self._cfg_x = clone_axis_settings(plot_widget._axis_cfg_x)
         self._cfg_yl = clone_axis_settings(plot_widget._axis_cfg_y_left)
         self._cfg_yr = clone_axis_settings(plot_widget._axis_cfg_y_right)
         self._cfg_gen = clone_general_settings(getattr(plot_widget, "_general_cfg", TimeSeriesGeneralSettings()))
+        self._curve_cfg = [dict(s) for s in (getattr(plot_widget, "series", []) or [])]
 
         root = QVBoxLayout(self)
         root.setSpacing(10)
         root.setContentsMargins(12, 12, 12, 12)
 
-        root.addWidget(self._build_header())
+        content_scroll = QScrollArea(self)
+        content_scroll.setWidgetResizable(True)
+        content_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        content = QWidget(content_scroll)
+        content_lay = QVBoxLayout(content)
+        content_lay.setSpacing(10)
+        content_lay.setContentsMargins(0, 0, 0, 0)
+
+        content_lay.addWidget(self._build_header())
 
         tabs = QTabWidget(self)
         tab_general = self._build_general_tab(self._cfg_gen)
@@ -65,7 +84,9 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         tab_curves = self._build_curves_tab()
         tabs.addTab(tab_curves, self.tr("Curves"))
 
-        root.addWidget(tabs, 1)
+        content_lay.addWidget(tabs)
+        content_scroll.setWidget(content)
+        root.addWidget(content_scroll, 1)
 
         buttons = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
@@ -116,10 +137,134 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         lay.setContentsMargins(8, 8, 8, 8)
         lay.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        info = QLabel(self.tr("Curve options will be implemented here (line style, width, markers, etc.)."))
+        w._curve_rows = []
+        if not self._curve_cfg:
+            info = QLabel(self.tr("No curves available."))
+            info.setWordWrap(True)
+            info.setStyleSheet("color: palette(mid);")
+            lay.addWidget(info)
+            return w
+
+        info = QLabel(self.tr("Customize the legend name and appearance of each curve."))
         info.setWordWrap(True)
         info.setStyleSheet("color: palette(mid);")
         lay.addWidget(info)
+
+        scroll = QScrollArea(w)
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        inner = QWidget(scroll)
+        inner_lay = QVBoxLayout(inner)
+        inner_lay.setSpacing(10)
+        inner_lay.setContentsMargins(0, 0, 0, 0)
+
+        for idx, curve in enumerate(self._curve_cfg):
+            label = (curve.get("label") or "").strip() or self.tr("Series")
+            grp = self._compact_group(QGroupBox(label))
+            form = QFormLayout(grp)
+            form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+            form.setHorizontalSpacing(12)
+            form.setVerticalSpacing(8)
+            try:
+                form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
+            except Exception:
+                pass
+
+            ed_label = QLineEdit()
+            ed_label.setText(label)
+            ed_label.setClearButtonEnabled(True)
+            ed_label.setMinimumHeight(26)
+
+            font_combo = QFontComboBox()
+            font_combo.setMaxVisibleItems(8)
+            fam = (curve.get("legend_font_family") or "").strip()
+            if fam:
+                font_combo.setCurrentFont(QFont(fam))
+
+            sp_font_size = QSpinBox()
+            sp_font_size.setRange(6, 32)
+            sp_font_size.setValue(max(6, min(int(curve.get("legend_font_size") or 8), 32)))
+
+            picked = QColor(curve.get("color") or "#0078d7")
+            if not picked.isValid():
+                picked = QColor("#0078d7")
+            btn_color = QPushButton()
+
+            def refresh_color_button(btn=btn_color, color=picked):
+                btn.setText(color.name(QColor.NameFormat.HexRgb))
+
+            refresh_color_button()
+
+            def pick_color(_checked=False, btn=btn_color, row_idx=idx):
+                current = w._curve_rows[row_idx]["color"]
+                nc = QColorDialog.getColor(current, self, self.tr("Curve color"))
+                if nc.isValid():
+                    w._curve_rows[row_idx]["color"] = nc
+                    btn.setText(nc.name(QColor.NameFormat.HexRgb))
+
+            btn_color.clicked.connect(pick_color)
+
+            cb_style = QComboBox()
+            cb_style.addItem(self.tr("Solid"), "solid")
+            cb_style.addItem(self.tr("Dashed"), "dash")
+            cb_style.addItem(self.tr("Dotted"), "dot")
+            cb_style.addItem(self.tr("Dash-dot"), "dashdot")
+            cur_style = (curve.get("line_style") or "solid").strip()
+            idx_style = cb_style.findData(cur_style)
+            cb_style.setCurrentIndex(idx_style if idx_style >= 0 else 0)
+
+            sp_width = QDoubleSpinBox()
+            sp_width.setRange(0.5, 12.0)
+            sp_width.setDecimals(1)
+            sp_width.setSingleStep(0.5)
+            sp_width.setValue(max(0.5, min(float(curve.get("line_width") or 2.0), 12.0)))
+
+            chk_visible = QCheckBox(self.tr("Visible"))
+            chk_visible.setChecked(bool(curve.get("visible", True)))
+            chk_muted = QCheckBox(self.tr("Dimmed"))
+            chk_muted.setChecked(bool(curve.get("muted", False)))
+            chk_highlighted = QCheckBox(self.tr("Highlighted"))
+            chk_highlighted.setChecked(bool(curve.get("highlighted", False)))
+
+            def sync_emphasis(row_idx=idx):
+                row = w._curve_rows[row_idx]
+                if row["highlighted"].isChecked() and row["muted"].isChecked():
+                    row["muted"].setChecked(False)
+
+            def sync_muted(row_idx=idx):
+                row = w._curve_rows[row_idx]
+                if row["muted"].isChecked() and row["highlighted"].isChecked():
+                    row["highlighted"].setChecked(False)
+
+            chk_highlighted.toggled.connect(lambda _checked, row_idx=idx: sync_emphasis(row_idx))
+            chk_muted.toggled.connect(lambda _checked, row_idx=idx: sync_muted(row_idx))
+
+            self._add_form_row(form, self.tr("Legend name:"), ed_label)
+            self._add_form_row(form, self.tr("Legend font:"), font_combo)
+            self._add_form_row(form, self.tr("Legend font size:"), sp_font_size)
+            self._add_form_row(form, self.tr("Color:"), btn_color)
+            self._add_form_row(form, self.tr("Line style:"), cb_style)
+            self._add_form_row(form, self.tr("Line width:"), sp_width)
+            form.addRow("", chk_visible)
+            form.addRow("", chk_muted)
+            form.addRow("", chk_highlighted)
+            inner_lay.addWidget(grp)
+
+            w._curve_rows.append({
+                "label": ed_label,
+                "font_family": font_combo,
+                "font_size": sp_font_size,
+                "color": picked,
+                "style": cb_style,
+                "width": sp_width,
+                "visible": chk_visible,
+                "muted": chk_muted,
+                "highlighted": chk_highlighted,
+            })
+
+        inner_lay.addStretch(1)
+        scroll.setWidget(inner)
+        lay.addWidget(scroll, 1)
         return w
 
     def _build_general_tab(self, cfg: TimeSeriesGeneralSettings) -> QWidget:
@@ -526,6 +671,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._read_tab(self._axes_tabs.widget(0), self._cfg_x)
         self._read_tab(self._axes_tabs.widget(1), self._cfg_yl)
         self._read_tab(self._axes_tabs.widget(2), self._cfg_yr)
+        self._read_curves_tab(self._tab_curves)
         if not self._cfg_x.auto_scale:
             self._plot._view_x_min = None
             self._plot._view_x_max = None
@@ -535,3 +681,31 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._plot._general_cfg = self._cfg_gen
         self._plot.update()
         self.accept()
+
+    def _read_curves_tab(self, tab: QWidget) -> None:
+        rows = getattr(tab, "_curve_rows", []) or []
+        if not rows:
+            return
+        series = getattr(self._plot, "series", []) or []
+        for idx, row in enumerate(rows):
+            if idx >= len(series):
+                break
+            s = series[idx]
+            s["label"] = row["label"].text().strip() or self.tr("Series")
+            s["legend_font_family"] = row["font_family"].currentFont().family()
+            s["legend_font_size"] = int(row["font_size"].value())
+            s["color"] = row["color"].name(QColor.NameFormat.HexRgb)
+            try:
+                s["line_style"] = str(row["style"].currentData() or "solid")
+            except Exception:
+                s["line_style"] = "solid"
+            s["line_width"] = float(row["width"].value())
+            s["visible"] = bool(row["visible"].isChecked())
+            s["muted"] = bool(row["muted"].isChecked())
+            s["highlighted"] = bool(row["highlighted"].isChecked())
+            if s["highlighted"]:
+                s["muted"] = False
+        try:
+            self._plot._emitSeriesEmphasisChanged()
+        except Exception:
+            pass
