@@ -146,3 +146,27 @@ class QGISRedStatisticsAndPlotsDock(QDockWidget, formClass):
     def onPropertyChanged(self):
         if self.suspendCascade:
             return
+
+    def onClassifyByChanged(self):
+        if self.suspendCascade:
+            return
+        elementIdentifier = self.cbElementType.currentData(Qt.ItemDataRole.UserRole)
+        classifyField = self.cbClassifiedBy.currentData(Qt.ItemDataRole.UserRole)
+        self.suspendCascade = True
+        self.cbRanged.clear()
+        for option in getRangedOptions(elementIdentifier, classifyField):
+            self.cbRanged.addItem(self.tr(option), option)
+        self.cbClasses.clear()
+        for classCount in NUM_CLASSES_CHOICES:
+            self.cbClasses.addItem(str(classCount), classCount)
+        defaultClassesIndex = self.cbClasses.findData(DEFAULT_NUM_CLASSES)
+        if defaultClassesIndex >= 0:
+            self.cbClasses.setCurrentIndex(defaultClassesIndex)
+        self.suspendCascade = False
+        self.onRangedChanged()
+
+    def onRangedChanged(self):
+        if self.suspendCascade:
+            return
+        rangedMode = self.cbRanged.currentData(Qt.ItemDataRole.UserRole) or ""
+        self.cbClasses.setEnabled(rangedMode == "Auto")
