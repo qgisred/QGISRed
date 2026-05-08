@@ -114,3 +114,35 @@ class QGISRedStatisticsAndPlotsDock(QDockWidget, formClass):
             "qgisred_isolationvalves": self.tr("Isolation Valves"),
         }
         return names.get(elementIdentifier, elementIdentifier)
+
+    def loadDefaults(self):
+        defaultIndex = self.cbElementType.findData("qgisred_pipes")
+        if defaultIndex >= 0:
+            self.cbElementType.setCurrentIndex(defaultIndex)
+        self.onElementTypeChanged()
+        propertyIndex = self.cbProperty.findData("Length")
+        if propertyIndex >= 0:
+            self.cbProperty.setCurrentIndex(propertyIndex)
+        classifyIndex = self.cbClassifiedBy.findData("Diameter")
+        if classifyIndex >= 0:
+            self.cbClassifiedBy.setCurrentIndex(classifyIndex)
+
+    def onElementTypeChanged(self):
+        if self.suspendCascade:
+            return
+        self.suspendCascade = True
+        elementIdentifier = self.cbElementType.currentData(Qt.ItemDataRole.UserRole)
+        meta = ELEMENT_PROPERTIES.get(elementIdentifier, {"properties": [], "classifyBy": []})
+        self.populateFieldCombo(self.cbProperty, elementIdentifier, meta["properties"])
+        self.populateFieldCombo(self.cbClassifiedBy, elementIdentifier, meta["classifyBy"])
+        self.populateAttributeCombo(elementIdentifier)
+        self.suspendCascade = False
+        self.onClassifyByChanged()
+        self.onAttributeChanged()
+        self.histogram.clear()
+        self.tbExcel.setRowCount(0)
+        self.labelOnlySelectedElements.hide()
+
+    def onPropertyChanged(self):
+        if self.suspendCascade:
+            return
