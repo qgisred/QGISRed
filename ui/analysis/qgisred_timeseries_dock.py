@@ -559,7 +559,7 @@ class TimeSeriesPlotWidget(QWidget):
             self._pan_active = False
             self._pan_start_pos = None
             self._pan_start_view = None
-            self.setCursor(Qt.CursorShape.CrossCursor)
+            self.setCursor(Qt.CursorShape.BlankCursor)
         else:
             if not self._pan_mode:
                 self.unsetCursor()
