@@ -345,3 +345,93 @@ class QGISRedStatisticsAndPlotsDock(QDockWidget, formClass):
         edges = [valueMin + i * step for i in range(numClasses + 1)]
         edges[-1] = valueMax
         return edges
+
+    def initBins(self, breaks):
+        bins = []
+        if breaks["type"] == "categorical":
+            for value in breaks["values"]:
+                bins.append({
+                    "label": value if value != "" else self.tr("(empty)"),
+                    "lo": None,
+                    "hi": None,
+                    "category": value,
+                    "count": 0,
+                    "sum": 0.0,
+                    "sumOfSquares": 0.0,
+                    "min": None,
+                    "max": None,
+                    "avg": 0.0,
+                    "stddev": 0.0,
+                })
+            return bins
+        edges = breaks["edges"]
+        for i in range(len(edges) - 1):
+            lowerEdge = edges[i]
+            upperEdge = edges[i + 1]
+            label = "{} - {}".format(self.formatNumber(lowerEdge), self.formatNumber(upperEdge))
+            bins.append({
+                "label": label,
+                "lo": lowerEdge,
+                "hi": upperEdge,
+                "category": None,
+                "count": 0,
+                "sum": 0.0,
+                "sumOfSquares": 0.0,
+                "min": None,
+                "max": None,
+                "avg": 0.0,
+                "stddev": 0.0,
+            })
+        return bins
+
+    def findBinIndex(self, bins, value, breakType):
+        if breakType == "categorical":
+            stringValue = str(value)
+            for binIndex, binData in enumerate(bins):
+                if binData.get("category") == stringValue:
+                    return binIndex
+            return None
+        try:
+            numericValue = float(value)
+        except (TypeError, ValueError):
+            return None
+        for binIndex, binData in enumerate(bins):
+            lowerEdge = binData["lo"]
+            upperEdge = binData["hi"]
+            if binIndex == len(bins) - 1:
+                if lowerEdge <= numericValue <= upperEdge:
+                    return binIndex
+            else:
+                if lowerEdge <= numericValue < upperEdge:
+                    return binIndex
+        return None
+
+    def accumulateValue(self, binData, value):
+        try:
+            numericValue = float(value)
+        except (TypeError, ValueError):
+            numericValue = None
+        binData["count"] += 1
+        if numericValue is not None:
+            binData["sum"] += numericValue
+            binData["sumOfSquares"] += numericValue * numericValue
+            if binData["min"] is None or numericValue < binData["min"]:
+                binData["min"] = numericValue
+            if binData["max"] is None or numericValue > binData["max"]:
+                binData["max"] = numericValue
+
+    def finalizeBins(self, bins):
+        for binData in bins:
+            count = binData["count"]
+            if count > 0:
+                binData["avg"] = binData["sum"] / count
+                if count > 1:
+                    variance = max(0.0, (binData["sumOfSquares"] - count * binData["avg"] * binData["avg"]) / (count - 1))
+                    binData["stddev"] = math.sqrt(variance)
+                else:
+                    binData["stddev"] = 0.0
+            else:
+                binData["avg"] = 0.0
+                binData["stddev"] = 0.0
+                binData["min"] = None
+                binData["max"] = None
