@@ -27,7 +27,8 @@ if exist "%PS_OUTPUT_ZIP%" del "%PS_OUTPUT_ZIP%"
 
 :: ── Build ZIP via PowerShell (.NET ZipFile, exclusion-aware) ──────────────────
 ::
-::   Excluded top-level names  : .git  .vscode  .claude  images  scripts
+::   Excluded top-level names  : .git  .vscode  .claude  news  scripts
+::   images/                    : only qgisred.svg is kept; all other files excluded
 ::                               .gitignore  README.md  qgisred.pro  resources.qrc
 ::   Excluded dir names (any depth): __pycache__
 ::   Excluded extensions       : .pyc  .pyo  .ts
@@ -36,7 +37,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
     "$d   = $env:PS_PLUGIN_DIR;" ^
     "$out = $env:PS_OUTPUT_ZIP;" ^
     "$nm  = $env:PS_PLUGIN_NAME;" ^
-    "$exTop = @('.git','.vscode','.claude','images','news','scripts','.githooks','tests','.gitignore','.gitattributes','README.md','INTERNALS.md','pytest.ini','qgisred.pro','resources.qrc');" ^
+    "$exTop = @('.git','.vscode','.claude','news','scripts','.githooks','tests','.gitignore','.gitattributes','README.md','INTERNALS.md','pytest.ini','qgisred.pro','resources.qrc');" ^
     "$exDir = @('__pycache__','.pytest_cache');" ^
     "$exExt = @('.pyc','.pyo','.ts');" ^
     "Add-Type -Assembly System.IO.Compression.FileSystem;" ^
@@ -45,6 +46,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
     "    $rel   = $_.FullName.Substring($d.Length + 1);" ^
     "    $parts = $rel -split '\\';" ^
     "    $skip  = $exTop -contains $parts[0];" ^
+    "    if ($parts[0] -eq 'images' -and $_.Name -ne 'qgisred.svg') { $skip = $true };" ^
     "    for ($i = 0; $i -lt $parts.Length - 1; $i++) {" ^
     "        if ($exDir -contains $parts[$i]) { $skip = $true }" ^
     "    };" ^
