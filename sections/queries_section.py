@@ -216,5 +216,15 @@ class QueriesSection:
         if self.isLayerOnEdition():
             return
 
-        self.statisticsAndPlotsDock = QGISRedStatisticsAndPlotsDock(self.iface)
-        self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.statisticsAndPlotsDock)
+        if getattr(self, 'statisticsAndPlotsDock', None) is None:
+            self.statisticsAndPlotsDock = QGISRedStatisticsAndPlotsDock(self.iface)
+            self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.statisticsAndPlotsDock)
+        else:
+            self.statisticsAndPlotsDock.show()
+            self.statisticsAndPlotsDock.raise_()
+        QGISRedUIUtils.arrangeDockOrder(
+            self.iface.mainWindow(),
+            self.ResultDockwidget,
+            QGISRedElementExplorerDock._instance,
+            getattr(self, 'queriesByPropertiesDock', None)
+        )
