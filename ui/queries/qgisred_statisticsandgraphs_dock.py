@@ -170,3 +170,28 @@ class QGISRedStatisticsAndPlotsDock(QDockWidget, formClass):
             return
         rangedMode = self.cbRanged.currentData(Qt.ItemDataRole.UserRole) or ""
         self.cbClasses.setEnabled(rangedMode == "Auto")
+
+    def onAttributeChanged(self):
+        if self.suspendCascade:
+            return
+        attributeField = self.cbAttribute.currentData(Qt.ItemDataRole.UserRole)
+        self.cbValueRange.clear()
+        self.leFrom.clear()
+        self.leTo.clear()
+        if not attributeField:
+            self.cbValueRange.setEnabled(False)
+            self.leFrom.setEnabled(False)
+            self.leTo.setEnabled(False)
+            return
+        self.cbValueRange.addItem(self.tr("(any)"), "")
+        layer = self.resolveLayer()
+        if layer is not None:
+            for value in self.collectUniqueValues(layer, attributeField, limit=200):
+                self.cbValueRange.addItem(str(value), value)
+        self.cbValueRange.setEnabled(True)
+        if isCategoricalField(attributeField):
+            self.leFrom.setEnabled(False)
+            self.leTo.setEnabled(False)
+        else:
+            self.leFrom.setEnabled(True)
+            self.leTo.setEnabled(True)
