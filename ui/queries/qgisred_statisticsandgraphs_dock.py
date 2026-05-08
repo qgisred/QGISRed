@@ -241,6 +241,84 @@ class QGISRedStatisticsAndPlotsDock(QDockWidget, formClass):
                 return layer
         return None
 
+    def analyze(self):
+        layer = self.resolveLayer()
+        if layer is None:
+            QMessageBox.warning(
+                self,
+                self.tr("No layer"),
+                self.tr("The selected element type has no matching layer in the current project."),
+            )
+            return
+        elementIdentifier = self.cbElementType.currentData(Qt.ItemDataRole.UserRole)
+        propertyField = self.cbProperty.currentData(Qt.ItemDataRole.UserRole)
+        classifyField = self.cbClassifiedBy.currentData(Qt.ItemDataRole.UserRole)
+        if not propertyField or not classifyField:
+            return
+        if layer.fields().indexFromName(propertyField) < 0:
+            QMessageBox.warning(
+                self,
+                self.tr("Field missing"),
+                self.tr("Property field '{0}' was not found on the layer.").format(propertyField),
+            )
+            return
+        if layer.fields().indexFromName(classifyField) < 0:
+            QMessageBox.warning(
+                self,
+                self.tr("Field missing"),
+                self.tr("Classification field '{0}' was not found on the layer.").format(classifyField),
+            )
+            return
+
+        propertyMode = getPropertyMode(propertyField)
+        featureRequest = self.buildFeatureRequest(layer)
+        if featureRequest is False:
+            return
+
+        breaks = self.resolveBreaks(layer, elementIdentifier, classifyField)
+        if breaks is None:
+            return
+        bins = self.initBins(breaks)
+        self.lastNullCount = 0
+        self.lastOutOfRangeCount = 0
+
+        featureIterator = layer.getFeatures(featureRequest) if featureRequest is not None else layer.getFeatures()
+        for feature in featureIterator:
+            classValue = feature[classifyField]
+            propertyValue = feature[propertyField]
+            if classValue is None or propertyValue is None:
+                self.lastNullCount += 1
+                continue
+            binIndex = self.findBinIndex(bins, classValue, breaks["type"])
+            if binIndex is None:
+                self.lastOutOfRangeCount += 1
+                continue
+            self.accumulateValue(bins[binIndex], propertyValue)
+
+        self.finalizeBins(bins)
+
+        prettyProperty = self.fieldUtils.getFieldPrettyName(elementIdentifier, propertyField) or propertyField
+        prettyClassify = self.fieldUtils.getFieldPrettyName(elementIdentifier, classifyField) or classifyField
+        propertyUnit = self.fieldUtils.getFieldUnit(elementIdentifier, propertyField) or ""
+        classifyUnit = self.fieldUtils.getFieldUnit(elementIdentifier, classifyField) or ""
+
+        title = "{} ({} {})".format(prettyProperty, self.tr("by"), prettyClassify)
+        subtitle = self.buildSubtitle(elementIdentifier)
+        xLabel = "{} ({})".format(prettyClassify, classifyUnit) if classifyUnit else prettyClassify
+        if propertyMode in ("cumulative", "intensive"):
+            yLabel = "{} ({})".format(prettyProperty, propertyUnit) if propertyUnit else prettyProperty
+        else:
+            yLabel = self.tr("Count")
+
+        self.histogram.setTitles(title, subtitle)
+        self.histogram.setBins(bins, mode=propertyMode, xLabel=xLabel, yLabelLeft=yLabel)
+
+        self.populateTable(bins, prettyClassify)
+        try:
+            self.mGroupBox.setCollapsed(False)
+        except Exception:
+            pass
+
     def buildFeatureRequest(self, layer):
         request = QgsFeatureRequest()
         applied = False
@@ -435,3 +513,38 @@ class QGISRedStatisticsAndPlotsDock(QDockWidget, formClass):
                 binData["stddev"] = 0.0
                 binData["min"] = None
                 binData["max"] = None
+
+    def buildSubtitle(self, elementIdentifier):
+        parts = []
+        attributeField = self.cbAttribute.currentData(Qt.ItemDataRole.UserRole)
+        if attributeField:
+            prettyAttribute = self.fieldUtils.getFieldPrettyName(elementIdentifier, attributeField) or attributeField
+            valueData = self.cbValueRange.currentData(Qt.ItemDataRole.UserRole)
+            valueText = self.cbValueRange.currentText()
+            if valueData not in (None, ""):
+                parts.append("{} = {}".format(prettyAttribute, valueData))
+            elif valueText and valueText != self.tr("(any)"):
+                parts.append("{} = {}".format(prettyAttribute, valueText))
+            fromText = self.leFrom.text().strip() if self.leFrom.isEnabled() else ""
+            toText = self.leTo.text().strip() if self.leTo.isEnabled() else ""
+            if fromText or toText:
+                parts.append("{} {} - {}".format(prettyAttribute, fromText or "…", toText or "…"))
+        if self.cbSelectedElements.isChecked():
+            parts.append(self.tr("Only selected elements"))
+        notes = []
+        if self.lastNullCount:
+            notes.append(self.tr("{0} nulls excluded").format(self.lastNullCount))
+        if self.lastOutOfRangeCount:
+            notes.append(self.tr("{0} out-of-range excluded").format(self.lastOutOfRangeCount))
+        if notes:
+            parts.append("(" + "; ".join(notes) + ")")
+        return "; ".join(parts)
+
+    def formatNumber(self, value):
+        try:
+            numericValue = float(value)
+        except (TypeError, ValueError):
+            return str(value)
+        if numericValue == int(numericValue) and abs(numericValue) < 1e9:
+            return str(int(numericValue))
+        return "{:g}".format(numericValue)
