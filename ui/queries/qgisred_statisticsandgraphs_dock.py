@@ -548,3 +548,70 @@ class QGISRedStatisticsAndPlotsDock(QDockWidget, formClass):
         if numericValue == int(numericValue) and abs(numericValue) < 1e9:
             return str(int(numericValue))
         return "{:g}".format(numericValue)
+
+    def populateTable(self, bins, prettyClassify):
+        headers = [
+            prettyClassify,
+            self.tr("Count"),
+            self.tr("Sum"),
+            self.tr("Avg"),
+            self.tr("Min"),
+            self.tr("Max"),
+            self.tr("StdDev"),
+        ]
+        self.tbExcel.setColumnCount(len(headers))
+        self.tbExcel.setHorizontalHeaderLabels(headers)
+        self.tbExcel.setRowCount(len(bins) + 1)
+
+        totalCount = 0
+        totalSum = 0.0
+        totalSumOfSquares = 0.0
+        totalMin = None
+        totalMax = None
+
+        for rowIndex, binData in enumerate(bins):
+            self.setTableItem(rowIndex, 0, binData.get("label", ""))
+            self.setTableItem(rowIndex, 1, str(binData["count"]))
+            self.setTableItem(rowIndex, 2, self.formatNumber(binData["sum"]))
+            self.setTableItem(rowIndex, 3, self.formatNumber(binData["avg"]) if binData["count"] else "")
+            self.setTableItem(rowIndex, 4, self.formatNumber(binData["min"]) if binData["min"] is not None else "")
+            self.setTableItem(rowIndex, 5, self.formatNumber(binData["max"]) if binData["max"] is not None else "")
+            self.setTableItem(rowIndex, 6, self.formatNumber(binData["stddev"]) if binData["count"] > 1 else "")
+            totalCount += binData["count"]
+            totalSum += binData["sum"]
+            totalSumOfSquares += binData["sumOfSquares"]
+            if binData["min"] is not None and (totalMin is None or binData["min"] < totalMin):
+                totalMin = binData["min"]
+            if binData["max"] is not None and (totalMax is None or binData["max"] > totalMax):
+                totalMax = binData["max"]
+
+        totalAvg = totalSum / totalCount if totalCount else 0.0
+        totalStdDev = 0.0
+        if totalCount > 1:
+            variance = max(0.0, (totalSumOfSquares - totalCount * totalAvg * totalAvg) / (totalCount - 1))
+            totalStdDev = math.sqrt(variance)
+
+        totalRow = len(bins)
+        self.setTableItem(totalRow, 0, self.tr("Total"), bold=True)
+        self.setTableItem(totalRow, 1, str(totalCount), bold=True)
+        self.setTableItem(totalRow, 2, self.formatNumber(totalSum), bold=True)
+        self.setTableItem(totalRow, 3, self.formatNumber(totalAvg) if totalCount else "", bold=True)
+        self.setTableItem(totalRow, 4, self.formatNumber(totalMin) if totalMin is not None else "", bold=True)
+        self.setTableItem(totalRow, 5, self.formatNumber(totalMax) if totalMax is not None else "", bold=True)
+        self.setTableItem(totalRow, 6, self.formatNumber(totalStdDev) if totalCount > 1 else "", bold=True)
+
+        header = self.tbExcel.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        for column in range(1, self.tbExcel.columnCount()):
+            header.setSectionResizeMode(column, QHeaderView.ResizeMode.ResizeToContents)
+        header.setStretchLastSection(False)
+        self.tbExcel.verticalHeader().setVisible(False)
+
+    def setTableItem(self, row, column, text, bold=False):
+        item = QTableWidgetItem(text)
+        if bold:
+            font = item.font()
+            font.setBold(True)
+            item.setFont(font)
+            item.setBackground(QBrush(QColor(255, 248, 220)))
+        self.tbExcel.setItem(row, column, item)
