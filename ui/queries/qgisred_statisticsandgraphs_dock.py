@@ -195,3 +195,48 @@ class QGISRedStatisticsAndPlotsDock(QDockWidget, formClass):
         else:
             self.leFrom.setEnabled(True)
             self.leTo.setEnabled(True)
+
+    def populateFieldCombo(self, combo, elementIdentifier, fieldNames):
+        combo.clear()
+        for fieldName in fieldNames:
+            combo.addItem(self.fieldDisplayLabel(elementIdentifier, fieldName), fieldName)
+
+    def populateAttributeCombo(self, elementIdentifier):
+        meta = ELEMENT_PROPERTIES.get(elementIdentifier, {})
+        attributeFields = list(dict.fromkeys((meta.get("properties") or []) + (meta.get("classifyBy") or [])))
+        self.cbAttribute.clear()
+        self.cbAttribute.addItem(self.tr("(no filter)"), "")
+        for fieldName in attributeFields:
+            self.cbAttribute.addItem(self.fieldDisplayLabel(elementIdentifier, fieldName), fieldName)
+
+    def fieldDisplayLabel(self, elementIdentifier, fieldName):
+        prettyName = self.fieldUtils.getFieldPrettyName(elementIdentifier, fieldName) or fieldName
+        unit = self.fieldUtils.getFieldUnit(elementIdentifier, fieldName) or ""
+        if unit:
+            return "{} ({})".format(prettyName, unit)
+        return prettyName
+
+    def collectUniqueValues(self, layer, fieldName, limit=200):
+        if layer.fields().indexFromName(fieldName) < 0:
+            return []
+        values = set()
+        for feature in layer.getFeatures():
+            value = feature[fieldName]
+            if value is None:
+                continue
+            values.add(value)
+            if len(values) >= limit:
+                break
+        try:
+            return sorted(values)
+        except TypeError:
+            return sorted(values, key=lambda item: str(item))
+
+    def resolveLayer(self):
+        elementIdentifier = self.cbElementType.currentData(Qt.ItemDataRole.UserRole)
+        if not elementIdentifier:
+            return None
+        for layer in QgsProject.instance().mapLayers().values():
+            if layer.customProperty("qgisred_identifier") == elementIdentifier:
+                return layer
+        return None
