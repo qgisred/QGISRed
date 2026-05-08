@@ -4522,6 +4522,156 @@ Left-click: Add a new item below the current selection</source>
         <source>Zoom window</source>
         <translation>Zoom par fenêtre</translation>
     </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="989"/>
+        <source>Export chart as image</source>
+        <translation>Exporter le graphique comme image</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1070"/>
+        <source>Time evolution curves</source>
+        <translation>Courbes d'évolution temporelle</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="999"/>
+        <source>Export chart points to CSV</source>
+        <translation>Exporter les points du graphique en CSV</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1091"/>
+        <source>No curves to export</source>
+        <translation>Aucune courbe à exporter</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1095"/>
+        <source>PNG image (*.png)</source>
+        <translation>Image PNG (*.png)</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1096"/>
+        <source>JPEG image (*.jpg *.jpeg)</source>
+        <translation>Image JPEG (*.jpg *.jpeg)</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1097"/>
+        <source>BMP image (*.bmp)</source>
+        <translation>Image BMP (*.bmp)</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1098"/>
+        <source>TIFF image (*.tif *.tiff)</source>
+        <translation>Image TIFF (*.tif *.tiff)</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1101"/>
+        <source>SVG image (*.svg)</source>
+        <translation>Image SVG (*.svg)</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1116"/>
+        <source>SVG export is not available</source>
+        <translation>L'export SVG n'est pas disponible</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1133"/>
+        <source>The chart image could not be exported</source>
+        <translation>L'image du graphique n'a pas pu être exportée</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1136"/>
+        <source>Chart image exported</source>
+        <translation>Image du graphique exportée</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1194"/>
+        <source>CSV file (*.csv)</source>
+        <translation>Fichier CSV (*.csv)</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1225"/>
+        <source>No chart points to export</source>
+        <translation>Aucun point du graphique à exporter</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1241"/>
+        <source>The CSV file could not be exported</source>
+        <translation>Le fichier CSV n'a pas pu être exporté</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1244"/>
+        <source>Chart points exported to CSV</source>
+        <translation>Points du graphique exportés en CSV</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1155"/>
+        <source>Node</source>
+        <translation>Noeud</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1149"/>
+        <source>Junction</source>
+        <translation>Jonction</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1150"/>
+        <source>Tank</source>
+        <translation>Réservoir</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1151"/>
+        <source>Reservoir</source>
+        <translation>Source</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1152"/>
+        <source>Pipe</source>
+        <translation>Conduite</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1153"/>
+        <source>Valve</source>
+        <translation>Vanne</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1154"/>
+        <source>Pump</source>
+        <translation>Pompe</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1156"/>
+        <source>Link</source>
+        <translation>Lien</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1232"/>
+        <source>Id</source>
+        <translation>Id</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1233"/>
+        <source>Type</source>
+        <translation>Type</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1234"/>
+        <source>Series</source>
+        <translation>Série</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1235"/>
+        <source>Magnitude</source>
+        <translation>Grandeur</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1236"/>
+        <source>Time (h)</source>
+        <translation>Temps (h)</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1237"/>
+        <source>Value</source>
+        <translation>Valeur</translation>
+    </message>
 </context>
 <context>
     <name>TimeSeriesAxisOptionsDialog</name>

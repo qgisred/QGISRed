@@ -1,21 +1,29 @@
 # -*- coding: utf-8 -*-
+import csv
 import math
 import os
 from typing import List
-from qgis.PyQt.QtWidgets import QDockWidget, QVBoxLayout, QWidget, QHBoxLayout, QToolButton, QRubberBand
-from qgis.PyQt.QtCore import QCoreApplication, QEvent, Qt, QPointF, QRectF, pyqtSignal, QSize
-from qgis.PyQt.QtGui import QColor, QPainter, QFontMetrics, QIcon
+from qgis.PyQt.QtWidgets import QDockWidget, QVBoxLayout, QWidget, QHBoxLayout, QToolButton, QRubberBand, QFileDialog
+from qgis.PyQt.QtCore import QCoreApplication, QEvent, Qt, QPointF, QRect, QRectF, pyqtSignal, QSize
+from qgis.PyQt.QtGui import QColor, QPainter, QFontMetrics, QIcon, QPixmap
 from qgis.PyQt import uic
 from qgis.core import QgsApplication
 
 from ...compat import DIALOG_ACCEPTED
+from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 
 from .qgisred_timeseries_axis_dialog import TimeSeriesAxisOptionsDialog
+from .qgisred_results_data import get_regional_separators
 from .timeseries_axis_settings import default_axis_settings, default_general_settings
 from .timeseries_plot_layout import PlotLayoutCalculator
 from .timeseries_legend_interaction import LegendInteractionController
 from .timeseries_plot_renderer import TimeSeriesPlotRenderer
 from .timeseries_plot_style import DEFAULT_SERIES_COLOR, LEGEND_ICON_SIZE, LEGEND_ROW_GAP, qfont
+
+try:
+    from qgis.PyQt.QtSvg import QSvgGenerator
+except Exception:
+    QSvgGenerator = None
 
 try:
     _LEGEND_ROW_GAP = int(LEGEND_ROW_GAP)
@@ -975,8 +983,25 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self.btnAxes = _make_btn("btnAxesTimeSeries", "mActionOptions.svg", self.tr("Axis options…"))
             self.btnAxes.clicked.connect(self._onAxisOptionsClicked)
             hl.addWidget(self.btnAxes, 0, Qt.AlignmentFlag.AlignLeft)
-            hl.addWidget(self.btnClearAll, 0, Qt.AlignmentFlag.AlignRight)
 
+            self.btnExportImage = _make_btn("btnExportImageTimeSeries", "mActionSaveMapAsImage.svg", self.tr("Export chart as image"))
+            self.btnExportImage.clicked.connect(self._onExportImageClicked)
+            hl.addWidget(self.btnExportImage, 0, Qt.AlignmentFlag.AlignLeft)
+
+            self.btnExportCsv = QToolButton(container)
+            self.btnExportCsv.setObjectName("btnExportCsvTimeSeries")
+            csv_icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "images", "iconExportResultsToCsv.svg"))
+            self.btnExportCsv.setIcon(QIcon(csv_icon_path))
+            self.btnExportCsv.setToolTip(self.tr("Export chart points to CSV"))
+            self.btnExportCsv.setAutoRaise(True)
+            self.btnExportCsv.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
+            self.btnExportCsv.setIconSize(QSize(16, 16))
+            self.btnExportCsv.setFixedSize(QSize(22, 22))
+            self.btnExportCsv.setStyleSheet(btn_style)
+            self.btnExportCsv.clicked.connect(self._onExportCsvClicked)
+            hl.addWidget(self.btnExportCsv, 0, Qt.AlignmentFlag.AlignLeft)
+
+            hl.addWidget(self.btnClearAll, 0, Qt.AlignmentFlag.AlignLeft)
             hl.addStretch(1)
 
             try:
@@ -1026,6 +1051,196 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 self.plot.setZoomWindowMode(False)
         self._updateClearToolbarVisibility()
         self._updatePanAvailability()
+
+    def _showMessage(self, text: str, level: int = 0, duration: int = 5) -> None:
+        QGISRedUIUtils.showGlobalMessage(self.iface, text, level=level, duration=duration)
+
+    def _safeExportBaseName(self) -> str:
+        title = (getattr(self.plot, "title", "") or "").strip()
+        if not title:
+            title = self.tr("Time evolution curves")
+        safe = []
+        for ch in title:
+            if ch.isalnum() or ch in ("-", "_"):
+                safe.append(ch)
+            elif ch.isspace():
+                safe.append("_")
+        name = "".join(safe).strip("_")
+        return name or "time_series"
+
+    def _selectedFilterExtension(self, selected_filter: str) -> str:
+        if ".svg" in selected_filter:
+            return ".svg"
+        if ".jpg" in selected_filter or ".jpeg" in selected_filter:
+            return ".jpg"
+        if ".bmp" in selected_filter:
+            return ".bmp"
+        if ".tif" in selected_filter or ".tiff" in selected_filter:
+            return ".tif"
+        return ".png"
+
+    def _pathWithExtension(self, path: str, selected_filter: str) -> str:
+        root, ext = os.path.splitext(path)
+        if ext:
+            return path
+        return path + self._selectedFilterExtension(selected_filter)
+
+    def _onExportImageClicked(self) -> None:
+        if not self._plotHasCurves():
+            self._showMessage(self.tr("No curves to export"), level=1)
+            return
+
+        filters = [
+            self.tr("PNG image (*.png)"),
+            self.tr("JPEG image (*.jpg *.jpeg)"),
+            self.tr("BMP image (*.bmp)"),
+            self.tr("TIFF image (*.tif *.tiff)"),
+        ]
+        if QSvgGenerator is not None:
+            filters.append(self.tr("SVG image (*.svg)"))
+
+        default_path = os.path.join(os.path.expanduser("~"), self._safeExportBaseName() + ".png")
+        path, selected_filter = QFileDialog.getSaveFileName(
+            self,
+            self.tr("Export chart as image"),
+            default_path,
+            ";;".join(filters),
+        )
+        if not path:
+            return
+        path = self._pathWithExtension(path, selected_filter)
+
+        if path.lower().endswith(".svg"):
+            if QSvgGenerator is None:
+                self._showMessage(self.tr("SVG export is not available"), level=1)
+                return
+            generator = QSvgGenerator()
+            generator.setFileName(path)
+            generator.setSize(self.plot.size())
+            generator.setViewBox(QRect(0, 0, self.plot.width(), self.plot.height()))
+            generator.setTitle((getattr(self.plot, "title", "") or self.tr("Time evolution curves")).strip())
+            painter = QPainter(generator)
+            self.plot.render(painter)
+            painter.end()
+        else:
+            pixmap = QPixmap(self.plot.size())
+            pixmap.fill(Qt.GlobalColor.white)
+            painter = QPainter(pixmap)
+            self.plot.render(painter)
+            painter.end()
+            if not pixmap.save(path):
+                self._showMessage(self.tr("The chart image could not be exported"), level=2)
+                return
+
+        self._showMessage(self.tr("Chart image exported"), level=3)
+
+    def _seriesElementInfo(self, series_dict):
+        series_key = str(series_dict.get("series_key") or "")
+        parts = series_key.split(":")
+        if len(parts) >= 4:
+            category = parts[0]
+            element_id = parts[3]
+        else:
+            category = str(series_dict.get("legend_type") or "")
+            element_id = str(series_dict.get("label") or "")
+
+        type_mapping = {
+            "qgisred_junctions": self.tr("Junction"),
+            "qgisred_tanks": self.tr("Tank"),
+            "qgisred_reservoirs": self.tr("Reservoir"),
+            "qgisred_pipes": self.tr("Pipe"),
+            "qgisred_valves": self.tr("Valve"),
+            "qgisred_pumps": self.tr("Pump"),
+            "Node": self.tr("Node"),
+            "Link": self.tr("Link"),
+        }
+        legend_type = str(series_dict.get("legend_type") or category)
+        return element_id, type_mapping.get(legend_type, type_mapping.get(category, legend_type))
+
+    def _formatCsvValue(self, value, decimal_sep: str) -> str:
+        if value is None:
+            return ""
+        try:
+            f = float(value)
+            if not math.isfinite(f):
+                return ""
+            text = format(f, ".12g")
+        except Exception:
+            text = str(value)
+        if decimal_sep != ".":
+            text = text.replace(".", decimal_sep)
+        return text
+
+    def _seriesDisplayValue(self, series_dict, value) -> object:
+        labels = series_dict.get("y_categorical_labels")
+        if labels:
+            try:
+                return labels[int(round(float(value)))]
+            except Exception:
+                return value
+        return value
+
+    def _onExportCsvClicked(self) -> None:
+        if not self._plotHasCurves():
+            self._showMessage(self.tr("No curves to export"), level=1)
+            return
+
+        default_path = os.path.join(os.path.expanduser("~"), self._safeExportBaseName() + ".csv")
+        path, _selected_filter = QFileDialog.getSaveFileName(
+            self,
+            self.tr("Export chart points to CSV"),
+            default_path,
+            self.tr("CSV file (*.csv)"),
+        )
+        if not path:
+            return
+        if not path.lower().endswith(".csv"):
+            path += ".csv"
+
+        list_sep, decimal_sep = get_regional_separators()
+        rows = []
+        for s in self.plot.series or []:
+            if not bool(s.get("visible", True)):
+                continue
+            xs = s.get("x", []) or []
+            ys = s.get("y", []) or []
+            n = min(len(xs), len(ys))
+            if n <= 0:
+                continue
+            element_id, element_type = self._seriesElementInfo(s)
+            magnitude = (s.get("magnitude") or self.plot.y_label or "").strip()
+            series_label = (s.get("label") or "").strip()
+            for i in range(n):
+                rows.append([
+                    element_id,
+                    element_type,
+                    series_label,
+                    magnitude,
+                    self._formatCsvValue(xs[i], decimal_sep),
+                    self._formatCsvValue(self._seriesDisplayValue(s, ys[i]), decimal_sep),
+                ])
+
+        if not rows:
+            self._showMessage(self.tr("No chart points to export"), level=1)
+            return
+
+        try:
+            with open(path, "w", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f, delimiter=list_sep)
+                writer.writerow([
+                    self.tr("Id"),
+                    self.tr("Type"),
+                    self.tr("Series"),
+                    self.tr("Magnitude"),
+                    self.tr("Time (h)"),
+                    self.tr("Value"),
+                ])
+                writer.writerows(rows)
+        except Exception:
+            self._showMessage(self.tr("The CSV file could not be exported"), level=2)
+            return
+
+        self._showMessage(self.tr("Chart points exported to CSV"), level=3)
 
     def _emitCurveSettingsChanged(self) -> None:
         settings = []
@@ -1102,6 +1317,10 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                     btn.setEnabled(bool(has_curves and auto_scale_x and is_zoomed))
                 else:
                     btn.setEnabled(bool(has_curves and auto_scale_x))
+        for btn_name in ("btnExportImage", "btnExportCsv"):
+            btn = getattr(self, btn_name, None)
+            if btn is not None:
+                btn.setEnabled(bool(has_curves))
 
     def _onPlotViewChanged(self) -> None:
         self._updateClearToolbarVisibility()
