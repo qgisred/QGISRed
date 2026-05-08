@@ -118,6 +118,11 @@ class TimeSeriesPlotWidget(QWidget):
             "visible": True,
             "line_style": "solid",
             "line_width": 2.0,
+            "show_markers": False,
+            "marker_symbol": "circle",
+            "marker_size": 6,
+            "marker_color": DEFAULT_SERIES_COLOR,
+            "show_point_values": False,
             "legend_font_family": "",
             "legend_font_size": 8,
             "series_key": series_label or "",
@@ -144,6 +149,16 @@ class TimeSeriesPlotWidget(QWidget):
                 s["line_style"] = "solid"
             if "line_width" not in s:
                 s["line_width"] = 2.0
+            if "show_markers" not in s:
+                s["show_markers"] = False
+            if "marker_symbol" not in s:
+                s["marker_symbol"] = "circle"
+            if "marker_size" not in s:
+                s["marker_size"] = 6
+            if "marker_color" not in s:
+                s["marker_color"] = s.get("color") or DEFAULT_SERIES_COLOR
+            if "show_point_values" not in s:
+                s["show_point_values"] = False
             if "legend_font_family" not in s:
                 s["legend_font_family"] = ""
             if "legend_font_size" not in s:
@@ -1024,6 +1039,11 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 "color": s.get("color"),
                 "line_style": s.get("line_style") or "solid",
                 "line_width": s.get("line_width") or 2.0,
+                "show_markers": bool(s.get("show_markers", False)),
+                "marker_symbol": s.get("marker_symbol") or "circle",
+                "marker_size": s.get("marker_size") or 6,
+                "marker_color": s.get("marker_color") or s.get("color"),
+                "show_point_values": bool(s.get("show_point_values", False)),
                 "visible": bool(s.get("visible", True)),
                 "muted": bool(s.get("muted", False)),
                 "highlighted": bool(s.get("highlighted", False)),

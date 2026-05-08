@@ -219,6 +219,46 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             sp_width.setSingleStep(0.5)
             sp_width.setValue(max(0.5, min(float(curve.get("line_width") or 2.0), 12.0)))
 
+            chk_markers = QCheckBox(self.tr("Show step point markers"))
+            chk_markers.setChecked(bool(curve.get("show_markers", False)))
+
+            cb_marker_symbol = QComboBox()
+            cb_marker_symbol.addItem(self.tr("Circle"), "circle")
+            cb_marker_symbol.addItem(self.tr("Square"), "square")
+            cb_marker_symbol.addItem(self.tr("Triangle"), "triangle")
+            cb_marker_symbol.addItem(self.tr("Diamond"), "diamond")
+            cb_marker_symbol.addItem(self.tr("Cross"), "cross")
+            cur_marker_symbol = (curve.get("marker_symbol") or "circle").strip()
+            idx_marker_symbol = cb_marker_symbol.findData(cur_marker_symbol)
+            cb_marker_symbol.setCurrentIndex(idx_marker_symbol if idx_marker_symbol >= 0 else 0)
+
+            sp_marker_size = QSpinBox()
+            sp_marker_size.setRange(2, 24)
+            sp_marker_size.setValue(max(2, min(int(curve.get("marker_size") or 6), 24)))
+
+            marker_color_raw = curve.get("marker_color") or curve.get("color") or "#0078d7"
+            picked_marker = QColor(marker_color_raw)
+            if not picked_marker.isValid():
+                picked_marker = QColor("#0078d7")
+            btn_marker_color = QPushButton()
+
+            def refresh_marker_color_button(btn=btn_marker_color, color=picked_marker):
+                btn.setText(color.name(QColor.NameFormat.HexRgb))
+
+            refresh_marker_color_button()
+
+            def pick_marker_color(_checked=False, btn=btn_marker_color, row_idx=idx):
+                current = w._curve_rows[row_idx]["marker_color"]
+                nc = QColorDialog.getColor(current, self, self.tr("Marker color"))
+                if nc.isValid():
+                    w._curve_rows[row_idx]["marker_color"] = nc
+                    btn.setText(nc.name(QColor.NameFormat.HexRgb))
+
+            btn_marker_color.clicked.connect(pick_marker_color)
+
+            chk_point_values = QCheckBox(self.tr("Show step point values as text"))
+            chk_point_values.setChecked(bool(curve.get("show_point_values", False)))
+
             chk_visible = QCheckBox(self.tr("Visible"))
             chk_visible.setChecked(bool(curve.get("visible", True)))
             chk_muted = QCheckBox(self.tr("Dimmed"))
@@ -239,12 +279,26 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             chk_highlighted.toggled.connect(lambda _checked, row_idx=idx: sync_emphasis(row_idx))
             chk_muted.toggled.connect(lambda _checked, row_idx=idx: sync_muted(row_idx))
 
+            def sync_marker_options(row_idx=idx):
+                row = w._curve_rows[row_idx]
+                enabled = bool(row["show_markers"].isChecked())
+                row["marker_symbol"].setEnabled(enabled)
+                row["marker_size"].setEnabled(enabled)
+                row["marker_color_btn"].setEnabled(enabled)
+
+            chk_markers.toggled.connect(lambda _checked, row_idx=idx: sync_marker_options(row_idx))
+
             self._add_form_row(form, self.tr("Legend name:"), ed_label)
             self._add_form_row(form, self.tr("Legend font:"), font_combo)
             self._add_form_row(form, self.tr("Legend font size:"), sp_font_size)
             self._add_form_row(form, self.tr("Color:"), btn_color)
             self._add_form_row(form, self.tr("Line style:"), cb_style)
             self._add_form_row(form, self.tr("Line width:"), sp_width)
+            form.addRow("", chk_markers)
+            self._add_form_row(form, self.tr("Marker symbol:"), cb_marker_symbol)
+            self._add_form_row(form, self.tr("Marker size:"), sp_marker_size)
+            self._add_form_row(form, self.tr("Marker color:"), btn_marker_color)
+            form.addRow("", chk_point_values)
             form.addRow("", chk_visible)
             form.addRow("", chk_muted)
             form.addRow("", chk_highlighted)
@@ -257,10 +311,17 @@ class TimeSeriesAxisOptionsDialog(QDialog):
                 "color": picked,
                 "style": cb_style,
                 "width": sp_width,
+                "show_markers": chk_markers,
+                "marker_symbol": cb_marker_symbol,
+                "marker_size": sp_marker_size,
+                "marker_color": picked_marker,
+                "marker_color_btn": btn_marker_color,
+                "show_point_values": chk_point_values,
                 "visible": chk_visible,
                 "muted": chk_muted,
                 "highlighted": chk_highlighted,
             })
+            sync_marker_options(idx)
 
         inner_lay.addStretch(1)
         scroll.setWidget(inner)
@@ -700,6 +761,14 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             except Exception:
                 s["line_style"] = "solid"
             s["line_width"] = float(row["width"].value())
+            s["show_markers"] = bool(row["show_markers"].isChecked())
+            try:
+                s["marker_symbol"] = str(row["marker_symbol"].currentData() or "circle")
+            except Exception:
+                s["marker_symbol"] = "circle"
+            s["marker_size"] = int(row["marker_size"].value())
+            s["marker_color"] = row["marker_color"].name(QColor.NameFormat.HexRgb)
+            s["show_point_values"] = bool(row["show_point_values"].isChecked())
             s["visible"] = bool(row["visible"].isChecked())
             s["muted"] = bool(row["muted"].isChecked())
             s["highlighted"] = bool(row["highlighted"].isChecked())

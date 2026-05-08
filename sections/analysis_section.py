@@ -908,6 +908,11 @@ class AnalysisSection:
                 "magnitude": y_label_with_unit or prop_display,
                 "line_style": it.get("line_style") or "solid",
                 "line_width": it.get("line_width") or 2.0,
+                "show_markers": bool(it.get("show_markers", False)),
+                "marker_symbol": it.get("marker_symbol") or "circle",
+                "marker_size": it.get("marker_size") or 6,
+                "marker_color": it.get("marker_color") or it.get("color") or QColor(0, 120, 215),
+                "show_point_values": bool(it.get("show_point_values", False)),
                 "visible": bool(it.get("visible", True)),
                 "muted": bool(it.get("muted", False)),
                 "highlighted": bool(it.get("highlighted", False)),
@@ -980,6 +985,14 @@ class AnalysisSection:
                     it["color"] = qc
                 it["line_style"] = (cfg or {}).get("line_style") or "solid"
                 it["line_width"] = (cfg or {}).get("line_width") or 2.0
+                it["show_markers"] = bool((cfg or {}).get("show_markers", False))
+                it["marker_symbol"] = (cfg or {}).get("marker_symbol") or "circle"
+                it["marker_size"] = (cfg or {}).get("marker_size") or 6
+                marker_color = (cfg or {}).get("marker_color")
+                marker_qc = QColor(marker_color)
+                if marker_qc.isValid():
+                    it["marker_color"] = marker_qc
+                it["show_point_values"] = bool((cfg or {}).get("show_point_values", False))
                 it["visible"] = bool((cfg or {}).get("visible", True))
                 it["muted"] = bool((cfg or {}).get("muted", False))
                 it["highlighted"] = bool((cfg or {}).get("highlighted", False))

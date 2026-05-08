@@ -4867,6 +4867,61 @@ Left-click: Add a new item below the current selection</source>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="222"/>
+        <source>Show step point markers</source>
+        <translation>Afficher les points de pas comme marqueurs</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="226"/>
+        <source>Circle</source>
+        <translation>Cercle</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="227"/>
+        <source>Square</source>
+        <translation>Carré</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="228"/>
+        <source>Triangle</source>
+        <translation>Triangle</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="229"/>
+        <source>Diamond</source>
+        <translation>Losange</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="230"/>
+        <source>Cross</source>
+        <translation>Croix</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="250"/>
+        <source>Marker color</source>
+        <translation>Couleur du marqueur</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="260"/>
+        <source>Show step point values as text</source>
+        <translation>Afficher les valeurs des points de pas comme texte</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="299"/>
+        <source>Marker symbol:</source>
+        <translation>Symbole du marqueur :</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="300"/>
+        <source>Marker size:</source>
+        <translation>Taille du marqueur :</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="301"/>
+        <source>Marker color:</source>
+        <translation>Couleur du marqueur :</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="222"/>
         <source>Visible</source>
         <translation>Visible</translation>
     </message>

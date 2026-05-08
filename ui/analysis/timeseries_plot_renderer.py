@@ -180,6 +180,54 @@ class TimeSeriesPlotRenderer:
             return Qt.PenStyle.DashDotLine
         return Qt.PenStyle.SolidLine
 
+    def _series_qcolor(self, color, fallback=DEFAULT_SERIES_COLOR) -> QColor:
+        c = QColor(color or fallback)
+        if not c.isValid():
+            c = QColor(fallback)
+        return c
+
+    def _marker_symbol(self, symbol: str) -> str:
+        t = (symbol or "circle").strip().lower()
+        if t in ("circle", "square", "triangle", "diamond", "cross"):
+            return t
+        return "circle"
+
+    def _point_value_text(self, s, value) -> str:
+        series_y_labels = s.get("y_categorical_labels")
+        if series_y_labels:
+            try:
+                return str(series_y_labels[int(round(value))])
+            except Exception:
+                return str(value)
+        return self._format_value_full(value)
+
+    def _draw_point_marker(self, painter: QPainter, pt: QPointF, size: float, symbol: str, color: QColor) -> None:
+        r = max(1.0, float(size) / 2.0)
+        painter.setPen(QPen(color, 1.2))
+        painter.setBrush(color)
+        t = self._marker_symbol(symbol)
+        if t == "square":
+            painter.drawRect(QRectF(pt.x() - r, pt.y() - r, 2 * r, 2 * r))
+        elif t == "triangle":
+            painter.drawPolygon(QPolygonF([
+                QPointF(pt.x(), pt.y() - r),
+                QPointF(pt.x() + r, pt.y() + r),
+                QPointF(pt.x() - r, pt.y() + r),
+            ]))
+        elif t == "diamond":
+            painter.drawPolygon(QPolygonF([
+                QPointF(pt.x(), pt.y() - r),
+                QPointF(pt.x() + r, pt.y()),
+                QPointF(pt.x(), pt.y() + r),
+                QPointF(pt.x() - r, pt.y()),
+            ]))
+        elif t == "cross":
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.drawLine(QPointF(pt.x() - r, pt.y() - r), QPointF(pt.x() + r, pt.y() + r))
+            painter.drawLine(QPointF(pt.x() - r, pt.y() + r), QPointF(pt.x() + r, pt.y() - r))
+        else:
+            painter.drawEllipse(pt, r, r)
+
     def _legend_row_font(self, s, *, bold: bool = False) -> QFont:
         try:
             size = max(6, min(int(s.get("legend_font_size") or 8), 32))
@@ -589,7 +637,7 @@ class TimeSeriesPlotRenderer:
             )
 
     def _draw_series_curves(self, widget, painter, plot_rect, x_state, y_state_left, y_state_right=None):
-        if not any(len((s.get("x") or [])) > 1 for s in widget.series):
+        if not any((s.get("x") or []) and (s.get("y") or []) for s in widget.series):
             return
 
         painter.save()
@@ -600,14 +648,15 @@ class TimeSeriesPlotRenderer:
                 continue
             xs = s.get("x", []) or []
             ys = s.get("y", []) or []
-            if not xs or not ys or len(xs) < 2:
+            n = min(len(xs), len(ys))
+            if n <= 0:
                 continue
 
             color = s.get("color") or DEFAULT_SERIES_COLOR
             is_stepped = bool(s.get("is_stepped", False))
             muted = bool(s.get("muted", False))
             highlighted = bool(s.get("highlighted", False))
-            draw_color = QColor(color)
+            draw_color = self._series_qcolor(color)
             try:
                 width = max(0.5, min(float(s.get("line_width") or 2.0), 12.0))
             except Exception:
@@ -619,23 +668,52 @@ class TimeSeriesPlotRenderer:
                 draw_color.setAlpha(255)
                 width = min(width + 1.0, 14.0)
 
-            painter.setPen(QPen(draw_color, width, self._line_pen_style(s.get("line_style") or "solid")))
-            path = QPainterPath()
-
             axis = (s.get("y_axis") or "left")
             y_state = y_state_right if (axis == "right" and y_state_right is not None) else y_state_left
-            start_pt = self._to_screen(xs[0], ys[0], plot_rect, x_state, y_state)
-            path.moveTo(start_pt)
-            for i in range(1, len(xs)):
-                next_pt = self._to_screen(xs[i], ys[i], plot_rect, x_state, y_state)
-                if is_stepped:
-                    path.lineTo(next_pt.x(), start_pt.y())
-                    path.lineTo(next_pt)
-                else:
-                    path.lineTo(next_pt)
-                start_pt = next_pt
+            points = [self._to_screen(xs[i], ys[i], plot_rect, x_state, y_state) for i in range(n)]
 
-            painter.drawPath(path)
+            if n > 1:
+                painter.setPen(QPen(draw_color, width, self._line_pen_style(s.get("line_style") or "solid")))
+                path = QPainterPath()
+                start_pt = points[0]
+                path.moveTo(start_pt)
+                for i in range(1, n):
+                    next_pt = points[i]
+                    if is_stepped:
+                        path.lineTo(next_pt.x(), start_pt.y())
+                        path.lineTo(next_pt)
+                    else:
+                        path.lineTo(next_pt)
+                    start_pt = next_pt
+
+                painter.drawPath(path)
+
+            marker_color = self._series_qcolor(s.get("marker_color") or color, color)
+            if muted:
+                marker_color.setAlpha(70)
+            elif highlighted:
+                marker_color.setAlpha(255)
+            try:
+                marker_size = max(2.0, min(float(s.get("marker_size") or 6), 24.0))
+            except Exception:
+                marker_size = 6.0
+            if highlighted:
+                marker_size = min(marker_size + 1.0, 26.0)
+
+            if bool(s.get("show_markers", False)):
+                for pt in points:
+                    self._draw_point_marker(painter, pt, marker_size, s.get("marker_symbol") or "circle", marker_color)
+
+            if bool(s.get("show_point_values", False)):
+                font_lbl = qfont(8, bold=highlighted)
+                painter.setFont(font_lbl)
+                fm = QFontMetrics(font_lbl)
+                painter.setPen(marker_color)
+                x_off = marker_size / 2.0 + 3.0
+                y_off = -marker_size / 2.0 - 2.0
+                for i, pt in enumerate(points):
+                    text = self._point_value_text(s, ys[i])
+                    painter.drawText(QPointF(pt.x() + x_off, pt.y() + y_off - fm.descent()), text)
 
         painter.restore()
 
