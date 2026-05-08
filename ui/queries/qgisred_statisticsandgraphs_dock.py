@@ -701,3 +701,49 @@ class QGISRedStatisticsAndPlotsDock(QDockWidget, formClass):
                 json.dump(data, fileHandle, indent=2)
         except Exception as ex:
             QMessageBox.critical(self, self.tr("Export failed"), str(ex))
+
+    def exportTableCsv(self):
+        if self.tbExcel.rowCount() == 0:
+            QMessageBox.information(
+                self,
+                self.tr("No data"),
+                self.tr("Run Analyze before exporting the table."),
+            )
+            return
+        projectName = QgsProject.instance().baseName() or "QGISRed"
+        defaultFileName = "{}_statistics_{}.csv".format(projectName, datetime.now().strftime("%Y%m%d_%H%M%S"))
+        fileName, _selectedFilter = QFileDialog.getSaveFileName(
+            self,
+            self.tr("Export table to CSV"),
+            os.path.join(str(QgsProject.instance().homePath() or ""), defaultFileName),
+            "CSV Files (*.csv)",
+        )
+        if not fileName:
+            return
+        try:
+            elementIdentifier = self.cbElementType.currentData(Qt.ItemDataRole.UserRole) or ""
+            propertyField = self.cbProperty.currentData(Qt.ItemDataRole.UserRole) or ""
+            classifyField = self.cbClassifiedBy.currentData(Qt.ItemDataRole.UserRole) or ""
+            with open(fileName, "w", newline="", encoding="utf-8") as fileHandle:
+                writer = csv.writer(fileHandle)
+                fileHandle.write("Project: {}\n".format(projectName))
+                fileHandle.write("Element Type: {}\n".format(elementIdentifier))
+                fileHandle.write("Property: {}\n".format(propertyField))
+                fileHandle.write("Classified by: {}\n".format(classifyField))
+                subtitle = self.buildSubtitle(elementIdentifier)
+                if subtitle:
+                    fileHandle.write("Filter: {}\n".format(subtitle))
+                fileHandle.write("\n")
+                headers = [
+                    self.tbExcel.horizontalHeaderItem(column).text() if self.tbExcel.horizontalHeaderItem(column) else ""
+                    for column in range(self.tbExcel.columnCount())
+                ]
+                writer.writerow(headers)
+                for row in range(self.tbExcel.rowCount()):
+                    rowData = [
+                        self.tbExcel.item(row, column).text() if self.tbExcel.item(row, column) else ""
+                        for column in range(self.tbExcel.columnCount())
+                    ]
+                    writer.writerow(rowData)
+        except Exception as ex:
+            QMessageBox.critical(self, self.tr("Export failed"), str(ex))
