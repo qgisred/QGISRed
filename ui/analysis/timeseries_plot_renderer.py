@@ -413,7 +413,7 @@ class TimeSeriesPlotRenderer:
         cfg_x = x_state.get("axis_cfg") or widget._axis_cfg_x
         cfg_yl = y_state_left.get("axis_cfg") or widget._axis_cfg_y_left
         pen_grid = QPen(GRID_COLOR, 1, Qt.PenStyle.SolidLine)
-        pen_grid_day_start = QPen(QColor(210, 210, 210), 1, Qt.PenStyle.SolidLine)
+        pen_grid_day_start = QPen(Qt.GlobalColor.white, 2, Qt.PenStyle.SolidLine)
 
         painter.setFont(self._tick_qfont(cfg_yl))
         dec_yl = y_state_left.get("decimals")
