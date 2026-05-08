@@ -240,3 +240,63 @@ class QGISRedStatisticsAndPlotsDock(QDockWidget, formClass):
             if layer.customProperty("qgisred_identifier") == elementIdentifier:
                 return layer
         return None
+
+    def buildFeatureRequest(self, layer):
+        request = QgsFeatureRequest()
+        applied = False
+
+        if self.cbSelectedElements.isChecked():
+            selectedIds = layer.selectedFeatureIds()
+            if not selectedIds:
+                QMessageBox.information(
+                    self,
+                    self.tr("No selection"),
+                    self.tr("'Only selected elements' is checked but no features are selected on the active layer."),
+                )
+                return False
+            request.setFilterFids(list(selectedIds))
+            applied = True
+            self.labelOnlySelectedElements.show()
+        else:
+            self.labelOnlySelectedElements.hide()
+
+        attributeExpression = self.buildAttributeExpression(layer)
+        if attributeExpression:
+            request.combineFilterExpression(attributeExpression)
+            applied = True
+        return request if applied else None
+
+    def buildAttributeExpression(self, layer):
+        attributeField = self.cbAttribute.currentData(Qt.ItemDataRole.UserRole)
+        if not attributeField:
+            return ""
+        if layer.fields().indexFromName(attributeField) < 0:
+            return ""
+        quotedColumn = QgsExpression.quotedColumnRef(attributeField)
+        clauses = []
+        valueData = self.cbValueRange.currentData(Qt.ItemDataRole.UserRole)
+        valueText = self.cbValueRange.currentText()
+        if valueData not in (None, ""):
+            clauses.append("{} = {}".format(quotedColumn, self.quoteValue(valueData)))
+        elif valueText and valueText != self.tr("(any)"):
+            clauses.append("{} = {}".format(quotedColumn, self.quoteValue(valueText)))
+        if self.leFrom.isEnabled():
+            fromText = self.leFrom.text().strip()
+            if fromText:
+                try:
+                    clauses.append("{} >= {}".format(quotedColumn, float(fromText)))
+                except ValueError:
+                    pass
+        if self.leTo.isEnabled():
+            toText = self.leTo.text().strip()
+            if toText:
+                try:
+                    clauses.append("{} <= {}".format(quotedColumn, float(toText)))
+                except ValueError:
+                    pass
+        return " AND ".join(clauses)
+
+    def quoteValue(self, value):
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            return str(value)
+        return QgsExpression.quotedString(str(value))
