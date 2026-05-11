@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 """Tools section for QGISRed (lengths, roughness, elevation, demands, scenarios, isolated segments, tree)."""
 
+from numpy.lib import utils
 import os
 
 from qgis.PyQt.QtWidgets import QApplication, QFileDialog
 from qgis.PyQt.QtCore import Qt
+from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeLayer
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
@@ -248,6 +250,19 @@ class ToolsSection:
         utils = QGISRedLayerUtils(isoFolder, self.NetworkName, self.iface)
         utils.openLayer(demandBuilderGroup, "DemandBuilder_DemandLinks")
         utils.openLayer(demandBuilderGroup, "DemandBuilder_ConsumptionPoints")
+
+        if self._demandBuilderExtraPaths:
+            for path in self._demandBuilderExtraPaths:
+                if not os.path.exists(path):
+                    continue
+                if utils._tryReloadExistingLayer(path):
+                    continue
+                displayName = os.path.splitext(os.path.basename(path))[0]
+                vlayer = QgsVectorLayer(path, displayName, "ogr")
+                if vlayer.isValid():
+                    QgsProject.instance().addMapLayer(vlayer, False)
+                    demandBuilderGroup.insertChildNode(0, QgsLayerTreeLayer(vlayer))
+            self._demandBuilderExtraPaths = []
 
     def openIsolatedSegmentsLayers(self):
         # Open layers

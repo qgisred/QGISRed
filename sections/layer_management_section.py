@@ -251,6 +251,8 @@ class LayerManagementSection:
         self.hasToOpenIsolatedSegmentsLayers = False
         self.hasToOpenDemandBuilderLayers = False
         self.hasToOpenTreeLayers = False
+        self._demandBuilderExtraPaths = []
+    
         if b == "True":
             if not message == "":
                 self.pushMessage(self.tr(message), level=3, duration=5)
@@ -271,7 +273,7 @@ class LayerManagementSection:
                 self.hasToOpenDemandBuilderLayers = True
             else:
                 self.hasToOpenIssuesLayers = True
-        elif b == "commit/shps":
+        elif b.startswith("commit/shps"):
             self.hasToOpenNewLayers = True
             if layerType == "sectors":
                 self.hasToOpenSectorLayers = True
@@ -283,6 +285,8 @@ class LayerManagementSection:
                 self.hasToOpenTreeLayers = True
             elif layerType == "demandBuilder":
                 self.hasToOpenDemandBuilderLayers = True
+                if "^" in b:
+                    self._demandBuilderExtraPaths = [p for p in b.split("^", 1)[1].split(";") if p.strip()]
             else:
                 self.hasToOpenIssuesLayers = True
         else:
