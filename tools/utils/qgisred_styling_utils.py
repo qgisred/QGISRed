@@ -120,13 +120,14 @@ class QGISRedStylingUtils:
         if name == "":
             return
         name = name.replace("_", "") if name else ""
-        
+
         # 1- project style
         projectStylePath = os.path.join(self.ProjectDirectory, "layerStyles")
         qmlPath = os.path.join(projectStylePath, name + ".qml")
         if os.path.exists(qmlPath):
             layer.loadNamedStyle(qmlPath)
             layer.setLabelsEnabled(False)
+            self.applyStrategyFromLayer(layer)
             return
 
         # 2- global style
@@ -135,6 +136,7 @@ class QGISRedStylingUtils:
         if os.path.exists(qmlPath):
             layer.loadNamedStyle(qmlPath)
             layer.setLabelsEnabled(False)
+            self.applyStrategyFromLayer(layer)
             return
 
         # 3- default style
@@ -143,6 +145,7 @@ class QGISRedStylingUtils:
         qmlPath = os.path.join(defaultStylePath, name + ".qml.bak")
         layer.loadNamedStyle(qmlPath)
         layer.setLabelsEnabled(False)
+        self.applyStrategyFromLayer(layer)
 
     def applyStrategyFromLayer(self, layer):
         rawStrategy = layer.customProperty("qgisred_legend_strategy")

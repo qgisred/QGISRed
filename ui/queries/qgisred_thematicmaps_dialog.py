@@ -353,6 +353,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         if os.path.exists(qmlPath):
             layer.loadNamedStyle(qmlPath)
             layer.setCustomProperty("styleURI", qmlPath)
+            QGISRedStylingUtils().applyStrategyFromLayer(layer)
             layer.triggerRepaint()
         return qmlPath
     
