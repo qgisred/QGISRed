@@ -325,8 +325,30 @@ class AnalysisSection:
 
     def _onTimeSeriesClearAllRequested(self):
         """Clear all curves and return the dock to its initial empty state."""
+        dock = getattr(self, "timeSeriesDock", None)
+        try:
+            has_curves = bool(dock is not None and dock._plotHasCurves())
+        except Exception:
+            has_curves = bool(getattr(self, "timeSeriesSelection", []))
+        if not has_curves:
+            return
+
+        if not self._confirmTimeSeriesClearSelection():
+            return
+
         from ..ui.analysis.timeseries_actions import clear_all_timeseries
         clear_all_timeseries(self)
+
+    def _confirmTimeSeriesClearSelection(self):
+        from qgis.PyQt.QtWidgets import QMessageBox
+        reply = QMessageBox.question(
+            None,
+            self.tr("Clear selection"),
+            self.tr("All selected curves will be lost. Continue?"),
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        return reply == QMessageBox.StandardButton.Yes
 
     def timeSeriesDockVisibilityChanged(self, visible):
         if not hasattr(self, "timeSeriesDock") or self.timeSeriesDock is None:
@@ -636,15 +658,7 @@ class AnalysisSection:
 
         if not add_mode:
             if len(getattr(self, "timeSeriesSelection", [])) > 1:
-                from qgis.PyQt.QtWidgets import QMessageBox
-                reply = QMessageBox.question(
-                    None,
-                    self.tr("Clear selection"),
-                    self.tr("All selected curves will be lost. Continue?"),
-                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                    QMessageBox.StandardButton.No,
-                )
-                if reply != QMessageBox.StandardButton.Yes:
+                if not self._confirmTimeSeriesClearSelection():
                     return
             self._timeSeriesResetSelection()
             self._clearTimeSeriesMapSelection()
