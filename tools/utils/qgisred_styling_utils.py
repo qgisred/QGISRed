@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import json
 import random
 from random import randrange
 
@@ -11,7 +12,7 @@ from qgis.core import (
     QgsLineSymbol, QgsSimpleLineSymbolLayer, QgsSimpleMarkerSymbolLayer,
     QgsRendererCategory, QgsCategorizedSymbolRenderer, QgsVectorLayerCache, NULL,
     QgsGraduatedSymbolRenderer, QgsRuleBasedRenderer, QgsProject, QgsRenderContext,
-    QgsMapLayerLegend
+    QgsMapLayerLegend, QgsMessageLog, QgsStyle
 )
 from qgis.gui import QgsAttributeTableFilterModel, QgsAttributeTableModel, QgsAttributeTableView
 from qgis.utils import iface as _iface
@@ -142,6 +143,156 @@ class QGISRedStylingUtils:
         qmlPath = os.path.join(defaultStylePath, name + ".qml.bak")
         layer.loadNamedStyle(qmlPath)
         layer.setLabelsEnabled(False)
+
+    def applyStrategyFromLayer(self, layer):
+        rawStrategy = layer.customProperty("qgisred_legend_strategy")
+        if not rawStrategy:
+            return
+        try:
+            strategy = json.loads(rawStrategy)
+            self.applyLegendStrategy(layer, strategy)
+        except Exception as ex:
+            QgsMessageLog.logMessage(
+                self.tr("Failed to apply legend strategy for layer %1: %2")
+                    .replace("%1", layer.name()).replace("%2", str(ex)),
+                "QGISRed",
+                Qgis.MessageLevel.Warning,
+            )
+
+    def applyLegendStrategy(self, layer, strategy):
+        if not isinstance(strategy, dict):
+            return
+        if strategy.get("schema") != "qgisred.legendStrategy.v1":
+            QgsMessageLog.logMessage(
+                self.tr("Unsupported legend strategy schema: %1")
+                    .replace("%1", str(strategy.get("schema"))),
+                "QGISRed",
+                Qgis.MessageLevel.Warning,
+            )
+            return
+
+        field = strategy.get("field")
+        if not field:
+            return
+        fieldIndex = layer.fields().indexFromName(field)
+        if fieldIndex == -1:
+            QgsMessageLog.logMessage(
+                self.tr("Legend strategy field '%1' not found on layer '%2'")
+                    .replace("%1", field).replace("%2", layer.name()),
+                "QGISRed",
+                Qgis.MessageLevel.Warning,
+            )
+            return
+
+        mode = strategy.get("mode")
+        if mode == "categorized":
+            self.applyCategorizedStrategy(layer, field, fieldIndex, strategy.get("categorized") or {})
+        elif mode == "graduated":
+            self.applyGraduatedStrategy(layer, field, strategy.get("graduated") or {})
+        else:
+            return
+
+        layer.triggerRepaint()
+        layer.setLabelsEnabled(False)
+
+    def applyCategorizedStrategy(self, layer, field, fieldIndex, categorizedStrategy):
+        colorSource = categorizedStrategy.get("colorSource", "random")
+        rampName = categorizedStrategy.get("rampName")
+        invertRamp = categorizedStrategy.get("invertRamp", False)
+
+        uniqueValues = sorted(
+            layer.dataProvider().uniqueValues(fieldIndex),
+            key=lambda value: ("" if value == NULL else str(value)),
+        )
+        nonNullValues = [value for value in uniqueValues if value != NULL]
+        nullValues = [value for value in uniqueValues if value == NULL]
+
+        ramp = None
+        if colorSource == "ramp" and rampName:
+            ramp = QgsStyle.defaultStyle().colorRamp(rampName)
+            if ramp is None:
+                QgsMessageLog.logMessage(
+                    self.tr("Color ramp '%1' not found; falling back to random colors")
+                        .replace("%1", rampName),
+                    "QGISRed",
+                    Qgis.MessageLevel.Warning,
+                )
+
+        categories = []
+        valueCount = max(len(nonNullValues), 1)
+        for index, value in enumerate(nonNullValues):
+            symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+            color = self.resolveCategoryColor(value, index, valueCount, ramp, invertRamp)
+            symbol.setColor(color)
+            symbol.setWidth(0.6)
+            categories.append(QgsRendererCategory(value, symbol, str(value)))
+
+        if nullValues:
+            symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+            symbol.setColor(QColor.fromRgb(192, 192, 192))
+            symbol.setWidth(0.6)
+            categories.append(QgsRendererCategory(nullValues[0], symbol, "#NA"))
+
+        layer.setRenderer(QgsCategorizedSymbolRenderer(field, categories))
+
+    def resolveCategoryColor(self, value, index, valueCount, ramp, invertRamp):
+        if ramp is not None:
+            position = 0.0 if valueCount <= 1 else index / float(valueCount - 1)
+            if invertRamp:
+                position = 1.0 - position
+            return ramp.color(position)
+        seededRandom = random.Random(hash(str(value)))
+        return QColor.fromRgb(
+            seededRandom.randint(0, 255),
+            seededRandom.randint(0, 255),
+            seededRandom.randint(0, 255),
+        )
+
+    def applyGraduatedStrategy(self, layer, field, graduatedStrategy):
+        classificationMode = graduatedStrategy.get("classificationMode")
+        classes = int(graduatedStrategy.get("classes") or 5)
+        rampName = graduatedStrategy.get("rampName")
+        invertRamp = graduatedStrategy.get("invertRamp", False)
+
+        modeEnum = self.graduatedModeEnum(classificationMode)
+        if modeEnum is None:
+            QgsMessageLog.logMessage(
+                self.tr("Unsupported classification mode: %1")
+                    .replace("%1", str(classificationMode)),
+                "QGISRed",
+                Qgis.MessageLevel.Warning,
+            )
+            return
+
+        ramp = QgsStyle.defaultStyle().colorRamp(rampName) if rampName else None
+        if ramp is None:
+            QgsMessageLog.logMessage(
+                self.tr("Color ramp '%1' not found; graduated strategy aborted")
+                    .replace("%1", str(rampName)),
+                "QGISRed",
+                Qgis.MessageLevel.Warning,
+            )
+            return
+        if invertRamp:
+            ramp.invert()
+
+        symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+        renderer = QgsGraduatedSymbolRenderer.createRenderer(
+            layer, field, classes, modeEnum, symbol, ramp
+        )
+        if renderer is None:
+            return
+        layer.setRenderer(renderer)
+
+    def graduatedModeEnum(self, classificationMode):
+        mapping = {
+            "EqualInterval": QgsGraduatedSymbolRenderer.EqualInterval,
+            "Quantile": QgsGraduatedSymbolRenderer.Quantile,
+            "Jenks": QgsGraduatedSymbolRenderer.Jenks,
+            "StdDev": QgsGraduatedSymbolRenderer.StdDev,
+            "Pretty": QgsGraduatedSymbolRenderer.Pretty,
+        }
+        return mapping.get(classificationMode)
 
     def setSectorsStyle(self, layer):
         # get unique values
