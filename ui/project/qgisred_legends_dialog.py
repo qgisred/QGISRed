@@ -2,6 +2,7 @@
 
 import os
 import re
+import json
 import random
 import math
 import statistics
@@ -20,7 +21,7 @@ from qgis.core import QgsClassificationPrettyBreaks, QgsStyle, QgsPresetSchemeCo
 from qgis.core import QgsRuleBasedRenderer
 from qgis.utils import iface
 
-from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL
+from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL, QGISRedStylingUtils
 from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
@@ -843,6 +844,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.syncColorRampButton()
 
         self.applyColorLogic()
+        self.updateRebuildStrategyCheckboxEnabled()
 
     def onCustomColorChanged(self, ramp):
         self.applyColorLogic()
@@ -3566,6 +3568,68 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if self.currentFieldType not in (self.FIELD_TYPE_UNKNOWN, self.FIELD_TYPE_SINGLE):
             self.applySizeLogic()
             self.applyColorLogic()
+
+        self.updateRebuildStrategyCheckboxEnabled()
+
+    def updateRebuildStrategyCheckboxEnabled(self):
+        if not hasattr(self, "ckRebuildOnLoad"):
+            return
+        canRebuild = self.buildStrategyFromCurrentUi() is not None
+        self.ckRebuildOnLoad.setEnabled(canRebuild)
+        self.ckRebuildOnLoad.setVisible(canRebuild)
+        if not canRebuild and self.ckRebuildOnLoad.isChecked():
+            self.ckRebuildOnLoad.setChecked(False)
+
+    def buildStrategyFromCurrentUi(self):
+        if not self.currentFieldName:
+            return None
+        if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
+            return self.buildCategoricalStrategy()
+        if self.currentFieldType == self.FIELD_TYPE_NUMERIC:
+            return self.buildGraduatedStrategy()
+        return None
+
+    def buildCategoricalStrategy(self):
+        mode = self.cbColors.currentText() if hasattr(self, "cbColors") else "Manual"
+        colorSource = None
+        if mode == "Random":
+            colorSource = "random"
+        elif mode in ("Ramp", "Palette"):
+            colorSource = "ramp"
+        if colorSource is None:
+            return None
+        rampName = self.btnColorRamp.activeRampName if colorSource == "ramp" else None
+        invertRamp = self.ckColorInvert.isChecked() if colorSource == "ramp" else False
+        return {
+            "schema": "qgisred.legendStrategy.v1",
+            "mode": "categorized",
+            "field": self.currentFieldName,
+            "categorized": {
+                "colorSource": colorSource,
+                "rampName": rampName,
+                "invertRamp": invertRamp,
+                "deterministic": True,
+            },
+        }
+
+    def buildGraduatedStrategy(self):
+        classificationMode = self.cbMode.currentData()
+        if classificationMode not in ("EqualInterval", "Quantile", "Jenks", "StdDev", "Pretty"):
+            return None
+        colorMode = self.cbColors.currentText() if hasattr(self, "cbColors") else "Manual"
+        if colorMode not in ("Ramp", "Palette"):
+            return None
+        return {
+            "schema": "qgisred.legendStrategy.v1",
+            "mode": "graduated",
+            "field": self.currentFieldName,
+            "graduated": {
+                "classificationMode": classificationMode,
+                "classes": int(self.leClassCount.value()),
+                "rampName": self.btnColorRamp.activeRampName,
+                "invertRamp": self.ckColorInvert.isChecked(),
+            },
+        }
 
     def updateModeVisibility(self, isNumeric, isFixedInterval):
         self.cbMode.setVisible(isNumeric)
