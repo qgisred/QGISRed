@@ -3515,6 +3515,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return
 
         self.currentLayer.loadNamedStyle(path)
+        QGISRedStylingUtils().applyStrategyFromLayer(self.currentLayer)
         self.currentLayer.triggerRepaint()
         self.onLayerChanged(self.currentLayer)
         QMessageBox.information(
@@ -3543,6 +3544,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return
 
         self.currentLayer.loadNamedStyle(path)
+        QGISRedStylingUtils().applyStrategyFromLayer(self.currentLayer)
         self.currentLayer.triggerRepaint()
         self.onLayerChanged(self.currentLayer)
         QMessageBox.information(
