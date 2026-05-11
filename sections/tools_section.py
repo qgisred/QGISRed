@@ -4,8 +4,10 @@
 import os
 
 from qgis.PyQt.QtWidgets import QApplication, QFileDialog
-from qgis.PyQt.QtCore import Qt
-from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeLayer
+from qgis.PyQt.QtCore import Qt, QVariant
+from qgis.PyQt.QtGui import QColor
+from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeLayer, QgsSingleSymbolRenderer, QgsSymbol, QgsCategorizedSymbolRenderer, QgsRendererCategory
+from random import randint
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
@@ -247,17 +249,77 @@ class ToolsSection:
         isoFolder = os.path.join(self.ProjectDirectory, "Auxiliary Layers", "DemandBuilder")
         utils = QGISRedLayerUtils(isoFolder, self.NetworkName, self.iface)
 
+        if not hasattr(self, "category_colors"):
+            self.category_colors = {}
+
         if self._demandBuilderExtraPaths:
             for path in self._demandBuilderExtraPaths:
                 if not os.path.exists(path):
                     continue
+
                 if utils._tryReloadExistingLayer(path):
                     continue
+
                 displayName = os.path.splitext(os.path.basename(path))[0]
                 vlayer = QgsVectorLayer(path, displayName, "ogr")
+
                 if vlayer.isValid():
+                    geom_type = vlayer.geometryType()
+                    field_index = vlayer.fields().indexFromName("Category")
+
+                    if field_index != -1:
+                        unique_cats = set()
+                        has_undefined = False
+
+                        for feature in vlayer.getFeatures():
+                            raw_cat = feature[field_index]
+                            cat = str(raw_cat).strip() if raw_cat is not None else ""
+
+                            if cat == "" or cat == "Undefined":
+                                has_undefined = True
+                            else:
+                                unique_cats.add(cat)
+
+                        categories = []
+
+                        if has_undefined:
+                            symbol_empty = QgsSymbol.defaultSymbol(geom_type)
+                            symbol_empty.setColor(QColor("orange"))
+                            categories.append(QgsRendererCategory("", symbol_empty, "Undefined"))
+
+                            symbol_undefined = QgsSymbol.defaultSymbol(geom_type)
+                            symbol_undefined.setColor(QColor("orange"))
+                            categories.append(QgsRendererCategory("Undefined", symbol_undefined, "Undefined"))
+
+                        for cat in sorted(unique_cats):
+                            if cat not in self.category_colors:
+                                self.category_colors[cat] = QColor.fromRgb(
+                                    randint(0, 255),
+                                    randint(0, 255),
+                                    randint(0, 255)
+                                )
+
+                            symbol = QgsSymbol.defaultSymbol(geom_type)
+                            symbol.setColor(self.category_colors[cat])
+                            categories.append(QgsRendererCategory(cat, symbol, cat))
+
+                        renderer = QgsCategorizedSymbolRenderer("Category", categories)
+                        vlayer.setRenderer(renderer)
+
+                    else:
+                        symbol = QgsSymbol.defaultSymbol(geom_type)
+
+                        if geom_type == 0:
+                            symbol.setColor(QColor("orange"))
+                        elif geom_type == 1:
+                            symbol.setColor(QColor("blue"))
+
+                        renderer = QgsSingleSymbolRenderer(symbol)
+                        vlayer.setRenderer(renderer)
+
                     QgsProject.instance().addMapLayer(vlayer, False)
                     demandBuilderGroup.insertChildNode(0, QgsLayerTreeLayer(vlayer))
+
             self._demandBuilderExtraPaths = []
 
     def openIsolatedSegmentsLayers(self):
