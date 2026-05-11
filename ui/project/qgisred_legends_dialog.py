@@ -523,14 +523,15 @@ class QGISRedLegendsDialog(QDialog, formClass):
         allLayers = list(QgsProject.instance().mapLayers().values())
         exceptedLayers = [layer for layer in allLayers if layer not in allowedLayers]
 
-        self.cbLegendLayer.blockSignals(True)
-        self.cbLegendLayer.setExceptedLayerList(exceptedLayers)
-
         targetLayer = self.determineTargetLayer(allowedLayers)
 
-        self.cbLegendLayer.setLayer(targetLayer)
+        self.cbLegendLayer.blockSignals(True)
+        self.cbLegendLayer.setCurrentIndex(-1)
+        self.cbLegendLayer.setExceptedLayerList(exceptedLayers)
+        if targetLayer:
+            self.cbLegendLayer.setLayer(targetLayer)
         self.cbLegendLayer.blockSignals(False)
-        self.onLayerChanged(self.cbLegendLayer.currentLayer())
+        self.onLayerChanged(targetLayer)
 
     def determineTargetLayer(self, allowedLayers):
         currentLayer = self.cbLegendLayer.currentLayer()
