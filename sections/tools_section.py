@@ -350,7 +350,6 @@ class ToolsSection:
                             label_settings.fieldName = '"BaseDemand"'
                             label_settings.isExpression = True
                             label_settings.enabled = True
-                            label_settings.placement = QgsPalLayerSettings.OverPoint
 
                             vlayer.setLabelsEnabled(True)
                             vlayer.setLabeling(QgsVectorLayerSimpleLabeling(label_settings))
