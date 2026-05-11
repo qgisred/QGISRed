@@ -1317,7 +1317,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                     btn.setEnabled(bool(has_curves and auto_scale_x and is_zoomed))
                 else:
                     btn.setEnabled(bool(has_curves and auto_scale_x))
-        for btn_name in ("btnExportImage", "btnExportCsv"):
+        for btn_name in ("btnAxes", "btnExportImage", "btnExportCsv"):
             btn = getattr(self, btn_name, None)
             if btn is not None:
                 btn.setEnabled(bool(has_curves))
