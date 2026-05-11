@@ -2990,6 +2990,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.applySingleSymbolLegend()
 
         self.currentLayer.triggerRepaint()
+        self.originalRenderer = self.currentLayer.renderer().clone() if self.currentLayer.renderer() else None
 
     PIPE_DEFAULT_WIDTH = 1.5
     PIPE_DEFAULT_CV_SIZE = 5
@@ -3422,8 +3423,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if reply != QMessageBox.StandardButton.Yes:
                 return
 
+        self.applyLegend()
         self.updateStrategyCustomProperty()
         self.currentLayer.saveNamedStyle(path)
+        self.originalRenderer = self.currentLayer.renderer().clone() if self.currentLayer.renderer() else None
         QMessageBox.information(
             self,
             self.tr("Saved"),
