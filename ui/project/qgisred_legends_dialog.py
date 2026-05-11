@@ -3421,12 +3421,25 @@ class QGISRedLegendsDialog(QDialog, formClass):
             if reply != QMessageBox.StandardButton.Yes:
                 return
 
+        self.updateStrategyCustomProperty()
         self.currentLayer.saveNamedStyle(path)
         QMessageBox.information(
             self,
             self.tr("Saved"),
             self.tr("Style saved as %1 in the layerStyles folder of your project.").replace("%1", filename),
         )
+
+    def updateStrategyCustomProperty(self):
+        if not hasattr(self, "ckRebuildOnLoad"):
+            return
+        if self.ckRebuildOnLoad.isEnabled() and self.ckRebuildOnLoad.isChecked():
+            strategy = self.buildStrategyFromCurrentUi()
+            if strategy is None:
+                self.currentLayer.removeCustomProperty("qgisred_legend_strategy")
+                return
+            self.currentLayer.setCustomProperty("qgisred_legend_strategy", json.dumps(strategy))
+        else:
+            self.currentLayer.removeCustomProperty("qgisred_legend_strategy")
 
     def loadDefaultStyle(self):
         self.loadStyle(isDefault=True)
