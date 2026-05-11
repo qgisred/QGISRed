@@ -4512,8 +4512,8 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="736"/>
-        <source>Axis options…</source>
-        <translation>Opciones de ejes…</translation>
+        <source>Chart options</source>
+        <translation>Opciones de la gráfica</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="871"/>
@@ -4675,8 +4675,8 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     <name>TimeSeriesAxisOptionsDialog</name>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="41"/>
-        <source>Plot options</source>
-        <translation>Opciones de la Gráfica</translation>
+        <source>QGISRed: Chart options</source>
+        <translation>QGISRed: Opciones de la gráfica</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="62"/>
@@ -4712,16 +4712,6 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="64"/>
         <source>Y right</source>
         <translation>Y derecha</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="180"/>
-        <source>Plot options</source>
-        <translation>Opciones de la Gráfica</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="185"/>
-        <source>Configure labels, scale, grid and tick style for each axis.</source>
-        <translation>Configura etiquetas, escala, rejilla y estilo de marcas para cada eje.</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="199"/>

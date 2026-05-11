@@ -4514,8 +4514,8 @@ Left-click: Add a new item below the current selection</source>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="736"/>
-        <source>Axis options…</source>
-        <translation type="unfinished">Opções dos eixos…</translation>
+        <source>Chart options</source>
+        <translation>Opções do gráfico</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="871"/>
@@ -4677,8 +4677,8 @@ Left-click: Add a new item below the current selection</source>
     <name>TimeSeriesAxisOptionsDialog</name>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="41"/>
-        <source>Plot options</source>
-        <translation>Opções do gráfico</translation>
+        <source>QGISRed: Chart options</source>
+        <translation>QGISRed: Opções do gráfico</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="62"/>
@@ -4714,16 +4714,6 @@ Left-click: Add a new item below the current selection</source>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="64"/>
         <source>Y right</source>
         <translation>Y direita</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="180"/>
-        <source>Plot options</source>
-        <translation>Opções do gráfico</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="185"/>
-        <source>Configure labels, scale, grid and tick style for each axis.</source>
-        <translation>Configure rótulos, escala, grade e estilo das marcações para cada eixo.</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="199"/>

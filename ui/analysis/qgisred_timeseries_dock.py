@@ -980,7 +980,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self.btnFit.clicked.connect(self._onFitClicked)
             hl.addWidget(self.btnFit, 0, Qt.AlignmentFlag.AlignLeft)
 
-            self.btnAxes = _make_btn("btnAxesTimeSeries", "mActionOptions.svg", self.tr("Axis options…"))
+            self.btnAxes = _make_btn("btnAxesTimeSeries", "mActionOptions.svg", self.tr("Chart options"))
             self.btnAxes.clicked.connect(self._onAxisOptionsClicked)
             hl.addWidget(self.btnAxes, 0, Qt.AlignmentFlag.AlignLeft)
 

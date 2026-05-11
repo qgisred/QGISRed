@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Tools section for QGISRed (lengths, roughness, elevation, demands, scenarios, isolated segments, tree)."""
 
-from numpy.lib import utils
 import os
 
 from qgis.PyQt.QtWidgets import QApplication, QFileDialog

@@ -4499,7 +4499,7 @@ Left-click: Add a new item below the current selection</source>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="736"/>
-        <source>Axis options…</source>
+        <source>Chart options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4662,7 +4662,7 @@ Left-click: Add a new item below the current selection</source>
     <name>TimeSeriesAxisOptionsDialog</name>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="41"/>
-        <source>Plot options</source>
+        <source>QGISRed: Chart options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4688,16 +4688,6 @@ Left-click: Add a new item below the current selection</source>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="64"/>
         <source>Y right</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="180"/>
-        <source>Plot options</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="185"/>
-        <source>Configure labels, scale, grid and tick style for each axis.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

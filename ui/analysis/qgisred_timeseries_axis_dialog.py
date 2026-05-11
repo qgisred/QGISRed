@@ -17,7 +17,6 @@ from qgis.PyQt.QtWidgets import (
     QFormLayout,
     QFrame,
     QGroupBox,
-    QHBoxLayout,
     QLabel,
     QLineEdit,
     QPushButton,
@@ -37,7 +36,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         win = parent.window() if parent is not None else None
         super().__init__(win if win is not None else parent)
         self._plot = plot_widget
-        self.setWindowTitle(self.tr("Plot options"))
+        self.setWindowTitle(self.tr("QGISRed: Chart options"))
         try:
             screen = QApplication.primaryScreen()
             if screen is not None:
@@ -71,8 +70,6 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         content_lay = QVBoxLayout(content)
         content_lay.setSpacing(10)
         content_lay.setContentsMargins(0, 0, 0, 0)
-
-        content_lay.addWidget(self._build_header())
 
         tabs = QTabWidget(self)
         tab_general = self._build_general_tab(self._cfg_gen)
@@ -481,25 +478,6 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         w._legend_bg = chk_bg
         w._legend_sym = sp_sym
         w._legend_cols = sp_cols
-        return w
-
-    def _build_header(self) -> QWidget:
-        w = QWidget()
-        row = QHBoxLayout(w)
-        row.setContentsMargins(0, 0, 0, 4)
-        row.setSpacing(12)
-        text_col = QVBoxLayout()
-        title = QLabel(self.tr("Plot options"))
-        f = title.font()
-        f.setPointSize(max(f.pointSize(), 11))
-        f.setBold(True)
-        title.setFont(f)
-        subtitle = QLabel(self.tr("Configure labels, scale, grid and tick style for each axis."))
-        subtitle.setWordWrap(True)
-        subtitle.setStyleSheet("color: palette(mid);")
-        text_col.addWidget(title)
-        text_col.addWidget(subtitle)
-        row.addLayout(text_col, 1)
         return w
 
     def _build_tab(self, cfg: TimeSeriesAxisSettings, *, show_decimals: bool, is_time_axis: bool) -> QWidget:
