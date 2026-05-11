@@ -3396,10 +3396,20 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         identifier = self.currentLayer.customProperty("qgisred_identifier")
         if not identifier:
+            QMessageBox.warning(
+                self,
+                self.tr("Cannot Save"),
+                self.tr("This layer is not managed by QGISRed and its style cannot be saved here."),
+            )
             return
 
         name = self.getElementNameForIdentifier(identifier)
         if not name:
+            QMessageBox.warning(
+                self,
+                self.tr("Cannot Save"),
+                self.tr("Saving styles from this dialog is not supported for this layer type."),
+            )
             return
 
         filename = name.replace(" ", "") + ".qml" if globalStyle else self.getProjectStyleFilename(name)
@@ -3498,9 +3508,21 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return
 
         identifier = self.currentLayer.customProperty("qgisred_identifier")
-        name = self.getElementNameForIdentifier(identifier)
+        if not identifier:
+            QMessageBox.warning(
+                self,
+                self.tr("Cannot Load"),
+                self.tr("This layer is not managed by QGISRed and its style cannot be loaded here."),
+            )
+            return
 
+        name = self.getElementNameForIdentifier(identifier)
         if not name:
+            QMessageBox.warning(
+                self,
+                self.tr("Cannot Load"),
+                self.tr("Loading styles from this dialog is not supported for this layer type."),
+            )
             return
 
         filename = self.getProjectStyleFilename(name)
@@ -3532,9 +3554,21 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return
 
         identifier = self.currentLayer.customProperty("qgisred_identifier")
-        name = self.getElementNameForIdentifier(identifier)
+        if not identifier:
+            QMessageBox.warning(
+                self,
+                self.tr("Cannot Load"),
+                self.tr("This layer is not managed by QGISRed and its style cannot be loaded here."),
+            )
+            return
 
+        name = self.getElementNameForIdentifier(identifier)
         if not name:
+            QMessageBox.warning(
+                self,
+                self.tr("Cannot Load"),
+                self.tr("Loading styles from this dialog is not supported for this layer type."),
+            )
             return
 
         filename = name.replace(" ", "") + ".qml" + (".bak" if isDefault else "")
@@ -3557,9 +3591,16 @@ class QGISRedLegendsDialog(QDialog, formClass):
         )
 
     def getElementNameForIdentifier(self, identifier):
-        if self.utils:
-            return self.utils.identifierToElementName.get(identifier)
-        return QGISRedIdentifierUtils().identifierToElementName.get(identifier)
+        utils = self.utils or QGISRedIdentifierUtils()
+        name = utils.identifierToElementName.get(identifier)
+        if name:
+            return name
+        name = utils.identifierToLegendName.get(identifier)
+        if name:
+            return name
+        if self.currentLayer:
+            return self.currentLayer.name()
+        return None
 
     def getProjectStyleFilename(self, name):
         base = name.replace(" ", "")
