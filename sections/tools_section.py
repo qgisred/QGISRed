@@ -334,11 +334,12 @@ class ToolsSection:
                     label_settings.setFormat(text_format)
 
                     if geom_type == 1:
-                        # Links -> value of "%Dem"
+                        # Links -> value of "%Dem" + percentage sign
                         if vlayer.fields().indexFromName("%Dem") != -1:
-                            label_settings.fieldName = '"%Dem"'
+                            label_settings.fieldName = '"%Dem" || \' %\''
                             label_settings.isExpression = True
                             label_settings.enabled = True
+                            label_settings.placement = QgsPalLayerSettings.Line
 
                             vlayer.setLabelsEnabled(True)
                             vlayer.setLabeling(QgsVectorLayerSimpleLabeling(label_settings))
@@ -349,6 +350,7 @@ class ToolsSection:
                             label_settings.fieldName = '"BaseDemand"'
                             label_settings.isExpression = True
                             label_settings.enabled = True
+                            label_settings.placement = QgsPalLayerSettings.OverPoint
 
                             vlayer.setLabelsEnabled(True)
                             vlayer.setLabeling(QgsVectorLayerSimpleLabeling(label_settings))
