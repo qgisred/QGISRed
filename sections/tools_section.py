@@ -9,6 +9,7 @@ from qgis.PyQt.QtCore import Qt
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool, SelectPointType
+from ..compat import LAYER_TYPE_VECTOR
 
 
 class ToolsSection:
@@ -104,7 +105,33 @@ class ToolsSection:
 
         self.processCsharpResult(resMessage, self.tr("No issues ocurred"))
 
-    def runDemandsManager(self):
+    def _getAuxiliarLayers(self):
+        points, lines, polygons = [], [], []
+        for layer in QGISRedLayerUtils().getLayers():
+            if layer is None:
+                continue
+            if layer.type() != LAYER_TYPE_VECTOR:
+                continue
+            if layer.customProperty("qgisred_identifier"):
+                continue
+            geom_type = layer.geometryType()
+            path = layer.source()
+            if geom_type == 0:
+                points.append(path)
+            elif geom_type == 1:
+                lines.append(path)
+            elif geom_type == 2:
+                polygons.append(path)
+        result = ""
+        if points:
+            result += "[POINT]" + ";".join(points)
+        if lines:
+            result += "[LINE]" + ";".join(lines)
+        if polygons:
+            result += "[POLYGON]" + ";".join(polygons)
+        return result
+
+    def runDemandsBuilder(self):
         if not self.checkDependencies():
             return
         # Validations
@@ -119,9 +146,11 @@ class ToolsSection:
         if "Junctions" in self.selectedIds:
             ids = "Junctions:" + str(self.selectedIds["Junctions"]) + ";"
 
+        auxiliarLayers = self._getAuxiliarLayers()
+
         # Process
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        resMessage = GISRed.DemandsManager(self.ProjectDirectory, self.NetworkName, self.tempFolder, ids)
+        resMessage = GISRed.DemandsBuilder(self.ProjectDirectory, self.NetworkName, self.tempFolder, ids, auxiliarLayers)
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "", layerType = "demandBuilder")

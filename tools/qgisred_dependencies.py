@@ -409,16 +409,17 @@ class QGISRedDependencies:
         return QGISRedDependencies.toString(b)
 
     @staticmethod
-    def DemandsManager(projectFolder, networkName, tempFolder, ids):
+    def DemandsBuilder(projectFolder, networkName, tempFolder, ids, auxiliarLayers):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
         ids = QGISRedDependencies.encode(ids)
+        auxiliarLayers = QGISRedDependencies.encode(auxiliarLayers)
 
         mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
-        mydll.DemandsManager.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
-        mydll.DemandsManager.restype = c_char_p
-        b = mydll.DemandsManager(projectFolder, networkName, tempFolder, ids)
+        mydll.DemandsBuilder.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.DemandsBuilder.restype = c_char_p
+        b = mydll.DemandsBuilder(projectFolder, networkName, tempFolder, ids, auxiliarLayers)
         return QGISRedDependencies.toString(b)
 
     @staticmethod
