@@ -252,13 +252,6 @@ class ToolsSection:
         if not hasattr(self, "category_colors"):
             self.category_colors = {}
 
-        def is_undefined_category(value):
-            if value is None:
-                return True
-
-            text = str(value).strip()
-            return text == "" or text.lower() in ("null", "undefined")
-
         if self._demandBuilderExtraPaths:
             for path in self._demandBuilderExtraPaths:
                 if not os.path.exists(path):
@@ -280,21 +273,21 @@ class ToolsSection:
 
                         for feature in vlayer.getFeatures():
                             raw_cat = feature[field_index]
+                            text = "" if raw_cat is None else str(raw_cat).strip()
 
-                            if is_undefined_category(raw_cat):
+                            if text == "" or text.lower() in ("null", "undefined"):
                                 has_undefined = True
                             else:
-                                unique_cats.add(str(raw_cat).strip())
+                                unique_cats.add(text)
 
                         categories = []
 
                         if has_undefined:
-                            for value in (QVariant(), "", "Undefined", "NULL", "null"):
-                                symbol_undefined = QgsSymbol.defaultSymbol(geom_type)
-                                symbol_undefined.setColor(QColor("orange"))
-                                categories.append(
-                                    QgsRendererCategory(value, symbol_undefined, "Undefined")
-                                )
+                            symbol_undefined = QgsSymbol.defaultSymbol(geom_type)
+                            symbol_undefined.setColor(QColor("orange"))
+                            categories.append(
+                                QgsRendererCategory("Undefined", symbol_undefined, "Undefined")
+                            )
 
                         for cat in sorted(unique_cats):
                             if cat not in self.category_colors:
@@ -308,7 +301,17 @@ class ToolsSection:
                             symbol.setColor(self.category_colors[cat])
                             categories.append(QgsRendererCategory(cat, symbol, cat))
 
-                        renderer = QgsCategorizedSymbolRenderer("Category", categories)
+                        category_expression = (
+                            "CASE "
+                            "WHEN \"Category\" IS NULL "
+                            "OR trim(\"Category\") = '' "
+                            "OR lower(trim(\"Category\")) IN ('null', 'undefined') "
+                            "THEN 'Undefined' "
+                            "ELSE trim(\"Category\") "
+                            "END"
+                        )
+
+                        renderer = QgsCategorizedSymbolRenderer(category_expression, categories)
                         vlayer.setRenderer(renderer)
 
                     else:
