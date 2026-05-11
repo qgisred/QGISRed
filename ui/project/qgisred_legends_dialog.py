@@ -578,6 +578,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.populateLegendTable()
         self.updateButtonStates()
         self.updateInputLayerRestrictions()
+        self.loadRebuildStrategyCheckboxState()
 
     def updateFrameLegendLabel(self, layer):
         layerName = layer.name()
@@ -3440,6 +3441,48 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.currentLayer.setCustomProperty("qgisred_legend_strategy", json.dumps(strategy))
         else:
             self.currentLayer.removeCustomProperty("qgisred_legend_strategy")
+
+    def loadRebuildStrategyCheckboxState(self):
+        if not hasattr(self, "ckRebuildOnLoad"):
+            return
+        self.ckRebuildOnLoad.setChecked(False)
+        if not self.currentLayer:
+            return
+        rawStrategy = self.currentLayer.customProperty("qgisred_legend_strategy")
+        if not rawStrategy:
+            return
+        self.ckRebuildOnLoad.setChecked(True)
+        try:
+            strategy = json.loads(rawStrategy)
+        except Exception:
+            return
+        self.restoreColorUiFromStrategy(strategy)
+
+    def restoreColorUiFromStrategy(self, strategy):
+        mode = strategy.get("mode")
+        if mode == "categorized":
+            cat = strategy.get("categorized") or {}
+            colorSource = cat.get("colorSource")
+            rampName = cat.get("rampName")
+            if colorSource == "ramp":
+                self.cbColors.setCurrentText("Ramp")
+                if rampName:
+                    self.btnColorRamp.setActiveRampByName(rampName)
+                    self.applyColorLogic()
+            elif colorSource == "random":
+                self.cbColors.setCurrentText("Random")
+        elif mode == "graduated":
+            grad = strategy.get("graduated") or {}
+            classificationMode = grad.get("classificationMode")
+            rampName = grad.get("rampName")
+            if classificationMode:
+                index = self.cbMode.findData(classificationMode)
+                if index >= 0:
+                    self.cbMode.setCurrentIndex(index)
+            if rampName:
+                self.cbColors.setCurrentText("Ramp")
+                self.btnColorRamp.setActiveRampByName(rampName)
+                self.applyColorLogic()
 
     def loadDefaultStyle(self):
         self.loadStyle(isDefault=True)
