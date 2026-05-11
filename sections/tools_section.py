@@ -7,6 +7,7 @@ from qgis.PyQt.QtWidgets import QApplication, QFileDialog
 from qgis.PyQt.QtCore import Qt, QVariant
 from qgis.PyQt.QtGui import QColor
 from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeLayer, QgsSingleSymbolRenderer, QgsSymbol, QgsCategorizedSymbolRenderer, QgsRendererCategory
+from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling,  QgsTextFormat
 from random import randint
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
@@ -324,6 +325,35 @@ class ToolsSection:
 
                         renderer = QgsSingleSymbolRenderer(symbol)
                         vlayer.setRenderer(renderer)
+
+                    # Labels
+                    label_settings = QgsPalLayerSettings()
+
+                    text_format = QgsTextFormat()
+                    text_format.setSize(10)
+                    label_settings.setFormat(text_format)
+
+                    if geom_type == 1:
+                        # Links -> value of "%Dem"
+                        if vlayer.fields().indexFromName("%Dem") != -1:
+                            label_settings.fieldName = '"%Dem"'
+                            label_settings.isExpression = True
+                            label_settings.enabled = True
+
+                            vlayer.setLabelsEnabled(True)
+                            vlayer.setLabeling(QgsVectorLayerSimpleLabeling(label_settings))
+
+                    elif geom_type == 0:
+                        # Points -> value of "BaseDemand"
+                        if vlayer.fields().indexFromName("BaseDemand") != -1:
+                            label_settings.fieldName = '"BaseDemand"'
+                            label_settings.isExpression = True
+                            label_settings.enabled = True
+
+                            vlayer.setLabelsEnabled(True)
+                            vlayer.setLabeling(QgsVectorLayerSimpleLabeling(label_settings))
+
+                    vlayer.triggerRepaint()
 
                     QgsProject.instance().addMapLayer(vlayer, False)
                     demandBuilderGroup.insertChildNode(0, QgsLayerTreeLayer(vlayer))
