@@ -243,12 +243,9 @@ class ToolsSection:
         self.processCsharpResult(resMessage, "", layerType="isolatedSegments")
 
     def openDemandBuilderLayers(self):
-        # Open layers
         demandBuilderGroup = self.getDemandBuilderGroup()
         isoFolder = os.path.join(self.ProjectDirectory, "Auxiliary Layers", "DemandBuilder")
         utils = QGISRedLayerUtils(isoFolder, self.NetworkName, self.iface)
-        utils.openLayer(demandBuilderGroup, "DemandBuilder_DemandLinks")
-        utils.openLayer(demandBuilderGroup, "DemandBuilder_ConsumptionPoints")
 
         if self._demandBuilderExtraPaths:
             for path in self._demandBuilderExtraPaths:
