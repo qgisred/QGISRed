@@ -377,6 +377,7 @@ class LifecycleSection:
         # remove the toolbar
         del self.toolbar
         del self.generalToolbar
+        del self.infoToolbar
         del self.projectToolbar
         del self.editionToolbar
         del self.debugToolbar
