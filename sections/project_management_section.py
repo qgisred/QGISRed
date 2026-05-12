@@ -16,7 +16,7 @@ from ..tools.utils.qgisred_filesystem_utils import (
     DIR_ISSUES, DIR_QUERIES, DIR_RESULTS,
     DIR_CONNECTIVITY, DIR_HYDRAULIC_SECTORS,
     DIR_DEMAND_SECTORS, DIR_ISOLATED_SEGMENTS,
-    DIR_AUXILIARY_LAYERS, DIR_DEMAND_BUILDER,
+    DIR_AUXILIARY_LAYERS, DIR_DEMANDS_BUILDER,
 )
 from ..tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ..tools.utils.qgisred_project_io import QGISRedProjectIO
@@ -841,9 +841,9 @@ class ProjectManagementSection:
                 target_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, target)))
                 if layer_dir_norm != target_norm:
                     return target
-            # DemandBuilder: root or Queries/ flat → Auxiliary Layers/DemandBuilder/
-            if base.startswith(netPrefix) and "_DemandBuilder_" in base:
-                target = os.path.join(DIR_AUXILIARY_LAYERS, DIR_DEMAND_BUILDER)
+            # DemandsBuilder: root or Queries/ flat → Auxiliary Layers/DemandsBuilder/
+            if base.startswith(netPrefix) and "_DemandsBuilder_" in base:
+                target = os.path.join(DIR_AUXILIARY_LAYERS, DIR_DEMANDS_BUILDER)
                 target_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, target)))
                 if layer_dir_norm != target_norm:
                     return target

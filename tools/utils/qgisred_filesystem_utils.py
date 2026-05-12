@@ -16,7 +16,7 @@ DIR_HYDRAULIC_SECTORS = "HydraulicSectors"
 DIR_DEMAND_SECTORS    = "DemandSectors"
 DIR_ISOLATED_SEGMENTS = "IsolatedSegments"
 DIR_AUXILIARY_LAYERS  = "Auxiliary Layers"
-DIR_DEMAND_BUILDER    = "DemandBuilder"
+DIR_DEMANDS_BUILDER    = "DemandsBuilder"
 
 
 class QGISRedFileSystemUtils:

@@ -21,7 +21,7 @@ from .qgisred_filesystem_utils import (
     DIR_ISSUES, DIR_QUERIES, DIR_RESULTS,
     DIR_CONNECTIVITY, DIR_HYDRAULIC_SECTORS,
     DIR_DEMAND_SECTORS, DIR_ISOLATED_SEGMENTS,
-    DIR_AUXILIARY_LAYERS, DIR_DEMAND_BUILDER,
+    DIR_AUXILIARY_LAYERS, DIR_DEMANDS_BUILDER,
 )
 
 
@@ -55,7 +55,7 @@ class QGISRedProjectIO:
         "Queries/HydraulicSectors":      os.path.join(DIR_QUERIES, DIR_HYDRAULIC_SECTORS),
         "Queries/DemandSectors":         os.path.join(DIR_QUERIES, DIR_DEMAND_SECTORS),
         "Queries/IsolatedSegments":      os.path.join(DIR_QUERIES, DIR_ISOLATED_SEGMENTS),
-        "Auxiliary Layers/DemandBuilder": os.path.join(DIR_AUXILIARY_LAYERS, DIR_DEMAND_BUILDER),
+        "Auxiliary Layers/DemandsBuilder": os.path.join(DIR_AUXILIARY_LAYERS, DIR_DEMANDS_BUILDER),
     }
 
     _GROUP_TREE_PATH = {

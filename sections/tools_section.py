@@ -12,7 +12,7 @@ from random import randint
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.utils.qgisred_filesystem_utils import (
-    DIR_QUERIES, DIR_ISOLATED_SEGMENTS, DIR_AUXILIARY_LAYERS, DIR_DEMAND_BUILDER,
+    DIR_QUERIES, DIR_ISOLATED_SEGMENTS, DIR_AUXILIARY_LAYERS, DIR_DEMANDS_BUILDER,
 )
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool, SelectPointType
@@ -160,7 +160,7 @@ class ToolsSection:
         resMessage = GISRed.DemandsBuilder(self.ProjectDirectory, self.NetworkName, self.tempFolder, ids, auxiliarLayers)
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(resMessage, "", layerType = "demandBuilder")
+        self.processCsharpResult(resMessage, "", layerType = "demandsBuilder")
         self.selectedFids = {}
 
     def runScenarioManager(self):
@@ -248,7 +248,7 @@ class ToolsSection:
         self.blockLayers(False)
         self.processCsharpResult(resMessage, "", layerType="isolatedSegments")
 
-    def _applyDemandBuilderStyle(self, vlayer):
+    def _applyDemandsBuilderStyle(self, vlayer):
         geom_type = vlayer.geometryType()
         field_index = vlayer.fields().indexFromName("Category")
 
@@ -355,13 +355,13 @@ class ToolsSection:
 
         vlayer.triggerRepaint()
 
-    def openDemandBuilderLayers(self):
-        demandBuilderGroup = self.getDemandBuilderGroup()
+    def openDemandsBuilderLayers(self):
+        demandsBuilderGroup = self.getDemandsBuilderGroup()
 
         isoFolder = os.path.join(
             self.ProjectDirectory,
             DIR_AUXILIARY_LAYERS,
-            DIR_DEMAND_BUILDER
+            DIR_DEMANDS_BUILDER
         )
 
         utils = QGISRedLayerUtils(
@@ -370,9 +370,9 @@ class ToolsSection:
             self.iface
         )
 
-        if self._demandBuilderExtraPaths:
+        if self._demandsBuilderExtraPaths:
 
-            for path in self._demandBuilderExtraPaths:
+            for path in self._demandsBuilderExtraPaths:
 
                 if not os.path.exists(path):
                     continue
@@ -381,7 +381,7 @@ class ToolsSection:
                 reloaded_layer = utils._tryReloadExistingLayer(path)
 
                 if reloaded_layer:
-                    self._applyDemandBuilderStyle(reloaded_layer)
+                    self._applyDemandsBuilderStyle(reloaded_layer)
                     continue
 
                 # Create new layer
@@ -398,19 +398,19 @@ class ToolsSection:
                 if not vlayer.isValid():
                     continue
 
-                self._applyDemandBuilderStyle(vlayer)
+                self._applyDemandsBuilderStyle(vlayer)
 
                 QgsProject.instance().addMapLayer(
                     vlayer,
                     False
                 )
 
-                demandBuilderGroup.insertChildNode(
+                demandsBuilderGroup.insertChildNode(
                     0,
                     QgsLayerTreeLayer(vlayer)
                 )
 
-            self._demandBuilderExtraPaths = []
+            self._demandsBuilderExtraPaths = []
 
     def openIsolatedSegmentsLayers(self):
         # Open layers
@@ -425,9 +425,9 @@ class ToolsSection:
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         return utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Isolated Segments"])
     
-    def getDemandBuilderGroup(self):
+    def getDemandsBuilderGroup(self):
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        return utils.getOrCreateNestedGroup([self.NetworkName, "Auxiliary Layers", "DemandBuilder"])
+        return utils.getOrCreateNestedGroup([self.NetworkName, "Auxiliary Layers", "DemandsBuilder"])
 
     def removeIsolatedSegmentsLayers(self):
         isoFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, DIR_ISOLATED_SEGMENTS)

@@ -20,7 +20,7 @@ class QGISRedLayerUtils:
         'HydraulicSectors': 'qgisred_hydraulicsectors',
         'Demand Sectors': 'qgisred_demandsectors',
         'IsolatedSegments': 'qgisred_isolatedsegments',
-        'DemandBuilder': 'qgisred_demandbuilder',
+        'DemandsBuilder': 'qgisred_demandsbuilder',
     }
 
     identifierToGroupName = {
@@ -34,7 +34,7 @@ class QGISRedLayerUtils:
         'qgisred_hydraulicsectors': 'HydraulicSectors',
         'qgisred_demandsectors': 'Demand Sectors',
         'qgisred_isolatedsegments': 'IsolatedSegments',
-        'qgisred_demandbuilder': 'DemandBuilder',
+        'qgisred_demandsbuilder': 'DemandsBuilder',
     }
 
     # Maps qgisred_identifier → canonical English group name (locale-independent)
@@ -49,7 +49,7 @@ class QGISRedLayerUtils:
         'qgisred_hydraulicsectors': 'Hydraulic Sectors',
         'qgisred_demandsectors':    'Demand Sectors',
         'qgisred_isolatedsegments': 'Isolated Segments',
-        'qgisred_demandbuilder':    'Demand Builder',
+        'qgisred_demandsbuilder':    'Demands Builder',
     }
 
     MAIN_GROUP_ORDER = ["Results", "Queries", "Issues", "Auxiliary Layers", "Inputs"]
@@ -70,7 +70,7 @@ class QGISRedLayerUtils:
             'qgisred_hydraulicsectors': 'HydraulicSectors',
             'qgisred_demandsectors': 'Demand Sectors',
             'qgisred_isolatedsegments': 'IsolatedSegments',
-            'qgisred_demandbuilder': 'DemandBuilder',
+            'qgisred_demandsbuilder': 'DemandsBuilder',
         }
 
     def tr(self, message):
@@ -91,7 +91,7 @@ class QGISRedLayerUtils:
             "Demand Sectors":    QCoreApplication.translate("QGISRedGroups", "Demand Sectors"),
             "Isolated Segments": QCoreApplication.translate("QGISRedGroups", "Isolated Segments"),
             "Tree":              QCoreApplication.translate("QGISRedGroups", "Tree"),
-            "DemandBuilder":     QCoreApplication.translate("QGISRedGroups", "DemandBuilder"),
+            "DemandsBuilder":     QCoreApplication.translate("QGISRedGroups", "DemandsBuilder"),
             "Auxiliary Layers":         QCoreApplication.translate("QGISRedGroups", "Auxiliary Layers"),
         }
         if name.startswith("Tree: "):

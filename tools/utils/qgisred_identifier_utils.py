@@ -62,8 +62,8 @@ class QGISRedIdentifierUtils:
             'qgisred_isolatedsegments_isolateddemands': 'IsolSeg_Isolated Demands',
             'qgisred_tree_links': 'Tree_Links',
             'qgisred_tree_nodes': 'Tree_Nodes',
-            'qgisred_demandbuilder_demandlinks': 'DemBuil_Demand Links',
-            'qgisred_demandbuilder_consumptionpoints': 'DemBuil_Consumption Points'
+            'qgisred_demandsbuilder_demandlinks': 'DemBuil_Demand Links',
+            'qgisred_demandsbuilder_consumptionpoints': 'DemBuil_Consumption Points'
         }
 
     def tr(self, message):

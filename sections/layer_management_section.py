@@ -11,7 +11,7 @@ from qgis.PyQt.QtCore import Qt
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.utils.qgisred_filesystem_utils import (
     DIR_ISSUES, DIR_QUERIES, DIR_CONNECTIVITY,
-    DIR_ISOLATED_SEGMENTS, DIR_AUXILIARY_LAYERS, DIR_DEMAND_BUILDER,
+    DIR_ISOLATED_SEGMENTS, DIR_AUXILIARY_LAYERS, DIR_DEMANDS_BUILDER,
 )
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
@@ -253,9 +253,9 @@ class LayerManagementSection:
         self.hasToOpenSectorLayers = False
         self.hasToOpenConnectivityLayers = False
         self.hasToOpenIsolatedSegmentsLayers = False
-        self.hasToOpenDemandBuilderLayers = False
+        self.hasToOpenDemandsBuilderLayers = False
         self.hasToOpenTreeLayers = False
-        self._demandBuilderExtraPaths = []
+        self._demandsBuilderExtraPaths = []
     
         if b == "True":
             if not message == "":
@@ -273,8 +273,8 @@ class LayerManagementSection:
                 self.hasToOpenIsolatedSegmentsLayers = True
             elif layerType == "tree":
                 self.hasToOpenTreeLayers = True
-            elif layerType == "demandBuilder":
-                self.hasToOpenDemandBuilderLayers = True
+            elif layerType == "demandsBuilder":
+                self.hasToOpenDemandsBuilderLayers = True
             else:
                 self.hasToOpenIssuesLayers = True
         elif b.startswith("commit/shps"):
@@ -287,16 +287,16 @@ class LayerManagementSection:
                 self.hasToOpenIsolatedSegmentsLayers = True
             elif layerType == "tree":
                 self.hasToOpenTreeLayers = True
-            elif layerType == "demandBuilder":
-                self.hasToOpenDemandBuilderLayers = True
+            elif layerType == "demandsBuilder":
+                self.hasToOpenDemandsBuilderLayers = True
                 if "^" in b:
-                    self._demandBuilderExtraPaths = [p for p in b.split("^", 1)[1].split(";") if p.strip()]
+                    self._demandsBuilderExtraPaths = [p for p in b.split("^", 1)[1].split(";") if p.strip()]
             else:
                 self.hasToOpenIssuesLayers = True
         else:
             self.pushMessage(b, level=2, duration=5)
 
-        if self.hasToOpenNewLayers or self.hasToOpenIssuesLayers or self.hasToOpenSectorLayers or self.hasToOpenConnectivityLayers or self.hasToOpenIsolatedSegmentsLayers or self.hasToOpenTreeLayers or self.hasToOpenDemandBuilderLayers:
+        if self.hasToOpenNewLayers or self.hasToOpenIssuesLayers or self.hasToOpenSectorLayers or self.hasToOpenConnectivityLayers or self.hasToOpenIsolatedSegmentsLayers or self.hasToOpenTreeLayers or self.hasToOpenDemandsBuilderLayers:
             self.layerOperationInProgress = True
             self.runOpenTemporaryFiles()
         else:
@@ -369,12 +369,12 @@ class LayerManagementSection:
             self.openIsolatedSegmentsLayers()
             self.hasToOpenIsolatedSegmentsLayers = False
 
-        if self.hasToOpenDemandBuilderLayers:
-            isoFolder = os.path.join(self.ProjectDirectory, DIR_AUXILIARY_LAYERS, DIR_DEMAND_BUILDER)
+        if self.hasToOpenDemandsBuilderLayers:
+            isoFolder = os.path.join(self.ProjectDirectory, DIR_AUXILIARY_LAYERS, DIR_DEMANDS_BUILDER)
             os.makedirs(isoFolder, exist_ok=True)
             auxFolder = os.path.join(self.ProjectDirectory, "_aux_DemandsBuilder")
             if os.path.isdir(auxFolder):
-                extraByName = {os.path.splitext(os.path.basename(p))[0]: os.path.dirname(p) for p in self._demandBuilderExtraPaths}
+                extraByName = {os.path.splitext(os.path.basename(p))[0]: os.path.dirname(p) for p in self._demandsBuilderExtraPaths}
                 for fi in os.listdir(auxFolder):
                     dstDir = extraByName.get(os.path.splitext(fi)[0])
                     if dstDir:
@@ -382,14 +382,14 @@ class LayerManagementSection:
                 shutil.rmtree(auxFolder)
             # Old code to remove...
             for fi in os.listdir(self.ProjectDirectory):
-                if fi.startswith(self.NetworkName) and "DemandBuilder" in fi:
+                if fi.startswith(self.NetworkName) and "DemandsBuilder" in fi:
                     src = os.path.join(self.ProjectDirectory, fi)
                     dst = os.path.join(isoFolder, fi)
                     shutil.copy2(src, dst)
                     os.remove(src)
             # --------
-            self.openDemandBuilderLayers()
-            self.hasToOpenDemandBuilderLayers = False
+            self.openDemandsBuilderLayers()
+            self.hasToOpenDemandsBuilderLayers = False
 
         if self.hasToOpenTreeLayers:
             treeFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, "Tree_" + self.treeName)
