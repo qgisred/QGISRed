@@ -12,6 +12,12 @@ from qgis.PyQt.QtCore import Qt, QCoreApplication, QTimer
 from ..compat import QAction
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ..tools.utils.qgisred_filesystem_utils import (
+    DIR_ISSUES, DIR_QUERIES, DIR_RESULTS,
+    DIR_CONNECTIVITY, DIR_HYDRAULIC_SECTORS,
+    DIR_DEMAND_SECTORS, DIR_ISOLATED_SEGMENTS,
+    DIR_AUXILIARY_LAYERS, DIR_DEMAND_BUILDER,
+)
 from ..tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ..tools.utils.qgisred_project_io import QGISRedProjectIO
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
@@ -728,7 +734,7 @@ class ProjectManagementSection:
     def removeOldResultLayers(self):
         """Detect old-format result layers/files, prompt the user, remove from QGIS and optionally delete files."""
         import re
-        results_dir = os.path.join(self.ProjectDirectory, "Results")
+        results_dir = os.path.join(self.ProjectDirectory, DIR_RESULTS)
         pattern = re.compile(r'^' + re.escape(self.NetworkName) + r'_[^_]+_(Node|Link)_', re.IGNORECASE)
 
         if not os.path.isdir(results_dir):
@@ -770,7 +776,7 @@ class ProjectManagementSection:
     def _deleteOldResultFiles(self):
         """Delete shapefile-family files from Results/ matching old format NetworkName_Scenario_(Node|Link)_Variable."""
         import re
-        results_dir = os.path.join(self.ProjectDirectory, "Results")
+        results_dir = os.path.join(self.ProjectDirectory, DIR_RESULTS)
         if not os.path.isdir(results_dir):
             return
         pattern = re.compile(r'^' + re.escape(self.NetworkName) + r'_[^_]+_(Node|Link)_', re.IGNORECASE)
@@ -800,7 +806,7 @@ class ProjectManagementSection:
             return
 
         netPrefix = self.NetworkName + "_"
-        queries_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, "Queries")))
+        queries_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, DIR_QUERIES)))
         root_norm = os.path.normcase(os.path.normpath(self.ProjectDirectory))
         options = QgsDataProvider.ProviderOptions()
 
@@ -808,36 +814,36 @@ class ProjectManagementSection:
             """Return target path relative to ProjectDirectory, or None if already correct."""
             # Issues: root → Issues/
             if base.startswith(netPrefix) and base.endswith("_Issues"):
-                issues_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, "Issues")))
+                issues_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, DIR_ISSUES)))
                 if layer_dir_norm != issues_norm:
-                    return "Issues"
+                    return DIR_ISSUES
             # Connectivity: root or Queries/ → Queries/Connectivity/
             if base == self.NetworkName + "_Connectivity_Links":
-                target = os.path.join("Queries", "Connectivity")
+                target = os.path.join(DIR_QUERIES, DIR_CONNECTIVITY)
                 target_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, target)))
                 if layer_dir_norm != target_norm:
                     return target
             # HydraulicSectors (includes IsolatedDemands_HydraulicSectors)
             if base.startswith(netPrefix) and "HydraulicSectors" in base:
-                target = os.path.join("Queries", "HydraulicSectors")
+                target = os.path.join(DIR_QUERIES, DIR_HYDRAULIC_SECTORS)
                 target_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, target)))
                 if layer_dir_norm != target_norm:
                     return target
             # DemandSectors
             if base.startswith(netPrefix) and "DemandSectors" in base:
-                target = os.path.join("Queries", "DemandSectors")
+                target = os.path.join(DIR_QUERIES, DIR_DEMAND_SECTORS)
                 target_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, target)))
                 if layer_dir_norm != target_norm:
                     return target
             # IsolatedSegments
             if base.startswith(netPrefix) and "_IsolatedSegments_" in base:
-                target = os.path.join("Queries", "IsolatedSegments")
+                target = os.path.join(DIR_QUERIES, DIR_ISOLATED_SEGMENTS)
                 target_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, target)))
                 if layer_dir_norm != target_norm:
                     return target
             # DemandBuilder: root or Queries/ flat → Auxiliary Layers/DemandBuilder/
             if base.startswith(netPrefix) and "_DemandBuilder_" in base:
-                target = os.path.join("Auxiliary Layers", "DemandBuilder")
+                target = os.path.join(DIR_AUXILIARY_LAYERS, DIR_DEMAND_BUILDER)
                 target_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, target)))
                 if layer_dir_norm != target_norm:
                     return target
@@ -845,7 +851,7 @@ class ProjectManagementSection:
             if base.startswith(netPrefix) and "_Tree_" in base:
                 parts = base.split("_Tree_", 1)
                 if len(parts) == 2:
-                    target = os.path.join("Queries", "Tree_" + parts[1])
+                    target = os.path.join(DIR_QUERIES, "Tree_" + parts[1])
                     target_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, target)))
                     if layer_dir_norm != target_norm:
                         return target

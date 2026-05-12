@@ -7,6 +7,17 @@ from shutil import copyfile
 
 from qgis.core import QgsVectorLayer  # noqa: F401 — used in getLayerPath exception path
 
+# Project subdirectory names — single source of truth for all os.path.join calls
+DIR_ISSUES            = "Issues"
+DIR_QUERIES           = "Queries"
+DIR_RESULTS           = "Results"
+DIR_CONNECTIVITY      = "Connectivity"
+DIR_HYDRAULIC_SECTORS = "HydraulicSectors"
+DIR_DEMAND_SECTORS    = "DemandSectors"
+DIR_ISOLATED_SEGMENTS = "IsolatedSegments"
+DIR_AUXILIARY_LAYERS  = "Auxiliary Layers"
+DIR_DEMAND_BUILDER    = "DemandBuilder"
+
 
 class QGISRedFileSystemUtils:
     DllTempoFolder = None

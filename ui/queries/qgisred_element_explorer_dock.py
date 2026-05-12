@@ -9,6 +9,7 @@ from qgis.utils import iface
 from qgis.gui import QgsHighlight
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ...tools.utils.qgisred_filesystem_utils import DIR_RESULTS
 from ..analysis.qgisred_results_dock import QGISRedResultsDock
 from ...compat import LINEEDIT_LEADING_POSITION
 
@@ -2370,7 +2371,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         if not projectPath or projectPath == "./":
             return False
 
-        resultsPath = os.path.join(projectPath, "Results")
+        resultsPath = os.path.join(projectPath, DIR_RESULTS)
         if not os.path.exists(resultsPath):
             return False
 

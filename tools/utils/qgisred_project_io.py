@@ -17,6 +17,12 @@ from qgis.core import (
     QgsLayerDefinition
 )
 from .qgisred_ui_utils import QGISRedUIUtils
+from .qgisred_filesystem_utils import (
+    DIR_ISSUES, DIR_QUERIES, DIR_RESULTS,
+    DIR_CONNECTIVITY, DIR_HYDRAULIC_SECTORS,
+    DIR_DEMAND_SECTORS, DIR_ISOLATED_SEGMENTS,
+    DIR_AUXILIARY_LAYERS, DIR_DEMAND_BUILDER,
+)
 
 
 class QGISRedProjectIO:
@@ -42,13 +48,14 @@ class QGISRedProjectIO:
         return QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
 
     _GROUP_SUBDIR = {
-        "Inputs":                   "",
-        "Issues":                   "Issues",
-        "Results":                  "Results",
-        "Queries/Connectivity":     "Queries/Connectivity",
-        "Queries/HydraulicSectors": "Queries/HydraulicSectors",
-        "Queries/DemandSectors":    "Queries/DemandSectors",
-        "Queries/IsolatedSegments": "Queries/IsolatedSegments",
+        "Inputs":                        "",
+        "Issues":                        DIR_ISSUES,
+        "Results":                       DIR_RESULTS,
+        "Queries/Connectivity":          os.path.join(DIR_QUERIES, DIR_CONNECTIVITY),
+        "Queries/HydraulicSectors":      os.path.join(DIR_QUERIES, DIR_HYDRAULIC_SECTORS),
+        "Queries/DemandSectors":         os.path.join(DIR_QUERIES, DIR_DEMAND_SECTORS),
+        "Queries/IsolatedSegments":      os.path.join(DIR_QUERIES, DIR_ISOLATED_SEGMENTS),
+        "Auxiliary Layers/DemandBuilder": os.path.join(DIR_AUXILIARY_LAYERS, DIR_DEMAND_BUILDER),
     }
 
     _GROUP_TREE_PATH = {
@@ -89,7 +96,7 @@ class QGISRedProjectIO:
                     break
             if sanitized_tree is None:
                 return
-            queries_dir = os.path.join(self.ProjectDirectory, "Queries")
+            queries_dir = os.path.join(self.ProjectDirectory, DIR_QUERIES)
             tree_name = None
             tree_dir = None
             # Each tree lives in its own Queries/Tree_{sanitizedName}/ subfolder

@@ -24,7 +24,7 @@ from qgis.utils import iface
 from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL, QGISRedStylingUtils
 from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
-from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
+from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils, DIR_RESULTS
 from .qgisred_custom_dialogs import QGISRedRangeEditDialog, QGISRedSymbolColorSelector
 from .qgisred_custom_dialogs import QGISRedColorRampSelector, QGISRedRowSelectionFilter
 from .qgisred_custom_dialogs import QGISRedPaletteEmulator, QGISRedSizePaletteEmulator
@@ -165,7 +165,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not self.projectDirectory or not self.networkName:
             return None
 
-        resultsDir = os.path.join(self.projectDirectory, "Results")
+        resultsDir = os.path.join(self.projectDirectory, DIR_RESULTS)
 
         if self.isLinkResultLayer():
             return os.path.join(resultsDir, f"{self.networkName}_Base_Link_All.shp")

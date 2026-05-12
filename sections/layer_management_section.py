@@ -9,6 +9,10 @@ from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtCore import Qt
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ..tools.utils.qgisred_filesystem_utils import (
+    DIR_ISSUES, DIR_QUERIES, DIR_CONNECTIVITY,
+    DIR_ISOLATED_SEGMENTS, DIR_AUXILIARY_LAYERS, DIR_DEMAND_BUILDER,
+)
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
 
@@ -24,7 +28,7 @@ class LayerManagementSection:
         utils.removeLayers(self.especificComplementaryLayers)
 
     def removeIssuesLayers(self):
-        issuesFolder = os.path.join(self.ProjectDirectory, "Issues")
+        issuesFolder = os.path.join(self.ProjectDirectory, DIR_ISSUES)
         utils = QGISRedLayerUtils(issuesFolder, self.NetworkName, self.iface)
         utils.removeLayers(self.issuesLayers)
 
@@ -33,12 +37,12 @@ class LayerManagementSection:
         utils.removeLayers(self.ownMainLayers)
         utils.removeLayers(self.ownFiles, ".dbf")
         utils.removeLayers(self.especificComplementaryLayers)
-        issuesFolder = os.path.join(self.ProjectDirectory, "Issues")
+        issuesFolder = os.path.join(self.ProjectDirectory, DIR_ISSUES)
         issuesUtils = QGISRedLayerUtils(issuesFolder, self.NetworkName, self.iface)
         issuesUtils.removeLayers(self.issuesLayers)
 
     def removeIssuesLayersFiles(self):
-        issuesFolder = os.path.join(self.ProjectDirectory, "Issues")
+        issuesFolder = os.path.join(self.ProjectDirectory, DIR_ISSUES)
         if os.path.exists(issuesFolder):
             for fi in os.listdir(issuesFolder):
                 if "_Issues." in fi:
@@ -62,14 +66,14 @@ class LayerManagementSection:
         self.removeEmptyQuerySubGroup("Connectivity")
 
     def removeSectorLayers(self):
-        queriesFolder = os.path.join(self.ProjectDirectory, "Queries")
+        queriesFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES)
         utils = QGISRedLayerUtils(queriesFolder, self.NetworkName, self.iface)
         utils.removeLayers([self.Sectors + "_Links", self.Sectors + "_Nodes"])
         sectorGroupName = self.getSectorGroupName()
         self.removeEmptyQuerySubGroup(sectorGroupName)
 
     def removeSectorLayersFiles(self):
-        queriesFolder = os.path.join(self.ProjectDirectory, "Queries")
+        queriesFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES)
         if os.path.exists(queriesFolder):
             for fi in os.listdir(queriesFolder):
                 if ("_" + self.Sectors + "_") in fi:
@@ -137,19 +141,19 @@ class LayerManagementSection:
 
     def openIssuesLayers(self):
         # Open layers
-        issuesFolder = os.path.join(self.ProjectDirectory, "Issues")
+        issuesFolder = os.path.join(self.ProjectDirectory, DIR_ISSUES)
         utils = QGISRedLayerUtils(issuesFolder, self.NetworkName, self.iface)
         issuesGroup = utils.getOrCreateNestedGroup([self.NetworkName, "Issues"])
         utils.openIssuesLayers(issuesGroup, self.issuesLayers)
 
     def openConnectivityLayer(self):
-        connFolder = os.path.join(self.ProjectDirectory, "Queries", "Connectivity")
+        connFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, DIR_CONNECTIVITY)
         utils = QGISRedLayerUtils(connFolder, self.NetworkName, self.iface)
         connGroup = utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Connectivity"])
         utils.openLayer(connGroup, "Connectivity_Links")
 
     def openSectorLayers(self):
-        sectorFolder = os.path.join(self.ProjectDirectory, "Queries", self.Sectors)
+        sectorFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, self.Sectors)
         utils = QGISRedLayerUtils(sectorFolder, self.NetworkName, self.iface)
         if os.path.exists(os.path.join(sectorFolder, self.NetworkName + "_" + self.Sectors + "_Links.shp")):
             sectorGroupName = self.getSectorGroupName()
@@ -306,7 +310,7 @@ class LayerManagementSection:
         resMessage = GISRed.ReplaceTemporalFiles(self.ProjectDirectory, self.tempFolder)
 
         if self.hasToOpenIssuesLayers:
-            issuesFolder = os.path.join(self.ProjectDirectory, "Issues")
+            issuesFolder = os.path.join(self.ProjectDirectory, DIR_ISSUES)
             if not os.path.exists(issuesFolder):
                 os.mkdir(issuesFolder)
             for fi in os.listdir(self.ProjectDirectory):
@@ -329,7 +333,7 @@ class LayerManagementSection:
             self.hasToOpenIssuesLayers = False
 
         if self.hasToOpenConnectivityLayers:
-            connFolder = os.path.join(self.ProjectDirectory, "Queries", "Connectivity")
+            connFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, DIR_CONNECTIVITY)
             os.makedirs(connFolder, exist_ok=True)
             for fi in os.listdir(self.ProjectDirectory):
                 if fi.startswith(self.NetworkName) and "Connectivity" in fi:
@@ -341,7 +345,7 @@ class LayerManagementSection:
             self.hasToOpenConnectivityLayers = False
 
         if self.hasToOpenSectorLayers:
-            sectorFolder = os.path.join(self.ProjectDirectory, "Queries", self.Sectors)
+            sectorFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, self.Sectors)
             os.makedirs(sectorFolder, exist_ok=True)
             for fi in os.listdir(self.ProjectDirectory):
                 if fi.startswith(self.NetworkName) and "Sectors" in fi:
@@ -354,7 +358,7 @@ class LayerManagementSection:
             self.hasToOpenSectorLayers = False
 
         if self.hasToOpenIsolatedSegmentsLayers:
-            isoFolder = os.path.join(self.ProjectDirectory, "Queries", "IsolatedSegments")
+            isoFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, DIR_ISOLATED_SEGMENTS)
             os.makedirs(isoFolder, exist_ok=True)
             for fi in os.listdir(self.ProjectDirectory):
                 if fi.startswith(self.NetworkName) and "IsolatedSegments" in fi:
@@ -366,7 +370,7 @@ class LayerManagementSection:
             self.hasToOpenIsolatedSegmentsLayers = False
 
         if self.hasToOpenDemandBuilderLayers:
-            isoFolder = os.path.join(self.ProjectDirectory, "Auxiliary Layers", "DemandBuilder")
+            isoFolder = os.path.join(self.ProjectDirectory, DIR_AUXILIARY_LAYERS, DIR_DEMAND_BUILDER)
             os.makedirs(isoFolder, exist_ok=True)
             auxFolder = os.path.join(self.ProjectDirectory, "_aux_DemandsBuilder")
             if os.path.isdir(auxFolder):
@@ -388,7 +392,7 @@ class LayerManagementSection:
             self.hasToOpenDemandBuilderLayers = False
 
         if self.hasToOpenTreeLayers:
-            treeFolder = os.path.join(self.ProjectDirectory, "Queries", "Tree_" + self.treeName)
+            treeFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, "Tree_" + self.treeName)
             os.makedirs(treeFolder, exist_ok=True)
             for fi in os.listdir(self.ProjectDirectory):
                 if fi.startswith(self.NetworkName) and "_Tree_" in fi:

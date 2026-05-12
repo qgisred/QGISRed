@@ -10,6 +10,7 @@ from qgis.PyQt.QtGui import QColor
 from qgis.gui import QgsHighlight
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ..tools.utils.qgisred_filesystem_utils import DIR_RESULTS
 from ..tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from ..tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ..compat import DIALOG_ACCEPTED
@@ -47,7 +48,7 @@ class AnalysisSection:
 
     def _outFilePath(self):
         scenario = getattr(self.ResultDockwidget, 'Scenario', 'Base') if self.ResultDockwidget else 'Base'
-        return os.path.join(self.ProjectDirectory, "Results", f"{self.NetworkName}_{scenario}.out")
+        return os.path.join(self.ProjectDirectory, DIR_RESULTS, f"{self.NetworkName}_{scenario}.out")
 
     def _arrangeDocksIfVisible(self, visible):
         if not visible:
@@ -212,7 +213,7 @@ class AnalysisSection:
             self.pushMessage(self.tr("No simulation results found"), level=1, duration=5)
             return
 
-        results_dir = os.path.join(self.ProjectDirectory, "Results")
+        results_dir = os.path.join(self.ProjectDirectory, DIR_RESULTS)
         base = "{}_{}".format(self.NetworkName, scenario)
         default_nodes = os.path.join(results_dir, base + "_Nodes.csv")
         default_links = os.path.join(results_dir, base + "_Links.csv")

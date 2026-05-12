@@ -11,6 +11,9 @@ from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling,  QgsTex
 from random import randint
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ..tools.utils.qgisred_filesystem_utils import (
+    DIR_QUERIES, DIR_ISOLATED_SEGMENTS, DIR_AUXILIARY_LAYERS, DIR_DEMAND_BUILDER,
+)
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool, SelectPointType
 from ..compat import LAYER_TYPE_VECTOR
@@ -247,7 +250,7 @@ class ToolsSection:
 
     def openDemandBuilderLayers(self):
         demandBuilderGroup = self.getDemandBuilderGroup()
-        isoFolder = os.path.join(self.ProjectDirectory, "Auxiliary Layers", "DemandBuilder")
+        isoFolder = os.path.join(self.ProjectDirectory, DIR_AUXILIARY_LAYERS, DIR_DEMAND_BUILDER)
         utils = QGISRedLayerUtils(isoFolder, self.NetworkName, self.iface)
 
         if not hasattr(self, "category_colors"):
@@ -364,7 +367,7 @@ class ToolsSection:
     def openIsolatedSegmentsLayers(self):
         # Open layers
         isoaltedSegmentsGroup = self.getIsolatedSegmentsGroup()
-        isoFolder = os.path.join(self.ProjectDirectory, "Queries", "IsolatedSegments")
+        isoFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, DIR_ISOLATED_SEGMENTS)
         utils = QGISRedLayerUtils(isoFolder, self.NetworkName, self.iface)
         utils.openLayer(isoaltedSegmentsGroup, "IsolatedSegments_Links")
         utils.openLayer(isoaltedSegmentsGroup, "IsolatedSegments_Nodes")
@@ -379,7 +382,7 @@ class ToolsSection:
         return utils.getOrCreateNestedGroup([self.NetworkName, "Auxiliary Layers", "DemandBuilder"])
 
     def removeIsolatedSegmentsLayers(self):
-        isoFolder = os.path.join(self.ProjectDirectory, "Queries", "IsolatedSegments")
+        isoFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, DIR_ISOLATED_SEGMENTS)
         utils = QGISRedLayerUtils(isoFolder, self.NetworkName, self.iface)
         utils.removeLayers(["IsolatedSegments_Links", "IsolatedSegments_Nodes"])
 
@@ -430,7 +433,7 @@ class ToolsSection:
     def openTreeLayers(self):
         # Open layers
         treeGroup = self.getTreeGroup()
-        treeFolder = os.path.join(self.ProjectDirectory, "Queries", "Tree_" + self.treeName)
+        treeFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, "Tree_" + self.treeName)
         utils = QGISRedLayerUtils(treeFolder, self.NetworkName, self.iface)
         utils.openTreeLayer(treeGroup, "Links", self.treeName, link=True)
         utils.openTreeLayer(treeGroup, "Nodes", self.treeName)
@@ -440,7 +443,7 @@ class ToolsSection:
         return utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Tree: " + self.treeName])
 
     def removeTreeLayers(self):
-        treeFolder = os.path.join(self.ProjectDirectory, "Queries", "Tree_" + self.treeName)
+        treeFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, "Tree_" + self.treeName)
         utils = QGISRedLayerUtils(treeFolder, self.NetworkName, self.iface)
         utils.removeLayers(["Links_Tree_" + self.treeName, "Nodes_Tree_" + self.treeName])
         self.removeEmptyQuerySubGroup("Tree")

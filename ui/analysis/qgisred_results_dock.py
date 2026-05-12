@@ -9,7 +9,7 @@ from qgis.core import (
 from qgis.gui import QgsDualView
 from ...compat import sip, QVariantString, QVariantDouble, ATCOL_TYPE_FIELD
 
-from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
+from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils, DIR_RESULTS
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
@@ -393,7 +393,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         return QGISRedFileSystemUtils().generatePath(folder, fileName)
 
     def getResultsPath(self):
-        return os.path.join(self.ProjectDirectory, "Results")
+        return os.path.join(self.ProjectDirectory, DIR_RESULTS)
 
     """Layers and Groups"""
     def getLayers(self):
