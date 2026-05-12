@@ -46,6 +46,19 @@ class QGISRedFileSystemUtils:
     def getQGISRedFolder(self):
         return os.path.join(os.getenv("APPDATA"), "QGISRed")
 
+    def getMaterialFiles(self):
+        """Returns a list of (name, path) tuples for all .dbf files in global_defaults and materials folders."""
+        result = []
+        root = self.getQGISRedFolder()
+        for subfolder in ("global_defaults", "materials"):
+            folder = os.path.join(root, subfolder)
+            if not os.path.isdir(folder):
+                continue
+            for fname in sorted(os.listdir(folder)):
+                if fname.lower().endswith(".dbf"):
+                    result.append((os.path.splitext(fname)[0], os.path.join(folder, fname)))
+        return result
+
     def getGISRedDllFolder(self):
         plat = "x86"
         if "64bit" in str(platform.architecture()):

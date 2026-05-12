@@ -46,18 +46,8 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
 
     def _loadMaterials(self):
         self.cbMaterials.clear()
-        qgisred_folder = QGISRedFileSystemUtils().getQGISRedFolder()
-        folders = [
-            os.path.join(qgisred_folder, "global_defaults"),
-            os.path.join(qgisred_folder, "materials"),
-        ]
-        for folder in folders:
-            if not os.path.isdir(folder):
-                continue
-            for fname in sorted(os.listdir(folder)):
-                if fname.lower().endswith(".dbf"):
-                    name = os.path.splitext(fname)[0]
-                    self.cbMaterials.addItem(name, os.path.join(folder, fname))
+        for name, path in QGISRedFileSystemUtils().getMaterialFiles():
+            self.cbMaterials.addItem(name, path)
 
     def config(self, ifac, direct, netw, parent):
         self.iface = ifac

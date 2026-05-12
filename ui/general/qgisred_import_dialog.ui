@@ -472,7 +472,47 @@
            </item>
           </layout>
          </item>
-         <item row="3" column="0">
+         <item row="2" column="0">
+          <layout class="QHBoxLayout" name="horizontalLayout_materials">
+           <item>
+            <widget class="QLabel" name="label_materials">
+             <property name="text">
+              <string>Materials:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="cbMaterials">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>150</width>
+               <height>16777215</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_materials">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+         <item row="4" column="0">
           <layout class="QHBoxLayout" name="horizontalLayout_7">
            <item>
             <spacer name="horizontalSpacer_5">
@@ -549,7 +589,7 @@
            </item>
           </layout>
          </item>
-         <item row="2" column="0">
+         <item row="3" column="0">
           <widget class="QTabWidget" name="tabWidget_2">
            <property name="currentIndex">
             <number>0</number>

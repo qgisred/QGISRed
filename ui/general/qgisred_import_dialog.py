@@ -59,11 +59,17 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.cbMeterLayer.currentIndexChanged.connect(self.meterLayerChanged)
         self.cbMeterType.currentIndexChanged.connect(self.meterTypeChanged)
         self.btImportShps.clicked.connect(self.importShpProject)
+        self._loadMaterials()
         # QGISRed project
         self.btSelectZip.clicked.connect(self.selectZIP)
         self.btImportProject.clicked.connect(self.importProject)
 
         self.messageBar = QGISRedBanner.inject(self, self.gridLayout_3)
+
+    def _loadMaterials(self):
+        self.cbMaterials.clear()
+        for name, path in QGISRedFileSystemUtils().getMaterialFiles():
+            self.cbMaterials.addItem(name, path)
 
     def config(self, ifac, direct, netw, parent):
         self.parent = parent
@@ -109,6 +115,8 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             self.cbUnits.setVisible(False)
             self.cbHeadloss.setVisible(False)
             self.cbCreateSubfolder.setVisible(False)
+            self.label_materials.setVisible(False)
+            self.cbMaterials.setVisible(False)
 
     def selectDirectory(self):
         selected_directory = QFileDialog.getExistingDirectory(self, "Select folder", self.ProjectDirectory)
@@ -214,9 +222,11 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         epsg = self.crs.authid().replace("EPSG:", "")
         units = self.cbUnits.currentText()
         headloss = self.cbHeadloss.currentText()
+        materialPath = self.cbMaterials.itemData(self.cbMaterials.currentIndex())
+
         # Process
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        resMessage = GISRed.CreateProject(self.ProjectDirectory, self.NetworkName, epsg, units, headloss)
+        resMessage = GISRed.CreateProject(self.ProjectDirectory, self.NetworkName, epsg, units, headloss, materialPath)
         QApplication.restoreOverrideCursor()
 
         # Message
