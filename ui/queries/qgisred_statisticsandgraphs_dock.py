@@ -34,9 +34,9 @@ from .statistics_metadata import (
 formClass, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_statisticsandgraphs_dock.ui"))
 
 
-class QGISRedStatisticsAndPlotsDock(QDockWidget, formClass):
+class QGISRedStatisticsDock(QDockWidget, formClass):
     def __init__(self, iface, parent=None):
-        super(QGISRedStatisticsAndPlotsDock, self).__init__(parent or iface.mainWindow())
+        super(QGISRedStatisticsDock, self).__init__(parent or iface.mainWindow())
         self.setupUi(self)
         self.iface = iface
         self.canvas = iface.mapCanvas()

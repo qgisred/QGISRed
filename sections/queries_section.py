@@ -6,7 +6,7 @@ from qgis.PyQt.QtCore import Qt
 from ..ui.queries.qgisred_thematicmaps_dialog import QGISRedThematicMapsDialog
 from ..ui.queries.qgisred_element_explorer_dock import QGISRedElementExplorerDock
 from ..ui.queries.qgisred_queriesbyproperties_dock import QGISRedQueriesByPropertiesDock
-from ..ui.queries.qgisred_statisticsandgraphs_dock import QGISRedStatisticsAndPlotsDock
+from ..ui.queries.qgisred_statisticsandgraphs_dock import QGISRedStatisticsDock
 from ..tools.map_tools.qgisred_identifyFeature import QGISRedIdentifyFeature
 from ..tools.utils.qgisred_ui_utils import QGISRedUIUtils
 
@@ -206,7 +206,7 @@ class QueriesSection:
             getattr(self, 'queriesByPropertiesDock', None)
         )
 
-    def runStatisticsAndPlots(self):
+    def runStatistics(self):
         if not self.checkDependencies():
             return
         # Validations
@@ -216,12 +216,12 @@ class QueriesSection:
         if self.isLayerOnEdition():
             return
 
-        if getattr(self, 'statisticsAndPlotsDock', None) is None:
-            self.statisticsAndPlotsDock = QGISRedStatisticsAndPlotsDock(self.iface)
-            self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.statisticsAndPlotsDock)
+        if getattr(self, 'statisticsDock', None) is None:
+            self.statisticsDock = QGISRedStatisticsDock(self.iface)
+            self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.statisticsDock)
         else:
-            self.statisticsAndPlotsDock.show()
-            self.statisticsAndPlotsDock.raise_()
+            self.statisticsDock.show()
+            self.statisticsDock.raise_()
         QGISRedUIUtils.arrangeDockOrder(
             self.iface.mainWindow(),
             self.ResultDockwidget,

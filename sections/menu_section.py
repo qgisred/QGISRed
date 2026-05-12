@@ -39,7 +39,7 @@ class MenuSection:
 
     QueriesSection:
         openFindElementsDialog, openElementsPropertyDialog, openThematicMapsDialog,
-        openLiveQueriesDialog, openStatisticsAndPlotsDialog
+        openLiveQueriesDialog, openStatisticsDialog
 
     ProjectManagementSection / LayerManagementSection:
         unitsAction (set in addProjectMenu via setUnits)
@@ -1109,14 +1109,14 @@ class MenuSection:
         self.add_to_group(self.openLiveQueriesDialog, self.queriesMenu, self.queriesToolbar)
         self.add_to_dropdown(self.openLiveQueriesDialog, queriesDropButton)
 
-        self.openStatisticsAndPlotsDialog = self._make_action(
+        self.openStatisticsDialog = self._make_action(
             ":/images/iconStatisticsAndPlots.svg",
-            self.tr("Statistics && Plots..."),
-            self.runStatisticsAndPlots,
+            self.tr("Statistics..."),
+            self.runStatistics,
             parent=self.iface.mainWindow(),
         )
-        self.add_to_group(self.openStatisticsAndPlotsDialog, self.queriesMenu, self.queriesToolbar)
-        self.add_to_dropdown(self.openStatisticsAndPlotsDialog, queriesDropButton)
+        self.add_to_group(self.openStatisticsDialog, self.queriesMenu, self.queriesToolbar)
+        self.add_to_dropdown(self.openStatisticsDialog, queriesDropButton)
 
     """Toolbar visibility toggles"""
 

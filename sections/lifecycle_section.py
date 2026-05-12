@@ -291,9 +291,9 @@ class LifecycleSection:
             docks_to_clean.append(('timeSeriesDock', self.timeSeriesDock))
             self.timeSeriesDock = None
 
-        if hasattr(self, 'statisticsAndPlotsDock') and self.statisticsAndPlotsDock is not None:
-            docks_to_clean.append(('statisticsAndPlotsDock', self.statisticsAndPlotsDock))
-            self.statisticsAndPlotsDock = None
+        if hasattr(self, 'statisticsDock') and self.statisticsDock is not None:
+            docks_to_clean.append(('statisticsDock', self.statisticsDock))
+            self.statisticsDock = None
 
         if hasattr(self, 'queriesByPropertiesDock') and self.queriesByPropertiesDock is not None:
             docks_to_clean.append(('queriesByPropertiesDock', self.queriesByPropertiesDock))
