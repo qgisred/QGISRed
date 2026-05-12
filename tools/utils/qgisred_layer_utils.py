@@ -396,15 +396,16 @@ class QGISRedLayerUtils:
 
     def _tryReloadExistingLayer(self, layerPath):
         """If a layer at *layerPath* is already open, reload its OGR data in-place and
-        return True. Returns False if no open layer matches, meaning the caller should
+        return the layer. Returns None if no open layer matches, meaning the caller should
         open it fresh."""
         layer = self._findLayerByPath(layerPath)
         if layer is not None:
             layer.dataProvider().reloadData()
             layer.updateExtents()
             layer.triggerRepaint()
-            return True
-        return False
+            return layer
+
+        return None
 
     def _reloadOpenLayer(self, layerName):
         """Reload OGR data for an already-open network layer (file was overwritten in-place)."""

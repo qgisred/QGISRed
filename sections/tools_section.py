@@ -248,119 +248,167 @@ class ToolsSection:
         self.blockLayers(False)
         self.processCsharpResult(resMessage, "", layerType="isolatedSegments")
 
-    def openDemandBuilderLayers(self):
-        demandBuilderGroup = self.getDemandBuilderGroup()
-        isoFolder = os.path.join(self.ProjectDirectory, DIR_AUXILIARY_LAYERS, DIR_DEMAND_BUILDER)
-        utils = QGISRedLayerUtils(isoFolder, self.NetworkName, self.iface)
+    def _applyDemandBuilderStyle(self, vlayer):
+        geom_type = vlayer.geometryType()
+        field_index = vlayer.fields().indexFromName("Category")
 
         if not hasattr(self, "category_colors"):
             self.category_colors = {}
 
+        if field_index != -1:
+            unique_cats = set()
+            has_undefined = False
+
+            for feature in vlayer.getFeatures():
+                raw_cat = feature[field_index]
+                text = "" if raw_cat is None else str(raw_cat).strip()
+
+                if text == "" or text.lower() in ("null", "undefined"):
+                    has_undefined = True
+                else:
+                    unique_cats.add(text)
+
+            categories = []
+
+            if has_undefined:
+                symbol_undefined = QgsSymbol.defaultSymbol(geom_type)
+                symbol_undefined.setColor(QColor("orange"))
+                categories.append(
+                    QgsRendererCategory("Undefined", symbol_undefined, "Undefined")
+                )
+
+            for cat in sorted(unique_cats):
+                if cat not in self.category_colors:
+                    self.category_colors[cat] = QColor.fromRgb(
+                        randint(0, 255),
+                        randint(0, 255),
+                        randint(0, 255)
+                    )
+
+                symbol = QgsSymbol.defaultSymbol(geom_type)
+                symbol.setColor(self.category_colors[cat])
+
+                categories.append(
+                    QgsRendererCategory(cat, symbol, cat)
+                )
+
+            category_expression = (
+                "CASE "
+                "WHEN \"Category\" IS NULL "
+                "OR trim(\"Category\") = '' "
+                "OR lower(trim(\"Category\")) IN ('null', 'undefined') "
+                "THEN 'Undefined' "
+                "ELSE trim(\"Category\") "
+                "END"
+            )
+
+            renderer = QgsCategorizedSymbolRenderer(
+                category_expression,
+                categories
+            )
+
+            vlayer.setRenderer(renderer)
+
+        else:
+            symbol = QgsSymbol.defaultSymbol(geom_type)
+
+            if geom_type == 0:
+                symbol.setColor(QColor("orange"))
+            elif geom_type == 1:
+                symbol.setColor(QColor("blue"))
+
+            renderer = QgsSingleSymbolRenderer(symbol)
+            vlayer.setRenderer(renderer)
+
+        # Labels
+        label_settings = QgsPalLayerSettings()
+
+        text_format = QgsTextFormat()
+        text_format.setSize(10)
+
+        label_settings.setFormat(text_format)
+
+        if geom_type == 1:
+            if vlayer.fields().indexFromName("%Dem") != -1:
+
+                label_settings.fieldName = '"%Dem" || \' %\''
+                label_settings.isExpression = True
+                label_settings.enabled = True
+                label_settings.placement = QgsPalLayerSettings.Line
+
+                vlayer.setLabelsEnabled(True)
+                vlayer.setLabeling(
+                    QgsVectorLayerSimpleLabeling(label_settings)
+                )
+
+        elif geom_type == 0:
+            if vlayer.fields().indexFromName("BaseDemand") != -1:
+
+                label_settings.fieldName = '"BaseDemand"'
+                label_settings.isExpression = True
+                label_settings.enabled = True
+
+                vlayer.setLabelsEnabled(True)
+                vlayer.setLabeling(
+                    QgsVectorLayerSimpleLabeling(label_settings)
+                )
+
+        vlayer.triggerRepaint()
+
+    def openDemandBuilderLayers(self):
+        demandBuilderGroup = self.getDemandBuilderGroup()
+
+        isoFolder = os.path.join(
+            self.ProjectDirectory,
+            DIR_AUXILIARY_LAYERS,
+            DIR_DEMAND_BUILDER
+        )
+
+        utils = QGISRedLayerUtils(
+            isoFolder,
+            self.NetworkName,
+            self.iface
+        )
+
         if self._demandBuilderExtraPaths:
+
             for path in self._demandBuilderExtraPaths:
+
                 if not os.path.exists(path):
                     continue
 
-                if utils._tryReloadExistingLayer(path):
+                # Reload existing layer
+                reloaded_layer = utils._tryReloadExistingLayer(path)
+
+                if reloaded_layer:
+                    self._applyDemandBuilderStyle(reloaded_layer)
                     continue
 
-                displayName = os.path.splitext(os.path.basename(path))[0]
-                vlayer = QgsVectorLayer(path, displayName, "ogr")
+                # Create new layer
+                displayName = os.path.splitext(
+                    os.path.basename(path)
+                )[0]
 
-                if vlayer.isValid():
-                    geom_type = vlayer.geometryType()
-                    field_index = vlayer.fields().indexFromName("Category")
+                vlayer = QgsVectorLayer(
+                    path,
+                    displayName,
+                    "ogr"
+                )
 
-                    if field_index != -1:
-                        unique_cats = set()
-                        has_undefined = False
+                if not vlayer.isValid():
+                    continue
 
-                        for feature in vlayer.getFeatures():
-                            raw_cat = feature[field_index]
-                            text = "" if raw_cat is None else str(raw_cat).strip()
+                self._applyDemandBuilderStyle(vlayer)
 
-                            if text == "" or text.lower() in ("null", "undefined"):
-                                has_undefined = True
-                            else:
-                                unique_cats.add(text)
+                QgsProject.instance().addMapLayer(
+                    vlayer,
+                    False
+                )
 
-                        categories = []
-
-                        if has_undefined:
-                            symbol_undefined = QgsSymbol.defaultSymbol(geom_type)
-                            symbol_undefined.setColor(QColor("orange"))
-                            categories.append(
-                                QgsRendererCategory("Undefined", symbol_undefined, "Undefined")
-                            )
-
-                        for cat in sorted(unique_cats):
-                            if cat not in self.category_colors:
-                                self.category_colors[cat] = QColor.fromRgb(
-                                    randint(0, 255),
-                                    randint(0, 255),
-                                    randint(0, 255)
-                                )
-
-                            symbol = QgsSymbol.defaultSymbol(geom_type)
-                            symbol.setColor(self.category_colors[cat])
-                            categories.append(QgsRendererCategory(cat, symbol, cat))
-
-                        category_expression = (
-                            "CASE "
-                            "WHEN \"Category\" IS NULL "
-                            "OR trim(\"Category\") = '' "
-                            "OR lower(trim(\"Category\")) IN ('null', 'undefined') "
-                            "THEN 'Undefined' "
-                            "ELSE trim(\"Category\") "
-                            "END"
-                        )
-
-                        renderer = QgsCategorizedSymbolRenderer(category_expression, categories)
-                        vlayer.setRenderer(renderer)
-
-                    else:
-                        symbol = QgsSymbol.defaultSymbol(geom_type)
-
-                        if geom_type == 0:
-                            symbol.setColor(QColor("orange"))
-                        elif geom_type == 1:
-                            symbol.setColor(QColor("blue"))
-
-                        renderer = QgsSingleSymbolRenderer(symbol)
-                        vlayer.setRenderer(renderer)
-
-                    # Labels
-                    label_settings = QgsPalLayerSettings()
-
-                    text_format = QgsTextFormat()
-                    text_format.setSize(10)
-                    label_settings.setFormat(text_format)
-
-                    if geom_type == 1:
-                        # Links -> value of "%Dem" + percentage sign
-                        if vlayer.fields().indexFromName("%Dem") != -1:
-                            label_settings.fieldName = '"%Dem" || \' %\''
-                            label_settings.isExpression = True
-                            label_settings.enabled = True
-                            label_settings.placement = QgsPalLayerSettings.Line
-
-                            vlayer.setLabelsEnabled(True)
-                            vlayer.setLabeling(QgsVectorLayerSimpleLabeling(label_settings))
-
-                    elif geom_type == 0:
-                        # Points -> value of "BaseDemand"
-                        if vlayer.fields().indexFromName("BaseDemand") != -1:
-                            label_settings.fieldName = '"BaseDemand"'
-                            label_settings.isExpression = True
-                            label_settings.enabled = True
-
-                            vlayer.setLabelsEnabled(True)
-                            vlayer.setLabeling(QgsVectorLayerSimpleLabeling(label_settings))
-
-                    vlayer.triggerRepaint()
-
-                    QgsProject.instance().addMapLayer(vlayer, False)
-                    demandBuilderGroup.insertChildNode(0, QgsLayerTreeLayer(vlayer))
+                demandBuilderGroup.insertChildNode(
+                    0,
+                    QgsLayerTreeLayer(vlayer)
+                )
 
             self._demandBuilderExtraPaths = []
 
