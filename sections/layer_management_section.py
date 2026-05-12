@@ -368,12 +368,22 @@ class LayerManagementSection:
         if self.hasToOpenDemandBuilderLayers:
             isoFolder = os.path.join(self.ProjectDirectory, "Auxiliary Layers", "DemandBuilder")
             os.makedirs(isoFolder, exist_ok=True)
+            auxFolder = os.path.join(self.ProjectDirectory, "_aux_DemandsBuilder")
+            if os.path.isdir(auxFolder):
+                extraByName = {os.path.basename(p): p for p in self._demandBuilderExtraPaths}
+                for fi in os.listdir(auxFolder):
+                    dst = extraByName.get(fi)
+                    if dst:
+                        shutil.copy2(os.path.join(auxFolder, fi), dst)
+                shutil.rmtree(auxFolder)
+            # Old code to remove...
             for fi in os.listdir(self.ProjectDirectory):
                 if fi.startswith(self.NetworkName) and "DemandBuilder" in fi:
                     src = os.path.join(self.ProjectDirectory, fi)
                     dst = os.path.join(isoFolder, fi)
                     shutil.copy2(src, dst)
                     os.remove(src)
+            # --------
             self.openDemandBuilderLayers()
             self.hasToOpenDemandBuilderLayers = False
 
