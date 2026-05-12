@@ -626,14 +626,14 @@ class ProjectManagementSection:
             return
         # Validations
         self.defineCurrentProject()
-        if not self.isValidProject():
-            return
-        if self.isLayerOnEdition():
+        validProject = self.isValidProject(silent=True)
+        if validProject and self.isLayerOnEdition():
             return
 
         # Process
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        resMessage = GISRed.Materials(self.ProjectDirectory, self.NetworkName, self.tempFolder)
+        projectDir = self.ProjectDirectory if validProject else ""
+        resMessage = GISRed.Materials(projectDir, self.NetworkName, self.tempFolder)
         QApplication.restoreOverrideCursor()
 
         if resMessage == "False":
