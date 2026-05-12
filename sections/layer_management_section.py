@@ -374,11 +374,11 @@ class LayerManagementSection:
             os.makedirs(isoFolder, exist_ok=True)
             auxFolder = os.path.join(self.ProjectDirectory, "_aux_DemandsBuilder")
             if os.path.isdir(auxFolder):
-                extraByName = {os.path.basename(p): p for p in self._demandBuilderExtraPaths}
+                extraByName = {os.path.splitext(os.path.basename(p))[0]: os.path.dirname(p) for p in self._demandBuilderExtraPaths}
                 for fi in os.listdir(auxFolder):
-                    dst = extraByName.get(fi)
-                    if dst:
-                        shutil.copy2(os.path.join(auxFolder, fi), dst)
+                    dstDir = extraByName.get(os.path.splitext(fi)[0])
+                    if dstDir:
+                        shutil.copy2(os.path.join(auxFolder, fi), os.path.join(dstDir, fi))
                 shutil.rmtree(auxFolder)
             # Old code to remove...
             for fi in os.listdir(self.ProjectDirectory):
