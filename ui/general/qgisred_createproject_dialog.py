@@ -33,6 +33,7 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
         self.btCreateProject.clicked.connect(self.createProject)
         self.btSelectDirectory.clicked.connect(self.selectDirectory)
         self.btSelectCRS.clicked.connect(self.selectCRS)
+        self._loadMaterials()
         # Variables:
         gplFolder = os.path.join(os.getenv("APPDATA"), "QGISRed")
         try:  # create directory if does not exist
@@ -42,6 +43,21 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
         self.gplFile = os.path.join(gplFolder, "qgisredprojectlist.gpl")
         
         self.messageBar = QGISRedBanner.inject(self, self.gridLayout)
+
+    def _loadMaterials(self):
+        self.cbMaterials.clear()
+        qgisred_folder = QGISRedFileSystemUtils().getQGISRedFolder()
+        folders = [
+            os.path.join(qgisred_folder, "global_defaults"),
+            os.path.join(qgisred_folder, "materials"),
+        ]
+        for folder in folders:
+            if not os.path.isdir(folder):
+                continue
+            for fname in sorted(os.listdir(folder)):
+                if fname.lower().endswith(".dbf"):
+                    name = os.path.splitext(fname)[0]
+                    self.cbMaterials.addItem(name, os.path.join(folder, fname))
 
     def config(self, ifac, direct, netw, parent):
         self.iface = ifac
@@ -130,9 +146,11 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
             epsg = self.crs.authid().replace("EPSG:", "")
             units = self.cbUnits.currentText()
             headloss = self.cbHeadloss.currentText()
+            materialPath = self.cbMaterials.currentData()
+
             # Process
             QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-            resMessage = GISRed.CreateProject(self.ProjectDirectory, self.NetworkName, epsg, units, headloss)
+            resMessage = GISRed.CreateProject(self.ProjectDirectory, self.NetworkName, epsg, units, headloss, materialPath)
             QApplication.restoreOverrideCursor()
 
             # Message
