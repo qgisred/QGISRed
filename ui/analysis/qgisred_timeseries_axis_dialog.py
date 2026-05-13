@@ -164,6 +164,19 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         tabs.addTab(self._build_tab(self._cfg_x, show_decimals=False, is_time_axis=True), self.tr("Time (X)"))
         tabs.addTab(self._build_tab(self._cfg_yl, show_decimals=True, is_time_axis=False), self.tr("Y left"))
         tabs.addTab(self._build_tab(self._cfg_yr, show_decimals=True, is_time_axis=False), self.tr("Y right"))
+        axis_title = QLabel()
+        title_font = QFont(axis_title.font())
+        title_font.setBold(True)
+        axis_title.setFont(title_font)
+        axis_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        axis_title.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+
+        def refresh_axis_title(idx: int) -> None:
+            axis_title.setText(tabs.tabText(idx))
+
+        tabs.currentChanged.connect(refresh_axis_title)
+        refresh_axis_title(tabs.currentIndex())
+        lay.addWidget(axis_title)
         lay.addWidget(tabs, 1)
 
         return w, tabs
