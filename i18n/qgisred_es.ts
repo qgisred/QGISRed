@@ -5378,6 +5378,16 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Formato de hora</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="571"/>
+        <source>hh</source>
+        <translation>hh</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="572"/>
+        <source>hh:mm</source>
+        <translation>hh:mm</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="502"/>
         <source>HH:mm</source>
         <translation>HH:mm</translation>
