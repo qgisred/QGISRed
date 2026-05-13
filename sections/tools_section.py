@@ -11,6 +11,7 @@ from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling,  QgsTex
 from random import randint
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ..tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ..tools.utils.qgisred_filesystem_utils import (
     DIR_QUERIES, DIR_ISOLATED_SEGMENTS, DIR_AUXILIARY_LAYERS, DIR_DEMANDS_BUILDER,
 )
@@ -112,7 +113,7 @@ class ToolsSection:
 
         self.processCsharpResult(resMessage, self.tr("No issues ocurred"))
 
-    def _getAuxiliarLayers(self):
+    def _getExternalLoadedLayers(self):
         points, lines, polygons = [], [], []
         for layer in QGISRedLayerUtils().getLayers():
             if layer is None:
@@ -153,7 +154,7 @@ class ToolsSection:
         if "Junctions" in self.selectedIds:
             ids = "Junctions:" + str(self.selectedIds["Junctions"]) + ";"
 
-        auxiliarLayers = self._getAuxiliarLayers()
+        auxiliarLayers = self._getExternalLoadedLayers()
 
         # Process
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
@@ -369,6 +370,7 @@ class ToolsSection:
             self.NetworkName,
             self.iface
         )
+        identifiers = QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface)
 
         if self._demandsBuilderExtraPaths:
 
@@ -380,15 +382,17 @@ class ToolsSection:
                 # Reload existing layer
                 reloaded_layer = utils._tryReloadExistingLayer(path)
 
-                if reloaded_layer:
-                    self._applyDemandsBuilderStyle(reloaded_layer)
-                    continue
-
-                # Create new layer
                 displayName = os.path.splitext(
                     os.path.basename(path)
                 )[0]
 
+                if reloaded_layer:
+                    self._applyDemandsBuilderStyle(reloaded_layer)
+                    if not reloaded_layer.customProperty("qgisred_identifier"):
+                        identifiers.setLayerIdentifier(reloaded_layer, displayName)
+                    continue
+
+                # Create new layer
                 vlayer = QgsVectorLayer(
                     path,
                     displayName,
@@ -399,6 +403,7 @@ class ToolsSection:
                     continue
 
                 self._applyDemandsBuilderStyle(vlayer)
+                identifiers.setLayerIdentifier(vlayer, displayName)
 
                 QgsProject.instance().addMapLayer(
                     vlayer,
