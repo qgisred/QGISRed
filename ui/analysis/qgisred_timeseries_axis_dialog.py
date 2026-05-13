@@ -82,8 +82,10 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         buttons = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
         )
+        apply_button = buttons.addButton(QDialogButtonBox.StandardButton.Apply)
         buttons.accepted.connect(self._on_accept)
         buttons.rejected.connect(self.reject)
+        apply_button.clicked.connect(self._apply_options)
         root.addWidget(buttons)
 
         self._tabs = tabs
@@ -763,7 +765,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             except Exception:
                 cfg.x_day_format = "split_days"
 
-    def _on_accept(self) -> None:
+    def _apply_options(self) -> None:
         gen_tab = self._tab_general
         legend_tab = self._tab_legend
         self._cfg_gen.title = gen_tab._gen_title.text().strip()
@@ -792,6 +794,9 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._plot._axis_cfg_y_right = self._cfg_yr
         self._plot._general_cfg = self._cfg_gen
         self._plot.update()
+
+    def _on_accept(self) -> None:
+        self._apply_options()
         self.accept()
 
     def _read_curves_tab(self, tab: QWidget) -> None:
