@@ -4999,8 +4999,8 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="123"/>
-        <source>Time (X)</source>
-        <translation>Tiempo (X)</translation>
+        <source>X Time</source>
+        <translation>X Tiempo</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="124"/>

@@ -5015,8 +5015,8 @@ Left-click: Add a new item below the current selection</source>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="123"/>
-        <source>Time (X)</source>
-        <translation>Tempo (X)</translation>
+        <source>X Time</source>
+        <translation>X Tempo</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="124"/>

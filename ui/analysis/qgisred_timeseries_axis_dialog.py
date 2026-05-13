@@ -163,7 +163,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         lay.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         tabs = QTabWidget(w)
-        tabs.addTab(self._build_tab(self._cfg_x, show_decimals=False, is_time_axis=True), self.tr("Time (X)"))
+        tabs.addTab(self._build_tab(self._cfg_x, show_decimals=False, is_time_axis=True), self.tr("X Time"))
         tabs.addTab(self._build_tab(self._cfg_yl, show_decimals=True, is_time_axis=False), self.tr("Y left"))
         tabs.addTab(self._build_tab(self._cfg_yr, show_decimals=True, is_time_axis=False), self.tr("Y right"))
         axis_title = QLabel()
@@ -699,21 +699,18 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._add_form_row(tick_form, self.tr("Color:"), btn_color)
         lay.addWidget(tick_grp)
 
-        dec_grp = self._compact_group(QGroupBox(self.tr("Numeric format")))
-        dec_lay = QVBoxLayout(dec_grp)
         sp_dec = QSpinBox()
         sp_dec.setRange(-1, 10)
         sp_dec.setSpecialValueText(self.tr("Auto"))
         sp_dec.setValue(-1 if cfg.decimal_places < 0 else int(cfg.decimal_places))
         if show_decimals:
+            dec_grp = self._compact_group(QGroupBox(self.tr("Numeric format")))
+            dec_lay = QVBoxLayout(dec_grp)
             dec_lay.addWidget(QLabel(self.tr("Decimal places for Y tick values (-1 = automatic).")))
             dec_lay.addWidget(sp_dec)
+            lay.addWidget(dec_grp)
         else:
             sp_dec.hide()
-            dec_lay.addWidget(
-                QLabel(self.tr("The time axis uses clock-style labels; decimals do not apply here."))
-            )
-        lay.addWidget(dec_grp)
 
         def sync_fixed_enabled():
             auto = combo_scale.currentIndex() == 0
