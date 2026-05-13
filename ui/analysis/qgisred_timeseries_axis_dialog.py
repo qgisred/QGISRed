@@ -32,25 +32,18 @@ from .timeseries_axis_settings import TimeSeriesAxisSettings, TimeSeriesGeneralS
 
 
 class TimeSeriesAxisOptionsDialog(QDialog):
+    _MIN_DIALOG_WIDTH = 560
+    _MIN_DIALOG_HEIGHT = 480
+    _LONG_FIELD_WIDTH = 360
+    _FORM_FIELD_WIDTH = 280
+    _FONT_FIELD_WIDTH = 260
+
     def __init__(self, plot_widget, parent=None):
         win = parent.window() if parent is not None else None
         super().__init__(win if win is not None else parent)
         self._plot = plot_widget
         self.setWindowTitle(self.tr("QGISRed: Chart options"))
-        try:
-            screen = QApplication.primaryScreen()
-            if screen is not None:
-                available = screen.availableGeometry()
-                max_h = max(480, int(available.height() * 0.92))
-                max_w = max(700, int(available.width() * 0.85))
-                self.setMaximumSize(max_w, max_h)
-                self.resize(
-                    min(max_w, max(760, int(available.width() * 0.62))),
-                    min(max_h, max(640, int(available.height() * 0.82))),
-                )
-        except Exception:
-            pass
-        self.setMinimumSize(640, 480)
+        self.setMinimumSize(self._MIN_DIALOG_WIDTH, self._MIN_DIALOG_HEIGHT)
         self.setSizeGripEnabled(True)
 
         self._cfg_x = clone_axis_settings(plot_widget._axis_cfg_x)
@@ -97,6 +90,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._tab_general = tab_general
         self._tab_legend = tab_legend
         self._tab_curves = tab_curves
+        self._configure_initial_geometry()
 
     def _make_form_label(self, text: str) -> QLabel:
         lbl = QLabel(text)
@@ -105,12 +99,46 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         lbl.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
         return lbl
 
+    def _limit_field_width(self, field: QWidget, width=None) -> QWidget:
+        field.setMaximumWidth(int(width or self._FORM_FIELD_WIDTH))
+        try:
+            field.setSizePolicy(QSizePolicy.Policy.Preferred, field.sizePolicy().verticalPolicy())
+        except Exception:
+            pass
+        return field
+
     def _add_form_row(self, form: QFormLayout, label_text: str, field: QWidget) -> None:
         form.addRow(self._make_form_label(label_text), field)
 
     def _compact_group(self, grp: QGroupBox) -> QGroupBox:
         grp.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
         return grp
+
+    def _configure_initial_geometry(self) -> None:
+        max_w = max(self._MIN_DIALOG_WIDTH, 700)
+        max_h = max(self._MIN_DIALOG_HEIGHT, 720)
+        try:
+            screen = self.screen() or QApplication.primaryScreen()
+            if screen is not None:
+                available = screen.availableGeometry()
+                max_w = max(self._MIN_DIALOG_WIDTH, int(available.width() * 0.85))
+                max_h = max(self._MIN_DIALOG_HEIGHT, int(available.height() * 0.92))
+                self.setMaximumSize(max_w, max_h)
+        except Exception:
+            pass
+
+        try:
+            self.layout().activate()
+        except Exception:
+            pass
+
+        time_axis_h = self._MIN_DIALOG_HEIGHT
+        try:
+            time_axis_h = int(self._axes_tabs.widget(0).sizeHint().height())
+        except Exception:
+            pass
+        target_h = min(max_h, max(self._MIN_DIALOG_HEIGHT, time_axis_h + 150))
+        self.resize(min(max_w, self.minimumWidth()), target_h)
 
     def _build_axes_tab(self) -> tuple[QWidget, QTabWidget]:
         w = QWidget()
@@ -142,19 +170,6 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             lay.addWidget(info)
             return w
 
-        info = QLabel(self.tr("Customize the legend name and appearance of each curve."))
-        info.setWordWrap(True)
-        info.setStyleSheet("color: palette(mid);")
-        lay.addWidget(info)
-
-        scroll = QScrollArea(w)
-        scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QFrame.Shape.NoFrame)
-        inner = QWidget(scroll)
-        inner_lay = QVBoxLayout(inner)
-        inner_lay.setSpacing(10)
-        inner_lay.setContentsMargins(0, 0, 0, 0)
-
         for idx, curve in enumerate(self._curve_cfg):
             label = (curve.get("label") or "").strip() or self.tr("Series")
             grp = self._compact_group(QGroupBox(label))
@@ -166,14 +181,20 @@ class TimeSeriesAxisOptionsDialog(QDialog):
                 form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
             except Exception:
                 pass
+            try:
+                form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
+            except AttributeError:
+                form.setFieldGrowthPolicy(QFormLayout.ExpandingFieldsGrow)
 
             ed_label = QLineEdit()
             ed_label.setText(label)
             ed_label.setClearButtonEnabled(True)
             ed_label.setMinimumHeight(26)
+            self._limit_field_width(ed_label, self._LONG_FIELD_WIDTH)
 
             font_combo = QFontComboBox()
             font_combo.setMaxVisibleItems(8)
+            self._limit_field_width(font_combo, self._FONT_FIELD_WIDTH)
             fam = (curve.get("legend_font_family") or "").strip()
             if fam:
                 font_combo.setCurrentFont(QFont(fam))
@@ -191,6 +212,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
                 btn.setText(color.name(QColor.NameFormat.HexRgb))
 
             refresh_color_button()
+            btn_color.setMinimumHeight(28)
+            self._limit_field_width(btn_color, self._FORM_FIELD_WIDTH)
 
             def pick_color(_checked=False, btn=btn_color, row_idx=idx):
                 current = w._curve_rows[row_idx]["color"]
@@ -209,6 +232,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             cur_style = (curve.get("line_style") or "solid").strip()
             idx_style = cb_style.findData(cur_style)
             cb_style.setCurrentIndex(idx_style if idx_style >= 0 else 0)
+            self._limit_field_width(cb_style, self._FORM_FIELD_WIDTH)
 
             sp_width = QDoubleSpinBox()
             sp_width.setRange(0.5, 12.0)
@@ -228,6 +252,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             cur_marker_symbol = (curve.get("marker_symbol") or "circle").strip()
             idx_marker_symbol = cb_marker_symbol.findData(cur_marker_symbol)
             cb_marker_symbol.setCurrentIndex(idx_marker_symbol if idx_marker_symbol >= 0 else 0)
+            self._limit_field_width(cb_marker_symbol, self._FORM_FIELD_WIDTH)
 
             sp_marker_size = QSpinBox()
             sp_marker_size.setRange(2, 24)
@@ -243,6 +268,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
                 btn.setText(color.name(QColor.NameFormat.HexRgb))
 
             refresh_marker_color_button()
+            btn_marker_color.setMinimumHeight(28)
+            self._limit_field_width(btn_marker_color, self._FORM_FIELD_WIDTH)
 
             def pick_marker_color(_checked=False, btn=btn_marker_color, row_idx=idx):
                 current = w._curve_rows[row_idx]["marker_color"]
@@ -299,7 +326,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             form.addRow("", chk_visible)
             form.addRow("", chk_muted)
             form.addRow("", chk_highlighted)
-            inner_lay.addWidget(grp)
+            lay.addWidget(grp)
 
             w._curve_rows.append({
                 "label": ed_label,
@@ -320,9 +347,6 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             })
             sync_marker_options(idx)
 
-        inner_lay.addStretch(1)
-        scroll.setWidget(inner)
-        lay.addWidget(scroll, 1)
         return w
 
     def _build_general_tab(self, cfg: TimeSeriesGeneralSettings) -> QWidget:
@@ -339,6 +363,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         ed_title.setPlaceholderText(self.tr("Leave empty to use the default title"))
         ed_title.setClearButtonEnabled(True)
         ed_title.setMinimumHeight(26)
+        self._limit_field_width(ed_title, self._LONG_FIELD_WIDTH)
         title_lay.addWidget(ed_title)
         lay.addWidget(title_grp)
 
@@ -452,6 +477,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         cur_pos = (getattr(cfg, "legend_position", "") or "right").strip()
         idx_pos = cb_pos.findData(cur_pos)
         cb_pos.setCurrentIndex(idx_pos if idx_pos >= 0 else 0)
+        self._limit_field_width(cb_pos, self._FORM_FIELD_WIDTH)
 
         chk_frame = QCheckBox(self.tr("Draw frame"))
         chk_frame.setChecked(bool(getattr(cfg, "legend_show_frame", False)))
@@ -504,6 +530,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             cur_h = (getattr(cfg, "x_hour_format", "") or "hm").strip()
             idx_h = combo_hour.findData(cur_h)
             combo_hour.setCurrentIndex(idx_h if idx_h >= 0 else 0)
+            self._limit_field_width(combo_hour, self._FORM_FIELD_WIDTH)
 
             combo_days = QComboBox()
             combo_days.addItem(self.tr("Days as 1d, 2d…"), "split_days")
@@ -511,6 +538,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             cur_d = (getattr(cfg, "x_day_format", "") or "split_days").strip()
             idx_d = combo_days.findData(cur_d)
             combo_days.setCurrentIndex(idx_d if idx_d >= 0 else 0)
+            self._limit_field_width(combo_days, self._FORM_FIELD_WIDTH)
 
             self._add_form_row(time_form, self.tr("Hour:"), combo_hour)
             self._add_form_row(time_form, self.tr("Days:"), combo_days)
@@ -523,6 +551,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         title_edit.setPlaceholderText(self.tr("Leave empty for default label"))
         title_edit.setMinimumHeight(26)
         title_edit.setClearButtonEnabled(True)
+        self._limit_field_width(title_edit, self._LONG_FIELD_WIDTH)
         title_lay.addWidget(title_edit)
         lay.addWidget(title_grp)
 
@@ -544,7 +573,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         combo_scale.addItem(self.tr("Automatic"), True)
         combo_scale.addItem(self.tr("Fixed (min, max, divisions)"), False)
         combo_scale.setCurrentIndex(0 if cfg.auto_scale else 1)
-        combo_scale.setMinimumWidth(220)
+        combo_scale.setMinimumWidth(180)
+        self._limit_field_width(combo_scale, self._FORM_FIELD_WIDTH)
         self._add_form_row(scale_form, self.tr("Mode:"), combo_scale)
 
         sp_min = QDoubleSpinBox()
@@ -597,7 +627,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
 
         font_combo = QFontComboBox()
         font_combo.setMaxVisibleItems(8)
-        font_combo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self._limit_field_width(font_combo, self._FONT_FIELD_WIDTH)
         fam = (cfg.tick_font_family or "").strip()
         if fam:
             font_combo.setCurrentFont(QFont(fam))
