@@ -60,10 +60,10 @@ def clone_axis_settings(s: TimeSeriesAxisSettings) -> TimeSeriesAxisSettings:
 @dataclass
 class TimeSeriesGeneralSettings:
     title: str = ""
-    widget_bg_hex: str = "#ffffff"
+    widget_bg_hex: str = ""
     plot_bg_hex: str = ""
     frame_color_hex: str = ""
-    frame_width: int = 1
+    frame_width: int = 0
     legend_position: str = "right"
     legend_show_frame: bool = False
     legend_show_background: bool = False

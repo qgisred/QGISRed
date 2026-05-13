@@ -355,6 +355,39 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         lay.setSpacing(10)
         lay.setContentsMargins(8, 8, 8, 8)
         lay.setAlignment(Qt.AlignmentFlag.AlignTop)
+        default_cfg = TimeSeriesGeneralSettings()
+
+        def make_color_picker(current_raw: str, current_color: QColor, default_color: QColor, title: str):
+            picked = QColor(current_color)
+            if not picked.isValid():
+                picked = QColor(default_color)
+
+            btn = QPushButton()
+            chk_default = QCheckBox(self.tr("Use default"))
+            chk_default.setChecked(not (current_raw or "").strip())
+
+            def refresh():
+                if chk_default.isChecked():
+                    btn.setText(f"{self.tr('Default')}: {default_color.name(QColor.NameFormat.HexRgb)}")
+                else:
+                    btn.setText(picked.name(QColor.NameFormat.HexRgb))
+
+            def pick_color():
+                nonlocal picked
+                nc = QColorDialog.getColor(picked, self, title)
+                if nc.isValid():
+                    picked = nc
+                    chk_default.setChecked(False)
+                    refresh()
+
+            btn.clicked.connect(pick_color)
+            chk_default.toggled.connect(lambda _checked: refresh())
+            refresh()
+
+            def value():
+                return "" if chk_default.isChecked() else picked.name(QColor.NameFormat.HexRgb)
+
+            return btn, chk_default, value
 
         title_grp = self._compact_group(QGroupBox(self.tr("Plot title")))
         title_lay = QVBoxLayout(title_grp)
@@ -377,39 +410,23 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         except Exception:
             pass
 
-        w._picked_widget_bg = QColor(cfg.widget_bg_qcolor())
-        btn_widget_bg = QPushButton()
-
-        def refresh_widget_bg():
-            btn_widget_bg.setText(w._picked_widget_bg.name(QColor.NameFormat.HexRgb))
-
-        refresh_widget_bg()
-
-        def pick_widget_bg():
-            nc = QColorDialog.getColor(w._picked_widget_bg, self, self.tr("Widget background"))
-            if nc.isValid():
-                w._picked_widget_bg = nc
-                refresh_widget_bg()
-
-        btn_widget_bg.clicked.connect(pick_widget_bg)
+        btn_widget_bg, chk_widget_bg_default, widget_bg_value = make_color_picker(
+            cfg.widget_bg_hex,
+            cfg.widget_bg_qcolor(),
+            default_cfg.widget_bg_qcolor(),
+            self.tr("Widget background"),
+        )
         self._add_form_row(colors_form, self.tr("Widget background:"), btn_widget_bg)
+        colors_form.addRow("", chk_widget_bg_default)
 
-        w._picked_plot_bg = QColor(cfg.plot_bg_qcolor())
-        btn_plot_bg = QPushButton()
-
-        def refresh_plot_bg():
-            btn_plot_bg.setText(w._picked_plot_bg.name(QColor.NameFormat.HexRgb))
-
-        refresh_plot_bg()
-
-        def pick_plot_bg():
-            nc = QColorDialog.getColor(w._picked_plot_bg, self, self.tr("Plot background"))
-            if nc.isValid():
-                w._picked_plot_bg = nc
-                refresh_plot_bg()
-
-        btn_plot_bg.clicked.connect(pick_plot_bg)
+        btn_plot_bg, chk_plot_bg_default, plot_bg_value = make_color_picker(
+            cfg.plot_bg_hex,
+            cfg.plot_bg_qcolor(),
+            default_cfg.plot_bg_qcolor(),
+            self.tr("Plot background"),
+        )
         self._add_form_row(colors_form, self.tr("Plot background:"), btn_plot_bg)
+        colors_form.addRow("", chk_plot_bg_default)
         lay.addWidget(colors_grp)
 
         frame_grp = self._compact_group(QGroupBox(self.tr("Frame")))
@@ -422,29 +439,25 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         except Exception:
             pass
 
-        w._picked_frame = QColor(cfg.frame_qcolor())
-        btn_frame = QPushButton()
-
-        def refresh_frame():
-            btn_frame.setText(w._picked_frame.name(QColor.NameFormat.HexRgb))
-
-        refresh_frame()
-
-        def pick_frame():
-            nc = QColorDialog.getColor(w._picked_frame, self, self.tr("Frame color"))
-            if nc.isValid():
-                w._picked_frame = nc
-                refresh_frame()
-
-        btn_frame.clicked.connect(pick_frame)
+        btn_frame, chk_frame_default, frame_color_value = make_color_picker(
+            cfg.frame_color_hex,
+            cfg.frame_qcolor(),
+            default_cfg.frame_qcolor(),
+            self.tr("Frame color"),
+        )
         sp_w = QSpinBox()
-        sp_w.setRange(1, 6)
-        sp_w.setValue(max(1, int(cfg.frame_width or 1)))
+        sp_w.setRange(0, 6)
+        sp_w.setSpecialValueText(self.tr("Default"))
+        sp_w.setValue(max(0, min(int(cfg.frame_width or 0), 6)))
         self._add_form_row(frame_form, self.tr("Color:"), btn_frame)
+        frame_form.addRow("", chk_frame_default)
         self._add_form_row(frame_form, self.tr("Width:"), sp_w)
         lay.addWidget(frame_grp)
 
         w._gen_title = ed_title
+        w._gen_widget_bg_value = widget_bg_value
+        w._gen_plot_bg_value = plot_bg_value
+        w._gen_frame_color_value = frame_color_value
         w._gen_frame_w = sp_w
         return w
 
@@ -724,9 +737,9 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         gen_tab = self._tab_general
         legend_tab = self._tab_legend
         self._cfg_gen.title = gen_tab._gen_title.text().strip()
-        self._cfg_gen.widget_bg_hex = gen_tab._picked_widget_bg.name(QColor.NameFormat.HexRgb)
-        self._cfg_gen.plot_bg_hex = gen_tab._picked_plot_bg.name(QColor.NameFormat.HexRgb)
-        self._cfg_gen.frame_color_hex = gen_tab._picked_frame.name(QColor.NameFormat.HexRgb)
+        self._cfg_gen.widget_bg_hex = gen_tab._gen_widget_bg_value()
+        self._cfg_gen.plot_bg_hex = gen_tab._gen_plot_bg_value()
+        self._cfg_gen.frame_color_hex = gen_tab._gen_frame_color_value()
         self._cfg_gen.frame_width = int(gen_tab._gen_frame_w.value())
         try:
             self._cfg_gen.legend_position = str(legend_tab._legend_pos.currentData() or "right")
