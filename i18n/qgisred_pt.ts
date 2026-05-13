@@ -5114,9 +5114,9 @@ Left-click: Add a new item below the current selection</source>
         <translation>Formato numérico</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="634"/>
-        <source>Decimal places for Y tick values (-1 = automatic).</source>
-        <translation>Casas decimais nas marcações Y (-1 = automático).</translation>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="709"/>
+        <source>Decimal places for Y tick values:</source>
+        <translation>Casas decimais nas marcações Y:</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="631"/>

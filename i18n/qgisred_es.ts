@@ -5098,9 +5098,9 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Formato numérico</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="634"/>
-        <source>Decimal places for Y tick values (-1 = automatic).</source>
-        <translation>Decimales en las marcas Y (-1 = automático).</translation>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="709"/>
+        <source>Decimal places for Y tick values:</source>
+        <translation>Decimales en las marcas Y:</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="631"/>

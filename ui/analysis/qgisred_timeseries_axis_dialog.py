@@ -706,7 +706,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         if show_decimals:
             dec_grp = self._compact_group(QGroupBox(self.tr("Numeric format")))
             dec_lay = QVBoxLayout(dec_grp)
-            dec_lay.addWidget(QLabel(self.tr("Decimal places for Y tick values (-1 = automatic).")))
+            dec_lay.addWidget(QLabel(self.tr("Decimal places for Y tick values:")))
             dec_lay.addWidget(sp_dec)
             lay.addWidget(dec_grp)
         else:
