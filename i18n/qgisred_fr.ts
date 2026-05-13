@@ -5089,14 +5089,14 @@ Left-click: Add a new item below the current selection</source>
         <translation>Libellés des graduations</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="605"/>
-        <source>Font size:</source>
-        <translation>Taille de police :</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="606"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="680"/>
         <source>Font:</source>
         <translation>Police :</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="681"/>
+        <source>Size:</source>
+        <translation>Taille :</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="617"/>

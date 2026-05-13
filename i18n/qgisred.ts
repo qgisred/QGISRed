@@ -5049,13 +5049,13 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="605"/>
-        <source>Font size:</source>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="680"/>
+        <source>Font:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="606"/>
-        <source>Font:</source>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="681"/>
+        <source>Size:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

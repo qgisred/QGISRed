@@ -113,7 +113,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
     def _show_color_on_button(self, btn: QPushButton, color: QColor) -> None:
         hex_color = color.name(QColor.NameFormat.HexRgb)
         btn.setText("")
-        btn.setToolTip(hex_color)
+        btn.setToolTip("")
         btn.setStyleSheet(
             "QPushButton {"
             f"background-color: {hex_color};"
@@ -665,11 +665,6 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         except AttributeError:
             tick_form.setFieldGrowthPolicy(QFormLayout.ExpandingFieldsGrow)
 
-        sp_size = QSpinBox()
-        sp_size.setRange(5, 48)
-        sp_size.setValue(int(cfg.tick_font_size))
-        sp_size.setMinimumWidth(80)
-
         font_combo = QFontComboBox()
         font_combo.setMaxVisibleItems(8)
         self._limit_field_width(font_combo, self._FONT_FIELD_WIDTH)
@@ -677,8 +672,13 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         if fam:
             font_combo.setCurrentFont(QFont(fam))
 
-        self._add_form_row(tick_form, self.tr("Font size:"), sp_size)
+        sp_size = QSpinBox()
+        sp_size.setRange(5, 48)
+        sp_size.setValue(int(cfg.tick_font_size))
+        sp_size.setMinimumWidth(80)
+
         self._add_form_row(tick_form, self.tr("Font:"), font_combo)
+        self._add_form_row(tick_form, self.tr("Size:"), sp_size)
 
         w._picked_color = QColor(cfg.tick_qcolor())
         btn_color = QPushButton()

@@ -5073,22 +5073,22 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Etiquetas de marcas</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="605"/>
-        <source>Font size:</source>
-        <translation>Tamaño de fuente:</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="606"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="680"/>
         <source>Font:</source>
         <translation>Fuente:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="617"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="681"/>
+        <source>Size:</source>
+        <translation>Tamaño:</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="692"/>
         <source>Tick color</source>
         <translation>Color de marcas</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="624"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="699"/>
         <source>Color:</source>
         <translation>Color:</translation>
     </message>
