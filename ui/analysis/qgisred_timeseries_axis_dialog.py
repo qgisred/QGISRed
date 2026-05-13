@@ -17,6 +17,7 @@ from qgis.PyQt.QtWidgets import (
     QFormLayout,
     QFrame,
     QGroupBox,
+    QHBoxLayout,
     QLabel,
     QLineEdit,
     QPushButton,
@@ -106,6 +107,18 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         except Exception:
             pass
         return field
+
+    def _show_color_on_button(self, btn: QPushButton, color: QColor) -> None:
+        hex_color = color.name(QColor.NameFormat.HexRgb)
+        btn.setText("")
+        btn.setToolTip(hex_color)
+        btn.setStyleSheet(
+            "QPushButton {"
+            f"background-color: {hex_color};"
+            "border: 1px solid palette(mid);"
+            "border-radius: 2px;"
+            "}"
+        )
 
     def _add_form_row(self, form: QFormLayout, label_text: str, field: QWidget) -> None:
         form.addRow(self._make_form_label(label_text), field)
@@ -209,7 +222,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             btn_color = QPushButton()
 
             def refresh_color_button(btn=btn_color, color=picked):
-                btn.setText(color.name(QColor.NameFormat.HexRgb))
+                self._show_color_on_button(btn, color)
 
             refresh_color_button()
             btn_color.setMinimumHeight(28)
@@ -220,7 +233,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
                 nc = QColorDialog.getColor(current, self, self.tr("Curve color"))
                 if nc.isValid():
                     w._curve_rows[row_idx]["color"] = nc
-                    btn.setText(nc.name(QColor.NameFormat.HexRgb))
+                    self._show_color_on_button(btn, nc)
 
             btn_color.clicked.connect(pick_color)
 
@@ -265,7 +278,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             btn_marker_color = QPushButton()
 
             def refresh_marker_color_button(btn=btn_marker_color, color=picked_marker):
-                btn.setText(color.name(QColor.NameFormat.HexRgb))
+                self._show_color_on_button(btn, color)
 
             refresh_marker_color_button()
             btn_marker_color.setMinimumHeight(28)
@@ -276,7 +289,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
                 nc = QColorDialog.getColor(current, self, self.tr("Marker color"))
                 if nc.isValid():
                     w._curve_rows[row_idx]["marker_color"] = nc
-                    btn.setText(nc.name(QColor.NameFormat.HexRgb))
+                    self._show_color_on_button(btn, nc)
 
             btn_marker_color.clicked.connect(pick_marker_color)
 
@@ -365,12 +378,19 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             btn = QPushButton()
             chk_default = QCheckBox(self.tr("Use default"))
             chk_default.setChecked(not (current_raw or "").strip())
+            row = QWidget()
+            row_lay = QHBoxLayout(row)
+            row_lay.setContentsMargins(0, 0, 0, 0)
+            row_lay.setSpacing(8)
+            row_lay.addWidget(btn, 1)
+            row_lay.addWidget(chk_default)
+            row_lay.addStretch(1)
 
             def refresh():
                 if chk_default.isChecked():
-                    btn.setText(f"{self.tr('Default')}: {default_color.name(QColor.NameFormat.HexRgb)}")
+                    self._show_color_on_button(btn, default_color)
                 else:
-                    btn.setText(picked.name(QColor.NameFormat.HexRgb))
+                    self._show_color_on_button(btn, picked)
 
             def pick_color():
                 nonlocal picked
@@ -387,7 +407,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             def value():
                 return "" if chk_default.isChecked() else picked.name(QColor.NameFormat.HexRgb)
 
-            return btn, chk_default, value
+            return row, value
 
         title_grp = self._compact_group(QGroupBox(self.tr("Plot title")))
         title_lay = QVBoxLayout(title_grp)
@@ -410,23 +430,21 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         except Exception:
             pass
 
-        btn_widget_bg, chk_widget_bg_default, widget_bg_value = make_color_picker(
+        widget_bg_row, widget_bg_value = make_color_picker(
             cfg.widget_bg_hex,
             cfg.widget_bg_qcolor(),
             default_cfg.widget_bg_qcolor(),
             self.tr("Widget background"),
         )
-        self._add_form_row(colors_form, self.tr("Widget background:"), btn_widget_bg)
-        colors_form.addRow("", chk_widget_bg_default)
+        self._add_form_row(colors_form, self.tr("Widget background:"), widget_bg_row)
 
-        btn_plot_bg, chk_plot_bg_default, plot_bg_value = make_color_picker(
+        plot_bg_row, plot_bg_value = make_color_picker(
             cfg.plot_bg_hex,
             cfg.plot_bg_qcolor(),
             default_cfg.plot_bg_qcolor(),
             self.tr("Plot background"),
         )
-        self._add_form_row(colors_form, self.tr("Plot background:"), btn_plot_bg)
-        colors_form.addRow("", chk_plot_bg_default)
+        self._add_form_row(colors_form, self.tr("Plot background:"), plot_bg_row)
         lay.addWidget(colors_grp)
 
         frame_grp = self._compact_group(QGroupBox(self.tr("Frame")))
@@ -439,7 +457,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         except Exception:
             pass
 
-        btn_frame, chk_frame_default, frame_color_value = make_color_picker(
+        frame_color_row, frame_color_value = make_color_picker(
             cfg.frame_color_hex,
             cfg.frame_qcolor(),
             default_cfg.frame_qcolor(),
@@ -449,8 +467,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         sp_w.setRange(0, 6)
         sp_w.setSpecialValueText(self.tr("Default"))
         sp_w.setValue(max(0, min(int(cfg.frame_width or 0), 6)))
-        self._add_form_row(frame_form, self.tr("Color:"), btn_frame)
-        frame_form.addRow("", chk_frame_default)
+        self._add_form_row(frame_form, self.tr("Color:"), frame_color_row)
         self._add_form_row(frame_form, self.tr("Width:"), sp_w)
         lay.addWidget(frame_grp)
 
@@ -652,7 +669,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         btn_color = QPushButton()
 
         def refresh_color_btn():
-            btn_color.setText(f"{self.tr('Tick color')}: {w._picked_color.name(QColor.NameFormat.HexRgb)}")
+            self._show_color_on_button(btn_color, w._picked_color)
 
         refresh_color_btn()
 

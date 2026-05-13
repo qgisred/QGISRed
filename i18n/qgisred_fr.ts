@@ -5174,6 +5174,16 @@ Left-click: Add a new item below the current selection</source>
         <translation>Couleur du cadre</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="379"/>
+        <source>Use default</source>
+        <translation>Utiliser la valeur par défaut</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="468"/>
+        <source>Default</source>
+        <translation>Par défaut</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="419"/>
         <source>Width:</source>
         <translation>Épaisseur :</translation>

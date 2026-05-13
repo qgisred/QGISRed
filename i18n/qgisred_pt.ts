@@ -5174,6 +5174,16 @@ Left-click: Add a new item below the current selection</source>
         <translation>Cor da moldura</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="379"/>
+        <source>Use default</source>
+        <translation>Usar valor padrão</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="468"/>
+        <source>Default</source>
+        <translation>Padrão</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="419"/>
         <source>Width:</source>
         <translation>Largura:</translation>

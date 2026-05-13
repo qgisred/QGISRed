@@ -5158,6 +5158,16 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Color del marco</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="379"/>
+        <source>Use default</source>
+        <translation>Usar valor por defecto</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="468"/>
+        <source>Default</source>
+        <translation>Por defecto</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="419"/>
         <source>Width:</source>
         <translation>Ancho:</translation>
