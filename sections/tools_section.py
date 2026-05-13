@@ -6,7 +6,7 @@ import os
 from qgis.PyQt.QtWidgets import QApplication, QFileDialog
 from qgis.PyQt.QtCore import Qt, QVariant
 from qgis.PyQt.QtGui import QColor
-from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeLayer, QgsSingleSymbolRenderer, QgsSymbol, QgsCategorizedSymbolRenderer, QgsRendererCategory
+from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeLayer, QgsLayerTreeGroup, QgsSingleSymbolRenderer, QgsSymbol, QgsCategorizedSymbolRenderer, QgsRendererCategory
 from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling,  QgsTextFormat
 from random import randint
 
@@ -139,6 +139,41 @@ class ToolsSection:
             result += "[POLYGON]" + ";".join(polygons)
         return result
 
+    def _getDemandsBuilderPointLayers(self):
+        points = []
+        demands_builder_id = QGISRedLayerUtils.groupIdentifiers.get("DemandsBuilder")
+        root = QgsProject.instance().layerTreeRoot()
+
+        for layer in QGISRedLayerUtils().getLayers():
+            if layer is None:
+                continue
+            if layer.type() != LAYER_TYPE_VECTOR:
+                continue
+            if layer.geometryType() != 0:
+                continue
+            if not layer.customProperty("qgisred_identifier"):
+                continue
+
+            layer_node = root.findLayer(layer.id())
+            if layer_node is None:
+                continue
+
+            parent = layer_node.parent()
+            while parent is not None:
+                if isinstance(parent, QgsLayerTreeGroup):
+                    if parent.customProperty("qgisred_identifier") == demands_builder_id:
+                        points.append(layer.source())
+                        break
+                    if parent.name() in ("DemandsBuilder", "Demands Builder"):
+                        points.append(layer.source())
+                        break
+                parent = parent.parent()
+
+        result = ""
+        if points:
+            result = "[POINT]" + ";".join(points)
+        return result
+
     def runDemandsBuilder(self):
         if not self.checkDependencies():
             return
@@ -154,11 +189,18 @@ class ToolsSection:
         if "Junctions" in self.selectedIds:
             ids = "Junctions:" + str(self.selectedIds["Junctions"]) + ";"
 
-        auxiliarLayers = self._getExternalLoadedLayers()
+        externalLayers = self._getExternalLoadedLayers()
+        qgisredPointLayers = self._getDemandsBuilderPointLayers()
 
         # Process
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        resMessage = GISRed.DemandsBuilder(self.ProjectDirectory, self.NetworkName, self.tempFolder, ids, auxiliarLayers)
+        resMessage = GISRed.DemandsBuilder(self.ProjectDirectory,
+            self.NetworkName,
+            self.tempFolder,
+            ids,
+            externalLayers,
+            qgisredPointLayers,
+        )
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "", layerType = "demandsBuilder")
