@@ -83,7 +83,10 @@ class StatisticsHistogramRenderer:
         painter.setPen(TEXT_DARK)
         painter.setFont(qfont(self._TITLE_FONT_SIZE, bold=True))
         rect = QRectF(0, 4, widget.width(), 18)
-        painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, widget.title)
+        elided = QFontMetrics(painter.font()).elidedText(
+            widget.title, Qt.TextElideMode.ElideRight, max(0, int(widget.width()) - 8)
+        )
+        painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, elided)
 
     def _drawSubtitle(self, widget, painter, plotRect):
         if not widget.subtitle:
@@ -91,7 +94,10 @@ class StatisticsHistogramRenderer:
         painter.setPen(QColor(80, 80, 80))
         painter.setFont(qfont(self._SUBTITLE_FONT_SIZE))
         rect = QRectF(0, 22, widget.width(), 14)
-        painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, widget.subtitle)
+        elided = QFontMetrics(painter.font()).elidedText(
+            widget.subtitle, Qt.TextElideMode.ElideRight, max(0, int(widget.width()) - 8)
+        )
+        painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, elided)
 
     def _computeLeftScale(self, widget, plotRect):
         values = []

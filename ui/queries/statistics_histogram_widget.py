@@ -28,11 +28,11 @@ class StatisticsHistogramWidget(QWidget):
         self._panStartPos = None
         self._panStartOffset = 0.0
         self._renderer = StatisticsHistogramRenderer()
-        self.marginLeft = 70
+        self.marginLeft = 52
         self.marginRight = 30
-        self.marginTop = 46
-        self.marginBottom = 50
-        self.setMinimumSize(280, 200)
+        self.marginTop = 40
+        self.marginBottom = 44
+        self.setMinimumSize(200, 180)
         self.setMouseTracking(True)
 
     def setBins(self, bins, mode="plain", xLabel="", yLabelLeft=""):
