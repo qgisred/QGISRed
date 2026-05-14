@@ -277,6 +277,10 @@ class AnalysisSection:
                 self.timeSeriesDock.clearAllRequested.connect(self._onTimeSeriesClearAllRequested)
                 self.iface.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.timeSeriesDock)
             self._ensureTimeSeriesMapToolSignal()
+            try:
+                self.timeSeriesDock.connectResultsDock(self.ResultDockwidget)
+            except Exception:
+                pass
             self.timeSeriesDock.show()
             self.timeSeriesDock.raise_()
             self.timeSeriesDock.setFocus()

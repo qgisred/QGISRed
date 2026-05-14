@@ -4839,6 +4839,16 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>No hay curvas que exportar</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1047"/>
+        <source>Sync cursor with Results panel</source>
+        <translation>Sincronizar cursor con el Panel de Resultados</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1101"/>
+        <source>Results panel is not available</source>
+        <translation>El Panel de Resultados no está disponible</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1094"/>
         <source>PNG image (*.png)</source>
         <translation>Imagen PNG (*.png)</translation>

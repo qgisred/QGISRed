@@ -4856,6 +4856,16 @@ Left-click: Add a new item below the current selection</source>
         <translation>Aucune courbe à exporter</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1047"/>
+        <source>Sync cursor with Results panel</source>
+        <translation>Synchroniser le curseur avec le panneau Résultats</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1101"/>
+        <source>Results panel is not available</source>
+        <translation>Le panneau Résultats n'est pas disponible</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1094"/>
         <source>PNG image (*.png)</source>
         <translation>Image PNG (*.png)</translation>

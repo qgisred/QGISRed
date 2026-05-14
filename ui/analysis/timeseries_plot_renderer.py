@@ -1140,21 +1140,45 @@ class TimeSeriesPlotRenderer:
 
     def _draw_hover_overlay(self, widget, painter, plot_rect, x_state, y_state_left, y_state_right=None):
         hover_series = None
+        hover_index = widget.hover_index
         if widget._hover_series_idx is not None and 0 <= widget._hover_series_idx < len(widget.series):
             hover_series = widget.series[widget._hover_series_idx]
             if not bool(hover_series.get("visible", True)):
                 hover_series = None
-        if hover_series is not None and widget.hover_index is not None:
+        if hover_series is not None and hover_index is not None:
             xs0 = hover_series.get("x", []) or []
             ys0 = hover_series.get("y", []) or []
-            if not xs0 or not ys0 or not (0 <= widget.hover_index < len(xs0)):
+            if not xs0 or not ys0 or not (0 <= hover_index < len(xs0)):
                 hover_series = None
 
-        if hover_series is None or widget.hover_index is None:
-            return
+        if hover_series is None or hover_index is None:
+            synced_time = getattr(widget, "_synced_cursor_time_hours", None)
+            if synced_time is None:
+                return
+            try:
+                synced_time = float(synced_time)
+            except Exception:
+                return
+            if synced_time < x_state["min_x"] or synced_time > x_state["max_x"]:
+                return
+            try:
+                sync_series_idx = widget._resolveHoverSeriesIndex()
+            except Exception:
+                sync_series_idx = None
+            if sync_series_idx is None or not (0 <= sync_series_idx < len(widget.series)):
+                return
+            hover_series = widget.series[sync_series_idx]
+            xs0 = hover_series.get("x", []) or []
+            ys0 = hover_series.get("y", []) or []
+            if not xs0 or not ys0:
+                return
+            try:
+                hover_index = widget._nearestDataIndex(xs0, synced_time)
+            except Exception:
+                return
 
         xs0 = hover_series.get("x", []) or []
-        val_x = xs0[widget.hover_index]
+        val_x = xs0[hover_index]
 
         axis = (hover_series.get("y_axis") or "left")
         y_state = y_state_right if (axis == "right" and y_state_right is not None) else y_state_left
@@ -1164,7 +1188,7 @@ class TimeSeriesPlotRenderer:
 
         instant_text = self._format_absolute_time_hours(val_x)
         footer_segments = self._build_styled_footer_segments(instant_text)
-        tooltip_lines, marker_pts = self._collect_hover_tooltip_data(widget, widget.hover_index, val_x, plot_rect, x_state, y_state_left, y_state_right)
+        tooltip_lines, marker_pts = self._collect_hover_tooltip_data(widget, hover_index, val_x, plot_rect, x_state, y_state_left, y_state_right)
 
         for color, muted, legend_type, pt in marker_pts:
             icon_size = self._HOVER_MARKER_ICON_SIZE
@@ -1181,7 +1205,7 @@ class TimeSeriesPlotRenderer:
 
         hover_val_y = None
         try:
-            hover_val_y = (hover_series.get("y", []) or [])[widget.hover_index]
+            hover_val_y = (hover_series.get("y", []) or [])[hover_index]
         except Exception:
             hover_val_y = None
 

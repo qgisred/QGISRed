@@ -86,6 +86,7 @@ class TimeSeriesPlotWidget(QWidget):
         self._zoom_window_active = False
         self._zoom_window_start_pos = None
         self._zoom_rubber_band = QRubberBand(QRubberBand.Shape.Rectangle, self)
+        self._synced_cursor_time_hours = None
         self._axis_cfg_x = default_axis_settings()
         self._axis_cfg_y_left = default_axis_settings()
         self._axis_cfg_y_right = default_axis_settings()
@@ -502,6 +503,23 @@ class TimeSeriesPlotWidget(QWidget):
                 best_idx = i
         return best_idx
 
+    def setSyncedCursorTimeHours(self, hours) -> None:
+        try:
+            value = float(hours)
+        except Exception:
+            self.clearSyncedCursor()
+            return
+        if not math.isfinite(value):
+            self.clearSyncedCursor()
+            return
+        self._synced_cursor_time_hours = value
+        self.update()
+
+    def clearSyncedCursor(self) -> None:
+        if self._synced_cursor_time_hours is not None:
+            self._synced_cursor_time_hours = None
+            self.update()
+
     def _getCurrentXRange(self):
         if not getattr(self, "_axis_cfg_x", None).auto_scale:
             lo, hi = float(self._axis_cfg_x.fixed_min), float(self._axis_cfg_x.fixed_max)
@@ -912,6 +930,8 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self.iface = iface
         self.setupUi(self)
         self._toolbarWidget = None
+        self._resultsDock = None
+        self._lastResultsTimeText = ""
 
         self._initToolbar()
         self._updateMinimumWidthForDockTitle()
@@ -1035,6 +1055,20 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self.btnFit.clicked.connect(self._onFitClicked)
             hl.addWidget(self.btnFit, 0, Qt.AlignmentFlag.AlignLeft)
 
+            self.btnSyncCursor = QToolButton(container)
+            self.btnSyncCursor.setObjectName("btnSyncCursorTimeSeries")
+            sync_icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "images", "iconTimeSeries.svg"))
+            self.btnSyncCursor.setIcon(QIcon(sync_icon_path))
+            self.btnSyncCursor.setToolTip(self.tr("Sync cursor with Results panel"))
+            self.btnSyncCursor.setAutoRaise(True)
+            self.btnSyncCursor.setCheckable(True)
+            self.btnSyncCursor.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
+            self.btnSyncCursor.setIconSize(QSize(16, 16))
+            self.btnSyncCursor.setFixedSize(QSize(22, 22))
+            self.btnSyncCursor.setStyleSheet(btn_style)
+            self.btnSyncCursor.toggled.connect(self._onSyncCursorToggled)
+            hl.addWidget(self.btnSyncCursor, 0, Qt.AlignmentFlag.AlignLeft)
+
             self.btnAxes = _make_btn("btnAxesTimeSeries", "mActionOptions.svg", self.tr("Chart options"))
             self.btnAxes.clicked.connect(self._onAxisOptionsClicked)
             hl.addWidget(self.btnAxes, 0, Qt.AlignmentFlag.AlignLeft)
@@ -1093,6 +1127,17 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         if hasattr(self, "btnPan") and self.btnPan.isChecked():
             self.btnPan.setChecked(False)
 
+    def _onSyncCursorToggled(self, checked: bool) -> None:
+        if checked:
+            if self._resultsDock is None:
+                self._showMessage(self.tr("Results panel is not available"), level=1)
+                if hasattr(self, "btnSyncCursor") and self.btnSyncCursor is not None:
+                    self.btnSyncCursor.setChecked(False)
+                return
+            self._syncCurrentResultsTime()
+        else:
+            self.plot.clearSyncedCursor()
+
     def _onAxisOptionsClicked(self) -> None:
         # Keep a stable top-level parent even when this dock is floating.
         dlg = TimeSeriesAxisOptionsDialog(self.plot, self.iface.mainWindow())
@@ -1110,6 +1155,95 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
 
     def _showMessage(self, text: str, level: int = 0, duration: int = 5) -> None:
         QGISRedUIUtils.showGlobalMessage(self.iface, text, level=level, duration=duration)
+
+    def connectResultsDock(self, results_dock) -> None:
+        if self._resultsDock is results_dock:
+            self._syncCurrentResultsTime()
+            self._updateClearToolbarVisibility()
+            return
+
+        if self._resultsDock is not None:
+            try:
+                self._resultsDock.timeTextChanged.disconnect(self._onResultsTimeTextChanged)
+            except Exception:
+                pass
+
+        self._resultsDock = results_dock
+        if self._resultsDock is not None:
+            try:
+                self._resultsDock.timeTextChanged.connect(self._onResultsTimeTextChanged)
+            except Exception:
+                pass
+            self._syncCurrentResultsTime()
+        self._updateClearToolbarVisibility()
+
+    def disconnectResultsDock(self) -> None:
+        if self._resultsDock is not None:
+            try:
+                self._resultsDock.timeTextChanged.disconnect(self._onResultsTimeTextChanged)
+            except Exception:
+                pass
+        self._resultsDock = None
+        self._lastResultsTimeText = ""
+        self.plot.clearSyncedCursor()
+        if hasattr(self, "btnSyncCursor") and self.btnSyncCursor is not None and self.btnSyncCursor.isChecked():
+            self.btnSyncCursor.setChecked(False)
+        self._updateClearToolbarVisibility()
+
+    def _onResultsTimeTextChanged(self, time_text: str) -> None:
+        self._lastResultsTimeText = time_text or ""
+        if hasattr(self, "btnSyncCursor") and self.btnSyncCursor is not None and self.btnSyncCursor.isChecked():
+            self._applySyncedTimeText(self._lastResultsTimeText)
+
+    def _syncCurrentResultsTime(self) -> None:
+        time_text = self._lastResultsTimeText
+        if not time_text and self._resultsDock is not None:
+            try:
+                time_text = self._resultsDock.lbTime.text()
+            except Exception:
+                time_text = ""
+        self._lastResultsTimeText = time_text or ""
+        if hasattr(self, "btnSyncCursor") and self.btnSyncCursor is not None and self.btnSyncCursor.isChecked():
+            self._applySyncedTimeText(self._lastResultsTimeText)
+        else:
+            self.plot.clearSyncedCursor()
+
+    def _applySyncedTimeText(self, time_text: str) -> None:
+        hours = self._parseResultsTimeTextToHours(time_text)
+        if hours is None:
+            self.plot.clearSyncedCursor()
+            return
+        self.plot.setSyncedCursorTimeHours(hours)
+
+    def _parseResultsTimeTextToHours(self, time_text: str):
+        text = (time_text or "").strip()
+        if not text:
+            return None
+        if self._resultsDock is not None:
+            try:
+                if text == self._resultsDock.lbl_singlePeriod:
+                    return 0.0
+            except Exception:
+                pass
+        if text == self.tr("Single Period"):
+            return 0.0
+
+        try:
+            days = 0
+            hms_text = text
+            if "d" in text:
+                parts = text.split()
+                if len(parts) < 2:
+                    return None
+                days = int(parts[0].replace("d", ""))
+                hms_text = parts[1]
+            hms = hms_text.split(":")
+            if len(hms) != 3:
+                return None
+            total_seconds = days * 86400 + int(hms[0]) * 3600 + int(hms[1]) * 60 + int(hms[2])
+            return total_seconds / 3600.0
+        except Exception:
+            return None
 
     def _safeExportBaseName(self) -> str:
         title = (getattr(self.plot, "title", "") or "").strip()
@@ -1415,6 +1549,11 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             btn = getattr(self, btn_name, None)
             if btn is not None:
                 btn.setEnabled(bool(has_curves))
+        sync_btn = getattr(self, "btnSyncCursor", None)
+        if sync_btn is not None:
+            sync_btn.setEnabled(bool(has_curves and self._resultsDock is not None))
+            if not sync_btn.isEnabled() and sync_btn.isChecked():
+                sync_btn.setChecked(False)
 
     def _onPlotViewChanged(self) -> None:
         self._updateClearToolbarVisibility()
@@ -1426,10 +1565,14 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
 
     def updatePlot(self, x, y, title, x_label, y_label, is_stepped=False, y_categorical_labels=None, series_label=""):
         self.plot.setData(x, y, title, x_label, y_label, is_stepped, y_categorical_labels, series_label)
+        if hasattr(self, "btnSyncCursor") and self.btnSyncCursor is not None and self.btnSyncCursor.isChecked():
+            self._syncCurrentResultsTime()
         self._updateClearToolbarVisibility()
         self._updatePanAvailability()
 
     def updatePlotSeries(self, series, title, x_label, y_label):
         self.plot.setSeries(series, title, x_label, y_label)
+        if hasattr(self, "btnSyncCursor") and self.btnSyncCursor is not None and self.btnSyncCursor.isChecked():
+            self._syncCurrentResultsTime()
         self._updateClearToolbarVisibility()
         self._updatePanAvailability()
