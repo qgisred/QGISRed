@@ -1039,7 +1039,8 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self.btnPan.setChecked(False)
 
     def _onAxisOptionsClicked(self) -> None:
-        dlg = TimeSeriesAxisOptionsDialog(self.plot, self.window())
+        # Keep a stable top-level parent even when this dock is floating.
+        dlg = TimeSeriesAxisOptionsDialog(self.plot, self.iface.mainWindow())
         if dlg.exec() == DIALOG_ACCEPTED:
             self._emitCurveSettingsChanged()
             if not self.plot._axis_cfg_x.auto_scale:
