@@ -931,6 +931,7 @@ class AnalysisSection:
                 "visible": bool(it.get("visible", True)),
                 "muted": bool(it.get("muted", False)),
                 "highlighted": bool(it.get("highlighted", False)),
+                "emphasis_mode": it.get("emphasis_mode") or "normal",
                 "legend_font_family": it.get("legend_font_family") or "",
                 "legend_font_size": it.get("legend_font_size") or 8,
             })
@@ -1011,6 +1012,7 @@ class AnalysisSection:
                 it["visible"] = bool((cfg or {}).get("visible", True))
                 it["muted"] = bool((cfg or {}).get("muted", False))
                 it["highlighted"] = bool((cfg or {}).get("highlighted", False))
+                it["emphasis_mode"] = (cfg or {}).get("emphasis_mode") or "normal"
                 it["legend_font_family"] = (cfg or {}).get("legend_font_family") or ""
                 it["legend_font_size"] = (cfg or {}).get("legend_font_size") or 8
             try:

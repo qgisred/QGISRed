@@ -95,6 +95,20 @@ class LegendInteractionController:
     def drag_candidate_idx(self):
         return self._drag_candidate_idx
 
+    def _fixed_emphasis_mode(self, series_dict) -> str:
+        mode = str((series_dict or {}).get("emphasis_mode") or "normal").strip()
+        return mode if mode in ("muted", "highlighted") else ""
+
+    def _apply_fixed_emphasis_modes(self) -> None:
+        for s in self._w.series or []:
+            mode = self._fixed_emphasis_mode(s)
+            if mode == "highlighted":
+                s["highlighted"] = True
+                s["muted"] = False
+            elif mode == "muted":
+                s["highlighted"] = False
+                s["muted"] = True
+
     def apply_reorder_if_needed(self) -> bool:
         if self._drag_candidate_idx is None or self._drop_target_idx is None:
             return False
@@ -124,26 +138,36 @@ class LegendInteractionController:
         if not (0 <= clicked_idx < len(self._w.series)):
             return False
 
+        clicked = self._w.series[clicked_idx]
+        if self._fixed_emphasis_mode(clicked):
+            self._apply_fixed_emphasis_modes()
+            return False
+
         modifiers = self._pressed_modifiers or Qt.KeyboardModifier.NoModifier
         is_ctrl = bool(modifiers & Qt.KeyboardModifier.ControlModifier)
         is_shift = bool(modifiers & Qt.KeyboardModifier.ShiftModifier)
 
         if is_shift:
             for i, s in enumerate(self._w.series):
+                if self._fixed_emphasis_mode(s):
+                    continue
                 s["highlighted"] = (i == clicked_idx)
                 s["muted"] = (i != clicked_idx)
+            self._apply_fixed_emphasis_modes()
             return True
 
         if is_ctrl:
-            s = self._w.series[clicked_idx]
+            s = clicked
             s["highlighted"] = not bool(s.get("highlighted", False))
             if s["highlighted"]:
                 s["muted"] = False
+            self._apply_fixed_emphasis_modes()
             return True
 
-        s = self._w.series[clicked_idx]
+        s = clicked
         s["muted"] = not bool(s.get("muted", False))
         if s["muted"]:
             s["highlighted"] = False
+        self._apply_fixed_emphasis_modes()
         return True
 

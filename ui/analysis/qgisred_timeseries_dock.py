@@ -132,6 +132,7 @@ class TimeSeriesPlotWidget(QWidget):
             "y_categorical_labels": y_categorical_labels,
             "muted": False,
             "highlighted": False,
+            "emphasis_mode": "normal",
             "visible": True,
             "line_style": "solid",
             "line_width": 2.0,
@@ -162,6 +163,13 @@ class TimeSeriesPlotWidget(QWidget):
                 s["highlighted"] = False
             if "visible" not in s:
                 s["visible"] = True
+            if "emphasis_mode" not in s:
+                if bool(s.get("highlighted", False)):
+                    s["emphasis_mode"] = "highlighted"
+                elif bool(s.get("muted", False)):
+                    s["emphasis_mode"] = "muted"
+                else:
+                    s["emphasis_mode"] = "normal"
             if "line_style" not in s:
                 s["line_style"] = "solid"
             if "line_width" not in s:
@@ -1309,6 +1317,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 "visible": bool(s.get("visible", True)),
                 "muted": bool(s.get("muted", False)),
                 "highlighted": bool(s.get("highlighted", False)),
+                "emphasis_mode": s.get("emphasis_mode") or "normal",
                 "legend_font_family": s.get("legend_font_family") or "",
                 "legend_font_size": s.get("legend_font_size") or 8,
             })

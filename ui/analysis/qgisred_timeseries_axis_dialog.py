@@ -21,6 +21,8 @@ from qgis.PyQt.QtWidgets import (
     QLabel,
     QLineEdit,
     QPushButton,
+    QButtonGroup,
+    QRadioButton,
     QScrollArea,
     QSizePolicy,
     QSpinBox,
@@ -289,6 +291,24 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         sp_width.setDecimals(1)
         sp_width.setSingleStep(0.5)
 
+        chk_visible = QCheckBox(self.tr("Visible"))
+        rb_normal = QRadioButton(self.tr("Normal"))
+        rb_muted = QRadioButton(self.tr("Dimmed"))
+        rb_highlighted = QRadioButton(self.tr("Highlighted"))
+        emphasis_group = QButtonGroup(w)
+        emphasis_group.addButton(rb_normal)
+        emphasis_group.addButton(rb_muted)
+        emphasis_group.addButton(rb_highlighted)
+        emphasis_row = QWidget()
+        emphasis_lay = QHBoxLayout(emphasis_row)
+        emphasis_lay.setContentsMargins(0, 0, 0, 0)
+        emphasis_lay.setSpacing(10)
+        emphasis_lay.addWidget(chk_visible)
+        emphasis_lay.addWidget(rb_normal)
+        emphasis_lay.addWidget(rb_muted)
+        emphasis_lay.addWidget(rb_highlighted)
+        emphasis_lay.addStretch(1)
+
         cb_marker_symbol = QComboBox()
         cb_marker_symbol.addItem(self.tr("Circle"), "circle")
         cb_marker_symbol.addItem(self.tr("Square"), "square")
@@ -327,6 +347,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._add_form_row(style_form, self.tr("Line:"), cb_style)
         self._add_form_row(style_form, self.tr("Color:"), btn_color)
         self._add_form_row(style_form, self.tr("Width:"), sp_width)
+        style_form.addRow("", emphasis_row)
         lay.addWidget(style_grp)
 
         markers_grp = self._compact_group(QGroupBox(self.tr("Markers")))
@@ -346,6 +367,10 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             "color_btn": btn_color,
             "style": cb_style,
             "width": sp_width,
+            "visible": chk_visible,
+            "normal": rb_normal,
+            "muted": rb_muted,
+            "highlighted": rb_highlighted,
             "show_markers": markers_grp,
             "marker_symbol": cb_marker_symbol,
             "marker_size": sp_marker_size,
@@ -359,6 +384,31 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             cb_marker_symbol.setEnabled(enabled)
             sp_marker_size.setEnabled(enabled)
             btn_marker_color.setEnabled(enabled)
+
+        def sync_emphasis_options():
+            enabled = bool(chk_visible.isChecked())
+            rb_normal.setEnabled(enabled)
+            rb_muted.setEnabled(enabled)
+            rb_highlighted.setEnabled(enabled)
+
+        def current_emphasis_mode():
+            if rb_highlighted.isChecked():
+                return "highlighted"
+            if rb_muted.isChecked():
+                return "muted"
+            return "normal"
+
+        def apply_emphasis_mode(curve, mode):
+            curve["emphasis_mode"] = mode
+            if mode == "highlighted":
+                curve["highlighted"] = True
+                curve["muted"] = False
+            elif mode == "muted":
+                curve["highlighted"] = False
+                curve["muted"] = True
+            else:
+                curve["highlighted"] = False
+                curve["muted"] = False
 
         def store_current_curve():
             idx = int(getattr(w, "_curve_current_idx", -1))
@@ -374,6 +424,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             except Exception:
                 curve["line_style"] = "solid"
             curve["line_width"] = float(sp_width.value())
+            curve["visible"] = bool(chk_visible.isChecked())
+            apply_emphasis_mode(curve, current_emphasis_mode())
             curve["show_markers"] = bool(markers_grp.isChecked())
             try:
                 curve["marker_symbol"] = str(cb_marker_symbol.currentData() or "circle")
@@ -425,6 +477,15 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             idx_style = cb_style.findData((curve.get("line_style") or "solid").strip())
             cb_style.setCurrentIndex(idx_style if idx_style >= 0 else 0)
             sp_width.setValue(clamp_float(curve.get("line_width") or 2.0, 2.0, 0.5, 12.0))
+            chk_visible.setChecked(bool(curve.get("visible", True)))
+            emphasis_mode = str(curve.get("emphasis_mode") or "normal").strip()
+            if emphasis_mode == "highlighted":
+                rb_highlighted.setChecked(True)
+            elif emphasis_mode == "muted":
+                rb_muted.setChecked(True)
+            else:
+                rb_normal.setChecked(True)
+            sync_emphasis_options()
 
             markers_grp.setChecked(bool(curve.get("show_markers", False)))
             idx_marker_symbol = cb_marker_symbol.findData((curve.get("marker_symbol") or "circle").strip())
@@ -468,6 +529,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         combo_curve.currentIndexChanged.connect(lambda _i: select_curve_from_combo())
         ed_label.textChanged.connect(update_current_label)
         markers_grp.toggled.connect(lambda _checked: sync_marker_options())
+        chk_visible.toggled.connect(lambda _checked: sync_emphasis_options())
         w._curve_store_current = store_current_curve
 
         refresh_curve_combo()
@@ -964,12 +1026,14 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             s["color"] = curve.get("color") or "#0078d7"
             s["line_style"] = curve.get("line_style") or "solid"
             s["line_width"] = float(curve.get("line_width") or 2.0)
+            s["visible"] = bool(curve.get("visible", True))
+            emphasis_mode = str(curve.get("emphasis_mode") or "normal").strip()
+            s["emphasis_mode"] = emphasis_mode if emphasis_mode in ("muted", "highlighted") else "normal"
             s["show_markers"] = bool(curve.get("show_markers", False))
             s["marker_symbol"] = curve.get("marker_symbol") or "circle"
             s["marker_size"] = int(curve.get("marker_size") or 6)
             s["marker_color"] = curve.get("marker_color") or curve.get("color") or "#0078d7"
             s["show_point_values"] = bool(curve.get("show_point_values", False))
-            s["visible"] = bool(curve.get("visible", True))
             s["muted"] = bool(curve.get("muted", False))
             s["highlighted"] = bool(curve.get("highlighted", False))
             if s["highlighted"]:

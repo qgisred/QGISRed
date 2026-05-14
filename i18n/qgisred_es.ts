@@ -5412,6 +5412,11 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Visible</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="295"/>
+        <source>Normal</source>
+        <translation>Normal</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="316"/>
         <source>Dimmed</source>
         <translation>Atenuada</translation>
