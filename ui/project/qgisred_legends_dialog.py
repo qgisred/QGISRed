@@ -28,6 +28,7 @@ from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils, DIR_
 from .qgisred_custom_dialogs import QGISRedRangeEditDialog, QGISRedSymbolColorSelector
 from .qgisred_custom_dialogs import QGISRedColorRampSelector, QGISRedRowSelectionFilter
 from .qgisred_custom_dialogs import QGISRedPaletteEmulator, QGISRedSizePaletteEmulator
+from .qgisred_custom_dialogs import QGISRedSaveStrategyDialog
 
 formClass, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_legends_dialog.ui"))
 
@@ -3434,7 +3435,12 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 return
 
         self.applyLegend()
-        self.updateStrategyCustomProperty([])
+
+        selectedParts = self.promptForStrategyParts()
+        if selectedParts is None:
+            return
+
+        self.updateStrategyCustomProperty(selectedParts)
         self.currentLayer.saveNamedStyle(path)
         self.originalRenderer = self.currentLayer.renderer().clone() if self.currentLayer.renderer() else None
         QMessageBox.information(
@@ -3443,7 +3449,46 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.tr("Style saved as %1 in the layerStyles folder of your project.").replace("%1", filename),
         )
 
-    def updateStrategyCustomProperty(self, parts=None):
+    def promptForStrategyParts(self):
+        applicableParts = self.getBuildableStrategyParts()
+        if not applicableParts:
+            self.currentLayer.removeCustomProperty("qgisred_legend_strategy")
+            return []
+
+        currentParts = set(self.readSavedStrategyParts())
+        initialChecks = currentParts if currentParts else set(applicableParts)
+
+        dialog = QGISRedSaveStrategyDialog(
+            self.currentLayer.name(),
+            "intervals" in applicableParts,
+            "sizes" in applicableParts,
+            "colors" in applicableParts,
+            initialIntervals="intervals" in initialChecks,
+            initialSizes="sizes" in initialChecks,
+            initialColors="colors" in initialChecks,
+            parent=self,
+        )
+        if dialog.exec_() != QDialog.DialogCode.Accepted:
+            return None
+
+        return dialog.selectedParts()
+
+    def readSavedStrategyParts(self):
+        if not self.currentLayer:
+            return []
+        rawStrategy = self.currentLayer.customProperty("qgisred_legend_strategy")
+        if not rawStrategy:
+            return []
+        try:
+            strategy = json.loads(rawStrategy)
+        except Exception:
+            return []
+        parts = strategy.get("parts")
+        if isinstance(parts, list):
+            return parts
+        return self.inferLegacyParts(strategy)
+
+    def updateStrategyCustomProperty(self, parts):
         if not parts:
             self.currentLayer.removeCustomProperty("qgisred_legend_strategy")
             return
