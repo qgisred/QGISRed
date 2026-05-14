@@ -4,6 +4,7 @@ from qgis.PyQt.QtGui import QColor, QPixmap, QPainter, QIcon
 from ...compat import PAINTER_ANTIALIASING, STYLE_CC_COMBOBOX, STYLE_CE_COMBOBOXLABEL
 from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QDoubleSpinBox, QLabel, QVBoxLayout, QStyle
 from qgis.PyQt.QtWidgets import QToolButton, QComboBox, QApplication, QStylePainter, QStyleOptionComboBox
+from qgis.PyQt.QtWidgets import QCheckBox
 from qgis.PyQt.QtCore import pyqtSignal, Qt, QEvent, QSize, QObject, QPoint, QItemSelectionModel, QItemSelection
 
 from qgis.gui import QgsSymbolButton, QgsColorDialog
@@ -55,6 +56,53 @@ class QGISRedRangeEditDialog(QDialog):
 
     def getRangeValues(self):
         return self.lowerValueSpinBox.value(), self.upperValueSpinBox.value()
+
+class QGISRedSaveStrategyDialog(QDialog):
+    def __init__(self, layerName, intervalsApplicable, sizesApplicable, colorsApplicable,
+                 initialIntervals=False, initialSizes=False, initialColors=False, parent=None):
+        super().__init__(parent)
+
+        self.layerName = layerName
+        self.ckIntervals = self.createPartCheckBox(self.tr("Intervals"), intervalsApplicable, initialIntervals)
+        self.ckSizes = self.createPartCheckBox(self.tr("Sizes"), sizesApplicable, initialSizes)
+        self.ckColors = self.createPartCheckBox(self.tr("Colors"), colorsApplicable, initialColors)
+
+        self.initializeInterface()
+
+    def initializeInterface(self):
+        title = self.tr("Save current strategy for %1").replace("%1", self.layerName)
+        self.setWindowTitle(title)
+        self.setupLayout()
+
+    def createPartCheckBox(self, label, applicable, initialChecked):
+        checkBox = QCheckBox(label)
+        checkBox.setEnabled(bool(applicable))
+        checkBox.setChecked(bool(applicable) and bool(initialChecked))
+        return checkBox
+
+    def setupLayout(self):
+        layout = QVBoxLayout(self)
+        layout.addWidget(QLabel(self.tr("Choose which parts of the current legend to persist:")))
+        layout.addWidget(self.ckIntervals)
+        layout.addWidget(self.ckSizes)
+        layout.addWidget(self.ckColors)
+        self.addStandardButtons(layout)
+
+    def addStandardButtons(self, layout):
+        buttonBox = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        layout.addWidget(buttonBox)
+
+    def selectedParts(self):
+        parts = []
+        if self.ckIntervals.isChecked():
+            parts.append("intervals")
+        if self.ckSizes.isChecked():
+            parts.append("sizes")
+        if self.ckColors.isChecked():
+            parts.append("colors")
+        return parts
 
 class QGISRedSymbolColorSelector(QgsSymbolButton):
     colorChanged = pyqtSignal(QColor)
