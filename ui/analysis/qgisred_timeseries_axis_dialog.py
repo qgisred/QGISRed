@@ -163,22 +163,12 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         lay.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         tabs = QTabWidget(w)
-        tabs.addTab(self._build_tab(self._cfg_x, show_decimals=False, is_time_axis=True), self.tr("X Time"))
-        tabs.addTab(self._build_tab(self._cfg_yl, show_decimals=True, is_time_axis=False), self.tr("Y left"))
-        tabs.addTab(self._build_tab(self._cfg_yr, show_decimals=True, is_time_axis=False), self.tr("Y right"))
-        axis_title = QLabel()
-        title_font = QFont(axis_title.font())
-        title_font.setBold(True)
-        axis_title.setFont(title_font)
-        axis_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        axis_title.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-
-        def refresh_axis_title(idx: int) -> None:
-            axis_title.setText(tabs.tabText(idx))
-
-        tabs.currentChanged.connect(refresh_axis_title)
-        refresh_axis_title(tabs.currentIndex())
-        lay.addWidget(axis_title)
+        x_title = self.tr("X Time")
+        y_left_title = self.tr("Y left")
+        y_right_title = self.tr("Y right")
+        tabs.addTab(self._build_tab(self._cfg_x, axis_title=x_title, show_decimals=False, is_time_axis=True), x_title)
+        tabs.addTab(self._build_tab(self._cfg_yl, axis_title=y_left_title, show_decimals=True, is_time_axis=False), y_left_title)
+        tabs.addTab(self._build_tab(self._cfg_yr, axis_title=y_right_title, show_decimals=True, is_time_axis=False), y_right_title)
         lay.addWidget(tabs, 1)
 
         return w, tabs
@@ -551,12 +541,20 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         w._legend_cols = sp_cols
         return w
 
-    def _build_tab(self, cfg: TimeSeriesAxisSettings, *, show_decimals: bool, is_time_axis: bool) -> QWidget:
+    def _build_tab(self, cfg: TimeSeriesAxisSettings, *, axis_title: str, show_decimals: bool, is_time_axis: bool) -> QWidget:
         w = QWidget()
         lay = QVBoxLayout(w)
         lay.setSpacing(10)
         lay.setContentsMargins(8, 8, 8, 8)
         lay.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        title = QLabel(axis_title)
+        title_font = QFont(title.font())
+        title_font.setBold(True)
+        title.setFont(title_font)
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        lay.addWidget(title)
 
         if is_time_axis:
             time_grp = self._compact_group(QGroupBox(self.tr("Time format")))
