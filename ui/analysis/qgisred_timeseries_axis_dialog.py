@@ -30,6 +30,7 @@ from qgis.PyQt.QtWidgets import (
 )
 
 from .timeseries_axis_settings import TimeSeriesAxisSettings, TimeSeriesGeneralSettings, clone_axis_settings, clone_general_settings
+from .timeseries_plot_style import FONT_FAMILY
 
 
 class TimeSeriesAxisOptionsDialog(QDialog):
@@ -180,7 +181,6 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         lay.setContentsMargins(8, 8, 8, 8)
         lay.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        w._curve_rows = []
         if not self._curve_cfg:
             info = QLabel(self.tr("No curves available."))
             info.setWordWrap(True)
@@ -188,10 +188,27 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             lay.addWidget(info)
             return w
 
-        for idx, curve in enumerate(self._curve_cfg):
-            label = (curve.get("label") or "").strip() or self.tr("Series")
-            grp = self._compact_group(QGroupBox(label))
-            form = QFormLayout(grp)
+        def curve_magnitude(curve):
+            return (curve.get("magnitude") or self._plot.y_label or self.tr("Magnitude")).strip() or self.tr("Magnitude")
+
+        def curve_label(curve):
+            return (curve.get("label") or "").strip() or self.tr("Series")
+
+        def clamp_int(value, default, lo, hi):
+            try:
+                n = int(value)
+            except Exception:
+                n = default
+            return max(lo, min(n, hi))
+
+        def clamp_float(value, default, lo, hi):
+            try:
+                n = float(value)
+            except Exception:
+                n = default
+            return max(lo, min(n, hi))
+
+        def configure_form(form: QFormLayout) -> None:
             form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
             form.setHorizontalSpacing(12)
             form.setVerticalSpacing(8)
@@ -204,166 +221,258 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             except AttributeError:
                 form.setFieldGrowthPolicy(QFormLayout.ExpandingFieldsGrow)
 
-            ed_label = QLineEdit()
+        w._curve_rows = []
+        w._curve_current_idx = -1
+        w._curve_loading = False
+
+        selector_grp = self._compact_group(QGroupBox(self.tr("Curve")))
+        selector_form = QFormLayout(selector_grp)
+        configure_form(selector_form)
+
+        combo_magnitude = QComboBox()
+        combo_curve = QComboBox()
+        self._limit_field_width(combo_magnitude, self._LONG_FIELD_WIDTH)
+        self._limit_field_width(combo_curve, self._LONG_FIELD_WIDTH)
+
+        magnitudes = []
+        for curve in self._curve_cfg:
+            magnitude = curve_magnitude(curve)
+            if magnitude not in magnitudes:
+                magnitudes.append(magnitude)
+        for magnitude in magnitudes:
+            combo_magnitude.addItem(magnitude, magnitude)
+
+        self._add_form_row(selector_form, self.tr("Magnitude:"), combo_magnitude)
+        self._add_form_row(selector_form, self.tr("Curve:"), combo_curve)
+        lay.addWidget(selector_grp)
+
+        title = QLabel()
+        title.setWordWrap(True)
+        title.setStyleSheet("font-weight: bold;")
+        lay.addWidget(title)
+
+        row = {}
+        ed_label = QLineEdit()
+        ed_label.setClearButtonEnabled(True)
+        ed_label.setMinimumHeight(26)
+        self._limit_field_width(ed_label, self._LONG_FIELD_WIDTH)
+
+        font_combo = QFontComboBox()
+        font_combo.setMaxVisibleItems(8)
+        self._limit_field_width(font_combo, self._FONT_FIELD_WIDTH)
+
+        sp_font_size = QSpinBox()
+        sp_font_size.setRange(6, 32)
+
+        color = QColor("#0078d7")
+        btn_color = QPushButton()
+        btn_color.setMinimumHeight(28)
+        self._limit_field_width(btn_color, self._FORM_FIELD_WIDTH)
+
+        def pick_color(_checked=False):
+            nc = QColorDialog.getColor(row["color"], self, self.tr("Curve color"))
+            if nc.isValid():
+                row["color"] = nc
+                self._show_color_on_button(btn_color, nc)
+
+        btn_color.clicked.connect(pick_color)
+
+        cb_style = QComboBox()
+        cb_style.addItem(self.tr("Solid"), "solid")
+        cb_style.addItem(self.tr("Dashed"), "dash")
+        cb_style.addItem(self.tr("Dotted"), "dot")
+        cb_style.addItem(self.tr("Dash-dot"), "dashdot")
+        self._limit_field_width(cb_style, self._FORM_FIELD_WIDTH)
+
+        sp_width = QDoubleSpinBox()
+        sp_width.setRange(0.5, 12.0)
+        sp_width.setDecimals(1)
+        sp_width.setSingleStep(0.5)
+
+        cb_marker_symbol = QComboBox()
+        cb_marker_symbol.addItem(self.tr("Circle"), "circle")
+        cb_marker_symbol.addItem(self.tr("Square"), "square")
+        cb_marker_symbol.addItem(self.tr("Triangle"), "triangle")
+        cb_marker_symbol.addItem(self.tr("Diamond"), "diamond")
+        cb_marker_symbol.addItem(self.tr("Cross"), "cross")
+        self._limit_field_width(cb_marker_symbol, self._FORM_FIELD_WIDTH)
+
+        sp_marker_size = QSpinBox()
+        sp_marker_size.setRange(2, 24)
+
+        marker_color = QColor("#0078d7")
+        btn_marker_color = QPushButton()
+        btn_marker_color.setMinimumHeight(28)
+        self._limit_field_width(btn_marker_color, self._FORM_FIELD_WIDTH)
+
+        def pick_marker_color(_checked=False):
+            nc = QColorDialog.getColor(row["marker_color"], self, self.tr("Marker color"))
+            if nc.isValid():
+                row["marker_color"] = nc
+                self._show_color_on_button(btn_marker_color, nc)
+
+        btn_marker_color.clicked.connect(pick_marker_color)
+
+        legend_grp = self._compact_group(QGroupBox(self.tr("Legend")))
+        legend_form = QFormLayout(legend_grp)
+        configure_form(legend_form)
+        self._add_form_row(legend_form, self.tr("Name:"), ed_label)
+        self._add_form_row(legend_form, self.tr("Font:"), font_combo)
+        self._add_form_row(legend_form, self.tr("Size:"), sp_font_size)
+        lay.addWidget(legend_grp)
+
+        style_grp = self._compact_group(QGroupBox(self.tr("Style")))
+        style_form = QFormLayout(style_grp)
+        configure_form(style_form)
+        self._add_form_row(style_form, self.tr("Line:"), cb_style)
+        self._add_form_row(style_form, self.tr("Color:"), btn_color)
+        self._add_form_row(style_form, self.tr("Width:"), sp_width)
+        lay.addWidget(style_grp)
+
+        markers_grp = self._compact_group(QGroupBox(self.tr("Markers")))
+        markers_grp.setCheckable(True)
+        markers_form = QFormLayout(markers_grp)
+        configure_form(markers_form)
+        self._add_form_row(markers_form, self.tr("Symbol:"), cb_marker_symbol)
+        self._add_form_row(markers_form, self.tr("Size:"), sp_marker_size)
+        self._add_form_row(markers_form, self.tr("Color:"), btn_marker_color)
+        lay.addWidget(markers_grp)
+
+        row.update({
+            "label": ed_label,
+            "font_family": font_combo,
+            "font_size": sp_font_size,
+            "color": color,
+            "color_btn": btn_color,
+            "style": cb_style,
+            "width": sp_width,
+            "show_markers": markers_grp,
+            "marker_symbol": cb_marker_symbol,
+            "marker_size": sp_marker_size,
+            "marker_color": marker_color,
+            "marker_color_btn": btn_marker_color,
+        })
+        w._curve_rows.append(row)
+
+        def sync_marker_options():
+            enabled = bool(markers_grp.isChecked())
+            cb_marker_symbol.setEnabled(enabled)
+            sp_marker_size.setEnabled(enabled)
+            btn_marker_color.setEnabled(enabled)
+
+        def store_current_curve():
+            idx = int(getattr(w, "_curve_current_idx", -1))
+            if idx < 0 or idx >= len(self._curve_cfg) or bool(getattr(w, "_curve_loading", False)):
+                return
+            curve = self._curve_cfg[idx]
+            curve["label"] = ed_label.text().strip() or self.tr("Series")
+            curve["legend_font_family"] = font_combo.currentFont().family()
+            curve["legend_font_size"] = int(sp_font_size.value())
+            curve["color"] = row["color"].name(QColor.NameFormat.HexRgb)
+            try:
+                curve["line_style"] = str(cb_style.currentData() or "solid")
+            except Exception:
+                curve["line_style"] = "solid"
+            curve["line_width"] = float(sp_width.value())
+            curve["show_markers"] = bool(markers_grp.isChecked())
+            try:
+                curve["marker_symbol"] = str(cb_marker_symbol.currentData() or "circle")
+            except Exception:
+                curve["marker_symbol"] = "circle"
+            curve["marker_size"] = int(sp_marker_size.value())
+            curve["marker_color"] = row["marker_color"].name(QColor.NameFormat.HexRgb)
+
+        def refresh_curve_combo(selected_idx=None):
+            current_magnitude = combo_magnitude.currentData()
+            combo_curve.blockSignals(True)
+            combo_curve.clear()
+            first_idx = None
+            selected_combo_idx = 0
+            for idx, curve in enumerate(self._curve_cfg):
+                if curve_magnitude(curve) != current_magnitude:
+                    continue
+                if first_idx is None:
+                    first_idx = idx
+                combo_curve.addItem(curve_label(curve), idx)
+                if selected_idx == idx:
+                    selected_combo_idx = combo_curve.count() - 1
+            if combo_curve.count() > 0:
+                combo_curve.setCurrentIndex(selected_combo_idx)
+            combo_curve.blockSignals(False)
+            return first_idx
+
+        def load_curve(idx):
+            if idx is None or idx < 0 or idx >= len(self._curve_cfg):
+                return
+            w._curve_loading = True
+            w._curve_current_idx = idx
+            curve = self._curve_cfg[idx]
+            magnitude = curve_magnitude(curve)
+            label = curve_label(curve)
+            title.setText(f"{magnitude} - {label}")
+
             ed_label.setText(label)
-            ed_label.setClearButtonEnabled(True)
-            ed_label.setMinimumHeight(26)
-            self._limit_field_width(ed_label, self._LONG_FIELD_WIDTH)
-
-            font_combo = QFontComboBox()
-            font_combo.setMaxVisibleItems(8)
-            self._limit_field_width(font_combo, self._FONT_FIELD_WIDTH)
             fam = (curve.get("legend_font_family") or "").strip()
-            if fam:
-                font_combo.setCurrentFont(QFont(fam))
+            font_combo.setCurrentFont(QFont(fam or FONT_FAMILY))
+            sp_font_size.setValue(clamp_int(curve.get("legend_font_size") or 8, 8, 6, 32))
 
-            sp_font_size = QSpinBox()
-            sp_font_size.setRange(6, 32)
-            sp_font_size.setValue(max(6, min(int(curve.get("legend_font_size") or 8), 32)))
+            line_color = QColor(curve.get("color") or "#0078d7")
+            if not line_color.isValid():
+                line_color = QColor("#0078d7")
+            row["color"] = line_color
+            self._show_color_on_button(btn_color, line_color)
 
-            picked = QColor(curve.get("color") or "#0078d7")
-            if not picked.isValid():
-                picked = QColor("#0078d7")
-            btn_color = QPushButton()
-
-            def refresh_color_button(btn=btn_color, color=picked):
-                self._show_color_on_button(btn, color)
-
-            refresh_color_button()
-            btn_color.setMinimumHeight(28)
-            self._limit_field_width(btn_color, self._FORM_FIELD_WIDTH)
-
-            def pick_color(_checked=False, btn=btn_color, row_idx=idx):
-                current = w._curve_rows[row_idx]["color"]
-                nc = QColorDialog.getColor(current, self, self.tr("Curve color"))
-                if nc.isValid():
-                    w._curve_rows[row_idx]["color"] = nc
-                    self._show_color_on_button(btn, nc)
-
-            btn_color.clicked.connect(pick_color)
-
-            cb_style = QComboBox()
-            cb_style.addItem(self.tr("Solid"), "solid")
-            cb_style.addItem(self.tr("Dashed"), "dash")
-            cb_style.addItem(self.tr("Dotted"), "dot")
-            cb_style.addItem(self.tr("Dash-dot"), "dashdot")
-            cur_style = (curve.get("line_style") or "solid").strip()
-            idx_style = cb_style.findData(cur_style)
+            idx_style = cb_style.findData((curve.get("line_style") or "solid").strip())
             cb_style.setCurrentIndex(idx_style if idx_style >= 0 else 0)
-            self._limit_field_width(cb_style, self._FORM_FIELD_WIDTH)
+            sp_width.setValue(clamp_float(curve.get("line_width") or 2.0, 2.0, 0.5, 12.0))
 
-            sp_width = QDoubleSpinBox()
-            sp_width.setRange(0.5, 12.0)
-            sp_width.setDecimals(1)
-            sp_width.setSingleStep(0.5)
-            sp_width.setValue(max(0.5, min(float(curve.get("line_width") or 2.0), 12.0)))
-
-            chk_markers = QCheckBox(self.tr("Show step point markers"))
-            chk_markers.setChecked(bool(curve.get("show_markers", False)))
-
-            cb_marker_symbol = QComboBox()
-            cb_marker_symbol.addItem(self.tr("Circle"), "circle")
-            cb_marker_symbol.addItem(self.tr("Square"), "square")
-            cb_marker_symbol.addItem(self.tr("Triangle"), "triangle")
-            cb_marker_symbol.addItem(self.tr("Diamond"), "diamond")
-            cb_marker_symbol.addItem(self.tr("Cross"), "cross")
-            cur_marker_symbol = (curve.get("marker_symbol") or "circle").strip()
-            idx_marker_symbol = cb_marker_symbol.findData(cur_marker_symbol)
+            markers_grp.setChecked(bool(curve.get("show_markers", False)))
+            idx_marker_symbol = cb_marker_symbol.findData((curve.get("marker_symbol") or "circle").strip())
             cb_marker_symbol.setCurrentIndex(idx_marker_symbol if idx_marker_symbol >= 0 else 0)
-            self._limit_field_width(cb_marker_symbol, self._FORM_FIELD_WIDTH)
-
-            sp_marker_size = QSpinBox()
-            sp_marker_size.setRange(2, 24)
-            sp_marker_size.setValue(max(2, min(int(curve.get("marker_size") or 6), 24)))
-
+            sp_marker_size.setValue(clamp_int(curve.get("marker_size") or 6, 6, 2, 24))
             marker_color_raw = curve.get("marker_color") or curve.get("color") or "#0078d7"
-            picked_marker = QColor(marker_color_raw)
-            if not picked_marker.isValid():
-                picked_marker = QColor("#0078d7")
-            btn_marker_color = QPushButton()
+            marker_qcolor = QColor(marker_color_raw)
+            if not marker_qcolor.isValid():
+                marker_qcolor = QColor("#0078d7")
+            row["marker_color"] = marker_qcolor
+            self._show_color_on_button(btn_marker_color, marker_qcolor)
+            sync_marker_options()
+            w._curve_loading = False
 
-            def refresh_marker_color_button(btn=btn_marker_color, color=picked_marker):
-                self._show_color_on_button(btn, color)
+        def select_curve_from_combo():
+            store_current_curve()
+            idx = combo_curve.currentData()
+            if idx is not None:
+                load_curve(int(idx))
 
-            refresh_marker_color_button()
-            btn_marker_color.setMinimumHeight(28)
-            self._limit_field_width(btn_marker_color, self._FORM_FIELD_WIDTH)
+        def select_magnitude():
+            store_current_curve()
+            first_idx = refresh_curve_combo()
+            if first_idx is not None:
+                load_curve(int(combo_curve.currentData()))
 
-            def pick_marker_color(_checked=False, btn=btn_marker_color, row_idx=idx):
-                current = w._curve_rows[row_idx]["marker_color"]
-                nc = QColorDialog.getColor(current, self, self.tr("Marker color"))
-                if nc.isValid():
-                    w._curve_rows[row_idx]["marker_color"] = nc
-                    self._show_color_on_button(btn, nc)
+        def update_current_label(text):
+            if bool(getattr(w, "_curve_loading", False)):
+                return
+            idx = int(getattr(w, "_curve_current_idx", -1))
+            if idx < 0 or idx >= len(self._curve_cfg):
+                return
+            label = text.strip() or self.tr("Series")
+            self._curve_cfg[idx]["label"] = label
+            title.setText(f"{curve_magnitude(self._curve_cfg[idx])} - {label}")
+            combo_idx = combo_curve.findData(idx)
+            if combo_idx >= 0:
+                combo_curve.setItemText(combo_idx, label)
 
-            btn_marker_color.clicked.connect(pick_marker_color)
+        combo_magnitude.currentIndexChanged.connect(lambda _i: select_magnitude())
+        combo_curve.currentIndexChanged.connect(lambda _i: select_curve_from_combo())
+        ed_label.textChanged.connect(update_current_label)
+        markers_grp.toggled.connect(lambda _checked: sync_marker_options())
+        w._curve_store_current = store_current_curve
 
-            chk_point_values = QCheckBox(self.tr("Show step point values as text"))
-            chk_point_values.setChecked(bool(curve.get("show_point_values", False)))
-
-            chk_visible = QCheckBox(self.tr("Visible"))
-            chk_visible.setChecked(bool(curve.get("visible", True)))
-            chk_muted = QCheckBox(self.tr("Dimmed"))
-            chk_muted.setChecked(bool(curve.get("muted", False)))
-            chk_highlighted = QCheckBox(self.tr("Highlighted"))
-            chk_highlighted.setChecked(bool(curve.get("highlighted", False)))
-
-            def sync_emphasis(row_idx=idx):
-                row = w._curve_rows[row_idx]
-                if row["highlighted"].isChecked() and row["muted"].isChecked():
-                    row["muted"].setChecked(False)
-
-            def sync_muted(row_idx=idx):
-                row = w._curve_rows[row_idx]
-                if row["muted"].isChecked() and row["highlighted"].isChecked():
-                    row["highlighted"].setChecked(False)
-
-            chk_highlighted.toggled.connect(lambda _checked, row_idx=idx: sync_emphasis(row_idx))
-            chk_muted.toggled.connect(lambda _checked, row_idx=idx: sync_muted(row_idx))
-
-            def sync_marker_options(row_idx=idx):
-                row = w._curve_rows[row_idx]
-                enabled = bool(row["show_markers"].isChecked())
-                row["marker_symbol"].setEnabled(enabled)
-                row["marker_size"].setEnabled(enabled)
-                row["marker_color_btn"].setEnabled(enabled)
-
-            chk_markers.toggled.connect(lambda _checked, row_idx=idx: sync_marker_options(row_idx))
-
-            self._add_form_row(form, self.tr("Legend name:"), ed_label)
-            self._add_form_row(form, self.tr("Legend font:"), font_combo)
-            self._add_form_row(form, self.tr("Legend font size:"), sp_font_size)
-            self._add_form_row(form, self.tr("Color:"), btn_color)
-            self._add_form_row(form, self.tr("Line style:"), cb_style)
-            self._add_form_row(form, self.tr("Line width:"), sp_width)
-            form.addRow("", chk_markers)
-            self._add_form_row(form, self.tr("Marker symbol:"), cb_marker_symbol)
-            self._add_form_row(form, self.tr("Marker size:"), sp_marker_size)
-            self._add_form_row(form, self.tr("Marker color:"), btn_marker_color)
-            form.addRow("", chk_point_values)
-            form.addRow("", chk_visible)
-            form.addRow("", chk_muted)
-            form.addRow("", chk_highlighted)
-            lay.addWidget(grp)
-
-            w._curve_rows.append({
-                "label": ed_label,
-                "font_family": font_combo,
-                "font_size": sp_font_size,
-                "color": picked,
-                "style": cb_style,
-                "width": sp_width,
-                "show_markers": chk_markers,
-                "marker_symbol": cb_marker_symbol,
-                "marker_size": sp_marker_size,
-                "marker_color": picked_marker,
-                "marker_color_btn": btn_marker_color,
-                "show_point_values": chk_point_values,
-                "visible": chk_visible,
-                "muted": chk_muted,
-                "highlighted": chk_highlighted,
-            })
-            sync_marker_options(idx)
+        refresh_curve_combo()
+        if combo_curve.count() > 0:
+            load_curve(int(combo_curve.currentData()))
 
         return w
 
@@ -838,34 +947,31 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self.accept()
 
     def _read_curves_tab(self, tab: QWidget) -> None:
+        store_current = getattr(tab, "_curve_store_current", None)
+        if callable(store_current):
+            store_current()
         rows = getattr(tab, "_curve_rows", []) or []
         if not rows:
             return
         series = getattr(self._plot, "series", []) or []
-        for idx, row in enumerate(rows):
+        for idx, curve in enumerate(self._curve_cfg):
             if idx >= len(series):
                 break
             s = series[idx]
-            s["label"] = row["label"].text().strip() or self.tr("Series")
-            s["legend_font_family"] = row["font_family"].currentFont().family()
-            s["legend_font_size"] = int(row["font_size"].value())
-            s["color"] = row["color"].name(QColor.NameFormat.HexRgb)
-            try:
-                s["line_style"] = str(row["style"].currentData() or "solid")
-            except Exception:
-                s["line_style"] = "solid"
-            s["line_width"] = float(row["width"].value())
-            s["show_markers"] = bool(row["show_markers"].isChecked())
-            try:
-                s["marker_symbol"] = str(row["marker_symbol"].currentData() or "circle")
-            except Exception:
-                s["marker_symbol"] = "circle"
-            s["marker_size"] = int(row["marker_size"].value())
-            s["marker_color"] = row["marker_color"].name(QColor.NameFormat.HexRgb)
-            s["show_point_values"] = bool(row["show_point_values"].isChecked())
-            s["visible"] = bool(row["visible"].isChecked())
-            s["muted"] = bool(row["muted"].isChecked())
-            s["highlighted"] = bool(row["highlighted"].isChecked())
+            s["label"] = (curve.get("label") or "").strip() or self.tr("Series")
+            s["legend_font_family"] = curve.get("legend_font_family") or ""
+            s["legend_font_size"] = int(curve.get("legend_font_size") or 8)
+            s["color"] = curve.get("color") or "#0078d7"
+            s["line_style"] = curve.get("line_style") or "solid"
+            s["line_width"] = float(curve.get("line_width") or 2.0)
+            s["show_markers"] = bool(curve.get("show_markers", False))
+            s["marker_symbol"] = curve.get("marker_symbol") or "circle"
+            s["marker_size"] = int(curve.get("marker_size") or 6)
+            s["marker_color"] = curve.get("marker_color") or curve.get("color") or "#0078d7"
+            s["show_point_values"] = bool(curve.get("show_point_values", False))
+            s["visible"] = bool(curve.get("visible", True))
+            s["muted"] = bool(curve.get("muted", False))
+            s["highlighted"] = bool(curve.get("highlighted", False))
             if s["highlighted"]:
                 s["muted"] = False
         try:
