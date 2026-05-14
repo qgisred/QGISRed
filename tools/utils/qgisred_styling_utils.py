@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import math
 import os
 import json
 import random
@@ -165,10 +166,11 @@ class QGISRedStylingUtils:
     def applyLegendStrategy(self, layer, strategy):
         if not isinstance(strategy, dict):
             return
-        if strategy.get("schema") != "qgisred.legendStrategy.v1":
+        schema = strategy.get("schema")
+        if schema not in ("qgisred.legendStrategy.v1", "qgisred.legendStrategy.v2"):
             QgsMessageLog.logMessage(
                 self.tr("Unsupported legend strategy schema: %1")
-                    .replace("%1", str(strategy.get("schema"))),
+                    .replace("%1", str(schema)),
                 "QGISRed",
                 Qgis.MessageLevel.Warning,
             )
@@ -187,21 +189,111 @@ class QGISRedStylingUtils:
             )
             return
 
-        mode = strategy.get("mode")
-        if mode == "categorized":
-            self.applyCategorizedStrategy(layer, field, fieldIndex, strategy.get("categorized") or {})
-        elif mode == "graduated":
-            self.applyGraduatedStrategy(layer, field, strategy.get("graduated") or {})
-        else:
+        parts = self.resolveStrategyParts(strategy)
+        if not parts:
             return
+
+        mode = strategy.get("mode")
+
+        if "intervals" in parts and mode == "graduated":
+            self.applyGraduatedClassification(layer, field, self.resolveIntervalsBlock(strategy))
+
+        if "colors" in parts:
+            colorsBlock = self.resolveColorsBlock(strategy)
+            if mode == "categorized":
+                self.applyCategorizedColors(layer, field, fieldIndex, colorsBlock)
+            elif mode == "graduated":
+                self.applyGraduatedColors(layer, colorsBlock)
+
+        if "sizes" in parts:
+            self.applySizesStrategy(layer, strategy.get("sizes") or {})
 
         layer.triggerRepaint()
         layer.setLabelsEnabled(False)
 
-    def applyCategorizedStrategy(self, layer, field, fieldIndex, categorizedStrategy):
-        colorSource = categorizedStrategy.get("colorSource", "random")
-        rampName = categorizedStrategy.get("rampName")
-        invertRamp = categorizedStrategy.get("invertRamp", False)
+    def resolveStrategyParts(self, strategy):
+        parts = strategy.get("parts")
+        if isinstance(parts, list):
+            return parts
+        mode = strategy.get("mode")
+        if mode == "graduated":
+            return ["intervals", "colors"]
+        if mode == "categorized":
+            return ["colors"]
+        return []
+
+    def resolveIntervalsBlock(self, strategy):
+        block = strategy.get("intervals")
+        if isinstance(block, dict):
+            return block
+        legacy = strategy.get("graduated") or {}
+        return {
+            "classificationMode": legacy.get("classificationMode"),
+            "classes": legacy.get("classes"),
+        }
+
+    def resolveColorsBlock(self, strategy):
+        block = strategy.get("colors")
+        if isinstance(block, dict):
+            return block
+        legacy = strategy.get("graduated") or strategy.get("categorized") or {}
+        source = legacy.get("colorSource")
+        if not source and legacy.get("rampName"):
+            source = "ramp"
+        return {
+            "source": source,
+            "rampName": legacy.get("rampName"),
+            "invertRamp": legacy.get("invertRamp", False),
+        }
+
+    def applyGraduatedClassification(self, layer, field, intervalsBlock):
+        classificationMode = intervalsBlock.get("classificationMode")
+        classes = int(intervalsBlock.get("classes") or 5)
+
+        modeEnum = self.graduatedModeEnum(classificationMode)
+        if modeEnum is None:
+            QgsMessageLog.logMessage(
+                self.tr("Unsupported classification mode: %1")
+                    .replace("%1", str(classificationMode)),
+                "QGISRed",
+                Qgis.MessageLevel.Warning,
+            )
+            return
+
+        templateSymbol = self.cloneRendererTemplateSymbol(layer)
+        ramp = self.cloneRendererRamp(layer)
+
+        renderer = QgsGraduatedSymbolRenderer.createRenderer(
+            layer, field, classes, modeEnum, templateSymbol, ramp
+        )
+        if renderer is None:
+            return
+        layer.setRenderer(renderer)
+
+    def cloneRendererTemplateSymbol(self, layer):
+        renderer = layer.renderer()
+        if renderer is not None:
+            try:
+                context = QgsRenderContext()
+                symbols = renderer.symbols(context)
+                if symbols:
+                    return symbols[0].clone()
+            except Exception:
+                pass
+        return QgsSymbol.defaultSymbol(layer.geometryType())
+
+    def cloneRendererRamp(self, layer):
+        renderer = layer.renderer()
+        if isinstance(renderer, QgsGraduatedSymbolRenderer):
+            ramp = renderer.sourceColorRamp()
+            if ramp:
+                return ramp.clone()
+        return QgsStyle.defaultStyle().colorRamp("Spectral")
+
+    def applyCategorizedColors(self, layer, field, fieldIndex, colorsBlock):
+        source = colorsBlock.get("source") or "random"
+        rampName = colorsBlock.get("rampName")
+        invertRamp = colorsBlock.get("invertRamp", False)
 
         uniqueValues = sorted(
             layer.dataProvider().uniqueValues(fieldIndex),
@@ -211,7 +303,7 @@ class QGISRedStylingUtils:
         nullValues = [value for value in uniqueValues if value == NULL]
 
         ramp = None
-        if colorSource == "ramp" and rampName:
+        if source == "ramp" and rampName:
             ramp = QgsStyle.defaultStyle().colorRamp(rampName)
             if ramp is None:
                 QgsMessageLog.logMessage(
@@ -221,22 +313,108 @@ class QGISRedStylingUtils:
                     Qgis.MessageLevel.Warning,
                 )
 
+        templateSymbol = self.cloneRendererTemplateSymbol(layer)
         categories = []
         valueCount = max(len(nonNullValues), 1)
         for index, value in enumerate(nonNullValues):
-            symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+            symbol = templateSymbol.clone()
             color = self.resolveCategoryColor(value, index, valueCount, ramp, invertRamp)
             symbol.setColor(color)
-            symbol.setWidth(0.6)
             categories.append(QgsRendererCategory(value, symbol, str(value)))
 
         if nullValues:
-            symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+            symbol = templateSymbol.clone()
             symbol.setColor(QColor.fromRgb(192, 192, 192))
-            symbol.setWidth(0.6)
             categories.append(QgsRendererCategory(nullValues[0], symbol, "#NA"))
 
         layer.setRenderer(QgsCategorizedSymbolRenderer(field, categories))
+
+    def applyGraduatedColors(self, layer, colorsBlock):
+        renderer = layer.renderer()
+        if not isinstance(renderer, QgsGraduatedSymbolRenderer):
+            return
+        rampName = colorsBlock.get("rampName")
+        invertRamp = colorsBlock.get("invertRamp", False)
+        if not rampName:
+            return
+        ramp = QgsStyle.defaultStyle().colorRamp(rampName)
+        if ramp is None:
+            QgsMessageLog.logMessage(
+                self.tr("Color ramp '%1' not found; colors strategy skipped")
+                    .replace("%1", str(rampName)),
+                "QGISRed",
+                Qgis.MessageLevel.Warning,
+            )
+            return
+        if invertRamp:
+            ramp.invert()
+
+        ranges = renderer.ranges()
+        rangeCount = max(len(ranges), 1)
+        for index in range(len(ranges)):
+            position = 0.0 if rangeCount <= 1 else index / float(rangeCount - 1)
+            symbol = ranges[index].symbol().clone()
+            symbol.setColor(ramp.color(position))
+            renderer.updateRangeSymbol(index, symbol)
+
+    def applySizesStrategy(self, layer, sizesBlock):
+        renderer = layer.renderer()
+        sizeMode = sizesBlock.get("mode") or "Manual"
+        if sizeMode == "Manual":
+            return
+
+        if isinstance(renderer, QgsGraduatedSymbolRenderer):
+            ranges = renderer.ranges()
+            sizes = self.computeSizesForCount(len(ranges), sizesBlock)
+            for index in range(len(ranges)):
+                symbol = ranges[index].symbol().clone()
+                self.applySizeToSymbol(layer, symbol, sizes[index])
+                renderer.updateRangeSymbol(index, symbol)
+        elif isinstance(renderer, QgsCategorizedSymbolRenderer):
+            categories = renderer.categories()
+            sizes = self.computeSizesForCount(len(categories), sizesBlock)
+            for index in range(len(categories)):
+                symbol = categories[index].symbol().clone()
+                self.applySizeToSymbol(layer, symbol, sizes[index])
+                renderer.updateCategorySymbol(index, symbol)
+
+    def computeSizesForCount(self, count, sizesBlock):
+        if count <= 0:
+            return []
+        mode = sizesBlock.get("mode") or "Manual"
+        if mode == "Equal":
+            return [float(sizesBlock.get("value") or 0.0)] * count
+
+        minSize = float(sizesBlock.get("min") or 0.0)
+        maxSize = float(sizesBlock.get("max") or 0.0)
+        invert = bool(sizesBlock.get("invert"))
+
+        tValues = [i / max(1, count - 1) for i in range(count)]
+        if invert:
+            tValues.reverse()
+
+        sizes = []
+        for t in tValues:
+            if mode == "Linear":
+                sizes.append(minSize + t * (maxSize - minSize))
+            elif mode == "Quadratic":
+                sizes.append(minSize + (t * t) * (maxSize - minSize))
+            elif mode == "Exponential":
+                if count > 1:
+                    factor = (math.exp(t) - 1) / (math.exp(1) - 1)
+                    sizes.append(minSize + factor * (maxSize - minSize))
+                else:
+                    sizes.append(minSize)
+            else:
+                # "Proportional to Value" needs per-feature averages — fall back to Linear.
+                sizes.append(minSize + t * (maxSize - minSize))
+        return sizes
+
+    def applySizeToSymbol(self, layer, symbol, size):
+        if layer.geometryType() == 1:
+            symbol.setWidth(size)
+        else:
+            symbol.setSize(size)
 
     def resolveCategoryColor(self, value, index, valueCount, ramp, invertRamp):
         if ramp is not None:
@@ -250,42 +428,6 @@ class QGISRedStylingUtils:
             seededRandom.randint(0, 255),
             seededRandom.randint(0, 255),
         )
-
-    def applyGraduatedStrategy(self, layer, field, graduatedStrategy):
-        classificationMode = graduatedStrategy.get("classificationMode")
-        classes = int(graduatedStrategy.get("classes") or 5)
-        rampName = graduatedStrategy.get("rampName")
-        invertRamp = graduatedStrategy.get("invertRamp", False)
-
-        modeEnum = self.graduatedModeEnum(classificationMode)
-        if modeEnum is None:
-            QgsMessageLog.logMessage(
-                self.tr("Unsupported classification mode: %1")
-                    .replace("%1", str(classificationMode)),
-                "QGISRed",
-                Qgis.MessageLevel.Warning,
-            )
-            return
-
-        ramp = QgsStyle.defaultStyle().colorRamp(rampName) if rampName else None
-        if ramp is None:
-            QgsMessageLog.logMessage(
-                self.tr("Color ramp '%1' not found; graduated strategy aborted")
-                    .replace("%1", str(rampName)),
-                "QGISRed",
-                Qgis.MessageLevel.Warning,
-            )
-            return
-        if invertRamp:
-            ramp.invert()
-
-        symbol = QgsSymbol.defaultSymbol(layer.geometryType())
-        renderer = QgsGraduatedSymbolRenderer.createRenderer(
-            layer, field, classes, modeEnum, symbol, ramp
-        )
-        if renderer is None:
-            return
-        layer.setRenderer(renderer)
 
     def graduatedModeEnum(self, classificationMode):
         mapping = {
