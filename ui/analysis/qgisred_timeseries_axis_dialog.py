@@ -556,37 +556,6 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         title.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         lay.addWidget(title)
 
-        if is_time_axis:
-            time_grp = self._compact_group(QGroupBox(self.tr("Time format")))
-            time_form = QFormLayout(time_grp)
-            time_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-            time_form.setHorizontalSpacing(12)
-            time_form.setVerticalSpacing(8)
-            try:
-                time_form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
-            except Exception:
-                pass
-
-            combo_hour = QComboBox()
-            combo_hour.addItem(self.tr("hh"), "h")
-            combo_hour.addItem(self.tr("hh:mm"), "hm")
-            cur_h = (getattr(cfg, "x_hour_format", "") or "hm").strip()
-            idx_h = combo_hour.findData(cur_h)
-            combo_hour.setCurrentIndex(idx_h if idx_h >= 0 else 0)
-            self._limit_field_width(combo_hour, self._FORM_FIELD_WIDTH)
-
-            combo_days = QComboBox()
-            combo_days.addItem(self.tr("Days as 1d, 2d…"), "split_days")
-            combo_days.addItem(self.tr("Accumulate days into hours (>24)"), "total_hours")
-            cur_d = (getattr(cfg, "x_day_format", "") or "split_days").strip()
-            idx_d = combo_days.findData(cur_d)
-            combo_days.setCurrentIndex(idx_d if idx_d >= 0 else 0)
-            self._limit_field_width(combo_days, self._FORM_FIELD_WIDTH)
-
-            self._add_form_row(time_form, self.tr("Hour:"), combo_hour)
-            self._add_form_row(time_form, self.tr("Days:"), combo_days)
-            lay.addWidget(time_grp)
-
         title_grp = self._compact_group(QGroupBox(self.tr("Axis title")))
         title_lay = QVBoxLayout(title_grp)
         title_edit = QLineEdit()
@@ -622,13 +591,11 @@ class TimeSeriesAxisOptionsDialog(QDialog):
 
         sp_min = QDoubleSpinBox()
         sp_min.setRange(-1e12, 1e12)
-        sp_min.setDecimals(6)
         sp_min.setValue(float(cfg.fixed_min))
         sp_min.setMinimumWidth(140)
 
         sp_max = QDoubleSpinBox()
         sp_max.setRange(-1e12, 1e12)
-        sp_max.setDecimals(6)
         sp_max.setValue(float(cfg.fixed_max))
         sp_max.setMinimumWidth(140)
 
@@ -709,6 +676,37 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             lay.addWidget(dec_grp)
         else:
             sp_dec.hide()
+
+        if is_time_axis:
+            time_grp = self._compact_group(QGroupBox(self.tr("Time format")))
+            time_form = QFormLayout(time_grp)
+            time_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+            time_form.setHorizontalSpacing(12)
+            time_form.setVerticalSpacing(8)
+            try:
+                time_form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
+            except Exception:
+                pass
+
+            combo_hour = QComboBox()
+            combo_hour.addItem(self.tr("hh"), "h")
+            combo_hour.addItem(self.tr("hh:mm"), "hm")
+            cur_h = (getattr(cfg, "x_hour_format", "") or "hm").strip()
+            idx_h = combo_hour.findData(cur_h)
+            combo_hour.setCurrentIndex(idx_h if idx_h >= 0 else 0)
+            self._limit_field_width(combo_hour, self._FORM_FIELD_WIDTH)
+
+            combo_days = QComboBox()
+            combo_days.addItem(self.tr("Days as 1d, 2d…"), "split_days")
+            combo_days.addItem(self.tr("Accumulate days into hours (>24)"), "total_hours")
+            cur_d = (getattr(cfg, "x_day_format", "") or "split_days").strip()
+            idx_d = combo_days.findData(cur_d)
+            combo_days.setCurrentIndex(idx_d if idx_d >= 0 else 0)
+            self._limit_field_width(combo_days, self._FORM_FIELD_WIDTH)
+
+            self._add_form_row(time_form, self.tr("Hour:"), combo_hour)
+            self._add_form_row(time_form, self.tr("Days:"), combo_days)
+            lay.addWidget(time_grp)
 
         def sync_fixed_enabled():
             auto = combo_scale.currentIndex() == 0
