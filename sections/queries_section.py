@@ -216,12 +216,16 @@ class QueriesSection:
         if self.isLayerOnEdition():
             return
 
-        if getattr(self, 'statisticsDock', None) is None:
-            self.statisticsDock = QGISRedStatisticsDock(self.iface)
-            self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.statisticsDock)
-        else:
-            self.statisticsDock.show()
-            self.statisticsDock.raise_()
+        existing = getattr(self, 'statisticsDock', None)
+        if existing is not None:
+            try:
+                existing.close()
+                existing.deleteLater()
+            except Exception:
+                pass
+            self.statisticsDock = None
+        self.statisticsDock = QGISRedStatisticsDock(self.iface)
+        self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.statisticsDock)
         QGISRedUIUtils.arrangeDockOrder(
             self.iface.mainWindow(),
             self.ResultDockwidget,
