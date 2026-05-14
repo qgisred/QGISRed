@@ -55,7 +55,7 @@ class MenuSection:
         self.generalMenu.setIcon(QIcon(":/images/iconGeneralMenu.svg"))
         #    #Toolbar
         self.generalToolbar = self.iface.addToolBar(self.tr("QGISRed General"))
-        self.generalToolbar.setObjectName(self.tr("QGISRed General"))
+        self.generalToolbar.setObjectName("QGISRed General")
         self.generalToolbar.setVisible(False)
         #    #Buttons
         generalDropButton = QToolButton()
@@ -109,7 +109,7 @@ class MenuSection:
         self.infoMenu = self.qgisredmenu.addMenu(self.tr("Info"))
         self.infoMenu.setIcon(QIcon(":/images/iconAbout.svg"))
         self.infoToolbar = self.iface.addToolBar(self.tr("QGISRed Info"))
-        self.infoToolbar.setObjectName(self.tr("QGISRed Info"))
+        self.infoToolbar.setObjectName("QGISRed Info")
         self.infoToolbar.setVisible(False)
         infoDropButton = QToolButton()
         action = self._make_action(
@@ -139,7 +139,7 @@ class MenuSection:
         self.projectMenu.setIcon(QIcon(":/images/iconProjectMenu.svg"))
         #    #Toolbar
         self.projectToolbar = self.iface.addToolBar(self.tr("QGISRed Project"))
-        self.projectToolbar.setObjectName(self.tr("QGISRed Project"))
+        self.projectToolbar.setObjectName("QGISRed Project")
         self.projectToolbar.setVisible(False)
         #    #Buttons
         projectDropButton = QToolButton()
@@ -258,7 +258,7 @@ class MenuSection:
         self.editionMenu.setIcon(QIcon(":/images/iconEditMenu.svg"))
         #    #Toolbar
         self.editionToolbar = self.iface.addToolBar(self.tr("QGISRed Edition"))
-        self.editionToolbar.setObjectName(self.tr("QGISRed Edition"))
+        self.editionToolbar.setObjectName("QGISRed Edition")
         self.editionToolbar.setVisible(False)
 
         #    #Buttons
@@ -473,7 +473,7 @@ class MenuSection:
         self.debugMenu.setIcon(QIcon(":/images/iconDebugMenu.svg"))
         #    #Toolbar
         self.debugToolbar = self.iface.addToolBar(self.tr("QGISRed Debug"))
-        self.debugToolbar.setObjectName(self.tr("QGISRed Debug"))
+        self.debugToolbar.setObjectName("QGISRed Debug")
         self.debugToolbar.setVisible(False)
         #    #Buttons
         debugDropButton = QToolButton()
@@ -614,7 +614,7 @@ class MenuSection:
         self.toolsMenu.setIcon(QIcon(":/images/iconToolsMenu.svg"))
         #    #Toolbar
         self.toolsToolbar = self.iface.addToolBar(self.tr("QGISRed Tools"))
-        self.toolsToolbar.setObjectName(self.tr("QGISRed Tools"))
+        self.toolsToolbar.setObjectName("QGISRed Tools")
         self.toolsToolbar.setVisible(False)
         #    #Buttons
         toolDropButton = QToolButton()
@@ -725,7 +725,7 @@ class MenuSection:
         self.analysisMenu.setIcon(QIcon(":/images/iconAnalysisMenu.svg"))
         #    #Toolbar
         self.analysisToolbar = self.iface.addToolBar(self.tr("QGISRed Analysis"))
-        self.analysisToolbar.setObjectName(self.tr("QGISRed Analysis"))
+        self.analysisToolbar.setObjectName("QGISRed Analysis")
         self.analysisToolbar.setVisible(False)
         #    #Buttons
         analysisDropButton = QToolButton()
@@ -824,7 +824,7 @@ class MenuSection:
         self.dtMenu.setIcon(QIcon(":/images/iconDigitalTwinMenu.svg"))
         #    #Toolbar
         self.dtToolbar = self.iface.addToolBar(self.tr("QGISRed Digital Twin"))
-        self.dtToolbar.setObjectName(self.tr("QGISRed Digital Twin"))
+        self.dtToolbar.setObjectName("QGISRed Digital Twin")
         self.dtToolbar.setVisible(False)
         #    #Buttons
         dtDropButton = QToolButton()
@@ -1056,7 +1056,7 @@ class MenuSection:
         self.queriesMenu.setIcon(QIcon(":/images/iconQueriesMenu.svg"))
         #    #Toolbar
         self.queriesToolbar = self.iface.addToolBar(self.tr("QGISRed Queries"))
-        self.queriesToolbar.setObjectName(self.tr("QGISRed Queries"))
+        self.queriesToolbar.setObjectName("QGISRed Queries")
         self.queriesToolbar.setVisible(False)
         #    #Buttons
         queriesDropButton = QToolButton()
