@@ -60,7 +60,7 @@ class TimeSeriesPlotWidget(QWidget):
         self.y_categorical_labels = None
         self.setMouseTracking(True)
         self._base_min_w = 260
-        self._base_min_h = 170
+        self._base_min_h = 220
         self.setMinimumSize(self._base_min_w, self._base_min_h)
         self._legend_reserved_w = 0
         self._legend_reserved_h = 0
