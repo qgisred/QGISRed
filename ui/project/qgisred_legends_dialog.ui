@@ -576,19 +576,6 @@
                   </layout>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="ckRebuildOnLoad">
-                   <property name="toolTip">
-                    <string>When checked, the saved strategy rebuilds this layer's legend against current data after the QML is loaded</string>
-                   </property>
-                   <property name="layoutDirection">
-                    <enum>Qt::RightToLeft</enum>
-                   </property>
-                   <property name="text">
-                    <string>Apply the chosen strategy for rebuilding the legend when loading the layer</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
                   <layout class="QHBoxLayout" name="palletesHorizontalLayout"/>
                  </item>
                  <item>
