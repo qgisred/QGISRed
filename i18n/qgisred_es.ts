@@ -4960,8 +4960,18 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1230"/>
+        <source>Curve Name</source>
+        <translation>Nombre Curva</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1230"/>
         <source>Time (h)</source>
         <translation>Tiempo (h)</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1230"/>
+        <source>Civil Time</source>
+        <translation>Hora civil</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1230"/>

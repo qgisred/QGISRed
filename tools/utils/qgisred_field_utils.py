@@ -386,6 +386,13 @@ class QGISRedFieldUtils:
         abbr = row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
         return self._resolveAbbr(abbr)
 
+    def _rowDecimals(self, row, default=2):
+        if not row:
+            return default
+        unitSystem = self.getUnits()
+        dec = row["si_dec"] if unitSystem == "SI" else row["us_dec"]
+        return dec if dec is not None else default
+
     def _resolveAbbr(self, abbr):
         """Resolve all 'See X' tokens in an abbreviation string.
 
@@ -557,6 +564,41 @@ class QGISRedFieldUtils:
         unitSystem = self.getUnits()
         return self._lookupFieldAbbr(element, fieldName, unitSystem)
 
+    def getResultPropertyDecimals(self, category, prop_internal, default=2):
+        """Return decimal precision for result properties using the units CSV."""
+        prop_map = {
+            ("Node", "Pressure"):   ("Nodes", "Pressure"),
+            ("Node", "Head"):       ("Nodes", "Head"),
+            ("Node", "Demand"):     ("Nodes", "Demand"),
+            ("Node", "Quality"):    ("Nodes", "Quality"),
+            ("Link", "Flow"):       ("Links", "Flow"),
+            ("Link", "Velocity"):   ("Links", "Velocity"),
+            ("Link", "HeadLoss"):   ("Links", "HeadLoss"),
+            ("Link", "UnitHdLoss"): ("Links", "UnitHdLoss"),
+            ("Link", "FricFactor"): ("Links", "FricFactor"),
+            ("Link", "ReactRate"):  ("Links", "ReactRate"),
+            ("Link", "Quality"):    ("Links", "Quality"),
+        }
+        field_key = prop_map.get((category, prop_internal))
+        if not field_key:
+            return default
+        element, fieldName = field_key
+
+        if fieldName in ("Flow", "Demand"):
+            flowUnit, _ = QgsProject.instance().readEntry("QGISRed", "project_units", "LPS")
+            return self._rowDecimals(self._getRowByCondition("Global", "FlowUnits", flowUnit), default)
+        if fieldName == "Pressure":
+            condVal = "METERS" if self.getUnits() == "SI" else "PSI"
+            return self._rowDecimals(self._getRowByCondition("Global", "PressUnits", condVal), default)
+        if fieldName == "Quality":
+            modelLow = self.getQualityModel().lower()
+            if modelLow == "none":
+                return default
+            condVal = modelLow.capitalize() if modelLow in ("trace", "age") else "Chemical"
+            return self._rowDecimals(self._getRowByCondition(element, "Quality", condVal), default)
+
+        return self.getFieldDecimals(element, fieldName, default)
+
     def getFieldUnit(self, elementCategory, fieldName):
         """Get the unit abbreviation for a field based on element category and field name."""
         if not fieldName:
@@ -631,12 +673,10 @@ class QGISRedFieldUtils:
         if not fieldName:
             return default
 
-        unitSystem = self.getUnits()
         category = self.identifierToElementName.get(elementCategory, elementCategory)
 
         row = self._getFirstRow(category, fieldName) or self._getFirstRowByProperty(category, fieldName)
         if not row:
             return default
 
-        dec = row["si_dec"] if unitSystem == "SI" else row["us_dec"]
-        return dec if dec is not None else default
+        return self._rowDecimals(row, default)

@@ -354,6 +354,36 @@ class TestGetResultPropertyUnit:
 
 
 # ---------------------------------------------------------------------------
+# Public API: getResultPropertyDecimals
+# ---------------------------------------------------------------------------
+class TestGetResultPropertyDecimals:
+    def test_flow_uses_project_flow_unit_decimals(self, fu):
+        with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project("LPM")
+            assert fu.getResultPropertyDecimals("Link", "Flow") == 1
+
+    def test_demand_uses_project_flow_unit_decimals(self, fu):
+        with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project("GPM")
+            assert fu.getResultPropertyDecimals("Node", "Demand") == 1
+
+    def test_pressure_uses_project_pressure_decimals(self, fu):
+        with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project("LPS")
+            assert fu.getResultPropertyDecimals("Node", "Pressure") == 2
+
+    def test_quality_uses_quality_model_decimals(self, fu):
+        with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project("LPS", "mg/L", "Trace")
+            assert fu.getResultPropertyDecimals("Node", "Quality") == 1
+
+    def test_unknown_property_returns_default(self, fu):
+        with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project()
+            assert fu.getResultPropertyDecimals("Node", "Unknown", default=4) == 4
+
+
+# ---------------------------------------------------------------------------
 # _getCurrencyAbbr — unitSystem branch
 # ---------------------------------------------------------------------------
 class TestGetCurrencyAbbr:

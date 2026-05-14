@@ -10,6 +10,7 @@ from qgis.PyQt import uic
 from qgis.core import QgsApplication
 
 from ...compat import DIALOG_ACCEPTED
+from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 
 from .qgisred_timeseries_axis_dialog import TimeSeriesAxisOptionsDialog
@@ -1212,19 +1213,53 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         legend_type = str(series_dict.get("legend_type") or category)
         return element_id, type_mapping.get(legend_type, type_mapping.get(category, legend_type))
 
-    def _formatCsvValue(self, value, decimal_sep: str) -> str:
+    def _formatCsvValue(self, value, decimal_sep: str, decimal_places=None) -> str:
         if value is None:
             return ""
         try:
             f = float(value)
             if not math.isfinite(f):
                 return ""
-            text = format(f, ".12g")
+            if decimal_places is None:
+                text = format(f, ".12g")
+            else:
+                dec = max(0, int(decimal_places))
+                text = f"{f:.{dec}f}"
         except Exception:
             text = str(value)
         if decimal_sep != ".":
             text = text.replace(".", decimal_sep)
         return text
+
+    def _formatCsvCivilTime(self, hours) -> str:
+        try:
+            total_seconds = int(round(float(hours) * 3600.0))
+        except Exception:
+            return ""
+        seconds_in_day = total_seconds % 86400
+        h = seconds_in_day // 3600
+        m = (seconds_in_day % 3600) // 60
+        s = seconds_in_day % 60
+        return f"{h:02d}:{m:02d}:{s:02d}"
+
+    def _seriesCsvDecimalPlaces(self, series_dict):
+        if series_dict.get("y_categorical_labels"):
+            return None
+
+        series_key = str(series_dict.get("series_key") or "")
+        parts = series_key.split(":")
+        if len(parts) < 3:
+            return None
+
+        category = parts[0]
+        prop_internal = parts[2]
+        if category not in ("Node", "Link") or not prop_internal:
+            return None
+
+        try:
+            return QGISRedFieldUtils().getResultPropertyDecimals(category, prop_internal)
+        except Exception:
+            return None
 
     def _seriesDisplayValue(self, series_dict, value) -> object:
         labels = series_dict.get("y_categorical_labels")
@@ -1265,14 +1300,16 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             element_id, element_type = self._seriesElementInfo(s)
             magnitude = (s.get("magnitude") or self.plot.y_label or "").strip()
             series_label = (s.get("label") or "").strip()
+            value_decimals = self._seriesCsvDecimalPlaces(s)
             for i in range(n):
                 rows.append([
                     element_id,
                     element_type,
-                    series_label,
                     magnitude,
+                    series_label,
                     self._formatCsvValue(xs[i], decimal_sep),
-                    self._formatCsvValue(self._seriesDisplayValue(s, ys[i]), decimal_sep),
+                    self._formatCsvCivilTime(xs[i]),
+                    self._formatCsvValue(self._seriesDisplayValue(s, ys[i]), decimal_sep, value_decimals),
                 ])
 
         if not rows:
@@ -1285,9 +1322,10 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 writer.writerow([
                     self.tr("Id"),
                     self.tr("Type"),
-                    self.tr("Series"),
                     self.tr("Magnitude"),
+                    self.tr("Curve Name"),
                     self.tr("Time (h)"),
+                    self.tr("Civil Time"),
                     self.tr("Value"),
                 ])
                 writer.writerows(rows)
