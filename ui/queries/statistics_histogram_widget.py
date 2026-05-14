@@ -159,6 +159,10 @@ class StatisticsHistogramWidget(QWidget):
             self._panStartPos = None
             self.unsetCursor()
 
+    def mouseDoubleClickEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton and self.bins:
+            self.resetView()
+
     def mouseMoveEvent(self, event):
         cursorPos = QPointF(event.pos())
         plotRect = self.getPlotRect()
