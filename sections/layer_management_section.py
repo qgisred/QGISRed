@@ -11,6 +11,7 @@ from qgis.PyQt.QtCore import Qt
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.utils.qgisred_filesystem_utils import (
     DIR_ISSUES, DIR_QUERIES, DIR_CONNECTIVITY,
+    DIR_HYDRAULIC_SECTORS, DIR_DEMAND_SECTORS,
     DIR_ISOLATED_SEGMENTS, DIR_AUXILIARY_LAYERS, DIR_DEMANDS_BUILDER,
 )
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
@@ -65,19 +66,18 @@ class LayerManagementSection:
         utils.removeLayer("Connectivity_Links")
         self.removeEmptyQuerySubGroup("Connectivity")
 
+    def getSectorFolder(self):
+        if self.Sectors == "HydraulicSectors":
+            return os.path.join(self.ProjectDirectory, DIR_ISSUES, DIR_HYDRAULIC_SECTORS)
+        return os.path.join(self.ProjectDirectory, DIR_QUERIES, DIR_DEMAND_SECTORS)
+
     def removeSectorLayers(self):
-        queriesFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES)
-        utils = QGISRedLayerUtils(queriesFolder, self.NetworkName, self.iface)
+        sectorFolder = self.getSectorFolder()
+        utils = QGISRedLayerUtils(sectorFolder, self.NetworkName, self.iface)
         utils.removeLayers([self.Sectors + "_Links", self.Sectors + "_Nodes"])
         sectorGroupName = self.getSectorGroupName()
         self.removeEmptyQuerySubGroup(sectorGroupName)
 
-    def removeSectorLayersFiles(self):
-        queriesFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES)
-        if os.path.exists(queriesFolder):
-            for fi in os.listdir(queriesFolder):
-                if ("_" + self.Sectors + "_") in fi:
-                    os.remove(os.path.join(queriesFolder, fi))
 
     """Open Layers"""
 
@@ -147,17 +147,18 @@ class LayerManagementSection:
         utils.openIssuesLayers(issuesGroup, self.issuesLayers)
 
     def openConnectivityLayer(self):
-        connFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, DIR_CONNECTIVITY)
+        connFolder = os.path.join(self.ProjectDirectory, DIR_ISSUES, DIR_CONNECTIVITY)
         utils = QGISRedLayerUtils(connFolder, self.NetworkName, self.iface)
-        connGroup = utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Connectivity"])
+        connGroup = utils.getOrCreateNestedGroup([self.NetworkName, "Issues", "Connectivity"])
         utils.openLayer(connGroup, "Connectivity_Links")
 
     def openSectorLayers(self):
-        sectorFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, self.Sectors)
+        sectorFolder = self.getSectorFolder()
         utils = QGISRedLayerUtils(sectorFolder, self.NetworkName, self.iface)
         if os.path.exists(os.path.join(sectorFolder, self.NetworkName + "_" + self.Sectors + "_Links.shp")):
             sectorGroupName = self.getSectorGroupName()
-            sectorGroup = utils.getOrCreateNestedGroup([self.NetworkName, "Queries", sectorGroupName])
+            groupParent = "Issues" if self.Sectors == "HydraulicSectors" else "Queries"
+            sectorGroup = utils.getOrCreateNestedGroup([self.NetworkName, groupParent, sectorGroupName])
             utils.openLayer(sectorGroup, self.Sectors + "_Links", sectors=True)
             utils.openLayer(sectorGroup, self.Sectors + "_Nodes", sectors=True)
             if self.Sectors == "HydraulicSectors":
@@ -333,7 +334,7 @@ class LayerManagementSection:
             self.hasToOpenIssuesLayers = False
 
         if self.hasToOpenConnectivityLayers:
-            connFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, DIR_CONNECTIVITY)
+            connFolder = os.path.join(self.ProjectDirectory, DIR_ISSUES, DIR_CONNECTIVITY)
             os.makedirs(connFolder, exist_ok=True)
             for fi in os.listdir(self.ProjectDirectory):
                 if fi.startswith(self.NetworkName) and "Connectivity" in fi:
@@ -345,7 +346,7 @@ class LayerManagementSection:
             self.hasToOpenConnectivityLayers = False
 
         if self.hasToOpenSectorLayers:
-            sectorFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, self.Sectors)
+            sectorFolder = self.getSectorFolder()
             os.makedirs(sectorFolder, exist_ok=True)
             for fi in os.listdir(self.ProjectDirectory):
                 if fi.startswith(self.NetworkName) and "Sectors" in fi:

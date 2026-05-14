@@ -817,15 +817,15 @@ class ProjectManagementSection:
                 issues_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, DIR_ISSUES)))
                 if layer_dir_norm != issues_norm:
                     return DIR_ISSUES
-            # Connectivity: root or Queries/ → Queries/Connectivity/
+            # Connectivity: root or Issues/ → Issues/Connectivity/
             if base == self.NetworkName + "_Connectivity_Links":
-                target = os.path.join(DIR_QUERIES, DIR_CONNECTIVITY)
+                target = os.path.join(DIR_ISSUES, DIR_CONNECTIVITY)
                 target_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, target)))
                 if layer_dir_norm != target_norm:
                     return target
             # HydraulicSectors (includes IsolatedDemands_HydraulicSectors)
             if base.startswith(netPrefix) and "HydraulicSectors" in base:
-                target = os.path.join(DIR_QUERIES, DIR_HYDRAULIC_SECTORS)
+                target = os.path.join(DIR_ISSUES, DIR_HYDRAULIC_SECTORS)
                 target_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, target)))
                 if layer_dir_norm != target_norm:
                     return target
