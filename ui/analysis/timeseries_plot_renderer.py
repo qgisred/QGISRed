@@ -361,6 +361,7 @@ class TimeSeriesPlotRenderer:
             min_x, max_x = data_min, data_max
             view_x_min = getattr(widget, "_view_x_min", None)
             view_x_max = getattr(widget, "_view_x_max", None)
+            has_explicit_view = view_x_min is not None and view_x_max is not None
             if view_x_min is not None:
                 min_x = view_x_min
             if view_x_max is not None:
@@ -369,6 +370,7 @@ class TimeSeriesPlotRenderer:
                 max_x = min_x + 1
         else:
             min_x, max_x = float(cfg.fixed_min), float(cfg.fixed_max)
+            has_explicit_view = False
             if max_x <= min_x:
                 max_x = min_x + 1
 
@@ -381,7 +383,12 @@ class TimeSeriesPlotRenderer:
             x_scale = compute_nice_time_scale_hours(min_x, max_x, max_ticks_x)
         else:
             x_scale = build_fixed_linear_scale(min_x, max_x, cfg.fixed_divisions)
-        min_x, max_x = x_scale.axis_min, x_scale.axis_max
+        if has_explicit_view:
+            eps = 1e-9
+            x_tick_values = [t for t in x_scale.ticks() if (min_x - eps) <= t <= (max_x + eps)]
+        else:
+            min_x, max_x = x_scale.axis_min, x_scale.axis_max
+            x_tick_values = x_scale.ticks()
         x_range = max_x - min_x
         if x_range == 0:
             x_range = 1
@@ -391,6 +398,7 @@ class TimeSeriesPlotRenderer:
             "max_x": max_x,
             "x_range": x_range,
             "x_scale": x_scale,
+            "x_tick_values": x_tick_values,
             "has_days": has_days,
             "label_px": label_px,
             "axis_cfg": cfg,
@@ -545,7 +553,7 @@ class TimeSeriesPlotRenderer:
             hour_format = (getattr(cfg_x, "x_hour_format", "") or "hm").strip()
             tick_w = float(x_state.get("label_px", self._estimate_x_axis_label_px(painter, has_days=has_days, hour_format=hour_format)))
             day_format = (getattr(cfg_x, "x_day_format", "") or "split_days").strip()
-            for val_x in x_state["x_scale"].ticks():
+            for val_x in x_state.get("x_tick_values", x_state["x_scale"].ticks()):
                 pt = self._to_screen(val_x, y_state_left["min_y"], plot_rect, x_state, y_state_left)
 
                 is_day_start = False

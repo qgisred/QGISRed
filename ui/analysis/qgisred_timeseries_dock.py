@@ -33,6 +33,8 @@ except Exception:
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_timeseries_dock.ui"))
 
 class TimeSeriesPlotWidget(QWidget):
+    _MIN_VIEW_HOURS = 1.0
+
     seriesOrderChanged = pyqtSignal(list)
     seriesRemoved = pyqtSignal(str)
     seriesEmphasisChanged = pyqtSignal(dict)
@@ -88,6 +90,13 @@ class TimeSeriesPlotWidget(QWidget):
         self._axis_cfg_y_right = default_axis_settings()
         self._general_cfg = default_general_settings()
         self._updateMinimumWidthForTitle()
+
+    def _clearHoverState(self, repaint: bool = False) -> None:
+        had_hover = self.hover_index is not None or self._hover_series_idx is not None
+        self.hover_index = None
+        self._hover_series_idx = None
+        if repaint and had_hover:
+            self.update()
 
     def _updateMinimumWidthForTitle(self) -> None:
         title = (self.title or "").strip()
@@ -490,11 +499,11 @@ class TimeSeriesPlotWidget(QWidget):
             if hi <= lo:
                 hi = lo + 1.0
             return lo, hi
+        if self._view_x_min is not None and self._view_x_max is not None:
+            return self._view_x_min, self._view_x_max
         last = getattr(self, "_last_x_state", None)
         if last:
             return last["min_x"], last["max_x"]
-        if self._view_x_min is not None and self._view_x_max is not None:
-            return self._view_x_min, self._view_x_max
         all_data_x = []
         for s in self.series:
             all_data_x.extend(s.get("x", []) or [])
@@ -529,8 +538,15 @@ class TimeSeriesPlotWidget(QWidget):
         sim_min, sim_max = self._simulationXBounds()
         if new_max <= new_min:
             return None, None
+        min_view_range = max(0.0, float(getattr(self, "_MIN_VIEW_HOURS", 0.0) or 0.0))
         view_range = new_max - new_min
         sim_range = sim_max - sim_min
+        if 0.0 < view_range < min_view_range < sim_range:
+            center = (new_min + new_max) / 2.0
+            half = min_view_range / 2.0
+            new_min = center - half
+            new_max = center + half
+            view_range = min_view_range
         if view_range >= sim_range:
             return None, None
         if new_min < sim_min:
@@ -545,6 +561,16 @@ class TimeSeriesPlotWidget(QWidget):
             new_max = sim_max
         return new_min, new_max
 
+    def _minimumZoomRange(self) -> float:
+        min_view_range = max(0.0, float(getattr(self, "_MIN_VIEW_HOURS", 0.0) or 0.0))
+        sim_min, sim_max = self._simulationXBounds()
+        sim_range = max(0.0, sim_max - sim_min)
+        if sim_range <= 0.0:
+            return min_view_range
+        if min_view_range <= 0.0:
+            return 0.0
+        return min(min_view_range, sim_range)
+
     def resetView(self):
         self._view_x_min = None
         self._view_x_max = None
@@ -558,8 +584,15 @@ class TimeSeriesPlotWidget(QWidget):
         if not self._axis_cfg_x.auto_scale:
             return
         x_min, x_max = self._getCurrentXRange()
+        current_range = x_max - x_min
+        min_range = self._minimumZoomRange()
+        if min_range > 0.0 and current_range <= min_range + 1e-9:
+            return
         cx = (x_min + x_max) / 2.0
-        half = (x_max - x_min) / (2.0 * factor)
+        new_range = current_range / factor
+        if min_range > 0.0:
+            new_range = max(new_range, min_range)
+        half = new_range / 2.0
         new_min, new_max = cx - half, cx + half
         new_min, new_max = self._clampViewToSimulationBounds(new_min, new_max)
         self._view_x_min = new_min
@@ -612,7 +645,8 @@ class TimeSeriesPlotWidget(QWidget):
             self._pan_active = False
             self._pan_start_pos = None
             self._pan_start_view = None
-            self.setCursor(Qt.CursorShape.BlankCursor)
+            self._clearHoverState(repaint=True)
+            self.setCursor(Qt.CursorShape.CrossCursor)
         else:
             if not self._pan_mode:
                 self.unsetCursor()
@@ -644,9 +678,16 @@ class TimeSeriesPlotWidget(QWidget):
             return
         factor = 1.3 if delta > 0 else 1.0 / 1.3
         x_min, x_max = self._getCurrentXRange()
+        current_range = x_max - x_min
+        min_range = self._minimumZoomRange()
+        if delta > 0 and min_range > 0.0 and current_range <= min_range + 1e-9:
+            event.accept()
+            return
         rel_x = (mouse_pos.x() - plot_rect.left()) / plot_rect.width()
-        mouse_x = x_min + rel_x * (x_max - x_min)
-        new_range = (x_max - x_min) / factor
+        mouse_x = x_min + rel_x * current_range
+        new_range = current_range / factor
+        if delta > 0 and min_range > 0.0:
+            new_range = max(new_range, min_range)
         new_min = mouse_x - rel_x * new_range
         new_max = new_min + new_range
         new_min, new_max = self._clampViewToSimulationBounds(new_min, new_max)
@@ -667,6 +708,7 @@ class TimeSeriesPlotWidget(QWidget):
                 if plot_rect.contains(QPointF(event.pos())):
                     self._zoom_window_active = True
                     self._zoom_window_start_pos = QPointF(event.pos())
+                    self._clearHoverState(repaint=True)
                     self._zoom_rubber_band.setGeometry(QRectF(self._zoom_window_start_pos, self._zoom_window_start_pos).toRect())
                     self._zoom_rubber_band.show()
                 return
@@ -759,6 +801,10 @@ class TimeSeriesPlotWidget(QWidget):
         self._resetLegendInteractionState()
 
     def mouseMoveEvent(self, event):
+        if self._zoom_window_mode and not self._zoom_window_active:
+            self._clearHoverState(repaint=True)
+            return
+
         if self._zoom_window_active and self._zoom_window_start_pos is not None:
             plot_rect, _, _ = self.getPlotRect()
             if plot_rect.contains(QPointF(self._zoom_window_start_pos)) and plot_rect.contains(QPointF(event.pos())):
