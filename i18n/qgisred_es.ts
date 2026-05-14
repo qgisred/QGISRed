@@ -5222,6 +5222,16 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Rellenar fondo</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="561"/>
+        <source>Legend background</source>
+        <translation>Fondo de la leyenda</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="576"/>
+        <source>Background color:</source>
+        <translation>Color de fondo:</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="540"/>
         <source>Position:</source>
         <translation>Posición:</translation>

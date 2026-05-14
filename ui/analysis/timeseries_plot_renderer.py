@@ -22,6 +22,8 @@ from .timeseries_plot_style import (
     DEFAULT_SERIES_COLOR,
     GRID_COLOR,
     LEGEND_ICON_SIZE,
+    LEGEND_OUTSIDE_BOTTOM_EXTRA,
+    LEGEND_OUTSIDE_LEFT_EXTRA,
     LEGEND_ROW_GAP,
     LEGEND_ROW_H,
     PLOT_BG_COLOR,
@@ -159,7 +161,7 @@ class TimeSeriesPlotRenderer:
 
         self._draw_axis_titles(widget, painter, plot_rect, local_margin_left, right_axis_label_w, h)
         self._draw_series_curves(widget, painter, plot_rect, x_state, y_state_left, y_state_right)
-        self._draw_legend(widget, painter, plot_rect)
+        self._draw_legend(widget, painter, plot_rect, x_state)
         self._draw_hover_overlay(widget, painter, plot_rect, x_state, y_state_left, y_state_right)
 
     def _draw_no_data_message(self, widget, painter: QPainter) -> None:
@@ -609,7 +611,13 @@ class TimeSeriesPlotRenderer:
             painter.save()
             painter.setFont(self._tick_qfont(cfg_yl))
             painter.setPen(QPen(cfg_yl.tick_qcolor(), 1))
-            painter.translate(local_margin_left / 2 - 15, widget_h / 2)
+            left_legend_space = 0.0
+            gen = getattr(widget, "_general_cfg", None)
+            legend_pos = (getattr(gen, "legend_position", "") or "").strip() if gen is not None else ""
+            if legend_pos == "left" and getattr(widget, "_legend_reserved_w", 0):
+                left_legend_space = float(widget._legend_reserved_w + 10 + LEGEND_OUTSIDE_LEFT_EXTRA)
+            axis_margin_left = max(0.0, float(local_margin_left) - left_legend_space)
+            painter.translate(left_legend_space + axis_margin_left / 2 - 15, widget_h / 2)
             painter.rotate(-90)
             painter.drawText(QRectF(-120, -10, 240, 20), Qt.AlignmentFlag.AlignCenter, left_title)
             painter.restore()
@@ -786,7 +794,7 @@ class TimeSeriesPlotRenderer:
             return
         painter.drawEllipse(QPointF(cx, cy), (size - 4) / 2, (size - 4) / 2)
 
-    def _draw_legend(self, widget, painter, plot_rect):
+    def _draw_legend(self, widget, painter, plot_rect, x_state=None):
         groups = widget._legendGroups()
         if not groups:
             return
@@ -833,7 +841,15 @@ class TimeSeriesPlotRenderer:
             y0 = (plot_rect.top() - legend_h) + pad
             x0 = plot_rect.left() + pad
         elif legend_pos == "bottom":
-            y0 = plot_rect.bottom() + pad
+            cfg_x = getattr(widget, "_axis_cfg_x", None)
+            fm_x = QFontMetrics(self._tick_qfont(cfg_x)) if cfg_x is not None else QFontMetrics(qfont(10))
+            has_days = bool(x_state.get("has_days", False)) if isinstance(x_state, dict) else bool(widget.data_x and max(widget.data_x) >= 24)
+            tick_h = fm_x.height() * 2 + 4 if has_days else fm_x.height() + 6
+            x_axis_bottom = plot_rect.bottom() + 8 + tick_h
+            x_title = ((getattr(cfg_x, "title", "") if cfg_x is not None else "") or widget.x_label or "").strip()
+            if x_title:
+                x_axis_bottom += 2 + fm_x.height() + 2
+            y0 = x_axis_bottom + LEGEND_OUTSIDE_BOTTOM_EXTRA
             x0 = plot_rect.left() + pad
         elif legend_pos == "inside_top_left":
             x0 = plot_rect.left() + pad
@@ -854,7 +870,7 @@ class TimeSeriesPlotRenderer:
         if show_bg or show_frame:
             rect_box = QRectF(x0 - pad, y0 - pad, max(0.0, legend_w), max(0.0, legend_h))
             if show_bg:
-                bg = QColor(255, 255, 255, 220)
+                bg = gen.legend_bg_qcolor() if gen is not None else QColor(245, 250, 255)
                 painter.setBrush(bg)
             else:
                 painter.setBrush(Qt.BrushStyle.NoBrush)

@@ -5239,6 +5239,16 @@ Left-click: Add a new item below the current selection</source>
         <translation>Remplir l’arrière-plan</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="561"/>
+        <source>Legend background</source>
+        <translation>Fond de la légende</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="576"/>
+        <source>Background color:</source>
+        <translation>Couleur de fond :</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="540"/>
         <source>Position:</source>
         <translation>Position :</translation>

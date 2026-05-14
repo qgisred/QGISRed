@@ -7,7 +7,7 @@ from qgis.PyQt.QtCore import QRectF
 from qgis.PyQt.QtGui import QFont, QFontMetrics
 
 from .timeseries_axis_settings import preview_y_tick_labels
-from .timeseries_plot_style import FONT_FAMILY, PLOT_TOP_PAD
+from .timeseries_plot_style import FONT_FAMILY, LEGEND_OUTSIDE_BOTTOM_EXTRA, LEGEND_OUTSIDE_LEFT_EXTRA, PLOT_TOP_PAD
 
 
 class PlotLayoutCalculator:
@@ -120,10 +120,10 @@ class PlotLayoutCalculator:
             local_margin_bottom = max(local_margin_bottom, extra)
 
         if legend_pos == "bottom" and getattr(widget, "_legend_reserved_h", 0):
-            local_margin_bottom += float(widget._legend_reserved_h)
+            local_margin_bottom += float(widget._legend_reserved_h + LEGEND_OUTSIDE_BOTTOM_EXTRA)
 
         if legend_pos == "left" and widget._legend_reserved_w:
-            local_margin_left += float(widget._legend_reserved_w + 10)
+            local_margin_left += float(widget._legend_reserved_w + 10 + LEGEND_OUTSIDE_LEFT_EXTRA)
 
         local_margin_top = widget.margin_top + PLOT_TOP_PAD
         if legend_pos == "top" and getattr(widget, "_legend_reserved_h", 0):

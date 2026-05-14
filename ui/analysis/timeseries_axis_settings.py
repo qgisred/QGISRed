@@ -67,6 +67,7 @@ class TimeSeriesGeneralSettings:
     legend_position: str = "right"
     legend_show_frame: bool = False
     legend_show_background: bool = False
+    legend_bg_hex: str = ""
     legend_symbol_size: int = 12
     legend_columns: int = 1
 
@@ -87,6 +88,13 @@ class TimeSeriesGeneralSettings:
             return QColor(BORDER_COLOR)
         c = QColor(raw)
         return c if c.isValid() else QColor(BORDER_COLOR)
+
+    def legend_bg_qcolor(self) -> QColor:
+        raw = (self.legend_bg_hex or "").strip()
+        if not raw:
+            return self.plot_bg_qcolor()
+        c = QColor(raw)
+        return c if c.isValid() else self.plot_bg_qcolor()
 
 
 def default_general_settings() -> TimeSeriesGeneralSettings:

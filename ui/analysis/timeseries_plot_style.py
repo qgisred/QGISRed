@@ -17,6 +17,10 @@ AXIS_MAX_TICKS = 30
 LEGEND_ICON_SIZE = 12
 LEGEND_ROW_H = 14
 LEGEND_ROW_GAP = 16
+# Extra horizontal space between outside-left legend and Y-axis title (px).
+LEGEND_OUTSIDE_LEFT_EXTRA = 16
+# Extra vertical space between plot bottom and outside-bottom legend (px).
+LEGEND_OUTSIDE_BOTTOM_EXTRA = 12
 PLOT_TOP_PAD = 10
 
 

@@ -489,6 +489,46 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         lay.setSpacing(10)
         lay.setContentsMargins(8, 8, 8, 8)
         lay.setAlignment(Qt.AlignmentFlag.AlignTop)
+        default_cfg = TimeSeriesGeneralSettings()
+
+        def make_color_picker(current_raw: str, current_color: QColor, default_color: QColor, title: str):
+            picked = QColor(current_color)
+            if not picked.isValid():
+                picked = QColor(default_color)
+
+            btn = QPushButton()
+            chk_default = QCheckBox(self.tr("Use default"))
+            chk_default.setChecked(not (current_raw or "").strip())
+            row = QWidget()
+            row_lay = QHBoxLayout(row)
+            row_lay.setContentsMargins(0, 0, 0, 0)
+            row_lay.setSpacing(8)
+            row_lay.addWidget(btn, 1)
+            row_lay.addWidget(chk_default)
+            row_lay.addStretch(1)
+
+            def refresh():
+                if chk_default.isChecked():
+                    self._show_color_on_button(btn, default_color)
+                else:
+                    self._show_color_on_button(btn, picked)
+
+            def pick_color():
+                nonlocal picked
+                nc = QColorDialog.getColor(picked, self, title)
+                if nc.isValid():
+                    picked = nc
+                    chk_default.setChecked(False)
+                    refresh()
+
+            btn.clicked.connect(pick_color)
+            chk_default.toggled.connect(lambda _checked: refresh())
+            refresh()
+
+            def value():
+                return "" if chk_default.isChecked() else picked.name(QColor.NameFormat.HexRgb)
+
+            return row, value
 
         legend_grp = self._compact_group(QGroupBox(self.tr("Legend")))
         legend_form = QFormLayout(legend_grp)
@@ -505,10 +545,6 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         cb_pos.addItem(self.tr("Left (outside)"), "left")
         cb_pos.addItem(self.tr("Top (outside)"), "top")
         cb_pos.addItem(self.tr("Bottom (outside)"), "bottom")
-        cb_pos.addItem(self.tr("Inside — top right"), "inside_top_right")
-        cb_pos.addItem(self.tr("Inside — top left"), "inside_top_left")
-        cb_pos.addItem(self.tr("Inside — bottom right"), "inside_bottom_right")
-        cb_pos.addItem(self.tr("Inside — bottom left"), "inside_bottom_left")
         cur_pos = (getattr(cfg, "legend_position", "") or "right").strip()
         idx_pos = cb_pos.findData(cur_pos)
         cb_pos.setCurrentIndex(idx_pos if idx_pos >= 0 else 0)
@@ -518,6 +554,12 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         chk_frame.setChecked(bool(getattr(cfg, "legend_show_frame", False)))
         chk_bg = QCheckBox(self.tr("Fill background"))
         chk_bg.setChecked(bool(getattr(cfg, "legend_show_background", False)))
+        bg_color_row, bg_color_value = make_color_picker(
+            getattr(cfg, "legend_bg_hex", ""),
+            cfg.legend_bg_qcolor(),
+            default_cfg.legend_bg_qcolor(),
+            self.tr("Legend background"),
+        )
 
         sp_sym = QSpinBox()
         sp_sym.setRange(6, 24)
@@ -531,12 +573,14 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._add_form_row(legend_form, self.tr("Columns:"), sp_cols)
         self._add_form_row(legend_form, self.tr("Symbol size:"), sp_sym)
         legend_form.addRow("", chk_bg)
+        self._add_form_row(legend_form, self.tr("Background color:"), bg_color_row)
         legend_form.addRow("", chk_frame)
         lay.addWidget(legend_grp)
 
         w._legend_pos = cb_pos
         w._legend_frame = chk_frame
         w._legend_bg = chk_bg
+        w._legend_bg_color_value = bg_color_value
         w._legend_sym = sp_sym
         w._legend_cols = sp_cols
         return w
@@ -772,6 +816,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             self._cfg_gen.legend_position = "right"
         self._cfg_gen.legend_show_frame = bool(legend_tab._legend_frame.isChecked())
         self._cfg_gen.legend_show_background = bool(legend_tab._legend_bg.isChecked())
+        self._cfg_gen.legend_bg_hex = legend_tab._legend_bg_color_value()
         self._cfg_gen.legend_symbol_size = int(legend_tab._legend_sym.value())
         self._cfg_gen.legend_columns = int(legend_tab._legend_cols.value())
 
