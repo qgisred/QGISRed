@@ -579,7 +579,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.populateLegendTable()
         self.updateButtonStates()
         self.updateInputLayerRestrictions()
-        self.loadRebuildStrategyCheckboxState()
+        self.restoreUiFromSavedStrategy()
 
     def updateFrameLegendLabel(self, layer):
         layerName = layer.name()
@@ -846,7 +846,6 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.syncColorRampButton()
 
         self.applyColorLogic()
-        self.updateRebuildStrategyCheckboxEnabled()
 
     def onCustomColorChanged(self, ramp):
         self.applyColorLogic()
@@ -3435,7 +3434,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 return
 
         self.applyLegend()
-        self.updateStrategyCustomProperty()
+        self.updateStrategyCustomProperty([])
         self.currentLayer.saveNamedStyle(path)
         self.originalRenderer = self.currentLayer.renderer().clone() if self.currentLayer.renderer() else None
         QMessageBox.information(
@@ -3444,59 +3443,92 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.tr("Style saved as %1 in the layerStyles folder of your project.").replace("%1", filename),
         )
 
-    def updateStrategyCustomProperty(self):
-        if not hasattr(self, "ckRebuildOnLoad"):
-            return
-        if self.ckRebuildOnLoad.isEnabled() and self.ckRebuildOnLoad.isChecked():
-            strategy = self.buildStrategyFromCurrentUi()
-            if strategy is None:
-                self.currentLayer.removeCustomProperty("qgisred_legend_strategy")
-                return
-            self.currentLayer.setCustomProperty("qgisred_legend_strategy", json.dumps(strategy))
-        else:
+    def updateStrategyCustomProperty(self, parts=None):
+        if not parts:
             self.currentLayer.removeCustomProperty("qgisred_legend_strategy")
-
-    def loadRebuildStrategyCheckboxState(self):
-        if not hasattr(self, "ckRebuildOnLoad"):
             return
-        self.ckRebuildOnLoad.setChecked(False)
+        strategy = self.buildStrategyFromCurrentUi(parts)
+        if strategy is None:
+            self.currentLayer.removeCustomProperty("qgisred_legend_strategy")
+            return
+        self.currentLayer.setCustomProperty("qgisred_legend_strategy", json.dumps(strategy))
+
+    def restoreUiFromSavedStrategy(self):
         if not self.currentLayer:
             return
         rawStrategy = self.currentLayer.customProperty("qgisred_legend_strategy")
         if not rawStrategy:
             return
-        self.ckRebuildOnLoad.setChecked(True)
         try:
             strategy = json.loads(rawStrategy)
         except Exception:
             return
-        self.restoreColorUiFromStrategy(strategy)
 
-    def restoreColorUiFromStrategy(self, strategy):
+        parts = strategy.get("parts")
+        if not isinstance(parts, list):
+            parts = self.inferLegacyParts(strategy)
+
+        if "intervals" in parts:
+            self.restoreIntervalsUi(self.readPartBlock(strategy, "intervals"))
+        if "sizes" in parts:
+            self.restoreSizesUi(self.readPartBlock(strategy, "sizes"))
+        if "colors" in parts:
+            self.restoreColorsUi(self.readPartBlock(strategy, "colors"))
+
+    def readPartBlock(self, strategy, partName):
+        block = strategy.get(partName)
+        if isinstance(block, dict):
+            return block
+        # v1 fallback: intervals + colors lived under "graduated"/"categorized"
+        legacy = strategy.get("graduated") or strategy.get("categorized") or {}
+        return legacy
+
+    def inferLegacyParts(self, strategy):
         mode = strategy.get("mode")
+        if mode == "graduated":
+            return ["intervals", "colors"]
         if mode == "categorized":
-            cat = strategy.get("categorized") or {}
-            colorSource = cat.get("colorSource")
-            rampName = cat.get("rampName")
-            if colorSource == "ramp":
-                self.cbColors.setCurrentText("Ramp")
-                if rampName:
-                    self.btnColorRamp.setActiveRampByName(rampName)
-                    self.applyColorLogic()
-            elif colorSource == "random":
-                self.cbColors.setCurrentText("Random")
-        elif mode == "graduated":
-            grad = strategy.get("graduated") or {}
-            classificationMode = grad.get("classificationMode")
-            rampName = grad.get("rampName")
-            if classificationMode:
-                index = self.cbMode.findData(classificationMode)
-                if index >= 0:
-                    self.cbMode.setCurrentIndex(index)
+            return ["colors"]
+        return []
+
+    def restoreIntervalsUi(self, intervalsBlock):
+        classificationMode = intervalsBlock.get("classificationMode")
+        if classificationMode:
+            index = self.cbMode.findData(classificationMode)
+            if index >= 0:
+                self.cbMode.setCurrentIndex(index)
+        classes = intervalsBlock.get("classes")
+        if isinstance(classes, int) and classes > 0:
+            self.leClassCount.setValue(classes)
+
+    def restoreSizesUi(self, sizesBlock):
+        sizeMode = sizesBlock.get("mode")
+        if sizeMode:
+            index = self.cbSizes.findText(sizeMode)
+            if index >= 0:
+                self.cbSizes.setCurrentIndex(index)
+        if "value" in sizesBlock:
+            self.spinSizeEqual.setValue(float(sizesBlock.get("value") or 0.0))
+        if "min" in sizesBlock:
+            self.spinSizeMin.setValue(float(sizesBlock.get("min") or 0.0))
+        if "max" in sizesBlock:
+            self.spinSizeMax.setValue(float(sizesBlock.get("max") or 0.0))
+        if "invert" in sizesBlock:
+            self.ckSizeInvert.setChecked(bool(sizesBlock.get("invert")))
+        self.onSizeModeChanged()
+
+    def restoreColorsUi(self, colorsBlock):
+        source = colorsBlock.get("source") or colorsBlock.get("colorSource")
+        rampName = colorsBlock.get("rampName")
+        invertRamp = colorsBlock.get("invertRamp", False)
+        if source == "ramp":
+            self.cbColors.setCurrentText("Ramp")
             if rampName:
-                self.cbColors.setCurrentText("Ramp")
                 self.btnColorRamp.setActiveRampByName(rampName)
-                self.applyColorLogic()
+            self.ckColorInvert.setChecked(bool(invertRamp))
+            self.applyColorLogic()
+        elif source == "random":
+            self.cbColors.setCurrentText("Random")
 
     def loadDefaultStyle(self):
         self.loadStyle(isDefault=True)
@@ -3672,67 +3704,117 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.applySizeLogic()
             self.applyColorLogic()
 
-        self.updateRebuildStrategyCheckboxEnabled()
-
-    def updateRebuildStrategyCheckboxEnabled(self):
-        if not hasattr(self, "ckRebuildOnLoad"):
-            return
-        canRebuild = self.buildStrategyFromCurrentUi() is not None
-        self.ckRebuildOnLoad.setEnabled(canRebuild)
-        self.ckRebuildOnLoad.setVisible(canRebuild)
-        if not canRebuild and self.ckRebuildOnLoad.isChecked():
-            self.ckRebuildOnLoad.setChecked(False)
-
-    def buildStrategyFromCurrentUi(self):
+    def getBuildableStrategyParts(self):
         if not self.currentFieldName:
+            return []
+        parts = []
+        if self.canBuildIntervalsPart():
+            parts.append("intervals")
+        if self.canBuildSizesPart():
+            parts.append("sizes")
+        if self.canBuildColorsPart():
+            parts.append("colors")
+        return parts
+
+    def canBuildIntervalsPart(self):
+        if self.currentFieldType != self.FIELD_TYPE_NUMERIC:
+            return False
+        return self.cbMode.currentData() in ("EqualInterval", "Quantile", "Jenks", "StdDev", "Pretty")
+
+    def canBuildSizesPart(self):
+        if self.currentFieldType not in (self.FIELD_TYPE_NUMERIC, self.FIELD_TYPE_CATEGORICAL):
+            return False
+        return self.cbSizes.currentText() in ("Equal", "Linear", "Quadratic", "Exponential", "Proportional to Value")
+
+    def canBuildColorsPart(self):
+        if self.currentFieldType not in (self.FIELD_TYPE_NUMERIC, self.FIELD_TYPE_CATEGORICAL):
+            return False
+        return self.cbColors.currentText() in ("Random", "Ramp", "Palette")
+
+    def buildStrategyFromCurrentUi(self, parts):
+        if not parts or not self.currentFieldName:
             return None
         if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
-            return self.buildCategoricalStrategy()
+            return self.buildCategoricalStrategy(parts)
         if self.currentFieldType == self.FIELD_TYPE_NUMERIC:
-            return self.buildGraduatedStrategy()
+            return self.buildGraduatedStrategy(parts)
         return None
 
-    def buildCategoricalStrategy(self):
-        mode = self.cbColors.currentText() if hasattr(self, "cbColors") else "Manual"
-        colorSource = None
-        if mode == "Random":
-            colorSource = "random"
-        elif mode in ("Ramp", "Palette"):
-            colorSource = "ramp"
-        if colorSource is None:
+    def buildCategoricalStrategy(self, parts):
+        # Categorical layers never persist intervals.
+        retainedParts = [part for part in parts if part != "intervals"]
+        if not retainedParts:
             return None
-        rampName = self.btnColorRamp.activeRampName if colorSource == "ramp" else None
-        invertRamp = self.ckColorInvert.isChecked() if colorSource == "ramp" else False
-        return {
-            "schema": "qgisred.legendStrategy.v1",
+        strategy = {
+            "schema": "qgisred.legendStrategy.v2",
             "mode": "categorized",
             "field": self.currentFieldName,
-            "categorized": {
-                "colorSource": colorSource,
-                "rampName": rampName,
-                "invertRamp": invertRamp,
-                "deterministic": True,
-            },
+            "parts": retainedParts,
         }
+        if "sizes" in retainedParts:
+            strategy["sizes"] = self.buildSizesPart()
+        if "colors" in retainedParts:
+            colorsPart = self.buildColorsPart()
+            if colorsPart is None:
+                return None
+            strategy["colors"] = colorsPart
+        return strategy
 
-    def buildGraduatedStrategy(self):
+    def buildGraduatedStrategy(self, parts):
+        strategy = {
+            "schema": "qgisred.legendStrategy.v2",
+            "mode": "graduated",
+            "field": self.currentFieldName,
+            "parts": list(parts),
+        }
+        if "intervals" in parts:
+            intervalsPart = self.buildIntervalsPart()
+            if intervalsPart is None:
+                return None
+            strategy["intervals"] = intervalsPart
+        if "sizes" in parts:
+            strategy["sizes"] = self.buildSizesPart()
+        if "colors" in parts:
+            colorsPart = self.buildColorsPart()
+            if colorsPart is None:
+                return None
+            strategy["colors"] = colorsPart
+        return strategy
+
+    def buildIntervalsPart(self):
         classificationMode = self.cbMode.currentData()
         if classificationMode not in ("EqualInterval", "Quantile", "Jenks", "StdDev", "Pretty"):
             return None
-        colorMode = self.cbColors.currentText() if hasattr(self, "cbColors") else "Manual"
-        if colorMode not in ("Ramp", "Palette"):
-            return None
         return {
-            "schema": "qgisred.legendStrategy.v1",
-            "mode": "graduated",
-            "field": self.currentFieldName,
-            "graduated": {
-                "classificationMode": classificationMode,
-                "classes": int(self.leClassCount.value()),
-                "rampName": self.btnColorRamp.activeRampName,
-                "invertRamp": self.ckColorInvert.isChecked(),
-            },
+            "classificationMode": classificationMode,
+            "classes": int(self.leClassCount.value()),
         }
+
+    def buildSizesPart(self):
+        return {
+            "mode": self.cbSizes.currentText(),
+            "value": float(self.spinSizeEqual.value()),
+            "min": float(self.spinSizeMin.value()),
+            "max": float(self.spinSizeMax.value()),
+            "invert": bool(self.ckSizeInvert.isChecked()),
+        }
+
+    def buildColorsPart(self):
+        mode = self.cbColors.currentText()
+        if mode == "Random":
+            return {
+                "source": "random",
+                "rampName": None,
+                "invertRamp": False,
+                "deterministic": True,
+            }
+        if mode in ("Ramp", "Palette"):
+            return {
+                "source": "ramp",
+                "rampName": self.btnColorRamp.activeRampName,
+                "invertRamp": bool(self.ckColorInvert.isChecked()),
+            }
+        return None
 
     def updateModeVisibility(self, isNumeric, isFixedInterval):
         self.cbMode.setVisible(isNumeric)
