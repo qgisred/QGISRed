@@ -340,7 +340,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Funded by:</string>
+        <string>New versions since 0.18 funded by:</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
