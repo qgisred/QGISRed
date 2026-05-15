@@ -2,7 +2,7 @@
 import os
 from qgis.PyQt.QtCore import Qt, pyqtSlot, pyqtSignal, QEvent, QTimer
 from qgis.PyQt.QtGui import QIcon, QFont, QColor, QBrush
-from qgis.PyQt.QtWidgets import QDockWidget, QWidget, QMessageBox, QLineEdit, QListWidgetItem, QTableWidgetItem, QHeaderView, QAbstractItemView, QFrame, QToolButton, QHBoxLayout
+from qgis.PyQt.QtWidgets import QDockWidget, QWidget, QMessageBox, QLineEdit, QListWidgetItem, QTableWidgetItem, QHeaderView, QAbstractItemView, QFrame, QToolButton, QHBoxLayout, QProxyStyle, QStyle
 from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsVectorLayer, QgsSettings, QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsLayerMetadata, QgsSpatialIndex, Qgis
 from qgis.utils import iface
@@ -15,6 +15,27 @@ from ..analysis.qgisred_results_dock import QGISRedResultsDock
 from ...compat import LINEEDIT_LEADING_POSITION
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_element_explorer_dock.ui"))
+
+
+class _ResultsTabStyle(QProxyStyle):
+    """Paints the Results tab (index 1) with a light yellow tint.
+
+    Works by drawing a semi-transparent overlay after the normal shape is
+    rendered, so the border, rounded corners, and selected/hover states are
+    all preserved regardless of which Qt style or theme is active.
+    """
+    _RESULTS_INDEX = 1
+    _OVERLAY = QColor(255, 255, 180, 160)  # warm yellow, ~63 % opaque
+
+    def drawControl(self, element, option, painter, widget=None):
+        super().drawControl(element, option, painter, widget)
+        if element != QStyle.ControlElement.CE_TabBarTabShape or widget is None:
+            return
+        for i in range(widget.count()):
+            if i == self._RESULTS_INDEX and widget.tabRect(i) == option.rect:
+                painter.fillRect(option.rect.adjusted(1, 2, -1, 0), self._OVERLAY)
+                break
+
 
 # Language-independence rules for this dock:
 # - Element types are identified by qgisred_identifier (qgisred_pipes, ...).
@@ -377,6 +398,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.cbElementId.setStyleSheet(comboStyle)
 
         self.tempHideOtherTabs()
+        self._resultsTabStyle = _ResultsTabStyle()
+        self.tabWidget.tabBar().setStyle(self._resultsTabStyle)
         self.clearResultsTable()
         QGISRedUIUtils.applyDockStyle(self, "#E64A19")
 
