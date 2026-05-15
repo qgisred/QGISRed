@@ -86,6 +86,29 @@ class QGISRedUIUtils:
             mainWindow.splitDockWidget(results, queries, Qt.Orientation.Vertical)
 
     @staticmethod
+    def applyDockStyle(dock, accentColor, backgroundColor=None):
+        """Apply a consistent title-bar style with an accent color to a QDockWidget.
+
+        accentColor: CSS color string for the left border and outer dock border.
+        backgroundColor: optional CSS color string applied to the dock background
+                         (useful for docks that need a fixed bg, e.g. white).
+        """
+        bgRule = f"background-color: {backgroundColor};" if backgroundColor else ""
+        dock.setStyleSheet(f"""
+            QDockWidget {{
+                border: 1px solid {accentColor};
+                {bgRule}
+            }}
+            QDockWidget::title {{
+                font-weight: bold;
+                border-left: 4px solid {accentColor};
+                padding-left: 6px;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #f5f5f5, stop:1 #e8e8e8);
+            }}
+        """)
+
+    @staticmethod
     def showGlobalMessage(iface, text, level=0, duration=5):
         """
         Standardized global QGIS message bar call for QGISRed.

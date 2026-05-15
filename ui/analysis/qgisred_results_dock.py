@@ -183,6 +183,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         _pixmap = QPixmap(":/images/iconWarning.svg").scaled(16, 16, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
         self.lbWarnIcon.setPixmap(_pixmap)
 
+        QGISRedUIUtils.applyDockStyle(self, "#1976D2")
+
     """Methods"""
 
     def _rebuildFieldMaps(self):

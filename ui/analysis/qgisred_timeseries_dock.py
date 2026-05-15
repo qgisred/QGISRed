@@ -949,7 +949,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
 
         self.lblTitle.hide()
         
-        self.setStyleSheet("background-color: white; border: none;")
+        QGISRedUIUtils.applyDockStyle(self, "#0097A7", backgroundColor="white")
         self.chartContainer.setStyleSheet("background-color: white;")
         self._updateClearToolbarVisibility()
         self._updatePanAvailability()

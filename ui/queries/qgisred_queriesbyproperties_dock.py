@@ -15,6 +15,7 @@ import math
 from ..analysis.qgisred_results_dock import QGISRedResultsDock
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 
 # load UI
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),"qgisred_queriesbyproperties_dock.ui"))
@@ -26,6 +27,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.iface = iface
         self.canvas = iface.mapCanvas()
         self.initializeQueriesByProperties()
+        QGISRedUIUtils.applyDockStyle(self, "#7B1FA2")
 
     def closeEvent(self, event):
         self.resultsDockVisibilityTimer.stop()

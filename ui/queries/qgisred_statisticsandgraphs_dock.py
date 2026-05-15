@@ -26,6 +26,7 @@ from qgis.core import (
 
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from .qgisred_statistics_manual_breaks_dialog import QGISRedStatisticsManualBreaksDialog
 from .statistics_histogram_widget import StatisticsHistogramWidget
 
@@ -131,6 +132,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.initializeElementTypes()
         self.loadDefaults()
         self.setupProjectSignals()
+        QGISRedUIUtils.applyDockStyle(self, "#388E3C")
 
     def closeEvent(self, event):
         project = QgsProject.instance()

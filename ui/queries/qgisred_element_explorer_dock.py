@@ -10,6 +10,7 @@ from qgis.gui import QgsHighlight
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_filesystem_utils import DIR_RESULTS
+from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from ..analysis.qgisred_results_dock import QGISRedResultsDock
 from ...compat import LINEEDIT_LEADING_POSITION
 
@@ -377,6 +378,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         self.tempHideOtherTabs()
         self.clearResultsTable()
+        QGISRedUIUtils.applyDockStyle(self, "#E64A19")
 
     def tempHideOtherTabs(self):
         self.tabWidget.setTabVisible(1, False)
