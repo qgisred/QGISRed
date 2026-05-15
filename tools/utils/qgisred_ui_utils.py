@@ -66,8 +66,8 @@ class QGISRedBanner(QFrame):
 
 class QGISRedUIUtils:
     @staticmethod
-    def arrangeDockOrder(mainWindow, resultsDock, explorerDock, queriesDock):
-        """Enforce dock vertical order: Results (top) > Element Explorer > Queries by Properties (bottom).
+    def arrangeDockOrder(mainWindow, resultsDock, explorerDock, queriesDock, statisticsDock):
+        """Enforce dock vertical order: Results > Element Explorer > Queries by Properties > Statistics.
 
         Skips floating docks — only repositions docks anchored to the main window.
         """
@@ -77,6 +77,7 @@ class QGISRedUIUtils:
         results = resultsDock if _docked(resultsDock) else None
         explorer = explorerDock if _docked(explorerDock) else None
         queries = queriesDock if _docked(queriesDock) else None
+        statistics = statisticsDock if _docked(statisticsDock) else None
 
         if results and explorer:
             mainWindow.splitDockWidget(results, explorer, Qt.Orientation.Vertical)
@@ -84,6 +85,10 @@ class QGISRedUIUtils:
             mainWindow.splitDockWidget(explorer, queries, Qt.Orientation.Vertical)
         elif results and queries:
             mainWindow.splitDockWidget(results, queries, Qt.Orientation.Vertical)
+
+        last = queries or explorer or results
+        if last and statistics:
+            mainWindow.splitDockWidget(last, statistics, Qt.Orientation.Vertical)
 
     @staticmethod
     def applyDockStyle(dock, accentColor, backgroundColor=None):

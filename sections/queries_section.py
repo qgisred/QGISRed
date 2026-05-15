@@ -115,7 +115,8 @@ class QueriesSection:
             self.iface.mainWindow(),
             self.ResultDockwidget,
             QGISRedElementExplorerDock._instance,
-            getattr(self, 'queriesByPropertiesDock', None)
+            getattr(self, 'queriesByPropertiesDock', None),
+            getattr(self, 'statisticsDock', None)
         )
         self.connectElementExplorerToResultsDock()
         self.openFindElementsDialog.setChecked(False) # Not a tool, don't keep it checked
@@ -165,7 +166,8 @@ class QueriesSection:
             self.iface.mainWindow(),
             self.ResultDockwidget,
             QGISRedElementExplorerDock._instance,
-            getattr(self, 'queriesByPropertiesDock', None)
+            getattr(self, 'queriesByPropertiesDock', None),
+            getattr(self, 'statisticsDock', None)
         )
         self.connectElementExplorerToResultsDock()
         self.switchToIdentifyTool(tool, self.openElementsPropertyDialog, True, dock)
@@ -188,7 +190,8 @@ class QueriesSection:
             self.iface.mainWindow(),
             self.ResultDockwidget,
             QGISRedElementExplorerDock._instance,
-            getattr(self, 'queriesByPropertiesDock', None)
+            getattr(self, 'queriesByPropertiesDock', None),
+            getattr(self, 'statisticsDock', None)
         )
                 return
             except RuntimeError:
@@ -203,7 +206,8 @@ class QueriesSection:
             self.iface.mainWindow(),
             self.ResultDockwidget,
             QGISRedElementExplorerDock._instance,
-            getattr(self, 'queriesByPropertiesDock', None)
+            getattr(self, 'queriesByPropertiesDock', None),
+            getattr(self, 'statisticsDock', None)
         )
 
     def runStatistics(self):
@@ -230,5 +234,6 @@ class QueriesSection:
             self.iface.mainWindow(),
             self.ResultDockwidget,
             QGISRedElementExplorerDock._instance,
-            getattr(self, 'queriesByPropertiesDock', None)
+            getattr(self, 'queriesByPropertiesDock', None),
+            getattr(self, 'statisticsDock', None)
         )

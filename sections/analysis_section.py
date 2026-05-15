@@ -57,7 +57,8 @@ class AnalysisSection:
             self.iface.mainWindow(),
             self.ResultDockwidget,
             QGISRedElementExplorerDock._instance,
-            getattr(self, 'queriesByPropertiesDock', None)
+            getattr(self, 'queriesByPropertiesDock', None),
+            getattr(self, 'statisticsDock', None)
         )
 
     def _initResultsDock(self):
@@ -121,7 +122,8 @@ class AnalysisSection:
             self.iface.mainWindow(),
             self.ResultDockwidget,
             QGISRedElementExplorerDock._instance,
-            getattr(self, 'queriesByPropertiesDock', None)
+            getattr(self, 'queriesByPropertiesDock', None),
+            getattr(self, 'statisticsDock', None)
         )
         self.connectElementExplorerToResultsDock()
 
@@ -137,7 +139,8 @@ class AnalysisSection:
             self.iface.mainWindow(),
             self.ResultDockwidget,
             QGISRedElementExplorerDock._instance,
-            getattr(self, 'queriesByPropertiesDock', None)
+            getattr(self, 'queriesByPropertiesDock', None),
+            getattr(self, 'statisticsDock', None)
         )
         if not getattr(self.ResultDockwidget, 'outPath', '') or not self.ResultDockwidget.TimeLabels:
             if os.path.exists(self._outFilePath()):
@@ -165,7 +168,8 @@ class AnalysisSection:
             self.iface.mainWindow(),
             self.ResultDockwidget,
             QGISRedElementExplorerDock._instance,
-            getattr(self, 'queriesByPropertiesDock', None)
+            getattr(self, 'queriesByPropertiesDock', None),
+            getattr(self, 'statisticsDock', None)
         )
         if not getattr(self.ResultDockwidget, 'outPath', '') or not self.ResultDockwidget.TimeLabels:
             if os.path.exists(self._outFilePath()):
