@@ -18,6 +18,38 @@ DIR_ISOLATED_SEGMENTS = "IsolatedSegments"
 DIR_AUXILIARY_LAYERS  = "Auxiliary Layers"
 DIR_DEMANDS_BUILDER    = "DemandsBuilder"
 
+# Single source of truth: layer-type key → {subdir, tree_path, flags}
+# subdir:    relative path from ProjectDirectory to the layer files
+# tree_path: QGIS group path (without the NetworkName root)
+# flags:     kwargs passed to QGISRedLayerUtils.openLayer()
+LAYER_TYPE_CONFIG = {
+    "HydraulicSectors": {
+        "subdir":    os.path.join(DIR_ISSUES, DIR_HYDRAULIC_SECTORS),
+        "tree_path": ["Issues", "Hydraulic Sectors"],
+        "flags":     {"sectors": True},
+    },
+    "DemandSectors": {
+        "subdir":    os.path.join(DIR_QUERIES, DIR_DEMAND_SECTORS),
+        "tree_path": ["Queries", "Demand Sectors"],
+        "flags":     {"sectors": True},
+    },
+    "Connectivity": {
+        "subdir":    os.path.join(DIR_ISSUES, DIR_CONNECTIVITY),
+        "tree_path": ["Issues", "Connectivity"],
+        "flags":     {},
+    },
+    "IsolatedSegments": {
+        "subdir":    os.path.join(DIR_QUERIES, DIR_ISOLATED_SEGMENTS),
+        "tree_path": ["Queries", "Isolated Segments"],
+        "flags":     {},
+    },
+    "DemandsBuilder": {
+        "subdir":    os.path.join(DIR_AUXILIARY_LAYERS, DIR_DEMANDS_BUILDER),
+        "tree_path": ["Auxiliary Layers", "DemandsBuilder"],
+        "flags":     {},
+    },
+}
+
 
 class QGISRedFileSystemUtils:
     DllTempoFolder = None

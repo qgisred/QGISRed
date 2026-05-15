@@ -19,9 +19,7 @@ from qgis.core import (
 from .qgisred_ui_utils import QGISRedUIUtils
 from .qgisred_filesystem_utils import (
     DIR_ISSUES, DIR_QUERIES, DIR_RESULTS,
-    DIR_CONNECTIVITY, DIR_HYDRAULIC_SECTORS,
-    DIR_DEMAND_SECTORS, DIR_ISOLATED_SEGMENTS,
-    DIR_AUXILIARY_LAYERS, DIR_DEMANDS_BUILDER,
+    LAYER_TYPE_CONFIG,
 )
 
 
@@ -47,35 +45,15 @@ class QGISRedProjectIO:
         from .qgisred_layer_utils import QGISRedLayerUtils
         return QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
 
-    _GROUP_SUBDIR = {
-        "Inputs":                        "",
-        "Issues":                        DIR_ISSUES,
-        "Results":                       DIR_RESULTS,
-        "Issues/Connectivity":          os.path.join(DIR_ISSUES, DIR_CONNECTIVITY),
-        "Issues/HydraulicSectors":      os.path.join(DIR_ISSUES, DIR_HYDRAULIC_SECTORS),
-        "Queries/DemandSectors":         os.path.join(DIR_QUERIES, DIR_DEMAND_SECTORS),
-        "Queries/IsolatedSegments":      os.path.join(DIR_QUERIES, DIR_ISOLATED_SEGMENTS),
-        "Auxiliary Layers/DemandsBuilder": os.path.join(DIR_AUXILIARY_LAYERS, DIR_DEMANDS_BUILDER),
-    }
-
-    _GROUP_TREE_PATH = {
-        "Inputs":                   ["Inputs"],
-        "Issues":                   ["Issues"],
-        "Results":                  ["Results"],
-        "Issues/Connectivity":     ["Issues", "Connectivity"],
-        "Issues/HydraulicSectors": ["Issues", "Hydraulic Sectors"],
-        "Queries/DemandSectors":    ["Queries", "Demand Sectors"],
-        "Queries/IsolatedSegments": ["Queries", "Isolated Segments"],
-    }
-
-    _GROUP_OPEN_FLAGS = {
-        "Inputs":                   {},
-        "Issues":                   {"issues": True},
-        "Results":                  {"results": True},
-        "Issues/Connectivity":     {},
-        "Issues/HydraulicSectors": {"sectors": True},
-        "Queries/DemandSectors":    {"sectors": True},
-        "Queries/IsolatedSegments": {},
+    _GROUP_CONFIG = {
+        "Inputs":                          {"subdir": "",         "tree_path": ["Inputs"],  "flags": {}},
+        "Issues":                          {"subdir": DIR_ISSUES, "tree_path": ["Issues"],  "flags": {"issues": True}},
+        "Results":                         {"subdir": DIR_RESULTS,"tree_path": ["Results"], "flags": {"results": True}},
+        "Issues/Connectivity":             LAYER_TYPE_CONFIG["Connectivity"],
+        "Issues/HydraulicSectors":         LAYER_TYPE_CONFIG["HydraulicSectors"],
+        "Queries/DemandSectors":           LAYER_TYPE_CONFIG["DemandSectors"],
+        "Queries/IsolatedSegments":        LAYER_TYPE_CONFIG["IsolatedSegments"],
+        "Auxiliary Layers/DemandsBuilder": LAYER_TYPE_CONFIG["DemandsBuilder"],
     }
 
     def _openGroupByName(self, groupName, layerNames):
@@ -121,22 +99,24 @@ class QGISRedProjectIO:
                 utils.openTreeLayer(group, "Links" if is_link else "Nodes", tree_name, link=is_link)
             return
 
-        # Try full path as key (e.g. "Queries/HydraulicSectors", or legacy "HydraulicSectors")
-        tree_path = self._GROUP_TREE_PATH.get(groupName)
-        subdir = self._GROUP_SUBDIR.get(groupName, "")
-        flags = self._GROUP_OPEN_FLAGS.get(groupName, {})
-        full_tree_path = tree_path
-
-        if tree_path is None:
+        # Try full path as key (e.g. "Issues/HydraulicSectors", or legacy "HydraulicSectors")
+        cfg = self._GROUP_CONFIG.get(groupName)
+        if cfg is not None:
+            tree_path = cfg["tree_path"]
+            subdir = cfg["subdir"]
+            flags = cfg["flags"]
+            full_tree_path = tree_path
+        else:
             # Dynamic paths — e.g. "Results/Base": use top-level key + sub-parts
             parts = groupName.split("/")
             top = parts[0]
             sub_parts = parts[1:]
-            tree_path = self._GROUP_TREE_PATH.get(top)
-            if tree_path is None:
+            cfg = self._GROUP_CONFIG.get(top)
+            if cfg is None:
                 return  # unknown group — skip silently
-            subdir = self._GROUP_SUBDIR.get(top, "")
-            flags = self._GROUP_OPEN_FLAGS.get(top, {})
+            tree_path = cfg["tree_path"]
+            subdir = cfg["subdir"]
+            flags = cfg["flags"]
             full_tree_path = tree_path + sub_parts
 
         top = groupName.split("/")[0]

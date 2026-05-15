@@ -13,7 +13,8 @@ from random import randint
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ..tools.utils.qgisred_filesystem_utils import (
-    DIR_QUERIES, DIR_ISOLATED_SEGMENTS, DIR_AUXILIARY_LAYERS, DIR_DEMANDS_BUILDER,
+    DIR_QUERIES,
+    LAYER_TYPE_CONFIG,
 )
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool, SelectPointType
@@ -401,11 +402,7 @@ class ToolsSection:
     def openDemandsBuilderLayers(self):
         demandsBuilderGroup = self.getDemandsBuilderGroup()
 
-        isoFolder = os.path.join(
-            self.ProjectDirectory,
-            DIR_AUXILIARY_LAYERS,
-            DIR_DEMANDS_BUILDER
-        )
+        isoFolder = os.path.join(self.ProjectDirectory, LAYER_TYPE_CONFIG["DemandsBuilder"]["subdir"])
 
         utils = QGISRedLayerUtils(
             isoFolder,
@@ -460,9 +457,8 @@ class ToolsSection:
             self._demandsBuilderExtraPaths = []
 
     def openIsolatedSegmentsLayers(self):
-        # Open layers
         isoaltedSegmentsGroup = self.getIsolatedSegmentsGroup()
-        isoFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, DIR_ISOLATED_SEGMENTS)
+        isoFolder = os.path.join(self.ProjectDirectory, LAYER_TYPE_CONFIG["IsolatedSegments"]["subdir"])
         utils = QGISRedLayerUtils(isoFolder, self.NetworkName, self.iface)
         utils.openLayer(isoaltedSegmentsGroup, "IsolatedSegments_Links")
         utils.openLayer(isoaltedSegmentsGroup, "IsolatedSegments_Nodes")
@@ -470,16 +466,11 @@ class ToolsSection:
 
     def getIsolatedSegmentsGroup(self):
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        return utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Isolated Segments"])
-    
+        return utils.getOrCreateNestedGroup([self.NetworkName] + LAYER_TYPE_CONFIG["IsolatedSegments"]["tree_path"])
+
     def getDemandsBuilderGroup(self):
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        return utils.getOrCreateNestedGroup([self.NetworkName, "Auxiliary Layers", "DemandsBuilder"])
-
-    def removeIsolatedSegmentsLayers(self):
-        isoFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, DIR_ISOLATED_SEGMENTS)
-        utils = QGISRedLayerUtils(isoFolder, self.NetworkName, self.iface)
-        utils.removeLayers(["IsolatedSegments_Links", "IsolatedSegments_Nodes"])
+        return utils.getOrCreateNestedGroup([self.NetworkName] + LAYER_TYPE_CONFIG["DemandsBuilder"]["tree_path"])
 
     """Tree"""
 

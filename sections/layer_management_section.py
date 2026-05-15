@@ -10,9 +10,8 @@ from qgis.PyQt.QtCore import Qt
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.utils.qgisred_filesystem_utils import (
-    DIR_ISSUES, DIR_QUERIES, DIR_CONNECTIVITY,
-    DIR_HYDRAULIC_SECTORS, DIR_DEMAND_SECTORS,
-    DIR_ISOLATED_SEGMENTS, DIR_AUXILIARY_LAYERS, DIR_DEMANDS_BUILDER,
+    DIR_ISSUES, DIR_QUERIES,
+    LAYER_TYPE_CONFIG,
 )
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
@@ -67,9 +66,7 @@ class LayerManagementSection:
         self.removeEmptyQuerySubGroup("Connectivity")
 
     def getSectorFolder(self):
-        if self.Sectors == "HydraulicSectors":
-            return os.path.join(self.ProjectDirectory, DIR_ISSUES, DIR_HYDRAULIC_SECTORS)
-        return os.path.join(self.ProjectDirectory, DIR_QUERIES, DIR_DEMAND_SECTORS)
+        return os.path.join(self.ProjectDirectory, LAYER_TYPE_CONFIG[self.Sectors]["subdir"])
 
     def removeSectorLayers(self):
         sectorFolder = self.getSectorFolder()
@@ -147,22 +144,22 @@ class LayerManagementSection:
         utils.openIssuesLayers(issuesGroup, self.issuesLayers)
 
     def openConnectivityLayer(self):
-        connFolder = os.path.join(self.ProjectDirectory, DIR_ISSUES, DIR_CONNECTIVITY)
+        cfg = LAYER_TYPE_CONFIG["Connectivity"]
+        connFolder = os.path.join(self.ProjectDirectory, cfg["subdir"])
         utils = QGISRedLayerUtils(connFolder, self.NetworkName, self.iface)
-        connGroup = utils.getOrCreateNestedGroup([self.NetworkName, "Issues", "Connectivity"])
+        connGroup = utils.getOrCreateNestedGroup([self.NetworkName] + cfg["tree_path"])
         utils.openLayer(connGroup, "Connectivity_Links")
 
     def openSectorLayers(self):
-        sectorFolder = self.getSectorFolder()
+        cfg = LAYER_TYPE_CONFIG[self.Sectors]
+        sectorFolder = os.path.join(self.ProjectDirectory, cfg["subdir"])
         utils = QGISRedLayerUtils(sectorFolder, self.NetworkName, self.iface)
         if os.path.exists(os.path.join(sectorFolder, self.NetworkName + "_" + self.Sectors + "_Links.shp")):
-            sectorGroupName = self.getSectorGroupName()
-            groupParent = "Issues" if self.Sectors == "HydraulicSectors" else "Queries"
-            sectorGroup = utils.getOrCreateNestedGroup([self.NetworkName, groupParent, sectorGroupName])
-            utils.openLayer(sectorGroup, self.Sectors + "_Links", sectors=True)
-            utils.openLayer(sectorGroup, self.Sectors + "_Nodes", sectors=True)
+            sectorGroup = utils.getOrCreateNestedGroup([self.NetworkName] + cfg["tree_path"])
+            utils.openLayer(sectorGroup, self.Sectors + "_Links", **cfg["flags"])
+            utils.openLayer(sectorGroup, self.Sectors + "_Nodes", **cfg["flags"])
             if self.Sectors == "HydraulicSectors":
-                utils.openLayer(sectorGroup, "HydraulicSectors_IsolatedDemands", sectors=True)
+                utils.openLayer(sectorGroup, "HydraulicSectors_IsolatedDemands", **cfg["flags"])
                 utils.removeEmptyLayersInGroup(sectorGroup, exceptions=[])
 
     """Groups"""
@@ -222,12 +219,7 @@ class LayerManagementSection:
                     parent.removeChildNode(issuesGroup)
 
     def getSectorGroupName(self):
-        if self.Sectors == "HydraulicSectors":
-            return "Hydraulic Sectors"
-        elif self.Sectors == "DemandSectors":
-            return "Demand Sectors"
-        else:
-            return "Sectors"
+        return LAYER_TYPE_CONFIG.get(self.Sectors, {"tree_path": ["Sectors"]})["tree_path"][-1]
 
     def removeEmptyQuerySubGroup(self, name):
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
@@ -334,7 +326,7 @@ class LayerManagementSection:
             self.hasToOpenIssuesLayers = False
 
         if self.hasToOpenConnectivityLayers:
-            connFolder = os.path.join(self.ProjectDirectory, DIR_ISSUES, DIR_CONNECTIVITY)
+            connFolder = os.path.join(self.ProjectDirectory, LAYER_TYPE_CONFIG["Connectivity"]["subdir"])
             os.makedirs(connFolder, exist_ok=True)
             for fi in os.listdir(self.ProjectDirectory):
                 if fi.startswith(self.NetworkName) and "Connectivity" in fi:
@@ -359,7 +351,7 @@ class LayerManagementSection:
             self.hasToOpenSectorLayers = False
 
         if self.hasToOpenIsolatedSegmentsLayers:
-            isoFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, DIR_ISOLATED_SEGMENTS)
+            isoFolder = os.path.join(self.ProjectDirectory, LAYER_TYPE_CONFIG["IsolatedSegments"]["subdir"])
             os.makedirs(isoFolder, exist_ok=True)
             for fi in os.listdir(self.ProjectDirectory):
                 if fi.startswith(self.NetworkName) and "IsolatedSegments" in fi:
@@ -371,7 +363,7 @@ class LayerManagementSection:
             self.hasToOpenIsolatedSegmentsLayers = False
 
         if self.hasToOpenDemandsBuilderLayers:
-            isoFolder = os.path.join(self.ProjectDirectory, DIR_AUXILIARY_LAYERS, DIR_DEMANDS_BUILDER)
+            isoFolder = os.path.join(self.ProjectDirectory, LAYER_TYPE_CONFIG["DemandsBuilder"]["subdir"])
             os.makedirs(isoFolder, exist_ok=True)
             auxFolder = os.path.join(self.ProjectDirectory, "_aux_DemandsBuilder")
             if os.path.isdir(auxFolder):
