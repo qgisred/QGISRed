@@ -4,11 +4,12 @@
 import os
 import shutil
 
-from qgis.core import QgsProject, QgsVectorLayer
+from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeLayer
 from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtCore import Qt
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ..tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ..tools.utils.qgisred_filesystem_utils import (
     DIR_ISSUES, DIR_QUERIES,
     LAYER_TYPE_CONFIG,
@@ -161,6 +162,58 @@ class LayerManagementSection:
             if self.Sectors == "HydraulicSectors":
                 utils.openLayer(sectorGroup, "HydraulicSectors_IsolatedDemands", **cfg["flags"])
                 utils.removeEmptyLayersInGroup(sectorGroup, exceptions=[])
+
+    def openIsolatedSegmentsLayers(self):
+        isoGroup = self.getIsolatedSegmentsGroup()
+        isoFolder = os.path.join(self.ProjectDirectory, LAYER_TYPE_CONFIG["IsolatedSegments"]["subdir"])
+        utils = QGISRedLayerUtils(isoFolder, self.NetworkName, self.iface)
+        utils.openLayer(isoGroup, "IsolatedSegments_Links")
+        utils.openLayer(isoGroup, "IsolatedSegments_Nodes")
+        utils.openLayer(isoGroup, "IsolatedSegments_IsolatedDemands")
+
+    def getIsolatedSegmentsGroup(self):
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        return utils.getOrCreateNestedGroup([self.NetworkName] + LAYER_TYPE_CONFIG["IsolatedSegments"]["tree_path"])
+
+    def getDemandsBuilderGroup(self):
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        return utils.getOrCreateNestedGroup([self.NetworkName] + LAYER_TYPE_CONFIG["DemandsBuilder"]["tree_path"])
+
+    def openDemandsBuilderLayers(self):
+        demandsBuilderGroup = self.getDemandsBuilderGroup()
+        isoFolder = os.path.join(self.ProjectDirectory, LAYER_TYPE_CONFIG["DemandsBuilder"]["subdir"])
+        utils = QGISRedLayerUtils(isoFolder, self.NetworkName, self.iface)
+        identifiers = QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        if self._demandsBuilderExtraPaths:
+            for path in self._demandsBuilderExtraPaths:
+                if not os.path.exists(path):
+                    continue
+                reloaded_layer = utils._tryReloadExistingLayer(path)
+                displayName = os.path.splitext(os.path.basename(path))[0]
+                if reloaded_layer:
+                    self._applyDemandsBuilderStyle(reloaded_layer)
+                    if not reloaded_layer.customProperty("qgisred_identifier"):
+                        identifiers.setLayerIdentifier(reloaded_layer, displayName)
+                    continue
+                vlayer = QgsVectorLayer(path, displayName, "ogr")
+                if not vlayer.isValid():
+                    continue
+                self._applyDemandsBuilderStyle(vlayer)
+                identifiers.setLayerIdentifier(vlayer, displayName)
+                QgsProject.instance().addMapLayer(vlayer, False)
+                demandsBuilderGroup.insertChildNode(0, QgsLayerTreeLayer(vlayer))
+            self._demandsBuilderExtraPaths = []
+
+    def openTreeLayers(self):
+        treeGroup = self.getTreeGroup()
+        treeFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, "Tree_" + self.treeName)
+        utils = QGISRedLayerUtils(treeFolder, self.NetworkName, self.iface)
+        utils.openTreeLayer(treeGroup, "Links", self.treeName, link=True)
+        utils.openTreeLayer(treeGroup, "Nodes", self.treeName)
+
+    def getTreeGroup(self):
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        return utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Tree: " + self.treeName])
 
     """Groups"""
 
