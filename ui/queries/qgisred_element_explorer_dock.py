@@ -25,7 +25,7 @@ class _ResultsTabStyle(QProxyStyle):
     all preserved regardless of which Qt style or theme is active.
     """
     _RESULTS_INDEX = 1
-    _OVERLAY = QColor(255, 255, 180, 160)  # warm yellow, ~63 % opaque
+    _OVERLAY = QColor("#FFF8DC")  # warm yellow, ~63 % opaque
 
     def drawControl(self, element, option, painter, widget=None):
         super().drawControl(element, option, painter, widget)
