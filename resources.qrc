@@ -1,7 +1,7 @@
 <RCC>
     <qresource prefix="/" >
         <file>images/aboutRedhisp.svg</file>
-        <file>images/aboutIIAMA.svg</file>
+        <file>images/aboutIIAMA.png</file>
         <file>images/aboutUPV.svg</file>
         <file>images/iconAbout.svg</file>  
         <file>images/iconAddAutometer.svg</file>
