@@ -23,6 +23,7 @@ from .timeseries_plot_style import (
     GRID_COLOR,
     LEGEND_ICON_SIZE,
     LEGEND_OUTSIDE_BOTTOM_EXTRA,
+    LEGEND_OUTSIDE_TOP_EXTRA,
     LEGEND_ROW_GAP,
     LEGEND_ROW_H,
     PLOT_BG_COLOR,
@@ -890,7 +891,7 @@ class TimeSeriesPlotRenderer:
             x0 = pad
             y0 = plot_rect.top() + 10
         elif legend_pos == "top":
-            y0 = (plot_rect.top() - legend_h) + pad
+            y0 = (plot_rect.top() - LEGEND_OUTSIDE_TOP_EXTRA - legend_h) + pad
             x0 = plot_rect.left() + pad
         elif legend_pos == "bottom":
             cfg_x = getattr(widget, "_axis_cfg_x", None)

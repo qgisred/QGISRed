@@ -21,6 +21,8 @@ LEGEND_ROW_GAP = 16
 LEGEND_OUTSIDE_LEFT_EXTRA = 16
 # Extra vertical space between plot bottom and outside-bottom legend (px).
 LEGEND_OUTSIDE_BOTTOM_EXTRA = 12
+# Extra vertical space between outside-top legend and the plot area (px).
+LEGEND_OUTSIDE_TOP_EXTRA = 12
 PLOT_TOP_PAD = 10
 
 
