@@ -5140,7 +5140,16 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+<<<<<<< HEAD
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="836"/>
+=======
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="902"/>
+        <source>Axis title color</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="778"/>
+>>>>>>> df06c51 (Timeseries: step 4. Color, size, font on titles)
         <source>Leave empty for default label</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5240,7 +5249,12 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="650"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="706"/>
+        <source>Plot title color</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="592"/>
         <source>Leave empty to use the default title</source>
         <translation type="unfinished"></translation>
     </message>

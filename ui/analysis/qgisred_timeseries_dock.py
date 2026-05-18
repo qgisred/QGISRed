@@ -5,7 +5,7 @@ import os
 from typing import List
 from qgis.PyQt.QtWidgets import QDockWidget, QVBoxLayout, QWidget, QHBoxLayout, QToolButton, QRubberBand, QFileDialog
 from qgis.PyQt.QtCore import QCoreApplication, QEvent, Qt, QPointF, QRect, QRectF, pyqtSignal, QSize
-from qgis.PyQt.QtGui import QColor, QPainter, QFontMetrics, QIcon, QPixmap
+from qgis.PyQt.QtGui import QColor, QFont, QPainter, QFontMetrics, QIcon, QPixmap
 from qgis.PyQt import uic
 from qgis.core import QgsApplication
 
@@ -104,7 +104,13 @@ class TimeSeriesPlotWidget(QWidget):
         title = (self.title or "").strip()
         if not title:
             title = self.tr("Time evolution curves")
-        title_font = qfont(10, bold=True)
+        gen = getattr(self, "_general_cfg", None)
+        if gen is not None:
+            title_size = max(5, min(int(getattr(gen, "title_font_size", 10) or 10), 48))
+            title_font = QFont(gen.resolved_title_font_family(), title_size)
+            title_font.setBold(True)
+        else:
+            title_font = qfont(10, bold=True)
         title_w = QFontMetrics(title_font).horizontalAdvance(title)
         pad = 24
         min_w = max(int(self._base_min_w), int(title_w + pad))

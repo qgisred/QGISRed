@@ -27,6 +27,7 @@ from .timeseries_plot_style import (
     LEGEND_ROW_GAP,
     LEGEND_ROW_H,
     PLOT_BG_COLOR,
+    PLOT_TOP_PAD,
     TEXT_DARK,
     TOOLTIP_BORDER,
     TOOLTIP_SEPARATOR,
@@ -116,10 +117,19 @@ class TimeSeriesPlotRenderer:
 
         if title_txt:
             painter.save()
-            painter.setFont(qfont(10, bold=True))
-            painter.setPen(Qt.GlobalColor.black)
+            if gen is not None:
+                title_size = max(5, min(int(getattr(gen, "title_font_size", 10) or 10), 48))
+                title_font = QFont(gen.resolved_title_font_family(), title_size)
+                title_color = gen.title_qcolor()
+            else:
+                title_font = qfont(10)
+                title_color = QColor("#000000")
+            title_font.setBold(True)
+            painter.setFont(title_font)
+            painter.setPen(QPen(title_color, 1))
+            title_area_h = max(float(widget.margin_top), float(plot_rect.top() - PLOT_TOP_PAD))
             painter.drawText(
-                QRectF(plot_rect.left(), 0, plot_rect.width(), widget.margin_top),
+                QRectF(plot_rect.left(), 0, plot_rect.width(), title_area_h),
                 Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignBottom,
                 title_txt,
             )
@@ -175,6 +185,11 @@ class TimeSeriesPlotRenderer:
 
     def _tick_qfont(self, cfg: TimeSeriesAxisSettings, *, bold: bool = False) -> QFont:
         f = QFont(cfg.resolved_font_family(), max(5, min(int(cfg.tick_font_size), 48)))
+        f.setBold(bold)
+        return f
+
+    def _title_qfont(self, cfg: TimeSeriesAxisSettings, *, bold: bool = False) -> QFont:
+        f = QFont(cfg.resolved_title_font_family(), max(5, min(int(getattr(cfg, "title_font_size", 10) or 10), 48)))
         f.setBold(bold)
         return f
 
@@ -622,8 +637,8 @@ class TimeSeriesPlotRenderer:
             left_title = self._axis_title_for_count(left_title_raw, left_count)
         if left_title:
             painter.save()
-            painter.setFont(self._tick_qfont(cfg_yl))
-            painter.setPen(QPen(cfg_yl.tick_qcolor(), 1))
+            painter.setFont(self._title_qfont(cfg_yl))
+            painter.setPen(QPen(cfg_yl.title_qcolor(), 1))
             left_legend_space = 0.0
             gen = getattr(widget, "_general_cfg", None)
             legend_pos = (getattr(gen, "legend_position", "") or "").strip() if gen is not None else ""
@@ -643,8 +658,8 @@ class TimeSeriesPlotRenderer:
                 right_title = self._axis_title_for_count(right_title_raw, right_count)
             if right_title:
                 painter.save()
-                painter.setFont(self._tick_qfont(cfg_yr))
-                painter.setPen(QPen(cfg_yr.tick_qcolor(), 1))
+                painter.setFont(self._title_qfont(cfg_yr))
+                painter.setPen(QPen(cfg_yr.title_qcolor(), 1))
                 title_x = plot_rect.right() + right_axis_label_w + 4
                 painter.translate(title_x, widget_h / 2)
                 painter.rotate(-90)
@@ -656,7 +671,8 @@ class TimeSeriesPlotRenderer:
         tick_h = fm_x.height() * 2 + 4 if has_days else fm_x.height() + 6
         tick_top_pad = 8
         title_gap = 2
-        title_h = fm_x.height() + 2
+        fm_title_x = QFontMetrics(self._title_qfont(cfg_x))
+        title_h = fm_title_x.height() + 2
         bottom_pad = 6
         title_top = plot_rect.bottom() + tick_top_pad + tick_h + title_gap
 
@@ -666,8 +682,8 @@ class TimeSeriesPlotRenderer:
         title_top = max(float(title_top), float(min_y))
         x_title = (cfg_x.title or widget.x_label or "").strip()
         if x_title:
-            painter.setFont(self._tick_qfont(cfg_x))
-            painter.setPen(QPen(cfg_x.tick_qcolor(), 1))
+            painter.setFont(self._title_qfont(cfg_x))
+            painter.setPen(QPen(cfg_x.title_qcolor(), 1))
             painter.drawText(
                 QRectF(local_margin_left, title_top, plot_rect.width(), title_h),
                 Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter,

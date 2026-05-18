@@ -20,6 +20,9 @@ from .timeseries_plot_style import AXIS_MAX_TICKS, BORDER_COLOR, FONT_FAMILY, PL
 @dataclass
 class TimeSeriesAxisSettings:
     title: str = ""
+    title_font_size: int = 10
+    title_font_family: str = ""
+    title_color_hex: str = "#000000"
     auto_scale: bool = True
     fixed_min: float = 0.0
     fixed_max: float = 1.0
@@ -37,6 +40,16 @@ class TimeSeriesAxisSettings:
     def resolved_font_family(self) -> str:
         f = (self.tick_font_family or "").strip()
         return f or FONT_FAMILY
+
+    def resolved_title_font_family(self) -> str:
+        f = (self.title_font_family or "").strip()
+        return f or FONT_FAMILY
+
+    def title_qcolor(self) -> QColor:
+        c = QColor(self.title_color_hex)
+        if not c.isValid():
+            c = QColor("#000000")
+        return c
 
     def tick_qcolor(self) -> QColor:
         c = QColor(self.tick_color_hex)
@@ -61,6 +74,9 @@ def clone_axis_settings(s: TimeSeriesAxisSettings) -> TimeSeriesAxisSettings:
 @dataclass
 class TimeSeriesGeneralSettings:
     title: str = ""
+    title_font_size: int = 10
+    title_font_family: str = ""
+    title_color_hex: str = "#000000"
     widget_bg_hex: str = ""
     plot_bg_hex: str = ""
     frame_color_hex: str = ""
@@ -71,6 +87,16 @@ class TimeSeriesGeneralSettings:
     legend_bg_hex: str = ""
     legend_symbol_size: int = 12
     legend_columns: int = 1
+
+    def resolved_title_font_family(self) -> str:
+        f = (self.title_font_family or "").strip()
+        return f or FONT_FAMILY
+
+    def title_qcolor(self) -> QColor:
+        c = QColor(self.title_color_hex)
+        if not c.isValid():
+            c = QColor("#000000")
+        return c
 
     def widget_bg_qcolor(self) -> QColor:
         c = QColor(self.widget_bg_hex)

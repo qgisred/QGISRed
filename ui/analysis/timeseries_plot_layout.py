@@ -38,7 +38,13 @@ class PlotLayoutCalculator:
         max_label_w = 0
         for label_text in tick_labels:
             max_label_w = max(max_label_w, fm.horizontalAdvance(label_text))
-        return max(float(base_margin_left), float(max_label_w + 40))
+        title_extra = 0.0
+        title = (getattr(cfg, "title", "") or getattr(widget, "_y_label_left", "") or getattr(widget, "y_label", "") or "").strip()
+        if title:
+            title_size = max(5, min(int(getattr(cfg, "title_font_size", 10) or 10), 48))
+            title_fm = QFontMetrics(QFont(cfg.resolved_title_font_family(), title_size))
+            title_extra = float(title_fm.height() + 8)
+        return max(float(base_margin_left), float(max_label_w + 40 + title_extra))
 
     @classmethod
     def _compute_right_axis_label_width(
@@ -59,7 +65,13 @@ class PlotLayoutCalculator:
         max_label_w = 0
         for label_text in tick_labels:
             max_label_w = max(max_label_w, fm.horizontalAdvance(label_text))
-        return max(0.0, float(max_label_w + 18))
+        title_extra = 0.0
+        title = (getattr(cfg, "title", "") or getattr(widget, "_y_label_right", "") or "").strip()
+        if title:
+            title_size = max(5, min(int(getattr(cfg, "title_font_size", 10) or 10), 48))
+            title_fm = QFontMetrics(QFont(cfg.resolved_title_font_family(), title_size))
+            title_extra = float(title_fm.height() + 8)
+        return max(0.0, float(max_label_w + 18 + title_extra))
 
     @classmethod
     def compute_plot_rect(cls, widget) -> Tuple[QRectF, float, float]:
@@ -72,12 +84,15 @@ class PlotLayoutCalculator:
         sz_l = max(5, min(int(getattr(cfg_yl, "tick_font_size", 10) or 10), 48)) if cfg_yl else 10
         sz_r = max(5, min(int(getattr(cfg_yr, "tick_font_size", 10) or 10), 48)) if cfg_yr else 10
         sz_x = max(5, min(int(getattr(cfg_x, "tick_font_size", 10) or 10), 48)) if cfg_x else 10
+        sz_title_x = max(5, min(int(getattr(cfg_x, "title_font_size", 10) or 10), 48)) if cfg_x else 10
         fam_l = cfg_yl.resolved_font_family() if cfg_yl else FONT_FAMILY
         fam_r = cfg_yr.resolved_font_family() if cfg_yr else FONT_FAMILY
         fam_x = cfg_x.resolved_font_family() if cfg_x else FONT_FAMILY
+        fam_title_x = cfg_x.resolved_title_font_family() if cfg_x else FONT_FAMILY
         fm_left = QFontMetrics(QFont(fam_l, sz_l))
         fm_right = QFontMetrics(QFont(fam_r, sz_r))
         fm_x = QFontMetrics(QFont(fam_x, sz_x))
+        fm_title_x = QFontMetrics(QFont(fam_title_x, sz_title_x))
 
         left_series, right_series = widget._seriesByAxis()
         _x_l, all_y_left, y_cat_left, _st_left = widget._axisSeriesData(left_series)
@@ -115,7 +130,7 @@ class PlotLayoutCalculator:
                 eff_max = max(widget.data_x)
             has_days = eff_max >= 24
             tick_block_h = fm_x.height() * 2 + 16 if has_days else fm_x.height() + 20
-            axis_title_h = (fm_x.height() + 2 + 2 + 6) if cls._effective_x_title(widget) else 0
+            axis_title_h = (fm_title_x.height() + 2 + 2 + 6) if cls._effective_x_title(widget) else 0
             extra = tick_block_h + axis_title_h
             local_margin_bottom = max(local_margin_bottom, extra)
 
@@ -125,7 +140,14 @@ class PlotLayoutCalculator:
         if legend_pos == "left" and widget._legend_reserved_w:
             local_margin_left += float(widget._legend_reserved_w + 10 + LEGEND_OUTSIDE_LEFT_EXTRA)
 
-        local_margin_top = widget.margin_top + PLOT_TOP_PAD
+        title_txt = (getattr(gen, "title", "") or getattr(widget, "title", "") or "").strip() if gen is not None else (getattr(widget, "title", "") or "").strip()
+        title_margin_top = float(widget.margin_top)
+        if title_txt:
+            title_size = max(5, min(int(getattr(gen, "title_font_size", 10) or 10), 48)) if gen is not None else 10
+            title_family = gen.resolved_title_font_family() if gen is not None else FONT_FAMILY
+            title_fm = QFontMetrics(QFont(title_family, title_size))
+            title_margin_top = max(title_margin_top, float(title_fm.height() + 12))
+        local_margin_top = title_margin_top + PLOT_TOP_PAD
         if legend_pos == "top" and getattr(widget, "_legend_reserved_h", 0):
             local_margin_top += float(widget._legend_reserved_h)
 

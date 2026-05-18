@@ -133,6 +133,53 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         grp.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
         return grp
 
+    def _build_text_style_row(self, *, font_family: str, font_size: int, color: QColor, color_title: str):
+        row = QWidget()
+        row_lay = QHBoxLayout(row)
+        row_lay.setContentsMargins(0, 0, 0, 0)
+        row_lay.setSpacing(8)
+
+        font_combo = QFontComboBox()
+        font_combo.setMaxVisibleItems(8)
+        font_combo.setMinimumWidth(150)
+        font_combo.setMaximumWidth(self._FONT_FIELD_WIDTH)
+        fam = (font_family or "").strip()
+        if fam:
+            font_combo.setCurrentFont(QFont(fam))
+
+        sp_size = QSpinBox()
+        sp_size.setRange(5, 48)
+        sp_size.setValue(max(5, min(int(font_size or 10), 48)))
+        sp_size.setMinimumWidth(64)
+        sp_size.setMaximumWidth(80)
+
+        picked_color = QColor(color)
+        if not picked_color.isValid():
+            picked_color = QColor("#000000")
+        btn_color = QPushButton()
+        btn_color.setMinimumHeight(28)
+        btn_color.setMinimumWidth(46)
+        self._show_color_on_button(btn_color, picked_color)
+        row._text_style_color = picked_color
+
+        def pick_color():
+            current = getattr(row, "_text_style_color", picked_color)
+            nc = QColorDialog.getColor(current, self, color_title)
+            if nc.isValid():
+                row._text_style_color = nc
+                self._show_color_on_button(btn_color, nc)
+
+        btn_color.clicked.connect(pick_color)
+
+        row_lay.addWidget(QLabel(self.tr("Font:")))
+        row_lay.addWidget(font_combo, 1)
+        row_lay.addWidget(QLabel(self.tr("Size:")))
+        row_lay.addWidget(sp_size)
+        row_lay.addWidget(QLabel(self.tr("Color:")))
+        row_lay.addWidget(btn_color)
+        row_lay.addStretch(1)
+        return row, font_combo, sp_size
+
     def _configure_initial_geometry(self) -> None:
         max_w = max(self._MIN_DIALOG_WIDTH, 700)
         max_h = max(self._MIN_DIALOG_HEIGHT, 720)
@@ -652,6 +699,13 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         ed_title.setMinimumHeight(26)
         self._limit_field_width(ed_title, self._LONG_FIELD_WIDTH)
         title_lay.addWidget(ed_title)
+        title_style_row, title_font_combo, title_size_spin = self._build_text_style_row(
+            font_family=getattr(cfg, "title_font_family", ""),
+            font_size=getattr(cfg, "title_font_size", 10),
+            color=cfg.title_qcolor(),
+            color_title=self.tr("Plot title color"),
+        )
+        title_lay.addWidget(title_style_row)
         lay.addWidget(title_grp)
 
         colors_grp = self._compact_group(QGroupBox(self.tr("Colors")))
@@ -710,6 +764,9 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         w._gen_plot_bg_value = plot_bg_value
         w._gen_frame_color_value = frame_color_value
         w._gen_frame_w = sp_w
+        w._gen_title_font_combo = title_font_combo
+        w._gen_title_size = title_size_spin
+        w._gen_title_style_row = title_style_row
         return w
 
     def _build_legend_tab(self, cfg: TimeSeriesGeneralSettings) -> QWidget:
@@ -838,6 +895,13 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         title_edit.setClearButtonEnabled(True)
         self._limit_field_width(title_edit, self._LONG_FIELD_WIDTH)
         title_lay.addWidget(title_edit)
+        title_style_row, title_font_combo, title_size_spin = self._build_text_style_row(
+            font_family=getattr(cfg, "title_font_family", ""),
+            font_size=getattr(cfg, "title_font_size", 10),
+            color=cfg.title_qcolor(),
+            color_title=self.tr("Axis title color"),
+        )
+        title_lay.addWidget(title_style_row)
         lay.addWidget(title_grp)
 
         scale_group = self._compact_group(QGroupBox(self.tr("Scale")))
@@ -1012,6 +1076,9 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         sync_fixed_enabled()
 
         w._title_edit = title_edit
+        w._title_font_combo = title_font_combo
+        w._title_size = title_size_spin
+        w._title_style_row = title_style_row
         w._combo_scale = combo_scale
         w._sp_min = sp_min
         w._sp_max = sp_max
@@ -1029,6 +1096,10 @@ class TimeSeriesAxisOptionsDialog(QDialog):
 
     def _read_tab(self, tab: QWidget, cfg: TimeSeriesAxisSettings) -> None:
         cfg.title = tab._title_edit.text().strip()
+        cfg.title_font_family = tab._title_font_combo.currentFont().family()
+        cfg.title_font_size = int(tab._title_size.value())
+        title_color = getattr(tab._title_style_row, "_text_style_color", QColor("#000000"))
+        cfg.title_color_hex = title_color.name(QColor.NameFormat.HexRgb) if isinstance(title_color, QColor) else "#000000"
         cfg.auto_scale = tab._combo_scale.currentIndex() == 0
         cfg.fixed_min = float(tab._sp_min.value())
         cfg.fixed_max = float(tab._sp_max.value())
@@ -1058,6 +1129,10 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         gen_tab = self._tab_general
         legend_tab = self._tab_legend
         self._cfg_gen.title = gen_tab._gen_title.text().strip()
+        self._cfg_gen.title_font_family = gen_tab._gen_title_font_combo.currentFont().family()
+        self._cfg_gen.title_font_size = int(gen_tab._gen_title_size.value())
+        gen_title_color = getattr(gen_tab._gen_title_style_row, "_text_style_color", QColor("#000000"))
+        self._cfg_gen.title_color_hex = gen_title_color.name(QColor.NameFormat.HexRgb) if isinstance(gen_title_color, QColor) else "#000000"
         self._cfg_gen.widget_bg_hex = gen_tab._gen_widget_bg_value()
         self._cfg_gen.plot_bg_hex = gen_tab._gen_plot_bg_value()
         self._cfg_gen.frame_color_hex = gen_tab._gen_frame_color_value()
@@ -1085,6 +1160,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._plot._axis_cfg_y_left = self._cfg_yl
         self._plot._axis_cfg_y_right = self._cfg_yr
         self._plot._general_cfg = self._cfg_gen
+        self._plot._updateMinimumWidthForTitle()
         self._plot.update()
 
     def _on_accept(self) -> None:
