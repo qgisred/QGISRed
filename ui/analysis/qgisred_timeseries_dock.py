@@ -40,6 +40,7 @@ class TimeSeriesPlotWidget(QWidget):
     seriesRemoved = pyqtSignal(str)
     seriesEmphasisChanged = pyqtSignal(dict)
     viewChanged = pyqtSignal()
+    zoomWindowModeChanged = pyqtSignal(bool)
 
     def tr(self, message: str) -> str:
         return QCoreApplication.translate("TimeSeriesPlotWidget", message)
@@ -666,6 +667,7 @@ class TimeSeriesPlotWidget(QWidget):
             self.unsetCursor()
 
     def setZoomWindowMode(self, enabled: bool) -> None:
+        changed = self._zoom_window_mode != bool(enabled)
         self._zoom_window_mode = bool(enabled)
         self._zoom_window_active = False
         self._zoom_window_start_pos = None
@@ -683,6 +685,8 @@ class TimeSeriesPlotWidget(QWidget):
         else:
             if not self._pan_mode:
                 self.unsetCursor()
+        if changed:
+            self.zoomWindowModeChanged.emit(self._zoom_window_mode)
 
     def getPlotRect(self):
         return PlotLayoutCalculator.compute_plot_rect(self)
@@ -798,7 +802,7 @@ class TimeSeriesPlotWidget(QWidget):
                             self.hover_index = None
                             self.update()
                             self.viewChanged.emit()
-            self._zoom_window_start_pos = None
+            self.setZoomWindowMode(False)
             return
 
         if self._pan_active:
@@ -952,6 +956,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self.plot.seriesRemoved.connect(self.seriesRemoved)
         self.plot.seriesEmphasisChanged.connect(self.seriesEmphasisChanged)
         self.plot.viewChanged.connect(self._onPlotViewChanged)
+        self.plot.zoomWindowModeChanged.connect(self._onPlotZoomWindowModeChanged)
 
         self.lblTitle.hide()
         
@@ -1115,6 +1120,16 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         if hasattr(self, "btnPan") and self.btnPan is not None and checked and self.btnPan.isChecked():
             self.btnPan.setChecked(False)
         self.plot.setZoomWindowMode(checked)
+
+    def _onPlotZoomWindowModeChanged(self, enabled: bool) -> None:
+        btn = getattr(self, "btnZoomWindow", None)
+        if btn is None or btn.isChecked() == enabled:
+            return
+        was_blocked = btn.blockSignals(True)
+        try:
+            btn.setChecked(enabled)
+        finally:
+            btn.blockSignals(was_blocked)
 
     def _onZoomInClicked(self) -> None:
         if hasattr(self, "btnZoomWindow") and self.btnZoomWindow is not None and self.btnZoomWindow.isChecked():

@@ -1233,13 +1233,16 @@ class TimeSeriesPlotRenderer:
         axis = (hover_series.get("y_axis") or "left")
         y_state = y_state_right if (axis == "right" and y_state_right is not None) else y_state_left
         pt_rule = self._to_screen(val_x, y_state["min_y"], plot_rect, x_state, y_state)
+        rule_x = max(float(plot_rect.left()), min(float(plot_rect.right()), float(pt_rule.x())))
         painter.setPen(QPen(QColor(255, 110, 110), 1, Qt.PenStyle.DashLine))
-        painter.drawLine(QPointF(pt_rule.x(), plot_rect.top()), QPointF(pt_rule.x(), plot_rect.bottom()))
+        painter.drawLine(QPointF(rule_x, plot_rect.top()), QPointF(rule_x, plot_rect.bottom()))
 
         instant_text = self._format_absolute_time_hours(val_x)
         footer_segments = self._build_styled_footer_segments(instant_text)
         tooltip_lines, marker_pts = self._collect_hover_tooltip_data(widget, hover_index, val_x, plot_rect, x_state, y_state_left, y_state_right)
 
+        painter.save()
+        painter.setClipRect(plot_rect)
         for color, muted, legend_type, pt in marker_pts:
             icon_size = self._HOVER_MARKER_ICON_SIZE
             self._draw_legend_icon(
@@ -1252,6 +1255,7 @@ class TimeSeriesPlotRenderer:
                 muted=muted,
                 highlighted=False,
             )
+        painter.restore()
 
         hover_val_y = None
         try:
