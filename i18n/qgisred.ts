@@ -5121,22 +5121,22 @@ Left-click: Add a new item below the current selection</source>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="217"/>
-        <source>X Time</source>
+        <source>Axis X Time</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="218"/>
-        <source>Y left</source>
+        <source>Axis Y left</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="219"/>
-        <source>Y right</source>
+        <source>Axis Y right</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="889"/>
-        <source>Axis title</source>
+        <source>Title</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

@@ -214,9 +214,9 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         lay.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         tabs = QTabWidget(w)
-        x_title = self.tr("X Time")
-        y_left_title = self.tr("Y left")
-        y_right_title = self.tr("Y right")
+        x_title = self.tr("Axis X Time")
+        y_left_title = self.tr("Axis Y left")
+        y_right_title = self.tr("Axis Y right")
         self._tab_axis_x = self._build_tab(self._cfg_x, axis_title=x_title, show_decimals=False, is_time_axis=True)
         self._tab_axis_yl = None
         self._tab_axis_yr = None
@@ -886,7 +886,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         title.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         lay.addWidget(title)
 
-        title_grp = self._compact_group(QGroupBox(self.tr("Axis title")))
+        title_grp = self._compact_group(QGroupBox(self.tr("Title")))
         title_lay = QVBoxLayout(title_grp)
         title_edit = QLineEdit()
         title_edit.setText(cfg.title)

@@ -5362,23 +5362,23 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="217"/>
-        <source>X Time</source>
-        <translation>X Tiempo</translation>
+        <source>Axis X Time</source>
+        <translation>Eje X Tiempo</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="218"/>
-        <source>Y left</source>
-        <translation>Y izquierda</translation>
+        <source>Axis Y left</source>
+        <translation>Eje Y izquierdo</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="219"/>
-        <source>Y right</source>
-        <translation>Y derecha</translation>
+        <source>Axis Y right</source>
+        <translation>Eje Y derecho</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="889"/>
-        <source>Axis title</source>
-        <translation>Título del eje</translation>
+        <source>Title</source>
+        <translation>Título</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="898"/>
