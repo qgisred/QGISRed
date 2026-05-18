@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+import math
 import os
 
 from qgis.PyQt.QtCore import Qt
@@ -175,6 +176,43 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         lay.addWidget(tabs, 1)
 
         return w, tabs
+
+    def _current_auto_scale_values(self, *, is_time_axis: bool, cfg: TimeSeriesAxisSettings):
+        if is_time_axis:
+            state = getattr(self._plot, "_last_x_state", None) or getattr(self._plot, "_last_auto_x_state", None)
+            min_key, max_key = "min_x", "max_x"
+            divisions = None
+            if state:
+                ticks = state.get("x_tick_values") or []
+                if len(ticks) >= 2:
+                    divisions = len(ticks) - 1
+                scale = state.get("x_scale")
+                if divisions is None and scale is not None:
+                    divisions = getattr(scale, "divisions", None)
+        else:
+            state_name = "_last_y_state_left" if cfg is self._cfg_yl else "_last_y_state_right"
+            state = getattr(self._plot, state_name, None)
+            min_key, max_key = "min_y", "max_y"
+            divisions = state.get("num_ticks_y") if state else None
+
+        if not state:
+            return None
+
+        try:
+            axis_min = float(state[min_key])
+            axis_max = float(state[max_key])
+        except Exception:
+            return None
+
+        if not math.isfinite(axis_min) or not math.isfinite(axis_max) or axis_max <= axis_min:
+            return None
+
+        try:
+            divisions = int(divisions)
+        except Exception:
+            divisions = int(getattr(cfg, "fixed_divisions", 5) or 5)
+        divisions = max(1, min(30, divisions))
+        return axis_min, axis_max, divisions
 
     def _build_curves_tab(self) -> QWidget:
         w = QWidget()
@@ -929,7 +967,24 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             sp_max.setEnabled(not auto)
             sp_div.setEnabled(not auto)
 
-        combo_scale.currentIndexChanged.connect(lambda _i: sync_fixed_enabled())
+        def apply_auto_scale_defaults():
+            vals = self._current_auto_scale_values(is_time_axis=is_time_axis, cfg=cfg)
+            if vals is None:
+                return
+            axis_min, axis_max, divisions = vals
+            sp_min.setValue(float(axis_min))
+            sp_max.setValue(float(axis_max))
+            sp_div.setValue(int(divisions))
+
+        if cfg.auto_scale:
+            apply_auto_scale_defaults()
+
+        def on_scale_changed(_i):
+            if combo_scale.currentIndex() != 0:
+                apply_auto_scale_defaults()
+            sync_fixed_enabled()
+
+        combo_scale.currentIndexChanged.connect(on_scale_changed)
         sync_fixed_enabled()
 
         w._title_edit = title_edit

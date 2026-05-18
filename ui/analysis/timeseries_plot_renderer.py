@@ -77,6 +77,8 @@ class TimeSeriesPlotRenderer:
 
     def render(self, widget, painter: QPainter) -> None:
         if not widget.series:
+            widget._last_y_state_left = None
+            widget._last_y_state_right = None
             self._draw_no_data_message(widget, painter)
             return
 
@@ -92,6 +94,8 @@ class TimeSeriesPlotRenderer:
 
         all_x, all_y, y_categorical_labels, any_stepped = widget._axisSeriesData(widget.series)
         if not all_x or not all_y:
+            widget._last_y_state_left = None
+            widget._last_y_state_right = None
             self._draw_no_data_message(widget, painter)
             return
 
@@ -136,6 +140,8 @@ class TimeSeriesPlotRenderer:
         y_state_right = None
         if all_y_right:
             y_state_right = self._compute_y_axis_state(widget, all_y_right, y_cat_right, plot_rect, painter, y_axis_side="right")
+        widget._last_y_state_left = y_state_left
+        widget._last_y_state_right = y_state_right
 
         painter.setFont(qfont(9))
         x_state = self._compute_x_axis_state(widget, widget.data_x, plot_rect, painter)
