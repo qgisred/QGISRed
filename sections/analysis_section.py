@@ -70,6 +70,7 @@ class AnalysisSection:
             self.ResultDockwidget.visibilityChanged.connect(self._arrangeDocksIfVisible)
             self.ResultDockwidget.simulationFinished.connect(self.refreshTimeSeries)
             self.ResultDockwidget.simulationFinished.connect(self.updateMetadata)
+            self.ResultDockwidget.simulationFinished.connect(self._staleLayerManager.forceCheck)
             self.ResultDockwidget.resultPropertyChanged.connect(self.refreshTimeSeries)
             self.ResultDockwidget.resultPropertyChanged.connect(self.updateMetadata)
 

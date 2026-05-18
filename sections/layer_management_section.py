@@ -348,6 +348,8 @@ class LayerManagementSection:
         else:
             self.layerOperationInProgress = False
 
+        self._staleLayerManager.forceCheck()
+
     def runOpenTemporaryFiles(self):
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
 

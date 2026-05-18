@@ -20,6 +20,7 @@ SOURCES = qgisred.py \
           tools/utils/qgisred_identifier_utils.py \
           tools/utils/qgisred_layer_utils.py \
           tools/utils/qgisred_project_io.py \
+          tools/utils/qgisred_stale_layer_manager.py \
           tools/map_tools/qgisred_createLineTool.py \
           tools/map_tools/qgisred_editLinksGeometry.py \
           tools/map_tools/qgisred_identifyFeature.py \

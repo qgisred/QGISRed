@@ -24,6 +24,7 @@ from ..tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..ui.queries.qgisred_element_explorer_dock import QGISRedElementExplorerDock
 from ..ui.general.qgisred_news_dialog import QGISRedNewsDialog
+from ..tools.utils.qgisred_stale_layer_manager import StaleLayerManager
 
 
 class LANGANDCODEPAGE(Structure):
@@ -240,6 +241,11 @@ class LifecycleSection:
         self.zoomToFullExtent = False
         self.layerOperationInProgress = False
 
+        self._staleLayerManager = StaleLayerManager(
+            self.iface,
+            lambda: (getattr(self, "NetworkName", ""), getattr(self, "ProjectDirectory", ""))
+        )
+
         self.setCulture()
         # QgsMessageLog.logMessage("Culture set to " + definedCulture, "QGISRed", level=0)
 
@@ -319,6 +325,11 @@ class LifecycleSection:
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
+        try:
+            self._staleLayerManager.stop()
+        except Exception:
+            pass
+
         # Set flag to prevent DLL calls during shutdown
         self.isUnloading = False
 
