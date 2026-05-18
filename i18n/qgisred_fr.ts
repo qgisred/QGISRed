@@ -5295,6 +5295,11 @@ Left-click: Add a new item below the current selection</source>
         <translation>Taille :</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="921"/>
+        <source>Show tick marks outside the axis</source>
+        <translation>Afficher les graduations à l’extérieur de l’axe</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="872"/>
         <source>Tick color</source>
         <translation>Couleur des graduations</translation>

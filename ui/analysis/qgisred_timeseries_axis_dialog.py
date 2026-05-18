@@ -918,6 +918,10 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._add_form_row(tick_form, self.tr("Font:"), font_combo)
         self._add_form_row(tick_form, self.tr("Size:"), sp_size)
 
+        chk_tick_marks = QCheckBox(self.tr("Show tick marks outside the axis"))
+        chk_tick_marks.setChecked(bool(getattr(cfg, "show_tick_marks", False)))
+        tick_form.addRow("", chk_tick_marks)
+
         w._picked_color = QColor(cfg.tick_qcolor())
         btn_color = QPushButton()
 
@@ -1013,6 +1017,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         w._sp_max = sp_max
         w._sp_div = sp_div
         w._chk_grid = chk_grid
+        w._chk_tick_marks = chk_tick_marks
         w._sp_size = sp_size
         w._font_combo = font_combo
         w._sp_dec = sp_dec
@@ -1029,6 +1034,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         cfg.fixed_max = float(tab._sp_max.value())
         cfg.fixed_divisions = int(tab._sp_div.value())
         cfg.show_grid = tab._chk_grid.isChecked()
+        cfg.show_tick_marks = bool(tab._chk_tick_marks.isChecked())
         cfg.tick_font_size = int(tab._sp_size.value())
         cfg.tick_font_family = tab._font_combo.currentFont().family()
         cfg.tick_color_hex = tab._picked_color.name(QColor.NameFormat.HexRgb)

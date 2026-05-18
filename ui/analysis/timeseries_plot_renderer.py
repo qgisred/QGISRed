@@ -508,6 +508,7 @@ class TimeSeriesPlotRenderer:
         pen_grid = QPen(GRID_COLOR, 1, Qt.PenStyle.SolidLine)
         pen_grid_day_start = QPen(QColor(185, 195, 205), 1, Qt.PenStyle.SolidLine)
         pen_grid_day_start.setWidthF(1.2)
+        tick_mark_len = 5.0
 
         painter.setFont(self._tick_qfont(cfg_yl))
         dec_yl = y_state_left.get("decimals")
@@ -527,6 +528,8 @@ class TimeSeriesPlotRenderer:
                 painter.setPen(pen_grid)
                 painter.drawLine(QPointF(plot_rect.left(), pt.y()), QPointF(plot_rect.right(), pt.y()))
             painter.setPen(QPen(cfg_yl.tick_qcolor(), 1))
+            if getattr(cfg_yl, "show_tick_marks", False):
+                painter.drawLine(QPointF(plot_rect.left(), pt.y()), QPointF(plot_rect.left() - tick_mark_len, pt.y()))
             painter.setFont(self._tick_qfont(cfg_yl))
             painter.drawText(QRectF(0, pt.y() - 10, local_margin_left - 5, 20), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, label_text)
 
@@ -548,6 +551,8 @@ class TimeSeriesPlotRenderer:
                     painter.setPen(pen_grid)
                     painter.drawLine(QPointF(plot_rect.left(), pt.y()), QPointF(plot_rect.right(), pt.y()))
                 painter.setPen(QPen(cfg_yr.tick_qcolor(), 1))
+                if getattr(cfg_yr, "show_tick_marks", False):
+                    painter.drawLine(QPointF(plot_rect.right(), pt.y()), QPointF(plot_rect.right() + tick_mark_len, pt.y()))
                 painter.setFont(self._tick_qfont(cfg_yr))
                 painter.drawText(QRectF(plot_rect.right() + 5, pt.y() - 10, right_axis_label_w - 10, 20), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, label_text)
 
@@ -573,6 +578,8 @@ class TimeSeriesPlotRenderer:
                     painter.drawLine(QPointF(pt.x(), plot_rect.top()), QPointF(pt.x(), plot_rect.bottom()))
 
                 painter.setPen(QPen(cfg_x.tick_qcolor(), 1))
+                if getattr(cfg_x, "show_tick_marks", False):
+                    painter.drawLine(QPointF(pt.x(), plot_rect.bottom()), QPointF(pt.x(), plot_rect.bottom() + tick_mark_len))
                 label_x = self._format_absolute_time_hours_axis(val_x, hour_format=hour_format, day_format=day_format)
                 rect = QRectF(pt.x() - tick_w / 2, plot_rect.bottom() + 8, tick_w, tick_h)
                 if "\n" in label_x:

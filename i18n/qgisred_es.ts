@@ -5438,6 +5438,11 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Tamaño:</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="921"/>
+        <source>Show tick marks outside the axis</source>
+        <translation>Mostrar marcas de graduación fuera del eje</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="872"/>
         <source>Tick color</source>
         <translation>Color de marcas</translation>

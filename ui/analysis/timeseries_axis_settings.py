@@ -25,6 +25,7 @@ class TimeSeriesAxisSettings:
     fixed_max: float = 1.0
     fixed_divisions: int = 5
     show_grid: bool = True
+    show_tick_marks: bool = False
     tick_font_size: int = 10
     tick_font_family: str = ""
     tick_color_hex: str = "#000000"
