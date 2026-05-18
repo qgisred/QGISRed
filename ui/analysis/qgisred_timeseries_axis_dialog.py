@@ -170,12 +170,32 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         x_title = self.tr("X Time")
         y_left_title = self.tr("Y left")
         y_right_title = self.tr("Y right")
-        tabs.addTab(self._build_tab(self._cfg_x, axis_title=x_title, show_decimals=False, is_time_axis=True), x_title)
-        tabs.addTab(self._build_tab(self._cfg_yl, axis_title=y_left_title, show_decimals=True, is_time_axis=False), y_left_title)
-        tabs.addTab(self._build_tab(self._cfg_yr, axis_title=y_right_title, show_decimals=True, is_time_axis=False), y_right_title)
+        self._tab_axis_x = self._build_tab(self._cfg_x, axis_title=x_title, show_decimals=False, is_time_axis=True)
+        self._tab_axis_yl = None
+        self._tab_axis_yr = None
+
+        tabs.addTab(self._tab_axis_x, x_title)
+        if self._axis_is_used("left"):
+            self._tab_axis_yl = self._build_tab(self._cfg_yl, axis_title=y_left_title, show_decimals=True, is_time_axis=False)
+            tabs.addTab(self._tab_axis_yl, y_left_title)
+        if self._axis_is_used("right"):
+            self._tab_axis_yr = self._build_tab(self._cfg_yr, axis_title=y_right_title, show_decimals=True, is_time_axis=False)
+            tabs.addTab(self._tab_axis_yr, y_right_title)
         lay.addWidget(tabs, 1)
 
         return w, tabs
+
+    def _axis_is_used(self, side: str) -> bool:
+        try:
+            left_series, right_series = self._plot._seriesByAxis()
+        except Exception:
+            left_series, right_series = [], []
+            for series in getattr(self._plot, "series", []) or []:
+                if (series.get("y_axis") or "left") == "right":
+                    right_series.append(series)
+                else:
+                    left_series.append(series)
+        return bool(right_series if side == "right" else left_series)
 
     def _current_auto_scale_values(self, *, is_time_axis: bool, cfg: TimeSeriesAxisSettings):
         if is_time_axis:
@@ -1046,9 +1066,11 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._cfg_gen.legend_symbol_size = int(legend_tab._legend_sym.value())
         self._cfg_gen.legend_columns = int(legend_tab._legend_cols.value())
 
-        self._read_tab(self._axes_tabs.widget(0), self._cfg_x)
-        self._read_tab(self._axes_tabs.widget(1), self._cfg_yl)
-        self._read_tab(self._axes_tabs.widget(2), self._cfg_yr)
+        self._read_tab(self._tab_axis_x, self._cfg_x)
+        if self._tab_axis_yl is not None:
+            self._read_tab(self._tab_axis_yl, self._cfg_yl)
+        if self._tab_axis_yr is not None:
+            self._read_tab(self._tab_axis_yr, self._cfg_yr)
         self._read_curves_tab(self._tab_curves)
         if not self._cfg_x.auto_scale:
             self._plot._view_x_min = None
