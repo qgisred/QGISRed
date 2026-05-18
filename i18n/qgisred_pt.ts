@@ -4967,7 +4967,7 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1030"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1036"/>
         <source>Clear all curves</source>
         <translation>Apagar todas as curvas</translation>
     </message>
@@ -4977,172 +4977,172 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1038"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1044"/>
         <source>Pan</source>
         <translation>Deslocar</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1046"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1052"/>
         <source>Zoom in</source>
         <translation>Ampliar</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1050"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1056"/>
         <source>Zoom out</source>
         <translation>Reduzir</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1054"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1060"/>
         <source>Zoom to full extent</source>
         <translation>Zoom para extensão total</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1072"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1078"/>
         <source>Chart options</source>
         <translation>Opções do gráfico</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1042"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1048"/>
         <source>Zoom window</source>
         <translation>Zoom por janela</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1293"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1299"/>
         <source>Export chart as image</source>
         <translation>Exportar gráfico como imagem</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1311"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1317"/>
         <source>Time evolution curves</source>
         <translation>Curvas de evolução temporal</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1413"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1419"/>
         <source>Export chart points to CSV</source>
         <translation>Exportar pontos do gráfico para CSV</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1409"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1415"/>
         <source>No curves to export</source>
         <translation>Não há curvas para exportar</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1062"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1068"/>
         <source>Sync cursor with Results panel</source>
         <translation>Sincronizar cursor com o Painel de Resultados</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1133"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1139"/>
         <source>Results panel is not available</source>
         <translation>O Painel de Resultados não está disponível</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1284"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1290"/>
         <source>PNG image (*.png)</source>
         <translation>Imagem PNG (*.png)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1285"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1291"/>
         <source>JPEG image (*.jpg *.jpeg)</source>
         <translation>Imagem JPEG (*.jpg *.jpeg)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1286"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1292"/>
         <source>BMP image (*.bmp)</source>
         <translation>Imagem BMP (*.bmp)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1287"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1293"/>
         <source>TIFF image (*.tif *.tiff)</source>
         <translation>Imagem TIFF (*.tif *.tiff)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1290"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1296"/>
         <source>SVG image (*.svg)</source>
         <translation>Imagem SVG (*.svg)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1305"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1311"/>
         <source>SVG export is not available</source>
         <translation>A exportação SVG não está disponível</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1322"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1328"/>
         <source>The chart image could not be exported</source>
         <translation>Não foi possível exportar a imagem do gráfico</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1325"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1331"/>
         <source>Chart image exported</source>
         <translation>Imagem do gráfico exportada</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1413"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1419"/>
         <source>CSV file (*.csv)</source>
         <translation>Ficheiro CSV (*.csv)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1450"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1456"/>
         <source>No chart points to export</source>
         <translation>Não há pontos do gráfico para exportar</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1467"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1473"/>
         <source>The CSV file could not be exported</source>
         <translation>Não foi possível exportar o ficheiro CSV</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1470"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1476"/>
         <source>Chart points exported to CSV</source>
         <translation>Pontos do gráfico exportados para CSV</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1344"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1350"/>
         <source>Node</source>
         <translation>Nó</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1338"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1344"/>
         <source>Junction</source>
         <translation>Junção</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1339"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1345"/>
         <source>Tank</source>
         <translation>Tanque</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1340"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1346"/>
         <source>Reservoir</source>
         <translation>Reservatório</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1341"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1347"/>
         <source>Pipe</source>
         <translation>Tubo</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1342"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1348"/>
         <source>Valve</source>
         <translation>Válvula</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1343"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1349"/>
         <source>Pump</source>
         <translation>Bomba</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1345"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1351"/>
         <source>Link</source>
         <translation>Ligação</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1456"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1462"/>
         <source>Id</source>
         <translation>Id</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1456"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1462"/>
         <source>Type</source>
         <translation>Tipo</translation>
     </message>
@@ -5152,32 +5152,32 @@ Left-click: Add a new item below the current selection</source>
         <translation type="obsolete">Série</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1456"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1462"/>
         <source>Magnitude</source>
         <translation>Magnitude</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1456"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1462"/>
         <source>Curve Name</source>
         <translation>Nome da Curva</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1456"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1462"/>
         <source>Time (h)</source>
         <translation>Tempo (h)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1456"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1462"/>
         <source>Civil Time</source>
         <translation>Hora Civil</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1456"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1462"/>
         <source>Value</source>
         <translation>Valor</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1228"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1234"/>
         <source>Single Period</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5208,7 +5208,7 @@ Left-click: Add a new item below the current selection</source>
         <translation>Eixos</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="762"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="819"/>
         <source>Legend</source>
         <translation>Legenda</translation>
     </message>
@@ -5218,126 +5218,122 @@ Left-click: Add a new item below the current selection</source>
         <translation>Curvas</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="170"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="217"/>
         <source>X Time</source>
         <translation>X Tempo</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="171"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="218"/>
         <source>Y left</source>
         <translation>Y esquerda</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="172"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="219"/>
         <source>Y right</source>
         <translation>Y direita</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="832"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="889"/>
         <source>Axis title</source>
         <translation>Título do eixo</translation>
     </message>
     <message>
-<<<<<<< HEAD
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="836"/>
-=======
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="902"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="898"/>
         <source>Axis title color</source>
         <translation>Cor do título do eixo</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="778"/>
->>>>>>> df06c51 (Timeseries: step 4. Color, size, font on titles)
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="893"/>
         <source>Leave empty for default label</source>
         <translation>Deixe vazio para usar o rótulo padrão</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="843"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="907"/>
         <source>Scale</source>
         <translation>Escala</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="863"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="927"/>
         <source>Mode:</source>
         <translation>Modo:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="858"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="922"/>
         <source>Automatic</source>
         <translation>Automática</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="859"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="923"/>
         <source>Fixed (min, max, divisions)</source>
         <translation>Fixa (mín, máx, divisões)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="880"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="944"/>
         <source>Minimum:</source>
         <translation>Mínimo:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="881"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="945"/>
         <source>Maximum:</source>
         <translation>Máximo:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="882"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="946"/>
         <source>Divisions:</source>
         <translation>Divisões:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="885"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="949"/>
         <source>Grid</source>
         <translation>Grade</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="887"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="951"/>
         <source>Show grid lines for this axis</source>
         <translation>Mostrar linhas de grade para este eixo</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="892"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="956"/>
         <source>Tick labels</source>
         <translation>Rótulos das marcações</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="918"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="982"/>
         <source>Font:</source>
         <translation>Fonte:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="919"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="983"/>
         <source>Size:</source>
         <translation>Tamanho:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="921"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="985"/>
         <source>Show tick marks outside the axis</source>
         <translation>Mostrar marcações fora do eixo</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="934"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="998"/>
         <source>Tick color</source>
         <translation>Cor das marcações</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="941"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1005"/>
         <source>Color:</source>
         <translation>Cor:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="949"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1013"/>
         <source>Numeric format</source>
         <translation>Formato numérico</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="951"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1015"/>
         <source>Decimal places for Y tick values:</source>
         <translation>Casas decimais nas marcações Y:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="946"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1010"/>
         <source>Auto</source>
         <translation>Auto</translation>
     </message>
@@ -5347,87 +5343,87 @@ Left-click: Add a new item below the current selection</source>
         <translation type="obsolete">O eixo de tempo usa rótulos tipo relógio; decimais não se aplicam aqui.</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="646"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="693"/>
         <source>Plot title</source>
         <translation>Título do gráfico</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="706"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="702"/>
         <source>Plot title color</source>
         <translation>Cor do título do gráfico</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="592"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="697"/>
         <source>Leave empty to use the default title</source>
         <translation>Deixe vazio para usar o título padrão</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="657"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="711"/>
         <source>Colors</source>
         <translation>Cores</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="667"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="721"/>
         <source>Widget background</source>
         <translation>Fundo do painel</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="673"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="727"/>
         <source>Widget background:</source>
         <translation>Fundo do painel:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="675"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="729"/>
         <source>Plot background</source>
         <translation>Fundo do gráfico</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="681"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="735"/>
         <source>Plot background:</source>
         <translation>Fundo do gráfico:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="684"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="738"/>
         <source>Frame</source>
         <translation>Moldura</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="694"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="748"/>
         <source>Frame color</source>
         <translation>Cor da moldura</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="729"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="786"/>
         <source>Use default</source>
         <translation>Usar valor padrão</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="702"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="756"/>
         <source>Default</source>
         <translation>Padrão</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="705"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="759"/>
         <source>Width:</source>
         <translation>Espessura:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="773"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="830"/>
         <source>Right (outside)</source>
         <translation>Direita (fora)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="774"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="831"/>
         <source>Left (outside)</source>
         <translation>Esquerda (fora)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="775"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="832"/>
         <source>Top (outside)</source>
         <translation>Topo (fora)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="776"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="833"/>
         <source>Bottom (outside)</source>
         <translation>Base (fora)</translation>
     </message>
@@ -5452,42 +5448,42 @@ Left-click: Add a new item below the current selection</source>
         <translation type="obsolete">Dentro — base à esquerda</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="782"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="839"/>
         <source>Draw frame</source>
         <translation>Desenhar moldura</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="784"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="841"/>
         <source>Fill background</source>
         <translation>Preencher fundo</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="786"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="843"/>
         <source>Legend background</source>
         <translation>Fundo da legenda</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="805"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="862"/>
         <source>Background color:</source>
         <translation>Cor de fundo:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="801"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="858"/>
         <source>Position:</source>
         <translation>Posição:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="802"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="859"/>
         <source>Columns:</source>
         <translation>Colunas:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="803"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="860"/>
         <source>Symbol size:</source>
         <translation>Tamanho do símbolo:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="245"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="292"/>
         <source>No curves available.</source>
         <translation>Nenhuma curva disponível.</translation>
     </message>
@@ -5497,47 +5493,47 @@ Left-click: Add a new item below the current selection</source>
         <translation type="obsolete">Personalize o nome na legenda e a aparência de cada curva.</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1106"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1182"/>
         <source>Series</source>
         <translation>Série</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="288"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="335"/>
         <source>Curve</source>
         <translation>Curva</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="305"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="352"/>
         <source>Magnitude:</source>
         <translation>Magnitude:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="306"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="353"/>
         <source>Curve:</source>
         <translation>Curva:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="397"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="444"/>
         <source>Name:</source>
         <translation>Nome:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="402"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="449"/>
         <source>Style</source>
         <translation>Estilo</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="405"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="452"/>
         <source>Line:</source>
         <translation>Traço:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="411"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="458"/>
         <source>Markers</source>
         <translation>Marcadores</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="415"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="462"/>
         <source>Symbol:</source>
         <translation>Símbolo:</translation>
     </message>
@@ -5557,27 +5553,27 @@ Left-click: Add a new item below the current selection</source>
         <translation type="obsolete">Tamanho da fonte da legenda:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="333"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="380"/>
         <source>Curve color</source>
         <translation>Cor da curva</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="341"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="388"/>
         <source>Solid</source>
         <translation>Sólida</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="342"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="389"/>
         <source>Dashed</source>
         <translation>Tracejada</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="343"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="390"/>
         <source>Dotted</source>
         <translation>Pontilhada</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="344"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="391"/>
         <source>Dash-dot</source>
         <translation>Traço-ponto</translation>
     </message>
@@ -5597,32 +5593,32 @@ Left-click: Add a new item below the current selection</source>
         <translation type="obsolete">Mostrar pontos de passo como marcadores</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="371"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="418"/>
         <source>Circle</source>
         <translation>Círculo</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="372"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="419"/>
         <source>Square</source>
         <translation>Quadrado</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="373"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="420"/>
         <source>Triangle</source>
         <translation>Triângulo</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="374"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="421"/>
         <source>Diamond</source>
         <translation>Losango</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="375"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="422"/>
         <source>Cross</source>
         <translation>Cruz</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="387"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="434"/>
         <source>Marker color</source>
         <translation>Cor do marcador</translation>
     </message>
@@ -5647,62 +5643,62 @@ Left-click: Add a new item below the current selection</source>
         <translation type="obsolete">Cor do marcador:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="352"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="399"/>
         <source>Visible</source>
         <translation>Visível</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="353"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="400"/>
         <source>Normal</source>
         <translation>Normal</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="354"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="401"/>
         <source>Dimmed</source>
         <translation>Atenuada</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="355"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="402"/>
         <source>Highlighted</source>
         <translation>Destacada</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="958"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1022"/>
         <source>Time format</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="969"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1033"/>
         <source>hh</source>
         <translation>hh</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="970"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1034"/>
         <source>hh:mm</source>
         <translation>hh:mm</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="977"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1041"/>
         <source>Days as 1d, 2d…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="978"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1042"/>
         <source>Accumulate days into hours (&gt;24)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="984"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1048"/>
         <source>Hour:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="985"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1049"/>
         <source>Days:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="252"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="299"/>
         <source>Magnitude</source>
         <translation type="unfinished">Magnitude</translation>
     </message>
@@ -5710,27 +5706,27 @@ Left-click: Add a new item below the current selection</source>
 <context>
     <name>TimeSeriesPlotWidget</name>
     <message>
-        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="1031"/>
+        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="1047"/>
         <source>Series</source>
         <translation type="unfinished">Série</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="376"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="382"/>
         <source>Magnitude</source>
         <translation type="unfinished">Magnitude</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="174"/>
+        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="184"/>
         <source>No data to display, please select an element on the map.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="463"/>
+        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="478"/>
         <source>Step: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="224"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="230"/>
         <source>Time evolution curves</source>
         <translation type="unfinished">Curvas de evolução temporal</translation>
     </message>
