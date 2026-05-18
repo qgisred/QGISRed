@@ -5316,7 +5316,7 @@ Left-click: Add a new item below the current selection</source>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="335"/>
-        <source>Curve</source>
+        <source>Select curve</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5336,7 +5336,7 @@ Left-click: Add a new item below the current selection</source>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="449"/>
-        <source>Style</source>
+        <source>Line Style</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

@@ -719,7 +719,9 @@ class TimeSeriesPlotRenderer:
         painter.setClipRect(plot_rect)
 
         for s in widget.series:
-            if not bool(s.get("visible", True)):
+            line_visible = bool(s.get("visible", True))
+            markers_visible = bool(s.get("show_markers", False))
+            if not (line_visible or markers_visible):
                 continue
             xs = s.get("x", []) or []
             ys = s.get("y", []) or []
@@ -747,7 +749,7 @@ class TimeSeriesPlotRenderer:
             y_state = y_state_right if (axis == "right" and y_state_right is not None) else y_state_left
             points = [self._to_screen(xs[i], ys[i], plot_rect, x_state, y_state) for i in range(n)]
 
-            if n > 1:
+            if line_visible and n > 1:
                 painter.setPen(QPen(draw_color, width, self._line_pen_style(s.get("line_style") or "solid")))
                 path = QPainterPath()
                 start_pt = points[0]
@@ -775,7 +777,7 @@ class TimeSeriesPlotRenderer:
             if highlighted:
                 marker_size = min(marker_size + 1.0, 26.0)
 
-            if bool(s.get("show_markers", False)):
+            if markers_visible:
                 for pt in points:
                     self._draw_point_marker(painter, pt, marker_size, s.get("marker_symbol") or "circle", marker_color)
 
@@ -978,7 +980,9 @@ class TimeSeriesPlotRenderer:
             s = widget.series[int(series_idx)]
             muted = bool(s.get("muted", False))
             highlighted = bool(s.get("highlighted", False))
-            visible = bool(s.get("visible", True))
+            line_visible = bool(s.get("visible", True))
+            markers_visible = bool(s.get("show_markers", False))
+            visible = line_visible or markers_visible
             line_style = s.get("line_style") or "solid"
             line_width = s.get("line_width") or 2.0
 
@@ -1050,7 +1054,7 @@ class TimeSeriesPlotRenderer:
         marker_pts = []
 
         for s in widget.series:
-            if not bool(s.get("visible", True)):
+            if not (bool(s.get("visible", True)) or bool(s.get("show_markers", False))):
                 continue
             xs = s.get("x", []) or []
             ys = s.get("y", []) or []
@@ -1193,7 +1197,7 @@ class TimeSeriesPlotRenderer:
         hover_index = widget.hover_index
         if widget._hover_series_idx is not None and 0 <= widget._hover_series_idx < len(widget.series):
             hover_series = widget.series[widget._hover_series_idx]
-            if not bool(hover_series.get("visible", True)):
+            if not (bool(hover_series.get("visible", True)) or bool(hover_series.get("show_markers", False))):
                 hover_series = None
         if hover_series is not None and hover_index is not None:
             xs0 = hover_series.get("x", []) or []

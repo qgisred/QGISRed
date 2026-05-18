@@ -5642,8 +5642,8 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="335"/>
-        <source>Curve</source>
-        <translation>Curva</translation>
+        <source>Select curve</source>
+        <translation>Seleccionar curva</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="352"/>
@@ -5662,8 +5662,8 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="449"/>
-        <source>Style</source>
-        <translation>Estilo</translation>
+        <source>Line Style</source>
+        <translation>Estilo de línea</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="452"/>

@@ -279,7 +279,7 @@ class TimeSeriesPlotWidget(QWidget):
             return f
 
         for s in axis_series:
-            if not bool(s.get("visible", True)):
+            if not self._seriesIsDrawn(s):
                 continue
             xs_raw = s.get("x", []) or []
             ys_raw = s.get("y", []) or []
@@ -364,6 +364,9 @@ class TimeSeriesPlotWidget(QWidget):
 
     def _globalSeriesData(self):
         return self._axisSeriesData(self.series)
+
+    def _seriesIsDrawn(self, series_dict) -> bool:
+        return bool(series_dict.get("visible", True)) or bool(series_dict.get("show_markers", False))
 
     def _legendItems(self, limit=None):
         items = []
@@ -490,13 +493,13 @@ class TimeSeriesPlotWidget(QWidget):
 
     def _resolveHoverSeriesIndex(self):
         for i, s in enumerate(self.series):
-            if bool(s.get("visible", True)) and bool(s.get("highlighted", False)):
+            if self._seriesIsDrawn(s) and bool(s.get("highlighted", False)):
                 return i
         for i, s in enumerate(self.series):
-            if bool(s.get("visible", True)) and not bool(s.get("muted", False)):
+            if self._seriesIsDrawn(s) and not bool(s.get("muted", False)):
                 return i
         for i, s in enumerate(self.series):
-            if bool(s.get("visible", True)):
+            if self._seriesIsDrawn(s):
                 return i
         return None
 
@@ -1445,7 +1448,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         list_sep, decimal_sep = get_regional_separators()
         rows = []
         for s in self.plot.series or []:
-            if not bool(s.get("visible", True)):
+            if not self.plot._seriesIsDrawn(s):
                 continue
             xs = s.get("x", []) or []
             ys = s.get("y", []) or []

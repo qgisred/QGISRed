@@ -332,9 +332,10 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         w._curve_current_idx = -1
         w._curve_loading = False
 
-        selector_grp = self._compact_group(QGroupBox(self.tr("Curve")))
-        selector_form = QFormLayout(selector_grp)
-        configure_form(selector_form)
+        selector_grp = self._compact_group(QGroupBox(self.tr("Select curve")))
+        selector_lay = QHBoxLayout(selector_grp)
+        selector_lay.setContentsMargins(8, 8, 8, 8)
+        selector_lay.setSpacing(10)
 
         combo_magnitude = QComboBox()
         combo_curve = QComboBox()
@@ -349,13 +350,16 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         for magnitude in magnitudes:
             combo_magnitude.addItem(magnitude, magnitude)
 
-        self._add_form_row(selector_form, self.tr("Magnitude:"), combo_magnitude)
-        self._add_form_row(selector_form, self.tr("Curve:"), combo_curve)
+        selector_lay.addWidget(QLabel(self.tr("Magnitude:")))
+        selector_lay.addWidget(combo_magnitude, 1)
+        selector_lay.addWidget(QLabel(self.tr("Curve:")))
+        selector_lay.addWidget(combo_curve, 1)
         lay.addWidget(selector_grp)
 
         title = QLabel()
         title.setWordWrap(True)
-        title.setStyleSheet("font-weight: bold;")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title.setStyleSheet("font-weight: bold; font-size: 11pt;")
         lay.addWidget(title)
 
         row = {}
@@ -444,7 +448,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._add_form_row(legend_form, self.tr("Size:"), sp_font_size)
         lay.addWidget(legend_grp)
 
-        style_grp = self._compact_group(QGroupBox(self.tr("Style")))
+        style_grp = self._compact_group(QGroupBox(self.tr("Line Style")))
         style_grp.setCheckable(True)
         style_form = QFormLayout(style_grp)
         configure_form(style_form)
