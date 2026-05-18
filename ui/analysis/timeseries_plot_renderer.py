@@ -23,7 +23,6 @@ from .timeseries_plot_style import (
     GRID_COLOR,
     LEGEND_ICON_SIZE,
     LEGEND_OUTSIDE_BOTTOM_EXTRA,
-    LEGEND_OUTSIDE_LEFT_EXTRA,
     LEGEND_ROW_GAP,
     LEGEND_ROW_H,
     PLOT_BG_COLOR,
@@ -175,7 +174,7 @@ class TimeSeriesPlotRenderer:
         if y_state_right is not None and right_axis_label_w and right_axis_label_w > 0:
             painter.drawLine(plot_rect.bottomRight(), plot_rect.topRight())
 
-        self._draw_axis_titles(widget, painter, plot_rect, local_margin_left, right_axis_label_w, h)
+        self._draw_axis_titles(widget, painter, plot_rect, local_margin_left, right_axis_label_w, h, y_state_left, y_state_right)
         self._draw_series_curves(widget, painter, plot_rect, x_state, y_state_left, y_state_right)
         self._draw_legend(widget, painter, plot_rect, x_state)
         self._draw_hover_overlay(widget, painter, plot_rect, x_state, y_state_left, y_state_right)
@@ -623,7 +622,28 @@ class TimeSeriesPlotRenderer:
                     painter.setFont(tick_font_regular)
                     painter.drawText(rect, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, label_x)
 
-    def _draw_axis_titles(self, widget, painter, plot_rect, local_margin_left, right_axis_label_w, widget_h):
+    def _max_y_tick_label_width(self, painter, widget, y_state) -> float:
+        if not y_state:
+            return 0.0
+        cfg = y_state.get("axis_cfg")
+        if cfg is None:
+            return 0.0
+        painter.save()
+        painter.setFont(self._tick_qfont(cfg))
+        fm = painter.fontMetrics()
+        dec = y_state.get("decimals")
+        labels = []
+        y_cat = y_state.get("y_categorical_labels") or widget.y_categorical_labels
+        if y_cat:
+            labels = [str(label) for label in y_cat]
+        else:
+            y_step = y_state.get("y_step") or 1.0
+            labels = [self._format_tick_number(value, y_step, dec) for value in y_state.get("y_tick_values", [])]
+        max_width = max((fm.horizontalAdvance(label) for label in labels), default=0)
+        painter.restore()
+        return float(max_width)
+
+    def _draw_axis_titles(self, widget, painter, plot_rect, local_margin_left, right_axis_label_w, widget_h, y_state_left=None, y_state_right=None):
         cfg_x = widget._axis_cfg_x
         cfg_yl = widget._axis_cfg_y_left
         cfg_yr = widget._axis_cfg_y_right
@@ -639,13 +659,11 @@ class TimeSeriesPlotRenderer:
             painter.save()
             painter.setFont(self._title_qfont(cfg_yl))
             painter.setPen(QPen(cfg_yl.title_qcolor(), 1))
-            left_legend_space = 0.0
-            gen = getattr(widget, "_general_cfg", None)
-            legend_pos = (getattr(gen, "legend_position", "") or "").strip() if gen is not None else ""
-            if legend_pos == "left" and getattr(widget, "_legend_reserved_w", 0):
-                left_legend_space = float(widget._legend_reserved_w + 10 + LEGEND_OUTSIDE_LEFT_EXTRA)
-            axis_margin_left = max(0.0, float(local_margin_left) - left_legend_space)
-            painter.translate(left_legend_space + axis_margin_left / 2 - 15, widget_h / 2)
+            title_fm = QFontMetrics(self._title_qfont(cfg_yl))
+            label_w = self._max_y_tick_label_width(painter, widget, y_state_left)
+            title_gap = 10.0
+            title_x = float(plot_rect.left()) - 5.0 - label_w - title_gap - float(title_fm.height()) / 2.0
+            painter.translate(max(0.0, title_x), widget_h / 2)
             painter.rotate(-90)
             painter.drawText(QRectF(-120, -10, 240, 20), Qt.AlignmentFlag.AlignCenter, left_title)
             painter.restore()
@@ -660,7 +678,10 @@ class TimeSeriesPlotRenderer:
                 painter.save()
                 painter.setFont(self._title_qfont(cfg_yr))
                 painter.setPen(QPen(cfg_yr.title_qcolor(), 1))
-                title_x = plot_rect.right() + right_axis_label_w + 4
+                title_fm = QFontMetrics(self._title_qfont(cfg_yr))
+                label_w = self._max_y_tick_label_width(painter, widget, y_state_right)
+                title_gap = 10.0
+                title_x = float(plot_rect.right()) + 5.0 + label_w + title_gap + float(title_fm.height()) / 2.0
                 painter.translate(title_x, widget_h / 2)
                 painter.rotate(-90)
                 painter.drawText(QRectF(-120, -10, 240, 20), Qt.AlignmentFlag.AlignCenter, right_title)
