@@ -396,7 +396,6 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         sp_width.setDecimals(1)
         sp_width.setSingleStep(0.5)
 
-        chk_visible = QCheckBox(self.tr("Visible"))
         rb_normal = QRadioButton(self.tr("Normal"))
         rb_muted = QRadioButton(self.tr("Dimmed"))
         rb_highlighted = QRadioButton(self.tr("Highlighted"))
@@ -408,7 +407,6 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         emphasis_lay = QHBoxLayout(emphasis_row)
         emphasis_lay.setContentsMargins(0, 0, 0, 0)
         emphasis_lay.setSpacing(10)
-        emphasis_lay.addWidget(chk_visible)
         emphasis_lay.addWidget(rb_normal)
         emphasis_lay.addWidget(rb_muted)
         emphasis_lay.addWidget(rb_highlighted)
@@ -447,6 +445,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         lay.addWidget(legend_grp)
 
         style_grp = self._compact_group(QGroupBox(self.tr("Style")))
+        style_grp.setCheckable(True)
         style_form = QFormLayout(style_grp)
         configure_form(style_form)
         self._add_form_row(style_form, self.tr("Line:"), cb_style)
@@ -472,7 +471,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             "color_btn": btn_color,
             "style": cb_style,
             "width": sp_width,
-            "visible": chk_visible,
+            "visible": style_grp,
             "normal": rb_normal,
             "muted": rb_muted,
             "highlighted": rb_highlighted,
@@ -491,7 +490,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             btn_marker_color.setEnabled(enabled)
 
         def sync_emphasis_options():
-            enabled = bool(chk_visible.isChecked())
+            enabled = bool(style_grp.isChecked())
             rb_normal.setEnabled(enabled)
             rb_muted.setEnabled(enabled)
             rb_highlighted.setEnabled(enabled)
@@ -529,7 +528,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             except Exception:
                 curve["line_style"] = "solid"
             curve["line_width"] = float(sp_width.value())
-            curve["visible"] = bool(chk_visible.isChecked())
+            curve["visible"] = bool(style_grp.isChecked())
             apply_emphasis_mode(curve, current_emphasis_mode())
             curve["show_markers"] = bool(markers_grp.isChecked())
             try:
@@ -582,7 +581,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             idx_style = cb_style.findData((curve.get("line_style") or "solid").strip())
             cb_style.setCurrentIndex(idx_style if idx_style >= 0 else 0)
             sp_width.setValue(clamp_float(curve.get("line_width") or 2.0, 2.0, 0.5, 12.0))
-            chk_visible.setChecked(bool(curve.get("visible", True)))
+            style_grp.setChecked(bool(curve.get("visible", True)))
             emphasis_mode = str(curve.get("emphasis_mode") or "normal").strip()
             if emphasis_mode == "highlighted":
                 rb_highlighted.setChecked(True)
@@ -634,7 +633,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         combo_curve.currentIndexChanged.connect(lambda _i: select_curve_from_combo())
         ed_label.textChanged.connect(update_current_label)
         markers_grp.toggled.connect(lambda _checked: sync_marker_options())
-        chk_visible.toggled.connect(lambda _checked: sync_emphasis_options())
+        style_grp.toggled.connect(lambda _checked: sync_emphasis_options())
         w._curve_store_current = store_current_curve
 
         refresh_curve_combo()
