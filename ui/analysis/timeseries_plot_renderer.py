@@ -879,6 +879,7 @@ class TimeSeriesPlotRenderer:
 
         if legend_pos in ("right", "left"):
             legend_w = float(getattr(widget, "_legend_reserved_w", legend_w) or legend_w)
+            legend_h = float(plot_rect.height())
         if legend_pos in ("top", "bottom"):
             legend_w = float(plot_rect.width())
             legend_h = float(getattr(widget, "_legend_reserved_h", legend_h) or legend_h)
@@ -886,10 +887,10 @@ class TimeSeriesPlotRenderer:
         pad = 6
         if legend_pos == "right":
             x0 = plot_rect.right() + 10 + (widget._right_axis_label_w if getattr(widget, "_right_axis_label_w", 0) else 0) + 20
-            y0 = plot_rect.top() + 10
+            y0 = plot_rect.top() + pad
         elif legend_pos == "left":
             x0 = pad
-            y0 = plot_rect.top() + 10
+            y0 = plot_rect.top() + pad
         elif legend_pos == "top":
             y0 = (plot_rect.top() - LEGEND_OUTSIDE_TOP_EXTRA - legend_h) + pad
             x0 = plot_rect.left() + pad
@@ -933,6 +934,97 @@ class TimeSeriesPlotRenderer:
             else:
                 painter.setPen(Qt.PenStyle.NoPen)
             painter.drawRect(rect_box)
+
+        if legend_pos in ("right", "left"):
+            content_rect = QRectF(x0, y0, max(0.0, legend_w - 2 * pad), max(0.0, legend_h - 2 * pad))
+            painter.setClipRect(QRectF(x0 - pad, y0 - pad, max(0.0, legend_w), max(0.0, legend_h)))
+            gap_cols = 8.0
+            btn_w = 10
+            btn_pad = 0
+            item_col_w = max(40.0, max((widget._legendItemWidth(series_idx, label, sym) for _mag, items in groups for series_idx, _color, label, _legend_type in items), default=40.0))
+            try:
+                use_two_cols = bool(widget._legendSideNeedsTwoColumns())
+            except Exception:
+                use_two_cols = False
+            item_cols = 2 if use_two_cols else 1
+            item_col_w = min(item_col_w, max(40.0, (content_rect.width() - (item_cols - 1) * gap_cols) / float(item_cols)))
+
+            def draw_item(series_idx, color, label, legend_type, cx, cy, col_w):
+                if not (0 <= int(series_idx) < len(widget.series)):
+                    return
+                s = widget.series[int(series_idx)]
+                muted = bool(s.get("muted", False))
+                highlighted = bool(s.get("highlighted", False))
+                line_visible = bool(s.get("visible", True))
+                markers_visible = bool(s.get("show_markers", False))
+                visible = line_visible or markers_visible
+                icon_y = cy + (LEGEND_ROW_H - sym) / 2.0
+                self._draw_legend_icon(
+                    painter,
+                    cx,
+                    icon_y,
+                    sym,
+                    legend_type,
+                    color,
+                    muted=muted,
+                    highlighted=highlighted,
+                    line_style=s.get("line_style") or "solid",
+                    line_width=s.get("line_width") or 2.0,
+                    visible=visible,
+                )
+
+                row_font = self._legend_row_font(s, bold=highlighted)
+                painter.setFont(row_font)
+                if not visible:
+                    painter.setPen(QColor(0, 0, 0, 75))
+                else:
+                    painter.setPen(QColor(0, 0, 0, 120) if muted else Qt.GlobalColor.black)
+                text_left = cx + sym + 6
+                label_w = QFontMetrics(row_font).horizontalAdvance(label)
+                max_text_w = max(0.0, (cx + col_w - btn_w - btn_pad) - text_left)
+                text_draw_w = min(float(label_w), max_text_w)
+                text_rect = QRectF(text_left, cy, max(0.0, text_draw_w), LEGEND_ROW_H)
+                painter.drawText(text_rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, label)
+
+                hit_rect = QRectF(cx, cy, max(0.0, col_w), LEGEND_ROW_H)
+                widget._legend_hitboxes.append((hit_rect, int(series_idx)))
+                delete_x = min(cx + col_w - btn_w, text_left + text_draw_w + 2)
+                delete_rect = QRectF(max(cx, delete_x), cy, btn_w, LEGEND_ROW_H)
+                widget._legend_delete_hitboxes.append((delete_rect, int(series_idx)))
+                painter.setFont(qfont(8, bold=True))
+                painter.setPen(QColor(0, 0, 0, 120) if muted else QColor(60, 60, 60))
+                painter.drawText(delete_rect, Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter, "×")
+
+                if widget._legend.drag_active and widget._legend.drop_target_idx == int(series_idx):
+                    painter.setPen(QPen(QColor(30, 30, 30), 2))
+                    painter.drawLine(QPointF(hit_rect.left(), hit_rect.top() - 1), QPointF(hit_rect.right(), hit_rect.top() - 1))
+
+            cur_y = float(content_rect.top())
+            max_y = float(content_rect.bottom())
+            for mag_title, items in groups:
+                if cur_y + LEGEND_ROW_H > max_y:
+                    break
+                painter.setFont(qfont(8, bold=True))
+                painter.setPen(TEXT_DARK)
+                painter.drawText(QRectF(content_rect.left(), cur_y, content_rect.width(), LEGEND_ROW_H), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, str(mag_title))
+                group_item_start_y = cur_y + float(LEGEND_ROW_GAP)
+                y_cols = [group_item_start_y for _ in range(item_cols)]
+
+                for item_idx, (series_idx, color, label, legend_type) in enumerate(items):
+                    col = 0
+                    if item_cols > 1 and y_cols[0] + LEGEND_ROW_H > max_y:
+                        col = 1
+                    elif item_cols > 1 and item_idx >= (len(items) + 1) // 2:
+                        col = 1
+                    cx = float(content_rect.left() + col * (item_col_w + gap_cols))
+                    cy = y_cols[col]
+                    if cy + LEGEND_ROW_H > max_y:
+                        continue
+                    draw_item(series_idx, color, label, legend_type, cx, cy, item_col_w)
+                    y_cols[col] += float(LEGEND_ROW_GAP)
+                cur_y = max(y_cols) + float(LEGEND_ROW_GAP)
+            painter.restore()
+            return
 
         if legend_pos in ("top", "bottom"):
             row_right_pad = 4

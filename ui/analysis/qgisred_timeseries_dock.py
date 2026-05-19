@@ -19,7 +19,7 @@ from .timeseries_axis_settings import default_axis_settings, default_general_set
 from .timeseries_plot_layout import PlotLayoutCalculator
 from .timeseries_legend_interaction import LegendInteractionController
 from .timeseries_plot_renderer import TimeSeriesPlotRenderer
-from .timeseries_plot_style import DEFAULT_SERIES_COLOR, LEGEND_ICON_SIZE, LEGEND_ROW_GAP, qfont
+from .timeseries_plot_style import DEFAULT_SERIES_COLOR, LEGEND_ICON_SIZE, LEGEND_ROW_GAP, PLOT_TOP_PAD, qfont
 
 try:
     from qgis.PyQt.QtSvg import QSvgGenerator
@@ -399,6 +399,12 @@ class TimeSeriesPlotWidget(QWidget):
             return max(0, int(self.width() - self.margin_left - self.margin_right))
         sym = int(getattr(gen, "legend_symbol_size", LEGEND_ICON_SIZE) or LEGEND_ICON_SIZE) if gen is not None else LEGEND_ICON_SIZE
         sym = max(6, min(sym, 24))
+        if legend_pos in ("right", "left"):
+            item_col_w = max((self._legendItemWidth(series_idx, label, sym) for _mag, items in groups for series_idx, _color, label, _legend_type in items), default=40.0)
+            header_w = max((QFontMetrics(qfont(8, bold=True)).horizontalAdvance(str(mag)) + 12 for mag, _items in groups), default=40)
+            cols = 2 if self._legendSideNeedsTwoColumns() else 1
+            gap = 8
+            return int(max(float(header_w), cols * float(item_col_w) + (cols - 1) * gap) + 12)
         cols = 1
         fm_hdr = QFontMetrics(qfont(8, bold=True))
         max_w = 0
@@ -461,6 +467,20 @@ class TimeSeriesPlotWidget(QWidget):
             else:
                 cur_w += gap + item_w
         return max(2, 1 + item_rows)
+
+    def _legendSideAvailableHeight(self) -> float:
+        top = float(getattr(self, "margin_top", 40) + PLOT_TOP_PAD)
+        bottom = float(getattr(self, "margin_bottom", 40))
+        return max(float(_LEGEND_ROW_GAP), float(self.height()) - top - bottom)
+
+    def _legendSideNeedsTwoColumns(self) -> bool:
+        groups = self._legendGroups()
+        if not groups:
+            return False
+        usable_h = max(float(_LEGEND_ROW_GAP), self._legendSideAvailableHeight() - 20.0)
+        max_rows = max(1, int(usable_h // float(_LEGEND_ROW_GAP)))
+        single_rows = sum(1 + len(items) + 1 for _mag, items in groups)
+        return single_rows > max_rows
 
     def _legendRequiredHeight(self) -> int:
         groups = self._legendGroups()
