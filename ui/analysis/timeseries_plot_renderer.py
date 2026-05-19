@@ -22,6 +22,7 @@ from .timeseries_plot_style import (
     DEFAULT_SERIES_COLOR,
     GRID_COLOR,
     LEGEND_ICON_SIZE,
+    LEGEND_POINT_SYMBOL_SIZE_MAX,
     LEGEND_OUTSIDE_BOTTOM_EXTRA,
     LEGEND_OUTSIDE_TOP_EXTRA,
     LEGEND_ROW_GAP,
@@ -845,7 +846,8 @@ class TimeSeriesPlotRenderer:
             diamond = QPolygonF([QPointF(cx, y + 2), QPointF(x + size - 2, cy), QPointF(cx, y + size - 2), QPointF(x + 2, cy)])
             painter.drawPolygon(diamond)
             return
-        painter.drawEllipse(QPointF(cx, cy), (size - 4) / 2, (size - 4) / 2)
+        point_size = min(float(size), float(LEGEND_POINT_SYMBOL_SIZE_MAX))
+        painter.drawEllipse(QPointF(cx, cy), (point_size - 4) / 2, (point_size - 4) / 2)
 
     def _draw_legend(self, widget, painter, plot_rect, x_state=None):
         groups = widget._legendGroups()

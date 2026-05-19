@@ -15,6 +15,8 @@ TOOLTIP_SEPARATOR = QColor(170, 170, 170)
 
 AXIS_MAX_TICKS = 30
 LEGEND_ICON_SIZE = 12
+# Point legend circles scale with symbol size up to this draw size (sym 24 maps here).
+LEGEND_POINT_SYMBOL_SIZE_MAX = 14
 LEGEND_ROW_H = 14
 LEGEND_ROW_GAP = 16
 # Extra horizontal space between outside-left legend and Y-axis title (px).
