@@ -849,7 +849,6 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             default_cfg.legend_bg_qcolor(),
             self.tr("Legend background"),
         )
-
         sp_sym = QSpinBox()
         sp_sym.setRange(6, 24)
         sp_sym.setValue(max(6, min(int(getattr(cfg, "legend_symbol_size", 12) or 12), 24)))
@@ -858,6 +857,15 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._add_form_row(legend_form, self.tr("Symbol size:"), sp_sym)
         legend_form.addRow("", chk_bg)
         self._add_form_row(legend_form, self.tr("Background color:"), bg_color_row)
+        bg_color_label = legend_form.labelForField(bg_color_row)
+
+        def sync_legend_bg_controls(checked: bool) -> None:
+            bg_color_row.setEnabled(checked)
+            if bg_color_label is not None:
+                bg_color_label.setEnabled(checked)
+
+        sync_legend_bg_controls(chk_bg.isChecked())
+        chk_bg.toggled.connect(sync_legend_bg_controls)
         legend_form.addRow("", chk_frame)
         lay.addWidget(legend_grp)
 
