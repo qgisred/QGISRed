@@ -5616,11 +5616,6 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Posición:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="859"/>
-        <source>Columns:</source>
-        <translation>Columnas:</translation>
-    </message>
-    <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="860"/>
         <source>Symbol size:</source>
         <translation>Tamaño del símbolo:</translation>

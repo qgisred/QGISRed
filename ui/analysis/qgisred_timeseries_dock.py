@@ -394,10 +394,12 @@ class TimeSeriesPlotWidget(QWidget):
         if not groups:
             return 0
         gen = getattr(self, "_general_cfg", None)
+        legend_pos = (getattr(gen, "legend_position", "") or "right").strip() if gen is not None else "right"
+        if legend_pos in ("top", "bottom"):
+            return max(0, int(self.width() - self.margin_left - self.margin_right))
         sym = int(getattr(gen, "legend_symbol_size", LEGEND_ICON_SIZE) or LEGEND_ICON_SIZE) if gen is not None else LEGEND_ICON_SIZE
         sym = max(6, min(sym, 24))
-        cols = int(getattr(gen, "legend_columns", 1) or 1) if gen is not None else 1
-        cols = max(1, min(cols, 6))
+        cols = 1
         fm_hdr = QFontMetrics(qfont(8, bold=True))
         max_w = 0
         for mag, items in groups:
@@ -424,13 +426,58 @@ class TimeSeriesPlotWidget(QWidget):
         gap = 8
         return int(cols * col_w + (cols - 1) * gap)
 
+    def _legendItemWidth(self, series_idx, label, sym: int) -> float:
+        row_font = qfont(8)
+        try:
+            if 0 <= int(series_idx) < len(self.series):
+                s = self.series[int(series_idx)]
+                fam = (s.get("legend_font_family") or "").strip()
+                size = max(6, min(int(s.get("legend_font_size") or 8), 32))
+                row_font = qfont(size)
+                if fam:
+                    row_font.setFamily(fam)
+        except Exception:
+            row_font = qfont(8)
+        btn_w = 10
+        return float(sym + 6 + QFontMetrics(row_font).horizontalAdvance(label) + btn_w + 8)
+
+    def _legendHorizontalGroupRows(self, mag_title, items, frame_w: float, sym: int) -> int:
+        frame_w = max(1.0, float(frame_w))
+        gap = 8.0
+        header_w = float(QFontMetrics(qfont(8, bold=True)).horizontalAdvance(str(mag_title)) + 12)
+        item_widths = [self._legendItemWidth(series_idx, label, sym) for series_idx, _color, label, _legend_type in items]
+        inline_w = header_w + sum(item_widths) + gap * len(item_widths)
+        if inline_w <= frame_w:
+            return 1
+        item_rows = 0
+        cur_w = 0.0
+        for item_w in item_widths:
+            if cur_w <= 0:
+                item_rows += 1
+                cur_w = item_w
+            elif cur_w + gap + item_w > frame_w:
+                item_rows += 1
+                cur_w = item_w
+            else:
+                cur_w += gap + item_w
+        return max(2, 1 + item_rows)
+
     def _legendRequiredHeight(self) -> int:
         groups = self._legendGroups()
         if not groups:
             return 0
         gen = getattr(self, "_general_cfg", None)
-        cols = int(getattr(gen, "legend_columns", 1) or 1) if gen is not None else 1
-        cols = max(1, min(cols, 6))
+        sym = int(getattr(gen, "legend_symbol_size", LEGEND_ICON_SIZE) or LEGEND_ICON_SIZE) if gen is not None else LEGEND_ICON_SIZE
+        sym = max(6, min(sym, 24))
+        legend_pos = (getattr(gen, "legend_position", "") or "right").strip() if gen is not None else "right"
+        if legend_pos in ("top", "bottom"):
+            available_w = max(1.0, float(self._legendRequiredWidth()))
+            frame_w = available_w / float(max(1, len(groups)))
+            max_rows = max(self._legendHorizontalGroupRows(mag, items, frame_w, sym) for mag, items in groups)
+            top_pad = 10
+            bottom_pad = 10
+            return int(top_pad + max_rows * _LEGEND_ROW_GAP + bottom_pad)
+        cols = 1
 
         row_steps = 0
         for _mag, items in groups:

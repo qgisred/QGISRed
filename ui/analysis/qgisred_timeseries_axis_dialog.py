@@ -854,12 +854,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         sp_sym.setRange(6, 24)
         sp_sym.setValue(max(6, min(int(getattr(cfg, "legend_symbol_size", 12) or 12), 24)))
 
-        sp_cols = QSpinBox()
-        sp_cols.setRange(1, 6)
-        sp_cols.setValue(max(1, int(getattr(cfg, "legend_columns", 1) or 1)))
-
         self._add_form_row(legend_form, self.tr("Position:"), cb_pos)
-        self._add_form_row(legend_form, self.tr("Columns:"), sp_cols)
         self._add_form_row(legend_form, self.tr("Symbol size:"), sp_sym)
         legend_form.addRow("", chk_bg)
         self._add_form_row(legend_form, self.tr("Background color:"), bg_color_row)
@@ -871,7 +866,6 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         w._legend_bg = chk_bg
         w._legend_bg_color_value = bg_color_value
         w._legend_sym = sp_sym
-        w._legend_cols = sp_cols
         return w
 
     def _build_tab(self, cfg: TimeSeriesAxisSettings, *, axis_title: str, show_decimals: bool, is_time_axis: bool) -> QWidget:
@@ -1148,7 +1142,6 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._cfg_gen.legend_show_background = bool(legend_tab._legend_bg.isChecked())
         self._cfg_gen.legend_bg_hex = legend_tab._legend_bg_color_value()
         self._cfg_gen.legend_symbol_size = int(legend_tab._legend_sym.value())
-        self._cfg_gen.legend_columns = int(legend_tab._legend_cols.value())
 
         self._read_tab(self._tab_axis_x, self._cfg_x)
         if self._tab_axis_yl is not None:

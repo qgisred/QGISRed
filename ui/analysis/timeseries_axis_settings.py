@@ -86,7 +86,6 @@ class TimeSeriesGeneralSettings:
     legend_show_background: bool = False
     legend_bg_hex: str = ""
     legend_symbol_size: int = 12
-    legend_columns: int = 1
 
     def resolved_title_font_family(self) -> str:
         f = (self.title_font_family or "").strip()

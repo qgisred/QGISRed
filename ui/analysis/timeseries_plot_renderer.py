@@ -854,8 +854,7 @@ class TimeSeriesPlotRenderer:
 
         gen = getattr(widget, "_general_cfg", None)
         legend_pos = (getattr(gen, "legend_position", "") or "right").strip() if gen is not None else "right"
-        cols = int(getattr(gen, "legend_columns", 1) or 1) if gen is not None else 1
-        cols = max(1, min(cols, 6))
+        cols = 1
         sym = int(getattr(gen, "legend_symbol_size", LEGEND_ICON_SIZE) or LEGEND_ICON_SIZE) if gen is not None else LEGEND_ICON_SIZE
         sym = max(6, min(sym, 24))
         show_bg = bool(getattr(gen, "legend_show_background", False)) if gen is not None else False
@@ -881,6 +880,7 @@ class TimeSeriesPlotRenderer:
         if legend_pos in ("right", "left"):
             legend_w = float(getattr(widget, "_legend_reserved_w", legend_w) or legend_w)
         if legend_pos in ("top", "bottom"):
+            legend_w = float(plot_rect.width())
             legend_h = float(getattr(widget, "_legend_reserved_h", legend_h) or legend_h)
 
         pad = 6
@@ -933,6 +933,96 @@ class TimeSeriesPlotRenderer:
             else:
                 painter.setPen(Qt.PenStyle.NoPen)
             painter.drawRect(rect_box)
+
+        if legend_pos in ("top", "bottom"):
+            row_right_pad = 4
+            btn_w = 10
+            btn_pad = 0
+            gap = 8.0
+            frame_w = max(1.0, (legend_w - 2 * pad) / float(max(1, len(groups))))
+
+            def item_width(series_idx, label):
+                if not (0 <= int(series_idx) < len(widget.series)):
+                    return 0.0
+                s = widget.series[int(series_idx)]
+                row_font = self._legend_row_font(s, bold=bool(s.get("highlighted", False)))
+                label_w = QFontMetrics(row_font).horizontalAdvance(label)
+                return float(sym + 6 + label_w + btn_w + 8)
+
+            for group_idx, (mag_title, items) in enumerate(groups):
+                frame_x = float(x0 + group_idx * frame_w)
+                frame_right = float(x0 + (group_idx + 1) * frame_w - row_right_pad)
+                y_row = float(y0)
+                painter.setFont(qfont(8, bold=True))
+                header_w = float(QFontMetrics(qfont(8, bold=True)).horizontalAdvance(str(mag_title)) + 12)
+                inline_w = header_w + sum(item_width(series_idx, label) for series_idx, _color, label, _legend_type in items) + gap * len(items)
+                inline = inline_w <= max(1.0, frame_w - row_right_pad)
+
+                header_rect = QRectF(frame_x, y_row, max(0.0, frame_right - frame_x), LEGEND_ROW_H)
+                painter.setPen(TEXT_DARK)
+                painter.drawText(header_rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, str(mag_title))
+
+                cur_x = frame_x + header_w if inline else frame_x
+                if not inline:
+                    y_row += float(LEGEND_ROW_GAP)
+
+                for series_idx, color, label, legend_type in items:
+                    if not (0 <= int(series_idx) < len(widget.series)):
+                        continue
+                    s = widget.series[int(series_idx)]
+                    item_w = item_width(series_idx, label)
+                    if cur_x > frame_x and cur_x + item_w > frame_right:
+                        y_row += float(LEGEND_ROW_GAP)
+                        cur_x = frame_x
+
+                    muted = bool(s.get("muted", False))
+                    highlighted = bool(s.get("highlighted", False))
+                    line_visible = bool(s.get("visible", True))
+                    markers_visible = bool(s.get("show_markers", False))
+                    visible = line_visible or markers_visible
+                    icon_y = y_row + (LEGEND_ROW_H - sym) / 2.0
+                    self._draw_legend_icon(
+                        painter,
+                        cur_x,
+                        icon_y,
+                        sym,
+                        legend_type,
+                        color,
+                        muted=muted,
+                        highlighted=highlighted,
+                        line_style=s.get("line_style") or "solid",
+                        line_width=s.get("line_width") or 2.0,
+                        visible=visible,
+                    )
+
+                    row_font = self._legend_row_font(s, bold=highlighted)
+                    painter.setFont(row_font)
+                    if not visible:
+                        painter.setPen(QColor(0, 0, 0, 75))
+                    else:
+                        painter.setPen(QColor(0, 0, 0, 120) if muted else Qt.GlobalColor.black)
+                    text_left = cur_x + sym + 6
+                    max_text_w = max(0.0, (frame_right - btn_w - btn_pad) - text_left)
+                    label_w = QFontMetrics(row_font).horizontalAdvance(label)
+                    text_draw_w = min(float(label_w), max_text_w)
+                    text_rect = QRectF(text_left, y_row, max(0.0, text_draw_w), LEGEND_ROW_H)
+                    painter.drawText(text_rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, label)
+
+                    hit_rect = QRectF(cur_x, y_row, max(0.0, item_w), LEGEND_ROW_H)
+                    widget._legend_hitboxes.append((hit_rect, int(series_idx)))
+                    delete_x = min(frame_right - btn_w, text_left + text_draw_w + 2)
+                    delete_rect = QRectF(max(cur_x, delete_x), y_row, btn_w, LEGEND_ROW_H)
+                    widget._legend_delete_hitboxes.append((delete_rect, int(series_idx)))
+                    painter.setFont(qfont(8, bold=True))
+                    painter.setPen(QColor(0, 0, 0, 120) if muted else QColor(60, 60, 60))
+                    painter.drawText(delete_rect, Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter, "×")
+
+                    if widget._legend.drag_active and widget._legend.drop_target_idx == int(series_idx):
+                        painter.setPen(QPen(QColor(30, 30, 30), 2))
+                        painter.drawLine(QPointF(hit_rect.left(), hit_rect.top() - 1), QPointF(hit_rect.right(), hit_rect.top() - 1))
+                    cur_x += item_w + gap
+            painter.restore()
+            return
 
         col_w = (legend_w - (cols - 1) * gap_cols) / float(cols) if cols > 0 else legend_w
         col_w = max(40.0, float(col_w))

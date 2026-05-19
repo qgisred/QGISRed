@@ -5473,11 +5473,6 @@ Left-click: Add a new item below the current selection</source>
         <translation>Posição:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="859"/>
-        <source>Columns:</source>
-        <translation>Colunas:</translation>
-    </message>
-    <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="860"/>
         <source>Symbol size:</source>
         <translation>Tamanho do símbolo:</translation>
