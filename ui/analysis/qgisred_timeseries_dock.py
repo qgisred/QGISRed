@@ -75,6 +75,7 @@ class TimeSeriesPlotWidget(QWidget):
         self._y_label_right = ""
         self._y_magnitudes_left = []
         self._y_magnitudes_right = []
+        self._left_axis_active = True
         self._right_axis_active = False
         self._right_axis_label_w = 0
         self._view_x_min = None
@@ -168,6 +169,7 @@ class TimeSeriesPlotWidget(QWidget):
         self._y_label_right = ""
         self._y_magnitudes_left = [self.y_label] if (self.y_label or "").strip() else []
         self._y_magnitudes_right = []
+        self._left_axis_active = bool(self._y_magnitudes_left)
         self._right_axis_active = False
         self._view_x_min = None
         self._view_x_max = None
@@ -212,24 +214,55 @@ class TimeSeriesPlotWidget(QWidget):
             if "y_axis" not in s:
                 s["y_axis"] = ""
 
+    def _magnitude_axis(self, magnitude: str) -> str:
+        mag = (magnitude or "").strip()
+        for s in self.series:
+            if (s.get("magnitude") or "").strip() == mag:
+                axis = (s.get("y_axis") or "").strip().lower()
+                if axis in ("left", "right"):
+                    return axis
+        return "left"
+
     def _assignYAxisByMagnitude(self) -> None:
         magnitudes: List[str] = []
         for s in self.series:
             m = (s.get("magnitude") or "").strip()
             if m and m not in magnitudes:
                 magnitudes.append(m)
-        left_mag = magnitudes[0] if magnitudes else ""
-        right_mags = magnitudes[1:] if len(magnitudes) > 1 else []
-        for s in self.series:
-            m = (s.get("magnitude") or "").strip()
-            if right_mags and m in right_mags:
-                s["y_axis"] = "right"
-            else:
-                s["y_axis"] = "left"
-        self._y_label_left = left_mag or self.y_label
+
+        has_explicit = any((s.get("y_axis") or "").strip().lower() in ("left", "right") for s in self.series)
+        if not has_explicit and magnitudes:
+            left_mag = magnitudes[0]
+            right_mags = set(magnitudes[1:])
+            for s in self.series:
+                m = (s.get("magnitude") or "").strip()
+                s["y_axis"] = "right" if m in right_mags else "left"
+        else:
+            for s in self.series:
+                axis = (s.get("y_axis") or "").strip().lower()
+                s["y_axis"] = axis if axis in ("left", "right") else "left"
+
+        left_mags: List[str] = []
+        right_mags: List[str] = []
+        seen_left = set()
+        seen_right = set()
+        for mag in magnitudes:
+            if self._magnitude_axis(mag) == "right":
+                if mag not in seen_right:
+                    right_mags.append(mag)
+                    seen_right.add(mag)
+            elif mag not in seen_left:
+                left_mags.append(mag)
+                seen_left.add(mag)
+
+        if not left_mags and not right_mags and (self.y_label or "").strip():
+            left_mags = [(self.y_label or "").strip()]
+
+        self._y_magnitudes_left = left_mags
+        self._y_magnitudes_right = right_mags
+        self._y_label_left = ", ".join(left_mags)
         self._y_label_right = ", ".join(right_mags)
-        self._y_magnitudes_left = [left_mag] if left_mag else ([self.y_label] if (self.y_label or "").strip() else [])
-        self._y_magnitudes_right = right_mags[:]
+        self._left_axis_active = bool(left_mags)
         self._right_axis_active = bool(right_mags)
 
     def setSeries(self, series, title="", x_label="Time", y_label="Value"):

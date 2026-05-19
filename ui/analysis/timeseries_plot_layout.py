@@ -32,6 +32,9 @@ class PlotLayoutCalculator:
         cfg = getattr(widget, "_axis_cfg_y_left", None)
         if cfg is None:
             return float(base_margin_left)
+        if not (getattr(widget, "_y_magnitudes_left", []) or []):
+            if not all_y_left and not y_cat_left:
+                return float(base_margin_left)
         tick_labels = preview_y_tick_labels(all_y_left, y_cat_left, cfg, plot_h, float(fm.height()))
         if not tick_labels:
             return float(base_margin_left)
@@ -39,7 +42,9 @@ class PlotLayoutCalculator:
         for label_text in tick_labels:
             max_label_w = max(max_label_w, fm.horizontalAdvance(label_text))
         title_extra = 0.0
-        title = (getattr(cfg, "title", "") or getattr(widget, "_y_label_left", "") or getattr(widget, "y_label", "") or "").strip()
+        title = (getattr(cfg, "title", "") or "").strip()
+        if not title and (getattr(widget, "_y_magnitudes_left", []) or []):
+            title = (getattr(widget, "_y_label_left", "") or "").strip()
         if title:
             title_size = max(5, min(int(getattr(cfg, "title_font_size", 10) or 10), 48))
             title_fm = QFontMetrics(QFont(cfg.resolved_title_font_family(), title_size))

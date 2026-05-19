@@ -329,12 +329,10 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._tab_axis_yr = None
 
         tabs.addTab(self._tab_axis_x, x_title)
-        if self._axis_is_used("left"):
-            self._tab_axis_yl = self._build_tab(self._cfg_yl, axis_title=y_left_title, show_decimals=True, is_time_axis=False)
-            tabs.addTab(self._tab_axis_yl, y_left_title)
-        if self._axis_is_used("right"):
-            self._tab_axis_yr = self._build_tab(self._cfg_yr, axis_title=y_right_title, show_decimals=True, is_time_axis=False)
-            tabs.addTab(self._tab_axis_yr, y_right_title)
+        self._tab_axis_yl = self._build_tab(self._cfg_yl, axis_title=y_left_title, show_decimals=True, is_time_axis=False)
+        tabs.addTab(self._tab_axis_yl, y_left_title)
+        self._tab_axis_yr = self._build_tab(self._cfg_yr, axis_title=y_right_title, show_decimals=True, is_time_axis=False)
+        tabs.addTab(self._tab_axis_yr, y_right_title)
         lay.addWidget(tabs, 1)
 
         return w, tabs
@@ -468,6 +466,20 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setStyleSheet("font-weight: bold; font-size: 11pt;")
         lay.addWidget(title)
+
+        axis_grp = self._compact_group(QGroupBox(self.tr("Y axis")))
+        axis_lay = QHBoxLayout(axis_grp)
+        axis_lay.setContentsMargins(8, 8, 8, 8)
+        axis_lay.setSpacing(12)
+        rb_axis_left = QRadioButton(self.tr("Axis Y left"))
+        rb_axis_right = QRadioButton(self.tr("Axis Y right"))
+        axis_button_group = QButtonGroup(w)
+        axis_button_group.addButton(rb_axis_left)
+        axis_button_group.addButton(rb_axis_right)
+        axis_lay.addWidget(rb_axis_left)
+        axis_lay.addWidget(rb_axis_right)
+        axis_lay.addStretch(1)
+        lay.addWidget(axis_grp)
 
         row = {}
         ed_label = QLineEdit()
@@ -627,6 +639,44 @@ class TimeSeriesAxisOptionsDialog(QDialog):
                 curve["highlighted"] = False
                 curve["muted"] = False
 
+        def magnitude_axis(magnitude) -> str:
+            mag = (magnitude or "").strip()
+            for curve in self._curve_cfg:
+                if curve_magnitude(curve) == mag:
+                    axis = (curve.get("y_axis") or "").strip().lower()
+                    if axis in ("left", "right"):
+                        return axis
+            return "left"
+
+        def set_magnitude_axis(magnitude, side: str) -> None:
+            mag = (magnitude or "").strip()
+            axis = "right" if str(side).strip().lower() == "right" else "left"
+            for curve in self._curve_cfg:
+                if curve_magnitude(curve) == mag:
+                    curve["y_axis"] = axis
+
+        def sync_magnitude_axis_radios(magnitude=None) -> None:
+            mag = magnitude
+            if mag is None:
+                mag = combo_magnitude.currentData()
+            axis = magnitude_axis(mag)
+            rb_axis_left.blockSignals(True)
+            rb_axis_right.blockSignals(True)
+            rb_axis_left.setChecked(axis != "right")
+            rb_axis_right.setChecked(axis == "right")
+            rb_axis_left.blockSignals(False)
+            rb_axis_right.blockSignals(False)
+
+        def on_magnitude_axis_changed(_checked=False) -> None:
+            if bool(getattr(w, "_curve_loading", False)):
+                return
+            mag = combo_magnitude.currentData()
+            if not mag:
+                return
+            side = "right" if rb_axis_right.isChecked() else "left"
+            set_magnitude_axis(mag, side)
+            self._schedule_live_apply()
+
         def store_current_curve():
             idx = int(getattr(w, "_curve_current_idx", -1))
             if idx < 0 or idx >= len(self._curve_cfg) or bool(getattr(w, "_curve_loading", False)):
@@ -650,6 +700,10 @@ class TimeSeriesAxisOptionsDialog(QDialog):
                 curve["marker_symbol"] = "circle"
             curve["marker_size"] = int(sp_marker_size.value())
             curve["marker_color"] = row["marker_color"].name(QColor.NameFormat.HexRgb)
+            mag = combo_magnitude.currentData()
+            if mag:
+                side = "right" if rb_axis_right.isChecked() else "left"
+                set_magnitude_axis(mag, side)
 
         def refresh_curve_combo(selected_idx=None):
             current_magnitude = combo_magnitude.currentData()
@@ -715,6 +769,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             row["marker_color"] = marker_qcolor
             self._show_color_on_button(btn_marker_color, marker_qcolor)
             sync_marker_options()
+            sync_magnitude_axis_radios(magnitude)
             w._curve_loading = False
 
         def select_curve_from_combo():
@@ -742,6 +797,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             if combo_idx >= 0:
                 combo_curve.setItemText(combo_idx, label)
 
+        rb_axis_left.toggled.connect(on_magnitude_axis_changed)
+        rb_axis_right.toggled.connect(on_magnitude_axis_changed)
         combo_magnitude.currentIndexChanged.connect(lambda _i: select_magnitude())
         combo_curve.currentIndexChanged.connect(lambda _i: select_curve_from_combo())
         ed_label.textChanged.connect(update_current_label)
@@ -752,6 +809,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         refresh_curve_combo()
         if combo_curve.count() > 0:
             load_curve(int(combo_curve.currentData()))
+        elif combo_magnitude.count() > 0:
+            sync_magnitude_axis_radios(combo_magnitude.currentData())
 
         return w
 
@@ -1327,6 +1386,12 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             s["highlighted"] = bool(curve.get("highlighted", False))
             if s["highlighted"]:
                 s["muted"] = False
+            axis = (curve.get("y_axis") or "").strip().lower()
+            s["y_axis"] = axis if axis in ("left", "right") else "left"
+        try:
+            self._plot._assignYAxisByMagnitude()
+        except Exception:
+            pass
         try:
             self._plot._emitSeriesEmphasisChanged()
         except Exception:

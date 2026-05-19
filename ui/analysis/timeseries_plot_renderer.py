@@ -147,12 +147,17 @@ class TimeSeriesPlotRenderer:
         left_series, right_series = widget._seriesByAxis()
         _lx, all_y_left, y_cat_left, _st_left = widget._axisSeriesData(left_series)
         _rx, all_y_right, y_cat_right, _st_right = widget._axisSeriesData(right_series)
-        y_state_left = self._compute_y_axis_state(widget, all_y_left, y_cat_left, plot_rect, painter, y_axis_side="left")
+        left_active = bool(getattr(widget, "_left_axis_active", True))
+        right_active = bool(getattr(widget, "_right_axis_active", False))
+        y_state_left = None
+        if left_active:
+            y_state_left = self._compute_y_axis_state(widget, all_y_left, y_cat_left, plot_rect, painter, y_axis_side="left")
         y_state_right = None
-        if all_y_right:
+        if right_active:
             y_state_right = self._compute_y_axis_state(widget, all_y_right, y_cat_right, plot_rect, painter, y_axis_side="right")
         widget._last_y_state_left = y_state_left
         widget._last_y_state_right = y_state_right
+        y_state_primary = y_state_left if y_state_left is not None else y_state_right
 
         painter.setFont(qfont(9))
         x_state = self._compute_x_axis_state(widget, widget.data_x, plot_rect, painter)
@@ -164,7 +169,17 @@ class TimeSeriesPlotRenderer:
             and widget._view_x_max is None
         ):
             widget._last_auto_x_state = x_state
-        self._draw_grid_and_axes(widget, painter, plot_rect, local_margin_left, right_axis_label_w, x_state, y_state_left, y_state_right)
+        self._draw_grid_and_axes(
+            widget,
+            painter,
+            plot_rect,
+            local_margin_left,
+            right_axis_label_w,
+            x_state,
+            y_state_left,
+            y_state_right,
+            y_state_primary=y_state_primary,
+        )
 
         if gen is not None:
             axis_pen = QPen(gen.frame_qcolor(), max(1, int(getattr(gen, "frame_width", 1) or 1)))
@@ -176,7 +191,18 @@ class TimeSeriesPlotRenderer:
         if y_state_right is not None and right_axis_label_w and right_axis_label_w > 0:
             painter.drawLine(plot_rect.bottomRight(), plot_rect.topRight())
 
-        self._draw_axis_titles(widget, painter, plot_rect, local_margin_left, right_axis_label_w, h, y_state_left, y_state_right)
+        self._draw_axis_titles(
+            widget,
+            painter,
+            plot_rect,
+            local_margin_left,
+            right_axis_label_w,
+            h,
+            y_state_left,
+            y_state_right,
+            left_active=left_active,
+            right_active=right_active,
+        )
         self._draw_series_curves(widget, painter, plot_rect, x_state, y_state_left, y_state_right)
         self._draw_legend(widget, painter, plot_rect, x_state)
         self._draw_hover_overlay(widget, painter, plot_rect, x_state, y_state_left, y_state_right)
@@ -518,36 +544,50 @@ class TimeSeriesPlotRenderer:
         except TypeError:
             return format_number_tick(value, step)
 
-    def _draw_grid_and_axes(self, widget, painter, plot_rect, local_margin_left, right_axis_label_w, x_state, y_state_left, y_state_right=None):
+    def _draw_grid_and_axes(
+        self,
+        widget,
+        painter,
+        plot_rect,
+        local_margin_left,
+        right_axis_label_w,
+        x_state,
+        y_state_left,
+        y_state_right=None,
+        *,
+        y_state_primary=None,
+    ):
         cfg_x = x_state.get("axis_cfg") or widget._axis_cfg_x
-        cfg_yl = y_state_left.get("axis_cfg") or widget._axis_cfg_y_left
+        y_state_primary = y_state_primary or y_state_left or y_state_right
         pen_grid = QPen(GRID_COLOR, 1, Qt.PenStyle.SolidLine)
         pen_grid_day_start = QPen(QColor(185, 195, 205), 1, Qt.PenStyle.SolidLine)
         pen_grid_day_start.setWidthF(1.2)
         tick_mark_len = 5.0
 
-        painter.setFont(self._tick_qfont(cfg_yl))
-        dec_yl = y_state_left.get("decimals")
-
-        for i in range(y_state_left["num_ticks_y"] + 1):
-            y_cat = y_state_left.get("y_categorical_labels") or widget.y_categorical_labels
-            if y_cat:
-                val_y = i
-                label_text = y_cat[i]
-            else:
-                val_y = y_state_left["y_tick_values"][i]
-                y_step = y_state_left.get("y_step") or 1.0
-                label_text = self._format_tick_number(val_y, y_step, dec_yl)
-
-            pt = self._to_screen(x_state["min_x"], val_y, plot_rect, x_state, y_state_left)
-            if cfg_yl.show_grid:
-                painter.setPen(pen_grid)
-                painter.drawLine(QPointF(plot_rect.left(), pt.y()), QPointF(plot_rect.right(), pt.y()))
-            painter.setPen(QPen(cfg_yl.tick_qcolor(), 1))
-            if getattr(cfg_yl, "show_tick_marks", False):
-                painter.drawLine(QPointF(plot_rect.left(), pt.y()), QPointF(plot_rect.left() - tick_mark_len, pt.y()))
+        if y_state_left is not None:
+            cfg_yl = y_state_left.get("axis_cfg") or widget._axis_cfg_y_left
             painter.setFont(self._tick_qfont(cfg_yl))
-            painter.drawText(QRectF(0, pt.y() - 10, local_margin_left - 5, 20), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, label_text)
+            dec_yl = y_state_left.get("decimals")
+
+            for i in range(y_state_left["num_ticks_y"] + 1):
+                y_cat = y_state_left.get("y_categorical_labels") or widget.y_categorical_labels
+                if y_cat:
+                    val_y = i
+                    label_text = y_cat[i]
+                else:
+                    val_y = y_state_left["y_tick_values"][i]
+                    y_step = y_state_left.get("y_step") or 1.0
+                    label_text = self._format_tick_number(val_y, y_step, dec_yl)
+
+                pt = self._to_screen(x_state["min_x"], val_y, plot_rect, x_state, y_state_left)
+                if cfg_yl.show_grid:
+                    painter.setPen(pen_grid)
+                    painter.drawLine(QPointF(plot_rect.left(), pt.y()), QPointF(plot_rect.right(), pt.y()))
+                painter.setPen(QPen(cfg_yl.tick_qcolor(), 1))
+                if getattr(cfg_yl, "show_tick_marks", False):
+                    painter.drawLine(QPointF(plot_rect.left(), pt.y()), QPointF(plot_rect.left() - tick_mark_len, pt.y()))
+                painter.setFont(self._tick_qfont(cfg_yl))
+                painter.drawText(QRectF(0, pt.y() - 10, local_margin_left - 5, 20), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, label_text)
 
         if y_state_right is not None and right_axis_label_w and right_axis_label_w > 0:
             cfg_yr = y_state_right.get("axis_cfg") or widget._axis_cfg_y_right
@@ -583,7 +623,9 @@ class TimeSeriesPlotRenderer:
             tick_w = float(x_state.get("label_px", self._estimate_x_axis_label_px(painter, has_days=has_days, hour_format=hour_format)))
             day_format = (getattr(cfg_x, "x_day_format", "") or "split_days").strip()
             for val_x in x_state.get("x_tick_values", x_state["x_scale"].ticks()):
-                pt = self._to_screen(val_x, y_state_left["min_y"], plot_rect, x_state, y_state_left)
+                if y_state_primary is None:
+                    continue
+                pt = self._to_screen(val_x, y_state_primary["min_y"], plot_rect, x_state, y_state_primary)
 
                 is_day_start = False
                 if has_days:
@@ -645,18 +687,31 @@ class TimeSeriesPlotRenderer:
         painter.restore()
         return float(max_width)
 
-    def _draw_axis_titles(self, widget, painter, plot_rect, local_margin_left, right_axis_label_w, widget_h, y_state_left=None, y_state_right=None):
+    def _draw_axis_titles(
+        self,
+        widget,
+        painter,
+        plot_rect,
+        local_margin_left,
+        right_axis_label_w,
+        widget_h,
+        y_state_left=None,
+        y_state_right=None,
+        *,
+        left_active=True,
+        right_active=False,
+    ):
         cfg_x = widget._axis_cfg_x
         cfg_yl = widget._axis_cfg_y_left
         cfg_yr = widget._axis_cfg_y_right
 
-        left_title = (cfg_yl.title or "").strip()
-        if not left_title:
-            left_title_raw = (widget._y_label_left or widget.y_label or "").strip()
-            left_count = len(getattr(widget, "_y_magnitudes_left", []) or [])
-            if left_count == 0 and left_title_raw:
-                left_count = 1
-            left_title = self._axis_title_for_count(left_title_raw, left_count)
+        left_title = ""
+        if left_active and y_state_left is not None:
+            left_title = (cfg_yl.title or "").strip()
+            if not left_title:
+                left_title_raw = (widget._y_label_left or "").strip()
+                left_count = len(getattr(widget, "_y_magnitudes_left", []) or [])
+                left_title = self._axis_title_for_count(left_title_raw, left_count)
         if left_title:
             painter.save()
             painter.setFont(self._title_qfont(cfg_yl))
@@ -670,7 +725,7 @@ class TimeSeriesPlotRenderer:
             painter.drawText(QRectF(-120, -10, 240, 20), Qt.AlignmentFlag.AlignCenter, left_title)
             painter.restore()
 
-        if widget._right_axis_active and right_axis_label_w and right_axis_label_w > 0:
+        if right_active and y_state_right is not None and right_axis_label_w and right_axis_label_w > 0:
             right_title = (cfg_yr.title or "").strip()
             if not right_title:
                 right_title_raw = (widget._y_label_right or "").strip()

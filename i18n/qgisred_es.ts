@@ -5855,6 +5855,11 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <source>Live update</source>
         <translation>Actualización en directo</translation>
     </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="472"/>
+        <source>Y axis</source>
+        <translation>Eje Y</translation>
+    </message>
 </context>
 <context>
     <name>TimeSeriesPlotWidget</name>

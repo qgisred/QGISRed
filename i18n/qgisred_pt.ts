@@ -5702,6 +5702,11 @@ Left-click: Add a new item below the current selection</source>
         <source>Live update</source>
         <translation>Atualização em direto</translation>
     </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="472"/>
+        <source>Y axis</source>
+        <translation>Eixo Y</translation>
+    </message>
 </context>
 <context>
     <name>TimeSeriesPlotWidget</name>
