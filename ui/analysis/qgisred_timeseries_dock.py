@@ -102,10 +102,14 @@ class TimeSeriesPlotWidget(QWidget):
             self.update()
 
     def _updateMinimumWidthForTitle(self) -> None:
-        title = (self.title or "").strip()
+        gen = getattr(self, "_general_cfg", None)
+        title = ""
+        if gen is not None and (getattr(gen, "title", "") or "").strip():
+            title = (gen.title or "").strip()
+        if not title:
+            title = (self.title or "").strip()
         if not title:
             title = self.tr("Time evolution curves")
-        gen = getattr(self, "_general_cfg", None)
         if gen is not None:
             title_size = max(5, min(int(getattr(gen, "title_font_size", 10) or 10), 48))
             title_font = QFont(gen.resolved_title_font_family(), title_size)
@@ -115,6 +119,12 @@ class TimeSeriesPlotWidget(QWidget):
         title_w = QFontMetrics(title_font).horizontalAdvance(title)
         pad = 24
         min_w = max(int(self._base_min_w), int(title_w + pad))
+        try:
+            cur_min_w = int(self.minimumWidth())
+        except Exception:
+            cur_min_w = 0
+        if cur_min_w == min_w:
+            return
         if hasattr(self, "setMinimumWidth"):
             self.setMinimumWidth(min_w)
         else:

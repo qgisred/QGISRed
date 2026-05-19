@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+import copy
 import math
 import os
 
-from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtCore import Qt, QTimer
 from qgis.PyQt.QtGui import QColor, QFont
 from qgis.PyQt.QtWidgets import (
     QApplication,
@@ -42,6 +43,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
     _LONG_FIELD_WIDTH = 360
     _FORM_FIELD_WIDTH = 280
     _FONT_FIELD_WIDTH = 260
+    _LIVE_UPDATE_SETTINGS_KEY = "QGISRed/timeseries_chart_live_update"
 
     def __init__(self, plot_widget, parent=None):
         win = parent.window() if parent is not None else None
@@ -56,6 +58,16 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._cfg_yr = clone_axis_settings(plot_widget._axis_cfg_y_right)
         self._cfg_gen = clone_general_settings(getattr(plot_widget, "_general_cfg", TimeSeriesGeneralSettings()))
         self._curve_cfg = [dict(s) for s in (getattr(plot_widget, "series", []) or [])]
+        self._snapshot_x = clone_axis_settings(plot_widget._axis_cfg_x)
+        self._snapshot_yl = clone_axis_settings(plot_widget._axis_cfg_y_left)
+        self._snapshot_yr = clone_axis_settings(plot_widget._axis_cfg_y_right)
+        self._snapshot_gen = clone_general_settings(getattr(plot_widget, "_general_cfg", TimeSeriesGeneralSettings()))
+        self._snapshot_series = copy.deepcopy(getattr(plot_widget, "series", []) or [])
+        self._dirty_applied = False
+        self._ui_dirty = False
+        self._live_apply_timer = QTimer(self)
+        self._live_apply_timer.setSingleShot(True)
+        self._live_apply_timer.timeout.connect(self._apply_options_if_live)
 
         root = QVBoxLayout(self)
         root.setSpacing(10)
@@ -90,13 +102,26 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         buttons.accepted.connect(self._on_accept)
         buttons.rejected.connect(self.reject)
         apply_button.clicked.connect(self._apply_options)
-        root.addWidget(buttons)
+
+        self._chk_live_update = QCheckBox(self.tr("Live update"))
+        self._chk_live_update.setChecked(self._load_live_update_pref())
+        self._chk_live_update.toggled.connect(self._on_live_update_toggled)
+
+        footer = QWidget(self)
+        footer_lay = QHBoxLayout(footer)
+        footer_lay.setContentsMargins(0, 0, 0, 0)
+        footer_lay.setSpacing(12)
+        footer_lay.addWidget(self._chk_live_update)
+        footer_lay.addStretch(1)
+        footer_lay.addWidget(buttons)
+        root.addWidget(footer)
 
         self._tabs = tabs
         self._axes_tabs = axes_tabs
         self._tab_general = tab_general
         self._tab_legend = tab_legend
         self._tab_curves = tab_curves
+        self._connect_live_update_signals(content)
         self._configure_initial_geometry()
 
     def _make_form_label(self, text: str) -> QLabel:
@@ -133,7 +158,87 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         grp.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
         return grp
 
-    def _build_text_style_row(self, *, font_family: str, font_size: int, color: QColor, color_title: str):
+    def _load_live_update_pref(self) -> bool:
+        try:
+            from qgis.core import QgsSettings
+
+            return bool(QgsSettings().value(self._LIVE_UPDATE_SETTINGS_KEY, False, type=bool))
+        except Exception:
+            return False
+
+    def _save_live_update_pref(self, enabled: bool) -> None:
+        try:
+            from qgis.core import QgsSettings
+
+            QgsSettings().setValue(self._LIVE_UPDATE_SETTINGS_KEY, bool(enabled))
+        except Exception:
+            pass
+
+    def _schedule_live_apply(self, *_args) -> None:
+        if bool(getattr(self._tab_curves, "_curve_loading", False)):
+            return
+        if not self._chk_live_update.isChecked():
+            self._ui_dirty = True
+            return
+        self._live_apply_timer.start(80)
+
+    def _apply_options_if_live(self) -> None:
+        if self._chk_live_update.isChecked():
+            self._apply_options()
+
+    def _on_live_update_toggled(self, checked: bool) -> None:
+        self._save_live_update_pref(checked)
+        if checked and self._ui_dirty:
+            self._apply_options()
+            self._ui_dirty = False
+
+    def _connect_live_update_signals(self, root: QWidget) -> None:
+        for spin in root.findChildren(QSpinBox):
+            spin.valueChanged.connect(self._schedule_live_apply)
+        for spin in root.findChildren(QDoubleSpinBox):
+            spin.valueChanged.connect(self._schedule_live_apply)
+        for combo in root.findChildren(QComboBox):
+            combo.currentIndexChanged.connect(self._schedule_live_apply)
+        for chk in root.findChildren(QCheckBox):
+            chk.toggled.connect(self._schedule_live_apply)
+        for edit in root.findChildren(QLineEdit):
+            edit.textChanged.connect(self._schedule_live_apply)
+        for radio in root.findChildren(QRadioButton):
+            radio.toggled.connect(self._schedule_live_apply)
+        for font_combo in root.findChildren(QFontComboBox):
+            try:
+                font_combo.currentFontChanged.connect(self._schedule_live_apply)
+            except Exception:
+                pass
+        for grp in root.findChildren(QGroupBox):
+            if grp.isCheckable():
+                grp.toggled.connect(self._schedule_live_apply)
+
+    def _restore_snapshot(self) -> None:
+        self._plot._axis_cfg_x = clone_axis_settings(self._snapshot_x)
+        self._plot._axis_cfg_y_left = clone_axis_settings(self._snapshot_yl)
+        self._plot._axis_cfg_y_right = clone_axis_settings(self._snapshot_yr)
+        self._plot._general_cfg = clone_general_settings(self._snapshot_gen)
+        series = getattr(self._plot, "series", []) or []
+        for idx, snap in enumerate(self._snapshot_series):
+            if idx >= len(series):
+                break
+            if isinstance(snap, dict):
+                series[idx].clear()
+                series[idx].update(copy.deepcopy(snap))
+        self._plot._updateMinimumWidthForTitle()
+        self._plot.update()
+        try:
+            self._plot._emitSeriesEmphasisChanged()
+        except Exception:
+            pass
+
+    def reject(self) -> None:
+        if self._dirty_applied:
+            self._restore_snapshot()
+        super().reject()
+
+    def _build_text_style_row(self, *, font_family: str, font_size: int, color: QColor, color_title: str, on_changed=None):
         row = QWidget()
         row_lay = QHBoxLayout(row)
         row_lay.setContentsMargins(0, 0, 0, 0)
@@ -168,6 +273,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             if nc.isValid():
                 row._text_style_color = nc
                 self._show_color_on_button(btn_color, nc)
+                if callable(on_changed):
+                    on_changed()
 
         btn_color.clicked.connect(pick_color)
 
@@ -385,6 +492,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             if nc.isValid():
                 row["color"] = nc
                 self._show_color_on_button(btn_color, nc)
+                self._schedule_live_apply()
 
         btn_color.clicked.connect(pick_color)
 
@@ -437,6 +545,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             if nc.isValid():
                 row["marker_color"] = nc
                 self._show_color_on_button(btn_marker_color, nc)
+                self._schedule_live_apply()
 
         btn_marker_color.clicked.connect(pick_marker_color)
 
@@ -683,9 +792,15 @@ class TimeSeriesAxisOptionsDialog(QDialog):
                     picked = nc
                     chk_default.setChecked(False)
                     refresh()
+                    self._schedule_live_apply()
 
             btn.clicked.connect(pick_color)
-            chk_default.toggled.connect(lambda _checked: refresh())
+
+            def on_default_toggled(_checked):
+                refresh()
+                self._schedule_live_apply()
+
+            chk_default.toggled.connect(on_default_toggled)
             refresh()
 
             def value():
@@ -707,6 +822,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             font_size=getattr(cfg, "title_font_size", 10),
             color=cfg.title_qcolor(),
             color_title=self.tr("Plot title color"),
+            on_changed=self._schedule_live_apply,
         )
         title_lay.addWidget(title_style_row)
         lay.addWidget(title_grp)
@@ -809,9 +925,15 @@ class TimeSeriesAxisOptionsDialog(QDialog):
                     picked = nc
                     chk_default.setChecked(False)
                     refresh()
+                    self._schedule_live_apply()
 
             btn.clicked.connect(pick_color)
-            chk_default.toggled.connect(lambda _checked: refresh())
+
+            def on_default_toggled(_checked):
+                refresh()
+                self._schedule_live_apply()
+
+            chk_default.toggled.connect(on_default_toggled)
             refresh()
 
             def value():
@@ -905,6 +1027,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             font_size=getattr(cfg, "title_font_size", 10),
             color=cfg.title_qcolor(),
             color_title=self.tr("Axis title color"),
+            on_changed=self._schedule_live_apply,
         )
         title_lay.addWidget(title_style_row)
         lay.addWidget(title_grp)
@@ -1004,6 +1127,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             if nc.isValid():
                 w._picked_color = nc
                 refresh_color_btn()
+                self._schedule_live_apply()
 
         btn_color.clicked.connect(pick_color)
         btn_color.setMinimumHeight(28)
@@ -1166,6 +1290,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._plot._general_cfg = self._cfg_gen
         self._plot._updateMinimumWidthForTitle()
         self._plot.update()
+        self._dirty_applied = True
+        self._ui_dirty = False
 
     def _on_accept(self) -> None:
         self._apply_options()

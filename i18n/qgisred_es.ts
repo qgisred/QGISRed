@@ -5850,6 +5850,11 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <source>Magnitude</source>
         <translation>Magnitud</translation>
     </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="107"/>
+        <source>Live update</source>
+        <translation>Actualización en directo</translation>
+    </message>
 </context>
 <context>
     <name>TimeSeriesPlotWidget</name>
