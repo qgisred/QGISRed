@@ -3,6 +3,11 @@ import pytest
 
 
 from QGISRed.ui.analysis.timeseries_plot_renderer import TimeSeriesPlotRenderer
+from QGISRed.ui.analysis.timeseries_time_utils import (
+    civil_midnight_elapsed_hours,
+    format_civil_time,
+    parse_clock_time_to_seconds,
+)
 
 
 class _Rect:
@@ -71,6 +76,32 @@ class TestTimeFormatting:
     def test_axis_tick_format(self, hours, expected):
         r = TimeSeriesPlotRenderer()
         assert r._format_absolute_time_hours_axis(hours) == expected
+
+    def test_time_of_day_axis_uses_start_clock(self):
+        r = TimeSeriesPlotRenderer()
+        start = parse_clock_time_to_seconds("17:00")
+
+        assert r._format_absolute_time_hours_axis(0.0, hour_format="hm", start_clock_seconds=start) == "17:00"
+        assert r._format_absolute_time_hours_axis(7.0, hour_format="hm", start_clock_seconds=start) == "0:00\n1d"
+        assert r._format_absolute_time_hours_axis(16.0 + 11.0 / 60.0 + 7.0 / 3600.0, hour_format="hm", start_clock_seconds=start) == "9:11"
+
+    def test_time_of_day_axis_supports_am_pm(self):
+        r = TimeSeriesPlotRenderer()
+        start = parse_clock_time_to_seconds("17:00")
+
+        assert r._format_absolute_time_hours_axis(0.0, hour_format="hm_ampm", start_clock_seconds=start) == "5:00 pm"
+        assert r._format_absolute_time_hours_axis(7.0, hour_format="hm_ampm", start_clock_seconds=start) == "12:00 am\n1d"
+
+    def test_csv_civil_time_includes_day_and_seconds(self):
+        start = parse_clock_time_to_seconds("17:00")
+
+        assert format_civil_time(0.0, start) == "0d 17:00:00"
+        assert format_civil_time(16.0 + 11.0 / 60.0 + 7.0 / 3600.0, start) == "1d 9:11:07"
+
+    def test_civil_midnight_ticks_include_first_day_boundary(self):
+        start = parse_clock_time_to_seconds("17:00")
+
+        assert civil_midnight_elapsed_hours(0.0, 10.0, start) == [7.0]
 
 
 class TestTooltipValueFormatting:

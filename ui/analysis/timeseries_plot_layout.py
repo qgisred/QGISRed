@@ -7,6 +7,7 @@ from qgis.PyQt.QtCore import QRectF
 from qgis.PyQt.QtGui import QFont, QFontMetrics
 
 from .timeseries_axis_settings import preview_y_tick_labels
+from .timeseries_time_utils import civil_time_parts
 from .timeseries_plot_style import FONT_FAMILY, LEGEND_OUTSIDE_BOTTOM_EXTRA, LEGEND_OUTSIDE_LEFT_EXTRA, LEGEND_OUTSIDE_TOP_EXTRA, PLOT_TOP_PAD
 
 
@@ -133,7 +134,15 @@ class PlotLayoutCalculator:
                 eff_max = float(cfg_x.fixed_max)
             else:
                 eff_max = max(widget.data_x)
-            has_days = eff_max >= 24
+            hour_format = (getattr(cfg_x, "x_hour_format", "") or "hm").strip() if cfg_x is not None else "hm"
+            day_format = (getattr(cfg_x, "x_day_format", "") or "split_days").strip() if cfg_x is not None else "split_days"
+            if hour_format in ("hm", "hm_ampm", "tod_hm", "tod_ampm"):
+                start_clock_seconds = int(getattr(widget, "_start_clock_seconds", 0) or 0)
+                min_parts = civil_time_parts(min(widget.data_x), start_clock_seconds)
+                max_parts = civil_time_parts(eff_max, start_clock_seconds)
+                has_days = bool(day_format == "split_days" and min_parts is not None and max_parts is not None and max_parts[0] > min_parts[0])
+            else:
+                has_days = eff_max >= 24 and day_format == "split_days"
             tick_block_h = fm_x.height() * 2 + 16 if has_days else fm_x.height() + 20
             axis_title_h = (fm_title_x.height() + 2 + 2 + 6) if cls._effective_x_title(widget) else 0
             extra = tick_block_h + axis_title_h

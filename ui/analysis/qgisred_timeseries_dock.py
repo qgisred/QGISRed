@@ -14,12 +14,12 @@ from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 
 from .qgisred_timeseries_axis_dialog import TimeSeriesAxisOptionsDialog
-from .qgisred_results_data import get_regional_separators
 from .timeseries_axis_settings import default_axis_settings, default_general_settings
 from .timeseries_plot_layout import PlotLayoutCalculator
 from .timeseries_legend_interaction import LegendInteractionController
 from .timeseries_plot_renderer import TimeSeriesPlotRenderer
 from .timeseries_plot_style import DEFAULT_SERIES_COLOR, LEGEND_ICON_SIZE, LEGEND_ROW_GAP, PLOT_TOP_PAD, qfont
+from .timeseries_time_utils import format_civil_time, simulation_start_clock_seconds
 
 try:
     from qgis.PyQt.QtSvg import QSvgGenerator
@@ -89,6 +89,7 @@ class TimeSeriesPlotWidget(QWidget):
         self._zoom_window_start_pos = None
         self._zoom_rubber_band = QRubberBand(QRubberBand.Shape.Rectangle, self)
         self._synced_cursor_time_hours = None
+        self._start_clock_seconds = 0
         self._axis_cfg_x = default_axis_settings()
         self._axis_cfg_y_left = default_axis_settings()
         self._axis_cfg_y_right = default_axis_settings()
@@ -639,6 +640,16 @@ class TimeSeriesPlotWidget(QWidget):
         if self._synced_cursor_time_hours is not None:
             self._synced_cursor_time_hours = None
             self.update()
+
+    def setStartClockSeconds(self, seconds) -> None:
+        try:
+            value = int(seconds) % 86400
+        except Exception:
+            value = 0
+        if self._start_clock_seconds == value:
+            return
+        self._start_clock_seconds = value
+        self.update()
 
     def _getCurrentXRange(self):
         if not getattr(self, "_axis_cfg_x", None).auto_scale:
@@ -1294,6 +1305,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         if self._resultsDock is results_dock:
             self._syncCurrentResultsTime()
             self._updateClearToolbarVisibility()
+            self._refreshStartClockSeconds()
             return
 
         if self._resultsDock is not None:
@@ -1309,6 +1321,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             except Exception:
                 pass
             self._syncCurrentResultsTime()
+        self._refreshStartClockSeconds()
         self._updateClearToolbarVisibility()
 
     def disconnectResultsDock(self) -> None:
@@ -1320,6 +1333,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self._resultsDock = None
         self._lastResultsTimeText = ""
         self.plot.clearSyncedCursor()
+        self.plot.setStartClockSeconds(0)
         if hasattr(self, "btnSyncCursor") and self.btnSyncCursor is not None and self.btnSyncCursor.isChecked():
             self.btnSyncCursor.setChecked(False)
         self._updateClearToolbarVisibility()
@@ -1499,16 +1513,20 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             text = text.replace(".", decimal_sep)
         return text
 
+    def _refreshStartClockSeconds(self) -> None:
+        dock = getattr(self, "_resultsDock", None)
+        if dock is None:
+            self.plot.setStartClockSeconds(0)
+            return
+        start_seconds = simulation_start_clock_seconds(
+            getattr(dock, "ProjectDirectory", "") or "",
+            getattr(dock, "NetworkName", "") or "",
+            getattr(dock, "outPath", "") or "",
+        )
+        self.plot.setStartClockSeconds(start_seconds)
+
     def _formatCsvCivilTime(self, hours) -> str:
-        try:
-            total_seconds = int(round(float(hours) * 3600.0))
-        except Exception:
-            return ""
-        seconds_in_day = total_seconds % 86400
-        h = seconds_in_day // 3600
-        m = (seconds_in_day % 3600) // 60
-        s = seconds_in_day % 60
-        return f"{h:02d}:{m:02d}:{s:02d}"
+        return format_civil_time(hours, getattr(self.plot, "_start_clock_seconds", 0), include_seconds=True)
 
     def _seriesCsvDecimalPlaces(self, series_dict):
         if series_dict.get("y_categorical_labels"):
@@ -1542,6 +1560,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         if not self._plotHasCurves():
             self._showMessage(self.tr("No curves to export"), level=1)
             return
+        self._refreshStartClockSeconds()
 
         default_path = os.path.join(os.path.expanduser("~"), self._safeExportBaseName() + ".csv")
         path, _selected_filter = QFileDialog.getSaveFileName(
@@ -1554,6 +1573,8 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             return
         if not path.lower().endswith(".csv"):
             path += ".csv"
+
+        from .qgisred_results_data import get_regional_separators
 
         list_sep, decimal_sep = get_regional_separators()
         rows = []
@@ -1698,6 +1719,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self._updatePanAvailability()
 
     def updatePlot(self, x, y, title, x_label, y_label, is_stepped=False, y_categorical_labels=None, series_label=""):
+        self._refreshStartClockSeconds()
         self.plot.setData(x, y, title, x_label, y_label, is_stepped, y_categorical_labels, series_label)
         if hasattr(self, "btnSyncCursor") and self.btnSyncCursor is not None and self.btnSyncCursor.isChecked():
             self._syncCurrentResultsTime()
@@ -1705,6 +1727,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self._updatePanAvailability()
 
     def updatePlotSeries(self, series, title, x_label, y_label):
+        self._refreshStartClockSeconds()
         self.plot.setSeries(series, title, x_label, y_label)
         if hasattr(self, "btnSyncCursor") and self.btnSyncCursor is not None and self.btnSyncCursor.isChecked():
             self._syncCurrentResultsTime()

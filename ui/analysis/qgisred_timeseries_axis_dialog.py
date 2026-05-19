@@ -1261,7 +1261,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
 
             combo_hour = QComboBox()
             combo_hour.addItem(self.tr("hh"), "h")
-            combo_hour.addItem(self.tr("hh:mm"), "hm")
+            combo_hour.addItem(self.tr("Time of Day hh:mm"), "hm")
+            combo_hour.addItem(self.tr("hh:mm am/pm"), "hm_ampm")
             cur_h = (getattr(cfg, "x_hour_format", "") or "hm").strip()
             idx_h = combo_hour.findData(cur_h)
             combo_hour.setCurrentIndex(idx_h if idx_h >= 0 else 0)
@@ -1278,6 +1279,18 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             self._add_form_row(time_form, self.tr("Hour:"), combo_hour)
             self._add_form_row(time_form, self.tr("Days:"), combo_days)
             lay.addWidget(time_grp)
+
+            def sync_days_for_hour_format():
+                hour_fmt = str(combo_hour.currentData() or "hm")
+                is_time_of_day = hour_fmt in ("hm", "hm_ampm", "tod_hm", "tod_ampm")
+                if is_time_of_day:
+                    idx_split = combo_days.findData("split_days")
+                    if idx_split >= 0:
+                        combo_days.setCurrentIndex(idx_split)
+                combo_days.setEnabled(not is_time_of_day)
+
+            combo_hour.currentIndexChanged.connect(lambda _i: sync_days_for_hour_format())
+            sync_days_for_hour_format()
 
         def sync_fixed_enabled():
             auto = combo_scale.currentIndex() == 0

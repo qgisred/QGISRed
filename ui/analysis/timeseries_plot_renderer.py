@@ -16,6 +16,7 @@ from ...tools.utils.qgisred_axis_scale_utils import (
 )
 
 from .timeseries_axis_settings import TimeSeriesAxisSettings, build_fixed_linear_scale
+from .timeseries_time_utils import civil_midnight_elapsed_hours, civil_time_parts, format_civil_time
 from .timeseries_plot_style import (
     AXIS_MAX_TICKS,
     BORDER_COLOR,
@@ -446,17 +447,23 @@ class TimeSeriesPlotRenderer:
             "decimals": dec,
         }
 
+    def _is_time_of_day_format(self, hour_format: str) -> bool:
+        return (hour_format or "").strip() in ("hm", "hm_ampm", "tod_hm", "tod_ampm")
+
     def _estimate_x_axis_label_px(self, painter, *, has_days: bool, hour_format: str = "hm") -> float:
         fm = painter.fontMetrics()
         hour_format = (hour_format or "hm").strip()
-        time_sample = "999" if hour_format == "h" else "999:59"
+        if hour_format in ("hm_ampm", "tod_ampm"):
+            time_sample = "12:59 pm"
+        else:
+            time_sample = "999" if hour_format == "h" else "23:59"
         if has_days:
             w_top = fm.horizontalAdvance(time_sample)
             w_bottom = fm.horizontalAdvance("999d")
             return max(w_top, w_bottom) + 18
         return fm.horizontalAdvance(time_sample) + 18
 
-    def _format_time_axis_tick(self, hours: float, *, hour_format: str, day_format: str) -> str:
+    def _format_time_axis_tick(self, hours: float, *, hour_format: str, day_format: str, start_clock_seconds: int = 0) -> str:
         total_seconds = int(round(hours * 3600))
         sign = "-" if total_seconds < 0 else ""
         abs_seconds = abs(total_seconds)
@@ -470,6 +477,17 @@ class TimeSeriesPlotRenderer:
         if hour_format == "hms":
             hour_format = "hm"
         day_format = (day_format or "split_days").strip()
+
+        if self._is_time_of_day_format(hour_format):
+            parts = civil_time_parts(hours, start_clock_seconds)
+            if parts is None:
+                return ""
+            d, h, m, s = parts
+            am_pm = hour_format in ("hm_ampm", "tod_ampm")
+            top = format_civil_time(hours, start_clock_seconds, include_seconds=False, am_pm=am_pm).split(" ", 1)[1]
+            if day_format == "split_days" and d > 0 and h == 0 and m == 0 and s == 0:
+                return f"{top}\n{d}d"
+            return top
 
         if day_format == "total_hours":
             total_h = abs_seconds // 3600
@@ -516,7 +534,18 @@ class TimeSeriesPlotRenderer:
 
         hour_format = (getattr(cfg, "x_hour_format", "") or "hm").strip()
         day_format = (getattr(cfg, "x_day_format", "") or "split_days").strip()
-        has_days = (max_x >= 24) and (day_format == "split_days")
+        start_clock_seconds = int(getattr(widget, "_start_clock_seconds", 0) or 0)
+        if self._is_time_of_day_format(hour_format):
+            min_civil = civil_time_parts(min_x, start_clock_seconds)
+            max_civil = civil_time_parts(max_x, start_clock_seconds)
+            has_days = (
+                day_format == "split_days"
+                and min_civil is not None
+                and max_civil is not None
+                and max_civil[0] > min_civil[0]
+            )
+        else:
+            has_days = (max_x >= 24) and (day_format == "split_days")
         label_px = self._estimate_x_axis_label_px(painter, has_days=has_days, hour_format=hour_format)
         if cfg.auto_scale:
             max_ticks_x = estimate_max_ticks(plot_rect.width(), label_px, min_ticks=2, max_ticks=AXIS_MAX_TICKS)
@@ -529,6 +558,9 @@ class TimeSeriesPlotRenderer:
         else:
             min_x, max_x = x_scale.axis_min, x_scale.axis_max
             x_tick_values = x_scale.ticks()
+        if has_days and self._is_time_of_day_format(hour_format):
+            extras = civil_midnight_elapsed_hours(min_x, max_x, start_clock_seconds)
+            x_tick_values = sorted(set([round(float(t), 9) for t in x_tick_values + extras]))
         x_range = max_x - min_x
         if x_range == 0:
             x_range = 1
@@ -542,6 +574,7 @@ class TimeSeriesPlotRenderer:
             "has_days": has_days,
             "label_px": label_px,
             "axis_cfg": cfg,
+            "start_clock_seconds": start_clock_seconds,
         }
 
     def _to_screen(self, x, y, plot_rect, x_state, y_state):
@@ -623,8 +656,14 @@ class TimeSeriesPlotRenderer:
         *,
         hour_format: str = "auto",
         day_format: str = "split_days",
+        start_clock_seconds: int = 0,
     ) -> str:
-        return self._format_time_axis_tick(hours, hour_format=hour_format, day_format=day_format)
+        return self._format_time_axis_tick(
+            hours,
+            hour_format=hour_format,
+            day_format=day_format,
+            start_clock_seconds=start_clock_seconds,
+        )
 
     def _format_tick_number(self, value: float, step: float, dec: int | None) -> str:
         if dec is None:
@@ -712,6 +751,7 @@ class TimeSeriesPlotRenderer:
             hour_format = (getattr(cfg_x, "x_hour_format", "") or "hm").strip()
             tick_w = float(x_state.get("label_px", self._estimate_x_axis_label_px(painter, has_days=has_days, hour_format=hour_format)))
             day_format = (getattr(cfg_x, "x_day_format", "") or "split_days").strip()
+            start_clock_seconds = int(x_state.get("start_clock_seconds", getattr(widget, "_start_clock_seconds", 0) or 0))
             for val_x in x_state.get("x_tick_values", x_state["x_scale"].ticks()):
                 if y_state_primary is None:
                     continue
@@ -719,8 +759,12 @@ class TimeSeriesPlotRenderer:
 
                 is_day_start = False
                 if has_days:
-                    mod_24 = val_x % 24.0
-                    is_day_start = abs(mod_24) < 1e-6 or abs(mod_24 - 24.0) < 1e-6
+                    if self._is_time_of_day_format(hour_format):
+                        parts = civil_time_parts(val_x, start_clock_seconds)
+                        is_day_start = bool(parts is not None and parts[0] > 0 and parts[1] == 0 and parts[2] == 0 and parts[3] == 0)
+                    else:
+                        mod_24 = val_x % 24.0
+                        is_day_start = abs(mod_24) < 1e-6 or abs(mod_24 - 24.0) < 1e-6
                 if cfg_x.show_grid:
                     painter.setPen(pen_grid_day_start if is_day_start else pen_grid)
                     painter.drawLine(QPointF(pt.x(), plot_rect.top()), QPointF(pt.x(), plot_rect.bottom()))
@@ -728,7 +772,12 @@ class TimeSeriesPlotRenderer:
                 painter.setPen(QPen(cfg_x.tick_qcolor(), 1))
                 if getattr(cfg_x, "show_tick_marks", False):
                     painter.drawLine(QPointF(pt.x(), plot_rect.bottom()), QPointF(pt.x(), plot_rect.bottom() + tick_mark_len))
-                label_x = self._format_absolute_time_hours_axis(val_x, hour_format=hour_format, day_format=day_format)
+                label_x = self._format_absolute_time_hours_axis(
+                    val_x,
+                    hour_format=hour_format,
+                    day_format=day_format,
+                    start_clock_seconds=start_clock_seconds,
+                )
                 rect = QRectF(pt.x() - tick_w / 2, plot_rect.bottom() + 8, tick_w, tick_h)
                 if "\n" in label_x:
                     top, bottom = (label_x.split("\n", 1) + [""])[:2]
@@ -835,7 +884,8 @@ class TimeSeriesPlotRenderer:
                 painter.restore()
 
         fm_x = QFontMetrics(self._tick_qfont(cfg_x))
-        has_days = bool(widget.data_x and max(widget.data_x) >= 24)
+        last_x_state = getattr(widget, "_last_x_state", None)
+        has_days = bool(last_x_state.get("has_days", False)) if isinstance(last_x_state, dict) else bool(widget.data_x and max(widget.data_x) >= 24)
         tick_h = fm_x.height() * 2 + 4 if has_days else fm_x.height() + 6
         tick_top_pad = 8
         title_gap = 2
