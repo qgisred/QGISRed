@@ -45,6 +45,7 @@ class TimeSeriesPlotRenderer:
     _TOOLTIP_ICON_SIZE = 8
     _HOVER_MARKER_ICON_SIZE = 10
     _TIME_TOKEN_RE = re.compile(r"^(-?\d+)([dhms])$")
+    _POINT_VALUE_MIN_SPACING_PX = 52.0
 
     def _extract_unit_from_magnitude(self, magnitude: str) -> str:
         magnitude = (magnitude or "").strip()
@@ -251,11 +252,104 @@ class TimeSeriesPlotRenderer:
                 return str(value)
         return self._format_value_full(value)
 
+    def _select_point_value_label_indices(
+        self,
+        points: Sequence[QPointF],
+        texts: Sequence[str],
+        fm: QFontMetrics,
+        plot_rect: QRectF,
+        *,
+        x_off: float,
+        y_off: float,
+        min_spacing_px: Optional[float] = None,
+    ) -> List[int]:
+        n = min(len(points), len(texts))
+        if n <= 0:
+            return []
+
+        min_spacing = max(float(min_spacing_px or self._POINT_VALUE_MIN_SPACING_PX), float(plot_rect.width()) / 24.0)
+        max_labels = max(2, int(float(plot_rect.width()) // min_spacing))
+
+        if n <= max_labels:
+            candidates = list(range(n))
+        else:
+            candidates = []
+            x0 = float(points[0].x())
+            x1 = float(points[-1].x())
+            if abs(x1 - x0) < 1.0:
+                step = max(1, n // max_labels)
+                candidates = list(range(0, n, step))[:max_labels]
+            else:
+                for k in range(max_labels):
+                    target_x = x0 + (x1 - x0) * float(k) / float(max(max_labels - 1, 1))
+                    best_i = min(range(n), key=lambda i: abs(float(points[i].x()) - target_x))
+                    if best_i not in candidates:
+                        candidates.append(best_i)
+
+        selected: List[int] = []
+        occupied: List[QRectF] = []
+        pad = 3.0
+        for i in sorted(candidates, key=lambda idx: float(points[idx].x())):
+            pt = points[i]
+            if not plot_rect.contains(pt):
+                continue
+            text = texts[i]
+            tw = float(fm.horizontalAdvance(text))
+            th = float(fm.height())
+            x = float(pt.x()) + float(x_off)
+            y = float(pt.y()) + float(y_off) - float(fm.descent())
+            rect = QRectF(x - pad, y - th - pad, tw + 2.0 * pad, th + 2.0 * pad)
+            if any(rect.intersects(prev) for prev in occupied):
+                continue
+            selected.append(i)
+            occupied.append(rect)
+        return selected
+
+    def _select_marker_indices(
+        self,
+        points: Sequence[QPointF],
+        plot_rect: QRectF,
+        marker_size: float,
+        *,
+        is_stepped: bool = False,
+        ys: Optional[Sequence[float]] = None,
+    ) -> List[int]:
+        n = len(points)
+        if n <= 0:
+            return []
+        if is_stepped and ys is not None and len(ys) >= n:
+            indices = [0]
+            for i in range(1, n):
+                try:
+                    if ys[i] != ys[i - 1]:
+                        indices.append(i)
+                except Exception:
+                    continue
+            if n > 1 and indices[-1] != n - 1:
+                indices.append(n - 1)
+            return indices
+        min_spacing = max(float(marker_size) * 1.75, self._POINT_VALUE_MIN_SPACING_PX)
+        texts = [""] * n
+        fm = QFontMetrics(qfont(8))
+        return self._select_point_value_label_indices(
+            points,
+            texts,
+            fm,
+            plot_rect,
+            x_off=0.0,
+            y_off=0.0,
+            min_spacing_px=min_spacing,
+        )
+
     def _draw_point_marker(self, painter: QPainter, pt: QPointF, size: float, symbol: str, color: QColor) -> None:
         r = max(1.0, float(size) / 2.0)
-        painter.setPen(QPen(color, 1.2))
-        painter.setBrush(color)
+        painter.setPen(QPen(color, 1.4))
+        painter.setBrush(Qt.BrushStyle.NoBrush)
         t = self._marker_symbol(symbol)
+        if t == "cross":
+            painter.drawLine(QPointF(pt.x() - r, pt.y() - r), QPointF(pt.x() + r, pt.y() + r))
+            painter.drawLine(QPointF(pt.x() - r, pt.y() + r), QPointF(pt.x() + r, pt.y() - r))
+            return
         if t == "square":
             painter.drawRect(QRectF(pt.x() - r, pt.y() - r, 2 * r, 2 * r))
         elif t == "triangle":
@@ -271,10 +365,6 @@ class TimeSeriesPlotRenderer:
                 QPointF(pt.x(), pt.y() + r),
                 QPointF(pt.x() - r, pt.y()),
             ]))
-        elif t == "cross":
-            painter.setBrush(Qt.BrushStyle.NoBrush)
-            painter.drawLine(QPointF(pt.x() - r, pt.y() - r), QPointF(pt.x() + r, pt.y() + r))
-            painter.drawLine(QPointF(pt.x() - r, pt.y() + r), QPointF(pt.x() + r, pt.y() - r))
         else:
             painter.drawEllipse(pt, r, r)
 
@@ -808,6 +898,7 @@ class TimeSeriesPlotRenderer:
 
             if line_visible and n > 1:
                 painter.setPen(QPen(draw_color, width, self._line_pen_style(s.get("line_style") or "solid")))
+                painter.setBrush(Qt.BrushStyle.NoBrush)
                 path = QPainterPath()
                 start_pt = points[0]
                 path.moveTo(start_pt)
@@ -835,19 +926,37 @@ class TimeSeriesPlotRenderer:
                 marker_size = min(marker_size + 1.0, 26.0)
 
             if markers_visible:
-                for pt in points:
-                    self._draw_point_marker(painter, pt, marker_size, s.get("marker_symbol") or "circle", marker_color)
+                marker_symbol = str(s.get("marker_symbol") or "circle").strip()
+                painter.save()
+                for i in range(n):
+                    self._draw_point_marker(
+                        painter,
+                        points[i],
+                        marker_size,
+                        marker_symbol,
+                        marker_color,
+                    )
+                painter.restore()
 
-            if bool(s.get("show_point_values", False)):
+            if bool(s.get("show_point_values", False)) and y_state is not None:
                 font_lbl = qfont(8, bold=highlighted)
                 painter.setFont(font_lbl)
                 fm = QFontMetrics(font_lbl)
                 painter.setPen(marker_color)
                 x_off = marker_size / 2.0 + 3.0
                 y_off = -marker_size / 2.0 - 2.0
-                for i, pt in enumerate(points):
-                    text = self._point_value_text(s, ys[i])
-                    painter.drawText(QPointF(pt.x() + x_off, pt.y() + y_off - fm.descent()), text)
+                texts = [self._point_value_text(s, ys[i]) for i in range(n)]
+                label_indices = self._select_point_value_label_indices(
+                    points,
+                    texts,
+                    fm,
+                    plot_rect,
+                    x_off=x_off,
+                    y_off=y_off,
+                )
+                for i in label_indices:
+                    pt = points[i]
+                    painter.drawText(QPointF(pt.x() + x_off, pt.y() + y_off - fm.descent()), texts[i])
 
         painter.restore()
 

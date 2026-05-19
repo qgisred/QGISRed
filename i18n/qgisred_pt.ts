@@ -5618,9 +5618,9 @@ Left-click: Add a new item below the current selection</source>
         <translation>Cor do marcador</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="311"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="589"/>
         <source>Show step point values as text</source>
-        <translation type="obsolete">Mostrar valores dos pontos de passo como texto</translation>
+        <translation>Mostrar valores dos pontos de passo como texto</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="350"/>

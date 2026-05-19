@@ -57,7 +57,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._cfg_yl = clone_axis_settings(plot_widget._axis_cfg_y_left)
         self._cfg_yr = clone_axis_settings(plot_widget._axis_cfg_y_right)
         self._cfg_gen = clone_general_settings(getattr(plot_widget, "_general_cfg", TimeSeriesGeneralSettings()))
-        self._curve_cfg = [dict(s) for s in (getattr(plot_widget, "series", []) or [])]
+        self._curve_cfg = copy.deepcopy(getattr(plot_widget, "series", []) or [])
         self._snapshot_x = clone_axis_settings(plot_widget._axis_cfg_x)
         self._snapshot_yl = clone_axis_settings(plot_widget._axis_cfg_y_left)
         self._snapshot_yr = clone_axis_settings(plot_widget._axis_cfg_y_right)
@@ -175,6 +175,12 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             pass
 
     def _schedule_live_apply(self, *_args) -> None:
+        sender = self.sender()
+        try:
+            if sender is not None and bool(sender.property("qgisred_skip_live_update")):
+                return
+        except Exception:
+            pass
         if bool(getattr(self._tab_curves, "_curve_loading", False)):
             return
         if not self._chk_live_update.isChecked():
@@ -436,6 +442,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         w._curve_rows = []
         w._curve_current_idx = -1
         w._curve_loading = False
+        w._curve_dirty = False
 
         selector_grp = self._compact_group(QGroupBox(self.tr("Select curve")))
         selector_lay = QHBoxLayout(selector_grp)
@@ -444,6 +451,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
 
         combo_magnitude = QComboBox()
         combo_curve = QComboBox()
+        combo_magnitude.setProperty("qgisred_skip_live_update", True)
+        combo_curve.setProperty("qgisred_skip_live_update", True)
         self._limit_field_width(combo_magnitude, self._LONG_FIELD_WIDTH)
         self._limit_field_width(combo_curve, self._LONG_FIELD_WIDTH)
 
@@ -464,7 +473,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         title = QLabel()
         title.setWordWrap(True)
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet("font-weight: bold; font-size: 11pt;")
+        title.setStyleSheet("font-size: 11pt;")
         lay.addWidget(title)
 
         axis_grp = self._compact_group(QGroupBox(self.tr("Y axis")))
@@ -504,6 +513,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             if nc.isValid():
                 row["color"] = nc
                 self._show_color_on_button(btn_color, nc)
+                w._curve_dirty = True
                 self._schedule_live_apply()
 
         btn_color.clicked.connect(pick_color)
@@ -552,15 +562,6 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         btn_marker_color.setMinimumHeight(28)
         self._limit_field_width(btn_marker_color, self._FORM_FIELD_WIDTH)
 
-        def pick_marker_color(_checked=False):
-            nc = QColorDialog.getColor(row["marker_color"], self, self.tr("Marker color"))
-            if nc.isValid():
-                row["marker_color"] = nc
-                self._show_color_on_button(btn_marker_color, nc)
-                self._schedule_live_apply()
-
-        btn_marker_color.clicked.connect(pick_marker_color)
-
         legend_grp = self._compact_group(QGroupBox(self.tr("Legend")))
         legend_form = QFormLayout(legend_grp)
         configure_form(legend_form)
@@ -586,6 +587,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._add_form_row(markers_form, self.tr("Symbol:"), cb_marker_symbol)
         self._add_form_row(markers_form, self.tr("Size:"), sp_marker_size)
         self._add_form_row(markers_form, self.tr("Color:"), btn_marker_color)
+        chk_show_point_values = QCheckBox(self.tr("Show step point values as text"))
+        markers_form.addRow("", chk_show_point_values)
         lay.addWidget(markers_grp)
 
         row.update({
@@ -605,6 +608,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             "marker_size": sp_marker_size,
             "marker_color": marker_color,
             "marker_color_btn": btn_marker_color,
+            "show_point_values": chk_show_point_values,
         })
         w._curve_rows.append(row)
 
@@ -613,6 +617,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             cb_marker_symbol.setEnabled(enabled)
             sp_marker_size.setEnabled(enabled)
             btn_marker_color.setEnabled(enabled)
+            chk_show_point_values.setEnabled(enabled)
 
         def sync_emphasis_options():
             enabled = bool(style_grp.isChecked())
@@ -677,11 +682,20 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             set_magnitude_axis(mag, side)
             self._schedule_live_apply()
 
+        def mark_current_curve_dirty(*_args) -> None:
+            if bool(getattr(w, "_curve_loading", False)):
+                return
+            w._curve_dirty = True
+            self._schedule_live_apply()
+
         def store_current_curve():
             idx = int(getattr(w, "_curve_current_idx", -1))
             if idx < 0 or idx >= len(self._curve_cfg) or bool(getattr(w, "_curve_loading", False)):
                 return
             curve = self._curve_cfg[idx]
+            plot_series = getattr(self._plot, "series", []) or []
+            if not curve.get("series_key") and idx < len(plot_series):
+                curve["series_key"] = str(plot_series[idx].get("series_key") or "").strip()
             curve["label"] = ed_label.text().strip() or self.tr("Series")
             curve["legend_font_family"] = font_combo.currentFont().family()
             curve["legend_font_size"] = int(sp_font_size.value())
@@ -700,10 +714,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
                 curve["marker_symbol"] = "circle"
             curve["marker_size"] = int(sp_marker_size.value())
             curve["marker_color"] = row["marker_color"].name(QColor.NameFormat.HexRgb)
-            mag = combo_magnitude.currentData()
-            if mag:
-                side = "right" if rb_axis_right.isChecked() else "left"
-                set_magnitude_axis(mag, side)
+            curve["show_point_values"] = bool(chk_show_point_values.isChecked())
+            w._curve_dirty = False
 
         def refresh_curve_combo(selected_idx=None):
             current_magnitude = combo_magnitude.currentData()
@@ -759,6 +771,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             sync_emphasis_options()
 
             markers_grp.setChecked(bool(curve.get("show_markers", False)))
+            chk_show_point_values.setChecked(bool(curve.get("show_point_values", False)))
             idx_marker_symbol = cb_marker_symbol.findData((curve.get("marker_symbol") or "circle").strip())
             cb_marker_symbol.setCurrentIndex(idx_marker_symbol if idx_marker_symbol >= 0 else 0)
             sp_marker_size.setValue(clamp_int(curve.get("marker_size") or 6, 6, 2, 24))
@@ -770,16 +783,19 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             self._show_color_on_button(btn_marker_color, marker_qcolor)
             sync_marker_options()
             sync_magnitude_axis_radios(magnitude)
+            w._curve_dirty = False
             w._curve_loading = False
 
         def select_curve_from_combo():
-            store_current_curve()
+            if bool(getattr(w, "_curve_dirty", False)):
+                store_current_curve()
             idx = combo_curve.currentData()
             if idx is not None:
                 load_curve(int(idx))
 
         def select_magnitude():
-            store_current_curve()
+            if bool(getattr(w, "_curve_dirty", False)):
+                store_current_curve()
             first_idx = refresh_curve_combo()
             if first_idx is not None:
                 load_curve(int(combo_curve.currentData()))
@@ -792,6 +808,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
                 return
             label = text.strip() or self.tr("Series")
             self._curve_cfg[idx]["label"] = label
+            w._curve_dirty = True
             title.setText(f"{curve_magnitude(self._curve_cfg[idx])} - {label}")
             combo_idx = combo_curve.findData(idx)
             if combo_idx >= 0:
@@ -799,11 +816,36 @@ class TimeSeriesAxisOptionsDialog(QDialog):
 
         rb_axis_left.toggled.connect(on_magnitude_axis_changed)
         rb_axis_right.toggled.connect(on_magnitude_axis_changed)
+        def on_marker_option_changed(*_args):
+            if bool(getattr(w, "_curve_loading", False)):
+                return
+            store_current_curve()
+            self._schedule_live_apply()
+
         combo_magnitude.currentIndexChanged.connect(lambda _i: select_magnitude())
         combo_curve.currentIndexChanged.connect(lambda _i: select_curve_from_combo())
         ed_label.textChanged.connect(update_current_label)
-        markers_grp.toggled.connect(lambda _checked: sync_marker_options())
-        style_grp.toggled.connect(lambda _checked: sync_emphasis_options())
+        markers_grp.toggled.connect(lambda _checked: (sync_marker_options(), on_marker_option_changed()))
+        style_grp.toggled.connect(lambda _checked: (sync_emphasis_options(), mark_current_curve_dirty()))
+        font_combo.currentFontChanged.connect(mark_current_curve_dirty)
+        sp_font_size.valueChanged.connect(mark_current_curve_dirty)
+        cb_style.currentIndexChanged.connect(mark_current_curve_dirty)
+        sp_width.valueChanged.connect(mark_current_curve_dirty)
+        rb_normal.toggled.connect(mark_current_curve_dirty)
+        rb_muted.toggled.connect(mark_current_curve_dirty)
+        rb_highlighted.toggled.connect(mark_current_curve_dirty)
+        cb_marker_symbol.currentIndexChanged.connect(on_marker_option_changed)
+        sp_marker_size.valueChanged.connect(on_marker_option_changed)
+        chk_show_point_values.toggled.connect(on_marker_option_changed)
+
+        def on_marker_color_picked(_checked=False):
+            nc = QColorDialog.getColor(row["marker_color"], self, self.tr("Marker color"))
+            if nc.isValid():
+                row["marker_color"] = nc
+                self._show_color_on_button(btn_marker_color, nc)
+                on_marker_option_changed()
+
+        btn_marker_color.clicked.connect(on_marker_color_picked)
         w._curve_store_current = store_current_curve
 
         refresh_curve_combo()
@@ -1316,11 +1358,23 @@ class TimeSeriesAxisOptionsDialog(QDialog):
     def _apply_options(self) -> None:
         gen_tab = self._tab_general
         legend_tab = self._tab_legend
+        old_title_sig = (
+            (getattr(self._cfg_gen, "title", "") or "").strip(),
+            getattr(self._cfg_gen, "title_font_family", "") or "",
+            int(getattr(self._cfg_gen, "title_font_size", 10) or 10),
+            getattr(self._cfg_gen, "title_color_hex", "") or "",
+        )
         self._cfg_gen.title = gen_tab._gen_title.text().strip()
         self._cfg_gen.title_font_family = gen_tab._gen_title_font_combo.currentFont().family()
         self._cfg_gen.title_font_size = int(gen_tab._gen_title_size.value())
         gen_title_color = getattr(gen_tab._gen_title_style_row, "_text_style_color", QColor("#000000"))
         self._cfg_gen.title_color_hex = gen_title_color.name(QColor.NameFormat.HexRgb) if isinstance(gen_title_color, QColor) else "#000000"
+        new_title_sig = (
+            (self._cfg_gen.title or "").strip(),
+            self._cfg_gen.title_font_family or "",
+            int(self._cfg_gen.title_font_size or 10),
+            self._cfg_gen.title_color_hex or "",
+        )
         self._cfg_gen.widget_bg_hex = gen_tab._gen_widget_bg_value()
         self._cfg_gen.plot_bg_hex = gen_tab._gen_plot_bg_value()
         self._cfg_gen.frame_color_hex = gen_tab._gen_frame_color_value()
@@ -1347,7 +1401,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._plot._axis_cfg_y_left = self._cfg_yl
         self._plot._axis_cfg_y_right = self._cfg_yr
         self._plot._general_cfg = self._cfg_gen
-        self._plot._updateMinimumWidthForTitle()
+        if old_title_sig != new_title_sig:
+            self._plot._updateMinimumWidthForTitle()
         self._plot.update()
         self._dirty_applied = True
         self._ui_dirty = False
@@ -1356,38 +1411,64 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._apply_options()
         self.accept()
 
+    def _notify_curve_settings_changed(self) -> None:
+        w = self._plot.parent()
+        while w is not None:
+            if hasattr(w, "_emitCurveSettingsChanged"):
+                try:
+                    w._emitCurveSettingsChanged()
+                except Exception:
+                    pass
+                return
+            w = w.parent()
+
+    def _apply_curve_cfg_to_series(self, curve: dict, s: dict) -> None:
+        s["label"] = (curve.get("label") or "").strip() or self.tr("Series")
+        s["legend_font_family"] = curve.get("legend_font_family") or ""
+        s["legend_font_size"] = int(curve.get("legend_font_size") or 8)
+        s["color"] = curve.get("color") or "#0078d7"
+        s["line_style"] = curve.get("line_style") or "solid"
+        s["line_width"] = float(curve.get("line_width") or 2.0)
+        s["visible"] = bool(curve.get("visible", True))
+        emphasis_mode = str(curve.get("emphasis_mode") or "normal").strip()
+        s["emphasis_mode"] = emphasis_mode if emphasis_mode in ("muted", "highlighted") else "normal"
+        s["show_markers"] = bool(curve.get("show_markers", False))
+        s["marker_symbol"] = curve.get("marker_symbol") or "circle"
+        s["marker_size"] = int(curve.get("marker_size") or 6)
+        s["marker_color"] = curve.get("marker_color") or curve.get("color") or "#0078d7"
+        s["show_point_values"] = bool(curve.get("show_point_values", False))
+        s["muted"] = bool(curve.get("muted", False))
+        s["highlighted"] = bool(curve.get("highlighted", False))
+        if s["highlighted"]:
+            s["muted"] = False
+        axis = (curve.get("y_axis") or "").strip().lower()
+        s["y_axis"] = axis if axis in ("left", "right") else "left"
+
     def _read_curves_tab(self, tab: QWidget) -> None:
         store_current = getattr(tab, "_curve_store_current", None)
-        if callable(store_current):
+        if callable(store_current) and bool(getattr(tab, "_curve_dirty", False)):
             store_current()
         rows = getattr(tab, "_curve_rows", []) or []
         if not rows:
             return
         series = getattr(self._plot, "series", []) or []
-        for idx, curve in enumerate(self._curve_cfg):
-            if idx >= len(series):
-                break
-            s = series[idx]
-            s["label"] = (curve.get("label") or "").strip() or self.tr("Series")
-            s["legend_font_family"] = curve.get("legend_font_family") or ""
-            s["legend_font_size"] = int(curve.get("legend_font_size") or 8)
-            s["color"] = curve.get("color") or "#0078d7"
-            s["line_style"] = curve.get("line_style") or "solid"
-            s["line_width"] = float(curve.get("line_width") or 2.0)
-            s["visible"] = bool(curve.get("visible", True))
-            emphasis_mode = str(curve.get("emphasis_mode") or "normal").strip()
-            s["emphasis_mode"] = emphasis_mode if emphasis_mode in ("muted", "highlighted") else "normal"
-            s["show_markers"] = bool(curve.get("show_markers", False))
-            s["marker_symbol"] = curve.get("marker_symbol") or "circle"
-            s["marker_size"] = int(curve.get("marker_size") or 6)
-            s["marker_color"] = curve.get("marker_color") or curve.get("color") or "#0078d7"
-            s["show_point_values"] = bool(curve.get("show_point_values", False))
-            s["muted"] = bool(curve.get("muted", False))
-            s["highlighted"] = bool(curve.get("highlighted", False))
-            if s["highlighted"]:
-                s["muted"] = False
-            axis = (curve.get("y_axis") or "").strip().lower()
-            s["y_axis"] = axis if axis in ("left", "right") else "left"
+        cfg_by_key = {}
+        for curve in self._curve_cfg:
+            key = str(curve.get("series_key") or "").strip()
+            if key:
+                cfg_by_key[key] = curve
+        if cfg_by_key:
+            for s in series:
+                key = str(s.get("series_key") or "").strip()
+                curve = cfg_by_key.get(key)
+                if curve is None:
+                    continue
+                self._apply_curve_cfg_to_series(curve, s)
+        else:
+            for idx, curve in enumerate(self._curve_cfg):
+                if idx >= len(series):
+                    break
+                self._apply_curve_cfg_to_series(curve, series[idx])
         try:
             self._plot._assignYAxisByMagnitude()
         except Exception:
@@ -1396,3 +1477,4 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             self._plot._emitSeriesEmphasisChanged()
         except Exception:
             pass
+        self._notify_curve_settings_changed()
