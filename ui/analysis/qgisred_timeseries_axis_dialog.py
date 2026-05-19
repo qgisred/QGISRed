@@ -1477,4 +1477,3 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             self._plot._emitSeriesEmphasisChanged()
         except Exception:
             pass
-        self._notify_curve_settings_changed()
