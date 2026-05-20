@@ -185,9 +185,9 @@ class LifecycleSection:
         self.addEditMenu()
         self.addDebugMenu()
         self.addToolsMenu()
+        self.addQueriesMenu()
         self.addAnalysisMenu()
         self.addDigitalTwinMenu()
-        self.addQueriesMenu()
 
         self.addInfoMenu()
 

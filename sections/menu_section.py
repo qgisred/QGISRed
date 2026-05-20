@@ -719,6 +719,74 @@ class MenuSection:
         self.add_to_group(action, self.toolsMenu, self.toolsToolbar)
         self.add_to_dropdown(action, toolDropButton)
 
+    def addQueriesMenu(self):
+        #    #Menu
+        self.queriesMenu = self.qgisredmenu.addMenu(self.tr("Queries"))
+        self.queriesMenu.setIcon(QIcon(":/images/iconQueriesMenu.svg"))
+        #    #Toolbar
+        self.queriesToolbar = self.iface.addToolBar(self.tr("QGISRed Queries"))
+        self.queriesToolbar.setObjectName("QGISRed Queries")
+        self.queriesToolbar.setVisible(False)
+        #    #Buttons
+        queriesDropButton = QToolButton()
+        action = self._make_action(
+            ":/images/iconQueriesMenu.svg", 
+            self.tr("Queries"), 
+            self.runQueriesToolbar,
+            checkable=True, 
+            parent=self.iface.mainWindow(),
+        )
+        self.setup_dropdown_button(action, queriesDropButton, self.toolbar)
+        self.queriesDropButton = queriesDropButton
+        self.queriesToolbar.visibilityChanged.connect(self.changeQueriesToolbarVisibility)
+
+        self.openFindElementsDialog = self._make_action(
+            ":/images/iconFindElements.svg", 
+            self.tr("Find elements by ID..."), 
+            self.runFindElements,
+            checkable=True, 
+            parent=self.iface.mainWindow(),
+        )
+        self.add_to_group(self.openFindElementsDialog, self.queriesMenu, self.queriesToolbar)
+        self.add_to_dropdown(self.openFindElementsDialog, queriesDropButton)
+
+        self.openElementsPropertyDialog = self._make_action(
+            ":/images/iconElementProperties.svg", 
+            self.tr("Element properties..."), 
+            self.runElementsProperty,
+            checkable=True, 
+            parent=self.iface.mainWindow(),
+        )
+        self.add_to_group(self.openElementsPropertyDialog, self.queriesMenu, self.queriesToolbar)
+        self.add_to_dropdown(self.openElementsPropertyDialog, queriesDropButton)
+
+        self.openThematicMapsDialog = self._make_action(
+            ":/images/iconThematicMaps.svg", 
+            self.tr("Thematic maps..."), 
+            self.runThematicMaps,
+            parent=self.iface.mainWindow(),
+        )
+        self.add_to_group(self.openThematicMapsDialog, self.queriesMenu, self.queriesToolbar)
+        self.add_to_dropdown(self.openThematicMapsDialog, queriesDropButton)
+
+        self.openLiveQueriesDialog = self._make_action(
+            ":/images/iconQueryByProperties.svg",
+            self.tr("Queries by properties..."),
+            self.runQueriesByProperties,
+            parent=self.iface.mainWindow(),
+        )
+        self.add_to_group(self.openLiveQueriesDialog, self.queriesMenu, self.queriesToolbar)
+        self.add_to_dropdown(self.openLiveQueriesDialog, queriesDropButton)
+
+        self.openStatisticsDialog = self._make_action(
+            ":/images/iconStatisticsAndPlots.svg",
+            self.tr("Statistics..."),
+            self.runStatistics,
+            parent=self.iface.mainWindow(),
+        )
+        self.add_to_group(self.openStatisticsDialog, self.queriesMenu, self.queriesToolbar)
+        self.add_to_dropdown(self.openStatisticsDialog, queriesDropButton)
+
     def addAnalysisMenu(self):
         #    #Menu
         self.analysisMenu = self.qgisredmenu.addMenu(self.tr("Analysis"))
@@ -1049,74 +1117,6 @@ class MenuSection:
         )
         self.add_to_group(action, self.dtMenu, self.dtToolbar)
         self.add_to_dropdown(action, dtDropButton)
-
-    def addQueriesMenu(self):
-        #    #Menu
-        self.queriesMenu = self.qgisredmenu.addMenu(self.tr("Queries"))
-        self.queriesMenu.setIcon(QIcon(":/images/iconQueriesMenu.svg"))
-        #    #Toolbar
-        self.queriesToolbar = self.iface.addToolBar(self.tr("QGISRed Queries"))
-        self.queriesToolbar.setObjectName("QGISRed Queries")
-        self.queriesToolbar.setVisible(False)
-        #    #Buttons
-        queriesDropButton = QToolButton()
-        action = self._make_action(
-            ":/images/iconQueriesMenu.svg", 
-            self.tr("Queries"), 
-            self.runQueriesToolbar,
-            checkable=True, 
-            parent=self.iface.mainWindow(),
-        )
-        self.setup_dropdown_button(action, queriesDropButton, self.toolbar)
-        self.queriesDropButton = queriesDropButton
-        self.queriesToolbar.visibilityChanged.connect(self.changeQueriesToolbarVisibility)
-
-        self.openFindElementsDialog = self._make_action(
-            ":/images/iconFindElements.svg", 
-            self.tr("Find elements by ID..."), 
-            self.runFindElements,
-            checkable=True, 
-            parent=self.iface.mainWindow(),
-        )
-        self.add_to_group(self.openFindElementsDialog, self.queriesMenu, self.queriesToolbar)
-        self.add_to_dropdown(self.openFindElementsDialog, queriesDropButton)
-
-        self.openElementsPropertyDialog = self._make_action(
-            ":/images/iconElementProperties.svg", 
-            self.tr("Element properties..."), 
-            self.runElementsProperty,
-            checkable=True, 
-            parent=self.iface.mainWindow(),
-        )
-        self.add_to_group(self.openElementsPropertyDialog, self.queriesMenu, self.queriesToolbar)
-        self.add_to_dropdown(self.openElementsPropertyDialog, queriesDropButton)
-
-        self.openThematicMapsDialog = self._make_action(
-            ":/images/iconThematicMaps.svg", 
-            self.tr("Thematic maps..."), 
-            self.runThematicMaps,
-            parent=self.iface.mainWindow(),
-        )
-        self.add_to_group(self.openThematicMapsDialog, self.queriesMenu, self.queriesToolbar)
-        self.add_to_dropdown(self.openThematicMapsDialog, queriesDropButton)
-
-        self.openLiveQueriesDialog = self._make_action(
-            ":/images/iconQueryByProperties.svg",
-            self.tr("Queries by properties..."),
-            self.runQueriesByProperties,
-            parent=self.iface.mainWindow(),
-        )
-        self.add_to_group(self.openLiveQueriesDialog, self.queriesMenu, self.queriesToolbar)
-        self.add_to_dropdown(self.openLiveQueriesDialog, queriesDropButton)
-
-        self.openStatisticsDialog = self._make_action(
-            ":/images/iconStatisticsAndPlots.svg",
-            self.tr("Statistics..."),
-            self.runStatistics,
-            parent=self.iface.mainWindow(),
-        )
-        self.add_to_group(self.openStatisticsDialog, self.queriesMenu, self.queriesToolbar)
-        self.add_to_dropdown(self.openStatisticsDialog, queriesDropButton)
 
     """Toolbar visibility toggles"""
 
