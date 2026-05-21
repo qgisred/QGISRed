@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-
 from QGISRed.ui.analysis.timeseries_plot_renderer import TimeSeriesPlotRenderer
 from QGISRed.ui.analysis.timeseries_time_utils import (
     civil_midnight_elapsed_hours,
@@ -153,6 +152,79 @@ class TestTimeFormatting:
         for neighbor in (16.0, 17.0, 18.0):
             if abs(neighbor - midnight) < 1.0:
                 assert neighbor not in merged
+
+
+class _StubPoint:
+    def __init__(self, x: float, y: float):
+        self._x = float(x)
+        self._y = float(y)
+
+    def x(self):
+        return self._x
+
+    def y(self):
+        return self._y
+
+
+class _StubRect:
+    def __init__(self, left=0.0, top=0.0, width=400.0, height=200.0):
+        self._l = float(left)
+        self._t = float(top)
+        self._w = float(width)
+        self._h = float(height)
+
+    def left(self):
+        return self._l
+
+    def top(self):
+        return self._t
+
+    def right(self):
+        return self._l + self._w
+
+    def bottom(self):
+        return self._t + self._h
+
+    def width(self):
+        return self._w
+
+
+class _StubFontMetrics:
+    """Métricas fijas para probar la lógica sin depender de QFontMetrics real/mockeado."""
+
+    def height(self):
+        return 12
+
+    def descent(self):
+        return 2
+
+    def horizontalAdvance(self, text):
+        return max(8, 7 * len(str(text)))
+
+
+class TestPointValueLabelSelection:
+    def test_spread_points_allow_more_labels_on_zoom(self):
+        r = TimeSeriesPlotRenderer()
+        fm = _StubFontMetrics()
+        plot_rect = _StubRect()
+        texts = ["1", "2", "3"]
+        spread = [_StubPoint(50.0, 50.0), _StubPoint(200.0, 140.0), _StubPoint(340.0, 60.0)]
+        indices = r._select_point_value_label_indices(
+            spread, texts, fm, plot_rect, x_off=10.0, y_off=-10.0
+        )
+        assert indices == [0, 1, 2]
+
+    def test_dense_points_limit_labels(self):
+        r = TimeSeriesPlotRenderer()
+        fm = _StubFontMetrics()
+        plot_rect = _StubRect()
+        dense = [_StubPoint(20.0 + i * 4.0, 100.0) for i in range(60)]
+        texts = ["123.45"] * len(dense)
+        indices = r._select_point_value_label_indices(
+            dense, texts, fm, plot_rect, x_off=10.0, y_off=-10.0
+        )
+        assert len(indices) < len(dense)
+        assert len(indices) <= 12
 
 
 class TestTooltipValueFormatting:

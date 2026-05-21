@@ -244,6 +244,10 @@ class TimeSeriesPlotRenderer:
             return t
         return "circle"
 
+    @staticmethod
+    def _label_boxes_overlap(ax: float, ay: float, aw: float, ah: float, bx: float, by: float, bw: float, bh: float) -> bool:
+        return not (ax + aw < bx or bx + bw < ax or ay + ah < by or by + bh < ay)
+
     def _point_value_text(self, s, value) -> str:
         series_y_labels = s.get("y_categorical_labels")
         if series_y_labels:
@@ -268,42 +272,73 @@ class TimeSeriesPlotRenderer:
         if n <= 0:
             return []
 
-        min_spacing = max(float(min_spacing_px or self._POINT_VALUE_MIN_SPACING_PX), float(plot_rect.width()) / 24.0)
-        max_labels = max(2, int(float(plot_rect.width()) // min_spacing))
+        pad = 3.0
+        required_x_gap = min(
+            96.0,
+            max(
+                float(fm.horizontalAdvance(texts[i])) + 2.0 * pad + 4.0
+                for i in range(n)
+            ),
+        )
+        base_spacing = max(
+            float(min_spacing_px or self._POINT_VALUE_MIN_SPACING_PX),
+            float(plot_rect.width()) / 24.0,
+        )
 
-        if n <= max_labels:
+        point_gaps = []
+        for i in range(1, n):
+            gap = abs(float(points[i].x()) - float(points[i - 1].x()))
+            if gap > 0.5:
+                point_gaps.append(gap)
+        min_point_gap = min(point_gaps) if point_gaps else float(plot_rect.width())
+
+        # Zoom in: puntos más separados en pantalla → probar todas las etiquetas.
+        if min_point_gap >= required_x_gap * 0.65:
             candidates = list(range(n))
         else:
-            candidates = []
-            x0 = float(points[0].x())
-            x1 = float(points[-1].x())
-            if abs(x1 - x0) < 1.0:
-                step = max(1, n // max_labels)
-                candidates = list(range(0, n, step))[:max_labels]
+            label_spacing = max(required_x_gap, min(base_spacing, min_point_gap * 0.85))
+            max_labels = max(2, min(n, int(float(plot_rect.width()) // label_spacing)))
+            if n <= max_labels:
+                candidates = list(range(n))
             else:
-                for k in range(max_labels):
-                    target_x = x0 + (x1 - x0) * float(k) / float(max(max_labels - 1, 1))
-                    best_i = min(range(n), key=lambda i: abs(float(points[i].x()) - target_x))
-                    if best_i not in candidates:
-                        candidates.append(best_i)
+                candidates = []
+                x0 = float(points[0].x())
+                x1 = float(points[-1].x())
+                if abs(x1 - x0) < 1.0:
+                    step = max(1, n // max_labels)
+                    candidates = list(range(0, n, step))[:max_labels]
+                else:
+                    for k in range(max_labels):
+                        target_x = x0 + (x1 - x0) * float(k) / float(max(max_labels - 1, 1))
+                        best_i = min(range(n), key=lambda i: abs(float(points[i].x()) - target_x))
+                        if best_i not in candidates:
+                            candidates.append(best_i)
 
         selected: List[int] = []
-        occupied: List[QRectF] = []
-        pad = 3.0
+        occupied: List[Tuple[float, float, float, float]] = []
+        plot_left = float(plot_rect.left())
+        plot_right = float(plot_rect.right())
+        plot_top = float(plot_rect.top())
+        plot_bottom = float(plot_rect.bottom())
         for i in sorted(candidates, key=lambda idx: float(points[idx].x())):
             pt = points[i]
-            if not plot_rect.contains(pt):
+            px = float(pt.x())
+            py = float(pt.y())
+            if not (plot_left <= px <= plot_right and plot_top <= py <= plot_bottom):
                 continue
             text = texts[i]
-            tw = float(fm.horizontalAdvance(text))
-            th = float(fm.height())
-            x = float(pt.x()) + float(x_off)
-            y = float(pt.y()) + float(y_off) - float(fm.descent())
-            rect = QRectF(x - pad, y - th - pad, tw + 2.0 * pad, th + 2.0 * pad)
-            if any(rect.intersects(prev) for prev in occupied):
+            tw = min(96.0, max(4.0, float(fm.horizontalAdvance(text))))
+            th = min(24.0, max(8.0, float(fm.height())))
+            x = px + float(x_off)
+            y = py + float(y_off) - float(fm.descent())
+            rx = x - pad
+            ry = y - th - pad
+            rw = tw + 2.0 * pad
+            rh = th + 2.0 * pad
+            if any(self._label_boxes_overlap(rx, ry, rw, rh, ox, oy, ow, oh) for ox, oy, ow, oh in occupied):
                 continue
             selected.append(i)
-            occupied.append(rect)
+            occupied.append((rx, ry, rw, rh))
         return selected
 
     def _select_marker_indices(
@@ -351,9 +386,13 @@ class TimeSeriesPlotRenderer:
         color: QColor,
         *,
         hollow: bool = True,
+        emphasized: bool = False,
     ) -> None:
         r = max(1.0, float(size) / 2.0)
-        painter.setPen(QPen(color, 1.4))
+        if emphasized:
+            r = min(r + 1.25, 14.0)
+        pen_w = 2.4 if emphasized else 1.4
+        painter.setPen(QPen(color, pen_w))
         if hollow:
             painter.setBrush(QColor(255, 255, 255))
         else:
@@ -996,6 +1035,24 @@ class TimeSeriesPlotRenderer:
             if highlighted:
                 marker_size = min(marker_size + 1.0, 26.0)
 
+            label_indices: List[int] = []
+            value_label_texts: List[str] = []
+            if bool(s.get("show_point_values", False)) and y_state is not None:
+                font_lbl = qfont(8, bold=highlighted)
+                fm_lbl = QFontMetrics(font_lbl)
+                x_off = marker_size / 2.0 + 3.0
+                y_off = -marker_size / 2.0 - 2.0
+                value_label_texts = [self._point_value_text(s, ys[i]) for i in range(n)]
+                label_indices = self._select_point_value_label_indices(
+                    points,
+                    value_label_texts,
+                    fm_lbl,
+                    plot_rect,
+                    x_off=x_off,
+                    y_off=y_off,
+                )
+            labeled = set(label_indices)
+
             if markers_visible:
                 marker_symbol = str(s.get("marker_symbol") or "circle").strip()
                 marker_hollow = bool(s.get("marker_hollow", True))
@@ -1008,28 +1065,23 @@ class TimeSeriesPlotRenderer:
                         marker_symbol,
                         marker_color,
                         hollow=marker_hollow,
+                        emphasized=i in labeled,
                     )
                 painter.restore()
 
-            if bool(s.get("show_point_values", False)) and y_state is not None:
+            if label_indices and y_state is not None:
                 font_lbl = qfont(8, bold=highlighted)
                 painter.setFont(font_lbl)
-                fm = QFontMetrics(font_lbl)
+                fm_lbl = QFontMetrics(font_lbl)
                 painter.setPen(marker_color)
                 x_off = marker_size / 2.0 + 3.0
                 y_off = -marker_size / 2.0 - 2.0
-                texts = [self._point_value_text(s, ys[i]) for i in range(n)]
-                label_indices = self._select_point_value_label_indices(
-                    points,
-                    texts,
-                    fm,
-                    plot_rect,
-                    x_off=x_off,
-                    y_off=y_off,
-                )
                 for i in label_indices:
                     pt = points[i]
-                    painter.drawText(QPointF(pt.x() + x_off, pt.y() + y_off - fm.descent()), texts[i])
+                    painter.drawText(
+                        QPointF(pt.x() + x_off, pt.y() + y_off - fm_lbl.descent()),
+                        value_label_texts[i],
+                    )
 
         painter.restore()
 
