@@ -587,6 +587,9 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         self._add_form_row(markers_form, self.tr("Symbol:"), cb_marker_symbol)
         self._add_form_row(markers_form, self.tr("Size:"), sp_marker_size)
         self._add_form_row(markers_form, self.tr("Color:"), btn_marker_color)
+        chk_marker_hollow = QCheckBox(self.tr("Hollow"))
+        chk_marker_hollow.setChecked(True)
+        markers_form.addRow("", chk_marker_hollow)
         chk_show_point_values = QCheckBox(self.tr("Show step point values as text"))
         markers_form.addRow("", chk_show_point_values)
         lay.addWidget(markers_grp)
@@ -608,6 +611,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             "marker_size": sp_marker_size,
             "marker_color": marker_color,
             "marker_color_btn": btn_marker_color,
+            "marker_hollow": chk_marker_hollow,
             "show_point_values": chk_show_point_values,
         })
         w._curve_rows.append(row)
@@ -617,6 +621,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             cb_marker_symbol.setEnabled(enabled)
             sp_marker_size.setEnabled(enabled)
             btn_marker_color.setEnabled(enabled)
+            chk_marker_hollow.setEnabled(enabled)
             chk_show_point_values.setEnabled(enabled)
 
         def sync_emphasis_options():
@@ -714,6 +719,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
                 curve["marker_symbol"] = "circle"
             curve["marker_size"] = int(sp_marker_size.value())
             curve["marker_color"] = row["marker_color"].name(QColor.NameFormat.HexRgb)
+            curve["marker_hollow"] = bool(chk_marker_hollow.isChecked())
             curve["show_point_values"] = bool(chk_show_point_values.isChecked())
             w._curve_dirty = False
 
@@ -781,6 +787,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
                 marker_qcolor = QColor("#0078d7")
             row["marker_color"] = marker_qcolor
             self._show_color_on_button(btn_marker_color, marker_qcolor)
+            chk_marker_hollow.setChecked(bool(curve.get("marker_hollow", True)))
             sync_marker_options()
             sync_magnitude_axis_radios(magnitude)
             w._curve_dirty = False
@@ -836,6 +843,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         rb_highlighted.toggled.connect(mark_current_curve_dirty)
         cb_marker_symbol.currentIndexChanged.connect(on_marker_option_changed)
         sp_marker_size.valueChanged.connect(on_marker_option_changed)
+        chk_marker_hollow.toggled.connect(on_marker_option_changed)
         chk_show_point_values.toggled.connect(on_marker_option_changed)
 
         def on_marker_color_picked(_checked=False):
@@ -1450,6 +1458,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         s["marker_symbol"] = curve.get("marker_symbol") or "circle"
         s["marker_size"] = int(curve.get("marker_size") or 6)
         s["marker_color"] = curve.get("marker_color") or curve.get("color") or "#0078d7"
+        s["marker_hollow"] = bool(curve.get("marker_hollow", True))
         s["show_point_values"] = bool(curve.get("show_point_values", False))
         s["muted"] = bool(curve.get("muted", False))
         s["highlighted"] = bool(curve.get("highlighted", False))

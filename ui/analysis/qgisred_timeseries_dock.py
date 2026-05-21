@@ -161,6 +161,7 @@ class TimeSeriesPlotWidget(QWidget):
             "marker_symbol": "circle",
             "marker_size": 6,
             "marker_color": DEFAULT_SERIES_COLOR,
+            "marker_hollow": True,
             "show_point_values": False,
             "legend_font_family": "",
             "legend_font_size": 8,
@@ -204,6 +205,8 @@ class TimeSeriesPlotWidget(QWidget):
                 s["marker_size"] = 6
             if "marker_color" not in s:
                 s["marker_color"] = s.get("color") or DEFAULT_SERIES_COLOR
+            if "marker_hollow" not in s:
+                s["marker_hollow"] = True
             if "show_point_values" not in s:
                 s["show_point_values"] = False
             if "legend_font_family" not in s:
@@ -1659,6 +1662,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 "marker_symbol": s.get("marker_symbol") or "circle",
                 "marker_size": s.get("marker_size") or 6,
                 "marker_color": s.get("marker_color") or s.get("color"),
+                "marker_hollow": bool(s.get("marker_hollow", True)),
                 "show_point_values": bool(s.get("show_point_values", False)),
                 "visible": bool(s.get("visible", True)),
                 "muted": bool(s.get("muted", False)),

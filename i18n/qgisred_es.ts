@@ -5761,7 +5761,12 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Color del marcador</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="589"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="591"/>
+        <source>Hollow</source>
+        <translation>Hueco</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="593"/>
         <source>Show step point values as text</source>
         <translation>Mostrar valores de puntos de paso como texto</translation>
     </message>

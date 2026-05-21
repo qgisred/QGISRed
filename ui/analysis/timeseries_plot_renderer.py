@@ -342,10 +342,22 @@ class TimeSeriesPlotRenderer:
             min_spacing_px=min_spacing,
         )
 
-    def _draw_point_marker(self, painter: QPainter, pt: QPointF, size: float, symbol: str, color: QColor) -> None:
+    def _draw_point_marker(
+        self,
+        painter: QPainter,
+        pt: QPointF,
+        size: float,
+        symbol: str,
+        color: QColor,
+        *,
+        hollow: bool = True,
+    ) -> None:
         r = max(1.0, float(size) / 2.0)
         painter.setPen(QPen(color, 1.4))
-        painter.setBrush(Qt.BrushStyle.NoBrush)
+        if hollow:
+            painter.setBrush(QColor(255, 255, 255))
+        else:
+            painter.setBrush(color)
         t = self._marker_symbol(symbol)
         if t == "cross":
             painter.drawLine(QPointF(pt.x() - r, pt.y() - r), QPointF(pt.x() + r, pt.y() + r))
@@ -986,6 +998,7 @@ class TimeSeriesPlotRenderer:
 
             if markers_visible:
                 marker_symbol = str(s.get("marker_symbol") or "circle").strip()
+                marker_hollow = bool(s.get("marker_hollow", True))
                 painter.save()
                 for i in range(n):
                     self._draw_point_marker(
@@ -994,6 +1007,7 @@ class TimeSeriesPlotRenderer:
                         marker_size,
                         marker_symbol,
                         marker_color,
+                        hollow=marker_hollow,
                     )
                 painter.restore()
 

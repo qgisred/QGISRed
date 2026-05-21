@@ -936,6 +936,7 @@ class AnalysisSection:
                 "marker_symbol": it.get("marker_symbol") or "circle",
                 "marker_size": it.get("marker_size") or 6,
                 "marker_color": it.get("marker_color") or it.get("color") or QColor(0, 120, 215),
+                "marker_hollow": bool(it.get("marker_hollow", True)),
                 "show_point_values": bool(it.get("show_point_values", False)),
                 "visible": bool(it.get("visible", True)),
                 "muted": bool(it.get("muted", False)),
@@ -1017,6 +1018,7 @@ class AnalysisSection:
                 marker_qc = QColor(marker_color)
                 if marker_qc.isValid():
                     it["marker_color"] = marker_qc
+                it["marker_hollow"] = bool((cfg or {}).get("marker_hollow", True))
                 it["show_point_values"] = bool((cfg or {}).get("show_point_values", False))
                 it["visible"] = bool((cfg or {}).get("visible", True))
                 it["muted"] = bool((cfg or {}).get("muted", False))
