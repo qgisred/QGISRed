@@ -5436,9 +5436,14 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Mostrar líneas de rejilla para este eje</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="956"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1193"/>
+        <source>Tick marks and labels</source>
+        <translation>Marcas y etiquetas de escala</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1193"/>
         <source>Tick labels</source>
-        <translation>Etiquetas de marcas</translation>
+        <translation type="obsolete">Etiquetas de marcas</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="982"/>

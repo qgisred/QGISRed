@@ -5196,8 +5196,13 @@ Left-click: Add a new item below the current selection</source>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="956"/>
-        <source>Tick labels</source>
+        <source>Tick marks and labels</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1193"/>
+        <source>Tick labels</source>
+        <translation type="obsolete">Tick labels</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="982"/>

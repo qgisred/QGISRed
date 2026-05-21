@@ -1190,57 +1190,20 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         grid_lay.addWidget(chk_grid)
         lay.addWidget(grid_grp)
 
-        tick_grp = self._compact_group(QGroupBox(self.tr("Tick labels")))
-        tick_form = QFormLayout(tick_grp)
-        tick_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        tick_form.setHorizontalSpacing(12)
-        tick_form.setVerticalSpacing(8)
-        try:
-            tick_form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
-        except Exception:
-            pass
-        try:
-            tick_form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
-        except AttributeError:
-            tick_form.setFieldGrowthPolicy(QFormLayout.ExpandingFieldsGrow)
-
-        font_combo = QFontComboBox()
-        font_combo.setMaxVisibleItems(8)
-        self._limit_field_width(font_combo, self._FONT_FIELD_WIDTH)
-        fam = (cfg.tick_font_family or "").strip()
-        if fam:
-            font_combo.setCurrentFont(QFont(fam))
-
-        sp_size = QSpinBox()
-        sp_size.setRange(5, 48)
-        sp_size.setValue(int(cfg.tick_font_size))
-        sp_size.setMinimumWidth(80)
-
-        self._add_form_row(tick_form, self.tr("Font:"), font_combo)
-        self._add_form_row(tick_form, self.tr("Size:"), sp_size)
+        tick_grp = self._compact_group(QGroupBox(self.tr("Tick marks and labels")))
+        tick_lay = QVBoxLayout(tick_grp)
+        tick_style_row, font_combo, sp_size = self._build_text_style_row(
+            font_family=cfg.tick_font_family,
+            font_size=cfg.tick_font_size,
+            color=cfg.tick_qcolor(),
+            color_title=self.tr("Tick color"),
+            on_changed=self._schedule_live_apply,
+        )
+        tick_lay.addWidget(tick_style_row)
 
         chk_tick_marks = QCheckBox(self.tr("Show tick marks outside the axis"))
         chk_tick_marks.setChecked(bool(getattr(cfg, "show_tick_marks", False)))
-        tick_form.addRow("", chk_tick_marks)
-
-        w._picked_color = QColor(cfg.tick_qcolor())
-        btn_color = QPushButton()
-
-        def refresh_color_btn():
-            self._show_color_on_button(btn_color, w._picked_color)
-
-        refresh_color_btn()
-
-        def pick_color():
-            nc = QColorDialog.getColor(w._picked_color, self, self.tr("Tick color"))
-            if nc.isValid():
-                w._picked_color = nc
-                refresh_color_btn()
-                self._schedule_live_apply()
-
-        btn_color.clicked.connect(pick_color)
-        btn_color.setMinimumHeight(28)
-        self._add_form_row(tick_form, self.tr("Color:"), btn_color)
+        tick_lay.addWidget(chk_tick_marks)
         lay.addWidget(tick_grp)
 
         sp_dec = QSpinBox()
@@ -1337,6 +1300,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         w._sp_div = sp_div
         w._chk_grid = chk_grid
         w._chk_tick_marks = chk_tick_marks
+        w._tick_style_row = tick_style_row
         w._sp_size = sp_size
         w._font_combo = font_combo
         w._sp_dec = sp_dec
@@ -1360,7 +1324,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         cfg.show_tick_marks = bool(tab._chk_tick_marks.isChecked())
         cfg.tick_font_size = int(tab._sp_size.value())
         cfg.tick_font_family = tab._font_combo.currentFont().family()
-        cfg.tick_color_hex = tab._picked_color.name(QColor.NameFormat.HexRgb)
+        tick_color = getattr(tab._tick_style_row, "_text_style_color", QColor("#000000"))
+        cfg.tick_color_hex = tick_color.name(QColor.NameFormat.HexRgb) if isinstance(tick_color, QColor) else "#000000"
         if tab._sp_dec.isVisible():
             dv = int(tab._sp_dec.value())
             cfg.decimal_places = -1 if dv < 0 else dv
