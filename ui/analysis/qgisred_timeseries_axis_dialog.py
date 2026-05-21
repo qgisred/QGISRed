@@ -38,8 +38,8 @@ from .timeseries_plot_style import FONT_FAMILY
 
 
 class TimeSeriesAxisOptionsDialog(QDialog):
-    _MIN_DIALOG_WIDTH = 560
-    _MIN_DIALOG_HEIGHT = 480
+    _MIN_DIALOG_WIDTH = 520
+    _MIN_DIALOG_HEIGHT = 400
     _LONG_FIELD_WIDTH = 360
     _FORM_FIELD_WIDTH = 280
     _FONT_FIELD_WIDTH = 260
@@ -245,7 +245,16 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             self._restore_snapshot()
         super().reject()
 
-    def _build_text_style_row(self, *, font_family: str, font_size: int, color: QColor, color_title: str, on_changed=None):
+    def _build_text_style_row(
+        self,
+        *,
+        font_family: str,
+        font_size: int,
+        color: QColor,
+        color_title: str,
+        on_changed=None,
+        include_color: bool = True,
+    ):
         row = QWidget()
         row_lay = QHBoxLayout(row)
         row_lay.setContentsMargins(0, 0, 0, 0)
@@ -265,34 +274,126 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         sp_size.setMinimumWidth(64)
         sp_size.setMaximumWidth(80)
 
+        row_lay.addWidget(QLabel(self.tr("Font:")))
+        row_lay.addWidget(font_combo, 1)
+        row_lay.addWidget(QLabel(self.tr("Size:")))
+        row_lay.addWidget(sp_size)
+
+        if include_color:
+            picked_color = QColor(color)
+            if not picked_color.isValid():
+                picked_color = QColor("#000000")
+            btn_color = QPushButton()
+            btn_color.setMinimumHeight(28)
+            btn_color.setMinimumWidth(46)
+            self._show_color_on_button(btn_color, picked_color)
+            row._text_style_color = picked_color
+
+            def pick_color():
+                current = getattr(row, "_text_style_color", picked_color)
+                nc = QColorDialog.getColor(current, self, color_title)
+                if nc.isValid():
+                    row._text_style_color = nc
+                    self._show_color_on_button(btn_color, nc)
+                    if callable(on_changed):
+                        on_changed()
+
+            btn_color.clicked.connect(pick_color)
+            row_lay.addWidget(QLabel(self.tr("Color:")))
+            row_lay.addWidget(btn_color)
+
+        row_lay.addStretch(1)
+        return row, font_combo, sp_size
+
+    def _build_line_style_row(self, cb_style: QComboBox, sp_width: QDoubleSpinBox, color: QColor, *, on_changed=None):
+        row = QWidget()
+        row_lay = QHBoxLayout(row)
+        row_lay.setContentsMargins(0, 0, 0, 0)
+        row_lay.setSpacing(8)
+
         picked_color = QColor(color)
         if not picked_color.isValid():
-            picked_color = QColor("#000000")
+            picked_color = QColor("#0078d7")
         btn_color = QPushButton()
         btn_color.setMinimumHeight(28)
         btn_color.setMinimumWidth(46)
         self._show_color_on_button(btn_color, picked_color)
-        row._text_style_color = picked_color
+        row._style_color = picked_color
 
         def pick_color():
-            current = getattr(row, "_text_style_color", picked_color)
-            nc = QColorDialog.getColor(current, self, color_title)
+            current = getattr(row, "_style_color", picked_color)
+            nc = QColorDialog.getColor(current, self, self.tr("Curve color"))
             if nc.isValid():
-                row._text_style_color = nc
+                row._style_color = nc
                 self._show_color_on_button(btn_color, nc)
                 if callable(on_changed):
                     on_changed()
 
         btn_color.clicked.connect(pick_color)
 
-        row_lay.addWidget(QLabel(self.tr("Font:")))
-        row_lay.addWidget(font_combo, 1)
+        sp_width.setMinimumWidth(64)
+        sp_width.setMaximumWidth(80)
+        row_lay.addWidget(QLabel(self.tr("Line:")))
+        row_lay.addWidget(cb_style, 1)
+        row_lay.addWidget(QLabel(self.tr("Width:")))
+        row_lay.addWidget(sp_width)
+        row_lay.addWidget(QLabel(self.tr("Color:")))
+        row_lay.addWidget(btn_color)
+        row_lay.addStretch(1)
+        return row
+
+    def _build_marker_style_row(
+        self,
+        cb_symbol: QComboBox,
+        sp_size: QSpinBox,
+        color: QColor,
+        *,
+        on_changed=None,
+    ):
+        row = QWidget()
+        row_lay = QHBoxLayout(row)
+        row_lay.setContentsMargins(0, 0, 0, 0)
+        row_lay.setSpacing(8)
+
+        picked_color = QColor(color)
+        if not picked_color.isValid():
+            picked_color = QColor("#0078d7")
+        btn_color = QPushButton()
+        btn_color.setMinimumHeight(28)
+        btn_color.setMinimumWidth(46)
+        self._show_color_on_button(btn_color, picked_color)
+        row._style_color = picked_color
+
+        def pick_color():
+            current = getattr(row, "_style_color", picked_color)
+            nc = QColorDialog.getColor(current, self, self.tr("Marker color"))
+            if nc.isValid():
+                row._style_color = nc
+                self._show_color_on_button(btn_color, nc)
+                if callable(on_changed):
+                    on_changed()
+
+        btn_color.clicked.connect(pick_color)
+
+        sp_size.setMinimumWidth(64)
+        sp_size.setMaximumWidth(80)
+        row_lay.addWidget(QLabel(self.tr("Symbol:")))
+        row_lay.addWidget(cb_symbol, 1)
         row_lay.addWidget(QLabel(self.tr("Size:")))
         row_lay.addWidget(sp_size)
         row_lay.addWidget(QLabel(self.tr("Color:")))
         row_lay.addWidget(btn_color)
         row_lay.addStretch(1)
-        return row, font_combo, sp_size
+        return row
+
+    def _apply_color_to_style_row(self, style_row: QWidget, color: QColor) -> None:
+        qc = QColor(color)
+        if not qc.isValid():
+            return
+        style_row._style_color = qc
+        for btn in style_row.findChildren(QPushButton):
+            self._show_color_on_button(btn, qc)
+            return
 
     def _configure_initial_geometry(self) -> None:
         max_w = max(self._MIN_DIALOG_WIDTH, 700)
@@ -317,7 +418,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             time_axis_h = int(self._axes_tabs.widget(0).sizeHint().height())
         except Exception:
             pass
-        target_h = min(max_h, max(self._MIN_DIALOG_HEIGHT, time_axis_h + 150))
+        target_h = min(max_h, max(self._MIN_DIALOG_HEIGHT, time_axis_h + 110))
         self.resize(min(max_w, self.minimumWidth()), target_h)
 
     def _build_axes_tab(self) -> tuple[QWidget, QTabWidget]:
@@ -427,19 +528,6 @@ class TimeSeriesAxisOptionsDialog(QDialog):
                 n = default
             return max(lo, min(n, hi))
 
-        def configure_form(form: QFormLayout) -> None:
-            form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-            form.setHorizontalSpacing(12)
-            form.setVerticalSpacing(8)
-            try:
-                form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
-            except Exception:
-                pass
-            try:
-                form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
-            except AttributeError:
-                form.setFieldGrowthPolicy(QFormLayout.ExpandingFieldsGrow)
-
         w._curve_rows = []
         w._curve_current_idx = -1
         w._curve_loading = False
@@ -494,33 +582,24 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         axis_lay.addStretch(1)
         lay.addWidget(axis_grp)
 
-        row = {}
+        row = {
+            "color": QColor("#0078d7"),
+            "marker_color": QColor("#0078d7"),
+        }
         ed_label = QLineEdit()
         ed_label.setClearButtonEnabled(True)
         ed_label.setMinimumHeight(26)
-        self._limit_field_width(ed_label, self._LONG_FIELD_WIDTH)
+        ed_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
         font_combo = QFontComboBox()
         font_combo.setMaxVisibleItems(8)
-        self._limit_field_width(font_combo, self._FONT_FIELD_WIDTH)
+        font_combo.setMinimumWidth(150)
+        font_combo.setMaximumWidth(self._FONT_FIELD_WIDTH)
 
         sp_font_size = QSpinBox()
         sp_font_size.setRange(6, 32)
-
-        color = QColor("#0078d7")
-        btn_color = QPushButton()
-        btn_color.setMinimumHeight(28)
-        self._limit_field_width(btn_color, self._FORM_FIELD_WIDTH)
-
-        def pick_color(_checked=False):
-            nc = QColorDialog.getColor(row["color"], self, self.tr("Curve color"))
-            if nc.isValid():
-                row["color"] = nc
-                self._show_color_on_button(btn_color, nc)
-                w._curve_dirty = True
-                self._schedule_live_apply()
-
-        btn_color.clicked.connect(pick_color)
+        sp_font_size.setMinimumWidth(64)
+        sp_font_size.setMaximumWidth(80)
 
         cb_style = QComboBox()
         cb_style.addItem(self.tr("Solid"), "solid")
@@ -561,49 +640,77 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         sp_marker_size = QSpinBox()
         sp_marker_size.setRange(2, 24)
 
-        marker_color = QColor("#0078d7")
-        btn_marker_color = QPushButton()
-        btn_marker_color.setMinimumHeight(28)
-        self._limit_field_width(btn_marker_color, self._FORM_FIELD_WIDTH)
+        chk_marker_hollow = QCheckBox(self.tr("Hollow"))
+        chk_marker_hollow.setChecked(True)
+        chk_show_point_values = QCheckBox(self.tr("Show step point values as text"))
+
+        def mark_current_curve_dirty(*_args) -> None:
+            if bool(getattr(w, "_curve_loading", False)):
+                return
+            w._curve_dirty = True
+            self._schedule_live_apply()
 
         legend_grp = self._compact_group(QGroupBox(self.tr("Legend")))
         legend_form = QFormLayout(legend_grp)
-        configure_form(legend_form)
+        legend_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        legend_form.setHorizontalSpacing(12)
+        legend_form.setVerticalSpacing(8)
+        try:
+            legend_form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
+        except AttributeError:
+            legend_form.setFieldGrowthPolicy(QFormLayout.ExpandingFieldsGrow)
+
         self._add_form_row(legend_form, self.tr("Name:"), ed_label)
-        self._add_form_row(legend_form, self.tr("Font:"), font_combo)
-        self._add_form_row(legend_form, self.tr("Size:"), sp_font_size)
+
+        font_size_row = QWidget()
+        font_size_lay = QHBoxLayout(font_size_row)
+        font_size_lay.setContentsMargins(0, 0, 0, 0)
+        font_size_lay.setSpacing(8)
+        font_size_lay.addWidget(font_combo, 1)
+        font_size_lay.addWidget(QLabel(self.tr("Size:")))
+        font_size_lay.addWidget(sp_font_size)
+        font_size_lay.addStretch(1)
+        self._add_form_row(legend_form, self.tr("Font:"), font_size_row)
         lay.addWidget(legend_grp)
 
         style_grp = self._compact_group(QGroupBox(self.tr("Line Style")))
         style_grp.setCheckable(True)
-        style_form = QFormLayout(style_grp)
-        configure_form(style_form)
-        self._add_form_row(style_form, self.tr("Line:"), cb_style)
-        self._add_form_row(style_form, self.tr("Color:"), btn_color)
-        self._add_form_row(style_form, self.tr("Width:"), sp_width)
-        style_form.addRow("", emphasis_row)
+        style_lay = QVBoxLayout(style_grp)
+        line_style_row = self._build_line_style_row(
+            cb_style,
+            sp_width,
+            row["color"],
+            on_changed=mark_current_curve_dirty,
+        )
+        style_lay.addWidget(line_style_row)
+        style_lay.addWidget(emphasis_row)
         lay.addWidget(style_grp)
 
         markers_grp = self._compact_group(QGroupBox(self.tr("Markers")))
         markers_grp.setCheckable(True)
-        markers_form = QFormLayout(markers_grp)
-        configure_form(markers_form)
-        self._add_form_row(markers_form, self.tr("Symbol:"), cb_marker_symbol)
-        self._add_form_row(markers_form, self.tr("Size:"), sp_marker_size)
-        self._add_form_row(markers_form, self.tr("Color:"), btn_marker_color)
-        chk_marker_hollow = QCheckBox(self.tr("Hollow"))
-        chk_marker_hollow.setChecked(True)
-        markers_form.addRow("", chk_marker_hollow)
-        chk_show_point_values = QCheckBox(self.tr("Show step point values as text"))
-        markers_form.addRow("", chk_show_point_values)
+        markers_lay = QVBoxLayout(markers_grp)
+        marker_style_row = self._build_marker_style_row(
+            cb_marker_symbol,
+            sp_marker_size,
+            row["marker_color"],
+            on_changed=mark_current_curve_dirty,
+        )
+        markers_lay.addWidget(marker_style_row)
+        marker_opts_row = QWidget()
+        marker_opts_lay = QHBoxLayout(marker_opts_row)
+        marker_opts_lay.setContentsMargins(0, 0, 0, 0)
+        marker_opts_lay.setSpacing(12)
+        marker_opts_lay.addWidget(chk_marker_hollow)
+        marker_opts_lay.addWidget(chk_show_point_values)
+        marker_opts_lay.addStretch(1)
+        markers_lay.addWidget(marker_opts_row)
         lay.addWidget(markers_grp)
 
         row.update({
             "label": ed_label,
             "font_family": font_combo,
             "font_size": sp_font_size,
-            "color": color,
-            "color_btn": btn_color,
+            "line_style_row": line_style_row,
             "style": cb_style,
             "width": sp_width,
             "visible": style_grp,
@@ -613,8 +720,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             "show_markers": markers_grp,
             "marker_symbol": cb_marker_symbol,
             "marker_size": sp_marker_size,
-            "marker_color": marker_color,
-            "marker_color_btn": btn_marker_color,
+            "marker_style_row": marker_style_row,
             "marker_hollow": chk_marker_hollow,
             "show_point_values": chk_show_point_values,
         })
@@ -622,9 +728,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
 
         def sync_marker_options():
             enabled = bool(markers_grp.isChecked())
-            cb_marker_symbol.setEnabled(enabled)
-            sp_marker_size.setEnabled(enabled)
-            btn_marker_color.setEnabled(enabled)
+            marker_style_row.setEnabled(enabled)
             chk_marker_hollow.setEnabled(enabled)
             chk_show_point_values.setEnabled(enabled)
 
@@ -691,12 +795,6 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             set_magnitude_axis(mag, side)
             self._schedule_live_apply()
 
-        def mark_current_curve_dirty(*_args) -> None:
-            if bool(getattr(w, "_curve_loading", False)):
-                return
-            w._curve_dirty = True
-            self._schedule_live_apply()
-
         def store_current_curve():
             idx = int(getattr(w, "_curve_current_idx", -1))
             if idx < 0 or idx >= len(self._curve_cfg) or bool(getattr(w, "_curve_loading", False)):
@@ -708,7 +806,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             curve["label"] = ed_label.text().strip() or self.tr("Series")
             curve["legend_font_family"] = font_combo.currentFont().family()
             curve["legend_font_size"] = int(sp_font_size.value())
-            curve["color"] = row["color"].name(QColor.NameFormat.HexRgb)
+            line_color = getattr(line_style_row, "_style_color", row["color"])
+            curve["color"] = line_color.name(QColor.NameFormat.HexRgb) if isinstance(line_color, QColor) else "#0078d7"
             try:
                 curve["line_style"] = str(cb_style.currentData() or "solid")
             except Exception:
@@ -722,7 +821,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             except Exception:
                 curve["marker_symbol"] = "circle"
             curve["marker_size"] = int(sp_marker_size.value())
-            curve["marker_color"] = row["marker_color"].name(QColor.NameFormat.HexRgb)
+            marker_color = getattr(marker_style_row, "_style_color", row["marker_color"])
+            curve["marker_color"] = marker_color.name(QColor.NameFormat.HexRgb) if isinstance(marker_color, QColor) else "#0078d7"
             curve["marker_hollow"] = bool(chk_marker_hollow.isChecked())
             curve["show_point_values"] = bool(chk_show_point_values.isChecked())
             w._curve_dirty = False
@@ -765,7 +865,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             if not line_color.isValid():
                 line_color = QColor("#0078d7")
             row["color"] = line_color
-            self._show_color_on_button(btn_color, line_color)
+            self._apply_color_to_style_row(line_style_row, line_color)
 
             idx_style = cb_style.findData((curve.get("line_style") or "solid").strip())
             cb_style.setCurrentIndex(idx_style if idx_style >= 0 else 0)
@@ -790,7 +890,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             if not marker_qcolor.isValid():
                 marker_qcolor = QColor("#0078d7")
             row["marker_color"] = marker_qcolor
-            self._show_color_on_button(btn_marker_color, marker_qcolor)
+            self._apply_color_to_style_row(marker_style_row, marker_qcolor)
             chk_marker_hollow.setChecked(bool(curve.get("marker_hollow", True)))
             sync_marker_options()
             sync_magnitude_axis_radios(magnitude)
@@ -850,14 +950,6 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         chk_marker_hollow.toggled.connect(on_marker_option_changed)
         chk_show_point_values.toggled.connect(on_marker_option_changed)
 
-        def on_marker_color_picked(_checked=False):
-            nc = QColorDialog.getColor(row["marker_color"], self, self.tr("Marker color"))
-            if nc.isValid():
-                row["marker_color"] = nc
-                self._show_color_on_button(btn_marker_color, nc)
-                on_marker_option_changed()
-
-        btn_marker_color.clicked.connect(on_marker_color_picked)
         w._curve_store_current = store_current_curve
 
         refresh_curve_combo()
