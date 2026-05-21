@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from unittest.mock import patch
+
 import pytest
 
 from QGISRed.ui.analysis.timeseries_plot_renderer import TimeSeriesPlotRenderer
@@ -225,6 +227,23 @@ class TestPointValueLabelSelection:
         )
         assert len(indices) < len(dense)
         assert len(indices) <= 12
+
+
+class TestMarkerValueFormatting:
+    def test_point_value_text_uses_units_table_decimals(self):
+        r = TimeSeriesPlotRenderer()
+        series = {
+            "series_key": "Link:pipes:Flow:P-1",
+            "y_categorical_labels": None,
+        }
+        with patch("QGISRed.ui.analysis.timeseries_plot_renderer.QGISRedFieldUtils") as mock_fu:
+            mock_fu.return_value.getResultPropertyDecimalsFromSeriesKey.return_value = 1
+            assert r._point_value_text(series, 12.3456) == "12.3"
+
+    def test_point_value_text_without_series_key_keeps_compact_format(self):
+        r = TimeSeriesPlotRenderer()
+        series = {"series_key": "", "y_categorical_labels": None}
+        assert r._point_value_text(series, 12.3456) == "12.346"
 
 
 class TestTooltipValueFormatting:

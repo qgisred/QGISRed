@@ -564,6 +564,20 @@ class QGISRedFieldUtils:
         unitSystem = self.getUnits()
         return self._lookupFieldAbbr(element, fieldName, unitSystem)
 
+    def getResultPropertyDecimalsFromSeriesKey(self, series_key):
+        """Return decimal precision for a results series key, or None if not applicable."""
+        parts = str(series_key or "").split(":")
+        if len(parts) < 3:
+            return None
+        category = parts[0]
+        prop_internal = parts[2]
+        if category not in ("Node", "Link") or not prop_internal:
+            return None
+        try:
+            return self.getResultPropertyDecimals(category, prop_internal)
+        except Exception:
+            return None
+
     def getResultPropertyDecimals(self, category, prop_internal, default=2):
         """Return decimal precision for result properties using the units CSV."""
         prop_map = {

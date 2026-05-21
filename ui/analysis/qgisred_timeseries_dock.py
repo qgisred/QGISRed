@@ -1553,19 +1553,8 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
     def _seriesCsvDecimalPlaces(self, series_dict):
         if series_dict.get("y_categorical_labels"):
             return None
-
-        series_key = str(series_dict.get("series_key") or "")
-        parts = series_key.split(":")
-        if len(parts) < 3:
-            return None
-
-        category = parts[0]
-        prop_internal = parts[2]
-        if category not in ("Node", "Link") or not prop_internal:
-            return None
-
         try:
-            return QGISRedFieldUtils().getResultPropertyDecimals(category, prop_internal)
+            return QGISRedFieldUtils().getResultPropertyDecimalsFromSeriesKey(series_dict.get("series_key"))
         except Exception:
             return None
 

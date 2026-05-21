@@ -15,6 +15,7 @@ from ...tools.utils.qgisred_axis_scale_utils import (
     format_number_tick,
 )
 
+from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from .timeseries_axis_settings import TimeSeriesAxisSettings, build_fixed_linear_scale
 from .timeseries_time_utils import civil_time_parts, format_civil_time, merge_time_of_day_x_ticks
 from .timeseries_plot_style import (
@@ -248,6 +249,26 @@ class TimeSeriesPlotRenderer:
     def _label_boxes_overlap(ax: float, ay: float, aw: float, ah: float, bx: float, by: float, bw: float, bh: float) -> bool:
         return not (ax + aw < bx or bx + bw < ax or ay + ah < by or by + bh < ay)
 
+    def _series_result_decimal_places(self, s) -> Optional[int]:
+        if s.get("y_categorical_labels"):
+            return None
+        try:
+            return QGISRedFieldUtils().getResultPropertyDecimalsFromSeriesKey(s.get("series_key"))
+        except Exception:
+            return None
+
+    def _format_value_with_decimal_places(self, value, decimal_places: Optional[int] = None) -> str:
+        if value is None:
+            return ""
+        if decimal_places is None:
+            return self._format_value_full(value)
+        try:
+            v = float(value)
+            dec = max(0, int(decimal_places))
+            return f"{v:.{dec}f}"
+        except (TypeError, ValueError):
+            return str(value)
+
     def _point_value_text(self, s, value) -> str:
         series_y_labels = s.get("y_categorical_labels")
         if series_y_labels:
@@ -255,7 +276,7 @@ class TimeSeriesPlotRenderer:
                 return str(series_y_labels[int(round(value))])
             except Exception:
                 return str(value)
-        return self._format_value_full(value)
+        return self._format_value_with_decimal_places(value, self._series_result_decimal_places(s))
 
     def _select_point_value_label_indices(
         self,
