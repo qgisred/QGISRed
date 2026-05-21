@@ -5311,8 +5311,8 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1462"/>
-        <source>Civil Time</source>
-        <translation>Hora civil</translation>
+        <source>Formatted Time</source>
+        <translation>Tiempo con formato</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1462"/>
@@ -5814,6 +5814,16 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1034"/>
         <source>hh:mm</source>
         <translation>hh:mm</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1035"/>
+        <source>Time of Day hh:mm 24h</source>
+        <translation>Hora del día hh:mm 24h</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1036"/>
+        <source>Time of Day hh:mm am/pm</source>
+        <translation>Hora del día hh:mm am/pm</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="502"/>

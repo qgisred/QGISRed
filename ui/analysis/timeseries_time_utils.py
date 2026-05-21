@@ -189,6 +189,55 @@ def format_civil_time(hours, start_clock_seconds: int = 0, *, include_seconds: b
     return f"{day}d {time_text}"
 
 
+def _format_decimal_hours(value: float, decimal_sep: str = ".") -> str:
+    text = format(float(value), ".12g")
+    if decimal_sep != ".":
+        text = text.replace(".", decimal_sep)
+    return text
+
+
+def format_elapsed_time(
+    hours,
+    *,
+    hour_format: str = "h",
+    day_format: str = "split_days",
+    include_seconds: bool = True,
+    decimal_sep: str = ".",
+) -> str:
+    try:
+        total_seconds = int(round(float(hours) * 3600.0))
+    except Exception:
+        return ""
+
+    sign = "-" if total_seconds < 0 else ""
+    abs_seconds = abs(total_seconds)
+    days = abs_seconds // 86400
+    rem = abs_seconds % 86400
+    rem_hours_decimal = rem / 3600.0
+
+    hour_format = (hour_format or "h").strip()
+    day_format = (day_format or "split_days").strip()
+
+    if hour_format == "h":
+        if day_format == "total_hours":
+            return sign + _format_decimal_hours(abs_seconds / 3600.0, decimal_sep)
+        time_text = _format_decimal_hours(rem_hours_decimal, decimal_sep)
+        return f"{sign}{days}d {time_text}" if days else sign + time_text
+
+    if day_format == "total_hours":
+        total_hours = abs_seconds // 3600
+        minute = (abs_seconds % 3600) // 60
+        second = abs_seconds % 60
+        time_text = f"{total_hours}:{minute:02d}:{second:02d}" if include_seconds else f"{total_hours}:{minute:02d}"
+        return sign + time_text
+
+    hour = rem // 3600
+    minute = (rem % 3600) // 60
+    second = rem % 60
+    time_text = f"{hour}:{minute:02d}:{second:02d}" if include_seconds else f"{hour}:{minute:02d}"
+    return f"{sign}{days}d {time_text}" if days else sign + time_text
+
+
 def civil_midnight_elapsed_hours(min_hours: float, max_hours: float, start_clock_seconds: int = 0):
     try:
         lo = float(min_hours)

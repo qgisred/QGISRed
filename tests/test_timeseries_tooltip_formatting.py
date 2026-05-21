@@ -6,6 +6,7 @@ from QGISRed.ui.analysis.timeseries_plot_renderer import TimeSeriesPlotRenderer
 from QGISRed.ui.analysis.timeseries_time_utils import (
     civil_midnight_elapsed_hours,
     format_civil_time,
+    format_elapsed_time,
     parse_clock_time_to_seconds,
 )
 
@@ -85,6 +86,14 @@ class TestTimeFormatting:
         assert r._format_absolute_time_hours_axis(7.0, hour_format="hm", start_clock_seconds=start) == "0:00\n1d"
         assert r._format_absolute_time_hours_axis(16.0 + 11.0 / 60.0 + 7.0 / 3600.0, hour_format="hm", start_clock_seconds=start) == "9:11"
 
+    def test_elapsed_hm_axis_is_not_time_of_day(self):
+        r = TimeSeriesPlotRenderer()
+        start = parse_clock_time_to_seconds("17:00")
+
+        assert r._format_absolute_time_hours_axis(7.0, hour_format="elapsed_hm", start_clock_seconds=start) == "7:00"
+        assert r._format_absolute_time_hours_axis(24.0, hour_format="elapsed_hm", start_clock_seconds=start) == "0:00\n1d"
+        assert r._format_absolute_time_hours_axis(34.0, hour_format="elapsed_hm", day_format="total_hours", start_clock_seconds=start) == "34:00"
+
     def test_time_of_day_axis_supports_am_pm(self):
         r = TimeSeriesPlotRenderer()
         start = parse_clock_time_to_seconds("17:00")
@@ -97,6 +106,13 @@ class TestTimeFormatting:
 
         assert format_civil_time(0.0, start) == "0d 17:00:00"
         assert format_civil_time(16.0 + 11.0 / 60.0 + 7.0 / 3600.0, start) == "1d 9:11:07"
+
+    def test_elapsed_time_csv_format_follows_hour_and_day_options(self):
+        assert format_elapsed_time(10.5, hour_format="h", day_format="split_days") == "10.5"
+        assert format_elapsed_time(34.5, hour_format="h", day_format="split_days") == "1d 10.5"
+        assert format_elapsed_time(34.5, hour_format="h", day_format="total_hours") == "34.5"
+        assert format_elapsed_time(34.5, hour_format="elapsed_hm", day_format="split_days") == "1d 10:30:00"
+        assert format_elapsed_time(34.5, hour_format="elapsed_hm", day_format="total_hours") == "34:30:00"
 
     def test_civil_midnight_ticks_include_first_day_boundary(self):
         start = parse_clock_time_to_seconds("17:00")

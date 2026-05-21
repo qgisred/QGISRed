@@ -19,7 +19,7 @@ from .timeseries_plot_layout import PlotLayoutCalculator
 from .timeseries_legend_interaction import LegendInteractionController
 from .timeseries_plot_renderer import TimeSeriesPlotRenderer
 from .timeseries_plot_style import DEFAULT_SERIES_COLOR, LEGEND_ICON_SIZE, LEGEND_ROW_GAP, PLOT_TOP_PAD, qfont
-from .timeseries_time_utils import format_civil_time, simulation_start_clock_seconds
+from .timeseries_time_utils import format_civil_time, format_elapsed_time, simulation_start_clock_seconds
 
 try:
     from qgis.PyQt.QtSvg import QSvgGenerator
@@ -1528,6 +1528,25 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
     def _formatCsvCivilTime(self, hours) -> str:
         return format_civil_time(hours, getattr(self.plot, "_start_clock_seconds", 0), include_seconds=True)
 
+    def _formatCsvTimeForAxisOptions(self, hours, decimal_sep: str) -> str:
+        cfg = getattr(self.plot, "_axis_cfg_x", None)
+        hour_format = (getattr(cfg, "x_hour_format", "") or "hm").strip()
+        day_format = (getattr(cfg, "x_day_format", "") or "split_days").strip()
+        if hour_format in ("hm", "hm_ampm", "tod_hm", "tod_ampm"):
+            return format_civil_time(
+                hours,
+                getattr(self.plot, "_start_clock_seconds", 0),
+                include_seconds=True,
+                am_pm=hour_format in ("hm_ampm", "tod_ampm"),
+            )
+        return format_elapsed_time(
+            hours,
+            hour_format=hour_format,
+            day_format=day_format,
+            include_seconds=True,
+            decimal_sep=decimal_sep,
+        )
+
     def _seriesCsvDecimalPlaces(self, series_dict):
         if series_dict.get("y_categorical_labels"):
             return None
@@ -1597,7 +1616,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                     magnitude,
                     series_label,
                     self._formatCsvValue(xs[i], decimal_sep),
-                    self._formatCsvCivilTime(xs[i]),
+                    self._formatCsvTimeForAxisOptions(xs[i], decimal_sep),
                     self._formatCsvValue(self._seriesDisplayValue(s, ys[i]), decimal_sep, value_decimals),
                 ])
 
@@ -1614,7 +1633,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                     self.tr("Magnitude"),
                     self.tr("Curve Name"),
                     self.tr("Time (h)"),
-                    self.tr("Civil Time"),
+                    self.tr("Formatted Time"),
                     self.tr("Value"),
                 ])
                 writer.writerows(rows)

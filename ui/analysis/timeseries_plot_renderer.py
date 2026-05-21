@@ -455,6 +455,8 @@ class TimeSeriesPlotRenderer:
         hour_format = (hour_format or "hm").strip()
         if hour_format in ("hm_ampm", "tod_ampm"):
             time_sample = "12:59 pm"
+        elif hour_format == "elapsed_hm":
+            time_sample = "999:59"
         else:
             time_sample = "999" if hour_format == "h" else "23:59"
         if has_days:

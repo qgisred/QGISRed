@@ -1261,8 +1261,9 @@ class TimeSeriesAxisOptionsDialog(QDialog):
 
             combo_hour = QComboBox()
             combo_hour.addItem(self.tr("hh"), "h")
-            combo_hour.addItem(self.tr("Time of Day hh:mm"), "hm")
-            combo_hour.addItem(self.tr("hh:mm am/pm"), "hm_ampm")
+            combo_hour.addItem(self.tr("hh:mm"), "elapsed_hm")
+            combo_hour.addItem(self.tr("Time of Day hh:mm 24h"), "hm")
+            combo_hour.addItem(self.tr("Time of Day hh:mm am/pm"), "hm_ampm")
             cur_h = (getattr(cfg, "x_hour_format", "") or "hm").strip()
             idx_h = combo_hour.findData(cur_h)
             combo_hour.setCurrentIndex(idx_h if idx_h >= 0 else 0)
