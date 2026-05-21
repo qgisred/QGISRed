@@ -7,6 +7,7 @@ from QGISRed.ui.analysis.timeseries_time_utils import (
     civil_midnight_elapsed_hours,
     format_civil_time,
     format_elapsed_time,
+    merge_time_of_day_x_ticks,
     parse_clock_time_to_seconds,
 )
 
@@ -118,6 +119,40 @@ class TestTimeFormatting:
         start = parse_clock_time_to_seconds("17:00")
 
         assert civil_midnight_elapsed_hours(0.0, 10.0, start) == [7.0]
+
+    def test_merge_time_of_day_x_ticks_drops_ticks_near_midnight(self):
+        start = parse_clock_time_to_seconds("07:10")
+        midnight = round((86400 - 7 * 3600 - 10 * 60) / 3600.0, 9)
+
+        merged = merge_time_of_day_x_ticks(
+            [16.0, 17.0, 18.0],
+            min_hours=0.0,
+            max_hours=48.0,
+            start_clock_seconds=start,
+            min_sep_hours=0.75,
+        )
+
+        assert midnight in merged
+        assert 17.0 not in merged
+        assert 16.0 in merged
+
+    def test_merge_time_of_day_x_ticks_07_10_start_hourly_axis(self):
+        start = parse_clock_time_to_seconds("07:10")
+        midnight = round((86400 - 7 * 3600 - 10 * 60) / 3600.0, 9)
+        hourly = [float(h) for h in range(49)]
+
+        merged = merge_time_of_day_x_ticks(
+            hourly,
+            min_hours=0.0,
+            max_hours=48.0,
+            start_clock_seconds=start,
+            min_sep_hours=1.0,
+        )
+
+        assert midnight in merged
+        for neighbor in (16.0, 17.0, 18.0):
+            if abs(neighbor - midnight) < 1.0:
+                assert neighbor not in merged
 
 
 class TestTooltipValueFormatting:

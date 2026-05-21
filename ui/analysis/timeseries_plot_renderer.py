@@ -16,7 +16,7 @@ from ...tools.utils.qgisred_axis_scale_utils import (
 )
 
 from .timeseries_axis_settings import TimeSeriesAxisSettings, build_fixed_linear_scale
-from .timeseries_time_utils import civil_midnight_elapsed_hours, civil_time_parts, format_civil_time
+from .timeseries_time_utils import civil_time_parts, format_civil_time, merge_time_of_day_x_ticks
 from .timeseries_plot_style import (
     AXIS_MAX_TICKS,
     BORDER_COLOR,
@@ -560,10 +560,17 @@ class TimeSeriesPlotRenderer:
         else:
             min_x, max_x = x_scale.axis_min, x_scale.axis_max
             x_tick_values = x_scale.ticks()
-        if has_days and self._is_time_of_day_format(hour_format):
-            extras = civil_midnight_elapsed_hours(min_x, max_x, start_clock_seconds)
-            x_tick_values = sorted(set([round(float(t), 9) for t in x_tick_values + extras]))
         x_range = max_x - min_x
+        if has_days and self._is_time_of_day_format(hour_format):
+            plot_w = max(float(plot_rect.width()), 1.0)
+            min_sep_hours = (label_px / plot_w) * max(x_range, 1e-9) * 1.05
+            x_tick_values = merge_time_of_day_x_ticks(
+                x_tick_values,
+                min_hours=min_x,
+                max_hours=max_x,
+                start_clock_seconds=start_clock_seconds,
+                min_sep_hours=min_sep_hours,
+            )
         if x_range == 0:
             x_range = 1
         painter.restore()

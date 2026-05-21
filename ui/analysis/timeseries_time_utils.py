@@ -256,3 +256,36 @@ def civil_midnight_elapsed_hours(min_hours: float, max_hours: float, start_clock
         if lo - 1e-9 <= elapsed <= hi + 1e-9:
             out.append(float(elapsed))
     return out
+
+
+def merge_time_of_day_x_ticks(
+    tick_values,
+    *,
+    min_hours: float,
+    max_hours: float,
+    start_clock_seconds: int = 0,
+    min_sep_hours: float | None = None,
+):
+    """
+    Añade marcas en medianoche civil y elimina marcas regulares demasiado
+    cercanas para evitar solapar etiquetas (p. ej. 23:45 y 00:00 + Nd).
+    """
+    try:
+        regular = sorted({round(float(t), 9) for t in tick_values})
+    except Exception:
+        regular = []
+    boundaries = civil_midnight_elapsed_hours(min_hours, max_hours, start_clock_seconds)
+    if not boundaries:
+        return regular
+
+    bounds = [round(float(b), 9) for b in boundaries]
+    sep = float(min_sep_hours) if min_sep_hours is not None else 0.5
+    if sep <= 0:
+        sep = 0.5
+
+    filtered = []
+    for tick in regular:
+        if any(abs(tick - boundary) < sep - 1e-9 for boundary in bounds):
+            continue
+        filtered.append(tick)
+    return sorted(set(filtered + bounds))
