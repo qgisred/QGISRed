@@ -474,7 +474,10 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         title = QLabel()
         title.setWordWrap(True)
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet("font-size: 11pt;")
+        title_font = QFont(title.font())
+        title_font.setPointSize(11)
+        title_font.setBold(True)
+        title.setFont(title_font)
         lay.addWidget(title)
 
         axis_grp = self._compact_group(QGroupBox(self.tr("Y axis")))
