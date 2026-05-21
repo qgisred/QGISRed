@@ -43,6 +43,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
     _LONG_FIELD_WIDTH = 360
     _FORM_FIELD_WIDTH = 280
     _FONT_FIELD_WIDTH = 260
+    _AXIS_TAB_HEADING_FONT_PT = 12
     _LIVE_UPDATE_SETTINGS_KEY = "QGISRed/timeseries_chart_live_update"
 
     def __init__(self, plot_widget, parent=None):
@@ -1117,6 +1118,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         title = QLabel(axis_title)
         title_font = QFont(title.font())
         title_font.setBold(True)
+        title_font.setPointSize(self._AXIS_TAB_HEADING_FONT_PT)
         title.setFont(title_font)
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
