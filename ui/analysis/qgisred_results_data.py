@@ -178,29 +178,38 @@ class _ResultsDataMixin:
         if not self.isCurrentProject():
             return
 
-        # Always use elapsed time for the "Time" attribute field (even in civil mode)
         idx = self.cbTimes.currentIndex()
-        time_text = (
+        elapsed_text = (
             self.TimeLabels[idx]
             if 0 <= idx < len(self.TimeLabels)
             else self.cbTimes.currentText()
         )
-        if time_text == self.lbl_singlePeriod:
+        # Derive display text from current mode (civil / continuous / elapsed)
+        if getattr(self, '_civilMode', False) and getattr(self, '_civilLabels', []):
+            time_text = (
+                self._civilLabels[idx]
+                if 0 <= idx < len(self._civilLabels)
+                else elapsed_text
+            )
+        elif getattr(self, '_continuousHoursMode', False):
+            time_text = self._toContinuousHours(elapsed_text)
+        else:
+            time_text = elapsed_text
+        if elapsed_text == self.lbl_singlePeriod:
             time_seconds = 0
         else:
             try:
-                # Format: "NNd HH:MM:SS" (>=24h) or "HH:MM:SS" (<24h)
-                if "d" in time_text:
-                    parts = time_text.split(" ")
+                # Always parse from elapsed_text (always "NNd HH:MM:SS" or "HH:MM:SS")
+                if "d" in elapsed_text:
+                    parts = elapsed_text.split(" ")
                     days = int(parts[0].replace("d", ""))
                     hms = parts[1].split(":")
                     time_seconds = days * 86400 + int(hms[0]) * 3600 + int(hms[1]) * 60 + int(hms[2])
                 else:
-                    hms = time_text.split(":")
+                    hms = elapsed_text.split(":")
                     time_seconds = int(hms[0]) * 3600 + int(hms[1]) * 60 + int(hms[2])
             except Exception:
                 time_seconds = 0
-        print(time_seconds)
         resultPath = self.getResultsPath()
         binary_path = os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + ".out")
         if not os.path.exists(binary_path):
@@ -243,6 +252,42 @@ class _ResultsDataMixin:
 
             # Apply visibility AFTER populating
             self.updateFieldsVisibility(target_layer, layerName, stats_mode=False)
+
+    def _updateTimeFieldInLayers(self):
+        """Rewrites only the 'Time' field in result layers to match the current display format."""
+        if self._statsMode:
+            return
+        idx = self.cbTimes.currentIndex()
+        elapsed_text = (
+            self.TimeLabels[idx]
+            if 0 <= idx < len(self.TimeLabels)
+            else ""
+        )
+        if not elapsed_text:
+            return
+        if getattr(self, '_civilMode', False) and getattr(self, '_civilLabels', []):
+            time_text = (
+                self._civilLabels[idx]
+                if 0 <= idx < len(self._civilLabels)
+                else elapsed_text
+            )
+        elif getattr(self, '_continuousHoursMode', False):
+            time_text = self._toContinuousHours(elapsed_text)
+        else:
+            time_text = elapsed_text
+
+        for layerName in ["Node", "Link"]:
+            target_layer = self._findResultLayer(layerName)
+            if not target_layer:
+                continue
+            time_field_idx = target_layer.fields().indexOf("Time")
+            if time_field_idx == -1:
+                continue
+            attribute_updates = {
+                feature.id(): {time_field_idx: time_text}
+                for feature in target_layer.getFeatures()
+            }
+            self._applyAttributeUpdates(target_layer, attribute_updates)
 
     def completeStatsLayers(self):
         """Populates the attribute tables of result layers with statistics from the .out file.

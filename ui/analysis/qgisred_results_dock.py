@@ -754,6 +754,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         idx = self.cbTimes.currentIndex()
         elapsed = self.TimeLabels[idx] if 0 <= idx < len(self.TimeLabels) else ""
         self._updateCivilDisplay(elapsed)
+        self._updateTimeFieldInLayers()
+        self.timeTextChanged.emit(elapsed)
 
     def toggleElapsedFormat(self):
         self._continuousHoursMode = not self._continuousHoursMode
@@ -762,6 +764,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         idx = self.cbTimes.currentIndex()
         elapsed = self.TimeLabels[idx] if 0 <= idx < len(self.TimeLabels) else ""
         self._updateCivilDisplay(elapsed)
+        self._updateTimeFieldInLayers()
+        self.timeTextChanged.emit(elapsed)
 
     def toggleAmPm(self):
         self._amPmFormat = not self._amPmFormat
@@ -772,6 +776,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         idx = self.cbTimes.currentIndex()
         elapsed = self.TimeLabels[idx] if 0 <= idx < len(self.TimeLabels) else ""
         self._updateCivilDisplay(elapsed)
+        self._updateTimeFieldInLayers()
+        self.timeTextChanged.emit(elapsed)
 
     def _computeVisibleFields(self, layer_type, stats_mode, stat=None):
         """Return the set of result field names that should be visible for the given mode."""
