@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Crown of pocket watch -->
+  <rect x="26" y="4" width="12" height="9" rx="3" fill="#60bcd3"/>
+  <!-- Watch face -->
+  <circle cx="32" cy="38" r="22" fill="none" stroke="#60bcd3" stroke-width="5"/>
+  <!-- Hour hand (~10 o'clock) -->
+  <line x1="32" y1="38" x2="21" y2="26" stroke="#7fa828" stroke-width="5" stroke-linecap="round"/>
+  <!-- Minute hand (pointing to 12) -->
+  <line x1="32" y1="38" x2="32" y2="21" stroke="#7fa828" stroke-width="4" stroke-linecap="round"/>
+  <!-- Center dot -->
+  <circle cx="32" cy="38" r="3" fill="#7fa828"/>
+</svg>

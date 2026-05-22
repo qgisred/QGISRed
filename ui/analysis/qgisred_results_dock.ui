@@ -142,7 +142,7 @@
                   <layout class="QVBoxLayout" name="verticalLayout_Timing">
                    <item>
                     <widget class="QWidget" name="timeDisplayWidget">
-                     <layout class="QVBoxLayout" name="verticalLayout_timeDisplay">
+                     <layout class="QHBoxLayout" name="horizontalLayout_timeDisplay">
                       <property name="leftMargin">
                        <number>0</number>
                       </property>
@@ -155,78 +155,17 @@
                       <property name="bottomMargin">
                        <number>0</number>
                       </property>
-                      <item>
-                       <layout class="QHBoxLayout" name="horizontalLayout_buttons">
-                        <property name="spacing">
-                         <number>4</number>
-                        </property>
-                        <item>
-                         <spacer name="horizontalSpacer_buttons">
-                          <property name="orientation">
-                           <enum>Qt::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>0</width>
-                            <height>0</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item>
-                         <widget class="QPushButton" name="btToggleCivil">
-                          <property name="visible">
-                           <bool>false</bool>
-                          </property>
-                          <property name="sizePolicy">
-                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                           </sizepolicy>
-                          </property>
-                          <property name="maximumSize">
-                           <size>
-                            <width>22</width>
-                            <height>22</height>
-                           </size>
-                          </property>
-                          <property name="toolTip">
-                           <string>Toggle elapsed-civil time</string>
-                          </property>
-                          <property name="text">
-                           <string>&#x21C4;</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QPushButton" name="btAmPm">
-                          <property name="visible">
-                           <bool>false</bool>
-                          </property>
-                          <property name="sizePolicy">
-                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                           </sizepolicy>
-                          </property>
-                          <property name="maximumSize">
-                           <size>
-                            <width>46</width>
-                            <height>22</height>
-                           </size>
-                          </property>
-                          <property name="toolTip">
-                           <string>Toggle 24h-AM/PM format</string>
-                          </property>
-                          <property name="text">
-                           <string>AM/PM</string>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </item>
+                      <property name="spacing">
+                       <number>4</number>
+                      </property>
                       <item>
                        <widget class="QLabel" name="lbTime">
+                        <property name="sizePolicy">
+                         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                          <horstretch>1</horstretch>
+                          <verstretch>0</verstretch>
+                         </sizepolicy>
+                        </property>
                         <property name="palette">
                          <palette>
                           <active>
@@ -288,18 +227,64 @@
                        </widget>
                       </item>
                       <item>
-                       <widget class="QLabel" name="lbTimeSecondary">
+                       <widget class="QPushButton" name="btToggleCivil">
                         <property name="visible">
                          <bool>false</bool>
                         </property>
-                        <property name="styleSheet">
-                         <string notr="true">color: #606060; font: italic 10pt "Calibri";</string>
+                        <property name="sizePolicy">
+                         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                          <horstretch>0</horstretch>
+                          <verstretch>0</verstretch>
+                         </sizepolicy>
+                        </property>
+                        <property name="minimumSize">
+                         <size>
+                          <width>24</width>
+                          <height>24</height>
+                         </size>
+                        </property>
+                        <property name="maximumSize">
+                         <size>
+                          <width>24</width>
+                          <height>24</height>
+                         </size>
+                        </property>
+                        <property name="toolTip">
+                         <string>Toggle elapsed / civil time</string>
                         </property>
                         <property name="text">
                          <string/>
                         </property>
-                        <property name="alignment">
-                         <set>Qt::AlignCenter</set>
+                        <property name="iconSize">
+                         <size>
+                          <width>20</width>
+                          <height>20</height>
+                         </size>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QPushButton" name="btAmPm">
+                        <property name="visible">
+                         <bool>false</bool>
+                        </property>
+                        <property name="sizePolicy">
+                         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                          <horstretch>0</horstretch>
+                          <verstretch>0</verstretch>
+                         </sizepolicy>
+                        </property>
+                        <property name="maximumSize">
+                         <size>
+                          <width>46</width>
+                          <height>24</height>
+                         </size>
+                        </property>
+                        <property name="toolTip">
+                         <string>Toggle 24h / AM-PM format</string>
+                        </property>
+                        <property name="text">
+                         <string>AM/PM</string>
                         </property>
                        </widget>
                       </item>

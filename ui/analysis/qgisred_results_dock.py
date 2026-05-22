@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from qgis.PyQt.QtWidgets import QDockWidget, QApplication
 from qgis.PyQt.QtCore import Qt, pyqtSignal, QTimer, QCoreApplication
-from qgis.PyQt.QtGui import QPixmap
+from qgis.PyQt.QtGui import QPixmap, QIcon
 from qgis.PyQt import uic
 from qgis.core import (
     QgsProject, QgsLayerTreeGroup, QgsField, QgsAttributeTableConfig, QgsRenderContext, NULL,
@@ -171,6 +171,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self._amPmFormat = False
         self._civilLabels = []
         self._startClockSeconds = 0
+        self._iconCivil = QIcon(":/images/iconClockCivil.svg")
+        self._iconElapsed = QIcon(":/images/iconElapsedTime.svg")
+        self.btToggleCivil.setIcon(self._iconCivil)
 
         self.btToggleCivil.clicked.connect(self.toggleCivilMode)
         self.btAmPm.clicked.connect(self.toggleAmPm)
@@ -648,32 +651,33 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
             for t in self.TimeLabels
         ]
 
+    def _syncLbTimeBalance(self):
+        """Left-pad lbTime so its text stays visually centred in the full timeDisplayWidget width."""
+        spacing = 4  # matches horizontalLayout_timeDisplay spacing in .ui
+        right_w = 0
+        if self.btToggleCivil.isVisible():
+            right_w += spacing + 24   # inter-item gap + button width
+        if self.btAmPm.isVisible():
+            right_w += spacing + 46   # inter-item gap + button max-width
+        self.lbTime.setContentsMargins(right_w, 0, 0, 0)
+
     def _updateCivilDisplay(self, elapsed_text):
         is_single = (elapsed_text == self.lbl_singlePeriod)
-        hours = self._elapsedTextToHours(elapsed_text)
-        civil_text = format_civil_time(
-            hours or 0.0, self._startClockSeconds,
-            include_seconds=True, am_pm=self._amPmFormat,
-        )
-
-        if is_single:
-            self.lbTime.setText(elapsed_text)
-            self.lbTimeSecondary.setText(f"({civil_text})")
-            self.lbTimeSecondary.setVisible(True)
-            self.btToggleCivil.setVisible(False)
-            self.btAmPm.setVisible(True)
-            return
+        has_multiple = len(self.TimeLabels) > 1
 
         if self._civilMode and self._civilLabels:
+            hours = self._elapsedTextToHours(elapsed_text)
+            civil_text = format_civil_time(
+                hours or 0.0, self._startClockSeconds,
+                include_seconds=True, am_pm=self._amPmFormat,
+            )
             self.lbTime.setText(civil_text)
-            self.lbTimeSecondary.setText(f"({elapsed_text})")
         else:
             self.lbTime.setText(elapsed_text)
-            self.lbTimeSecondary.setText(f"({civil_text})")
 
-        self.lbTimeSecondary.setVisible(True)
-        self.btToggleCivil.setVisible(len(self.TimeLabels) > 1)
-        self.btAmPm.setVisible(True)
+        self.btToggleCivil.setVisible(not is_single and has_multiple)
+        self.btAmPm.setVisible(self._civilMode and not is_single)
+        self._syncLbTimeBalance()
 
     def _refreshComboboxItems(self):
         if not self._civilLabels:
@@ -691,6 +695,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
 
     def toggleCivilMode(self):
         self._civilMode = not self._civilMode
+        self.btToggleCivil.setIcon(self._iconElapsed if self._civilMode else self._iconCivil)
         self._refreshComboboxItems()
         idx = self.cbTimes.currentIndex()
         elapsed = self.TimeLabels[idx] if 0 <= idx < len(self.TimeLabels) else ""
@@ -1158,6 +1163,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self._civilMode = False
         self._amPmFormat = False
         self.btAmPm.setText("AM/PM")
+        self.btToggleCivil.setIcon(self._iconCivil)
 
         # Configure visibilities
         in_stats = self._statsMode

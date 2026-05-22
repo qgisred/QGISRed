@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Horizontal shaft (extended slightly right) -->
+  <line x1="8" y1="32" x2="46" y2="32" stroke="#60bcd3" stroke-width="6" stroke-linecap="round"/>
+  <!-- Arrowhead -->
+  <polyline points="34,20 54,32 34,44" fill="none" stroke="#60bcd3" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Vertical bar on top: simulation start marker -->
+  <line x1="8" y1="18" x2="8" y2="46" stroke="#7fa828" stroke-width="6" stroke-linecap="round"/>
+</svg>
