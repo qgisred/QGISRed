@@ -2634,10 +2634,15 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 # Time mode: filter by Id + Time
                 timeText = self.resultsCurrentTimeText
                 if timeText:
-                    # Results dock connected — filter by Id and Time
-                    expr = f"\"Id\" = '{elementId}' AND \"Time\" = '{timeText}'"
+                    # Results dock connected — one feature per element exists (current step),
+                    # filter by Id only so the lookup is format-agnostic
+                    expr = f"\"Id\" = '{elementId}'"
                     for feat in resultsLayer.getFeatures(expr):
                         matchedFeature = feat
+                        if feat.fields().indexFromName("Time") >= 0:
+                            featTime = str(feat.attribute("Time"))
+                            if featTime not in ("NULL", "None", ""):
+                                timeText = featTime
                         break
                 else:
                     # No results dock — query by Id only, read time from the feature
