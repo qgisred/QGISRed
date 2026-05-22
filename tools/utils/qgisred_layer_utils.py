@@ -345,19 +345,23 @@ class QGISRedLayerUtils:
             if i > 0:
                 if i == 1:
                     # Top-level group under network root.
+                    # Inputs: touch nothing at all (no visibility changes).
                     # Issues/Queries/Auxiliary: leave Inputs visibility unchanged; hide everything else.
-                    # Results/Inputs: hide all other groups.
-                    keepInputs = groupName in ("Issues", "Queries", "Auxiliary Layers")
-                    inputsId = self.groupIdentifiers.get("Inputs")
-                    for sibling in currentParent.children():
-                        if not isinstance(sibling, QgsLayerTreeGroup):
-                            continue
-                        if sibling == foundGroup:
-                            sibling.setItemVisibilityChecked(True)
-                        elif keepInputs and sibling.customProperty("qgisred_identifier") == inputsId:
-                            pass  # leave Inputs visibility unchanged
-                        else:
-                            sibling.setItemVisibilityChecked(False)
+                    # Results: hide all other groups.
+                    if groupName == "Inputs":
+                        pass
+                    else:
+                        keepInputs = groupName in ("Issues", "Queries", "Auxiliary Layers")
+                        inputsId = self.groupIdentifiers.get("Inputs")
+                        for sibling in currentParent.children():
+                            if not isinstance(sibling, QgsLayerTreeGroup):
+                                continue
+                            if sibling == foundGroup:
+                                sibling.setItemVisibilityChecked(True)
+                            elif keepInputs and sibling.customProperty("qgisred_identifier") == inputsId:
+                                pass  # leave Inputs visibility unchanged
+                            else:
+                                sibling.setItemVisibilityChecked(False)
                 else:
                     # Deeper subgroups: hide all siblings except the active one.
                     for sibling in currentParent.children():
