@@ -176,15 +176,15 @@ def format_civil_time(hours, start_clock_seconds: int = 0, *, include_seconds: b
     day, hour, minute, second = parts
 
     if am_pm:
-        suffix = "AM" if hour < 12 else "PM"
+        suffix = "am" if hour < 12 else "pm"
         display_hour = hour % 12
         if display_hour == 0:
             display_hour = 12
-        if include_seconds:
+        if include_seconds and second > 0:
             time_text = f"{display_hour}:{minute:02d}:{second:02d} {suffix}"
         else:
             time_text = f"{display_hour}:{minute:02d} {suffix}"
-    elif include_seconds:
+    elif include_seconds and second > 0:
         time_text = f"{hour}:{minute:02d}:{second:02d}"
     else:
         time_text = f"{hour}:{minute:02d}"

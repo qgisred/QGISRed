@@ -227,6 +227,56 @@
                        </widget>
                       </item>
                       <item>
+                       <widget class="QPushButton" name="btAmPm">
+                        <property name="visible">
+                         <bool>false</bool>
+                        </property>
+                        <property name="sizePolicy">
+                         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                          <horstretch>0</horstretch>
+                          <verstretch>0</verstretch>
+                         </sizepolicy>
+                        </property>
+                        <property name="maximumSize">
+                         <size>
+                          <width>46</width>
+                          <height>24</height>
+                         </size>
+                        </property>
+                        <property name="toolTip">
+                         <string>Toggle 24h / AM-PM format</string>
+                        </property>
+                        <property name="text">
+                         <string>am/pm</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QPushButton" name="btElapsedFormat">
+                        <property name="visible">
+                         <bool>false</bool>
+                        </property>
+                        <property name="sizePolicy">
+                         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                          <horstretch>0</horstretch>
+                          <verstretch>0</verstretch>
+                         </sizepolicy>
+                        </property>
+                        <property name="maximumSize">
+                         <size>
+                          <width>46</width>
+                          <height>24</height>
+                         </size>
+                        </property>
+                        <property name="toolTip">
+                         <string>Toggle day+hour / continuous hours format</string>
+                        </property>
+                        <property name="text">
+                         <string>hh</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
                        <widget class="QPushButton" name="btToggleCivil">
                         <property name="visible">
                          <bool>false</bool>
@@ -260,31 +310,6 @@
                           <width>20</width>
                           <height>20</height>
                          </size>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QPushButton" name="btAmPm">
-                        <property name="visible">
-                         <bool>false</bool>
-                        </property>
-                        <property name="sizePolicy">
-                         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                          <horstretch>0</horstretch>
-                          <verstretch>0</verstretch>
-                         </sizepolicy>
-                        </property>
-                        <property name="maximumSize">
-                         <size>
-                          <width>46</width>
-                          <height>24</height>
-                         </size>
-                        </property>
-                        <property name="toolTip">
-                         <string>Toggle 24h / AM-PM format</string>
-                        </property>
-                        <property name="text">
-                         <string>AM/PM</string>
                         </property>
                        </widget>
                       </item>

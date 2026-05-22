@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from qgis.PyQt.QtWidgets import QDockWidget, QApplication
-from qgis.PyQt.QtCore import Qt, pyqtSignal, QTimer, QCoreApplication
+from qgis.PyQt.QtCore import Qt, pyqtSignal, QTimer, QCoreApplication, QEvent
 from qgis.PyQt.QtGui import QPixmap, QIcon
 from qgis.PyQt import uic
 from qgis.core import (
@@ -92,6 +92,15 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         super(QGISRedResultsDock, self).__init__(iface.mainWindow())
         self.iface = iface
         self.setupUi(self)
+        # Overlay approach: pull the three buttons out of the HBox layout and reparent them
+        # directly onto timeDisplayWidget as floating children.  lbTime then fills the full
+        # HBox width and Qt::AlignCenter puts the text at the geometric centre of the widget.
+        # Buttons are repositioned absolutely via _repositionTimeButtons() on every resize.
+        for _btn in (self.btAmPm, self.btElapsedFormat, self.btToggleCivil):
+            self.horizontalLayout_timeDisplay.removeWidget(_btn)
+            _btn.setParent(self.timeDisplayWidget)
+            _btn.raise_()
+        self.timeDisplayWidget.installEventFilter(self)
 
         # Translated labels
         self.lbl_none            = self.tr("None")
@@ -169,6 +178,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
 
         self._civilMode = False
         self._amPmFormat = False
+        self._continuousHoursMode = False
         self._civilLabels = []
         self._startClockSeconds = 0
         self._iconCivil = QIcon(":/images/iconClockCivil.svg")
@@ -177,6 +187,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
 
         self.btToggleCivil.clicked.connect(self.toggleCivilMode)
         self.btAmPm.clicked.connect(self.toggleAmPm)
+        self.btElapsedFormat.clicked.connect(self.toggleElapsedFormat)
 
         self.statsDisplayWidget.setVisible(False)
         self.timeDisplayWidget.setVisible(True)
@@ -651,15 +662,51 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
             for t in self.TimeLabels
         ]
 
-    def _syncLbTimeBalance(self):
-        """Left-pad lbTime so its text stays visually centred in the full timeDisplayWidget width."""
-        spacing = 4  # matches horizontalLayout_timeDisplay spacing in .ui
-        right_w = 0
+    def eventFilter(self, obj, event):
+        if obj is self.timeDisplayWidget and event.type() == QEvent.Resize:
+            self._repositionTimeButtons()
+        return super().eventFilter(obj, event)
+
+    def _repositionTimeButtons(self):
+        """Absolutely position the overlay buttons at the right edge of timeDisplayWidget."""
+        w = self.timeDisplayWidget.width()
+        h = self.timeDisplayWidget.height()
+        if w == 0 or h == 0:
+            return
+        sp = 4
+        btn_h = 24
+        y = max(0, (h - btn_h) // 2)
+        x = w
         if self.btToggleCivil.isVisible():
-            right_w += spacing + 24   # inter-item gap + button width
+            x -= 24
+            self.btToggleCivil.setGeometry(x, y, 24, btn_h)
+            x -= sp
         if self.btAmPm.isVisible():
-            right_w += spacing + 46   # inter-item gap + button max-width
-        self.lbTime.setContentsMargins(right_w, 0, 0, 0)
+            x -= 46
+            self.btAmPm.setGeometry(x, y, 46, btn_h)
+        elif self.btElapsedFormat.isVisible():
+            x -= 46
+            self.btElapsedFormat.setGeometry(x, y, 46, btn_h)
+
+    def _toContinuousHours(self, elapsed_text):
+        """Convert 'Xd H:MM:SS' or 'H:MM:SS' to total-hours 'HH:MM:SS' with no day prefix."""
+        if elapsed_text == self.lbl_singlePeriod:
+            return elapsed_text
+        hours = self._elapsedTextToHours(elapsed_text)
+        if hours is None:
+            return elapsed_text
+        total_h = int(hours)
+        remaining_s = round((hours - total_h) * 3600)
+        m = remaining_s // 60
+        s = remaining_s % 60
+        parts = []
+        if s > 0:
+            parts.insert(0, f"{s}s")
+        if m > 0 or (s > 0 and total_h > 0):  # keep 0m when it's sandwiched between h and s
+            parts.insert(0, f"{m}m")
+        if total_h > 0:
+            parts.insert(0, f"{total_h}h")
+        return " ".join(parts) if parts else "0h"
 
     def _updateCivilDisplay(self, elapsed_text):
         is_single = (elapsed_text == self.lbl_singlePeriod)
@@ -672,21 +719,28 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
                 include_seconds=True, am_pm=self._amPmFormat,
             )
             self.lbTime.setText(civil_text)
+        elif self._continuousHoursMode:
+            self.lbTime.setText(self._toContinuousHours(elapsed_text))
         else:
             self.lbTime.setText(elapsed_text)
 
-        self.btToggleCivil.setVisible(not is_single and has_multiple)
-        self.btAmPm.setVisible(self._civilMode and not is_single)
-        self._syncLbTimeBalance()
+        show_toggle = not is_single and has_multiple
+        self.btToggleCivil.setVisible(show_toggle)
+        self.btAmPm.setVisible(show_toggle and self._civilMode)
+        self.btElapsedFormat.setVisible(show_toggle and not self._civilMode)
+        self._repositionTimeButtons()
 
     def _refreshComboboxItems(self):
-        if not self._civilLabels:
-            return
         current_index = self.cbTimes.currentIndex()
         self.cbTimes.blockSignals(True)
         try:
             self.cbTimes.clear()
-            labels = self._civilLabels if self._civilMode else self.TimeLabels
+            if self._civilMode and self._civilLabels:
+                labels = self._civilLabels
+            elif self._continuousHoursMode:
+                labels = [self._toContinuousHours(t) for t in self.TimeLabels]
+            else:
+                labels = self.TimeLabels
             for lbl in labels:
                 self.cbTimes.addItem(lbl)
             self.cbTimes.setCurrentIndex(current_index)
@@ -701,9 +755,17 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         elapsed = self.TimeLabels[idx] if 0 <= idx < len(self.TimeLabels) else ""
         self._updateCivilDisplay(elapsed)
 
+    def toggleElapsedFormat(self):
+        self._continuousHoursMode = not self._continuousHoursMode
+        self.btElapsedFormat.setText("d+h" if self._continuousHoursMode else "hh")
+        self._refreshComboboxItems()
+        idx = self.cbTimes.currentIndex()
+        elapsed = self.TimeLabels[idx] if 0 <= idx < len(self.TimeLabels) else ""
+        self._updateCivilDisplay(elapsed)
+
     def toggleAmPm(self):
         self._amPmFormat = not self._amPmFormat
-        self.btAmPm.setText("24h" if self._amPmFormat else "AM/PM")
+        self.btAmPm.setText("24h" if self._amPmFormat else "am/pm")
         self._civilLabels = self._buildCivilLabels()
         if self._civilMode:
             self._refreshComboboxItems()
@@ -1160,10 +1222,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
                                      f"{self.NetworkName}_{self.Scenario}.out"),
         )
         self._civilLabels = self._buildCivilLabels()
-        self._civilMode = False
-        self._amPmFormat = False
-        self.btAmPm.setText("AM/PM")
-        self.btToggleCivil.setIcon(self._iconCivil)
+        # Preserve _civilMode / _amPmFormat / _continuousHoursMode across re-simulations
+        self.btAmPm.setText("24h" if self._amPmFormat else "am/pm")
+        self.btElapsedFormat.setText("d+h" if self._continuousHoursMode else "hh")
+        self.btToggleCivil.setIcon(self._iconElapsed if self._civilMode else self._iconCivil)
+        self._refreshComboboxItems()
 
         # Configure visibilities
         in_stats = self._statsMode

@@ -106,7 +106,7 @@ class TestTimeFormatting:
     def test_csv_civil_time_includes_day_and_seconds(self):
         start = parse_clock_time_to_seconds("17:00")
 
-        assert format_civil_time(0.0, start) == "17:00:00"
+        assert format_civil_time(0.0, start) == "17:00"
         assert format_civil_time(16.0 + 11.0 / 60.0 + 7.0 / 3600.0, start) == "1d 9:11:07"
 
     def test_elapsed_time_csv_format_follows_hour_and_day_options(self):
