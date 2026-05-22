@@ -5130,6 +5130,11 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="252"/>
+        <source>If you do not click Accept, all changes made will be lost. Continue?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="87"/>
         <source>General</source>
         <translation type="unfinished"></translation>

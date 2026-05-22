@@ -5218,6 +5218,16 @@ Left-click: Add a new item below the current selection</source>
         <translation>QGISRed : Options du graphique</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="252"/>
+        <source>If you do not click Accept, all changes made will be lost. Continue?</source>
+        <translation>Si vous n&apos;appuyez pas sur Accepter, toutes les modifications seront perdues. Continuer ?</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="254"/>
+        <source>Continue</source>
+        <translation>Continuer</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="87"/>
         <source>General</source>
         <translation>Général</translation>

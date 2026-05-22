@@ -22,6 +22,7 @@ from qgis.PyQt.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QMessageBox,
     QPushButton,
     QButtonGroup,
     QRadioButton,
@@ -99,10 +100,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         buttons = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
         )
-        apply_button = buttons.addButton(QDialogButtonBox.StandardButton.Apply)
         buttons.accepted.connect(self._on_accept)
-        buttons.rejected.connect(self.reject)
-        apply_button.clicked.connect(self._apply_options)
+        buttons.rejected.connect(self._on_reject)
 
         self._chk_live_update = QCheckBox(self.tr("Live update"))
         self._chk_live_update.setChecked(self._load_live_update_pref())
@@ -240,10 +239,40 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         except Exception:
             pass
 
-    def reject(self) -> None:
+    def _has_pending_changes(self) -> bool:
+        return bool(self._ui_dirty or self._dirty_applied)
+
+    def _confirm_discard_changes(self) -> bool:
+        box = QMessageBox(self)
+        box.setIcon(QMessageBox.Icon.Question)
+        box.setWindowTitle(self.tr("QGISRed: Chart options"))
+        box.setText(
+            self.tr("If you do not click Accept, all changes made will be lost. Continue?")
+        )
+        continue_btn = box.addButton(self.tr("Continue"), QMessageBox.ButtonRole.YesRole)
+        stay_btn = box.addButton(QMessageBox.StandardButton.Cancel)
+        box.setDefaultButton(stay_btn)
+        box.exec()
+        return box.clickedButton() is continue_btn
+
+    def _discard_pending_changes(self) -> None:
         if self._dirty_applied:
             self._restore_snapshot()
+        self._dirty_applied = False
+        self._ui_dirty = False
+
+    def _on_reject(self) -> None:
+        if self._has_pending_changes() and not self._confirm_discard_changes():
+            return
+        self._discard_pending_changes()
         super().reject()
+
+    def closeEvent(self, event) -> None:
+        if self._has_pending_changes() and not self._confirm_discard_changes():
+            event.ignore()
+            return
+        self._discard_pending_changes()
+        event.accept()
 
     def _build_text_style_row(
         self,
@@ -1493,6 +1522,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
 
     def _on_accept(self) -> None:
         self._apply_options()
+        self._dirty_applied = False
+        self._ui_dirty = False
         self.accept()
 
     def _notify_curve_settings_changed(self) -> None:

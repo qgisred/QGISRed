@@ -5361,6 +5361,16 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>QGISRed: Opciones de la gráfica</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="252"/>
+        <source>If you do not click Accept, all changes made will be lost. Continue?</source>
+        <translation>Si no se pulsa Aceptar se perderán todos los cambios realizados. ¿Continuar?</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="254"/>
+        <source>Continue</source>
+        <translation>Continuar</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="87"/>
         <source>General</source>
         <translation>General</translation>
