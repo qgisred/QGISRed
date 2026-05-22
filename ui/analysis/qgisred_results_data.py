@@ -178,8 +178,13 @@ class _ResultsDataMixin:
         if not self.isCurrentProject():
             return
 
-        # Parse time strings like "00d 01:23:45" to seconds
-        time_text = self.cbTimes.currentText()
+        # Always use elapsed time for the "Time" attribute field (even in civil mode)
+        idx = self.cbTimes.currentIndex()
+        time_text = (
+            self.TimeLabels[idx]
+            if 0 <= idx < len(self.TimeLabels)
+            else self.cbTimes.currentText()
+        )
         if time_text == self.lbl_singlePeriod:
             time_seconds = 0
         else:

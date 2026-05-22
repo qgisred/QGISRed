@@ -156,6 +156,76 @@
                        <number>0</number>
                       </property>
                       <item>
+                       <layout class="QHBoxLayout" name="horizontalLayout_buttons">
+                        <property name="spacing">
+                         <number>4</number>
+                        </property>
+                        <item>
+                         <spacer name="horizontalSpacer_buttons">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>0</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="btToggleCivil">
+                          <property name="visible">
+                           <bool>false</bool>
+                          </property>
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                          <property name="maximumSize">
+                           <size>
+                            <width>22</width>
+                            <height>22</height>
+                           </size>
+                          </property>
+                          <property name="toolTip">
+                           <string>Toggle elapsed-civil time</string>
+                          </property>
+                          <property name="text">
+                           <string>&#x21C4;</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="btAmPm">
+                          <property name="visible">
+                           <bool>false</bool>
+                          </property>
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                          <property name="maximumSize">
+                           <size>
+                            <width>46</width>
+                            <height>22</height>
+                           </size>
+                          </property>
+                          <property name="toolTip">
+                           <string>Toggle 24h-AM/PM format</string>
+                          </property>
+                          <property name="text">
+                           <string>AM/PM</string>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </item>
+                      <item>
                        <widget class="QLabel" name="lbTime">
                         <property name="palette">
                          <palette>
@@ -211,6 +281,22 @@
                         </property>
                         <property name="scaledContents">
                          <bool>false</bool>
+                        </property>
+                        <property name="alignment">
+                         <set>Qt::AlignCenter</set>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QLabel" name="lbTimeSecondary">
+                        <property name="visible">
+                         <bool>false</bool>
+                        </property>
+                        <property name="styleSheet">
+                         <string notr="true">color: #606060; font: italic 10pt "Calibri";</string>
+                        </property>
+                        <property name="text">
+                         <string/>
                         </property>
                         <property name="alignment">
                          <set>Qt::AlignCenter</set>

@@ -17,6 +17,7 @@ from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
 from .qgisred_results_rendering import _ResultsRenderingMixin, time_field_name
 from .qgisred_results_data import _ResultsDataMixin
+from .timeseries_time_utils import simulation_start_clock_seconds, format_civil_time
 
 import os
 import glob as _glob
@@ -165,6 +166,14 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self.displayingNodeField = ""
         self._statsMode = False
         self._currentStat = self.lbl_none
+
+        self._civilMode = False
+        self._amPmFormat = False
+        self._civilLabels = []
+        self._startClockSeconds = 0
+
+        self.btToggleCivil.clicked.connect(self.toggleCivilMode)
+        self.btAmPm.clicked.connect(self.toggleAmPm)
 
         self.statsDisplayWidget.setVisible(False)
         self.timeDisplayWidget.setVisible(True)
@@ -606,6 +615,97 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self.cbFlowDirections.setVisible(self._flowDirectionField() is not None)
         self.timeControlsWidget.setVisible(not is_stats_mode and is_temporal)
 
+    """Civil time display helpers"""
+
+    def _elapsedTextToHours(self, text):
+        text = (text or "").strip()
+        if not text or text == self.lbl_singlePeriod:
+            return 0.0
+        try:
+            days = 0
+            hms_text = text
+            if "d" in text:
+                parts = text.split()
+                days = int(parts[0].replace("d", ""))
+                hms_text = parts[1]
+            hms = hms_text.split(":")
+            if len(hms) != 3:
+                return None
+            return (days * 86400 + int(hms[0]) * 3600 + int(hms[1]) * 60 + int(hms[2])) / 3600.0
+        except Exception:
+            return None
+
+    def _buildCivilLabels(self):
+        if not self.TimeLabels or (len(self.TimeLabels) == 1 and self.TimeLabels[0] == self.lbl_singlePeriod):
+            return []
+        return [
+            format_civil_time(
+                self._elapsedTextToHours(t) or 0.0,
+                self._startClockSeconds,
+                include_seconds=True,
+                am_pm=self._amPmFormat,
+            )
+            for t in self.TimeLabels
+        ]
+
+    def _updateCivilDisplay(self, elapsed_text):
+        is_single = (elapsed_text == self.lbl_singlePeriod)
+        hours = self._elapsedTextToHours(elapsed_text)
+        civil_text = format_civil_time(
+            hours or 0.0, self._startClockSeconds,
+            include_seconds=True, am_pm=self._amPmFormat,
+        )
+
+        if is_single:
+            self.lbTime.setText(elapsed_text)
+            self.lbTimeSecondary.setText(f"({civil_text})")
+            self.lbTimeSecondary.setVisible(True)
+            self.btToggleCivil.setVisible(False)
+            self.btAmPm.setVisible(True)
+            return
+
+        if self._civilMode and self._civilLabels:
+            self.lbTime.setText(civil_text)
+            self.lbTimeSecondary.setText(f"({elapsed_text})")
+        else:
+            self.lbTime.setText(elapsed_text)
+            self.lbTimeSecondary.setText(f"({civil_text})")
+
+        self.lbTimeSecondary.setVisible(True)
+        self.btToggleCivil.setVisible(len(self.TimeLabels) > 1)
+        self.btAmPm.setVisible(True)
+
+    def _refreshComboboxItems(self):
+        if not self._civilLabels:
+            return
+        current_index = self.cbTimes.currentIndex()
+        self.cbTimes.blockSignals(True)
+        try:
+            self.cbTimes.clear()
+            labels = self._civilLabels if self._civilMode else self.TimeLabels
+            for lbl in labels:
+                self.cbTimes.addItem(lbl)
+            self.cbTimes.setCurrentIndex(current_index)
+        finally:
+            self.cbTimes.blockSignals(False)
+
+    def toggleCivilMode(self):
+        self._civilMode = not self._civilMode
+        self._refreshComboboxItems()
+        idx = self.cbTimes.currentIndex()
+        elapsed = self.TimeLabels[idx] if 0 <= idx < len(self.TimeLabels) else ""
+        self._updateCivilDisplay(elapsed)
+
+    def toggleAmPm(self):
+        self._amPmFormat = not self._amPmFormat
+        self.btAmPm.setText("24h" if self._amPmFormat else "AM/PM")
+        self._civilLabels = self._buildCivilLabels()
+        if self._civilMode:
+            self._refreshComboboxItems()
+        idx = self.cbTimes.currentIndex()
+        elapsed = self.TimeLabels[idx] if 0 <= idx < len(self.TimeLabels) else ""
+        self._updateCivilDisplay(elapsed)
+
     def _computeVisibleFields(self, layer_type, stats_mode, stat=None):
         """Return the set of result field names that should be visible for the given mode."""
         visible = set()
@@ -686,7 +786,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         else:
             self._statsMode = False
             self.updateLinksComboboxForStat(self.lbl_none)
-            self.lbTime.setText(self.cbTimes.currentText())
+            idx = self.cbTimes.currentIndex()
+            elapsed = self.TimeLabels[idx] if 0 <= idx < len(self.TimeLabels) else ""
+            self._updateCivilDisplay(elapsed)
             self._setModeWidgetsVisibility(False, is_temporal=self.cbTimes.count() > 1)
 
         # 3. Heavy operations (only if not computing)
@@ -815,8 +917,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
             self.cbTimes.setCurrentIndex(self.timeSlider.value())
 
     def sliderDragging(self, value):
-        self.lbTime.setText(self.TimeLabels[value])
-        self.timeTextChanged.emit(self.TimeLabels[value])
+        elapsed_text = self.TimeLabels[value]
+        self._updateCivilDisplay(elapsed_text)
+        self.timeTextChanged.emit(elapsed_text)
         self.debounceTimer.start(500)
 
     def applySliderTime(self):
@@ -1044,10 +1147,22 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self.cbTimes.setCurrentIndex(0)
         self.timeSlider.setValue(0)
         self.timeSlider.setMaximum(len(self.TimeLabels) - 1)
+
+        # Read START CLOCKTIME and build civil labels
+        self._startClockSeconds = simulation_start_clock_seconds(
+            self.ProjectDirectory, self.NetworkName,
+            binary_path=os.path.join(self.getResultsPath(),
+                                     f"{self.NetworkName}_{self.Scenario}.out"),
+        )
+        self._civilLabels = self._buildCivilLabels()
+        self._civilMode = False
+        self._amPmFormat = False
+        self.btAmPm.setText("AM/PM")
+
         # Configure visibilities
         in_stats = self._statsMode
         if not in_stats:
-            self.lbTime.setText(self.TimeLabels[0])
+            self._updateCivilDisplay(self.TimeLabels[0])
         self._setModeWidgetsVisibility(in_stats, is_temporal=len(time_label_list) > 1)
 
         self.Computing = False

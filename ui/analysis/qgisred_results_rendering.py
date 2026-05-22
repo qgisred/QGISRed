@@ -123,9 +123,14 @@ class _ResultsRenderingMixin:
 
     def paintIntervalTimeResults(self, setRender=False):
         if not self._statsMode:
-            time_text = self.cbTimes.currentText()
-            self.lbTime.setText(time_text)
-            self.timeTextChanged.emit(time_text)
+            idx = self.cbTimes.currentIndex()
+            elapsed_text = (
+                self.TimeLabels[idx]
+                if hasattr(self, "TimeLabels") and 0 <= idx < len(self.TimeLabels)
+                else self.cbTimes.currentText()
+            )
+            self._updateCivilDisplay(elapsed_text)
+            self.timeTextChanged.emit(elapsed_text)
 
         for nameLayer in ["Node", "Link"]:
             layer_to_paint = self._findResultLayer(nameLayer)

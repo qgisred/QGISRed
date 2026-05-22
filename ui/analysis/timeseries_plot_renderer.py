@@ -558,7 +558,12 @@ class TimeSeriesPlotRenderer:
                 return ""
             d, h, m, s = parts
             am_pm = hour_format in ("hm_ampm", "tod_ampm")
-            top = format_civil_time(hours, start_clock_seconds, include_seconds=False, am_pm=am_pm).split(" ", 1)[1]
+            if am_pm:
+                suffix = "am" if h < 12 else "pm"
+                dh = h % 12 or 12
+                top = f"{dh}:{m:02d} {suffix}"
+            else:
+                top = f"{h}:{m:02d}"
             if day_format == "split_days" and d > 0 and h == 0 and m == 0 and s == 0:
                 return f"{top}\n{d}d"
             return top
