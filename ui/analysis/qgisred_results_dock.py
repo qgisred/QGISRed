@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from qgis.PyQt.QtWidgets import QDockWidget, QApplication
-from qgis.PyQt.QtCore import Qt, pyqtSignal, QTimer, QCoreApplication, QEvent
+from qgis.PyQt.QtCore import Qt, pyqtSignal, QTimer, QCoreApplication
 from qgis.PyQt.QtGui import QPixmap, QIcon
 from qgis.PyQt import uic
 from qgis.core import (
@@ -92,15 +92,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         super(QGISRedResultsDock, self).__init__(iface.mainWindow())
         self.iface = iface
         self.setupUi(self)
-        # Overlay approach: pull the three buttons out of the HBox layout and reparent them
-        # directly onto timeDisplayWidget as floating children.  lbTime then fills the full
-        # HBox width and Qt::AlignCenter puts the text at the geometric centre of the widget.
-        # Buttons are repositioned absolutely via _repositionTimeButtons() on every resize.
-        for _btn in (self.btAmPm, self.btElapsedFormat, self.btToggleCivil):
-            self.horizontalLayout_timeDisplay.removeWidget(_btn)
-            _btn.setParent(self.timeDisplayWidget)
-            _btn.raise_()
-        self.timeDisplayWidget.installEventFilter(self)
 
         # Translated labels
         self.lbl_none            = self.tr("None")
@@ -662,51 +653,18 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
             for t in self.TimeLabels
         ]
 
-    def eventFilter(self, obj, event):
-        if obj is self.timeDisplayWidget and event.type() == QEvent.Resize:
-            self._repositionTimeButtons()
-        return super().eventFilter(obj, event)
-
-    def _repositionTimeButtons(self):
-        """Absolutely position the overlay buttons at the right edge of timeDisplayWidget."""
-        w = self.timeDisplayWidget.width()
-        h = self.timeDisplayWidget.height()
-        if w == 0 or h == 0:
-            return
-        sp = 4
-        btn_h = 24
-        y = max(0, (h - btn_h) // 2)
-        x = w
-        if self.btToggleCivil.isVisible():
-            x -= 24
-            self.btToggleCivil.setGeometry(x, y, 24, btn_h)
-            x -= sp
-        if self.btAmPm.isVisible():
-            x -= 46
-            self.btAmPm.setGeometry(x, y, 46, btn_h)
-        elif self.btElapsedFormat.isVisible():
-            x -= 46
-            self.btElapsedFormat.setGeometry(x, y, 46, btn_h)
-
     def _toContinuousHours(self, elapsed_text):
-        """Convert 'Xd H:MM:SS' or 'H:MM:SS' to total-hours 'HH:MM:SS' with no day prefix."""
+        """Convert 'Xd H:MM:SS' or 'H:MM:SS' to total-hours 'H:MM:SS' with no day prefix."""
         if elapsed_text == self.lbl_singlePeriod:
             return elapsed_text
         hours = self._elapsedTextToHours(elapsed_text)
         if hours is None:
             return elapsed_text
-        total_h = int(hours)
-        remaining_s = round((hours - total_h) * 3600)
-        m = remaining_s // 60
-        s = remaining_s % 60
-        parts = []
-        if s > 0:
-            parts.insert(0, f"{s}s")
-        if m > 0 or (s > 0 and total_h > 0):  # keep 0m when it's sandwiched between h and s
-            parts.insert(0, f"{m}m")
-        if total_h > 0:
-            parts.insert(0, f"{total_h}h")
-        return " ".join(parts) if parts else "0h"
+        total_seconds = round(hours * 3600)
+        total_h = total_seconds // 3600
+        m = (total_seconds % 3600) // 60
+        s = total_seconds % 60
+        return f"{total_h}:{m:02d}:{s:02d}"
 
     def _updateCivilDisplay(self, elapsed_text):
         is_single = (elapsed_text == self.lbl_singlePeriod)
@@ -728,7 +686,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self.btToggleCivil.setVisible(show_toggle)
         self.btAmPm.setVisible(show_toggle and self._civilMode)
         self.btElapsedFormat.setVisible(show_toggle and not self._civilMode)
-        self._repositionTimeButtons()
 
     def _refreshComboboxItems(self):
         current_index = self.cbTimes.currentIndex()
