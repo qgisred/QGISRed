@@ -70,6 +70,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
     Computing = False
     TimeLabels = []
     outPath = ""
+    hydPath = ""
     _RESULTS_CONTEXTS = [
         "QGISRedResultsDock",
         "_ResultsRenderingMixin",
@@ -102,6 +103,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self.lbl_std_deviation   = self.tr("StdDev")
         self.lbl_warning         = self.tr("Warning")
         self.lbl_singlePeriod       = self.tr("Single Period")
+        self.lbl_all_calc_instants  = self.tr("All calculation instants")
         self.lbl_pressure        = self.tr("Pressure")
         self.lbl_head            = self.tr("Head")
         self.lbl_demand          = self.tr("Demand")
@@ -155,6 +157,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self.populateVariableComboboxes()
 
         self.cbStatistics.currentIndexChanged.connect(self.statisticsChanged)
+        self.cbResultTimes.currentIndexChanged.connect(self.resultTimesChanged)
 
         self.cbLinks.currentIndexChanged.connect(self.linksChanged)
         self.cbNodes.currentIndexChanged.connect(self.nodesChanged)
@@ -268,7 +271,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
     # ------------------------------------------------------------------
 
     def populateResultStatsComboboxes(self):
-        self.cbResultTimes.addItems([self.tr("Step times")])
+        self.cbResultTimes.addItems([
+            self.tr("Step times"),
+            self.lbl_all_calc_instants,
+        ])
         self.cbStatistics.addItems([
             self.lbl_none,
             self.lbl_maximum,
@@ -810,6 +816,86 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
 
     """Clicked events"""
 
+    def _hydResultsPath(self):
+        return os.path.join(
+            self.getResultsPath(),
+            f"{self.NetworkName}_{self.Scenario}.hyd",
+        )
+
+    def _applyTimeLabelsString(self, labels):
+        """Populate TimeLabels, cbTimes and slider from a semicolon-separated label string."""
+        time_label_list = labels.split(";")
+        self.TimeLabels = []
+        self.cbTimes.blockSignals(True)
+        self.timeSlider.blockSignals(True)
+        try:
+            self.cbTimes.clear()
+            if len(time_label_list) == 1:
+                self.TimeLabels.append(self.lbl_singlePeriod)
+                self.cbTimes.addItem(self.lbl_singlePeriod)
+            else:
+                for item in time_label_list:
+                    self.TimeLabels.append(item)
+                    self.cbTimes.addItem(item)
+            self.cbTimes.setCurrentIndex(0)
+            self.timeSlider.setValue(0)
+            self.timeSlider.setMaximum(max(0, len(self.TimeLabels) - 1))
+        finally:
+            self.cbTimes.blockSignals(False)
+            self.timeSlider.blockSignals(False)
+
+        self._civilLabels = self._buildCivilLabels()
+        self._refreshComboboxItems()
+        if not self._statsMode:
+            self._updateCivilDisplay(self.TimeLabels[0])
+        self._setModeWidgetsVisibility(
+            self._statsMode,
+            is_temporal=len(self.TimeLabels) > 1,
+        )
+
+    def resultTimesChanged(self):
+        if self.Computing:
+            return
+
+        if self._useHydTimes() and not os.path.exists(self._hydResultsPath()):
+            QGISRedUIUtils.showGlobalMessage(
+                self.iface,
+                self.tr("Hydraulic results file (.hyd) not found. Please run the model."),
+                level=1,
+                duration=5,
+            )
+            self.cbResultTimes.blockSignals(True)
+            self.cbResultTimes.setCurrentIndex(0)
+            self.cbResultTimes.blockSignals(False)
+            return
+
+        prev_index = self.cbTimes.currentIndex()
+        self._applyTimeLabelsString(self._readTimeLabelsForCurrentMode())
+
+        if 0 <= prev_index < self.cbTimes.count():
+            self.cbTimes.setCurrentIndex(prev_index)
+            self.timeSlider.setValue(prev_index)
+
+        if self._statsMode:
+            result_times = self.cbResultTimes.currentText()
+            self.lbStatDesc.setText(self.tr("for %1").replace("%1", result_times.lower()))
+
+        if not self.validationsOpenResult():
+            return
+
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        try:
+            self.ensureResultsLayersAreOpen()
+            self.clearResultFields()
+            if self._statsMode:
+                self.completeStatsLayers()
+            else:
+                self.completeResultLayers()
+            self.paintIntervalTimeResults(True)
+            QTimer.singleShot(200, self.forceFinalFieldsVisibility)
+        finally:
+            QApplication.restoreOverrideCursor()
+
     def statisticsChanged(self):
         # 1. First, save render BEFORE updating state to new statistic (only if not computing)
         if not self.Computing:
@@ -1094,11 +1180,12 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
             QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("Some issues occurred in the process"), level=1, duration=5)
         elif resMessage == "True":
             self.outPath = os.path.join(self.getResultsPath(), self.NetworkName + "_" + self.Scenario + ".out")
+            self.hydPath = self._hydResultsPath()
             self.loadReportFile()
             self.updateQualityOptions()
             self.updateQualityItemComboboxes()
             self.applyStatisticFromOptions()
-            self.openBaseResults(self._readTimeLabelsFromOut())
+            self.openBaseResults(self._readTimeLabelsForCurrentMode())
             self._startStaleCheckTimer()
             self.show()
             self.simulationFinished.emit()
@@ -1116,6 +1203,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self.NetworkName = networkName
         self.Scenario = "Base"
         self.outPath = os.path.join(self.getResultsPath(), f"{self.NetworkName}_{self.Scenario}.out")
+        self.hydPath = self._hydResultsPath()
 
     def loadExistingResults(self, projectDir, networkName):
         """Load results from an existing .out file without running GISRed.Compute."""
@@ -1125,7 +1213,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self.updateQualityOptions()
         self.updateQualityItemComboboxes()
         self.applyStatisticFromOptions()
-        labels = self._readTimeLabelsFromOut()
+        labels = self._readTimeLabelsForCurrentMode()
         self.openBaseResults(labels)
         self._startStaleCheckTimer()
         self.show()
@@ -1177,41 +1265,24 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         if self.cbNodes.currentIndex() == 0:
             self.cbNodes.setCurrentIndex(1)
 
-        # Time labels
-        time_label_list = labels.split(";")
-        self.TimeLabels = []
-        self.cbTimes.clear()
-        if len(time_label_list) == 1:
-            self.TimeLabels.append(self.lbl_singlePeriod)
-            self.cbTimes.addItem(self.lbl_singlePeriod)
-        else:
-            for item in time_label_list:
-                self.TimeLabels.append(item)
-                self.cbTimes.addItem(item)
-
-        self.cbTimes.setCurrentIndex(0)
-        self.timeSlider.setValue(0)
-        self.timeSlider.setMaximum(len(self.TimeLabels) - 1)
-
-        # Read START CLOCKTIME and build civil labels
+        # Read START CLOCKTIME before building civil labels
         self._startClockSeconds = simulation_start_clock_seconds(
             self.ProjectDirectory, self.NetworkName,
             binary_path=os.path.join(self.getResultsPath(),
                                      f"{self.NetworkName}_{self.Scenario}.out"),
         )
-        self._civilLabels = self._buildCivilLabels()
+
+        # Time labels (also rebuilds civil labels)
+        self._applyTimeLabelsString(labels)
+
         # Preserve _civilMode / _amPmFormat / _continuousHoursMode across re-simulations
         self.btAmPm.setIcon(self._icon24h if self._amPmFormat else self._iconAmPm)
         self.btElapsedFormat.setIcon(self._iconSplitDays if self._continuousHoursMode else self._iconContinuousHrs)
         self.btToggleCivil.setIcon(self._iconElapsed if self._civilMode else self._iconCivil)
         self._updateTimeButtonTooltips()
-        self._refreshComboboxItems()
 
-        # Configure visibilities
+        # Configure visibilities (time bar already configured in _applyTimeLabelsString)
         in_stats = self._statsMode
-        if not in_stats:
-            self._updateCivilDisplay(self.TimeLabels[0])
-        self._setModeWidgetsVisibility(in_stats, is_temporal=len(time_label_list) > 1)
 
         self.Computing = False
 
