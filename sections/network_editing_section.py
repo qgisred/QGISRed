@@ -454,10 +454,10 @@ class NetworkEditingSection:
             self.iface.mapCanvas().unsetMapTool(self.myMapTools[tool])
             self.changeStatusButton.setChecked(False)
         else:
-            self.myMapTools[tool] = QGISRedSelectPointTool(self.changeStatusButton, self, self.runChangeStatus, SelectPointType.Line, cursor=":/images/iconChangeStatus.svg")
+            self.myMapTools[tool] = QGISRedSelectPointTool(self.changeStatusButton, self, self.runChangeStatus, SelectPointType.Line, cursor=":/images/iconChangeStatus.svg", pass_modifiers=True)
             self.iface.mapCanvas().setMapTool(self.myMapTools[tool])
 
-    def runChangeStatus(self, point):
+    def runChangeStatus(self, point, modifiers=None):
         if not self.checkDependencies():
             return
         # Validations
@@ -469,11 +469,12 @@ class NetworkEditingSection:
 
         point = self.transformPoint(point)
         point = str(point.x()) + ":" + str(point.y())
+        ctrlPressed = str(bool(modifiers and modifiers & Qt.KeyboardModifier.ControlModifier))
 
         # Process
         self.especificComplementaryLayers = ["IsolationValves", "Meters", "ServiceConnections"]
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        resMessage = GISRed.ChangeStatus(self.ProjectDirectory, self.NetworkName, self.tempFolder, point)
+        resMessage = GISRed.ChangeStatus(self.ProjectDirectory, self.NetworkName, self.tempFolder, point, ctrlPressed)
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "")

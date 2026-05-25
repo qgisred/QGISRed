@@ -177,16 +177,17 @@ class QGISRedDependencies:
         return QGISRedDependencies.toString(b)
 
     @staticmethod
-    def ChangeStatus(projectFolder, networkName, tempFolder, point):
+    def ChangeStatus(projectFolder, networkName, tempFolder, point, ctrlPressed):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
         point = QGISRedDependencies.encode(point)
+        ctrlPressed = QGISRedDependencies.encode(ctrlPressed)
 
         mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
-        mydll.ChangeStatus.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p)
+        mydll.ChangeStatus.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
         mydll.ChangeStatus.restype = c_char_p
-        b = mydll.ChangeStatus(projectFolder, networkName, tempFolder, point)
+        b = mydll.ChangeStatus(projectFolder, networkName, tempFolder, point, ctrlPressed)
         return QGISRedDependencies.toString(b)
 
     @staticmethod
