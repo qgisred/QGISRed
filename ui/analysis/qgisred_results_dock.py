@@ -477,6 +477,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         layer = self._findResultLayer(nameLayer)
         if layer:
             QgsProject.instance().removeMapLayer(layer.id())
+            self.iface.mapCanvas().refresh()
 
     def getInputGroup(self):
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
