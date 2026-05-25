@@ -1907,7 +1907,9 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
 
     def onResultsTimeChanged(self, timeText):
         self.currentResultsTimeText = timeText
-        self.labelResults.setText(timeText)
+        self.labelResults.setText(
+            QGISRedLayerUtils.getResultsCurrentTimeText() or timeText
+        )
         if self.queryHasBeenSubmitted and self.effectiveCriteria():
             self.runQuery()
 
@@ -1916,7 +1918,9 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         if statName:
             self.labelResults.setText(f"{statName} {self.tr('values for report times')}")
         else:
-            self.labelResults.setText(self.currentResultsTimeText)
+            self.labelResults.setText(
+                QGISRedLayerUtils.getResultsCurrentTimeText() or self.currentResultsTimeText
+            )
         previousProp = self.getComboInternalName(self.cbProperty)
         self.updateProperties()
         idx = self.findComboByInternalName(self.cbProperty, previousProp)

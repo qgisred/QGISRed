@@ -2524,7 +2524,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             timeText = "N/A"
         self.resultsCurrentTimeText = timeText
         self.labelResultsTime.show()
-        self.labelResultsTime.setText(timeText)
+        self.labelResultsTime.setText(
+            QGISRedLayerUtils.getResultsCurrentTimeText() or timeText
+        )
         self.updateResultsTabVisibility()
         self.populateResultsTable()
 

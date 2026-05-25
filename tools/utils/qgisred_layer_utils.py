@@ -630,5 +630,29 @@ class QGISRedLayerUtils:
                     group.addChildNode(QgsLayerTreeLayer(clonedLayer))
                     QgsProject.instance().removeMapLayer(layer.id())
 
+    @staticmethod
+    def getResultsCurrentTimeText():
+        """Lee el campo Time de la primera feature disponible en capas de resultados.
+
+        Devuelve el texto formateado almacenado en la capa (civil/elapsed/ampm)
+        o None si no hay capas de resultados o el campo no existe.
+        """
+        resultsGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_results")
+        if not resultsGroup:
+            return None
+        for layerNode in resultsGroup.findLayers():
+            layer = layerNode.layer()
+            if not layer:
+                continue
+            time_idx = layer.fields().indexFromName("Time")
+            if time_idx < 0:
+                continue
+            for feat in layer.getFeatures():
+                val = feat.attribute(time_idx)
+                val_str = str(val) if val is not None else ""
+                if val_str and val_str not in ("NULL", "None", ""):
+                    return val_str
+        return None
+
 
 
