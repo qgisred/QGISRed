@@ -214,13 +214,13 @@ class _ResultsDataMixin:
             else self.cbTimes.currentText()
         )
         # Derive display text from current mode (civil / continuous / elapsed)
-        if getattr(self, '_civilMode', False) and getattr(self, '_civilLabels', []):
+        if getattr(self, 'civilMode', False) and getattr(self, '_civilLabels', []):
             time_text = (
                 self._civilLabels[idx]
                 if 0 <= idx < len(self._civilLabels)
                 else elapsed_text
             )
-        elif getattr(self, '_continuousHoursMode', False):
+        elif getattr(self, 'continuousHoursMode', False):
             time_text = self._toContinuousHours(elapsed_text)
         else:
             time_text = elapsed_text
@@ -304,13 +304,13 @@ class _ResultsDataMixin:
         )
         if not elapsed_text:
             return
-        if getattr(self, '_civilMode', False) and getattr(self, '_civilLabels', []):
+        if getattr(self, 'civilMode', False) and getattr(self, '_civilLabels', []):
             time_text = (
                 self._civilLabels[idx]
                 if 0 <= idx < len(self._civilLabels)
                 else elapsed_text
             )
-        elif getattr(self, '_continuousHoursMode', False):
+        elif getattr(self, 'continuousHoursMode', False):
             time_text = self._toContinuousHours(elapsed_text)
         else:
             time_text = elapsed_text

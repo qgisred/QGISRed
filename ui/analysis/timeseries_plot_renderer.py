@@ -1741,7 +1741,13 @@ class TimeSeriesPlotRenderer:
         painter.setPen(QPen(QColor(255, 110, 110), 1, Qt.PenStyle.DashLine))
         painter.drawLine(QPointF(rule_x, plot_rect.top()), QPointF(rule_x, plot_rect.bottom()))
 
-        instant_text = self._format_absolute_time_hours(val_x)
+        cfg_x = getattr(widget, "_axis_cfg_x", None)
+        instant_text = self._format_absolute_time_hours_axis(
+            val_x,
+            hour_format=getattr(cfg_x, "x_hour_format", "hm") if cfg_x else "hm",
+            day_format=getattr(cfg_x, "x_day_format", "split_days") if cfg_x else "split_days",
+            start_clock_seconds=getattr(widget, "_start_clock_seconds", 0),
+        )
         footer_segments = self._build_styled_footer_segments(instant_text)
         tooltip_lines, marker_pts = self._collect_hover_tooltip_data(widget, hover_index, val_x, plot_rect, x_state, y_state_left, y_state_right)
 

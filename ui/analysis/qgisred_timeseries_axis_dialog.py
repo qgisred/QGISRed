@@ -1345,51 +1345,6 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         else:
             sp_dec.hide()
 
-        if is_time_axis:
-            time_grp = self._compact_group(QGroupBox(self.tr("Time format")))
-            time_form = QFormLayout(time_grp)
-            time_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-            time_form.setHorizontalSpacing(12)
-            time_form.setVerticalSpacing(8)
-            try:
-                time_form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
-            except Exception:
-                pass
-
-            combo_hour = QComboBox()
-            combo_hour.addItem(self.tr("hh"), "h")
-            combo_hour.addItem(self.tr("hh:mm"), "elapsed_hm")
-            combo_hour.addItem(self.tr("Time of Day hh:mm 24h"), "hm")
-            combo_hour.addItem(self.tr("Time of Day hh:mm am/pm"), "hm_ampm")
-            cur_h = (getattr(cfg, "x_hour_format", "") or "hm").strip()
-            idx_h = combo_hour.findData(cur_h)
-            combo_hour.setCurrentIndex(idx_h if idx_h >= 0 else 0)
-            self._limit_field_width(combo_hour, self._FORM_FIELD_WIDTH)
-
-            combo_days = QComboBox()
-            combo_days.addItem(self.tr("Days as 1d, 2d…"), "split_days")
-            combo_days.addItem(self.tr("Accumulate days into hours (>24)"), "total_hours")
-            cur_d = (getattr(cfg, "x_day_format", "") or "split_days").strip()
-            idx_d = combo_days.findData(cur_d)
-            combo_days.setCurrentIndex(idx_d if idx_d >= 0 else 0)
-            self._limit_field_width(combo_days, self._FORM_FIELD_WIDTH)
-
-            self._add_form_row(time_form, self.tr("Hour:"), combo_hour)
-            self._add_form_row(time_form, self.tr("Days:"), combo_days)
-            lay.addWidget(time_grp)
-
-            def sync_days_for_hour_format():
-                hour_fmt = str(combo_hour.currentData() or "hm")
-                is_time_of_day = hour_fmt in ("hm", "hm_ampm", "tod_hm", "tod_ampm")
-                if is_time_of_day:
-                    idx_split = combo_days.findData("split_days")
-                    if idx_split >= 0:
-                        combo_days.setCurrentIndex(idx_split)
-                combo_days.setEnabled(not is_time_of_day)
-
-            combo_hour.currentIndexChanged.connect(lambda _i: sync_days_for_hour_format())
-            sync_days_for_hour_format()
-
         def sync_fixed_enabled():
             auto = combo_scale.currentIndex() == 0
             sp_min.setEnabled(not auto)
@@ -1430,10 +1385,6 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         w._sp_size = sp_size
         w._font_combo = font_combo
         w._sp_dec = sp_dec
-        w._is_time_axis = bool(is_time_axis)
-        if is_time_axis:
-            w._combo_hour = combo_hour
-            w._combo_days = combo_days
         return w
 
     def _read_tab(self, tab: QWidget, cfg: TimeSeriesAxisSettings) -> None:
@@ -1458,15 +1409,6 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         else:
             cfg.decimal_places = -1
 
-        if getattr(tab, "_is_time_axis", False):
-            try:
-                cfg.x_hour_format = str(tab._combo_hour.currentData() or "hm")
-            except Exception:
-                cfg.x_hour_format = "hm"
-            try:
-                cfg.x_day_format = str(tab._combo_days.currentData() or "split_days")
-            except Exception:
-                cfg.x_day_format = "split_days"
 
     def _apply_options(self) -> None:
         gen_tab = self._tab_general

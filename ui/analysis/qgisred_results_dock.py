@@ -170,9 +170,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self._statsMode = False
         self._currentStat = self.lbl_none
 
-        self._civilMode = False
-        self._amPmFormat = False
-        self._continuousHoursMode = False
+        self.civilMode = False
+        self.amPmFormat = False
+        self.continuousHoursMode = False
         self._civilLabels = []
         self._startClockSeconds = 0
         self._iconCivil = QIcon(":/images/iconClockCivil.svg")
@@ -636,9 +636,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
     """Civil time display helpers"""
 
     def _updateTimeButtonTooltips(self):
-        self.btToggleCivil.setToolTip(self.tr("Elapsed time") if self._civilMode else self.tr("Civil hour"))
-        self.btAmPm.setToolTip(self.tr("24h format") if self._amPmFormat else self.tr("am/pm format"))
-        self.btElapsedFormat.setToolTip(self.tr("dd hh:mm:ss format") if self._continuousHoursMode else self.tr("HH:mm:ss format"))
+        self.btToggleCivil.setToolTip(self.tr("Elapsed time") if self.civilMode else self.tr("Civil hour"))
+        self.btAmPm.setToolTip(self.tr("24h format") if self.amPmFormat else self.tr("am/pm format"))
+        self.btElapsedFormat.setToolTip(self.tr("dd hh:mm:ss format") if self.continuousHoursMode else self.tr("HH:mm:ss format"))
 
     def _elapsedTextToHours(self, text):
         text = (text or "").strip()
@@ -666,7 +666,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
                 self._elapsedTextToHours(t) or 0.0,
                 self._startClockSeconds,
                 include_seconds=True,
-                am_pm=self._amPmFormat,
+                am_pm=self.amPmFormat,
             )
             for t in self.TimeLabels
         ]
@@ -688,31 +688,31 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         is_single = (elapsed_text == self.lbl_singlePeriod)
         has_multiple = len(self.TimeLabels) > 1
 
-        if self._civilMode and self._civilLabels:
+        if self.civilMode and self._civilLabels:
             hours = self._elapsedTextToHours(elapsed_text)
             civil_text = format_civil_time(
                 hours or 0.0, self._startClockSeconds,
-                include_seconds=True, am_pm=self._amPmFormat,
+                include_seconds=True, am_pm=self.amPmFormat,
             )
             self.lbTime.setText(civil_text)
-        elif self._continuousHoursMode:
+        elif self.continuousHoursMode:
             self.lbTime.setText(self._toContinuousHours(elapsed_text))
         else:
             self.lbTime.setText(elapsed_text)
 
         show_toggle = not is_single and has_multiple
         self.btToggleCivil.setVisible(show_toggle)
-        self.btAmPm.setVisible(show_toggle and self._civilMode)
-        self.btElapsedFormat.setVisible(show_toggle and not self._civilMode)
+        self.btAmPm.setVisible(show_toggle and self.civilMode)
+        self.btElapsedFormat.setVisible(show_toggle and not self.civilMode)
 
     def _refreshComboboxItems(self):
         current_index = self.cbTimes.currentIndex()
         self.cbTimes.blockSignals(True)
         try:
             self.cbTimes.clear()
-            if self._civilMode and self._civilLabels:
+            if self.civilMode and self._civilLabels:
                 labels = self._civilLabels
-            elif self._continuousHoursMode:
+            elif self.continuousHoursMode:
                 labels = [self._toContinuousHours(t) for t in self.TimeLabels]
             else:
                 labels = self.TimeLabels
@@ -723,8 +723,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
             self.cbTimes.blockSignals(False)
 
     def toggleCivilMode(self):
-        self._civilMode = not self._civilMode
-        self.btToggleCivil.setIcon(self._iconElapsed if self._civilMode else self._iconCivil)
+        self.civilMode = not self.civilMode
+        self.btToggleCivil.setIcon(self._iconElapsed if self.civilMode else self._iconCivil)
         self._updateTimeButtonTooltips()
         self._refreshComboboxItems()
         idx = self.cbTimes.currentIndex()
@@ -734,8 +734,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self.timeTextChanged.emit(elapsed)
 
     def toggleElapsedFormat(self):
-        self._continuousHoursMode = not self._continuousHoursMode
-        self.btElapsedFormat.setIcon(self._iconSplitDays if self._continuousHoursMode else self._iconContinuousHrs)
+        self.continuousHoursMode = not self.continuousHoursMode
+        self.btElapsedFormat.setIcon(self._iconSplitDays if self.continuousHoursMode else self._iconContinuousHrs)
         self._updateTimeButtonTooltips()
         self._refreshComboboxItems()
         idx = self.cbTimes.currentIndex()
@@ -745,11 +745,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self.timeTextChanged.emit(elapsed)
 
     def toggleAmPm(self):
-        self._amPmFormat = not self._amPmFormat
-        self.btAmPm.setIcon(self._icon24h if self._amPmFormat else self._iconAmPm)
+        self.amPmFormat = not self.amPmFormat
+        self.btAmPm.setIcon(self._icon24h if self.amPmFormat else self._iconAmPm)
         self._updateTimeButtonTooltips()
         self._civilLabels = self._buildCivilLabels()
-        if self._civilMode:
+        if self.civilMode:
             self._refreshComboboxItems()
         idx = self.cbTimes.currentIndex()
         elapsed = self.TimeLabels[idx] if 0 <= idx < len(self.TimeLabels) else ""
@@ -1271,14 +1271,12 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
             binary_path=os.path.join(self.getResultsPath(),
                                      f"{self.NetworkName}_{self.Scenario}.out"),
         )
-
         # Time labels (also rebuilds civil labels)
         self._applyTimeLabelsString(labels)
-
-        # Preserve _civilMode / _amPmFormat / _continuousHoursMode across re-simulations
-        self.btAmPm.setIcon(self._icon24h if self._amPmFormat else self._iconAmPm)
-        self.btElapsedFormat.setIcon(self._iconSplitDays if self._continuousHoursMode else self._iconContinuousHrs)
-        self.btToggleCivil.setIcon(self._iconElapsed if self._civilMode else self._iconCivil)
+        # Preserve civilMode / amPmFormat / continuousHoursMode across re-simulations
+        self.btAmPm.setIcon(self._icon24h if self.amPmFormat else self._iconAmPm)
+        self.btElapsedFormat.setIcon(self._iconSplitDays if self.continuousHoursMode else self._iconContinuousHrs)
+        self.btToggleCivil.setIcon(self._iconElapsed if self.civilMode else self._iconCivil)
         self._updateTimeButtonTooltips()
 
         # Configure visibilities (time bar already configured in _applyTimeLabelsString)

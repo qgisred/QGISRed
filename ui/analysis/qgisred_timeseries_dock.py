@@ -1307,6 +1307,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
     def connectResultsDock(self, results_dock) -> None:
         if self._resultsDock is results_dock:
             self._syncCurrentResultsTime()
+            self._syncFormatFromResultsDock()
             self._updateClearToolbarVisibility()
             self._refreshStartClockSeconds()
             return
@@ -1324,6 +1325,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             except Exception:
                 pass
             self._syncCurrentResultsTime()
+            self._syncFormatFromResultsDock()
         self._refreshStartClockSeconds()
         self._updateClearToolbarVisibility()
 
@@ -1345,6 +1347,22 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self._lastResultsTimeText = time_text or ""
         if hasattr(self, "btnSyncCursor") and self.btnSyncCursor is not None and self.btnSyncCursor.isChecked():
             self._applySyncedTimeText(self._lastResultsTimeText)
+        self._syncFormatFromResultsDock()
+
+    def _syncFormatFromResultsDock(self) -> None:
+        dock = self._resultsDock
+        if dock is None:
+            return
+        civil = getattr(dock, "civilMode", False)
+        am_pm = getattr(dock, "amPmFormat", False)
+        continuous = getattr(dock, "continuousHoursMode", False)
+        if civil:
+            self.plot._axis_cfg_x.x_hour_format = "hm_ampm" if am_pm else "hm"
+            self.plot._axis_cfg_x.x_day_format = "split_days"
+        else:
+            self.plot._axis_cfg_x.x_hour_format = "elapsed_hm"
+            self.plot._axis_cfg_x.x_day_format = "total_hours" if continuous else "split_days"
+        self.plot.update()
 
     def _syncCurrentResultsTime(self) -> None:
         time_text = self._lastResultsTimeText
