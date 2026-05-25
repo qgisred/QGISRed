@@ -10,11 +10,6 @@ from .qgisred_results_binary import (
     getOut_StatNodesProperties, getOut_StatLinksProperties,
     getOut_Metadata,
 )
-from .qgisred_results_hyd import (
-    getHyd_TimeLabels,
-    getHyd_TimeNodesProperties, getHyd_TimeLinksProperties,
-    getHyd_StatNodesProperties, getHyd_StatLinksProperties,
-)
 
 
 def seconds_to_time_str(seconds):
@@ -153,18 +148,6 @@ class _ResultsDataMixin:
             layer.dataProvider().dataChanged.emit()
             layer.triggerRepaint()
 
-    def _useHydTimes(self):
-        return (
-            hasattr(self, "lbl_all_calc_instants")
-            and self.cbResultTimes.currentText() == self.lbl_all_calc_instants
-        )
-
-    def _hydPath(self):
-        return os.path.join(
-            self.getResultsPath(),
-            f"{self.NetworkName}_{self.Scenario}.hyd",
-        )
-
     def _readTimeLabelsFromOut(self):
         """Read time step labels from existing .out file (same format as GISRed.Compute returns)."""
         try:
@@ -183,18 +166,6 @@ class _ResultsDataMixin:
             return ";".join(labels)
         except Exception:
             return self.lbl_singlePeriod
-
-    def _readTimeLabelsFromHyd(self):
-        """Read hydraulic calculation instants from the .hyd file."""
-        try:
-            return getHyd_TimeLabels(self._hydPath())
-        except Exception:
-            return self.lbl_singlePeriod
-
-    def _readTimeLabelsForCurrentMode(self):
-        if self._useHydTimes():
-            return self._readTimeLabelsFromHyd()
-        return self._readTimeLabelsFromOut()
 
     def loadReportFile(self):
         rpt_path = os.path.join(self.getResultsPath(), self.NetworkName + "_" + self.Scenario + ".rpt")
@@ -240,13 +211,8 @@ class _ResultsDataMixin:
             except Exception:
                 time_seconds = 0
         resultPath = self.getResultsPath()
-        out_path = os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + ".out")
-        if not os.path.exists(out_path):
-            return
-
-        use_hyd = self._useHydTimes()
-        hyd_path = self._hydPath()
-        if use_hyd and not os.path.exists(hyd_path):
+        binary_path = os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + ".out")
+        if not os.path.exists(binary_path):
             return
 
         for layerName in ["Node", "Link"]:
@@ -255,15 +221,10 @@ class _ResultsDataMixin:
                 continue
 
             # Fetch results from binary file
-            if use_hyd:
-                if layerName == "Node":
-                    results = getHyd_TimeNodesProperties(hyd_path, time_seconds, out_path)
-                else:
-                    results = getHyd_TimeLinksProperties(hyd_path, time_seconds, out_path)
-            elif layerName == "Node":
-                results = getOut_TimeNodesProperties(out_path, time_seconds)
+            if layerName == "Node":
+                results = getOut_TimeNodesProperties(binary_path, time_seconds)
             else:
-                results = getOut_TimeLinksProperties(out_path, time_seconds)
+                results = getOut_TimeLinksProperties(binary_path, time_seconds)
 
             if not results:
                 continue
@@ -348,13 +309,8 @@ class _ResultsDataMixin:
         stat = stat_label_to_en.get(stat_label, stat_label)
         is_min_max = stat_label in (self.lbl_maximum, self.lbl_minimum)
         resultPath = self.getResultsPath()
-        out_path = os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + ".out")
-        if not os.path.exists(out_path):
-            return
-
-        use_hyd = self._useHydTimes()
-        hyd_path = self._hydPath()
-        if use_hyd and not os.path.exists(hyd_path):
+        binary_path = os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + ".out")
+        if not os.path.exists(binary_path):
             return
 
         # For Min/Max: which variable provides the time-of-occurrence for each node/link field.
@@ -370,15 +326,10 @@ class _ResultsDataMixin:
             if not target_layer:
                 continue
 
-            if use_hyd:
-                if layerName == "Node":
-                    results = getHyd_StatNodesProperties(hyd_path, stat, out_path)
-                else:
-                    results = getHyd_StatLinksProperties(hyd_path, stat, out_path)
-            elif layerName == "Node":
-                results = getOut_StatNodesProperties(out_path, stat)
+            if layerName == "Node":
+                results = getOut_StatNodesProperties(binary_path, stat)
             else:
-                results = getOut_StatLinksProperties(out_path, stat)
+                results = getOut_StatLinksProperties(binary_path, stat)
 
             if not results:
                 continue

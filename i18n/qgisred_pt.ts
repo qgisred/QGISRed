@@ -4498,16 +4498,6 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="106"/>
-        <source>All calculation instants</source>
-        <translation>Todos os instantes de cálculo</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="863"/>
-        <source>Hydraulic results file (.hyd) not found. Please run the model.</source>
-        <translation>Ficheiro de resultados hidráulicos (.hyd) não encontrado. Execute o modelo.</translation>
-    </message>
-    <message>
         <location filename="../ui/analysis/qgisred_results_data.py" line="129"/>
         <source>Results exported to CSV</source>
         <translation type="unfinished"></translation>

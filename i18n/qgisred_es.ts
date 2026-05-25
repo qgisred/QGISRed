@@ -4491,16 +4491,6 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Instantes pautados</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="106"/>
-        <source>All calculation instants</source>
-        <translation>Todos los instantes de cálculo</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="863"/>
-        <source>Hydraulic results file (.hyd) not found. Please run the model.</source>
-        <translation>No se ha encontrado el fichero de resultados hidráulicos (.hyd). Ejecute el modelo.</translation>
-    </message>
-    <message>
         <location filename="../ui/analysis/qgisred_results_data.py" line="129"/>
         <source>Results exported to CSV</source>
         <translation>Resultados exportados a CSV</translation>
