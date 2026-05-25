@@ -116,6 +116,10 @@
         <file>images/iconTimeSeries.svg</file>
         <file>images/iconClockCivil.svg</file>
         <file>images/iconElapsedTime.svg</file>
+        <file>images/iconAmPm.svg</file>
+        <file>images/icon24h.svg</file>
+        <file>images/iconContinuousHrs.svg</file>
+        <file>images/iconSplitDays.svg</file>
         <file>images/iconClear.svg</file>
         <file>images/iconWarning.svg</file>
         <file>images/iconNews.svg</file>

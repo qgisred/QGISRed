@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 64 64"
+   version="1.1"
+   id="svg16"
+   sodipodi:docname="iconSplitDays.svg"
+   inkscape:version="1.1.2 (b8e25be833, 2022-02-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs20" />
+  <sodipodi:namedview
+     id="namedview18"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     showgrid="false"
+     inkscape:zoom="11.234375"
+     inkscape:cx="32"
+     inkscape:cy="31.955494"
+     inkscape:window-width="2560"
+     inkscape:window-height="1494"
+     inkscape:window-x="-11"
+     inkscape:window-y="-11"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg16" />
+  <!-- Back page (days already passed) -->
+  <!-- Middle page -->
+  <rect
+     x="6.3296247"
+     y="5.884562"
+     width="42"
+     height="46"
+     rx="3"
+     fill="#ddf3f9"
+     stroke="#60bcd3"
+     stroke-width="3.5"
+     id="rect4" />
+  <!-- Front page (current day) -->
+  <rect
+     x="13.329624"
+     y="12.884562"
+     width="44"
+     height="46"
+     rx="3"
+     fill="#eef9fc"
+     stroke="#60bcd3"
+     stroke-width="4.5"
+     id="rect6" />
+  <!-- Header separator on front page -->
+  <line
+     x1="13.329624"
+     y1="24.884562"
+     x2="57.329624"
+     y2="24.884562"
+     stroke="#60bcd3"
+     stroke-width="4"
+     id="line8" />
+  <!-- Binding rings at top (straddle the front page top edge) -->
+  <line
+     x1="25.329624"
+     y1="7.884562"
+     x2="25.329624"
+     y2="17.884562"
+     stroke="#60bcd3"
+     stroke-width="4"
+     stroke-linecap="round"
+     id="line10" />
+  <line
+     x1="43.329624"
+     y1="7.884562"
+     x2="43.329624"
+     y2="17.884562"
+     stroke="#60bcd3"
+     stroke-width="4"
+     stroke-linecap="round"
+     id="line12" />
+  <!-- Current day marker (green dot) -->
+  <circle
+     cx="35.329624"
+     cy="38.884563"
+     r="5"
+     fill="#7fa828"
+     id="circle14" />
+</svg>

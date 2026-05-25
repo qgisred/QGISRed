@@ -174,11 +174,18 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self._startClockSeconds = 0
         self._iconCivil = QIcon(":/images/iconClockCivil.svg")
         self._iconElapsed = QIcon(":/images/iconElapsedTime.svg")
+        self._iconAmPm = QIcon(":/images/iconAmPm.svg")
+        self._icon24h = QIcon(":/images/icon24h.svg")
+        self._iconContinuousHrs = QIcon(":/images/iconContinuousHrs.svg")
+        self._iconSplitDays = QIcon(":/images/iconSplitDays.svg")
         self.btToggleCivil.setIcon(self._iconCivil)
+        self.btAmPm.setIcon(self._iconAmPm)
+        self.btElapsedFormat.setIcon(self._iconContinuousHrs)
 
         self.btToggleCivil.clicked.connect(self.toggleCivilMode)
         self.btAmPm.clicked.connect(self.toggleAmPm)
         self.btElapsedFormat.clicked.connect(self.toggleElapsedFormat)
+        self._updateTimeButtonTooltips()
 
         self.statsDisplayWidget.setVisible(False)
         self.timeDisplayWidget.setVisible(True)
@@ -622,6 +629,11 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
 
     """Civil time display helpers"""
 
+    def _updateTimeButtonTooltips(self):
+        self.btToggleCivil.setToolTip(self.tr("Elapsed time") if self._civilMode else self.tr("Civil hour"))
+        self.btAmPm.setToolTip(self.tr("24h format") if self._amPmFormat else self.tr("am/pm format"))
+        self.btElapsedFormat.setToolTip(self.tr("dd hh:mm:ss format") if self._continuousHoursMode else self.tr("HH:mm:ss format"))
+
     def _elapsedTextToHours(self, text):
         text = (text or "").strip()
         if not text or text == self.lbl_singlePeriod:
@@ -707,6 +719,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
     def toggleCivilMode(self):
         self._civilMode = not self._civilMode
         self.btToggleCivil.setIcon(self._iconElapsed if self._civilMode else self._iconCivil)
+        self._updateTimeButtonTooltips()
         self._refreshComboboxItems()
         idx = self.cbTimes.currentIndex()
         elapsed = self.TimeLabels[idx] if 0 <= idx < len(self.TimeLabels) else ""
@@ -716,7 +729,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
 
     def toggleElapsedFormat(self):
         self._continuousHoursMode = not self._continuousHoursMode
-        self.btElapsedFormat.setText("d+h" if self._continuousHoursMode else "hh")
+        self.btElapsedFormat.setIcon(self._iconSplitDays if self._continuousHoursMode else self._iconContinuousHrs)
+        self._updateTimeButtonTooltips()
         self._refreshComboboxItems()
         idx = self.cbTimes.currentIndex()
         elapsed = self.TimeLabels[idx] if 0 <= idx < len(self.TimeLabels) else ""
@@ -726,7 +740,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
 
     def toggleAmPm(self):
         self._amPmFormat = not self._amPmFormat
-        self.btAmPm.setText("24h" if self._amPmFormat else "am/pm")
+        self.btAmPm.setIcon(self._icon24h if self._amPmFormat else self._iconAmPm)
+        self._updateTimeButtonTooltips()
         self._civilLabels = self._buildCivilLabels()
         if self._civilMode:
             self._refreshComboboxItems()
@@ -1186,9 +1201,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         )
         self._civilLabels = self._buildCivilLabels()
         # Preserve _civilMode / _amPmFormat / _continuousHoursMode across re-simulations
-        self.btAmPm.setText("24h" if self._amPmFormat else "am/pm")
-        self.btElapsedFormat.setText("d+h" if self._continuousHoursMode else "hh")
+        self.btAmPm.setIcon(self._icon24h if self._amPmFormat else self._iconAmPm)
+        self.btElapsedFormat.setIcon(self._iconSplitDays if self._continuousHoursMode else self._iconContinuousHrs)
         self.btToggleCivil.setIcon(self._iconElapsed if self._civilMode else self._iconCivil)
+        self._updateTimeButtonTooltips()
         self._refreshComboboxItems()
 
         # Configure visibilities
