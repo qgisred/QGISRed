@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Table (teal, scaled down to upper area) -->
+  <rect x="15" y="5" width="34" height="34" rx="3" fill="none" stroke="#60bcd3" stroke-width="3"/>
+  <line x1="15" y1="15" x2="49" y2="15" stroke="#60bcd3" stroke-width="2.5"/>
+  <line x1="27" y1="5" x2="27" y2="39" stroke="#60bcd3" stroke-width="2"/>
+  <line x1="39" y1="5" x2="39" y2="39" stroke="#60bcd3" stroke-width="2"/>
+  <line x1="15" y1="26" x2="49" y2="26" stroke="#60bcd3" stroke-width="2"/>
+  <!-- CSV label (green) below table -->
+  <text x="32" y="61" font-family="Arial, sans-serif" font-size="27" font-weight="bold" fill="#7fa828" text-anchor="middle">CSV</text>
+</svg>

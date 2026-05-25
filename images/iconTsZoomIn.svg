@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Magnifying glass circle (teal) -->
+  <circle cx="26" cy="26" r="18" fill="none" stroke="#60bcd3" stroke-width="5"/>
+  <!-- Handle (teal) -->
+  <line x1="39" y1="39" x2="58" y2="58" stroke="#60bcd3" stroke-width="5" stroke-linecap="round"/>
+  <!-- Plus sign (green) -->
+  <line x1="17" y1="26" x2="35" y2="26" stroke="#7fa828" stroke-width="5" stroke-linecap="round"/>
+  <line x1="26" y1="17" x2="26" y2="35" stroke="#7fa828" stroke-width="5" stroke-linecap="round"/>
+</svg>

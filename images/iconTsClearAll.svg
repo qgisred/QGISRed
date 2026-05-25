@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Broom handle (teal, diagonal) -->
+  <line x1="53.034" x2="28.981" y1="10.013" y2="37.268" stroke="#60bcd3" stroke-linecap="round" stroke-width="8"/>
+  <g stroke="#7fa828" stroke-linecap="round">
+    <!-- Broom head cross-piece (green, thick, perpendicular to handle) -->
+    <line x1="8.9043" x2="40.701" y1="25.194" y2="54.064" stroke-width="5.6394"/>
+    <g stroke-width="2.9121">
+      <!-- Bristle lines (green, tines extending from head) -->
+      <line x1="7.0028" x2="2.1494" y1="27.343" y2="33.168"/>
+      <line x1="9.4089" x2="4.5554" y1="29.539" y2="35.363"/>
+      <line x1="11.807" x2="6.9537" y1="31.729" y2="37.553"/>
+      <line x1="14.089" x2="9.2351" y1="34.061" y2="39.885"/>
+      <line x1="16.495" x2="11.641" y1="36.256" y2="42.08"/>
+      <line x1="18.893" x2="14.039" y1="38.446" y2="44.27"/>
+      <line x1="21.405" x2="16.552" y1="40.76" y2="46.585"/>
+      <line x1="23.811" x2="18.958" y1="42.956" y2="48.78"/>
+      <line x1="26.21" x2="21.356" y1="45.146" y2="50.97"/>
+      <line x1="28.491" x2="23.637" y1="47.478" y2="53.302"/>
+      <line x1="30.897" x2="26.044" y1="49.673" y2="55.497"/>
+      <line x1="33.295" x2="28.442" y1="51.863" y2="57.687"/>
+      <line x1="35.719" x2="30.865" y1="54.088" y2="59.913"/>
+      <line x1="38.125" x2="33.271" y1="56.284" y2="62.108"/>
+    </g>
+  </g>
+</svg>

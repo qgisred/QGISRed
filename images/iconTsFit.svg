@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Central data area (teal) -->
+  <rect x="20" y="20" width="24" height="24" fill="none" stroke="#60bcd3" stroke-width="4"/>
+  <!-- Top-left corner arrow (green) -->
+  <line x1="20" y1="20" x2="8" y2="8" stroke="#7fa828" stroke-width="4" stroke-linecap="round"/>
+  <polyline points="14,8 8,8 8,14" fill="none" stroke="#7fa828" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Top-right corner arrow (green) -->
+  <line x1="44" y1="20" x2="56" y2="8" stroke="#7fa828" stroke-width="4" stroke-linecap="round"/>
+  <polyline points="50,8 56,8 56,14" fill="none" stroke="#7fa828" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Bottom-left corner arrow (green) -->
+  <line x1="20" y1="44" x2="8" y2="56" stroke="#7fa828" stroke-width="4" stroke-linecap="round"/>
+  <polyline points="14,56 8,56 8,50" fill="none" stroke="#7fa828" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Bottom-right corner arrow (green) -->
+  <line x1="44" y1="44" x2="56" y2="56" stroke="#7fa828" stroke-width="4" stroke-linecap="round"/>
+  <polyline points="50,56 56,56 56,50" fill="none" stroke="#7fa828" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

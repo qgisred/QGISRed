@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Camera body (teal) -->
+  <rect x="6" y="13" width="52" height="38" rx="5" fill="none" stroke="#60bcd3" stroke-width="4.5"/>
+  <!-- Chart line inside camera (green) -->
+  <polyline points="14,43 24,31 34,37 44,23 54,29" fill="none" stroke="#7fa828" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Y axis with arrow (teal) -->
+  <line x1="14" y1="56" x2="14" y2="10" stroke="#60bcd3" stroke-width="4.5" stroke-linecap="round"/>
+  <polyline points="9,16 14,8 19,16" fill="none" stroke="#60bcd3" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- X axis with arrow (teal) -->
+  <line x1="10" y1="52" x2="56" y2="52" stroke="#60bcd3" stroke-width="4.5" stroke-linecap="round"/>
+  <polyline points="50,47 58,52 50,57" fill="none" stroke="#60bcd3" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Slider 1 (teal track, green dot) -->
+  <line x1="18" y1="20" x2="54" y2="20" stroke="#60bcd3" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="30" cy="20" r="6" fill="#7fa828"/>
+  <!-- Slider 2 (green track, teal dot) -->
+  <line x1="18" y1="31" x2="54" y2="31" stroke="#7fa828" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="44" cy="31" r="6" fill="#60bcd3"/>
+  <!-- Slider 3 (green track, green dot) -->
+  <line x1="18" y1="43" x2="54" y2="43" stroke="#7fa828" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="25" cy="43" r="6" fill="#7fa828"/>
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Center dot -->
+  <circle cx="32" cy="32" r="4" fill="#60bcd3"/>
+  <!-- North arrow -->
+  <line x1="32" y1="28" x2="32" y2="12" stroke="#60bcd3" stroke-width="5" stroke-linecap="round"/>
+  <polyline points="26,18 32,8 38,18" fill="none" stroke="#60bcd3" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- South arrow -->
+  <line x1="32" y1="36" x2="32" y2="52" stroke="#60bcd3" stroke-width="5" stroke-linecap="round"/>
+  <polyline points="26,46 32,56 38,46" fill="none" stroke="#60bcd3" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- West arrow -->
+  <line x1="28" y1="32" x2="12" y2="32" stroke="#60bcd3" stroke-width="5" stroke-linecap="round"/>
+  <polyline points="18,26 8,32 18,38" fill="none" stroke="#60bcd3" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- East arrow -->
+  <line x1="36" y1="32" x2="52" y2="32" stroke="#60bcd3" stroke-width="5" stroke-linecap="round"/>
+  <polyline points="46,26 56,32 46,38" fill="none" stroke="#60bcd3" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

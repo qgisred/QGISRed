@@ -114,6 +114,16 @@
         <file>images/iconChangeStatus.svg</file>  
         <file>images/pencil.svg</file>
         <file>images/iconTimeSeries.svg</file>
+        <file>images/iconTsPan.svg</file>
+        <file>images/iconTsZoomWindow.svg</file>
+        <file>images/iconTsZoomIn.svg</file>
+        <file>images/iconTsZoomOut.svg</file>
+        <file>images/iconTsFit.svg</file>
+        <file>images/iconTsSyncCursor.svg</file>
+        <file>images/iconTsAxes.svg</file>
+        <file>images/iconTsExportImage.svg</file>
+        <file>images/iconTsExportCsv.svg</file>
+        <file>images/iconTsClearAll.svg</file>
         <file>images/iconClockCivil.svg</file>
         <file>images/iconElapsedTime.svg</file>
         <file>images/iconAmPm.svg</file>
