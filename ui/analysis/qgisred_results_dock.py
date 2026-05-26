@@ -187,6 +187,30 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self.btElapsedFormat.clicked.connect(self.toggleElapsedFormat)
         self._updateTimeButtonTooltips()
 
+        self._iconGoToStart = QIcon(":/images/iconGoToStart.svg")
+        self._iconStepBackward = QIcon(":/images/iconStepBackward.svg")
+        self._iconPlayBackward = QIcon(":/images/iconPlayBackward.svg")
+        self._iconPause = QIcon(":/images/iconPause.svg")
+        self._iconPlayForward = QIcon(":/images/iconPlayForward.svg")
+        self._iconStepForward = QIcon(":/images/iconStepForward.svg")
+        self._iconGoToEnd = QIcon(":/images/iconGoToEnd.svg")
+
+        self.btInitTime.setIcon(self._iconGoToStart)
+        self.btLessTime.setIcon(self._iconStepBackward)
+        self.btMoreTime.setIcon(self._iconStepForward)
+        self.btEndTime.setIcon(self._iconGoToEnd)
+        self.btPlayForward.setIcon(self._iconPlayForward)
+        self.btPlayBackward.setIcon(self._iconPlayBackward)
+
+        self._animPlaying = False
+        self._animDirection = 1
+        self._animTimer = QTimer()
+        self._animTimer.setSingleShot(True)
+        self._animTimer.timeout.connect(self._animStep)
+        self.btPlayForward.clicked.connect(self._onPlayForwardClicked)
+        self.btPlayBackward.clicked.connect(self._onPlayBackwardClicked)
+        self.sliderAnimSpeed.valueChanged.connect(self._onAnimSpeedChanged)
+
         self.statsDisplayWidget.setVisible(False)
         self.timeDisplayWidget.setVisible(True)
 
@@ -257,6 +281,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
                 self._staleCheckTimer.start()
         else:
             self._staleCheckTimer.stop()
+            self._stopAnimation()
 
     def _markResultsStale(self):
         self._resultsStale = True
@@ -810,7 +835,6 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
             QApplication.processEvents()
 
     """Clicked events"""
-
     def statisticsChanged(self):
         # 1. First, save render BEFORE updating state to new statistic (only if not computing)
         if not self.Computing:
@@ -821,6 +845,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self._currentStat = new_stat
         
         if new_stat != self.lbl_none:
+            self._stopAnimation()
             self._statsMode = True
             self.updateLinksComboboxForStat(new_stat)
             result_times = self.cbResultTimes.currentText()
@@ -955,6 +980,77 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
             self.cbTimes.setCurrentIndex(self.cbTimes.count() - 1)
         else:
             self.cbTimes.setCurrentIndex(index - 1)
+
+    def _animIntervalMs(self):
+        return max(100, 2000 - (self.sliderAnimSpeed.value() - 1) * 200)
+
+    def _onPlayForwardClicked(self):
+        if self._animPlaying and self._animDirection == 1:
+            self._stopAnimation()
+        else:
+            self._startAnimation(1)
+
+    def _onPlayBackwardClicked(self):
+        if self._animPlaying and self._animDirection == -1:
+            self._stopAnimation()
+        else:
+            self._startAnimation(-1)
+
+    def _startAnimation(self, direction):
+        self._stopAnimation()
+        self._animDirection = direction
+        self._animPlaying = True
+        if direction == 1:
+            self.btPlayForward.setIcon(self._iconPause)
+            self.btPlayForward.setChecked(True)
+            self.btPlayBackward.setIcon(self._iconPlayBackward)
+            self.btPlayBackward.setChecked(False)
+        else:
+            self.btPlayBackward.setIcon(self._iconPause)
+            self.btPlayBackward.setChecked(True)
+            self.btPlayForward.setIcon(self._iconPlayForward)
+            self.btPlayForward.setChecked(False)
+        self._animTimer.start(self._animIntervalMs())
+
+    def _stopAnimation(self):
+        if not self._animPlaying:
+            return
+        self._animPlaying = False
+        self._animTimer.stop()
+        self.btPlayForward.setIcon(self._iconPlayForward)
+        self.btPlayForward.setChecked(False)
+        self.btPlayBackward.setIcon(self._iconPlayBackward)
+        self.btPlayBackward.setChecked(False)
+
+    def _animStep(self):
+        if not self._animPlaying:
+            return
+        index = self.cbTimes.currentIndex()
+        count = self.cbTimes.count()
+        if self._animDirection == 1:
+            next_index = index + 1
+            if next_index >= count:
+                if self.cbAnimLoop.isChecked():
+                    next_index = 0
+                else:
+                    self._stopAnimation()
+                    return
+        else:
+            next_index = index - 1
+            if next_index < 0:
+                if self.cbAnimLoop.isChecked():
+                    next_index = count - 1
+                else:
+                    self._stopAnimation()
+                    return
+        self.cbTimes.setCurrentIndex(next_index)
+        if self._animPlaying:
+            self._animTimer.start(self._animIntervalMs())
+
+    def _onAnimSpeedChanged(self, value):
+        if self._animPlaying:
+            self._animTimer.stop()
+            self._animTimer.start(self._animIntervalMs())
 
     def sliderChanged(self):
         if self.timeSlider.isSliderDown():

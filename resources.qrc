@@ -124,6 +124,13 @@
         <file>images/iconTsExportImage.svg</file>
         <file>images/iconTsExportCsv.svg</file>
         <file>images/iconTsClearAll.svg</file>
+        <file>images/iconGoToStart.svg</file>
+        <file>images/iconStepBackward.svg</file>
+        <file>images/iconPlayBackward.svg</file>
+        <file>images/iconPause.svg</file>
+        <file>images/iconPlayForward.svg</file>
+        <file>images/iconStepForward.svg</file>
+        <file>images/iconGoToEnd.svg</file>
         <file>images/iconClockCivil.svg</file>
         <file>images/iconElapsedTime.svg</file>
         <file>images/iconAmPm.svg</file>
