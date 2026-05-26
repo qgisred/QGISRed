@@ -1173,9 +1173,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         # keeping the existing inodes valid for any other open handle.
         tempFolder = tempfile.mkdtemp(prefix="QGISRed_")
         try:
-            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
             resMessage = GISRed.Compute(self.ProjectDirectory, self.NetworkName, tempFolder)
-            QApplication.restoreOverrideCursor()
 
             if resMessage == "True":
                 resultsPath = self.getResultsPath()
@@ -1187,7 +1185,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
             shutil.rmtree(tempFolder, ignore_errors=True)
 
         # Message
-        if resMessage == "False":
+        if resMessage == "Cancelled":
+            return
+        elif resMessage == "False":
             QGISRedUIUtils.showGlobalMessage(self.iface, self.tr("Some issues occurred in the process"), level=1, duration=5)
         elif resMessage == "True":
             self.outPath = os.path.join(self.getResultsPath(), self.NetworkName + "_" + self.Scenario + ".out")
