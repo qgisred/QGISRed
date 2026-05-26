@@ -522,10 +522,18 @@ class TimeSeriesPlotRenderer:
     def _is_time_of_day_format(self, hour_format: str) -> bool:
         return (hour_format or "").strip() in ("hm", "hm_ampm", "tod_hm", "tod_ampm")
 
-    def _estimate_x_axis_label_px(self, painter, *, has_days: bool, hour_format: str = "hm") -> float:
+    def _estimate_x_axis_label_px(self, painter, *, has_days: bool, hour_format: str = "hm", x_precision: str = "hms") -> float:
         fm = painter.fontMetrics()
         hour_format = (hour_format or "hm").strip()
-        if hour_format in ("hm_ampm", "tod_ampm"):
+        x_precision = (x_precision or "hms").strip()
+        if x_precision == "h":
+            if hour_format in ("hm_ampm", "tod_ampm"):
+                time_sample = "12 pm"
+            elif hour_format == "elapsed_hm":
+                time_sample = "999"
+            else:
+                time_sample = "23"
+        elif hour_format in ("hm_ampm", "tod_ampm"):
             time_sample = "12:59 pm"
         elif hour_format == "elapsed_hm":
             time_sample = "999:59"
@@ -537,7 +545,7 @@ class TimeSeriesPlotRenderer:
             return max(w_top, w_bottom) + 18
         return fm.horizontalAdvance(time_sample) + 18
 
-    def _format_time_axis_tick(self, hours: float, *, hour_format: str, day_format: str, start_clock_seconds: int = 0) -> str:
+    def _format_time_axis_tick(self, hours: float, *, hour_format: str, day_format: str, start_clock_seconds: int = 0, x_precision: str = "hms", include_seconds: bool = False) -> str:
         total_seconds = int(round(hours * 3600))
         sign = "-" if total_seconds < 0 else ""
         abs_seconds = abs(total_seconds)
@@ -551,6 +559,7 @@ class TimeSeriesPlotRenderer:
         if hour_format == "hms":
             hour_format = "hm"
         day_format = (day_format or "split_days").strip()
+        x_precision = (x_precision or "hms").strip()
 
         if self._is_time_of_day_format(hour_format):
             parts = civil_time_parts(hours, start_clock_seconds)
@@ -558,31 +567,54 @@ class TimeSeriesPlotRenderer:
                 return ""
             d, h, m, s = parts
             am_pm = hour_format in ("hm_ampm", "tod_ampm")
-            if am_pm:
-                suffix = "am" if h < 12 else "pm"
-                dh = h % 12 or 12
-                top = f"{dh}:{m:02d} {suffix}"
+            if include_seconds:
+                if am_pm:
+                    sfx = "am" if h < 12 else "pm"
+                    dh = h % 12 or 12
+                    top = f"{dh}:{m:02d}:{s:02d} {sfx}"
+                else:
+                    top = f"{h}:{m:02d}:{s:02d}"
+            elif x_precision == "h":
+                if am_pm:
+                    suffix = "am" if h < 12 else "pm"
+                    dh = h % 12 or 12
+                    top = f"{dh} {suffix}"
+                else:
+                    top = f"{h}"
             else:
-                top = f"{h}:{m:02d}"
+                if am_pm:
+                    suffix = "am" if h < 12 else "pm"
+                    dh = h % 12 or 12
+                    top = f"{dh}:{m:02d} {suffix}"
+                else:
+                    top = f"{h}:{m:02d}"
             if day_format == "split_days" and d > 0 and h == 0 and m == 0 and s == 0:
+                if include_seconds:
+                    return f"{sign}{d}d {top}"
                 return f"{top}\n{d}d"
             return top
 
         if day_format == "total_hours":
             total_h = abs_seconds // 3600
-            if hour_format == "h":
+            if include_seconds:
+                return f"{sign}{total_h}:{m:02d}:{s:02d}"
+            if hour_format == "h" or x_precision == "h":
                 return f"{sign}{total_h}"
             if hour_format == "auto" and m == 0:
                 return f"{sign}{total_h}"
             return f"{sign}{total_h}:{m:02d}"
 
-        if hour_format == "h":
+        if include_seconds:
+            top = f"{sign}{h}:{m:02d}:{s:02d}"
+        elif hour_format == "h" or x_precision == "h":
             top = f"{sign}{h}"
         elif hour_format == "auto":
             top = f"{sign}{h}" if m == 0 else f"{sign}{h}:{m:02d}"
         else:
             top = f"{sign}{h}:{m:02d}"
         if d > 0 and h == 0 and m == 0 and s == 0:
+            if include_seconds:
+                return f"{sign}{d}d {top}"
             return f"{top}\n{sign}{d}d"
         return top
 
@@ -613,6 +645,7 @@ class TimeSeriesPlotRenderer:
 
         hour_format = (getattr(cfg, "x_hour_format", "") or "hm").strip()
         day_format = (getattr(cfg, "x_day_format", "") or "split_days").strip()
+        x_precision = (getattr(cfg, "x_precision", "hms") or "hms").strip()
         start_clock_seconds = int(getattr(widget, "_start_clock_seconds", 0) or 0)
         if self._is_time_of_day_format(hour_format):
             min_civil = civil_time_parts(min_x, start_clock_seconds)
@@ -625,7 +658,7 @@ class TimeSeriesPlotRenderer:
             )
         else:
             has_days = (max_x >= 24) and (day_format == "split_days")
-        label_px = self._estimate_x_axis_label_px(painter, has_days=has_days, hour_format=hour_format)
+        label_px = self._estimate_x_axis_label_px(painter, has_days=has_days, hour_format=hour_format, x_precision=x_precision)
         if cfg.auto_scale:
             max_ticks_x = estimate_max_ticks(plot_rect.width(), label_px, min_ticks=2, max_ticks=AXIS_MAX_TICKS)
             x_scale = compute_nice_time_scale_hours(min_x, max_x, max_ticks_x)
@@ -661,6 +694,7 @@ class TimeSeriesPlotRenderer:
             "label_px": label_px,
             "axis_cfg": cfg,
             "start_clock_seconds": start_clock_seconds,
+            "x_precision": x_precision,
         }
 
     def _to_screen(self, x, y, plot_rect, x_state, y_state):
@@ -743,12 +777,16 @@ class TimeSeriesPlotRenderer:
         hour_format: str = "auto",
         day_format: str = "split_days",
         start_clock_seconds: int = 0,
+        x_precision: str = "hms",
+        include_seconds: bool = False,
     ) -> str:
         return self._format_time_axis_tick(
             hours,
             hour_format=hour_format,
             day_format=day_format,
             start_clock_seconds=start_clock_seconds,
+            x_precision=x_precision,
+            include_seconds=include_seconds,
         )
 
     def _format_tick_number(self, value: float, step: float, dec: int | None) -> str:
@@ -835,8 +873,9 @@ class TimeSeriesPlotRenderer:
             has_days = bool(x_state.get("has_days", x_state["max_x"] >= 24))
             tick_h = fm_x.height() * 2 + 4 if has_days else fm_x.height() + 6
             hour_format = (getattr(cfg_x, "x_hour_format", "") or "hm").strip()
-            tick_w = float(x_state.get("label_px", self._estimate_x_axis_label_px(painter, has_days=has_days, hour_format=hour_format)))
             day_format = (getattr(cfg_x, "x_day_format", "") or "split_days").strip()
+            x_precision = str(x_state.get("x_precision", getattr(cfg_x, "x_precision", "hms")) or "hms").strip()
+            tick_w = float(x_state.get("label_px", self._estimate_x_axis_label_px(painter, has_days=has_days, hour_format=hour_format, x_precision=x_precision)))
             start_clock_seconds = int(x_state.get("start_clock_seconds", getattr(widget, "_start_clock_seconds", 0) or 0))
             for val_x in x_state.get("x_tick_values", x_state["x_scale"].ticks()):
                 if y_state_primary is None:
@@ -863,6 +902,7 @@ class TimeSeriesPlotRenderer:
                     hour_format=hour_format,
                     day_format=day_format,
                     start_clock_seconds=start_clock_seconds,
+                    x_precision=x_precision,
                 )
                 rect = QRectF(pt.x() - tick_w / 2, plot_rect.bottom() + 8, tick_w, tick_h)
                 if "\n" in label_x:
@@ -1747,6 +1787,8 @@ class TimeSeriesPlotRenderer:
             hour_format=getattr(cfg_x, "x_hour_format", "hm") if cfg_x else "hm",
             day_format=getattr(cfg_x, "x_day_format", "split_days") if cfg_x else "split_days",
             start_clock_seconds=getattr(widget, "_start_clock_seconds", 0),
+            x_precision="hms",
+            include_seconds=True,
         )
         footer_segments = self._build_styled_footer_segments(instant_text)
         tooltip_lines, marker_pts = self._collect_hover_tooltip_data(widget, hover_index, val_x, plot_rect, x_state, y_state_left, y_state_right)

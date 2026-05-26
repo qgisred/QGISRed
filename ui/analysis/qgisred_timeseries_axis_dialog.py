@@ -1348,6 +1348,16 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         else:
             sp_dec.hide()
 
+        if is_time_axis:
+            time_grp = self._compact_group(QGroupBox(self.tr("Time format")))
+            time_vlay = QVBoxLayout(time_grp)
+            time_vlay.setSpacing(6)
+
+            chk_hours_only = QCheckBox(self.tr("Show only hours"))
+            chk_hours_only.setChecked(getattr(cfg, "x_precision", "hms") == "h")
+            time_vlay.addWidget(chk_hours_only)
+            lay.addWidget(time_grp)
+
         def sync_fixed_enabled():
             auto = combo_scale.currentIndex() == 0
             sp_min.setEnabled(not auto)
@@ -1388,6 +1398,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         w._sp_size = sp_size
         w._font_combo = font_combo
         w._sp_dec = sp_dec
+        if is_time_axis:
+            w._chk_hours_only = chk_hours_only
         return w
 
     def _read_tab(self, tab: QWidget, cfg: TimeSeriesAxisSettings) -> None:
@@ -1411,6 +1423,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             cfg.decimal_places = -1 if dv < 0 else dv
         else:
             cfg.decimal_places = -1
+        if getattr(tab, "_chk_hours_only", None) is not None:
+            cfg.x_precision = "h" if tab._chk_hours_only.isChecked() else "hms"
 
 
     def _apply_options(self) -> None:

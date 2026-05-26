@@ -5335,7 +5335,7 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1486"/>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1500"/>
         <source>Series</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5544,11 +5544,21 @@ Left-click: Add a new item below the current selection</source>
         <source>Continue</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1352"/>
+        <source>Time format</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1356"/>
+        <source>Show only hours</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>TimeSeriesPlotWidget</name>
     <message>
-        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="1572"/>
+        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="1612"/>
         <source>Series</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5568,7 +5578,7 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="714"/>
+        <location filename="../ui/analysis/timeseries_plot_renderer.py" line="748"/>
         <source>Time: %1</source>
         <translation type="unfinished"></translation>
     </message>
