@@ -711,7 +711,7 @@ class TimeSeriesPlotRenderer:
         return " ".join(rendered)
 
     def _build_styled_footer_segments(self, instant_text: str):
-        template = QCoreApplication.translate("TimeSeriesPlotWidget", "Step: %1")
+        template = QCoreApplication.translate("TimeSeriesPlotWidget", "Time: %1")
         if "%1" in template:
             prefix, suffix = template.split("%1", 1)
         else:
