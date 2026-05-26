@@ -151,6 +151,11 @@ class _ResultsRenderingMixin:
                         display_name = self.tr("Node %1").replace("%1", selected_variable_text)
 
                 if field:
+                    if not setRender:
+                        # Time-only change: renderer and style are already correct, just repaint
+                        layer_to_paint.triggerRepaint()
+                        continue
+
                     self.setGraduatedPalette(layer_to_paint, field, setRender, nameLayer)
 
                     # Store current displayed variable
