@@ -97,9 +97,12 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         content_scroll.setWidget(content)
         root.addWidget(content_scroll, 1)
 
-        buttons = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
-        )
+        _std_btn = QDialogButtonBox.StandardButton
+        _confirm_btn = getattr(_std_btn, "Accept", _std_btn.Ok)
+        buttons = QDialogButtonBox(_confirm_btn | _std_btn.Cancel)
+        accept_btn = buttons.button(_confirm_btn)
+        if accept_btn is not None:
+            accept_btn.setText(self.tr("Accept"))
         buttons.accepted.connect(self._on_accept)
         buttons.rejected.connect(self._on_reject)
 

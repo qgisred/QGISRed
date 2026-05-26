@@ -5763,6 +5763,11 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished">Magnitude</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="105"/>
+        <source>Accept</source>
+        <translation>Aceitar</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="106"/>
         <source>Live update</source>
         <translation>Atualização em direto</translation>

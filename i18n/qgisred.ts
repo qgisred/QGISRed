@@ -5575,6 +5575,10 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="105"/>
+        <source>Accept</source>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="106"/>
         <source>Live update</source>
         <translation type="unfinished"></translation>
