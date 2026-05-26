@@ -36,6 +36,7 @@ from qgis.PyQt.QtWidgets import (
 
 from .timeseries_axis_settings import TimeSeriesAxisSettings, TimeSeriesGeneralSettings, clone_axis_settings, clone_general_settings
 from .timeseries_plot_style import FONT_FAMILY
+from .timeseries_time_utils import civil_time_parts
 
 
 class TimeSeriesAxisOptionsDialog(QDialog):
@@ -1307,8 +1308,71 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         sp_div.setValue(int(cfg.fixed_divisions))
         sp_div.setMinimumWidth(100)
 
-        self._add_form_row(scale_form, self.tr("Minimum:"), sp_min)
-        self._add_form_row(scale_form, self.tr("Maximum:"), sp_max)
+        _hint_min = None
+        _hint_max = None
+        if is_time_axis:
+            _start_secs = int(getattr(self._plot, "_start_clock_seconds", 0) or 0)
+            _hfmt = (getattr(self._plot._axis_cfg_x, "x_hour_format", "") or "hm").strip()
+            _dfmt = (getattr(self._plot._axis_cfg_x, "x_day_format", "") or "split_days").strip()
+            _is_civil = _hfmt in ("hm", "hm_ampm", "tod_hm", "tod_ampm")
+            _is_elapsed_split = not _is_civil and _hfmt == "elapsed_hm" and _dfmt == "split_days"
+            _am_pm = "ampm" in _hfmt
+            _show_hint = _is_civil or _is_elapsed_split
+        else:
+            _is_civil = False
+            _is_elapsed_split = False
+            _show_hint = False
+
+        if _show_hint:
+            def _fmt_hint(h):
+                if _is_civil:
+                    parts = civil_time_parts(h, _start_secs)
+                    if parts is None:
+                        return ""
+                    d, hr, mn, _ = parts
+                    if _am_pm:
+                        period = "am" if hr < 12 else "pm"
+                        h12 = hr % 12 or 12
+                        txt = f"→ {h12}:{mn:02d} {period}"
+                    else:
+                        txt = f"→ {hr:02d}:{mn:02d}"
+                    if d > 0:
+                        txt += f" (+{d}d)"
+                    return txt
+                else:
+                    total_seconds = int(round(h * 3600))
+                    sign = "-" if total_seconds < 0 else ""
+                    abs_s = abs(total_seconds)
+                    d = abs_s // 86400
+                    rem = abs_s % 86400
+                    hr = rem // 3600
+                    mn = (rem % 3600) // 60
+                    if d > 0:
+                        return f"→ {sign}{d}d {hr}:{mn:02d}"
+                    return f"→ {sign}{hr}:{mn:02d}"
+
+            _hint_min = QLabel(_fmt_hint(sp_min.value()))
+            _hint_min.setStyleSheet("color: palette(mid);")
+            _hint_max = QLabel(_fmt_hint(sp_max.value()))
+            _hint_max.setStyleSheet("color: palette(mid);")
+            sp_min.valueChanged.connect(lambda v: _hint_min.setText(_fmt_hint(v)))
+            sp_max.valueChanged.connect(lambda v: _hint_max.setText(_fmt_hint(v)))
+
+            def _make_hint_row(spinbox, hint_lbl):
+                ctr = QWidget()
+                hl = QHBoxLayout(ctr)
+                hl.setContentsMargins(0, 0, 0, 0)
+                hl.setSpacing(8)
+                hl.addWidget(spinbox)
+                hl.addWidget(hint_lbl)
+                hl.addStretch()
+                return ctr
+
+            self._add_form_row(scale_form, self.tr("Minimum:"), _make_hint_row(sp_min, _hint_min))
+            self._add_form_row(scale_form, self.tr("Maximum:"), _make_hint_row(sp_max, _hint_max))
+        else:
+            self._add_form_row(scale_form, self.tr("Minimum:"), sp_min)
+            self._add_form_row(scale_form, self.tr("Maximum:"), sp_max)
         self._add_form_row(scale_form, self.tr("Divisions:"), sp_div)
         lay.addWidget(scale_group)
 
@@ -1363,6 +1427,10 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             sp_min.setEnabled(not auto)
             sp_max.setEnabled(not auto)
             sp_div.setEnabled(not auto)
+            if _hint_min is not None:
+                _hint_min.setEnabled(not auto)
+            if _hint_max is not None:
+                _hint_max.setEnabled(not auto)
 
         def apply_auto_scale_defaults():
             vals = self._current_auto_scale_values(is_time_axis=is_time_axis, cfg=cfg)
