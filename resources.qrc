@@ -124,19 +124,19 @@
         <file>images/iconTsExportImage.svg</file>
         <file>images/iconTsExportCsv.svg</file>
         <file>images/iconTsClearAll.svg</file>
-        <file>images/iconGoToStart.svg</file>
-        <file>images/iconStepBackward.svg</file>
-        <file>images/iconPlayBackward.svg</file>
-        <file>images/iconPause.svg</file>
-        <file>images/iconPlayForward.svg</file>
-        <file>images/iconStepForward.svg</file>
-        <file>images/iconGoToEnd.svg</file>
-        <file>images/iconClockCivil.svg</file>
-        <file>images/iconElapsedTime.svg</file>
-        <file>images/iconAmPm.svg</file>
-        <file>images/icon24h.svg</file>
-        <file>images/iconContinuousHrs.svg</file>
-        <file>images/iconSplitDays.svg</file>
+        <file>images/iconResultsGoToStart.svg</file>
+        <file>images/iconResultsStepBackward.svg</file>
+        <file>images/iconResultsPlayBackward.svg</file>
+        <file>images/iconResultsPause.svg</file>
+        <file>images/iconResultsPlayForward.svg</file>
+        <file>images/iconResultsStepForward.svg</file>
+        <file>images/iconResultsGoToEnd.svg</file>
+        <file>images/iconResultsClockCivil.svg</file>
+        <file>images/iconResultsElapsedTime.svg</file>
+        <file>images/iconResultsAmPm.svg</file>
+        <file>images/iconResults24h.svg</file>
+        <file>images/iconResultsContinuousHrs.svg</file>
+        <file>images/iconResultsSplitDays.svg</file>
         <file>images/iconClear.svg</file>
         <file>images/iconWarning.svg</file>
         <file>images/iconNews.svg</file>
