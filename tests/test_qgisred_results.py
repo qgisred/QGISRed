@@ -18,8 +18,14 @@ from QGISRed.ui.analysis.qgisred_results_binary import (
     getOut_StatLinksProperties,
     ROUNDING_PRECISION,
 )
+from QGISRed.ui.analysis.qgisred_results_hyd import (
+    getHyd_Metadata,
+    getHyd_TimeNodesProperties,
+    getHyd_TimeLinksProperties,
+)
 
 from .helpers.epanet_out_builder import simple_network_out, pump_valve_network_out, simple_network_out_with_trailing
+from .helpers.epanet_hyd_builder import build_epanet_hyd
 
 
 
@@ -382,3 +388,149 @@ class TestTrailingBytesRobustness:
                 assert props["Pressure"] >= 0.0, (
                     f"Negative pressure {props['Pressure']} for {node_id} at t={t}s"
                 )
+
+
+@pytest.fixture
+def simple_network_hyd(tmp_path):
+    periods = [
+        {
+            "time": 0,
+            "step": 1800,
+            "demands": [-10.0, 5.0, 5.0],
+            "heads": [100.0, 80.0, 60.0],
+            "flows": [10.0, 5.0],
+            "statuses": [3.0, 3.0],
+            "settings": [0.0, 0.0],
+        },
+        {
+            "time": 1800,
+            "step": 1800,
+            "demands": [-11.0, 5.5, 5.5],
+            "heads": [100.0, 77.0, 57.0],
+            "flows": [11.0, 5.5],
+            "statuses": [3.0, 3.0],
+            "settings": [0.0, 0.0],
+        },
+        {
+            "time": 3600,
+            "step": 1800,
+            "demands": [-12.0, 6.0, 6.0],
+            "heads": [100.0, 75.0, 55.0],
+            "flows": [12.0, 6.0],
+            "statuses": [3.0, 3.0],
+            "settings": [0.0, 0.0],
+        },
+    ]
+    hyd_path = tmp_path / "test_network.hyd"
+    hyd_path.write_bytes(build_epanet_hyd(periods, n_nodes=3, n_links=2, n_tanks=1, duration=3600))
+    return str(hyd_path)
+
+
+@pytest.fixture
+def pump_valve_network_hyd(tmp_path):
+    periods = [
+        {
+            "time": 0,
+            "step": 3600,
+            "demands": [-20.0, 10.0, 10.0],
+            "heads": [100.0, 80.0, 60.0],
+            "flows": [20.0, 10.0],
+            "statuses": [3.0, 4.0],
+            "settings": [1.0, 40.0],
+        }
+    ]
+    hyd_path = tmp_path / "pump_valve_network.hyd"
+    hyd_path.write_bytes(build_epanet_hyd(periods, n_nodes=3, n_links=2, n_tanks=1, n_pumps=1, n_valves=1, duration=0))
+    return str(hyd_path)
+
+
+class TestHydResults:
+    def test_hyd_metadata_uses_out_topology(self, simple_network_out, simple_network_hyd):
+        meta = getHyd_Metadata(simple_network_hyd, simple_network_out)
+        assert meta is not None
+        assert meta["n_nodes"] == 3
+        assert meta["n_links"] == 2
+        assert meta["hyd_num_periods"] == 3
+        assert meta["hyd_report_step"] == 1800
+
+    def test_hyd_nodes_pressure_calculated(self, simple_network_out, simple_network_hyd):
+        # Middle hydraulic step should be available from .hyd
+        results = getHyd_TimeNodesProperties(simple_network_hyd, simple_network_out, 1800)
+        j1 = results["J1"]
+        with open(simple_network_out, "rb") as f:
+            out_meta = getOut_Metadata(f)
+        flow_units = out_meta["flow_units"]
+        pres_units = out_meta["pres_units"]
+        is_metric = flow_units >= 5
+        head_factor = 0.3048 if is_metric else 1.0
+        if pres_units == 0:
+            pressure_factor = 1.422334 if is_metric else 0.4333
+        elif pres_units == 1:
+            pressure_factor = 9.80665 if is_metric else 2.98898
+        else:
+            pressure_factor = 1.0
+
+        assert j1["Demand"] == round(5.5, ROUNDING_PRECISION)
+        assert j1["Head"] == round(77.0 * head_factor, ROUNDING_PRECISION)
+        # Pressure = (head - elevation) converted to project pressure units.
+        assert j1["Pressure"] == round((77.0 * head_factor - 50.0) * pressure_factor, ROUNDING_PRECISION)
+        assert j1["Quality"] is None
+
+    def test_hyd_links_derived_values(self, simple_network_out, simple_network_hyd):
+        results = getHyd_TimeLinksProperties(simple_network_hyd, simple_network_out, 1800)
+        p1 = results["P1"]
+        with open(simple_network_out, "rb") as f:
+            out_meta = getOut_Metadata(f, include_lengths=True, include_geometry=True)
+        flow_units = out_meta["flow_units"]
+        is_metric = flow_units >= 5
+        cfs_to_flow = {
+            0: 1.0, 1: 448.8311688, 2: 0.646317, 3: 0.5382, 4: 1.98347,
+            5: 28.3168466, 6: 1699.0108, 7: 2.446575, 8: 101.940647, 9: 2446.57553,
+        }
+        flow_factor = cfs_to_flow.get(flow_units, 1.0)
+        head_factor = 0.3048 if is_metric else 1.0
+        expected_headloss = (100.0 - 77.0) * head_factor
+        expected_unit = (expected_headloss * 1000.0) / 1000.0
+
+        raw_flow_cfs = 11.0
+        expected_flow = raw_flow_cfs * flow_factor
+
+        diameter_raw = out_meta["link_diameters"][0]
+        if is_metric:
+            diameter_m = diameter_raw / 1000.0
+            area = 3.141592653589793 * (diameter_m ** 2) / 4.0
+            expected_velocity = abs(raw_flow_cfs * 0.0283168466) / area
+            length_m = out_meta["link_lengths"][0]
+            slope = expected_headloss / length_m
+        else:
+            diameter_ft = diameter_raw / 12.0
+            area = 3.141592653589793 * (diameter_ft ** 2) / 4.0
+            expected_velocity = abs(raw_flow_cfs) / area
+            diameter_m = diameter_raw * 0.0254
+            length_ft = out_meta["link_lengths"][0]
+            slope = (expected_headloss * 0.3048) / (length_ft * 0.3048)
+
+        q_m3s = raw_flow_cfs * 0.0283168466
+        expected_f = 12.104 * (diameter_m ** 5) * slope / (q_m3s ** 2)
+
+        assert p1["Status"] == "Open"
+        assert p1["Flow"] == round(expected_flow, ROUNDING_PRECISION)
+        assert p1["HeadLoss"] == round(expected_headloss, ROUNDING_PRECISION)
+        assert p1["UnitHdLoss"] == round(expected_unit, ROUNDING_PRECISION)
+        assert p1["Velocity"] == round(expected_velocity, ROUNDING_PRECISION)
+        assert p1["FricFactor"] == round(expected_f, ROUNDING_PRECISION)
+        assert p1["ReactRate"] is None
+        assert p1["Quality"] is None
+
+    def test_hyd_pump_and_valve_keep_blank_fields(self, pump_valve_network_out, pump_valve_network_hyd):
+        results = getHyd_TimeLinksProperties(pump_valve_network_hyd, pump_valve_network_out, 0)
+        pump = results["PU1"]
+        valve = results["V1"]
+
+        assert pump["Velocity"] is None
+        assert pump["UnitHdLoss"] is None
+        assert pump["FricFactor"] is None
+        assert valve["Velocity"] is None
+        assert valve["UnitHdLoss"] is None
+        assert valve["FricFactor"] is None
+

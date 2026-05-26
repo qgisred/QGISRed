@@ -10,6 +10,11 @@ from .qgisred_results_binary import (
     getOut_StatNodesProperties, getOut_StatLinksProperties,
     getOut_Metadata,
 )
+from .qgisred_results_hyd import (
+    getHyd_TimeNodesProperties,
+    getHyd_TimeLinksProperties,
+    getHyd_Metadata,
+)
 
 
 def seconds_to_time_str(seconds):
@@ -136,6 +141,42 @@ def export_results_to_csv(binary_path, nodes_path, links_path, iface, list_sep, 
 class _ResultsDataMixin:
     """Mixin for QGISRedResultsDock: loading and populating result data from the .out binary file."""
 
+    def _isAllCalculationTimesMode(self):
+        return hasattr(self, "cbResultTimes") and self.cbResultTimes.currentIndex() == 1
+
+    def _getOutResultsPath(self):
+        return os.path.join(self.getResultsPath(), self.NetworkName + "_" + self.Scenario + ".out")
+
+    def _getHydResultsPath(self):
+        return os.path.join(self.getResultsPath(), self.NetworkName + "_" + self.Scenario + ".hyd")
+
+    def _getHydMetaIfUsable(self):
+        out_path = self._getOutResultsPath()
+        hyd_path = self._getHydResultsPath()
+        if not (os.path.exists(out_path) and os.path.exists(hyd_path)):
+            return None
+        hyd_meta = getHyd_Metadata(hyd_path, out_path)
+        if hyd_meta is None:
+            return None
+        # Treat .hyd as usable only when it really provides temporal detail.
+        if hyd_meta.get("hyd_num_periods", 0) <= 1:
+            return None
+        return hyd_meta
+
+    def _elapsedTextToSeconds(self, elapsed_text):
+        if elapsed_text == self.lbl_singlePeriod:
+            return 0
+        try:
+            if "d" in elapsed_text:
+                parts = elapsed_text.split(" ")
+                days = int(parts[0].replace("d", ""))
+                hms = parts[1].split(":")
+                return days * 86400 + int(hms[0]) * 3600 + int(hms[1]) * 60 + int(hms[2])
+            hms = elapsed_text.split(":")
+            return int(hms[0]) * 3600 + int(hms[1]) * 60 + int(hms[2])
+        except Exception:
+            return 0
+
     def _buildFieldIndexMap(self, layer, variables):
         """Return a dict mapping each variable name to its field index in the layer.
         Shapefile field names are capped at 10 characters."""
@@ -149,9 +190,21 @@ class _ResultsDataMixin:
             layer.triggerRepaint()
 
     def _readTimeLabelsFromOut(self):
-        """Read time step labels from existing .out file (same format as GISRed.Compute returns)."""
+        """Read time labels from selected results backend (.out or .hyd)."""
         try:
-            with open(self.outPath, 'rb') as f:
+            out_path = self._getOutResultsPath()
+            if self._isAllCalculationTimesMode():
+                hyd_meta = self._getHydMetaIfUsable()
+                if hyd_meta is not None:
+                    n = hyd_meta["hyd_num_periods"]
+                    times = hyd_meta.get("hyd_times") or []
+                    if times:
+                        return ";".join(seconds_to_time_str(t) for t in times)
+                    start = hyd_meta["hyd_report_start"]
+                    step = hyd_meta["hyd_report_step"]
+                    return ";".join(seconds_to_time_str(start + i * step) for i in range(n))
+
+            with open(out_path, "rb") as f:
                 meta = getOut_Metadata(f)
             if meta is None:
                 return self.lbl_singlePeriod
@@ -174,7 +227,7 @@ class _ResultsDataMixin:
                 self.textEditReport.setPlainText(f.read())
 
     def completeResultLayers(self):
-        """Populates the attribute tables of the result layers with data from the .out file."""
+        """Populates result layers from selected backend (.out/.hyd)."""
         if not self.isCurrentProject():
             return
 
@@ -195,24 +248,19 @@ class _ResultsDataMixin:
             time_text = self._toContinuousHours(elapsed_text)
         else:
             time_text = elapsed_text
-        if elapsed_text == self.lbl_singlePeriod:
-            time_seconds = 0
+        time_seconds = self._elapsedTextToSeconds(elapsed_text)
+        out_path = self._getOutResultsPath()
+        hyd_path = self._getHydResultsPath()
+        use_hyd = self._isAllCalculationTimesMode() and (self._getHydMetaIfUsable() is not None)
+
+        if use_hyd:
+            backend_nodes = lambda t: getHyd_TimeNodesProperties(hyd_path, out_path, t)
+            backend_links = lambda t: getHyd_TimeLinksProperties(hyd_path, out_path, t)
         else:
-            try:
-                # Always parse from elapsed_text (always "NNd HH:MM:SS" or "HH:MM:SS")
-                if "d" in elapsed_text:
-                    parts = elapsed_text.split(" ")
-                    days = int(parts[0].replace("d", ""))
-                    hms = parts[1].split(":")
-                    time_seconds = days * 86400 + int(hms[0]) * 3600 + int(hms[1]) * 60 + int(hms[2])
-                else:
-                    hms = elapsed_text.split(":")
-                    time_seconds = int(hms[0]) * 3600 + int(hms[1]) * 60 + int(hms[2])
-            except Exception:
-                time_seconds = 0
-        resultPath = self.getResultsPath()
-        binary_path = os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + ".out")
-        if not os.path.exists(binary_path):
+            backend_nodes = lambda t: getOut_TimeNodesProperties(out_path, t)
+            backend_links = lambda t: getOut_TimeLinksProperties(out_path, t)
+
+        if not os.path.exists(out_path):
             return
 
         for layerName in ["Node", "Link"]:
@@ -222,9 +270,13 @@ class _ResultsDataMixin:
 
             # Fetch results from binary file
             if layerName == "Node":
-                results = getOut_TimeNodesProperties(binary_path, time_seconds)
+                results = backend_nodes(time_seconds)
+                if use_hyd and not results:
+                    results = getOut_TimeNodesProperties(out_path, time_seconds)
             else:
-                results = getOut_TimeLinksProperties(binary_path, time_seconds)
+                results = backend_links(time_seconds)
+                if use_hyd and not results:
+                    results = getOut_TimeLinksProperties(out_path, time_seconds)
 
             if not results:
                 continue

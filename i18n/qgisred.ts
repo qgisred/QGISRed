@@ -4438,6 +4438,11 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="299"/>
+        <source>All calculation times</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_results_data.py" line="129"/>
         <source>Results exported to CSV</source>
         <translation type="unfinished"></translation>

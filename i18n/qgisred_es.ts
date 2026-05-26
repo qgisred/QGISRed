@@ -4491,6 +4491,11 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Instantes pautados</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="299"/>
+        <source>All calculation times</source>
+        <translation>Todos los instantes de cálculo</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_results_data.py" line="129"/>
         <source>Results exported to CSV</source>
         <translation>Resultados exportados a CSV</translation>

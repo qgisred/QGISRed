@@ -4495,7 +4495,12 @@ Left-click: Add a new item below the current selection</source>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="296"/>
         <source>Step times</source>
-        <translation type="unfinished"></translation>
+        <translation>Instantes por passo</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="299"/>
+        <source>All calculation times</source>
+        <translation>Todos os instantes de cálculo</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_data.py" line="129"/>

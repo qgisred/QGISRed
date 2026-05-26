@@ -102,6 +102,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self.lbl_std_deviation   = self.tr("StdDev")
         self.lbl_warning         = self.tr("Warning")
         self.lbl_singlePeriod       = self.tr("Single Period")
+        self.lbl_step_times      = self.tr("Step times")
+        self.lbl_all_calc_times  = self.tr("All calculation times")
         self.lbl_pressure        = self.tr("Pressure")
         self.lbl_head            = self.tr("Head")
         self.lbl_demand          = self.tr("Demand")
@@ -153,6 +155,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
 
         self.populateResultStatsComboboxes()
         self.populateVariableComboboxes()
+        self.cbResultTimes.currentIndexChanged.connect(self.resultTimesModeChanged)
 
         self.cbStatistics.currentIndexChanged.connect(self.statisticsChanged)
 
@@ -293,7 +296,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
     # ------------------------------------------------------------------
 
     def populateResultStatsComboboxes(self):
-        self.cbResultTimes.addItems([self.tr("Step times")])
+        self.cbResultTimes.addItems([self.lbl_step_times, self.lbl_all_calc_times])
         self.cbStatistics.addItems([
             self.lbl_none,
             self.lbl_maximum,
@@ -346,7 +349,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self.cbLinks.currentIndexChanged.disconnect(self.linksChanged)
         self.cbNodes.currentIndexChanged.disconnect(self.nodesChanged)
         try:
-            if self.isQualitySimulated:
+            hide_quality_for_all_times = self.isAllCalculationTimesMode()
+            if self.isQualitySimulated and not hide_quality_for_all_times:
                 if self.cbNodes.findText(self.lbl_quality) == -1:
                     self.cbNodes.addItem(self.lbl_quality)
                 if self._showReactRate:
@@ -377,6 +381,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         finally:
             self.cbLinks.currentIndexChanged.connect(self.linksChanged)
             self.cbNodes.currentIndexChanged.connect(self.nodesChanged)
+
+    def isAllCalculationTimesMode(self):
+        return self.cbResultTimes.currentIndex() == 1
 
     def updateLinksComboboxForStat(self, stat):
         """Adjusts cbLinks items when entering/leaving statistics mode.
@@ -780,15 +787,16 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
     def _computeVisibleFields(self, layer_type, stats_mode, stat=None):
         """Return the set of result field names that should be visible for the given mode."""
         visible = set()
+        all_calc_times = self.isAllCalculationTimesMode()
         if not stats_mode:
             visible.add("Time")
             if layer_type == "Node":
                 visible.update(["Pressure", "Head", "Demand"])
-                if self.isQualitySimulated:
+                if self.isQualitySimulated and not all_calc_times:
                     visible.add("Quality")
             else:
                 visible.update(["Status", "Flow", "Velocity", "HeadLoss", "UnitHdLoss", "FricFactor"])
-                if self.isQualitySimulated:
+                if self.isQualitySimulated and not all_calc_times:
                     visible.update(["ReactRate", "Quality"])
         else:
             visible.add("Statistics")
@@ -881,6 +889,24 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
             finally:
                 QApplication.restoreOverrideCursor()
         self.statisticsModeChanged.emit(new_stat if self._statsMode else "")
+
+    def resultTimesModeChanged(self):
+        if self.Computing:
+            return
+        # Ignore mode toggles until project/network/results are initialized.
+        if not self.NetworkName or not self.ProjectDirectory or not os.path.exists(self.outPath):
+            return
+
+        # Keep variable combos aligned with selected temporal backend.
+        self.updateQualityItemComboboxes()
+
+        if self._statsMode:
+            result_times = self.cbResultTimes.currentText()
+            self.lbStatDesc.setText(self.tr("for %1").replace("%1", result_times.lower()))
+            return
+
+        labels = self._readTimeLabelsFromOut()
+        self.openBaseResults(labels)
 
     def linksChanged(self):
         if self.Computing:

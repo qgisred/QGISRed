@@ -1,6 +1,5 @@
 import struct
 import os
-import numpy as np
 
 ROUNDING_PRECISION = 4
 
@@ -164,7 +163,7 @@ def _calculate_period_index(time_seconds, meta):
     return max(0, min(period_index, meta["num_periods"] - 1))
 
 """Metadata"""
-def getOut_Metadata(f, include_lengths=False):
+def getOut_Metadata(f, include_lengths=False, include_geometry=False):
     """Parses the static part of the EPANET .out file and returns metadata."""
 
     prologue_fixed = f.read(15 * 4)
@@ -187,7 +186,11 @@ def getOut_Metadata(f, include_lengths=False):
     link_types = _read_ints(f, n_links)
     tank_node_indices = [x - 1 for x in _read_ints(f, n_tanks)]
     tank_areas = _read_floats(f, n_tanks)
-    f.seek(4 * n_nodes, 1)       # skip node elevations
+    node_elevations = None
+    if include_geometry:
+        node_elevations = _read_floats(f, n_nodes)
+    else:
+        f.seek(4 * n_nodes, 1)       # skip node elevations
     node_types = [_NT_JUNCTION] * n_nodes
     for i in range(n_tanks):
         node_idx = tank_node_indices[i]
@@ -197,11 +200,19 @@ def getOut_Metadata(f, include_lengths=False):
             node_types[node_idx] = _NT_TANK
 
     link_lengths = None
+    link_diameters = None
     if include_lengths:
         link_lengths = _read_floats(f, n_links)
-        f.seek(4 * n_links, 1)
+        if include_geometry:
+            link_diameters = _read_floats(f, n_links)
+        else:
+            f.seek(4 * n_links, 1)
     else:
-        f.seek(8 * n_links, 1)
+        if include_geometry:
+            f.seek(4 * n_links, 1)
+            link_diameters = _read_floats(f, n_links)
+        else:
+            f.seek(8 * n_links, 1)
 
     f.seek((28 * n_pumps) + 4, 1)
     results_offset = f.tell()
@@ -221,6 +232,10 @@ def getOut_Metadata(f, include_lengths=False):
         "n_links": n_links,
         "n_tanks": n_tanks,
         "n_pumps": n_pumps,
+        "n_valves": n_valves,
+        "flow_units": flow_units,
+        "pres_units": pres_units,
+        "duration": duration,
         "report_start": report_start,
         "report_step": report_step,
         "num_periods": num_periods,
@@ -229,6 +244,10 @@ def getOut_Metadata(f, include_lengths=False):
         "node_ids": node_ids,
         "link_ids": link_ids,
         "link_lengths": link_lengths,
+        "link_diameters": link_diameters,
+        "node_elevations": node_elevations,
+        "tank_node_indices": tank_node_indices,
+        "tank_areas": tank_areas,
         "node_types": node_types,
         "link_types": link_types,
         "link_from": link_from,
@@ -549,6 +568,7 @@ def getOut_StatNodesProperties(out_file_path, stat):
         dict[node_id, dict[property, dict]]
     """
     import math
+    import numpy as np
 
     VALID_STATS = {"Maximum", "Minimum", "Average", "Range", "StdDev"}
     if stat not in VALID_STATS:
@@ -667,6 +687,7 @@ def getOut_StatLinksProperties(out_file_path, stat):
         dict[link_id, dict[property, dict | None]]
     """
     import math
+    import numpy as np
 
     VALID_STATS = {"Maximum", "Minimum", "Average", "Range", "StdDev"}
     if stat not in VALID_STATS:
