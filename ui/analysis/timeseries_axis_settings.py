@@ -36,7 +36,7 @@ class TimeSeriesAxisSettings:
 
     x_hour_format: str = "hm"
     x_day_format: str = "split_days"
-    x_precision: str = "hms"
+    x_precision: str = "h"
 
     def resolved_font_family(self) -> str:
         f = (self.tick_font_family or "").strip()

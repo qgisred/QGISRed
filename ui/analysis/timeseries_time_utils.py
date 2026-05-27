@@ -233,13 +233,13 @@ def format_elapsed_time(
         total_hours = abs_seconds // 3600
         minute = (abs_seconds % 3600) // 60
         second = abs_seconds % 60
-        time_text = f"{total_hours}:{minute:02d}:{second:02d}" if include_seconds else f"{total_hours}:{minute:02d}"
+        time_text = f"{total_hours}:{minute:02d}:{second:02d}" if include_seconds and second > 0 else f"{total_hours}:{minute:02d}"
         return sign + time_text
 
     hour = rem // 3600
     minute = (rem % 3600) // 60
     second = rem % 60
-    time_text = f"{hour}:{minute:02d}:{second:02d}" if include_seconds else f"{hour}:{minute:02d}"
+    time_text = f"{hour}:{minute:02d}:{second:02d}" if include_seconds and second > 0 else f"{hour}:{minute:02d}"
     return f"{sign}{days}d {time_text}" if days else sign + time_text
 
 

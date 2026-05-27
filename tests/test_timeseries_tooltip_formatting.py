@@ -86,7 +86,7 @@ class TestTimeFormatting:
 
         assert r._format_absolute_time_hours_axis(0.0, hour_format="hm", start_clock_seconds=start) == "17:00"
         assert r._format_absolute_time_hours_axis(7.0, hour_format="hm", start_clock_seconds=start) == "0:00\n1d"
-        assert r._format_absolute_time_hours_axis(16.0 + 11.0 / 60.0 + 7.0 / 3600.0, hour_format="hm", start_clock_seconds=start) == "9:11"
+        assert r._format_absolute_time_hours_axis(16.0 + 11.0 / 60.0 + 7.0 / 3600.0, hour_format="hm", start_clock_seconds=start) == "9:11:07"
 
     def test_elapsed_hm_axis_is_not_time_of_day(self):
         r = TimeSeriesPlotRenderer()
@@ -113,8 +113,8 @@ class TestTimeFormatting:
         assert format_elapsed_time(10.5, hour_format="h", day_format="split_days") == "10.5"
         assert format_elapsed_time(34.5, hour_format="h", day_format="split_days") == "1d 10.5"
         assert format_elapsed_time(34.5, hour_format="h", day_format="total_hours") == "34.5"
-        assert format_elapsed_time(34.5, hour_format="elapsed_hm", day_format="split_days") == "1d 10:30:00"
-        assert format_elapsed_time(34.5, hour_format="elapsed_hm", day_format="total_hours") == "34:30:00"
+        assert format_elapsed_time(34.5, hour_format="elapsed_hm", day_format="split_days") == "1d 10:30"
+        assert format_elapsed_time(34.5, hour_format="elapsed_hm", day_format="total_hours") == "34:30"
 
     def test_civil_midnight_ticks_include_first_day_boundary(self):
         start = parse_clock_time_to_seconds("17:00")

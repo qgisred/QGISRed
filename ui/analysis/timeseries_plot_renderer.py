@@ -545,7 +545,7 @@ class TimeSeriesPlotRenderer:
             return max(w_top, w_bottom) + 18
         return fm.horizontalAdvance(time_sample) + 18
 
-    def _format_time_axis_tick(self, hours: float, *, hour_format: str, day_format: str, start_clock_seconds: int = 0, x_precision: str = "hms", include_seconds: bool = False) -> str:
+    def _format_time_axis_tick(self, hours: float, *, hour_format: str, day_format: str, start_clock_seconds: int = 0, x_precision: str = "hms") -> str:
         total_seconds = int(round(hours * 3600))
         sign = "-" if total_seconds < 0 else ""
         abs_seconds = abs(total_seconds)
@@ -567,7 +567,7 @@ class TimeSeriesPlotRenderer:
                 return ""
             d, h, m, s = parts
             am_pm = hour_format in ("hm_ampm", "tod_ampm")
-            if include_seconds:
+            if s > 0:
                 if am_pm:
                     sfx = "am" if h < 12 else "pm"
                     dh = h % 12 or 12
@@ -589,14 +589,14 @@ class TimeSeriesPlotRenderer:
                 else:
                     top = f"{h}:{m:02d}"
             if day_format == "split_days" and d > 0 and h == 0 and m == 0 and s == 0:
-                if include_seconds:
+                if x_precision == "hms":
                     return f"{sign}{d}d {top}"
                 return f"{top}\n{d}d"
             return top
 
         if day_format == "total_hours":
             total_h = abs_seconds // 3600
-            if include_seconds:
+            if s > 0:
                 return f"{sign}{total_h}:{m:02d}:{s:02d}"
             if hour_format == "h" or x_precision == "h":
                 return f"{sign}{total_h}"
@@ -604,7 +604,7 @@ class TimeSeriesPlotRenderer:
                 return f"{sign}{total_h}"
             return f"{sign}{total_h}:{m:02d}"
 
-        if include_seconds:
+        if s > 0:
             top = f"{sign}{h}:{m:02d}:{s:02d}"
         elif hour_format == "h" or x_precision == "h":
             top = f"{sign}{h}"
@@ -613,7 +613,7 @@ class TimeSeriesPlotRenderer:
         else:
             top = f"{sign}{h}:{m:02d}"
         if d > 0 and h == 0 and m == 0 and s == 0:
-            if include_seconds:
+            if x_precision == "hms":
                 return f"{sign}{d}d {top}"
             return f"{top}\n{sign}{d}d"
         return top
@@ -777,8 +777,7 @@ class TimeSeriesPlotRenderer:
         hour_format: str = "auto",
         day_format: str = "split_days",
         start_clock_seconds: int = 0,
-        x_precision: str = "hms",
-        include_seconds: bool = False,
+        x_precision: str = "hm",
     ) -> str:
         return self._format_time_axis_tick(
             hours,
@@ -786,7 +785,6 @@ class TimeSeriesPlotRenderer:
             day_format=day_format,
             start_clock_seconds=start_clock_seconds,
             x_precision=x_precision,
-            include_seconds=include_seconds,
         )
 
     def _format_tick_number(self, value: float, step: float, dec: int | None) -> str:
@@ -1788,7 +1786,6 @@ class TimeSeriesPlotRenderer:
             day_format=getattr(cfg_x, "x_day_format", "split_days") if cfg_x else "split_days",
             start_clock_seconds=getattr(widget, "_start_clock_seconds", 0),
             x_precision="hms",
-            include_seconds=True,
         )
         footer_segments = self._build_styled_footer_segments(instant_text)
         tooltip_lines, marker_pts = self._collect_hover_tooltip_data(widget, hover_index, val_x, plot_rect, x_state, y_state_left, y_state_right)
