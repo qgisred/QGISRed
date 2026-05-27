@@ -679,6 +679,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
                 days = int(parts[0].replace("d", ""))
                 hms_text = parts[1]
             hms = hms_text.split(":")
+            if len(hms) == 2:
+                return (days * 86400 + int(hms[0]) * 3600 + int(hms[1]) * 60) / 3600.0
             if len(hms) != 3:
                 return None
             return (days * 86400 + int(hms[0]) * 3600 + int(hms[1]) * 60 + int(hms[2])) / 3600.0
@@ -709,6 +711,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         total_h = total_seconds // 3600
         m = (total_seconds % 3600) // 60
         s = total_seconds % 60
+        if s == 0:
+            return f"{total_h}:{m:02d}"
         return f"{total_h}:{m:02d}:{s:02d}"
 
     def _updateCivilDisplay(self, elapsed_text):

@@ -18,15 +18,16 @@ from .qgisred_results_hyd import (
 
 
 def seconds_to_time_str(seconds):
-    """Convert seconds to 'Nd h:MM:SS' or 'h:MM:SS' (when d==0) format."""
+    """Convert seconds to 'Nd h:MM[:SS]' format; omits :SS when seconds == 0."""
     d = seconds // 86400
     rem = seconds % 86400
     h = rem // 3600
     m = (rem % 3600) // 60
     s = rem % 60
+    time_part = f"{h}:{m:02d}" if s == 0 else f"{h}:{m:02d}:{s:02d}"
     if d == 0:
-        return f"{h}:{m:02d}:{s:02d}"
-    return f"{d}d {h}:{m:02d}:{s:02d}"
+        return time_part
+    return f"{d}d {time_part}"
 
 
 def seconds_to_time_str_no_seconds(seconds):
