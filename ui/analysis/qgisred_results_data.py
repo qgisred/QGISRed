@@ -172,8 +172,12 @@ class _ResultsDataMixin:
                 parts = elapsed_text.split(" ")
                 days = int(parts[0].replace("d", ""))
                 hms = parts[1].split(":")
+                if len(hms) == 2:
+                    return days * 86400 + int(hms[0]) * 3600 + int(hms[1]) * 60
                 return days * 86400 + int(hms[0]) * 3600 + int(hms[1]) * 60 + int(hms[2])
             hms = elapsed_text.split(":")
+            if len(hms) == 2:
+                return int(hms[0]) * 3600 + int(hms[1]) * 60
             return int(hms[0]) * 3600 + int(hms[1]) * 60 + int(hms[2])
         except Exception:
             return 0
