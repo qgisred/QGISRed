@@ -15,6 +15,7 @@ import math
 from ..analysis.qgisred_results_dock import QGISRedResultsDock
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 
 # load UI
@@ -804,8 +805,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         resultsBrush = QBrush(QColor("#FFF8DC"))
         darkBrush = QBrush(QColor("#D8D8D8"))
         resultProps = self.getResultProperties(layer, qrIdent)
-        fieldUtils = QGISRedFieldUtils()
-        qualityModel = fieldUtils.getQualityModel().upper()
+        qualityModel = QGISRedProjectUtils.getQualityModel().upper()
         if qualityModel == "NONE":
             resultProps = [p for p in resultProps if p not in ("Quality", "ReactRate")]
         if qualityModel in ("NONE", "AGE", "TRACE"):

@@ -13,6 +13,7 @@ from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils, DIR_
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
+from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
 from .qgisred_results_rendering import _ResultsRenderingMixin, time_field_name
@@ -1281,12 +1282,10 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
             self.cbStatistics.setCurrentIndex(idx)
 
     def updateQualityOptions(self):
-        qualityModel, _ = QgsProject.instance().readEntry("QGISRed", "project_qualitymodel", "Chemical")
-        self.isQualitySimulated = qualityModel.upper() != "NONE"
+        self.isQualitySimulated = QGISRedProjectUtils.getQualityModel().upper() != "NONE"
 
-        fieldUtils = QGISRedFieldUtils()
-        new_lbl = fieldUtils.getQualityDisplayName() if self.isQualitySimulated else self.tr("Quality")
-        self._showReactRate = fieldUtils.showReactRate() if self.isQualitySimulated else False
+        new_lbl = QGISRedProjectUtils.getQualityDisplayName() if self.isQualitySimulated else self.tr("Quality")
+        self._showReactRate = QGISRedProjectUtils.showReactRate() if self.isQualitySimulated else False
 
         if new_lbl != self.lbl_quality:
             # Rename existing combo items in place before updating the label

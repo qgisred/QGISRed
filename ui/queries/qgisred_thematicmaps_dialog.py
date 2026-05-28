@@ -20,6 +20,7 @@ from qgis.utils import iface
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
+from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_thematicmaps_dialog.ui"))
 
@@ -524,7 +525,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                 self.checkLayersRecursiveByIdentifier(child, identifierMapping)
 
     def getSelectedQueries(self):
-        units = QGISRedFieldUtils().getUnits()
+        units = QGISRedProjectUtils.getUnits()
         queries = []
 
         # Tanks and Reservoirs queries (top)

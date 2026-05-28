@@ -9,6 +9,7 @@ from qgis.utils import iface
 from qgis.gui import QgsHighlight
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.utils.qgisred_filesystem_utils import DIR_RESULTS
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from ..analysis.qgisred_results_dock import QGISRedResultsDock
@@ -1154,7 +1155,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         utils = QGISRedFieldUtils()
 
         # Hide quality-related fields when the quality model is None, Age, or Trace
-        qualityModel = utils.getQualityModel().upper()
+        qualityModel = QGISRedProjectUtils.getQualityModel().upper()
         if qualityModel in ("NONE", "AGE", "TRACE"):
             nonChemicalFields = {
                 "qgisred_pipes":      {"BulkCoeff", "WallCoeff"},
@@ -2584,8 +2585,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         return None
 
     def getResultsFieldOrder(self, isNode):
-        fu = QGISRedFieldUtils()
-        isQuality = fu.getQualityModel().upper() != "NONE"
+        isQuality = QGISRedProjectUtils.getQualityModel().upper() != "NONE"
         if isNode:
             fields = ["Pressure", "Head", "Demand"]
             if isQuality:

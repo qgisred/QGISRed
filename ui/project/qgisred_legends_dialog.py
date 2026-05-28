@@ -24,6 +24,8 @@ from qgis.utils import iface
 from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL, QGISRedStylingUtils
 from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, resolve_layer_id
+from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils, DIR_RESULTS
 from .qgisred_custom_dialogs import QGISRedRangeEditDialog, QGISRedSymbolColorSelector
 from .qgisred_custom_dialogs import QGISRedColorRampSelector, QGISRedRowSelectionFilter
@@ -1499,7 +1501,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         supportsCategorized = False
         if self.utils:
-            supportsCategorized = self.fieldUtils.getLayerSupportsCategorized(layerIdentifier)
+            supportsCategorized = QGISRedLayerUtils.getLayerSupportsCategorized(layerIdentifier)
 
         if supportsCategorized:
             self.cbLegendsType.addItem(self.tr("Graduated"), "graduatedSymbol")
@@ -4074,7 +4076,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return ""
 
         try:
-            return self.fieldUtils.getUnits()
+            return QGISRedProjectUtils.getUnits()
         except:
             return ""
 

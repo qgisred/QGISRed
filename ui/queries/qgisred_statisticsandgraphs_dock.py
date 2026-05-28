@@ -26,6 +26,7 @@ from qgis.core import (
 
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from .qgisred_statistics_manual_breaks_dialog import QGISRedStatisticsManualBreaksDialog
 from .statistics_histogram_widget import StatisticsHistogramWidget
@@ -554,7 +555,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         }
         skipLower = {"id", "descrip", "description"}
 
-        qualityModel = self.fieldUtils.getQualityModel().upper()
+        qualityModel = QGISRedProjectUtils.getQualityModel().upper()
         nonChemicalFields = set()
         if qualityModel in ("NONE", "AGE", "TRACE"):
             nonChemicalFields = {
@@ -640,7 +641,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         }
         skipLower = {"id", "descrip", "description"}
 
-        qualityModel = self.fieldUtils.getQualityModel().upper()
+        qualityModel = QGISRedProjectUtils.getQualityModel().upper()
         nonChemicalFields = set()
         if qualityModel in ("NONE", "AGE", "TRACE"):
             nonChemicalFields = {
@@ -752,7 +753,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         }
         idTagLower = {"id", "tag", "descrip"}
 
-        qualityModel = self.fieldUtils.getQualityModel().upper()
+        qualityModel = QGISRedProjectUtils.getQualityModel().upper()
         nonChemicalFields = set()
         if qualityModel in ("NONE", "AGE", "TRACE"):
             nonChemicalFields = {

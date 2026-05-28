@@ -54,6 +54,16 @@ class QGISRedLayerUtils:
 
     MAIN_GROUP_ORDER = ["Results", "Queries", "Issues", "Auxiliary Layers", "Inputs"]
 
+    _CATEGORIZED_LAYER_IDS = {
+        'qgisred_query_pipes_length',
+        'qgisred_query_pipes_diameter',
+    }
+
+    @classmethod
+    def getLayerSupportsCategorized(cls, layerIdentifier: str) -> bool:
+        """Return True if the layer supports categorized legend classification."""
+        return layerIdentifier in cls._CATEGORIZED_LAYER_IDS
+
     def __init__(self, directory="", networkName="", iface=None):
         self.iface = iface
         self.ProjectDirectory = directory

@@ -6,7 +6,8 @@ import shutil
 
 from qgis.PyQt.QtCore import QCoreApplication
 from .qgisred_filesystem_utils import QGISRedFileSystemUtils
-from qgis.core import QgsProject, QgsMessageLog, Qgis
+from .qgisred_project_utils import QGISRedProjectUtils
+from qgis.core import QgsMessageLog, Qgis
 
 
 _COMMON_PRETTY_NAMES = {
@@ -19,10 +20,6 @@ _NON_CHEMICAL_MODELS = frozenset({"none", "trace", "age"})
 
 _SUPERSCRIPT_TRANSLATION = str.maketrans("0123456789/", "⁰¹²³⁴⁵⁶⁷⁸⁹ᐟ")
 
-_CATEGORIZED_LAYER_IDS = {
-    'qgisred_query_pipes_length',
-    'qgisred_query_pipes_diameter',
-}
 
 # Maps QGIS input-layer identifiers to canonical element names used in the CSV.
 _IDENTIFIER_TO_ELEMENT = {
@@ -211,62 +208,6 @@ class QGISRedFieldUtils:
         self.ProjectDirectory = directory
         self.NetworkName = networkName
 
-    def tr(self, message):
-        return QCoreApplication.translate("QGISRedFieldUtils", message)
-
-    # ------------------------------------------------------------------ #
-    # Project state helpers                                                #
-    # ------------------------------------------------------------------ #
-
-    def getLayerSupportsCategorized(self, layerIdentifier):
-        return layerIdentifier in _CATEGORIZED_LAYER_IDS
-
-    def getQualityModel(self):
-        """Return the quality model type: 'Chemical', 'Age', 'Trace', or 'None'."""
-        model, _ = QgsProject.instance().readEntry("QGISRed", "project_qualitymodel", "Chemical")
-        return model
-
-    def getChemicalLabel(self):
-        """Return the chemical substance label defined in Analysis Options, or ''."""
-        label, _ = QgsProject.instance().readEntry("QGISRed", "project_chemicallabel", "")
-        return label.strip()
-
-    def getTraceNode(self):
-        """Return the Trace source node ID defined in Analysis Options, or ''."""
-        node, _ = QgsProject.instance().readEntry("QGISRed", "project_tracenode", "")
-        return node.strip()
-
-    def getQualityDisplayName(self):
-        """Return the display name for the Quality result field based on the quality model."""
-        model = self.getQualityModel().upper()
-        if model == "AGE":
-            return self.tr("Age")
-        if model == "TRACE":
-            node = self.getTraceNode()
-            return self.tr("Trace %1").replace("%1", str(node)).strip() if node else self.tr("Trace")
-        label = self.getChemicalLabel()
-        return label if label else self.tr("Chemical")
-
-    def showReactRate(self):
-        """ReactRate is only meaningful for Chemical quality simulations."""
-        return self.getQualityModel().upper() not in ("NONE", "AGE", "TRACE")
-
-    def getUnits(self):
-        units, ok = QgsProject.instance().readEntry("QGISRed", "project_units", "LPS")
-        internationalUnits = ["LPS", "LPM", "MLD", "CMH", "CMD"]
-        americanUnits = ["CFS", "GPM", "MGD", "IMGD", "AFD"]
-        if units in americanUnits:
-            return 'US'
-        elif units in internationalUnits:
-            return 'SI'
-        else:
-            return 'SI'
-
-    def getConcentrationUnits(self):
-        """Return concentration units string, e.g. 'mg/L' or 'µg/L'."""
-        units, _ = QgsProject.instance().readEntry("QGISRed", "project_concentrationunits", "mg/L")
-        return units
-
     # ------------------------------------------------------------------ #
     # Main public API                                                      #
     # ------------------------------------------------------------------ #
@@ -289,8 +230,8 @@ class QGISRedFieldUtils:
             return fieldName
 
         if translate and fieldName == "Quality" and element in ("Nodes", "Links"):
-            if self.getQualityModel().upper() != "NONE":
-                return self.getQualityDisplayName()
+            if QGISRedProjectUtils.getQualityModel().upper() != "NONE":
+                return QGISRedProjectUtils.getQualityDisplayName()
 
         prettyNames = self.loadUnitDefinitions().get("prettyNames", {})
         normEl = element.replace(" ", "")
@@ -319,7 +260,7 @@ class QGISRedFieldUtils:
         getUnitAbbreviation('Nodes',  'Pressure') -> 'm'  (SI) / 'psi'  (US)
         getUnitAbbreviation('Nodes',  'Quality')  -> 'mg/L'  (Chemical, SI, mg/L conc.)
         """
-        unitSystem = self.getUnits()
+        unitSystem = QGISRedProjectUtils.getUnits()
 
         if fieldName == "IniQuality":
             return self._getIniQualityAbbr(element)
@@ -346,7 +287,7 @@ class QGISRedFieldUtils:
         if not fieldName:
             return ""
 
-        unitSystem = self.getUnits()
+        unitSystem = QGISRedProjectUtils.getUnits()
 
         row = self._getFirstRow(element, fieldName) or self._getFirstRowByProperty(element, fieldName)
         if not row:
@@ -372,15 +313,15 @@ class QGISRedFieldUtils:
         getDecimals('Nodes', 'Quality', default=3)  -> 2  (Chemical) / 1  (Age/Trace)
         """
         if fieldName in ("Flow", "Demand"):
-            flowUnit, _ = QgsProject.instance().readEntry("QGISRed", "project_units", "LPS")
+            flowUnit = QGISRedProjectUtils.getFlowUnit()
             return self._rowDecimals(self._getRowByCondition("Global", "FlowUnits", flowUnit), default)
 
         if fieldName == "Pressure":
-            condVal = "METERS" if self.getUnits() == "SI" else "PSI"
+            condVal = "METERS" if QGISRedProjectUtils.getUnits() == "SI" else "PSI"
             return self._rowDecimals(self._getRowByCondition("Global", "PressUnits", condVal), default)
 
         if fieldName == "Quality":
-            modelLow = self.getQualityModel().lower()
+            modelLow = QGISRedProjectUtils.getQualityModel().lower()
             if modelLow == "none":
                 return default
             condVal = modelLow.capitalize() if modelLow in ("trace", "age") else "Chemical"
@@ -522,7 +463,7 @@ class QGISRedFieldUtils:
         if not matches:
             return {}
         if len(matches) > 1 and all(row["notes"] == "HeadLoss formulae" for row in matches):
-            active = QgsProject.instance().readEntry("QGISRed", "project_headloss", "D-W")[0]
+            active = QGISRedProjectUtils.getHeadlossFormula()
             for row in matches:
                 if row["condition_value"].lower() == active.lower():
                     return row
@@ -567,7 +508,7 @@ class QGISRedFieldUtils:
     def _rowDecimals(self, row, default=2):
         if not row:
             return default
-        unitSystem = self.getUnits()
+        unitSystem = QGISRedProjectUtils.getUnits()
         dec = row["si_dec"] if unitSystem == "SI" else row["us_dec"]
         return dec if dec is not None else default
 
@@ -592,20 +533,19 @@ class QGISRedFieldUtils:
 
     def _getFlowFieldAbbr(self):
         """Return the flow unit abbreviation for the current project (e.g. 'lps', 'gpm')."""
-        flowUnit, _ = QgsProject.instance().readEntry("QGISRed", "project_units", "LPS")
+        flowUnit = QGISRedProjectUtils.getFlowUnit()
         row = self._getRowByCondition("Global", "FlowUnits", flowUnit)
         if row:
             return row["si_abbr"] or row["us_abbr"]
-        unitSystem = self.getUnits()
+        unitSystem = QGISRedProjectUtils.getUnits()
         row = self._getFirstRow("Global", "FlowUnits")
         if not row:
             return ""
-        abbr = row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
-        return abbr
+        return row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
 
     def _getPressureFieldAbbr(self):
         """Return the pressure unit abbreviation for the current project ('m' or 'psi')."""
-        unitSystem = self.getUnits()
+        unitSystem = QGISRedProjectUtils.getUnits()
         condVal = "METERS" if unitSystem == "SI" else "PSI"
         row = self._getRowByCondition("Global", "PressUnits", condVal)
         if row:
@@ -617,10 +557,10 @@ class QGISRedFieldUtils:
 
     def _getMassAbbr(self):
         """Return the mass unit abbreviation for the current project ('mg' or 'µg')."""
-        concUnits = self.getConcentrationUnits()
+        concUnits = QGISRedProjectUtils.getConcentrationUnits()
         row = self._getRowByCondition("Global", "MassUnits", concUnits)
         if row and row["condition_value"].lower() == concUnits.lower():
-            unitSystem = self.getUnits()
+            unitSystem = QGISRedProjectUtils.getUnits()
             return row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
         return ""
 
@@ -629,7 +569,7 @@ class QGISRedFieldUtils:
         row = self._getFirstRow("Global", "Currency")
         if not row:
             return ""
-        unitSystem = self.getUnits()
+        unitSystem = QGISRedProjectUtils.getUnits()
         return row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
 
     def _getQualityResultAbbr(self, element):
@@ -637,14 +577,14 @@ class QGISRedFieldUtils:
 
         Chemical -> resolved mass/L abbr  |  Trace -> %  |  Age -> hr  |  None -> ''
         """
-        modelLow = self.getQualityModel().lower()
+        modelLow = QGISRedProjectUtils.getQualityModel().lower()
         if modelLow == "none":
             return ""
         condVal = modelLow.capitalize() if modelLow in ("trace", "age") else "Chemical"
         row = self._getRowByCondition(element, "Quality", condVal)
         if not row:
             return ""
-        unitSystem = self.getUnits()
+        unitSystem = QGISRedProjectUtils.getUnits()
         abbr = row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
         return self._resolveAbbr(abbr)
 
@@ -653,11 +593,11 @@ class QGISRedFieldUtils:
 
         Returns '' for None/Trace/Age quality models (IniQuality is inapplicable).
         """
-        if self.getQualityModel().lower() in _NON_CHEMICAL_MODELS:
+        if QGISRedProjectUtils.getQualityModel().lower() in _NON_CHEMICAL_MODELS:
             return ""
         row = self._getFirstRow(element, "IniQuality")
         if not row:
             return ""
-        unitSystem = self.getUnits()
+        unitSystem = QGISRedProjectUtils.getUnits()
         abbr = row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
         return self._resolveAbbr(abbr)
