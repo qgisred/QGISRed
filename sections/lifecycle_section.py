@@ -284,6 +284,10 @@ class LifecycleSection:
                         self.ResultDockwidget.resultPropertyChanged.disconnect(self.updateMetadata)
                     except Exception:
                         pass
+                    try:
+                        self.ResultDockwidget.statisticsModeChanged.disconnect(self._onStatisticsModeChanged)
+                    except Exception:
+                        pass
             except Exception:
                 pass
             docks_to_clean.append(('ResultDockwidget', self.ResultDockwidget))

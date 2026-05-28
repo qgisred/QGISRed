@@ -345,7 +345,11 @@ class ProjectManagementSection:
                             else:
                                 variable = ""
                             if variable:
-                                name = name + "_" + variable
+                                stat_val = QgsProject.instance().readEntry(
+                                    "QGISRed", "project_statistics", "NONE"
+                                )[0]
+                                is_stats = stat_val.strip().upper() not in ("NONE", "")
+                                name = name + "_" + variable + ("_Stats" if is_stats else "")
                         # Tree layer names may contain non-ASCII (accents, hyphens) that
                         # the DLL cannot write correctly — sanitize to ASCII-only
                         if identifier in ("qgisred_tree_links", "qgisred_tree_nodes"):

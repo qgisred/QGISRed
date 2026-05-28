@@ -950,7 +950,18 @@ class QGISRedResultsDock(
         # 2. Update state and UI
         new_stat = self.cbStatistics.currentText()
         self._currentStat = new_stat
-        
+
+        _stat_en_key = {
+            self.lbl_maximum:       "MAXIMUM",
+            self.lbl_minimum:       "MINIMUM",
+            self.lbl_range:         "RANGE",
+            self.lbl_average:       "AVERAGE",
+            self.lbl_std_deviation: "STDDEV",
+        }
+        QgsProject.instance().writeEntry(
+            "QGISRed", "project_statistics", _stat_en_key.get(new_stat, "NONE")
+        )
+
         if new_stat != self.lbl_none:
             self._stopAnimation()
             self._statsMode = True

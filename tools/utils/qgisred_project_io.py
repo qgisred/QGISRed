@@ -125,14 +125,26 @@ class QGISRedProjectIO:
         group = utils.getOrCreateNestedGroup([self.NetworkName] + full_tree_path)
 
         if top == "Results":
+            from ...ui.analysis.qgisred_results_data import (
+                apply_result_column_visibility, infer_stat_en_from_layer,
+                _RESULT_FIELD_DISPLAY_NAMES, _STAT_VAR_ALIASES,
+            )
+            from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
+            stat_en = QgsProject.instance().readEntry("QGISRed", "project_statistics", "NONE")[0]
+            quality_simulated = QGISRedProjectUtils.getQualityModel().upper() != "NONE"
+
             styling = QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface)
             for name in reversed(layerNames):
-                # "Base_Node_Pressure" → file_name="Base_Node", layer_type="Node", variable="Pressure"
-                m = re.match(r'^(.+_(Node|Link))_(.+)$', name, re.IGNORECASE)
+                # "Base_Node_Pressure[_Stats]" → file_name="Base_Node", layer_type="Node",
+                #                                variable="Pressure", is_stats=False/True
+                m = re.match(r'^(.+_(Node|Link))_(.+?)(_Stats)?$', name, re.IGNORECASE)
                 if m:
-                    file_name, layer_type, variable = m.group(1), m.group(2), m.group(3)
+                    file_name  = m.group(1)
+                    layer_type = m.group(2)
+                    variable   = m.group(3)
+                    is_stats   = m.group(4) is not None
                 else:
-                    file_name, layer_type, variable = name, None, None
+                    file_name, layer_type, variable, is_stats = name, None, None, False
                 utils.openLayer(group, file_name, **flags)
                 if not variable or not layer_type:
                     continue
@@ -142,10 +154,21 @@ class QGISRedProjectIO:
                     continue
                 scenario = file_name.rsplit("_", 1)[0]  # "Base_Node" → "Base"
                 QgsProject.instance().writeEntry("QGISRed", f"results_{scenario}_{layer_type}", variable)
-                styling.setStyle(opened, layer_type + "_" + variable)
+                # Flow_Sig / Flow_Unsig share the Flow QML style
+                style_var = _STAT_VAR_ALIASES.get(variable, variable)
+                styling.setStyle(opened, layer_type + "_" + style_var)
                 template = QCoreApplication.translate("_ResultsRenderingMixin", layer_type + " %1")
-                translated_var = QCoreApplication.translate("QGISRedResultsDock", variable)
+                display_var = _RESULT_FIELD_DISPLAY_NAMES.get(variable, variable)
+                translated_var = QCoreApplication.translate("QGISRedResultsDock", display_var)
                 opened.setName(template.replace("%1", translated_var))
+                if is_stats:
+                    # project_statistics is only available when a .qgs file was saved.
+                    # Without it, read the translated stat label from the Statistics field.
+                    effective_stat = stat_en if stat_en.strip().upper() not in ("NONE", "") \
+                        else infer_stat_en_from_layer(opened)
+                else:
+                    effective_stat = "NONE"
+                apply_result_column_visibility(opened, layer_type, effective_stat, quality_simulated)
                 opened.triggerRepaint()
         else:
             for name in reversed(layerNames):

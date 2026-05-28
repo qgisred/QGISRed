@@ -12,6 +12,120 @@ _STAT_VAR_ALIASES = {
     "Flow_Sig":   "Flow",
 }
 
+# Display names for Average-stat-specific link fields (used when reloading project metadata).
+_RESULT_FIELD_DISPLAY_NAMES = {
+    "Flow_Sig":   "Flow (Signed)",
+    "Flow_Unsig": "Flow (Unsigned)",
+}
+
+# All result field names that may appear in Node/Link result layers.
+_NODE_RESULT_FIELD_NAMES = [
+    "Time", "Pressure", "Head", "Demand", "FullDem", "DemDeficit",
+    "Leaks", "EmittFlow", "Quality", "Statistics", "Time_H", "Time_D", "Time_Q",
+]
+_LINK_RESULT_FIELD_NAMES = [
+    "Time", "Status", "Flow", "Velocity", "HeadLoss", "UnitHdLoss",
+    "FricFactor", "Energy", "ReactRate", "Quality", "Statistics",
+    "Time_H", "Time_Q", "Flow_Sig", "Flow_Unsig",
+]
+
+
+def _compute_result_visible_fields(layer_type, stat_en, quality_simulated):
+    """Return the set of result field names that should be visible.
+
+    ``stat_en`` is an English key: 'NONE', 'MAXIMUM', 'MINIMUM', 'AVERAGE',
+    'RANGE', 'STDDEV'.  Pass 'NONE' (or '') for normal time-step mode.
+    """
+    visible = set()
+    stat_up = (stat_en or "NONE").strip().upper()
+    is_stats = stat_up != "NONE"
+
+    if not is_stats:
+        visible.add("Time")
+        if layer_type == "Node":
+            visible.update(["Pressure", "Head", "Demand"])
+            if quality_simulated:
+                visible.add("Quality")
+        else:
+            visible.update(["Status", "Flow", "Velocity", "HeadLoss", "UnitHdLoss", "FricFactor"])
+            if quality_simulated:
+                visible.update(["ReactRate", "Quality"])
+    else:
+        visible.add("Statistics")
+        if layer_type == "Node":
+            visible.update(["Pressure", "Head", "Demand"])
+            if quality_simulated:
+                visible.add("Quality")
+            if stat_up in ("MAXIMUM", "MINIMUM"):
+                visible.update(["Time_H", "Time_D"])
+                if quality_simulated:
+                    visible.add("Time_Q")
+        else:
+            visible.update(["Flow", "Velocity", "HeadLoss", "UnitHdLoss", "FricFactor"])
+            if quality_simulated:
+                visible.update(["ReactRate", "Quality"])
+            if stat_up == "AVERAGE":
+                visible.discard("Flow")
+                visible.update(["Flow_Unsig", "Flow_Sig"])
+            if stat_up in ("MAXIMUM", "MINIMUM"):
+                visible.add("Time_H")
+                if quality_simulated:
+                    visible.add("Time_Q")
+    return visible
+
+
+def infer_stat_en_from_layer(layer):
+    """Read the Statistics field from the first feature and return the English key.
+
+    The Statistics field is written with the UI's translated label (e.g. 'Promedio'
+    for Spanish). We re-translate the known English labels at runtime to match.
+    Returns 'NONE' if the field is absent or empty.
+    """
+    stat_idx = layer.fields().indexOf("Statistics")
+    if stat_idx < 0:
+        return "NONE"
+    feat = next(layer.getFeatures(), None)
+    if feat is None:
+        return "NONE"
+    val = str(feat.attribute(stat_idx) or "").strip()
+    if not val:
+        return "NONE"
+    val_upper = val.upper()
+    for en_label, en_key in [
+        ("Maximum", "MAXIMUM"), ("Minimum", "MINIMUM"),
+        ("Average", "AVERAGE"), ("Range", "RANGE"), ("StdDev", "STDDEV"),
+    ]:
+        tr = QCoreApplication.translate("QGISRedResultsDock", en_label)
+        if val_upper == tr.upper():
+            return en_key
+    # Last resort: direct uppercase match (English UI)
+    return val_upper if val_upper in ("MAXIMUM", "MINIMUM", "AVERAGE", "RANGE", "STDDEV") else "MAXIMUM"
+
+
+def apply_result_column_visibility(layer, layer_type, stat_en, quality_simulated):
+    """Apply attribute table column visibility for a result layer.
+
+    Callable without the results dock.  ``layer_type`` is 'Node' or 'Link'.
+    ``stat_en`` is an English key (see ``_compute_result_visible_fields``).
+    """
+    from ...compat import ATCOL_TYPE_FIELD
+
+    all_result_upper = {n[:10].upper() for n in _NODE_RESULT_FIELD_NAMES + _LINK_RESULT_FIELD_NAMES}
+    visible = _compute_result_visible_fields(layer_type, stat_en, quality_simulated)
+    visible_upper = {v[:10].upper() for v in visible}
+
+    config = layer.attributeTableConfig()
+    config.update(layer.fields())
+    columns = config.columns()
+    for i in range(len(columns)):
+        col = columns[i]
+        col_upper = col.name.upper()
+        if col_upper in all_result_upper:
+            columns[i].hidden = col_upper not in visible_upper
+            columns[i].type = ATCOL_TYPE_FIELD
+    config.setColumns(columns)
+    layer.setAttributeTableConfig(config)
+
 from .qgisred_results_binary import (
     getOut_TimeNodesProperties, getOut_TimeLinksProperties,
     getOut_StatNodesProperties, getOut_StatLinksProperties,

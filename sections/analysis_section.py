@@ -137,6 +137,9 @@ class AnalysisSection:
             getattr(self, 'statisticsDock', None)
         )
 
+    def _onStatisticsModeChanged(self, _stat):
+        self.updateMetadata()
+
     def _initResultsDock(self):
         if self.ResultDockwidget is None:
             self.readOptions()
@@ -145,10 +148,11 @@ class AnalysisSection:
             self.ResultDockwidget.visibilityChanged.connect(self.activeInputGroup)
             self.ResultDockwidget.visibilityChanged.connect(self._arrangeDocksIfVisible)
             self.ResultDockwidget.simulationFinished.connect(self.refreshTimeSeries)
-            self.ResultDockwidget.simulationFinished.connect(self.updateMetadata)
             self.ResultDockwidget.simulationFinished.connect(self._staleLayerManager.forceCheck)
             self.ResultDockwidget.resultPropertyChanged.connect(self.refreshTimeSeries)
+            self.ResultDockwidget.simulationFinished.connect(self.updateMetadata)
             self.ResultDockwidget.resultPropertyChanged.connect(self.updateMetadata)
+            self.ResultDockwidget.statisticsModeChanged.connect(self._onStatisticsModeChanged)
 
     def _ensureResultsDockVisibleForTimeSeries(self):
         self._initResultsDock()
