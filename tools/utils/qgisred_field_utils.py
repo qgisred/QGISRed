@@ -311,7 +311,9 @@ class QGISRedFieldUtils:
             return ""
         unitSystem = QGISRedProjectUtils.getUnits()
         name = row["si_name"] if unitSystem == "SI" else row["us_name"]
-        return name if name and name not in ("Text", "-") else ""
+        if not name or name in ("Text", "-"):
+            return ""
+        return QCoreApplication.translate("UnitFullNames", name)
 
     def getDecimals(self, element: str, fieldName: str, default: int = 2) -> int:
         """Return the display decimal precision for a field.
