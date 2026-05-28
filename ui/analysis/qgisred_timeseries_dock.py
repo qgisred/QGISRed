@@ -1222,6 +1222,15 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self.btnAxes.clicked.connect(self._onAxisOptionsClicked)
             hl.addWidget(self.btnAxes, 0, Qt.AlignmentFlag.AlignLeft)
 
+            self.btnToggleTable = _make_btn("btnToggleTableTimeSeries", QIcon(":/images/iconTsTable.svg"), self.tr("Show/Hide values table"), checkable=True)
+            self.btnToggleTable.toggled.connect(self._onToggleTableToggled)
+            hl.addWidget(self.btnToggleTable, 0, Qt.AlignmentFlag.AlignLeft)
+
+            self.btnSyncTable = _make_btn("btnSyncTableTimeSeries", QIcon(":/images/iconTsSyncTable.svg"), self.tr("Sync cursor with selected table row"), checkable=True)
+            self.btnSyncTable.toggled.connect(self._onSyncTableToggled)
+            self.btnSyncTable.setEnabled(False)
+            hl.addWidget(self.btnSyncTable, 0, Qt.AlignmentFlag.AlignLeft)
+
             self.btnExportImage = _make_btn("btnExportImageTimeSeries", QIcon(":/images/iconTsExportImage.svg"), self.tr("Export chart as image"))
             self.btnExportImage.clicked.connect(self._onExportImageClicked)
             hl.addWidget(self.btnExportImage, 0, Qt.AlignmentFlag.AlignLeft)
@@ -1229,15 +1238,6 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self.btnExportCsv = _make_btn("btnExportCsvTimeSeries", QIcon(":/images/iconTsExportCsv.svg"), self.tr("Export chart points to CSV"))
             self.btnExportCsv.clicked.connect(self._onExportCsvClicked)
             hl.addWidget(self.btnExportCsv, 0, Qt.AlignmentFlag.AlignLeft)
-
-            self.btnToggleTable = _make_btn("btnToggleTableTimeSeries", QIcon(":/images/iconTsExportCsv.svg"), self.tr("Show/Hide values table"), checkable=True)
-            self.btnToggleTable.toggled.connect(self._onToggleTableToggled)
-            hl.addWidget(self.btnToggleTable, 0, Qt.AlignmentFlag.AlignLeft)
-
-            self.btnSyncTable = _make_btn("btnSyncTableTimeSeries", QIcon(":/images/iconTsSyncCursor.svg"), self.tr("Sync cursor with selected table row"), checkable=True)
-            self.btnSyncTable.toggled.connect(self._onSyncTableToggled)
-            self.btnSyncTable.setEnabled(False)
-            hl.addWidget(self.btnSyncTable, 0, Qt.AlignmentFlag.AlignLeft)
 
             self.btnClearAll = _make_btn("btnClearAllTimeSeries", QIcon(":/images/iconTsClearAll.svg"), self.tr("Clear all curves"))
             self.btnClearAll.clicked.connect(self.clearAllRequested)

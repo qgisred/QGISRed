@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 64 64" width="64" height="64" version="1.1"
+   xmlns="http://www.w3.org/2000/svg">
+  <!-- vertical dividers -->
+  <line x1="25.870504" y1="8.7613802" x2="25.870504" y2="57.402737" stroke="#60bcd3" stroke-width="2.86126"/>
+  <line x1="43.03804"  y1="8.7613802" x2="43.03804"  y2="57.402737" stroke="#60bcd3" stroke-width="2.86126"/>
+  <!-- horizontal dividers -->
+  <line x1="8.9700031" y1="42.454082" x2="57.611359" y2="42.454082" stroke="#60bcd3" stroke-width="2.86126"/>
+  <line x1="10.216179" y1="30.086231" x2="58.857536" y2="30.086231" stroke="#60bcd3" stroke-width="2.86126"/>
+  <!-- header row line (green) -->
+  <line x1="8.4359274" y1="16.836786" x2="57.077286" y2="16.836786" stroke="#7fa828" stroke-width="3.57657"/>
+  <!-- outer border (green) -->
+  <rect x="8.7029657" y="8.7613802" width="48.641357" height="48.641357" rx="4.2918844"
+        fill="none" stroke="#7fa828" stroke-width="4.29188"/>
+</svg>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 64 64" width="64" height="64" version="1.1"
+   xmlns="http://www.w3.org/2000/svg">
+  <!-- chain link: green piece -->
+  <rect x="-2.8643763" y="-71.379211" width="14" height="10" rx="5"
+        fill="none" stroke="#7fa828" stroke-width="4.5"
+        transform="rotate(136.97898)"/>
+  <!-- chain link: teal piece -->
+  <rect x="-16.864376" y="-71.379211" width="14" height="10" rx="5"
+        fill="none" stroke="#60bcd3" stroke-width="4.5"
+        transform="rotate(136.97898)"/>
+  <!-- vertical dividers -->
+  <line x1="19.070669" y1="7.1957669" x2="19.070669" y2="41.850128" stroke="#60bcd3" stroke-width="2.03849"/>
+  <line x1="31.301619" y1="7.1957669" x2="31.301619" y2="41.850128" stroke="#60bcd3" stroke-width="2.03849"/>
+  <!-- horizontal dividers -->
+  <line x1="7.0299673" y1="31.200014" x2="41.684326" y2="31.200014" stroke="#60bcd3" stroke-width="2.03849"/>
+  <line x1="7.9178004" y1="22.388582" x2="42.572163" y2="22.388582" stroke="#60bcd3" stroke-width="2.03849"/>
+  <!-- header row line (green) -->
+  <line x1="6.649467"  y1="12.949062" x2="41.303829" y2="12.949062" stroke="#7fa828" stroke-width="2.54811"/>
+  <!-- outer border (green) -->
+  <rect x="6.8397174" y="7.1957669" width="34.654362" height="34.654362" rx="3.0577378"
+        fill="none" stroke="#7fa828" stroke-width="3.05773"/>
+</svg>
