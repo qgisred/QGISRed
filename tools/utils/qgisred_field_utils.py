@@ -240,29 +240,37 @@ class QGISRedFieldUtils:
         prop = prettyNames.get("Common", {}).get(fieldName, fieldName)
         return QCoreApplication.translate("FieldPrettyNames", prop) if translate else prop
 
-    def getUnitAbbreviation(self, element: str, fieldName: str) -> str:
+    def getUnitAbbreviation(self, element: str, fieldName: str, conditionFeature: str = "") -> str:
         """Return the unit abbreviation for a field, respecting SI/US project setting.
 
         ``element`` must be a canonical element name (e.g. 'Pipes', 'Nodes').
         Use ``normalize_element()`` first if you have a QGIS layer identifier.
 
-        getUnitAbbreviation('Pipes',  'Length')   -> 'm'  (SI) / 'ft'  (US)
-        getUnitAbbreviation('Links',  'Flow')     -> 'lps'  (if project unit = LPS)
-        getUnitAbbreviation('Nodes',  'Pressure') -> 'm'  (SI) / 'psi'  (US)
-        getUnitAbbreviation('Nodes',  'Quality')  -> 'mg/L'  (Chemical, SI, mg/L conc.)
+        ``conditionFeature`` is an optional per-feature attribute value that selects
+        the correct CSV row for fields whose unit depends on feature-level data
+        (e.g. pass the valve type for Valves.Setting).
+
+        getUnitAbbreviation('Pipes',  'Length')            -> 'm'  (SI) / 'ft'  (US)
+        getUnitAbbreviation('Links',  'Flow')              -> 'lps'  (if project unit = LPS)
+        getUnitAbbreviation('Nodes',  'Pressure')          -> 'm'  (SI) / 'psi'  (US)
+        getUnitAbbreviation('Nodes',  'Quality')           -> 'mg/L'  (Chemical, SI, mg/L conc.)
+        getUnitAbbreviation('Valves', 'Setting', 'PRV')    -> 'm'  (SI pressure)
         """
-        row = self._resolveRow(element, fieldName)
+        row = self._resolveRow(element, fieldName, conditionFeature)
         if not row:
             return ""
         unitSystem = QGISRedProjectUtils.getUnits()
         abbr = row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
         return self._resolveAbbr(abbr)
 
-    def getUnitFullName(self, element: str, fieldName: str) -> str:
+    def getUnitFullName(self, element: str, fieldName: str, conditionFeature: str = "") -> str:
         """Return the full unit name for a field (intended for tooltips).
 
         ``element`` must be a canonical element name (e.g. 'Pipes', 'Nodes').
         Use ``normalize_element()`` first if you have a QGIS layer identifier.
+
+        ``conditionFeature`` is an optional per-feature attribute value (see
+        ``getUnitAbbreviation`` for details).
 
         Returns '' for text/date fields and fields without a defined unit.
 
@@ -271,7 +279,7 @@ class QGISRedFieldUtils:
         """
         if not fieldName:
             return ""
-        row = self._resolveRow(element, fieldName)
+        row = self._resolveRow(element, fieldName, conditionFeature)
         if not row:
             return ""
         unitSystem = QGISRedProjectUtils.getUnits()
@@ -280,11 +288,14 @@ class QGISRedFieldUtils:
             return ""
         return QCoreApplication.translate("UnitFullNames", name)
 
-    def getDecimals(self, element: str, fieldName: str, default: int = 2) -> int:
+    def getDecimals(self, element: str, fieldName: str, default: int = 2, conditionFeature: str = "") -> int:
         """Return the display decimal precision for a field.
 
         ``element`` must be a canonical element name (e.g. 'Pipes', 'Nodes').
         Use ``normalize_element()`` first if you have a QGIS layer identifier.
+
+        ``conditionFeature`` is an optional per-feature attribute value (see
+        ``getUnitAbbreviation`` for details).
 
         Returns ``default`` when the CSV has no entry for the field or when the
         field is inapplicable for the current project configuration.
@@ -294,7 +305,7 @@ class QGISRedFieldUtils:
         getDecimals('Nodes', 'Pressure')            -> 2
         getDecimals('Nodes', 'Quality', default=3)  -> 2  (Chemical) / 1  (Age/Trace)
         """
-        return self._rowDecimals(self._resolveRow(element, fieldName), default)
+        return self._rowDecimals(self._resolveRow(element, fieldName, conditionFeature), default)
 
     def getFieldRawName(self, element: str, prettyName: str) -> str:
         """Return the raw field name for a given pretty display name (inverse of getProperty).
@@ -413,7 +424,7 @@ class QGISRedFieldUtils:
         QGISRedFieldUtils._unit_definitions = {"rows": rows, "prettyNames": prettyNames}
         return QGISRedFieldUtils._unit_definitions
 
-    def _resolveRow(self, element: str, fieldName: str) -> dict:
+    def _resolveRow(self, element: str, fieldName: str, conditionFeature: str = "") -> dict:
         """Return the CSV row for (element, fieldName) given current project settings.
 
         Returns {} if the field is inapplicable for the current project configuration
@@ -421,6 +432,11 @@ class QGISRedFieldUtils:
         when quality model is None).
         All condition-dependent lookups (flow unit, pressure unit, quality model,
         headloss formula) are resolved here so callers only need to extract the column.
+
+        ``conditionFeature`` is an optional per-feature attribute value used when the
+        CSV row selection depends on a feature-level property (e.g. valve type for
+        Setting, curve type for XValue/Yvalue). When omitted, the first matching row
+        is returned.
         """
         if fieldName in _CHEMICAL_ONLY_FIELDS:
             if QGISRedProjectUtils.getQualityModel().lower() in _NON_CHEMICAL_MODELS:
@@ -440,6 +456,8 @@ class QGISRedFieldUtils:
             condVal = modelLow.capitalize() if modelLow in ("trace", "age") else "Chemical"
             return self._getRowByCondition(element, "Quality", condVal)
 
+        if conditionFeature:
+            return self._getRowByCondition(element, fieldName, conditionFeature)
         return self._getFirstRow(element, fieldName) or self._getFirstRowByProperty(element, fieldName)
 
     def _getFirstRow(self, element, fieldName):

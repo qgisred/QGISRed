@@ -1243,6 +1243,22 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         if nodeSource and sourceLayer:
             displayRow = self.appendSourceRows(displayRow, nodeSource, sourceLayer, utils)
 
+    def _getConditionFeature(self, layerIdentifier, fieldName, fields, attributes):
+        """Return the per-feature condition value for fields whose unit depends on a feature attribute.
+
+        Currently handles Valves.Setting (condition = valve Type) and
+        Curves.XValue/Yvalue (condition = curve Type).  Returns '' for all other cases.
+        """
+        if fieldName == "Setting" and layerIdentifier == "qgisred_valves":
+            idx = fields.indexFromName("Type")
+            if idx >= 0 and attributes[idx] is not None:
+                return str(attributes[idx])
+        if fieldName in ("XValue", "Xvalue", "YValue", "Yvalue") and layerIdentifier == "qgisred_curves":
+            idx = fields.indexFromName("Type")
+            if idx >= 0 and attributes[idx] is not None:
+                return str(attributes[idx])
+        return ""
+
     def emitNodeFields(self, startRow, fields, attributes, skipFields, layerIdentifier, utils,
                        onlyFieldNames=None, excludeFieldNames=None):
         qualityFieldNames = {"MixingMod", "MixingFrac", "ReactCoef", "IniQuality", "BulkCoeff", "WallCoeff"}
@@ -1264,7 +1280,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             if fieldName in ["EnergyPric", "EnergyPrice"] and displayValue:
                 displayValue = f"${displayValue}"
 
-            fieldUnit = utils.getUnitAbbreviation(normalize_element(layerIdentifier), fieldName)
+            conditionFeature = self._getConditionFeature(layerIdentifier, fieldName, fields, attributes)
+            fieldUnit = utils.getUnitAbbreviation(normalize_element(layerIdentifier), fieldName,
+                                                  conditionFeature=conditionFeature)
             unitDisplay = fieldUnit if fieldUnit and fieldUnit != "-" else ""
 
             if fieldName in qualityFieldNames:
