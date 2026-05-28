@@ -4,6 +4,13 @@ import os
 from qgis.core import NULL
 from qgis.PyQt.QtCore import QCoreApplication
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
+from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
+
+# Average flow is split into Flow_Unsig and Flow_Sig; both use Flow's decimal setting.
+_STAT_VAR_ALIASES = {
+    "Flow_Unsig": "Flow",
+    "Flow_Sig":   "Flow",
+}
 
 from .qgisred_results_binary import (
     getOut_TimeNodesProperties, getOut_TimeLinksProperties,
@@ -270,6 +277,7 @@ class _ResultsDataMixin:
         if not os.path.exists(out_path):
             return
 
+        field_utils = QGISRedFieldUtils()
         for layerName in ["Node", "Link"]:
             target_layer = self._findResultLayer(layerName)
             if not target_layer:
@@ -296,6 +304,7 @@ class _ResultsDataMixin:
             if id_field_idx == -1:
                 id_field_idx = 0  # fallback to first field
 
+            element = "Nodes" if layerName == "Node" else "Links"
             attribute_updates = {}
             for feature in target_layer.getFeatures():
                 feature_id = str(feature.attributes()[id_field_idx])
@@ -304,7 +313,10 @@ class _ResultsDataMixin:
                     if time_field_idx != -1:
                         updates[time_field_idx] = time_text
                     for var, val in results[feature_id].items():
-                        updates[field_indices[var[:10]]] = val
+                        var_key = var[:10]
+                        if val is not None and isinstance(val, (int, float)):
+                            val = round(float(val), field_utils.getDecimals(element, var_key))
+                        updates[field_indices[var_key]] = val
                     attribute_updates[feature.id()] = updates
 
             self._applyAttributeUpdates(target_layer, attribute_updates)
@@ -381,6 +393,7 @@ class _ResultsDataMixin:
             "Link": {"Flow": "Time_H", "Quality": "Time_Q"},
         }
 
+        field_utils = QGISRedFieldUtils()
         for layerName in ["Node", "Link"]:
             target_layer = self._findResultLayer(layerName)
             if not target_layer:
@@ -419,6 +432,7 @@ class _ResultsDataMixin:
             if id_field_idx == -1:
                 id_field_idx = 0
 
+            element = "Nodes" if layerName == "Node" else "Links"
             attribute_updates = {}
             for feature in target_layer.getFeatures():
                 feature_id = str(feature.attributes()[id_field_idx])
@@ -430,7 +444,11 @@ class _ResultsDataMixin:
                 for var, val in results[feature_id].items():
                     var_key = var[:10]
                     if var_key in field_indices and field_indices[var_key] != -1:
-                        updates[field_indices[var_key]] = val["Value"] if val is not None else None
+                        raw_val = val["Value"] if val is not None else None
+                        if raw_val is not None and isinstance(raw_val, (int, float)):
+                            csv_field = _STAT_VAR_ALIASES.get(var, var)[:10]
+                            raw_val = round(float(raw_val), field_utils.getDecimals(element, csv_field))
+                        updates[field_indices[var_key]] = raw_val
                         if is_min_max and var_key in time_field_indices and time_field_indices[var_key] != -1:
                             t = val["Time"] if val is not None else None
                             updates[time_field_indices[var_key]] = seconds_to_time_str(t) if t is not None else None
