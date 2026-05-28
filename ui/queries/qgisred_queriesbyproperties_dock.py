@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 from qgis.PyQt.QtWidgets import QDockWidget, QTableWidgetItem, QHeaderView, QAbstractItemView, QToolButton, QComboBox, QStackedWidget, QLabel
 from qgis.PyQt.QtCore import Qt, QTimer
 from qgis.PyQt.QtGui import QBrush, QColor, QIcon, QFont
@@ -13,7 +13,7 @@ import csv
 import math
 
 from ..analysis.qgisred_results_dock import QGISRedResultsDock
-from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
+from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 
@@ -829,7 +829,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
 
         def addResultPropToCombo(combo, prop, brush=None):
             rawProp = "Flow" if prop == "Flow_Unsig" else prop
-            prettyName = fieldUtils.getFieldPrettyName(resultCategory, rawProp)
+            prettyName = fieldUtils.getProperty(normalize_element(resultCategory), rawProp)
             combo.addItem(prettyName)
             idx = combo.count() - 1
             combo.setItemData(idx, prop, Qt.ItemDataRole.UserRole)
@@ -837,7 +837,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 combo.setItemData(idx, brush, Qt.ItemDataRole.BackgroundRole)
 
         def addFieldToCombo(combo, fieldName, brush=None):
-            prettyName = fieldUtils.getFieldPrettyName(qrIdent, fieldName)
+            prettyName = fieldUtils.getProperty(normalize_element(qrIdent), fieldName)
             combo.addItem(prettyName)
             idx = combo.count() - 1
             combo.setItemData(idx, fieldName, Qt.ItemDataRole.UserRole)
@@ -1134,9 +1134,9 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 layer = self.resolveLayer()
                 ident = (layer.customProperty("qgisred_identifier") or "") if layer else ""
                 category = "Link" if ident.startswith("qgisred_link") else "Node"
-            unit = fieldUtils.getResultPropertyUnit(category, prop) if category else ""
+            unit = fieldUtils.getUnitAbbreviation(normalize_element(category), prop) if category else ""
         else:
-            unit = fieldUtils.getFieldUnit(qrIdent, prop)
+            unit = fieldUtils.getUnitAbbreviation(normalize_element(qrIdent), prop)
         if (qrIdent, prop) in self.suppressUnitProperties:
             unit = ""
         return unit or ""
@@ -1156,9 +1156,9 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 ident = (layer.customProperty("qgisred_identifier") or "") if layer else ""
                 category = "Link" if ident.startswith("qgisred_link") else "Node"
             if category:
-                unit = fieldUtils.getResultPropertyUnit(category, prop)
+                unit = fieldUtils.getUnitAbbreviation(normalize_element(category), prop)
         else:
-            unit = fieldUtils.getFieldUnit(qrIdent, prop)
+            unit = fieldUtils.getUnitAbbreviation(normalize_element(qrIdent), prop)
         if (qrIdent, prop) in self.suppressUnitProperties:
             unit = ""
         if unit:
@@ -1182,9 +1182,9 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 ident = (layer.customProperty("qgisred_identifier") or "") if layer else ""
                 category = "Link" if ident.startswith("qgisred_link") else "Node"
             if category:
-                unit = fieldUtils.getResultPropertyUnit(category, prop)
+                unit = fieldUtils.getUnitAbbreviation(normalize_element(category), prop)
         else:
-            unit = fieldUtils.getFieldUnit(qrIdent, prop)
+            unit = fieldUtils.getUnitAbbreviation(normalize_element(qrIdent), prop)
         if (qrIdent, prop) in self.suppressUnitProperties:
             unit = ""
         if unit:
@@ -1274,11 +1274,11 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         # Flow_Unsig is preserved verbatim in exports so the criterion roundtrips losslessly
         if propertyName == "Flow_Unsig":
             return propertyName
-        return QGISRedFieldUtils().getFieldPrettyName(self.categoryForProperty(propertyName), propertyName, translate=False)
+        return QGISRedFieldUtils().getProperty(normalize_element(self.categoryForProperty(propertyName)), propertyName, translate=False)
 
     def displayPrettyForCriterion(self, propertyName):
         rawProp = "Flow" if propertyName == "Flow_Unsig" else propertyName
-        return QGISRedFieldUtils().getFieldPrettyName(self.categoryForProperty(rawProp), rawProp)
+        return QGISRedFieldUtils().getProperty(normalize_element(self.categoryForProperty(rawProp)), rawProp)
 
     def rawForImportedProperty(self, prettyName):
         if not prettyName:
@@ -1286,13 +1286,13 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         if prettyName == "Quality":
             return "Quality"
         fieldUtils = QGISRedFieldUtils()
-        raw = fieldUtils.getFieldRawName(self.categoryForProperty(prettyName), prettyName)
+        raw = fieldUtils.getFieldRawName(normalize_element(self.categoryForProperty(prettyName)), prettyName)
         if raw == prettyName:
             qrIdent = self.cbElementType.currentData(Qt.ItemDataRole.UserRole) or ""
             cat = self.elementResultCategory.get(qrIdent)
             if cat:
                 resultCat = "Nodes" if cat == "Node" else "Links"
-                raw = fieldUtils.getFieldRawName(resultCat, prettyName)
+                raw = fieldUtils.getFieldRawName(normalize_element(resultCat), prettyName)
         return raw
 
     def reloadCriteriaTable(self):

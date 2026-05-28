@@ -15,7 +15,7 @@ from ...tools.utils.qgisred_axis_scale_utils import (
     format_number_tick,
 )
 
-from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
+from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from .timeseries_axis_settings import TimeSeriesAxisSettings, build_fixed_linear_scale
 from .timeseries_time_utils import civil_time_parts, format_civil_time, merge_time_of_day_x_ticks
 from .timeseries_plot_style import (
@@ -253,7 +253,10 @@ class TimeSeriesPlotRenderer:
         if s.get("y_categorical_labels"):
             return None
         try:
-            return QGISRedFieldUtils().getResultPropertyDecimalsFromSeriesKey(s.get("series_key"))
+            parts = str(s.get("series_key") or "").split(":")
+            if len(parts) < 3 or not parts[2]:
+                return None
+            return QGISRedFieldUtils().getDecimals(normalize_element(parts[0]), parts[2])
         except Exception:
             return None
 

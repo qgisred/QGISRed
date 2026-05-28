@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 import csv
 import json
 import math
@@ -24,7 +24,7 @@ from qgis.core import (
     QgsProject,
 )
 
-from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
+from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from .qgisred_statistics_manual_breaks_dialog import QGISRedStatisticsManualBreaksDialog
@@ -853,8 +853,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 self.cbValue.addItem(str(value), value)
 
     def addPropertyItem(self, combo, elementIdentifier, fieldName, brush=None):
-        prettyName = self.fieldUtils.getFieldPrettyName(elementIdentifier, fieldName) or fieldName
-        unit = self.fieldUtils.getFieldUnit(elementIdentifier, fieldName) or ""
+        prettyName = self.fieldUtils.getProperty(normalize_element(elementIdentifier), fieldName) or fieldName
+        unit = self.fieldUtils.getUnitAbbreviation(normalize_element(elementIdentifier), fieldName) or ""
         label = "{} ({})".format(prettyName, unit) if unit else prettyName
         combo.addItem(label, fieldName)
         idx = combo.count() - 1
@@ -862,8 +862,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             combo.setItemData(idx, brush, Qt.ItemDataRole.BackgroundRole)
 
     def addResultPropertyItem(self, combo, resultCategory, prop, brush):
-        prettyName = self.fieldUtils.getFieldPrettyName(resultCategory, prop) or prop
-        unit = self.fieldUtils.getResultPropertyUnit(resultCategory[:-1], prop) if resultCategory else ""
+        prettyName = self.fieldUtils.getProperty(normalize_element(resultCategory), prop) or prop
+        unit = self.fieldUtils.getUnitAbbreviation(normalize_element(resultCategory), prop) if resultCategory else ""
         label = "{} ({})".format(prettyName, unit) if unit else prettyName
         combo.addItem(label, prop)
         idx = combo.count() - 1
@@ -1074,10 +1074,10 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
 
         self.finalizeBins(bins)
 
-        prettyProperty = self.fieldUtils.getFieldPrettyName(elementIdentifier, propertyField) or propertyField
-        prettyClassify = self.fieldUtils.getFieldPrettyName(elementIdentifier, classifyField) or classifyField
-        propertyUnit = self.fieldUtils.getFieldUnit(elementIdentifier, propertyField) or ""
-        classifyUnit = self.fieldUtils.getFieldUnit(elementIdentifier, classifyField) or ""
+        prettyProperty = self.fieldUtils.getProperty(normalize_element(elementIdentifier), propertyField) or propertyField
+        prettyClassify = self.fieldUtils.getProperty(normalize_element(elementIdentifier), classifyField) or classifyField
+        propertyUnit = self.fieldUtils.getUnitAbbreviation(normalize_element(elementIdentifier), propertyField) or ""
+        classifyUnit = self.fieldUtils.getUnitAbbreviation(normalize_element(elementIdentifier), classifyField) or ""
 
         title = "{} ({} {})".format(prettyProperty, self.tr("by"), prettyClassify)
         subtitle = self.buildSubtitle(elementIdentifier)
@@ -1341,7 +1341,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         parts = []
         attributeField = self.cbAttribute.currentData(Qt.ItemDataRole.UserRole)
         if attributeField:
-            prettyAttribute = self.fieldUtils.getFieldPrettyName(elementIdentifier, attributeField) or attributeField
+            prettyAttribute = self.fieldUtils.getProperty(normalize_element(elementIdentifier), attributeField) or attributeField
             condition = self.cbCondition.currentData(Qt.ItemDataRole.UserRole) or ""
             if condition == "Range":
                 fromText = self.leFrom.text().strip() or "…"

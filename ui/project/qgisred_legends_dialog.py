@@ -23,7 +23,7 @@ from qgis.utils import iface
 
 from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL, QGISRedStylingUtils
 from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
-from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
+from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, resolve_layer_id
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils, DIR_RESULTS
 from .qgisred_custom_dialogs import QGISRedRangeEditDialog, QGISRedSymbolColorSelector
 from .qgisred_custom_dialogs import QGISRedColorRampSelector, QGISRedRowSelectionFilter
@@ -2964,8 +2964,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
     def getUnitAbbrForLayer(self):
         if self.utils:
             layerIdentifier = self.currentLayer.customProperty("qgisred_identifier")
-            if layerIdentifier:
-                return self.fieldUtils.getUnitAbbreviationForLayer(layerIdentifier)
+            field = resolve_layer_id(layerIdentifier) if layerIdentifier else None
+            if field:
+                return self.fieldUtils.getUnitAbbreviation(*field)
         return ""
 
     def generateRandomHsvColor(self):
@@ -4339,8 +4340,9 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return ""
 
         layerIdent = self.currentLayer.customProperty("qgisred_identifier")
-        if layerIdent:
-            return self.fieldUtils.getUnitAbbreviationForLayer(layerIdent)
+        field = resolve_layer_id(layerIdent) if layerIdent else None
+        if field:
+            return self.fieldUtils.getUnitAbbreviation(*field)
         return ""
 
     # ============================================================

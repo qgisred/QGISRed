@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """Analysis and results section for QGISRed (model, results dock, time series, export)."""
 
 import os
@@ -12,7 +12,7 @@ from qgis.gui import QgsHighlight
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.utils.qgisred_filesystem_utils import DIR_RESULTS
 from ..tools.utils.qgisred_ui_utils import QGISRedUIUtils
-from ..tools.utils.qgisred_field_utils import QGISRedFieldUtils
+from ..tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from ..compat import DIALOG_ACCEPTED
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..tools.map_tools.qgisred_selectPoint import QGISRedSelectPointTool, SelectPointType
@@ -720,7 +720,7 @@ class AnalysisSection:
                 is_stepped = True
                 y_categorical_labels = [self.tr("Closed"), self.tr("Active"), self.tr("Open")]
 
-        unit_abbr = QGISRedFieldUtils().getResultPropertyUnit(category, prop_internal)
+        unit_abbr = QGISRedFieldUtils().getUnitAbbreviation(normalize_element(category), prop_internal)
         if unit_abbr:
             y_label_with_unit = f"{prop_display} ({unit_abbr})"
         else:
@@ -843,7 +843,7 @@ class AnalysisSection:
                 is_stepped = True
                 y_categorical_labels = [self.tr("Closed"), self.tr("Active"), self.tr("Open")]
 
-        unit_abbr = QGISRedFieldUtils().getResultPropertyUnit(category, prop_internal)
+        unit_abbr = QGISRedFieldUtils().getUnitAbbreviation(normalize_element(category), prop_internal)
         if unit_abbr:
             y_label_with_unit = f"{prop_display} ({unit_abbr})"
         else:
@@ -1188,7 +1188,7 @@ class AnalysisSection:
             y_data = mapped_data
             y_categorical_labels = [self.tr("Closed"), self.tr("Active"), self.tr("Open")]
         else:
-            unit_abbr = QGISRedFieldUtils().getResultPropertyUnit(category, prop_internal)
+            unit_abbr = QGISRedFieldUtils().getUnitAbbreviation(normalize_element(category), prop_internal)
             if unit_abbr:
                 y_label_with_unit = f"{prop_display} ({unit_abbr})"
 

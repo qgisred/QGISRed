@@ -9,11 +9,6 @@ from .qgisred_filesystem_utils import QGISRedFileSystemUtils
 from qgis.core import QgsProject, QgsMessageLog, Qgis
 
 
-def _plugin_root():
-    """Returns the plugin root directory (two levels up from tools/utils/)."""
-    return os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-
-
 _COMMON_PRETTY_NAMES = {
     "Id":      "Identifier",
     "Tag":     "Tag",
@@ -29,7 +24,26 @@ _CATEGORIZED_LAYER_IDS = {
     'qgisred_query_pipes_diameter',
 }
 
-_LAYER_ID_TO_FIELD = {
+# Maps QGIS input-layer identifiers to canonical element names used in the CSV.
+_IDENTIFIER_TO_ELEMENT = {
+    'qgisred_pipes':              'Pipes',
+    'qgisred_junctions':          'Junctions',
+    'qgisred_demands':            'Multiple Demands',
+    'qgisred_reservoirs':         'Reservoirs',
+    'qgisred_tanks':              'Tanks',
+    'qgisred_pumps':              'Pumps',
+    'qgisred_valves':             'Valves',
+    'qgisred_sources':            'Sources',
+    'qgisred_serviceconnections': 'Service Connection',
+    'qgisred_isolationvalves':    'Isolation Valves',
+    'qgisred_meters':             'Meters',
+    'qgisred_links':              'Links',
+    'qgisred_nodes':              'Nodes',
+}
+
+# Maps QGIS query/result layer identifiers to (element, fieldName) for use
+# with the 4 main QGISRedFieldUtils methods.
+LAYER_ID_TO_FIELD = {
     # Pipes
     'qgisred_query_pipes_length':                    ('Pipes', 'Length'),
     'qgisred_query_pipes_diameter':                  ('Pipes', 'Diameter'),
@@ -136,8 +150,60 @@ _LAYER_ID_TO_FIELD = {
     'qgisred_results_link_reactrate':                ('Links', 'ReactRate'),
 }
 
+def normalize_element(element: str) -> str:
+    """Return the canonical element name used in the CSV for any identifier form.
+
+    Handles three cases:
+      - QGIS layer identifier  ('qgisred_pipes'  -> 'Pipes')
+      - Singular result name   ('Node' -> 'Nodes', 'Link' -> 'Links')
+      - Already-canonical name ('Pipes', 'Nodes', …) returned unchanged
+
+    Call this before passing an element to the four main QGISRedFieldUtils methods
+    whenever the identifier may come from a QGIS layer or a result category string.
+
+    Example::
+
+        el = normalize_element(layerIdentifier)
+        abbr = utils.getUnitAbbreviation(el, fieldName)
+    """
+    mapped = _IDENTIFIER_TO_ELEMENT.get(element)
+    if mapped:
+        return mapped
+    if element == "Node":
+        return "Nodes"
+    if element == "Link":
+        return "Links"
+    return element
+
+def resolve_layer_id(layer_identifier: str):
+    """Return (element, fieldName) for a QGIS layer identifier, or None if not mapped.
+
+    Use the returned tuple to call the QGISRedFieldUtils main methods:
+
+        field = resolve_layer_id(layerIdentifier)
+        if field:
+            abbr = utils.getUnitAbbreviation(*field)
+    """
+    return LAYER_ID_TO_FIELD.get(layer_identifier)
+
+def _plugin_root():
+    """Returns the plugin root directory (two levels up from tools/utils/)."""
+    return os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
 class QGISRedFieldUtils:
+    """Utilities for field metadata (pretty names, units, decimals).
+
+    Main public API — all require a canonical element name and a fieldName:
+        getProperty(element, fieldName, translate=True) -> str
+        getUnitAbbreviation(element, fieldName)         -> str
+        getUnitFullName(element, fieldName)             -> str
+        getDecimals(element, fieldName, default=2)      -> int
+
+    Module-level helpers to resolve identifiers before calling the main methods:
+        normalize_element(element)       -> canonical name  ('qgisred_pipes' -> 'Pipes')
+        resolve_layer_id(layerIdentifier)-> (element, fieldName) tuple or None
+    """
+
     _unit_definitions = None
 
     def __init__(self, directory="", networkName="", iface=None):
@@ -145,53 +211,39 @@ class QGISRedFieldUtils:
         self.ProjectDirectory = directory
         self.NetworkName = networkName
 
-        self.identifierToElementName = {
-            'qgisred_pipes': 'Pipes',
-            'qgisred_junctions': 'Junctions',
-            'qgisred_demands': 'Multiple Demands',
-            'qgisred_reservoirs': 'Reservoirs',
-            'qgisred_tanks': 'Tanks',
-            'qgisred_pumps': 'Pumps',
-            'qgisred_valves': 'Valves',
-            'qgisred_sources': 'Sources',
-            'qgisred_serviceconnections': 'Service Connection',
-            'qgisred_isolationvalves': 'Isolation Valves',
-            'qgisred_meters': 'Meters',
-            'qgisred_links': 'Links',
-            'qgisred_nodes': 'Nodes',
-        }
-
     def tr(self, message):
         return QCoreApplication.translate("QGISRedFieldUtils", message)
+
+    # ------------------------------------------------------------------ #
+    # Project state helpers                                                #
+    # ------------------------------------------------------------------ #
 
     def getLayerSupportsCategorized(self, layerIdentifier):
         return layerIdentifier in _CATEGORIZED_LAYER_IDS
 
-    """Options"""
     def getQualityModel(self):
-        """Returns the quality model type: 'Chemical', 'Age', or 'Trace'."""
+        """Return the quality model type: 'Chemical', 'Age', 'Trace', or 'None'."""
         model, _ = QgsProject.instance().readEntry("QGISRed", "project_qualitymodel", "Chemical")
         return model
 
     def getChemicalLabel(self):
-        """Returns the chemical substance label defined in Analysis Options, or ''."""
+        """Return the chemical substance label defined in Analysis Options, or ''."""
         label, _ = QgsProject.instance().readEntry("QGISRed", "project_chemicallabel", "")
         return label.strip()
 
     def getTraceNode(self):
-        """Returns the Trace source node ID defined in Analysis Options, or ''."""
+        """Return the Trace source node ID defined in Analysis Options, or ''."""
         node, _ = QgsProject.instance().readEntry("QGISRed", "project_tracenode", "")
         return node.strip()
 
     def getQualityDisplayName(self):
-        """Returns the display name for the Quality result field based on the quality model."""
+        """Return the display name for the Quality result field based on the quality model."""
         model = self.getQualityModel().upper()
         if model == "AGE":
             return self.tr("Age")
         if model == "TRACE":
             node = self.getTraceNode()
             return self.tr("Trace %1").replace("%1", str(node)).strip() if node else self.tr("Trace")
-        # CHEMICAL or any other active model
         label = self.getChemicalLabel()
         return label if label else self.tr("Chemical")
 
@@ -199,42 +251,162 @@ class QGISRedFieldUtils:
         """ReactRate is only meaningful for Chemical quality simulations."""
         return self.getQualityModel().upper() not in ("NONE", "AGE", "TRACE")
 
-    """Fields"""
-    def getFieldPrettyName(self, elementCategory, fieldName, translate=True):
-        """Get the pretty display name for a field from the CSV-derived prettyNames."""
+    def getUnits(self):
+        units, ok = QgsProject.instance().readEntry("QGISRed", "project_units", "LPS")
+        internationalUnits = ["LPS", "LPM", "MLD", "CMH", "CMD"]
+        americanUnits = ["CFS", "GPM", "MGD", "IMGD", "AFD"]
+        if units in americanUnits:
+            return 'US'
+        elif units in internationalUnits:
+            return 'SI'
+        else:
+            return 'SI'
+
+    def getConcentrationUnits(self):
+        """Return concentration units string, e.g. 'mg/L' or 'µg/L'."""
+        units, _ = QgsProject.instance().readEntry("QGISRed", "project_concentrationunits", "mg/L")
+        return units
+
+    # ------------------------------------------------------------------ #
+    # Main public API                                                      #
+    # ------------------------------------------------------------------ #
+
+    def getProperty(self, element: str, fieldName: str, translate: bool = True) -> str:
+        """Return the human-readable display name for a field.
+
+        ``element`` must be a canonical element name (e.g. 'Pipes', 'Nodes').
+        Use ``normalize_element()`` first if you have a QGIS layer identifier.
+
+        For the Quality field on Nodes/Links layers the name is determined
+        by the project's quality model (Chemical / Age / Trace) and resolved
+        automatically; pass translate=False to get the raw English string.
+
+        getProperty('Pipes',      'Length')   -> 'Length'  (or translated)
+        getProperty('Junctions',  'EmittCoef')-> 'Emitter Coefficient'
+        getProperty('Nodes',      'Quality')  -> 'Chlorine'  (if chemical label set)
+        """
         if not fieldName:
             return fieldName
 
-        # Dynamic override: Quality in result layers uses the quality-model-specific name
-        if translate and fieldName == "Quality":
-            category = self.identifierToElementName.get(elementCategory, elementCategory)
-            if category in ("Nodes", "Links"):
-                if self.getQualityModel().upper() != "NONE":
-                    return self.getQualityDisplayName()
+        if translate and fieldName == "Quality" and element in ("Nodes", "Links"):
+            if self.getQualityModel().upper() != "NONE":
+                return self.getQualityDisplayName()
 
         prettyNames = self.loadUnitDefinitions().get("prettyNames", {})
-        category = self.identifierToElementName.get(elementCategory, elementCategory)
-        category = category.replace(" ", "") if category else None
+        normEl = element.replace(" ", "")
 
-        if category and category in prettyNames:
-            if fieldName in prettyNames[category]:
-                prop = prettyNames[category][fieldName]
-                return QCoreApplication.translate("FieldPrettyNames", prop) if translate else prop
+        if normEl in prettyNames and fieldName in prettyNames[normEl]:
+            prop = prettyNames[normEl][fieldName]
+            return QCoreApplication.translate("FieldPrettyNames", prop) if translate else prop
 
         prop = prettyNames.get("Common", {}).get(fieldName, fieldName)
         return QCoreApplication.translate("FieldPrettyNames", prop) if translate else prop
 
-    def getFieldRawName(self, elementCategory, prettyName):
-        """Get the raw field name from a pretty display name."""
+    def getUnitAbbreviation(self, element: str, fieldName: str) -> str:
+        """Return the unit abbreviation for a field, respecting SI/US project setting.
+
+        ``element`` must be a canonical element name (e.g. 'Pipes', 'Nodes').
+        Use ``normalize_element()`` first if you have a QGIS layer identifier.
+
+        Fields whose unit depends on project configuration are resolved automatically:
+          - Flow / Demand  -> project flow unit  (e.g. 'lps', 'gpm')
+          - Pressure       -> project pressure unit  ('m' or 'psi')
+          - Quality        -> quality model  ('mg/L', '%', 'hr', or '' for None)
+          - IniQuality     -> '' for non-Chemical quality models
+
+        getUnitAbbreviation('Pipes',  'Length')   -> 'm'  (SI) / 'ft'  (US)
+        getUnitAbbreviation('Links',  'Flow')     -> 'lps'  (if project unit = LPS)
+        getUnitAbbreviation('Nodes',  'Pressure') -> 'm'  (SI) / 'psi'  (US)
+        getUnitAbbreviation('Nodes',  'Quality')  -> 'mg/L'  (Chemical, SI, mg/L conc.)
+        """
+        unitSystem = self.getUnits()
+
+        if fieldName == "IniQuality":
+            return self._getIniQualityAbbr(element)
+        if fieldName == "Quality":
+            return self._getQualityResultAbbr(element)
+
+        row = self._getFirstRow(element, fieldName) or self._getFirstRowByProperty(element, fieldName)
+        if not row:
+            return ""
+        abbr = row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
+        return self._resolveAbbr(abbr)
+
+    def getUnitFullName(self, element: str, fieldName: str) -> str:
+        """Return the full unit name for a field (intended for tooltips).
+
+        ``element`` must be a canonical element name (e.g. 'Pipes', 'Nodes').
+        Use ``normalize_element()`` first if you have a QGIS layer identifier.
+
+        Returns '' for text/date fields and fields without a defined unit.
+
+        getUnitFullName('Pipes', 'Length')   -> 'Meters'  (SI) / 'Feet'  (US)
+        getUnitFullName('Pipes', 'Material') -> ''
+        """
+        if not fieldName:
+            return ""
+
+        unitSystem = self.getUnits()
+
+        row = self._getFirstRow(element, fieldName) or self._getFirstRowByProperty(element, fieldName)
+        if not row:
+            return ""
+
+        name = row["si_name"] if unitSystem == "SI" else row["us_name"]
+        # "Same as Flow" kept literal so callers can detect and resolve it themselves.
+        return name if name and name not in ("Text", "-") else ""
+
+    def getDecimals(self, element: str, fieldName: str, default: int = 2) -> int:
+        """Return the display decimal precision for a field.
+
+        ``element`` must be a canonical element name (e.g. 'Pipes', 'Nodes').
+        Use ``normalize_element()`` first if you have a QGIS layer identifier.
+
+        Fields whose precision depends on project configuration are resolved
+        automatically (same fields as getUnitAbbreviation). Returns ``default``
+        when the CSV has no entry for the field.
+
+        getDecimals('Pipes', 'Diameter')            -> 1  (SI)
+        getDecimals('Links', 'Flow')                -> 2  (LPS) / 1  (GPM)
+        getDecimals('Nodes', 'Pressure')            -> 2
+        getDecimals('Nodes', 'Quality', default=3)  -> 2  (Chemical) / 1  (Age/Trace)
+        """
+        if fieldName in ("Flow", "Demand"):
+            flowUnit, _ = QgsProject.instance().readEntry("QGISRed", "project_units", "LPS")
+            return self._rowDecimals(self._getRowByCondition("Global", "FlowUnits", flowUnit), default)
+
+        if fieldName == "Pressure":
+            condVal = "METERS" if self.getUnits() == "SI" else "PSI"
+            return self._rowDecimals(self._getRowByCondition("Global", "PressUnits", condVal), default)
+
+        if fieldName == "Quality":
+            modelLow = self.getQualityModel().lower()
+            if modelLow == "none":
+                return default
+            condVal = modelLow.capitalize() if modelLow in ("trace", "age") else "Chemical"
+            return self._rowDecimals(self._getRowByCondition(element, "Quality", condVal), default)
+
+        row = self._getFirstRow(element, fieldName) or self._getFirstRowByProperty(element, fieldName)
+        return self._rowDecimals(row, default)
+
+    # ------------------------------------------------------------------ #
+    # Additional public methods                                            #
+    # ------------------------------------------------------------------ #
+
+    def getFieldRawName(self, element: str, prettyName: str) -> str:
+        """Return the raw field name for a given pretty display name (inverse of getProperty).
+
+        ``element`` must be a canonical element name. Use ``normalize_element()`` first
+        if you have a QGIS layer identifier.
+        """
         if not prettyName:
             return prettyName
 
+        normEl = element.replace(" ", "")
         prettyNames = self.loadUnitDefinitions().get("prettyNames", {})
-        category = self.identifierToElementName.get(elementCategory, elementCategory)
-        category = category.replace(" ", "") if category else None
 
-        if category and category in prettyNames:
-            for rawName, displayName in prettyNames[category].items():
+        if normEl in prettyNames:
+            for rawName, displayName in prettyNames[normEl].items():
                 if displayName == prettyName:
                     return rawName
 
@@ -244,25 +416,40 @@ class QGISRedFieldUtils:
 
         return prettyName
 
-    def getAllFieldPrettyNames(self, elementCategory=None):
-        """Get all field pretty name mappings for a category, merged with Common."""
-        prettyNames = self.loadUnitDefinitions().get("prettyNames", {})
 
-        if elementCategory is None:
-            return prettyNames
+    def isTextField(self, element: str, fieldName: str) -> bool:
+        """Return True if the field holds text (no numeric formatting should be applied).
 
-        category = self.identifierToElementName.get(elementCategory, elementCategory)
-        category = category.replace(" ", "") if category else None
-        result = dict(prettyNames.get("Common", {}))
-        if category and category in prettyNames:
-            result.update(prettyNames[category])
+        ``element`` must be a canonical element name. Use ``normalize_element()`` first
+        if you have a QGIS layer identifier.
+        """
+        if not fieldName:
+            return False
+        row = self._getFirstRow(element, fieldName) or self._getFirstRowByProperty(element, fieldName)
+        if not row:
+            return False
+        name = (row["si_name"] or row["us_name"] or "").strip().lower()
+        return name in ("text", "year as text", "-")
 
-        return result
+    def isDateField(self, element: str, fieldName: str) -> bool:
+        """Return True if the field holds a year-as-text date value.
 
-    """Units"""
+        ``element`` must be a canonical element name. Use ``normalize_element()`` first
+        if you have a QGIS layer identifier.
+        """
+        if not fieldName:
+            return False
+        row = self._getFirstRow(element, fieldName) or self._getFirstRowByProperty(element, fieldName)
+        if not row:
+            return False
+        name = (row["si_name"] or row["us_name"] or "").strip().lower()
+        return name == "year as text"
+
+    # ------------------------------------------------------------------ #
+    # CSV loading and row lookup                                           #
+    # ------------------------------------------------------------------ #
+
     def loadUnitDefinitions(self):
-        # Validate cache: must be the new CSV-based structure (has "rows" list).
-        # If it holds the old JSON structure (no "rows" key), reload from CSV.
         cached = QGISRedFieldUtils._unit_definitions
         if cached is not None and isinstance(cached.get("rows"), list):
             return cached
@@ -304,7 +491,6 @@ class QGISRedFieldUtils:
                             "notes":           line[10].strip() if len(line) > 10 else "",
                         }
                         rows.append(row)
-                        # prettyNames: primer match por (element_norm, fieldName)
                         normEl = element.replace(" ", "")
                         if normEl not in prettyNames:
                             prettyNames[normEl] = {}
@@ -315,18 +501,19 @@ class QGISRedFieldUtils:
                     f"Error loading unit definitions: {e}", "QGISRed", Qgis.Warning)
 
         prettyNames["Common"] = dict(_COMMON_PRETTY_NAMES)
-        # Alias plural para identifierToElementName que usa "ServiceConnections"
         if "ServiceConnection" in prettyNames:
             prettyNames.setdefault("ServiceConnections", prettyNames["ServiceConnection"])
 
         QGISRedFieldUtils._unit_definitions = {"rows": rows, "prettyNames": prettyNames}
         return QGISRedFieldUtils._unit_definitions
 
-    def _getFirstRow(self, element, fieldName):
-        """Return CSV row matching (element, fieldName).
 
-        When multiple rows discriminate on the headloss formula (notes ==
-        'HeadLoss formulae'), the row matching project_headloss is returned.
+    def _getFirstRow(self, element, fieldName):
+        """Return the CSV row matching (element, fieldName).
+
+        When multiple rows exist for the same (element, fieldName) and all are
+        discriminated by the headloss formula (notes == 'HeadLoss formulae'),
+        the row matching the project setting is returned.
         """
         normEl = element.replace(" ", "").lower()
         matches = [row for row in self.loadUnitDefinitions().get("rows", [])
@@ -344,11 +531,8 @@ class QGISRedFieldUtils:
     def _getRowByCondition(self, element, fieldName, conditionValue):
         """Return the CSV row matching (element, fieldName, conditionValue).
 
-        Within a given (element, fieldName) pair, conditionValue is always unique,
-        so no conditionType discriminator is needed.
-        Falls back to the first unconditional row for that (element, fieldName), then
-        to _getFirstRow(), so callers always get a usable result even for unknown values.
-        FieldName comparison is case-insensitive to tolerate minor CSV inconsistencies.
+        Falls back to the first unconditional row, then to _getFirstRow().
+        fieldName comparison is case-insensitive.
         """
         normEl = element.replace(" ", "").lower()
         cvLow  = conditionValue.lower()
@@ -359,13 +543,11 @@ class QGISRedFieldUtils:
                 continue
             if row["condition_value"].lower() == cvLow:
                 return row
-        # Fallback 1: first unconditional row (condition_value is empty)
         for row in self.loadUnitDefinitions().get("rows", []):
             if (row["element"].replace(" ", "").lower() == normEl
                     and row["fieldName"].lower() == fieldName.lower()
                     and not row["condition_value"]):
                 return row
-        # Fallback 2: absolute first match
         return self._getFirstRow(element, fieldName)
 
     def _getFirstRowByProperty(self, element, propertyName):
@@ -378,13 +560,9 @@ class QGISRedFieldUtils:
                 return row
         return {}
 
-    def _lookupFieldAbbr(self, element, fieldName, unitSystem):
-        """Return abbreviation for first CSV row matching (element, fieldName)."""
-        row = self._getFirstRow(element, fieldName) or self._getFirstRowByProperty(element, fieldName)
-        if not row:
-            return ""
-        abbr = row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
-        return self._resolveAbbr(abbr)
+    # ------------------------------------------------------------------ #
+    # Private resolution helpers                                           #
+    # ------------------------------------------------------------------ #
 
     def _rowDecimals(self, row, default=2):
         if not row:
@@ -394,11 +572,7 @@ class QGISRedFieldUtils:
         return dec if dec is not None else default
 
     def _resolveAbbr(self, abbr):
-        """Resolve all 'See X' tokens in an abbreviation string.
-
-        Handles composite abbreviations like 'See FlowUnits/sqr(See PressUnits)'
-        by replacing every known token with its runtime value.
-        """
+        """Expand 'See X' tokens in an abbreviation string using project settings."""
         if not abbr:
             return abbr
         if "See " in abbr:
@@ -411,14 +585,44 @@ class QGISRedFieldUtils:
         return abbr
 
     def _formatExponents(self, text):
-        """Convert ASCII exponent notation in unit strings to Unicode superscripts.
-
-        Supports '^(N/M)' (parenthesised, including fractions) and '^N' (bare digits),
-        e.g. 's/m^(1/3)' -> 's/m¹ᐟ³', 'm^2' -> 'm²'.
-        """
+        """Convert ASCII exponent notation to Unicode superscripts (e.g. 'm^2' -> 'm²')."""
         text = re.sub(r'\^\(([0-9/]+)\)', lambda m: m.group(1).translate(_SUPERSCRIPT_TRANSLATION), text)
         text = re.sub(r'\^(\d+)', lambda m: m.group(1).translate(_SUPERSCRIPT_TRANSLATION), text)
         return text
+
+    def _getFlowFieldAbbr(self):
+        """Return the flow unit abbreviation for the current project (e.g. 'lps', 'gpm')."""
+        flowUnit, _ = QgsProject.instance().readEntry("QGISRed", "project_units", "LPS")
+        row = self._getRowByCondition("Global", "FlowUnits", flowUnit)
+        if row:
+            return row["si_abbr"] or row["us_abbr"]
+        unitSystem = self.getUnits()
+        row = self._getFirstRow("Global", "FlowUnits")
+        if not row:
+            return ""
+        abbr = row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
+        return abbr
+
+    def _getPressureFieldAbbr(self):
+        """Return the pressure unit abbreviation for the current project ('m' or 'psi')."""
+        unitSystem = self.getUnits()
+        condVal = "METERS" if unitSystem == "SI" else "PSI"
+        row = self._getRowByCondition("Global", "PressUnits", condVal)
+        if row:
+            return row["si_abbr"] or row["us_abbr"]
+        row = self._getFirstRow("Global", "PressUnits")
+        if not row:
+            return ""
+        return row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
+
+    def _getMassAbbr(self):
+        """Return the mass unit abbreviation for the current project ('mg' or 'µg')."""
+        concUnits = self.getConcentrationUnits()
+        row = self._getRowByCondition("Global", "MassUnits", concUnits)
+        if row and row["condition_value"].lower() == concUnits.lower():
+            unitSystem = self.getUnits()
+            return row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
+        return ""
 
     def _getCurrencyAbbr(self):
         """Return the currency abbreviation (first Global/Currency row in the CSV)."""
@@ -428,35 +632,15 @@ class QGISRedFieldUtils:
         unitSystem = self.getUnits()
         return row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
 
-    def _getMassAbbr(self):
-        """Return the mass unit abbreviation for the current project (e.g. 'mg' or 'ug').
-
-        Looks up the Global/Mass CSV row whose ConditionValue matches the project
-        concentration units (case-insensitive). Falls back to splitting the
-        concentration units string if no CSV row is found.
-        """
-        concUnits = self.getConcentrationUnits()
-        row = self._getRowByCondition("Global", "MassUnits", concUnits)
-        if row and row["condition_value"].lower() == concUnits.lower():
-            unitSystem = self.getUnits()
-            return row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
-        return ""
-
     def _getQualityResultAbbr(self, element):
-        """Return unit abbreviation for Quality result fields based on the quality model.
+        """Return the unit abbreviation for Quality result fields based on the quality model.
 
-        Chemical (or any model not in None/Trace/Age) → resolved mass/L abbr
-        Trace → %
-        Age → hr
-        None → ""
+        Chemical -> resolved mass/L abbr  |  Trace -> %  |  Age -> hr  |  None -> ''
         """
         modelLow = self.getQualityModel().lower()
         if modelLow == "none":
             return ""
-        if modelLow in ("trace", "age"):
-            condVal = modelLow.capitalize()  # "Trace" or "Age" — matches CSV ConditionValue
-        else:
-            condVal = "Chemical"
+        condVal = modelLow.capitalize() if modelLow in ("trace", "age") else "Chemical"
         row = self._getRowByCondition(element, "Quality", condVal)
         if not row:
             return ""
@@ -465,10 +649,9 @@ class QGISRedFieldUtils:
         return self._resolveAbbr(abbr)
 
     def _getIniQualityAbbr(self, element):
-        """Return unit abbreviation for IniQuality fields.
+        """Return the unit abbreviation for IniQuality fields.
 
-        Returns "" if the quality model is None, Trace, or Age (IniQuality is inapplicable).
-        For Chemical (or any other model name), resolves the mass/L abbreviation.
+        Returns '' for None/Trace/Age quality models (IniQuality is inapplicable).
         """
         if self.getQualityModel().lower() in _NON_CHEMICAL_MODELS:
             return ""
@@ -478,219 +661,3 @@ class QGISRedFieldUtils:
         unitSystem = self.getUnits()
         abbr = row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
         return self._resolveAbbr(abbr)
-
-    def _getPressureFieldAbbr(self):
-        """Return the pressure unit abbreviation for the current project.
-
-        Defaults to METERS (SI) or PSI (US) until the exact pressure unit setting
-        is exposed from the native library.
-        """
-        unitSystem = self.getUnits()
-        condVal = "METERS" if unitSystem == "SI" else "PSI"
-        row = self._getRowByCondition("Global", "PressUnits", condVal)
-        if row:
-            return row["si_abbr"] or row["us_abbr"]
-        return self._lookupFieldAbbr("Global", "PressUnits", unitSystem)
-
-    def _getFlowFieldAbbr(self):
-        """Return the exact flow unit abbreviation for the current project (e.g. lpm, gpm).
-
-        The CSV has one row per flow unit (not SI+US in the same row), with ConditionValue
-        equal to the EPANET unit code (LPS, GPM, MLD, etc.). The non-empty abbr in that
-        row is the abbreviation to display.
-        """
-        flowUnit, _ = QgsProject.instance().readEntry("QGISRed", "project_units", "LPS")
-        row = self._getRowByCondition("Global", "FlowUnits", flowUnit)
-        if row:
-            return row["si_abbr"] or row["us_abbr"]
-        return self._lookupFieldAbbr("Global", "FlowUnits", self.getUnits())
-
-    def getUnits(self):
-        units, ok = QgsProject.instance().readEntry("QGISRed", "project_units", "LPS")
-
-        internationalUnits = ["LPS", "LPM", "MLD", "CMH", "CMD"]
-        americanUnits = ["CFS", "GPM", "MGD", "IMGD", "AFD"]
-
-        if units in americanUnits:
-            return 'US'
-        elif units in internationalUnits:
-            return 'SI'
-        else:
-            return 'SI'
-
-    def getConcentrationUnits(self):
-        """Returns concentration units string, e.g. 'mg/L' or 'µg/L'."""
-        units, _ = QgsProject.instance().readEntry("QGISRed", "project_concentrationunits", "mg/L")
-        return units
-
-    def getUnitAbbreviationForLayer(self, layerIdentifier):
-        if not layerIdentifier:
-            return ""
-
-        field_key = _LAYER_ID_TO_FIELD.get(layerIdentifier)
-        if not field_key:
-            return ""
-
-        element, fieldName = field_key
-        return self._lookupFieldAbbr(element, fieldName, self.getUnits())
-
-    def getResultPropertyUnit(self, category, prop_internal):
-        """Returns unit abbreviation for a result property (category='Node'|'Link')."""
-        prop_map = {
-            ("Node", "Pressure"):   ("Nodes", "Pressure"),
-            ("Node", "Head"):       ("Nodes", "Head"),
-            ("Node", "Demand"):     ("Nodes", "Demand"),
-            ("Node", "Quality"):    ("Nodes", "Quality"),
-            ("Link", "Flow"):       ("Links", "Flow"),
-            ("Link", "Velocity"):   ("Links", "Velocity"),
-            ("Link", "HeadLoss"):   ("Links", "HeadLoss"),
-            ("Link", "UnitHdLoss"): ("Links", "UnitHdLoss"),
-            ("Link", "FricFactor"): ("Links", "FricFactor"),
-            ("Link", "ReactRate"):  ("Links", "ReactRate"),
-            ("Link", "Quality"):    ("Links", "Quality"),
-        }
-        field_key = prop_map.get((category, prop_internal))
-        if not field_key:
-            return ""
-        element, fieldName = field_key
-
-        if fieldName == "Quality":
-            return self._getQualityResultAbbr(element)
-        if element == "Links" and fieldName == "Flow":
-            return self._getFlowFieldAbbr()
-        if element == "Nodes" and fieldName == "Pressure":
-            return self._getPressureFieldAbbr()
-
-        unitSystem = self.getUnits()
-        return self._lookupFieldAbbr(element, fieldName, unitSystem)
-
-    def getResultPropertyDecimalsFromSeriesKey(self, series_key):
-        """Return decimal precision for a results series key, or None if not applicable."""
-        parts = str(series_key or "").split(":")
-        if len(parts) < 3:
-            return None
-        category = parts[0]
-        prop_internal = parts[2]
-        if category not in ("Node", "Link") or not prop_internal:
-            return None
-        try:
-            return self.getResultPropertyDecimals(category, prop_internal)
-        except Exception:
-            return None
-
-    def getResultPropertyDecimals(self, category, prop_internal, default=2):
-        """Return decimal precision for result properties using the units CSV."""
-        prop_map = {
-            ("Node", "Pressure"):   ("Nodes", "Pressure"),
-            ("Node", "Head"):       ("Nodes", "Head"),
-            ("Node", "Demand"):     ("Nodes", "Demand"),
-            ("Node", "Quality"):    ("Nodes", "Quality"),
-            ("Link", "Flow"):       ("Links", "Flow"),
-            ("Link", "Velocity"):   ("Links", "Velocity"),
-            ("Link", "HeadLoss"):   ("Links", "HeadLoss"),
-            ("Link", "UnitHdLoss"): ("Links", "UnitHdLoss"),
-            ("Link", "FricFactor"): ("Links", "FricFactor"),
-            ("Link", "ReactRate"):  ("Links", "ReactRate"),
-            ("Link", "Quality"):    ("Links", "Quality"),
-        }
-        field_key = prop_map.get((category, prop_internal))
-        if not field_key:
-            return default
-        element, fieldName = field_key
-
-        if fieldName in ("Flow", "Demand"):
-            flowUnit, _ = QgsProject.instance().readEntry("QGISRed", "project_units", "LPS")
-            return self._rowDecimals(self._getRowByCondition("Global", "FlowUnits", flowUnit), default)
-        if fieldName == "Pressure":
-            condVal = "METERS" if self.getUnits() == "SI" else "PSI"
-            return self._rowDecimals(self._getRowByCondition("Global", "PressUnits", condVal), default)
-        if fieldName == "Quality":
-            modelLow = self.getQualityModel().lower()
-            if modelLow == "none":
-                return default
-            condVal = modelLow.capitalize() if modelLow in ("trace", "age") else "Chemical"
-            return self._rowDecimals(self._getRowByCondition(element, "Quality", condVal), default)
-
-        return self.getFieldDecimals(element, fieldName, default)
-
-    def getFieldUnit(self, elementCategory, fieldName):
-        """Get the unit abbreviation for a field based on element category and field name."""
-        if not fieldName:
-            return ""
-
-        unitSystem = self.getUnits()
-        category = self.identifierToElementName.get(elementCategory, elementCategory)
-
-        if fieldName == "IniQuality":
-            return self._getIniQualityAbbr(category)
-
-        row = self._getFirstRow(category, fieldName) or self._getFirstRowByProperty(category, fieldName)
-        if not row:
-            return ""
-
-        abbr = row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
-        return self._resolveAbbr(abbr)
-
-    def getFieldUnitFullName(self, elementCategory, fieldName):
-        """Get the full unit name for a field (for tooltips)."""
-        if not fieldName:
-            return ""
-
-        unitSystem = self.getUnits()
-        category = self.identifierToElementName.get(elementCategory, elementCategory)
-
-        row = self._getFirstRow(category, fieldName) or self._getFirstRowByProperty(category, fieldName)
-        if not row:
-            return ""
-
-        name = row["si_name"] if unitSystem == "SI" else row["us_name"]
-        # "Same as Flow" is kept literal so callers (element_explorer_dock line 2509)
-        # can detect it and resolve to project flow units themselves
-        return name if name and name not in ("Text", "-") else ""
-
-    def isTextField(self, elementCategory, fieldName):
-        if not fieldName:
-            return False
-        category = self.identifierToElementName.get(elementCategory, elementCategory)
-        row = self._getFirstRow(category, fieldName) or self._getFirstRowByProperty(category, fieldName)
-        if not row:
-            return False
-        name = (row["si_name"] or row["us_name"] or "").strip().lower()
-        return name in ("text", "year as text", "-")
-
-    def isDateField(self, elementCategory, fieldName):
-        if not fieldName:
-            return False
-        category = self.identifierToElementName.get(elementCategory, elementCategory)
-        row = self._getFirstRow(category, fieldName) or self._getFirstRowByProperty(category, fieldName)
-        if not row:
-            return False
-        name = (row["si_name"] or row["us_name"] or "").strip().lower()
-        return name == "year as text"
-
-    def getFieldDecimals(self, elementCategory, fieldName, default=2):
-        """Return decimal precision for a field per the CSV (SI Decimals / US Decimals columns).
-
-        Parameters
-        ----------
-        elementCategory : str
-            Layer identifier (e.g. 'qgisred_pipes') or element name.
-        fieldName : str
-            Raw DB column name or property display name.
-        default : int
-            Fallback when the CSV row has no decimal value.
-
-        Returns
-        -------
-        int
-        """
-        if not fieldName:
-            return default
-
-        category = self.identifierToElementName.get(elementCategory, elementCategory)
-
-        row = self._getFirstRow(category, fieldName) or self._getFirstRowByProperty(category, fieldName)
-        if not row:
-            return default
-
-        return self._rowDecimals(row, default)

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 import os
 from qgis.PyQt.QtCore import Qt, pyqtSlot, pyqtSignal, QEvent, QTimer
 from qgis.PyQt.QtGui import QIcon, QFont, QColor, QBrush
@@ -7,7 +7,7 @@ from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsVectorLayer, QgsSettings, QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsLayerMetadata, QgsSpatialIndex, Qgis
 from qgis.utils import iface
 from qgis.gui import QgsHighlight
-from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
+from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_filesystem_utils import DIR_RESULTS
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
@@ -41,9 +41,9 @@ class _ResultsTabStyle(QProxyStyle):
 # - Element types are identified by qgisred_identifier (qgisred_pipes, ...).
 #   Display names come from self.identifierSingulars; never from layer.name().
 # - Property names are raw English from the layer schema; translate only via
-#   QGISRedFieldUtils.getFieldPrettyName for display, never compare to literals.
-# - Units come from QGISRedFieldUtils.getFieldUnit / getResultPropertyUnit and
-#   may be translated; never compare unit strings to literals.
+#   QGISRedFieldUtils.getProperty for display, never compare to literals.
+# - Units come from QGISRedFieldUtils.getUnitAbbreviation and may be translated;
+#   never compare unit strings to literals.
 # - List items carry identifier (UserRole), raw element id (UserRole+1) and
 #   suffix kinds (UserRole+2) so reverse parsing of translated text is avoided.
 
@@ -1256,14 +1256,14 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             if excludeFieldNames and fieldName in excludeFieldNames:
                 continue
 
-            prettyName = utils.getFieldPrettyName(layerIdentifier, fieldName)
+            prettyName = utils.getProperty(normalize_element(layerIdentifier), fieldName)
             rawValue = attributes[fieldIdx]
             displayValue = self.formatFieldValue(rawValue, layerIdentifier, fieldName, utils)
 
             if fieldName in ["EnergyPric", "EnergyPrice"] and displayValue:
                 displayValue = f"${displayValue}"
 
-            fieldUnit = utils.getFieldUnit(layerIdentifier, fieldName)
+            fieldUnit = utils.getUnitAbbreviation(normalize_element(layerIdentifier), fieldName)
             unitDisplay = fieldUnit if fieldUnit and fieldUnit != "-" else ""
 
             if fieldName in qualityFieldNames:
@@ -1298,13 +1298,13 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     def formatFieldValue(self, rawValue, layerIdentifier, fieldName, utils):
         if rawValue is None or str(rawValue) == "NULL" or str(rawValue).strip() == "":
             return ""
-        if utils.isDateField(layerIdentifier, fieldName):
+        if utils.isDateField(normalize_element(layerIdentifier), fieldName):
             return self.formatDateValue(rawValue)
-        if utils.isTextField(layerIdentifier, fieldName):
+        if utils.isTextField(normalize_element(layerIdentifier), fieldName):
             return str(rawValue)
         try:
             numeric = float(rawValue)
-            decimals = utils.getFieldDecimals(layerIdentifier, fieldName, default=2)
+            decimals = utils.getDecimals(normalize_element(layerIdentifier), fieldName, default=2)
             return f"{numeric:.{decimals}f}"
         except (ValueError, TypeError):
             return str(rawValue)
@@ -1333,11 +1333,11 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 fieldName = field.name()
                 if fieldName in skipFields:
                     continue
-                prettyName = utils.getFieldPrettyName(layerIdentifier, fieldName)
+                prettyName = utils.getProperty(normalize_element(layerIdentifier), fieldName)
                 if showIndex:
                     prettyName = f"{prettyName} {idx}"
                 displayValue = self.formatFieldValue(attributes[fieldIndex], layerIdentifier, fieldName, utils)
-                fieldUnit = utils.getFieldUnit(layerIdentifier, fieldName)
+                fieldUnit = utils.getUnitAbbreviation(normalize_element(layerIdentifier), fieldName)
                 unitDisplay = fieldUnit if fieldUnit and fieldUnit != "-" else ""
                 self.setDataRow(row, prettyName, displayValue, unitDisplay, backgroundBrush=self.demandBrush)
                 row += 1
@@ -1390,9 +1390,9 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             fieldName = field.name()
             if fieldName in skipFields:
                 continue
-            prettyName = utils.getFieldPrettyName(layerIdentifier, fieldName)
+            prettyName = utils.getProperty(normalize_element(layerIdentifier), fieldName)
             displayValue = self.formatFieldValue(attributes[fieldIndex], layerIdentifier, fieldName, utils)
-            fieldUnit = utils.getFieldUnit(layerIdentifier, fieldName)
+            fieldUnit = utils.getUnitAbbreviation(normalize_element(layerIdentifier), fieldName)
             unitDisplay = fieldUnit if fieldUnit and fieldUnit != "-" else ""
             self.setDataRow(row, prettyName, displayValue, unitDisplay, backgroundBrush=self.sourceBrush)
             row += 1
@@ -2688,7 +2688,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 value = matchedFeature.attribute(fieldName)
 
                 # Property name
-                prettyName = utils.getFieldPrettyName(elementCategory, fieldName)
+                prettyName = utils.getProperty(normalize_element(elementCategory), fieldName)
                 propertyItem = QTableWidgetItem(prettyName)
                 propertyItem.setToolTip(prettyName)
 
@@ -2700,7 +2700,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                         numValue = float(value)
                         if fieldName == "Flow":
                             numValue = abs(numValue)
-                        decimals = utils.getFieldDecimals(elementCategory, fieldName, default=2)
+                        decimals = utils.getDecimals(normalize_element(elementCategory), fieldName, default=2)
                         displayValue = f"{numValue:.{decimals}f}"
                     except (ValueError, TypeError):
                         displayValue = str(value)
@@ -2709,7 +2709,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                 valueItem.setToolTip(displayValue)
 
                 # Units
-                fieldUnit = utils.getResultPropertyUnit(resultCategory, fieldName)
+                fieldUnit = utils.getUnitAbbreviation(normalize_element(resultCategory), fieldName)
                 unitDisplay = fieldUnit if fieldUnit and fieldUnit != "-" else ""
                 unitItem = QTableWidgetItem(unitDisplay)
                 unitItem.setTextAlignment(Qt.AlignmentFlag.AlignCenter)

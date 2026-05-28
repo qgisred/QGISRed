@@ -10,7 +10,7 @@ from qgis.PyQt import uic
 from qgis.core import QgsApplication
 
 from ...compat import DIALOG_ACCEPTED
-from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
+from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 
 from .qgisred_timeseries_axis_dialog import TimeSeriesAxisOptionsDialog
@@ -1543,7 +1543,10 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         if series_dict.get("y_categorical_labels"):
             return None
         try:
-            return QGISRedFieldUtils().getResultPropertyDecimalsFromSeriesKey(series_dict.get("series_key"))
+            parts = str(series_dict.get("series_key") or "").split(":")
+            if len(parts) < 3 or not parts[2]:
+                return None
+            return QGISRedFieldUtils().getDecimals(normalize_element(parts[0]), parts[2])
         except Exception:
             return None
 

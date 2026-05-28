@@ -8,7 +8,7 @@ concentration units, etc.) without requiring a running QGIS instance.
 import pytest
 from unittest.mock import MagicMock, patch
 
-from QGISRed.tools.utils.qgisred_field_utils import QGISRedFieldUtils
+from QGISRed.tools.utils.qgisred_field_utils import QGISRedFieldUtils, resolve_layer_id, normalize_element
 
 
 # ---------------------------------------------------------------------------
@@ -44,13 +44,27 @@ def clear_cache():
 
 @pytest.fixture
 def fu():
-    # __init__ calls getUnits() immediately, so QgsProject must be mocked
-    # before the instance is created.
     with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
         MockProj.instance.return_value = _make_project("LPS")
         instance = QGISRedFieldUtils()
-    # After construction the mock is released; individual tests re-patch as needed.
     return instance
+
+
+# ---------------------------------------------------------------------------
+# resolve_layer_id  (module-level helper)
+# ---------------------------------------------------------------------------
+class TestResolveLayerId:
+    def test_known_layer_returns_tuple(self, fu):
+        assert resolve_layer_id("qgisred_query_pipes_length") == ("Pipes", "Length")
+
+    def test_known_result_layer(self, fu):
+        assert resolve_layer_id("qgisred_results_node_pressure") == ("Nodes", "Pressure")
+
+    def test_unknown_layer_returns_none(self, fu):
+        assert resolve_layer_id("qgisred_query_unknown") is None
+
+    def test_empty_string_returns_none(self, fu):
+        assert resolve_layer_id("") is None
 
 
 # ---------------------------------------------------------------------------
@@ -119,17 +133,14 @@ class TestResolveAbbr:
             assert fu._resolveAbbr("See MassUnits/min") == "mg/min"
 
     def test_composite_flow_and_pressure(self, fu):
-        """Emitter coefficient: See FlowUnits/sqr(See PressUnits)"""
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS")
-            result = fu._resolveAbbr("See FlowUnits/sqr(See PressUnits)")
-            assert result == "lps/√m"
+            assert fu._resolveAbbr("See FlowUnits/sqr(See PressUnits)") == "lps/√m"
 
     def test_composite_flow_and_pressure_us(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("GPM")
-            result = fu._resolveAbbr("See FlowUnits/sqr(See PressUnits)")
-            assert result == "gpm/√psi"
+            assert fu._resolveAbbr("See FlowUnits/sqr(See PressUnits)") == "gpm/√psi"
 
     def test_sqr_replaced_with_sqrt_symbol(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
@@ -236,7 +247,6 @@ class TestCsvLoading:
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project()
             row = fu._getRowByCondition("Pipes", "WallCoeff", "0")
-            # order-0: mass/L/day units (expressed as "See MassUnits/L/day" in the CSV)
             assert "See MassUnits" in row["si_abbr"]
 
     def test_wall_coeff_condition_1(self, fu):
@@ -254,7 +264,6 @@ class TestCsvLoading:
     def test_nodes_pressure_condition_kpa(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project()
-            # Pressure options moved to Global/PressUnits; Nodes/Pressure now references See PressUnits
             row = fu._getRowByCondition("Global", "PressUnits", "KPA")
             assert row["si_abbr"] == "kPa"
 
@@ -262,7 +271,6 @@ class TestCsvLoading:
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project()
             row = fu._getRowByCondition("Pipes", "Length", "nonexistent")
-            # Fallback: first unconditional row for Pipes/Length
             assert row["si_abbr"] == "m"
 
     def test_pretty_names_loaded(self, fu):
@@ -281,138 +289,125 @@ class TestCsvLoading:
 
 
 # ---------------------------------------------------------------------------
-# Public API: getUnitAbbreviationForLayer
+# Main public API: getUnitAbbreviation
 # ---------------------------------------------------------------------------
-class TestGetUnitAbbreviationForLayer:
-    def test_pipes_length_si(self, fu):
+class TestGetUnitAbbreviation:
+    # Via resolve_layer_id (replaces old getUnitAbbreviationForLayer)
+    def test_pipes_length_si_via_layer_id(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS")
-            assert fu.getUnitAbbreviationForLayer("qgisred_query_pipes_length") == "m"
+            el, field = resolve_layer_id("qgisred_query_pipes_length")
+            assert fu.getUnitAbbreviation(el, field) == "m"
 
-    def test_pipes_length_us(self, fu):
+    def test_pipes_length_us_via_layer_id(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("GPM")
-            assert fu.getUnitAbbreviationForLayer("qgisred_query_pipes_length") == "ft"
+            el, field = resolve_layer_id("qgisred_query_pipes_length")
+            assert fu.getUnitAbbreviation(el, field) == "ft"
 
-    def test_unknown_layer_returns_empty(self, fu):
-        with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
-            MockProj.instance.return_value = _make_project()
-            assert fu.getUnitAbbreviationForLayer("qgisred_query_unknown") == ""
-
-    def test_empty_layer_id(self, fu):
-        assert fu.getUnitAbbreviationForLayer("") == ""
-
-
-# ---------------------------------------------------------------------------
-# Public API: getResultPropertyUnit
-# ---------------------------------------------------------------------------
-class TestGetResultPropertyUnit:
+    # Direct (element, fieldName) calls — result properties
     def test_flow_lps(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS")
-            assert fu.getResultPropertyUnit("Link", "Flow") == "lps"
+            assert fu.getUnitAbbreviation("Links", "Flow") == "lps"
 
     def test_flow_gpm(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("GPM")
-            assert fu.getResultPropertyUnit("Link", "Flow") == "gpm"
+            assert fu.getUnitAbbreviation("Links", "Flow") == "gpm"
 
     def test_flow_mld(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("MLD")
-            assert fu.getResultPropertyUnit("Link", "Flow") == "mld"
+            assert fu.getUnitAbbreviation("Links", "Flow") == "mld"
 
     def test_velocity_si(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS")
-            assert fu.getResultPropertyUnit("Link", "Velocity") == "m/s"
+            assert fu.getUnitAbbreviation("Links", "Velocity") == "m/s"
 
     def test_velocity_us(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("GPM")
-            assert fu.getResultPropertyUnit("Link", "Velocity") == "ft/s"
+            assert fu.getUnitAbbreviation("Links", "Velocity") == "ft/s"
 
     def test_pressure_si(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS")
-            assert fu.getResultPropertyUnit("Node", "Pressure") == "m"
+            assert fu.getUnitAbbreviation("Nodes", "Pressure") == "m"
 
     def test_pressure_us(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("GPM")
-            assert fu.getResultPropertyUnit("Node", "Pressure") == "psi"
+            assert fu.getUnitAbbreviation("Nodes", "Pressure") == "psi"
 
     def test_demand_resolves_same_as_flow(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPM")
-            assert fu.getResultPropertyUnit("Node", "Demand") == "lpm"
+            assert fu.getUnitAbbreviation("Nodes", "Demand") == "lpm"
 
-    def test_unknown_property_returns_empty(self, fu):
+    def test_unknown_field_returns_empty(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project()
-            assert fu.getResultPropertyUnit("Node", "Unknown") == ""
+            assert fu.getUnitAbbreviation("Nodes", "Unknown") == ""
+
+    # Callers must normalise singular names via normalize_element() first
+    def test_singular_node_normalised(self, fu):
+        with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project("LPS")
+            assert fu.getUnitAbbreviation(normalize_element("Node"), "Pressure") == "m"
+
+    def test_singular_link_normalised(self, fu):
+        with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project("LPS")
+            assert fu.getUnitAbbreviation(normalize_element("Link"), "Flow") == "lps"
+
+    # Callers must normalise QGIS layer identifiers via normalize_element() first
+    def test_qgis_identifier_normalised(self, fu):
+        with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project("LPS")
+            assert fu.getUnitAbbreviation(normalize_element("qgisred_pipes"), "Length") == "m"
 
 
 # ---------------------------------------------------------------------------
-# Public API: getResultPropertyDecimals
+# Main public API: getDecimals
 # ---------------------------------------------------------------------------
-class TestGetResultPropertyDecimals:
+class TestGetDecimals:
     def test_flow_uses_project_flow_unit_decimals(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPM")
-            assert fu.getResultPropertyDecimals("Link", "Flow") == 1
+            assert fu.getDecimals("Link", "Flow") == 1
 
     def test_demand_uses_project_flow_unit_decimals(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("GPM")
-            assert fu.getResultPropertyDecimals("Node", "Demand") == 1
+            assert fu.getDecimals("Node", "Demand") == 1
 
     def test_pressure_uses_project_pressure_decimals(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS")
-            assert fu.getResultPropertyDecimals("Node", "Pressure") == 2
+            assert fu.getDecimals("Node", "Pressure") == 2
 
     def test_quality_uses_quality_model_decimals(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS", "mg/L", "Trace")
-            assert fu.getResultPropertyDecimals("Node", "Quality") == 1
+            assert fu.getDecimals(normalize_element("Node"), "Quality") == 1
 
     def test_unknown_property_returns_default(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project()
-            assert fu.getResultPropertyDecimals("Node", "Unknown", default=4) == 4
+            assert fu.getDecimals("Node", "Unknown", default=4) == 4
 
-
-# ---------------------------------------------------------------------------
-# _getCurrencyAbbr — unitSystem branch
-# ---------------------------------------------------------------------------
-class TestGetCurrencyAbbr:
-    def test_uses_si_abbr_for_si_project(self, fu):
-        fake_row = {"si_abbr": "$_si", "us_abbr": "$_us"}
+    def test_pipes_diameter_si(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS")
-            with patch.object(fu, "_getFirstRow", return_value=fake_row):
-                assert fu._getCurrencyAbbr() == "$_si"
-
-    def test_uses_us_abbr_for_us_project(self, fu):
-        fake_row = {"si_abbr": "$_si", "us_abbr": "$_us"}
-        with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
-            MockProj.instance.return_value = _make_project("GPM")
-            with patch.object(fu, "_getFirstRow", return_value=fake_row):
-                assert fu._getCurrencyAbbr() == "$_us"
-
-    def test_no_row_returns_empty(self, fu):
-        with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
-            MockProj.instance.return_value = _make_project()
-            with patch.object(fu, "_getFirstRow", return_value={}):
-                assert fu._getCurrencyAbbr() == ""
+            assert fu.getDecimals("Pipes", "Diameter") == 1
 
 
 # ---------------------------------------------------------------------------
 # Quality model-aware unit resolution
 # ---------------------------------------------------------------------------
 class TestQualityModel:
-    # _getQualityResultAbbr
     def test_result_quality_chemical_returns_mass_abbr(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS", "mg/L", "Chemical")
@@ -434,7 +429,6 @@ class TestQualityModel:
             assert fu._getQualityResultAbbr("Nodes") == ""
 
     def test_result_quality_custom_model_treated_as_chemical(self, fu):
-        """Any model name other than None/Trace/Age is treated as Chemical."""
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS", "mg/L", "Chlorine")
             assert fu._getQualityResultAbbr("Nodes") == "mg/L"
@@ -444,7 +438,6 @@ class TestQualityModel:
             MockProj.instance.return_value = _make_project("LPS", "mg/L", "Chemical")
             assert fu._getQualityResultAbbr("Links") == "mg/L"
 
-    # _getIniQualityAbbr
     def test_ini_quality_chemical_returns_mass_abbr(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS", "mg/L", "Chemical")
@@ -465,18 +458,42 @@ class TestQualityModel:
             MockProj.instance.return_value = _make_project("LPS", "mg/L", "None")
             assert fu._getIniQualityAbbr("Junctions") == ""
 
-    # getResultPropertyUnit integration
-    def test_get_result_property_unit_quality_chemical(self, fu):
+    def test_get_unit_abbreviation_quality_chemical(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS", "mg/L", "Chemical")
-            assert fu.getResultPropertyUnit("Node", "Quality") == "mg/L"
+            assert fu.getUnitAbbreviation("Nodes", "Quality") == "mg/L"
 
-    def test_get_result_property_unit_quality_trace(self, fu):
+    def test_get_unit_abbreviation_quality_trace(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS", "mg/L", "Trace")
-            assert fu.getResultPropertyUnit("Node", "Quality") == "%"
+            assert fu.getUnitAbbreviation("Nodes", "Quality") == "%"
 
-    def test_get_result_property_unit_quality_age(self, fu):
+    def test_get_unit_abbreviation_quality_age(self, fu):
         with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS", "mg/L", "Age")
-            assert fu.getResultPropertyUnit("Node", "Quality") == "hr"
+            assert fu.getUnitAbbreviation("Nodes", "Quality") == "hr"
+
+
+# ---------------------------------------------------------------------------
+# _getCurrencyAbbr
+# ---------------------------------------------------------------------------
+class TestGetCurrencyAbbr:
+    def test_uses_si_abbr_for_si_project(self, fu):
+        fake_row = {"si_abbr": "$_si", "us_abbr": "$_us"}
+        with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project("LPS")
+            with patch.object(fu, "_getFirstRow", return_value=fake_row):
+                assert fu._getCurrencyAbbr() == "$_si"
+
+    def test_uses_us_abbr_for_us_project(self, fu):
+        fake_row = {"si_abbr": "$_si", "us_abbr": "$_us"}
+        with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project("GPM")
+            with patch.object(fu, "_getFirstRow", return_value=fake_row):
+                assert fu._getCurrencyAbbr() == "$_us"
+
+    def test_no_row_returns_empty(self, fu):
+        with patch("QGISRed.tools.utils.qgisred_field_utils.QgsProject") as MockProj:
+            MockProj.instance.return_value = _make_project()
+            with patch.object(fu, "_getFirstRow", return_value={}):
+                assert fu._getCurrencyAbbr() == ""
