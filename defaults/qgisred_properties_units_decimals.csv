@@ -141,7 +141,7 @@ Meters,InstDate,Installation Date,Year as Text,,,Year as Text,,,,
 Meters,Age,Age,Years,yr,1,Years,yr,1,,
 Meters,Tag,Tag,Text,,,Text,,,,
 Meters,Descrip,Description,Text,,,Text,,,,
-Nodes,Id,Indentifier,Text,,,Text,,,,
+Nodes,Id,Identifier,Text,,,Text,,,,
 Nodes,Type,Element Type,Text,,,Text,,,,
 Nodes,Time,Simulation Time,Time as Text,,,Time as Text,,,,
 Nodes,Pressure,Pressure,See PressUnits,See PressUnits,,See PressUnits,See PressUnits,,,
@@ -154,7 +154,7 @@ Nodes,EmittFlow,Emitter Flow,See FlowUnits,See FlowUnits,,See FlowUnits,See Flow
 Nodes,Quality,Chemical ,Mass/Liter,See MassUnits/L,2,mass/Liter,See MassUnits/L,2,Chemical,Quality model
 Nodes,Quality,Trace,Percent,%,1,Percent,%,1,Trace,Quality model
 Nodes,Quality,Age,Hours,hr,1,Hours,hr,1,Age,Quality model
-Links,Id,Indentifier,Text,,,Text,,,,
+Links,Id,Identifier,Text,,,Text,,,,
 Links,Type,Element Type,Text,,,Text,,,,
 Links,Time,Simulation Time,Time as Text,,,Time as Text,,,,
 Links,Status,Status,Text,,,Text,,,,
