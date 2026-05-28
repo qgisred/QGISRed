@@ -83,7 +83,7 @@ Curves,Yvalue,Value Y axis,See PressUnits,See PressUnits,,See PressUnits,See Pre
 Curves,XValue,Value X axis,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,Efficiency,Curve type
 Curves,Yvalue,Value Y axis,Percent,%,1,Percent,%,1,Efficiency,Curve type
 Curves,XValue,Value X axis,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,HeadLoss,Curve type
-Curves,Yvalue,Value Y axis,Meters water colum ,m,2,Feet,ft,2,HeadLoss,Curve type
+Curves,Yvalue,Value Y axis,Meters water column ,m,2,Feet,ft,2,HeadLoss,Curve type
 Curves,XValue,Value X axis,Unitless,,2,Unitless,,2,Generic,Curve type
 Curves,Yvalue,Value Y axis,Unitless,,2,Unitless,,2,Generic,Curve type
 Curves,Xvalue,Value X axis,Percent,%,1,Percent,%,1,Valve,Curve type. Not yet available
@@ -160,7 +160,7 @@ Links,Time,Simulation Time,Time as Text,,,Time as Text,,,,
 Links,Status,Status,Text,,,Text,,,,
 Links,Flow,Flow,See FlowUnits,See FlowUnits,,See FlowUnits,See FlowUnits,,,
 Links,Velocity,Velocity,Meters/second,m/s,2,feet/second,ft/s,2,,
-Links,HeadLoss,HeadLoss,Meters water colum ,m,2,Feet,ft,2,,
+Links,HeadLoss,HeadLoss,Meters water column ,m,2,Feet,ft,2,,
 Links,UnitHdLoss,Unit HeadLoss,Meters per 1000 m,m/Km,2,Feet per 1000 ft,ft/Kft,2,,
 Links,FricFactor,Friction factor,Unitless,,3,Unitless,,3,,
 Links,Energy,Energy,Kilowatt - hours,kWh,2,Kilowatt - hours,kWh,2,,
@@ -179,10 +179,10 @@ Global,FlowUnits,FlowUnits,,,,Gallons/min,gpm,1,GPM,
 Global,FlowUnits,FlowUnits,,,,Million gal/day,mgd,2,MGD,
 Global,FlowUnits,FlowUnits,,,,Imperial MGD,imgd,2,IMGD,
 Global,FlowUnits,FlowUnits,,,,Acre-feet/day,afd,2,AFD,
-Global,PressUnits,PressureUnits,Meters water colum ,m,2,,,,METERS,
+Global,PressUnits,PressureUnits,Meters water column ,m,2,,,,METERS,
 Global,PressUnits,PressureUnits,,,,Pounds/ sq inch,psi,2,PSI,
 Global,PressUnits,PressureUnits,KiloPascals,kPa,1,,,,KPA,Not yet available
-Global,PressUnits,PressureUnits,,,,Feet water colum,ft,2,FEET,Not yet available
+Global,PressUnits,PressureUnits,,,,Feet water column,ft,2,FEET,Not yet available
 Global,PressUnits,PressureUnits,bars,bar,3,,,,BAR,Not yet available
 Global,MassUnits,MassUnits,Miligrams,mg,2,Miligrams,mg,2,mg/L,Concentration units
 Global,MassUnits,MassUnits,Micrograms,µg,2,Micrograms,µg,2,ug/L,Concentration units
