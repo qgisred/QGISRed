@@ -1275,6 +1275,14 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             # Keep all columns sized by their own content/title; do not stretch
             # the last one (it made the third column look disproportionately wide).
             table.horizontalHeader().setStretchLastSection(False)
+            # Keep header text always bold (independent of hover/selection state).
+            try:
+                hdr_font = table.horizontalHeader().font()
+                hdr_font.setBold(True)
+                table.horizontalHeader().setFont(hdr_font)
+            except Exception:
+                pass
+            table.horizontalHeader().setStyleSheet("QHeaderView::section { font-weight: 700; }")
             try:
                 table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
             except Exception:
