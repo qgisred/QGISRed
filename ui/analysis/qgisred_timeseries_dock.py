@@ -1271,11 +1271,9 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
             table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
             table.setSortingEnabled(False)
+            table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
             table.verticalHeader().setVisible(False)
-            # Keep all columns sized by their own content/title; do not stretch
-            # the last one (it made the third column look disproportionately wide).
             table.horizontalHeader().setStretchLastSection(False)
-            # Keep header text always bold (independent of hover/selection state).
             try:
                 hdr_font = table.horizontalHeader().font()
                 hdr_font.setBold(True)
@@ -1315,7 +1313,14 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         if self._tableVisible:
             table.show()
             try:
-                self._fitTablePaneToContents()
+                series_count = self._tableSeriesCountForLayout()
+                if series_count > 2:
+                    total_w = max(1, int(self.width()))
+                    right_w = min(max(240, int(total_w * 0.18)), 320)
+                    left_w = max(200, total_w - right_w)
+                    self._splitter.setSizes([left_w, right_w])
+                else:
+                    self._fitTablePaneToContents()
             except Exception:
                 pass
             btn_sync = getattr(self, "btnSyncTable", None)
@@ -1343,6 +1348,18 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             btn.setChecked(False)
             self._syncTableToCursor = False
             self._syncCursorToTable = False
+
+    def _tableSeriesCountForLayout(self) -> int:
+        table = getattr(self, "_table", None)
+        if table is not None:
+            try:
+                return max(0, int(table.columnCount()) - 2)
+            except Exception:
+                pass
+        try:
+            return max(0, len(getattr(self.plot, "series", []) or []))
+        except Exception:
+            return 0
 
     def _tableRequiredWidth(self) -> int:
         table = getattr(self, "_table", None)
@@ -1520,7 +1537,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             except Exception:
                 pass
             self._tableAutoSizedSignature = current_signature
-            if self._tableVisible:
+            if self._tableVisible and self._tableSeriesCountForLayout() <= 2:
                 try:
                     self._fitTablePaneToContents()
                     prev_sizes = None
