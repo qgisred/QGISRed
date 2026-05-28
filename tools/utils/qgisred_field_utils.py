@@ -5,24 +5,9 @@ import csv as _csv
 import shutil
 
 from qgis.PyQt.QtCore import QCoreApplication
+from qgis.core import QgsMessageLog, Qgis
 from .qgisred_filesystem_utils import QGISRedFileSystemUtils
 from .qgisred_project_utils import QGISRedProjectUtils
-from qgis.core import QgsMessageLog, Qgis
-
-
-_COMMON_PRETTY_NAMES = {
-    "Id":      "Identifier",
-    "Tag":     "Tag",
-    "Descrip": "Description",
-}
-
-_NON_CHEMICAL_MODELS = frozenset({"none", "trace", "age"})
-
-# Fields that are only meaningful for Chemical quality simulations.
-_CHEMICAL_ONLY_FIELDS = frozenset({"IniQuality", "ReactRate"})
-
-_SUPERSCRIPT_TRANSLATION = str.maketrans("0123456789/", "⁰¹²³⁴⁵⁶⁷⁸⁹ᐟ")
-
 
 # Maps QGIS input-layer identifiers to canonical element names used in the CSV.
 IDENTIFIER_TO_ELEMENT = {
@@ -150,6 +135,15 @@ LAYER_ID_TO_FIELD = {
     'qgisred_results_link_reactrate':                ('Links', 'ReactRate'),
 }
 
+_COMMON_PRETTY_NAMES = {
+    "Id":      "Identifier",
+    "Tag":     "Tag",
+    "Descrip": "Description",
+}
+_NON_CHEMICAL_MODELS = frozenset({"none", "trace", "age"})
+_CHEMICAL_ONLY_FIELDS = frozenset({"IniQuality", "ReactRate"})
+_SUPERSCRIPT_TRANSLATION = str.maketrans("0123456789/", "⁰¹²³⁴⁵⁶⁷⁸⁹ᐟ")
+
 def normalize_element(element: str) -> str:
     """Return the canonical element name used in the CSV for any identifier form.
 
@@ -246,35 +240,6 @@ class QGISRedFieldUtils:
         prop = prettyNames.get("Common", {}).get(fieldName, fieldName)
         return QCoreApplication.translate("FieldPrettyNames", prop) if translate else prop
 
-    def _resolveRow(self, element: str, fieldName: str) -> dict:
-        """Return the CSV row for (element, fieldName) given current project settings.
-
-        Returns {} if the field is inapplicable for the current project configuration
-        (e.g. IniQuality / ReactRate when quality model is not Chemical, or Quality
-        when quality model is None).
-        All condition-dependent lookups (flow unit, pressure unit, quality model,
-        headloss formula) are resolved here so callers only need to extract the column.
-        """
-        if fieldName in _CHEMICAL_ONLY_FIELDS:
-            if QGISRedProjectUtils.getQualityModel().lower() in _NON_CHEMICAL_MODELS:
-                return {}
-
-        if fieldName in ("Flow", "Demand"):
-            return self._getRowByCondition("Global", "FlowUnits", QGISRedProjectUtils.getFlowUnit())
-
-        if fieldName == "Pressure":
-            condVal = "METERS" if QGISRedProjectUtils.getUnits() == "SI" else "PSI"
-            return self._getRowByCondition("Global", "PressUnits", condVal)
-
-        if fieldName == "Quality":
-            modelLow = QGISRedProjectUtils.getQualityModel().lower()
-            if modelLow == "none":
-                return {}
-            condVal = modelLow.capitalize() if modelLow in ("trace", "age") else "Chemical"
-            return self._getRowByCondition(element, "Quality", condVal)
-
-        return self._getFirstRow(element, fieldName) or self._getFirstRowByProperty(element, fieldName)
-
     def getUnitAbbreviation(self, element: str, fieldName: str) -> str:
         """Return the unit abbreviation for a field, respecting SI/US project setting.
 
@@ -331,10 +296,6 @@ class QGISRedFieldUtils:
         """
         return self._rowDecimals(self._resolveRow(element, fieldName), default)
 
-    # ------------------------------------------------------------------ #
-    # Additional public methods                                            #
-    # ------------------------------------------------------------------ #
-
     def getFieldRawName(self, element: str, prettyName: str) -> str:
         """Return the raw field name for a given pretty display name (inverse of getProperty).
 
@@ -358,6 +319,9 @@ class QGISRedFieldUtils:
 
         return prettyName
 
+    # ------------------------------------------------------------------ #
+    # Additional public methods                                            #
+    # ------------------------------------------------------------------ #
 
     def isTextField(self, element: str, fieldName: str) -> bool:
         """Return True if the field holds text (no numeric formatting should be applied).
@@ -449,6 +413,34 @@ class QGISRedFieldUtils:
         QGISRedFieldUtils._unit_definitions = {"rows": rows, "prettyNames": prettyNames}
         return QGISRedFieldUtils._unit_definitions
 
+    def _resolveRow(self, element: str, fieldName: str) -> dict:
+        """Return the CSV row for (element, fieldName) given current project settings.
+
+        Returns {} if the field is inapplicable for the current project configuration
+        (e.g. IniQuality / ReactRate when quality model is not Chemical, or Quality
+        when quality model is None).
+        All condition-dependent lookups (flow unit, pressure unit, quality model,
+        headloss formula) are resolved here so callers only need to extract the column.
+        """
+        if fieldName in _CHEMICAL_ONLY_FIELDS:
+            if QGISRedProjectUtils.getQualityModel().lower() in _NON_CHEMICAL_MODELS:
+                return {}
+
+        if fieldName in ("Flow", "Demand"):
+            return self._getRowByCondition("Global", "FlowUnits", QGISRedProjectUtils.getFlowUnit())
+
+        if fieldName == "Pressure":
+            condVal = "METERS" if QGISRedProjectUtils.getUnits() == "SI" else "PSI"
+            return self._getRowByCondition("Global", "PressUnits", condVal)
+
+        if fieldName == "Quality":
+            modelLow = QGISRedProjectUtils.getQualityModel().lower()
+            if modelLow == "none":
+                return {}
+            condVal = modelLow.capitalize() if modelLow in ("trace", "age") else "Chemical"
+            return self._getRowByCondition(element, "Quality", condVal)
+
+        return self._getFirstRow(element, fieldName) or self._getFirstRowByProperty(element, fieldName)
 
     def _getFirstRow(self, element, fieldName):
         """Return the CSV row matching (element, fieldName).
@@ -572,5 +564,4 @@ class QGISRedFieldUtils:
             return ""
         unitSystem = QGISRedProjectUtils.getUnits()
         return row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
-
 
