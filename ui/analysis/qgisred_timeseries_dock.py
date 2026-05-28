@@ -3,7 +3,20 @@ import csv
 import math
 import os
 from typing import List
-from qgis.PyQt.QtWidgets import QDockWidget, QVBoxLayout, QWidget, QHBoxLayout, QToolButton, QRubberBand, QFileDialog
+from qgis.PyQt.QtWidgets import (
+    QAbstractItemView,
+    QDockWidget,
+    QFileDialog,
+    QHBoxLayout,
+    QHeaderView,
+    QRubberBand,
+    QSplitter,
+    QTableWidget,
+    QTableWidgetItem,
+    QToolButton,
+    QVBoxLayout,
+    QWidget,
+)
 from qgis.PyQt.QtCore import QCoreApplication, QEvent, Qt, QPointF, QRect, QRectF, pyqtSignal, QSize
 from qgis.PyQt.QtGui import QColor, QFont, QPainter, QFontMetrics, QIcon, QPixmap
 from qgis.PyQt import uic
@@ -19,7 +32,12 @@ from .timeseries_plot_layout import PlotLayoutCalculator
 from .timeseries_legend_interaction import LegendInteractionController
 from .timeseries_plot_renderer import TimeSeriesPlotRenderer
 from .timeseries_plot_style import DEFAULT_SERIES_COLOR, LEGEND_ICON_SIZE, LEGEND_ROW_GAP, PLOT_TOP_PAD, qfont
-from .timeseries_time_utils import format_civil_time, format_elapsed_time, simulation_start_clock_seconds
+from .timeseries_time_utils import (
+    civil_time_parts,
+    format_civil_time,
+    format_elapsed_time,
+    simulation_start_clock_seconds,
+)
 
 try:
     from qgis.PyQt.QtSvg import QSvgGenerator
@@ -41,6 +59,7 @@ class TimeSeriesPlotWidget(QWidget):
     seriesEmphasisChanged = pyqtSignal(dict)
     viewChanged = pyqtSignal()
     zoomWindowModeChanged = pyqtSignal(bool)
+    cursorTimeChanged = pyqtSignal(float)
 
     def tr(self, message: str) -> str:
         return QCoreApplication.translate("TimeSeriesPlotWidget", message)
@@ -638,6 +657,10 @@ class TimeSeriesPlotWidget(QWidget):
             return
         self._synced_cursor_time_hours = value
         self.update()
+        try:
+            self.cursorTimeChanged.emit(float(value))
+        except Exception:
+            pass
 
     def clearSyncedCursor(self) -> None:
         if self._synced_cursor_time_hours is not None:
@@ -1051,6 +1074,10 @@ class TimeSeriesPlotWidget(QWidget):
                 self.hover_index = best_idx
                 self._hover_series_idx = hover_idx
                 self.update()
+                try:
+                    self.cursorTimeChanged.emit(float(xs[best_idx]))
+                except Exception:
+                    pass
         except ZeroDivisionError:
             pass
 
@@ -1069,21 +1096,27 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self._toolbarWidget = None
         self._resultsDock = None
         self._lastResultsTimeText = ""
+        self._tableVisible = False
+        self._syncTableToCursor = False
+        self._syncCursorToTable = False
+        self._tableSeconds = []
+        self._tableSecondsToRow = {}
+        self._tableUpdatingSelection = False
+        self._plotUpdatingCursor = False
+        self._tableAutoSizedSignature = None
 
         self._initToolbar()
         self._updateMinimumWidthForDockTitle()
         
         self.plot = TimeSeriesPlotWidget(self.chartContainer)
-        layout = QVBoxLayout(self.chartContainer)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.plot)
-        self.chartContainer.setLayout(layout)
+        self._initPlotAndTableLayout()
         self.plot.seriesOrderChanged.connect(self.seriesReordered)
         self.plot.seriesOrderChanged.connect(self._onSeriesOrderChanged)
         self.plot.seriesRemoved.connect(self.seriesRemoved)
         self.plot.seriesEmphasisChanged.connect(self.seriesEmphasisChanged)
         self.plot.viewChanged.connect(self._onPlotViewChanged)
         self.plot.zoomWindowModeChanged.connect(self._onPlotZoomWindowModeChanged)
+        self.plot.cursorTimeChanged.connect(self._onPlotCursorTimeChanged)
 
         self.lblTitle.hide()
         
@@ -1197,6 +1230,15 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self.btnExportCsv.clicked.connect(self._onExportCsvClicked)
             hl.addWidget(self.btnExportCsv, 0, Qt.AlignmentFlag.AlignLeft)
 
+            self.btnToggleTable = _make_btn("btnToggleTableTimeSeries", QIcon(":/images/iconTsExportCsv.svg"), self.tr("Show/Hide values table"), checkable=True)
+            self.btnToggleTable.toggled.connect(self._onToggleTableToggled)
+            hl.addWidget(self.btnToggleTable, 0, Qt.AlignmentFlag.AlignLeft)
+
+            self.btnSyncTable = _make_btn("btnSyncTableTimeSeries", QIcon(":/images/iconTsSyncCursor.svg"), self.tr("Sync cursor with selected table row"), checkable=True)
+            self.btnSyncTable.toggled.connect(self._onSyncTableToggled)
+            self.btnSyncTable.setEnabled(False)
+            hl.addWidget(self.btnSyncTable, 0, Qt.AlignmentFlag.AlignLeft)
+
             self.btnClearAll = _make_btn("btnClearAllTimeSeries", QIcon(":/images/iconTsClearAll.svg"), self.tr("Clear all curves"))
             self.btnClearAll.clicked.connect(self.clearAllRequested)
             hl.addWidget(self.btnClearAll, 0, Qt.AlignmentFlag.AlignLeft)
@@ -1208,6 +1250,346 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 self.verticalLayout.addWidget(container)
         except Exception:
             return
+
+    def _initPlotAndTableLayout(self) -> None:
+        try:
+            splitter = QSplitter(Qt.Orientation.Horizontal, self.chartContainer)
+            splitter.setChildrenCollapsible(False)
+            self._splitter = splitter
+
+            left = QWidget(splitter)
+            left_layout = QVBoxLayout(left)
+            left_layout.setContentsMargins(0, 0, 0, 0)
+            left_layout.addWidget(self.plot)
+            left.setLayout(left_layout)
+            self._plotPane = left
+
+            table = QTableWidget(splitter)
+            table.setObjectName("timeSeriesValuesTable")
+            table.setAlternatingRowColors(True)
+            table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+            table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+            table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+            table.setSortingEnabled(False)
+            table.verticalHeader().setVisible(False)
+            # Keep all columns sized by their own content/title; do not stretch
+            # the last one (it made the third column look disproportionately wide).
+            table.horizontalHeader().setStretchLastSection(False)
+            try:
+                table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+            except Exception:
+                pass
+            table.itemSelectionChanged.connect(self._onTableSelectionChanged)
+            self._table = table
+            table.hide()
+
+            layout = QVBoxLayout(self.chartContainer)
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.addWidget(splitter)
+            self.chartContainer.setLayout(layout)
+        except Exception:
+            layout = QVBoxLayout(self.chartContainer)
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.addWidget(self.plot)
+            self.chartContainer.setLayout(layout)
+            self._splitter = None
+            self._plotPane = None
+            self._table = None
+
+    def _onToggleTableToggled(self, checked: bool) -> None:
+        self._setTableVisible(bool(checked))
+
+    def _setTableVisible(self, visible: bool) -> None:
+        self._tableVisible = bool(visible)
+        table = getattr(self, "_table", None)
+        if table is None:
+            return
+        if self._tableVisible:
+            table.show()
+            try:
+                self._fitTablePaneToContents()
+            except Exception:
+                pass
+            btn_sync = getattr(self, "btnSyncTable", None)
+            if btn_sync is not None and btn_sync.isEnabled() and not btn_sync.isChecked():
+                btn_sync.setChecked(True)
+        else:
+            table.hide()
+        self._updateTableSyncAvailability()
+
+    def _onSyncTableToggled(self, checked: bool) -> None:
+        self._syncTableToCursor = bool(checked)
+        self._syncCursorToTable = bool(checked)
+        if self._syncTableToCursor:
+            self._onTableSelectionChanged()
+
+    def _updateTableSyncAvailability(self) -> None:
+        btn = getattr(self, "btnSyncTable", None)
+        if btn is None:
+            return
+        can = bool(self._tableVisible and self._plotHasCurves() and getattr(self, "_table", None) is not None and bool(self._tableSeconds))
+        btn.setEnabled(can)
+        if can and self._tableVisible and not btn.isChecked():
+            btn.setChecked(True)
+        if not can and btn.isChecked():
+            btn.setChecked(False)
+            self._syncTableToCursor = False
+            self._syncCursorToTable = False
+
+    def _tableRequiredWidth(self) -> int:
+        table = getattr(self, "_table", None)
+        if table is None:
+            return 280
+        try:
+            cols = int(table.columnCount())
+        except Exception:
+            cols = 0
+        if cols <= 0:
+            return 280
+        total = 0
+        for c in range(cols):
+            try:
+                total += int(table.columnWidth(c))
+            except Exception:
+                pass
+        try:
+            total += int(table.frameWidth()) * 2
+        except Exception:
+            pass
+        try:
+            total += int(table.verticalScrollBar().sizeHint().width())
+        except Exception:
+            total += 16
+        # Padding for grid + header margins.
+        total += 20
+        return max(240, total)
+
+    def _fitTablePaneToContents(self) -> None:
+        splitter = getattr(self, "_splitter", None)
+        if splitter is None:
+            return
+        total_w = max(1, int(self.width()))
+        # Reserve enough width for chart interaction area.
+        max_right = max(240, total_w - 280)
+        desired_right = min(self._tableRequiredWidth(), max_right)
+        desired_left = max(200, total_w - desired_right)
+        splitter.setSizes([desired_left, desired_right])
+
+    @staticmethod
+    def _format_elapsed_hhmm(hours: float) -> str:
+        try:
+            total_seconds = int(round(float(hours) * 3600.0))
+        except Exception:
+            return ""
+        sign = "-" if total_seconds < 0 else ""
+        abs_s = abs(total_seconds)
+        total_h = abs_s // 3600
+        mm = (abs_s % 3600) // 60
+        return f"{sign}{int(total_h)}:{int(mm):02d}"
+
+    def _format_elapsed_time_col1(self, hours: float) -> str:
+        cfg = getattr(self.plot, "_axis_cfg_x", None)
+        hour_format = (getattr(cfg, "x_hour_format", "") or "hm").strip()
+        if hour_format == "h":
+            try:
+                h = float(hours)
+            except Exception:
+                return ""
+            if not math.isfinite(h):
+                return ""
+            return f"{h:.2f}"
+        return self._format_elapsed_hhmm(hours)
+
+    def _format_civil_time_col2(self, hours: float) -> str:
+        start_clock = int(getattr(self.plot, "_start_clock_seconds", 0) or 0)
+        parts = civil_time_parts(hours, start_clock)
+        if parts is None:
+            return ""
+        d, h24, m, s = parts
+        suffix = "am" if int(h24) < 12 else "pm"
+        h12 = int(h24) % 12 or 12
+        if int(s) != 0:
+            tod = f"{h12}:{int(m):02d}:{int(s):02d}{suffix}"
+        elif int(m) != 0:
+            tod = f"{h12}:{int(m):02d}{suffix}"
+        else:
+            tod = f"{h12}{suffix}"
+        return f"{int(d)}d {tod}" if int(d) > 0 else tod
+
+    def _series_column_header(self, series_dict) -> str:
+        try:
+            element_id, element_type = self._seriesElementInfo(series_dict)
+        except Exception:
+            element_id, element_type = ("", "")
+        magnitude = (series_dict.get("magnitude") or "").strip()
+        left = " ".join([t for t in [element_type, element_id] if t]).strip()
+        if left and magnitude:
+            return f"{left} - {magnitude}"
+        return left or magnitude or (series_dict.get("label") or "").strip() or self.tr("Value")
+
+    def _rebuildValuesTable(self) -> None:
+        table = getattr(self, "_table", None)
+        if table is None:
+            return
+        splitter = getattr(self, "_splitter", None)
+        prev_sizes = None
+        if splitter is not None and self._tableVisible:
+            try:
+                prev_sizes = list(splitter.sizes())
+            except Exception:
+                prev_sizes = None
+        self._tableSeconds = []
+        self._tableSecondsToRow = {}
+
+        if not self._plotHasCurves():
+            table.setRowCount(0)
+            table.setColumnCount(0)
+            self._updateTableSyncAvailability()
+            return
+
+        base_series = None
+        for s in self.plot.series or []:
+            if self.plot._seriesIsDrawn(s):
+                base_series = s
+                break
+        if base_series is None:
+            table.setRowCount(0)
+            table.setColumnCount(0)
+            self._updateTableSyncAvailability()
+            return
+
+        xs = list(base_series.get("x", []) or [])
+        if not xs:
+            table.setRowCount(0)
+            table.setColumnCount(0)
+            self._updateTableSyncAvailability()
+            return
+
+        drawn_series = [s for s in (self.plot.series or []) if self.plot._seriesIsDrawn(s)]
+        col_count = 2 + len(drawn_series)
+        table.setColumnCount(col_count)
+
+        headers = [
+            self.tr("Time (h)"),
+            self.tr("Time of day"),
+        ] + [self._series_column_header(s) for s in drawn_series]
+        table.setHorizontalHeaderLabels(headers)
+        current_signature = tuple(headers)
+
+        _start_clock_seconds = int(getattr(self.plot, "_start_clock_seconds", 0) or 0)
+        table.setRowCount(len(xs))
+        for row, xh in enumerate(xs):
+            try:
+                sec = int(round(float(xh) * 3600.0))
+            except Exception:
+                sec = None
+            if sec is not None:
+                self._tableSeconds.append(sec)
+                if sec not in self._tableSecondsToRow:
+                    self._tableSecondsToRow[sec] = row
+
+            it0 = QTableWidgetItem(self._format_elapsed_time_col1(xh))
+            it0.setTextAlignment(int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter))
+            table.setItem(row, 0, it0)
+
+            _ = _start_clock_seconds
+            it1 = QTableWidgetItem(self._format_civil_time_col2(xh))
+            it1.setTextAlignment(int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter))
+            table.setItem(row, 1, it1)
+
+            for j, s in enumerate(drawn_series):
+                ys = s.get("y", []) or []
+                v = ys[row] if row < len(ys) else None
+                display_v = self._seriesDisplayValue(s, v)
+                cell_txt = "" if display_v is None else str(display_v)
+                item = QTableWidgetItem(cell_txt)
+                item.setTextAlignment(int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter))
+                table.setItem(row, 2 + j, item)
+
+        if current_signature != self._tableAutoSizedSignature:
+            try:
+                table.resizeColumnsToContents()
+            except Exception:
+                pass
+            self._tableAutoSizedSignature = current_signature
+            if self._tableVisible:
+                try:
+                    self._fitTablePaneToContents()
+                    prev_sizes = None
+                except Exception:
+                    pass
+
+        if prev_sizes:
+            try:
+                splitter.setSizes(prev_sizes)
+            except Exception:
+                pass
+        self._updateTableSyncAvailability()
+
+    def _onTableSelectionChanged(self) -> None:
+        if not self._syncTableToCursor:
+            return
+        if self._tableUpdatingSelection or self._plotUpdatingCursor:
+            return
+        table = getattr(self, "_table", None)
+        if table is None:
+            return
+        rows = table.selectionModel().selectedRows() if table.selectionModel() is not None else []
+        if not rows:
+            return
+        try:
+            row = int(rows[0].row())
+        except Exception:
+            return
+        if row < 0 or row >= len(self._tableSeconds):
+            try:
+                base = None
+                for s in self.plot.series or []:
+                    if self.plot._seriesIsDrawn(s):
+                        base = s
+                        break
+                if base is None:
+                    return
+                xs = base.get("x", []) or []
+                if not (0 <= row < len(xs)):
+                    return
+                hours = float(xs[row])
+            except Exception:
+                return
+        else:
+            try:
+                hours = float(self._tableSeconds[row]) / 3600.0
+            except Exception:
+                return
+        self._plotUpdatingCursor = True
+        try:
+            self.plot.setSyncedCursorTimeHours(hours)
+        finally:
+            self._plotUpdatingCursor = False
+
+    def _onPlotCursorTimeChanged(self, hours: float) -> None:
+        if not (self._tableVisible and self._syncCursorToTable):
+            return
+        if self._tableUpdatingSelection or self._plotUpdatingCursor:
+            return
+        table = getattr(self, "_table", None)
+        if table is None:
+            return
+        try:
+            sec = int(round(float(hours) * 3600.0))
+        except Exception:
+            return
+        row = self._tableSecondsToRow.get(sec)
+        if row is None:
+            return
+        self._tableUpdatingSelection = True
+        try:
+            table.selectRow(int(row))
+            table.scrollToItem(table.item(int(row), 0), QAbstractItemView.ScrollHint.PositionAtCenter)
+        except Exception:
+            pass
+        finally:
+            self._tableUpdatingSelection = False
 
     def _onPanToggled(self, checked: bool) -> None:
         if hasattr(self, "btnZoomWindow") and self.btnZoomWindow is not None and checked and self.btnZoomWindow.isChecked():
@@ -1258,7 +1640,6 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self.plot.clearSyncedCursor()
 
     def _onAxisOptionsClicked(self) -> None:
-        # Keep a stable top-level parent even when this dock is floating.
         dlg = TimeSeriesAxisOptionsDialog(self.plot, self.iface.mainWindow())
         if dlg.exec() == DIALOG_ACCEPTED:
             self._emitCurveSettingsChanged()
@@ -1269,6 +1650,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 if hasattr(self, "btnZoomWindow") and self.btnZoomWindow is not None and self.btnZoomWindow.isChecked():
                     self.btnZoomWindow.setChecked(False)
                 self.plot.setZoomWindowMode(False)
+            self._rebuildValuesTable()
         self._updateClearToolbarVisibility()
         self._updatePanAvailability()
 
@@ -1334,6 +1716,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self.plot._axis_cfg_x.x_hour_format = "elapsed_hm"
             self.plot._axis_cfg_x.x_day_format = "total_hours" if continuous else "split_days"
         self.plot.update()
+        self._rebuildValuesTable()
 
     def _syncCurrentResultsTime(self) -> None:
         time_text = self._lastResultsTimeText
@@ -1708,11 +2091,18 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             btn = getattr(self, btn_name, None)
             if btn is not None:
                 btn.setEnabled(bool(has_curves))
+        toggle_btn = getattr(self, "btnToggleTable", None)
+        if toggle_btn is not None:
+            toggle_btn.setEnabled(bool(has_curves))
+            if not has_curves and toggle_btn.isChecked():
+                toggle_btn.setChecked(False)
+                self._setTableVisible(False)
         sync_btn = getattr(self, "btnSyncCursor", None)
         if sync_btn is not None:
             sync_btn.setEnabled(bool(has_curves and self._resultsDock is not None))
             if not sync_btn.isEnabled() and sync_btn.isChecked():
                 sync_btn.setChecked(False)
+        self._updateTableSyncAvailability()
 
     def _onPlotViewChanged(self) -> None:
         self._updateClearToolbarVisibility()
@@ -1727,6 +2117,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self.plot.setData(x, y, title, x_label, y_label, is_stepped, y_categorical_labels, series_label)
         if hasattr(self, "btnSyncCursor") and self.btnSyncCursor is not None and self.btnSyncCursor.isChecked():
             self._syncCurrentResultsTime()
+        self._rebuildValuesTable()
         self._updateClearToolbarVisibility()
         self._updatePanAvailability()
 
@@ -1735,5 +2126,6 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self.plot.setSeries(series, title, x_label, y_label)
         if hasattr(self, "btnSyncCursor") and self.btnSyncCursor is not None and self.btnSyncCursor.isChecked():
             self._syncCurrentResultsTime()
+        self._rebuildValuesTable()
         self._updateClearToolbarVisibility()
         self._updatePanAvailability()

@@ -5110,6 +5110,21 @@ Left-click: Add a new item below the current selection</source>
         <translation>Sincronizar cursor com o Painel de Resultados</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1232"/>
+        <source>Show/Hide values table</source>
+        <translation>Mostrar/Ocultar tabela de valores</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1236"/>
+        <source>Sync cursor with selected table row</source>
+        <translation>Sincronizar cursor com a linha selecionada da tabela</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1420"/>
+        <source>Time of day</source>
+        <translation>Hora do dia</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1252"/>
         <source>Results panel is not available</source>
         <translation>O Painel de Resultados não está disponível</translation>
