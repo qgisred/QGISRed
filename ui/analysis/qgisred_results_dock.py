@@ -738,6 +738,292 @@ class QGISRedResultsDock(
                 return layer
         return None
 
+    def _setComboByField(self, combo, field_map, field_name):
+        """Set combo to the item whose field_map value equals field_name. No-op if not found."""
+        for label, field in field_map.items():
+            if field == field_name:
+                idx = combo.findText(label)
+                if idx >= 0:
+                    combo.setCurrentIndex(idx)
+                    return
+
+    def _indexInLabels(self, target, labels_str, civil=False, am_pm=False, continuous=False):
+        """Return the index of target in labels_str (';'-separated elapsed strings) after formatting.
+        Returns -1 if not found. Requires self._startClockSeconds to be set for civil mode.
+        """
+        labels = [l for l in labels_str.split(";") if l]
+        if civil:
+            formatted = [
+                format_civil_time(
+                    self._elapsedTextToHours(l) or 0.0,
+                    self._startClockSeconds,
+                    include_seconds=True,
+                    am_pm=am_pm,
+                )
+                for l in labels
+            ]
+        elif continuous:
+            formatted = [self._toContinuousHours(l) for l in labels]
+        else:
+            formatted = labels
+        try:
+            return formatted.index(target)
+        except ValueError:
+            return -1
+
+    def _resolveRestoreTime(self, restore_time):
+        """Determine the best (labels_str, use_all_calc, fmt_tuple, time_idx) for restore_time.
+
+        Search order for ambiguous times (h ≤ 23, no suffix, no day prefix):
+          1. elapsed  + step-times
+          2. elapsed  + all-calc-times
+          3. civil 24h + step-times
+          4. civil 24h + all-calc-times
+        Clearly-identified formats (AM/PM, continuous h>23, "Nd ") only try their natural mode.
+        Requires self._startClockSeconds to be set.
+        """
+        step_labels = self._readTimeLabelsFromOut(all_calc=False)
+
+        if not restore_time or restore_time == self.lbl_singlePeriod:
+            return step_labels, False, (False, False, False), 0
+
+        t = restore_time.strip()
+        is_ampm = t.upper().endswith("AM") or t.upper().endswith("PM")
+        has_days = "d " in t
+        try:
+            h = int(t.split(":")[0])
+            is_continuous = h > 23 and not is_ampm
+        except (ValueError, IndexError):
+            is_continuous = False
+
+        if is_ampm:
+            mode_candidates = [(True, True, False)]
+        elif has_days:
+            mode_candidates = [(False, False, False)]
+        elif is_continuous:
+            mode_candidates = [(False, False, True)]
+        else:
+            # Ambiguous (h ≤ 23): try elapsed first, then civil 24h
+            mode_candidates = [(False, False, False), (True, False, False)]
+
+        all_calc_labels = None
+        for fmt in mode_candidates:
+            civil, am_pm_flag, cont = fmt
+            for use_all in (False, True):
+                if use_all:
+                    if all_calc_labels is None:
+                        all_calc_labels = self._readTimeLabelsFromOut(all_calc=True)
+                    if all_calc_labels == step_labels:
+                        continue  # no .hyd or identical → skip
+                    lbls = all_calc_labels
+                else:
+                    lbls = step_labels
+                idx = self._indexInLabels(restore_time, lbls, civil=civil, am_pm=am_pm_flag, continuous=cont)
+                if idx >= 0:
+                    return lbls, use_all, fmt, idx
+
+        return step_labels, False, (False, False, False), 0
+
+    def _collectSavedState(self):
+        """Read dock display state from open result layers and persisted project entries.
+
+        Must be called after setProjectInfo (needs Scenario/NetworkName/ProjectDirectory).
+        Returns a dict with keys:
+          node_field, link_field  – variable field names (from QgsProject entries)
+          stat_text               – cbStatistics item text read from layer 'Statistics' field
+          time                    – raw stored 'Time' attribute value (may be formatted)
+          node_labels, link_labels, flow_dirs – UI checkbox states
+        All values are empty/False/None if no saved state exists.
+        """
+        scenario = self.Scenario or "Base"
+        result = {
+            "node_field": "",
+            "link_field": "",
+            "stat_text": "",
+            "time": "",
+            "node_labels": False,
+            "link_labels": False,
+            "flow_dirs": False,
+        }
+
+        result["node_field"] = QgsProject.instance().readEntry("QGISRed", f"results_{scenario}_Node", "")[0]
+        result["link_field"] = QgsProject.instance().readEntry("QGISRed", f"results_{scenario}_Link", "")[0]
+
+        if not result["node_field"] and not result["link_field"]:
+            return result
+
+        node_layer = self._findResultLayer("Node")
+        link_layer = self._findResultLayer("Link")
+
+        # Read stat and time from the attribute table of any open result layer
+        for layer in (node_layer, link_layer):
+            if layer is None:
+                continue
+            stat_idx = layer.fields().indexOf("Statistics")
+            time_idx = layer.fields().indexOf("Time")
+            for feature in layer.getFeatures():
+                attrs = feature.attributes()
+                if not result["stat_text"] and stat_idx >= 0:
+                    v = attrs[stat_idx]
+                    if v and v != NULL:
+                        result["stat_text"] = str(v)
+                if not result["time"] and time_idx >= 0:
+                    v = attrs[time_idx]
+                    if v and v != NULL:
+                        result["time"] = str(v)
+                break
+            if result["stat_text"] and result["time"]:
+                break
+
+        # Labels from layer state
+        if node_layer:
+            result["node_labels"] = node_layer.labelsEnabled()
+        if link_layer:
+            result["link_labels"] = link_layer.labelsEnabled()
+
+        # Flow directions from persisted project entry (written by flowDirectionsClicked)
+        flow_val = QgsProject.instance().readEntry("QGISRed", "results_flow_directions", "false")[0]
+        result["flow_dirs"] = flow_val.strip().lower() == "true"
+
+        return result
+
+    def restoreDisplayPreferences(self, projectDir, networkName):
+        """Restore variable combos and time-display mode from the previous session.
+
+        Called right after dock creation (before simulate or loadExistingResults).
+        loadExistingResults will do its own full restore (including time index) afterwards;
+        simulate will keep the combos as-is and reset the time index to 0.
+        """
+        self.setProjectInfo(projectDir, networkName)
+        restore = self._collectSavedState()
+        if not restore["node_field"] and not restore["link_field"]:
+            return
+        self.cbNodes.blockSignals(True)
+        self._setComboByField(self.cbNodes, self._node_field_map, restore["node_field"])
+        self.cbNodes.blockSignals(False)
+        self.cbLinks.blockSignals(True)
+        self._setComboByField(self.cbLinks, self._link_field_map, restore["link_field"])
+        self.cbLinks.blockSignals(False)
+        self.displayingNodeField = restore["node_field"]
+        self.displayingLinkField = restore["link_field"]
+        self.cbNodeLabels.setChecked(restore["node_labels"])
+        self.cbLinkLabels.setChecked(restore["link_labels"])
+        if restore["flow_dirs"] and self._flowDirectionField() is not None:
+            self.cbFlowDirections.setChecked(True)
+        self._updateDistributionCheckboxLabels()
+        if restore["time"]:
+            self._startClockSeconds = simulation_start_clock_seconds(
+                self.ProjectDirectory, self.NetworkName,
+                binary_path=os.path.join(self.getResultsPath(),
+                                         f"{self.NetworkName}_{self.Scenario}.out"),
+            )
+            _, _, fmt, _ = self._resolveRestoreTime(restore["time"])
+            self.civilMode, self.amPmFormat, self.continuousHoursMode = fmt
+
+    def setProjectInfo(self, projectDir, networkName):
+        """Set project/network/outPath without touching the UI or loading layers.
+        Used by TimeSeries when only outPath is needed."""
+        self.ProjectDirectory = projectDir
+        self.NetworkName = networkName
+        self.Scenario = "Base"
+        self.outPath = os.path.join(self.getResultsPath(), f"{self.NetworkName}_{self.Scenario}.out")
+
+    def loadExistingResults(self, projectDir, networkName):
+        """Load results from an existing .out file without running GISRed.Compute."""
+        self.setProjectInfo(projectDir, networkName)
+        restore = self._collectSavedState()
+
+        self.saveCurrentRender()
+        self.loadReportFile()
+        self.updateQualityOptions()
+        self.updateQualityItemComboboxes()  # adjusts combo content (Quality, ReactRate)
+
+        # Set _startClockSeconds early so _resolveRestoreTime can build civil labels
+        self._startClockSeconds = simulation_start_clock_seconds(
+            self.ProjectDirectory, self.NetworkName,
+            binary_path=os.path.join(self.getResultsPath(),
+                                     f"{self.NetworkName}_{self.Scenario}.out"),
+        )
+
+        if restore["node_field"] or restore["link_field"]:
+            # ── Restore path ────────────────────────────────────────────────────────
+            # Data and rendering are already in the shapefile/layer style — only
+            # restore UI state silently (no signal handlers fired) and set up
+            # the time display. No data re-read or re-render needed.
+
+            stat_text = restore["stat_text"]
+            if stat_text:
+                self._statsMode = True
+                self._currentStat = stat_text
+                self.updateLinksComboboxForStat(stat_text)  # manages its own signal blocking
+                idx = self.cbStatistics.findText(stat_text)
+                if idx >= 0:
+                    self.cbStatistics.blockSignals(True)
+                    self.cbStatistics.setCurrentIndex(idx)
+                    self.cbStatistics.blockSignals(False)
+                self.lbStatName.setText(self.stat_variables.get(stat_text, stat_text))
+                self.lbStatDesc.setText(self.tr("for %1").replace("%1", self.cbResultTimes.currentText().lower()))
+            else:
+                self._statsMode = False
+                self._currentStat = self.lbl_none
+
+            # cbNodes, cbLinks, displayingNodeField/LinkField, civilMode/amPmFormat/continuousHoursMode
+            # are already set by restoreDisplayPreferences() called from _initResultsDock.
+
+            final_labels, use_all_calc, fmt, time_idx = self._resolveRestoreTime(restore["time"])
+            if use_all_calc:
+                self.cbResultTimes.blockSignals(True)
+                self.cbResultTimes.setCurrentIndex(1)
+                self.cbResultTimes.blockSignals(False)
+                self.updateQualityItemComboboxes()
+            self._applyTimeDisplay(final_labels, restore_format=fmt, restore_idx=time_idx)
+            self.Computing = False
+            self.iface.actionMapTips().setChecked(True)
+        else:
+            # ── Default path: no saved state ─────────────────────────────────────────
+            self.applyStatisticFromOptions()
+            self.openBaseResults(self._readTimeLabelsFromOut())
+        self._startStaleCheckTimer()
+        self.show()
+        self.simulationFinished.emit()
+        netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
+        if netGroup is not None:
+            for child in netGroup.children():
+                if isinstance(child, QgsLayerTreeGroup):
+                    groupId = child.customProperty("qgisred_identifier")
+                    if groupId != "qgisred_results" and child.name() != "Results":
+                        child.setItemVisibilityChecked(False)
+
+    def applyStatisticFromOptions(self):
+        statistic_value, _ = QgsProject.instance().readEntry("QGISRed", "project_statistics", "NONE")
+
+        stat_map = {
+            "NONE": self.lbl_none,
+            "MAXIMUM": self.lbl_maximum,
+            "MINIMUM": self.lbl_minimum,
+            "RANGE": self.lbl_range,
+            "AVERAGE": self.lbl_average,
+        }
+        translated_stat = stat_map.get(statistic_value.strip().upper(), self.lbl_none)
+        idx = self.cbStatistics.findText(translated_stat)
+        if idx >= 0 and self.cbStatistics.currentIndex() != idx:
+            self.cbStatistics.setCurrentIndex(idx)
+
+    def updateQualityOptions(self):
+        self.isQualitySimulated = QGISRedProjectUtils.getQualityModel().upper() != "NONE"
+
+        new_lbl = QGISRedProjectUtils.getQualityDisplayName() if self.isQualitySimulated else self.tr("Quality")
+        self._showReactRate = QGISRedProjectUtils.showReactRate() if self.isQualitySimulated else False
+
+        if new_lbl != self.lbl_quality:
+            # Rename existing combo items in place before updating the label
+            for cb in (self.cbNodes, self.cbLinks):
+                idx = cb.findText(self.lbl_quality)
+                if idx != -1:
+                    cb.setItemText(idx, new_lbl)
+            self.lbl_quality = new_lbl
+            self._rebuildFieldMaps()
+
     def _flowDirectionField(self):
         """Return the link field name whose sign determines arrow direction, or None if N/A."""
         if not self._statsMode:
@@ -1086,6 +1372,10 @@ class QGISRedResultsDock(
 
     def flowDirectionsClicked(self):
         if not self.validationsOpenResult():
+            QgsProject.instance().writeEntry(
+                "QGISRed", "results_flow_directions",
+                "true" if self.cbFlowDirections.isChecked() else "false",
+            )
             return
 
         self.ensureResultsLayersAreOpen()
@@ -1100,6 +1390,11 @@ class QGISRedResultsDock(
 
             layer_to_paint.setRenderer(renderer)
             layer_to_paint.triggerRepaint()
+
+        QgsProject.instance().writeEntry(
+            "QGISRed", "results_flow_directions",
+            "true" if self.cbFlowDirections.isChecked() else "false",
+        )
 
     def nextTime(self):
         index = self.cbTimes.currentIndex()
@@ -1346,75 +1641,15 @@ class QGISRedResultsDock(
         # If some error, close the dock
         self.close()
 
-    def setProjectInfo(self, projectDir, networkName):
-        """Set project/network/outPath without touching the UI or loading layers.
-        Used by TimeSeries when only outPath is needed."""
-        self.ProjectDirectory = projectDir
-        self.NetworkName = networkName
-        self.Scenario = "Base"
-        self.outPath = os.path.join(self.getResultsPath(), f"{self.NetworkName}_{self.Scenario}.out")
+    def _applyTimeDisplay(self, labels, restore_format=None, restore_idx=None):
+        """Set up TimeLabels, cbTimes and all time-display state. Does NOT load or clear data.
 
-    def loadExistingResults(self, projectDir, networkName):
-        """Load results from an existing .out file without running GISRed.Compute."""
-        self.setProjectInfo(projectDir, networkName)
-        self.saveCurrentRender()
-        self.loadReportFile()
-        self.updateQualityOptions()
-        self.updateQualityItemComboboxes()
-        self.applyStatisticFromOptions()
-        labels = self._readTimeLabelsFromOut()
-        self.openBaseResults(labels)
-        self._startStaleCheckTimer()
-        self.show()
-        self.simulationFinished.emit()
-        netGroup = QgsProject.instance().layerTreeRoot().findGroup(self.NetworkName)
-        if netGroup is not None:
-            for child in netGroup.children():
-                if isinstance(child, QgsLayerTreeGroup):
-                    groupId = child.customProperty("qgisred_identifier")
-                    if groupId != "qgisred_results" and child.name() != "Results":
-                        child.setItemVisibilityChecked(False)
-
-    def applyStatisticFromOptions(self):
-        statistic_value, _ = QgsProject.instance().readEntry("QGISRed", "project_statistics", "NONE")
-
-        stat_map = {
-            "NONE": self.lbl_none,
-            "MAXIMUM": self.lbl_maximum,
-            "MINIMUM": self.lbl_minimum,
-            "RANGE": self.lbl_range,
-            "AVERAGE": self.lbl_average,
-        }
-        translated_stat = stat_map.get(statistic_value.strip().upper(), self.lbl_none)
-        idx = self.cbStatistics.findText(translated_stat)
-        if idx >= 0 and self.cbStatistics.currentIndex() != idx:
-            self.cbStatistics.setCurrentIndex(idx)
-
-    def updateQualityOptions(self):
-        self.isQualitySimulated = QGISRedProjectUtils.getQualityModel().upper() != "NONE"
-
-        new_lbl = QGISRedProjectUtils.getQualityDisplayName() if self.isQualitySimulated else self.tr("Quality")
-        self._showReactRate = QGISRedProjectUtils.showReactRate() if self.isQualitySimulated else False
-
-        if new_lbl != self.lbl_quality:
-            # Rename existing combo items in place before updating the label
-            for cb in (self.cbNodes, self.cbLinks):
-                idx = cb.findText(self.lbl_quality)
-                if idx != -1:
-                    cb.setItemText(idx, new_lbl)
-            self.lbl_quality = new_lbl
-            self._rebuildFieldMaps()
-
-    def openBaseResults(self, labels):
-        # Select comboboxes item
-        if self.cbLinks.currentIndex() == 0:
-            self.cbLinks.setCurrentIndex(1)
-        if self.cbNodes.currentIndex() == 0:
-            self.cbNodes.setCurrentIndex(1)
-
-        # Time labels
+        restore_format: (civilMode, amPmFormat, continuousHoursMode) tuple or None to keep current.
+        restore_idx:    pre-resolved index into TimeLabels; 0 if omitted.
+        """
         time_label_list = labels.split(";")
         self.TimeLabels = []
+        self.cbTimes.blockSignals(True)
         self.cbTimes.clear()
         if len(time_label_list) == 1:
             self.TimeLabels.append(self.lbl_singlePeriod)
@@ -1423,30 +1658,45 @@ class QGISRedResultsDock(
             for item in time_label_list:
                 self.TimeLabels.append(item)
                 self.cbTimes.addItem(item)
+        self.cbTimes.blockSignals(False)
 
-        self.cbTimes.setCurrentIndex(0)
-        self.timeSlider.setValue(0)
-        self.timeSlider.setMaximum(len(self.TimeLabels) - 1)
-
-        # Read START CLOCKTIME and build civil labels
         self._startClockSeconds = simulation_start_clock_seconds(
             self.ProjectDirectory, self.NetworkName,
             binary_path=os.path.join(self.getResultsPath(),
                                      f"{self.NetworkName}_{self.Scenario}.out"),
         )
+
+        if restore_format is not None:
+            self.civilMode, self.amPmFormat, self.continuousHoursMode = restore_format
         self._civilLabels = self._buildCivilLabels()
-        # Preserve time display modes across re-simulations.
         self.btAmPm.setIcon(self._icon24h if self.amPmFormat else self._iconAmPm)
         self.btElapsedFormat.setIcon(self._iconSplitDays if self.continuousHoursMode else self._iconContinuousHrs)
         self.btToggleCivil.setIcon(self._iconElapsed if self.civilMode else self._iconCivil)
         self._updateTimeButtonTooltips()
-        self._refreshComboboxItems()
 
-        # Configure visibilities
+        self._refreshComboboxItems()
+        final_idx = restore_idx if restore_idx is not None else 0
+        self.cbTimes.blockSignals(True)
+        self.cbTimes.setCurrentIndex(final_idx)
+        self.cbTimes.blockSignals(False)
+        self.timeSlider.blockSignals(True)
+        self.timeSlider.setValue(final_idx)
+        self.timeSlider.setMaximum(len(self.TimeLabels) - 1)
+        self.timeSlider.blockSignals(False)
+
         in_stats = self._statsMode
         if not in_stats:
-            self._updateCivilDisplay(self.TimeLabels[0])
+            self._updateCivilDisplay(self.TimeLabels[final_idx])
         self._setModeWidgetsVisibility(in_stats, is_temporal=len(time_label_list) > 1)
+
+    def openBaseResults(self, labels):
+        # Select comboboxes item (only when still at "None")
+        if self.cbLinks.currentIndex() == 0:
+            self.cbLinks.setCurrentIndex(1)
+        if self.cbNodes.currentIndex() == 0:
+            self.cbNodes.setCurrentIndex(1)
+
+        self._applyTimeDisplay(labels)
 
         self.Computing = False
 

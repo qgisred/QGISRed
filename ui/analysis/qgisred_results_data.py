@@ -317,11 +317,15 @@ class _ResultsDataMixin:
             layer.dataProvider().dataChanged.emit()
             layer.triggerRepaint()
 
-    def _readTimeLabelsFromOut(self):
-        """Read time labels from selected results backend (.out or .hyd)."""
+    def _readTimeLabelsFromOut(self, all_calc=None):
+        """Read time labels from selected results backend (.out or .hyd).
+
+        all_calc: True → force .hyd, False → force .out, None → use current cbResultTimes state.
+        """
         try:
             out_path = self._getOutResultsPath()
-            if self._isAllCalculationTimesMode():
+            use_all = self._isAllCalculationTimesMode() if all_calc is None else all_calc
+            if use_all:
                 hyd_meta = self._getHydMetaIfUsable()
                 if hyd_meta is not None:
                     n = hyd_meta["hyd_num_periods"]

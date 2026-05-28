@@ -144,6 +144,7 @@ class AnalysisSection:
         if self.ResultDockwidget is None:
             self.readOptions()
             self.ResultDockwidget = QGISRedResultsDock(self.iface)
+            self.ResultDockwidget.restoreDisplayPreferences(self.ProjectDirectory, self.NetworkName)
             self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.ResultDockwidget)
             self.ResultDockwidget.visibilityChanged.connect(self.activeInputGroup)
             self.ResultDockwidget.visibilityChanged.connect(self._arrangeDocksIfVisible)
