@@ -122,6 +122,7 @@
         <file>images/iconTsSyncCursor.svg</file>
         <file>images/iconTsAxes.svg</file>
         <file>images/iconTsExportImage.svg</file>
+        <file>images/iconTsExportCsv.svg</file>
         <file>images/iconTsTable.svg</file>
         <file>images/iconTsSyncTable.svg</file>
         <file>images/iconTsClearAll.svg</file>
