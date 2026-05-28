@@ -412,52 +412,52 @@ class TestQualityModel:
     def test_result_quality_chemical_returns_mass_abbr(self, fu):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS", "mg/L", "Chemical")
-            assert fu._getQualityResultAbbr("Nodes") == "mg/L"
+            assert fu.getUnitAbbreviation("Nodes", "Quality") == "mg/L"
 
     def test_result_quality_trace_returns_percent(self, fu):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS", "mg/L", "Trace")
-            assert fu._getQualityResultAbbr("Nodes") == "%"
+            assert fu.getUnitAbbreviation("Nodes", "Quality") == "%"
 
     def test_result_quality_age_returns_hr(self, fu):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS", "mg/L", "Age")
-            assert fu._getQualityResultAbbr("Nodes") == "hr"
+            assert fu.getUnitAbbreviation("Nodes", "Quality") == "hr"
 
     def test_result_quality_none_returns_empty(self, fu):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS", "mg/L", "None")
-            assert fu._getQualityResultAbbr("Nodes") == ""
+            assert fu.getUnitAbbreviation("Nodes", "Quality") == ""
 
     def test_result_quality_custom_model_treated_as_chemical(self, fu):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS", "mg/L", "Chlorine")
-            assert fu._getQualityResultAbbr("Nodes") == "mg/L"
+            assert fu.getUnitAbbreviation("Nodes", "Quality") == "mg/L"
 
     def test_result_quality_links_chemical(self, fu):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS", "mg/L", "Chemical")
-            assert fu._getQualityResultAbbr("Links") == "mg/L"
+            assert fu.getUnitAbbreviation("Links", "Quality") == "mg/L"
 
     def test_ini_quality_chemical_returns_mass_abbr(self, fu):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS", "mg/L", "Chemical")
-            assert fu._getIniQualityAbbr("Junctions") == "mg/L"
+            assert fu.getUnitAbbreviation("Junctions", "IniQuality") == "mg/L"
 
     def test_ini_quality_trace_returns_empty(self, fu):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS", "mg/L", "Trace")
-            assert fu._getIniQualityAbbr("Junctions") == ""
+            assert fu.getUnitAbbreviation("Junctions", "IniQuality") == ""
 
     def test_ini_quality_age_returns_empty(self, fu):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS", "mg/L", "Age")
-            assert fu._getIniQualityAbbr("Junctions") == ""
+            assert fu.getUnitAbbreviation("Junctions", "IniQuality") == ""
 
     def test_ini_quality_none_returns_empty(self, fu):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:
             MockProj.instance.return_value = _make_project("LPS", "mg/L", "None")
-            assert fu._getIniQualityAbbr("Junctions") == ""
+            assert fu.getUnitAbbreviation("Junctions", "IniQuality") == ""
 
     def test_get_unit_abbreviation_quality_chemical(self, fu):
         with patch("QGISRed.tools.utils.qgisred_project_utils.QgsProject") as MockProj:

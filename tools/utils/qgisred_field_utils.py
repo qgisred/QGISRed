@@ -18,6 +18,9 @@ _COMMON_PRETTY_NAMES = {
 
 _NON_CHEMICAL_MODELS = frozenset({"none", "trace", "age"})
 
+# Fields that are only meaningful for Chemical quality simulations.
+_CHEMICAL_ONLY_FIELDS = frozenset({"IniQuality", "ReactRate"})
+
 _SUPERSCRIPT_TRANSLATION = str.maketrans("0123456789/", "⁰¹²³⁴⁵⁶⁷⁸⁹ᐟ")
 
 
@@ -243,33 +246,50 @@ class QGISRedFieldUtils:
         prop = prettyNames.get("Common", {}).get(fieldName, fieldName)
         return QCoreApplication.translate("FieldPrettyNames", prop) if translate else prop
 
+    def _resolveRow(self, element: str, fieldName: str) -> dict:
+        """Return the CSV row for (element, fieldName) given current project settings.
+
+        Returns {} if the field is inapplicable for the current project configuration
+        (e.g. IniQuality / ReactRate when quality model is not Chemical, or Quality
+        when quality model is None).
+        All condition-dependent lookups (flow unit, pressure unit, quality model,
+        headloss formula) are resolved here so callers only need to extract the column.
+        """
+        if fieldName in _CHEMICAL_ONLY_FIELDS:
+            if QGISRedProjectUtils.getQualityModel().lower() in _NON_CHEMICAL_MODELS:
+                return {}
+
+        if fieldName in ("Flow", "Demand"):
+            return self._getRowByCondition("Global", "FlowUnits", QGISRedProjectUtils.getFlowUnit())
+
+        if fieldName == "Pressure":
+            condVal = "METERS" if QGISRedProjectUtils.getUnits() == "SI" else "PSI"
+            return self._getRowByCondition("Global", "PressUnits", condVal)
+
+        if fieldName == "Quality":
+            modelLow = QGISRedProjectUtils.getQualityModel().lower()
+            if modelLow == "none":
+                return {}
+            condVal = modelLow.capitalize() if modelLow in ("trace", "age") else "Chemical"
+            return self._getRowByCondition(element, "Quality", condVal)
+
+        return self._getFirstRow(element, fieldName) or self._getFirstRowByProperty(element, fieldName)
+
     def getUnitAbbreviation(self, element: str, fieldName: str) -> str:
         """Return the unit abbreviation for a field, respecting SI/US project setting.
 
         ``element`` must be a canonical element name (e.g. 'Pipes', 'Nodes').
         Use ``normalize_element()`` first if you have a QGIS layer identifier.
 
-        Fields whose unit depends on project configuration are resolved automatically:
-          - Flow / Demand  -> project flow unit  (e.g. 'lps', 'gpm')
-          - Pressure       -> project pressure unit  ('m' or 'psi')
-          - Quality        -> quality model  ('mg/L', '%', 'hr', or '' for None)
-          - IniQuality     -> '' for non-Chemical quality models
-
         getUnitAbbreviation('Pipes',  'Length')   -> 'm'  (SI) / 'ft'  (US)
         getUnitAbbreviation('Links',  'Flow')     -> 'lps'  (if project unit = LPS)
         getUnitAbbreviation('Nodes',  'Pressure') -> 'm'  (SI) / 'psi'  (US)
         getUnitAbbreviation('Nodes',  'Quality')  -> 'mg/L'  (Chemical, SI, mg/L conc.)
         """
-        unitSystem = QGISRedProjectUtils.getUnits()
-
-        if fieldName == "IniQuality":
-            return self._getIniQualityAbbr(element)
-        if fieldName == "Quality":
-            return self._getQualityResultAbbr(element)
-
-        row = self._getFirstRow(element, fieldName) or self._getFirstRowByProperty(element, fieldName)
+        row = self._resolveRow(element, fieldName)
         if not row:
             return ""
+        unitSystem = QGISRedProjectUtils.getUnits()
         abbr = row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
         return self._resolveAbbr(abbr)
 
@@ -286,15 +306,11 @@ class QGISRedFieldUtils:
         """
         if not fieldName:
             return ""
-
-        unitSystem = QGISRedProjectUtils.getUnits()
-
-        row = self._getFirstRow(element, fieldName) or self._getFirstRowByProperty(element, fieldName)
+        row = self._resolveRow(element, fieldName)
         if not row:
             return ""
-
+        unitSystem = QGISRedProjectUtils.getUnits()
         name = row["si_name"] if unitSystem == "SI" else row["us_name"]
-        # "Same as Flow" kept literal so callers can detect and resolve it themselves.
         return name if name and name not in ("Text", "-") else ""
 
     def getDecimals(self, element: str, fieldName: str, default: int = 2) -> int:
@@ -303,32 +319,15 @@ class QGISRedFieldUtils:
         ``element`` must be a canonical element name (e.g. 'Pipes', 'Nodes').
         Use ``normalize_element()`` first if you have a QGIS layer identifier.
 
-        Fields whose precision depends on project configuration are resolved
-        automatically (same fields as getUnitAbbreviation). Returns ``default``
-        when the CSV has no entry for the field.
+        Returns ``default`` when the CSV has no entry for the field or when the
+        field is inapplicable for the current project configuration.
 
         getDecimals('Pipes', 'Diameter')            -> 1  (SI)
         getDecimals('Links', 'Flow')                -> 2  (LPS) / 1  (GPM)
         getDecimals('Nodes', 'Pressure')            -> 2
         getDecimals('Nodes', 'Quality', default=3)  -> 2  (Chemical) / 1  (Age/Trace)
         """
-        if fieldName in ("Flow", "Demand"):
-            flowUnit = QGISRedProjectUtils.getFlowUnit()
-            return self._rowDecimals(self._getRowByCondition("Global", "FlowUnits", flowUnit), default)
-
-        if fieldName == "Pressure":
-            condVal = "METERS" if QGISRedProjectUtils.getUnits() == "SI" else "PSI"
-            return self._rowDecimals(self._getRowByCondition("Global", "PressUnits", condVal), default)
-
-        if fieldName == "Quality":
-            modelLow = QGISRedProjectUtils.getQualityModel().lower()
-            if modelLow == "none":
-                return default
-            condVal = modelLow.capitalize() if modelLow in ("trace", "age") else "Chemical"
-            return self._rowDecimals(self._getRowByCondition(element, "Quality", condVal), default)
-
-        row = self._getFirstRow(element, fieldName) or self._getFirstRowByProperty(element, fieldName)
-        return self._rowDecimals(row, default)
+        return self._rowDecimals(self._resolveRow(element, fieldName), default)
 
     # ------------------------------------------------------------------ #
     # Additional public methods                                            #
@@ -572,32 +571,4 @@ class QGISRedFieldUtils:
         unitSystem = QGISRedProjectUtils.getUnits()
         return row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
 
-    def _getQualityResultAbbr(self, element):
-        """Return the unit abbreviation for Quality result fields based on the quality model.
 
-        Chemical -> resolved mass/L abbr  |  Trace -> %  |  Age -> hr  |  None -> ''
-        """
-        modelLow = QGISRedProjectUtils.getQualityModel().lower()
-        if modelLow == "none":
-            return ""
-        condVal = modelLow.capitalize() if modelLow in ("trace", "age") else "Chemical"
-        row = self._getRowByCondition(element, "Quality", condVal)
-        if not row:
-            return ""
-        unitSystem = QGISRedProjectUtils.getUnits()
-        abbr = row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
-        return self._resolveAbbr(abbr)
-
-    def _getIniQualityAbbr(self, element):
-        """Return the unit abbreviation for IniQuality fields.
-
-        Returns '' for None/Trace/Age quality models (IniQuality is inapplicable).
-        """
-        if QGISRedProjectUtils.getQualityModel().lower() in _NON_CHEMICAL_MODELS:
-            return ""
-        row = self._getFirstRow(element, "IniQuality")
-        if not row:
-            return ""
-        unitSystem = QGISRedProjectUtils.getUnits()
-        abbr = row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
-        return self._resolveAbbr(abbr)
