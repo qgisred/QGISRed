@@ -17,7 +17,7 @@ from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
 from .qgisred_results_rendering import _ResultsRenderingMixin, time_field_name
-from .qgisred_results_data import _ResultsDataMixin
+from .qgisred_results_data import _ResultsDataMixin, _STAT_VAR_ALIASES
 from .qgisred_results_distribution import _ResultsDistributionMixin
 from .timeseries_time_utils import simulation_start_clock_seconds, format_civil_time
 
@@ -606,12 +606,15 @@ class QGISRedResultsDock(
         """Ensures that all possible result fields exist in the layer in a fixed order."""
         if layer_type == "Node":
             fields_def = NODE_RESULT_FIELDS
+            element = "Nodes"
         else:
             fields_def = LINK_RESULT_FIELDS
-            
+            element = "Links"
+
+        field_utils = QGISRedFieldUtils()
         existing_fields = layer.fields().names()
         new_fields = []
-        
+
         type_map = {
             "String": QVariantString,
             "Double": QVariantDouble
@@ -624,6 +627,9 @@ class QGISRedResultsDock(
                 field = QgsField(name, qgs_type)
                 if length:
                     field.setLength(length)
+                if type_str == "Double":
+                    csv_name = _STAT_VAR_ALIASES.get(name, name)
+                    field.setPrecision(field_utils.getDecimals(element, csv_name))
                 new_fields.append(field)
         
         if new_fields:
