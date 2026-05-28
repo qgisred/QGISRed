@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 
 from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QHBoxLayout, QVBoxLayout
 from qgis.core import (
     NULL,
@@ -209,6 +210,9 @@ def build_distribution_bins(layer, field_name):
     if layer is None or not field_name:
         return [], ""
 
+    if field_name == "Status" and layer.fields().indexFromName("Type") >= 0:
+        return _build_link_status_bins(layer), ""
+
     classes, mode = extract_legend_classes(layer, field_name)
     if not classes or mode is None:
         return [], field_name
@@ -247,6 +251,80 @@ def build_distribution_bins(layer, field_name):
         _finalize_bin(bin_data)
 
     return bins, ""
+
+
+def _build_link_status_bins(layer):
+    """
+    Simplified Status distribution for link results:
+    - Valves: Open / Active / Closed
+    - Pumps: Running / Running (Variable Speed) / Stopped
+    - Pipes: Open / Closed
+
+    The variable-speed condition is evaluated only when a 'Setting' field exists:
+    running + (Setting != 1) → variable speed.
+    """
+
+    def _bin(label, color):
+        return _make_bin(label, category=label, color=color)
+
+    # Colors chosen to be consistent and readable on light backgrounds.
+    bins = [
+        _bin("Open", QColor(46, 125, 50)),  # green
+        _bin("Active", QColor(245, 124, 0)),  # orange
+        _bin("Closed", QColor(198, 40, 40)),  # red
+        _bin("Running", QColor(30, 136, 229)),  # blue
+        _bin("Running (Variable Speed)", QColor(123, 31, 162)),  # purple
+        _bin("Stopped", QColor(97, 97, 97)),  # grey
+    ]
+    idx = {b["category"]: i for i, b in enumerate(bins)}
+
+    has_setting = layer.fields().indexFromName("Setting") >= 0
+
+    for feature in layer.getFeatures():
+        raw_type = feature["Type"]
+        raw_status = feature["Status"]
+        if raw_type is None or raw_type == NULL:
+            continue
+
+        t = str(raw_type).upper()
+        s = "" if raw_status is None or raw_status == NULL else str(raw_status)
+
+        is_open = s.startswith("Open")
+        is_active = s.startswith("Active")
+
+        chosen = None
+        if t == "VALVE":
+            if is_active:
+                chosen = "Active"
+            elif is_open:
+                chosen = "Open"
+            else:
+                chosen = "Closed"
+        elif t == "PUMP":
+            if is_open:
+                chosen = "Running"
+                if has_setting:
+                    try:
+                        setting = float(feature["Setting"])
+                        if setting not in (0.0, 1.0) and abs(setting - 1.0) > 1e-9:
+                            chosen = "Running (Variable Speed)"
+                    except Exception:
+                        pass
+            else:
+                chosen = "Stopped"
+        else:
+            chosen = "Open" if is_open else "Closed"
+
+        bin_index = idx.get(chosen)
+        if bin_index is None:
+            continue
+        bins[bin_index]["count"] += 1
+
+    # Keep only bins which exist in the current dataset.
+    bins = [b for b in bins if b.get("count", 0) > 0]
+    for b in bins:
+        _finalize_bin(b)
+    return bins
 
 
 class _ResultsDistributionMixin:
