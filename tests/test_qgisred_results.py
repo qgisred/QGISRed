@@ -22,6 +22,8 @@ from QGISRed.ui.analysis.qgisred_results_hyd import (
     getHyd_Metadata,
     getHyd_TimeNodesProperties,
     getHyd_TimeLinksProperties,
+    getHyd_StatNodesProperties,
+    getHyd_StatLinksProperties,
 )
 
 from .helpers.epanet_out_builder import simple_network_out, pump_valve_network_out, simple_network_out_with_trailing
@@ -533,4 +535,21 @@ class TestHydResults:
         assert valve["Velocity"] is None
         assert valve["UnitHdLoss"] is None
         assert valve["FricFactor"] is None
+
+    def test_hyd_node_stats_average(self, simple_network_out, simple_network_hyd):
+        stats = getHyd_StatNodesProperties(simple_network_hyd, simple_network_out, "Average")
+        assert "J1" in stats
+        j1 = stats["J1"]
+        assert "Head" in j1 and "Demand" in j1 and "Pressure" in j1
+        # Average Demand over 3 records: (5.0 + 5.5 + 6.0)/3
+        assert j1["Demand"]["Value"] == round((5.0 + 5.5 + 6.0) / 3.0, ROUNDING_PRECISION)
+
+    def test_hyd_link_stats_maximum(self, simple_network_out, simple_network_hyd):
+        stats = getHyd_StatLinksProperties(simple_network_hyd, simple_network_out, "Maximum")
+        assert "P1" in stats
+        p1 = stats["P1"]
+        assert "Flow" in p1
+        # Max |Q| occurs at last record (12.0 in fixture)
+        assert p1["Flow"]["Value"] == round(12.0, ROUNDING_PRECISION)
+        assert p1["Flow"]["Time"] == 3600
 

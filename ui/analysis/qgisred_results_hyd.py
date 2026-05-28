@@ -375,3 +375,148 @@ def getHyd_TimeLinksProperties(hyd_file_path, out_file_path, time_seconds):
             "Quality": None,
         }
     return results
+
+
+def _aggregate_numeric_timeseries(values, times, stat, *, flow_abs_mode=False):
+    if not values:
+        return None
+    pairs = [(t, v) for t, v in zip(times, values) if v is not None]
+    if not pairs:
+        return None
+
+    if flow_abs_mode:
+        # Match .out semantics: extrema/range/stddev on |Q|, but min/max keep signed Q at extremum time.
+        abs_vals = [abs(v) for _, v in pairs]
+        signed_vals = [v for _, v in pairs]
+        if stat == "Maximum":
+            idx = max(range(len(abs_vals)), key=lambda i: abs_vals[i])
+            return {"Time": int(pairs[idx][0]), "Value": round(float(signed_vals[idx]), ROUNDING_PRECISION)}
+        if stat == "Minimum":
+            idx = min(range(len(abs_vals)), key=lambda i: abs_vals[i])
+            return {"Time": int(pairs[idx][0]), "Value": round(float(signed_vals[idx]), ROUNDING_PRECISION)}
+        if stat == "Average":
+            return {
+                "Flow_Unsig": {"Value": round(float(sum(abs_vals) / len(abs_vals)), ROUNDING_PRECISION)},
+                "Flow_Sig": {"Value": round(float(sum(signed_vals) / len(signed_vals)), ROUNDING_PRECISION)},
+            }
+        if stat == "Range":
+            return {"Value": round(float(max(abs_vals) - min(abs_vals)), ROUNDING_PRECISION)}
+        if stat == "StdDev":
+            mean = float(sum(abs_vals) / len(abs_vals))
+            var = float(sum((x - mean) ** 2 for x in abs_vals) / len(abs_vals))
+            return {"Value": round(math.sqrt(var), ROUNDING_PRECISION)}
+        return None
+
+    vals = [v for _, v in pairs]
+    if stat == "Maximum":
+        idx = max(range(len(vals)), key=lambda i: vals[i])
+        return {"Time": int(pairs[idx][0]), "Value": round(float(vals[idx]), ROUNDING_PRECISION)}
+    if stat == "Minimum":
+        idx = min(range(len(vals)), key=lambda i: vals[i])
+        return {"Time": int(pairs[idx][0]), "Value": round(float(vals[idx]), ROUNDING_PRECISION)}
+    if stat == "Average":
+        return {"Value": round(float(sum(vals) / len(vals)), ROUNDING_PRECISION)}
+    if stat == "Range":
+        return {"Value": round(float(max(vals) - min(vals)), ROUNDING_PRECISION)}
+    if stat == "StdDev":
+        mean = float(sum(vals) / len(vals))
+        var = float(sum((x - mean) ** 2 for x in vals) / len(vals))
+        return {"Value": round(math.sqrt(var), ROUNDING_PRECISION)}
+    return None
+
+
+def getHyd_StatNodesProperties(hyd_file_path, out_file_path, stat):
+    """Node statistics from .hyd for stat in {'Maximum','Minimum','Average','Range','StdDev'}."""
+    valid = {"Maximum", "Minimum", "Average", "Range", "StdDev"}
+    if stat not in valid:
+        raise ValueError(f"stat must be one of {valid}")
+
+    meta = getHyd_Metadata(hyd_file_path, out_file_path)
+    if not meta:
+        return {}
+
+    times = list(meta.get("hyd_times") or [])
+    if not times:
+        n = meta.get("hyd_num_periods", 0)
+        start = meta.get("hyd_report_start", 0)
+        step = meta.get("hyd_report_step", 0)
+        times = [start + i * step for i in range(n)]
+    if not times:
+        return {}
+
+    per_time = [getHyd_TimeNodesProperties(hyd_file_path, out_file_path, t) for t in times]
+    if not per_time:
+        return {}
+
+    node_ids = meta.get("node_ids") or list(per_time[0].keys())
+    result = {}
+    for node_id in node_ids:
+        pressure_vals = [step.get(node_id, {}).get("Pressure") for step in per_time]
+        head_vals = [step.get(node_id, {}).get("Head") for step in per_time]
+        demand_vals = [step.get(node_id, {}).get("Demand") for step in per_time]
+        node_stats = {}
+        p_stat = _aggregate_numeric_timeseries(pressure_vals, times, stat)
+        h_stat = _aggregate_numeric_timeseries(head_vals, times, stat)
+        d_stat = _aggregate_numeric_timeseries(demand_vals, times, stat)
+        if p_stat is not None:
+            node_stats["Pressure"] = p_stat
+        if h_stat is not None:
+            node_stats["Head"] = h_stat
+        if d_stat is not None:
+            node_stats["Demand"] = d_stat
+        result[node_id] = node_stats
+    return result
+
+
+def getHyd_StatLinksProperties(hyd_file_path, out_file_path, stat):
+    """Link statistics from .hyd for stat in {'Maximum','Minimum','Average','Range','StdDev'}."""
+    valid = {"Maximum", "Minimum", "Average", "Range", "StdDev"}
+    if stat not in valid:
+        raise ValueError(f"stat must be one of {valid}")
+
+    meta = getHyd_Metadata(hyd_file_path, out_file_path)
+    if not meta:
+        return {}
+
+    times = list(meta.get("hyd_times") or [])
+    if not times:
+        n = meta.get("hyd_num_periods", 0)
+        start = meta.get("hyd_report_start", 0)
+        step = meta.get("hyd_report_step", 0)
+        times = [start + i * step for i in range(n)]
+    if not times:
+        return {}
+
+    per_time = [getHyd_TimeLinksProperties(hyd_file_path, out_file_path, t) for t in times]
+    if not per_time:
+        return {}
+
+    link_ids = meta.get("link_ids") or list(per_time[0].keys())
+    result = {}
+    for link_id in link_ids:
+        flow_vals = [step.get(link_id, {}).get("Flow") for step in per_time]
+        vel_vals = [step.get(link_id, {}).get("Velocity") for step in per_time]
+        hl_vals = [step.get(link_id, {}).get("HeadLoss") for step in per_time]
+        uhl_vals = [step.get(link_id, {}).get("UnitHdLoss") for step in per_time]
+        ff_vals = [step.get(link_id, {}).get("FricFactor") for step in per_time]
+
+        link_stats = {}
+        flow_stat = _aggregate_numeric_timeseries(flow_vals, times, stat, flow_abs_mode=True)
+        if flow_stat is not None:
+            if stat == "Average" and isinstance(flow_stat, dict) and "Flow_Unsig" in flow_stat:
+                link_stats.update(flow_stat)
+            else:
+                link_stats["Flow"] = flow_stat
+
+        for name, vals in (
+            ("Velocity", vel_vals),
+            ("HeadLoss", hl_vals),
+            ("UnitHdLoss", uhl_vals),
+            ("FricFactor", ff_vals),
+        ):
+            agg = _aggregate_numeric_timeseries(vals, times, stat)
+            if agg is not None:
+                link_stats[name] = agg
+
+        result[link_id] = link_stats
+    return result

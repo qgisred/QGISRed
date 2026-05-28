@@ -13,6 +13,8 @@ from .qgisred_results_binary import (
 from .qgisred_results_hyd import (
     getHyd_TimeNodesProperties,
     getHyd_TimeLinksProperties,
+    getHyd_StatNodesProperties,
+    getHyd_StatLinksProperties,
     getHyd_Metadata,
 )
 
@@ -347,7 +349,7 @@ class _ResultsDataMixin:
             self._applyAttributeUpdates(target_layer, attribute_updates)
 
     def completeStatsLayers(self):
-        """Populates the attribute tables of result layers with statistics from the .out file.
+        """Populates the attribute tables of result layers with statistics from the selected backend.
         Always clears existing result fields first so the column set matches the chosen statistic.
         """
         if not self.isCurrentProject():
@@ -365,9 +367,10 @@ class _ResultsDataMixin:
         }
         stat = stat_label_to_en.get(stat_label, stat_label)
         is_min_max = stat_label in (self.lbl_maximum, self.lbl_minimum)
-        resultPath = self.getResultsPath()
-        binary_path = os.path.join(resultPath, self.NetworkName + "_" + self.Scenario + ".out")
-        if not os.path.exists(binary_path):
+        out_path = self._getOutResultsPath()
+        hyd_path = self._getHydResultsPath()
+        use_hyd = self._isAllCalculationTimesMode() and (self._getHydMetaIfUsable() is not None)
+        if not os.path.exists(out_path):
             return
 
         # For Min/Max: which variable provides the time-of-occurrence for each node/link field.
@@ -383,10 +386,20 @@ class _ResultsDataMixin:
             if not target_layer:
                 continue
 
-            if layerName == "Node":
-                results = getOut_StatNodesProperties(binary_path, stat)
+            if use_hyd and layerName == "Node":
+                results = getHyd_StatNodesProperties(hyd_path, out_path, stat)
+            elif use_hyd and layerName == "Link":
+                results = getHyd_StatLinksProperties(hyd_path, out_path, stat)
+            elif layerName == "Node":
+                results = getOut_StatNodesProperties(out_path, stat)
             else:
-                results = getOut_StatLinksProperties(binary_path, stat)
+                results = getOut_StatLinksProperties(out_path, stat)
+
+            if use_hyd and not results:
+                if layerName == "Node":
+                    results = getOut_StatNodesProperties(out_path, stat)
+                else:
+                    results = getOut_StatLinksProperties(out_path, stat)
 
             if not results:
                 continue
