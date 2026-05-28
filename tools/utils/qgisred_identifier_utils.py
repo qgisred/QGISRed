@@ -10,9 +10,8 @@ class QGISRedIdentifierUtils:
         self.ProjectDirectory = directory
         self.NetworkName = networkName
 
-        from .qgisred_field_utils import QGISRedFieldUtils
-        _field = QGISRedFieldUtils(directory, networkName, iface)
-        self.identifierToElementName = _field.identifierToElementName
+        from .qgisred_field_utils import IDENTIFIER_TO_ELEMENT
+        self.identifierToElementName = IDENTIFIER_TO_ELEMENT
 
         self.elementIdentifiers = {
             'Pipes': 'pipes',

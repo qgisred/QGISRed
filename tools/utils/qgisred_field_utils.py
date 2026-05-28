@@ -22,7 +22,7 @@ _SUPERSCRIPT_TRANSLATION = str.maketrans("0123456789/", "⁰¹²³⁴⁵⁶⁷�
 
 
 # Maps QGIS input-layer identifiers to canonical element names used in the CSV.
-_IDENTIFIER_TO_ELEMENT = {
+IDENTIFIER_TO_ELEMENT = {
     'qgisred_pipes':              'Pipes',
     'qgisred_junctions':          'Junctions',
     'qgisred_demands':            'Multiple Demands',
@@ -163,7 +163,7 @@ def normalize_element(element: str) -> str:
         el = normalize_element(layerIdentifier)
         abbr = utils.getUnitAbbreviation(el, fieldName)
     """
-    mapped = _IDENTIFIER_TO_ELEMENT.get(element)
+    mapped = IDENTIFIER_TO_ELEMENT.get(element)
     if mapped:
         return mapped
     if element == "Node":
