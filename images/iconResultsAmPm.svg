@@ -3,7 +3,7 @@
   <text
      x="32"
      y="27"
-     font-size="24"
+     font-size="36"
      font-weight="bold"
      font-family="Arial, sans-serif"
      fill="#60bcd3"
@@ -11,7 +11,7 @@
   <text
      x="32"
      y="55"
-     font-size="24"
+     font-size="36"
      font-weight="bold"
      font-family="Arial, sans-serif"
      fill="#7fa828"
