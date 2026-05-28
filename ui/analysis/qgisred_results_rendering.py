@@ -183,6 +183,9 @@ class _ResultsRenderingMixin:
                     # Configure layer labels
                     self.setLayerLabels(layer_to_paint, field, time_field)
 
+        if hasattr(self, "_refreshDistributionChartsIfNeeded"):
+            self._refreshDistributionChartsIfNeeded()
+
     def setLayerLabels(self, layer, fieldName, time_field=None):
         node_labels_enabled = layer.geometryType() == 0 and self.cbNodeLabels.isChecked()
         link_labels_enabled = layer.geometryType() == 1 and self.cbLinkLabels.isChecked()

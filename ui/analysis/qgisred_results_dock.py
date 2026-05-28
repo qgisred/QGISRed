@@ -18,6 +18,7 @@ from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
 from .qgisred_results_rendering import _ResultsRenderingMixin, time_field_name
 from .qgisred_results_data import _ResultsDataMixin
+from .qgisred_results_distribution import _ResultsDistributionMixin
 from .timeseries_time_utils import simulation_start_clock_seconds, format_civil_time
 
 import os
@@ -56,7 +57,9 @@ LINK_RESULT_FIELDS = [
     ("Time_Q", "String", 15),
 ]
 
-class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _ResultsDataMixin):
+class QGISRedResultsDock(
+    QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _ResultsDataMixin, _ResultsDistributionMixin,
+):
     # Signals
     timeTextChanged = pyqtSignal(str)
     statisticsModeChanged = pyqtSignal(str)
@@ -127,16 +130,71 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
             self.lbl_std_deviation: self.tr("Standard deviation values"),
         }
 
-        comboStyle = """
-            QComboBox { 
-                background-color: white; 
+        self._resultsComboStyle = """
+            QComboBox {
+                background-color: white;
+                color: #202020;
                 combobox-popup: 0;
+                border: 1px solid #bdbdbd;
+                border-radius: 2px;
+                padding: 2px 6px;
+                min-height: 20px;
+            }
+            QComboBox::drop-down {
+                subcontrol-origin: padding;
+                subcontrol-position: top right;
+                width: 18px;
+                border-left: 1px solid #bdbdbd;
+                background-color: #f5f5f5;
+            }
+            QComboBox::down-arrow {
+                width: 10px;
+                height: 10px;
             }
             QComboBox QAbstractItemView {
+                background-color: white;
+                color: #202020;
                 selection-background-color: #3574F0;
                 selection-color: white;
                 outline: none;
+                border: 1px solid #bdbdbd;
                 max-height: 250px;
+                qproperty-verticalScrollBarPolicy: ScrollBarAsNeeded;
+            }
+        """
+        self._resultsDistributionComboStyle = """
+            QComboBox {
+                background-color: white;
+                color: #202020;
+                combobox-popup: 0;
+                border: 1px solid #bdbdbd;
+                border-radius: 2px;
+                padding: 0 4px 0 5px;
+                min-height: 18px;
+                max-height: 20px;
+                font-size: 8pt;
+            }
+            QComboBox::drop-down {
+                subcontrol-origin: padding;
+                subcontrol-position: center right;
+                width: 14px;
+                border: none;
+                border-left: 1px solid #d0d0d0;
+                background-color: #f0f0f0;
+            }
+            QComboBox::down-arrow {
+                width: 8px;
+                height: 8px;
+            }
+            QComboBox QAbstractItemView {
+                background-color: white;
+                color: #202020;
+                font-size: 8pt;
+                selection-background-color: #3574F0;
+                selection-color: white;
+                outline: none;
+                border: 1px solid #bdbdbd;
+                max-height: 120px;
                 qproperty-verticalScrollBarPolicy: ScrollBarAsNeeded;
             }
         """
@@ -145,8 +203,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self.btEndTime.clicked.connect(self.endTime)
         self.btLessTime.clicked.connect(self.previousTime)
         self.btInitTime.clicked.connect(self.initTime)
-        self.cbTimes.setStyleSheet(comboStyle)
-        self.cbTimes.view().setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self._applyResultsComboStyle(self.cbTimes)
         self.cbTimes.currentIndexChanged.connect(self.timeChanged)
         self.timeSlider.valueChanged.connect(self.sliderChanged)
         self.timeSlider.sliderMoved.connect(self.sliderDragging)
@@ -165,6 +222,8 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self.cbLinkLabels.clicked.connect(self.linkLabelsClicked)
         self.cbNodeLabels.clicked.connect(self.nodeLabelsClicked)
         self.cbFlowDirections.clicked.connect(self.flowDirectionsClicked)
+
+        self._setupDistributionCharts()
 
         self.displayingLinkField = ""
         self.displayingNodeField = ""
@@ -234,7 +293,33 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
 
         QGISRedUIUtils.applyDockStyle(self, "#1976D2")
 
+        for combo in (
+            self.cbResultTimes,
+            self.cbStatistics,
+            self.cbNodes,
+            self.cbLinks,
+        ):
+            self._applyResultsComboStyle(combo)
+
     """Methods"""
+
+    def _applyResultsComboStyle(self, combo):
+        """Apply the standard results-panel combobox style."""
+        combo.setStyleSheet(self._resultsComboStyle)
+        combo.view().setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+
+    def _applyDistributionComboStyle(self, combo):
+        """Compact combobox style for the distribution chart options row."""
+        from qgis.PyQt.QtWidgets import QComboBox, QSizePolicy
+
+        combo.setStyleSheet(self._resultsDistributionComboStyle)
+        combo.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        combo.setMaximumWidth(92)
+        combo.setMinimumContentsLength(7)
+        combo.setSizeAdjustPolicy(
+            QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon
+        )
+        combo.view().setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 
     def _rebuildFieldMaps(self):
         """Rebuild display-label → field-name maps. Call after lbl_quality changes."""
@@ -621,6 +706,9 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         self.Computing = True
         self.cbLinks.setCurrentIndex(0)
         self.cbNodes.setCurrentIndex(0)
+        self.cbNodeDistribution.setChecked(False)
+        self.cbLinkDistribution.setChecked(False)
+        self._syncDistributionPanelVisibility()
 
         for nameLayer in ["Node", "Link"]:
             if self._findResultLayer(nameLayer):
@@ -920,6 +1008,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         if self.cbLinks.currentIndex() == 0:
             self.displayingLinkField = ""
             self.removeResultLayer("Link")
+            self._updateDistributionCheckboxLabels()
             return
 
         if not self.validationsOpenResult():
@@ -948,6 +1037,7 @@ class QGISRedResultsDock(QDockWidget, FORM_CLASS, _ResultsRenderingMixin, _Resul
         if self.cbNodes.currentIndex() == 0:
             self.displayingNodeField = ""
             self.removeResultLayer("Node")
+            self._updateDistributionCheckboxLabels()
             return
 
         if not self.validationsOpenResult():

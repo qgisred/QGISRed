@@ -4386,6 +4386,31 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_results_distribution.py" line="263"/>
+        <source>Show the %1 Distribution</source>
+        <translation>Afficher la distribution de %1</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="997"/>
+        <source>Frequency</source>
+        <translation>Fréquence</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1042"/>
+        <source>Cumulative</source>
+        <translation>Cumulée</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_distribution.py" line="283"/>
+        <source>Absolute</source>
+        <translation>Absolue</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_distribution.py" line="284"/>
+        <source>Relative</source>
+        <translation>Relative</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="99"/>
         <source>Maximum</source>
         <translation type="unfinished"></translation>

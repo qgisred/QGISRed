@@ -34,7 +34,11 @@ class StatisticsHistogramRenderer:
 
     def render(self, widget, painter):
         painter.setRenderHint(PAINTER_ANTIALIASING)
-        painter.fillRect(widget.rect(), Qt.GlobalColor.white)
+        outer_fill = getattr(widget, "outer_fill_color", None)
+        if outer_fill is not None:
+            painter.fillRect(widget.rect(), outer_fill)
+        else:
+            painter.fillRect(widget.rect(), Qt.GlobalColor.white)
 
         if not widget.bins:
             self._drawNoData(widget, painter)
@@ -48,8 +52,10 @@ class StatisticsHistogramRenderer:
         painter.setPen(QPen(BORDER_COLOR, 1))
         painter.drawRect(plotRect)
 
-        self._drawTitle(widget, painter)
-        self._drawSubtitle(widget, painter, plotRect)
+        if getattr(widget, "show_title", True):
+            self._drawTitle(widget, painter)
+        if getattr(widget, "show_subtitle", True):
+            self._drawSubtitle(widget, painter, plotRect)
 
         leftScale = self._computeLeftScale(widget, plotRect)
         rightScale = self._computeRightScale() if widget.mode == "cumulative" else None
@@ -99,15 +105,24 @@ class StatisticsHistogramRenderer:
         )
         painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, elided)
 
+    def _bin_bar_value(self, widget, binData):
+        if widget.mode == "cumulative":
+            return binData.get("sum", 0.0)
+        if widget.mode == "intensive":
+            return binData.get("avg", 0.0) if binData.get("count", 0) else 0.0
+        if widget.mode == "relative":
+            total_count = getattr(widget, "_totalCount", 0) or sum(
+                item.get("count", 0) for item in widget.bins
+            )
+            if total_count <= 0:
+                return 0.0
+            return (binData.get("count", 0) / float(total_count)) * 100.0
+        return binData.get("count", 0)
+
     def _computeLeftScale(self, widget, plotRect):
         values = []
         for binData in widget.bins:
-            if widget.mode == "cumulative":
-                values.append(binData.get("sum", 0.0))
-            elif widget.mode == "intensive":
-                values.append(binData.get("avg", 0.0) if binData.get("count", 0) else 0.0)
-            else:
-                values.append(binData.get("count", 0))
+            values.append(self._bin_bar_value(widget, binData))
         if not values:
             values = [0.0, 1.0]
         dataMin = min(values + [0.0])
@@ -129,6 +144,8 @@ class StatisticsHistogramRenderer:
             painter.setPen(QPen(GRID_COLOR, 1, Qt.PenStyle.DashLine))
             painter.drawLine(QPointF(plotRect.left(), tickY), QPointF(plotRect.right(), tickY))
             label = format_number_tick(tickValue, scale.step)
+            if widget.mode == "relative":
+                label = label + "%"
             painter.setPen(TEXT_AXIS)
             labelX = plotRect.left() - 6 - fontMetrics.horizontalAdvance(label)
             painter.drawText(QPointF(labelX, tickY + fontMetrics.ascent() / 2 - 1), label)
@@ -170,12 +187,7 @@ class StatisticsHistogramRenderer:
         barRects = []
         for binIndex, binData in enumerate(widget.bins):
             barX = plotRect.left() + offset + binIndex * slotWidth + gapWidth / 2
-            if widget.mode == "cumulative":
-                barValue = binData.get("sum", 0.0)
-            elif widget.mode == "intensive":
-                barValue = binData.get("avg", 0.0) if binData.get("count", 0) else 0.0
-            else:
-                barValue = binData.get("count", 0)
+            barValue = self._bin_bar_value(widget, binData)
             barTop = self._yForValue(plotRect, leftScale, barValue)
             zeroY = self._yForValue(plotRect, leftScale, 0.0)
             top = min(barTop, zeroY)
@@ -184,11 +196,20 @@ class StatisticsHistogramRenderer:
             barRects.append(barRect)
             visibleRect = QRectF(barRect).intersected(plotRect)
             if visibleRect.width() > 0 and visibleRect.height() >= 0:
-                fillColor = QColor(DEFAULT_SERIES_COLOR)
+                bar_color = binData.get("color")
+                if bar_color is not None:
+                    fillColor = QColor(bar_color) if not isinstance(bar_color, QColor) else QColor(bar_color)
+                else:
+                    fillColor = QColor(DEFAULT_SERIES_COLOR)
                 if widget.hoverIndex == binIndex:
                     fillColor = fillColor.lighter(115)
+                border_color = QColor(
+                    max(0, fillColor.red() - 40),
+                    max(0, fillColor.green() - 40),
+                    max(0, fillColor.blue() - 40),
+                )
                 painter.fillRect(visibleRect, fillColor)
-                painter.setPen(QPen(BAR_BORDER_COLOR, 1))
+                painter.setPen(QPen(border_color, 1))
                 painter.drawRect(visibleRect)
         return barRects
 
