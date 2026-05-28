@@ -50,6 +50,82 @@ class AnalysisSection:
         scenario = getattr(self.ResultDockwidget, 'Scenario', 'Base') if self.ResultDockwidget else 'Base'
         return os.path.join(self.ProjectDirectory, DIR_RESULTS, f"{self.NetworkName}_{scenario}.out")
 
+    def _hydFilePath(self):
+        scenario = getattr(self.ResultDockwidget, 'Scenario', 'Base') if self.ResultDockwidget else 'Base'
+        return os.path.join(self.ProjectDirectory, DIR_RESULTS, f"{self.NetworkName}_{scenario}.hyd")
+
+    def _useHydForTimeSeries(self):
+        dock = getattr(self, "ResultDockwidget", None)
+        if dock is None:
+            return False
+        try:
+            return bool(dock.isAllCalculationTimesMode())
+        except Exception:
+            return False
+
+    def _getTimeSeriesSource(self):
+        """Return active source metadata for TimeSeries based on Results dock mode."""
+        out_path = self._outFilePath()
+        if not os.path.exists(out_path):
+            return None
+
+        if self._useHydForTimeSeries():
+            hyd_path = self._hydFilePath()
+            if os.path.exists(hyd_path):
+                try:
+                    from ..ui.analysis.qgisred_results_hyd import getHyd_Metadata
+                    hyd_meta = getHyd_Metadata(hyd_path, out_path)
+                    if hyd_meta and hyd_meta.get("hyd_num_periods", 0) > 1:
+                        times = list(hyd_meta.get("hyd_times") or [])
+                        if not times:
+                            start = hyd_meta.get("hyd_report_start", 0)
+                            step = hyd_meta.get("hyd_report_step", 0)
+                            n = hyd_meta.get("hyd_num_periods", 0)
+                            times = [start + i * step for i in range(n)]
+                        if times:
+                            return {
+                                "kind": "hyd",
+                                "out_path": out_path,
+                                "hyd_path": hyd_path,
+                                "times": times,
+                            }
+                except Exception:
+                    pass
+
+        from ..ui.analysis.qgisred_results_binary import getOut_Metadata
+        with open(out_path, 'rb') as f:
+            meta = getOut_Metadata(f)
+        if not meta:
+            return None
+        start = meta["report_start"]
+        step = meta["report_step"]
+        times = [start + i * step for i in range(meta["num_periods"])]
+        return {
+            "kind": "out",
+            "out_path": out_path,
+            "times": times,
+        }
+
+    def _getSeriesValuesForSource(self, source, category, element_id, prop_internal):
+        if source["kind"] == "out":
+            from ..ui.analysis.qgisred_results_binary import getOut_TimesNodeProperty, getOut_TimesLinkProperty
+            if category == "Node":
+                return getOut_TimesNodeProperty(source["out_path"], element_id, prop_internal)
+            return getOut_TimesLinkProperty(source["out_path"], element_id, prop_internal)
+
+        from ..ui.analysis.qgisred_results_hyd import getHyd_TimeNodesProperties, getHyd_TimeLinksProperties
+        out_path = source["out_path"]
+        hyd_path = source["hyd_path"]
+        values = []
+        for t in source["times"]:
+            if category == "Node":
+                step_results = getHyd_TimeNodesProperties(hyd_path, out_path, t)
+            else:
+                step_results = getHyd_TimeLinksProperties(hyd_path, out_path, t)
+            v = step_results.get(element_id, {}).get(prop_internal)
+            values.append(v)
+        return values
+
     def _arrangeDocksIfVisible(self, visible):
         if not visible:
             return
@@ -856,19 +932,12 @@ class AnalysisSection:
         if not self.timeSeriesSelection:
             return
 
-        out_path = self._outFilePath()
-        if not os.path.exists(out_path):
+        source = self._getTimeSeriesSource()
+        if not source:
             self.pushMessage(self.tr("Results file not found. Please run the model."), level=1)
             return
 
-        from ..ui.analysis.qgisred_results_binary import getOut_TimesNodeProperty, getOut_TimesLinkProperty, getOut_Metadata
-
-        with open(out_path, 'rb') as f:
-            meta = getOut_Metadata(f)
-            report_start = meta["report_start"]
-            report_step = meta["report_step"]
-            num_periods = meta["num_periods"]
-            x_data = [(report_start + i * report_step) / 3600.0 for i in range(num_periods)]
+        x_data = [t / 3600.0 for t in source["times"]]
 
         series = []
         for idx, it in enumerate(self.timeSeriesSelection):
@@ -883,10 +952,7 @@ class AnalysisSection:
             layer_identifier = it.get("layer_identifier") or ""
             if not element_id:
                 continue
-            if category == "Node":
-                y_data = getOut_TimesNodeProperty(out_path, element_id, prop_internal)
-            else:
-                y_data = getOut_TimesLinkProperty(out_path, element_id, prop_internal)
+            y_data = self._getSeriesValuesForSource(source, category, element_id, prop_internal)
             if not y_data:
                 continue
 
@@ -1130,28 +1196,17 @@ class AnalysisSection:
                 if prop_internal == "Status":
                     is_stepped = True
 
-        out_path = getattr(self.ResultDockwidget, "outPath", "")
-        if not os.path.exists(out_path):
+        source = self._getTimeSeriesSource()
+        if not source:
             self.pushMessage(self.tr("Results file not found. Please run the model."), level=1)
             return
 
-        from ..ui.analysis.qgisred_results_binary import getOut_TimesNodeProperty, getOut_TimesLinkProperty, getOut_Metadata
-
-        y_data = []
-        if category == "Node":
-            y_data = getOut_TimesNodeProperty(out_path, element_id, prop_internal)
-        else:
-            y_data = getOut_TimesLinkProperty(out_path, element_id, prop_internal)
+        y_data = self._getSeriesValuesForSource(source, category, element_id, prop_internal)
 
         if not y_data:
             return
 
-        with open(out_path, 'rb') as f:
-            meta = getOut_Metadata(f)
-            report_start = meta["report_start"]
-            report_step = meta["report_step"]
-            num_periods = meta["num_periods"]
-            x_data = [(report_start + i * report_step) / 3600.0 for i in range(num_periods)]
+        x_data = [t / 3600.0 for t in source["times"]]
 
         element_label = f"{category} {element_id}"
         title = f"{element_label}: {prop_display}"

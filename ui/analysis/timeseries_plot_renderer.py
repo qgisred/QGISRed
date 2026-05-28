@@ -665,13 +665,12 @@ class TimeSeriesPlotRenderer:
         if cfg.auto_scale:
             max_ticks_x = estimate_max_ticks(plot_rect.width(), label_px, min_ticks=2, max_ticks=AXIS_MAX_TICKS)
             x_scale = compute_nice_time_scale_hours(min_x, max_x, max_ticks_x)
-        else:
-            x_scale = build_fixed_linear_scale(min_x, max_x, cfg.fixed_divisions)
-        if has_explicit_view:
+            # Keep plot bounds exactly on data/view range (no extra margin to the right).
+            # Use the nice scale only to generate readable ticks.
             eps = 1e-9
             x_tick_values = [t for t in x_scale.ticks() if (min_x - eps) <= t <= (max_x + eps)]
         else:
-            min_x, max_x = x_scale.axis_min, x_scale.axis_max
+            x_scale = build_fixed_linear_scale(min_x, max_x, cfg.fixed_divisions)
             x_tick_values = x_scale.ticks()
         x_range = max_x - min_x
         if has_days and self._is_time_of_day_format(hour_format):

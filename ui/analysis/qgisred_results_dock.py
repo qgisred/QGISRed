@@ -996,10 +996,12 @@ class QGISRedResultsDock(
         if self._statsMode:
             result_times = self.cbResultTimes.currentText()
             self.lbStatDesc.setText(self.tr("for %1").replace("%1", result_times.lower()))
+            self.resultPropertyChanged.emit()
             return
 
         labels = self._readTimeLabelsFromOut()
         self.openBaseResults(labels)
+        self.resultPropertyChanged.emit()
 
     def linksChanged(self):
         if self.Computing:
