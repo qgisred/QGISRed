@@ -538,21 +538,18 @@
                          </widget>
                         </item>
                         <item>
-                         <widget class="QCheckBox" name="cbAnimLoop">
-                          <property name="font">
-                           <font>
-                            <family>MS Shell Dlg 2</family>
-                            <pointsize>8</pointsize>
-                            <weight>50</weight>
-                            <italic>true</italic>
-                            <bold>false</bold>
-                           </font>
+                         <widget class="QToolButton" name="btAnimLoop">
+                          <property name="maximumSize">
+                           <size>
+                            <width>18</width>
+                            <height>18</height>
+                           </size>
                           </property>
-                          <property name="styleSheet">
-                           <string notr="true">font: italic 8pt "MS Shell Dlg 2";</string>
-                          </property>
-                          <property name="text">
+                          <property name="toolTip">
                            <string>Loop</string>
+                          </property>
+                          <property name="checkable">
+                           <bool>true</bool>
                           </property>
                          </widget>
                         </item>

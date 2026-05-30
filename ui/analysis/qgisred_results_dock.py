@@ -257,6 +257,7 @@ class QGISRedResultsDock(
         self._iconPlayForward = QIcon(":/images/iconResultsPlayForward.svg")
         self._iconStepForward = QIcon(":/images/iconResultsStepForward.svg")
         self._iconGoToEnd = QIcon(":/images/iconResultsGoToEnd.svg")
+        self._iconLoop = QIcon(":/images/iconResultsLoop.svg")
 
         self.btInitTime.setIcon(self._iconGoToStart)
         self.btLessTime.setIcon(self._iconStepBackward)
@@ -264,6 +265,7 @@ class QGISRedResultsDock(
         self.btEndTime.setIcon(self._iconGoToEnd)
         self.btPlayForward.setIcon(self._iconPlayForward)
         self.btPlayBackward.setIcon(self._iconPlayBackward)
+        self.btAnimLoop.setIcon(self._iconLoop)
 
         self._animPlaying = False
         self._animDirection = 1
@@ -1465,7 +1467,7 @@ class QGISRedResultsDock(
         if self._animDirection == 1:
             next_index = index + 1
             if next_index >= count:
-                if self.cbAnimLoop.isChecked():
+                if self.btAnimLoop.isChecked():
                     next_index = 0
                 else:
                     self._stopAnimation()
@@ -1473,7 +1475,7 @@ class QGISRedResultsDock(
         else:
             next_index = index - 1
             if next_index < 0:
-                if self.cbAnimLoop.isChecked():
+                if self.btAnimLoop.isChecked():
                     next_index = count - 1
                 else:
                     self._stopAnimation()
