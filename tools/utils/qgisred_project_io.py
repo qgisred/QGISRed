@@ -595,6 +595,8 @@ class QGISRedProjectIO:
                     return False
             for groups_node in root.findall("./ThirdParty/QGISRed/Groups"):
                 self._openGroupsNode(groups_node, "")
+                if groups_node.find("Results") is not None:
+                    self._layers().getOrCreateNestedGroup([self.NetworkName, "Results"])
             return False
 
         else:  # old file
