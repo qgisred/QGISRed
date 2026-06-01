@@ -6,7 +6,7 @@ import re
 
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
-from qgis.PyQt.QtWidgets import QHBoxLayout, QVBoxLayout
+from qgis.PyQt.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget
 from qgis.core import (
     NULL,
     QgsCategorizedSymbolRenderer,
@@ -327,6 +327,64 @@ def _build_link_status_bins(layer):
     return bins
 
 
+class _DistributionControlsBar(QWidget):
+    """Frequency + Cumulative controls in one row when wide enough, two rows otherwise."""
+
+    _MERGE_THRESHOLD = 320
+
+    def __init__(self, freq_label, freq_combo, cum_label, cum_combo, parent=None):
+        super().__init__(parent)
+        self._fl = freq_label
+        self._fc = freq_combo
+        self._cl = cum_label
+        self._cc = cum_combo
+        self._merged = None
+
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.setSpacing(0)
+        self._row1 = QHBoxLayout()
+        self._row2 = QHBoxLayout()
+        outer.addLayout(self._row1)
+        outer.addLayout(self._row2)
+
+        self._apply(merged=False)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        merged = event.size().width() >= self._MERGE_THRESHOLD
+        if merged != self._merged:
+            self._apply(merged)
+
+    def _apply(self, merged):
+        self._merged = merged
+        while self._row1.count():
+            self._row1.takeAt(0)
+        while self._row2.count():
+            self._row2.takeAt(0)
+
+        if merged:
+            self._row1.setContentsMargins(6, 0, 0, 0)
+            self._row1.setSpacing(8)
+            self._row1.addWidget(self._fl)
+            self._row1.addWidget(self._fc)
+            self._row1.addSpacing(8)
+            self._row1.addWidget(self._cl)
+            self._row1.addWidget(self._cc)
+            self._row1.addStretch(1)
+        else:
+            self._row1.setContentsMargins(6, 0, 0, 0)
+            self._row1.setSpacing(8)
+            self._row1.addWidget(self._fl)
+            self._row1.addWidget(self._fc)
+            self._row1.addStretch(1)
+            self._row2.setContentsMargins(6, 4, 0, 0)
+            self._row2.setSpacing(8)
+            self._row2.addWidget(self._cl)
+            self._row2.addWidget(self._cc)
+            self._row2.addStretch(1)
+
+
 class _ResultsDistributionMixin:
     _DISTRIBUTION_CHECKBOX_TEMPLATE = "Show the %1 Distribution"
 
@@ -382,36 +440,17 @@ class _ResultsDistributionMixin:
         freq_row = self.horizontalLayout_DistributionFrequency
         cum_row = self.horizontalLayout_DistributionCumulative
 
-        merged = QHBoxLayout()
-        merged.setSpacing(8)
-        merged.setContentsMargins(6, 0, 0, 0)
-
-        while freq_row.count():
-            item = freq_row.takeAt(0)
-            if item.widget():
-                merged.addWidget(item.widget())
-            elif item.layout():
-                merged.addLayout(item.layout())
-            elif item.spacerItem():
-                merged.addItem(item.spacerItem())
-
-        merged.addSpacing(4)
-
-        while cum_row.count():
-            item = cum_row.takeAt(0)
-            if item.widget():
-                merged.addWidget(item.widget())
-            elif item.layout():
-                merged.addLayout(item.layout())
-            elif item.spacerItem():
-                merged.addItem(item.spacerItem())
-
-        merged.addStretch(1)
-
-        parent_index = parent_layout.indexOf(freq_row)
+        freq_index = parent_layout.indexOf(freq_row)
         parent_layout.removeItem(freq_row)
         parent_layout.removeItem(cum_row)
-        parent_layout.insertLayout(parent_index, merged)
+
+        self._dist_controls_bar = _DistributionControlsBar(
+            self.lbDistributionFrequency,
+            self.cbDistributionFrequency,
+            self.lbDistributionCumulative,
+            self.cbDistributionCumulative,
+        )
+        parent_layout.insertWidget(freq_index, self._dist_controls_bar)
 
     def _distributionBarMode(self):
         frequency_id = self.cbDistributionFrequency.currentData(Qt.ItemDataRole.UserRole)
