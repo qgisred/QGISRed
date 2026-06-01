@@ -134,6 +134,12 @@ class QGISRedProjectIO:
             quality_simulated = QGISRedProjectUtils.getQualityModel().upper() != "NONE"
 
             styling = QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+
+            # Pass 1: open all layers first. orderResultLayers (called inside openLayer)
+            # clones non-point layers on each call, so all cloning must finish before
+            # we apply styles — otherwise later openLayer calls would re-clone and lose
+            # the renderer/legend we just set.
+            style_queue = []
             for name in reversed(layerNames):
                 # "Base_Node_Pressure[_Stats]" → file_name="Base_Node", layer_type="Node",
                 #                                variable="Pressure", is_stats=False/True
@@ -146,6 +152,10 @@ class QGISRedProjectIO:
                 else:
                     file_name, layer_type, variable, is_stats = name, None, None, False
                 utils.openLayer(group, file_name, **flags)
+                style_queue.append((file_name, layer_type, variable, is_stats))
+
+            # Pass 2: apply styles to the final layer instances (after all cloning is done).
+            for file_name, layer_type, variable, is_stats in style_queue:
                 if not variable or not layer_type:
                     continue
                 layer_path = utils._fs().generatePath(layersDir, self.NetworkName + "_" + file_name + ".shp")
@@ -156,7 +166,17 @@ class QGISRedProjectIO:
                 QgsProject.instance().writeEntry("QGISRed", f"results_{scenario}_{layer_type}", variable)
                 # Flow_Sig / Flow_Unsig share the Flow QML style
                 style_var = _STAT_VAR_ALIASES.get(variable, variable)
+                # Load QML template (color ramp + symbol complexity), fix the classAttribute
+                # (QML templates may have a wrong default like 'Time'), then add a null/else
+                # rule so out-of-range features are visible rather than invisible.
                 styling.setStyle(opened, layer_type + "_" + style_var)
+                renderer = opened.renderer()
+                from qgis.core import QgsGraduatedSymbolRenderer
+                if isinstance(renderer, QgsGraduatedSymbolRenderer):
+                    class_attr = "abs(Flow)" if variable == "Flow" else variable
+                    renderer.setClassAttribute(class_attr)
+                    opened.setRenderer(renderer)
+                styling.applyNullStyle(opened)
                 template = QCoreApplication.translate("_ResultsRenderingMixin", layer_type + " %1")
                 display_var = _RESULT_FIELD_DISPLAY_NAMES.get(variable, variable)
                 translated_var = QCoreApplication.translate("QGISRedResultsDock", display_var)
@@ -597,6 +617,10 @@ class QGISRedProjectIO:
                 self._openGroupsNode(groups_node, "")
                 if groups_node.find("Results") is not None:
                     self._layers().getOrCreateNestedGroup([self.NetworkName, "Results"])
+            if self.iface:
+                bridge = self.iface.layerTreeCanvasBridge()
+                bridge.setCanvasLayers()
+                self.iface.mapCanvas().refresh()
             return False
 
         else:  # old file

@@ -463,7 +463,8 @@ class QGISRedLayerUtils:
         layerPath = os.path.join(self.ProjectDirectory, layerName + ext)
         if os.path.exists(layerPath):
             # If the layer is already open, reload its data in-place (no duplicate added)
-            if self._tryReloadExistingLayer(layerPath):
+            reloaded = self._tryReloadExistingLayer(layerPath)
+            if reloaded:
                 if sectors:
                     existingLayer = self._findLayerByPath(layerPath)
                     if existingLayer is not None:
@@ -489,10 +490,11 @@ class QGISRedLayerUtils:
             QgsProject.instance().addMapLayer(vlayer, group is None)
             identifiers.setLayerIdentifier(vlayer, name)
             if group is not None:
+                treeNode = QgsLayerTreeLayer(vlayer)
                 if toEnd:
-                    group.addChildNode(QgsLayerTreeLayer(vlayer))
+                    group.addChildNode(treeNode)
                 else:
-                    group.insertChildNode(0, QgsLayerTreeLayer(vlayer))
+                    group.insertChildNode(0, treeNode)
             del vlayer
             if results:
                 self.orderResultLayers(group)
