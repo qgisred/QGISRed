@@ -883,6 +883,10 @@ class QGISRedResultsDock(
                 self._statsMode = True
                 self._currentStat = stat_text
                 self.updateLinksComboboxForStat(stat_text)  # manages its own signal blocking
+                if restore["link_field"]: #Flow_Sign and Flow_Unsig requirement
+                    self.cbLinks.blockSignals(True)
+                    self._setComboByField(self.cbLinks, self._link_field_map, restore["link_field"])
+                    self.cbLinks.blockSignals(False)
                 idx = self.cbStatistics.findText(stat_text)
                 if idx >= 0:
                     self.cbStatistics.blockSignals(True)
