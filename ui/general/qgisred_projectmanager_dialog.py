@@ -388,14 +388,19 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
 
             io = QGISRedProjectIO(self.ProjectDirectory, self.NetworkName, self.iface)
             self.parent.layerOperationInProgress = True
+            self.parent._loading_project = True
             try:
                 loaded_qgis = io.openProjectInQgis()
+                snapshot = self.parent._collectOpenSnapshot() if loaded_qgis else None
                 if not loaded_qgis:
                     self.parent._migrateLayersToSubfolders()
                     self.parent.removeOldResultLayers()
                 QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface).enforceAllIdentifiers()
             finally:
+                self.parent._loading_project = False
                 self.parent.layerOperationInProgress = False
+            if loaded_qgis and snapshot is not None:
+                self.parent._post_qgz_open(snapshot)
             self.parent.updateMetadata()
             self.close()
             self.ProcessDone = True

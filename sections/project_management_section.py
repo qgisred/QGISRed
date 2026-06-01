@@ -144,6 +144,8 @@ class ProjectManagementSection:
 
 
     def runOpenedQgisProject(self):
+        if self._loading_project:
+            return
         # Reset the unloading flag since we're opening a new project
         self.isUnloading = False
         self.defineCurrentProject()
@@ -176,11 +178,8 @@ class ProjectManagementSection:
                         if translatedName and layer.name() != translatedName:
                             layer.setName(translatedName)
 
-        self._writePluginVersionToProject()
 
-        # Defer style application to after QgsProject.read() fully unwinds —
-        # calling setLegend() during readProject signal crashes QGIS 4.
-        QTimer.singleShot(0, lambda: self._applyOpenSnapshot(style_snapshot))
+        QTimer.singleShot(0, lambda: self._post_qgz_open(style_snapshot))
 
     def suggestQgsProjectFilename(self):
         """If a valid QGISRed project is open and the QGIS project has no filename yet,
@@ -447,14 +446,22 @@ class ProjectManagementSection:
             # Open files — guard against runLegendChanged firing isValidProject() before
             # identifiers are assigned (layers load before enforceAllIdentifiers runs)
             self.layerOperationInProgress = True
+            self._loading_project = True
             try:
                 io = QGISRedProjectIO(self.ProjectDirectory, self.NetworkName, self.iface)
                 loaded_qgis = io.openProjectInQgis()
+                # Collect snapshot before enforceAllIdentifiers so old-project detection
+                # (identifier absence) still works correctly.
+                snapshot = self._collectOpenSnapshot() if loaded_qgis else None
                 if not loaded_qgis:
                     self._migrateLayersToSubfolders()
                 QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface).enforceAllIdentifiers()
             finally:
+                self._loading_project = False
                 self.layerOperationInProgress = False
+
+            if loaded_qgis and snapshot is not None:
+                self._post_qgz_open(snapshot)
 
             self.readOptions()
             self.suggestQgsProjectFilename()
@@ -904,8 +911,19 @@ class ProjectManagementSection:
             except OSError:
                 pass
 
-    def _applyOpenSnapshot(self, snapshot):
-        """Apply deferred layer updates from project open (runs after QgsProject.read() unwinds)."""
+    def _post_qgz_open(self, snapshot):
+        """Common post-processing after a project with QGZ is loaded.
+
+        Handles version writes, layer migration, style updates, result layer cleanup,
+        and NullStyle application. Called directly in scenarios 1 & 2 (safe context),
+        and deferred via QTimer in scenario 3 (inside readProject signal handler —
+        deferring avoids a crash in QGIS 4 when setLegend() is called during the signal).
+
+        ``snapshot`` must be collected (via _collectOpenSnapshot) BEFORE
+        enforceAllIdentifiers/assignLayerIdentifiers runs, so that old-project detection
+        (layer has no identifier yet) still works correctly.
+        """
+        self._writePluginVersionToProject()
         self._migrateLayersToSubfolders()
 
         from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils

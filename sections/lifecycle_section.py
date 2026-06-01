@@ -240,6 +240,7 @@ class LifecycleSection:
 
         self.zoomToFullExtent = False
         self.layerOperationInProgress = False
+        self._loading_project = False
 
         self._staleLayerManager = StaleLayerManager(
             self.iface,
