@@ -11,7 +11,7 @@ from ...compat import sip, QVariantString, QVariantDouble, ATCOL_TYPE_FIELD
 
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils, DIR_RESULTS
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
-from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
+from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils, QGISRED_COMBO_STYLE
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
@@ -130,44 +130,6 @@ class QGISRedResultsDock(
             self.lbl_std_deviation: self.tr("Standard deviation values"),
         }
 
-        self._resultsComboStyle = """
-            QComboBox {
-                background-color: white;
-                color: #202020;
-                combobox-popup: 0;
-                border: 1px solid #bdbdbd;
-                border-radius: 2px;
-                padding: 0 4px 0 5px;
-                min-height: 18px;
-                max-height: 20px;
-                font-size: 8pt;
-            }
-            QComboBox::drop-down {
-                subcontrol-origin: padding;
-                subcontrol-position: center right;
-                width: 14px;
-                border: none;
-                border-left: 1px solid #d0d0d0;
-                background-color: #f0f0f0;
-            }
-            QComboBox::down-arrow {
-                image: url(:/images/iconStatisticsArrowDown.svg);
-                width: 8px;
-                height: 8px;
-            }
-            QComboBox QAbstractItemView {
-                background-color: white;
-                color: #202020;
-                font-size: 8pt;
-                selection-background-color: #3574F0;
-                selection-color: white;
-                outline: none;
-                border: 1px solid #bdbdbd;
-                max-height: 120px;
-                qproperty-verticalScrollBarPolicy: ScrollBarAsNeeded;
-            }
-        """
-
         self.btMoreTime.clicked.connect(self.nextTime)
         self.btEndTime.clicked.connect(self.endTime)
         self.btLessTime.clicked.connect(self.previousTime)
@@ -264,31 +226,25 @@ class QGISRedResultsDock(
 
         QGISRedUIUtils.applyDockStyle(self, "#1976D2")
 
-        for combo in (
-            self.cbResultTimes,
-            self.cbStatistics,
-            self.cbNodes,
-            self.cbLinks,
-        ):
+        from qgis.PyQt.QtWidgets import QComboBox
+        for combo in self.findChildren(QComboBox):
             self._applyResultsComboStyle(combo)
 
     """Methods"""
 
     def _applyResultsComboStyle(self, combo):
-        combo.setStyleSheet(self._resultsComboStyle)
-        combo.view().setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        QGISRedUIUtils.applyComboStyle(combo)
 
     def _applyDistributionComboStyle(self, combo):
         from qgis.PyQt.QtWidgets import QComboBox, QSizePolicy
 
-        combo.setStyleSheet(self._resultsComboStyle)
+        QGISRedUIUtils.applyComboStyle(combo)
         combo.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         combo.setMaximumWidth(92)
         combo.setMinimumContentsLength(7)
         combo.setSizeAdjustPolicy(
             QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon
         )
-        combo.view().setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 
     def _rebuildFieldMaps(self):
         """Rebuild display-label → field-name maps. Call after lbl_quality changes."""

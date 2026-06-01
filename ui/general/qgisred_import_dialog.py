@@ -10,7 +10,7 @@ from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ...tools.utils.qgisred_project_io import QGISRedProjectIO
 from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
-from ...tools.utils.qgisred_ui_utils import QGISRedBanner
+from ...tools.utils.qgisred_ui_utils import QGISRedBanner, QGISRedUIUtils
 from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
 import os
 import tempfile
@@ -65,6 +65,10 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
         self.btImportProject.clicked.connect(self.importProject)
 
         self.messageBar = QGISRedBanner.inject(self, self.gridLayout_3)
+
+        from qgis.PyQt.QtWidgets import QComboBox
+        for combo in self.findChildren(QComboBox):
+            QGISRedUIUtils.applyComboStyle(combo)
 
     def _loadMaterials(self):
         self.cbMaterials.clear()

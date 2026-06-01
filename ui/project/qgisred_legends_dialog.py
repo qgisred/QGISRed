@@ -22,6 +22,7 @@ from qgis.core import QgsRuleBasedRenderer
 from qgis.utils import iface
 
 from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL, QGISRedStylingUtils
+from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, resolve_layer_id
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
@@ -72,6 +73,10 @@ class QGISRedLegendsDialog(QDialog, formClass):
         self.initializeUi()
         self.connectSignals()
         self.loadInitialState()
+
+        from qgis.PyQt.QtWidgets import QComboBox
+        for combo in self.findChildren(QComboBox):
+            QGISRedUIUtils.applyComboStyle(combo)
 
     def initializeProperties(self):
         self.currentFieldType = self.FIELD_TYPE_UNKNOWN

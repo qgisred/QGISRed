@@ -44,6 +44,10 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
         
         self.messageBar = QGISRedBanner.inject(self, self.gridLayout)
 
+        from qgis.PyQt.QtWidgets import QComboBox
+        for combo in self.findChildren(QComboBox):
+            QGISRedUIUtils.applyComboStyle(combo)
+
     def _loadMaterials(self):
         self.cbMaterials.clear()
         for name, path in QGISRedFileSystemUtils().getMaterialFiles():

@@ -30,6 +30,10 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.initializeQueriesByProperties()
         QGISRedUIUtils.applyDockStyle(self, "#7B1FA2")
 
+        from qgis.PyQt.QtWidgets import QComboBox
+        for combo in self.findChildren(QComboBox):
+            QGISRedUIUtils.applyComboStyle(combo)
+
     def closeEvent(self, event):
         self.resultsDockVisibilityTimer.stop()
         self.resultsDockPollTimer.stop()

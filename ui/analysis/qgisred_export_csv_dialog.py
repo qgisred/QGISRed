@@ -3,7 +3,7 @@ import os
 
 from qgis.PyQt.QtWidgets import QDialog, QFileDialog
 from qgis.PyQt import uic
-from ...tools.utils.qgisred_ui_utils import QGISRedBanner
+from ...tools.utils.qgisred_ui_utils import QGISRedBanner, QGISRedUIUtils
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_export_csv_dialog.ui"))
 
@@ -35,6 +35,11 @@ class QGISRedExportCsvDialog(QDialog, FORM_CLASS):
 
         # Banner for inline validation messages
         self._banner = QGISRedBanner.inject(self, self.verticalLayout)
+
+        # Apply unified combobox style
+        from qgis.PyQt.QtWidgets import QComboBox
+        for combo in self.findChildren(QComboBox):
+            QGISRedUIUtils.applyComboStyle(combo)
 
         # Combos disabled by default (system defaults, checkbox unchecked)
         self._setSeparatorEditable(False)

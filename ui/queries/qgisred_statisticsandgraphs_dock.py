@@ -135,6 +135,10 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.setupProjectSignals()
         QGISRedUIUtils.applyDockStyle(self, "#388E3C")
 
+        from qgis.PyQt.QtWidgets import QComboBox
+        for combo in self.findChildren(QComboBox):
+            QGISRedUIUtils.applyComboStyle(combo)
+
     def closeEvent(self, event):
         project = QgsProject.instance()
         self.safeDisconnect(project.layersAdded, self.onLayerTreeChanged)

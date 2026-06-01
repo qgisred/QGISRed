@@ -204,6 +204,10 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         
         self.topLevelChanged.connect(self.onTopLevelChanged)
 
+        from qgis.PyQt.QtWidgets import QComboBox
+        for combo in self.findChildren(QComboBox):
+            QGISRedUIUtils.applyComboStyle(combo)
+
     def trackCollapsibleWidgetsEvents(self):
         self.mElementPropertiesGroupBox.collapsedStateChanged.connect(self.onElementPropertiesToggled)
         self.mFindElementsGroupBox.collapsedStateChanged.connect(self.onFindElementsToggled)

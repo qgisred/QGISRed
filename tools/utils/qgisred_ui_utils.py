@@ -3,6 +3,44 @@ from qgis.PyQt.QtWidgets import QFrame, QLabel, QHBoxLayout, QPushButton, QGridL
 from qgis.PyQt.QtCore import Qt, QTimer
 from ...compat import QGIS_INFO, QGIS_WARNING, QGIS_CRITICAL, QGIS_SUCCESS
 
+QGISRED_COMBO_STYLE = """
+    QComboBox {
+        background-color: white;
+        color: #202020;
+        combobox-popup: 0;
+        border: 1px solid #bdbdbd;
+        border-radius: 2px;
+        padding: 0 4px 0 5px;
+        min-height: 18px;
+        max-height: 20px;
+        font-size: 8pt;
+    }
+    QComboBox::drop-down {
+        subcontrol-origin: padding;
+        subcontrol-position: center right;
+        width: 14px;
+        border: none;
+        border-left: 1px solid #d0d0d0;
+        background-color: #f0f0f0;
+    }
+    QComboBox::down-arrow {
+        image: url(:/images/iconStatisticsArrowDown.svg);
+        width: 8px;
+        height: 8px;
+    }
+    QComboBox QAbstractItemView {
+        background-color: white;
+        color: #202020;
+        font-size: 8pt;
+        selection-background-color: #3574F0;
+        selection-color: white;
+        outline: none;
+        border: 1px solid #bdbdbd;
+        max-height: 120px;
+        qproperty-verticalScrollBarPolicy: ScrollBarAsNeeded;
+    }
+"""
+
 
 class QGISRedBanner(QFrame):
     """
@@ -112,6 +150,13 @@ class QGISRedUIUtils:
                     stop:0 #f5f5f5, stop:1 #e8e8e8);
             }}
         """)
+
+    @staticmethod
+    def applyComboStyle(combo):
+        """Apply the standard QGISRed combobox style to a QComboBox instance."""
+        from qgis.PyQt.QtCore import Qt
+        combo.setStyleSheet(QGISRED_COMBO_STYLE)
+        combo.view().setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 
     @staticmethod
     def showGlobalMessage(iface, text, level=0, duration=5):
