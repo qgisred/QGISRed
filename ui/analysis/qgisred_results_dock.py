@@ -25,6 +25,7 @@ import os
 import glob as _glob
 import shutil
 import tempfile
+import xml.etree.ElementTree as ET
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_results_dock.ui"))
 
@@ -1736,41 +1737,60 @@ class QGISRedResultsDock(
             var_name = self.cbLinks.currentText() if self.cbLinks.currentIndex() > 0 else self.tr("Links")
             self.lbLinkDecimals.setText(var_name + ":")
 
+    def _appearanceFilePath(self):
+        return os.path.join(self.getResultsPath(),
+                            f"{self.NetworkName}_Results_Config.cfg")
+
     def _saveAppearanceSettings(self):
-        p = QgsProject.instance()
-        p.writeEntry("QGISRed", "results_label_font_size", self._labelFontSize)
-        p.writeEntry("QGISRed", "results_label_color_by_range",
-                     "true" if self._labelColorByRange else "false")
-        p.writeEntry("QGISRed", "results_label_show_id",
-                     "true" if self._labelShowId else "false")
-        p.writeEntry("QGISRed", "results_label_node_decimals", self._labelNodeDecimals)
-        p.writeEntry("QGISRed", "results_label_link_decimals", self._labelLinkDecimals)
-        p.writeEntryDouble("QGISRed", "results_pipe_factor", self._pipeFactor)
-        p.writeEntryDouble("QGISRed", "results_symbol_factor", self._symbolFactor)
-        p.writeEntryDouble("QGISRed", "results_arrow_factor", self._arrowFactor)
-        p.writeEntry("QGISRed", "results_bg_color",
-                     self._bgColor.name() if self._bgColor else "")
+        root = ET.Element("AppearanceConfig")
+        ET.SubElement(root, "Labels",
+                      fontSize=str(self._labelFontSize),
+                      colorByRange="true" if self._labelColorByRange else "false",
+                      showId="true" if self._labelShowId else "false",
+                      nodeDecimals=str(self._labelNodeDecimals),
+                      linkDecimals=str(self._labelLinkDecimals))
+        ET.SubElement(root, "Symbols",
+                      pipeFactor=str(self._pipeFactor),
+                      symbolFactor=str(self._symbolFactor),
+                      arrowFactor=str(self._arrowFactor))
+        ET.SubElement(root, "Background",
+                      color=self._bgColor.name() if self._bgColor else "")
+        try:
+            path = self._appearanceFilePath()
+            ET.indent(root)
+            ET.ElementTree(root).write(path, encoding="utf-8", xml_declaration=True)
+        except Exception:
+            pass
 
     def _loadAppearanceSettings(self):
-        p = QgsProject.instance()
-        font_size, ok = p.readNumEntry("QGISRed", "results_label_font_size", 10)
-        self._labelFontSize = font_size if ok else 10
-        color_by_range_str, _ = p.readEntry("QGISRed", "results_label_color_by_range", "false")
-        self._labelColorByRange = color_by_range_str == "true"
-        show_id_str, _ = p.readEntry("QGISRed", "results_label_show_id", "false")
-        self._labelShowId = show_id_str == "true"
-        node_dec, ok = p.readNumEntry("QGISRed", "results_label_node_decimals", 2)
-        self._labelNodeDecimals = node_dec if ok else 2
-        link_dec, ok = p.readNumEntry("QGISRed", "results_label_link_decimals", 2)
-        self._labelLinkDecimals = link_dec if ok else 2
-        pipe_factor, ok = p.readDoubleEntry("QGISRed", "results_pipe_factor", 1.0)
-        self._pipeFactor = pipe_factor if ok else 1.0
-        symbol_factor, ok = p.readDoubleEntry("QGISRed", "results_symbol_factor", 1.0)
-        self._symbolFactor = symbol_factor if ok else 1.0
-        arrow_factor, ok = p.readDoubleEntry("QGISRed", "results_arrow_factor", 1.0)
-        self._arrowFactor = arrow_factor if ok else 1.0
-        bg_hex, _ = p.readEntry("QGISRed", "results_bg_color", "")
-        self._bgColor = QColor(bg_hex) if bg_hex else None
+        path = self._appearanceFilePath()
+        if not os.path.isfile(path):
+            return
+
+        try:
+            tree = ET.parse(path)
+            root = tree.getroot()
+        except Exception:
+            return
+
+        labels = root.find("Labels")
+        if labels is not None:
+            self._labelFontSize = int(labels.get("fontSize", 10))
+            self._labelColorByRange = labels.get("colorByRange", "false") == "true"
+            self._labelShowId = labels.get("showId", "false") == "true"
+            self._labelNodeDecimals = int(labels.get("nodeDecimals", 2))
+            self._labelLinkDecimals = int(labels.get("linkDecimals", 2))
+
+        symbols = root.find("Symbols")
+        if symbols is not None:
+            self._pipeFactor = float(symbols.get("pipeFactor", 1.0))
+            self._symbolFactor = float(symbols.get("symbolFactor", 1.0))
+            self._arrowFactor = float(symbols.get("arrowFactor", 1.0))
+
+        bg = root.find("Background")
+        if bg is not None:
+            bg_hex = bg.get("color", "")
+            self._bgColor = QColor(bg_hex) if bg_hex else None
 
         # Update widgets silently
         self.spFontSize.blockSignals(True)
@@ -1801,6 +1821,16 @@ class QGISRedResultsDock(
             self.btBgColor.setText(self._bgColor.name())
             self.btClearBgColor.setEnabled(True)
             self._applyBgColor()
+
+        # Apply restored settings to open layers
+        node_layer = self._findResultLayer("Node")
+        link_layer = self._findResultLayer("Link")
+        if node_layer:
+            self.applySymbolScaleFactors(node_layer)
+            self.updateLabels("Node")
+        if link_layer:
+            self.applySymbolScaleFactors(link_layer)
+            self.updateLabels("Link")
 
     def validationsOpenResult(self):
         if not self.isCurrentProject():
