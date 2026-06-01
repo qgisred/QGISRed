@@ -423,6 +423,10 @@ class _ResultsDataMixin:
                 id_field_idx = 0  # fallback to first field
 
             element = "Nodes" if layerName == "Node" else "Links"
+            user_dec = (
+                getattr(self, '_labelNodeDecimals', None) if layerName == "Node"
+                else getattr(self, '_labelLinkDecimals', None)
+            )
             attribute_updates = {}
             for feature in target_layer.getFeatures():
                 feature_id = str(feature.attributes()[id_field_idx])
@@ -433,7 +437,8 @@ class _ResultsDataMixin:
                     for var, val in results[feature_id].items():
                         var_key = var[:10]
                         if val is not None and isinstance(val, (int, float)):
-                            val = round(float(val), field_utils.getDecimals(element, var_key))
+                            dec = user_dec if user_dec is not None else field_utils.getDecimals(element, var_key)
+                            val = round(float(val), dec)
                         updates[field_indices[var_key]] = val
                     attribute_updates[feature.id()] = updates
 
@@ -551,6 +556,10 @@ class _ResultsDataMixin:
                 id_field_idx = 0
 
             element = "Nodes" if layerName == "Node" else "Links"
+            user_dec = (
+                getattr(self, '_labelNodeDecimals', None) if layerName == "Node"
+                else getattr(self, '_labelLinkDecimals', None)
+            )
             attribute_updates = {}
             for feature in target_layer.getFeatures():
                 feature_id = str(feature.attributes()[id_field_idx])
@@ -565,7 +574,8 @@ class _ResultsDataMixin:
                         raw_val = val["Value"] if val is not None else None
                         if raw_val is not None and isinstance(raw_val, (int, float)):
                             csv_field = _STAT_VAR_ALIASES.get(var, var)[:10]
-                            raw_val = round(float(raw_val), field_utils.getDecimals(element, csv_field))
+                            dec = user_dec if user_dec is not None else field_utils.getDecimals(element, csv_field)
+                            raw_val = round(float(raw_val), dec)
                         updates[field_indices[var_key]] = raw_val
                         if is_min_max and var_key in time_field_indices and time_field_indices[var_key] != -1:
                             t = val["Time"] if val is not None else None

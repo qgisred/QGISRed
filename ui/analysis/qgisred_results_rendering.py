@@ -4,13 +4,54 @@ import re
 from qgis.core import (
     QgsPalLayerSettings, QgsVectorLayerSimpleLabeling, QgsTextFormat,
     QgsProperty, QgsRenderContext,
-    QgsGraduatedSymbolRenderer, QgsRuleBasedRenderer, QgsRendererRange,
-    QgsProject,
+    QgsGraduatedSymbolRenderer,
+    QgsRuleBasedRenderer, QgsRendererRange,
+    QgsProject, Qgis, QgsSymbolLayer,
 )
 from qgis.PyQt.QtGui import QColor, QFont
 
 from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils, _NULL_RULE_LABEL, _NullHiddenLegend
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
+
+# Compatibility shim for QgsSymbolLayer.PropertySize (enum may be scoped in QGIS 4.x)
+try:
+    _SL_PROP_SIZE = QgsSymbolLayer.PropertySize
+except AttributeError:
+    try:
+        _SL_PROP_SIZE = QgsSymbolLayer.Property.Size
+    except AttributeError:
+        _SL_PROP_SIZE = 9  # historical fallback
+
+# Base sizes from the node and link result QML files. These are the values when factor = 1.0.
+_BASE_PIPE_WIDTH    = 0.26  # mm — SimpleLine width in LinkFlow.qml (and other link styles)
+_BASE_ARROW_SIZE    = 3.0   # mm — arrow sub-symbol in setArrowsVisibility
+_BASE_JUNCTION_SIZE = 2.0   # mm — SimpleMarker for junctions in NodePressure.qml
+_BASE_SPECIAL_SIZE  = 7.0   # mm — SvgMarker for tanks/reservoirs in NodePressure.qml
+
+
+def _apply_absolute_node_size(expr, junction_size, special_size):
+    """Rewrite a node symbol-layer size expression with absolute target sizes.
+
+    Recognises the three patterns used in node result QML files:
+      Tank:       if(Type ='TANK', N, 0)                        → N = special_size
+      Reservoir:  if(Type ='RESERVOIR', N, 0)                   → N = special_size
+      Junction:   if(Type ='RESERVOIR' or Type='TANK', 0, N)    → N = junction_size
+    The replacement is always absolute (not relative to the current N), so calling
+    this function repeatedly with the same arguments is idempotent.
+    """
+    s = expr.strip()
+    has_tank = "'TANK'" in s
+    has_res  = "'RESERVOIR'" in s
+    if has_tank and not has_res:
+        # if(Type ='TANK', SIZE, 0)  — replace SIZE before ,0)
+        return re.sub(r',\s*\d+(?:\.\d+)?,\s*0\)', f', {special_size},0)', s)
+    if has_res and not has_tank:
+        # if(Type ='RESERVOIR', SIZE, 0)  — same pattern
+        return re.sub(r',\s*\d+(?:\.\d+)?,\s*0\)', f', {special_size},0)', s)
+    if has_tank and has_res:
+        # if(Type ='RESERVOIR' or Type='TANK', 0, SIZE)  — replace SIZE at end
+        return re.sub(r',\s*\d+(?:\.\d+)?\s*\)$', f',{junction_size})', s)
+    return s
 
 
 def time_field_name(var_name, layer_type):
@@ -189,32 +230,187 @@ class _ResultsRenderingMixin:
     def setLayerLabels(self, layer, fieldName, time_field=None):
         node_labels_enabled = layer.geometryType() == 0 and self.cbNodeLabels.isChecked()
         link_labels_enabled = layer.geometryType() == 1 and self.cbLinkLabels.isChecked()
-        if node_labels_enabled or link_labels_enabled:
-            layer_settings = QgsPalLayerSettings()
-            layer_settings.formatNumbers = True
-            layer_settings.decimals = 2
-            text_format = QgsTextFormat()
-            text_format.setFont(QFont("Arial", 10))
-            color = "black"
-            text_format.setColor(QColor(color))
-            layer_settings.setFormat(text_format)
+        if not (node_labels_enabled or link_labels_enabled):
+            return
 
-            if time_field:
-                layer_settings.fieldName = f'round("{fieldName}", 2) || \' - \' || "{time_field}"'
-                layer_settings.isExpression = True
-            elif fieldName == "Flow":
-                layer_settings.fieldName = 'abs("Flow")'
-                layer_settings.isExpression = True
-            else:
-                layer_settings.fieldName = fieldName
-                layer_settings.isExpression = False
+        font_size = getattr(self, '_labelFontSize', 10)
+        is_node = layer.geometryType() == 0
+        decimals = getattr(self, '_labelNodeDecimals' if is_node else '_labelLinkDecimals', 2)
+        color_by_range = getattr(self, '_labelColorByRange', False)
+        show_id = getattr(self, '_labelShowId', False)
 
-            layer_settings.placement = QgsPalLayerSettings.Line
-            layer_settings.enabled = True
-            labels = QgsVectorLayerSimpleLabeling(layer_settings)
-            layer.setLabeling(labels)
-            layer.setLabelsEnabled(True)
-            layer.triggerRepaint()
+        layer_settings = QgsPalLayerSettings()
+        text_format = QgsTextFormat()
+        text_format.setFont(QFont("Arial"))
+        text_format.setSize(font_size)
+        try:
+            text_format.setSizeUnit(Qgis.RenderUnit.RenderPoints)
+        except AttributeError:
+            from qgis.core import QgsUnitTypes
+            text_format.setSizeUnit(QgsUnitTypes.RenderPoints)
+
+        text_format.setColor(QColor("black"))
+        if color_by_range:
+            color_expr = self._buildRangeColorExpression(layer, fieldName)
+            if color_expr:
+                from qgis.core import QgsPropertyCollection
+                prop = QgsProperty.fromExpression(color_expr)
+                ddp = QgsPropertyCollection()
+                ddp.setProperty(QgsPalLayerSettings.Color, prop)
+                layer_settings.setDataDefinedProperties(ddp)
+
+        layer_settings.setFormat(text_format)
+
+        # Build value expression — format_number ensures fixed decimal places (respects locale)
+        if time_field:
+            value_expr = f'format_number(round("{fieldName}", {decimals}), {decimals}) || \' - \' || "{time_field}"'
+        elif fieldName == "Flow":
+            value_expr = f'format_number(abs("Flow"), {decimals})'
+        else:
+            value_expr = f'format_number("{fieldName}", {decimals})'
+
+        if show_id:
+            full_expr = f'"Id" || \' - \' || ({value_expr})'
+        else:
+            full_expr = value_expr
+
+        layer_settings.fieldName = full_expr
+        layer_settings.isExpression = True
+        layer_settings.placement = QgsPalLayerSettings.Line
+        layer_settings.enabled = True
+        labels = QgsVectorLayerSimpleLabeling(layer_settings)
+        layer.setLabeling(labels)
+        layer.setLabelsEnabled(True)
+        layer.triggerRepaint()
+
+    def _buildRangeColorExpression(self, layer, fieldName):
+        """Build a CASE WHEN expression to color label text matching the graduated renderer ranges."""
+        renderer = layer.renderer()
+        # applyNullStyle wraps graduated renderers in QgsRuleBasedRenderer;
+        # extract the embedded graduated renderer from child rules when needed.
+        if isinstance(renderer, QgsRuleBasedRenderer):
+            return self._buildRangeColorExpressionFromRules(renderer, fieldName)
+        if not isinstance(renderer, QgsGraduatedSymbolRenderer):
+            return None
+        return self._buildRangeColorExpressionFromGraduated(renderer, fieldName)
+
+    def _buildRangeColorExpressionFromGraduated(self, renderer, fieldName):
+        actual_field = 'abs("Flow")' if fieldName == "Flow" else f'"{fieldName}"'
+        parts = []
+        for r in renderer.ranges():
+            hex_color = r.symbol().color().name()
+            lo, hi = r.lowerValue(), r.upperValue()
+            parts.append(
+                f'WHEN {actual_field} >= {lo} AND {actual_field} <= {hi} THEN \'{hex_color}\''
+            )
+        if not parts:
+            return None
+        return 'CASE ' + ' '.join(parts) + ' ELSE \'#000000\' END'
+
+    def _buildRangeColorExpressionFromRules(self, renderer, fieldName):
+        """Build color expression from QgsRuleBasedRenderer child rules (post applyNullStyle)."""
+        actual_field = 'abs("Flow")' if fieldName == "Flow" else f'"{fieldName}"'
+        parts = []
+        for rule in renderer.rootRule().children():
+            if rule.label() == _NULL_RULE_LABEL:
+                continue
+            sym = rule.symbol()
+            if sym is None:
+                continue
+            hex_color = sym.color().name()
+            # applyNullStyle uses ">=" for i==0 and ">" for all subsequent ranges.
+            # Match both forms to extract lo/hi bounds.
+            expr = rule.filterExpression()
+            m = re.search(r'>=? *([\d.eE+\-]+).*?<= *([\d.eE+\-]+)', expr or "")
+            if m:
+                lo, hi = m.group(1), m.group(2)
+                parts.append(
+                    f'WHEN {actual_field} >= {lo} AND {actual_field} <= {hi} THEN \'{hex_color}\''
+                )
+        if not parts:
+            return None
+        return 'CASE ' + ' '.join(parts) + ' ELSE \'#000000\' END'
+
+    def applySymbolScaleFactors(self, layer):
+        """Apply Appearance-tab factors to result layer symbols using absolute target sizes.
+
+        Sizes are always computed as BASE_SIZE × factor, so repeated calls with the same
+        factor are idempotent and no state about the previous call needs to be tracked.
+        """
+        is_line  = layer.geometryType() == 1
+        is_point = layer.geometryType() == 0
+        if not is_line and not is_point:
+            return
+
+        pipe_factor   = getattr(self, '_pipeFactor',   1.0)
+        symbol_factor = getattr(self, '_symbolFactor', 1.0)
+        arrow_factor  = getattr(self, '_arrowFactor',  1.0)
+
+        target_pipe_width = round(_BASE_PIPE_WIDTH    * pipe_factor,   6)
+        target_arrow_size = round(_BASE_ARROW_SIZE    * arrow_factor,  6)
+        target_junction   = round(_BASE_JUNCTION_SIZE * symbol_factor, 6)
+        target_special    = round(_BASE_SPECIAL_SIZE  * symbol_factor, 6)
+
+        renderer = layer.renderer()
+        if not isinstance(renderer, QgsRuleBasedRenderer):
+            return  # result layers are always rule-based after applyNullStyle
+
+        new_renderer = renderer.clone()
+        for rule in new_renderer.rootRule().children():
+            sym = rule.symbol()
+            if sym is None:
+                continue
+            if is_line:
+                # Pipe width — direct absolute assignment
+                sym.setWidth(target_pipe_width)
+                # Arrow sizes — absolute replacement in the data-defined expression
+                for arrow_idx in (3, 4):
+                    try:
+                        sl = sym.symbolLayer(arrow_idx)
+                        if sl is None:
+                            continue
+                        sub = sl.subSymbol()
+                        if sub is None:
+                            continue
+                        size_prop = sub.dataDefinedSize()
+                        if not size_prop.isActive():
+                            continue
+                        old_expr = size_prop.expressionString()
+                        # Replace any existing size constant with target_arrow_size.
+                        # Pattern matches ",N,0)" in "if(Type='PIPE', if(Flow>0,N,0),0)".
+                        new_expr = re.sub(
+                            r',\s*\d+(?:\.\d+)?,\s*0\)',
+                            f',{target_arrow_size},0)',
+                            old_expr,
+                        )
+                        if new_expr != old_expr:
+                            sub.setDataDefinedSize(QgsProperty.fromExpression(new_expr))
+                    except Exception:
+                        pass
+            elif is_point:
+                # Node sizes are set via data-defined expressions on each symbol layer.
+                # sym.setSize() has no effect because those expressions override it.
+                for sl_idx in range(sym.symbolLayerCount()):
+                    try:
+                        sl = sym.symbolLayer(sl_idx)
+                        if sl is None:
+                            continue
+                        ddp = sl.dataDefinedProperties()
+                        size_prop = ddp.property(_SL_PROP_SIZE)
+                        if not size_prop.isActive():
+                            continue
+                        old_expr = size_prop.expressionString()
+                        new_expr = _apply_absolute_node_size(old_expr, target_junction, target_special)
+                        if new_expr != old_expr:
+                            ddp.setProperty(_SL_PROP_SIZE, QgsProperty.fromExpression(new_expr))
+                            sl.setDataDefinedProperties(ddp)
+                    except Exception:
+                        pass
+
+        layer.setRenderer(new_renderer)
+        layer.triggerRepaint()
+        if hasattr(self, 'iface') and self.iface:
+            self.iface.mapCanvas().refresh()
 
     def setArrowsVisibility(self, symbol, layer, field):
         prop = QgsProperty()
@@ -305,6 +501,7 @@ class _ResultsRenderingMixin:
                 if isinstance(layer.legend(), _NullHiddenLegend):
                     layer.setLegend(_NullHiddenLegend(layer))
 
+        self.applySymbolScaleFactors(layer)
         layer.triggerRepaint()
 
         # It does not work in QGIS 4 (no other option found)

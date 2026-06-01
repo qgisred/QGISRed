@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from qgis.PyQt.QtWidgets import QDockWidget, QApplication
+from qgis.PyQt.QtWidgets import QDockWidget, QApplication, QColorDialog
 from qgis.PyQt.QtCore import Qt, pyqtSignal, QTimer, QCoreApplication
-from qgis.PyQt.QtGui import QPixmap, QIcon
+from qgis.PyQt.QtGui import QPixmap, QIcon, QColor
 from qgis.PyQt import uic
 from qgis.core import (
     QgsProject, QgsLayerTreeGroup, QgsField, QgsAttributeTableConfig, QgsRenderContext, NULL,
@@ -154,6 +154,25 @@ class QGISRedResultsDock(
         self.cbNodeLabels.clicked.connect(self.nodeLabelsClicked)
         self.cbFlowDirections.clicked.connect(self.flowDirectionsClicked)
 
+        # Appearance tab — set symbology label text via tr() so they pick up translations
+        self.lbSymbolFactor.setText(self.tr("Nodes") + ":")
+        self.lbPipeFactor.setText(self.tr("Links") + ":")
+        self.lbArrowFactor.setText(self.tr("Arrows") + ":")
+
+        # Appearance tab connections
+        self.btAppearance.clicked.connect(lambda: self.tabWidget.setCurrentIndex(2))
+        self.spFontSize.valueChanged.connect(self._onLabelStyleChanged)
+        self.spNodeDecimals.valueChanged.connect(self._onDecimalsChanged)
+        self.spLinkDecimals.valueChanged.connect(self._onDecimalsChanged)
+        self.rbColorByRange.toggled.connect(self._onLabelStyleChanged)
+        self.cbShowId.clicked.connect(self._onLabelStyleChanged)
+        self.dspPipeFactor.valueChanged.connect(self._onSymbolFactorChanged)
+        self.dspSymbolFactor.valueChanged.connect(self._onSymbolFactorChanged)
+        self.dspArrowFactor.valueChanged.connect(self._onSymbolFactorChanged)
+        self.btBgColor.clicked.connect(self._onBgColorClicked)
+        self.btClearBgColor.clicked.connect(self._onClearBgColor)
+        self.btResetAppearance.clicked.connect(self._onResetAppearance)
+
         self._setupDistributionCharts()
 
         self.displayingLinkField = ""
@@ -161,6 +180,18 @@ class QGISRedResultsDock(
         self._statsMode = False
         self._currentStat = self.lbl_none
         self._flowDirectionsUserState = False
+
+        # Appearance tab state
+        self._labelFontSize = 10
+        self._labelNodeDecimals = 2
+        self._labelLinkDecimals = 2
+        self._labelColorByRange = False
+        self._labelShowId = False
+        self._pipeFactor = 1.0
+        self._symbolFactor = 1.0
+        self._arrowFactor = 1.0
+        self._bgColor = None          # QColor or None
+        self._savedBgColor = None     # in-memory only; not persisted
 
         self.civilMode = False
         self.amPmFormat = False
@@ -190,6 +221,8 @@ class QGISRedResultsDock(
         self._iconStepForward = QIcon(":/images/iconResultsStepForward.svg")
         self._iconGoToEnd = QIcon(":/images/iconResultsGoToEnd.svg")
         self._iconLoop = QIcon(":/images/iconResultsLoop.svg")
+        self._iconAppearance = QIcon(":/images/iconProjectSettings.svg")
+        self.btAppearance.setIcon(self._iconAppearance)
 
         self.btInitTime.setIcon(self._iconGoToStart)
         self.btLessTime.setIcon(self._iconStepBackward)
@@ -294,9 +327,15 @@ class QGISRedResultsDock(
         if visible:
             if self.outPath and os.path.exists(self.outPath):
                 self._staleCheckTimer.start()
+            if getattr(self, '_bgColor', None):
+                self._applyBgColor()
         else:
             self._staleCheckTimer.stop()
             self._stopAnimation()
+            if self._savedBgColor is not None:
+                self.iface.mapCanvas().setCanvasColor(self._savedBgColor)
+                self._savedBgColor = None
+                self.iface.mapCanvas().refresh()
 
     def _markResultsStale(self):
         self._resultsStale = True
@@ -555,7 +594,12 @@ class QGISRedResultsDock(
                     field.setLength(length)
                 if type_str == "Double":
                     csv_name = _STAT_VAR_ALIASES.get(name, name)
-                    field.setPrecision(field_utils.getDecimals(element, csv_name))
+                    user_dec = (
+                        getattr(self, '_labelNodeDecimals', None) if element == "Nodes"
+                        else getattr(self, '_labelLinkDecimals', None)
+                    )
+                    dec = user_dec if user_dec is not None else field_utils.getDecimals(element, csv_name)
+                    field.setPrecision(dec)
                 new_fields.append(field)
         
         if new_fields:
@@ -914,6 +958,7 @@ class QGISRedResultsDock(
             # ── Default path: no saved state ─────────────────────────────────────────
             self.applyStatisticFromOptions()
             self.openBaseResults(self._readTimeLabelsFromOut())
+        self._loadAppearanceSettings()
         self._startStaleCheckTimer()
         self.show()
         self.simulationFinished.emit()
@@ -1277,6 +1322,9 @@ class QGISRedResultsDock(
             if link_layer:
                 self.updateFieldsVisibility(link_layer, "Link", self._statsMode, self._currentStat)
 
+            self._resetDecimalsForVariable(
+                self._link_field_map.get(self.cbLinks.currentText(), ""), "Pipe", "Link"
+            )
             self.paintIntervalTimeResults(True)
             QTimer.singleShot(300, self.forceFinalFieldsVisibility)
         finally:
@@ -1306,6 +1354,9 @@ class QGISRedResultsDock(
             if node_layer:
                 self.updateFieldsVisibility(node_layer, "Node", self._statsMode, self._currentStat)
 
+            self._resetDecimalsForVariable(
+                self._node_field_map.get(self.cbNodes.currentText(), ""), "Junction", "Node"
+            )
             self.paintIntervalTimeResults(True)
             QTimer.singleShot(300, self.forceFinalFieldsVisibility)
         finally:
@@ -1500,6 +1551,256 @@ class QGISRedResultsDock(
             else:
                 layer.setLabelsEnabled(False)
                 layer.triggerRepaint()
+
+    """Appearance tab methods"""
+
+    def _refreshLabelsIfShowing(self, layer_type):
+        """Update labels on the layer if it exists, bypassing validation guards."""
+        layer = self._findResultLayer(layer_type)
+        if not layer:
+            return
+        checkbox = self.cbNodeLabels if layer_type == "Node" else self.cbLinkLabels
+        combobox = self.cbNodes if layer_type == "Node" else self.cbLinks
+        field_map = self._node_field_map if layer_type == "Node" else self._link_field_map
+        if checkbox.isChecked() and combobox.currentIndex() > 0:
+            field = field_map.get(combobox.currentText(), "")
+            if field:
+                is_min_max_stat = self._statsMode and self.cbStatistics.currentText() in (self.lbl_maximum, self.lbl_minimum)
+                time_field = time_field_name(field, layer_type) if is_min_max_stat else None
+                self.setLayerLabels(layer, field, time_field)
+        else:
+            layer.setLabelsEnabled(False)
+            layer.triggerRepaint()
+
+    def _onLabelStyleChanged(self):
+        """Called when font size, color mode, or ID toggle changes — labels only."""
+        self._labelFontSize = self.spFontSize.value()
+        self._labelColorByRange = self.rbColorByRange.isChecked()
+        self._labelShowId = self.cbShowId.isChecked()
+        self._saveAppearanceSettings()
+        self._refreshLabelsIfShowing("Node")
+        self._refreshLabelsIfShowing("Link")
+
+    def _onDecimalsChanged(self):
+        """Called when decimal spinboxes change — requires re-read from binary."""
+        self._labelNodeDecimals = self.spNodeDecimals.value()
+        self._labelLinkDecimals = self.spLinkDecimals.value()
+        self._saveAppearanceSettings()
+        self._reloadResultsWithNewDecimals()
+        self._refreshLabelsIfShowing("Node")
+        self._refreshLabelsIfShowing("Link")
+
+    def _reloadResultsWithNewDecimals(self):
+        """Re-read results from binary with the current decimal settings.
+
+        Deletes and recreates the Double result fields so the field precision
+        in the shapefile header also reflects the new decimal count.
+        """
+        if not self._findResultLayer("Node") and not self._findResultLayer("Link"):
+            return
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        try:
+            for layerName in ["Node", "Link"]:
+                layer = self._findResultLayer(layerName)
+                if not layer:
+                    continue
+                fields_def = NODE_RESULT_FIELDS if layerName == "Node" else LINK_RESULT_FIELDS
+                double_indices = [
+                    layer.fields().indexOf(name)
+                    for name, type_str, *_ in fields_def
+                    if type_str == "Double" and layer.fields().indexOf(name) >= 0
+                ]
+                if double_indices:
+                    layer.dataProvider().deleteAttributes(double_indices)
+                    layer.updateFields()
+                    layer.dataProvider().reloadData()
+                self.prepareResultFields(layer, layerName)
+            if self._statsMode:
+                self.completeStatsLayers()
+            else:
+                self.completeResultLayers()
+        finally:
+            QApplication.restoreOverrideCursor()
+
+    def _onSymbolFactorChanged(self):
+        self._pipeFactor = self.dspPipeFactor.value()
+        self._symbolFactor = self.dspSymbolFactor.value()
+        self._arrowFactor = self.dspArrowFactor.value()
+        self._saveAppearanceSettings()
+        node_layer = self._findResultLayer("Node")
+        link_layer = self._findResultLayer("Link")
+        if node_layer:
+            self.applySymbolScaleFactors(node_layer)
+        if link_layer:
+            self.applySymbolScaleFactors(link_layer)
+
+    def _onBgColorClicked(self):
+        initial = self._bgColor if self._bgColor else QColor("white")
+        color = QColorDialog.getColor(initial, self, self.tr("Map background color"))
+        if color.isValid():
+            self._bgColor = color
+            self.btBgColor.setStyleSheet(f"background-color: {color.name()};")
+            self.btBgColor.setText(color.name())
+            self.btClearBgColor.setEnabled(True)
+            self._applyBgColor()
+            self._saveAppearanceSettings()
+
+    def _onClearBgColor(self):
+        self._bgColor = None
+        self.btBgColor.setStyleSheet("")
+        self.btBgColor.setText(self.tr("No color"))
+        self.btClearBgColor.setEnabled(False)
+        self._applyBgColor()
+        self._saveAppearanceSettings()
+
+    def _applyBgColor(self):
+        canvas = self.iface.mapCanvas()
+        if self._bgColor:
+            if self._savedBgColor is None:
+                self._savedBgColor = canvas.canvasColor()
+            canvas.setCanvasColor(self._bgColor)
+        else:
+            if self._savedBgColor is not None:
+                canvas.setCanvasColor(self._savedBgColor)
+                self._savedBgColor = None
+        canvas.refresh()
+
+    def _onResetAppearance(self):
+        self._labelFontSize = 10
+        self._labelNodeDecimals = 2
+        self._labelLinkDecimals = 2
+        self._labelColorByRange = False
+        self._labelShowId = False
+        self._pipeFactor = 1.0
+        self._symbolFactor = 1.0
+        self._arrowFactor = 1.0
+        self._bgColor = None
+
+        self.spFontSize.blockSignals(True)
+        self.spFontSize.setValue(10)
+        self.spFontSize.blockSignals(False)
+        self.spNodeDecimals.blockSignals(True)
+        self.spNodeDecimals.setValue(2)
+        self.spNodeDecimals.blockSignals(False)
+        self.spLinkDecimals.blockSignals(True)
+        self.spLinkDecimals.setValue(2)
+        self.spLinkDecimals.blockSignals(False)
+        self.lbNodeDecimals.setText(self.tr("Nodes") + ":")
+        self.lbLinkDecimals.setText(self.tr("Links") + ":")
+        self.rbColorBlack.setChecked(True)
+        self.cbShowId.setChecked(False)
+        self.dspPipeFactor.blockSignals(True)
+        self.dspPipeFactor.setValue(1.0)
+        self.dspPipeFactor.blockSignals(False)
+        self.dspSymbolFactor.blockSignals(True)
+        self.dspSymbolFactor.setValue(1.0)
+        self.dspSymbolFactor.blockSignals(False)
+        self.dspArrowFactor.blockSignals(True)
+        self.dspArrowFactor.setValue(1.0)
+        self.dspArrowFactor.blockSignals(False)
+        self.btBgColor.setStyleSheet("")
+        self.btBgColor.setText(self.tr("No color"))
+        self.btClearBgColor.setEnabled(False)
+
+        self._applyBgColor()
+        self._saveAppearanceSettings()
+
+        self._reloadResultsWithNewDecimals()
+        self._refreshLabelsIfShowing("Node")
+        self._refreshLabelsIfShowing("Link")
+        node_layer = self._findResultLayer("Node")
+        link_layer = self._findResultLayer("Link")
+        if node_layer:
+            self.applySymbolScaleFactors(node_layer)
+        if link_layer:
+            self.applySymbolScaleFactors(link_layer)
+
+    def _resetDecimalsForVariable(self, field_name, csv_element_type, layer_type="Node"):
+        """Reset the per-layer-type decimal spinbox to the CSV default for the given field."""
+        try:
+            dec = QGISRedFieldUtils.getDecimals(csv_element_type, field_name) if field_name else 2
+        except Exception:
+            dec = 2
+        if layer_type == "Node":
+            self._labelNodeDecimals = dec
+            self.spNodeDecimals.blockSignals(True)
+            self.spNodeDecimals.setValue(dec)
+            self.spNodeDecimals.blockSignals(False)
+            var_name = self.cbNodes.currentText() if self.cbNodes.currentIndex() > 0 else self.tr("Nodes")
+            self.lbNodeDecimals.setText(var_name + ":")
+        else:
+            self._labelLinkDecimals = dec
+            self.spLinkDecimals.blockSignals(True)
+            self.spLinkDecimals.setValue(dec)
+            self.spLinkDecimals.blockSignals(False)
+            var_name = self.cbLinks.currentText() if self.cbLinks.currentIndex() > 0 else self.tr("Links")
+            self.lbLinkDecimals.setText(var_name + ":")
+
+    def _saveAppearanceSettings(self):
+        p = QgsProject.instance()
+        p.writeEntry("QGISRed", "results_label_font_size", self._labelFontSize)
+        p.writeEntry("QGISRed", "results_label_color_by_range",
+                     "true" if self._labelColorByRange else "false")
+        p.writeEntry("QGISRed", "results_label_show_id",
+                     "true" if self._labelShowId else "false")
+        p.writeEntry("QGISRed", "results_label_node_decimals", self._labelNodeDecimals)
+        p.writeEntry("QGISRed", "results_label_link_decimals", self._labelLinkDecimals)
+        p.writeEntryDouble("QGISRed", "results_pipe_factor", self._pipeFactor)
+        p.writeEntryDouble("QGISRed", "results_symbol_factor", self._symbolFactor)
+        p.writeEntryDouble("QGISRed", "results_arrow_factor", self._arrowFactor)
+        p.writeEntry("QGISRed", "results_bg_color",
+                     self._bgColor.name() if self._bgColor else "")
+
+    def _loadAppearanceSettings(self):
+        p = QgsProject.instance()
+        font_size, ok = p.readNumEntry("QGISRed", "results_label_font_size", 10)
+        self._labelFontSize = font_size if ok else 10
+        color_by_range_str, _ = p.readEntry("QGISRed", "results_label_color_by_range", "false")
+        self._labelColorByRange = color_by_range_str == "true"
+        show_id_str, _ = p.readEntry("QGISRed", "results_label_show_id", "false")
+        self._labelShowId = show_id_str == "true"
+        node_dec, ok = p.readNumEntry("QGISRed", "results_label_node_decimals", 2)
+        self._labelNodeDecimals = node_dec if ok else 2
+        link_dec, ok = p.readNumEntry("QGISRed", "results_label_link_decimals", 2)
+        self._labelLinkDecimals = link_dec if ok else 2
+        pipe_factor, ok = p.readDoubleEntry("QGISRed", "results_pipe_factor", 1.0)
+        self._pipeFactor = pipe_factor if ok else 1.0
+        symbol_factor, ok = p.readDoubleEntry("QGISRed", "results_symbol_factor", 1.0)
+        self._symbolFactor = symbol_factor if ok else 1.0
+        arrow_factor, ok = p.readDoubleEntry("QGISRed", "results_arrow_factor", 1.0)
+        self._arrowFactor = arrow_factor if ok else 1.0
+        bg_hex, _ = p.readEntry("QGISRed", "results_bg_color", "")
+        self._bgColor = QColor(bg_hex) if bg_hex else None
+
+        # Update widgets silently
+        self.spFontSize.blockSignals(True)
+        self.spFontSize.setValue(self._labelFontSize)
+        self.spFontSize.blockSignals(False)
+        self.rbColorByRange.blockSignals(True)
+        self.rbColorByRange.setChecked(self._labelColorByRange)
+        self.rbColorBlack.setChecked(not self._labelColorByRange)
+        self.rbColorByRange.blockSignals(False)
+        self.cbShowId.setChecked(self._labelShowId)
+        self.spNodeDecimals.blockSignals(True)
+        self.spNodeDecimals.setValue(self._labelNodeDecimals)
+        self.spNodeDecimals.blockSignals(False)
+        self.spLinkDecimals.blockSignals(True)
+        self.spLinkDecimals.setValue(self._labelLinkDecimals)
+        self.spLinkDecimals.blockSignals(False)
+        self.dspPipeFactor.blockSignals(True)
+        self.dspPipeFactor.setValue(self._pipeFactor)
+        self.dspPipeFactor.blockSignals(False)
+        self.dspSymbolFactor.blockSignals(True)
+        self.dspSymbolFactor.setValue(self._symbolFactor)
+        self.dspSymbolFactor.blockSignals(False)
+        self.dspArrowFactor.blockSignals(True)
+        self.dspArrowFactor.setValue(self._arrowFactor)
+        self.dspArrowFactor.blockSignals(False)
+        if self._bgColor:
+            self.btBgColor.setStyleSheet(f"background-color: {self._bgColor.name()};")
+            self.btBgColor.setText(self._bgColor.name())
+            self.btClearBgColor.setEnabled(True)
+            self._applyBgColor()
 
     def validationsOpenResult(self):
         if not self.isCurrentProject():
