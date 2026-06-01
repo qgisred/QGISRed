@@ -160,6 +160,7 @@ class QGISRedResultsDock(
         self.displayingNodeField = ""
         self._statsMode = False
         self._currentStat = self.lbl_none
+        self._flowDirectionsUserState = False
 
         self.civilMode = False
         self.amPmFormat = False
@@ -833,6 +834,7 @@ class QGISRedResultsDock(
         self.displayingLinkField = restore["link_field"]
         self.cbNodeLabels.setChecked(restore["node_labels"])
         self.cbLinkLabels.setChecked(restore["link_labels"])
+        self._flowDirectionsUserState = restore["flow_dirs"]
         if restore["flow_dirs"] and self._flowDirectionField() is not None:
             self.cbFlowDirections.setChecked(True)
         self._updateDistributionCheckboxLabels()
@@ -953,17 +955,27 @@ class QGISRedResultsDock(
         """Return the link field name whose sign determines arrow direction, or None if N/A."""
         if not self._statsMode:
             return "Flow"
+        current_link = self.cbLinks.currentText()
         if self._currentStat in (self.lbl_minimum, self.lbl_maximum):
-            return "Flow"
+            return {
+                self.lbl_flow:          "Flow",
+                self.lbl_velocity:      "Velocity",
+                self.lbl_headloss:      "HeadLoss",
+                self.lbl_unit_headloss: "UnitHdLoss",
+            }.get(current_link)
         if self._currentStat == self.lbl_average:
-            return "Flow_Sig"
+            return "Flow_Sig" if current_link == self.lbl_signed_flow else None
         return None  # Range, StdDev — no direction concept
 
     def _setModeWidgetsVisibility(self, is_stats_mode, is_temporal=True):
         """Show/hide time vs statistics widgets according to the current display mode."""
         self.statsDisplayWidget.setVisible(is_stats_mode)
         self.timeDisplayWidget.setVisible(not is_stats_mode)
-        self.cbFlowDirections.setVisible(self._flowDirectionField() is not None)
+        has_direction = self._flowDirectionField() is not None
+        self.cbFlowDirections.setVisible(has_direction)
+        if has_direction:
+            self.cbFlowDirections.setEnabled(True)
+            self.cbFlowDirections.setChecked(self._flowDirectionsUserState)
         self.timeControlsWidget.setVisible(not is_stats_mode and is_temporal)
 
     """Civil time display helpers"""
@@ -1180,8 +1192,8 @@ class QGISRedResultsDock(
             result_times = self.cbResultTimes.currentText()
             self.lbStatName.setText(self.stat_variables.get(new_stat, new_stat))
             self.lbStatDesc.setText(self.tr("for %1").replace("%1", result_times.lower()))
-            if self.cbFlowDirections.isChecked() and self._flowDirectionField() is None:
-                self.cbFlowDirections.setChecked(False)
+            if self.cbFlowDirections.isVisible():
+                self._flowDirectionsUserState = self.cbFlowDirections.isChecked()
             self._setModeWidgetsVisibility(True)
         else:
             self._statsMode = False
@@ -1247,6 +1259,13 @@ class QGISRedResultsDock(
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         try:
             self.saveCurrentRender()
+            if self.cbFlowDirections.isVisible():
+                self._flowDirectionsUserState = self.cbFlowDirections.isChecked()
+            has_direction = self._flowDirectionField() is not None
+            self.cbFlowDirections.setVisible(has_direction)
+            if has_direction:
+                self.cbFlowDirections.setEnabled(True)
+                self.cbFlowDirections.setChecked(self._flowDirectionsUserState)
             self.ensureResultsLayersAreOpen()
 
             # Update visibility when variable changes
@@ -1296,6 +1315,7 @@ class QGISRedResultsDock(
         self.updateLabels("Link")
 
     def flowDirectionsClicked(self):
+        self._flowDirectionsUserState = self.cbFlowDirections.isChecked()
         if not self.validationsOpenResult():
             QgsProject.instance().writeEntry(
                 "QGISRed", "results_flow_directions",
