@@ -137,38 +137,6 @@ class QGISRedResultsDock(
                 combobox-popup: 0;
                 border: 1px solid #bdbdbd;
                 border-radius: 2px;
-                padding: 2px 6px;
-                min-height: 20px;
-            }
-            QComboBox::drop-down {
-                subcontrol-origin: padding;
-                subcontrol-position: top right;
-                width: 18px;
-                border-left: 1px solid #bdbdbd;
-                background-color: #f5f5f5;
-            }
-            QComboBox::down-arrow {
-                width: 10px;
-                height: 10px;
-            }
-            QComboBox QAbstractItemView {
-                background-color: white;
-                color: #202020;
-                selection-background-color: #3574F0;
-                selection-color: white;
-                outline: none;
-                border: 1px solid #bdbdbd;
-                max-height: 250px;
-                qproperty-verticalScrollBarPolicy: ScrollBarAsNeeded;
-            }
-        """
-        self._resultsDistributionComboStyle = """
-            QComboBox {
-                background-color: white;
-                color: #202020;
-                combobox-popup: 0;
-                border: 1px solid #bdbdbd;
-                border-radius: 2px;
                 padding: 0 4px 0 5px;
                 min-height: 18px;
                 max-height: 20px;
@@ -183,6 +151,7 @@ class QGISRedResultsDock(
                 background-color: #f0f0f0;
             }
             QComboBox::down-arrow {
+                image: url(:/images/iconStatisticsArrowDown.svg);
                 width: 8px;
                 height: 8px;
             }
@@ -306,15 +275,13 @@ class QGISRedResultsDock(
     """Methods"""
 
     def _applyResultsComboStyle(self, combo):
-        """Apply the standard results-panel combobox style."""
         combo.setStyleSheet(self._resultsComboStyle)
         combo.view().setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 
     def _applyDistributionComboStyle(self, combo):
-        """Compact combobox style for the distribution chart options row."""
         from qgis.PyQt.QtWidgets import QComboBox, QSizePolicy
 
-        combo.setStyleSheet(self._resultsDistributionComboStyle)
+        combo.setStyleSheet(self._resultsComboStyle)
         combo.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         combo.setMaximumWidth(92)
         combo.setMinimumContentsLength(7)
