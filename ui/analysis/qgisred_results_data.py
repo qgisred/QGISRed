@@ -18,6 +18,36 @@ _RESULT_FIELD_DISPLAY_NAMES = {
     "Flow_Unsig": "Flow (Unsigned)",
 }
 
+# Field definitions for result layers: (name, type [, length]).
+NODE_RESULT_FIELDS = [
+    ("Time", "String", 15),
+    ("Statistics", "String", 15),
+    ("Pressure", "Double"),
+    ("Head", "Double"),
+    ("Time_H", "String", 15),
+    ("Demand", "Double"),
+    ("Time_D", "String", 15),
+    ("Quality", "Double"),
+    ("Time_Q", "String", 15),
+]
+
+LINK_RESULT_FIELDS = [
+    ("Time", "String", 15),
+    ("Statistics", "String", 15),
+    ("Status", "String"),
+    ("Flow", "Double"),
+    ("Flow_Unsig", "Double"),
+    ("Flow_Sig", "Double"),
+    ("Velocity", "Double"),
+    ("HeadLoss", "Double"),
+    ("UnitHdLoss", "Double"),
+    ("Time_H", "String", 15),
+    ("FricFactor", "Double"),
+    ("ReactRate", "Double"),
+    ("Quality", "Double"),
+    ("Time_Q", "String", 15),
+]
+
 # All result field names that may appear in Node/Link result layers.
 _NODE_RESULT_FIELD_NAMES = [
     "Time", "Pressure", "Head", "Demand", "FullDem", "DemDeficit",

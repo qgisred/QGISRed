@@ -45,6 +45,7 @@ SOURCES = qgisred.py \
           ui/queries/qgisred_thematicmaps_dialog.py \
           ui/analysis/qgisred_results_dock.py \
           ui/analysis/qgisred_results_data.py \
+          ui/analysis/qgisred_results_appearance.py \
           ui/analysis/qgisred_results_rendering.py \
           ui/analysis/qgisred_timeseries_dock.py \
           ui/analysis/qgisred_timeseries_axis_dialog.py \
