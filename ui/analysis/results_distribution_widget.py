@@ -136,12 +136,16 @@ class ResultsDistributionWidget(QWidget):
                 max_right_tick_width = max(max_right_tick_width, font_metrics.horizontalAdvance(label))
             if self.yLabelRight:
                 title_font = qfont(self._renderer._AXIS_TITLE_FONT_SIZE, bold=True)
+                # Reserve enough width so the right-axis title doesn't overlap tick labels.
+                # Using the full title width (not half) avoids collisions in narrow panels.
                 max_right_tick_width = max(
                     max_right_tick_width,
-                    QFontMetrics(title_font).horizontalAdvance(self.yLabelRight) // 2,
+                    QFontMetrics(title_font).horizontalAdvance(self.yLabelRight),
                 )
 
-        self.marginRight = max(12, min(56, max_right_tick_width + 18)) if self.cumulative_mode else max(
+        # Allow a bit more right margin than the previous hard cap (56px) so
+        # 2–3 digit tick labels don't collide with the right-axis title.
+        self.marginRight = max(12, min(84, max_right_tick_width + 18)) if self.cumulative_mode else max(
             8, min(18, max(8, plot_width // 30))
         )
 
