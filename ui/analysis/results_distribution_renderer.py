@@ -111,8 +111,6 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
             painter.setPen(QPen(GRID_COLOR, 1, Qt.PenStyle.DashLine))
             painter.drawLine(QPointF(plotRect.left(), tick_y), QPointF(plotRect.right(), tick_y))
             label = format_number_tick(tick_value, scale.step)
-            if bar_mode == "relative":
-                label = label + "%"
             painter.setPen(TEXT_AXIS)
             label_x = plotRect.left() - 6 - font_metrics.horizontalAdvance(label)
             painter.drawText(QPointF(label_x, tick_y + font_metrics.ascent() / 2 - 1), label)
@@ -132,8 +130,6 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
         for tick_value in scale.ticks():
             tick_y = self._yForValue(plotRect, scale, tick_value)
             label = format_number_tick(tick_value, scale.step)
-            if cumulative_mode == "relative":
-                label = label + "%"
             painter.setPen(TEXT_AXIS)
             painter.drawText(
                 QPointF(plotRect.right() + 6, tick_y + font_metrics.ascent() / 2 - 1),

@@ -122,8 +122,6 @@ class ResultsDistributionWidget(QWidget):
             scale = compute_nice_scale(data_min, data_max, max_ticks, include_zero=True)
             for tick_value in scale.ticks():
                 label = format_number_tick(tick_value, scale.step)
-                if self.bar_mode == "relative":
-                    label = label + "%"
                 max_tick_label_width = max(max_tick_label_width, font_metrics.horizontalAdvance(label))
 
         self.marginLeft = max(40, min(76, max_tick_label_width + 14))
@@ -135,8 +133,6 @@ class ResultsDistributionWidget(QWidget):
             right_scale = compute_nice_scale(0.0, cumulative_max, max_ticks, include_zero=True)
             for tick_value in right_scale.ticks():
                 label = format_number_tick(tick_value, right_scale.step)
-                if self.cumulative_mode == "relative":
-                    label = label + "%"
                 max_right_tick_width = max(max_right_tick_width, font_metrics.horizontalAdvance(label))
             if self.yLabelRight:
                 title_font = qfont(self._renderer._AXIS_TITLE_FONT_SIZE, bold=True)
