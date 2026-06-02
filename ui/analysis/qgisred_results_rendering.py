@@ -23,10 +23,11 @@ except AttributeError:
         _SL_PROP_SIZE = 9  # historical fallback
 
 # Base sizes from the node and link result QML files. These are the values when factor = 1.0.
-_BASE_PIPE_WIDTH    = 0.26  # mm — SimpleLine width in LinkFlow.qml (and other link styles)
-_BASE_ARROW_SIZE    = 3.0   # mm — arrow sub-symbol in setArrowsVisibility
-_BASE_JUNCTION_SIZE = 2.0   # mm — SimpleMarker for junctions in NodePressure.qml
-_BASE_SPECIAL_SIZE  = 7.0   # mm — SvgMarker for tanks/reservoirs in NodePressure.qml
+_BASE_PIPE_WIDTH       = 0.26  # mm — SimpleLine width in LinkFlow.qml (and other link styles)
+_BASE_ARROW_SIZE       = 3.0   # mm — arrow sub-symbol in setArrowsVisibility
+_BASE_JUNCTION_SIZE    = 2.0   # mm — SimpleMarker for junctions in NodePressure.qml
+_BASE_SPECIAL_SIZE     = 7.0   # mm — SvgMarker for tanks/reservoirs in NodePressure.qml
+_BASE_VALVE_PUMP_SIZE  = 6.0   # mm — SvgMarker for pumps/valves in LinkFlow.qml (indices 1, 2)
 
 
 def _apply_absolute_node_size(expr, junction_size, special_size):
@@ -347,10 +348,11 @@ class _ResultsRenderingMixin:
         symbol_factor = getattr(self, '_symbolFactor', 1.0)
         arrow_factor  = getattr(self, '_arrowFactor',  1.0)
 
-        target_pipe_width = round(_BASE_PIPE_WIDTH    * pipe_factor,   6)
-        target_arrow_size = round(_BASE_ARROW_SIZE    * arrow_factor,  6)
-        target_junction   = round(_BASE_JUNCTION_SIZE * symbol_factor, 6)
-        target_special    = round(_BASE_SPECIAL_SIZE  * symbol_factor, 6)
+        target_pipe_width  = round(_BASE_PIPE_WIDTH      * pipe_factor,   6)
+        target_arrow_size  = round(_BASE_ARROW_SIZE      * arrow_factor,  6)
+        target_junction    = round(_BASE_JUNCTION_SIZE   * symbol_factor, 6)
+        target_special     = round(_BASE_SPECIAL_SIZE    * symbol_factor, 6)
+        target_valve_pump  = round(_BASE_VALVE_PUMP_SIZE * pipe_factor, 6)
 
         renderer = layer.renderer()
         if not isinstance(renderer, QgsRuleBasedRenderer):
@@ -364,6 +366,36 @@ class _ResultsRenderingMixin:
             if is_line:
                 # Pipe width — direct absolute assignment
                 sym.setWidth(target_pipe_width)
+                # Pump/valve SVG icon sizes (MarkerLine at indices 1, 2).
+                # Scale with pipe_factor since they are link elements.
+                for icon_idx in (1, 2):
+                    try:
+                        sl = sym.symbolLayer(icon_idx)
+                        if sl is None:
+                            continue
+                        sub = sl.subSymbol()
+                        if sub is None:
+                            continue
+                        # Mechanism A: sub-symbol data-defined size
+                        dd = sub.dataDefinedSize()
+                        if dd.isActive():
+                            old_expr = dd.expressionString()
+                            new_expr = re.sub(r',\s*\d+(?:\.\d+)?,\s*0\)', f',{target_valve_pump},0)', old_expr)
+                            if new_expr != old_expr:
+                                sub.setDataDefinedSize(QgsProperty.fromExpression(new_expr))
+                        # Mechanism B: SvgMarker layer data-defined property
+                        svg_sl = sub.symbolLayer(0)
+                        if svg_sl is not None:
+                            ddp = svg_sl.dataDefinedProperties()
+                            sp = ddp.property(0)
+                            if sp.isActive():
+                                old_expr = sp.expressionString()
+                                new_expr = re.sub(r',\s*\d+(?:\.\d+)?,\s*0\)', f',{target_valve_pump},0)', old_expr)
+                                if new_expr != old_expr:
+                                    ddp.setProperty(0, QgsProperty.fromExpression(new_expr))
+                                    svg_sl.setDataDefinedProperties(ddp)
+                    except Exception:
+                        pass
                 # Arrow sizes — absolute replacement in the data-defined expression
                 for arrow_idx in (3, 4):
                     try:
