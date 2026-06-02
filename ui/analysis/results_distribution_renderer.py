@@ -4,6 +4,7 @@ from qgis.PyQt.QtGui import QColor, QFontMetrics, QPainterPath, QPen
 
 from ...compat import PAINTER_ANTIALIASING
 from ...tools.utils.qgisred_axis_scale_utils import (
+    NiceScale,
     compute_nice_scale,
     estimate_max_ticks,
     format_number_tick,
@@ -100,7 +101,9 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
                 item.get("count", 0) for item in widget.bins
             )
         if cumulative_mode == "relative":
-            data_max = 100.0
+            # Fixed % scale: never exceed 100.
+            # Use 4 intervals of 25% for stable, readable ticks.
+            return NiceScale(axis_min=0.0, axis_max=100.0, step=25.0, divisions=4)
         else:
             data_max = max(float(total_count), 1.0)
         label_height = QFontMetrics(qfont(self._AXIS_TICK_FONT_SIZE)).height() + 4
