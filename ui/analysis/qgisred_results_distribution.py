@@ -15,6 +15,7 @@ from qgis.core import (
 )
 
 from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL
+from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from .results_distribution_widget import ResultsDistributionWidget
 
 
@@ -387,6 +388,7 @@ class _DistributionControlsBar(QWidget):
 
 class _ResultsDistributionMixin:
     _DISTRIBUTION_CHECKBOX_TEMPLATE = "Show the %1 Distribution"
+    _DISTRIBUTION_TITLE_TEMPLATE = "%1 distribution%2"
 
     def _setupDistributionCharts(self):
         panel_bg = "#f8f9fb"
@@ -425,6 +427,19 @@ class _ResultsDistributionMixin:
         self.cbLinkDistribution.clicked.connect(self.linkDistributionClicked)
         self._updateDistributionCheckboxLabels()
         self._syncDistributionPanelVisibility()
+
+    def _distributionChartTitle(self, layer_type):
+        """Return a chart title including variable + units, e.g. 'Flow distribution (gpm)'."""
+        field_name = self._distributionFieldForLayer(layer_type)
+        if not field_name:
+            return ""
+
+        element = normalize_element(layer_type)  # 'Node' -> 'Nodes', 'Link' -> 'Links'
+        fu = QGISRedFieldUtils()
+        prop = fu.getProperty(element, field_name, translate=True) or self._distributionMagnitudeLabel(layer_type)
+        unit = fu.getUnitAbbreviation(element, field_name) or ""
+        unit_part = f" ({unit})" if unit else ""
+        return self.tr(self._DISTRIBUTION_TITLE_TEMPLATE).replace("%1", prop).replace("%2", unit_part)
 
     def _compactDistributionOptionControls(self):
         label_style = "font-weight: bold; font-size: 8pt; color: #303030;"
@@ -546,6 +561,8 @@ class _ResultsDistributionMixin:
         layer = self._findResultLayer(layer_type)
         field_name = self._distributionFieldForLayer(layer_type)
         bins, x_label = build_distribution_bins(layer, field_name)
+        chart.show_title = True
+        chart.show_subtitle = False
         chart.setBins(
             bins,
             bar_mode=self._distributionBarMode(),
@@ -553,6 +570,7 @@ class _ResultsDistributionMixin:
             xLabel=x_label,
             yLabelLeft=self._distributionYAxisLabel(),
             yLabelRight=self._distributionCumulativeYAxisLabel(),
+            title=self._distributionChartTitle(layer_type),
         )
         chart.updateGeometry()
 

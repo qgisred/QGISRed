@@ -15,6 +15,8 @@ class ResultsDistributionWidget(QWidget):
 
     def __init__(self, parent=None):
         super(ResultsDistributionWidget, self).__init__(parent)
+        self.title = ""
+        self.subtitle = ""
         self.bins = []
         self.bar_mode = "plain"
         self.cumulative_mode = None
@@ -26,6 +28,7 @@ class ResultsDistributionWidget(QWidget):
         self.zoomFactor = 1.0
         self.panOffset = 0.0
         self._renderer = ResultsDistributionRenderer()
+        # Enabled dynamically by the results dock when a single chart is shown.
         self.show_title = False
         self.show_subtitle = False
         self.outer_fill_color = PANEL_BG_COLOR
@@ -45,9 +48,16 @@ class ResultsDistributionWidget(QWidget):
         yLabelLeft="",
         yLabelRight="",
         mode=None,
+        title=None,
+        subtitle=None,
     ):
         if mode is not None and bar_mode == "plain":
             bar_mode = mode if mode in ("plain", "relative") else "plain"
+
+        if title is not None:
+            self.title = title or ""
+        if subtitle is not None:
+            self.subtitle = subtitle or ""
 
         self.bins = list(bins or [])
         self.bar_mode = bar_mode if bar_mode in ("plain", "relative") else "plain"
@@ -63,6 +73,8 @@ class ResultsDistributionWidget(QWidget):
         self.update()
 
     def clear(self):
+        self.title = ""
+        self.subtitle = ""
         self.bins = []
         self.bar_mode = "plain"
         self.cumulative_mode = None
@@ -81,6 +93,14 @@ class ResultsDistributionWidget(QWidget):
         self.update()
 
     def _fitMargins(self):
+        # Title/subtitle occupy the top area above the plot.
+        top = 6
+        if getattr(self, "show_title", False) and getattr(self, "title", ""):
+            top = 26
+            if getattr(self, "show_subtitle", False) and getattr(self, "subtitle", ""):
+                top = 40
+        self.marginTop = top
+
         tick_font = qfont(9)
         font_metrics = QFontMetrics(tick_font)
         label_height = font_metrics.height() + 4

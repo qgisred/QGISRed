@@ -37,6 +37,12 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
         painter.setPen(QPen(BORDER_COLOR, 1))
         painter.drawRect(plotRect)
 
+        # Optional title/subtitle (used when only one chart is shown).
+        if getattr(widget, "show_title", False):
+            self._drawTitle(widget, painter)
+        if getattr(widget, "show_subtitle", False):
+            self._drawSubtitle(widget, painter, plotRect)
+
         left_scale = self._computeLeftScale(widget, plotRect)
         cumulative_mode = getattr(widget, "cumulative_mode", None)
         right_scale = (
