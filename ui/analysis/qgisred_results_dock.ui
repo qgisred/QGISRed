@@ -1124,14 +1124,14 @@
                  </property>
                 </widget>
                </item>
-               <item row="3" column="0">
+               <item row="3" column="0" colspan="2">
                 <widget class="QLabel" name="lbColorText">
                  <property name="text">
                   <string>Text color:</string>
                  </property>
                 </widget>
                </item>
-               <item row="3" column="1">
+               <item row="4" column="0" colspan="2">
                 <layout class="QHBoxLayout" name="horizontalLayout_colorRadios">
                  <item>
                   <widget class="QRadioButton" name="rbColorBlack">
@@ -1152,7 +1152,7 @@
                  </item>
                 </layout>
                </item>
-               <item row="4" column="0" colspan="2">
+               <item row="5" column="0" colspan="2">
                 <widget class="QCheckBox" name="cbShowId">
                  <property name="text">
                   <string>Show ID alongside value</string>
