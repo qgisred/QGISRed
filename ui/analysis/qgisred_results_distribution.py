@@ -392,7 +392,6 @@ class _DistributionControlsBar(QWidget):
 
 
 class _ResultsDistributionMixin:
-    _DISTRIBUTION_CHECKBOX_TEMPLATE = "Show the %1 Distribution"
     _DISTRIBUTION_TITLE_TEMPLATE = "%1 distribution%2"
 
     def _setupDistributionCharts(self):
@@ -550,10 +549,9 @@ class _ResultsDistributionMixin:
         return combobox.currentText()
 
     def _distributionCheckboxText(self, layer_type):
-        magnitude = self._distributionMagnitudeLabel(layer_type)
-        if not magnitude:
-            return self.tr(self._DISTRIBUTION_CHECKBOX_TEMPLATE).replace("%1", "…")
-        return self.tr(self._DISTRIBUTION_CHECKBOX_TEMPLATE).replace("%1", magnitude)
+        if layer_type == "Node":
+            return self.tr("Show Node Histogram")
+        return self.tr("Show Link Histogram")
 
     def _updateDistributionCheckboxLabels(self):
         self.cbNodeDistribution.setText(self._distributionCheckboxText("Node"))

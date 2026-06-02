@@ -4591,9 +4591,14 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Opciones de apariencia</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="738"/>
+        <source>Show Node Histogram</source>
+        <translation>Mostrar histograma de nudos</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="825"/>
-        <source>Show the … Distribution</source>
-        <translation type="unfinished"></translation>
+        <source>Show Link Histogram</source>
+        <translation>Mostrar histograma de líneas</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1033"/>

@@ -735,7 +735,7 @@
                         <string notr="true">font: italic 8pt "MS Shell Dlg 2";</string>
                        </property>
                        <property name="text">
-                        <string>Show the … Distribution</string>
+                        <string>Show Node Histogram</string>
                        </property>
                       </widget>
                      </item>
@@ -822,7 +822,7 @@
                         <string notr="true">font: italic 8pt "MS Shell Dlg 2";</string>
                        </property>
                        <property name="text">
-                        <string>Show the … Distribution</string>
+                        <string>Show Link Histogram</string>
                        </property>
                       </widget>
                      </item>

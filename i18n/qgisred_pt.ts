@@ -4611,9 +4611,14 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="738"/>
+        <source>Show Node Histogram</source>
+        <translation>Mostrar histograma de nós</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="825"/>
-        <source>Show the … Distribution</source>
-        <translation type="unfinished"></translation>
+        <source>Show Link Histogram</source>
+        <translation>Mostrar histograma de ligações</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1033"/>
