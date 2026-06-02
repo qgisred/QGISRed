@@ -331,7 +331,8 @@ def _build_link_status_bins(layer):
 class _DistributionControlsBar(QWidget):
     """Frequency + Cumulative controls in one row when wide enough, two rows otherwise."""
 
-    _MERGE_THRESHOLD = 320
+    # Keep controls on a single line even in narrow docks.
+    _MERGE_THRESHOLD = 0
 
     def __init__(self, freq_label, freq_combo, cum_label, cum_combo, parent=None):
         super().__init__(parent)
@@ -446,10 +447,16 @@ class _ResultsDistributionMixin:
         for label in (self.lbDistributionFrequency, self.lbDistributionCumulative):
             label.setStyleSheet(label_style)
             label.setMinimumWidth(0)
-            label.setMaximumWidth(72)
+            # Keep labels compact so both combos fit on one row in narrow layouts.
+            label.setMaximumWidth(42)
+
+        # Shorten label text to free horizontal space.
+        self.lbDistributionFrequency.setText(self.tr("Freq"))
+        self.lbDistributionCumulative.setText(self.tr("Cumul"))
 
         for combo in (self.cbDistributionFrequency, self.cbDistributionCumulative):
             self._applyDistributionComboStyle(combo)
+            combo.setMaximumWidth(78)
 
         parent_layout = self.verticalLayout_DistributionChart
         freq_row = self.horizontalLayout_DistributionFrequency
