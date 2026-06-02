@@ -14,6 +14,8 @@ from .timeseries_plot_style import BORDER_COLOR, GRID_COLOR, PLOT_BG_COLOR, TEXT
 
 CUMULATIVE_CURVE_COLOR = QColor(200, 60, 60)
 
+_TICK_LEN = 4
+
 
 class ResultsDistributionRenderer(StatisticsHistogramRenderer):
     """Histogram renderer for simulation results: class bars + optional cumulative curve."""
@@ -113,11 +115,20 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
     def _drawGridAndLeftAxis(self, widget, painter, plotRect, scale):
         painter.setFont(qfont(self._AXIS_TICK_FONT_SIZE))
         font_metrics = QFontMetrics(painter.font())
-        bar_mode = self._bar_mode(widget)
+        # Slightly stronger grid than the time-series default.
+        grid_color = QColor(GRID_COLOR).darker(115)
         for tick_value in scale.ticks():
             tick_y = self._yForValue(plotRect, scale, tick_value)
-            painter.setPen(QPen(GRID_COLOR, 1, Qt.PenStyle.DashLine))
+            painter.setPen(QPen(grid_color, 1, Qt.PenStyle.DashLine))
             painter.drawLine(QPointF(plotRect.left(), tick_y), QPointF(plotRect.right(), tick_y))
+
+            # Small ticks on the left axis (no vertical gridlines).
+            painter.setPen(QPen(TEXT_AXIS, 1))
+            painter.drawLine(
+                QPointF(plotRect.left(), tick_y),
+                QPointF(plotRect.left() - _TICK_LEN, tick_y),
+            )
+
             label = format_number_tick(tick_value, scale.step)
             painter.setPen(TEXT_AXIS)
             label_x = plotRect.left() - 6 - font_metrics.horizontalAdvance(label)
@@ -138,6 +149,11 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
             tick_y = self._yForValue(plotRect, scale, tick_value)
             label = format_number_tick(tick_value, scale.step)
             painter.setPen(TEXT_AXIS)
+            # Small ticks on the right axis (no horizontal gridlines for this axis).
+            painter.drawLine(
+                QPointF(plotRect.right(), tick_y),
+                QPointF(plotRect.right() + _TICK_LEN, tick_y),
+            )
             painter.drawText(
                 QPointF(plotRect.right() + 6, tick_y + font_metrics.ascent() / 2 - 1),
                 label,
@@ -172,7 +188,7 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
             tick_x = self._xForCumulativeValue(plotRect, x_min, x_max, tick_value)
             label = format_number_tick(tick_value, scale.step)
             text_width = font_metrics.horizontalAdvance(label)
-            painter.drawLine(QPointF(tick_x, plotRect.top()), QPointF(tick_x, plotRect.top() - 4))
+            painter.drawLine(QPointF(tick_x, plotRect.top()), QPointF(tick_x, plotRect.top() - _TICK_LEN))
             painter.drawText(
                 QPointF(tick_x - text_width / 2, plotRect.top() - 7),
                 label,
