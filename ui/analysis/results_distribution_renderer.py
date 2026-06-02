@@ -49,6 +49,7 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
         left_scale = self._computeLeftScale(widget, plotRect)
         cumulative_mode = getattr(widget, "cumulative_mode", None)
         cumulative_points = getattr(widget, "cumulative_points", [])
+        cumulative_bars = self._hasCumulativeBars(widget)
         right_scale = (
             self._computeCumulativeScale(widget, plotRect)
             if cumulative_mode in ("absolute", "relative") and cumulative_points
@@ -59,6 +60,9 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
         if right_scale is not None:
             self._drawDistributionRightAxis(widget, painter, plotRect, right_scale)
             self._drawDistributionTopAxis(widget, painter, plotRect)
+
+        if cumulative_bars:
+            self._drawCumulativeBars(widget, painter, plotRect, left_scale)
 
         bar_rects = self._drawBars(widget, painter, plotRect, left_scale)
         widget._barRects = bar_rects
@@ -82,8 +86,34 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
             return (binData.get("count", 0) / float(total_count)) * 100.0
         return binData.get("count", 0)
 
+    def _bin_cumulative_bar_value(self, widget, binData):
+        cumulative_count = binData.get("cumulative_count")
+        if cumulative_count is None:
+            return None
+        if self._bar_mode(widget) == "relative":
+            total_count = getattr(widget, "_totalCount", 0) or sum(
+                item.get("count", 0) for item in widget.bins
+            )
+            if total_count <= 0:
+                return 0.0
+            return (cumulative_count / float(total_count)) * 100.0
+        return cumulative_count
+
+    def _hasCumulativeBars(self, widget):
+        cumulative_mode = getattr(widget, "cumulative_mode", None)
+        if cumulative_mode not in ("absolute", "relative"):
+            return False
+        if getattr(widget, "cumulative_points", []):
+            return False
+        return any(bin_data.get("cumulative_count") is not None for bin_data in widget.bins)
+
     def _computeLeftScale(self, widget, plotRect):
         values = [self._bin_bar_value(widget, bin_data) for bin_data in widget.bins]
+        if self._hasCumulativeBars(widget):
+            for bin_data in widget.bins:
+                value = self._bin_cumulative_bar_value(widget, bin_data)
+                if value is not None:
+                    values.append(value)
         if not values:
             values = [0.0, 1.0]
         data_min = min(values + [0.0])
@@ -167,6 +197,38 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
             painter.rotate(-90)
             painter.drawText(QRectF(-80, -10, 160, 20), Qt.AlignmentFlag.AlignCenter, axis_title)
             painter.restore()
+
+    def _drawCumulativeBars(self, widget, painter, plotRect, left_scale):
+        bin_count = len(widget.bins)
+        if bin_count == 0:
+            return
+
+        zoom = max(0.2, widget.zoomFactor)
+        total_width = plotRect.width() * zoom
+        slot_width = total_width / bin_count
+        gap_width = max(2, slot_width * 0.15)
+        bar_width = max(1.0, slot_width - gap_width)
+        offset = widget.panOffset
+        zero_y = self._yForValue(plotRect, left_scale, 0.0)
+
+        for bin_index, bin_data in enumerate(widget.bins):
+            cumulative_value = self._bin_cumulative_bar_value(widget, bin_data)
+            if cumulative_value is None:
+                continue
+
+            bar_x = plotRect.left() + offset + bin_index * slot_width + gap_width / 2
+            bar_top = self._yForValue(plotRect, left_scale, cumulative_value)
+            top = min(bar_top, zero_y)
+            height = abs(zero_y - bar_top)
+            bar_rect = QRectF(bar_x, top, bar_width, height).intersected(plotRect)
+            if bar_rect.width() <= 0 or bar_rect.height() < 0:
+                continue
+
+            bar_color = bin_data.get("color")
+            fill_color = QColor(bar_color) if bar_color is not None else QColor(CUMULATIVE_CURVE_COLOR)
+            fill_color = fill_color.lighter(155)
+            fill_color.setAlpha(135)
+            painter.fillRect(bar_rect, fill_color)
 
     def _drawDistributionTopAxis(self, widget, painter, plotRect):
         scale_range = self._cumulativeXRange(widget)

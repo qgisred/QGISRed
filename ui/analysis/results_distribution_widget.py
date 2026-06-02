@@ -103,7 +103,13 @@ class ResultsDistributionWidget(QWidget):
             top = 26
             if getattr(self, "show_subtitle", False) and getattr(self, "subtitle", ""):
                 top = 40
-        if self.cumulative_mode in ("absolute", "relative") and self.cumulative_points:
+        has_cumulative_points = self.cumulative_mode in ("absolute", "relative") and self.cumulative_points
+        has_cumulative_bars = (
+            self.cumulative_mode in ("absolute", "relative")
+            and not self.cumulative_points
+            and any("cumulative_count" in bin_data for bin_data in self.bins)
+        )
+        if has_cumulative_points:
             top += 18
         self.marginTop = top
 
@@ -118,8 +124,15 @@ class ResultsDistributionWidget(QWidget):
             if self.bar_mode == "relative":
                 total = self._totalCount or 1
                 values = [(bin_data.get("count", 0) / float(total)) * 100.0 for bin_data in self.bins]
+                if has_cumulative_bars:
+                    values.extend(
+                        (bin_data.get("cumulative_count", 0) / float(total)) * 100.0
+                        for bin_data in self.bins
+                    )
             else:
                 values = [bin_data.get("count", 0) for bin_data in self.bins]
+                if has_cumulative_bars:
+                    values.extend(bin_data.get("cumulative_count", 0) for bin_data in self.bins)
             data_min = min(values + [0.0])
             data_max = max(values + [0.0])
             if data_max == data_min:
@@ -133,7 +146,7 @@ class ResultsDistributionWidget(QWidget):
         self.marginLeft = max(40, min(76, max_tick_label_width + 14))
 
         max_right_tick_width = 0
-        if self.cumulative_mode in ("absolute", "relative"):
+        if has_cumulative_points:
             cumulative_max = 100.0 if self.cumulative_mode == "relative" else float(max(self._totalCount, 1))
             max_ticks = estimate_max_ticks(plot_height, label_height, max_ticks=8)
             right_scale = compute_nice_scale(0.0, cumulative_max, max_ticks, include_zero=True)
@@ -151,7 +164,7 @@ class ResultsDistributionWidget(QWidget):
 
         # Allow a bit more right margin than the previous hard cap (56px) so
         # 2–3 digit tick labels don't collide with the right-axis title.
-        self.marginRight = max(12, min(84, max_right_tick_width + 18)) if self.cumulative_mode else max(
+        self.marginRight = max(12, min(84, max_right_tick_width + 18)) if has_cumulative_points else max(
             8, min(18, max(8, plot_width // 30))
         )
 

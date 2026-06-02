@@ -212,7 +212,7 @@ def build_distribution_bins(layer, field_name):
     if layer is None or not field_name:
         return [], ""
 
-    if field_name == "Status" and layer.fields().indexFromName("Type") >= 0:
+    if field_name == "Status":
         return _build_link_status_bins(layer), ""
 
     classes, mode = extract_legend_classes(layer, field_name)
@@ -292,73 +292,42 @@ def build_cumulative_points(layer, field_name, sample_count=100):
 def _build_link_status_bins(layer):
     """
     Simplified Status distribution for link results:
-    - Valves: Open / Active / Closed
-    - Pumps: Running / Running (Variable Speed) / Stopped
-    - Pipes: Open / Closed
-
-    The variable-speed condition is evaluated only when a 'Setting' field exists:
-    running + (Setting != 1) → variable speed.
+    only Closed / Open / Active, grouping the detailed renderer classes.
     """
 
     def _bin(label, color):
         return _make_bin(label, category=label, color=color)
 
+    def _status_group(value):
+        status = "" if value is None or value == NULL else str(value).upper()
+        if "CLOSED" in status:
+            return "Closed"
+        if "OPEN" in status:
+            return "Open"
+        if "ACTIVE" in status:
+            return "Active"
+        return None
+
     # Colors chosen to be consistent and readable on light backgrounds.
     bins = [
+        _bin("Closed", QColor(198, 40, 40)),  # red
         _bin("Open", QColor(46, 125, 50)),  # green
         _bin("Active", QColor(245, 124, 0)),  # orange
-        _bin("Closed", QColor(198, 40, 40)),  # red
-        _bin("Running", QColor(30, 136, 229)),  # blue
-        _bin("Running (Variable Speed)", QColor(123, 31, 162)),  # purple
-        _bin("Stopped", QColor(97, 97, 97)),  # grey
     ]
     idx = {b["category"]: i for i, b in enumerate(bins)}
 
-    has_setting = layer.fields().indexFromName("Setting") >= 0
-
     for feature in layer.getFeatures():
-        raw_type = feature["Type"]
         raw_status = feature["Status"]
-        if raw_type is None or raw_type == NULL:
-            continue
-
-        t = str(raw_type).upper()
-        s = "" if raw_status is None or raw_status == NULL else str(raw_status)
-
-        is_open = s.startswith("Open")
-        is_active = s.startswith("Active")
-
-        chosen = None
-        if t == "VALVE":
-            if is_active:
-                chosen = "Active"
-            elif is_open:
-                chosen = "Open"
-            else:
-                chosen = "Closed"
-        elif t == "PUMP":
-            if is_open:
-                chosen = "Running"
-                if has_setting:
-                    try:
-                        setting = float(feature["Setting"])
-                        if setting not in (0.0, 1.0) and abs(setting - 1.0) > 1e-9:
-                            chosen = "Running (Variable Speed)"
-                    except Exception:
-                        pass
-            else:
-                chosen = "Stopped"
-        else:
-            chosen = "Open" if is_open else "Closed"
-
+        chosen = _status_group(raw_status)
         bin_index = idx.get(chosen)
         if bin_index is None:
             continue
         bins[bin_index]["count"] += 1
 
-    # Keep only bins which exist in the current dataset.
-    bins = [b for b in bins if b.get("count", 0) > 0]
+    running = 0
     for b in bins:
+        running += b.get("count", 0)
+        b["cumulative_count"] = running
         _finalize_bin(b)
     return bins
 
@@ -521,6 +490,37 @@ class _ResultsDistributionMixin:
             return cumulative_id
         return None
 
+    def _isStatusDistributionActive(self):
+        active = self._activeDistributionLayerType()
+        return active is not None and self._distributionFieldForLayer(active) == "Status"
+
+    def _setDistributionFrequencyMode(self, mode):
+        index = self.cbDistributionFrequency.findData(mode, Qt.ItemDataRole.UserRole)
+        if index >= 0 and self.cbDistributionFrequency.currentIndex() != index:
+            self.cbDistributionFrequency.blockSignals(True)
+            self.cbDistributionFrequency.setCurrentIndex(index)
+            self.cbDistributionFrequency.blockSignals(False)
+
+    def _setDistributionCumulativeMode(self, mode):
+        index = self.cbDistributionCumulative.findData(mode, Qt.ItemDataRole.UserRole)
+        if index >= 0 and self.cbDistributionCumulative.currentIndex() != index:
+            self.cbDistributionCumulative.blockSignals(True)
+            self.cbDistributionCumulative.setCurrentIndex(index)
+            self.cbDistributionCumulative.blockSignals(False)
+
+    def _syncStatusDistributionModesFromFrequency(self):
+        if not self._isStatusDistributionActive() or self._distributionCumulativeMode() is None:
+            return
+        mode = "relative" if self._distributionBarMode() == "relative" else "absolute"
+        self._setDistributionCumulativeMode(mode)
+
+    def _syncStatusDistributionModesFromCumulative(self):
+        if not self._isStatusDistributionActive():
+            return
+        mode = self._distributionCumulativeMode()
+        if mode is not None:
+            self._setDistributionFrequencyMode(mode)
+
     def _distributionYAxisLabel(self):
         if self._distributionBarMode() == "relative":
             return self.lbl_distribution_percent
@@ -534,11 +534,13 @@ class _ResultsDistributionMixin:
     def _distributionFrequencyChanged(self):
         if self._activeDistributionLayerType() is None:
             return
+        self._syncStatusDistributionModesFromFrequency()
         self._refreshDistributionChartsIfNeeded()
 
     def _distributionCumulativeChanged(self):
         if self._activeDistributionLayerType() is None:
             return
+        self._syncStatusDistributionModesFromCumulative()
         self._refreshDistributionChartsIfNeeded()
 
     def _distributionMagnitudeLabel(self, layer_type):
@@ -603,9 +605,12 @@ class _ResultsDistributionMixin:
         layer = self._findResultLayer(layer_type)
         field_name = self._distributionFieldForLayer(layer_type)
         bins, x_label = build_distribution_bins(layer, field_name)
+        is_status = field_name == "Status"
+        if is_status and self._distributionCumulativeMode() is not None:
+            self._syncStatusDistributionModesFromCumulative()
         cumulative_points = (
             build_cumulative_points(layer, field_name)
-            if self._distributionCumulativeMode() in ("absolute", "relative")
+            if self._distributionCumulativeMode() in ("absolute", "relative") and not is_status
             else []
         )
         chart.show_title = True
