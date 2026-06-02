@@ -235,7 +235,8 @@ class _ResultsRenderingMixin:
 
         font_size = getattr(self, '_labelFontSize', 10)
         is_node = layer.geometryType() == 0
-        decimals = getattr(self, '_labelNodeDecimals' if is_node else '_labelLinkDecimals', 2)
+        sp = getattr(self, 'spNodeDecimals' if is_node else 'spLinkDecimals', None)
+        decimals = sp.value() if sp else 2
         color_by_range = getattr(self, '_labelColorByRange', False)
         show_id = getattr(self, '_labelShowId', False)
 

@@ -184,8 +184,7 @@ class QGISRedResultsDock(
 
         # Appearance tab state
         self._labelFontSize = 10
-        self._labelNodeDecimals = 2
-        self._labelLinkDecimals = 2
+        self._varDecimals = {}
         self._labelColorByRange = False
         self._labelShowId = False
         self._pipeFactor = 1.0
@@ -595,10 +594,7 @@ class QGISRedResultsDock(
                     field.setLength(length)
                 if type_str == "Double":
                     csv_name = _STAT_VAR_ALIASES.get(name, name)
-                    user_dec = (
-                        getattr(self, '_labelNodeDecimals', None) if element == "Nodes"
-                        else getattr(self, '_labelLinkDecimals', None)
-                    )
+                    user_dec = getattr(self, '_varDecimals', {}).get(csv_name, None)
                     dec = user_dec if user_dec is not None else field_utils.getDecimals(element, csv_name)
                     field.setPrecision(dec)
                 new_fields.append(field)
@@ -1324,7 +1320,7 @@ class QGISRedResultsDock(
                 self.updateFieldsVisibility(link_layer, "Link", self._statsMode, self._currentStat)
 
             self._resetDecimalsForVariable(
-                self._link_field_map.get(self.cbLinks.currentText(), ""), "Pipe", "Link"
+                self._link_field_map.get(self.cbLinks.currentText(), ""), "Links", "Link"
             )
             self.paintIntervalTimeResults(True)
             QTimer.singleShot(300, self.forceFinalFieldsVisibility)
@@ -1356,7 +1352,7 @@ class QGISRedResultsDock(
                 self.updateFieldsVisibility(node_layer, "Node", self._statsMode, self._currentStat)
 
             self._resetDecimalsForVariable(
-                self._node_field_map.get(self.cbNodes.currentText(), ""), "Junction", "Node"
+                self._node_field_map.get(self.cbNodes.currentText(), ""), "Nodes", "Node"
             )
             self.paintIntervalTimeResults(True)
             QTimer.singleShot(300, self.forceFinalFieldsVisibility)
@@ -1584,8 +1580,12 @@ class QGISRedResultsDock(
 
     def _onDecimalsChanged(self):
         """Called when decimal spinboxes change — requires re-read from binary."""
-        self._labelNodeDecimals = self.spNodeDecimals.value()
-        self._labelLinkDecimals = self.spLinkDecimals.value()
+        node_field = self._node_field_map.get(self.cbNodes.currentText(), "")
+        link_field = self._link_field_map.get(self.cbLinks.currentText(), "")
+        if node_field:
+            self._varDecimals[node_field] = self.spNodeDecimals.value()
+        if link_field:
+            self._varDecimals[link_field] = self.spLinkDecimals.value()
         self._saveAppearanceSettings()
         self._reloadResultsWithNewDecimals()
         self._refreshLabelsIfShowing("Node")
@@ -1668,8 +1668,7 @@ class QGISRedResultsDock(
 
     def _onResetAppearance(self):
         self._labelFontSize = 10
-        self._labelNodeDecimals = 2
-        self._labelLinkDecimals = 2
+        self._varDecimals = {}
         self._labelColorByRange = False
         self._labelShowId = False
         self._pipeFactor = 1.0
@@ -1680,14 +1679,10 @@ class QGISRedResultsDock(
         self.spFontSize.blockSignals(True)
         self.spFontSize.setValue(10)
         self.spFontSize.blockSignals(False)
-        self.spNodeDecimals.blockSignals(True)
-        self.spNodeDecimals.setValue(2)
-        self.spNodeDecimals.blockSignals(False)
-        self.spLinkDecimals.blockSignals(True)
-        self.spLinkDecimals.setValue(2)
-        self.spLinkDecimals.blockSignals(False)
-        self.lbNodeDecimals.setText(self.tr("Nodes") + ":")
-        self.lbLinkDecimals.setText(self.tr("Links") + ":")
+        node_field = self._node_field_map.get(self.cbNodes.currentText(), "")
+        self._resetDecimalsForVariable(node_field, "Nodes", "Node")
+        link_field = self._link_field_map.get(self.cbLinks.currentText(), "")
+        self._resetDecimalsForVariable(link_field, "Links", "Link")
         self.rbColorBlack.setChecked(True)
         self.cbShowId.setChecked(False)
         self.dspPipeFactor.blockSignals(True)
@@ -1717,25 +1712,24 @@ class QGISRedResultsDock(
             self.applySymbolScaleFactors(link_layer)
 
     def _resetDecimalsForVariable(self, field_name, csv_element_type, layer_type="Node"):
-        """Reset the per-layer-type decimal spinbox to the CSV default for the given field."""
+        """Update the decimals spinbox to the stored value (or CSV default) for field_name."""
         try:
-            dec = QGISRedFieldUtils.getDecimals(csv_element_type, field_name) if field_name else 2
+            csv_dec = QGISRedFieldUtils.getDecimals(csv_element_type, field_name) if field_name else 2
         except Exception:
-            dec = 2
+            csv_dec = 2
+        dec = self._varDecimals.get(field_name, csv_dec)
         if layer_type == "Node":
-            self._labelNodeDecimals = dec
             self.spNodeDecimals.blockSignals(True)
             self.spNodeDecimals.setValue(dec)
             self.spNodeDecimals.blockSignals(False)
             var_name = self.cbNodes.currentText() if self.cbNodes.currentIndex() > 0 else self.tr("Nodes")
-            self.lbNodeDecimals.setText(var_name + ":")
+            self.lbNodeDecimals.setText(var_name + " " + self.tr("decimals") + ":")
         else:
-            self._labelLinkDecimals = dec
             self.spLinkDecimals.blockSignals(True)
             self.spLinkDecimals.setValue(dec)
             self.spLinkDecimals.blockSignals(False)
             var_name = self.cbLinks.currentText() if self.cbLinks.currentIndex() > 0 else self.tr("Links")
-            self.lbLinkDecimals.setText(var_name + ":")
+            self.lbLinkDecimals.setText(var_name + " " + self.tr("decimals") + ":")
 
     def _appearanceFilePath(self):
         return os.path.join(self.getResultsPath(),
@@ -1746,9 +1740,10 @@ class QGISRedResultsDock(
         ET.SubElement(root, "Labels",
                       fontSize=str(self._labelFontSize),
                       colorByRange="true" if self._labelColorByRange else "false",
-                      showId="true" if self._labelShowId else "false",
-                      nodeDecimals=str(self._labelNodeDecimals),
-                      linkDecimals=str(self._labelLinkDecimals))
+                      showId="true" if self._labelShowId else "false")
+        dec_elem = ET.SubElement(root, "Decimals")
+        for var_name, val in self._varDecimals.items():
+            ET.SubElement(dec_elem, "Var", name=var_name, value=str(val))
         ET.SubElement(root, "Symbols",
                       pipeFactor=str(self._pipeFactor),
                       symbolFactor=str(self._symbolFactor),
@@ -1764,35 +1759,42 @@ class QGISRedResultsDock(
 
     def _loadAppearanceSettings(self):
         path = self._appearanceFilePath()
-        if not os.path.isfile(path):
-            return
+        if os.path.isfile(path):
+            try:
+                tree = ET.parse(path)
+                root = tree.getroot()
 
-        try:
-            tree = ET.parse(path)
-            root = tree.getroot()
-        except Exception:
-            return
+                labels = root.find("Labels")
+                if labels is not None:
+                    self._labelFontSize = int(labels.get("fontSize", 10))
+                    self._labelColorByRange = labels.get("colorByRange", "false") == "true"
+                    self._labelShowId = labels.get("showId", "false") == "true"
 
-        labels = root.find("Labels")
-        if labels is not None:
-            self._labelFontSize = int(labels.get("fontSize", 10))
-            self._labelColorByRange = labels.get("colorByRange", "false") == "true"
-            self._labelShowId = labels.get("showId", "false") == "true"
-            self._labelNodeDecimals = int(labels.get("nodeDecimals", 2))
-            self._labelLinkDecimals = int(labels.get("linkDecimals", 2))
+                dec_elem = root.find("Decimals")
+                if dec_elem is not None:
+                    for var_elem in dec_elem.findall("Var"):
+                        name = var_elem.get("name", "")
+                        val = var_elem.get("value", "")
+                        if name and val:
+                            try:
+                                self._varDecimals[name] = int(val)
+                            except ValueError:
+                                pass
 
-        symbols = root.find("Symbols")
-        if symbols is not None:
-            self._pipeFactor = float(symbols.get("pipeFactor", 1.0))
-            self._symbolFactor = float(symbols.get("symbolFactor", 1.0))
-            self._arrowFactor = float(symbols.get("arrowFactor", 1.0))
+                symbols = root.find("Symbols")
+                if symbols is not None:
+                    self._pipeFactor = float(symbols.get("pipeFactor", 1.0))
+                    self._symbolFactor = float(symbols.get("symbolFactor", 1.0))
+                    self._arrowFactor = float(symbols.get("arrowFactor", 1.0))
 
-        bg = root.find("Background")
-        if bg is not None:
-            bg_hex = bg.get("color", "")
-            self._bgColor = QColor(bg_hex) if bg_hex else None
+                bg = root.find("Background")
+                if bg is not None:
+                    bg_hex = bg.get("color", "")
+                    self._bgColor = QColor(bg_hex) if bg_hex else None
+            except Exception:
+                pass
 
-        # Update widgets silently
+        # Always update widgets for current state (with or without saved file)
         self.spFontSize.blockSignals(True)
         self.spFontSize.setValue(self._labelFontSize)
         self.spFontSize.blockSignals(False)
@@ -1801,12 +1803,10 @@ class QGISRedResultsDock(
         self.rbColorBlack.setChecked(not self._labelColorByRange)
         self.rbColorByRange.blockSignals(False)
         self.cbShowId.setChecked(self._labelShowId)
-        self.spNodeDecimals.blockSignals(True)
-        self.spNodeDecimals.setValue(self._labelNodeDecimals)
-        self.spNodeDecimals.blockSignals(False)
-        self.spLinkDecimals.blockSignals(True)
-        self.spLinkDecimals.setValue(self._labelLinkDecimals)
-        self.spLinkDecimals.blockSignals(False)
+        node_field = self._node_field_map.get(self.cbNodes.currentText(), "")
+        self._resetDecimalsForVariable(node_field, "Nodes", "Node")
+        link_field = self._link_field_map.get(self.cbLinks.currentText(), "")
+        self._resetDecimalsForVariable(link_field, "Links", "Link")
         self.dspPipeFactor.blockSignals(True)
         self.dspPipeFactor.setValue(self._pipeFactor)
         self.dspPipeFactor.blockSignals(False)
