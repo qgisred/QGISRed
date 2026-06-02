@@ -18,6 +18,7 @@ class ResultsDistributionWidget(QWidget):
         self.title = ""
         self.subtitle = ""
         self.bins = []
+        self.cumulative_points = []
         self.bar_mode = "plain"
         self.cumulative_mode = None
         self.xLabel = ""
@@ -44,6 +45,7 @@ class ResultsDistributionWidget(QWidget):
         bins,
         bar_mode="plain",
         cumulative_mode=None,
+        cumulative_points=None,
         xLabel="",
         yLabelLeft="",
         yLabelRight="",
@@ -60,6 +62,7 @@ class ResultsDistributionWidget(QWidget):
             self.subtitle = subtitle or ""
 
         self.bins = list(bins or [])
+        self.cumulative_points = list(cumulative_points or [])
         self.bar_mode = bar_mode if bar_mode in ("plain", "relative") else "plain"
         self.cumulative_mode = cumulative_mode if cumulative_mode in ("absolute", "relative") else None
         self.xLabel = xLabel or ""
@@ -76,6 +79,7 @@ class ResultsDistributionWidget(QWidget):
         self.title = ""
         self.subtitle = ""
         self.bins = []
+        self.cumulative_points = []
         self.bar_mode = "plain"
         self.cumulative_mode = None
         self.xLabel = ""
@@ -99,6 +103,8 @@ class ResultsDistributionWidget(QWidget):
             top = 26
             if getattr(self, "show_subtitle", False) and getattr(self, "subtitle", ""):
                 top = 40
+        if self.cumulative_mode in ("absolute", "relative") and self.cumulative_points:
+            top += 18
         self.marginTop = top
 
         tick_font = qfont(9)

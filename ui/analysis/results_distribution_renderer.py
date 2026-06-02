@@ -45,15 +45,17 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
 
         left_scale = self._computeLeftScale(widget, plotRect)
         cumulative_mode = getattr(widget, "cumulative_mode", None)
+        cumulative_points = getattr(widget, "cumulative_points", [])
         right_scale = (
             self._computeCumulativeScale(widget, plotRect)
-            if cumulative_mode in ("absolute", "relative")
+            if cumulative_mode in ("absolute", "relative") and cumulative_points
             else None
         )
 
         self._drawGridAndLeftAxis(widget, painter, plotRect, left_scale)
         if right_scale is not None:
             self._drawDistributionRightAxis(widget, painter, plotRect, right_scale)
+            self._drawDistributionTopAxis(widget, painter, plotRect)
 
         bar_rects = self._drawBars(widget, painter, plotRect, left_scale)
         widget._barRects = bar_rects
@@ -61,7 +63,7 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
         self._drawXAxisLabels(widget, painter, plotRect, bar_rects)
 
         if cumulative_mode in ("absolute", "relative") and right_scale is not None:
-            self._drawCumulativeFrequencyCurve(widget, painter, plotRect, right_scale, bar_rects)
+            self._drawCumulativeFrequencyCurve(widget, painter, plotRect, right_scale)
 
     def _bar_mode(self, widget):
         return getattr(widget, "bar_mode", "plain")
@@ -91,9 +93,12 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
 
     def _computeCumulativeScale(self, widget, plotRect):
         cumulative_mode = getattr(widget, "cumulative_mode", None)
-        total_count = getattr(widget, "_totalCount", 0) or sum(
-            item.get("count", 0) for item in widget.bins
-        )
+        points = getattr(widget, "cumulative_points", [])
+        total_count = points[-1].get("count", 0) if points else 0
+        if total_count <= 0:
+            total_count = getattr(widget, "_totalCount", 0) or sum(
+                item.get("count", 0) for item in widget.bins
+            )
         if cumulative_mode == "relative":
             data_max = 100.0
         else:
@@ -124,7 +129,6 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
             painter.restore()
 
     def _drawDistributionRightAxis(self, widget, painter, plotRect, scale):
-        cumulative_mode = getattr(widget, "cumulative_mode", "absolute")
         painter.setFont(qfont(self._AXIS_TICK_FONT_SIZE))
         font_metrics = QFontMetrics(painter.font())
         for tick_value in scale.ticks():
@@ -145,66 +149,82 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
             painter.drawText(QRectF(-80, -10, 160, 20), Qt.AlignmentFlag.AlignCenter, axis_title)
             painter.restore()
 
-    def _drawCumulativeFrequencyCurve(self, widget, painter, plotRect, right_scale, bar_rects):
-        if not bar_rects:
+    def _drawDistributionTopAxis(self, widget, painter, plotRect):
+        scale_range = self._cumulativeXRange(widget)
+        if scale_range is None:
             return
 
-        total_count = getattr(widget, "_totalCount", 0) or sum(
-            item.get("count", 0) for item in widget.bins
-        )
+        x_min, x_max = scale_range
+        label_font = qfont(self._AXIS_TICK_FONT_SIZE)
+        painter.setFont(label_font)
+        font_metrics = QFontMetrics(label_font)
+        max_ticks = estimate_max_ticks(plotRect.width(), 44, max_ticks=8)
+        scale = compute_nice_scale(x_min, x_max, max_ticks, include_zero=False)
+
+        painter.setPen(TEXT_AXIS)
+        painter.drawLine(QPointF(plotRect.left(), plotRect.top()), QPointF(plotRect.right(), plotRect.top()))
+        for tick_value in scale.ticks():
+            if tick_value < x_min or tick_value > x_max:
+                continue
+            tick_x = self._xForCumulativeValue(plotRect, x_min, x_max, tick_value)
+            label = format_number_tick(tick_value, scale.step)
+            text_width = font_metrics.horizontalAdvance(label)
+            painter.drawLine(QPointF(tick_x, plotRect.top()), QPointF(tick_x, plotRect.top() - 4))
+            painter.drawText(
+                QPointF(tick_x - text_width / 2, plotRect.top() - 7),
+                label,
+            )
+
+    def _drawCumulativeFrequencyCurve(self, widget, painter, plotRect, right_scale):
+        points_data = getattr(widget, "cumulative_points", [])
+        scale_range = self._cumulativeXRange(widget)
+        if not points_data or scale_range is None:
+            return
+
+        x_min, x_max = scale_range
+        total_count = points_data[-1].get("count", 0)
         if total_count <= 0:
             return
 
         cumulative_mode = getattr(widget, "cumulative_mode", "absolute")
-        running = 0.0
-        final_y_value = 0.0
-        points = [QPointF(plotRect.left(), self._yForValue(plotRect, right_scale, 0.0))]
+        path = QPainterPath()
+        first_point = True
 
-        for bin_index, bin_data in enumerate(widget.bins):
-            if bin_index >= len(bar_rects):
-                break
-            running += bin_data.get("count", 0)
-            if cumulative_mode == "relative":
-                final_y_value = (running / float(total_count)) * 100.0
-            else:
-                final_y_value = running
-            points.append(
-                QPointF(
-                    bar_rects[bin_index].center().x(),
-                    self._yForValue(plotRect, right_scale, final_y_value),
-                )
+        for point_data in points_data:
+            count = point_data.get("count", 0)
+            y_value = (count / float(total_count)) * 100.0 if cumulative_mode == "relative" else count
+            point = QPointF(
+                self._xForCumulativeValue(plotRect, x_min, x_max, point_data.get("x", x_min)),
+                self._yForValue(plotRect, right_scale, y_value),
             )
+            if first_point:
+                path.moveTo(point)
+                first_point = False
+            else:
+                path.lineTo(point)
 
-        points.append(
-            QPointF(plotRect.right(), self._yForValue(plotRect, right_scale, final_y_value))
-        )
-
-        path = self._continuous_path_through_points(points)
         painter.setPen(QPen(CUMULATIVE_CURVE_COLOR, 2))
         painter.setBrush(Qt.BrushStyle.NoBrush)
         painter.setClipRect(plotRect)
         painter.drawPath(path)
         painter.setClipping(False)
 
-    def _continuous_path_through_points(self, points):
-        path = QPainterPath()
+    def _cumulativeXRange(self, widget):
+        points = getattr(widget, "cumulative_points", [])
         if not points:
-            return path
-        if len(points) == 1:
-            path.moveTo(points[0])
-            return path
-        if len(points) == 2:
-            path.moveTo(points[0])
-            path.lineTo(points[1])
-            return path
+            return None
+        x_values = [point.get("x", 0.0) for point in points]
+        x_min = min(x_values)
+        x_max = max(x_values)
+        if x_min == x_max:
+            pad = abs(x_min) * 0.1 or 1.0
+            x_min -= pad
+            x_max += pad
+        return x_min, x_max
 
-        smoothness = 0.48
-        path.moveTo(points[0])
-        for index in range(len(points) - 1):
-            start = points[index]
-            end = points[index + 1]
-            delta_x = end.x() - start.x()
-            control_1 = QPointF(start.x() + delta_x * smoothness, start.y())
-            control_2 = QPointF(end.x() - delta_x * smoothness, end.y())
-            path.cubicTo(control_1, control_2, end)
-        return path
+    def _xForCumulativeValue(self, plotRect, x_min, x_max, value):
+        axis_range = x_max - x_min
+        if axis_range == 0:
+            return plotRect.left()
+        relative = (float(value) - x_min) / axis_range
+        return plotRect.left() + relative * plotRect.width()

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from bisect import bisect_right
 
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
@@ -252,6 +253,40 @@ def build_distribution_bins(layer, field_name):
         _finalize_bin(bin_data)
 
     return bins, ""
+
+
+def build_cumulative_points(layer, field_name, sample_count=100):
+    """Return cumulative counts over a continuous numeric axis for the given field."""
+    if layer is None or not field_name:
+        return []
+
+    values = []
+    for feature in layer.getFeatures():
+        value = _feature_value_for_classification(feature, field_name)
+        try:
+            values.append(float(value))
+        except (TypeError, ValueError):
+            continue
+
+    if not values:
+        return []
+
+    values.sort()
+    value_min = values[0]
+    value_max = values[-1]
+    if value_min == value_max:
+        return [{"x": value_min, "count": len(values)}]
+
+    samples = max(2, int(sample_count))
+    span = value_max - value_min
+    points = []
+    for index in range(samples):
+        threshold = value_min + span * (index / float(samples - 1))
+        points.append({
+            "x": threshold,
+            "count": bisect_right(values, threshold),
+        })
+    return points
 
 
 def _build_link_status_bins(layer):
@@ -568,12 +603,18 @@ class _ResultsDistributionMixin:
         layer = self._findResultLayer(layer_type)
         field_name = self._distributionFieldForLayer(layer_type)
         bins, x_label = build_distribution_bins(layer, field_name)
+        cumulative_points = (
+            build_cumulative_points(layer, field_name)
+            if self._distributionCumulativeMode() in ("absolute", "relative")
+            else []
+        )
         chart.show_title = True
         chart.show_subtitle = False
         chart.setBins(
             bins,
             bar_mode=self._distributionBarMode(),
             cumulative_mode=self._distributionCumulativeMode(),
+            cumulative_points=cumulative_points,
             xLabel=x_label,
             yLabelLeft=self._distributionYAxisLabel(),
             yLabelRight=self._distributionCumulativeYAxisLabel(),
