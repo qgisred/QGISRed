@@ -25,7 +25,6 @@ from qgis.PyQt import uic
 from qgis.core import QgsApplication
 
 from ...compat import DIALOG_ACCEPTED
-from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 
 from .qgisred_timeseries_axis_dialog import TimeSeriesAxisOptionsDialog
@@ -36,8 +35,6 @@ from .timeseries_plot_renderer import TimeSeriesPlotRenderer
 from .timeseries_plot_style import DEFAULT_SERIES_COLOR, LEGEND_ICON_SIZE, LEGEND_ROW_GAP, PLOT_TOP_PAD, qfont
 from .timeseries_time_utils import (
     civil_time_parts,
-    format_civil_time,
-    format_elapsed_time,
     simulation_start_clock_seconds,
 )
 
@@ -1587,6 +1584,43 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             return f"{left} - {magnitude}"
         return left or magnitude or (series_dict.get("label") or "").strip() or self.tr("Value")
 
+    def _valuesTableData(self):
+        """Return (headers, row cells, x hours) matching the values table, or None if empty."""
+        if not self._plotHasCurves():
+            return None
+
+        base_series = None
+        for s in self.plot.series or []:
+            if self.plot._seriesIsDrawn(s):
+                base_series = s
+                break
+        if base_series is None:
+            return None
+
+        xs = list(base_series.get("x", []) or [])
+        if not xs:
+            return None
+
+        drawn_series = [s for s in (self.plot.series or []) if self.plot._seriesIsDrawn(s)]
+        headers = [
+            self.tr("Time (h)"),
+            self.tr("Time of day"),
+        ] + [self._series_column_header(s) for s in drawn_series]
+
+        rows = []
+        for row, xh in enumerate(xs):
+            row_cells = [
+                self._format_elapsed_time_col1(xh),
+                self._format_civil_time_col2(xh),
+            ]
+            for s in drawn_series:
+                ys = s.get("y", []) or []
+                v = ys[row] if row < len(ys) else None
+                display_v = self._seriesDisplayValue(s, v)
+                row_cells.append("" if display_v is None else str(display_v))
+            rows.append(row_cells)
+        return headers, rows, xs
+
     def _rebuildValuesTable(self) -> None:
         table = getattr(self, "_table", None)
         if table is None:
@@ -1601,44 +1635,21 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self._tableSeconds = []
         self._tableSecondsToRow = {}
 
-        if not self._plotHasCurves():
+        table_data = self._valuesTableData()
+        if table_data is None:
             table.setRowCount(0)
             table.setColumnCount(0)
             self._updateTableSyncAvailability()
             return
 
-        base_series = None
-        for s in self.plot.series or []:
-            if self.plot._seriesIsDrawn(s):
-                base_series = s
-                break
-        if base_series is None:
-            table.setRowCount(0)
-            table.setColumnCount(0)
-            self._updateTableSyncAvailability()
-            return
-
-        xs = list(base_series.get("x", []) or [])
-        if not xs:
-            table.setRowCount(0)
-            table.setColumnCount(0)
-            self._updateTableSyncAvailability()
-            return
-
-        drawn_series = [s for s in (self.plot.series or []) if self.plot._seriesIsDrawn(s)]
-        col_count = 2 + len(drawn_series)
-        table.setColumnCount(col_count)
-
-        headers = [
-            self.tr("Time (h)"),
-            self.tr("Time of day"),
-        ] + [self._series_column_header(s) for s in drawn_series]
+        headers, data_rows, xs = table_data
+        table.setColumnCount(len(headers))
         table.setHorizontalHeaderLabels(headers)
         current_signature = tuple(headers)
+        table.setRowCount(len(data_rows))
 
-        _start_clock_seconds = int(getattr(self.plot, "_start_clock_seconds", 0) or 0)
-        table.setRowCount(len(xs))
-        for row, xh in enumerate(xs):
+        align = int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        for row, (xh, row_cells) in enumerate(zip(xs, data_rows)):
             try:
                 sec = int(round(float(xh) * 3600.0))
             except Exception:
@@ -1648,23 +1659,10 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 if sec not in self._tableSecondsToRow:
                     self._tableSecondsToRow[sec] = row
 
-            it0 = QTableWidgetItem(self._format_elapsed_time_col1(xh))
-            it0.setTextAlignment(int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter))
-            table.setItem(row, 0, it0)
-
-            _ = _start_clock_seconds
-            it1 = QTableWidgetItem(self._format_civil_time_col2(xh))
-            it1.setTextAlignment(int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter))
-            table.setItem(row, 1, it1)
-
-            for j, s in enumerate(drawn_series):
-                ys = s.get("y", []) or []
-                v = ys[row] if row < len(ys) else None
-                display_v = self._seriesDisplayValue(s, v)
-                cell_txt = "" if display_v is None else str(display_v)
+            for col, cell_txt in enumerate(row_cells):
                 item = QTableWidgetItem(cell_txt)
-                item.setTextAlignment(int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter))
-                table.setItem(row, 2 + j, item)
+                item.setTextAlignment(align)
+                table.setItem(row, col, item)
 
         if current_signature != self._tableAutoSizedSignature:
             try:
@@ -2030,24 +2028,6 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         legend_type = str(series_dict.get("legend_type") or category)
         return element_id, type_mapping.get(legend_type, type_mapping.get(category, legend_type))
 
-    def _formatCsvValue(self, value, decimal_sep: str, decimal_places=None) -> str:
-        if value is None:
-            return ""
-        try:
-            f = float(value)
-            if not math.isfinite(f):
-                return ""
-            if decimal_places is None:
-                text = format(f, ".12g")
-            else:
-                dec = max(0, int(decimal_places))
-                text = f"{f:.{dec}f}"
-        except Exception:
-            text = str(value)
-        if decimal_sep != ".":
-            text = text.replace(".", decimal_sep)
-        return text
-
     def _refreshStartClockSeconds(self) -> None:
         dock = getattr(self, "_resultsDock", None)
         if dock is None:
@@ -2059,39 +2039,6 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             getattr(dock, "outPath", "") or "",
         )
         self.plot.setStartClockSeconds(start_seconds)
-
-    def _formatCsvCivilTime(self, hours) -> str:
-        return format_civil_time(hours, getattr(self.plot, "_start_clock_seconds", 0), include_seconds=True)
-
-    def _formatCsvTimeForAxisOptions(self, hours, decimal_sep: str) -> str:
-        cfg = getattr(self.plot, "_axis_cfg_x", None)
-        hour_format = (getattr(cfg, "x_hour_format", "") or "hm").strip()
-        day_format = (getattr(cfg, "x_day_format", "") or "split_days").strip()
-        if hour_format in ("hm", "hm_ampm", "tod_hm", "tod_ampm"):
-            return format_civil_time(
-                hours,
-                getattr(self.plot, "_start_clock_seconds", 0),
-                include_seconds=True,
-                am_pm=hour_format in ("hm_ampm", "tod_ampm"),
-            )
-        return format_elapsed_time(
-            hours,
-            hour_format=hour_format,
-            day_format=day_format,
-            include_seconds=True,
-            decimal_sep=decimal_sep,
-        )
-
-    def _seriesCsvDecimalPlaces(self, series_dict):
-        if series_dict.get("y_categorical_labels"):
-            return None
-        try:
-            parts = str(series_dict.get("series_key") or "").split(":")
-            if len(parts) < 3 or not parts[2]:
-                return None
-            return QGISRedFieldUtils().getDecimals(normalize_element(parts[0]), parts[2])
-        except Exception:
-            return None
 
     def _seriesDisplayValue(self, series_dict, value) -> object:
         labels = series_dict.get("y_categorical_labels")
@@ -2122,48 +2069,19 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
 
         from .qgisred_results_data import get_regional_separators
 
-        list_sep, decimal_sep = get_regional_separators()
-        rows = []
-        for s in self.plot.series or []:
-            if not self.plot._seriesIsDrawn(s):
-                continue
-            xs = s.get("x", []) or []
-            ys = s.get("y", []) or []
-            n = min(len(xs), len(ys))
-            if n <= 0:
-                continue
-            element_id, element_type = self._seriesElementInfo(s)
-            magnitude = (s.get("magnitude") or self.plot.y_label or "").strip()
-            series_label = (s.get("label") or "").strip()
-            value_decimals = self._seriesCsvDecimalPlaces(s)
-            for i in range(n):
-                rows.append([
-                    element_id,
-                    element_type,
-                    magnitude,
-                    series_label,
-                    self._formatCsvValue(xs[i], decimal_sep),
-                    self._formatCsvTimeForAxisOptions(xs[i], decimal_sep),
-                    self._formatCsvValue(self._seriesDisplayValue(s, ys[i]), decimal_sep, value_decimals),
-                ])
-
-        if not rows:
+        list_sep, _decimal_sep = get_regional_separators()
+        table_data = self._valuesTableData()
+        if table_data is None:
             self._showMessage(self.tr("No chart points to export"), level=1)
             return
+
+        headers, data_rows, _xs = table_data
 
         try:
             with open(path, "w", newline="", encoding="utf-8") as f:
                 writer = csv.writer(f, delimiter=list_sep)
-                writer.writerow([
-                    self.tr("Id"),
-                    self.tr("Type"),
-                    self.tr("Magnitude"),
-                    self.tr("Curve Name"),
-                    self.tr("Time (h)"),
-                    self.tr("Formatted Time"),
-                    self.tr("Value"),
-                ])
-                writer.writerows(rows)
+                writer.writerow(headers)
+                writer.writerows(data_rows)
         except Exception:
             self._showMessage(self.tr("The CSV file could not be exported"), level=2)
             return

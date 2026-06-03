@@ -126,6 +126,52 @@ def test_values_table_clipboard_text_for_entire_table():
     )
 
 
+def test_values_table_data_matches_table_layout():
+    _patch_qt_for_import()
+    from QGISRed.ui.analysis.qgisred_timeseries_dock import QGISRedTimeSeriesDock
+
+    class _Plot:
+        def _seriesIsDrawn(self, s):
+            return True
+
+        series = [
+            {
+                "x": [0.0, 1.0],
+                "y": [10.0, 20.0],
+                "magnitude": "Pressure (m)",
+                "series_key": "Node:layer:Pressure:J1",
+                "legend_type": "Node",
+            },
+            {
+                "x": [0.0, 1.0],
+                "y": [1.2, 2.4],
+                "magnitude": "Flow (gpm)",
+                "series_key": "Link:layer:Flow:P1",
+                "legend_type": "Link",
+            },
+        ]
+
+    d = QGISRedTimeSeriesDock.__new__(QGISRedTimeSeriesDock)
+    d.tr = lambda message: message
+    d.plot = _Plot()
+    d.plot._axis_cfg_x = type("C", (), {"x_hour_format": "hm"})()
+    d.plot._start_clock_seconds = 0
+    d._plotHasCurves = lambda: True
+
+    result = d._valuesTableData()
+    assert result is not None
+    headers, rows, xs = result
+    assert xs == [0.0, 1.0]
+    assert headers[0] == "Time (h)"
+    assert headers[1] == "Time of day"
+    assert "Pressure (m)" in headers[2]
+    assert "Flow (gpm)" in headers[3]
+    assert rows[0][0] == "0:00"
+    assert rows[0][1] == "12am"
+    assert rows[0][2] == "10.0"
+    assert rows[1][2] == "20.0"
+
+
 def test_values_table_clipboard_text_for_selected_rows():
     _patch_qt_for_import()
     from QGISRed.ui.analysis.qgisred_timeseries_dock import QGISRedTimeSeriesDock
