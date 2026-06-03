@@ -16,7 +16,6 @@ from QGISRed.ui.analysis.qgisred_results_binary import (
     getOut_TimesLinkProperty,
     getOut_StatNodesProperties,
     getOut_StatLinksProperties,
-    ROUNDING_PRECISION,
 )
 from QGISRed.ui.analysis.qgisred_results_hyd import (
     getHyd_Metadata,
@@ -105,16 +104,16 @@ class TestGetOutTimeNodesProperties:
         results = getOut_TimeNodesProperties(simple_network_out, 0)
         j1 = results["J1"]
         assert set(j1.keys()) == {"Pressure", "Head", "Demand", "Quality"}
-        assert j1["Demand"] == round(5.0, ROUNDING_PRECISION)
-        assert j1["Head"] == round(80.0, ROUNDING_PRECISION)
-        assert j1["Pressure"] == round(29.43, ROUNDING_PRECISION)
-        assert j1["Quality"] == round(0.5, ROUNDING_PRECISION)
+        assert j1["Demand"] == pytest.approx(5.0)
+        assert j1["Head"] == pytest.approx(80.0)
+        assert j1["Pressure"] == pytest.approx(29.43)
+        assert j1["Quality"] == pytest.approx(0.5)
 
     def test_node_properties_period1(self, simple_network_out):
         results = getOut_TimeNodesProperties(simple_network_out, 3600)
         j1 = results["J1"]
-        assert j1["Demand"] == round(6.0, ROUNDING_PRECISION)
-        assert j1["Head"] == round(75.0, ROUNDING_PRECISION)
+        assert j1["Demand"] == pytest.approx(6.0)
+        assert j1["Head"] == pytest.approx(75.0)
 
     def test_nonexistent_file(self):
         results = getOut_TimeNodesProperties("/nonexistent/file.out", 0)
@@ -130,18 +129,18 @@ class TestGetOutTimeLinksProperties:
     def test_link_properties_period0(self, simple_network_out):
         results = getOut_TimeLinksProperties(simple_network_out, 0)
         p1 = results["P1"]
-        assert p1["Flow"] == round(10.0, ROUNDING_PRECISION)
-        assert p1["Velocity"] == round(1.5, ROUNDING_PRECISION)
-        assert p1["Quality"] == round(0.4, ROUNDING_PRECISION)
+        assert p1["Flow"] == pytest.approx(10.0)
+        assert p1["Velocity"] == pytest.approx(1.5)
+        assert p1["Quality"] == pytest.approx(0.4)
         assert p1["Status"] == "Open"
 
     def test_headloss_calculated_from_unit_headloss(self, simple_network_out):
         results = getOut_TimeLinksProperties(simple_network_out, 0)
         p1 = results["P1"]
         # HeadLoss = unit_headloss * length / 1000 = 20.0 * 1000 / 1000 = 20.0
-        assert p1["HeadLoss"] == round(20.0, ROUNDING_PRECISION)
+        assert p1["HeadLoss"] == pytest.approx(20.0)
         # UnitHdLoss should be the raw unit headloss
-        assert p1["UnitHdLoss"] == round(20.0, ROUNDING_PRECISION)
+        assert p1["UnitHdLoss"] == pytest.approx(20.0)
 
     def test_pump_fields_are_none(self, pump_valve_network_out):
         results = getOut_TimeLinksProperties(pump_valve_network_out, 0)
@@ -158,7 +157,7 @@ class TestGetOutTimeLinksProperties:
         results = getOut_TimeLinksProperties(pump_valve_network_out, 0)
         pu1 = results["PU1"]
         # Pumps use raw headloss without length multiplication
-        assert pu1["HeadLoss"] == round(20.0, ROUNDING_PRECISION)
+        assert pu1["HeadLoss"] == pytest.approx(20.0)
 
     def test_valve_status_active(self, pump_valve_network_out):
         results = getOut_TimeLinksProperties(pump_valve_network_out, 0)
@@ -178,10 +177,10 @@ class TestGetOutTimeLinksProperties:
 class TestGetOutTimeNodeProperties:
     def test_specific_node(self, simple_network_out):
         result = getOut_TimeNodeProperties(simple_network_out, 0, "J1")
-        assert result["Demand"] == round(5.0, ROUNDING_PRECISION)
-        assert result["Head"] == round(80.0, ROUNDING_PRECISION)
-        assert result["Pressure"] == round(29.43, ROUNDING_PRECISION)
-        assert result["Quality"] == round(0.5, ROUNDING_PRECISION)
+        assert result["Demand"] == pytest.approx(5.0)
+        assert result["Head"] == pytest.approx(80.0)
+        assert result["Pressure"] == pytest.approx(29.43)
+        assert result["Quality"] == pytest.approx(0.5)
 
     def test_node_not_found(self, simple_network_out):
         result = getOut_TimeNodeProperties(simple_network_out, 0, "NONEXISTENT")
@@ -195,7 +194,7 @@ class TestGetOutTimeNodeProperties:
 class TestGetOutTimeLinkProperties:
     def test_specific_link(self, simple_network_out):
         result = getOut_TimeLinkProperties(simple_network_out, 0, "P1")
-        assert result["Flow"] == round(10.0, ROUNDING_PRECISION)
+        assert result["Flow"] == pytest.approx(10.0)
         assert result["Status"] == "Open"
 
     def test_link_not_found(self, simple_network_out):
@@ -215,14 +214,14 @@ class TestGetOutTimesNodeProperty:
     def test_pressure_timeseries(self, simple_network_out):
         ts = getOut_TimesNodeProperty(simple_network_out, "J1", "Pressure")
         assert len(ts) == 2
-        assert ts[0] == round(29.43, ROUNDING_PRECISION)
-        assert ts[1] == round(24.52, ROUNDING_PRECISION)
+        assert ts[0] == pytest.approx(29.43)
+        assert ts[1] == pytest.approx(24.52)
 
     def test_demand_timeseries(self, simple_network_out):
         ts = getOut_TimesNodeProperty(simple_network_out, "J1", "Demand")
         assert len(ts) == 2
-        assert ts[0] == round(5.0, ROUNDING_PRECISION)
-        assert ts[1] == round(6.0, ROUNDING_PRECISION)
+        assert ts[0] == pytest.approx(5.0)
+        assert ts[1] == pytest.approx(6.0)
 
     def test_invalid_property(self, simple_network_out):
         ts = getOut_TimesNodeProperty(simple_network_out, "J1", "InvalidProp")
@@ -237,21 +236,21 @@ class TestGetOutTimesLinkProperty:
     def test_flow_timeseries(self, simple_network_out):
         ts = getOut_TimesLinkProperty(simple_network_out, "P1", "Flow")
         assert len(ts) == 2
-        assert ts[0] == round(10.0, ROUNDING_PRECISION)
-        assert ts[1] == round(12.0, ROUNDING_PRECISION)
+        assert ts[0] == pytest.approx(10.0)
+        assert ts[1] == pytest.approx(12.0)
 
     def test_velocity_timeseries(self, simple_network_out):
         ts = getOut_TimesLinkProperty(simple_network_out, "P1", "Velocity")
         assert len(ts) == 2
-        assert ts[0] == round(1.5, ROUNDING_PRECISION)
-        assert ts[1] == round(1.8, ROUNDING_PRECISION)
+        assert ts[0] == pytest.approx(1.5)
+        assert ts[1] == pytest.approx(1.8)
 
     def test_headloss_timeseries(self, simple_network_out):
         ts = getOut_TimesLinkProperty(simple_network_out, "P1", "HeadLoss")
         assert len(ts) == 2
         # HeadLoss = unit_headloss * length / 1000
-        assert ts[0] == round(20.0 * 1000.0 / 1000.0, ROUNDING_PRECISION)
-        assert ts[1] == round(25.0 * 1000.0 / 1000.0, ROUNDING_PRECISION)
+        assert ts[0] == pytest.approx(20.0 * 1000.0 / 1000.0)
+        assert ts[1] == pytest.approx(25.0 * 1000.0 / 1000.0)
 
     def test_status_timeseries(self, simple_network_out):
         ts = getOut_TimesLinkProperty(simple_network_out, "P1", "Status")
@@ -278,33 +277,33 @@ class TestGetOutStatNodesProperties:
         assert "J1" in results
         j1 = results["J1"]
         # Head max: period0=80, period1=75 → max=80 at time=0
-        assert j1["Head"]["Value"] == round(80.0, ROUNDING_PRECISION)
+        assert j1["Head"]["Value"] == pytest.approx(80.0)
         assert j1["Head"]["Time"] == 0
         # Demand max: period0=5, period1=6 → max=6 at time=3600
-        assert j1["Demand"]["Value"] == round(6.0, ROUNDING_PRECISION)
+        assert j1["Demand"]["Value"] == pytest.approx(6.0)
         assert j1["Demand"]["Time"] == 3600
 
     def test_minimum(self, simple_network_out):
         results = getOut_StatNodesProperties(simple_network_out, "Minimum")
         j1 = results["J1"]
-        assert j1["Head"]["Value"] == round(75.0, ROUNDING_PRECISION)
+        assert j1["Head"]["Value"] == pytest.approx(75.0)
         assert j1["Head"]["Time"] == 3600
-        assert j1["Demand"]["Value"] == round(5.0, ROUNDING_PRECISION)
+        assert j1["Demand"]["Value"] == pytest.approx(5.0)
         assert j1["Demand"]["Time"] == 0
 
     def test_average(self, simple_network_out):
         results = getOut_StatNodesProperties(simple_network_out, "Average")
         j1 = results["J1"]
         # Head average: (80 + 75) / 2 = 77.5
-        assert j1["Head"]["Value"] == round(77.5, ROUNDING_PRECISION)
+        assert j1["Head"]["Value"] == pytest.approx(77.5)
         # Demand average: (5 + 6) / 2 = 5.5
-        assert j1["Demand"]["Value"] == round(5.5, ROUNDING_PRECISION)
+        assert j1["Demand"]["Value"] == pytest.approx(5.5)
 
     def test_range(self, simple_network_out):
         results = getOut_StatNodesProperties(simple_network_out, "Range")
         j1 = results["J1"]
-        assert j1["Head"]["Value"] == round(80.0 - 75.0, ROUNDING_PRECISION)
-        assert j1["Demand"]["Value"] == round(6.0 - 5.0, ROUNDING_PRECISION)
+        assert j1["Head"]["Value"] == pytest.approx(80.0 - 75.0)
+        assert j1["Demand"]["Value"] == pytest.approx(6.0 - 5.0)
 
     def test_stddev(self, simple_network_out):
         results = getOut_StatNodesProperties(simple_network_out, "StdDev")
@@ -327,13 +326,13 @@ class TestGetOutStatLinksProperties:
         assert "P1" in results
         p1 = results["P1"]
         # Flow max: abs(10) vs abs(12) → max |flow|=12 at time=3600
-        assert p1["Flow"]["Value"] == round(12.0, ROUNDING_PRECISION)
+        assert p1["Flow"]["Value"] == pytest.approx(12.0)
         assert p1["Flow"]["Time"] == 3600
 
     def test_minimum(self, simple_network_out):
         results = getOut_StatLinksProperties(simple_network_out, "Minimum")
         p1 = results["P1"]
-        assert p1["Flow"]["Value"] == round(10.0, ROUNDING_PRECISION)
+        assert p1["Flow"]["Value"] == pytest.approx(10.0)
         assert p1["Flow"]["Time"] == 0
 
     def test_average(self, simple_network_out):
@@ -368,9 +367,9 @@ class TestTrailingBytesRobustness:
         """Period 0 must read correctly regardless of trailing bytes."""
         results = getOut_TimeNodesProperties(simple_network_out_with_trailing, 0)
         j1 = results["J1"]
-        assert j1["Pressure"] == round(29.43, ROUNDING_PRECISION)
-        assert j1["Head"]     == round(80.0,  ROUNDING_PRECISION)
-        assert j1["Demand"]   == round(5.0,   ROUNDING_PRECISION)
+        assert j1["Pressure"] == pytest.approx(29.43)
+        assert j1["Head"]     == pytest.approx(80.0)
+        assert j1["Demand"]   == pytest.approx(5.0)
 
     def test_period1_correct_with_trailing(self, simple_network_out_with_trailing):
         """Period 1 must read the correct values even when extra bytes follow
@@ -378,9 +377,9 @@ class TestTrailingBytesRobustness:
         period starts 1 byte off, producing garbage floats."""
         results = getOut_TimeNodesProperties(simple_network_out_with_trailing, 3600)
         j1 = results["J1"]
-        assert j1["Pressure"] == round(24.52, ROUNDING_PRECISION)
-        assert j1["Head"]     == round(75.0,  ROUNDING_PRECISION)
-        assert j1["Demand"]   == round(6.0,   ROUNDING_PRECISION)
+        assert j1["Pressure"] == pytest.approx(24.52)
+        assert j1["Head"]     == pytest.approx(75.0)
+        assert j1["Demand"]   == pytest.approx(6.0)
 
     def test_no_negative_pressures_with_trailing(self, simple_network_out_with_trailing):
         """No junction should report a negative pressure in any period."""
@@ -472,10 +471,10 @@ class TestHydResults:
         else:
             pressure_factor = 1.0
 
-        assert j1["Demand"] == round(5.5, ROUNDING_PRECISION)
-        assert j1["Head"] == round(77.0 * head_factor, ROUNDING_PRECISION)
+        assert j1["Demand"] == pytest.approx(5.5)
+        assert j1["Head"] == pytest.approx(77.0 * head_factor)
         # Pressure = (head - elevation) converted to project pressure units.
-        assert j1["Pressure"] == round((77.0 * head_factor - 50.0) * pressure_factor, ROUNDING_PRECISION)
+        assert j1["Pressure"] == pytest.approx((77.0 * head_factor - 50.0) * pressure_factor)
         assert j1["Quality"] is None
 
     def test_hyd_links_derived_values(self, simple_network_out, simple_network_hyd):
@@ -516,11 +515,11 @@ class TestHydResults:
         expected_f = 12.104 * (diameter_m ** 5) * slope / (q_m3s ** 2)
 
         assert p1["Status"] == "Open"
-        assert p1["Flow"] == round(expected_flow, ROUNDING_PRECISION)
-        assert p1["HeadLoss"] == round(expected_headloss, ROUNDING_PRECISION)
-        assert p1["UnitHdLoss"] == round(expected_unit, ROUNDING_PRECISION)
-        assert p1["Velocity"] == round(expected_velocity, ROUNDING_PRECISION)
-        assert p1["FricFactor"] == round(expected_f, ROUNDING_PRECISION)
+        assert p1["Flow"] == pytest.approx(expected_flow)
+        assert p1["HeadLoss"] == pytest.approx(expected_headloss)
+        assert p1["UnitHdLoss"] == pytest.approx(expected_unit)
+        assert p1["Velocity"] == pytest.approx(expected_velocity)
+        assert p1["FricFactor"] == pytest.approx(expected_f)
         assert p1["ReactRate"] is None
         assert p1["Quality"] is None
 
@@ -542,7 +541,7 @@ class TestHydResults:
         j1 = stats["J1"]
         assert "Head" in j1 and "Demand" in j1 and "Pressure" in j1
         # Average Demand over 3 records: (5.0 + 5.5 + 6.0)/3
-        assert j1["Demand"]["Value"] == round((5.0 + 5.5 + 6.0) / 3.0, ROUNDING_PRECISION)
+        assert j1["Demand"]["Value"] == pytest.approx((5.0 + 5.5 + 6.0) / 3.0)
 
     def test_hyd_link_stats_maximum(self, simple_network_out, simple_network_hyd):
         stats = getHyd_StatLinksProperties(simple_network_hyd, simple_network_out, "Maximum")
@@ -550,6 +549,6 @@ class TestHydResults:
         p1 = stats["P1"]
         assert "Flow" in p1
         # Max |Q| occurs at last record (12.0 in fixture)
-        assert p1["Flow"]["Value"] == round(12.0, ROUNDING_PRECISION)
+        assert p1["Flow"]["Value"] == pytest.approx(12.0)
         assert p1["Flow"]["Time"] == 3600
 

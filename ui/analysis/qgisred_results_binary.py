@@ -1,7 +1,6 @@
 import struct
 import os
 
-ROUNDING_PRECISION = 4
 
 _LT_CV   = 0  
 _LT_PIPE = 1  
@@ -279,10 +278,10 @@ def getOut_TimeNodesProperties(out_file_path, time_seconds):
         results = {}
         for i in range(n):
             results[meta["node_ids"][i]] = {
-                "Pressure": round(float(pressures[i]), ROUNDING_PRECISION),
-                "Head": round(float(heads[i]), ROUNDING_PRECISION),
-                "Demand": round(float(demands[i]), ROUNDING_PRECISION),
-                "Quality": round(float(qualities[i]), ROUNDING_PRECISION)
+                "Pressure": float(pressures[i]),
+                "Head": float(heads[i]),
+                "Demand": float(demands[i]),
+                "Quality": float(qualities[i])
             }
         return results
 
@@ -343,13 +342,13 @@ def getOut_TimeLinksProperties(out_file_path, time_seconds):
 
             results[meta["link_ids"][i]] = {
                 "Status": status_text,
-                "Flow": round(float(flows[i]), ROUNDING_PRECISION),
-                "Velocity": None if pumpOrValve else round(float(velocities[i]), ROUNDING_PRECISION),
-                "HeadLoss": round(headloss_calc, ROUNDING_PRECISION),
-                "UnitHdLoss": None if pumpOrValve else round(unit_headloss, ROUNDING_PRECISION),
-                "FricFactor": None if pumpOrValve else round(float(friction_rates[i]), ROUNDING_PRECISION),
-                "ReactRate": None if pumpOrValve else round(float(reaction_rates[i]), ROUNDING_PRECISION),
-                "Quality": round(float(qualities[i]), ROUNDING_PRECISION)
+                "Flow": float(flows[i]),
+                "Velocity": None if pumpOrValve else float(velocities[i]),
+                "HeadLoss": headloss_calc,
+                "UnitHdLoss": None if pumpOrValve else unit_headloss,
+                "FricFactor": None if pumpOrValve else float(friction_rates[i]),
+                "ReactRate": None if pumpOrValve else float(reaction_rates[i]),
+                "Quality": float(qualities[i])
             }
         return results
 
@@ -375,8 +374,8 @@ def getOut_TimeNodeProperties(out_file_path, time_seconds, node_id):
         for i, name in enumerate(var_names):
             f.seek(base_node_offset + (i * meta["n_nodes"] * 4) + (node_index * 4))
             val = struct.unpack('f', f.read(4))[0]
-            vars_found[name] = round(float(val), ROUNDING_PRECISION)
-            
+            vars_found[name] = float(val)
+
         return vars_found
 
 def getOut_TimeLinkProperties(out_file_path, time_seconds, link_id):
@@ -416,11 +415,11 @@ def getOut_TimeLinkProperties(out_file_path, time_seconds, link_id):
             if pumpOrValve and name in _BLANK_NAMES:
                 vars_found[name] = None
                 if name == "UnitHdLoss":
-                    vars_found["HeadLoss"] = round(float(val), ROUNDING_PRECISION)
+                    vars_found["HeadLoss"] = float(val)
             else:
-                vars_found[name] = round(float(val), ROUNDING_PRECISION)
+                vars_found[name] = float(val)
                 if name == "UnitHdLoss":
-                    vars_found["HeadLoss"] = round((float(val) * length) / 1000.0, ROUNDING_PRECISION)
+                    vars_found["HeadLoss"] = (float(val) * length) / 1000.0
 
         f.seek(base_period_offset + nN * 4 + from_idx * 4)
         from_head = struct.unpack('f', f.read(4))[0]
@@ -467,8 +466,8 @@ def getOut_TimesNodeProperty(out_file_path, node_id, property_name):
             pos = results_offset + (p * period_size) + (var_index * meta["n_nodes"] * 4) + (node_index * 4)
             f.seek(pos)
             val = struct.unpack('f', f.read(4))[0]
-            time_series.append(round(float(val), ROUNDING_PRECISION))
-            
+            time_series.append(float(val))
+
         return time_series
 
 def getOut_TimesLinkProperty(out_file_path, link_id, property_name):
@@ -551,7 +550,7 @@ def getOut_TimesLinkProperty(out_file_path, link_id, property_name):
                 else:
                     final_val = (final_val * length) / 1000.0
 
-            time_series.append(round(final_val, ROUNDING_PRECISION))
+            time_series.append(final_val)
 
         return time_series
 
@@ -649,25 +648,25 @@ def getOut_StatNodesProperties(out_file_path, stat):
                 if stat == "Maximum":
                     node_props[name] = {
                         "Time":  int(max_times[vi, ni]),
-                        "Value": round(float(max_vals[vi, ni]), ROUNDING_PRECISION)
+                        "Value": float(max_vals[vi, ni])
                     }
                 elif stat == "Minimum":
                     node_props[name] = {
                         "Time":  int(min_times[vi, ni]),
-                        "Value": round(float(min_vals[vi, ni]), ROUNDING_PRECISION)
+                        "Value": float(min_vals[vi, ni])
                     }
                 elif stat == "Average":
                     node_props[name] = {
-                        "Value": round(float(sums[vi, ni]) / actual_periods, ROUNDING_PRECISION)
+                        "Value": float(sums[vi, ni]) / actual_periods
                     }
                 elif stat == "Range":
                     node_props[name] = {
-                        "Value": round(float(max_vals[vi, ni] - min_vals[vi, ni]), ROUNDING_PRECISION)
+                        "Value": float(max_vals[vi, ni] - min_vals[vi, ni])
                     }
                 elif stat == "StdDev":
                     variance = float(wf_M2[vi, ni]) / actual_periods if actual_periods > 0 else 0.0
                     node_props[name] = {
-                        "Value": round(math.sqrt(variance), ROUNDING_PRECISION)
+                        "Value": math.sqrt(variance)
                     }
             results[node_ids[ni]] = node_props
         return results
@@ -824,30 +823,30 @@ def getOut_StatLinksProperties(out_file_path, stat):
                     value = float(max_flow_signed[li]) if name == "Flow" else float(max_vals[name][li])
                     link_props[name] = {
                         "Time":  int(max_times[name][li]),
-                        "Value": round(value, ROUNDING_PRECISION)
+                        "Value": value
                     }
                 elif stat == "Minimum":
                     value = float(min_flow_signed[li]) if name == "Flow" else float(min_vals[name][li])
                     link_props[name] = {
                         "Time":  int(min_times[name][li]),
-                        "Value": round(value, ROUNDING_PRECISION)
+                        "Value": value
                     }
                 elif stat == "Average":
                     if name == "Flow":
-                        link_props["Flow_Unsig"] = {"Value": round(float(sums["Flow"][li])     / actual_periods, ROUNDING_PRECISION)}
-                        link_props["Flow_Sig"]   = {"Value": round(float(flow_sum_signed[li]) / actual_periods, ROUNDING_PRECISION)}
+                        link_props["Flow_Unsig"] = {"Value": float(sums["Flow"][li])     / actual_periods}
+                        link_props["Flow_Sig"]   = {"Value": float(flow_sum_signed[li]) / actual_periods}
                         continue
                     link_props[name] = {
-                        "Value": round(float(sums[name][li]) / actual_periods, ROUNDING_PRECISION)
+                        "Value": float(sums[name][li]) / actual_periods
                     }
                 elif stat == "Range":
                     link_props[name] = {
-                        "Value": round(float(max_vals[name][li] - min_vals[name][li]), ROUNDING_PRECISION)
+                        "Value": float(max_vals[name][li] - min_vals[name][li])
                     }
                 elif stat == "StdDev":
                     variance = float(wf_M2[name][li]) / actual_periods if actual_periods > 0 else 0.0
                     link_props[name] = {
-                        "Value": round(math.sqrt(variance), ROUNDING_PRECISION)
+                        "Value": math.sqrt(variance)
                     }
             results[link_ids[li]] = link_props
         return results

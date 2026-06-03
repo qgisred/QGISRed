@@ -3,7 +3,6 @@ import os
 import struct
 
 from .qgisred_results_binary import (
-    ROUNDING_PRECISION,
     _LT_PUMP,
     _VALVE_TYPES,
     _resolve_link_status,
@@ -268,9 +267,9 @@ def getHyd_TimeNodesProperties(hyd_file_path, out_file_path, time_seconds):
         elevation = float(elevations[i]) if i < len(elevations) else 0.0
         pressure = (head - elevation) * pressure_factor
         results[node_id] = {
-            "Pressure": round(pressure, ROUNDING_PRECISION),
-            "Head": round(head, ROUNDING_PRECISION),
-            "Demand": round(float(demands[i]) * flow_factor, ROUNDING_PRECISION),
+            "Pressure": pressure,
+            "Head": head,
+            "Demand": float(demands[i]) * flow_factor,
             "Quality": None,
         }
     return results
@@ -366,11 +365,11 @@ def getHyd_TimeLinksProperties(hyd_file_path, out_file_path, time_seconds):
 
         results[link_id] = {
             "Status": status_text,
-            "Flow": round(flow, ROUNDING_PRECISION),
-            "Velocity": None if velocity is None else round(velocity, ROUNDING_PRECISION),
-            "HeadLoss": round(headloss, ROUNDING_PRECISION),
-            "UnitHdLoss": None if unit_headloss is None else round(unit_headloss, ROUNDING_PRECISION),
-            "FricFactor": None if friction is None else round(friction, ROUNDING_PRECISION),
+            "Flow": flow,
+            "Velocity": velocity,
+            "HeadLoss": headloss,
+            "UnitHdLoss": unit_headloss,
+            "FricFactor": friction,
             "ReactRate": None,
             "Quality": None,
         }
@@ -390,38 +389,38 @@ def _aggregate_numeric_timeseries(values, times, stat, *, flow_abs_mode=False):
         signed_vals = [v for _, v in pairs]
         if stat == "Maximum":
             idx = max(range(len(abs_vals)), key=lambda i: abs_vals[i])
-            return {"Time": int(pairs[idx][0]), "Value": round(float(signed_vals[idx]), ROUNDING_PRECISION)}
+            return {"Time": int(pairs[idx][0]), "Value": float(signed_vals[idx])}
         if stat == "Minimum":
             idx = min(range(len(abs_vals)), key=lambda i: abs_vals[i])
-            return {"Time": int(pairs[idx][0]), "Value": round(float(signed_vals[idx]), ROUNDING_PRECISION)}
+            return {"Time": int(pairs[idx][0]), "Value": float(signed_vals[idx])}
         if stat == "Average":
             return {
-                "Flow_Unsig": {"Value": round(float(sum(abs_vals) / len(abs_vals)), ROUNDING_PRECISION)},
-                "Flow_Sig": {"Value": round(float(sum(signed_vals) / len(signed_vals)), ROUNDING_PRECISION)},
+                "Flow_Unsig": {"Value": float(sum(abs_vals) / len(abs_vals))},
+                "Flow_Sig": {"Value": float(sum(signed_vals) / len(signed_vals))},
             }
         if stat == "Range":
-            return {"Value": round(float(max(abs_vals) - min(abs_vals)), ROUNDING_PRECISION)}
+            return {"Value": float(max(abs_vals) - min(abs_vals))}
         if stat == "StdDev":
             mean = float(sum(abs_vals) / len(abs_vals))
             var = float(sum((x - mean) ** 2 for x in abs_vals) / len(abs_vals))
-            return {"Value": round(math.sqrt(var), ROUNDING_PRECISION)}
+            return {"Value": math.sqrt(var)}
         return None
 
     vals = [v for _, v in pairs]
     if stat == "Maximum":
         idx = max(range(len(vals)), key=lambda i: vals[i])
-        return {"Time": int(pairs[idx][0]), "Value": round(float(vals[idx]), ROUNDING_PRECISION)}
+        return {"Time": int(pairs[idx][0]), "Value": float(vals[idx])}
     if stat == "Minimum":
         idx = min(range(len(vals)), key=lambda i: vals[i])
-        return {"Time": int(pairs[idx][0]), "Value": round(float(vals[idx]), ROUNDING_PRECISION)}
+        return {"Time": int(pairs[idx][0]), "Value": float(vals[idx])}
     if stat == "Average":
-        return {"Value": round(float(sum(vals) / len(vals)), ROUNDING_PRECISION)}
+        return {"Value": float(sum(vals) / len(vals))}
     if stat == "Range":
-        return {"Value": round(float(max(vals) - min(vals)), ROUNDING_PRECISION)}
+        return {"Value": float(max(vals) - min(vals))}
     if stat == "StdDev":
         mean = float(sum(vals) / len(vals))
         var = float(sum((x - mean) ** 2 for x in vals) / len(vals))
-        return {"Value": round(math.sqrt(var), ROUNDING_PRECISION)}
+        return {"Value": math.sqrt(var)}
     return None
 
 
