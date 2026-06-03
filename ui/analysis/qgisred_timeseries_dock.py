@@ -1324,9 +1324,6 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                     self._fitTablePaneToContents()
             except Exception:
                 pass
-            btn_sync = getattr(self, "btnSyncTable", None)
-            if btn_sync is not None and btn_sync.isEnabled() and not btn_sync.isChecked():
-                btn_sync.setChecked(True)
         else:
             table.hide()
         self._updateTableSyncAvailability()
@@ -1343,8 +1340,6 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             return
         can = bool(self._tableVisible and self._plotHasCurves() and getattr(self, "_table", None) is not None and bool(self._tableSeconds))
         btn.setEnabled(can)
-        if can and self._tableVisible and not btn.isChecked():
-            btn.setChecked(True)
         if not can and btn.isChecked():
             btn.setChecked(False)
             self._syncTableToCursor = False
@@ -1387,7 +1382,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             text = item.text()
         except Exception:
             text = ""
-        return str(text).replace("\t", " ").replace("\r", " ").replace("\n", " ")
+        return str(text).replace("\t", " ").replace("\r", "")
 
     @staticmethod
     def _table_header_text(table, col: int) -> str:
@@ -1401,7 +1396,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             text = item.text()
         except Exception:
             text = ""
-        return str(text).replace("\t", " ").replace("\r", " ").replace("\n", " ")
+        return str(text).replace("\t", " ").replace("\r", "")
 
     @staticmethod
     def _tableHasSelection(table) -> bool:
@@ -1573,19 +1568,48 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             tod = f"{h12}{suffix}"
         return f"{int(d)}d {tod}" if int(d) > 0 else tod
 
-    def _series_column_header(self, series_dict) -> str:
+    def _seriesTableColumnHeaderParts(self, series_dict) -> tuple:
         try:
             element_id, element_type = self._seriesElementInfo(series_dict)
         except Exception:
             element_id, element_type = ("", "")
-        magnitude = (series_dict.get("magnitude") or "").strip()
-        left = " ".join([t for t in [element_type, element_id] if t]).strip()
-        if left and magnitude:
-            return f"{left} - {magnitude}"
-        return left or magnitude or (series_dict.get("label") or "").strip() or self.tr("Value")
+        element_line = " ".join([t for t in [element_type, element_id] if t]).strip()
+        variable_line = (series_dict.get("magnitude") or "").strip()
+        if not variable_line:
+            variable_line = (series_dict.get("label") or "").strip()
+        if not element_line:
+            element_line = variable_line or self.tr("Value")
+            variable_line = ""
+        elif variable_line and element_line == variable_line:
+            variable_line = ""
+        return element_line, variable_line
+
+    def _seriesTableColumnHeaderLabel(self, series_dict) -> str:
+        element_line, variable_line = self._seriesTableColumnHeaderParts(series_dict)
+        if element_line and variable_line:
+            return f"{element_line}\n{variable_line}"
+        return element_line or variable_line or self.tr("Value")
+
+    def _valuesTableHeaderRows(self, drawn_series) -> tuple:
+        time_headers = [self.tr("Time (h)"), self.tr("Time of day")]
+        series_parts = [self._seriesTableColumnHeaderParts(s) for s in drawn_series]
+        table_headers = time_headers + [self._seriesTableColumnHeaderLabel(s) for s in drawn_series]
+        csv_row_element = list(time_headers) + [el for el, _var in series_parts]
+        csv_row_variable = ["", ""] + [var for _el, var in series_parts]
+        return table_headers, [csv_row_element, csv_row_variable]
+
+    def _applyValuesTableHeaderLayout(self, table) -> None:
+        try:
+            hdr = table.horizontalHeader()
+            hdr.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
+            fm = QFontMetrics(hdr.font())
+            line_h = max(12, int(fm.height()))
+            hdr.setMinimumHeight(line_h * 2 + 8)
+        except Exception:
+            pass
 
     def _valuesTableData(self):
-        """Return (headers, row cells, x hours) matching the values table, or None if empty."""
+        """Return (table_headers, csv_header_rows, row cells, x hours) or None if empty."""
         if not self._plotHasCurves():
             return None
 
@@ -1602,10 +1626,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             return None
 
         drawn_series = [s for s in (self.plot.series or []) if self.plot._seriesIsDrawn(s)]
-        headers = [
-            self.tr("Time (h)"),
-            self.tr("Time of day"),
-        ] + [self._series_column_header(s) for s in drawn_series]
+        table_headers, csv_header_rows = self._valuesTableHeaderRows(drawn_series)
 
         rows = []
         for row, xh in enumerate(xs):
@@ -1619,7 +1640,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 display_v = self._seriesDisplayValue(s, v)
                 row_cells.append("" if display_v is None else str(display_v))
             rows.append(row_cells)
-        return headers, rows, xs
+        return table_headers, csv_header_rows, rows, xs
 
     def _rebuildValuesTable(self) -> None:
         table = getattr(self, "_table", None)
@@ -1642,10 +1663,11 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self._updateTableSyncAvailability()
             return
 
-        headers, data_rows, xs = table_data
-        table.setColumnCount(len(headers))
-        table.setHorizontalHeaderLabels(headers)
-        current_signature = tuple(headers)
+        table_headers, _csv_header_rows, data_rows, xs = table_data
+        table.setColumnCount(len(table_headers))
+        table.setHorizontalHeaderLabels(table_headers)
+        self._applyValuesTableHeaderLayout(table)
+        current_signature = tuple(table_headers)
         table.setRowCount(len(data_rows))
 
         align = int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
@@ -2075,12 +2097,13 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self._showMessage(self.tr("No chart points to export"), level=1)
             return
 
-        headers, data_rows, _xs = table_data
+        _table_headers, csv_header_rows, data_rows, _xs = table_data
 
         try:
             with open(path, "w", newline="", encoding="utf-8") as f:
                 writer = csv.writer(f, delimiter=list_sep)
-                writer.writerow(headers)
+                for header_row in csv_header_rows:
+                    writer.writerow(header_row)
                 writer.writerows(data_rows)
         except Exception:
             self._showMessage(self.tr("The CSV file could not be exported"), level=2)

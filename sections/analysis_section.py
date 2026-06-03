@@ -150,7 +150,10 @@ class AnalysisSection:
             self.ResultDockwidget.visibilityChanged.connect(self._arrangeDocksIfVisible)
             self.ResultDockwidget.simulationFinished.connect(self.refreshTimeSeries)
             self.ResultDockwidget.simulationFinished.connect(self._staleLayerManager.forceCheck)
-            self.ResultDockwidget.resultPropertyChanged.connect(self.refreshTimeSeries)
+            try:
+                self.ResultDockwidget.cbResultTimes.currentIndexChanged.connect(self.refreshTimeSeries)
+            except Exception:
+                pass
             self.ResultDockwidget.simulationFinished.connect(self.updateMetadata)
             self.ResultDockwidget.resultPropertyChanged.connect(self.updateMetadata)
             self.ResultDockwidget.statisticsModeChanged.connect(self._onStatisticsModeChanged)
@@ -903,36 +906,6 @@ class AnalysisSection:
 
         self._renderTimeSeriesSelection()
 
-    def _getCurrentTimeSeriesKey(self, category, layer):
-        prop_internal = ""
-        prop_display = ""
-        is_stepped = False
-        y_categorical_labels = None
-        y_label_with_unit = ""
-
-        dock = self.ResultDockwidget if (hasattr(self, 'ResultDockwidget') and self.ResultDockwidget) else None
-
-        if category == "Node":
-            prop_display = dock.cbNodes.currentText() if dock else self.tr("Pressure")
-            node_map = {dock.lbl_pressure: "Pressure", dock.lbl_head: "Head", dock.lbl_demand: "Demand", dock.lbl_quality: "Quality"} if dock else {}
-            prop_internal = node_map.get(prop_display, "Pressure")
-        else:
-            prop_display = dock.cbLinks.currentText() if dock else self.tr("Flow")
-            link_map = {dock.lbl_flow: "Flow", dock.lbl_velocity: "Velocity", dock.lbl_headloss: "HeadLoss", dock.lbl_unit_headloss: "UnitHdLoss", dock.lbl_friction_factor: "FricFactor", dock.lbl_status: "Status", dock.lbl_reaction_rate: "ReactRate", dock.lbl_quality: "Quality", dock.lbl_signed_flow: "Flow", dock.lbl_unsigned_flow: "Flow"} if dock else {}
-            prop_internal = link_map.get(prop_display, "Flow")
-            if prop_internal == "Status":
-                is_stepped = True
-                y_categorical_labels = [self.tr("Closed"), self.tr("Active"), self.tr("Open")]
-
-        unit_abbr = QGISRedFieldUtils().getUnitAbbreviation(normalize_element(category), prop_internal)
-        if unit_abbr:
-            y_label_with_unit = f"{prop_display} ({unit_abbr})"
-        else:
-            y_label_with_unit = prop_display
-
-        layer_identifier = layer.customProperty("qgisred_identifier") if layer else ""
-        return (category, layer_identifier, prop_internal, prop_display, is_stepped, y_categorical_labels, y_label_with_unit)
-
     def _renderTimeSeriesSelection(self):
         if not self.timeSeriesSelection:
             return
@@ -1265,16 +1238,13 @@ class AnalysisSection:
         )
 
     def refreshTimeSeries(self):
-        if hasattr(self, 'timeSeriesDock') and self.timeSeriesDock:
-            if not hasattr(self, "lastTimeSeriesFeature") or not hasattr(self, "lastTimeSeriesCategory") or not hasattr(self, "lastTimeSeriesLayer"):
-                return
-            if hasattr(self, "timeSeriesSelection") and self.timeSeriesSelection:
-                try:
-                    key = self._getCurrentTimeSeriesKey(self.lastTimeSeriesCategory, self.lastTimeSeriesLayer)
-                    if key is not None:
-                        self._timeSeriesSelectionKey = key
-                        self._renderTimeSeriesSelection()
-                        return
-                except Exception:
-                    pass
-            self.performTimeSeriesPlotUpdate(self.lastTimeSeriesFeature, self.lastTimeSeriesCategory, self.lastTimeSeriesLayer)
+        """Refresh plotted curves after new results or a change in the results time mode.
+
+        Does not react to the node/link magnitude selector: each curve keeps the
+        magnitude chosen when it was added on the map.
+        """
+        if not getattr(self, "timeSeriesDock", None):
+            return
+        if not getattr(self, "timeSeriesSelection", None):
+            return
+        self._renderTimeSeriesSelection()

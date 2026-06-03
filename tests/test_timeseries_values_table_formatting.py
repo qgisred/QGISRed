@@ -114,7 +114,7 @@ def test_values_table_clipboard_text_for_entire_table():
 
     d = QGISRedTimeSeriesDock.__new__(QGISRedTimeSeriesDock)
     d._table = _FakeTable(
-        ["Time (h)", "Time of day", "Junction J1 - Demand"],
+        ["Time (h)", "Time of day", "Junction J1\nDemand (l/s)"],
         [
             ["0:00", "12am", "1.2"],
             ["1:00", "1am", "2.4"],
@@ -122,7 +122,7 @@ def test_values_table_clipboard_text_for_entire_table():
     )
 
     assert d._valuesTableClipboardText([0, 1], [0, 1, 2]) == (
-        "Time (h)\tTime of day\tJunction J1 - Demand\n0:00\t12am\t1.2\n1:00\t1am\t2.4"
+        "Time (h)\tTime of day\tJunction J1\nDemand (l/s)\n0:00\t12am\t1.2\n1:00\t1am\t2.4"
     )
 
 
@@ -160,16 +160,35 @@ def test_values_table_data_matches_table_layout():
 
     result = d._valuesTableData()
     assert result is not None
-    headers, rows, xs = result
+    table_headers, csv_header_rows, rows, xs = result
     assert xs == [0.0, 1.0]
-    assert headers[0] == "Time (h)"
-    assert headers[1] == "Time of day"
-    assert "Pressure (m)" in headers[2]
-    assert "Flow (gpm)" in headers[3]
+    assert table_headers[0] == "Time (h)"
+    assert table_headers[1] == "Time of day"
+    assert table_headers[2] == "Node J1\nPressure (m)"
+    assert table_headers[3] == "Link P1\nFlow (gpm)"
+    assert csv_header_rows[0][2] == "Node J1"
+    assert csv_header_rows[1][2] == "Pressure (m)"
+    assert csv_header_rows[0][0] == "Time (h)"
+    assert csv_header_rows[1][0] == ""
     assert rows[0][0] == "0:00"
     assert rows[0][1] == "12am"
-    assert rows[0][2] == "10.0"
-    assert rows[1][2] == "20.0"
+    assert rows[0][2] == str(d._seriesDisplayValue(d.plot.series[0], 10.0))
+    assert rows[1][2] == str(d._seriesDisplayValue(d.plot.series[0], 20.0))
+
+
+def test_series_table_column_header_two_lines():
+    _patch_qt_for_import()
+    from QGISRed.ui.analysis.qgisred_timeseries_dock import QGISRedTimeSeriesDock
+
+    d = QGISRedTimeSeriesDock.__new__(QGISRedTimeSeriesDock)
+    d.tr = lambda message: message
+    series = {
+        "magnitude": "Pressure (m)",
+        "series_key": "Node:layer:Pressure:J1",
+        "legend_type": "Node",
+    }
+    assert d._seriesTableColumnHeaderParts(series) == ("Node J1", "Pressure (m)")
+    assert d._seriesTableColumnHeaderLabel(series) == "Node J1\nPressure (m)"
 
 
 def test_values_table_clipboard_text_for_selected_rows():
@@ -179,7 +198,7 @@ def test_values_table_clipboard_text_for_selected_rows():
     selected = [_Index(0, 0), _Index(0, 1), _Index(0, 2), _Index(2, 0), _Index(2, 1), _Index(2, 2)]
     d = QGISRedTimeSeriesDock.__new__(QGISRedTimeSeriesDock)
     d._table = _FakeTable(
-        ["Time (h)", "Time of day", "Junction J1 - Demand"],
+        ["Time (h)", "Time of day", "Junction J1\nDemand (l/s)"],
         [
             ["0:00", "12am", "1.2"],
             ["1:00", "1am", "2.4"],
@@ -190,6 +209,6 @@ def test_values_table_clipboard_text_for_selected_rows():
 
     rows, cols = d._tableSelectedRowsAndColumns(d._table)
     assert d._valuesTableClipboardText(rows, cols) == (
-        "Time (h)\tTime of day\tJunction J1 - Demand\n0:00\t12am\t1.2\n2:00\t2am\t3.6"
+        "Time (h)\tTime of day\tJunction J1\nDemand (l/s)\n0:00\t12am\t1.2\n2:00\t2am\t3.6"
     )
 
