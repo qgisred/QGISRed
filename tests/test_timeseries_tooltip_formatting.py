@@ -266,6 +266,37 @@ class TestTooltipValueFormatting:
 
 
 class TestTooltipUnits:
+    def test_collect_hover_tooltip_uses_units_table_decimals(self):
+        r = TimeSeriesPlotRenderer()
+        w = _Widget(
+            [
+                {
+                    "x": [1.0],
+                    "y": [12.3456],
+                    "label": "Caudal",
+                    "series_key": "Link:pipes:Flow:P-1",
+                    "magnitude": "Caudal (L/s)",
+                    "color": "#00aa00",
+                    "visible": True,
+                }
+            ]
+        )
+        with patch("QGISRed.ui.analysis.timeseries_plot_renderer.QGISRedFieldUtils") as mock_fu:
+            mock_fu.return_value.getDecimals.return_value = 1
+            lines, _pts = r._collect_hover_tooltip_data(
+                w,
+                0,
+                1.0,
+                _Rect(),
+                x_state={"min_x": 0.0, "x_range": 10.0},
+                y_state_left={"min_y": 0.0, "max_y": 10.0},
+                y_state_right=None,
+            )
+        assert len(lines) == 1
+        _color, _muted, _legend_type, _prefix, value, _suffix = lines[0]
+        assert value == "12.3"
+        mock_fu.return_value.getDecimals.assert_called_once_with("Links", "Flow")
+
     def test_units_are_appended_with_space(self):
         r = TimeSeriesPlotRenderer()
         w = _Widget(

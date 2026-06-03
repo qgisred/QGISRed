@@ -1981,12 +1981,27 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self.plot.setStartClockSeconds(start_seconds)
 
     def _seriesDisplayValue(self, series_dict, value) -> object:
+        """Format a plotted value for the values table (Units decimals via QGISRedFieldUtils)."""
+        if value is None:
+            return None
+        renderer = getattr(getattr(self, "plot", None), "_renderer", None)
+        if renderer is not None:
+            return renderer._point_value_text(series_dict, value)
         labels = series_dict.get("y_categorical_labels")
         if labels:
             try:
                 return labels[int(round(float(value)))]
             except Exception:
                 return value
+        try:
+            from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
+
+            parts = str(series_dict.get("series_key") or "").split(":")
+            if len(parts) >= 3 and parts[2]:
+                dec = QGISRedFieldUtils().getDecimals(normalize_element(parts[0]), parts[2])
+                return f"{float(value):.{max(0, int(dec))}f}"
+        except Exception:
+            pass
         return value
 
     def _onExportCsvClicked(self) -> None:

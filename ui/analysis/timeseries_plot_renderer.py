@@ -1618,7 +1618,7 @@ class TimeSeriesPlotRenderer:
                 except Exception:
                     val_y_str = str(val_y)
             else:
-                val_y_str = self._format_value_full(val_y)
+                val_y_str = self._point_value_text(s, val_y)
 
             unit_suffix = ""
             try:

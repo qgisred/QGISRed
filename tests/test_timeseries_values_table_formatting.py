@@ -128,7 +128,10 @@ def test_values_table_clipboard_text_for_entire_table():
 
 def test_values_table_data_matches_table_layout():
     _patch_qt_for_import()
+    from unittest.mock import patch
+
     from QGISRed.ui.analysis.qgisred_timeseries_dock import QGISRedTimeSeriesDock
+    from QGISRed.ui.analysis.timeseries_plot_renderer import TimeSeriesPlotRenderer
 
     class _Plot:
         def _seriesIsDrawn(self, s):
@@ -154,11 +157,14 @@ def test_values_table_data_matches_table_layout():
     d = QGISRedTimeSeriesDock.__new__(QGISRedTimeSeriesDock)
     d.tr = lambda message: message
     d.plot = _Plot()
+    d.plot._renderer = TimeSeriesPlotRenderer()
     d.plot._axis_cfg_x = type("C", (), {"x_hour_format": "hm"})()
     d.plot._start_clock_seconds = 0
     d._plotHasCurves = lambda: True
 
-    result = d._valuesTableData()
+    with patch("QGISRed.ui.analysis.timeseries_plot_renderer.QGISRedFieldUtils") as mock_fu:
+        mock_fu.return_value.getDecimals.return_value = 2
+        result = d._valuesTableData()
     assert result is not None
     table_headers, csv_header_rows, rows, xs = result
     assert xs == [0.0, 1.0]
@@ -172,8 +178,27 @@ def test_values_table_data_matches_table_layout():
     assert csv_header_rows[1][0] == ""
     assert rows[0][0] == "0:00"
     assert rows[0][1] == "12am"
-    assert rows[0][2] == str(d._seriesDisplayValue(d.plot.series[0], 10.0))
-    assert rows[1][2] == str(d._seriesDisplayValue(d.plot.series[0], 20.0))
+    assert rows[0][2] == "10.00"
+    assert rows[1][2] == "20.00"
+
+
+def test_values_table_uses_get_decimals_from_series_key():
+    _patch_qt_for_import()
+    from unittest.mock import patch
+
+    from QGISRed.ui.analysis.qgisred_timeseries_dock import QGISRedTimeSeriesDock
+    from QGISRed.ui.analysis.timeseries_plot_renderer import TimeSeriesPlotRenderer
+
+    d = QGISRedTimeSeriesDock.__new__(QGISRedTimeSeriesDock)
+    d.plot = type("_Plot", (), {"_renderer": TimeSeriesPlotRenderer()})()
+    series = {"series_key": "Node:layer:Pressure:J1", "y_categorical_labels": None}
+
+    with patch("QGISRed.ui.analysis.timeseries_plot_renderer.QGISRedFieldUtils") as mock_fu:
+        mock_fu.return_value.getDecimals.return_value = 1
+        text = d._seriesDisplayValue(series, 12.3456)
+
+    mock_fu.return_value.getDecimals.assert_called_once_with("Nodes", "Pressure")
+    assert text == "12.3"
 
 
 def test_parse_results_time_text_to_hours_matches_results_dock():
