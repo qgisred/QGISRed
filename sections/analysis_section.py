@@ -744,6 +744,20 @@ class AnalysisSection:
         self.timeSeriesSelection = []
         self._timeSeriesSelectionKey = None
 
+    def _timeSeriesMapSelectionItems(self):
+        return [
+            it for it in (getattr(self, "timeSeriesSelection", None) or [])
+            if it.get("category") != "Global"
+        ]
+
+    def _timeSeriesResetMapSelection(self):
+        """Remove map-picked curves but keep system global variables."""
+        self.timeSeriesSelection = [
+            it for it in (getattr(self, "timeSeriesSelection", None) or [])
+            if it.get("category") == "Global"
+        ]
+        self._timeSeriesSelectionKey = None
+
     def _timeSeriesMagnitudeChoices(self, category, dock):
         if dock is None:
             return []
@@ -846,10 +860,10 @@ class AnalysisSection:
             return
 
         if not add_mode:
-            if len(getattr(self, "timeSeriesSelection", [])) > 1:
+            if len(self._timeSeriesMapSelectionItems()) > 1:
                 if not self._confirmTimeSeriesClearSelection():
                     return
-            self._timeSeriesResetSelection()
+            self._timeSeriesResetMapSelection()
             self._clearTimeSeriesMapSelection()
 
         try:

@@ -1102,6 +1102,8 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self._tableVisible = False
         self._resultsTimeFormatKey = None
         self._tableAutoSizedSignature = None
+        self._table_x_hours = []
+        self._table_row_sync_blocked = False
 
         self._initToolbar()
         self._updateMinimumWidthForDockTitle()
@@ -1114,6 +1116,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self.plot.seriesEmphasisChanged.connect(self.seriesEmphasisChanged)
         self.plot.viewChanged.connect(self._onPlotViewChanged)
         self.plot.zoomWindowModeChanged.connect(self._onPlotZoomWindowModeChanged)
+        self.plot.cursorTimeChanged.connect(self._onPlotCursorTimeChanged)
         self.lblTitle.hide()
         
         QGISRedUIUtils.applyDockStyle(self, "#0097A7", backgroundColor="white")
@@ -1362,6 +1365,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 pass
             table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
             table.customContextMenuRequested.connect(self._onTableContextMenu)
+            table.cellClicked.connect(self._onTableCellClicked)
             self._table = table
             table.hide()
 
@@ -1399,8 +1403,128 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                     self._fitTablePaneToContents()
             except Exception:
                 pass
+            self._syncTableRowToCursor()
         else:
             table.hide()
+
+    def _tableRowForHours(self, hours: float) -> int:
+        xs = getattr(self, "_table_x_hours", None) or []
+        if not xs:
+            return -1
+        try:
+            target = float(hours)
+        except Exception:
+            return -1
+        if not math.isfinite(target):
+            return -1
+        best_idx = 0
+        best_dist = abs(float(xs[0]) - target)
+        for i in range(1, len(xs)):
+            dist = abs(float(xs[i]) - target)
+            if dist < best_dist:
+                best_dist = dist
+                best_idx = i
+        return int(best_idx)
+
+    def _syncTableRowToCursor(self, hours=None) -> None:
+        """Highlight the table row that matches the plot cursor time."""
+        if getattr(self, "_table_row_sync_blocked", False):
+            return
+        table = getattr(self, "_table", None)
+        if table is None or not self._tableVisible:
+            return
+        try:
+            if int(table.rowCount()) <= 0:
+                return
+        except Exception:
+            return
+
+        if hours is None:
+            hours = getattr(self.plot, "_synced_cursor_time_hours", None)
+        if hours is None:
+            return
+
+        row = self._tableRowForHours(float(hours))
+        if row < 0:
+            return
+
+        self._table_row_sync_blocked = True
+        try:
+            table.blockSignals(True)
+            table.clearSelection()
+            table.selectRow(int(row))
+            table.setCurrentCell(int(row), 0)
+            item = table.item(int(row), 0)
+            if item is not None:
+                table.scrollToItem(
+                    item,
+                    QAbstractItemView.ScrollHint.PositionAtCenter,
+                )
+        except Exception:
+            pass
+        finally:
+            try:
+                table.blockSignals(False)
+            except Exception:
+                pass
+            self._table_row_sync_blocked = False
+
+    def _onPlotCursorTimeChanged(self, hours: float) -> None:
+        self._syncTableRowToCursor(float(hours))
+
+    def _onTableCellClicked(self, row: int, _col: int) -> None:
+        try:
+            row = int(row)
+        except Exception:
+            return
+        xs = getattr(self, "_table_x_hours", None) or []
+        if row < 0 or row >= len(xs):
+            return
+        try:
+            hours = float(xs[row])
+        except Exception:
+            return
+        if not math.isfinite(hours):
+            return
+        self.plot.setSyncedCursorTimeHours(hours)
+        sync_btn = getattr(self, "btnSyncCursor", None)
+        if sync_btn is not None and sync_btn.isChecked():
+            self._setResultsTimeFromPlotHours(hours)
+
+    def _setResultsTimeFromPlotHours(self, hours: float) -> None:
+        dock = self._resultsDock
+        if dock is None:
+            return
+        labels = getattr(dock, "TimeLabels", None) or []
+        if not labels:
+            return
+        best_idx = 0
+        best_dist = None
+        for i, lbl in enumerate(labels):
+            try:
+                elapsed_h = dock._elapsedTextToHours(str(lbl))
+            except Exception:
+                elapsed_h = None
+            if elapsed_h is None:
+                continue
+            dist = abs(float(elapsed_h) - float(hours))
+            if best_dist is None or dist < best_dist:
+                best_dist = dist
+                best_idx = int(i)
+        try:
+            dock.cbTimes.blockSignals(True)
+            dock.cbTimes.setCurrentIndex(best_idx)
+        except Exception:
+            pass
+        finally:
+            try:
+                dock.cbTimes.blockSignals(False)
+            except Exception:
+                pass
+        try:
+            dock.timeChanged()
+        except Exception:
+            pass
 
     def _onTableContextMenu(self, pos) -> None:
         table = getattr(self, "_table", None)
@@ -1722,11 +1846,13 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 prev_sizes = None
         table_data = self._valuesTableData()
         if table_data is None:
+            self._table_x_hours = []
             table.setRowCount(0)
             table.setColumnCount(0)
             return
 
         table_headers, _csv_header_rows, data_rows, xs = table_data
+        self._table_x_hours = list(xs)
         table.setColumnCount(len(table_headers))
         table.setHorizontalHeaderLabels(table_headers)
         self._applyValuesTableHeaderLayout(table)
@@ -1758,6 +1884,8 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 splitter.setSizes(prev_sizes)
             except Exception:
                 pass
+
+        self._syncTableRowToCursor()
 
     def _onPanToggled(self, checked: bool) -> None:
         if hasattr(self, "btnZoomWindow") and self.btnZoomWindow is not None and checked and self.btnZoomWindow.isChecked():
