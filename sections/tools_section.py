@@ -167,6 +167,41 @@ class ToolsSection:
         if points:
             result = "[POINT]" + ";".join(points)
         return result
+    
+    def _getDemandsBuilderLineLayers(self):
+        lines = []
+        demands_builder_id = QGISRedLayerUtils.groupIdentifiers.get("DemandsBuilder")
+        root = QgsProject.instance().layerTreeRoot()
+
+        for layer in QGISRedLayerUtils().getLayers():
+            if layer is None:
+                continue
+            if layer.type() != LAYER_TYPE_VECTOR:
+                continue
+            if layer.geometryType() != 1:
+                continue
+            if not layer.customProperty("qgisred_identifier"):
+                continue
+
+            layer_node = root.findLayer(layer.id())
+            if layer_node is None:
+                continue
+
+            parent = layer_node.parent()
+            while parent is not None:
+                if isinstance(parent, QgsLayerTreeGroup):
+                    if parent.customProperty("qgisred_identifier") == demands_builder_id:
+                        lines.append(layer.source())
+                        break
+                    if parent.name() in ("DemandsBuilder", "Demands Builder"):
+                        lines.append(layer.source())
+                        break
+                parent = parent.parent()
+
+        result = ""
+        if lines:
+            result = "[LINE]" + ";".join(lines)
+        return result
 
     def runDemandsBuilder(self):
         if not self.checkDependencies():
@@ -185,6 +220,7 @@ class ToolsSection:
 
         externalLayers = self._getExternalLoadedLayers()
         qgisredPointLayers = self._getDemandsBuilderPointLayers()
+        qgisredLineLayers = self._getDemandsBuilderLineLayers() 
 
         # Process
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
@@ -194,6 +230,7 @@ class ToolsSection:
             ids,
             externalLayers,
             qgisredPointLayers,
+            qgisredLineLayers
         )
         QApplication.restoreOverrideCursor()
 
