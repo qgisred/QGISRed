@@ -14,7 +14,9 @@ from QGISRed.ui.analysis.qgisred_results_binary import (
     getOut_TimeLinkProperties,
     getOut_TimesNodeProperty,
     getOut_TimesTotalWaterSupply,
+    getOut_TimesTotalWaterDemand,
     getOut_TimesLinkProperty,
+    total_water_demand_from_demands,
     total_water_supply_from_demands,
     getOut_StatNodesProperties,
     getOut_StatLinksProperties,
@@ -243,6 +245,19 @@ class TestTotalWaterSupply:
 
     def test_timeseries_simple_network(self, simple_network_out):
         ts = getOut_TimesTotalWaterSupply(simple_network_out)
+        assert len(ts) == 2
+        assert ts[0] == pytest.approx(10.0)
+        assert ts[1] == pytest.approx(12.0)
+
+
+class TestTotalWaterDemand:
+    def test_from_demands_reservoir_and_junction_outflow(self):
+        node_types = [1, 0, 0, 2]
+        demands = [8.0, -3.0, 5.0, 100.0]
+        assert total_water_demand_from_demands(demands, node_types) == pytest.approx(13.0)
+
+    def test_timeseries_simple_network(self, simple_network_out):
+        ts = getOut_TimesTotalWaterDemand(simple_network_out)
         assert len(ts) == 2
         assert ts[0] == pytest.approx(10.0)
         assert ts[1] == pytest.approx(12.0)

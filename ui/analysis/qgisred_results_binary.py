@@ -30,6 +30,20 @@ def total_water_supply_from_demands(demands, node_types):
             total_negative += dv
     return -total_negative
 
+
+def total_water_demand_from_demands(demands, node_types):
+    """Positive total demand from nodal demands (reservoir inflow + junction outflow)."""
+    total_positive = 0.0
+    for d, nt in zip(demands, node_types):
+        if nt == _NT_TANK:
+            continue
+        if nt not in (_NT_RESERVOIR, _NT_JUNCTION):
+            continue
+        dv = float(d)
+        if dv > 0.0:
+            total_positive += dv
+    return total_positive
+
 _SI_XHEAD      = 0  # Pump shut off (cannot deliver head)
 _SI_TEMPCLOSED = 1  # Temporarily closed
 _SI_CLOSED     = 2  # Closed
@@ -516,6 +530,40 @@ def getOut_TimesTotalWaterSupply(out_file_path):
                 demands.append(struct.unpack("f", f.read(4))[0])
             time_series.append(
                 total_water_supply_from_demands(demands, node_types)
+            )
+        return time_series
+
+
+def getOut_TimesTotalWaterDemand(out_file_path):
+    """Time series of total water demand in the network (system global).
+
+    At each report step: sum of positive demands at reservoirs (inflow) plus
+    positive demands at junctions (outflow/consumption). Tank nodes are excluded.
+    """
+    if not os.path.exists(out_file_path):
+        return []
+
+    with open(out_file_path, "rb") as f:
+        meta = getOut_Metadata(f)
+        if not meta:
+            return []
+
+        node_types = meta["node_types"]
+        n_nodes = meta["n_nodes"]
+        num_periods = meta["num_periods"]
+        period_size = meta["period_size"]
+        results_offset = meta["results_offset"]
+
+        time_series = []
+        for p in range(num_periods):
+            base = results_offset + p * period_size
+            demands = []
+            for ni in range(n_nodes):
+                pos = base + ni * 4
+                f.seek(pos)
+                demands.append(struct.unpack("f", f.read(4))[0])
+            time_series.append(
+                total_water_demand_from_demands(demands, node_types)
             )
         return time_series
 

@@ -413,12 +413,12 @@ class AnalysisSection:
             self.timeSeriesSelection = []
 
         from ..ui.analysis.timeseries_globals import (
-            TOTAL_WATER_SUPPLY_KEY,
+            GLOBAL_SYSTEM_VARIABLE_KEYS,
             get_global_timeseries,
             global_variable_display_label,
         )
 
-        if variable_key not in (TOTAL_WATER_SUPPLY_KEY,):
+        if variable_key not in GLOBAL_SYSTEM_VARIABLE_KEYS:
             return
 
         prop_internal = variable_key

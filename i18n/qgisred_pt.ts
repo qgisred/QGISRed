@@ -5443,9 +5443,14 @@ Left-click: Add a new item below the current selection</source>
 <context>
     <name>TimeSeriesGlobals</name>
     <message>
-        <location filename="../ui/analysis/timeseries_globals.py" line="18"/>
+        <location filename="../ui/analysis/timeseries_globals.py" line="24"/>
         <source>Total Water Supply</source>
         <translation>Caudal total produzido</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/timeseries_globals.py" line="25"/>
+        <source>Total Water Demand</source>
+        <translation>Caudal total demandado</translation>
     </message>
 </context>
 <context>
