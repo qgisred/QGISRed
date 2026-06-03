@@ -5380,6 +5380,36 @@ Left-click: Add a new item below the current selection</source>
         <translation>Valeur</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1367"/>
+        <source>Copy selection</source>
+        <translation>Copier la sélection</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1368"/>
+        <source>Copy entire table</source>
+        <translation>Copier tout le tableau</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1459"/>
+        <source>The values table could not be copied</source>
+        <translation>Impossible de copier le tableau des valeurs</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1461"/>
+        <source>Values table copied to clipboard</source>
+        <translation>Tableau des valeurs copié dans le presse-papiers</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1469"/>
+        <source>No table selection to copy</source>
+        <translation>Aucune sélection dans le tableau à copier</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1484"/>
+        <source>No table values to copy</source>
+        <translation>Aucune valeur dans le tableau à copier</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1776"/>
         <source>Single Period</source>
         <translation type="unfinished"></translation>

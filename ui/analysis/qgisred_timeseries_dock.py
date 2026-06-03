@@ -5,10 +5,12 @@ import os
 from typing import List
 from qgis.PyQt.QtWidgets import (
     QAbstractItemView,
+    QApplication,
     QDockWidget,
     QFileDialog,
     QHBoxLayout,
     QHeaderView,
+    QMenu,
     QRubberBand,
     QSplitter,
     QTableWidget,
@@ -1268,7 +1270,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             table.setObjectName("timeSeriesValuesTable")
             table.setAlternatingRowColors(True)
             table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-            table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+            table.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
             table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
             table.setSortingEnabled(False)
             table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
@@ -1286,6 +1288,8 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             except Exception:
                 pass
             table.itemSelectionChanged.connect(self._onTableSelectionChanged)
+            table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+            table.customContextMenuRequested.connect(self._onTableContextMenu)
             self._table = table
             table.hide()
 
@@ -1348,6 +1352,137 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             btn.setChecked(False)
             self._syncTableToCursor = False
             self._syncCursorToTable = False
+
+    def _onTableContextMenu(self, pos) -> None:
+        table = getattr(self, "_table", None)
+        if table is None:
+            return
+        try:
+            if int(table.rowCount()) <= 0 or int(table.columnCount()) <= 0:
+                return
+        except Exception:
+            return
+
+        menu = QMenu(self)
+        act_copy_selection = menu.addAction(self.tr("Copy selection"))
+        act_copy_all = menu.addAction(self.tr("Copy entire table"))
+        act_copy_selection.setEnabled(self._tableHasSelection(table))
+
+        try:
+            global_pos = table.viewport().mapToGlobal(pos)
+        except Exception:
+            global_pos = pos
+        chosen = menu.exec(global_pos)
+        if chosen is act_copy_selection:
+            self._copyTableSelectionToClipboard()
+        elif chosen is act_copy_all:
+            self._copyEntireTableToClipboard()
+
+    @staticmethod
+    def _table_text_for_cell(table, row: int, col: int) -> str:
+        try:
+            item = table.item(int(row), int(col))
+        except Exception:
+            item = None
+        if item is None:
+            return ""
+        try:
+            text = item.text()
+        except Exception:
+            text = ""
+        return str(text).replace("\t", " ").replace("\r", " ").replace("\n", " ")
+
+    @staticmethod
+    def _table_header_text(table, col: int) -> str:
+        try:
+            item = table.horizontalHeaderItem(int(col))
+        except Exception:
+            item = None
+        if item is None:
+            return ""
+        try:
+            text = item.text()
+        except Exception:
+            text = ""
+        return str(text).replace("\t", " ").replace("\r", " ").replace("\n", " ")
+
+    @staticmethod
+    def _tableHasSelection(table) -> bool:
+        try:
+            selection_model = table.selectionModel()
+            if selection_model is None:
+                return False
+            return bool(selection_model.hasSelection())
+        except Exception:
+            return False
+
+    def _tableSelectedRowsAndColumns(self, table):
+        try:
+            row_count = int(table.rowCount())
+            col_count = int(table.columnCount())
+        except Exception:
+            return [], []
+        if row_count <= 0 or col_count <= 0:
+            return [], []
+
+        indexes = []
+        try:
+            selection_model = table.selectionModel()
+            if selection_model is not None:
+                indexes = list(selection_model.selectedIndexes())
+        except Exception:
+            indexes = []
+        if not indexes:
+            return [], []
+
+        rows = sorted({int(idx.row()) for idx in indexes if 0 <= int(idx.row()) < row_count})
+        cols = sorted({int(idx.column()) for idx in indexes if 0 <= int(idx.column()) < col_count})
+        return rows, cols
+
+    def _valuesTableClipboardText(self, rows, cols) -> str:
+        table = getattr(self, "_table", None)
+        if table is None or not rows or not cols:
+            return ""
+
+        lines = ["\t".join(self._table_header_text(table, col) for col in cols)]
+        for row in rows:
+            lines.append("\t".join(self._table_text_for_cell(table, row, col) for col in cols))
+        return "\n".join(lines)
+
+    def _putValuesTableTextOnClipboard(self, text: str, empty_message: str) -> None:
+        if not text:
+            self._showMessage(empty_message, level=1)
+            return
+        try:
+            QApplication.clipboard().setText(text)
+        except Exception:
+            self._showMessage(self.tr("The values table could not be copied"), level=2)
+            return
+        self._showMessage(self.tr("Values table copied to clipboard"), level=3)
+
+    def _copyTableSelectionToClipboard(self) -> None:
+        table = getattr(self, "_table", None)
+        if table is None:
+            return
+        rows, cols = self._tableSelectedRowsAndColumns(table)
+        text = self._valuesTableClipboardText(rows, cols)
+        self._putValuesTableTextOnClipboard(text, self.tr("No table selection to copy"))
+
+    def _copyEntireTableToClipboard(self) -> None:
+        table = getattr(self, "_table", None)
+        if table is None:
+            return
+        try:
+            row_count = int(table.rowCount())
+            col_count = int(table.columnCount())
+        except Exception:
+            row_count = 0
+            col_count = 0
+        rows = list(range(row_count))
+        cols = list(range(col_count))
+        text = self._valuesTableClipboardText(rows, cols)
+        self._putValuesTableTextOnClipboard(text, self.tr("No table values to copy"))
+
 
     def _tableSeriesCountForLayout(self) -> int:
         table = getattr(self, "_table", None)
