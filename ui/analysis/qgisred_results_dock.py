@@ -880,6 +880,7 @@ class QGISRedResultsDock(
             )
             _, _, fmt, _ = self._resolveRestoreTime(restore["time"])
             self.civilMode, self.amPmFormat, self.continuousHoursMode = fmt
+        self.loadAppearanceSettings()
 
     def setProjectInfo(self, projectDir, networkName):
         """Set project/network/outPath without touching the UI or loading layers.
@@ -948,7 +949,7 @@ class QGISRedResultsDock(
             # ── Default path: no saved state ─────────────────────────────────────────
             self.applyStatisticFromOptions()
             self.openBaseResults(self._readTimeLabelsFromOut())
-        self._loadAppearanceSettings()
+        self.loadAppearanceSettings()
         self._startStaleCheckTimer()
         self.show()
         self.simulationFinished.emit()

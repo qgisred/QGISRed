@@ -92,7 +92,7 @@ class _ResultsAppearanceMixin:
     def _resetDecimalsForVariable(self, field_name, csv_element_type, layer_type="Node"):
         """Update the decimals spinbox to the stored value (or CSV default) for field_name."""
         try:
-            csv_dec = QGISRedFieldUtils.getDecimals(csv_element_type, field_name) if field_name else 2
+            csv_dec = QGISRedFieldUtils().getDecimals(csv_element_type, field_name) if field_name else 2
         except Exception:
             csv_dec = 2
         dec = self._varDecimals.get(field_name, csv_dec)
@@ -239,7 +239,7 @@ class _ResultsAppearanceMixin:
         except Exception:
             pass
 
-    def _loadAppearanceSettings(self):
+    def loadAppearanceSettings(self):
         path = self._appearanceFilePath()
         if os.path.isfile(path):
             try:
