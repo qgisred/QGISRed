@@ -38,6 +38,10 @@ def clear_all_timeseries(section) -> None:
         dock = getattr(section, "timeSeriesDock", None)
         if dock is not None:
             dock.updatePlotSeries([], "", "", "")
+            try:
+                dock.resetGlobalVarCombos()
+            except Exception:
+                pass
     except Exception:
         pass
 

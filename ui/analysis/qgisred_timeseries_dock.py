@@ -8,8 +8,10 @@ from qgis.PyQt.QtWidgets import (
     QApplication,
     QDockWidget,
     QFileDialog,
+    QComboBox,
     QHBoxLayout,
     QHeaderView,
+    QLabel,
     QMenu,
     QRubberBand,
     QSplitter,
@@ -33,6 +35,7 @@ from .timeseries_plot_layout import PlotLayoutCalculator
 from .timeseries_legend_interaction import LegendInteractionController
 from .timeseries_plot_renderer import TimeSeriesPlotRenderer
 from .timeseries_plot_style import DEFAULT_SERIES_COLOR, LEGEND_ICON_SIZE, LEGEND_ROW_GAP, PLOT_TOP_PAD, qfont
+from .timeseries_globals import global_system_variable_choices
 from .timeseries_time_utils import (
     civil_time_parts,
     simulation_start_clock_seconds,
@@ -1087,6 +1090,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
     seriesEmphasisChanged = pyqtSignal(dict)
     curveSettingsChanged = pyqtSignal(list)
     clearAllRequested = pyqtSignal()
+    globalSystemVariableChosen = pyqtSignal(str)
 
     def __init__(self, iface, parent=None):
         super(QGISRedTimeSeriesDock, self).__init__(parent or iface.mainWindow())
@@ -1114,6 +1118,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         
         QGISRedUIUtils.applyDockStyle(self, "#0097A7", backgroundColor="white")
         self.chartContainer.setStyleSheet("background-color: white;")
+        self._applyGlobalVarComboStyles()
         self._updateClearToolbarVisibility()
         self._updatePanAvailability()
 
@@ -1147,13 +1152,14 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
     def _initToolbar(self) -> None:
         try:
             container = QWidget(self)
+            container.setObjectName("timeSeriesChartToolbar")
             self._toolbarWidget = container
             hl = QHBoxLayout(container)
-            hl.setContentsMargins(4, 2, 4, 2)
+            hl.setContentsMargins(4, 4, 4, 4)
             hl.setSpacing(2)
-            container.setFixedHeight(28)
+            container.setMinimumHeight(34)
             container.setStyleSheet(
-                "QWidget {"
+                "QWidget#timeSeriesChartToolbar {"
                 "  background-color: #efefef;"
                 "  border: 1px solid #d2d2d2;"
                 "  border-radius: 4px;"
@@ -1229,6 +1235,25 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self.btnClearAll = _make_btn("btnClearAllTimeSeries", QIcon(":/images/iconTsClearAll.svg"), self.tr("Clear all curves"))
             self.btnClearAll.clicked.connect(self.clearAllRequested)
             hl.addWidget(self.btnClearAll, 0, Qt.AlignmentFlag.AlignLeft)
+
+            hl.addSpacing(8)
+            lbl_globals = QLabel(self.tr("System:"), container)
+            lbl_globals.setStyleSheet("QLabel { background: transparent; border: none; }")
+            hl.addWidget(lbl_globals, 0, Qt.AlignmentFlag.AlignVCenter)
+
+            self.cbGlobalSystemVar = QComboBox(container)
+            self.cbGlobalSystemVar.setObjectName("cbGlobalSystemVarTimeSeries")
+            self.cbGlobalSystemVar.setMinimumWidth(220)
+            self.cbGlobalSystemVar.setToolTip(
+                self.tr("Add a system-wide variable curve (no map selection needed)")
+            )
+            self.cbGlobalSystemVar.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+            self._populateGlobalSystemCombo()
+            self.cbGlobalSystemVar.activated.connect(self._onGlobalSystemVarActivated)
+            hl.addWidget(self.cbGlobalSystemVar, 0, Qt.AlignmentFlag.AlignVCenter)
+
+            self._applyGlobalVarComboStyles()
+
             hl.addStretch(1)
 
             try:
@@ -1237,6 +1262,60 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 self.verticalLayout.addWidget(container)
         except Exception:
             return
+
+    def _populateGlobalSystemCombo(self) -> None:
+        combo = getattr(self, "cbGlobalSystemVar", None)
+        if combo is None:
+            return
+        combo.blockSignals(True)
+        combo.clear()
+        combo.addItem(self.tr("— System variable —"))
+        combo.setItemData(0, "", Qt.ItemDataRole.UserRole)
+        for key, label in global_system_variable_choices():
+            idx = combo.count()
+            combo.addItem(label)
+            combo.setItemData(idx, key, Qt.ItemDataRole.UserRole)
+        combo.setCurrentIndex(0)
+        combo.blockSignals(False)
+
+    def _applyGlobalVarComboStyles(self) -> None:
+        combo = getattr(self, "cbGlobalSystemVar", None)
+        if combo is None:
+            return
+        try:
+            QGISRedUIUtils.applyComboStyle(combo)
+            combo.setSizeAdjustPolicy(
+                QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon
+            )
+            combo.setMinimumContentsLength(22)
+        except Exception:
+            pass
+
+    def resetGlobalVarCombos(self) -> None:
+        combo = getattr(self, "cbGlobalSystemVar", None)
+        if combo is None or int(combo.count()) <= 0:
+            return
+        combo.blockSignals(True)
+        combo.setCurrentIndex(0)
+        combo.blockSignals(False)
+
+    def _onGlobalSystemVarActivated(self, index: int) -> None:
+        self._emitGlobalVarChoice(
+            getattr(self, "cbGlobalSystemVar", None),
+            int(index),
+            self.globalSystemVariableChosen,
+        )
+
+    def _emitGlobalVarChoice(self, combo, index: int, signal) -> None:
+        if combo is None or int(index) <= 0:
+            return
+        key = str(combo.itemData(int(index), Qt.ItemDataRole.UserRole) or "").strip()
+        if not key:
+            return
+        try:
+            signal.emit(key)
+        except Exception:
+            pass
 
     def _initPlotAndTableLayout(self) -> None:
         try:
@@ -1267,7 +1346,16 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 table.horizontalHeader().setFont(hdr_font)
             except Exception:
                 pass
-            table.horizontalHeader().setStyleSheet("QHeaderView::section { font-weight: 700; }")
+            _hdr_section_style = (
+                "QHeaderView::section {"
+                "  font-weight: 700;"
+                "  background-color: #f5f5f5;"
+                "  padding: 2px 6px;"
+                "  border: 1px solid #c8c8c8;"
+                "}"
+            )
+            table.horizontalHeader().setStyleSheet(_hdr_section_style)
+            table.setStyleSheet("QTableWidget { gridline-color: #c8c8c8; }")
             try:
                 table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
             except Exception:
@@ -1538,6 +1626,14 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         return f"{int(d)}d {tod}" if int(d) > 0 else tod
 
     def _seriesTableColumnHeaderParts(self, series_dict) -> tuple:
+        parts = str(series_dict.get("series_key") or "").split(":")
+        if parts and parts[0] == "Global":
+            mag = (series_dict.get("magnitude") or "").strip()
+            if mag:
+                return mag, ""
+            lab = (series_dict.get("label") or "").strip()
+            return (lab or self.tr("Value")), ""
+
         try:
             element_id, element_type = self._seriesElementInfo(series_dict)
         except Exception:
@@ -1551,6 +1647,8 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             variable_line = ""
         elif variable_line and element_line == variable_line:
             variable_line = ""
+        elif variable_line and element_line and variable_line.startswith(element_line):
+            return variable_line, ""
         return element_line, variable_line
 
     def _seriesTableColumnHeaderLabel(self, series_dict) -> str:
@@ -2157,6 +2255,8 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
     def updatePlotSeries(self, series, title, x_label, y_label):
         self._refreshStartClockSeconds()
         self.plot.setSeries(series, title, x_label, y_label)
+        if not series:
+            self.resetGlobalVarCombos()
         if hasattr(self, "btnSyncCursor") and self.btnSyncCursor is not None and self.btnSyncCursor.isChecked():
             self._syncCurrentResultsTime()
         self._rebuildValuesTable()

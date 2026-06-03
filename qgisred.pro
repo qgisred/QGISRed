@@ -51,6 +51,7 @@ SOURCES = qgisred.py \
           ui/analysis/qgisred_timeseries_axis_dialog.py \
           ui/analysis/timeseries_axis_settings.py \
           ui/analysis/timeseries_actions.py \
+          ui/analysis/timeseries_globals.py \
           ui/analysis/timeseries_legend_interaction.py \
           ui/analysis/timeseries_plot_layout.py \
           ui/analysis/timeseries_plot_renderer.py \

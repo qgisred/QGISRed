@@ -234,6 +234,22 @@ def test_parse_results_time_text_to_hours_matches_results_dock():
     assert d._parseResultsTimeTextToHours("Single Period") == 0.0
 
 
+def test_global_series_table_header_single_line_with_units():
+    _patch_qt_for_import()
+    from QGISRed.ui.analysis.qgisred_timeseries_dock import QGISRedTimeSeriesDock
+
+    d = QGISRedTimeSeriesDock.__new__(QGISRedTimeSeriesDock)
+    d.tr = lambda message: message
+    series = {
+        "label": "Total Water Supply",
+        "magnitude": "Total Water Supply (LPS)",
+        "series_key": "Global:global:TotalWaterSupply:TotalWaterSupply",
+        "legend_type": "global",
+    }
+    assert d._seriesTableColumnHeaderParts(series) == ("Total Water Supply (LPS)", "")
+    assert d._seriesTableColumnHeaderLabel(series) == "Total Water Supply (LPS)"
+
+
 def test_series_table_column_header_two_lines():
     _patch_qt_for_import()
     from QGISRed.ui.analysis.qgisred_timeseries_dock import QGISRedTimeSeriesDock

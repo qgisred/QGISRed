@@ -7,6 +7,7 @@ from .qgisred_results_binary import (
     _VALVE_TYPES,
     _resolve_link_status,
     getOut_Metadata,
+    total_water_supply_from_demands,
 )
 
 _HYD_MAGIC = 516114521
@@ -519,3 +520,19 @@ def getHyd_StatLinksProperties(hyd_file_path, out_file_path, stat):
 
         result[link_id] = link_stats
     return result
+
+
+def getHyd_TimesTotalWaterSupply(hyd_file_path, out_file_path):
+    """Time series of total water supply from hydraulic (.hyd) calculation steps."""
+    meta = getHyd_Metadata(hyd_file_path, out_file_path)
+    if not meta:
+        return []
+
+    flow_factor = _flow_factor_from_units(meta.get("flow_units"))
+    node_types = meta["node_types"]
+    time_series = []
+    for p in range(meta["hyd_num_periods"]):
+        _, demands, _, _, _, _ = _read_hyd_period(hyd_file_path, meta, p)
+        scaled = [float(d) * flow_factor for d in demands]
+        time_series.append(total_water_supply_from_demands(scaled, node_types))
+    return time_series

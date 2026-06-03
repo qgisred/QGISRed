@@ -123,6 +123,16 @@
         <source>Clear selection</source>
         <translation>Limpiar selección</translation>
     </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="450"/>
+        <source>This system variable is already on the chart.</source>
+        <translation>Esta variable del sistema ya está en la gráfica.</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="482"/>
+        <source>Could not read the selected system variable.</source>
+        <translation>No se pudo leer la variable del sistema seleccionada.</translation>
+    </message>
 </context>
 <context>
     <name>DebugValidationSection</name>
@@ -5543,6 +5553,29 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1776"/>
         <source>Single Period</source>
         <translation>Periodo Único</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1240"/>
+        <source>System:</source>
+        <translation>Sistema:</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1272"/>
+        <source>— System variable —</source>
+        <translation>— Variable del sistema —</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1248"/>
+        <source>Add a system-wide variable curve (no map selection needed)</source>
+        <translation>Añadir una curva de variable del sistema (sin selección en el mapa)</translation>
+    </message>
+</context>
+<context>
+    <name>TimeSeriesGlobals</name>
+    <message>
+        <location filename="../ui/analysis/timeseries_globals.py" line="18"/>
+        <source>Total Water Supply</source>
+        <translation>Caudal total producido</translation>
     </message>
 </context>
 <context>

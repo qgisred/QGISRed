@@ -365,6 +365,7 @@ class AnalysisSection:
                 self.timeSeriesDock.curveSettingsChanged.connect(self._onTimeSeriesCurveSettingsChanged)
                 self.timeSeriesDock.clearAllRequested.connect(self._onTimeSeriesClearAllRequested)
                 self.iface.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.timeSeriesDock)
+            self._ensureTimeSeriesGlobalSignals()
             self._ensureTimeSeriesMapToolSignal()
             try:
                 self.timeSeriesDock.connectResultsDock(self.ResultDockwidget)
@@ -389,6 +390,100 @@ class AnalysisSection:
             pass_modifiers=True
         )
         self.iface.mapCanvas().setMapTool(self.myMapTools["TimeSeries"])
+
+    def _ensureTimeSeriesGlobalSignals(self):
+        if getattr(self, "_timeSeriesGlobalSignalsConnected", False):
+            return
+        dock = getattr(self, "timeSeriesDock", None)
+        if dock is None:
+            return
+        try:
+            dock.globalSystemVariableChosen.connect(self._onTimeSeriesGlobalSystemVariable)
+            self._timeSeriesGlobalSignalsConnected = True
+        except Exception:
+            self._timeSeriesGlobalSignalsConnected = False
+
+    def _onTimeSeriesGlobalSystemVariable(self, variable_key: str):
+        self._addTimeSeriesGlobalVariable(str(variable_key or "").strip())
+
+    def _addTimeSeriesGlobalVariable(self, variable_key: str):
+        if not variable_key or not getattr(self, "timeSeriesDock", None):
+            return
+        if not hasattr(self, "timeSeriesSelection"):
+            self.timeSeriesSelection = []
+
+        from ..ui.analysis.timeseries_globals import (
+            TOTAL_WATER_SUPPLY_KEY,
+            get_global_timeseries,
+            global_variable_display_label,
+        )
+
+        if variable_key not in (TOTAL_WATER_SUPPLY_KEY,):
+            return
+
+        prop_internal = variable_key
+        prop_display = global_variable_display_label(variable_key)
+        unit_abbr = QGISRedFieldUtils().getUnitAbbreviation(normalize_element("Node"), "Demand")
+        y_label_with_unit = f"{prop_display} ({unit_abbr})" if unit_abbr else prop_display
+
+        palette = [
+            QColor(0, 120, 215), QColor(220, 57, 18), QColor(16, 150, 24),
+            QColor(153, 0, 153), QColor(0, 153, 198), QColor(255, 153, 0),
+            QColor(60, 180, 75), QColor(145, 30, 180)
+        ]
+        element_id = variable_key
+        layer_identifier = "global"
+        category = "Global"
+
+        existing_idx = None
+        for i, it in enumerate(self.timeSeriesSelection):
+            if (
+                it.get("category") == category
+                and it.get("element_id") == element_id
+                and it.get("prop_internal") == prop_internal
+            ):
+                existing_idx = i
+                break
+
+        if existing_idx is not None:
+            self.pushMessage(
+                self.tr("This system variable is already on the chart."),
+                level=0,
+                duration=3,
+            )
+            return
+
+        try:
+            existing_color = palette[len(self.timeSeriesSelection) % len(palette)]
+        except Exception:
+            existing_color = QColor(0, 120, 215)
+
+        self.timeSeriesSelection.append({
+            "layer": None,
+            "layer_identifier": layer_identifier,
+            "feature": None,
+            "feature_id": None,
+            "category": category,
+            "element_id": element_id,
+            "color": existing_color,
+            "prop_internal": prop_internal,
+            "prop_display": prop_display,
+            "y_label_with_unit": y_label_with_unit,
+            "is_stepped": False,
+            "y_categorical_labels": None,
+        })
+
+        source = self._getTimeSeriesSource()
+        if not source:
+            self.pushMessage(self.tr("Results file not found. Please run the model."), level=1)
+            self.timeSeriesSelection.pop()
+            return
+        if not get_global_timeseries(source, variable_key):
+            self.pushMessage(self.tr("Could not read the selected system variable."), level=1)
+            self.timeSeriesSelection.pop()
+            return
+
+        self._renderTimeSeriesSelection()
 
     def _ensureTimeSeriesMapToolSignal(self):
         if getattr(self, "_timeSeriesMapToolSignalConnected", False):
@@ -928,9 +1023,15 @@ class AnalysisSection:
             is_stepped = bool(it.get("is_stepped", False))
             y_categorical_labels = it.get("y_categorical_labels")
             layer_identifier = it.get("layer_identifier") or ""
-            if not element_id:
-                continue
-            y_data = self._getSeriesValuesForSource(source, category, element_id, prop_internal)
+            if category == "Global":
+                from ..ui.analysis.timeseries_globals import get_global_timeseries
+
+                y_data = get_global_timeseries(source, prop_internal)
+                element_id = it.get("element_id") or prop_internal
+            else:
+                if not element_id:
+                    continue
+                y_data = self._getSeriesValuesForSource(source, category, element_id, prop_internal)
             if not y_data:
                 continue
 
@@ -950,7 +1051,10 @@ class AnalysisSection:
 
             label = f"{element_id}"
             legend_type = category
-            if layer:
+            if category == "Global":
+                label = it.get("legend_label") or (it.get("prop_display") or prop_display)
+                legend_type = "global"
+            elif layer:
                 identifier = layer.customProperty("qgisred_identifier")
                 type_mapping = {
                     "qgisred_junctions": self.tr("Junction"),
