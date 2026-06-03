@@ -176,6 +176,39 @@ def test_values_table_data_matches_table_layout():
     assert rows[1][2] == str(d._seriesDisplayValue(d.plot.series[0], 20.0))
 
 
+def test_parse_results_time_text_to_hours_matches_results_dock():
+    _patch_qt_for_import()
+    from QGISRed.ui.analysis.qgisred_timeseries_dock import QGISRedTimeSeriesDock
+
+    class _ResultsDock:
+        lbl_singlePeriod = "Single Period"
+
+        @staticmethod
+        def _elapsedTextToHours(text):
+            text = (text or "").strip()
+            if not text or text == "Single Period":
+                return 0.0
+            days = 0
+            hms_text = text
+            if "d" in text:
+                parts = text.split()
+                days = int(parts[0].replace("d", ""))
+                hms_text = parts[1]
+            hms = hms_text.split(":")
+            if len(hms) == 2:
+                return (days * 86400 + int(hms[0]) * 3600 + int(hms[1]) * 60) / 3600.0
+            return (days * 86400 + int(hms[0]) * 3600 + int(hms[1]) * 60 + int(hms[2])) / 3600.0
+
+    d = QGISRedTimeSeriesDock.__new__(QGISRedTimeSeriesDock)
+    d.tr = lambda message: message
+    d._resultsDock = _ResultsDock()
+
+    assert d._parseResultsTimeTextToHours("0:00:00") == 0.0
+    assert d._parseResultsTimeTextToHours("10d 0:00") == 240.0
+    assert d._parseResultsTimeTextToHours("1:30") == 1.5
+    assert d._parseResultsTimeTextToHours("Single Period") == 0.0
+
+
 def test_series_table_column_header_two_lines():
     _patch_qt_for_import()
     from QGISRed.ui.analysis.qgisred_timeseries_dock import QGISRedTimeSeriesDock

@@ -1096,12 +1096,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self._resultsDock = None
         self._lastResultsTimeText = ""
         self._tableVisible = False
-        self._syncTableToCursor = False
-        self._syncCursorToTable = False
-        self._tableSeconds = []
-        self._tableSecondsToRow = {}
-        self._tableUpdatingSelection = False
-        self._plotUpdatingCursor = False
+        self._resultsTimeFormatKey = None
         self._tableAutoSizedSignature = None
 
         self._initToolbar()
@@ -1115,8 +1110,6 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self.plot.seriesEmphasisChanged.connect(self.seriesEmphasisChanged)
         self.plot.viewChanged.connect(self._onPlotViewChanged)
         self.plot.zoomWindowModeChanged.connect(self._onPlotZoomWindowModeChanged)
-        self.plot.cursorTimeChanged.connect(self._onPlotCursorTimeChanged)
-
         self.lblTitle.hide()
         
         QGISRedUIUtils.applyDockStyle(self, "#0097A7", backgroundColor="white")
@@ -1225,11 +1218,6 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self.btnToggleTable.toggled.connect(self._onToggleTableToggled)
             hl.addWidget(self.btnToggleTable, 0, Qt.AlignmentFlag.AlignLeft)
 
-            self.btnSyncTable = _make_btn("btnSyncTableTimeSeries", QIcon(":/images/iconTsSyncTable.svg"), self.tr("Sync cursor with selected table row"), checkable=True)
-            self.btnSyncTable.toggled.connect(self._onSyncTableToggled)
-            self.btnSyncTable.setEnabled(False)
-            hl.addWidget(self.btnSyncTable, 0, Qt.AlignmentFlag.AlignLeft)
-
             self.btnExportImage = _make_btn("btnExportImageTimeSeries", QIcon(":/images/iconTsExportImage.svg"), self.tr("Export chart as image"))
             self.btnExportImage.clicked.connect(self._onExportImageClicked)
             hl.addWidget(self.btnExportImage, 0, Qt.AlignmentFlag.AlignLeft)
@@ -1284,7 +1272,6 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
             except Exception:
                 pass
-            table.itemSelectionChanged.connect(self._onTableSelectionChanged)
             table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
             table.customContextMenuRequested.connect(self._onTableContextMenu)
             self._table = table
@@ -1326,24 +1313,6 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 pass
         else:
             table.hide()
-        self._updateTableSyncAvailability()
-
-    def _onSyncTableToggled(self, checked: bool) -> None:
-        self._syncTableToCursor = bool(checked)
-        self._syncCursorToTable = bool(checked)
-        if self._syncTableToCursor:
-            self._onTableSelectionChanged()
-
-    def _updateTableSyncAvailability(self) -> None:
-        btn = getattr(self, "btnSyncTable", None)
-        if btn is None:
-            return
-        can = bool(self._tableVisible and self._plotHasCurves() and getattr(self, "_table", None) is not None and bool(self._tableSeconds))
-        btn.setEnabled(can)
-        if not can and btn.isChecked():
-            btn.setChecked(False)
-            self._syncTableToCursor = False
-            self._syncCursorToTable = False
 
     def _onTableContextMenu(self, pos) -> None:
         table = getattr(self, "_table", None)
@@ -1653,14 +1622,10 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 prev_sizes = list(splitter.sizes())
             except Exception:
                 prev_sizes = None
-        self._tableSeconds = []
-        self._tableSecondsToRow = {}
-
         table_data = self._valuesTableData()
         if table_data is None:
             table.setRowCount(0)
             table.setColumnCount(0)
-            self._updateTableSyncAvailability()
             return
 
         table_headers, _csv_header_rows, data_rows, xs = table_data
@@ -1671,16 +1636,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         table.setRowCount(len(data_rows))
 
         align = int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
-        for row, (xh, row_cells) in enumerate(zip(xs, data_rows)):
-            try:
-                sec = int(round(float(xh) * 3600.0))
-            except Exception:
-                sec = None
-            if sec is not None:
-                self._tableSeconds.append(sec)
-                if sec not in self._tableSecondsToRow:
-                    self._tableSecondsToRow[sec] = row
-
+        for row, (_xh, row_cells) in enumerate(zip(xs, data_rows)):
             for col, cell_txt in enumerate(row_cells):
                 item = QTableWidgetItem(cell_txt)
                 item.setTextAlignment(align)
@@ -1704,72 +1660,6 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 splitter.setSizes(prev_sizes)
             except Exception:
                 pass
-        self._updateTableSyncAvailability()
-
-    def _onTableSelectionChanged(self) -> None:
-        if not self._syncTableToCursor:
-            return
-        if self._tableUpdatingSelection or self._plotUpdatingCursor:
-            return
-        table = getattr(self, "_table", None)
-        if table is None:
-            return
-        rows = table.selectionModel().selectedRows() if table.selectionModel() is not None else []
-        if not rows:
-            return
-        try:
-            row = int(rows[0].row())
-        except Exception:
-            return
-        if row < 0 or row >= len(self._tableSeconds):
-            try:
-                base = None
-                for s in self.plot.series or []:
-                    if self.plot._seriesIsDrawn(s):
-                        base = s
-                        break
-                if base is None:
-                    return
-                xs = base.get("x", []) or []
-                if not (0 <= row < len(xs)):
-                    return
-                hours = float(xs[row])
-            except Exception:
-                return
-        else:
-            try:
-                hours = float(self._tableSeconds[row]) / 3600.0
-            except Exception:
-                return
-        self._plotUpdatingCursor = True
-        try:
-            self.plot.setSyncedCursorTimeHours(hours)
-        finally:
-            self._plotUpdatingCursor = False
-
-    def _onPlotCursorTimeChanged(self, hours: float) -> None:
-        if not (self._tableVisible and self._syncCursorToTable):
-            return
-        if self._tableUpdatingSelection or self._plotUpdatingCursor:
-            return
-        table = getattr(self, "_table", None)
-        if table is None:
-            return
-        try:
-            sec = int(round(float(hours) * 3600.0))
-        except Exception:
-            return
-        row = self._tableSecondsToRow.get(sec)
-        if row is None:
-            return
-        self._tableUpdatingSelection = True
-        try:
-            table.selectRow(int(row))
-            table.scrollToItem(table.item(int(row), 0), QAbstractItemView.ScrollHint.PositionAtCenter)
-        except Exception:
-            pass
-        finally:
-            self._tableUpdatingSelection = False
 
     def _onPanToggled(self, checked: bool) -> None:
         if hasattr(self, "btnZoomWindow") and self.btnZoomWindow is not None and checked and self.btnZoomWindow.isChecked():
@@ -1839,6 +1729,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
 
     def connectResultsDock(self, results_dock) -> None:
         if self._resultsDock is results_dock:
+            self._resultsTimeFormatKey = None
             self._syncCurrentResultsTime()
             self._syncFormatFromResultsDock()
             self._updateClearToolbarVisibility()
@@ -1852,6 +1743,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 pass
 
         self._resultsDock = results_dock
+        self._resultsTimeFormatKey = None
         if self._resultsDock is not None:
             try:
                 self._resultsDock.timeTextChanged.connect(self._onResultsTimeTextChanged)
@@ -1870,6 +1762,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 pass
         self._resultsDock = None
         self._lastResultsTimeText = ""
+        self._resultsTimeFormatKey = None
         self.plot.clearSyncedCursor()
         self.plot.setStartClockSeconds(0)
         if hasattr(self, "btnSyncCursor") and self.btnSyncCursor is not None and self.btnSyncCursor.isChecked():
@@ -1878,17 +1771,21 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
 
     def _onResultsTimeTextChanged(self, time_text: str) -> None:
         self._lastResultsTimeText = time_text or ""
+        self._syncFormatFromResultsDock()
         if hasattr(self, "btnSyncCursor") and self.btnSyncCursor is not None and self.btnSyncCursor.isChecked():
             self._applySyncedTimeText(self._lastResultsTimeText)
-        self._syncFormatFromResultsDock()
 
     def _syncFormatFromResultsDock(self) -> None:
         dock = self._resultsDock
         if dock is None:
             return
-        civil = getattr(dock, "civilMode", False)
-        am_pm = getattr(dock, "amPmFormat", False)
-        continuous = getattr(dock, "continuousHoursMode", False)
+        civil = bool(getattr(dock, "civilMode", False))
+        am_pm = bool(getattr(dock, "amPmFormat", False))
+        continuous = bool(getattr(dock, "continuousHoursMode", False))
+        key = (civil, am_pm, continuous)
+        if key == self._resultsTimeFormatKey:
+            return
+        self._resultsTimeFormatKey = key
         if civil:
             self.plot._axis_cfg_x.x_hour_format = "hm_ampm" if am_pm else "hm"
             self.plot._axis_cfg_x.x_day_format = "split_days"
@@ -1898,16 +1795,27 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self.plot.update()
         self._rebuildValuesTable()
 
+    def _currentResultsElapsedText(self) -> str:
+        text = (self._lastResultsTimeText or "").strip()
+        if text:
+            return text
+        dock = self._resultsDock
+        if dock is None:
+            return ""
+        try:
+            idx = int(dock.cbTimes.currentIndex())
+            labels = getattr(dock, "TimeLabels", None) or []
+            if 0 <= idx < len(labels):
+                return str(labels[idx]).strip()
+        except Exception:
+            pass
+        return ""
+
     def _syncCurrentResultsTime(self) -> None:
-        time_text = self._lastResultsTimeText
-        if not time_text and self._resultsDock is not None:
-            try:
-                time_text = self._resultsDock.lbTime.text()
-            except Exception:
-                time_text = ""
-        self._lastResultsTimeText = time_text or ""
+        time_text = self._currentResultsElapsedText()
+        self._lastResultsTimeText = time_text
         if hasattr(self, "btnSyncCursor") and self.btnSyncCursor is not None and self.btnSyncCursor.isChecked():
-            self._applySyncedTimeText(self._lastResultsTimeText)
+            self._applySyncedTimeText(time_text)
         else:
             self.plot.clearSyncedCursor()
 
@@ -1922,10 +1830,17 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         text = (time_text or "").strip()
         if not text:
             return None
-        if self._resultsDock is not None:
+        dock = self._resultsDock
+        if dock is not None:
             try:
-                if text == self._resultsDock.lbl_singlePeriod:
+                if text == dock.lbl_singlePeriod:
                     return 0.0
+            except Exception:
+                pass
+            try:
+                hours = dock._elapsedTextToHours(text)
+                if hours is not None:
+                    return float(hours)
             except Exception:
                 pass
         if text == self.tr("Single Period"):
@@ -1941,9 +1856,12 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 days = int(parts[0].replace("d", ""))
                 hms_text = parts[1]
             hms = hms_text.split(":")
-            if len(hms) != 3:
+            if len(hms) == 2:
+                total_seconds = days * 86400 + int(hms[0]) * 3600 + int(hms[1]) * 60
+            elif len(hms) == 3:
+                total_seconds = days * 86400 + int(hms[0]) * 3600 + int(hms[1]) * 60 + int(hms[2])
+            else:
                 return None
-            total_seconds = days * 86400 + int(hms[0]) * 3600 + int(hms[1]) * 60 + int(hms[2])
             return total_seconds / 3600.0
         except Exception:
             return None
@@ -2203,7 +2121,6 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             sync_btn.setEnabled(bool(has_curves and self._resultsDock is not None))
             if not sync_btn.isEnabled() and sync_btn.isChecked():
                 sync_btn.setChecked(False)
-        self._updateTableSyncAvailability()
 
     def _onPlotViewChanged(self) -> None:
         self._updateClearToolbarVisibility()
