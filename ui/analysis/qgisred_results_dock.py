@@ -566,15 +566,17 @@ class QGISRedResultsDock(
         for name, type_str, *extra in fields_def:
             if name not in existing_fields:
                 qgs_type = type_map.get(type_str, QVariantString)
-                length = extra[0] if extra else 0
                 field = QgsField(name, qgs_type)
-                if length:
-                    field.setLength(length)
                 if type_str == "Double":
+                    field.setLength(20)  # DBF width 20 prevents truncation of large values
                     csv_name = _STAT_VAR_ALIASES.get(name, name)
                     user_dec = getattr(self, '_varDecimals', {}).get(csv_name, None)
                     dec = user_dec if user_dec is not None else field_utils.getDecimals(element, csv_name)
                     field.setPrecision(dec)
+                else:
+                    length = extra[0] if extra else 0
+                    if length:
+                        field.setLength(length)
                 new_fields.append(field)
         
         if new_fields:
