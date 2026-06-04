@@ -779,6 +779,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         if not layer:
             return
         qrIdent = self.cbElementType.currentData(Qt.ItemDataRole.UserRole) or ""
+        fieldUtils = QGISRedFieldUtils()
         self.isResultsMode = self.isResultsLayer(layer)
         self.cbProperty.clear()
         self.cbStatisticsFor.clear()
