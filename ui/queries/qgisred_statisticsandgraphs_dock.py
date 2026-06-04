@@ -1419,15 +1419,21 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         totalMax = None
 
         for rowIndex, binData in enumerate(bins):
+            avgText = self.formatNumber(binData["avg"]) if binData["count"] else ""
             self.setTableItem(rowIndex, 0, binData.get("label", ""))
             self.setTableItem(rowIndex, 1, str(binData["count"]))
-            self.setTableItem(rowIndex, 2, self.formatNumber(binData["avg"]) if binData["count"] else "")
-            self.setTableItem(rowIndex, 3, self.formatNumber(binData["min"]) if binData["min"] is not None else "")
-            self.setTableItem(rowIndex, 4, self.formatNumber(binData["max"]) if binData["max"] is not None else "")
+            minText = self.formatNumber(binData["min"]) if binData["min"] is not None else ""
+            maxText = self.formatNumber(binData["max"]) if binData["max"] is not None else ""
             if useSum:
-                self.setTableItem(rowIndex, 5, self.formatNumber(binData["sum"]) if binData["count"] else "")
+                self.setTableItem(rowIndex, 2, self.formatNumber(binData["sum"]) if binData["count"] else "")
+                self.setTableItem(rowIndex, 3, avgText)
+                self.setTableItem(rowIndex, 4, minText)
+                self.setTableItem(rowIndex, 5, maxText)
             else:
-                self.setTableItem(rowIndex, 5, self.formatNumber(binData["stddev"]) if binData["count"] > 1 else "")
+                self.setTableItem(rowIndex, 2, avgText)
+                self.setTableItem(rowIndex, 3, minText)
+                self.setTableItem(rowIndex, 4, maxText)
+                self.setTableItem(rowIndex, 5, self.formatLikeAvg(binData["stddev"], avgText) if binData["count"] > 1 else "")
             totalCount += binData["count"]
             totalSum += binData["sum"]
             totalSumOfSquares += binData["sumOfSquares"]
