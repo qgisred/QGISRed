@@ -8,6 +8,7 @@ from datetime import datetime
 from qgis.PyQt.QtCore import Qt, QTimer
 from qgis.PyQt.QtGui import QBrush, QColor, QIcon
 from qgis.PyQt.QtWidgets import (
+    QAbstractItemView,
     QDockWidget,
     QFileDialog,
     QHeaderView,
@@ -163,6 +164,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             pass
 
     def setupHistogram(self):
+        self.tbExcel.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.histogram = StatisticsHistogramWidget(self.graphWidget)
         self.histogram.setToolTip(self.tr("Mouse wheel: zoom · Drag: pan · Double-click: reset view"))
         layout = QVBoxLayout(self.graphWidget)
