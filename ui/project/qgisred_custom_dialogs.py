@@ -82,7 +82,7 @@ class QGISRedSaveStrategyDialog(QDialog):
 
     def setupLayout(self):
         layout = QVBoxLayout(self)
-        layout.addWidget(QLabel(self.tr("Choose which parts of the current legend to persist:")))
+        layout.addWidget(QLabel(self.tr("Which strategy of the current legend to apply?")))
         layout.addWidget(self.ckIntervals)
         layout.addWidget(self.ckSizes)
         layout.addWidget(self.ckColors)
