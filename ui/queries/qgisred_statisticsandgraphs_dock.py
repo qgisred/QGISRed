@@ -1087,14 +1087,14 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         propertyUnit = self.fieldUtils.getUnitAbbreviation(normalize_element(elementIdentifier), propertyField) or ""
         classifyUnit = self.fieldUtils.getUnitAbbreviation(normalize_element(elementIdentifier), classifyField) or ""
 
-        title = "{} ({} {})".format(prettyProperty, self.tr("by"), prettyClassify)
+        self.labelPropertyByClasses.setText("{} {} {}".format(prettyProperty, self.tr("by"), prettyClassify))
         subtitle = self.buildSubtitle(elementIdentifier)
         xLabel = "{} ({})".format(prettyClassify, classifyUnit) if classifyUnit else prettyClassify
         if propertyUnit and not self.isEnumeratedTarget:
             yLabel = "{} ({})".format(prettyProperty, propertyUnit)
         else:
             yLabel = self.tr("Count")
-        self.histogram.setTitles(title, subtitle)
+        self.histogram.setTitles("", subtitle)
         self.histogram.setBins(bins, mode="plain", xLabel=xLabel, yLabelLeft=yLabel)
 
         self.populateTable(bins, prettyClassify, prettyProperty, propertyUnit, elementIdentifier, propertyField)
