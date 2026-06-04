@@ -60,8 +60,8 @@ class QGISRedProjectIO:
         from .qgisred_layer_utils import QGISRedLayerUtils
         from .qgisred_styling_utils import QGISRedStylingUtils
 
-        # Special case: Tree subgroups — "Queries/Tree_*"
-        if re.match(r'^Queries/Tree_', groupName):
+        # Special case: Tree subgroups — old style "Queries/Tree_*" or new style "Queries/Trees/Tree: ..."
+        if re.match(r'^Queries/(?:Tree_|Trees/Tree:)', groupName):
             # Layer names are sanitized ASCII (e.g. "Nodes_Tree_J5_Union").
             # Recover the actual tree name (e.g. "J5-Unión") by scanning its subfolder.
             import glob as _glob
@@ -77,8 +77,8 @@ class QGISRedProjectIO:
             queries_dir = os.path.join(self.ProjectDirectory, DIR_QUERIES)
             tree_name = None
             tree_dir = None
-            # Each tree lives in its own Queries/Tree_{sanitizedName}/ subfolder
-            pattern = os.path.join(queries_dir, "Tree_*", self.NetworkName + "_Nodes_Tree_*.shp")
+            # Each tree lives in Queries/Trees/ as files named with the full tree name.
+            pattern = os.path.join(queries_dir, "Trees", self.NetworkName + "_Nodes_Tree_*.shp")
             for path in _glob.glob(pattern):
                 basename = os.path.splitext(os.path.basename(path))[0]
                 prefix = self.NetworkName + "_Nodes_Tree_"
@@ -93,7 +93,7 @@ class QGISRedProjectIO:
             if tree_name is None or tree_dir is None:
                 return
             utils = QGISRedLayerUtils(tree_dir, self.NetworkName, self.iface)
-            group = utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Tree: " + tree_name])
+            group = utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Trees", "Tree: " + tree_name])
             for name in reversed(layerNames):
                 is_link = name.lower().startswith("links")
                 utils.openTreeLayer(group, "Links" if is_link else "Nodes", tree_name, link=is_link)

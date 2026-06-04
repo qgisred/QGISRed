@@ -858,14 +858,12 @@ class ProjectManagementSection:
                 target_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, target)))
                 if layer_dir_norm != target_norm:
                     return target
-            # Trees: root or Queries/ flat → Queries/Tree_{sanitizedName}/
+            # Trees: root or Queries/ flat → Queries/Trees/
             if base.startswith(netPrefix) and "_Tree_" in base:
-                parts = base.split("_Tree_", 1)
-                if len(parts) == 2:
-                    target = os.path.join(DIR_QUERIES, "Tree_" + parts[1])
-                    target_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, target)))
-                    if layer_dir_norm != target_norm:
-                        return target
+                target = os.path.join(DIR_QUERIES, "Trees")
+                target_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, target)))
+                if layer_dir_norm != target_norm:
+                    return target
             return None
 
         old_files_to_delete = []

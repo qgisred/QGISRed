@@ -206,14 +206,14 @@ class LayerManagementSection:
 
     def openTreeLayers(self):
         treeGroup = self.getTreeGroup()
-        treeFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, "Tree_" + self.treeName)
+        treeFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, "Trees")
         utils = QGISRedLayerUtils(treeFolder, self.NetworkName, self.iface)
         utils.openTreeLayer(treeGroup, "Links", self.treeName, link=True)
         utils.openTreeLayer(treeGroup, "Nodes", self.treeName)
 
     def getTreeGroup(self):
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        return utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Tree: " + self.treeName])
+        return utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Trees", "Tree: " + self.treeName])
 
     """Groups"""
 
@@ -440,7 +440,7 @@ class LayerManagementSection:
             self.hasToOpenDemandsBuilderLayers = False
 
         if self.hasToOpenTreeLayers:
-            treeFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, "Tree_" + self.treeName)
+            treeFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, "Trees")
             os.makedirs(treeFolder, exist_ok=True)
             for fi in os.listdir(self.ProjectDirectory):
                 if fi.startswith(self.NetworkName) and "_Tree_" in fi:
