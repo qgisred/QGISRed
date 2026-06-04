@@ -200,6 +200,9 @@ class LayerManagementSection:
                     continue
                 self._applyDemandsBuilderStyle(vlayer)
                 identifiers.setLayerIdentifier(vlayer, displayName)
+                translatedName = identifiers.getTranslatedNameForIdentifier(vlayer.customProperty("qgisred_identifier"))
+                if translatedName:
+                    vlayer.setName(translatedName)
                 QgsProject.instance().addMapLayer(vlayer, False)
                 demandsBuilderGroup.insertChildNode(0, QgsLayerTreeLayer(vlayer))
             self._demandsBuilderExtraPaths = []

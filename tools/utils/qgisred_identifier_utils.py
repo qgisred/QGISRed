@@ -68,6 +68,16 @@ class QGISRedIdentifierUtils:
     def tr(self, message):
         return QCoreApplication.translate("InputLayerNames", message)
 
+    def _normalizeDemandsBuilderLayerType(self, layerType):
+        if not isinstance(layerType, str):
+            return layerType
+        lower = layerType.lower()
+        if lower.endswith("_demandsbuilder_demandlinks"):
+            return "demandsbuilder_demandlinks"
+        if lower.endswith("_demandsbuilder_consumptionpoints"):
+            return "demandsbuilder_consumptionpoints"
+        return layerType
+
     def _getLayerPath(self, layer):
         from .qgisred_filesystem_utils import QGISRedFileSystemUtils
         return QGISRedFileSystemUtils(self.ProjectDirectory, self.NetworkName, self.iface).getLayerPath(layer)
@@ -90,7 +100,8 @@ class QGISRedIdentifierUtils:
         return None
 
     def setLayerIdentifier(self, layer, layerType):
-        identifier = f"qgisred_{layerType.lower()}"
+        normalizedType = self._normalizeDemandsBuilderLayerType(layerType)
+        identifier = f"qgisred_{normalizedType.lower()}"
         layer.setCustomProperty("qgisred_identifier", identifier)
         layerMeta = QgsLayerMetadata()
         layerMeta.setIdentifier(identifier)
