@@ -21,7 +21,7 @@ from qgis.core import QgsClassificationPrettyBreaks, QgsStyle, QgsPresetSchemeCo
 from qgis.core import QgsRuleBasedRenderer
 from qgis.utils import iface
 
-from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL, QGISRedStylingUtils
+from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from ...tools.utils.qgisred_identifier_utils import QGISRedIdentifierUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, resolve_layer_id
