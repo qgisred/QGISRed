@@ -31,6 +31,7 @@ class StatisticsHistogramRenderer:
     _AXIS_TICK_FONT_SIZE = 9
     _TITLE_FONT_SIZE = 11
     _SUBTITLE_FONT_SIZE = 9
+    _ROTATED_LABEL_MAX_WIDTH = 60.0
 
     def render(self, widget, painter):
         painter.setRenderHint(PAINTER_ANTIALIASING)
@@ -217,7 +218,8 @@ class StatisticsHistogramRenderer:
         painter.setFont(qfont(self._AXIS_TICK_FONT_SIZE))
         fontMetrics = QFontMetrics(painter.font())
         painter.setPen(TEXT_AXIS)
-        maxLabelWidth = max(40.0, (barRects[0].width() if barRects else 40.0) + 6)
+        rotate = widget.xTickLabelsNeedRotation()
+        maxLabelWidth = self._ROTATED_LABEL_MAX_WIDTH if rotate else max(40.0, (barRects[0].width() if barRects else 40.0) + 6)
         for binIndex, binData in enumerate(widget.bins):
             if binIndex >= len(barRects):
                 break
@@ -228,14 +230,22 @@ class StatisticsHistogramRenderer:
             label = binData.get("label", "")
             elided = fontMetrics.elidedText(label, Qt.TextElideMode.ElideRight, int(maxLabelWidth))
             textWidth = fontMetrics.horizontalAdvance(elided)
-            painter.drawText(
-                QPointF(centerX - textWidth / 2, plotRect.bottom() + fontMetrics.ascent() + 2),
-                elided,
-            )
+            if rotate:
+                painter.save()
+                painter.translate(centerX, plotRect.bottom() + 4)
+                painter.rotate(-45)
+                painter.drawText(QPointF(-textWidth, fontMetrics.ascent() / 2), elided)
+                painter.restore()
+            else:
+                painter.drawText(
+                    QPointF(centerX - textWidth / 2, plotRect.bottom() + fontMetrics.ascent() + 2),
+                    elided,
+                )
         if widget.xLabel:
             painter.setFont(qfont(self._AXIS_TITLE_FONT_SIZE, bold=True))
+            labelOffset = self._ROTATED_LABEL_MAX_WIDTH * 0.71 if rotate else fontMetrics.height()
             painter.drawText(
-                QRectF(plotRect.left(), plotRect.bottom() + fontMetrics.height() + 6, plotRect.width(), 16),
+                QRectF(plotRect.left(), plotRect.bottom() + labelOffset + 6, plotRect.width(), 16),
                 Qt.AlignmentFlag.AlignCenter,
                 widget.xLabel,
             )
