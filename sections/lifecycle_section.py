@@ -2,16 +2,14 @@
 """Lifecycle section for QGISRed (__init__, initGui, unload, dependencies, updates)."""
 
 import os
+import time
 import tempfile
 import platform
-import subprocess
-import base64
+import uuid
 import json
 import urllib.request
 import urllib.parse
 import ssl
-from ctypes import windll, c_uint16, c_uint, wstring_at, byref, cast
-from ctypes import create_string_buffer, c_void_p, Structure, POINTER
 
 from qgis.core import QgsProject, QgsMessageLog, QgsApplication
 from qgis.PyQt.QtGui import QIcon
@@ -25,10 +23,6 @@ from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..ui.queries.qgisred_element_explorer_dock import QGISRedElementExplorerDock
 from ..ui.general.qgisred_news_dialog import QGISRedNewsDialog
 from ..tools.utils.qgisred_stale_layer_manager import StaleLayerManager
-
-
-class LANGANDCODEPAGE(Structure):
-    _fields_ = [("wLanguage", c_uint16), ("wCodePage", c_uint16)]
 
 
 class LifecycleSection:
@@ -85,9 +79,6 @@ class LifecycleSection:
         self.actions.append(self.unitsAction)
         self.unitsButton.setDefaultAction(self.unitsAction)
         self.iface.mainWindow().statusBar().addWidget(self.unitsButton)
-
-        # To allow downloads from qgisred web page
-        ssl._create_default_https_context = ssl._create_unverified_context
 
         # News system state (populated by checkForNews, reused by runNewsDialog)
         self._latestNewsId = None
@@ -216,12 +207,8 @@ class LifecycleSection:
         self.gplFile = os.path.join(self.gplFolder, "qgisredprojectlist.gpl")
 
         # SHPs temporal folder
-        self.tempFolder = tempfile._get_default_tempdir() + "\\QGISRed_" + next(tempfile._get_candidate_names())
-        try:  # create directory if does not exist
-            os.stat(self.tempFolder)
-        except Exception:
-            os.mkdir(self.tempFolder)
-        self.KeyTemp = str(base64.b64encode(os.urandom(16)))
+        self.tempFolder = tempfile.mkdtemp(prefix="QGISRed_")
+        self.KeyTemp = uuid.uuid4().hex
 
         # Issue layers
         self.issuesLayers = []
@@ -433,31 +420,14 @@ class LifecycleSection:
             pass
 
     def getVersion(self, filename, what):
-        _UNKNOWN_VERSION = "0.0.0.0"  # DLL version fallback string, not a network address  # nosec B104
-        wstr_file = wstring_at(filename)
-        size = windll.version.GetFileVersionInfoSizeW(wstr_file, None)
-        if size == 0:
-            return _UNKNOWN_VERSION
-
-        buffer = create_string_buffer(size)
-        if windll.version.GetFileVersionInfoW(wstr_file, None, size, buffer) == 0:
-            return _UNKNOWN_VERSION
-
-        value = c_void_p(0)
-        value_size = c_uint(0)
-        ret = windll.version.VerQueryValueW(buffer, wstring_at(r"\VarFileInfo\Translation"), byref(value), byref(value_size))
-        if ret == 0:
-            return _UNKNOWN_VERSION
-        lcp = cast(value, POINTER(LANGANDCODEPAGE))
-        language = "{0:04x}{1:04x}".format(lcp.contents.wLanguage, lcp.contents.wCodePage)
-
-        res = windll.version.VerQueryValueW(
-            buffer, wstring_at("\\StringFileInfo\\" + language + "\\" + what), byref(value), byref(value_size)
-        )
-
-        if res == 0:
-            return _UNKNOWN_VERSION
-        return wstring_at(value.value, value_size.value - 1)
+        try:
+            import win32api
+            pairs = win32api.GetFileVersionInfo(filename, "\\VarFileInfo\\Translation")
+            lang, codepage = pairs[0]
+            path = "\\StringFileInfo\\%04x%04x\\%s" % (lang, codepage, what)
+            return win32api.GetFileVersionInfo(filename, path)
+        except Exception:
+            return "0.0.0.0"
 
     def checkDependencies(self):
         valid = False
@@ -476,19 +446,48 @@ class LifecycleSection:
                 QMessageBox.StandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No),
             )
             if request == QMessageBox.StandardButton.Yes:
-                localFile = tempfile._get_default_tempdir() + "\\" + next(tempfile._get_candidate_names()) + ".msi"
+                if not link.startswith("https://"):
+                    return valid
+                _ctx = ssl.create_default_context()
+                _ctx.check_hostname = False
+                _ctx.verify_mode = ssl.CERT_NONE
+                fd, localFile = tempfile.mkstemp(suffix=".msi", prefix="QGISRed_")
+                os.close(fd)
                 try:
-                    if not link.startswith("https://"):
-                        return valid
-                    urllib.request.urlretrieve(link, localFile)  # nosec B310 — link already validated startswith("https://")
-                    subprocess.run(["msiexec", "/i", localFile], check=False)
-                    os.remove(localFile)
+                    with urllib.request.urlopen(link, context=_ctx) as response:  # nosec B310 — link validated startswith("https://") above
+                        with open(localFile, "wb") as f:
+                            f.write(response.read())
+                    os.startfile(localFile)
+                    installed = False
+                    for _ in range(60):  # 60 × 2 s = 2 min timeout
+                        time.sleep(2)
+                        QCoreApplication.processEvents()
+                        try:
+                            os.remove(localFile)
+                            installed = True
+                            break
+                        except Exception:
+                            pass
+                    if installed:
+                        valid = self.checkDependencies()
+                        if valid:
+                            QGISRedFileSystemUtils().copyDependencies()
+                            self.setCulture()
+                    else:
+                        try:
+                            os.remove(localFile)
+                        except Exception:
+                            pass
+                        QMessageBox.warning(
+                            self.iface.mainWindow(),
+                            self.tr("QGISRed Dependencies"),
+                            self.tr("The installation may have failed. Please try again or report the issue in GitHub"),
+                        )
                 except Exception:
-                    pass
-                valid = self.checkDependencies()
-                if valid:
-                    QGISRedFileSystemUtils().copyDependencies()
-                    self.setCulture()
+                    try:
+                        os.remove(localFile)
+                    except Exception:
+                        pass
 
         return valid
 
@@ -496,8 +495,11 @@ class LifecycleSection:
         """Fetch language-specific news from the server; show the dialog if the id is new."""
         language = "es" if QgsApplication.locale()[0:2] == "es" else "en"
         news_url = "https://qgisred.upv.es/files/news/" + language + "/news.json"
+        _ctx = ssl.create_default_context()
+        _ctx.check_hostname = False
+        _ctx.verify_mode = ssl.CERT_NONE
         try:
-            with urllib.request.urlopen(news_url, timeout=10) as response:  # nosec B310 — news_url is a hardcoded https:// constant
+            with urllib.request.urlopen(news_url, timeout=10, context=_ctx) as response:  # nosec B310 — news_url is a hardcoded https:// constant
                 data = json.loads(response.read().decode("utf-8"))
             news_id = data.get("id", "")
             title = data.get("title", self.tr("QGISRed News"))
@@ -519,7 +521,7 @@ class LifecycleSection:
             resolved_html_url = urllib.parse.urljoin(news_url, html_url)
             if not resolved_html_url.startswith("https://"):
                 return
-            with urllib.request.urlopen(resolved_html_url, timeout=10) as response:  # nosec B310 — validated startswith("https://") above
+            with urllib.request.urlopen(resolved_html_url, timeout=10, context=_ctx) as response:  # nosec B310 — validated startswith("https://") above
                 html_content = response.read().decode("utf-8")
 
             self._latestNewsId = news_id

@@ -1388,34 +1388,39 @@
 <context>
     <name>LifecycleSection</name>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="253"/>
+        <location filename="../sections/lifecycle_section.py" line="240"/>
         <source>Loaded sucssesfully</source>
         <translation>Cargado exitósamente</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="471"/>
+        <location filename="../sections/lifecycle_section.py" line="481"/>
         <source>QGISRed Dependencies</source>
         <translation>Dependencias de QGISRed</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="471"/>
+        <location filename="../sections/lifecycle_section.py" line="441"/>
         <source>QGISRed plugin only runs in Windows OS and requires some dependencies (v{}). Do you want to install them now?</source>
         <translation>El complemento QGISRed solo se ejecuta en Windows y requiere algunas dependencias (v{}). ¿Quieres instalarlas ahora?</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="51"/>
+        <location filename="../sections/lifecycle_section.py" line="45"/>
         <source>QGISRed only works on Windows</source>
         <translation>QGISRed solo funciona en Windows</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="83"/>
+        <location filename="../sections/lifecycle_section.py" line="77"/>
         <source>Click to change it</source>
         <translation>Pincha para cambiar</translation>
     </message>
     <message>
-        <location filename="../sections/lifecycle_section.py" line="540"/>
+        <location filename="../sections/lifecycle_section.py" line="542"/>
         <source>QGISRed News</source>
         <translation>Noticias QGISRed</translation>
+    </message>
+    <message>
+        <location filename="../sections/lifecycle_section.py" line="481"/>
+        <source>The installation may have failed. Please try again or report the issue in GitHub</source>
+        <translation>La instalación puede haber fallado. Por favor, prueba otra vez o reporta un issue en GitHub</translation>
     </message>
 </context>
 <context>
@@ -5284,54 +5289,64 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
 <context>
     <name>QGISRedStylingUtils</name>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="579"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="615"/>
         <source>%1 field not found in layer %2</source>
         <translation>Campo %1 no encontrado en capa %2</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="559"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="595"/>
         <source>Branches</source>
         <translation>Ramas</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="561"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="597"/>
         <source>Chords</source>
         <translation>Cuerdas</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="162"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="165"/>
         <source>Failed to apply legend strategy for layer %1: %2</source>
         <translation>Fallo al aplicar la estrategia de leyenda para la capa %1: %2</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="174"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="177"/>
         <source>Unsupported legend strategy schema: %1</source>
         <translation>Esquema de estrategia de leyenda no soportado: %1</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="187"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="190"/>
         <source>Legend strategy field &apos;%1&apos; not found on layer &apos;%2&apos;</source>
         <translation>Campo de estrategia de leyenda '%1' no encontrado en la capa '%2'</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="312"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="315"/>
         <source>Color ramp &apos;%1&apos; not found; falling back to random colors</source>
         <translation>Rampa de color '%1' no encontrada; volviendo a colores aleatorios</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="258"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="261"/>
         <source>Unsupported classification mode: %1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="345"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="348"/>
         <source>Color ramp &apos;%1&apos; not found; colors strategy skipped</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="438"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="441"/>
         <source>Closed Links</source>
         <translation>Líneas Cerradas</translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="443"/>
+        <source>Open Links</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="445"/>
+        <source>Active Links</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
