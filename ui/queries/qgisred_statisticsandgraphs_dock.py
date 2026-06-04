@@ -499,6 +499,12 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
     def onPropertyChanged(self):
         if self.suspendCascade:
             return
+        propertyField = self.cbProperty.currentData(Qt.ItemDataRole.UserRole)
+        index = self.cbClassifiedBy.findData(propertyField) if propertyField else -1
+        if index >= 0:
+            self.cbClassifiedBy.setCurrentIndex(index)
+        else:
+            self.selectFirstUsable(self.cbClassifiedBy)
 
     def onClassifyByChanged(self):
         if self.suspendCascade:
