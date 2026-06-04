@@ -24,6 +24,9 @@ def _plugin_root():
     return os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
 
+_DEMAND_SECTOR_COLOR_CACHE = {}
+
+
 def create_combined_cursor(icon, iface=None, icon_size=24):
     """Create a cursor with a slender arrow and a custom icon at the bottom-right.
 
@@ -451,45 +454,52 @@ class QGISRedStylingUtils:
         uniqueValues = layer.dataProvider().uniqueValues(fni)
         uniqueValues = sorted(uniqueValues)
 
+        cache_key = (self.ProjectDirectory or "", self.NetworkName or "", field)
+        if cache_key not in _DEMAND_SECTOR_COLOR_CACHE:
+            _DEMAND_SECTOR_COLOR_CACHE[cache_key] = {}
+        color_map = _DEMAND_SECTOR_COLOR_CACHE[cache_key]
+
+        # add missing values to the shared color map
+        for uniqueValue in uniqueValues:
+            if uniqueValue not in color_map:
+                color_map[uniqueValue] = QColor(
+                    randrange(0, 256),
+                    randrange(0, 256),
+                    randrange(0, 256),
+                )
+
         # define categories
         categories = []
         for uniqueValue in uniqueValues:
-            # initialize the default symbol for this geometry type
             symbol = QgsSymbol.defaultSymbol(layer.geometryType())
-
-            # configure a symbol layer
             symbolLayer = None
+            value_color = color_map.get(uniqueValue, QColor(randrange(0, 256), randrange(0, 256), randrange(0, 256)))
+
             if layer.geometryType() == 0:  # Point
-                layerStyle = dict()
-                layerStyle["color"] = "%d, %d, %d" % (randrange(0, 256), randrange(0, 256), randrange(0, 256))
-                layerStyle["size"] = str(2)
+                layerStyle = {
+                    "color": "%d, %d, %d" % (value_color.red(), value_color.green(), value_color.blue()),
+                    "size": str(2),
+                }
                 symbolLayer = QgsSimpleMarkerSymbolLayer.create(layerStyle)
             else:
                 symbol = QgsLineSymbol().createSimple({})
                 symbol.deleteSymbolLayer(0)
-                # Line
                 lineSymbol = QgsSimpleLineSymbolLayer()
                 try:  # From QGis 3.30
                     lineSymbol.setWidthUnit(Qgis.RenderUnit.RenderPixels)  # Pixels
-                except:
+                except Exception:
                     lineSymbol.setWidthUnit(2)  # Pixels
                 lineSymbol.setWidth(2)
-                lineSymbol.setColor(QColor(randrange(0, 256), randrange(0, 256), randrange(0, 256)))
+                lineSymbol.setColor(value_color)
                 symbol.appendSymbolLayer(lineSymbol)
 
-            # replace default symbol layer with the configured one
             if symbolLayer is not None:
                 symbol.changeSymbolLayer(0, symbolLayer)
 
-            # create renderer object
             category = QgsRendererCategory(uniqueValue, symbol, str(uniqueValue))
-            # entry for the list of category items
             categories.append(category)
 
-        # create renderer object
         renderer = QgsCategorizedSymbolRenderer(field, categories)
-
-        # assign the created renderer to the layer
         if renderer is not None:
             layer.setRenderer(renderer)
         layer.setLabelsEnabled(False)
