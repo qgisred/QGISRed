@@ -1404,15 +1404,10 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
 
     def populateNumericTable(self, bins, prettyClassify, prettyProperty, propertyField, elementIdentifier):
         useSum = self.usesSumColumn(propertyField, elementIdentifier)
-        lastLabel = self.tr("Sum") if useSum else self.tr("StdD")
-        headers = [
-            prettyClassify,
-            self.tr("Count"),
-            self.tr("Avg"),
-            self.tr("Min"),
-            self.tr("Max"),
-            lastLabel,
-        ]
+        if useSum:
+            headers = [prettyClassify, self.tr("Count"), self.tr("Sum"), self.tr("Avg"), self.tr("Min"), self.tr("Max")]
+        else:
+            headers = [prettyClassify, self.tr("Count"), self.tr("Avg"), self.tr("Min"), self.tr("Max"), self.tr("StdD")]
         self.tbExcel.setColumnCount(len(headers))
         self.tbExcel.setHorizontalHeaderLabels(headers)
         self.tbExcel.setRowCount(len(bins) + 1)
