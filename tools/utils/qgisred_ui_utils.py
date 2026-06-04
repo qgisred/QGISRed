@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from qgis.PyQt.QtWidgets import QFrame, QLabel, QHBoxLayout, QPushButton, QGridLayout
 from qgis.PyQt.QtCore import Qt, QTimer
-from ...compat import QGIS_INFO, QGIS_WARNING, QGIS_CRITICAL, QGIS_SUCCESS
+from ...compat import sip, QGIS_INFO, QGIS_WARNING, QGIS_CRITICAL, QGIS_SUCCESS
 
 QGISRED_COMBO_STYLE = """
     QComboBox {
@@ -110,7 +110,9 @@ class QGISRedUIUtils:
         Skips floating docks — only repositions docks anchored to the main window.
         """
         def _docked(dock):
-            return dock is not None and dock.isVisible() and not dock.isFloating()
+            if dock is None or sip.isdeleted(dock):
+                return False
+            return dock.isVisible() and not dock.isFloating()
 
         results = resultsDock if _docked(resultsDock) else None
         explorer = explorerDock if _docked(explorerDock) else None
