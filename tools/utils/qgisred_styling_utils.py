@@ -537,8 +537,11 @@ class QGISRedStylingUtils:
                 if "Branch" in uniqueValue:
                     lineSymbol.setColor(QColor(22, 139, 251))
                 else:
-                    lineSymbol.setPenStyle(Qt.PenStyle.DashLine)
-                    lineSymbol.setWidth(1.5)
+                    lineSymbol.setPenStyle(Qt.CustomDashLine)
+                    lineSymbol.setCustomDashVector([0.1, 2])
+                    lineSymbol.setUseCustomDashPattern(True)
+                    lineSymbol.setColor(QColor(185, 115, 115))
+                    lineSymbol.setWidth(3.5)
                 symbol.appendSymbolLayer(lineSymbol)
 
             # replace default symbol layer with the configured one
