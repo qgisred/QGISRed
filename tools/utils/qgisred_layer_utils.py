@@ -510,18 +510,27 @@ class QGISRedLayerUtils:
         identifier = f"qgisred_{identifierKey.lower()}"
         showName = identifiers.getTranslatedNameForIdentifier(identifier) or self.tr(name)
         originalName = identifiers.getOriginalNameFromLayerName(name)
-        layerPath = os.path.join(self.ProjectDirectory, self.NetworkName + "_" + originalName + "_Tree_" + treeName + ".shp")
-        if os.path.exists(layerPath):
-            if self._tryReloadExistingLayer(layerPath):
-                return
-            vlayer = QgsVectorLayer(layerPath, showName, "ogr")
-            if link:
-                self._styling().setTreeStyle(vlayer)
-            QgsProject.instance().addMapLayer(vlayer, group is None)
-            identifiers.setLayerIdentifier(vlayer, identifierKey)
-            if group is not None:
-                group.insertChildNode(0, QgsLayerTreeLayer(vlayer))
-            del vlayer
+        candidates = [
+            os.path.join(self.ProjectDirectory, self.NetworkName + "_" + originalName + "_Tree_" + treeName + ".shp"),
+            os.path.join(self.ProjectDirectory, self.NetworkName + "_Tree_" + treeName + "_" + originalName + ".shp"),
+        ]
+        layerPath = None
+        for candidate in candidates:
+            if os.path.exists(candidate):
+                layerPath = candidate
+                break
+        if layerPath is None:
+            return
+        if self._tryReloadExistingLayer(layerPath):
+            return
+        vlayer = QgsVectorLayer(layerPath, showName, "ogr")
+        if link:
+            self._styling().setTreeStyle(vlayer)
+        QgsProject.instance().addMapLayer(vlayer, group is None)
+        identifiers.setLayerIdentifier(vlayer, identifier)
+        if group is not None:
+            group.insertChildNode(0, QgsLayerTreeLayer(vlayer))
+        del vlayer
 
     def openGroupLayers(self, groupName, layerNames):
         styling = self._styling()

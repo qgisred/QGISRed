@@ -78,18 +78,37 @@ class QGISRedProjectIO:
             tree_name = None
             tree_dir = None
             # Each tree lives in Queries/Trees/ as files named with the full tree name.
-            pattern = os.path.join(queries_dir, "Trees", self.NetworkName + "_Nodes_Tree_*.shp")
-            for path in _glob.glob(pattern):
-                basename = os.path.splitext(os.path.basename(path))[0]
-                prefix = self.NetworkName + "_Nodes_Tree_"
-                if basename.startswith(prefix):
-                    candidate = basename[len(prefix):]
+            patterns = [
+                os.path.join(queries_dir, "Trees", self.NetworkName + "_Nodes_Tree_*.shp"),
+                os.path.join(queries_dir, "Trees", self.NetworkName + "_Links_Tree_*.shp"),
+                os.path.join(queries_dir, "Trees", self.NetworkName + "_Tree_*_Nodes.shp"),
+                os.path.join(queries_dir, "Trees", self.NetworkName + "_Tree_*_Links.shp"),
+            ]
+            for pattern in patterns:
+                for path in _glob.glob(pattern):
+                    basename = os.path.splitext(os.path.basename(path))[0]
+                    candidate = None
+                    prefix1 = self.NetworkName + "_Nodes_Tree_"
+                    prefix2 = self.NetworkName + "_Links_Tree_"
+                    prefix3 = self.NetworkName + "_Tree_"
+                    if basename.startswith(prefix1):
+                        candidate = basename[len(prefix1):]
+                    elif basename.startswith(prefix2):
+                        candidate = basename[len(prefix2):]
+                    elif basename.startswith(prefix3) and basename.endswith("_Nodes"):
+                        candidate = basename[len(prefix3):-len("_Nodes")]
+                    elif basename.startswith(prefix3) and basename.endswith("_Links"):
+                        candidate = basename[len(prefix3):-len("_Links")]
+                    if candidate is None:
+                        continue
                     norm = _ud.normalize("NFKD", candidate).encode("ascii", "ignore").decode("ascii")
                     norm = norm.replace("-", "_")
                     if norm == sanitized_tree:
                         tree_name = candidate
                         tree_dir = os.path.dirname(path)
                         break
+                if tree_name is not None:
+                    break
             if tree_name is None or tree_dir is None:
                 return
             utils = QGISRedLayerUtils(tree_dir, self.NetworkName, self.iface)
