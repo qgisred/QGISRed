@@ -3605,6 +3605,20 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.cbColors.setCurrentText("Random")
             self.applyColorLogic(forceRefresh=True)
 
+    def readStrategyFromStyleFile(self, path):
+        # Reads the saved strategy from a .qml without mutating the live layer.
+        tempLayer = QgsVectorLayer(self.currentLayer.source(), self.currentLayer.name(), self.currentLayer.providerType())
+        if not tempLayer.isValid():
+            return None
+        tempLayer.loadNamedStyle(path)
+        rawStrategy = tempLayer.customProperty("qgisred_legend_strategy")
+        if not rawStrategy:
+            return None
+        try:
+            return json.loads(rawStrategy)
+        except Exception:
+            return None
+
     def loadDefaultStyle(self):
         self.loadStyle(isDefault=True)
 
