@@ -1390,6 +1390,12 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             return str(int(numericValue))
         return "{:g}".format(numericValue)
 
+    def formatLikeAvg(self, value, avgText):
+        if value is None:
+            return ""
+        decimals = len(avgText.split(".")[1]) if "." in avgText else 0
+        return "{:.{}f}".format(float(value), decimals)
+
     def populateTable(self, bins, prettyClassify, prettyProperty, propertyUnit, elementIdentifier, propertyField):
         if self.isEnumeratedTarget:
             self.populateEnumeratedTable(bins, prettyClassify, prettyProperty)
