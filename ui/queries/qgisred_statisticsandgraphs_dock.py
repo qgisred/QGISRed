@@ -705,7 +705,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 self.addResultPropertyItem(self.cbClassifiedBy, resultCategory, prop, resultsBrush)
 
         self.suspendCascade = False
-        defaultIndex = self.cbClassifiedBy.findData("Diameter")
+        propertyField = self.cbProperty.currentData(Qt.ItemDataRole.UserRole)
+        defaultIndex = self.cbClassifiedBy.findData(propertyField) if propertyField else -1
         if defaultIndex >= 0:
             self.cbClassifiedBy.setCurrentIndex(defaultIndex)
         else:
