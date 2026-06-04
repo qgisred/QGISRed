@@ -243,6 +243,49 @@ def format_elapsed_time(
     return f"{sign}{days}d {time_text}" if days else sign + time_text
 
 
+def format_time_like_results_panel(
+    hours,
+    *,
+    start_clock_seconds: int = 0,
+    civil_mode: bool = False,
+    am_pm: bool = False,
+    continuous_hours_mode: bool = False,
+) -> str:
+    """Match QGISRedResultsDock time labels (cbTimes / lbTime display)."""
+    try:
+        h = float(hours)
+    except (TypeError, ValueError):
+        return ""
+    if not math.isfinite(h):
+        return ""
+
+    if civil_mode:
+        return format_civil_time(
+            h,
+            start_clock_seconds,
+            include_seconds=True,
+            am_pm=am_pm,
+        )
+
+    if continuous_hours_mode:
+        total_seconds = int(round(h * 3600.0))
+        sign = "-" if total_seconds < 0 else ""
+        abs_seconds = abs(total_seconds)
+        total_h = abs_seconds // 3600
+        minute = (abs_seconds % 3600) // 60
+        second = abs_seconds % 60
+        if second == 0:
+            return f"{sign}{int(total_h)}:{int(minute):02d}"
+        return f"{sign}{int(total_h)}:{int(minute):02d}:{int(second):02d}"
+
+    return format_elapsed_time(
+        h,
+        hour_format="elapsed_hm",
+        day_format="split_days",
+        include_seconds=True,
+    )
+
+
 def civil_midnight_elapsed_hours(min_hours: float, max_hours: float, start_clock_seconds: int = 0):
     try:
         lo = float(min_hours)

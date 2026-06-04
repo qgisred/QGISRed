@@ -201,6 +201,28 @@ def test_values_table_uses_get_decimals_from_series_key():
     assert text == "12.3"
 
 
+def test_format_cursor_time_text_follows_results_dock():
+    _patch_qt_for_import()
+    from QGISRed.ui.analysis.qgisred_timeseries_dock import QGISRedTimeSeriesDock
+
+    class _ResultsDock:
+        civilMode = True
+        amPmFormat = False
+        continuousHoursMode = False
+
+    d = QGISRedTimeSeriesDock.__new__(QGISRedTimeSeriesDock)
+    d._resultsDock = _ResultsDock()
+    d.plot = type("P", (), {"_start_clock_seconds": 0, "_axis_cfg_x": type("C", (), {"x_hour_format": "hm"})()})()
+    d.plot._renderer = type("R", (), {})()
+    from QGISRed.ui.analysis.timeseries_plot_renderer import TimeSeriesPlotRenderer
+
+    d.plot._renderer = TimeSeriesPlotRenderer()
+    assert d._formatCursorTimeText(0.0) == "0:00"
+    d._resultsDock.civilMode = False
+    d._resultsDock.continuousHoursMode = True
+    assert d._formatCursorTimeText(34.5) == "34:30"
+
+
 def test_parse_results_time_text_to_hours_matches_results_dock():
     _patch_qt_for_import()
     from QGISRed.ui.analysis.qgisred_timeseries_dock import QGISRedTimeSeriesDock

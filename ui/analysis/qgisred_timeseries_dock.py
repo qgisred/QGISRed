@@ -44,6 +44,7 @@ from .timeseries_globals import (
 )
 from .timeseries_time_utils import (
     civil_time_parts,
+    format_time_like_results_panel,
     simulation_start_clock_seconds,
 )
 
@@ -116,6 +117,7 @@ class TimeSeriesPlotWidget(QWidget):
         self._zoom_window_start_pos = None
         self._zoom_rubber_band = QRubberBand(QRubberBand.Shape.Rectangle, self)
         self._synced_cursor_time_hours = None
+        self._cursor_time_text_formatter = None
         self._start_clock_seconds = 0
         self._axis_cfg_x = default_axis_settings()
         self._axis_cfg_y_left = default_axis_settings()
@@ -710,6 +712,10 @@ class TimeSeriesPlotWidget(QWidget):
             self._synced_cursor_time_hours = None
             self.update()
 
+    def setCursorTimeTextFormatter(self, formatter) -> None:
+        self._cursor_time_text_formatter = formatter
+        self.update()
+
     def setStartClockSeconds(self, seconds) -> None:
         try:
             value = int(seconds) % 86400
@@ -1146,6 +1152,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self._updateMinimumWidthForDockTitle()
         
         self.plot = TimeSeriesPlotWidget(self.chartContainer)
+        self.plot.setCursorTimeTextFormatter(self._formatCursorTimeText)
         self._initPlotAndTableLayout()
         self.plot.seriesOrderChanged.connect(self.seriesReordered)
         self.plot.seriesOrderChanged.connect(self._onSeriesOrderChanged)
@@ -2042,6 +2049,28 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self._syncFormatFromResultsDock()
         if hasattr(self, "btnSyncCursor") and self.btnSyncCursor is not None and self.btnSyncCursor.isChecked():
             self._applySyncedTimeText(self._lastResultsTimeText)
+
+    def _formatCursorTimeText(self, hours: float) -> str:
+        dock = self._resultsDock
+        if dock is not None:
+            return format_time_like_results_panel(
+                hours,
+                start_clock_seconds=int(getattr(self.plot, "_start_clock_seconds", 0) or 0),
+                civil_mode=bool(getattr(dock, "civilMode", False)),
+                am_pm=bool(getattr(dock, "amPmFormat", False)),
+                continuous_hours_mode=bool(getattr(dock, "continuousHoursMode", False)),
+            )
+        cfg = getattr(self.plot, "_axis_cfg_x", None)
+        renderer = getattr(self.plot, "_renderer", None)
+        if renderer is None:
+            return ""
+        return renderer._format_absolute_time_hours_axis(
+            hours,
+            hour_format=getattr(cfg, "x_hour_format", "hm") if cfg else "hm",
+            day_format=getattr(cfg, "x_day_format", "split_days") if cfg else "split_days",
+            start_clock_seconds=int(getattr(self.plot, "_start_clock_seconds", 0) or 0),
+            x_precision=(getattr(cfg, "x_precision", "hms") if cfg else "hms") or "hms",
+        )
 
     def _syncFormatFromResultsDock(self) -> None:
         dock = self._resultsDock

@@ -1788,13 +1788,21 @@ class TimeSeriesPlotRenderer:
         painter.drawLine(QPointF(rule_x, plot_rect.top()), QPointF(rule_x, plot_rect.bottom()))
 
         cfg_x = getattr(widget, "_axis_cfg_x", None)
-        instant_text = self._format_absolute_time_hours_axis(
-            val_x,
-            hour_format=getattr(cfg_x, "x_hour_format", "hm") if cfg_x else "hm",
-            day_format=getattr(cfg_x, "x_day_format", "split_days") if cfg_x else "split_days",
-            start_clock_seconds=getattr(widget, "_start_clock_seconds", 0),
-            x_precision="hms",
-        )
+        formatter = getattr(widget, "_cursor_time_text_formatter", None)
+        instant_text = ""
+        if callable(formatter):
+            try:
+                instant_text = str(formatter(val_x) or "").strip()
+            except Exception:
+                instant_text = ""
+        if not instant_text:
+            instant_text = self._format_absolute_time_hours_axis(
+                val_x,
+                hour_format=getattr(cfg_x, "x_hour_format", "hm") if cfg_x else "hm",
+                day_format=getattr(cfg_x, "x_day_format", "split_days") if cfg_x else "split_days",
+                start_clock_seconds=getattr(widget, "_start_clock_seconds", 0),
+                x_precision=(getattr(cfg_x, "x_precision", "hms") if cfg_x else "hms") or "hms",
+            )
         footer_segments = self._build_styled_footer_segments(instant_text)
         tooltip_lines, marker_pts = self._collect_hover_tooltip_data(widget, hover_index, val_x, plot_rect, x_state, y_state_left, y_state_right)
 

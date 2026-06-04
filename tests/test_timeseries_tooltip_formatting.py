@@ -8,6 +8,7 @@ from QGISRed.ui.analysis.timeseries_time_utils import (
     civil_midnight_elapsed_hours,
     format_civil_time,
     format_elapsed_time,
+    format_time_like_results_panel,
     merge_time_of_day_x_ticks,
     parse_clock_time_to_seconds,
 )
@@ -115,6 +116,21 @@ class TestTimeFormatting:
         assert format_elapsed_time(34.5, hour_format="h", day_format="total_hours") == "34.5"
         assert format_elapsed_time(34.5, hour_format="elapsed_hm", day_format="split_days") == "1d 10:30"
         assert format_elapsed_time(34.5, hour_format="elapsed_hm", day_format="total_hours") == "34:30"
+
+    def test_results_panel_time_format_elapsed(self):
+        assert format_time_like_results_panel(10.5) == "10:30"
+        assert format_time_like_results_panel(34.5) == "1d 10:30"
+
+    def test_results_panel_time_format_continuous(self):
+        assert format_time_like_results_panel(34.5, continuous_hours_mode=True) == "34:30"
+
+    def test_results_panel_time_format_civil(self):
+        start = parse_clock_time_to_seconds("17:00")
+        assert format_time_like_results_panel(0.0, start_clock_seconds=start, civil_mode=True) == "17:00"
+        assert (
+            format_time_like_results_panel(0.0, start_clock_seconds=start, civil_mode=True, am_pm=True)
+            == "5:00 pm"
+        )
 
     def test_civil_midnight_ticks_include_first_day_boundary(self):
         start = parse_clock_time_to_seconds("17:00")
