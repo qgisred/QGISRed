@@ -2565,6 +2565,11 @@ Do you also want to delete the result files from disk?</source>
         <translation>Árbol</translation>
     </message>
     <message>
+        <location filename="../tools/utils/qgisred_layer_utils.py" line="103"/>
+        <source>Trees</source>
+        <translation>Árboles</translation>
+    </message>
+    <message>
         <location filename="../tools/utils/qgisred_layer_utils.py" line="94"/>
         <source>Inputs</source>
         <translation>Datos</translation>
