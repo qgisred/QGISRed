@@ -3521,10 +3521,26 @@ class QGISRedLegendsDialog(QDialog, formClass):
             strategy = json.loads(rawStrategy)
         except Exception:
             return
+        self.applyStrategyToDialog(strategy)
+
+    def applyStrategyToDialog(self, strategy):
+        if not isinstance(strategy, dict):
+            return
 
         parts = strategy.get("parts")
         if not isinstance(parts, list):
             parts = self.inferLegacyParts(strategy)
+
+        mode = strategy.get("mode")
+        desiredType = {"graduated": "graduatedSymbol", "categorized": "categorizedSymbol"}.get(mode)
+        if desiredType and desiredType != self.getCurrentRendererType():
+            index = self.cbLegendsType.findData(desiredType)
+            if index >= 0:
+                self.cbLegendsType.setCurrentIndex(index)
+
+        if mode == "categorized" and self.currentFieldType == self.FIELD_TYPE_CATEGORICAL:
+            if any(part in parts for part in ("intervals", "sizes", "colors")):
+                self.classifyMissingUniqueValues()
 
         if "intervals" in parts:
             self.restoreIntervalsUi(self.readPartBlock(strategy, "intervals"))
