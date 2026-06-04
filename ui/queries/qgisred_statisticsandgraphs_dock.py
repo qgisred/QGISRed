@@ -288,6 +288,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             for combo in combos:
                 combo.blockSignals(False)
         self.histogram.clear()
+        self.labelPropertyByClasses.setText("")
         self.tbExcel.setRowCount(0)
         self.tbExcel.setColumnCount(0)
         self.labelOnlySelectedElements.hide()
@@ -297,6 +298,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.lastNullCount = 0
         self.lastOutOfRangeCount = 0
         self.histogram.clear()
+        self.labelPropertyByClasses.setText("")
         self.tbExcel.setRowCount(0)
         self.tbExcel.setColumnCount(0)
         self.labelOnlySelectedElements.hide()
@@ -486,6 +488,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             return
         self.manualBreaks = []
         self.histogram.clear()
+        self.labelPropertyByClasses.setText("")
         self.tbExcel.setRowCount(0)
         self.tbExcel.setColumnCount(0)
         self.labelOnlySelectedElements.hide()
