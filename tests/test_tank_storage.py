@@ -3,13 +3,18 @@ import math
 
 import pytest
 
+from QGISRed.ui.analysis.qgisred_results_binary import _NT_TANK
 from QGISRed.ui.analysis.qgisred_tank_storage import (
     _tank_area_from_diameter,
+    _tank_can_overflow,
     _tank_diameter_dbf_to_model_length,
     cylindrical_volume_from_level,
     getOut_TimesTankStoredVolumes,
+    getOut_TimesTotalTankSpill,
     interpolate_volume_curve,
+    spill_flow_from_tank_state,
     total_stored_volume_from_tank_rows,
+    total_tank_spill_from_period,
     volume_from_level,
 )
 
@@ -118,6 +123,66 @@ class TestThreeTankNetworkFormula:
         assert self._expected_total(0) == pytest.approx(self.QGIS_TOTALS[0], rel=1e-5)
 
 
+class TestTankSpillFlow:
+    def test_overflow_flag(self):
+        assert _tank_can_overflow("YES") is True
+        assert _tank_can_overflow("no") is False
+        assert _tank_can_overflow("") is False
+
+    def test_spill_only_when_full(self):
+        assert spill_flow_from_tank_state(
+            12.5, 24.9, can_overflow=True, min_level=5.0, max_level=25.0,
+        ) == 0.0
+        assert spill_flow_from_tank_state(
+            12.5, 25.0, can_overflow=True, min_level=5.0, max_level=25.0,
+        ) == pytest.approx(12.5)
+
+    def test_no_overflow_tank(self):
+        assert spill_flow_from_tank_state(
+            20.0, 30.0, can_overflow=False, min_level=0.0, max_level=10.0,
+        ) == 0.0
+
+    def test_sum_two_overflow_tanks(self):
+        node_types = [_NT_TANK, _NT_TANK]
+        node_ids = ["T1", "T2"]
+        props = {
+            "T1": {
+                "elevation": 100.0,
+                "min_level": 0.0,
+                "max_level": 20.0,
+                "can_overflow": True,
+            },
+            "T2": {
+                "elevation": 50.0,
+                "min_level": 0.0,
+                "max_level": 10.0,
+                "can_overflow": True,
+            },
+        }
+        demands = [5.0, 3.0]
+        heads = [120.0, 60.0]
+        total = total_tank_spill_from_period(
+            demands, heads, node_types, node_ids, props,
+        )
+        assert total == pytest.approx(8.0)
+
+    def test_skips_tank_without_overflow_enabled(self):
+        node_types = [_NT_TANK]
+        node_ids = ["T1"]
+        props = {
+            "T1": {
+                "elevation": 100.0,
+                "min_level": 0.0,
+                "max_level": 20.0,
+                "can_overflow": False,
+            },
+        }
+        assert total_tank_spill_from_period(
+            [10.0], [120.0], node_types, node_ids, props,
+        ) == 0.0
+
+
 class TestGetOutTimesTankStoredVolumes:
     def test_missing_out_returns_empty(self):
         assert getOut_TimesTankStoredVolumes("/no/such/file.out", "", "Net") == []
+        assert getOut_TimesTotalTankSpill("/no/such/file.out", "", "Net") == []

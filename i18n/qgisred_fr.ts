@@ -5462,6 +5462,16 @@ Left-click: Add a new item below the current selection</source>
         <source>Total Stored Volume</source>
         <translation>Volume total stocké</translation>
     </message>
+    <message>
+        <location filename="../ui/analysis/timeseries_globals.py" line="40"/>
+        <source>Total Tank Spill Flow</source>
+        <translation>Débit total de trop-plein</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/timeseries_globals.py" line="28"/>
+        <source>System</source>
+        <translation>Système</translation>
+    </message>
 </context>
 <context>
     <name>StaleLayerManager</name>

@@ -416,12 +416,12 @@ class AnalysisSection:
         if not hasattr(self, "timeSeriesSelection"):
             self.timeSeriesSelection = []
 
-            from ..ui.analysis.timeseries_globals import (
+        from ..ui.analysis.timeseries_globals import (
             GLOBAL_SYSTEM_VARIABLE_KEYS,
-            TOTAL_STORED_VOLUME_KEY,
             get_global_timeseries,
             global_series_y_display_decimals,
             global_variable_display_label,
+            global_variable_legend_label,
         )
 
         if variable_key not in GLOBAL_SYSTEM_VARIABLE_KEYS:
@@ -429,11 +429,7 @@ class AnalysisSection:
 
         prop_internal = variable_key
         prop_display = global_variable_display_label(variable_key)
-        if variable_key == TOTAL_STORED_VOLUME_KEY:
-            unit_abbr = QGISRedFieldUtils().getUnitAbbreviation(normalize_element("Tanks"), "MinVolume")
-        else:
-            unit_abbr = QGISRedFieldUtils().getUnitAbbreviation(normalize_element("Node"), "Demand")
-        y_label_with_unit = f"{prop_display} ({unit_abbr})" if unit_abbr else prop_display
+        y_label_with_unit = global_variable_legend_label(variable_key)
 
         palette = [
             QColor(0, 120, 215), QColor(220, 57, 18), QColor(16, 150, 24),
@@ -1036,6 +1032,12 @@ class AnalysisSection:
 
         x_data = [t / 3600.0 for t in source["times"]]
 
+        from ..ui.analysis.timeseries_globals import (
+            get_global_timeseries,
+            global_axis_group_label,
+            global_variable_legend_label,
+        )
+
         series = []
         for idx, it in enumerate(self.timeSeriesSelection):
             element_id = it.get("element_id")
@@ -1048,8 +1050,6 @@ class AnalysisSection:
             y_categorical_labels = it.get("y_categorical_labels")
             layer_identifier = it.get("layer_identifier") or ""
             if category == "Global":
-                from ..ui.analysis.timeseries_globals import get_global_timeseries
-
                 y_data = get_global_timeseries(source, prop_internal)
                 element_id = it.get("element_id") or prop_internal
             else:
@@ -1076,7 +1076,11 @@ class AnalysisSection:
             label = f"{element_id}"
             legend_type = category
             if category == "Global":
-                label = it.get("legend_label") or (it.get("prop_display") or prop_display)
+                label = (
+                    it.get("legend_label")
+                    or it.get("y_label_with_unit")
+                    or global_variable_legend_label(prop_internal)
+                )
                 legend_type = "global"
             elif layer:
                 identifier = layer.customProperty("qgisred_identifier")
@@ -1101,7 +1105,11 @@ class AnalysisSection:
                 "y_categorical_labels": y_categorical_labels,
                 "legend_type": legend_type,
                 "series_key": f"{category}:{layer_identifier}:{prop_internal}:{element_id}",
-                "magnitude": y_label_with_unit or prop_display,
+                "magnitude": (
+                    global_axis_group_label()
+                    if category == "Global"
+                    else (y_label_with_unit or prop_display)
+                ),
                 "line_style": it.get("line_style") or "solid",
                 "line_width": it.get("line_width") or 2.0,
                 "show_markers": bool(it.get("show_markers", False)),

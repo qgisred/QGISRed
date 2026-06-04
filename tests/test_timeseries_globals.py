@@ -4,6 +4,7 @@ import pytest
 from QGISRed.ui.analysis.timeseries_globals import (
     TOTAL_STORED_VOLUME_DISPLAY_DECIMALS,
     TOTAL_STORED_VOLUME_KEY,
+    TOTAL_TANK_SPILL_KEY,
     TOTAL_WATER_DEMAND_KEY,
     TOTAL_WATER_SUPPLY_KEY,
     get_global_timeseries,
@@ -46,6 +47,27 @@ class TestGetGlobalTimeseries:
             "network_name": "Net",
         }
         assert get_global_timeseries(source, TOTAL_STORED_VOLUME_KEY) == expected
+
+    def test_total_tank_spill_out(self, monkeypatch):
+        expected = [0.0, 12.5, 8.0]
+
+        def fake_spill(out_path, project_directory, network_name):
+            assert out_path == "net.out"
+            assert project_directory == "/proj"
+            assert network_name == "Net"
+            return list(expected)
+
+        monkeypatch.setattr(
+            "QGISRed.ui.analysis.timeseries_globals.getOut_TimesTotalTankSpill",
+            fake_spill,
+        )
+        source = {
+            "kind": "out",
+            "out_path": "net.out",
+            "project_directory": "/proj",
+            "network_name": "Net",
+        }
+        assert get_global_timeseries(source, TOTAL_TANK_SPILL_KEY) == expected
 
     def test_unknown_variable(self, simple_network_out):
         source = {"kind": "out", "out_path": simple_network_out}

@@ -240,14 +240,23 @@ def test_global_series_table_header_single_line_with_units():
 
     d = QGISRedTimeSeriesDock.__new__(QGISRedTimeSeriesDock)
     d.tr = lambda message: message
-    series = {
+    series_legacy = {
         "label": "Total Water Supply",
         "magnitude": "Total Water Supply (LPS)",
         "series_key": "Global:global:TotalWaterSupply:TotalWaterSupply",
         "legend_type": "global",
     }
-    assert d._seriesTableColumnHeaderParts(series) == ("Total Water Supply (LPS)", "")
-    assert d._seriesTableColumnHeaderLabel(series) == "Total Water Supply (LPS)"
+    assert d._seriesTableColumnHeaderParts(series_legacy) == ("Total Water Supply (LPS)", "")
+    assert d._seriesTableColumnHeaderLabel(series_legacy) == "Total Water Supply (LPS)"
+
+    series_current = {
+        "label": "Total Water Supply (LPS)",
+        "magnitude": "System",
+        "series_key": "Global:global:TotalWaterSupply:TotalWaterSupply",
+        "legend_type": "global",
+    }
+    assert d._seriesTableColumnHeaderParts(series_current) == ("System", "Total Water Supply (LPS)")
+    assert d._seriesTableColumnHeaderLabel(series_current) == "System\nTotal Water Supply (LPS)"
 
 
 def test_series_table_column_header_two_lines():

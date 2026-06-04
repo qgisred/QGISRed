@@ -4,11 +4,17 @@
 from qgis.PyQt.QtCore import QCoreApplication
 
 from .qgisred_results_binary import getOut_TimesTotalWaterDemand, getOut_TimesTotalWaterSupply
-from .qgisred_tank_storage import getOut_TimesTotalStoredVolume, getHyd_TimesTotalStoredVolume
+from .qgisred_tank_storage import (
+    getHyd_TimesTotalStoredVolume,
+    getHyd_TimesTotalTankSpill,
+    getOut_TimesTotalStoredVolume,
+    getOut_TimesTotalTankSpill,
+)
 
 TOTAL_WATER_SUPPLY_KEY = "TotalWaterSupply"
 TOTAL_WATER_DEMAND_KEY = "TotalWaterDemand"
 TOTAL_STORED_VOLUME_KEY = "TotalStoredVolume"
+TOTAL_TANK_SPILL_KEY = "TotalTankSpill"
 
 # Display-only decimals for time-series charts/tables (not used in volume math).
 TOTAL_STORED_VOLUME_DISPLAY_DECIMALS = 2
@@ -17,11 +23,17 @@ GLOBAL_SYSTEM_VARIABLE_KEYS = frozenset({
     TOTAL_WATER_SUPPLY_KEY,
     TOTAL_WATER_DEMAND_KEY,
     TOTAL_STORED_VOLUME_KEY,
+    TOTAL_TANK_SPILL_KEY,
 })
 
 
 def tr(message: str) -> str:
     return QCoreApplication.translate("TimeSeriesGlobals", message)
+
+
+def global_axis_group_label() -> str:
+    """Short Y-axis / legend group title for system global-variable series."""
+    return tr("System")
 
 
 def global_system_variable_choices():
@@ -30,6 +42,7 @@ def global_system_variable_choices():
         (TOTAL_WATER_SUPPLY_KEY, tr("Total Water Supply")),
         (TOTAL_WATER_DEMAND_KEY, tr("Total Water Demand")),
         (TOTAL_STORED_VOLUME_KEY, tr("Total Stored Volume")),
+        (TOTAL_TANK_SPILL_KEY, tr("Total Tank Spill Flow")),
     ]
 
 
@@ -45,8 +58,25 @@ def global_variable_display_label(key: str) -> str:
         TOTAL_WATER_SUPPLY_KEY: tr("Total Water Supply"),
         TOTAL_WATER_DEMAND_KEY: tr("Total Water Demand"),
         TOTAL_STORED_VOLUME_KEY: tr("Total Stored Volume"),
+        TOTAL_TANK_SPILL_KEY: tr("Total Tank Spill Flow"),
     }
     return labels.get(key, key)
+
+
+def global_variable_unit_abbreviation(variable_key: str) -> str:
+    from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
+
+    utils = QGISRedFieldUtils()
+    if variable_key == TOTAL_STORED_VOLUME_KEY:
+        return utils.getUnitAbbreviation(normalize_element("Tanks"), "MinVolume")
+    return utils.getUnitAbbreviation(normalize_element("Node"), "Demand")
+
+
+def global_variable_legend_label(variable_key: str) -> str:
+    """Legend / table row label: variable name and unit (axis stays on ``System``)."""
+    display = global_variable_display_label(variable_key)
+    unit_abbr = global_variable_unit_abbreviation(variable_key)
+    return f"{display} ({unit_abbr})" if unit_abbr else display
 
 
 def get_global_timeseries(source, variable_key):
@@ -72,6 +102,14 @@ def get_global_timeseries(source, variable_key):
                 source["out_path"], project_directory, network_name,
             )
         return getHyd_TimesTotalStoredVolume(
+            source["hyd_path"], source["out_path"], project_directory, network_name,
+        )
+    if variable_key == TOTAL_TANK_SPILL_KEY:
+        if source["kind"] == "out":
+            return getOut_TimesTotalTankSpill(
+                source["out_path"], project_directory, network_name,
+            )
+        return getHyd_TimesTotalTankSpill(
             source["hyd_path"], source["out_path"], project_directory, network_name,
         )
     return []

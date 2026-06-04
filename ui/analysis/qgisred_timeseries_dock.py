@@ -1757,11 +1757,14 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
     def _seriesTableColumnHeaderParts(self, series_dict) -> tuple:
         parts = str(series_dict.get("series_key") or "").split(":")
         if parts and parts[0] == "Global":
-            mag = (series_dict.get("magnitude") or "").strip()
-            if mag:
-                return mag, ""
-            lab = (series_dict.get("label") or "").strip()
-            return (lab or self.tr("Value")), ""
+            magnitude = (series_dict.get("magnitude") or "").strip()
+            variable = (
+                (series_dict.get("y_label_with_unit") or "").strip()
+                or (series_dict.get("label") or "").strip()
+            )
+            if magnitude and "(" in magnitude:
+                return magnitude, ""
+            return magnitude or self.tr("System"), variable
 
         try:
             element_id, element_type = self._seriesElementInfo(series_dict)

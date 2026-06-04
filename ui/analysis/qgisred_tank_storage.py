@@ -19,9 +19,12 @@ at minimum water level, not necessarily zero).
 - During the simulation, volume never drops below ``Vmin``; when recomputing from
   reported heads we apply the same floor: ``max(interp(h), interp(Hmin))``.
 
-**Numeric policy:** use EPANET values as read (``.out`` float32 heads, binary
-``tank_areas``, DBF fields) with no rounding in volume math. Chart/table display
-decimals are handled separately in the time-series UI (see ``timeseries_globals``).
+**Numeric policy:** use EPANET values as read (``.out`` float32 heads/demands, binary
+``tank_areas``, DBF fields) with no rounding in volume or spill-flow math. Chart/table
+display decimals are handled separately in the time-series UI (see ``timeseries_globals``).
+
+**Tank spill (EPANET 2.2+):** for tanks with ``Overflow = YES``, spillage rate is read
+from the node ``Demand`` in the ``.out`` when the water level is at ``MaxLevel``.
 
 EPANET volume curves in ``[CURVES]`` / ``Curves.dbf``: X = level, Y = volume.
 
@@ -128,6 +131,14 @@ def _as_text(value) -> str:
     return text
 
 
+def _tank_can_overflow(value) -> bool:
+    """True when EPANET tank overflow / spill is enabled (``[TANKS]`` Overflow = YES)."""
+    text = _as_text(value).upper()
+    if not text:
+        return False
+    return text in ("YES", "Y", "SI", "S", "1", "TRUE")
+
+
 def _load_tank_properties(project_directory: str, network_name: str) -> Dict[str, dict]:
     path = os.path.join(project_directory, f"{network_name}_Tanks.dbf")
     tanks = {}
@@ -139,8 +150,10 @@ def _load_tank_properties(project_directory: str, network_name: str) -> Dict[str
             "elevation": _as_float(row.get("Elevation")),
             "min_volume": _as_float(row.get("MinVolume")),
             "min_level": _as_float(row.get("MinLevel")),
+            "max_level": _as_float(row.get("MaxLevel")),
             "diameter": _as_float(row.get("Diameter")),
             "volume_curve_id": _as_text(row.get("IdVolCurve")),
+            "can_overflow": _tank_can_overflow(row.get("Overflow")),
         }
     return tanks
 
@@ -232,6 +245,75 @@ def _tank_diameter_dbf_to_model_length(diameter_dbf: float, flow_units) -> float
     if _is_metric_model(flow_units):
         return d / 1000.0
     return d
+
+
+def spill_flow_from_tank_state(
+    demand: float,
+    level: float,
+    *,
+    can_overflow: bool,
+    min_level: float,
+    max_level: float,
+) -> float:
+    """EPANET spillage rate for one tank at a report step (flow, not volume).
+
+    Only tanks with overflow enabled contribute. When ``max_level > min_level``,
+    spill is counted only if ``level`` is at or above ``max_level``; otherwise
+    positive ``demand`` is treated as spill (EPANET reports spillage in ``Demand``).
+    """
+    if not can_overflow:
+        return 0.0
+    if max_level > min_level + 1e-9 and level < max_level - 1e-6:
+        return 0.0
+    return max(0.0, float(demand))
+
+
+def total_tank_spill_from_period(
+    demands: Sequence[float],
+    heads: Sequence[float],
+    node_types: Sequence[int],
+    node_ids: Sequence[str],
+    tank_props_by_id: Dict[str, dict],
+    *,
+    head_factor: float = 1.0,
+    demand_factor: float = 1.0,
+) -> float:
+    """Sum spill flow over all overflow-enabled tanks at one time step."""
+    total = 0.0
+    for node_index, node_type in enumerate(node_types):
+        if node_type != _NT_TANK:
+            continue
+        tank_id = node_ids[node_index]
+        props = tank_props_by_id.get(tank_id, {})
+        if not props.get("can_overflow"):
+            continue
+        elevation = float(props.get("elevation", 0.0))
+        head = float(heads[node_index]) * head_factor
+        level = head - elevation
+        demand = float(demands[node_index]) * demand_factor
+        total += spill_flow_from_tank_state(
+            demand,
+            level,
+            can_overflow=True,
+            min_level=float(props.get("min_level", 0.0)),
+            max_level=float(props.get("max_level", 0.0)),
+        )
+    return total
+
+
+def _read_demands_by_period(handle, meta) -> List[List[float]]:
+    n_nodes = meta["n_nodes"]
+    num_periods = meta["num_periods"]
+    period_size = meta["period_size"]
+    results_offset = meta["results_offset"]
+    demands = [[0.0] * num_periods for _ in range(n_nodes)]
+
+    for period in range(num_periods):
+        base = results_offset + period * period_size
+        for node_index in range(n_nodes):
+            handle.seek(base + node_index * 4)
+            demands[node_index][period] = struct.unpack("f", handle.read(4))[0]
+    return demands
 
 
 def _read_heads_by_period(handle, meta) -> List[List[float]]:
@@ -423,3 +505,69 @@ def getHyd_TimesTotalStoredVolume(hyd_file_path: str, out_file_path: str, projec
     return total_stored_volume_from_tank_rows(
         getHyd_TimesTankStoredVolumes(hyd_file_path, out_file_path, project_directory, network_name),
     )
+
+
+def getOut_TimesTotalTankSpill(out_file_path: str, project_directory: str, network_name: str):
+    """Total spill (overflow) flow from all overflow-enabled tanks at each report step."""
+    if not out_file_path or not os.path.exists(out_file_path):
+        return []
+
+    tank_props = _load_tank_properties(project_directory, network_name)
+    with open(out_file_path, "rb") as handle:
+        meta = getOut_Metadata(handle, include_geometry=True)
+        if not meta:
+            return []
+        demands_by_period = _read_demands_by_period(handle, meta)
+        heads_by_period = _read_heads_by_period(handle, meta)
+
+    node_types = meta["node_types"]
+    node_ids = meta["node_ids"]
+    n_nodes = meta["n_nodes"]
+    num_periods = meta["num_periods"]
+    totals = []
+    for period in range(num_periods):
+        demands = [demands_by_period[ni][period] for ni in range(n_nodes)]
+        heads = [heads_by_period[ni][period] for ni in range(n_nodes)]
+        totals.append(
+            total_tank_spill_from_period(
+                demands, heads, node_types, node_ids, tank_props,
+            )
+        )
+    return totals
+
+
+def getHyd_TimesTotalTankSpill(
+    hyd_file_path: str,
+    out_file_path: str,
+    project_directory: str,
+    network_name: str,
+):
+    """Total tank spill flow at each hydraulic (.hyd) step."""
+    from .qgisred_results_hyd import _flow_factor_from_units, _head_factor_from_units, _read_hyd_period, getHyd_Metadata
+
+    meta = getHyd_Metadata(hyd_file_path, out_file_path)
+    if not meta:
+        return []
+
+    tank_props = _load_tank_properties(project_directory, network_name)
+    flow_factor = _flow_factor_from_units(meta.get("flow_units"))
+    head_factor = _head_factor_from_units(meta.get("flow_units"))
+    node_types = meta["node_types"]
+    node_ids = meta["node_ids"]
+    n_nodes = meta["n_nodes"]
+    num_periods = meta["hyd_num_periods"]
+    totals = []
+    for period in range(num_periods):
+        _, demands, heads, _, _, _ = _read_hyd_period(hyd_file_path, meta, period)
+        totals.append(
+            total_tank_spill_from_period(
+                demands,
+                heads,
+                node_types,
+                node_ids,
+                tank_props,
+                head_factor=head_factor,
+                demand_factor=flow_factor,
+            )
+        )
+    return totals
