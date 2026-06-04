@@ -132,6 +132,7 @@ class QGISRedStylingUtils:
             layer.loadNamedStyle(qmlPath)
             layer.setLabelsEnabled(False)
             self.applyStrategyFromLayer(layer)
+            self.translateRendererLabels(layer)
             return
 
         # 2- global style
@@ -141,6 +142,7 @@ class QGISRedStylingUtils:
             layer.loadNamedStyle(qmlPath)
             layer.setLabelsEnabled(False)
             self.applyStrategyFromLayer(layer)
+            self.translateRendererLabels(layer)
             return
 
         # 3- default style
@@ -150,6 +152,7 @@ class QGISRedStylingUtils:
         layer.loadNamedStyle(qmlPath)
         layer.setLabelsEnabled(False)
         self.applyStrategyFromLayer(layer)
+        self.translateRendererLabels(layer)
 
     def applyStrategyFromLayer(self, layer):
         rawStrategy = layer.customProperty("qgisred_legend_strategy")
@@ -323,7 +326,7 @@ class QGISRedStylingUtils:
             symbol = templateSymbol.clone()
             color = self.resolveCategoryColor(value, index, valueCount, ramp, invertRamp)
             symbol.setColor(color)
-            categories.append(QgsRendererCategory(value, symbol, str(value)))
+            categories.append(QgsRendererCategory(value, symbol, self._translateCategoryLabel(value)))
 
         if nullValues:
             symbol = templateSymbol.clone()
@@ -432,6 +435,45 @@ class QGISRedStylingUtils:
             seededRandom.randint(0, 255),
         )
 
+    def _translateCategoryLabel(self, value):
+        if isinstance(value, str):
+            if value == "ClosedLinks":
+                return self.tr("Closed Links")
+            if value == "OpenLinks":
+                return self.tr("Open Links")
+            if value == "ActiveLinks":
+                return self.tr("Active Links")
+        return str(value)
+
+    def translateRendererLabels(self, layer):
+        renderer = layer.renderer()
+        if renderer is None:
+            return
+
+        if isinstance(renderer, QgsCategorizedSymbolRenderer):
+            categories = []
+            for category in renderer.categories():
+                categories.append(
+                    QgsRendererCategory(
+                        category.value(),
+                        category.symbol().clone(),
+                        self._translateCategoryLabel(category.value()),
+                    )
+                )
+            layer.setRenderer(QgsCategorizedSymbolRenderer(renderer.classAttribute(), categories))
+
+        elif isinstance(renderer, QgsRuleBasedRenderer):
+            self._translateRuleLabels(renderer.rootRule())
+
+    def _translateRuleLabels(self, rule):
+        if rule is None:
+            return
+        label = self._translateCategoryLabel(rule.label())
+        if label != rule.label():
+            rule.setLabel(label)
+        for child in rule.children():
+            self._translateRuleLabels(child)
+
     def graduatedModeEnum(self, classificationMode):
         mapping = {
             "EqualInterval": QgsGraduatedSymbolRenderer.EqualInterval,
@@ -496,7 +538,7 @@ class QGISRedStylingUtils:
             if symbolLayer is not None:
                 symbol.changeSymbolLayer(0, symbolLayer)
 
-            category = QgsRendererCategory(uniqueValue, symbol, str(uniqueValue))
+            category = QgsRendererCategory(uniqueValue, symbol, self._translateCategoryLabel(uniqueValue))
             categories.append(category)
 
         renderer = QgsCategorizedSymbolRenderer(field, categories)
