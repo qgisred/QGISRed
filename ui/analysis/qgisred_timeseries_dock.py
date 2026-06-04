@@ -424,7 +424,12 @@ class TimeSeriesPlotWidget(QWidget):
             except Exception:
                 v_str = str(v)
         else:
-            v_str = self._format_value_full(v)
+            renderer = getattr(self, "_renderer", None)
+            dec = renderer._series_result_decimal_places(series_dict) if renderer else None
+            if dec is not None and renderer is not None:
+                v_str = renderer._format_value_with_decimal_places(v, dec)
+            else:
+                v_str = self._format_value_full(v)
         return f"{base}: {v_str}"
 
     def update(self):
@@ -2210,6 +2215,12 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         """Format a plotted value for the values table (Units decimals via QGISRedFieldUtils)."""
         if value is None:
             return None
+        display_decimals = series_dict.get("y_display_decimals")
+        if display_decimals is not None:
+            try:
+                return f"{float(value):.{max(0, int(display_decimals))}f}"
+            except (TypeError, ValueError):
+                pass
         renderer = getattr(getattr(self, "plot", None), "_renderer", None)
         if renderer is not None:
             return renderer._point_value_text(series_dict, value)

@@ -252,6 +252,12 @@ class TimeSeriesPlotRenderer:
     def _series_result_decimal_places(self, s) -> Optional[int]:
         if s.get("y_categorical_labels"):
             return None
+        display_decimals = s.get("y_display_decimals")
+        if display_decimals is not None:
+            try:
+                return max(0, int(display_decimals))
+            except (TypeError, ValueError):
+                pass
         try:
             parts = str(s.get("series_key") or "").split(":")
             if len(parts) < 3 or not parts[2]:

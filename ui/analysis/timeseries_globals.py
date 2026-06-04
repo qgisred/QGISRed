@@ -4,13 +4,19 @@
 from qgis.PyQt.QtCore import QCoreApplication
 
 from .qgisred_results_binary import getOut_TimesTotalWaterDemand, getOut_TimesTotalWaterSupply
+from .qgisred_tank_storage import getOut_TimesTotalStoredVolume, getHyd_TimesTotalStoredVolume
 
 TOTAL_WATER_SUPPLY_KEY = "TotalWaterSupply"
 TOTAL_WATER_DEMAND_KEY = "TotalWaterDemand"
+TOTAL_STORED_VOLUME_KEY = "TotalStoredVolume"
+
+# Display-only decimals for time-series charts/tables (not used in volume math).
+TOTAL_STORED_VOLUME_DISPLAY_DECIMALS = 2
 
 GLOBAL_SYSTEM_VARIABLE_KEYS = frozenset({
     TOTAL_WATER_SUPPLY_KEY,
     TOTAL_WATER_DEMAND_KEY,
+    TOTAL_STORED_VOLUME_KEY,
 })
 
 
@@ -23,19 +29,31 @@ def global_system_variable_choices():
     return [
         (TOTAL_WATER_SUPPLY_KEY, tr("Total Water Supply")),
         (TOTAL_WATER_DEMAND_KEY, tr("Total Water Demand")),
+        (TOTAL_STORED_VOLUME_KEY, tr("Total Stored Volume")),
     ]
+
+
+def global_series_y_display_decimals(variable_key: str):
+    """Return fixed Y-axis display decimals for a global variable, or None for CSV defaults."""
+    if variable_key == TOTAL_STORED_VOLUME_KEY:
+        return TOTAL_STORED_VOLUME_DISPLAY_DECIMALS
+    return None
 
 
 def global_variable_display_label(key: str) -> str:
     labels = {
         TOTAL_WATER_SUPPLY_KEY: tr("Total Water Supply"),
         TOTAL_WATER_DEMAND_KEY: tr("Total Water Demand"),
+        TOTAL_STORED_VOLUME_KEY: tr("Total Stored Volume"),
     }
     return labels.get(key, key)
 
 
 def get_global_timeseries(source, variable_key):
     """Return a full time series for a system global variable."""
+    project_directory = source.get("project_directory") or ""
+    network_name = source.get("network_name") or ""
+
     if variable_key == TOTAL_WATER_SUPPLY_KEY:
         if source["kind"] == "out":
             return getOut_TimesTotalWaterSupply(source["out_path"])
@@ -48,4 +66,12 @@ def get_global_timeseries(source, variable_key):
         from .qgisred_results_hyd import getHyd_TimesTotalWaterDemand
 
         return getHyd_TimesTotalWaterDemand(source["hyd_path"], source["out_path"])
+    if variable_key == TOTAL_STORED_VOLUME_KEY:
+        if source["kind"] == "out":
+            return getOut_TimesTotalStoredVolume(
+                source["out_path"], project_directory, network_name,
+            )
+        return getHyd_TimesTotalStoredVolume(
+            source["hyd_path"], source["out_path"], project_directory, network_name,
+        )
     return []

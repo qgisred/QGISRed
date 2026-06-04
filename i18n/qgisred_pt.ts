@@ -5457,6 +5457,11 @@ Left-click: Add a new item below the current selection</source>
         <source>Total Water Demand</source>
         <translation>Caudal total demandado</translation>
     </message>
+    <message>
+        <location filename="../ui/analysis/timeseries_globals.py" line="29"/>
+        <source>Total Stored Volume</source>
+        <translation>Volume total armazenado</translation>
+    </message>
 </context>
 <context>
     <name>StaleLayerManager</name>

@@ -88,6 +88,8 @@ class AnalysisSection:
                                 "out_path": out_path,
                                 "hyd_path": hyd_path,
                                 "times": times,
+                                "project_directory": self.ProjectDirectory,
+                                "network_name": self.NetworkName,
                             }
                 except Exception:
                     pass
@@ -104,6 +106,8 @@ class AnalysisSection:
             "kind": "out",
             "out_path": out_path,
             "times": times,
+            "project_directory": self.ProjectDirectory,
+            "network_name": self.NetworkName,
         }
 
     def _getSeriesValuesForSource(self, source, category, element_id, prop_internal):
@@ -412,9 +416,11 @@ class AnalysisSection:
         if not hasattr(self, "timeSeriesSelection"):
             self.timeSeriesSelection = []
 
-        from ..ui.analysis.timeseries_globals import (
+            from ..ui.analysis.timeseries_globals import (
             GLOBAL_SYSTEM_VARIABLE_KEYS,
+            TOTAL_STORED_VOLUME_KEY,
             get_global_timeseries,
+            global_series_y_display_decimals,
             global_variable_display_label,
         )
 
@@ -423,7 +429,10 @@ class AnalysisSection:
 
         prop_internal = variable_key
         prop_display = global_variable_display_label(variable_key)
-        unit_abbr = QGISRedFieldUtils().getUnitAbbreviation(normalize_element("Node"), "Demand")
+        if variable_key == TOTAL_STORED_VOLUME_KEY:
+            unit_abbr = QGISRedFieldUtils().getUnitAbbreviation(normalize_element("Tanks"), "MinVolume")
+        else:
+            unit_abbr = QGISRedFieldUtils().getUnitAbbreviation(normalize_element("Node"), "Demand")
         y_label_with_unit = f"{prop_display} ({unit_abbr})" if unit_abbr else prop_display
 
         palette = [
@@ -469,6 +478,7 @@ class AnalysisSection:
             "prop_internal": prop_internal,
             "prop_display": prop_display,
             "y_label_with_unit": y_label_with_unit,
+            "y_display_decimals": global_series_y_display_decimals(variable_key),
             "is_stepped": False,
             "y_categorical_labels": None,
         })
@@ -1082,7 +1092,7 @@ class AnalysisSection:
                 label = f"{specific_type} {element_id}"
                 legend_type = identifier or category
 
-            series.append({
+            series_entry = {
                 "x": x_data,
                 "y": y_data,
                 "label": (it.get("legend_label") or label),
@@ -1106,7 +1116,11 @@ class AnalysisSection:
                 "emphasis_mode": it.get("emphasis_mode") or "normal",
                 "legend_font_family": it.get("legend_font_family") or "",
                 "legend_font_size": it.get("legend_font_size") or 8,
-            })
+            }
+            display_decimals = it.get("y_display_decimals")
+            if display_decimals is not None:
+                series_entry["y_display_decimals"] = display_decimals
+            series.append(series_entry)
 
         if not series:
             return
