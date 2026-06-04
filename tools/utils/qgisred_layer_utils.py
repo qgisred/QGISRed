@@ -104,13 +104,13 @@ class QGISRedLayerUtils:
             "Hydraulic Sectors": QCoreApplication.translate("QGISRedGroups", "Hydraulic Sectors"),
             "Demand Sectors":    QCoreApplication.translate("QGISRedGroups", "Demand Sectors"),
             "Isolated Segments": QCoreApplication.translate("QGISRedGroups", "Isolated Segments"),
-            "Tree":              QCoreApplication.translate("QGISRedGroups", "Tree"),
             "Trees":             QCoreApplication.translate("QGISRedGroups", "Trees"),
             "DemandsBuilder":     QCoreApplication.translate("QGISRedGroups", "DemandsBuilder"),
-            "Auxiliary Layers":         QCoreApplication.translate("QGISRedGroups", "Auxiliary Layers"),
+            "Auxiliary Layers":   QCoreApplication.translate("QGISRedGroups", "Auxiliary Layers"),
         }
+        # Dynamic tree groups (e.g. "Tree: J5-Unión") don't need translation; return as-is
         if name.startswith("Tree: "):
-            return _TRANSLATIONS["Tree"] + ": " + name[6:]
+            return name
         return _TRANSLATIONS.get(name, name)
 
     @classmethod
