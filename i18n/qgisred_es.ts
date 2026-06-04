@@ -5607,6 +5607,26 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <source>Average Node Pressure</source>
         <translation>Presión media de nudos</translation>
     </message>
+    <message>
+        <source>Supply</source>
+        <translation>Suministro</translation>
+    </message>
+    <message>
+        <source>Demand</source>
+        <translation>Demanda</translation>
+    </message>
+    <message>
+        <source>Storage</source>
+        <translation>Almacenamiento</translation>
+    </message>
+    <message>
+        <source>Spill</source>
+        <translation>Vertido</translation>
+    </message>
+    <message>
+        <source>Pressure</source>
+        <translation>Presión</translation>
+    </message>
 </context>
 <context>
     <name>StaleLayerManager</name>

@@ -234,9 +234,18 @@ def test_parse_results_time_text_to_hours_matches_results_dock():
     assert d._parseResultsTimeTextToHours("Single Period") == 0.0
 
 
-def test_global_series_table_header_single_line_with_units():
+def test_global_series_table_header_two_lines_system_and_abbreviated(monkeypatch):
     _patch_qt_for_import()
     from QGISRed.ui.analysis.qgisred_timeseries_dock import QGISRedTimeSeriesDock
+
+    monkeypatch.setattr(
+        "QGISRed.ui.analysis.timeseries_globals.tr",
+        lambda message, *_args, **_kwargs: message,
+    )
+    monkeypatch.setattr(
+        "QGISRed.ui.analysis.timeseries_globals.global_variable_unit_abbreviation",
+        lambda _key: "gpm",
+    )
 
     d = QGISRedTimeSeriesDock.__new__(QGISRedTimeSeriesDock)
     d.tr = lambda message: message
@@ -246,17 +255,17 @@ def test_global_series_table_header_single_line_with_units():
         "series_key": "Global:global:TotalWaterSupply:TotalWaterSupply",
         "legend_type": "global",
     }
-    assert d._seriesTableColumnHeaderParts(series_legacy) == ("Total Water Supply (LPS)", "")
-    assert d._seriesTableColumnHeaderLabel(series_legacy) == "Total Water Supply (LPS)"
+    assert d._seriesTableColumnHeaderParts(series_legacy) == ("System", "Supply (gpm)")
+    assert d._seriesTableColumnHeaderLabel(series_legacy) == "System\nSupply (gpm)"
 
     series_current = {
         "label": "Total Water Supply (LPS)",
         "magnitude": "System",
-        "series_key": "Global:global:TotalWaterSupply:TotalWaterSupply",
+        "series_key": "Global:global:TotalWaterDemand:TotalWaterDemand",
         "legend_type": "global",
     }
-    assert d._seriesTableColumnHeaderParts(series_current) == ("System", "Total Water Supply (LPS)")
-    assert d._seriesTableColumnHeaderLabel(series_current) == "System\nTotal Water Supply (LPS)"
+    assert d._seriesTableColumnHeaderParts(series_current) == ("System", "Demand (gpm)")
+    assert d._seriesTableColumnHeaderLabel(series_current) == "System\nDemand (gpm)"
 
 
 def test_series_table_column_header_two_lines():

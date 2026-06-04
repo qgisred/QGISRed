@@ -35,7 +35,13 @@ from .timeseries_plot_layout import PlotLayoutCalculator
 from .timeseries_legend_interaction import LegendInteractionController
 from .timeseries_plot_renderer import TimeSeriesPlotRenderer
 from .timeseries_plot_style import DEFAULT_SERIES_COLOR, LEGEND_ICON_SIZE, LEGEND_ROW_GAP, PLOT_TOP_PAD, qfont
-from .timeseries_globals import global_system_variable_choices
+from .timeseries_globals import (
+    GLOBAL_SYSTEM_VARIABLE_KEYS,
+    global_axis_group_label,
+    global_system_variable_choices,
+    global_variable_key_from_series_key,
+    global_variable_table_column_label,
+)
 from .timeseries_time_utils import (
     civil_time_parts,
     simulation_start_clock_seconds,
@@ -248,6 +254,36 @@ class TimeSeriesPlotWidget(QWidget):
                     return axis
         return "left"
 
+    def _enrich_y_axis_title(self, mag_joined: str, side: str) -> str:
+        """Append units to axis titles that lack them (e.g. global ``System`` group)."""
+        raw = (mag_joined or "").strip()
+        if not raw or "(" in raw:
+            return raw
+        side_l = (side or "left").strip().lower()
+        units_ordered: List[str] = []
+        seen = set()
+        for s in self.series:
+            if (s.get("y_axis") or "left").strip().lower() != side_l:
+                continue
+            ylu = (s.get("y_label_with_unit") or "").strip()
+            if not ylu:
+                continue
+            unit_blob = self._renderer._extract_unit_from_magnitude(ylu)
+            for part in (p.strip() for p in unit_blob.split(",") if p.strip()):
+                if part not in seen:
+                    seen.add(part)
+                    units_ordered.append(part)
+        if not units_ordered:
+            return raw
+        mag_count = len([m for m in raw.split(",") if m.strip()])
+        if mag_count <= 1 and len(units_ordered) == 1:
+            return f"{raw} ({units_ordered[0]})"
+        if mag_count > 2 or len(units_ordered) > 2:
+            return ", ".join(units_ordered)
+        if len(units_ordered) == 1:
+            return f"{raw} ({units_ordered[0]})"
+        return ", ".join(units_ordered)
+
     def _assignYAxisByMagnitude(self) -> None:
         magnitudes: List[str] = []
         for s in self.series:
@@ -285,8 +321,8 @@ class TimeSeriesPlotWidget(QWidget):
 
         self._y_magnitudes_left = left_mags
         self._y_magnitudes_right = right_mags
-        self._y_label_left = ", ".join(left_mags)
-        self._y_label_right = ", ".join(right_mags)
+        self._y_label_left = self._enrich_y_axis_title(", ".join(left_mags), "left")
+        self._y_label_right = self._enrich_y_axis_title(", ".join(right_mags), "right")
         self._left_axis_active = bool(left_mags)
         self._right_axis_active = bool(right_mags)
 
@@ -1081,10 +1117,6 @@ class TimeSeriesPlotWidget(QWidget):
                 self.hover_index = best_idx
                 self._hover_series_idx = hover_idx
                 self.update()
-                try:
-                    self.cursorTimeChanged.emit(float(xs[best_idx]))
-                except Exception:
-                    pass
         except ZeroDivisionError:
             pass
 
@@ -1757,14 +1789,16 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
     def _seriesTableColumnHeaderParts(self, series_dict) -> tuple:
         parts = str(series_dict.get("series_key") or "").split(":")
         if parts and parts[0] == "Global":
-            magnitude = (series_dict.get("magnitude") or "").strip()
+            variable_key = global_variable_key_from_series_key(
+                series_dict.get("series_key") or "",
+            )
+            if variable_key in GLOBAL_SYSTEM_VARIABLE_KEYS:
+                return global_axis_group_label(), global_variable_table_column_label(variable_key)
             variable = (
                 (series_dict.get("y_label_with_unit") or "").strip()
                 or (series_dict.get("label") or "").strip()
             )
-            if magnitude and "(" in magnitude:
-                return magnitude, ""
-            return magnitude or self.tr("System"), variable
+            return global_axis_group_label(), variable
 
         try:
             element_id, element_type = self._seriesElementInfo(series_dict)

@@ -10,6 +10,9 @@ from QGISRed.ui.analysis.timeseries_globals import (
     TOTAL_WATER_SUPPLY_KEY,
     get_global_timeseries,
     global_series_y_display_decimals,
+    global_variable_key_from_series_key,
+    global_variable_short_label,
+    global_variable_table_column_label,
 )
 from QGISRed.ui.analysis.qgisred_results_binary import (
     _NT_JUNCTION,
@@ -93,6 +96,36 @@ class TestGetGlobalTimeseries:
     def test_unknown_variable(self, simple_network_out):
         source = {"kind": "out", "out_path": simple_network_out}
         assert get_global_timeseries(source, "Unknown") == []
+
+
+def _patch_timeseries_globals_tr(monkeypatch):
+    monkeypatch.setattr(
+        "QGISRed.ui.analysis.timeseries_globals.tr",
+        lambda message, *_args, **_kwargs: message,
+    )
+
+
+class TestGlobalTableColumnLabels:
+    @pytest.fixture(autouse=True)
+    def _identity_tr(self, monkeypatch):
+        _patch_timeseries_globals_tr(monkeypatch)
+
+    def test_key_from_series_key(self):
+        assert global_variable_key_from_series_key(
+            "Global:global:TotalWaterSupply:TotalWaterSupply",
+        ) == TOTAL_WATER_SUPPLY_KEY
+
+    def test_table_column_label(self, monkeypatch):
+        monkeypatch.setattr(
+            "QGISRed.ui.analysis.timeseries_globals.global_variable_unit_abbreviation",
+            lambda _key: "gpm",
+        )
+        assert global_variable_table_column_label(TOTAL_WATER_SUPPLY_KEY) == "Supply (gpm)"
+        assert global_variable_table_column_label(TOTAL_WATER_DEMAND_KEY) == "Demand (gpm)"
+
+    def test_short_labels(self):
+        assert global_variable_short_label(TOTAL_WATER_SUPPLY_KEY) == "Supply"
+        assert global_variable_short_label(TOTAL_TANK_SPILL_KEY) == "Spill"
 
 
 class TestGlobalSeriesDisplayDecimals:

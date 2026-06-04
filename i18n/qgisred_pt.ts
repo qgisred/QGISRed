@@ -5477,6 +5477,26 @@ Left-click: Add a new item below the current selection</source>
         <source>Average Node Pressure</source>
         <translation>Pressão média dos nós</translation>
     </message>
+    <message>
+        <source>Supply</source>
+        <translation>Produção</translation>
+    </message>
+    <message>
+        <source>Demand</source>
+        <translation>Demanda</translation>
+    </message>
+    <message>
+        <source>Storage</source>
+        <translation>Armazenamento</translation>
+    </message>
+    <message>
+        <source>Spill</source>
+        <translation>Extravasamento</translation>
+    </message>
+    <message>
+        <source>Pressure</source>
+        <translation>Pressão</translation>
+    </message>
 </context>
 <context>
     <name>StaleLayerManager</name>

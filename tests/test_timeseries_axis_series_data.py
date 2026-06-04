@@ -7,28 +7,7 @@ from QGISRed.tools.utils.qgisred_axis_scale_utils import compute_nice_scale
 
 
 def test_axis_series_data_filters_non_finite_and_huge_values_to_prevent_overflow():
-    from qgis.PyQt import uic
-
-    qtwidgets = sys.modules.get("qgis.PyQt.QtWidgets")
-    if qtwidgets is not None:
-        class _DummyQWidget:
-            def __init__(self, *args, **kwargs):
-                pass
-
-            def setMouseTracking(self, *args, **kwargs):
-                return None
-
-            def setMinimumSize(self, *args, **kwargs):
-                return None
-
-        qtwidgets.QWidget = _DummyQWidget
-        qtwidgets.QDockWidget = type("QDockWidget", (), {})
-
-    uic.loadUiType.return_value = (type("FORM_CLASS", (), {}), None)
-
-    from QGISRed.ui.analysis.qgisred_timeseries_dock import TimeSeriesPlotWidget
-
-    w = TimeSeriesPlotWidget()
+    w = _timeseries_plot_widget()
 
     huge_int = 10**400
     w.series = [
@@ -52,4 +31,81 @@ def test_axis_series_data_filters_non_finite_and_huge_values_to_prevent_overflow
     assert math.isfinite(s.axis_min)
     assert math.isfinite(s.axis_max)
     assert s.step > 0
+
+
+def _timeseries_plot_widget():
+    from qgis.PyQt import uic
+
+    qtwidgets = sys.modules.get("qgis.PyQt.QtWidgets")
+    if qtwidgets is not None:
+        class _DummyQWidget:
+            def __init__(self, *args, **kwargs):
+                pass
+
+            def setMouseTracking(self, *args, **kwargs):
+                return None
+
+            def setMinimumSize(self, *args, **kwargs):
+                return None
+
+        qtwidgets.QWidget = _DummyQWidget
+        qtwidgets.QDockWidget = type("QDockWidget", (), {})
+
+    uic.loadUiType.return_value = (type("FORM_CLASS", (), {}), None)
+
+    from QGISRed.ui.analysis.qgisred_timeseries_dock import TimeSeriesPlotWidget
+
+    return TimeSeriesPlotWidget()
+
+
+def test_y_axis_title_includes_unit_for_global_system_series():
+    w = _timeseries_plot_widget()
+    w.series = [
+        {
+            "x": [0, 1],
+            "y": [1.0, 2.0],
+            "magnitude": "System",
+            "y_label_with_unit": "Total Stored Volume (m³)",
+            "y_axis": "left",
+        },
+    ]
+    w._assignYAxisByMagnitude()
+    assert w._y_label_left == "System (m³)"
+
+
+def test_y_axis_title_keeps_magnitude_when_units_already_present():
+    w = _timeseries_plot_widget()
+    w.series = [
+        {
+            "x": [0, 1],
+            "y": [1.0, 2.0],
+            "magnitude": "Pressure (m)",
+            "y_label_with_unit": "Pressure (m)",
+            "y_axis": "left",
+        },
+    ]
+    w._assignYAxisByMagnitude()
+    assert w._y_label_left == "Pressure (m)"
+
+
+def test_y_axis_title_lists_units_for_multiple_global_series():
+    w = _timeseries_plot_widget()
+    w.series = [
+        {
+            "x": [0, 1],
+            "y": [1.0, 2.0],
+            "magnitude": "System",
+            "y_label_with_unit": "Total Stored Volume (m³)",
+            "y_axis": "left",
+        },
+        {
+            "x": [0, 1],
+            "y": [3.0, 4.0],
+            "magnitude": "System",
+            "y_label_with_unit": "Total Tank Spill Flow (L/s)",
+            "y_axis": "left",
+        },
+    ]
+    w._assignYAxisByMagnitude()
+    assert w._y_label_left == "m³, L/s"
 

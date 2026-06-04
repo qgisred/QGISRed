@@ -1110,6 +1110,7 @@ class AnalysisSection:
                     if category == "Global"
                     else (y_label_with_unit or prop_display)
                 ),
+                "y_label_with_unit": y_label_with_unit,
                 "line_style": it.get("line_style") or "solid",
                 "line_width": it.get("line_width") or 2.0,
                 "show_markers": bool(it.get("show_markers", False)),

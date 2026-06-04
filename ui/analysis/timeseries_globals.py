@@ -71,6 +71,32 @@ def global_variable_display_label(key: str) -> str:
     return labels.get(key, key)
 
 
+def global_variable_short_label(key: str) -> str:
+    """Short name for values-table column header (second row under ``System``)."""
+    labels = {
+        TOTAL_WATER_SUPPLY_KEY: tr("Supply"),
+        TOTAL_WATER_DEMAND_KEY: tr("Demand"),
+        TOTAL_STORED_VOLUME_KEY: tr("Storage"),
+        TOTAL_TANK_SPILL_KEY: tr("Spill"),
+        AVERAGE_NODE_PRESSURE_KEY: tr("Pressure"),
+    }
+    return labels.get(key, key)
+
+
+def global_variable_table_column_label(variable_key: str) -> str:
+    """Values-table second header row: abbreviated variable and unit."""
+    short = global_variable_short_label(variable_key)
+    unit_abbr = global_variable_unit_abbreviation(variable_key)
+    return f"{short} ({unit_abbr})" if unit_abbr else short
+
+
+def global_variable_key_from_series_key(series_key: str) -> str:
+    parts = str(series_key or "").split(":")
+    if len(parts) >= 3 and parts[0] == "Global":
+        return parts[2]
+    return ""
+
+
 def global_variable_unit_abbreviation(variable_key: str) -> str:
     from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 
@@ -83,7 +109,7 @@ def global_variable_unit_abbreviation(variable_key: str) -> str:
 
 
 def global_variable_legend_label(variable_key: str) -> str:
-    """Legend / table row label: variable name and unit (axis stays on ``System``)."""
+    """Legend / table row label: variable name and unit (Y-axis group stays on ``System``)."""
     display = global_variable_display_label(variable_key)
     unit_abbr = global_variable_unit_abbreviation(variable_key)
     return f"{display} ({unit_abbr})" if unit_abbr else display

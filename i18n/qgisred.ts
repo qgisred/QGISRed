@@ -5336,6 +5336,26 @@ Left-click: Add a new item below the current selection</source>
         <source>Average Node Pressure</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Supply</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Demand</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Storage</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Spill</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pressure</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>StaleLayerManager</name>
