@@ -1449,15 +1449,21 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             totalStdDev = math.sqrt(variance)
 
         totalRow = len(bins)
+        totalAvgText = self.formatNumber(totalAvg) if totalCount else ""
+        totalMinText = self.formatNumber(totalMin) if totalMin is not None else ""
+        totalMaxText = self.formatNumber(totalMax) if totalMax is not None else ""
         self.setTableItem(totalRow, 0, self.tr("Total"), bold=True)
         self.setTableItem(totalRow, 1, str(totalCount), bold=True)
-        self.setTableItem(totalRow, 2, self.formatNumber(totalAvg) if totalCount else "", bold=True)
-        self.setTableItem(totalRow, 3, self.formatNumber(totalMin) if totalMin is not None else "", bold=True)
-        self.setTableItem(totalRow, 4, self.formatNumber(totalMax) if totalMax is not None else "", bold=True)
         if useSum:
-            self.setTableItem(totalRow, 5, self.formatNumber(totalSum), bold=True)
+            self.setTableItem(totalRow, 2, self.formatNumber(totalSum), bold=True)
+            self.setTableItem(totalRow, 3, totalAvgText, bold=True)
+            self.setTableItem(totalRow, 4, totalMinText, bold=True)
+            self.setTableItem(totalRow, 5, totalMaxText, bold=True)
         else:
-            self.setTableItem(totalRow, 5, self.formatNumber(totalStdDev) if totalCount > 1 else "", bold=True)
+            self.setTableItem(totalRow, 2, totalAvgText, bold=True)
+            self.setTableItem(totalRow, 3, totalMinText, bold=True)
+            self.setTableItem(totalRow, 4, totalMaxText, bold=True)
+            self.setTableItem(totalRow, 5, self.formatLikeAvg(totalStdDev, totalAvgText) if totalCount > 1 else "", bold=True)
 
         header = self.tbExcel.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
