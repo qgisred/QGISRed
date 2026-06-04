@@ -44,6 +44,20 @@ def total_water_demand_from_demands(demands, node_types):
             total_positive += dv
     return total_positive
 
+
+def average_node_pressure_excluding_reservoirs(pressures, node_types):
+    """Mean nodal pressure over junctions and tanks (reservoirs excluded)."""
+    total = 0.0
+    count = 0
+    for pressure, node_type in zip(pressures, node_types):
+        if node_type == _NT_RESERVOIR:
+            continue
+        total += float(pressure)
+        count += 1
+    if count == 0:
+        return 0.0
+    return total / count
+
 _SI_XHEAD      = 0  # Pump shut off (cannot deliver head)
 _SI_TEMPCLOSED = 1  # Temporarily closed
 _SI_CLOSED     = 2  # Closed
@@ -564,6 +578,36 @@ def getOut_TimesTotalWaterDemand(out_file_path):
                 demands.append(struct.unpack("f", f.read(4))[0])
             time_series.append(
                 total_water_demand_from_demands(demands, node_types)
+            )
+        return time_series
+
+
+def getOut_TimesAverageNodePressure(out_file_path):
+    """Time series of mean nodal pressure (junctions and tanks; reservoirs excluded)."""
+    if not os.path.exists(out_file_path):
+        return []
+
+    with open(out_file_path, "rb") as f:
+        meta = getOut_Metadata(f)
+        if not meta:
+            return []
+
+        node_types = meta["node_types"]
+        n_nodes = meta["n_nodes"]
+        num_periods = meta["num_periods"]
+        period_size = meta["period_size"]
+        results_offset = meta["results_offset"]
+        pressure_offset = 2 * n_nodes * 4
+
+        time_series = []
+        for p in range(num_periods):
+            base = results_offset + p * period_size + pressure_offset
+            pressures = []
+            for ni in range(n_nodes):
+                f.seek(base + ni * 4)
+                pressures.append(struct.unpack("f", f.read(4))[0])
+            time_series.append(
+                average_node_pressure_excluding_reservoirs(pressures, node_types)
             )
         return time_series
 

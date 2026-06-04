@@ -3,7 +3,11 @@
 
 from qgis.PyQt.QtCore import QCoreApplication
 
-from .qgisred_results_binary import getOut_TimesTotalWaterDemand, getOut_TimesTotalWaterSupply
+from .qgisred_results_binary import (
+    getOut_TimesAverageNodePressure,
+    getOut_TimesTotalWaterDemand,
+    getOut_TimesTotalWaterSupply,
+)
 from .qgisred_tank_storage import (
     getHyd_TimesTotalStoredVolume,
     getHyd_TimesTotalTankSpill,
@@ -15,6 +19,7 @@ TOTAL_WATER_SUPPLY_KEY = "TotalWaterSupply"
 TOTAL_WATER_DEMAND_KEY = "TotalWaterDemand"
 TOTAL_STORED_VOLUME_KEY = "TotalStoredVolume"
 TOTAL_TANK_SPILL_KEY = "TotalTankSpill"
+AVERAGE_NODE_PRESSURE_KEY = "AverageNodePressure"
 
 # Display-only decimals for time-series charts/tables (not used in volume math).
 TOTAL_STORED_VOLUME_DISPLAY_DECIMALS = 2
@@ -24,6 +29,7 @@ GLOBAL_SYSTEM_VARIABLE_KEYS = frozenset({
     TOTAL_WATER_DEMAND_KEY,
     TOTAL_STORED_VOLUME_KEY,
     TOTAL_TANK_SPILL_KEY,
+    AVERAGE_NODE_PRESSURE_KEY,
 })
 
 
@@ -43,6 +49,7 @@ def global_system_variable_choices():
         (TOTAL_WATER_DEMAND_KEY, tr("Total Water Demand")),
         (TOTAL_STORED_VOLUME_KEY, tr("Total Stored Volume")),
         (TOTAL_TANK_SPILL_KEY, tr("Total Tank Spill Flow")),
+        (AVERAGE_NODE_PRESSURE_KEY, tr("Average Node Pressure")),
     ]
 
 
@@ -59,6 +66,7 @@ def global_variable_display_label(key: str) -> str:
         TOTAL_WATER_DEMAND_KEY: tr("Total Water Demand"),
         TOTAL_STORED_VOLUME_KEY: tr("Total Stored Volume"),
         TOTAL_TANK_SPILL_KEY: tr("Total Tank Spill Flow"),
+        AVERAGE_NODE_PRESSURE_KEY: tr("Average Node Pressure"),
     }
     return labels.get(key, key)
 
@@ -69,6 +77,8 @@ def global_variable_unit_abbreviation(variable_key: str) -> str:
     utils = QGISRedFieldUtils()
     if variable_key == TOTAL_STORED_VOLUME_KEY:
         return utils.getUnitAbbreviation(normalize_element("Tanks"), "MinVolume")
+    if variable_key == AVERAGE_NODE_PRESSURE_KEY:
+        return utils.getUnitAbbreviation(normalize_element("Nodes"), "Pressure")
     return utils.getUnitAbbreviation(normalize_element("Node"), "Demand")
 
 
@@ -112,4 +122,10 @@ def get_global_timeseries(source, variable_key):
         return getHyd_TimesTotalTankSpill(
             source["hyd_path"], source["out_path"], project_directory, network_name,
         )
+    if variable_key == AVERAGE_NODE_PRESSURE_KEY:
+        if source["kind"] == "out":
+            return getOut_TimesAverageNodePressure(source["out_path"])
+        from .qgisred_results_hyd import getHyd_TimesAverageNodePressure
+
+        return getHyd_TimesAverageNodePressure(source["hyd_path"], source["out_path"])
     return []

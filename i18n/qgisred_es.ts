@@ -5602,6 +5602,11 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <source>System</source>
         <translation>Sistema</translation>
     </message>
+    <message>
+        <location filename="../ui/analysis/timeseries_globals.py" line="52"/>
+        <source>Average Node Pressure</source>
+        <translation>Presión media de nudos</translation>
+    </message>
 </context>
 <context>
     <name>StaleLayerManager</name>

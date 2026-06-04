@@ -2,6 +2,7 @@
 import pytest
 
 from QGISRed.ui.analysis.timeseries_globals import (
+    AVERAGE_NODE_PRESSURE_KEY,
     TOTAL_STORED_VOLUME_DISPLAY_DECIMALS,
     TOTAL_STORED_VOLUME_KEY,
     TOTAL_TANK_SPILL_KEY,
@@ -9,6 +10,13 @@ from QGISRed.ui.analysis.timeseries_globals import (
     TOTAL_WATER_SUPPLY_KEY,
     get_global_timeseries,
     global_series_y_display_decimals,
+)
+from QGISRed.ui.analysis.qgisred_results_binary import (
+    _NT_JUNCTION,
+    _NT_RESERVOIR,
+    _NT_TANK,
+    average_node_pressure_excluding_reservoirs,
+    getOut_TimesAverageNodePressure,
 )
 
 from QGISRed.tests.helpers.epanet_out_builder import simple_network_out  # noqa: F401
@@ -68,6 +76,19 @@ class TestGetGlobalTimeseries:
             "network_name": "Net",
         }
         assert get_global_timeseries(source, TOTAL_TANK_SPILL_KEY) == expected
+
+    def test_average_node_pressure_excludes_reservoir(self):
+        pressures = [0.0, 30.0, 20.0, 40.0]
+        node_types = [_NT_RESERVOIR, _NT_JUNCTION, _NT_JUNCTION, _NT_TANK]
+        assert average_node_pressure_excluding_reservoirs(pressures, node_types) == pytest.approx(30.0)
+
+    def test_average_node_pressure_out(self, simple_network_out):
+        source = {"kind": "out", "out_path": simple_network_out}
+        ts = get_global_timeseries(source, AVERAGE_NODE_PRESSURE_KEY)
+        assert len(ts) == 2
+        assert ts[0] == pytest.approx(29.43)
+        assert ts[1] == pytest.approx(24.52)
+        assert getOut_TimesAverageNodePressure(simple_network_out) == ts
 
     def test_unknown_variable(self, simple_network_out):
         source = {"kind": "out", "out_path": simple_network_out}
