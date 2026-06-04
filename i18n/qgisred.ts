@@ -5018,17 +5018,17 @@ Left-click: Add a new item below the current selection</source>
 <context>
     <name>QGISRedStylingUtils</name>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="615"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="613"/>
         <source>%1 field not found in layer %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="595"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="593"/>
         <source>Branches</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="597"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="595"/>
         <source>Chords</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5063,18 +5063,13 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="441"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="443"/>
         <source>Closed Links</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="443"/>
-        <source>Open Links</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="445"/>
-        <source>Active Links</source>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="441"/>
+        <source>Undefined</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

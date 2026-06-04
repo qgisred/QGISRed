@@ -382,6 +382,8 @@ class ToolsSection:
             )
 
             vlayer.setRenderer(renderer)
+            from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
+            QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface).translateRendererLabels(vlayer)
 
         else:
             symbol = QgsSymbol.defaultSymbol(geom_type)

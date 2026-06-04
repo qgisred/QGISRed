@@ -437,12 +437,10 @@ class QGISRedStylingUtils:
 
     def _translateCategoryLabel(self, value):
         if isinstance(value, str):
+            if value == "Undefined":
+                return self.tr("Undefined") 
             if value == "ClosedLinks":
                 return self.tr("Closed Links")
-            if value == "OpenLinks":
-                return self.tr("Open Links")
-            if value == "ActiveLinks":
-                return self.tr("Active Links")
         return str(value)
 
     def translateRendererLabels(self, layer):

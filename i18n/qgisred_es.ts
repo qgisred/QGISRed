@@ -5289,17 +5289,17 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
 <context>
     <name>QGISRedStylingUtils</name>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="615"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="613"/>
         <source>%1 field not found in layer %2</source>
         <translation>Campo %1 no encontrado en capa %2</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="595"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="593"/>
         <source>Branches</source>
         <translation>Ramas</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="597"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="595"/>
         <source>Chords</source>
         <translation>Cuerdas</translation>
     </message>
@@ -5334,19 +5334,14 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="441"/>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="443"/>
         <source>Closed Links</source>
         <translation>Líneas Cerradas</translation>
     </message>
     <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="443"/>
-        <source>Open Links</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../tools/utils/qgisred_styling_utils.py" line="445"/>
-        <source>Active Links</source>
-        <translation type="unfinished"></translation>
+        <location filename="../tools/utils/qgisred_styling_utils.py" line="441"/>
+        <source>Undefined</source>
+        <translation>Indefinido</translation>
     </message>
 </context>
 <context>
