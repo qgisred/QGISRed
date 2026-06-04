@@ -4636,6 +4636,11 @@ Left-click: Add a new item below the current selection</source>
         <translation>Mostrar histograma de ligações</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_results_distribution.py" line="395"/>
+        <source>%1 frequency%2</source>
+        <translation>Frequência de %1%2</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1033"/>
         <source>Appearance</source>
         <translation type="unfinished"></translation>

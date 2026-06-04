@@ -392,7 +392,7 @@ class _DistributionControlsBar(QWidget):
 
 
 class _ResultsDistributionMixin:
-    _DISTRIBUTION_TITLE_TEMPLATE = "%1 distribution%2"
+    _DISTRIBUTION_TITLE_TEMPLATE = "%1 frequency%2"
 
     def _setupDistributionCharts(self):
         panel_bg = "#f8f9fb"
@@ -433,7 +433,7 @@ class _ResultsDistributionMixin:
         self._syncDistributionPanelVisibility()
 
     def _distributionChartTitle(self, layer_type):
-        """Return a chart title including variable + units, e.g. 'Flow distribution (gpm)'."""
+        """Return a chart title including variable + units, e.g. 'Flow frequency (gpm)'."""
         field_name = self._distributionFieldForLayer(layer_type)
         if not field_name:
             return ""

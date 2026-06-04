@@ -4533,6 +4533,11 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_results_distribution.py" line="395"/>
+        <source>%1 frequency%2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="875"/>
         <source>Frequency</source>
         <translation type="unfinished"></translation>

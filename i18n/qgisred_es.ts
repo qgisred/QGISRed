@@ -4616,6 +4616,11 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Mostrar histograma de líneas</translation>
     </message>
     <message>
+        <location filename="../ui/analysis/qgisred_results_distribution.py" line="395"/>
+        <source>%1 frequency%2</source>
+        <translation>Frecuencia de %1%2</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1033"/>
         <source>Appearance</source>
         <translation>Apariencia</translation>

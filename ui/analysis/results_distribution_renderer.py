@@ -20,6 +20,8 @@ _TICK_LEN = 4
 class ResultsDistributionRenderer(StatisticsHistogramRenderer):
     """Histogram renderer for simulation results: class bars + optional cumulative curve."""
 
+    _TITLE_FONT_SIZE = 10
+
     def render(self, widget, painter):
         painter.setRenderHint(PAINTER_ANTIALIASING)
         outer_fill = getattr(widget, "outer_fill_color", None)

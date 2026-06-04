@@ -1,9 +1,26 @@
 # -*- coding: utf-8 -*-
 from QGISRed.ui.analysis.qgisred_results_distribution import (
+    _ResultsDistributionMixin,
     _find_class_index,
     _format_range_label,
     _parse_category_from_filter,
 )
+
+
+class TestDistributionChartTitleTemplate:
+    def test_frequency_title_with_units(self):
+        title = (
+            _ResultsDistributionMixin._DISTRIBUTION_TITLE_TEMPLATE.replace("%1", "Flow").replace(
+                "%2", " (gpm)"
+            )
+        )
+        assert title == "Flow frequency (gpm)"
+
+    def test_frequency_title_without_units(self):
+        title = _ResultsDistributionMixin._DISTRIBUTION_TITLE_TEMPLATE.replace("%1", "Pressure").replace(
+            "%2", ""
+        )
+        assert title == "Pressure frequency"
 
 
 class TestFormatRangeLabel:
