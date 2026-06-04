@@ -3582,6 +3582,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.applyColorLogic()
         elif source == "random":
             self.cbColors.setCurrentText("Random")
+            self.applyColorLogic(forceRefresh=True)
 
     def loadDefaultStyle(self):
         self.loadStyle(isDefault=True)
