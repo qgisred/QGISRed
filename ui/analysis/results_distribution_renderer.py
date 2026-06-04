@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import math
+
 from qgis.PyQt.QtCore import QPointF, QRectF, Qt
 from qgis.PyQt.QtGui import QColor, QFontMetrics, QPainterPath, QPen
 
@@ -18,6 +20,7 @@ from .timeseries_plot_style import BORDER_COLOR, GRID_COLOR, PLOT_BG_COLOR, TEXT
 CUMULATIVE_CURVE_COLOR = QColor(200, 60, 60)
 
 _TICK_LEN = 4
+_CURVE_HIT_TOLERANCE = 10.0
 
 
 def format_distribution_hover_value(value, as_percent=False):
@@ -28,6 +31,47 @@ def format_distribution_hover_value(value, as_percent=False):
     if abs(value - rounded) < 1e-9:
         return str(int(rounded))
     return format_number_tick(value, max(abs(value) / 100.0, 0.01))
+
+
+def _distance_point_to_segment(px, py, ax, ay, bx, by):
+    dx = bx - ax
+    dy = by - ay
+    if dx == 0.0 and dy == 0.0:
+        return math.hypot(px - ax, py - ay), 0.0
+    t = ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)
+    t = max(0.0, min(1.0, t))
+    closest_x = ax + t * dx
+    closest_y = ay + t * dy
+    return math.hypot(px - closest_x, py - closest_y), t
+
+
+def hit_test_cumulative_polyline(cursor_x, cursor_y, points, tolerance=_CURVE_HIT_TOLERANCE):
+    """Return interpolated (x, count, screen_x, screen_y) if cursor is near the polyline."""
+    if len(points) < 2:
+        return None
+
+    best = None
+    best_distance = float(tolerance)
+    for index in range(len(points) - 1):
+        start = points[index]
+        end = points[index + 1]
+        distance, t = _distance_point_to_segment(
+            cursor_x,
+            cursor_y,
+            start["screen_x"],
+            start["screen_y"],
+            end["screen_x"],
+            end["screen_y"],
+        )
+        if distance < best_distance:
+            best_distance = distance
+            best = {
+                "x": start["x"] + t * (end["x"] - start["x"]),
+                "count": start["count"] + t * (end["count"] - start["count"]),
+                "screen_x": start["screen_x"] + t * (end["screen_x"] - start["screen_x"]),
+                "screen_y": start["screen_y"] + t * (end["screen_y"] - start["screen_y"]),
+            }
+    return best
 
 
 class ResultsDistributionRenderer(StatisticsHistogramRenderer):
@@ -88,9 +132,16 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
         if cumulative_mode in ("absolute", "relative") and right_scale is not None:
             self._drawCumulativeFrequencyCurve(widget, painter, plotRect, right_scale)
 
-        hover_index = getattr(widget, "hoverIndex", None)
-        if hover_index is not None and 0 <= hover_index < len(bar_rects):
-            self._drawHoverTooltip(widget, painter, plotRect, bar_rects)
+        hover_segment = getattr(widget, "hoverSegment", None)
+        if hover_segment == "curve":
+            curve_sample = getattr(widget, "hoverCurveSample", None)
+            if curve_sample:
+                self._drawCurveHoverMarker(painter, curve_sample)
+                self._drawCurveHoverTooltip(widget, painter, plotRect, curve_sample)
+        else:
+            hover_index = getattr(widget, "hoverIndex", None)
+            if hover_index is not None and 0 <= hover_index < len(bar_rects):
+                self._drawHoverTooltip(widget, painter, plotRect, bar_rects)
 
     def _bar_mode(self, widget):
         return getattr(widget, "bar_mode", "plain")
@@ -262,6 +313,79 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
 
         widget._cumulativeBarRects = cumulative_rects
 
+    def _hasCumulativeCurve(self, widget):
+        return (
+            getattr(widget, "cumulative_mode", None) in ("absolute", "relative")
+            and bool(getattr(widget, "cumulative_points", []))
+        )
+
+    def _cumulativeCurveGeometry(self, widget, plotRect):
+        points_data = getattr(widget, "cumulative_points", [])
+        scale_range = self._cumulativeXRange(widget)
+        if not points_data or scale_range is None or plotRect.width() <= 0:
+            return []
+
+        x_min, x_max = scale_range
+        total_count = points_data[-1].get("count", 0)
+        if total_count <= 0:
+            return []
+
+        right_scale = self._computeCumulativeScale(widget, plotRect)
+        cumulative_mode = getattr(widget, "cumulative_mode", "absolute")
+        geometry = []
+        for point_data in points_data:
+            count = point_data.get("count", 0)
+            x_value = point_data.get("x", x_min)
+            y_value = (count / float(total_count)) * 100.0 if cumulative_mode == "relative" else count
+            geometry.append({
+                "x": float(x_value),
+                "count": float(count),
+                "screen_x": self._xForCumulativeValue(plotRect, x_min, x_max, x_value),
+                "screen_y": self._yForValue(plotRect, right_scale, y_value),
+            })
+        return geometry
+
+    def hitTestCumulativeCurve(self, widget, cursor_pos, plotRect, tolerance=_CURVE_HIT_TOLERANCE):
+        if not self._hasCumulativeCurve(widget) or not plotRect.contains(cursor_pos):
+            return None
+        geometry = self._cumulativeCurveGeometry(widget, plotRect)
+        return hit_test_cumulative_polyline(cursor_pos.x(), cursor_pos.y(), geometry, tolerance)
+
+    def _curveHoverTooltipLines(self, widget, curve_sample):
+        x_label = getattr(widget, "xLabel", "") or widget.tr("Value")
+        cumulative_mode = getattr(widget, "cumulative_mode", "absolute")
+        as_percent = cumulative_mode == "relative"
+        x_text = format_number_tick(curve_sample["x"], max(abs(curve_sample["x"]) / 100.0, 0.01))
+        total_count = getattr(widget, "_totalCount", 0) or sum(
+            item.get("count", 0) for item in widget.bins
+        )
+        count_value = curve_sample["count"]
+        if as_percent and total_count > 0:
+            count_value = (count_value / float(total_count)) * 100.0
+        count_text = format_distribution_hover_value(count_value, as_percent=as_percent)
+        return [
+            "{}: {}".format(x_label, x_text),
+            "{}: {}".format(widget.tr("Cumulative"), count_text),
+        ]
+
+    def _drawCurveHoverMarker(self, painter, curve_sample):
+        painter.setPen(QPen(CUMULATIVE_CURVE_COLOR, 2))
+        painter.setBrush(CUMULATIVE_CURVE_COLOR)
+        painter.drawEllipse(
+            QPointF(curve_sample["screen_x"], curve_sample["screen_y"]),
+            4,
+            4,
+        )
+
+    def _drawCurveHoverTooltip(self, widget, painter, plotRect, curve_sample):
+        lines = self._curveHoverTooltipLines(widget, curve_sample)
+        self._drawHoverTooltipAt(
+            painter,
+            plotRect,
+            QPointF(curve_sample["screen_x"], curve_sample["screen_y"]),
+            lines,
+        )
+
     def _hoverTooltipLines(self, widget, bin_data):
         segment = getattr(widget, "hoverSegment", None) or "frequency"
         as_percent = self._bar_mode(widget) == "relative"
@@ -287,15 +411,22 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
 
         lines = self._hoverTooltipLines(widget, widget.bins[bin_index])
         bar_rect = barRects[bin_index]
+        anchor = QPointF(bar_rect.center().x(), bar_rect.top())
+        self._drawHoverTooltipAt(painter, plotRect, anchor, lines, prefer_above=True)
+
+    def _drawHoverTooltipAt(self, painter, plotRect, anchor, lines, prefer_above=False):
         font = qfont(self._SUBTITLE_FONT_SIZE)
         painter.setFont(font)
         font_metrics = QFontMetrics(font)
         text_width = max(font_metrics.horizontalAdvance(line) for line in lines) + 12
         text_height = font_metrics.height() * len(lines) + 10
-        tooltip_x = bar_rect.center().x() + 8
-        tooltip_y = max(plotRect.top() + 4, bar_rect.top() - text_height - 4)
+        tooltip_x = anchor.x() + 8
+        if prefer_above:
+            tooltip_y = max(plotRect.top() + 4, anchor.y() - text_height - 4)
+        else:
+            tooltip_y = max(plotRect.top() + 4, anchor.y() - text_height - 4)
         if tooltip_x + text_width > plotRect.right():
-            tooltip_x = bar_rect.center().x() - text_width - 8
+            tooltip_x = anchor.x() - text_width - 8
         tooltip_rect = QRectF(tooltip_x, tooltip_y, text_width, text_height)
         painter.setBrush(TOOLTIP_BG_COLOR)
         painter.setPen(QPen(TOOLTIP_BORDER, 1))

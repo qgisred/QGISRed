@@ -4300,6 +4300,11 @@ Left-click: Add a new item below the current selection</source>
         <source>Cumulative</source>
         <translation>Cumulé</translation>
     </message>
+    <message>
+        <location filename="../ui/analysis/results_distribution_renderer.py" line="355"/>
+        <source>Value</source>
+        <translation>Valeur</translation>
+    </message>
 </context>
 <context>
     <name>QGISRedResultsDock</name>

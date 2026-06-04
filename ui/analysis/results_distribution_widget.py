@@ -29,6 +29,7 @@ class ResultsDistributionWidget(QWidget):
         self.yLabelRight = ""
         self.hoverIndex = None
         self.hoverSegment = None
+        self.hoverCurveSample = None
         self._barRects = []
         self._cumulativeBarRects = []
         self.zoomFactor = 1.0
@@ -77,6 +78,7 @@ class ResultsDistributionWidget(QWidget):
         self._totalCount = sum(bin_data.get("count", 0) for bin_data in self.bins)
         self.hoverIndex = None
         self.hoverSegment = None
+        self.hoverCurveSample = None
         self.zoomFactor = 1.0
         self.panOffset = 0.0
         self._fitMargins()
@@ -95,6 +97,7 @@ class ResultsDistributionWidget(QWidget):
         self._totalCount = 0
         self.hoverIndex = None
         self.hoverSegment = None
+        self.hoverCurveSample = None
         self.zoomFactor = 1.0
         self.panOffset = 0.0
         self.update()
@@ -212,17 +215,28 @@ class ResultsDistributionWidget(QWidget):
         event.ignore()
 
     def leaveEvent(self, event):
-        if self.hoverIndex is not None or self.hoverSegment is not None:
+        if self.hoverIndex is not None or self.hoverSegment is not None or self.hoverCurveSample is not None:
             self.hoverIndex = None
             self.hoverSegment = None
+            self.hoverCurveSample = None
             self.update()
+
+    def _curveHoverKey(self, curve_sample):
+        if curve_sample is None:
+            return None
+        return (round(curve_sample["screen_x"]), round(curve_sample["screen_y"]))
 
     def mouseMoveEvent(self, event):
         cursor_pos = QPointF(event.pos())
-        new_index, new_segment = self._hoverAt(cursor_pos)
-        if new_index != self.hoverIndex or new_segment != self.hoverSegment:
+        new_index, new_segment, new_curve = self._hoverAt(cursor_pos)
+        if (
+            new_index != self.hoverIndex
+            or new_segment != self.hoverSegment
+            or self._curveHoverKey(new_curve) != self._curveHoverKey(self.hoverCurveSample)
+        ):
             self.hoverIndex = new_index
             self.hoverSegment = new_segment
+            self.hoverCurveSample = new_curve
             self.update()
 
     def _hasCumulativeBars(self):
@@ -232,11 +246,30 @@ class ResultsDistributionWidget(QWidget):
             and any(bin_data.get("cumulative_count") is not None for bin_data in self.bins)
         )
 
+    def _hasCumulativeCurve(self):
+        return (
+            self.cumulative_mode in ("absolute", "relative")
+            and bool(self.cumulative_points)
+        )
+
     def _hoverAt(self, cursor_pos):
         plot_rect = self.getPlotRect()
-        if not self.bins or not self._barRects or not plot_rect.contains(cursor_pos):
-            return None, None
+        if not self.bins or not plot_rect.contains(cursor_pos):
+            return None, None, None
 
+        if self._barRects:
+            bar_hit = self._hoverBarAt(cursor_pos, plot_rect)
+            if bar_hit[0] is not None:
+                return bar_hit[0], bar_hit[1], None
+
+        if self._hasCumulativeCurve():
+            curve_sample = self._renderer.hitTestCumulativeCurve(self, cursor_pos, plot_rect)
+            if curve_sample is not None:
+                return None, "curve", curve_sample
+
+        return None, None, None
+
+    def _hoverBarAt(self, cursor_pos, plot_rect):
         has_cumulative_bars = self._hasCumulativeBars()
         for bin_index, bar_rect in enumerate(self._barRects):
             visible_rect = QRectF(bar_rect).intersected(plot_rect)

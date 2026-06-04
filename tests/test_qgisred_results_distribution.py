@@ -8,6 +8,7 @@ from QGISRed.ui.analysis.qgisred_results_distribution import (
 from QGISRed.ui.analysis.results_distribution_renderer import (
     ResultsDistributionRenderer,
     format_distribution_hover_value,
+    hit_test_cumulative_polyline,
 )
 
 
@@ -52,6 +53,47 @@ class TestDistributionHoverTooltipLines:
 
         lines = renderer._hoverTooltipLines(Widget(), Widget.bins[0])
         assert lines == ["Closed", "Cumulative: 30"]
+
+
+class TestHitTestCumulativePolyline:
+    def test_detects_point_near_segment(self):
+        points = [
+            {"screen_x": 0.0, "screen_y": 0.0, "x": 0.0, "count": 0.0},
+            {"screen_x": 100.0, "screen_y": 0.0, "x": 10.0, "count": 50.0},
+        ]
+        hit = hit_test_cumulative_polyline(50.0, 5.0, points, tolerance=8.0)
+        assert hit is not None
+        assert 4.0 < hit["x"] < 6.0
+        assert 24.0 < hit["count"] < 26.0
+
+    def test_returns_none_when_far_from_curve(self):
+        points = [
+            {"screen_x": 0.0, "screen_y": 0.0, "x": 0.0, "count": 0.0},
+            {"screen_x": 100.0, "screen_y": 0.0, "x": 10.0, "count": 50.0},
+        ]
+        assert hit_test_cumulative_polyline(50.0, 40.0, points, tolerance=8.0) is None
+
+
+class TestCurveHoverTooltipLines:
+    def test_shows_variable_and_relative_cumulative(self):
+        renderer = ResultsDistributionRenderer()
+
+        class Widget:
+            xLabel = "Pressure"
+            cumulative_mode = "relative"
+            bins = [{"count": 1}]
+            _totalCount = 100
+
+            def tr(self, message):
+                return message
+
+        lines = renderer._curveHoverTooltipLines(
+            Widget(),
+            {"x": 12.5, "count": 40.0},
+        )
+        assert lines[0].startswith("Pressure:")
+        assert lines[1].startswith("Cumulative:")
+        assert lines[1].endswith(" %")
 
 
 class TestDistributionChartTitleTemplate:
