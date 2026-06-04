@@ -4279,6 +4279,19 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     </message>
 </context>
 <context>
+    <name>ResultsDistributionWidget</name>
+    <message>
+        <location filename="../ui/analysis/results_distribution_renderer.py" line="281"/>
+        <source>Count</source>
+        <translation>Cantidad</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/results_distribution_renderer.py" line="275"/>
+        <source>Cumulative</source>
+        <translation>Acumulado</translation>
+    </message>
+</context>
+<context>
     <name>QGISRedResultsDock</name>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="485"/>

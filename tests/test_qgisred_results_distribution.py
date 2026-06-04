@@ -5,6 +5,53 @@ from QGISRed.ui.analysis.qgisred_results_distribution import (
     _format_range_label,
     _parse_category_from_filter,
 )
+from QGISRed.ui.analysis.results_distribution_renderer import (
+    ResultsDistributionRenderer,
+    format_distribution_hover_value,
+)
+
+
+class TestFormatDistributionHoverValue:
+    def test_absolute_count_as_integer(self):
+        assert format_distribution_hover_value(42) == "42"
+
+    def test_relative_percent(self):
+        assert format_distribution_hover_value(25.5, as_percent=True).endswith(" %")
+
+
+class TestDistributionHoverTooltipLines:
+    def test_frequency_relative(self):
+        renderer = ResultsDistributionRenderer()
+
+        class Widget:
+            bar_mode = "relative"
+            hoverSegment = "frequency"
+            bins = [{"label": "Open", "count": 25}]
+
+            _totalCount = 100
+
+            def tr(self, message):
+                return message
+
+        lines = renderer._hoverTooltipLines(Widget(), Widget.bins[0])
+        assert lines[0] == "Open"
+        assert lines[1].endswith(" %")
+
+    def test_cumulative_absolute(self):
+        renderer = ResultsDistributionRenderer()
+
+        class Widget:
+            bar_mode = "plain"
+            hoverSegment = "cumulative"
+            bins = [{"label": "Closed", "count": 10, "cumulative_count": 30}]
+
+            _totalCount = 100
+
+            def tr(self, message):
+                return message
+
+        lines = renderer._hoverTooltipLines(Widget(), Widget.bins[0])
+        assert lines == ["Closed", "Cumulative: 30"]
 
 
 class TestDistributionChartTitleTemplate:

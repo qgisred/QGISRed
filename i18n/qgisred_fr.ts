@@ -4289,6 +4289,19 @@ Left-click: Add a new item below the current selection</source>
     </message>
 </context>
 <context>
+    <name>ResultsDistributionWidget</name>
+    <message>
+        <location filename="../ui/analysis/results_distribution_renderer.py" line="281"/>
+        <source>Count</source>
+        <translation>Nombre</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/results_distribution_renderer.py" line="275"/>
+        <source>Cumulative</source>
+        <translation>Cumulé</translation>
+    </message>
+</context>
+<context>
     <name>QGISRedResultsDock</name>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="20"/>

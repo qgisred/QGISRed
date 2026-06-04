@@ -9,12 +9,25 @@ from ...tools.utils.qgisred_axis_scale_utils import (
     estimate_max_ticks,
     format_number_tick,
 )
-from ..queries.statistics_histogram_renderer import StatisticsHistogramRenderer
-from .timeseries_plot_style import BORDER_COLOR, GRID_COLOR, PLOT_BG_COLOR, TEXT_AXIS, qfont
+from ..queries.statistics_histogram_renderer import (
+    StatisticsHistogramRenderer,
+    TOOLTIP_BG_COLOR,
+)
+from .timeseries_plot_style import BORDER_COLOR, GRID_COLOR, PLOT_BG_COLOR, TEXT_AXIS, TEXT_DARK, TOOLTIP_BORDER, qfont
 
 CUMULATIVE_CURVE_COLOR = QColor(200, 60, 60)
 
 _TICK_LEN = 4
+
+
+def format_distribution_hover_value(value, as_percent=False):
+    """Format a histogram hover value as count or percentage text."""
+    if as_percent:
+        return "{} %".format(format_number_tick(value, 0.1))
+    rounded = round(value)
+    if abs(value - rounded) < 1e-9:
+        return str(int(rounded))
+    return format_number_tick(value, max(abs(value) / 100.0, 0.01))
 
 
 class ResultsDistributionRenderer(StatisticsHistogramRenderer):
@@ -63,6 +76,7 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
             self._drawDistributionRightAxis(widget, painter, plotRect, right_scale)
             self._drawDistributionTopAxis(widget, painter, plotRect)
 
+        widget._cumulativeBarRects = []
         if cumulative_bars:
             self._drawCumulativeBars(widget, painter, plotRect, left_scale)
 
@@ -73,6 +87,10 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
 
         if cumulative_mode in ("absolute", "relative") and right_scale is not None:
             self._drawCumulativeFrequencyCurve(widget, painter, plotRect, right_scale)
+
+        hover_index = getattr(widget, "hoverIndex", None)
+        if hover_index is not None and 0 <= hover_index < len(bar_rects):
+            self._drawHoverTooltip(widget, painter, plotRect, bar_rects)
 
     def _bar_mode(self, widget):
         return getattr(widget, "bar_mode", "plain")
@@ -203,8 +221,10 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
     def _drawCumulativeBars(self, widget, painter, plotRect, left_scale):
         bin_count = len(widget.bins)
         if bin_count == 0:
+            widget._cumulativeBarRects = []
             return
 
+        cumulative_rects = [None] * bin_count
         zoom = max(0.2, widget.zoomFactor)
         total_width = plotRect.width() * zoom
         slot_width = total_width / bin_count
@@ -222,15 +242,69 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
             bar_top = self._yForValue(plotRect, left_scale, cumulative_value)
             top = min(bar_top, zero_y)
             height = abs(zero_y - bar_top)
-            bar_rect = QRectF(bar_x, top, bar_width, height).intersected(plotRect)
-            if bar_rect.width() <= 0 or bar_rect.height() < 0:
+            bar_rect = QRectF(bar_x, top, bar_width, height)
+            cumulative_rects[bin_index] = bar_rect
+            visible_rect = bar_rect.intersected(plotRect)
+            if visible_rect.width() <= 0 or visible_rect.height() < 0:
                 continue
 
             bar_color = bin_data.get("color")
             fill_color = QColor(bar_color) if bar_color is not None else QColor(CUMULATIVE_CURVE_COLOR)
             fill_color = fill_color.lighter(155)
             fill_color.setAlpha(135)
-            painter.fillRect(bar_rect, fill_color)
+            if (
+                getattr(widget, "hoverIndex", None) == bin_index
+                and getattr(widget, "hoverSegment", None) == "cumulative"
+            ):
+                fill_color = fill_color.lighter(112)
+                fill_color.setAlpha(175)
+            painter.fillRect(visible_rect, fill_color)
+
+        widget._cumulativeBarRects = cumulative_rects
+
+    def _hoverTooltipLines(self, widget, bin_data):
+        segment = getattr(widget, "hoverSegment", None) or "frequency"
+        as_percent = self._bar_mode(widget) == "relative"
+        class_label = bin_data.get("label", "")
+
+        if segment == "cumulative":
+            value = self._bin_cumulative_bar_value(widget, bin_data)
+            if value is None:
+                value = 0.0
+            value_text = format_distribution_hover_value(value, as_percent=as_percent)
+            return [class_label, "{}: {}".format(widget.tr("Cumulative"), value_text)]
+
+        value = self._bin_bar_value(widget, bin_data)
+        value_text = format_distribution_hover_value(value, as_percent=as_percent)
+        if as_percent:
+            return [class_label, value_text]
+        return [class_label, "{}: {}".format(widget.tr("Count"), value_text)]
+
+    def _drawHoverTooltip(self, widget, painter, plotRect, barRects):
+        bin_index = widget.hoverIndex
+        if bin_index is None or bin_index >= len(widget.bins) or bin_index >= len(barRects):
+            return
+
+        lines = self._hoverTooltipLines(widget, widget.bins[bin_index])
+        bar_rect = barRects[bin_index]
+        font = qfont(self._SUBTITLE_FONT_SIZE)
+        painter.setFont(font)
+        font_metrics = QFontMetrics(font)
+        text_width = max(font_metrics.horizontalAdvance(line) for line in lines) + 12
+        text_height = font_metrics.height() * len(lines) + 10
+        tooltip_x = bar_rect.center().x() + 8
+        tooltip_y = max(plotRect.top() + 4, bar_rect.top() - text_height - 4)
+        if tooltip_x + text_width > plotRect.right():
+            tooltip_x = bar_rect.center().x() - text_width - 8
+        tooltip_rect = QRectF(tooltip_x, tooltip_y, text_width, text_height)
+        painter.setBrush(TOOLTIP_BG_COLOR)
+        painter.setPen(QPen(TOOLTIP_BORDER, 1))
+        painter.drawRoundedRect(tooltip_rect, 4, 4)
+        painter.setPen(TEXT_DARK)
+        line_y = tooltip_y + font_metrics.ascent() + 4
+        for line in lines:
+            painter.drawText(QPointF(tooltip_x + 6, line_y), line)
+            line_y += font_metrics.height()
 
     def _drawDistributionTopAxis(self, widget, painter, plotRect):
         scale_range = self._cumulativeXRange(widget)

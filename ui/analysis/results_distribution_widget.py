@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtCore import QCoreApplication, QPointF, QRectF, Qt
 from qgis.PyQt.QtGui import QColor, QFontMetrics
 from qgis.PyQt.QtWidgets import QSizePolicy, QWidget
 
@@ -11,7 +11,10 @@ PANEL_BG_COLOR = QColor(248, 249, 251)
 
 
 class ResultsDistributionWidget(QWidget):
-    """Read-only distribution sketch for the results dock (no title, no interaction)."""
+    """Distribution histogram for the results dock (hover tooltips, no zoom/pan)."""
+
+    def tr(self, message):
+        return QCoreApplication.translate("ResultsDistributionWidget", message)
 
     def __init__(self, parent=None):
         super(ResultsDistributionWidget, self).__init__(parent)
@@ -25,10 +28,13 @@ class ResultsDistributionWidget(QWidget):
         self.yLabelLeft = ""
         self.yLabelRight = ""
         self.hoverIndex = None
+        self.hoverSegment = None
         self._barRects = []
+        self._cumulativeBarRects = []
         self.zoomFactor = 1.0
         self.panOffset = 0.0
         self._renderer = ResultsDistributionRenderer()
+        self.setMouseTracking(True)
         # Enabled dynamically by the results dock when a single chart is shown.
         self.show_title = False
         self.show_subtitle = False
@@ -70,6 +76,7 @@ class ResultsDistributionWidget(QWidget):
         self.yLabelRight = yLabelRight or ""
         self._totalCount = sum(bin_data.get("count", 0) for bin_data in self.bins)
         self.hoverIndex = None
+        self.hoverSegment = None
         self.zoomFactor = 1.0
         self.panOffset = 0.0
         self._fitMargins()
@@ -87,6 +94,7 @@ class ResultsDistributionWidget(QWidget):
         self.yLabelRight = ""
         self._totalCount = 0
         self.hoverIndex = None
+        self.hoverSegment = None
         self.zoomFactor = 1.0
         self.panOffset = 0.0
         self.update()
@@ -203,14 +211,55 @@ class ResultsDistributionWidget(QWidget):
     def wheelEvent(self, event):
         event.ignore()
 
-    def mousePressEvent(self, event):
-        event.ignore()
+    def leaveEvent(self, event):
+        if self.hoverIndex is not None or self.hoverSegment is not None:
+            self.hoverIndex = None
+            self.hoverSegment = None
+            self.update()
 
     def mouseMoveEvent(self, event):
-        event.ignore()
+        cursor_pos = QPointF(event.pos())
+        new_index, new_segment = self._hoverAt(cursor_pos)
+        if new_index != self.hoverIndex or new_segment != self.hoverSegment:
+            self.hoverIndex = new_index
+            self.hoverSegment = new_segment
+            self.update()
 
-    def mouseReleaseEvent(self, event):
-        event.ignore()
+    def _hasCumulativeBars(self):
+        return (
+            self.cumulative_mode in ("absolute", "relative")
+            and not self.cumulative_points
+            and any(bin_data.get("cumulative_count") is not None for bin_data in self.bins)
+        )
 
-    def mouseDoubleClickEvent(self, event):
-        event.ignore()
+    def _hoverAt(self, cursor_pos):
+        plot_rect = self.getPlotRect()
+        if not self.bins or not self._barRects or not plot_rect.contains(cursor_pos):
+            return None, None
+
+        has_cumulative_bars = self._hasCumulativeBars()
+        for bin_index, bar_rect in enumerate(self._barRects):
+            visible_rect = QRectF(bar_rect).intersected(plot_rect)
+            if visible_rect.width() <= 0:
+                continue
+            if not (visible_rect.left() <= cursor_pos.x() <= visible_rect.right()):
+                continue
+
+            cumulative_visible = None
+            if has_cumulative_bars and bin_index < len(self._cumulativeBarRects):
+                cumulative_rect = self._cumulativeBarRects[bin_index]
+                if cumulative_rect is not None:
+                    cumulative_visible = QRectF(cumulative_rect).intersected(plot_rect)
+
+            if cumulative_visible and cumulative_visible.width() > 0 and cumulative_visible.height() > 0:
+                if not (cumulative_visible.top() <= cursor_pos.y() <= cumulative_visible.bottom()):
+                    continue
+                frequency_top = visible_rect.top() if visible_rect.height() > 0 else cumulative_visible.bottom() + 1
+                if cursor_pos.y() < frequency_top:
+                    return bin_index, "cumulative"
+                return bin_index, "frequency"
+
+            if visible_rect.height() > 0 and visible_rect.top() <= cursor_pos.y() <= visible_rect.bottom():
+                return bin_index, "frequency"
+
+        return None, None
