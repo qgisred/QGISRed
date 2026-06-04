@@ -19,6 +19,7 @@ from qgis.PyQt import uic
 from qgis.core import (
     QgsClassificationJenks,
     QgsClassificationPrettyBreaks,
+    QgsClassificationQuantile,
     QgsExpression,
     QgsFeatureRequest,
     QgsProject,
@@ -1213,7 +1214,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         if rangedId == "FixedInterval":
             return self.calculateFixedIntervalBreaks(dataMin, dataMax)
         if rangedId == "Quantile":
-            return self.calculateQuantileBreaks(values, numClasses, dataMin, dataMax)
+            return self.calculateQuantileBreaks(layer, classifyField, numClasses, dataMin)
         if rangedId == "Jenks":
             return self.calculateJenksBreaks(layer, classifyField, numClasses, dataMin)
         if rangedId == "Pretty":
@@ -1241,13 +1242,12 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             edges.append(current)
         return edges
 
-    def calculateQuantileBreaks(self, values, numClasses, dataMin, dataMax):
-        edges = [dataMin]
-        for i in range(1, numClasses):
-            index = min(int(i / float(numClasses) * len(values)), len(values) - 1)
-            edges.append(values[index])
-        edges.append(dataMax)
-        return edges
+    def calculateQuantileBreaks(self, layer, fieldName, numClasses, dataMin):
+        classifier = QgsClassificationQuantile()
+        classes = classifier.classes(layer, fieldName, numClasses)
+        if not classes:
+            return None
+        return [dataMin] + [cls.upperBound() for cls in classes]
 
     def calculateJenksBreaks(self, layer, fieldName, numClasses, dataMin):
         classifier = QgsClassificationJenks()
