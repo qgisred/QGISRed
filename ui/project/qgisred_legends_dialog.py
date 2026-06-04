@@ -2042,12 +2042,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
             symbol.setSize(1.5)
 
     def classifyAllUniqueValues(self):
-        uniqueCountToAdd = len(self.availableUniqueValues)
-
-        if uniqueCountToAdd == 0:
+        if len(self.availableUniqueValues) == 0:
             QMessageBox.information(
                 self, self.tr("Info"), self.tr("All values are already classified.")
             )
+            return
+        self.classifyMissingUniqueValues()
+
+    def classifyMissingUniqueValues(self):
+        uniqueCountToAdd = len(self.availableUniqueValues)
+
+        if uniqueCountToAdd == 0:
             return
 
         currentCount = self.tableView.rowCount()
