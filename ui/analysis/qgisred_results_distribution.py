@@ -19,6 +19,9 @@ from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from .results_distribution_widget import ResultsDistributionWidget
 
+# Head loss magnitudes apply to pipes only (pumps/valves lack UnitHdLoss in .out).
+_PIPE_ONLY_LINK_FIELDS = frozenset({"HeadLoss", "UnitHdLoss"})
+
 
 def _format_edge(value):
     if value is None:
@@ -162,6 +165,17 @@ def extract_legend_classes(layer, field_name):
     return [], None
 
 
+def _include_link_feature_for_distribution(feature, field_name):
+    """Exclude pumps and valves when binning head-loss magnitudes."""
+    if field_name not in _PIPE_ONLY_LINK_FIELDS:
+        return True
+    field_names = feature.fields().names()
+    if "UnitHdLoss" not in field_names:
+        return True
+    unit_headloss = feature["UnitHdLoss"]
+    return unit_headloss is not None and unit_headloss != NULL
+
+
 def _feature_value_for_classification(feature, field_name):
     if field_name not in feature.fields().names():
         return None
@@ -236,6 +250,8 @@ def build_distribution_bins(layer, field_name):
         ))
 
     for feature in layer.getFeatures():
+        if not _include_link_feature_for_distribution(feature, field_name):
+            continue
         value = _feature_value_for_classification(feature, field_name)
         if value is None:
             continue
@@ -262,6 +278,8 @@ def build_cumulative_points(layer, field_name, sample_count=100):
 
     values = []
     for feature in layer.getFeatures():
+        if not _include_link_feature_for_distribution(feature, field_name):
+            continue
         value = _feature_value_for_classification(feature, field_name)
         try:
             values.append(float(value))

@@ -3,6 +3,7 @@ from QGISRed.ui.analysis.qgisred_results_distribution import (
     _ResultsDistributionMixin,
     _find_class_index,
     _format_range_label,
+    _include_link_feature_for_distribution,
     _parse_category_from_filter,
 )
 from QGISRed.ui.analysis.results_distribution_renderer import (
@@ -110,6 +111,41 @@ class TestDistributionChartTitleTemplate:
             "%2", ""
         )
         assert title == "Pressure frequency"
+
+
+class _FakeFeatureFields:
+    def __init__(self, names):
+        self._names = names
+
+    def names(self):
+        return self._names
+
+
+class _FakeFeature:
+    def __init__(self, attributes):
+        self._attributes = attributes
+
+    def fields(self):
+        return _FakeFeatureFields(list(self._attributes.keys()))
+
+    def __getitem__(self, name):
+        return self._attributes[name]
+
+
+class TestIncludeLinkFeatureForDistribution:
+    def test_headloss_includes_pipes_with_unit_headloss(self):
+        feature = _FakeFeature({"UnitHdLoss": 12.5, "HeadLoss": 3.0})
+        assert _include_link_feature_for_distribution(feature, "HeadLoss") is True
+        assert _include_link_feature_for_distribution(feature, "UnitHdLoss") is True
+
+    def test_headloss_excludes_pumps_and_valves(self):
+        feature = _FakeFeature({"UnitHdLoss": None, "HeadLoss": 20.0})
+        assert _include_link_feature_for_distribution(feature, "HeadLoss") is False
+        assert _include_link_feature_for_distribution(feature, "UnitHdLoss") is False
+
+    def test_other_fields_unfiltered(self):
+        feature = _FakeFeature({"UnitHdLoss": None, "Flow": 10.0})
+        assert _include_link_feature_for_distribution(feature, "Flow") is True
 
 
 class TestFormatRangeLabel:
