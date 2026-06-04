@@ -3661,14 +3661,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
             QMessageBox.warning(self, self.tr("Not Found"), self.tr("Style file not found: %1").replace("%1", path))
             return
 
-        self.currentLayer.loadNamedStyle(path)
-        QGISRedStylingUtils().applyStrategyFromLayer(self.currentLayer)
-        self.currentLayer.triggerRepaint()
-        self.onLayerChanged(self.currentLayer)
+        strategy = self.readStrategyFromStyleFile(path)
+        if strategy is not None:
+            self.applyStrategyToDialog(strategy)
         QMessageBox.information(
             self,
             self.tr("Loaded"),
-            self.tr("Style loaded from %1 in the layerStyles folder of your project").replace("%1", filename),
+            self.tr("Strategy loaded into the dialog from %1. Press Apply to update the layer.").replace("%1", filename),
         )
 
     def loadStyle(self, isDefault):
