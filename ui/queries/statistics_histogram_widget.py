@@ -9,6 +9,9 @@ from .statistics_histogram_renderer import StatisticsHistogramRenderer
 class StatisticsHistogramWidget(QWidget):
     viewChanged = pyqtSignal()
 
+    _TICK_CHAR_WIDTH = 6.0
+    _ROTATED_LABEL_EXTRA = 50
+
     def tr(self, message):
         return QCoreApplication.translate("StatisticsHistogramWidget", message)
 
@@ -109,11 +112,20 @@ class StatisticsHistogramWidget(QWidget):
             offset = minOffset
         return offset
 
+    def xTickLabelsNeedRotation(self):
+        if not self.bins:
+            return False
+        plotWidth = max(0, self.width() - self.marginLeft - self.marginRight)
+        availablePerBar = plotWidth / max(1, len(self.bins))
+        longestLabel = max((len(binData.get("label", "")) for binData in self.bins), default=0)
+        return longestLabel * self._TICK_CHAR_WIDTH > availablePerBar
+
     def getPlotRect(self):
         x = self.marginLeft
         y = self.marginTop
         width = max(0, self.width() - self.marginLeft - self.marginRight)
-        height = max(0, self.height() - self.marginTop - self.marginBottom)
+        bottomMargin = self.marginBottom + (self._ROTATED_LABEL_EXTRA if self.xTickLabelsNeedRotation() else 0)
+        height = max(0, self.height() - self.marginTop - bottomMargin)
         return QRectF(x, y, width, height)
 
     def paintEvent(self, event):
