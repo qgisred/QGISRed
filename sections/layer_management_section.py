@@ -305,14 +305,44 @@ class LayerManagementSection:
         self.hasToOpenDemandsBuilderLayers = False
         self.hasToOpenTreeLayers = False
         self._demandsBuilderExtraPaths = []
-    
+        self._demandsBuilderNewBaseDemandFieldName = ""
+
+        def parse_extra_parts(result):
+            parts = result.split("^")
+            extra_paths = []
+            base_demand_field = ""
+
+            if len(parts) > 1:
+                extra_paths = [
+                    p for p in parts[1].split(";")
+                    if p.strip()
+                ]
+
+            for part in parts[2:]:
+                if part.startswith("baseDemandField="):
+                    base_demand_field = part.split("=", 1)[1].strip()
+
+            return extra_paths, base_demand_field
+
         if b == "True":
-            if not message == "":
+            if message != "":
                 self.pushMessage(self.tr(message), level=3, duration=5)
+
         elif b == "False" or b == "Cancelled":
             pass
+
         elif b == "commit":
             self.hasToOpenNewLayers = True
+
+        elif b.startswith("commit^"):
+            self.hasToOpenNewLayers = True
+
+            for part in b.split("^")[1:]:
+                if part.startswith("baseDemandField="):
+                    self._demandsBuilderNewBaseDemandFieldName = (
+                        part.split("=", 1)[1].strip()
+                    )
+
         elif b == "shps":
             if layerType == "sectors":
                 self.hasToOpenSectorLayers = True
@@ -326,8 +356,10 @@ class LayerManagementSection:
                 self.hasToOpenDemandsBuilderLayers = True
             else:
                 self.hasToOpenIssuesLayers = True
+
         elif b.startswith("commit/shps"):
             self.hasToOpenNewLayers = True
+
             if layerType == "sectors":
                 self.hasToOpenSectorLayers = True
             elif layerType == "connectivity":
@@ -338,14 +370,25 @@ class LayerManagementSection:
                 self.hasToOpenTreeLayers = True
             elif layerType == "demandsBuilder":
                 self.hasToOpenDemandsBuilderLayers = True
-                if "^" in b:
-                    self._demandsBuilderExtraPaths = [p for p in b.split("^", 1)[1].split(";") if p.strip()]
+                (
+                    self._demandsBuilderExtraPaths,
+                    self._demandsBuilderNewBaseDemandFieldName
+                ) = parse_extra_parts(b)
             else:
                 self.hasToOpenIssuesLayers = True
+
         else:
             self.pushMessage(b, level=2, duration=5)
 
-        if self.hasToOpenNewLayers or self.hasToOpenIssuesLayers or self.hasToOpenSectorLayers or self.hasToOpenConnectivityLayers or self.hasToOpenIsolatedSegmentsLayers or self.hasToOpenTreeLayers or self.hasToOpenDemandsBuilderLayers:
+        if (
+            self.hasToOpenNewLayers
+            or self.hasToOpenIssuesLayers
+            or self.hasToOpenSectorLayers
+            or self.hasToOpenConnectivityLayers
+            or self.hasToOpenIsolatedSegmentsLayers
+            or self.hasToOpenTreeLayers
+            or self.hasToOpenDemandsBuilderLayers
+        ):
             self.layerOperationInProgress = True
             self.runOpenTemporaryFiles()
         else:

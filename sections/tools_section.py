@@ -430,9 +430,16 @@ class ToolsSection:
                 )
 
         elif geom_type == 0:
-            if vlayer.fields().indexFromName("BaseDemand") != -1:
+            base_demand_field = getattr(self, "_demandsBuilderNewBaseDemandFieldName", "BaseDemand")
+            if base_demand_field and vlayer.fields().indexFromName(base_demand_field) != -1:
 
-                label_settings.fieldName = '"BaseDemand"'
+                # Create new text format for point labels with larger size
+                point_text_format = QgsTextFormat()
+                point_text_format.setSize(12)
+                point_text_format.setColor(QColor("black"))
+                label_settings.setFormat(point_text_format)
+                
+                label_settings.fieldName = f'"{base_demand_field}"'
                 label_settings.isExpression = True
                 label_settings.enabled = True
 
