@@ -216,7 +216,8 @@ class LayerManagementSection:
 
     def getTreeGroup(self):
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
-        return utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Trees", "Tree: " + self.treeName])
+        # Use the tree name directly as the final subgroup (no "Tree: " prefix)
+        return utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Trees", self.treeName])
 
     """Groups"""
 

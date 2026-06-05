@@ -511,8 +511,7 @@ class QGISRedLayerUtils:
         showName = identifiers.getTranslatedNameForIdentifier(identifier) or self.tr(name)
         originalName = identifiers.getOriginalNameFromLayerName(name)
         candidates = [
-            os.path.join(self.ProjectDirectory, self.NetworkName + "_" + originalName + "_Tree_" + treeName + ".shp"),
-            os.path.join(self.ProjectDirectory, self.NetworkName + "_Tree_" + treeName + "_" + originalName + ".shp"),
+            os.path.join(self.ProjectDirectory, self.NetworkName + "_" + treeName + "_" + originalName + ".shp"),
         ]
         layerPath = None
         for candidate in candidates:
