@@ -489,12 +489,17 @@ class LayerManagementSection:
         if self.hasToOpenTreeLayers:
             treeFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, "Trees")
             os.makedirs(treeFolder, exist_ok=True)
-            for fi in os.listdir(self.ProjectDirectory):
-                if fi.startswith(self.NetworkName) and "_Tree_" in fi:
-                    src = os.path.join(self.ProjectDirectory, fi)
+
+            auxTreeFolder = os.path.join(self.ProjectDirectory, "_aux_Trees")
+
+            if os.path.isdir(auxTreeFolder):
+                for fi in os.listdir(auxTreeFolder):
+                    src = os.path.join(auxTreeFolder, fi)
                     dst = os.path.join(treeFolder, fi)
                     shutil.copy2(src, dst)
-                    os.remove(src)
+
+                shutil.rmtree(auxTreeFolder)
+
             self.openTreeLayers()
             self.hasToOpenTreeLayers = False
 
