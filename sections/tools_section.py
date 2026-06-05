@@ -5,7 +5,7 @@ from qgis.PyQt.QtWidgets import QApplication, QFileDialog
 from qgis.PyQt.QtCore import Qt, QVariant
 from qgis.PyQt.QtGui import QColor
 from qgis.core import QgsProject, QgsLayerTreeGroup, QgsSingleSymbolRenderer, QgsSymbol, QgsCategorizedSymbolRenderer, QgsRendererCategory
-from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling, QgsTextFormat
+from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling, QgsTextFormat, QgsProperty
 from random import randint
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
@@ -403,6 +403,18 @@ class ToolsSection:
         text_format.setSize(10)
 
         label_settings.setFormat(text_format)
+
+        # Build color expression for labels based on category colors
+        if field_index != -1:
+            color_expression = "CASE "
+            if has_undefined:
+                color_expression += "WHEN \"Category\" IS NULL OR trim(\"Category\") = '' OR lower(trim(\"Category\")) IN ('null', 'undefined') THEN 'orange' "
+            for cat in sorted(unique_cats):
+                hex_color = self.category_colors[cat].name()  # Returns #RRGGBB
+                color_expression += f"WHEN trim(\"Category\") = '{cat}' THEN '{hex_color}' "
+            color_expression += "ELSE 'gray' END"
+            
+            label_settings.dataDefinedProperties().setProperty(QgsPalLayerSettings.Color, QgsProperty.fromExpression(color_expression))
 
         if geom_type == 1:
             if vlayer.fields().indexFromName("%Dem") != -1:
