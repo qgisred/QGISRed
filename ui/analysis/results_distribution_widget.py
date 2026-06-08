@@ -13,6 +13,9 @@ PANEL_BG_COLOR = QColor(248, 249, 251)
 class ResultsDistributionWidget(QWidget):
     """Distribution histogram for the results dock (hover tooltips, no zoom/pan)."""
 
+    _TICK_CHAR_WIDTH = 6.0
+    _ROTATED_LABEL_EXTRA = 50
+
     def tr(self, message):
         return QCoreApplication.translate("ResultsDistributionWidget", message)
 
@@ -196,13 +199,22 @@ class ResultsDistributionWidget(QWidget):
 
         self.marginBottom = max(34, min(64, bottom_for_classes + (8 if self.xLabel else 0)))
 
+    def xTickLabelsNeedRotation(self):
+        if not self.bins:
+            return False
+        plotWidth = max(0, self.width() - self.marginLeft - self.marginRight)
+        availablePerBar = plotWidth / max(1, len(self.bins))
+        longestLabel = max((len(bin_data.get("label", "")) for bin_data in self.bins), default=0)
+        return longestLabel * self._TICK_CHAR_WIDTH > availablePerBar
+
     def getPlotRect(self):
         from qgis.PyQt.QtCore import QRectF
 
         x = self.marginLeft
         y = self.marginTop
         width = max(0, self.width() - self.marginLeft - self.marginRight)
-        height = max(0, self.height() - self.marginTop - self.marginBottom)
+        bottomMargin = self.marginBottom + (self._ROTATED_LABEL_EXTRA if self.xTickLabelsNeedRotation() else 0)
+        height = max(0, self.height() - self.marginTop - bottomMargin)
         return QRectF(x, y, width, height)
 
     def paintEvent(self, event):
