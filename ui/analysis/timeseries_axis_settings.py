@@ -14,7 +14,14 @@ from ...tools.utils.qgisred_axis_scale_utils import (
     format_number_tick,
 )
 
-from .timeseries_plot_style import AXIS_MAX_TICKS, BORDER_COLOR, FONT_FAMILY, PLOT_BG_COLOR
+from .timeseries_plot_style import (
+    AXIS_MAX_TICKS,
+    BORDER_COLOR,
+    DEFAULT_GRID_WIDTH,
+    FONT_FAMILY,
+    GRID_COLOR,
+    PLOT_BG_COLOR,
+)
 
 
 @dataclass
@@ -28,6 +35,8 @@ class TimeSeriesAxisSettings:
     fixed_max: float = 1.0
     fixed_divisions: int = 5
     show_grid: bool = True
+    grid_color_hex: str = ""
+    grid_width: float = 0.0
     show_tick_marks: bool = False
     tick_font_size: int = 10
     tick_font_family: str = ""
@@ -57,6 +66,17 @@ class TimeSeriesAxisSettings:
         if not c.isValid():
             c = QColor("#000000")
         return c
+
+    def grid_qcolor(self) -> QColor:
+        raw = (self.grid_color_hex or "").strip()
+        if not raw:
+            return QColor(GRID_COLOR)
+        c = QColor(raw)
+        return c if c.isValid() else QColor(GRID_COLOR)
+
+    def resolved_grid_width(self) -> float:
+        w = float(self.grid_width or 0.0)
+        return DEFAULT_GRID_WIDTH if w <= 0.0 else w
 
     def decimal_places_or_none(self) -> Optional[int]:
         if self.decimal_places is None or self.decimal_places < 0:

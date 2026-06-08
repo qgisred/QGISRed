@@ -22,7 +22,8 @@ from .timeseries_plot_style import (
     AXIS_MAX_TICKS,
     BORDER_COLOR,
     DEFAULT_SERIES_COLOR,
-    GRID_COLOR,
+    GRID_DAY_START_COLOR,
+    GRID_DAY_START_WIDTH,
     LEGEND_ICON_SIZE,
     LEGEND_POINT_SYMBOL_SIZE_MAX,
     LEGEND_OUTSIDE_BOTTOM_EXTRA,
@@ -222,6 +223,9 @@ class TimeSeriesPlotRenderer:
         f = QFont(cfg.resolved_title_font_family(), max(5, min(int(getattr(cfg, "title_font_size", 10) or 10), 48)))
         f.setBold(bold)
         return f
+
+    def _axis_grid_pen(self, cfg: TimeSeriesAxisSettings) -> QPen:
+        return QPen(cfg.grid_qcolor(), cfg.resolved_grid_width(), Qt.PenStyle.SolidLine)
 
     def _line_pen_style(self, style: str):
         t = (style or "solid").strip().lower()
@@ -818,9 +822,7 @@ class TimeSeriesPlotRenderer:
     ):
         cfg_x = x_state.get("axis_cfg") or widget._axis_cfg_x
         y_state_primary = y_state_primary or y_state_left or y_state_right
-        pen_grid = QPen(GRID_COLOR, 1, Qt.PenStyle.SolidLine)
-        pen_grid_day_start = QPen(QColor(185, 195, 205), 1, Qt.PenStyle.SolidLine)
-        pen_grid_day_start.setWidthF(1.2)
+        pen_grid_day_start = QPen(GRID_DAY_START_COLOR, GRID_DAY_START_WIDTH, Qt.PenStyle.SolidLine)
         tick_mark_len = 5.0
 
         if y_state_left is not None:
@@ -840,7 +842,7 @@ class TimeSeriesPlotRenderer:
 
                 pt = self._to_screen(x_state["min_x"], val_y, plot_rect, x_state, y_state_left)
                 if cfg_yl.show_grid:
-                    painter.setPen(pen_grid)
+                    painter.setPen(self._axis_grid_pen(cfg_yl))
                     painter.drawLine(QPointF(plot_rect.left(), pt.y()), QPointF(plot_rect.right(), pt.y()))
                 painter.setPen(QPen(cfg_yl.tick_qcolor(), 1))
                 if getattr(cfg_yl, "show_tick_marks", False):
@@ -863,7 +865,7 @@ class TimeSeriesPlotRenderer:
                     label_text = self._format_tick_number(val_y, y_step_r, dec_yr)
                 pt = self._to_screen(x_state["min_x"], val_y, plot_rect, x_state, y_state_right)
                 if cfg_yr.show_grid:
-                    painter.setPen(pen_grid)
+                    painter.setPen(self._axis_grid_pen(cfg_yr))
                     painter.drawLine(QPointF(plot_rect.left(), pt.y()), QPointF(plot_rect.right(), pt.y()))
                 painter.setPen(QPen(cfg_yr.tick_qcolor(), 1))
                 if getattr(cfg_yr, "show_tick_marks", False):
@@ -897,7 +899,7 @@ class TimeSeriesPlotRenderer:
                         mod_24 = val_x % 24.0
                         is_day_start = abs(mod_24) < 1e-6 or abs(mod_24 - 24.0) < 1e-6
                 if cfg_x.show_grid:
-                    painter.setPen(pen_grid_day_start if is_day_start else pen_grid)
+                    painter.setPen(pen_grid_day_start if is_day_start else self._axis_grid_pen(cfg_x))
                     painter.drawLine(QPointF(pt.x(), plot_rect.top()), QPointF(pt.x(), plot_rect.bottom()))
 
                 painter.setPen(QPen(cfg_x.tick_qcolor(), 1))

@@ -35,7 +35,7 @@ from qgis.PyQt.QtWidgets import (
 )
 
 from .timeseries_axis_settings import TimeSeriesAxisSettings, TimeSeriesGeneralSettings, clone_axis_settings, clone_general_settings
-from .timeseries_plot_style import FONT_FAMILY
+from .timeseries_plot_style import FONT_FAMILY, GRID_COLOR
 from .timeseries_time_utils import civil_time_parts
 
 
@@ -1377,10 +1377,75 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         lay.addWidget(scale_group)
 
         grid_grp = self._compact_group(QGroupBox(self.tr("Grid")))
-        grid_lay = QVBoxLayout(grid_grp)
+        grid_form = QFormLayout(grid_grp)
+        grid_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        grid_form.setHorizontalSpacing(12)
+        grid_form.setVerticalSpacing(8)
+        try:
+            grid_form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
+        except Exception:
+            pass
+
         chk_grid = QCheckBox(self.tr("Show grid lines for this axis"))
         chk_grid.setChecked(cfg.show_grid)
-        grid_lay.addWidget(chk_grid)
+        grid_form.addRow("", chk_grid)
+
+        default_grid_color = QColor(GRID_COLOR)
+
+        def make_grid_color_picker():
+            picked = cfg.grid_qcolor()
+            if not picked.isValid():
+                picked = QColor(default_grid_color)
+            btn = QPushButton()
+            chk_default = QCheckBox(self.tr("Use default"))
+            chk_default.setChecked(not (cfg.grid_color_hex or "").strip())
+            row = QWidget()
+            row_lay = QHBoxLayout(row)
+            row_lay.setContentsMargins(0, 0, 0, 0)
+            row_lay.setSpacing(8)
+            row_lay.addWidget(btn, 1)
+            row_lay.addWidget(chk_default)
+            row_lay.addStretch(1)
+
+            def refresh():
+                if chk_default.isChecked():
+                    self._show_color_on_button(btn, default_grid_color)
+                else:
+                    self._show_color_on_button(btn, picked)
+
+            def pick_color():
+                nonlocal picked
+                nc = QColorDialog.getColor(picked, self, self.tr("Grid color"))
+                if nc.isValid():
+                    picked = nc
+                    chk_default.setChecked(False)
+                    refresh()
+                    self._schedule_live_apply()
+
+            btn.clicked.connect(pick_color)
+
+            def on_default_toggled(_checked):
+                refresh()
+                self._schedule_live_apply()
+
+            chk_default.toggled.connect(on_default_toggled)
+            refresh()
+
+            def value():
+                return "" if chk_default.isChecked() else picked.name(QColor.NameFormat.HexRgb)
+
+            return row, value
+
+        grid_color_row, grid_color_value = make_grid_color_picker()
+        sp_grid_w = QDoubleSpinBox()
+        sp_grid_w.setRange(0.0, 6.0)
+        sp_grid_w.setSingleStep(0.5)
+        sp_grid_w.setDecimals(1)
+        sp_grid_w.setSpecialValueText(self.tr("Default"))
+        current_grid_w = float(cfg.resolved_grid_width())
+        sp_grid_w.setValue(0.0 if float(cfg.grid_width or 0.0) <= 0.0 else current_grid_w)
+        self._add_form_row(grid_form, self.tr("Color:"), grid_color_row)
+        self._add_form_row(grid_form, self.tr("Width:"), sp_grid_w)
         lay.addWidget(grid_grp)
 
         tick_grp = self._compact_group(QGroupBox(self.tr("Tick marks and labels")))
@@ -1461,6 +1526,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         w._sp_max = sp_max
         w._sp_div = sp_div
         w._chk_grid = chk_grid
+        w._grid_color_value = grid_color_value
+        w._sp_grid_w = sp_grid_w
         w._chk_tick_marks = chk_tick_marks
         w._tick_style_row = tick_style_row
         w._sp_size = sp_size
@@ -1481,6 +1548,8 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         cfg.fixed_max = float(tab._sp_max.value())
         cfg.fixed_divisions = int(tab._sp_div.value())
         cfg.show_grid = tab._chk_grid.isChecked()
+        cfg.grid_color_hex = tab._grid_color_value()
+        cfg.grid_width = float(tab._sp_grid_w.value())
         cfg.show_tick_marks = bool(tab._chk_tick_marks.isChecked())
         cfg.tick_font_size = int(tab._sp_size.value())
         cfg.tick_font_family = tab._font_combo.currentFont().family()
