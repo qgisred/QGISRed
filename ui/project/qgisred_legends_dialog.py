@@ -3449,7 +3449,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         self.applyLegend()
 
-        selectedParts = self.promptForStrategyParts()
+        selectedParts = self.promptForStrategyParts(globalStyle)
         if selectedParts is None:
             return
 
@@ -3462,21 +3462,27 @@ class QGISRedLegendsDialog(QDialog, formClass):
             self.tr("Style saved as %1 in the layerStyles folder of your project.").replace("%1", filename),
         )
 
-    def promptForStrategyParts(self):
+    def promptForStrategyParts(self, globalStyle):
         applicableParts = self.getBuildableStrategyParts()
         if not applicableParts:
             self.currentLayer.removeCustomProperty("qgisred_legend_strategy")
             return []
 
+        isCategorical = self.currentFieldType == self.FIELD_TYPE_CATEGORICAL
         currentParts = set(self.readSavedStrategyParts())
         initialChecks = currentParts if currentParts else set(applicableParts)
 
+        structuralApplicable = "allClasses" in applicableParts or "intervals" in applicableParts
+        initialStructural = "allClasses" in initialChecks or "intervals" in initialChecks
+
         dialog = QGISRedSaveStrategyDialog(
             self.currentLayer.name(),
-            "intervals" in applicableParts,
+            globalStyle,
+            isCategorical,
+            structuralApplicable,
             "sizes" in applicableParts,
             "colors" in applicableParts,
-            initialIntervals="intervals" in initialChecks,
+            initialStructural=initialStructural,
             initialSizes="sizes" in initialChecks,
             initialColors="colors" in initialChecks,
             parent=self,
@@ -3811,6 +3817,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         if not self.currentFieldName:
             return []
         parts = []
+        if self.currentFieldType == self.FIELD_TYPE_CATEGORICAL and self.tableView.rowCount() > 0:
+            parts.append("allClasses")
         if self.canBuildIntervalsPart():
             parts.append("intervals")
         if self.canBuildSizesPart():

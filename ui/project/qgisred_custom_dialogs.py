@@ -58,19 +58,30 @@ class QGISRedRangeEditDialog(QDialog):
         return self.lowerValueSpinBox.value(), self.upperValueSpinBox.value()
 
 class QGISRedSaveStrategyDialog(QDialog):
-    def __init__(self, layerName, intervalsApplicable, sizesApplicable, colorsApplicable,
-                 initialIntervals=False, initialSizes=False, initialColors=False, parent=None):
+    def __init__(self, layerName, isGlobal, isCategorical,
+                 structuralApplicable, sizesApplicable, colorsApplicable,
+                 initialStructural=False, initialSizes=False, initialColors=False, parent=None):
         super().__init__(parent)
 
         self.layerName = layerName
-        self.ckIntervals = self.createPartCheckBox(self.tr("Intervals"), intervalsApplicable, initialIntervals)
+        self.isGlobal = isGlobal
+        self.isCategorical = isCategorical
+        self.sizesApplicable = sizesApplicable
+        self.colorsApplicable = colorsApplicable
+
+        structuralLabel = self.tr("All Classes") if isCategorical else self.tr("Intervals")
+        self.ckStructural = self.createPartCheckBox(structuralLabel, structuralApplicable, initialStructural)
         self.ckSizes = self.createPartCheckBox(self.tr("Sizes"), sizesApplicable, initialSizes)
         self.ckColors = self.createPartCheckBox(self.tr("Colors"), colorsApplicable, initialColors)
+
+        if isCategorical:
+            self.ckStructural.toggled.connect(self.onStructuralToggled)
+            self.onStructuralToggled(self.ckStructural.isChecked())
 
         self.initializeInterface()
 
     def initializeInterface(self):
-        title = self.tr("Save current strategy for %1").replace("%1", self.layerName)
+        title = self.tr("Save legend for %1").replace("%1", self.layerName)
         self.setWindowTitle(title)
         self.setupLayout()
 
@@ -80,10 +91,18 @@ class QGISRedSaveStrategyDialog(QDialog):
         checkBox.setChecked(bool(applicable) and bool(initialChecked))
         return checkBox
 
+    def onStructuralToggled(self, checked):
+        # The full class snapshot already includes sizes and colors.
+        self.ckSizes.setEnabled(bool(self.sizesApplicable) and not checked)
+        self.ckColors.setEnabled(bool(self.colorsApplicable) and not checked)
+
     def setupLayout(self):
         layout = QVBoxLayout(self)
-        layout.addWidget(QLabel(self.tr("Which strategy of the current legend to apply?")))
-        layout.addWidget(self.ckIntervals)
+        levelText = self.tr("Global level") if self.isGlobal else self.tr("Project level")
+        intro = self.tr("The current legend will be saved exactly as shown, at %1.").replace("%1", levelText)
+        layout.addWidget(QLabel(intro))
+        layout.addWidget(QLabel(self.tr("To save a strategy that regenerates the legend automatically instead, tick the parts to keep:")))
+        layout.addWidget(self.ckStructural)
         layout.addWidget(self.ckSizes)
         layout.addWidget(self.ckColors)
         self.addStandardButtons(layout)
@@ -96,8 +115,8 @@ class QGISRedSaveStrategyDialog(QDialog):
 
     def selectedParts(self):
         parts = []
-        if self.ckIntervals.isChecked():
-            parts.append("intervals")
+        if self.ckStructural.isChecked():
+            parts.append("allClasses" if self.isCategorical else "intervals")
         if self.ckSizes.isChecked():
             parts.append("sizes")
         if self.ckColors.isChecked():
