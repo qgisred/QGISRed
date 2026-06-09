@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
 from qgis.PyQt.QtCore import QCoreApplication, QPointF, QRectF, Qt, pyqtSignal
-from qgis.PyQt.QtGui import QPainter
+from qgis.PyQt.QtGui import QFontMetrics, QPainter
 from qgis.PyQt.QtWidgets import QWidget
 
+from ..analysis.timeseries_plot_style import qfont
+from ...tools.utils.qgisred_axis_scale_utils import compute_nice_scale, estimate_max_ticks, format_number_tick
+from .statistics_histogram_layout import (
+    adaptive_axis_tick_font_size,
+    adaptive_axis_title_font_size,
+    cap_bottom_margin,
+    longest_x_label_width,
+    rotated_x_label_extra_height,
+    x_tick_labels_need_rotation,
+)
 from .statistics_histogram_renderer import StatisticsHistogramRenderer
 
 
@@ -10,7 +20,6 @@ class StatisticsHistogramWidget(QWidget):
     viewChanged = pyqtSignal()
 
     _TICK_CHAR_WIDTH = 6.0
-    _ROTATED_LABEL_EXTRA = 50
 
     def tr(self, message):
         return QCoreApplication.translate("StatisticsHistogramWidget", message)
@@ -31,6 +40,8 @@ class StatisticsHistogramWidget(QWidget):
         self._panStartPos = None
         self._panStartOffset = 0.0
         self._renderer = StatisticsHistogramRenderer()
+        self._axisTickFontSize = 9
+        self._rotatedLabelExtra = 0
         self.marginLeft = 52
         self.marginRight = 30
         self.marginTop = 40
@@ -46,16 +57,19 @@ class StatisticsHistogramWidget(QWidget):
         self.hoverIndex = None
         self.zoomFactor = 1.0
         self.panOffset = 0.0
+        self._fitMargins()
         self.update()
 
     def setMode(self, mode):
         if mode in ("cumulative", "intensive", "plain"):
             self.mode = mode
+            self._fitMargins()
             self.update()
 
     def setTitles(self, title, subtitle=""):
         self.title = title or ""
         self.subtitle = subtitle or ""
+        self._fitMargins()
         self.update()
 
     def clear(self):
@@ -67,7 +81,84 @@ class StatisticsHistogramWidget(QWidget):
         self.hoverIndex = None
         self.zoomFactor = 1.0
         self.panOffset = 0.0
+        self._fitMargins()
         self.update()
+
+    def resizeEvent(self, event):
+        super(StatisticsHistogramWidget, self).resizeEvent(event)
+        self._fitMargins()
+
+    def axisTickFontSize(self):
+        return self._axisTickFontSize
+
+    def _fitMargins(self):
+        self._axisTickFontSize = adaptive_axis_tick_font_size(self.width(), self.height())
+        tick_font = qfont(self._axisTickFontSize)
+        font_metrics = QFontMetrics(tick_font)
+
+        plot_width_guess = max(40, self.width() - self.marginLeft - self.marginRight)
+        plot_height_guess = max(40, self.height() - self.marginTop - self.marginBottom)
+        values = []
+        for bin_data in self.bins:
+            if self.mode == "cumulative":
+                values.append(bin_data.get("sum", 0.0))
+            elif self.mode == "intensive":
+                values.append(bin_data.get("avg", 0.0) if bin_data.get("count", 0) else 0.0)
+            else:
+                values.append(bin_data.get("count", 0))
+        if not values:
+            values = [0.0, 1.0]
+        data_min = min(values + [0.0])
+        data_max = max(values + [0.0])
+        if data_max == data_min:
+            data_max = data_min + 1.0
+        label_height = font_metrics.height() + 4
+        max_ticks = estimate_max_ticks(plot_height_guess, label_height, max_ticks=10)
+        scale = compute_nice_scale(data_min, data_max, max_ticks, include_zero=True)
+        max_tick_label_width = 0
+        for tick_value in scale.ticks():
+            label = format_number_tick(tick_value, scale.step)
+            if self.mode == "relative":
+                label = label + "%"
+            max_tick_label_width = max(max_tick_label_width, font_metrics.horizontalAdvance(label))
+        self.marginLeft = max(44, min(76, max_tick_label_width + 14))
+
+        max_right_tick_width = 0
+        if self.mode == "cumulative":
+            for tick_value in compute_nice_scale(0.0, 100.0, 6, include_zero=True).ticks():
+                label = format_number_tick(tick_value, 1.0) + "%"
+                max_right_tick_width = max(max_right_tick_width, font_metrics.horizontalAdvance(label))
+            title_font = qfont(adaptive_axis_title_font_size(self._axisTickFontSize), bold=True)
+            max_right_tick_width = max(
+                max_right_tick_width,
+                QFontMetrics(title_font).horizontalAdvance("%"),
+            )
+            self.marginRight = max(24, min(72, max_right_tick_width + 16))
+        else:
+            self.marginRight = max(18, min(36, max(18, plot_width_guess // 30)))
+
+        plot_width = max(0, self.width() - self.marginLeft - self.marginRight)
+        rotate = x_tick_labels_need_rotation(self.bins, plot_width, self._axisTickFontSize, self._TICK_CHAR_WIDTH)
+        base_bottom = font_metrics.height() + (22 if rotate else 14)
+        if self.xLabel and not rotate:
+            base_bottom += font_metrics.height() + 4
+        self.marginBottom = max(30, min(56, base_bottom))
+
+        if rotate:
+            max_label_width = longest_x_label_width(self.bins, self._axisTickFontSize)
+            rotated_extra = rotated_x_label_extra_height(
+                self._axisTickFontSize,
+                max_label_width,
+                has_x_label=bool(self.xLabel),
+            )
+            self._rotatedLabelExtra = cap_bottom_margin(
+                self.height(),
+                self.marginTop,
+                self.marginBottom,
+                rotated_extra,
+            ) - self.marginBottom
+        else:
+            self._rotatedLabelExtra = 0
 
     def resetView(self):
         self.zoomFactor = 1.0
@@ -113,19 +204,15 @@ class StatisticsHistogramWidget(QWidget):
         return offset
 
     def xTickLabelsNeedRotation(self):
-        if not self.bins:
-            return False
-        plotWidth = max(0, self.width() - self.marginLeft - self.marginRight)
-        availablePerBar = plotWidth / max(1, len(self.bins))
-        longestLabel = max((len(binData.get("label", "")) for binData in self.bins), default=0)
-        return longestLabel * self._TICK_CHAR_WIDTH > availablePerBar
+        plot_width = max(0, self.width() - self.marginLeft - self.marginRight)
+        return x_tick_labels_need_rotation(self.bins, plot_width, self._axisTickFontSize, self._TICK_CHAR_WIDTH)
 
     def getPlotRect(self):
         x = self.marginLeft
         y = self.marginTop
         width = max(0, self.width() - self.marginLeft - self.marginRight)
-        bottomMargin = self.marginBottom + (self._ROTATED_LABEL_EXTRA if self.xTickLabelsNeedRotation() else 0)
-        height = max(0, self.height() - self.marginTop - bottomMargin)
+        bottom_margin = self.marginBottom + self._rotatedLabelExtra
+        height = max(0, self.height() - self.marginTop - bottom_margin)
         return QRectF(x, y, width, height)
 
     def paintEvent(self, event):

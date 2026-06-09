@@ -191,7 +191,7 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
         data_max = max(values + [0.0])
         if data_max == data_min:
             data_max = data_min + 1.0
-        label_height = QFontMetrics(qfont(self._AXIS_TICK_FONT_SIZE)).height() + 4
+        label_height = QFontMetrics(qfont(self._tickFontSize(widget))).height() + 4
         max_ticks = estimate_max_ticks(plotRect.height(), label_height, max_ticks=10)
         return compute_nice_scale(data_min, data_max, max_ticks, include_zero=True)
 
@@ -209,12 +209,12 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
             return NiceScale(axis_min=0.0, axis_max=100.0, step=25.0, divisions=4)
         else:
             data_max = max(float(total_count), 1.0)
-        label_height = QFontMetrics(qfont(self._AXIS_TICK_FONT_SIZE)).height() + 4
+        label_height = QFontMetrics(qfont(self._tickFontSize(widget))).height() + 4
         max_ticks = estimate_max_ticks(plotRect.height(), label_height, max_ticks=8)
         return compute_nice_scale(0.0, data_max, max_ticks, include_zero=True)
 
     def _drawGridAndLeftAxis(self, widget, painter, plotRect, scale):
-        painter.setFont(qfont(self._AXIS_TICK_FONT_SIZE))
+        painter.setFont(qfont(self._tickFontSize(widget)))
         font_metrics = QFontMetrics(painter.font())
         # Slightly stronger grid than the time-series default.
         grid_color = QColor(GRID_COLOR).darker(115)
@@ -236,7 +236,7 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
             painter.drawText(QPointF(label_x, tick_y + font_metrics.ascent() / 2 - 1), label)
         if widget.yLabelLeft:
             painter.setPen(TEXT_AXIS)
-            painter.setFont(qfont(self._AXIS_TITLE_FONT_SIZE, bold=True))
+            painter.setFont(qfont(self._titleFontSize(widget), bold=True))
             painter.save()
             painter.translate(12, plotRect.center().y())
             painter.rotate(-90)
@@ -244,7 +244,7 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
             painter.restore()
 
     def _drawDistributionRightAxis(self, widget, painter, plotRect, scale):
-        painter.setFont(qfont(self._AXIS_TICK_FONT_SIZE))
+        painter.setFont(qfont(self._tickFontSize(widget)))
         font_metrics = QFontMetrics(painter.font())
         for tick_value in scale.ticks():
             tick_y = self._yForValue(plotRect, scale, tick_value)
@@ -262,7 +262,7 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
         axis_title = getattr(widget, "yLabelRight", "") or ""
         if axis_title:
             painter.setPen(TEXT_AXIS)
-            painter.setFont(qfont(self._AXIS_TITLE_FONT_SIZE, bold=True))
+            painter.setFont(qfont(self._titleFontSize(widget), bold=True))
             painter.save()
             painter.translate(widget.width() - 12, plotRect.center().y())
             painter.rotate(-90)
@@ -443,10 +443,10 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
             return
 
         x_min, x_max = scale_range
-        label_font = qfont(self._AXIS_TICK_FONT_SIZE)
+        label_font = qfont(self._tickFontSize(widget))
         painter.setFont(label_font)
         font_metrics = QFontMetrics(label_font)
-        max_ticks = estimate_max_ticks(plotRect.width(), 44, max_ticks=8)
+        max_ticks = estimate_max_ticks(plotRect.width(), font_metrics.height() + 8, max_ticks=8)
         scale = compute_nice_scale(x_min, x_max, max_ticks, include_zero=False)
 
         painter.setPen(TEXT_AXIS)

@@ -18,6 +18,11 @@ from ..analysis.timeseries_plot_style import (
     TOOLTIP_BORDER,
     qfont,
 )
+from .statistics_histogram_layout import (
+    ROTATED_LABEL_SIN,
+    adaptive_axis_title_font_size,
+    max_rotated_label_width,
+)
 
 
 CUMULATIVE_CURVE_COLOR = QColor(200, 60, 60)
@@ -31,7 +36,12 @@ class StatisticsHistogramRenderer:
     _AXIS_TICK_FONT_SIZE = 9
     _TITLE_FONT_SIZE = 11
     _SUBTITLE_FONT_SIZE = 9
-    _ROTATED_LABEL_MAX_WIDTH = 60.0
+
+    def _tickFontSize(self, widget):
+        return getattr(widget, "axisTickFontSize", lambda: self._AXIS_TICK_FONT_SIZE)()
+
+    def _titleFontSize(self, widget):
+        return adaptive_axis_title_font_size(self._tickFontSize(widget))
 
     def render(self, widget, painter):
         painter.setRenderHint(PAINTER_ANTIALIASING)
@@ -130,7 +140,7 @@ class StatisticsHistogramRenderer:
         dataMax = max(values + [0.0])
         if dataMax == dataMin:
             dataMax = dataMin + 1.0
-        labelHeight = QFontMetrics(qfont(self._AXIS_TICK_FONT_SIZE)).height() + 4
+        labelHeight = QFontMetrics(qfont(self._tickFontSize(widget))).height() + 4
         maxTicks = estimate_max_ticks(plotRect.height(), labelHeight, max_ticks=10)
         return compute_nice_scale(dataMin, dataMax, maxTicks, include_zero=True)
 
@@ -138,7 +148,7 @@ class StatisticsHistogramRenderer:
         return compute_nice_scale(0.0, 100.0, 6, include_zero=True)
 
     def _drawGridAndLeftAxis(self, widget, painter, plotRect, scale):
-        painter.setFont(qfont(self._AXIS_TICK_FONT_SIZE))
+        painter.setFont(qfont(self._tickFontSize(widget)))
         fontMetrics = QFontMetrics(painter.font())
         for tickValue in scale.ticks():
             tickY = self._yForValue(plotRect, scale, tickValue)
@@ -152,7 +162,7 @@ class StatisticsHistogramRenderer:
             painter.drawText(QPointF(labelX, tickY + fontMetrics.ascent() / 2 - 1), label)
         if widget.yLabelLeft:
             painter.setPen(TEXT_AXIS)
-            painter.setFont(qfont(self._AXIS_TITLE_FONT_SIZE, bold=True))
+            painter.setFont(qfont(self._titleFontSize(widget), bold=True))
             painter.save()
             painter.translate(12, plotRect.center().y())
             painter.rotate(-90)
@@ -160,7 +170,7 @@ class StatisticsHistogramRenderer:
             painter.restore()
 
     def _drawRightAxis(self, widget, painter, plotRect, scale):
-        painter.setFont(qfont(self._AXIS_TICK_FONT_SIZE))
+        painter.setFont(qfont(self._tickFontSize(widget)))
         fontMetrics = QFontMetrics(painter.font())
         for tickValue in scale.ticks():
             tickY = self._yForValue(plotRect, scale, tickValue)
@@ -168,7 +178,7 @@ class StatisticsHistogramRenderer:
             painter.setPen(TEXT_AXIS)
             painter.drawText(QPointF(plotRect.right() + 6, tickY + fontMetrics.ascent() / 2 - 1), label)
         painter.setPen(TEXT_AXIS)
-        painter.setFont(qfont(self._AXIS_TITLE_FONT_SIZE, bold=True))
+        painter.setFont(qfont(self._titleFontSize(widget), bold=True))
         painter.save()
         painter.translate(widget.width() - 12, plotRect.center().y())
         painter.rotate(-90)
@@ -215,11 +225,20 @@ class StatisticsHistogramRenderer:
         return barRects
 
     def _drawXAxisLabels(self, widget, painter, plotRect, barRects):
-        painter.setFont(qfont(self._AXIS_TICK_FONT_SIZE))
+        tick_font_size = self._tickFontSize(widget)
+        painter.setFont(qfont(tick_font_size))
         fontMetrics = QFontMetrics(painter.font())
         painter.setPen(TEXT_AXIS)
         rotate = widget.xTickLabelsNeedRotation()
-        maxLabelWidth = self._ROTATED_LABEL_MAX_WIDTH if rotate else max(40.0, (barRects[0].width() if barRects else 40.0) + 6)
+        if rotate:
+            maxLabelWidth = max_rotated_label_width(plotRect.width(), len(widget.bins), tick_font_size)
+            longest_px = max(
+                (fontMetrics.horizontalAdvance(bin_data.get("label", "")) for bin_data in widget.bins),
+                default=0,
+            )
+            maxLabelWidth = min(maxLabelWidth, max(20.0, float(longest_px)))
+        else:
+            maxLabelWidth = max(40.0, (barRects[0].width() if barRects else 40.0) + 6)
         for binIndex, binData in enumerate(widget.bins):
             if binIndex >= len(barRects):
                 break
@@ -242,8 +261,11 @@ class StatisticsHistogramRenderer:
                     elided,
                 )
         if widget.xLabel:
-            painter.setFont(qfont(self._AXIS_TITLE_FONT_SIZE, bold=True))
-            labelOffset = self._ROTATED_LABEL_MAX_WIDTH * 0.71 if rotate else fontMetrics.height()
+            painter.setFont(qfont(self._titleFontSize(widget), bold=True))
+            if rotate:
+                labelOffset = maxLabelWidth * ROTATED_LABEL_SIN + fontMetrics.descent() + 4
+            else:
+                labelOffset = fontMetrics.height()
             painter.drawText(
                 QRectF(plotRect.left(), plotRect.bottom() + labelOffset + 6, plotRect.width(), 16),
                 Qt.AlignmentFlag.AlignCenter,
