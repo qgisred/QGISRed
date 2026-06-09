@@ -4611,6 +4611,51 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="238"/>
+        <source>Absolute</source>
+        <translation>Absolute</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="239"/>
+        <source>Relative</source>
+        <translation>Relative</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="240"/>
+        <source>Count</source>
+        <translation>Count</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="241"/>
+        <source>Freq</source>
+        <translation>Freq</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="242"/>
+        <source>Cumul</source>
+        <translation>Cumul</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="243"/>
+        <source>%1 frequency%2</source>
+        <translation>%1 frequency%2</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="244"/>
+        <source>Closed</source>
+        <translation>Closed</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="245"/>
+        <source>Open</source>
+        <translation>Open</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="246"/>
+        <source>Active</source>
+        <translation>Active</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1033"/>
         <source>Appearance</source>
         <translation type="unfinished"></translation>
@@ -4745,9 +4790,9 @@ Left-click: Add a new item below the current selection</source>
 <context>
     <name>QGISRedStatisticsDock</name>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="166"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="249"/>
         <source>Mouse wheel: zoom · Drag: pan · Double-click: reset view</source>
-        <translation type="unfinished"></translation>
+        <translation>Mouse wheel: zoom · Drag: pan · Double-click: reset view</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="175"/>
@@ -4865,14 +4910,14 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1087"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="250"/>
         <source>by</source>
-        <translation type="unfinished"></translation>
+        <translation>by</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1451"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="251"/>
         <source>Count</source>
-        <translation type="unfinished"></translation>
+        <translation>Count</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1116"/>
@@ -5861,27 +5906,27 @@ Left-click: Add a new item below the current selection</source>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="228"/>
         <source>No data</source>
-        <translation type="unfinished"></translation>
+        <translation>No data</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="229"/>
         <source>Count</source>
-        <translation type="unfinished"></translation>
+        <translation>Count</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="230"/>
         <source>Sum</source>
-        <translation type="unfinished"></translation>
+        <translation>Sum</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="231"/>
         <source>Avg</source>
-        <translation type="unfinished"></translation>
+        <translation>Avg</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="232"/>
         <source>Total</source>
-        <translation type="unfinished"></translation>
+        <translation>Total</translation>
     </message>
 </context>
 <context>
@@ -5889,17 +5934,17 @@ Left-click: Add a new item below the current selection</source>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="233"/>
         <source>Count</source>
-        <translation type="unfinished"></translation>
+        <translation>Count</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="234"/>
         <source>Cumulative</source>
-        <translation type="unfinished"></translation>
+        <translation>Cumulative</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="235"/>
         <source>Value</source>
-        <translation type="unfinished"></translation>
+        <translation>Value</translation>
     </message>
 </context>
 <context>

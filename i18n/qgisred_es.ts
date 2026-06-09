@@ -4409,14 +4409,49 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation>Acumulada</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_distribution.py" line="283"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="238"/>
         <source>Absolute</source>
-        <translation type="obsolete">Absoluta</translation>
+        <translation>Absoluta</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_distribution.py" line="284"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="239"/>
         <source>Relative</source>
-        <translation type="obsolete">Relativa</translation>
+        <translation>Relativa</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="240"/>
+        <source>Count</source>
+        <translation>Recuento</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="241"/>
+        <source>Freq</source>
+        <translation>Frec.</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="242"/>
+        <source>Cumul</source>
+        <translation>Acum.</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="243"/>
+        <source>%1 frequency%2</source>
+        <translation>Frecuencia de %1%2</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="244"/>
+        <source>Closed</source>
+        <translation>Cerrada</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="245"/>
+        <source>Open</source>
+        <translation>Abierta</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="246"/>
+        <source>Active</source>
+        <translation>Activa</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="87"/>
@@ -4677,11 +4712,6 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="825"/>
         <source>Show Link Histogram</source>
         <translation>Mostrar histograma de líneas</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/qgisred_results_distribution.py" line="395"/>
-        <source>%1 frequency%2</source>
-        <translation type="obsolete">Frecuencia de %1%2</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1033"/>
@@ -5016,9 +5046,9 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
 <context>
     <name>QGISRedStatisticsDock</name>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="166"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="249"/>
         <source>Mouse wheel: zoom · Drag: pan · Double-click: reset view</source>
-        <translation type="unfinished"></translation>
+        <translation>Rueda del ratón: zoom · Arrastrar: desplazar · Doble clic: restablecer vista</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="175"/>
@@ -5136,14 +5166,14 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation type="unfinished">El campo de clasificación '{0}' no se encontró en la capa.</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1087"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="250"/>
         <source>by</source>
-        <translation type="unfinished">por</translation>
+        <translation>por</translation>
     </message>
     <message>
-        <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1451"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="251"/>
         <source>Count</source>
-        <translation type="unfinished">Recuento</translation>
+        <translation>Recuento</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_statisticsandgraphs_dock.py" line="1116"/>

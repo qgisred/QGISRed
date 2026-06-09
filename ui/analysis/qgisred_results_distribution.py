@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from bisect import bisect_right
 
-from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtCore import QCoreApplication, Qt
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget
 from qgis.core import (
@@ -320,14 +320,18 @@ def build_cumulative_points(layer, field_name, sample_count=100):
     return points
 
 
+def _histogram_status_label(key):
+    return QCoreApplication.translate("QGISRedResultsDock", key)
+
+
 def _build_link_status_bins(layer):
     """
     Simplified Status distribution for link results:
     only Closed / Open / Active, grouping the detailed renderer classes.
     """
 
-    def _bin(label, color):
-        return _make_bin(label, category=label, color=color)
+    def _bin(category_key, color):
+        return _make_bin(_histogram_status_label(category_key), category=category_key, color=color)
 
     def _status_group(value):
         status = "" if value is None or value == NULL else str(value).upper()
