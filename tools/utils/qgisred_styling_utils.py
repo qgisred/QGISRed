@@ -136,7 +136,7 @@ class QGISRedStylingUtils:
             return
 
         # 2- global style
-        stylePath = os.path.join(self._getQGISRedFolder(), "defaults", "layerStyles")
+        stylePath = os.path.join(self._getQGISRedFolder(), "layerStyles")
         qmlPath = os.path.join(stylePath, name + ".qml")
         if os.path.exists(qmlPath):
             layer.loadNamedStyle(qmlPath)
