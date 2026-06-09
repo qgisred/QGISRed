@@ -210,6 +210,9 @@ class QGISRedStylingUtils:
 
         mode = strategy.get("mode")
 
+        if "allClasses" in parts and mode == "categorized":
+            self.applyAllClassesSnapshot(layer, field, strategy.get("allClasses") or {})
+
         if "intervals" in parts and mode == "graduated":
             self.applyGraduatedClassification(layer, field, self.resolveIntervalsBlock(strategy))
 
@@ -304,6 +307,39 @@ class QGISRedStylingUtils:
             if ramp:
                 return ramp.clone()
         return QgsStyle.defaultStyle().colorRamp("Spectral")
+
+    def applyAllClassesSnapshot(self, layer, field, allClassesBlock):
+        # loadNamedStyle already restores the exact classes with full symbology; only rebuild as a fallback.
+        renderer = layer.renderer()
+        if isinstance(renderer, QgsCategorizedSymbolRenderer) and renderer.classAttribute() == field:
+            return
+        classes = allClassesBlock.get("classes")
+        if not isinstance(classes, list):
+            return
+        templateSymbol = self.cloneRendererTemplateSymbol(layer)
+        geometryType = layer.geometryType()
+        categories = []
+        for classInfo in classes:
+            symbol = templateSymbol.clone()
+            color = QColor(classInfo.get("color"))
+            if color.isValid():
+                symbol.setColor(color)
+            size = classInfo.get("size")
+            if size is not None:
+                if geometryType == 1:
+                    symbol.setWidth(float(size))
+                elif geometryType == 0:
+                    symbol.setSize(float(size))
+            rawValue = classInfo.get("value")
+            value = NULL if rawValue is None else rawValue
+            label = classInfo.get("label") or str(rawValue)
+            category = QgsRendererCategory(value, symbol, label)
+            renderState = classInfo.get("render")
+            if renderState is not None:
+                category.setRenderState(bool(renderState))
+            categories.append(category)
+        if categories:
+            layer.setRenderer(QgsCategorizedSymbolRenderer(field, categories))
 
     def applyCategorizedColors(self, layer, field, fieldIndex, colorsBlock):
         source = colorsBlock.get("source") or "random"

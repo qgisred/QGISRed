@@ -18,7 +18,7 @@ from qgis.core import QgsProject, QgsVectorLayer, QgsMessageLog, Qgis, QgsGradua
 from qgis.core import QgsCategorizedSymbolRenderer, QgsRendererRange, QgsRendererCategory, QgsSymbol
 from qgis.core import QgsLayerTreeGroup, QgsLayerTreeLayer, QgsGradientColorRamp, QgsClassificationJenks
 from qgis.core import QgsClassificationPrettyBreaks, QgsStyle, QgsPresetSchemeColorRamp, QgsProperty, QgsSymbolLayer
-from qgis.core import QgsRuleBasedRenderer
+from qgis.core import QgsRuleBasedRenderer, NULL
 from qgis.utils import iface
 
 from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL
@@ -3844,6 +3844,17 @@ class QGISRedLegendsDialog(QDialog, formClass):
         return None
 
     def buildCategoricalStrategy(self, parts):
+        if "allClasses" in parts:
+            allClassesPart = self.buildAllClassesPart()
+            if allClassesPart is None:
+                return None
+            return {
+                "schema": "qgisred.legendStrategy.v2",
+                "mode": "categorized",
+                "field": self.currentFieldName,
+                "parts": ["allClasses"],
+                "allClasses": allClassesPart,
+            }
         # Categorical layers never persist intervals.
         retainedParts = [part for part in parts if part != "intervals"]
         if not retainedParts:
@@ -3918,6 +3929,33 @@ class QGISRedLegendsDialog(QDialog, formClass):
                 "invertRamp": bool(self.ckColorInvert.isChecked()),
             }
         return None
+
+    def buildAllClassesPart(self):
+        renderer = self.currentLayer.renderer()
+        if not isinstance(renderer, QgsCategorizedSymbolRenderer):
+            return None
+        geometryType = self.currentLayer.geometryType()
+        classes = []
+        for category in renderer.categories():
+            symbol = category.symbol()
+            value = category.value()
+            if geometryType == 1:
+                size = float(symbol.width())
+            elif geometryType == 0:
+                size = float(symbol.size())
+            else:
+                size = None
+            isNull = value is None or value == NULL or str(value) == "NULL"
+            classes.append({
+                "value": None if isNull else str(value),
+                "label": category.label(),
+                "color": symbol.color().name(),
+                "size": size,
+                "render": bool(category.renderState()),
+            })
+        if not classes:
+            return None
+        return {"classes": classes}
 
     def updateModeVisibility(self, isNumeric, isFixedInterval):
         self.cbMode.setVisible(isNumeric)
