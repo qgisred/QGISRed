@@ -17,6 +17,27 @@ from .timeseries_plot_style import qfont
 PANEL_BG_COLOR = QColor(248, 249, 251)
 
 
+def resolve_distribution_hover_at(widget, cursor_pos):
+    """Return (hover_index, hover_segment, curve_sample) for a cursor position."""
+    plot_rect = widget.getPlotRect()
+    if not widget.bins or not plot_rect.contains(cursor_pos):
+        return None, None, None
+
+    # When the cumulative curve crosses a bar, prefer the curve tooltip:
+    # bar values are easier to read elsewhere; cumulative values are not.
+    if widget._hasCumulativeCurve():
+        curve_sample = widget._renderer.hitTestCumulativeCurve(widget, cursor_pos, plot_rect)
+        if curve_sample is not None:
+            return None, "curve", curve_sample
+
+    if widget._barRects:
+        bar_hit = widget._hoverBarAt(cursor_pos, plot_rect)
+        if bar_hit[0] is not None:
+            return bar_hit[0], bar_hit[1], None
+
+    return None, None, None
+
+
 class ResultsDistributionWidget(QWidget):
     """Distribution histogram for the results dock (hover tooltips, no zoom/pan)."""
 
@@ -278,21 +299,7 @@ class ResultsDistributionWidget(QWidget):
         )
 
     def _hoverAt(self, cursor_pos):
-        plot_rect = self.getPlotRect()
-        if not self.bins or not plot_rect.contains(cursor_pos):
-            return None, None, None
-
-        if self._barRects:
-            bar_hit = self._hoverBarAt(cursor_pos, plot_rect)
-            if bar_hit[0] is not None:
-                return bar_hit[0], bar_hit[1], None
-
-        if self._hasCumulativeCurve():
-            curve_sample = self._renderer.hitTestCumulativeCurve(self, cursor_pos, plot_rect)
-            if curve_sample is not None:
-                return None, "curve", curve_sample
-
-        return None, None, None
+        return resolve_distribution_hover_at(self, cursor_pos)
 
     def _hoverBarAt(self, cursor_pos, plot_rect):
         has_cumulative_bars = self._hasCumulativeBars()

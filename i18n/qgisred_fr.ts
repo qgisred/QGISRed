@@ -5524,21 +5524,49 @@ Left-click: Add a new item below the current selection</source>
     </message>
 </context>
 <context>
+    <name>StatisticsHistogramWidget</name>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="228"/>
+        <source>No data</source>
+        <translation>Pas de données</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="229"/>
+        <source>Count</source>
+        <translation>Nombre</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="230"/>
+        <source>Sum</source>
+        <translation>Somme</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="231"/>
+        <source>Avg</source>
+        <translation>Moyenne</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="232"/>
+        <source>Total</source>
+        <translation>Total</translation>
+    </message>
+</context>
+<context>
     <name>ResultsDistributionWidget</name>
     <message>
-        <location filename="../ui/analysis/results_distribution_renderer.py" line="281"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="233"/>
         <source>Count</source>
-        <translation type="obsolete">Nombre</translation>
+        <translation>Nombre</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/results_distribution_renderer.py" line="275"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="234"/>
         <source>Cumulative</source>
-        <translation type="obsolete">Cumulé</translation>
+        <translation>Cumulé</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/results_distribution_renderer.py" line="355"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="235"/>
         <source>Value</source>
-        <translation type="obsolete">Valeur</translation>
+        <translation>Valeur</translation>
     </message>
 </context>
 <context>

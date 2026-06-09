@@ -56,6 +56,47 @@ class TestDistributionHoverTooltipLines:
         assert lines == ["Closed", "Cumulative: 30"]
 
 
+class TestDistributionHoverPriority:
+    def test_cumulative_curve_wins_over_bar_when_both_hit(self):
+        from unittest.mock import MagicMock
+
+        from qgis.PyQt.QtCore import QPointF
+
+        from QGISRed.ui.analysis.results_distribution_widget import resolve_distribution_hover_at
+
+        class _Widget:
+            bins = [{"label": "A", "count": 1}]
+            cumulative_mode = "absolute"
+            cumulative_points = [{"x": 1.0, "count": 1}]
+            _barRects = [object()]
+
+            def __init__(self):
+                self._renderer = MagicMock()
+                self._hover_bar_at = MagicMock(return_value=(0, "frequency"))
+                self._plot_rect = MagicMock()
+                self._plot_rect.contains.return_value = True
+
+            def getPlotRect(self):
+                return self._plot_rect
+
+            def _hasCumulativeCurve(self):
+                return self.cumulative_mode in ("absolute", "relative") and bool(self.cumulative_points)
+
+            def _hoverBarAt(self, cursor_pos, plot_rect):
+                return self._hover_bar_at(cursor_pos, plot_rect)
+
+        widget = _Widget()
+        curve_sample = {"x": 5.0, "count": 25.0, "screen_x": 50.0, "screen_y": 70.0}
+        widget._renderer.hitTestCumulativeCurve.return_value = curve_sample
+
+        index, segment, curve = resolve_distribution_hover_at(widget, QPointF(50, 70))
+
+        assert index is None
+        assert segment == "curve"
+        assert curve is curve_sample
+        widget._hover_bar_at.assert_not_called()
+
+
 class TestHitTestCumulativePolyline:
     def test_detects_point_near_segment(self):
         points = [

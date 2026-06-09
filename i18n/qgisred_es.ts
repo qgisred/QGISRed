@@ -5654,21 +5654,49 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
     </message>
 </context>
 <context>
+    <name>StatisticsHistogramWidget</name>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="228"/>
+        <source>No data</source>
+        <translation>No hay datos</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="229"/>
+        <source>Count</source>
+        <translation>Recuento</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="230"/>
+        <source>Sum</source>
+        <translation>Suma</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="231"/>
+        <source>Avg</source>
+        <translation>Promedio</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="232"/>
+        <source>Total</source>
+        <translation>Total</translation>
+    </message>
+</context>
+<context>
     <name>ResultsDistributionWidget</name>
     <message>
-        <location filename="../ui/analysis/results_distribution_renderer.py" line="281"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="233"/>
         <source>Count</source>
-        <translation type="obsolete">Cantidad</translation>
+        <translation>Recuento</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/results_distribution_renderer.py" line="275"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="234"/>
         <source>Cumulative</source>
-        <translation type="obsolete">Acumulado</translation>
+        <translation>Acumulada</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/results_distribution_renderer.py" line="355"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="235"/>
         <source>Value</source>
-        <translation type="obsolete">Valor</translation>
+        <translation>Valor</translation>
     </message>
 </context>
 <context>

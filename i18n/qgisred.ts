@@ -5857,6 +5857,52 @@ Left-click: Add a new item below the current selection</source>
     </message>
 </context>
 <context>
+    <name>StatisticsHistogramWidget</name>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="228"/>
+        <source>No data</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="229"/>
+        <source>Count</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="230"/>
+        <source>Sum</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="231"/>
+        <source>Avg</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="232"/>
+        <source>Total</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ResultsDistributionWidget</name>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="233"/>
+        <source>Count</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="234"/>
+        <source>Cumulative</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="235"/>
+        <source>Value</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>TimeSeriesPlotWidget</name>
     <message>
         <location filename="../ui/analysis/timeseries_plot_renderer.py" line="1618"/>

@@ -5536,21 +5536,49 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
     </message>
 </context>
 <context>
+    <name>StatisticsHistogramWidget</name>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="228"/>
+        <source>No data</source>
+        <translation>Sem dados</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="229"/>
+        <source>Count</source>
+        <translation>Contagem</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="230"/>
+        <source>Sum</source>
+        <translation>Soma</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="231"/>
+        <source>Avg</source>
+        <translation>Média</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="232"/>
+        <source>Total</source>
+        <translation>Total</translation>
+    </message>
+</context>
+<context>
     <name>ResultsDistributionWidget</name>
     <message>
-        <location filename="../ui/analysis/results_distribution_renderer.py" line="281"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="233"/>
         <source>Count</source>
-        <translation type="obsolete">Quantidade</translation>
+        <translation>Contagem</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/results_distribution_renderer.py" line="275"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="234"/>
         <source>Cumulative</source>
-        <translation type="obsolete">Acumulado</translation>
+        <translation>Acumulada</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/results_distribution_renderer.py" line="355"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="235"/>
         <source>Value</source>
-        <translation type="obsolete">Valor</translation>
+        <translation>Valor</translation>
     </message>
 </context>
 <context>
