@@ -7,8 +7,8 @@ from ..analysis.timeseries_plot_style import qfont
 from ...tools.utils.qgisred_axis_scale_utils import compute_nice_scale, estimate_max_ticks, format_number_tick
 from .statistics_histogram_layout import (
     adaptive_axis_tick_font_size,
-    adaptive_axis_title_font_size,
     cap_bottom_margin,
+    cumulative_right_axis_margin,
     longest_x_label_width,
     rotated_x_label_extra_height,
     x_tick_labels_need_rotation,
@@ -123,17 +123,18 @@ class StatisticsHistogramWidget(QWidget):
             max_tick_label_width = max(max_tick_label_width, font_metrics.horizontalAdvance(label))
         self.marginLeft = max(44, min(76, max_tick_label_width + 14))
 
-        max_right_tick_width = 0
         if self.mode == "cumulative":
-            for tick_value in compute_nice_scale(0.0, 100.0, 6, include_zero=True).ticks():
-                label = format_number_tick(tick_value, 1.0) + "%"
-                max_right_tick_width = max(max_right_tick_width, font_metrics.horizontalAdvance(label))
-            title_font = qfont(adaptive_axis_title_font_size(self._axisTickFontSize), bold=True)
-            max_right_tick_width = max(
-                max_right_tick_width,
-                QFontMetrics(title_font).horizontalAdvance("%"),
+            right_tick_labels = [
+                format_number_tick(tick_value, 1.0)
+                for tick_value in compute_nice_scale(0.0, 100.0, 6, include_zero=True).ticks()
+            ]
+            self.marginRight = cumulative_right_axis_margin(
+                self._axisTickFontSize,
+                right_tick_labels,
+                "%",
+                min_margin=40,
+                max_margin=88,
             )
-            self.marginRight = max(24, min(72, max_right_tick_width + 16))
         else:
             self.marginRight = max(18, min(36, max(18, plot_width_guess // 30)))
 

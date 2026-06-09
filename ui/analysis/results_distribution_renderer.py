@@ -15,7 +15,16 @@ from ..queries.statistics_histogram_renderer import (
     StatisticsHistogramRenderer,
     TOOLTIP_BG_COLOR,
 )
-from .timeseries_plot_style import BORDER_COLOR, GRID_COLOR, PLOT_BG_COLOR, TEXT_AXIS, TEXT_DARK, TOOLTIP_BORDER, qfont
+from .timeseries_plot_style import (
+    BORDER_COLOR,
+    CUMULATIVE_AXIS_TEXT_COLOR,
+    GRID_COLOR,
+    PLOT_BG_COLOR,
+    TEXT_AXIS,
+    TEXT_DARK,
+    TOOLTIP_BORDER,
+    qfont,
+)
 
 CUMULATIVE_CURVE_COLOR = QColor(200, 60, 60)
 
@@ -246,10 +255,11 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
     def _drawDistributionRightAxis(self, widget, painter, plotRect, scale):
         painter.setFont(qfont(self._tickFontSize(widget)))
         font_metrics = QFontMetrics(painter.font())
+        cumulative_pen = QPen(CUMULATIVE_AXIS_TEXT_COLOR, 1)
         for tick_value in scale.ticks():
             tick_y = self._yForValue(plotRect, scale, tick_value)
             label = format_number_tick(tick_value, scale.step)
-            painter.setPen(TEXT_AXIS)
+            painter.setPen(cumulative_pen)
             # Small ticks on the right axis (no horizontal gridlines for this axis).
             painter.drawLine(
                 QPointF(plotRect.right(), tick_y),
@@ -261,10 +271,10 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
             )
         axis_title = getattr(widget, "yLabelRight", "") or ""
         if axis_title:
-            painter.setPen(TEXT_AXIS)
+            painter.setPen(cumulative_pen)
             painter.setFont(qfont(self._titleFontSize(widget), bold=True))
             painter.save()
-            painter.translate(widget.width() - 12, plotRect.center().y())
+            painter.translate(widget.width() - 8, plotRect.center().y())
             painter.rotate(-90)
             painter.drawText(QRectF(-80, -10, 160, 20), Qt.AlignmentFlag.AlignCenter, axis_title)
             painter.restore()
@@ -449,7 +459,8 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
         max_ticks = estimate_max_ticks(plotRect.width(), font_metrics.height() + 8, max_ticks=8)
         scale = compute_nice_scale(x_min, x_max, max_ticks, include_zero=False)
 
-        painter.setPen(TEXT_AXIS)
+        cumulative_pen = QPen(CUMULATIVE_AXIS_TEXT_COLOR, 1)
+        painter.setPen(cumulative_pen)
         painter.drawLine(QPointF(plotRect.left(), plotRect.top()), QPointF(plotRect.right(), plotRect.top()))
         for tick_value in scale.ticks():
             if tick_value < x_min or tick_value > x_max:

@@ -19,6 +19,8 @@ def emphasized_day_start_grid_width(base_width: float) -> float:
 BORDER_COLOR = QColor(200, 200, 200)
 TEXT_DARK = QColor(20, 20, 20)
 TEXT_AXIS = QColor(40, 40, 40)
+# Tick/title color for cumulative axes (right Y, top X) in distribution histograms.
+CUMULATIVE_AXIS_TEXT_COLOR = QColor(0, 72, 186)
 TOOLTIP_BORDER = QColor(0, 128, 0)
 TOOLTIP_SEPARATOR = QColor(170, 170, 170)
 

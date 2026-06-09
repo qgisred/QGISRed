@@ -13,6 +13,7 @@ from ..analysis.timeseries_plot_style import (
     DEFAULT_SERIES_COLOR,
     GRID_COLOR,
     PLOT_BG_COLOR,
+    CUMULATIVE_AXIS_TEXT_COLOR,
     TEXT_AXIS,
     TEXT_DARK,
     TOOLTIP_BORDER,
@@ -172,15 +173,16 @@ class StatisticsHistogramRenderer:
     def _drawRightAxis(self, widget, painter, plotRect, scale):
         painter.setFont(qfont(self._tickFontSize(widget)))
         fontMetrics = QFontMetrics(painter.font())
+        cumulative_pen = QPen(CUMULATIVE_AXIS_TEXT_COLOR, 1)
         for tickValue in scale.ticks():
             tickY = self._yForValue(plotRect, scale, tickValue)
-            label = format_number_tick(tickValue, scale.step) + "%"
-            painter.setPen(TEXT_AXIS)
+            label = format_number_tick(tickValue, scale.step)
+            painter.setPen(cumulative_pen)
             painter.drawText(QPointF(plotRect.right() + 6, tickY + fontMetrics.ascent() / 2 - 1), label)
-        painter.setPen(TEXT_AXIS)
+        painter.setPen(cumulative_pen)
         painter.setFont(qfont(self._titleFontSize(widget), bold=True))
         painter.save()
-        painter.translate(widget.width() - 12, plotRect.center().y())
+        painter.translate(widget.width() - 8, plotRect.center().y())
         painter.rotate(-90)
         painter.drawText(QRectF(-80, -10, 160, 20), Qt.AlignmentFlag.AlignCenter, "%")
         painter.restore()

@@ -4,6 +4,7 @@ from unittest.mock import patch
 from QGISRed.ui.queries.statistics_histogram_layout import (
     adaptive_axis_tick_font_size,
     cap_bottom_margin,
+    cumulative_right_axis_margin,
     rotated_x_label_extra_height,
     x_tick_labels_need_rotation,
 )
@@ -31,6 +32,22 @@ class TestAdaptiveAxisTickFontSize:
     def test_scales_down_for_small_panels(self):
         assert adaptive_axis_tick_font_size(160, 140) == 6
         assert adaptive_axis_tick_font_size(400, 300) == 9
+
+
+class TestCumulativeRightAxisMargin:
+    @patch("QGISRed.ui.queries.statistics_histogram_layout.QFontMetrics")
+    @patch("QGISRed.ui.queries.statistics_histogram_layout.qfont")
+    def test_reserves_space_for_ticks_and_title(self, mock_qfont, mock_fm_cls):
+        def qfont_side_effect(size, **kwargs):
+            return type("Font", (), {"tick_font_size": size})()
+
+        mock_qfont.side_effect = qfont_side_effect
+        mock_fm_cls.side_effect = lambda font: _StubFontMetrics(getattr(font, "tick_font_size", 9))
+
+        with_title = cumulative_right_axis_margin(9, ["0", "25", "50", "75", "100"], "%")
+        without_title = cumulative_right_axis_margin(9, ["0", "25", "50", "75", "100"], "")
+        assert with_title > without_title
+        assert with_title >= 50
 
 
 class TestRotatedLabelLayout:

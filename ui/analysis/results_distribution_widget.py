@@ -6,6 +6,7 @@ from qgis.PyQt.QtWidgets import QSizePolicy, QWidget
 from ..queries.statistics_histogram_layout import (
     adaptive_axis_tick_font_size,
     cap_bottom_margin,
+    cumulative_right_axis_margin,
     longest_x_label_width,
     rotated_x_label_extra_height,
     x_tick_labels_need_rotation,
@@ -193,28 +194,22 @@ class ResultsDistributionWidget(QWidget):
 
         self.marginLeft = max(40, min(76, max_tick_label_width + 14))
 
-        max_right_tick_width = 0
         if has_cumulative_points:
             cumulative_max = 100.0 if self.cumulative_mode == "relative" else float(max(self._totalCount, 1))
             max_ticks = estimate_max_ticks(plot_height, label_height, max_ticks=8)
             right_scale = compute_nice_scale(0.0, cumulative_max, max_ticks, include_zero=True)
-            for tick_value in right_scale.ticks():
-                label = format_number_tick(tick_value, right_scale.step)
-                max_right_tick_width = max(max_right_tick_width, font_metrics.horizontalAdvance(label))
-            if self.yLabelRight:
-                title_font = qfont(self._renderer._titleFontSize(self), bold=True)
-                # Reserve enough width so the right-axis title doesn't overlap tick labels.
-                # Using the full title width (not half) avoids collisions in narrow panels.
-                max_right_tick_width = max(
-                    max_right_tick_width,
-                    QFontMetrics(title_font).horizontalAdvance(self.yLabelRight),
-                )
-
-        # Allow a bit more right margin than the previous hard cap (56px) so
-        # 2–3 digit tick labels don't collide with the right-axis title.
-        self.marginRight = max(12, min(84, max_right_tick_width + 18)) if has_cumulative_points else max(
-            8, min(18, max(8, plot_width // 30))
-        )
+            right_tick_labels = [
+                format_number_tick(tick_value, right_scale.step) for tick_value in right_scale.ticks()
+            ]
+            self.marginRight = cumulative_right_axis_margin(
+                self._axisTickFontSize,
+                right_tick_labels,
+                self.yLabelRight,
+                min_margin=40,
+                max_margin=96,
+            )
+        else:
+            self.marginRight = max(8, min(18, max(8, plot_width // 30)))
 
         plot_width = max(0, self.width() - self.marginLeft - self.marginRight)
         rotate = x_tick_labels_need_rotation(self.bins, plot_width, self._axisTickFontSize, self._TICK_CHAR_WIDTH)
