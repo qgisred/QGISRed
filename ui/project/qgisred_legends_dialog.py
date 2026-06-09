@@ -3619,6 +3619,22 @@ class QGISRedLegendsDialog(QDialog, formClass):
         except Exception:
             return None
 
+    def isLiteralStyle(self, strategy):
+        if not isinstance(strategy, dict):
+            return True
+        parts = strategy.get("parts")
+        if not isinstance(parts, list):
+            parts = self.inferLegacyParts(strategy)
+        return parts == ["allClasses"]
+
+    def loadLiteralStyleIntoDialog(self, path):
+        # Keep the pre-load renderer so Cancel can still revert; Apply commits the loaded one.
+        preservedOriginal = self.originalRenderer
+        self.currentLayer.loadNamedStyle(path)
+        self.currentLayer.removeCustomProperty("qgisred_legend_strategy")
+        self.onLayerChanged(self.currentLayer)
+        self.originalRenderer = preservedOriginal
+
     def loadDefaultStyle(self):
         self.loadStyle(isDefault=True)
 
@@ -3662,13 +3678,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return
 
         strategy = self.readStrategyFromStyleFile(path)
-        if strategy is not None:
+        if self.isLiteralStyle(strategy):
+            self.loadLiteralStyleIntoDialog(path)
+            message = self.tr("Legend loaded from %1.").replace("%1", filename)
+        else:
             self.applyStrategyToDialog(strategy)
-        QMessageBox.information(
-            self,
-            self.tr("Loaded"),
-            self.tr("Strategy loaded into the dialog from %1. Press Apply to update the layer.").replace("%1", filename),
-        )
+            message = self.tr("Strategy loaded into the dialog from %1. Press Apply to update the layer.").replace("%1", filename)
+        QMessageBox.information(self, self.tr("Loaded"), message)
 
     def loadStyle(self, isDefault):
         if not self.currentLayer:
@@ -3702,13 +3718,13 @@ class QGISRedLegendsDialog(QDialog, formClass):
             return
 
         strategy = self.readStrategyFromStyleFile(path)
-        if strategy is not None:
+        if self.isLiteralStyle(strategy):
+            self.loadLiteralStyleIntoDialog(path)
+            message = self.tr("Legend loaded from %1.").replace("%1", filename)
+        else:
             self.applyStrategyToDialog(strategy)
-        QMessageBox.information(
-            self,
-            self.tr("Loaded"),
-            self.tr("Strategy loaded into the dialog from %1. Press Apply to update the layer.").replace("%1", filename),
-        )
+            message = self.tr("Strategy loaded into the dialog from %1. Press Apply to update the layer.").replace("%1", filename)
+        QMessageBox.information(self, self.tr("Loaded"), message)
 
     def getElementNameForIdentifier(self, identifier):
         utils = self.utils or QGISRedIdentifierUtils()
