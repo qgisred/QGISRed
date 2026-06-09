@@ -346,15 +346,15 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         return derivedLayer
 
     def loadQmlStyle(self, layer, qmlFile):
-        # Convert qmlFile to .qml.bak format if not already
-        if not qmlFile.endswith('.qml.bak'):
-            qmlFile = qmlFile.replace('.qml', '.qml.bak')
+        if qmlFile.endswith('.qml.bak'):
+            qmlFile = qmlFile[:-4]
 
-        qmlPath = os.path.join(os.path.dirname(__file__), '..', '..', 'defaults', 'layerStyles', qmlFile)
+        styling = QGISRedStylingUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        qmlPath = styling.resolveStylePath(qmlFile)
         if os.path.exists(qmlPath):
             layer.loadNamedStyle(qmlPath)
             layer.setCustomProperty("styleURI", qmlPath)
-            QGISRedStylingUtils().applyStrategyFromLayer(layer)
+            styling.applyStrategyFromLayer(layer)
             layer.triggerRepaint()
         return qmlPath
     

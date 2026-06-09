@@ -154,6 +154,15 @@ class QGISRedStylingUtils:
         self.applyStrategyFromLayer(layer)
         self.translateRendererLabels(layer)
 
+    def resolveStylePath(self, qmlFile):
+        projectPath = os.path.join(self.ProjectDirectory, "layerStyles", qmlFile)
+        if os.path.exists(projectPath):
+            return projectPath
+        globalPath = os.path.join(self._getQGISRedFolder(), "layerStyles", qmlFile)
+        if os.path.exists(globalPath):
+            return globalPath
+        return os.path.join(_plugin_root(), "defaults", "layerStyles", qmlFile + ".bak")
+
     def applyStrategyFromLayer(self, layer):
         rawStrategy = layer.customProperty("qgisred_legend_strategy")
         if not rawStrategy:
