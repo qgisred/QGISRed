@@ -524,7 +524,9 @@ class QGISRedLayerUtils:
             return
         vlayer = QgsVectorLayer(layerPath, showName, "ogr")
         if link:
-            self._styling().setTreeStyle(vlayer)
+            self._styling().setStyle(vlayer, "Tree_Links")
+        else:
+            self._styling().setStyle(vlayer, "Tree_Nodes")
         QgsProject.instance().addMapLayer(vlayer, group is None)
         identifiers.setLayerIdentifier(vlayer, identifier)
         if group is not None:
