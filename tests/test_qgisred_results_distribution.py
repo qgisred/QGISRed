@@ -3,7 +3,7 @@ from QGISRed.ui.analysis.qgisred_results_distribution import (
     _ResultsDistributionMixin,
     _find_class_index,
     _format_range_label,
-    _include_link_feature_for_distribution,
+    _include_feature_for_distribution,
     _parse_category_from_filter,
 )
 from QGISRed.ui.analysis.results_distribution_renderer import (
@@ -173,20 +173,32 @@ class _FakeFeature:
         return self._attributes[name]
 
 
-class TestIncludeLinkFeatureForDistribution:
+class TestIncludeFeatureForDistribution:
     def test_headloss_includes_pipes_with_unit_headloss(self):
         feature = _FakeFeature({"UnitHdLoss": 12.5, "HeadLoss": 3.0})
-        assert _include_link_feature_for_distribution(feature, "HeadLoss") is True
-        assert _include_link_feature_for_distribution(feature, "UnitHdLoss") is True
+        assert _include_feature_for_distribution(feature, "HeadLoss") is True
+        assert _include_feature_for_distribution(feature, "UnitHdLoss") is True
 
     def test_headloss_excludes_pumps_and_valves(self):
         feature = _FakeFeature({"UnitHdLoss": None, "HeadLoss": 20.0})
-        assert _include_link_feature_for_distribution(feature, "HeadLoss") is False
-        assert _include_link_feature_for_distribution(feature, "UnitHdLoss") is False
+        assert _include_feature_for_distribution(feature, "HeadLoss") is False
+        assert _include_feature_for_distribution(feature, "UnitHdLoss") is False
 
     def test_other_fields_unfiltered(self):
         feature = _FakeFeature({"UnitHdLoss": None, "Flow": 10.0})
-        assert _include_link_feature_for_distribution(feature, "Flow") is True
+        assert _include_feature_for_distribution(feature, "Flow") is True
+
+    def test_demand_includes_positive_junction_only(self):
+        junction = _FakeFeature({"Type": "JUNCTION", "Demand": 5.0})
+        assert _include_feature_for_distribution(junction, "Demand") is True
+
+    def test_demand_excludes_tank_reservoir_and_non_positive(self):
+        tank = _FakeFeature({"Type": "TANK", "Demand": 8.0})
+        reservoir = _FakeFeature({"Type": "RESERVOIR", "Demand": 12.0})
+        negative = _FakeFeature({"Type": "JUNCTION", "Demand": -3.0})
+        assert _include_feature_for_distribution(tank, "Demand") is False
+        assert _include_feature_for_distribution(reservoir, "Demand") is False
+        assert _include_feature_for_distribution(negative, "Demand") is False
 
 
 class TestFormatRangeLabel:

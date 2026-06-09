@@ -17,6 +17,7 @@ from qgis.core import (
 
 from ...tools.utils.qgisred_styling_utils import _NULL_RULE_LABEL
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
+from .qgisred_node_demand_utils import junction_positive_node_demand
 from .results_distribution_widget import ResultsDistributionWidget
 
 # Head loss magnitudes apply to pipes only (pumps/valves lack UnitHdLoss in .out).
@@ -165,8 +166,16 @@ def extract_legend_classes(layer, field_name):
     return [], None
 
 
-def _include_link_feature_for_distribution(feature, field_name):
-    """Exclude pumps and valves when binning head-loss magnitudes."""
+def _layer_identifier(layer):
+    if layer is None:
+        return None
+    return layer.customProperty("qgisred_identifier") or None
+
+
+def _include_feature_for_distribution(feature, field_name, layer_identifier=None):
+    """Exclude non-pipe links for head-loss magnitudes and non-junction Demand values."""
+    if field_name == "Demand":
+        return junction_positive_node_demand(feature, layer_identifier) is not None
     if field_name not in _PIPE_ONLY_LINK_FIELDS:
         return True
     field_names = feature.fields().names()
@@ -176,7 +185,9 @@ def _include_link_feature_for_distribution(feature, field_name):
     return unit_headloss is not None and unit_headloss != NULL
 
 
-def _feature_value_for_classification(feature, field_name):
+def _feature_value_for_classification(feature, field_name, layer_identifier=None):
+    if field_name == "Demand":
+        return junction_positive_node_demand(feature, layer_identifier)
     if field_name not in feature.fields().names():
         return None
     raw = feature[field_name]
@@ -249,10 +260,11 @@ def build_distribution_bins(layer, field_name):
             mid=mid,
         ))
 
+    layer_identifier = _layer_identifier(layer)
     for feature in layer.getFeatures():
-        if not _include_link_feature_for_distribution(feature, field_name):
+        if not _include_feature_for_distribution(feature, field_name, layer_identifier):
             continue
-        value = _feature_value_for_classification(feature, field_name)
+        value = _feature_value_for_classification(feature, field_name, layer_identifier)
         if value is None:
             continue
         class_index = _find_class_index(bins, mode, value)
@@ -277,10 +289,11 @@ def build_cumulative_points(layer, field_name, sample_count=100):
         return []
 
     values = []
+    layer_identifier = _layer_identifier(layer)
     for feature in layer.getFeatures():
-        if not _include_link_feature_for_distribution(feature, field_name):
+        if not _include_feature_for_distribution(feature, field_name, layer_identifier):
             continue
-        value = _feature_value_for_classification(feature, field_name)
+        value = _feature_value_for_classification(feature, field_name, layer_identifier)
         try:
             values.append(float(value))
         except (TypeError, ValueError):
