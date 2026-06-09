@@ -4,17 +4,14 @@
 from qgis.PyQt.QtCore import Qt, pyqtSignal
 from qgis.PyQt.QtWidgets import (
     QAbstractItemView,
-    QFrame,
     QHBoxLayout,
     QHeaderView,
-    QSizePolicy,
     QTableWidget,
     QTableWidgetItem,
     QWidget,
 )
 
 _FROZEN_COLUMNS = 1
-_GRID_COLOR = "#c8c8c8"
 
 
 class TimeSeriesValuesTable(QWidget):
@@ -35,19 +32,13 @@ class TimeSeriesValuesTable(QWidget):
 
         self._frozen = QTableWidget(self)
         self._frozen.setObjectName("timeSeriesValuesTableFrozen")
-        self._frozen.setFrameShape(QFrame.Shape.NoFrame)
-        self._frozen.setLineWidth(0)
         self._frozen.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self._frozen.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self._frozen.verticalHeader().setVisible(False)
-        self._frozen.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
+        self._frozen.setFrameShape(self._frozen.frameShape())
 
         self._body = QTableWidget(self)
         self._body.setObjectName("timeSeriesValuesTableBody")
-        self._body.setFrameShape(QFrame.Shape.NoFrame)
-        self._body.setLineWidth(0)
-        self._body.verticalHeader().setVisible(False)
-        self._body.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         layout.addWidget(self._frozen)
         layout.addWidget(self._body, 1)
@@ -223,93 +214,6 @@ class TimeSeriesValuesTable(QWidget):
         except Exception:
             pass
         self._sync_row_heights()
-        self._sync_frozen_pane_width()
-        self._sync_header_heights()
-
-    def _sync_frozen_pane_width(self) -> None:
-        """Keep the frozen pane exactly as wide as its column(s), without empty gap."""
-        try:
-            col_count = int(self._frozen.columnCount())
-        except Exception:
-            col_count = 0
-        if col_count <= 0:
-            return
-        width = 0
-        try:
-            width = int(self._frozen.horizontalHeader().length())
-        except Exception:
-            width = 0
-        if width <= 0:
-            for col in range(col_count):
-                try:
-                    width += int(self._frozen.columnWidth(col))
-                except Exception:
-                    pass
-        width += 1  # left outer border on frozen pane
-        try:
-            self._frozen.setFixedWidth(int(width))
-        except Exception:
-            pass
-
-    @staticmethod
-    def _frozen_header_style(section_style: str) -> str:
-        """Single seam line: frozen header sections omit the right border."""
-        style = (section_style or "").strip()
-        if not style:
-            return style
-        if "border-right:" not in style:
-            style = style.replace(
-                "border: 1px solid #c8c8c8;",
-                "border-top: 1px solid #c8c8c8; border-left: 1px solid #c8c8c8; "
-                f"border-bottom: 1px solid #c8c8c8; border-right: none;",
-            )
-        return style
-
-    @staticmethod
-    def _pane_frame_styles(grid_style: str) -> tuple:
-        base = (grid_style or "").strip()
-        frozen = (
-            f"{base}\n"
-            f"QTableWidget#timeSeriesValuesTableFrozen {{"
-            f" border-top: 1px solid {_GRID_COLOR};"
-            f" border-left: 1px solid {_GRID_COLOR};"
-            f" border-bottom: 1px solid {_GRID_COLOR};"
-            f" border-right: none;"
-            f"}}"
-        )
-        body = (
-            f"{base}\n"
-            f"QTableWidget#timeSeriesValuesTableBody {{"
-            f" border-top: 1px solid {_GRID_COLOR};"
-            f" border-right: 1px solid {_GRID_COLOR};"
-            f" border-bottom: 1px solid {_GRID_COLOR};"
-            f" border-left: none;"
-            f"}}"
-        )
-        return frozen, body
-
-    @staticmethod
-    def _table_grid_style(sheet: str) -> str:
-        base = (sheet or "").strip()
-        if base:
-            return base
-        return f"QTableWidget {{ gridline-color: {_GRID_COLOR}; }}"
-
-    def _sync_header_heights(self) -> None:
-        heights = []
-        for hdr in self._header_widgets():
-            try:
-                heights.append(int(hdr.height()))
-            except Exception:
-                pass
-        if not heights:
-            return
-        height = max(heights)
-        for hdr in self._header_widgets():
-            try:
-                hdr.setFixedHeight(int(height))
-            except Exception:
-                pass
 
     def _sync_row_heights(self) -> None:
         try:
@@ -438,8 +342,10 @@ class TimeSeriesValuesTable(QWidget):
             pass
 
     def frameWidth(self) -> int:
-        # 1 px left border (frozen) + 1 px right border (body).
-        return 2
+        try:
+            return int(self._body.frameWidth())
+        except Exception:
+            return 0
 
     def verticalScrollBar(self):
         return self._body.verticalScrollBar()
@@ -476,29 +382,13 @@ class TimeSeriesValuesTable(QWidget):
         self._apply_to_both("setContextMenuPolicy", policy)
 
     def setStyleSheet(self, sheet: str) -> None:
-        frozen_style, body_style = self._pane_frame_styles(self._table_grid_style(sheet))
-        try:
-            self._frozen.setStyleSheet(frozen_style)
-        except Exception:
-            pass
-        try:
-            self._body.setStyleSheet(body_style)
-        except Exception:
-            pass
-
-    def resizeEvent(self, event):
-        super(TimeSeriesValuesTable, self).resizeEvent(event)
-        self._sync_frozen_pane_width()
+        self._apply_to_both("setStyleSheet", sheet)
 
     def _header_widgets(self):
         return (self._frozen.horizontalHeader(), self._body.horizontalHeader())
 
     def init_header_style(self, section_style: str, bold: bool = True) -> None:
-        frozen_style = self._frozen_header_style(section_style)
-        for hdr, style in (
-            (self._frozen.horizontalHeader(), frozen_style),
-            (self._body.horizontalHeader(), section_style),
-        ):
+        for hdr in self._header_widgets():
             try:
                 if bold:
                     f = hdr.font()
@@ -507,7 +397,7 @@ class TimeSeriesValuesTable(QWidget):
             except Exception:
                 pass
             try:
-                hdr.setStyleSheet(style)
+                hdr.setStyleSheet(section_style)
             except Exception:
                 pass
             try:
@@ -523,5 +413,3 @@ class TimeSeriesValuesTable(QWidget):
                 hdr.setMinimumHeight(int(min_height))
             except Exception:
                 pass
-        self._sync_header_heights()
-        self._sync_frozen_pane_width()

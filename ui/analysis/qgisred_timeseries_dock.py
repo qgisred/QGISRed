@@ -10,10 +10,12 @@ from qgis.PyQt.QtWidgets import (
     QFileDialog,
     QComboBox,
     QHBoxLayout,
+    QHeaderView,
     QLabel,
     QMenu,
     QRubberBand,
     QSplitter,
+    QTableWidget,
     QTableWidgetItem,
     QToolButton,
     QVBoxLayout,
@@ -45,7 +47,6 @@ from .timeseries_time_utils import (
     format_time_like_results_panel,
     simulation_start_clock_seconds,
 )
-from .timeseries_values_table import TimeSeriesValuesTable
 
 try:
     from qgis.PyQt.QtSvg import QSvgGenerator
@@ -1377,12 +1378,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             left.setLayout(left_layout)
             self._plotPane = left
 
-            table_pane = QWidget(splitter)
-            table_pane_layout = QVBoxLayout(table_pane)
-            table_pane_layout.setContentsMargins(10, 0, 0, 0)
-            table_pane_layout.setSpacing(0)
-
-            table = TimeSeriesValuesTable(table_pane)
+            table = QTableWidget(splitter)
             table.setObjectName("timeSeriesValuesTable")
             table.setAlternatingRowColors(True)
             table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
@@ -1391,6 +1387,13 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             table.setSortingEnabled(False)
             table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
             table.verticalHeader().setVisible(False)
+            table.horizontalHeader().setStretchLastSection(False)
+            try:
+                hdr_font = table.horizontalHeader().font()
+                hdr_font.setBold(True)
+                table.horizontalHeader().setFont(hdr_font)
+            except Exception:
+                pass
             _hdr_section_style = (
                 "QHeaderView::section {"
                 "  font-weight: 700;"
@@ -1399,16 +1402,17 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 "  border: 1px solid #c8c8c8;"
                 "}"
             )
-            table.init_header_style(_hdr_section_style, bold=True)
+            table.horizontalHeader().setStyleSheet(_hdr_section_style)
             table.setStyleSheet("QTableWidget { gridline-color: #c8c8c8; }")
+            try:
+                table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+            except Exception:
+                pass
             table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
             table.customContextMenuRequested.connect(self._onTableContextMenu)
             table.cellClicked.connect(self._onTableCellClicked)
-            table_pane_layout.addWidget(table)
-            self._tablePane = table_pane
             self._table = table
             table.hide()
-            table_pane.hide()
 
             layout = QVBoxLayout(self.chartContainer)
             layout.setContentsMargins(0, 0, 0, 0)
@@ -1421,7 +1425,6 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self.chartContainer.setLayout(layout)
             self._splitter = None
             self._plotPane = None
-            self._tablePane = None
             self._table = None
 
     def _onToggleTableToggled(self, checked: bool) -> None:
@@ -1430,13 +1433,10 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
     def _setTableVisible(self, visible: bool) -> None:
         self._tableVisible = bool(visible)
         table = getattr(self, "_table", None)
-        table_pane = getattr(self, "_tablePane", None)
         if table is None:
             return
         if self._tableVisible:
             table.show()
-            if table_pane is not None:
-                table_pane.show()
             try:
                 series_count = self._tableSeriesCountForLayout()
                 if series_count > 2:
@@ -1451,8 +1451,6 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self._syncTableRowToCursor()
         else:
             table.hide()
-            if table_pane is not None:
-                table_pane.hide()
 
     def _tableRowForHours(self, hours: float) -> int:
         xs = getattr(self, "_table_x_hours", None) or []
@@ -1629,8 +1627,6 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
     @staticmethod
     def _tableHasSelection(table) -> bool:
         try:
-            if hasattr(table, "has_selection"):
-                return bool(table.has_selection())
             selection_model = table.selectionModel()
             if selection_model is None:
                 return False
@@ -1640,8 +1636,6 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
 
     def _tableSelectedRowsAndColumns(self, table):
         try:
-            if hasattr(table, "selected_logical_rows_and_columns"):
-                return table.selected_logical_rows_and_columns()
             row_count = int(table.rowCount())
             col_count = int(table.columnCount())
         except Exception:
@@ -1744,8 +1738,8 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             total += int(table.verticalScrollBar().sizeHint().width())
         except Exception:
             total += 16
-        # Left gap from plot + padding for grid and header margins.
-        total += 10 + 20
+        # Padding for grid + header margins.
+        total += 20
         return max(240, total)
 
     def _fitTablePaneToContents(self) -> None:
@@ -1848,15 +1842,10 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
     def _applyValuesTableHeaderLayout(self, table) -> None:
         try:
             hdr = table.horizontalHeader()
+            hdr.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
             fm = QFontMetrics(hdr.font())
             line_h = max(12, int(fm.height()))
-            min_height = line_h * 2 + 8
-            align = Qt.AlignmentFlag.AlignCenter
-            if hasattr(table, "apply_header_layout"):
-                table.apply_header_layout(align, min_height)
-            else:
-                hdr.setDefaultAlignment(align)
-                hdr.setMinimumHeight(min_height)
+            hdr.setMinimumHeight(line_h * 2 + 8)
         except Exception:
             pass
 
