@@ -5802,46 +5802,56 @@ Left-click: Add a new item below the current selection</source>
     <name>TimeSeriesGlobals</name>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="45"/>
-        <source>Total Stored Volume</source>
+        <source>Total Water Supply</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="46"/>
-        <source>Total Tank Spill Flow</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="48"/>
-        <source>System</source>
+        <source>Total Water Demand</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="47"/>
-        <source>Average Node Pressure</source>
+        <source>Total Stored Volume</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="48"/>
+        <source>Total Tank Spill Flow</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="49"/>
-        <source>Supply</source>
+        <source>Average Node Pressure</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="50"/>
-        <source>Demand</source>
+        <source>System</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="51"/>
-        <source>Storage</source>
+        <source>Supply</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="52"/>
-        <source>Spill</source>
+        <source>Demand</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="53"/>
+        <source>Storage</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="54"/>
+        <source>Spill</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="55"/>
         <source>Pressure</source>
         <translation type="unfinished"></translation>
     </message>

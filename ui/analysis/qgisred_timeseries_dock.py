@@ -1183,6 +1183,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         try:
             if event is not None and event.type() == QEvent.Type.LanguageChange:
                 self.retranslateUi(self)
+                self._populateGlobalSystemCombo()
                 self._updateMinimumWidthForDockTitle()
         except Exception:
             pass

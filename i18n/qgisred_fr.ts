@@ -6090,57 +6090,57 @@ Left-click: Add a new item below the current selection</source>
 <context>
     <name>TimeSeriesGlobals</name>
     <message>
-        <location filename="../ui/analysis/timeseries_globals.py" line="24"/>
-        <source>Total Water Supply</source>
-        <translation type="obsolete">Débit total produit</translation>
-    </message>
-    <message>
-        <location filename="../ui/analysis/timeseries_globals.py" line="25"/>
-        <source>Total Water Demand</source>
-        <translation type="obsolete">Débit total demandé</translation>
-    </message>
-    <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="45"/>
+        <source>Total Water Supply</source>
+        <translation>Débit total produit</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="46"/>
+        <source>Total Water Demand</source>
+        <translation>Débit total demandé</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="47"/>
         <source>Total Stored Volume</source>
         <translation>Volume total stocké</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="46"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="48"/>
         <source>Total Tank Spill Flow</source>
         <translation>Débit total de trop-plein</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="48"/>
-        <source>System</source>
-        <translation>Système</translation>
-    </message>
-    <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="47"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="49"/>
         <source>Average Node Pressure</source>
         <translation>Pression moyenne des nœuds</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="49"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="50"/>
+        <source>System</source>
+        <translation>Système</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="51"/>
         <source>Supply</source>
         <translation>Production</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="50"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="52"/>
         <source>Demand</source>
         <translation>Demande</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="51"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="53"/>
         <source>Storage</source>
         <translation>Stockage</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="52"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="54"/>
         <source>Spill</source>
         <translation>Trop-plein</translation>
     </message>
     <message>
-        <location filename="../tools/qgisred_translatable_strings.py" line="53"/>
+        <location filename="../tools/qgisred_translatable_strings.py" line="55"/>
         <source>Pressure</source>
         <translation>Pression</translation>
     </message>
