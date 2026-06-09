@@ -544,68 +544,6 @@ class QGISRedStylingUtils:
             layer.setRenderer(renderer)
         layer.setLabelsEnabled(False)
     
-    def setTreeStyle(self, layer):
-        # get unique values
-        field = "ArcType"
-        fni = layer.fields().indexFromName(field)
-        uniqueValues = layer.dataProvider().uniqueValues(fni)
-
-        # define categories
-        categories = []
-        for uniqueValue in uniqueValues:
-            # initialize the default symbol for this geometry type
-            symbol = QgsSymbol.defaultSymbol(layer.geometryType())
-
-            # configure a symbol layer
-            symbolLayer = None
-            if layer.geometryType() == 0:  # Point
-                layerStyle = dict()
-                layerStyle["color"] = "%d, %d, %d" % (randrange(0, 256), randrange(0, 256), randrange(0, 256))
-                layerStyle["size"] = str(2)
-                symbolLayer = QgsSimpleMarkerSymbolLayer.create(layerStyle)
-            else:
-                symbol = QgsLineSymbol().createSimple({})
-                symbol.deleteSymbolLayer(0)
-                # Line
-                lineSymbol = QgsSimpleLineSymbolLayer()
-                try:  # From QGis 3.30
-                    lineSymbol.setWidthUnit(Qgis.RenderUnit.RenderPixels)  # Pixels
-                except:
-                    lineSymbol.setWidthUnit(2)  # Pixels
-                lineSymbol.setWidth(3)
-                lineSymbol.setColor(QColor(178, 47, 60))
-                if "Branch" in uniqueValue:
-                    lineSymbol.setColor(QColor(22, 139, 251))
-                else:
-                    lineSymbol.setPenStyle(Qt.CustomDashLine)
-                    lineSymbol.setCustomDashVector([0.1, 2])
-                    lineSymbol.setUseCustomDashPattern(True)
-                    lineSymbol.setColor(QColor(185, 115, 115))
-                    lineSymbol.setWidth(3.5)
-                symbol.appendSymbolLayer(lineSymbol)
-
-            # replace default symbol layer with the configured one
-            if symbolLayer is not None:
-                symbol.changeSymbolLayer(0, symbolLayer)
-
-            # translated legend label
-            if "Branch" in uniqueValue:
-                label = self.tr("Branches")
-            else:
-                label = self.tr("Chords")
-
-            category = QgsRendererCategory(uniqueValue, symbol, label)
-            # entry for the list of category items
-            categories.append(category)
-
-        # create renderer object
-        renderer = QgsCategorizedSymbolRenderer(field, categories)
-
-        # assign the created renderer to the layer
-        if renderer is not None:
-            layer.setRenderer(renderer)
-        layer.setLabelsEnabled(False)
-
     def applyCategorizedRenderer(self, layer, field, qmlFile):
         fieldIndex = layer.fields().indexFromName(field)
 
