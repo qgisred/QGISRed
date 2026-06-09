@@ -105,3 +105,13 @@ class TestFormatNumberTick:
         assert format_number_tick(1.234, float("inf")) == "1.234"
         assert format_number_tick(1.234, float("nan")) == "1.234"
 
+
+class TestDayStartGridWidth:
+    def test_day_start_line_is_clearly_thicker_than_regular_grid(self):
+        from QGISRed.ui.analysis.timeseries_plot_style import emphasized_day_start_grid_width
+
+        base = 1.2
+        day = emphasized_day_start_grid_width(base)
+        assert day >= 2.0
+        assert day > base + 0.5
+

@@ -22,8 +22,7 @@ from .timeseries_plot_style import (
     AXIS_MAX_TICKS,
     BORDER_COLOR,
     DEFAULT_SERIES_COLOR,
-    GRID_DAY_START_COLOR,
-    GRID_DAY_START_WIDTH,
+    emphasized_day_start_grid_width,
     LEGEND_ICON_SIZE,
     LEGEND_POINT_SYMBOL_SIZE_MAX,
     LEGEND_OUTSIDE_BOTTOM_EXTRA,
@@ -224,8 +223,10 @@ class TimeSeriesPlotRenderer:
         f.setBold(bold)
         return f
 
-    def _axis_grid_pen(self, cfg: TimeSeriesAxisSettings) -> QPen:
-        return QPen(cfg.grid_qcolor(), cfg.resolved_grid_width(), Qt.PenStyle.SolidLine)
+    def _axis_grid_pen(self, cfg: TimeSeriesAxisSettings, *, width: float | None = None) -> QPen:
+        if width is None:
+            width = cfg.resolved_grid_width()
+        return QPen(cfg.grid_qcolor(), max(0.5, float(width)), Qt.PenStyle.SolidLine)
 
     def _line_pen_style(self, style: str):
         t = (style or "solid").strip().lower()
@@ -822,7 +823,6 @@ class TimeSeriesPlotRenderer:
     ):
         cfg_x = x_state.get("axis_cfg") or widget._axis_cfg_x
         y_state_primary = y_state_primary or y_state_left or y_state_right
-        pen_grid_day_start = QPen(GRID_DAY_START_COLOR, GRID_DAY_START_WIDTH, Qt.PenStyle.SolidLine)
         tick_mark_len = 5.0
 
         if y_state_left is not None:
@@ -899,7 +899,9 @@ class TimeSeriesPlotRenderer:
                         mod_24 = val_x % 24.0
                         is_day_start = abs(mod_24) < 1e-6 or abs(mod_24 - 24.0) < 1e-6
                 if cfg_x.show_grid:
-                    painter.setPen(pen_grid_day_start if is_day_start else self._axis_grid_pen(cfg_x))
+                    base_grid_w = cfg_x.resolved_grid_width()
+                    grid_w = emphasized_day_start_grid_width(base_grid_w) if is_day_start else base_grid_w
+                    painter.setPen(self._axis_grid_pen(cfg_x, width=grid_w))
                     painter.drawLine(QPointF(pt.x(), plot_rect.top()), QPointF(pt.x(), plot_rect.bottom()))
 
                 painter.setPen(QPen(cfg_x.tick_qcolor(), 1))

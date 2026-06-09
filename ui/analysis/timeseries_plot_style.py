@@ -7,9 +7,15 @@ FONT_FAMILY = "Arial"
 DEFAULT_SERIES_COLOR = QColor(0, 120, 215)
 PLOT_BG_COLOR = QColor(245, 250, 255)
 GRID_COLOR = QColor(220, 232, 245)
-GRID_DAY_START_COLOR = QColor(185, 195, 205)
-GRID_DAY_START_WIDTH = 1.2
-DEFAULT_GRID_WIDTH = 1.0
+DEFAULT_GRID_WIDTH = 1.2
+# Day-start grid lines on the time axis: noticeably thicker than regular ticks.
+GRID_DAY_START_WIDTH_SCALE = 1.6
+GRID_DAY_START_MIN_WIDTH = 2.0
+
+
+def emphasized_day_start_grid_width(base_width: float) -> float:
+    base = max(0.5, float(base_width))
+    return max(base * GRID_DAY_START_WIDTH_SCALE, base + 1.0, GRID_DAY_START_MIN_WIDTH)
 BORDER_COLOR = QColor(200, 200, 200)
 TEXT_DARK = QColor(20, 20, 20)
 TEXT_AXIS = QColor(40, 40, 40)
