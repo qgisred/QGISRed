@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
+import math
 import re
 from qgis.PyQt.QtCore import QCoreApplication, QPointF, QRectF, Qt
 from qgis.PyQt.QtGui import QColor, QFont, QFontMetrics, QPainter, QPainterPath, QPen, QPolygonF
@@ -1210,6 +1211,16 @@ class TimeSeriesPlotRenderer:
         if "qgisred_reservoirs" in t or "reservoir" in t:
             diamond = QPolygonF([QPointF(cx, y + 2), QPointF(x + size - 2, cy), QPointF(cx, y + size - 2), QPointF(x + 2, cy)])
             painter.drawPolygon(diamond)
+            return
+        if "global" in t or "system" in t or "sistema" in t:
+            r_out = (size - 4) / 2
+            r_in = r_out * 0.42
+            star = QPolygonF()
+            for i in range(10):
+                r = r_out if i % 2 == 0 else r_in
+                angle = -math.pi / 2 + i * math.pi / 5
+                star.append(QPointF(cx + r * math.cos(angle), cy + r * math.sin(angle)))
+            painter.drawPolygon(star)
             return
         point_size = min(float(size), float(LEGEND_POINT_SYMBOL_SIZE_MAX))
         painter.drawEllipse(QPointF(cx, cy), (point_size - 4) / 2, (point_size - 4) / 2)
