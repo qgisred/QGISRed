@@ -47,6 +47,7 @@ from .timeseries_time_utils import (
     format_time_like_results_panel,
     simulation_start_clock_seconds,
 )
+from .timeseries_values_table import FrozenColumnOverlay
 
 try:
     from qgis.PyQt.QtSvg import QSvgGenerator
@@ -1433,6 +1434,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             table.customContextMenuRequested.connect(self._onTableContextMenu)
             table.cellClicked.connect(self._onTableCellClicked)
             self._table = table
+            self._tableFrozenOverlay = FrozenColumnOverlay(table)
             table.hide()
 
             plot_pane = QWidget(splitter)
@@ -1454,6 +1456,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self._splitter = None
             self._plotPane = None
             self._table = None
+            self._tableFrozenOverlay = None
 
     def _onToggleTableToggled(self, checked: bool) -> None:
         self._setTableVisible(bool(checked))
@@ -1766,9 +1769,10 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             total += int(table.verticalScrollBar().sizeHint().width())
         except Exception:
             total += 16
-        # Padding for grid + header margins.
-        total += 20
-        return max(240, total)
+        # Just the right-edge gridline; anything more shows as a blank strip
+        # between the last column and the vertical scrollbar.
+        total += 2
+        return max(160, total)
 
     def _fitTablePaneToContents(self) -> None:
         splitter = getattr(self, "_splitter", None)
@@ -1961,6 +1965,13 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         if prev_sizes:
             try:
                 splitter.setSizes(prev_sizes)
+            except Exception:
+                pass
+
+        overlay = getattr(self, "_tableFrozenOverlay", None)
+        if overlay is not None:
+            try:
+                overlay.refresh()
             except Exception:
                 pass
 

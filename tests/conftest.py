@@ -58,7 +58,7 @@ def _qt_stub(name):
     })
 
 _FORM_STUB = _qt_stub("FORM_CLASS")
-_QT_WIDGET_STUBS = ("QDialog", "QDockWidget", "QWidget", "QMainWindow", "QFrame")
+_QT_WIDGET_STUBS = ("QDialog", "QDockWidget", "QWidget", "QMainWindow", "QFrame", "QTableView")
 
 
 def _apply_qt_mock_config():
