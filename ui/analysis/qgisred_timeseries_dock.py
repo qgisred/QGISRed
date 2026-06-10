@@ -1393,13 +1393,8 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             splitter.setChildrenCollapsible(False)
             self._splitter = splitter
 
-            left = QWidget(splitter)
-            left_layout = QVBoxLayout(left)
-            left_layout.setContentsMargins(0, 0, 0, 0)
-            left_layout.addWidget(self.plot)
-            left.setLayout(left_layout)
-            self._plotPane = left
-
+            # Table pane goes first (left); the plot pane follows so the panel
+            # ends with the chart legend on the right.
             table = QTableWidget(splitter)
             table.setObjectName("timeSeriesValuesTable")
             table.setAlternatingRowColors(True)
@@ -1436,6 +1431,13 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self._table = table
             table.hide()
 
+            plot_pane = QWidget(splitter)
+            plot_layout = QVBoxLayout(plot_pane)
+            plot_layout.setContentsMargins(0, 0, 0, 0)
+            plot_layout.addWidget(self.plot)
+            plot_pane.setLayout(plot_layout)
+            self._plotPane = plot_pane
+
             layout = QVBoxLayout(self.chartContainer)
             layout.setContentsMargins(0, 0, 0, 0)
             layout.addWidget(splitter)
@@ -1463,9 +1465,9 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 series_count = self._tableSeriesCountForLayout()
                 if series_count > 2:
                     total_w = max(1, int(self.width()))
-                    right_w = min(max(240, int(total_w * 0.18)), 320)
-                    left_w = max(200, total_w - right_w)
-                    self._splitter.setSizes([left_w, right_w])
+                    table_w = min(max(240, int(total_w * 0.18)), 320)
+                    plot_w = max(200, total_w - table_w)
+                    self._splitter.setSizes([table_w, plot_w])
                 else:
                     self._fitTablePaneToContents()
             except Exception:
@@ -1770,10 +1772,10 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             return
         total_w = max(1, int(self.width()))
         # Reserve enough width for chart interaction area.
-        max_right = max(240, total_w - 280)
-        desired_right = min(self._tableRequiredWidth(), max_right)
-        desired_left = max(200, total_w - desired_right)
-        splitter.setSizes([desired_left, desired_right])
+        max_table = max(240, total_w - 280)
+        desired_table = min(self._tableRequiredWidth(), max_table)
+        desired_plot = max(200, total_w - desired_table)
+        splitter.setSizes([desired_table, desired_plot])
 
     @staticmethod
     def _format_elapsed_hhmm(hours: float) -> str:
