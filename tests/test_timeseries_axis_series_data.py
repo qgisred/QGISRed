@@ -88,13 +88,14 @@ def test_y_axis_title_keeps_magnitude_when_units_already_present():
     assert w._y_label_left == "Pressure (m)"
 
 
-def test_y_axis_title_lists_units_for_multiple_global_series():
+def test_y_axis_title_keeps_system_and_accumulates_units_for_multiple_global_series():
     w = _timeseries_plot_widget()
     w.series = [
         {
             "x": [0, 1],
             "y": [1.0, 2.0],
             "magnitude": "System",
+            "legend_type": "global",
             "y_label_with_unit": "Total Stored Volume (m³)",
             "y_axis": "left",
         },
@@ -102,10 +103,95 @@ def test_y_axis_title_lists_units_for_multiple_global_series():
             "x": [0, 1],
             "y": [3.0, 4.0],
             "magnitude": "System",
+            "legend_type": "global",
             "y_label_with_unit": "Total Tank Spill Flow (L/s)",
             "y_axis": "left",
         },
     ]
     w._assignYAxisByMagnitude()
-    assert w._y_label_left == "m³, L/s"
+    # "System" is not repeated per variable; its units accumulate inside it.
+    assert w._y_label_left == "System (m³, L/s)"
+
+
+def test_y_axis_title_enriches_system_when_sharing_axis_with_unit_bearing_magnitude():
+    w = _timeseries_plot_widget()
+    w.series = [
+        {
+            "x": [0, 1],
+            "y": [1.0, 2.0],
+            "magnitude": "Pressure (m)",
+            "legend_type": "qgisred_junctions",
+            "y_label_with_unit": "Pressure (m)",
+            "y_axis": "left",
+        },
+        {
+            "x": [0, 1],
+            "y": [3.0, 4.0],
+            "magnitude": "System",
+            "legend_type": "global",
+            "y_label_with_unit": "Total Stored Volume (ft3)",
+            "y_axis": "left",
+        },
+        {
+            "x": [0, 1],
+            "y": [5.0, 6.0],
+            "magnitude": "System",
+            "legend_type": "global",
+            "y_label_with_unit": "Total Water Supply (gpm)",
+            "y_axis": "right",
+        },
+    ]
+    w._assignYAxisByMagnitude()
+    # System keeps its unit even next to a magnitude that already has one, and
+    # both axis titles reflect the actual side of each curve.
+    assert w._y_label_left == "Pressure (m), System (ft3)"
+    assert w._y_label_right == "System (gpm)"
+
+
+def test_global_series_default_to_right_axis():
+    w = _timeseries_plot_widget()
+    w.series = [
+        {
+            "x": [0, 1],
+            "y": [1.0, 2.0],
+            "magnitude": "System",
+            "legend_type": "global",
+            "y_label_with_unit": "Total Water Supply (gpm)",
+        },
+        {
+            "x": [0, 1],
+            "y": [3.0, 4.0],
+            "magnitude": "System",
+            "legend_type": "global",
+            "y_label_with_unit": "Total Stored Volume (ft3)",
+        },
+    ]
+    w._assignYAxisByMagnitude()
+    assert [s["y_axis"] for s in w.series] == ["right", "right"]
+    assert w._y_label_right == "System (gpm, ft3)"
+    assert w._y_label_left == ""
+
+
+def test_first_non_system_magnitude_keeps_left_axis_with_system_on_right():
+    w = _timeseries_plot_widget()
+    w.series = [
+        {
+            "x": [0, 1],
+            "y": [1.0, 2.0],
+            "magnitude": "Pressure (m)",
+            "legend_type": "qgisred_junctions",
+            "y_label_with_unit": "Pressure (m)",
+        },
+        {
+            "x": [0, 1],
+            "y": [3.0, 4.0],
+            "magnitude": "System",
+            "legend_type": "global",
+            "y_label_with_unit": "Total Water Supply (gpm)",
+        },
+    ]
+    w._assignYAxisByMagnitude()
+    assert [s["y_axis"] for s in w.series] == ["left", "right"]
+    assert w._y_label_left == "Pressure (m)"
+    assert w._y_label_right == "System (gpm)"
 

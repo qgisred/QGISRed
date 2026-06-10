@@ -1647,6 +1647,16 @@ class TimeSeriesPlotRenderer:
                 m = self._UNIT_RE.search(magnitude) if magnitude else None
                 if m:
                     unit_suffix = f" {m.group(1).strip()}"
+                elif (s.get("legend_type") or "").strip().lower() == "global":
+                    # System variables carry the unit on their label; show it
+                    # after the value instead, like element series do.
+                    ylu = (s.get("y_label_with_unit") or "").strip()
+                    m2 = self._UNIT_RE.search(ylu) if ylu else None
+                    if m2:
+                        unit_suffix = f" {m2.group(1).strip()}"
+                        lm = self._UNIT_RE.search(label)
+                        if lm:
+                            label = label[: lm.start()].strip()
             except Exception:
                 unit_suffix = ""
 

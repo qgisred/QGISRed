@@ -257,34 +257,44 @@ class TimeSeriesPlotWidget(QWidget):
         return "left"
 
     def _enrich_y_axis_title(self, mag_joined: str, side: str) -> str:
-        """Append units to axis titles that lack them (e.g. global ``System`` group)."""
-        raw = (mag_joined or "").strip()
-        if not raw or "(" in raw:
-            return raw
+        """Build the axis title from the magnitudes actually on this side.
+
+        Each magnitude keeps its name and gets its units appended when missing,
+        so the global ``System`` group shows e.g. ``System (gpm, ft3)`` even when
+        it shares the axis with a unit-bearing magnitude. Units are recomputed per
+        side, so moving a single curve refreshes both axis titles.
+        """
         side_l = (side or "left").strip().lower()
-        units_ordered: List[str] = []
-        seen = set()
+        order: List[str] = []
         for s in self.series:
             if (s.get("y_axis") or "left").strip().lower() != side_l:
                 continue
-            ylu = (s.get("y_label_with_unit") or "").strip()
-            if not ylu:
+            m = (s.get("magnitude") or "").strip()
+            if m and m not in order:
+                order.append(m)
+        if not order:
+            return (mag_joined or "").strip()
+
+        parts = []
+        for m in order:
+            if "(" in m:
+                parts.append(m)
                 continue
-            unit_blob = self._renderer._extract_unit_from_magnitude(ylu)
-            for part in (p.strip() for p in unit_blob.split(",") if p.strip()):
-                if part not in seen:
-                    seen.add(part)
-                    units_ordered.append(part)
-        if not units_ordered:
-            return raw
-        mag_count = len([m for m in raw.split(",") if m.strip()])
-        if mag_count <= 1 and len(units_ordered) == 1:
-            return f"{raw} ({units_ordered[0]})"
-        if mag_count > 2 or len(units_ordered) > 2:
-            return ", ".join(units_ordered)
-        if len(units_ordered) == 1:
-            return f"{raw} ({units_ordered[0]})"
-        return ", ".join(units_ordered)
+            units: List[str] = []
+            for s in self.series:
+                if (s.get("y_axis") or "left").strip().lower() != side_l:
+                    continue
+                if (s.get("magnitude") or "").strip() != m:
+                    continue
+                ylu = (s.get("y_label_with_unit") or "").strip()
+                if not ylu:
+                    continue
+                blob = self._renderer._extract_unit_from_magnitude(ylu)
+                for u in (p.strip() for p in blob.split(",") if p.strip()):
+                    if u not in units:
+                        units.append(u)
+            parts.append(f"{m} ({', '.join(units)})" if units else m)
+        return ", ".join(parts)
 
     def _assignYAxisByMagnitude(self) -> None:
         magnitudes: List[str] = []
@@ -295,28 +305,40 @@ class TimeSeriesPlotWidget(QWidget):
 
         has_explicit = any((s.get("y_axis") or "").strip().lower() in ("left", "right") for s in self.series)
         if not has_explicit and magnitudes:
-            left_mag = magnitudes[0]
-            right_mags = set(magnitudes[1:])
+            # System (global) magnitudes default to the right axis; the first
+            # non-system magnitude keeps the left axis and the rest go right.
+            left_mag = None
+            for s in self.series:
+                if (s.get("legend_type") or "").strip().lower() == "global":
+                    continue
+                m = (s.get("magnitude") or "").strip()
+                if m:
+                    left_mag = m
+                    break
             for s in self.series:
                 m = (s.get("magnitude") or "").strip()
-                s["y_axis"] = "right" if m in right_mags else "left"
+                is_system = (s.get("legend_type") or "").strip().lower() == "global"
+                if not is_system and left_mag is not None and m == left_mag:
+                    s["y_axis"] = "left"
+                else:
+                    s["y_axis"] = "right"
         else:
             for s in self.series:
                 axis = (s.get("y_axis") or "").strip().lower()
                 s["y_axis"] = axis if axis in ("left", "right") else "left"
 
+        # Build per-side magnitude lists from each series' actual axis, so a
+        # magnitude split across both axes (e.g. ``System`` curves moved one by
+        # one) shows up on both axis titles and they update on every move.
         left_mags: List[str] = []
         right_mags: List[str] = []
-        seen_left = set()
-        seen_right = set()
-        for mag in magnitudes:
-            if self._magnitude_axis(mag) == "right":
-                if mag not in seen_right:
-                    right_mags.append(mag)
-                    seen_right.add(mag)
-            elif mag not in seen_left:
-                left_mags.append(mag)
-                seen_left.add(mag)
+        for s in self.series:
+            mag = (s.get("magnitude") or "").strip()
+            if not mag:
+                continue
+            target = right_mags if (s.get("y_axis") or "left").strip().lower() == "right" else left_mags
+            if mag not in target:
+                target.append(mag)
 
         if not left_mags and not right_mags and (self.y_label or "").strip():
             left_mags = [(self.y_label or "").strip()]

@@ -790,27 +790,19 @@ class TimeSeriesAxisOptionsDialog(QDialog):
                 curve["highlighted"] = False
                 curve["muted"] = False
 
-        def magnitude_axis(magnitude) -> str:
-            mag = (magnitude or "").strip()
-            for curve in self._curve_cfg:
-                if curve_magnitude(curve) == mag:
-                    axis = (curve.get("y_axis") or "").strip().lower()
-                    if axis in ("left", "right"):
-                        return axis
-            return "left"
+        def curve_axis(curve) -> str:
+            axis = (curve.get("y_axis") or "").strip().lower()
+            return axis if axis in ("left", "right") else "left"
 
-        def set_magnitude_axis(magnitude, side: str) -> None:
-            mag = (magnitude or "").strip()
-            axis = "right" if str(side).strip().lower() == "right" else "left"
-            for curve in self._curve_cfg:
-                if curve_magnitude(curve) == mag:
-                    curve["y_axis"] = axis
+        def set_curve_axis(idx, side: str) -> None:
+            if idx is None or idx < 0 or idx >= len(self._curve_cfg):
+                return
+            self._curve_cfg[idx]["y_axis"] = "right" if str(side).strip().lower() == "right" else "left"
 
-        def sync_magnitude_axis_radios(magnitude=None) -> None:
-            mag = magnitude
-            if mag is None:
-                mag = combo_magnitude.currentData()
-            axis = magnitude_axis(mag)
+        def sync_magnitude_axis_radios(idx=None) -> None:
+            if idx is None:
+                idx = int(getattr(w, "_curve_current_idx", -1))
+            axis = curve_axis(self._curve_cfg[idx]) if 0 <= idx < len(self._curve_cfg) else "left"
             rb_axis_left.blockSignals(True)
             rb_axis_right.blockSignals(True)
             rb_axis_left.setChecked(axis != "right")
@@ -821,11 +813,11 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         def on_magnitude_axis_changed(_checked=False) -> None:
             if bool(getattr(w, "_curve_loading", False)):
                 return
-            mag = combo_magnitude.currentData()
-            if not mag:
+            idx = int(getattr(w, "_curve_current_idx", -1))
+            if idx < 0:
                 return
             side = "right" if rb_axis_right.isChecked() else "left"
-            set_magnitude_axis(mag, side)
+            set_curve_axis(idx, side)
             self._schedule_live_apply()
 
         def store_current_curve():
@@ -926,7 +918,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             self._apply_color_to_style_row(marker_style_row, marker_qcolor)
             chk_marker_hollow.setChecked(bool(curve.get("marker_hollow", True)))
             sync_marker_options()
-            sync_magnitude_axis_radios(magnitude)
+            sync_magnitude_axis_radios(idx)
             w._curve_dirty = False
             w._curve_loading = False
 
@@ -989,7 +981,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
         if combo_curve.count() > 0:
             load_curve(int(combo_curve.currentData()))
         elif combo_magnitude.count() > 0:
-            sync_magnitude_axis_radios(combo_magnitude.currentData())
+            sync_magnitude_axis_radios()
 
         return w
 
