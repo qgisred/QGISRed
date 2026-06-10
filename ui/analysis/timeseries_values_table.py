@@ -28,26 +28,20 @@ class FrozenColumnOverlay(QTableView):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
-        # Mirror the host table's look & interaction settings.
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setSelectionBehavior(table.selectionBehavior())
         self.setSelectionMode(table.selectionMode())
         self.setAlternatingRowColors(table.alternatingRowColors())
         self.setStyleSheet("QTableView { border: none; gridline-color: #c8c8c8; }")
 
-        # Clicks and context menus behave exactly like on the table itself.
         self.clicked.connect(lambda idx: table.cellClicked.emit(idx.row(), idx.column()))
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self._forward_context_menu)
 
-        # Keep both views in lockstep (setValue with an unchanged value does
-        # not re-emit valueChanged, so the two-way connection cannot loop).
         table.verticalScrollBar().valueChanged.connect(self.verticalScrollBar().setValue)
         self.verticalScrollBar().valueChanged.connect(table.verticalScrollBar().setValue)
         table.horizontalHeader().sectionResized.connect(self._on_column_resized)
         table.verticalHeader().sectionResized.connect(self._on_row_resized)
-        # The table relayouts its header asynchronously (e.g. when two-line
-        # labels arrive), so watch the header widget itself for resizes.
         table.installEventFilter(self)
         table.horizontalHeader().installEventFilter(self)
 
@@ -91,9 +85,6 @@ class FrozenColumnOverlay(QTableView):
 
     def _update_geometry(self) -> None:
         t = self._table
-        # Pin the overlay header to the table header's real height: the table
-        # header is sized by two-line series labels the overlay cannot see, so
-        # without this the overlay rows sit higher than the table rows.
         header_h = int(t.horizontalHeader().height())
         if header_h > 0:
             self.horizontalHeader().setFixedHeight(header_h)

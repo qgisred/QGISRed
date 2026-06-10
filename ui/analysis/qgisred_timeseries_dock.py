@@ -1639,7 +1639,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             text = item.text()
         except Exception:
             text = ""
-        return str(text).replace("\t", " ").replace("\r", "")
+        return str(text).replace("\t", " ").replace("\r", "").replace("\n", " ")
 
     @staticmethod
     def _table_header_text(table, col: int) -> str:
@@ -1653,7 +1653,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             text = item.text()
         except Exception:
             text = ""
-        return str(text).replace("\t", " ").replace("\r", "")
+        return str(text).replace("\t", " ").replace("\r", "").replace("\n", " ")
 
     @staticmethod
     def _tableHasSelection(table) -> bool:
@@ -1769,8 +1769,6 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             total += int(table.verticalScrollBar().sizeHint().width())
         except Exception:
             total += 16
-        # Just the right-edge gridline; anything more shows as a blank strip
-        # between the last column and the vertical scrollbar.
         total += 2
         return max(160, total)
 
