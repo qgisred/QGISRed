@@ -331,24 +331,24 @@ class ToolsSection:
 
         if field_index != -1:
             unique_cats = set()
-            has_undefined = False
+            has_uncategorized = False
 
             for feature in vlayer.getFeatures():
                 raw_cat = feature[field_index]
                 text = "" if raw_cat is None else str(raw_cat).strip()
 
                 if text == "" or text.lower() in ("null", "undefined"):
-                    has_undefined = True
+                    has_uncategorized = True
                 else:
                     unique_cats.add(text)
 
             categories = []
 
-            if has_undefined:
-                symbol_undefined = QgsSymbol.defaultSymbol(geom_type)
-                symbol_undefined.setColor(QColor("orange"))
+            if has_uncategorized:
+                symbol_uncategorized = QgsSymbol.defaultSymbol(geom_type)
+                symbol_uncategorized.setColor(QColor("orange"))
                 categories.append(
-                    QgsRendererCategory("Undefined", symbol_undefined, "Undefined")
+                    QgsRendererCategory("Uncategorized", symbol_uncategorized, "Uncategorized")
                 )
 
             for cat in sorted(unique_cats):
@@ -371,7 +371,7 @@ class ToolsSection:
                 "WHEN \"Category\" IS NULL "
                 "OR trim(\"Category\") = '' "
                 "OR lower(trim(\"Category\")) IN ('null', 'undefined') "
-                "THEN 'Undefined' "
+                "THEN 'Uncategorized' "
                 "ELSE trim(\"Category\") "
                 "END"
             )
@@ -407,7 +407,7 @@ class ToolsSection:
         # Build color expression for labels based on category colors
         if field_index != -1:
             color_expression = "CASE "
-            if has_undefined:
+            if has_uncategorized:
                 color_expression += "WHEN \"Category\" IS NULL OR trim(\"Category\") = '' OR lower(trim(\"Category\")) IN ('null', 'undefined') THEN 'orange' "
             for cat in sorted(unique_cats):
                 hex_color = self.category_colors[cat].name()  # Returns #RRGGBB
