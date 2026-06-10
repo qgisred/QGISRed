@@ -43,7 +43,7 @@ from .timeseries_globals import (
     global_variable_table_column_label,
 )
 from .timeseries_time_utils import (
-    civil_time_parts,
+    format_civil_time,
     format_time_like_results_panel,
     simulation_start_clock_seconds,
 )
@@ -1157,6 +1157,10 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
     clearAllRequested = pyqtSignal()
     globalSystemVariableChosen = pyqtSignal(str)
 
+    # Class-level default so attribute lookup never falls through to a mocked
+    # Qt base class (tests build instances via __new__ without __init__).
+    _resultsDock = None
+
     def __init__(self, iface, parent=None):
         super(QGISRedTimeSeriesDock, self).__init__(parent or iface.mainWindow())
         self.iface = iface
@@ -1802,21 +1806,22 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             return f"{h:.2f}"
         return self._format_elapsed_hhmm(hours)
 
+    def _timeOfDayUsesAmPm(self) -> bool:
+        """am/pm vs 24h for the Time of day column, per the Results panel option."""
+        dock = getattr(self, "_resultsDock", None)
+        if dock is not None:
+            return bool(getattr(dock, "amPmFormat", False))
+        cfg = getattr(self.plot, "_axis_cfg_x", None)
+        return "ampm" in str(getattr(cfg, "x_hour_format", "") or "")
+
     def _format_civil_time_col2(self, hours: float) -> str:
         start_clock = int(getattr(self.plot, "_start_clock_seconds", 0) or 0)
-        parts = civil_time_parts(hours, start_clock)
-        if parts is None:
-            return ""
-        d, h24, m, s = parts
-        suffix = "am" if int(h24) < 12 else "pm"
-        h12 = int(h24) % 12 or 12
-        if int(s) != 0:
-            tod = f"{h12}:{int(m):02d}:{int(s):02d}{suffix}"
-        elif int(m) != 0:
-            tod = f"{h12}:{int(m):02d}{suffix}"
-        else:
-            tod = f"{h12}{suffix}"
-        return f"{int(d)}d {tod}" if int(d) > 0 else tod
+        return format_civil_time(
+            hours,
+            start_clock,
+            include_seconds=True,
+            am_pm=self._timeOfDayUsesAmPm(),
+        )
 
     def _seriesTableColumnHeaderParts(self, series_dict) -> tuple:
         parts = str(series_dict.get("series_key") or "").split(":")

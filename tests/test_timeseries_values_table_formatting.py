@@ -31,18 +31,32 @@ def test_table_time_of_day_format_dd_hms():
 
     d = QGISRedTimeSeriesDock.__new__(QGISRedTimeSeriesDock)
     d.plot = type("P", (), {"_start_clock_seconds": 0, "_axis_cfg_x": type("C", (), {"x_hour_format": "hm"})()})()
-    assert d._format_civil_time_col2(0.0) == "12am"
-    assert d._format_civil_time_col2(7.0) == "7am"
-    assert d._format_civil_time_col2(24.0).startswith("1d 12am")
+    assert d._format_civil_time_col2(0.0) == "0:00"
+    assert d._format_civil_time_col2(7.0) == "7:00"
+    assert d._format_civil_time_col2(24.0) == "1d 0:00"
 
     d.plot._start_clock_seconds = 17 * 3600
-    assert d._format_civil_time_col2(0.0).startswith("5pm")
+    assert d._format_civil_time_col2(0.0) == "17:00"
     assert "1d" in d._format_civil_time_col2(7.0)
 
     d.plot._start_clock_seconds = 0
     d.plot._axis_cfg_x.x_hour_format = "hm_ampm"
-    assert d._format_civil_time_col2(0.0) == "12am"
-    assert d._format_civil_time_col2(12.0) == "12pm"
+    assert d._format_civil_time_col2(0.0) == "12:00 am"
+    assert d._format_civil_time_col2(12.0) == "12:00 pm"
+    assert d._format_civil_time_col2(24.0) == "1d 12:00 am"
+
+
+def test_table_time_of_day_follows_results_dock_format():
+    _patch_qt_for_import()
+    from QGISRed.ui.analysis.qgisred_timeseries_dock import QGISRedTimeSeriesDock
+
+    d = QGISRedTimeSeriesDock.__new__(QGISRedTimeSeriesDock)
+    d.plot = type("P", (), {"_start_clock_seconds": 0, "_axis_cfg_x": type("C", (), {"x_hour_format": "hm"})()})()
+    d._resultsDock = type("RD", (), {"amPmFormat": True})()
+    assert d._format_civil_time_col2(15.5) == "3:30 pm"
+
+    d._resultsDock.amPmFormat = False
+    assert d._format_civil_time_col2(15.5) == "15:30"
 
 
 def test_table_elapsed_decimal_format():
@@ -177,7 +191,7 @@ def test_values_table_data_matches_table_layout():
     assert csv_header_rows[0][0] == "Time (h)"
     assert csv_header_rows[1][0] == ""
     assert rows[0][0] == "0:00"
-    assert rows[0][1] == "12am"
+    assert rows[0][1] == "0:00"
     assert rows[0][2] == "10.00"
     assert rows[1][2] == "20.00"
 
