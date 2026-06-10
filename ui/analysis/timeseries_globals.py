@@ -24,6 +24,11 @@ AVERAGE_NODE_PRESSURE_KEY = "AverageNodePressure"
 # Display-only decimals for time-series charts/tables (not used in volume math).
 TOTAL_STORED_VOLUME_DISPLAY_DECIMALS = 2
 
+# EPANET model volume units are ft³ (US) / m³ (SI). Like EPANET-UI, stored
+# volume is displayed in million gallons for US flow units (imperial for IMGD).
+_FT3_PER_MILLION_US_GALLON = 1.0e6 * 231.0 / 1728.0  # 1 MG in ft³ (1 US gal = 231 in³)
+_FT3_PER_MILLION_IMPERIAL_GALLON = 1.0e6 * 4.54609 / 28.316846592  # 1 MGI in ft³
+
 GLOBAL_SYSTEM_VARIABLE_KEYS = frozenset({
     TOTAL_WATER_SUPPLY_KEY,
     TOTAL_WATER_DEMAND_KEY,
@@ -40,6 +45,29 @@ def tr(message: str) -> str:
 def global_axis_group_label() -> str:
     """Short Y-axis / legend group title for system global-variable series."""
     return tr("System")
+
+
+def _stored_volume_us_abbreviation() -> str:
+    """Return ``MG``/``MGI`` when the project uses US flow units, ``''`` for SI."""
+    try:
+        from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
+
+        if QGISRedProjectUtils.getUnits() != "US":
+            return ""
+        flow_unit = (QGISRedProjectUtils.getFlowUnit() or "").strip().upper()
+        return "MGI" if flow_unit == "IMGD" else "MG"
+    except Exception:
+        return ""
+
+
+def stored_volume_display_factor() -> float:
+    """Factor from model volume units (ft³ US / m³ SI) to display units."""
+    abbr = _stored_volume_us_abbreviation()
+    if abbr == "MGI":
+        return 1.0 / _FT3_PER_MILLION_IMPERIAL_GALLON
+    if abbr == "MG":
+        return 1.0 / _FT3_PER_MILLION_US_GALLON
+    return 1.0
 
 
 def global_system_variable_choices():
@@ -102,6 +130,9 @@ def global_variable_unit_abbreviation(variable_key: str) -> str:
 
     utils = QGISRedFieldUtils()
     if variable_key == TOTAL_STORED_VOLUME_KEY:
+        us_abbr = _stored_volume_us_abbreviation()
+        if us_abbr:
+            return us_abbr
         return utils.getUnitAbbreviation(normalize_element("Tanks"), "MinVolume")
     if variable_key == AVERAGE_NODE_PRESSURE_KEY:
         return utils.getUnitAbbreviation(normalize_element("Nodes"), "Pressure")
@@ -134,12 +165,17 @@ def get_global_timeseries(source, variable_key):
         return getHyd_TimesTotalWaterDemand(source["hyd_path"], source["out_path"])
     if variable_key == TOTAL_STORED_VOLUME_KEY:
         if source["kind"] == "out":
-            return getOut_TimesTotalStoredVolume(
+            series = getOut_TimesTotalStoredVolume(
                 source["out_path"], project_directory, network_name,
             )
-        return getHyd_TimesTotalStoredVolume(
-            source["hyd_path"], source["out_path"], project_directory, network_name,
-        )
+        else:
+            series = getHyd_TimesTotalStoredVolume(
+                source["hyd_path"], source["out_path"], project_directory, network_name,
+            )
+        factor = stored_volume_display_factor()
+        if factor != 1.0:
+            return [v * factor for v in series]
+        return series
     if variable_key == TOTAL_TANK_SPILL_KEY:
         if source["kind"] == "out":
             return getOut_TimesTotalTankSpill(

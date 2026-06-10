@@ -13,6 +13,8 @@ from QGISRed.ui.analysis.timeseries_globals import (
     global_variable_key_from_series_key,
     global_variable_short_label,
     global_variable_table_column_label,
+    global_variable_unit_abbreviation,
+    stored_volume_display_factor,
 )
 from QGISRed.ui.analysis.qgisred_results_binary import (
     _NT_JUNCTION,
@@ -135,3 +137,58 @@ class TestGlobalSeriesDisplayDecimals:
 
     def test_other_globals_use_csv_defaults(self):
         assert global_series_y_display_decimals(TOTAL_WATER_SUPPLY_KEY) is None
+
+
+def _patch_project_units(monkeypatch, units, flow_unit):
+    monkeypatch.setattr(
+        "QGISRed.tools.utils.qgisred_project_utils.QGISRedProjectUtils.getUnits",
+        lambda: units,
+    )
+    monkeypatch.setattr(
+        "QGISRed.tools.utils.qgisred_project_utils.QGISRedProjectUtils.getFlowUnit",
+        lambda: flow_unit,
+    )
+
+
+class TestStoredVolumeDisplayUnits:
+    """Stored volume mirrors EPANET-UI: MG/MGI for US flow units, m³ for SI."""
+
+    def test_us_flow_units_use_million_us_gallons(self, monkeypatch):
+        _patch_project_units(monkeypatch, "US", "GPM")
+        assert global_variable_unit_abbreviation(TOTAL_STORED_VOLUME_KEY) == "MG"
+        # 1 MG = 1e6 US gal = 1e6 * 231/1728 ft³
+        assert stored_volume_display_factor() == pytest.approx(1728.0 / (231.0 * 1.0e6))
+
+    def test_imperial_flow_unit_uses_million_imperial_gallons(self, monkeypatch):
+        _patch_project_units(monkeypatch, "US", "IMGD")
+        assert global_variable_unit_abbreviation(TOTAL_STORED_VOLUME_KEY) == "MGI"
+        # 1 MGI = 1e6 imp gal = 1e6 * 4.54609 L / 28.316846592 L-per-ft³
+        assert stored_volume_display_factor() == pytest.approx(28.316846592 / (4.54609 * 1.0e6))
+
+    def test_si_flow_units_keep_cubic_meters(self, monkeypatch):
+        _patch_project_units(monkeypatch, "SI", "LPS")
+        monkeypatch.setattr(
+            "QGISRed.tools.utils.qgisred_field_utils.QGISRedFieldUtils.getUnitAbbreviation",
+            lambda self, element, field, conditionFeature="": "m3",
+        )
+        assert global_variable_unit_abbreviation(TOTAL_STORED_VOLUME_KEY) == "m3"
+        assert stored_volume_display_factor() == 1.0
+
+    def test_stored_volume_series_converted_to_mg_for_us_projects(self, monkeypatch):
+        _patch_project_units(monkeypatch, "US", "GPM")
+        ft3_per_mg = 1.0e6 * 231.0 / 1728.0
+        monkeypatch.setattr(
+            "QGISRed.ui.analysis.timeseries_globals.getOut_TimesTotalStoredVolume",
+            lambda *_a, **_k: [ft3_per_mg, 2.0 * ft3_per_mg],
+        )
+        source = {"kind": "out", "out_path": "net.out", "project_directory": "/p", "network_name": "N"}
+        assert get_global_timeseries(source, TOTAL_STORED_VOLUME_KEY) == pytest.approx([1.0, 2.0])
+
+    def test_stored_volume_series_unchanged_for_si_projects(self, monkeypatch):
+        _patch_project_units(monkeypatch, "SI", "LPS")
+        monkeypatch.setattr(
+            "QGISRed.ui.analysis.timeseries_globals.getOut_TimesTotalStoredVolume",
+            lambda *_a, **_k: [635249.67, 654252.65],
+        )
+        source = {"kind": "out", "out_path": "net.out", "project_directory": "/p", "network_name": "N"}
+        assert get_global_timeseries(source, TOTAL_STORED_VOLUME_KEY) == [635249.67, 654252.65]
