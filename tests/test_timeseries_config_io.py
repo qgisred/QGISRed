@@ -4,6 +4,7 @@ from QGISRed.ui.analysis.timeseries_axis_settings import (
     default_general_settings,
 )
 from QGISRed.ui.analysis.timeseries_config_io import (
+    next_available_config_name,
     parse_timeseries_config_string,
     serialize_timeseries_config,
 )
@@ -119,3 +120,35 @@ class TestTimeSeriesConfigIO:
         parsed = _roundtrip([])
         assert parsed["curves"] == []
         assert parsed["version"] == "1"
+
+
+BASE = "Net_TimeSeries_Config.cfg"
+
+
+class TestNextAvailableConfigName:
+    def test_base_free_returns_base(self):
+        assert next_available_config_name(BASE, []) == BASE
+        assert next_available_config_name(BASE, ["Other.cfg"]) == BASE
+
+    def test_base_taken_returns_first_counter(self):
+        assert next_available_config_name(BASE, [BASE]) == "Net_TimeSeries_Config_1.cfg"
+
+    def test_continues_from_highest_existing(self):
+        existing = [BASE, "Net_TimeSeries_Config_1.cfg", "Net_TimeSeries_Config_2.cfg"]
+        assert next_available_config_name(BASE, existing) == "Net_TimeSeries_Config_3.cfg"
+
+    def test_continues_from_last_value_not_filling_gaps(self):
+        existing = [BASE, "Net_TimeSeries_Config_2.cfg"]
+        assert next_available_config_name(BASE, existing) == "Net_TimeSeries_Config_3.cfg"
+
+    def test_ignores_other_extensions(self):
+        existing = [BASE, "Net_TimeSeries_Config_5.txt"]
+        assert next_available_config_name(BASE, existing) == "Net_TimeSeries_Config_1.cfg"
+
+    def test_skips_taken_candidate(self):
+        existing = [BASE, "Net_TimeSeries_Config_2.cfg", "Net_TimeSeries_Config_1.cfg"]
+        assert next_available_config_name(BASE, existing) == "Net_TimeSeries_Config_3.cfg"
+
+    def test_non_numeric_suffix_ignored(self):
+        existing = [BASE, "Net_TimeSeries_Config_final.cfg"]
+        assert next_available_config_name(BASE, existing) == "Net_TimeSeries_Config_1.cfg"

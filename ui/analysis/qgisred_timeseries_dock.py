@@ -2459,11 +2459,23 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             pass
         return os.path.join(os.path.expanduser("~"), "TimeSeries_Config.cfg")
 
+    def _timeSeriesConfigExportDefaultPath(self) -> str:
+        from .timeseries_config_io import next_available_config_name
+
+        base = self._timeSeriesConfigDefaultPath()
+        directory = os.path.dirname(base)
+        filename = os.path.basename(base)
+        try:
+            existing = os.listdir(directory) if directory and os.path.isdir(directory) else []
+        except Exception:
+            existing = []
+        return os.path.join(directory, next_available_config_name(filename, existing))
+
     def _onExportConfigClicked(self) -> None:
         if not self._plotHasCurves():
             self._showMessage(self.tr("No curves to export"), level=1)
             return
-        default_path = self._timeSeriesConfigDefaultPath()
+        default_path = self._timeSeriesConfigExportDefaultPath()
         path, _selected_filter = QFileDialog.getSaveFileName(
             self,
             self.tr("Export chart configuration"),

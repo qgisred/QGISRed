@@ -8,6 +8,7 @@ caller (analysis_section).
 """
 from __future__ import annotations
 
+import os
 import xml.etree.ElementTree as ET
 from dataclasses import fields
 from typing import List, Optional
@@ -234,3 +235,31 @@ def parse_timeseries_config_string(text) -> dict:
 def read_timeseries_config(path: str) -> dict:
     root = ET.parse(path).getroot()
     return parse_config_root(root)
+
+
+def next_available_config_name(filename: str, existing_names) -> str:
+    """Return a config filename that does not collide with ``existing_names``.
+
+    If the base name is free it is returned unchanged. Otherwise an
+    incrementing ``_N`` suffix is appended, continuing from the highest ``_N``
+    already present so the offered name does not repeat a previously saved one.
+    """
+    existing = set(existing_names or [])
+    if filename not in existing:
+        return filename
+    stem, ext = os.path.splitext(filename)
+    prefix = stem + "_"
+    max_n = 0
+    for name in existing:
+        root, file_ext = os.path.splitext(name)
+        if file_ext.lower() != ext.lower() or not root.startswith(prefix):
+            continue
+        suffix = root[len(prefix):]
+        if suffix.isdigit():
+            max_n = max(max_n, int(suffix))
+    n = max_n + 1
+    candidate = f"{stem}_{n}{ext}"
+    while candidate in existing:
+        n += 1
+        candidate = f"{stem}_{n}{ext}"
+    return candidate
