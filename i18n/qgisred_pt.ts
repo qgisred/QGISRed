@@ -62,6 +62,11 @@
 <context>
     <name>AnalysisSection</name>
     <message>
+        <location filename="../sections/analysis_section.py" line="509"/>
+        <source>Time series</source>
+        <translation>Séries temporais</translation>
+    </message>
+    <message>
         <location filename="../sections/analysis_section.py" line="291"/>
         <source>Some issues occurred in the process</source>
         <translation>Ocorreram alguns problemas no processo</translation>
@@ -5359,6 +5364,11 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
 </context>
 <context>
     <name>QGISRedTimeSeriesDock</name>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1315"/>
+        <source>New chart window</source>
+        <translation>Nova janela de gráfico</translation>
+    </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.ui" line="43"/>
         <source>Selection required...</source>

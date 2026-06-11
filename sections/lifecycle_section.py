@@ -281,13 +281,18 @@ class LifecycleSection:
             docks_to_clean.append(('ResultDockwidget', self.ResultDockwidget))
             self.ResultDockwidget = None
 
-        if hasattr(self, 'timeSeriesDock') and self.timeSeriesDock is not None:
+        for ts_dock in list(getattr(self, 'timeSeriesDocks', None) or []):
             try:
-                self.timeSeriesDock.visibilityChanged.disconnect(self.timeSeriesDockVisibilityChanged)
+                ts_dock.visibilityChanged.disconnect(self.timeSeriesDockVisibilityChanged)
             except Exception:
                 pass
-            docks_to_clean.append(('timeSeriesDock', self.timeSeriesDock))
-            self.timeSeriesDock = None
+            try:
+                ts_dock.destroyed.disconnect(self._onTimeSeriesDockDestroyed)
+            except Exception:
+                pass
+            docks_to_clean.append(('timeSeriesDock', ts_dock))
+        self.timeSeriesDocks = []
+        self._activeTimeSeriesDock = None
 
         if hasattr(self, 'statisticsDock') and self.statisticsDock is not None:
             docks_to_clean.append(('statisticsDock', self.statisticsDock))

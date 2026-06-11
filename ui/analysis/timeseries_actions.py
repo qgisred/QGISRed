@@ -6,36 +6,39 @@ avoiding Windows-only DLL imports pulled by sections/.
 """
 
 
-def clear_all_timeseries(section) -> None:
+def clear_all_timeseries(section, dock=None) -> None:
     """Reset selection, clear map selection/highlights, and clear the plot."""
+    if dock is None:
+        dock = getattr(section, "activeTimeSeriesDock", None)
+
     try:
-        section._timeSeriesResetSelection()
+        section._timeSeriesResetSelection(dock)
     except Exception:
         try:
-            section.timeSeriesSelection = []
-            section._timeSeriesSelectionKey = None
+            dock.selection = []
+            dock.selectionKey = None
         except Exception:
             pass
 
     try:
-        section.lastTimeSeriesFeature = None
-        section.lastTimeSeriesLayer = None
-        section.lastTimeSeriesCategory = None
+        dock.lastFeature = None
+        dock.lastLayer = None
+        dock.lastCategory = None
     except Exception:
         pass
 
     try:
-        section._clearTimeSeriesMapSelection()
+        if dock is getattr(section, "activeTimeSeriesDock", None):
+            section._clearTimeSeriesMapSelection()
     except Exception:
         pass
 
     try:
-        section._clearTimeSeriesHighlight()
+        section._clearTimeSeriesHighlight(dock)
     except Exception:
         pass
 
     try:
-        dock = getattr(section, "timeSeriesDock", None)
         if dock is not None:
             dock.updatePlotSeries([], "", "", "")
             try:

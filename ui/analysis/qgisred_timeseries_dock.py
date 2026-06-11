@@ -9,6 +9,7 @@ from qgis.PyQt.QtWidgets import (
     QDockWidget,
     QFileDialog,
     QComboBox,
+    QFrame,
     QHBoxLayout,
     QHeaderView,
     QLabel,
@@ -1159,6 +1160,8 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
     globalSystemVariableChosen = pyqtSignal(str)
     exportConfigRequested = pyqtSignal(str)
     importConfigRequested = pyqtSignal(str)
+    newChartRequested = pyqtSignal()
+    activated = pyqtSignal()
 
     # Class-level default so attribute lookup never falls through to a mocked
     # Qt base class (tests build instances via __new__ without __init__).
@@ -1177,11 +1180,22 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self._table_x_hours = []
         self._table_row_sync_blocked = False
 
+        self.selection = []
+        self.selectionKey = None
+        self.highlights = {}
+        self.highlight = None
+        self.lastLayer = None
+        self.lastFeature = None
+        self.lastCategory = None
+
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+
         self._initToolbar()
         self._updateMinimumWidthForDockTitle()
         
         self.plot = TimeSeriesPlotWidget(self.chartContainer)
         self.plot.setCursorTimeTextFormatter(self._formatCursorTimeText)
+        self.plot.installEventFilter(self)
         self._initPlotAndTableLayout()
         self.plot.seriesOrderChanged.connect(self.seriesReordered)
         self.plot.seriesOrderChanged.connect(self._onSeriesOrderChanged)
@@ -1226,6 +1240,35 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             pass
         return super(QGISRedTimeSeriesDock, self).event(event)
 
+    def eventFilter(self, obj, event):
+        try:
+            if event is not None and event.type() == QEvent.Type.MouseButtonPress:
+                self.activated.emit()
+        except Exception:
+            pass
+        return super(QGISRedTimeSeriesDock, self).eventFilter(obj, event)
+
+    def focusInEvent(self, event):
+        try:
+            self.activated.emit()
+        except Exception:
+            pass
+        super(QGISRedTimeSeriesDock, self).focusInEvent(event)
+
+    def mousePressEvent(self, event):
+        try:
+            self.activated.emit()
+        except Exception:
+            pass
+        super(QGISRedTimeSeriesDock, self).mousePressEvent(event)
+
+    def showEvent(self, event):
+        super(QGISRedTimeSeriesDock, self).showEvent(event)
+        try:
+            self.activated.emit()
+        except Exception:
+            pass
+
     def _initToolbar(self) -> None:
         try:
             container = QWidget(self)
@@ -1268,6 +1311,15 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                 btn.setFixedSize(QSize(22, 22))
                 btn.setStyleSheet(btn_style)
                 return btn
+
+            self.btnNewChart = _make_btn("btnNewChartTimeSeries", QIcon(":/images/iconTimeSeries.svg"), self.tr("New chart window"))
+            self.btnNewChart.clicked.connect(self.newChartRequested)
+            hl.addWidget(self.btnNewChart, 0, Qt.AlignmentFlag.AlignLeft)
+
+            sep_new = QFrame(container)
+            sep_new.setFrameShape(QFrame.Shape.VLine)
+            sep_new.setFrameShadow(QFrame.Shadow.Sunken)
+            hl.addWidget(sep_new, 0, Qt.AlignmentFlag.AlignVCenter)
 
             self.btnPan = _make_btn("btnPanTimeSeries", QIcon(":/images/iconTsPan.svg"), self.tr("Pan"), checkable=True)
             self.btnPan.toggled.connect(self._onPanToggled)

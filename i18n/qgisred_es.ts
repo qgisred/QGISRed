@@ -62,6 +62,11 @@
 <context>
     <name>AnalysisSection</name>
     <message>
+        <location filename="../sections/analysis_section.py" line="509"/>
+        <source>Time series</source>
+        <translation>Curvas de evolución</translation>
+    </message>
+    <message>
         <location filename="../sections/analysis_section.py" line="1320"/>
         <source>Results file not found. Please run the model.</source>
         <translation>Archivo de resultados no encontrado. Por favor, ejecute el modelo.</translation>
@@ -5472,6 +5477,11 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
 </context>
 <context>
     <name>QGISRedTimeSeriesDock</name>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1315"/>
+        <source>New chart window</source>
+        <translation>Nueva ventana de gráfica</translation>
+    </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.ui" line="43"/>
         <source>Selection required...</source>

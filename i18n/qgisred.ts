@@ -62,6 +62,11 @@
 <context>
     <name>AnalysisSection</name>
     <message>
+        <location filename="../sections/analysis_section.py" line="509"/>
+        <source>Time series</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../sections/analysis_section.py" line="1320"/>
         <source>Results file not found. Please run the model.</source>
         <translation type="unfinished"></translation>
@@ -5191,6 +5196,11 @@ Left-click: Add a new item below the current selection</source>
 </context>
 <context>
     <name>QGISRedTimeSeriesDock</name>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1315"/>
+        <source>New chart window</source>
+        <translation type="unfinished"></translation>
+    </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.ui" line="43"/>
         <source>Selection required...</source>

@@ -10,40 +10,53 @@ from QGISRed.ui.analysis.timeseries_legend_interaction import LegendInteractionC
 
 class _Dock:
     def __init__(self):
+        self.selection = [{"dummy": 1}]
+        self.selectionKey = "something"
+        self.lastFeature = object()
+        self.lastLayer = object()
+        self.lastCategory = "Node"
         self.updatePlotSeries = MagicMock()
+        self.resetGlobalVarCombos = MagicMock()
 
 
 class _SectionLike:
     def __init__(self):
-        self.timeSeriesSelection = [{"dummy": 1}]
-        self._timeSeriesSelectionKey = "something"
-        self.lastTimeSeriesFeature = object()
-        self.lastTimeSeriesLayer = object()
-        self.lastTimeSeriesCategory = "Node"
+        self.timeSeriesDock = _Dock()
+        self.activeTimeSeriesDock = self.timeSeriesDock
 
         self._timeSeriesResetSelection = MagicMock(
-            side_effect=lambda: (setattr(self, "timeSeriesSelection", []), setattr(self, "_timeSeriesSelectionKey", None))
+            side_effect=lambda d: (setattr(d, "selection", []), setattr(d, "selectionKey", None))
         )
         self._clearTimeSeriesMapSelection = MagicMock()
         self._clearTimeSeriesHighlight = MagicMock()
-        self.timeSeriesDock = _Dock()
 
 
 class TestTimeSeriesActions:
     def test_clear_all_timeseries_resets_state_and_clears_plot(self):
         s = _SectionLike()
+        dock = s.timeSeriesDock
+
+        clear_all_timeseries(s, dock)
+
+        assert dock.selection == []
+        assert dock.selectionKey is None
+        assert dock.lastFeature is None
+        assert dock.lastLayer is None
+        assert dock.lastCategory is None
+
+        s._timeSeriesResetSelection.assert_called_once_with(dock)
+        s._clearTimeSeriesMapSelection.assert_called_once()
+        s._clearTimeSeriesHighlight.assert_called_once_with(dock)
+        dock.updatePlotSeries.assert_called_once_with([], "", "", "")
+        dock.resetGlobalVarCombos.assert_called_once()
+
+    def test_clear_all_timeseries_defaults_to_active_dock(self):
+        s = _SectionLike()
 
         clear_all_timeseries(s)
 
-        assert s.timeSeriesSelection == []
-        assert s._timeSeriesSelectionKey is None
-        assert s.lastTimeSeriesFeature is None
-        assert s.lastTimeSeriesLayer is None
-        assert s.lastTimeSeriesCategory is None
-
-        s._timeSeriesResetSelection.assert_called_once()
-        s._clearTimeSeriesMapSelection.assert_called_once()
-        s._clearTimeSeriesHighlight.assert_called_once()
+        assert s.timeSeriesDock.selection == []
+        s._timeSeriesResetSelection.assert_called_once_with(s.timeSeriesDock)
         s.timeSeriesDock.updatePlotSeries.assert_called_once_with([], "", "", "")
 
 

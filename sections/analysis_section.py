@@ -23,6 +23,128 @@ from ..ui.analysis.qgisred_results_data import export_results_to_csv, get_region
 
 
 class AnalysisSection:
+    @property
+    def activeTimeSeriesDock(self):
+        return getattr(self, "_activeTimeSeriesDock", None)
+
+    @property
+    def timeSeriesDock(self):
+        return getattr(self, "_activeTimeSeriesDock", None)
+
+    @property
+    def timeSeriesSelection(self):
+        dock = self.activeTimeSeriesDock
+        return dock.selection if dock is not None else []
+
+    @timeSeriesSelection.setter
+    def timeSeriesSelection(self, value):
+        dock = self.activeTimeSeriesDock
+        if dock is not None:
+            dock.selection = value
+
+    @property
+    def _timeSeriesSelectionKey(self):
+        dock = self.activeTimeSeriesDock
+        return dock.selectionKey if dock is not None else None
+
+    @_timeSeriesSelectionKey.setter
+    def _timeSeriesSelectionKey(self, value):
+        dock = self.activeTimeSeriesDock
+        if dock is not None:
+            dock.selectionKey = value
+
+    @property
+    def lastTimeSeriesLayer(self):
+        dock = self.activeTimeSeriesDock
+        return dock.lastLayer if dock is not None else None
+
+    @lastTimeSeriesLayer.setter
+    def lastTimeSeriesLayer(self, value):
+        dock = self.activeTimeSeriesDock
+        if dock is not None:
+            dock.lastLayer = value
+
+    @property
+    def lastTimeSeriesFeature(self):
+        dock = self.activeTimeSeriesDock
+        return dock.lastFeature if dock is not None else None
+
+    @lastTimeSeriesFeature.setter
+    def lastTimeSeriesFeature(self, value):
+        dock = self.activeTimeSeriesDock
+        if dock is not None:
+            dock.lastFeature = value
+
+    @property
+    def lastTimeSeriesCategory(self):
+        dock = self.activeTimeSeriesDock
+        return dock.lastCategory if dock is not None else None
+
+    @lastTimeSeriesCategory.setter
+    def lastTimeSeriesCategory(self, value):
+        dock = self.activeTimeSeriesDock
+        if dock is not None:
+            dock.lastCategory = value
+
+    def _resolveTimeSeriesDock(self):
+        try:
+            dock = self.sender()
+        except Exception:
+            dock = None
+        if isinstance(dock, QGISRedTimeSeriesDock):
+            return dock
+        return self.activeTimeSeriesDock
+
+    def _restyleTimeSeriesDocks(self):
+        active = getattr(self, "_activeTimeSeriesDock", None)
+        docks = list(getattr(self, "timeSeriesDocks", []) or [])
+        multiple = len(docks) > 1
+        for dock in docks:
+            try:
+                accent = "#0097A7" if (dock is active or not multiple) else "#B0BEC5"
+                QGISRedUIUtils.applyDockStyle(dock, accent, backgroundColor="white")
+            except Exception:
+                pass
+
+    def _applyTimeSeriesMapStateForDock(self, dock):
+        if dock is None:
+            return
+        fids_by_layer = {}
+        for it in (getattr(dock, "selection", None) or []):
+            layer = it.get("layer")
+            fid = it.get("feature_id")
+            if layer is None or fid is None:
+                continue
+            fids_by_layer.setdefault(layer, []).append(fid)
+        for layer, fids in fids_by_layer.items():
+            try:
+                layer.selectByIds(fids)
+            except Exception:
+                pass
+        try:
+            self._syncTimeSeriesHighlights(dock.lastLayer, dock.lastFeature, dock=dock)
+        except Exception:
+            pass
+
+    def _setActiveTimeSeriesDock(self, dock):
+        if dock is None:
+            return
+        previous = getattr(self, "_activeTimeSeriesDock", None)
+        if previous is dock:
+            return
+        self._activeTimeSeriesDock = dock
+        if previous is not None:
+            try:
+                self._clearTimeSeriesHighlight(previous)
+            except Exception:
+                pass
+        self._restyleTimeSeriesDocks()
+        try:
+            self._clearTimeSeriesMapSelection()
+        except Exception:
+            pass
+        self._applyTimeSeriesMapStateForDock(dock)
+
     def runAnalysisOptions(self):
         if not self.checkDependencies():
             return
@@ -359,32 +481,80 @@ class AnalysisSection:
             self._ensureResultsDockVisibleForTimeSeries()
 
             self.runTimeSeriesSelectPointTool()
-            if not hasattr(self, 'timeSeriesDock') or self.timeSeriesDock is None:
-                self.timeSeriesDock = QGISRedTimeSeriesDock(self.iface)
-                self.timeSeriesDock.visibilityChanged.connect(self.timeSeriesDockVisibilityChanged)
-                self.timeSeriesDock.destroyed.connect(self._onTimeSeriesDockDestroyed)
-                self.timeSeriesDock.seriesReordered.connect(self._onTimeSeriesSeriesReordered)
-                self.timeSeriesDock.seriesRemoved.connect(self._onTimeSeriesSeriesRemoved)
-                self.timeSeriesDock.seriesEmphasisChanged.connect(self._onTimeSeriesSeriesEmphasisChanged)
-                self.timeSeriesDock.curveSettingsChanged.connect(self._onTimeSeriesCurveSettingsChanged)
-                self.timeSeriesDock.clearAllRequested.connect(self._onTimeSeriesClearAllRequested)
-                self.timeSeriesDock.exportConfigRequested.connect(self._onTimeSeriesExportConfig)
-                self.timeSeriesDock.importConfigRequested.connect(self._onTimeSeriesImportConfig)
-                self.iface.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.timeSeriesDock)
-            self._ensureTimeSeriesGlobalSignals()
             self._ensureTimeSeriesMapToolSignal()
-            try:
-                self.timeSeriesDock.connectResultsDock(self.ResultDockwidget)
-            except Exception:
-                pass
-            self.timeSeriesDock.show()
-            self.timeSeriesDock.raise_()
-            self.timeSeriesDock.setFocus()
+            if not getattr(self, "timeSeriesDocks", None):
+                dock = self._createTimeSeriesDock()
+            else:
+                for d in list(self.timeSeriesDocks):
+                    try:
+                        d.show()
+                    except Exception:
+                        pass
+                dock = self.activeTimeSeriesDock or self.timeSeriesDocks[-1]
+            self._setActiveTimeSeriesDock(dock)
+            dock.show()
+            dock.raise_()
+            dock.setFocus()
             self._restoreTimeSeriesState()
         else:
             if "TimeSeries" in self.myMapTools and self.iface.mapCanvas().mapTool() == self.myMapTools["TimeSeries"]:
                 self.iface.mapCanvas().unsetMapTool(self.myMapTools["TimeSeries"])
             self._clearTimeSeriesHighlight()
+
+    def _createTimeSeriesDock(self):
+        if not getattr(self, "timeSeriesDocks", None):
+            self.timeSeriesDocks = []
+        dock = QGISRedTimeSeriesDock(self.iface)
+        self._timeSeriesDockCounter = int(getattr(self, "_timeSeriesDockCounter", 0)) + 1
+        base_title = dock.windowTitle() or self.tr("Time series")
+        dock.setWindowTitle(f"{base_title} {self._timeSeriesDockCounter}")
+        dock.visibilityChanged.connect(self.timeSeriesDockVisibilityChanged)
+        dock.destroyed.connect(self._onTimeSeriesDockDestroyed)
+        dock.seriesReordered.connect(lambda order, d=dock: self._onTimeSeriesSeriesReordered(order, d))
+        dock.seriesRemoved.connect(lambda key, d=dock: self._onTimeSeriesSeriesRemoved(key, d))
+        dock.seriesEmphasisChanged.connect(lambda payload, d=dock: self._onTimeSeriesSeriesEmphasisChanged(payload, d))
+        dock.curveSettingsChanged.connect(lambda settings, d=dock: self._onTimeSeriesCurveSettingsChanged(settings, d))
+        dock.clearAllRequested.connect(lambda d=dock: self._onTimeSeriesClearAllRequested(d))
+        dock.exportConfigRequested.connect(lambda path, d=dock: self._onTimeSeriesExportConfig(path, d))
+        dock.importConfigRequested.connect(lambda path, d=dock: self._onTimeSeriesImportConfig(path, d))
+        dock.globalSystemVariableChosen.connect(lambda key, d=dock: self._onTimeSeriesGlobalSystemVariable(key, d))
+        dock.newChartRequested.connect(self._onTimeSeriesNewChartRequested)
+        dock.activated.connect(lambda d=dock: self._onTimeSeriesDockActivated(d))
+        self.timeSeriesDocks.append(dock)
+        self.iface.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, dock)
+        try:
+            dock.connectResultsDock(self.ResultDockwidget)
+        except Exception:
+            pass
+        return dock
+
+    def _onTimeSeriesNewChartRequested(self):
+        anchor = self.activeTimeSeriesDock
+        dock = self._createTimeSeriesDock()
+        try:
+            if anchor is not None and anchor is not dock:
+                self.iface.mainWindow().tabifyDockWidget(anchor, dock)
+        except Exception:
+            pass
+        dock.show()
+        dock.raise_()
+        dock.setFocus()
+        self._setActiveTimeSeriesDock(dock)
+
+        def _finishNewChartActivation():
+            try:
+                dock.raise_()
+            except Exception:
+                pass
+            self._setActiveTimeSeriesDock(dock)
+
+        QTimer.singleShot(0, _finishNewChartActivation)
+
+    def _onTimeSeriesDockActivated(self, dock=None):
+        if dock is None:
+            dock = self._resolveTimeSeriesDock()
+        if dock is not None:
+            self._setActiveTimeSeriesDock(dock)
 
     def runTimeSeriesSelectPointTool(self):
         self.myMapTools["TimeSeries"] = QGISRedSelectPointTool(
@@ -397,26 +567,15 @@ class AnalysisSection:
         )
         self.iface.mapCanvas().setMapTool(self.myMapTools["TimeSeries"])
 
-    def _ensureTimeSeriesGlobalSignals(self):
-        if getattr(self, "_timeSeriesGlobalSignalsConnected", False):
-            return
-        dock = getattr(self, "timeSeriesDock", None)
+    def _onTimeSeriesGlobalSystemVariable(self, variable_key: str, dock=None):
         if dock is None:
-            return
-        try:
-            dock.globalSystemVariableChosen.connect(self._onTimeSeriesGlobalSystemVariable)
-            self._timeSeriesGlobalSignalsConnected = True
-        except Exception:
-            self._timeSeriesGlobalSignalsConnected = False
+            dock = self._resolveTimeSeriesDock()
+        self._addTimeSeriesGlobalVariable(str(variable_key or "").strip(), dock=dock)
 
-    def _onTimeSeriesGlobalSystemVariable(self, variable_key: str):
-        self._addTimeSeriesGlobalVariable(str(variable_key or "").strip())
-
-    def _addTimeSeriesGlobalVariable(self, variable_key: str):
-        if not variable_key or not getattr(self, "timeSeriesDock", None):
+    def _addTimeSeriesGlobalVariable(self, variable_key: str, dock=None):
+        dock = dock if dock is not None else self.activeTimeSeriesDock
+        if not variable_key or dock is None:
             return
-        if not hasattr(self, "timeSeriesSelection"):
-            self.timeSeriesSelection = []
 
         from ..ui.analysis.timeseries_globals import (
             GLOBAL_SYSTEM_VARIABLE_KEYS,
@@ -443,7 +602,7 @@ class AnalysisSection:
         category = "Global"
 
         existing_idx = None
-        for i, it in enumerate(self.timeSeriesSelection):
+        for i, it in enumerate(dock.selection):
             if (
                 it.get("category") == category
                 and it.get("element_id") == element_id
@@ -461,11 +620,11 @@ class AnalysisSection:
             return
 
         try:
-            existing_color = palette[len(self.timeSeriesSelection) % len(palette)]
+            existing_color = palette[len(dock.selection) % len(palette)]
         except Exception:
             existing_color = QColor(0, 120, 215)
 
-        self.timeSeriesSelection.append({
+        dock.selection.append({
             "layer": None,
             "layer_identifier": layer_identifier,
             "feature": None,
@@ -484,14 +643,14 @@ class AnalysisSection:
         source = self._getTimeSeriesSource()
         if not source:
             self.pushMessage(self.tr("Results file not found. Please run the model."), level=1)
-            self.timeSeriesSelection.pop()
+            dock.selection.pop()
             return
         if not get_global_timeseries(source, variable_key):
             self.pushMessage(self.tr("Could not read the selected system variable."), level=1)
-            self.timeSeriesSelection.pop()
+            dock.selection.pop()
             return
 
-        self._renderTimeSeriesSelection()
+        self._renderTimeSeriesSelection(dock)
 
     def _ensureTimeSeriesMapToolSignal(self):
         if getattr(self, "_timeSeriesMapToolSignalConnected", False):
@@ -515,18 +674,65 @@ class AnalysisSection:
             self._clearTimeSeriesHighlight()
             self._clearTimeSeriesMapSelection()
 
-    def _onTimeSeriesDockDestroyed(self, *_args):
-        self.timeSeriesDock = None
-        self._clearTimeSeriesHighlight()
-        self._clearTimeSeriesMapSelection()
+    def _anyTimeSeriesDockVisible(self):
+        for dock in (getattr(self, "timeSeriesDocks", None) or []):
+            try:
+                if dock.isVisible():
+                    return True
+            except Exception:
+                pass
+        return False
 
-    def _onTimeSeriesClearAllRequested(self):
+    def _firstVisibleTimeSeriesDock(self, exclude=None):
+        for dock in (getattr(self, "timeSeriesDocks", None) or []):
+            if dock is exclude:
+                continue
+            try:
+                if dock.isVisible():
+                    return dock
+            except Exception:
+                pass
+        return None
+
+    def _currentVisibleTimeSeriesDock(self):
+        active = self.activeTimeSeriesDock
+        try:
+            if active is not None and active.isVisible():
+                return active
+        except Exception:
+            pass
+        return self._firstVisibleTimeSeriesDock() or active
+
+    def _onTimeSeriesDockDestroyed(self, obj=None):
+        docks = list(getattr(self, "timeSeriesDocks", None) or [])
+        remaining = [d for d in docks if d is not obj]
+        self.timeSeriesDocks = remaining
+        active = getattr(self, "_activeTimeSeriesDock", None)
+        active_alive = any(d is active for d in remaining)
+        if active is obj or not active_alive:
+            self._activeTimeSeriesDock = remaining[-1] if remaining else None
+        try:
+            self._clearTimeSeriesMapSelection()
+        except Exception:
+            pass
+        new_active = self.activeTimeSeriesDock
+        if new_active is not None:
+            self._applyTimeSeriesMapStateForDock(new_active)
+        else:
+            try:
+                self.timeSeriesButton.setChecked(False)
+            except Exception:
+                pass
+        self._restyleTimeSeriesDocks()
+
+    def _onTimeSeriesClearAllRequested(self, dock=None):
         """Clear all curves and return the dock to its initial empty state."""
-        dock = getattr(self, "timeSeriesDock", None)
+        if dock is None:
+            dock = self._resolveTimeSeriesDock()
         try:
             has_curves = bool(dock is not None and dock._plotHasCurves())
         except Exception:
-            has_curves = bool(getattr(self, "timeSeriesSelection", []))
+            has_curves = bool(getattr(dock, "selection", None))
         if not has_curves:
             return
 
@@ -534,7 +740,7 @@ class AnalysisSection:
             return
 
         from ..ui.analysis.timeseries_actions import clear_all_timeseries
-        clear_all_timeseries(self)
+        clear_all_timeseries(self, dock)
 
     def _confirmTimeSeriesClearSelection(self):
         from qgis.PyQt.QtWidgets import QMessageBox
@@ -548,24 +754,35 @@ class AnalysisSection:
         return reply == QMessageBox.StandardButton.Yes
 
     def timeSeriesDockVisibilityChanged(self, visible):
-        if not hasattr(self, "timeSeriesDock") or self.timeSeriesDock is None:
+        dock = self._resolveTimeSeriesDock()
+        if dock is None:
             return
 
         def _apply_visibility_state():
-            dock = getattr(self, "timeSeriesDock", None)
-            if dock is None:
-                return
-            really_visible = bool(dock.isVisible())
+            really_visible = False
+            try:
+                really_visible = bool(dock.isVisible())
+            except Exception:
+                really_visible = False
             if not really_visible:
-                self.timeSeriesButton.setChecked(False)
-                if (
-                    "TimeSeries" in self.myMapTools
-                    and self.iface.mapCanvas().mapTool() == self.myMapTools.get("TimeSeries")
-                ):
-                    self.iface.mapCanvas().unsetMapTool(self.myMapTools["TimeSeries"])
-                self._clearTimeSeriesHighlight()
-                self._clearTimeSeriesMapSelection()
+                self._clearTimeSeriesHighlight(dock)
+                if dock is self.activeTimeSeriesDock:
+                    next_active = self._firstVisibleTimeSeriesDock(exclude=dock)
+                    if next_active is not None:
+                        self._setActiveTimeSeriesDock(next_active)
+                    else:
+                        self._activeTimeSeriesDock = None
+                        self._restyleTimeSeriesDocks()
+                if not self._anyTimeSeriesDockVisible():
+                    self.timeSeriesButton.setChecked(False)
+                    if (
+                        "TimeSeries" in self.myMapTools
+                        and self.iface.mapCanvas().mapTool() == self.myMapTools.get("TimeSeries")
+                    ):
+                        self.iface.mapCanvas().unsetMapTool(self.myMapTools["TimeSeries"])
+                    self._clearTimeSeriesMapSelection()
             else:
+                self._setActiveTimeSeriesDock(dock)
                 self._restoreTimeSeriesState()
 
         if visible:
@@ -595,8 +812,9 @@ class AnalysisSection:
         self._syncTimeSeriesHighlights()
         self._renderTimeSeriesSelection()
 
-    def _clearTimeSeriesHighlight(self):
-        highlights = getattr(self, "timeSeriesHighlights", None)
+    def _clearTimeSeriesHighlight(self, dock=None):
+        dock = dock if dock is not None else self.activeTimeSeriesDock
+        highlights = getattr(dock, "highlights", None) if dock is not None else None
         canvas = None
         scene = None
         try:
@@ -617,8 +835,9 @@ class AnalysisSection:
                     except Exception:
                         pass
             highlights.clear()
-        self.timeSeriesHighlights = {}
-        self.timeSeriesHighlight = None
+        if dock is not None:
+            dock.highlights = {}
+            dock.highlight = None
         if canvas is not None:
             try:
                 canvas.refresh()
@@ -644,31 +863,37 @@ class AnalysisSection:
                 except Exception:
                     pass
 
-    def _setTimeSeriesHighlight(self, layer, feature, color=None, width=5):
-        if layer is None or feature is None:
+    def _setTimeSeriesHighlight(self, layer, feature, color=None, width=5, dock=None):
+        dock = dock if dock is not None else self.activeTimeSeriesDock
+        if layer is None or feature is None or dock is None:
             return
         try:
-            if not hasattr(self, "timeSeriesHighlights") or not isinstance(self.timeSeriesHighlights, dict):
-                self.timeSeriesHighlights = {}
+            if not isinstance(getattr(dock, "highlights", None), dict):
+                dock.highlights = {}
             highlight = QgsHighlight(self.iface.mapCanvas(), feature.geometry(), layer)
             highlight.setColor(color if isinstance(color, QColor) else QColor("blue"))
             highlight.setWidth(int(width) if width else 5)
             highlight.show()
             key = (layer.id(), str(feature.attribute("ID")))
-            old = self.timeSeriesHighlights.get(key)
+            old = dock.highlights.get(key)
             if old is not None:
                 try:
                     old.hide()
                 except Exception:
                     pass
-            self.timeSeriesHighlights[key] = highlight
-            self.timeSeriesHighlight = highlight
+            dock.highlights[key] = highlight
+            dock.highlight = highlight
         except Exception:
-            self.timeSeriesHighlight = None
+            dock.highlight = None
 
-    def _syncTimeSeriesHighlights(self, last_clicked_layer=None, last_clicked_feature=None):
-        self._clearTimeSeriesHighlight()
-        selection = getattr(self, "timeSeriesSelection", None) or []
+    def _syncTimeSeriesHighlights(self, last_clicked_layer=None, last_clicked_feature=None, dock=None):
+        dock = dock if dock is not None else self.activeTimeSeriesDock
+        if dock is None:
+            return
+        self._clearTimeSeriesHighlight(dock)
+        if dock is not self.activeTimeSeriesDock:
+            return
+        selection = getattr(dock, "selection", None) or []
         if not selection:
             return
 
@@ -680,10 +905,14 @@ class AnalysisSection:
             is_last = (layer is last_clicked_layer) and (feat is last_clicked_feature)
             color = it.get("color") if isinstance(it.get("color"), QColor) else QColor(0, 120, 215)
             width = 7 if is_last else 5
-            self._setTimeSeriesHighlight(layer, feat, color=color, width=width)
+            self._setTimeSeriesHighlight(layer, feat, color=color, width=width, dock=dock)
 
-    def _onTimeSeriesSeriesEmphasisChanged(self, payload: dict):
+    def _onTimeSeriesSeriesEmphasisChanged(self, payload: dict, dock=None):
         """Sync legend emphasis (highlight/mute) to map highlights."""
+        if dock is None:
+            dock = self._resolveTimeSeriesDock()
+        if dock is None or dock is not self.activeTimeSeriesDock:
+            return
         try:
             highlighted = set((payload or {}).get("highlighted") or [])
             muted = set((payload or {}).get("muted") or [])
@@ -691,7 +920,7 @@ class AnalysisSection:
             highlighted = set()
             muted = set()
 
-        selection = getattr(self, "timeSeriesSelection", None) or []
+        selection = getattr(dock, "selection", None) or []
         if not selection:
             return
 
@@ -708,12 +937,12 @@ class AnalysisSection:
         # If legend says nothing is highlighted/muted, revert to default highlight behavior.
         if not highlighted and not muted:
             try:
-                self._syncTimeSeriesHighlights(self.lastTimeSeriesLayer, self.lastTimeSeriesFeature)
+                self._syncTimeSeriesHighlights(dock.lastLayer, dock.lastFeature, dock=dock)
             except Exception:
-                self._syncTimeSeriesHighlights()
+                self._syncTimeSeriesHighlights(dock=dock)
             return
 
-        self._clearTimeSeriesHighlight()
+        self._clearTimeSeriesHighlight(dock)
 
         for k, it in key_to_item.items():
             layer = it.get("layer")
@@ -735,7 +964,7 @@ class AnalysisSection:
                 c.setAlpha(180)
                 width = 5
 
-            self._setTimeSeriesHighlight(layer, feat, color=c, width=width)
+            self._setTimeSeriesHighlight(layer, feat, color=c, width=width, dock=dock)
 
     def timeSeriesCallback(self, point, modifiers=None, mouse_button=None):
         self.updateTimeSeriesPlot(point, modifiers, mouse_button)
@@ -748,23 +977,30 @@ class AnalysisSection:
         except Exception:
             return False
 
-    def _timeSeriesResetSelection(self):
-        self.timeSeriesSelection = []
-        self._timeSeriesSelectionKey = None
+    def _timeSeriesResetSelection(self, dock=None):
+        dock = dock if dock is not None else self.activeTimeSeriesDock
+        if dock is None:
+            return
+        dock.selection = []
+        dock.selectionKey = None
 
-    def _timeSeriesMapSelectionItems(self):
+    def _timeSeriesMapSelectionItems(self, dock=None):
+        dock = dock if dock is not None else self.activeTimeSeriesDock
         return [
-            it for it in (getattr(self, "timeSeriesSelection", None) or [])
+            it for it in (getattr(dock, "selection", None) or [])
             if it.get("category") != "Global"
         ]
 
-    def _timeSeriesResetMapSelection(self):
+    def _timeSeriesResetMapSelection(self, dock=None):
         """Remove map-picked curves but keep system global variables."""
-        self.timeSeriesSelection = [
-            it for it in (getattr(self, "timeSeriesSelection", None) or [])
+        dock = dock if dock is not None else self.activeTimeSeriesDock
+        if dock is None:
+            return
+        dock.selection = [
+            it for it in (getattr(dock, "selection", None) or [])
             if it.get("category") == "Global"
         ]
-        self._timeSeriesSelectionKey = None
+        dock.selectionKey = None
 
     def _timeSeriesMagnitudeChoices(self, category, dock):
         if dock is None:
@@ -821,8 +1057,11 @@ class AnalysisSection:
             return None
 
     def updateTimeSeriesPlot(self, point, modifiers=None, mouse_button=None):
-        if not hasattr(self, 'timeSeriesDock') or self.timeSeriesDock is None:
+        target = self._currentVisibleTimeSeriesDock()
+        if target is None:
             return
+        if target is not self.activeTimeSeriesDock:
+            self._setActiveTimeSeriesDock(target)
         try:
             if modifiers is not None and bool(modifiers & Qt.KeyboardModifier.ControlModifier):
                 return
@@ -1023,8 +1262,11 @@ class AnalysisSection:
 
         self._renderTimeSeriesSelection()
 
-    def _renderTimeSeriesSelection(self):
-        if not self.timeSeriesSelection:
+    def _renderTimeSeriesSelection(self, dock=None):
+        dock = dock if dock is not None else self.activeTimeSeriesDock
+        if dock is None:
+            return
+        if not dock.selection:
             return
 
         source = self._getTimeSeriesSource()
@@ -1041,7 +1283,7 @@ class AnalysisSection:
         )
 
         series = []
-        for idx, it in enumerate(self.timeSeriesSelection):
+        for idx, it in enumerate(dock.selection):
             element_id = it.get("element_id")
             layer = it.get("layer")
             category = it.get("category") or ""
@@ -1137,14 +1379,16 @@ class AnalysisSection:
             return
 
         translated_time = self.tr("Time")
-        self.timeSeriesDock.updatePlotSeries(series, "", f"{translated_time} (h)", self.tr("Value"))
+        dock.updatePlotSeries(series, "", f"{translated_time} (h)", self.tr("Value"))
 
-    def _onTimeSeriesSeriesReordered(self, order_keys):
+    def _onTimeSeriesSeriesReordered(self, order_keys, dock=None):
         try:
-            if not order_keys or not hasattr(self, "timeSeriesSelection") or not self.timeSeriesSelection:
+            if dock is None:
+                dock = self._resolveTimeSeriesDock()
+            if not order_keys or dock is None or not dock.selection:
                 return
             key_to_item = {}
-            for it in self.timeSeriesSelection:
+            for it in dock.selection:
                 li = it.get("layer_identifier") or ""
                 eid = it.get("element_id") or ""
                 cat = it.get("category") or ""
@@ -1154,7 +1398,7 @@ class AnalysisSection:
             for k in order_keys:
                 if k in key_to_item:
                     new_sel.append(key_to_item[k])
-            for it in self.timeSeriesSelection:
+            for it in dock.selection:
                 li = it.get("layer_identifier") or ""
                 eid = it.get("element_id") or ""
                 cat = it.get("category") or ""
@@ -1162,22 +1406,24 @@ class AnalysisSection:
                 k = f"{cat}:{li}:{prop}:{eid}"
                 if k not in order_keys:
                     new_sel.append(it)
-            self.timeSeriesSelection = new_sel
-            self._renderTimeSeriesSelection()
+            dock.selection = new_sel
+            self._renderTimeSeriesSelection(dock)
             try:
-                self._syncTimeSeriesHighlights(self.lastTimeSeriesLayer, self.lastTimeSeriesFeature)
+                self._syncTimeSeriesHighlights(dock.lastLayer, dock.lastFeature, dock=dock)
             except Exception:
                 pass
         except Exception:
             return
 
-    def _onTimeSeriesCurveSettingsChanged(self, settings):
+    def _onTimeSeriesCurveSettingsChanged(self, settings, dock=None):
         try:
-            if not settings or not hasattr(self, "timeSeriesSelection") or not self.timeSeriesSelection:
+            if dock is None:
+                dock = self._resolveTimeSeriesDock()
+            if not settings or dock is None or not dock.selection:
                 return
 
             key_to_item = {}
-            for it in self.timeSeriesSelection:
+            for it in dock.selection:
                 li = it.get("layer_identifier") or ""
                 eid = it.get("element_id") or ""
                 cat = it.get("category") or ""
@@ -1214,22 +1460,24 @@ class AnalysisSection:
                 it["legend_font_family"] = (cfg or {}).get("legend_font_family") or ""
                 it["legend_font_size"] = (cfg or {}).get("legend_font_size") or 8
             try:
-                self._syncTimeSeriesHighlights(self.lastTimeSeriesLayer, self.lastTimeSeriesFeature)
+                self._syncTimeSeriesHighlights(dock.lastLayer, dock.lastFeature, dock=dock)
             except Exception:
                 pass
         except Exception:
             return
 
-    def _onTimeSeriesSeriesRemoved(self, series_key: str):
+    def _onTimeSeriesSeriesRemoved(self, series_key: str, dock=None):
         try:
             k = str(series_key or "").strip()
             if not k:
                 return
-            if not hasattr(self, "timeSeriesSelection") or not self.timeSeriesSelection:
+            if dock is None:
+                dock = self._resolveTimeSeriesDock()
+            if dock is None or not dock.selection:
                 return
 
             key_to_keep = []
-            for it in self.timeSeriesSelection:
+            for it in dock.selection:
                 li = it.get("layer_identifier") or ""
                 eid = it.get("element_id") or ""
                 cat = it.get("category") or ""
@@ -1238,43 +1486,44 @@ class AnalysisSection:
                 if it_key != k:
                     key_to_keep.append(it)
 
-            if len(key_to_keep) == len(self.timeSeriesSelection):
+            if len(key_to_keep) == len(dock.selection):
                 return
 
-            self.timeSeriesSelection = key_to_keep
+            dock.selection = key_to_keep
 
-            if not self.timeSeriesSelection:
-                self._timeSeriesResetSelection()
-                self._clearTimeSeriesMapSelection()
-                self._clearTimeSeriesHighlight()
+            if not dock.selection:
+                self._timeSeriesResetSelection(dock)
+                if dock is self.activeTimeSeriesDock:
+                    self._clearTimeSeriesMapSelection()
+                self._clearTimeSeriesHighlight(dock)
                 try:
-                    if self.timeSeriesDock is not None:
-                        self.timeSeriesDock.updatePlotSeries([], "", "", "")
+                    dock.updatePlotSeries([], "", "", "")
                 except Exception:
                     pass
                 return
 
-            try:
-                fids_by_layer = {}
-                for it in self.timeSeriesSelection:
-                    layer = it.get("layer")
-                    fid = it.get("feature_id")
-                    if layer is None or fid is None:
-                        continue
-                    fids_by_layer.setdefault(layer, []).append(fid)
-                for layer, fids in fids_by_layer.items():
-                    try:
-                        layer.selectByIds(fids)
-                    except Exception:
-                        pass
-            except Exception:
-                pass
+            if dock is self.activeTimeSeriesDock:
+                try:
+                    fids_by_layer = {}
+                    for it in dock.selection:
+                        layer = it.get("layer")
+                        fid = it.get("feature_id")
+                        if layer is None or fid is None:
+                            continue
+                        fids_by_layer.setdefault(layer, []).append(fid)
+                    for layer, fids in fids_by_layer.items():
+                        try:
+                            layer.selectByIds(fids)
+                        except Exception:
+                            pass
+                except Exception:
+                    pass
 
             try:
-                self._syncTimeSeriesHighlights(self.lastTimeSeriesLayer, self.lastTimeSeriesFeature)
+                self._syncTimeSeriesHighlights(dock.lastLayer, dock.lastFeature, dock=dock)
             except Exception:
-                self._syncTimeSeriesHighlights()
-            self._renderTimeSeriesSelection()
+                self._syncTimeSeriesHighlights(dock=dock)
+            self._renderTimeSeriesSelection(dock)
         except Exception:
             return
 
@@ -1383,23 +1632,22 @@ class AnalysisSection:
     def refreshTimeSeries(self):
         """Refresh plotted curves after new results or a change in the results time mode.
 
-        Does not react to the node/link magnitude selector: each curve keeps the
-        magnitude chosen when it was added on the map.
+        Refreshes every open chart window. Does not react to the node/link
+        magnitude selector: each curve keeps the magnitude chosen when it was
+        added on the map.
         """
-        if not getattr(self, "timeSeriesDock", None):
-            return
-        if not getattr(self, "timeSeriesSelection", None):
-            return
-        self._renderTimeSeriesSelection()
+        for dock in (getattr(self, "timeSeriesDocks", None) or []):
+            if getattr(dock, "selection", None):
+                self._renderTimeSeriesSelection(dock)
 
-    def _timeSeriesConfigExportCurves(self):
+    def _timeSeriesConfigExportCurves(self, dock=None):
         """Build the serializable curve list from the current selection.
 
-        ``timeSeriesSelection`` is the source of truth for which curves are
+        ``dock.selection`` is the source of truth for which curves are
         plotted plus their per-curve styling; the explicit Y axis lives on the
         plotted series, so it is matched back in by ``series_key``.
         """
-        dock = self.timeSeriesDock
+        dock = dock if dock is not None else self.activeTimeSeriesDock
         yaxis_by_key = {}
         try:
             for s in (dock.plot.series or []):
@@ -1416,7 +1664,7 @@ class AnalysisSection:
             return text or fallback
 
         curves = []
-        for it in getattr(self, "timeSeriesSelection", []) or []:
+        for it in (getattr(dock, "selection", None) or []):
             category = it.get("category") or ""
             layer_identifier = it.get("layer_identifier") or ""
             prop_internal = it.get("prop_internal") or ""
@@ -1453,20 +1701,21 @@ class AnalysisSection:
             })
         return curves
 
-    def _onTimeSeriesExportConfig(self, path):
+    def _onTimeSeriesExportConfig(self, path, dock=None):
         from ..ui.analysis.timeseries_config_io import write_timeseries_config
 
-        dock = getattr(self, "timeSeriesDock", None)
+        if dock is None:
+            dock = self._resolveTimeSeriesDock()
         if dock is None or not path:
             return
-        if not getattr(self, "timeSeriesSelection", None):
+        if not getattr(dock, "selection", None):
             self.pushMessage(self.tr("No curves to export"), level=1)
             return
         try:
             plot = dock.plot
             write_timeseries_config(
                 path,
-                self._timeSeriesConfigExportCurves(),
+                self._timeSeriesConfigExportCurves(dock),
                 plot._axis_cfg_x,
                 plot._axis_cfg_y_left,
                 plot._axis_cfg_y_right,
@@ -1584,10 +1833,11 @@ class AnalysisSection:
             selection.append(item)
         return selection
 
-    def _onTimeSeriesImportConfig(self, path):
+    def _onTimeSeriesImportConfig(self, path, dock=None):
         from ..ui.analysis.timeseries_config_io import read_timeseries_config
 
-        dock = getattr(self, "timeSeriesDock", None)
+        if dock is None:
+            dock = self._resolveTimeSeriesDock()
         if dock is None:
             return
         if not path or not os.path.isfile(path):
@@ -1602,10 +1852,11 @@ class AnalysisSection:
         curves = config.get("curves") or []
         selection = self._timeSeriesSelectionFromConfig(curves)
 
-        self._clearTimeSeriesMapSelection()
-        self._clearTimeSeriesHighlight()
-        self.timeSeriesSelection = selection
-        self._timeSeriesSelectionKey = None
+        if dock is self.activeTimeSeriesDock:
+            self._clearTimeSeriesMapSelection()
+        self._clearTimeSeriesHighlight(dock)
+        dock.selection = selection
+        dock.selectionKey = None
 
         plot = dock.plot
         plot._axis_cfg_x = config.get("axis_x")
@@ -1614,23 +1865,24 @@ class AnalysisSection:
         plot._general_cfg = config.get("general")
 
         if selection:
+            if dock is self.activeTimeSeriesDock:
+                try:
+                    fids_by_layer = {}
+                    for it in selection:
+                        layer = it.get("layer")
+                        fid = it.get("feature_id")
+                        if layer is None or fid is None:
+                            continue
+                        fids_by_layer.setdefault(layer, []).append(fid)
+                    for layer, fids in fids_by_layer.items():
+                        layer.selectByIds(fids)
+                except Exception:
+                    pass
             try:
-                fids_by_layer = {}
-                for it in selection:
-                    layer = it.get("layer")
-                    fid = it.get("feature_id")
-                    if layer is None or fid is None:
-                        continue
-                    fids_by_layer.setdefault(layer, []).append(fid)
-                for layer, fids in fids_by_layer.items():
-                    layer.selectByIds(fids)
+                self._syncTimeSeriesHighlights(dock=dock)
             except Exception:
                 pass
-            try:
-                self._syncTimeSeriesHighlights()
-            except Exception:
-                pass
-            self._renderTimeSeriesSelection()
+            self._renderTimeSeriesSelection(dock)
             self._timeSeriesRestoreExplicitYAxis(plot, selection)
         else:
             try:
