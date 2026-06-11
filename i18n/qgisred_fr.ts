@@ -5625,6 +5625,31 @@ Left-click: Add a new item below the current selection</source>
         <source>Configuration file (*.cfg)</source>
         <translation>Fichier de configuration (*.cfg)</translation>
     </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1378"/>
+        <source>Edit chart description</source>
+        <translation>Modifier la description du graphique</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2504"/>
+        <source>Chart description</source>
+        <translation>Description du graphique</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2506"/>
+        <source>Describe the chart content (up to 256 characters):</source>
+        <translation>Décrivez le contenu du graphique (jusqu'à 256 caractères) :</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2557"/>
+        <source>Description:</source>
+        <translation>Description :</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2568"/>
+        <source>(no description)</source>
+        <translation>(aucune description)</translation>
+    </message>
 </context>
 <context>
     <name>ResultsDistributionWidget</name>

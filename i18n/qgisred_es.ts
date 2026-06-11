@@ -5775,6 +5775,31 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <source>Configuration file (*.cfg)</source>
         <translation>Archivo de configuración (*.cfg)</translation>
     </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1378"/>
+        <source>Edit chart description</source>
+        <translation>Editar descripción de la gráfica</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2504"/>
+        <source>Chart description</source>
+        <translation>Descripción de la gráfica</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2506"/>
+        <source>Describe the chart content (up to 256 characters):</source>
+        <translation>Describa el contenido de la gráfica (hasta 256 caracteres):</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2557"/>
+        <source>Description:</source>
+        <translation>Descripción:</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2568"/>
+        <source>(no description)</source>
+        <translation>(sin descripción)</translation>
+    </message>
 </context>
 <context>
     <name>ResultsDistributionWidget</name>

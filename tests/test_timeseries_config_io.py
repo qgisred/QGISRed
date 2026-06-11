@@ -6,7 +6,9 @@ from QGISRed.ui.analysis.timeseries_axis_settings import (
 from QGISRed.ui.analysis.timeseries_config_io import (
     next_available_config_name,
     parse_timeseries_config_string,
+    read_timeseries_config_comment,
     serialize_timeseries_config,
+    write_timeseries_config,
 )
 
 
@@ -41,12 +43,12 @@ def _full_curve():
     }
 
 
-def _roundtrip(curves, axis_x=None, axis_yl=None, axis_yr=None, general=None):
+def _roundtrip(curves, axis_x=None, axis_yl=None, axis_yr=None, general=None, comment=""):
     axis_x = axis_x or default_axis_settings()
     axis_yl = axis_yl or default_axis_settings()
     axis_yr = axis_yr or default_axis_settings()
     general = general or default_general_settings()
-    blob = serialize_timeseries_config(curves, axis_x, axis_yl, axis_yr, general)
+    blob = serialize_timeseries_config(curves, axis_x, axis_yl, axis_yr, general, comment)
     return parse_timeseries_config_string(blob)
 
 
@@ -120,6 +122,38 @@ class TestTimeSeriesConfigIO:
         parsed = _roundtrip([])
         assert parsed["curves"] == []
         assert parsed["version"] == "1"
+
+    def test_comment_roundtrip(self):
+        parsed = _roundtrip([_full_curve()], comment="Pressure at critical nodes")
+        assert parsed["comment"] == "Pressure at critical nodes"
+
+    def test_comment_default_empty(self):
+        parsed = _roundtrip([_full_curve()])
+        assert parsed["comment"] == ""
+
+    def test_read_comment_from_file(self, tmp_path):
+        path = str(tmp_path / "Net_TimeSeries_Config.cfg")
+        write_timeseries_config(
+            path, [_full_curve()],
+            default_axis_settings(), default_axis_settings(), default_axis_settings(),
+            default_general_settings(), comment="Daily demand vs head",
+        )
+        assert read_timeseries_config_comment(path) == "Daily demand vs head"
+
+    def test_read_comment_missing_or_invalid_returns_empty(self, tmp_path):
+        assert read_timeseries_config_comment(str(tmp_path / "nope.cfg")) == ""
+        bad = tmp_path / "bad.cfg"
+        bad.write_text("not xml at all")
+        assert read_timeseries_config_comment(str(bad)) == ""
+
+    def test_read_comment_absent_returns_empty(self, tmp_path):
+        path = str(tmp_path / "nocomment.cfg")
+        write_timeseries_config(
+            path, [_full_curve()],
+            default_axis_settings(), default_axis_settings(), default_axis_settings(),
+            default_general_settings(),
+        )
+        assert read_timeseries_config_comment(path) == ""
 
 
 BASE = "Net_TimeSeries_Config.cfg"

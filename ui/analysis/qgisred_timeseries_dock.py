@@ -6,14 +6,18 @@ from typing import List
 from qgis.PyQt.QtWidgets import (
     QAbstractItemView,
     QApplication,
+    QDialog,
+    QDialogButtonBox,
     QDockWidget,
     QFileDialog,
     QComboBox,
     QFrame,
+    QGridLayout,
     QHBoxLayout,
     QHeaderView,
     QLabel,
     QMenu,
+    QPlainTextEdit,
     QRubberBand,
     QSplitter,
     QTableWidget,
@@ -1166,6 +1170,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
     # Class-level default so attribute lookup never falls through to a mocked
     # Qt base class (tests build instances via __new__ without __init__).
     _resultsDock = None
+    _chartComment = ""
 
     def __init__(self, iface, parent=None):
         super(QGISRedTimeSeriesDock, self).__init__(parent or iface.mainWindow())
@@ -1173,6 +1178,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self.setupUi(self)
         self._toolbarWidget = None
         self._resultsDock = None
+        self._chartComment = ""
         self._lastResultsTimeText = ""
         self._tableVisible = False
         self._resultsTimeFormatKey = None
@@ -1368,6 +1374,10 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self.btnImportConfig = _make_btn("btnImportConfigTimeSeries", QIcon(":/images/iconStatisticsImport.svg"), self.tr("Import chart configuration"))
             self.btnImportConfig.clicked.connect(self._onImportConfigClicked)
             hl.addWidget(self.btnImportConfig, 0, Qt.AlignmentFlag.AlignLeft)
+
+            self.btnEditComment = _make_btn("btnEditCommentTimeSeries", QIcon(":/images/iconComment.svg"), self.tr("Edit chart description"))
+            self.btnEditComment.clicked.connect(self._onEditCommentClicked)
+            hl.addWidget(self.btnEditComment, 0, Qt.AlignmentFlag.AlignLeft)
 
             self.btnClearAll = _make_btn("btnClearAllTimeSeries", QIcon(":/images/iconTsClearAll.svg"), self.tr("Clear all curves"))
             self.btnClearAll.clicked.connect(self.clearAllRequested)
@@ -2488,18 +2498,87 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             path += ".cfg"
         self.exportConfigRequested.emit(path)
 
+    def _onEditCommentClicked(self) -> None:
+        MAX = 256
+        dlg = QDialog(self)
+        dlg.setWindowTitle(self.tr("Chart description"))
+        layout = QVBoxLayout(dlg)
+        info = QLabel(self.tr("Describe the chart content (up to 256 characters):"), dlg)
+        info.setWordWrap(True)
+        layout.addWidget(info)
+        editor = QPlainTextEdit(dlg)
+        editor.setPlainText(self._chartComment or "")
+        editor.setTabChangesFocus(True)
+        layout.addWidget(editor)
+        counter = QLabel(dlg)
+        counter.setAlignment(Qt.AlignmentFlag.AlignRight)
+        layout.addWidget(counter)
+
+        def _enforce():
+            text = editor.toPlainText()
+            if len(text) > MAX:
+                pos = editor.textCursor().position()
+                editor.blockSignals(True)
+                editor.setPlainText(text[:MAX])
+                editor.blockSignals(False)
+                cursor = editor.textCursor()
+                cursor.setPosition(min(pos, MAX))
+                editor.setTextCursor(cursor)
+            counter.setText(f"{len(editor.toPlainText())}/{MAX}")
+
+        editor.textChanged.connect(_enforce)
+        _enforce()
+
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel, dlg
+        )
+        buttons.accepted.connect(dlg.accept)
+        buttons.rejected.connect(dlg.reject)
+        layout.addWidget(buttons)
+        dlg.resize(420, 220)
+        if dlg.exec() == DIALOG_ACCEPTED:
+            self._chartComment = editor.toPlainText().strip()[:MAX]
+
     def _onImportConfigClicked(self) -> None:
+        from .timeseries_config_io import read_timeseries_config_comment
+
         default_path = self._timeSeriesConfigDefaultPath()
         start_dir = os.path.dirname(default_path) if default_path else os.path.expanduser("~")
-        path, _selected_filter = QFileDialog.getOpenFileName(
-            self,
-            self.tr("Import chart configuration"),
-            start_dir,
-            self.tr("Configuration file (*.cfg)"),
-        )
-        if not path:
+        dialog = QFileDialog(self, self.tr("Import chart configuration"), start_dir,
+                             self.tr("Configuration file (*.cfg)"))
+        dialog.setFileMode(QFileDialog.FileMode.ExistingFile)
+        dialog.setAcceptMode(QFileDialog.AcceptMode.AcceptOpen)
+        try:
+            dialog.setOption(QFileDialog.Option.DontUseNativeDialog, True)
+            preview = QLabel(dialog)
+            preview.setWordWrap(True)
+            preview.setMinimumWidth(220)
+            preview.setStyleSheet("QLabel { color: #555; }")
+            title = QLabel(self.tr("Description:"), dialog)
+            grid = dialog.layout()
+            if isinstance(grid, QGridLayout):
+                row = grid.rowCount()
+                grid.addWidget(title, row, 0)
+                grid.addWidget(preview, row, 1, 1, max(1, grid.columnCount() - 1))
+
+            def _update_preview(selected_path):
+                comment = ""
+                if selected_path and os.path.isfile(selected_path):
+                    comment = read_timeseries_config_comment(selected_path) or ""
+                preview.setText(comment or self.tr("(no description)"))
+
+            dialog.currentChanged.connect(_update_preview)
+            selected = dialog.selectedFiles()
+            _update_preview(selected[0] if selected else "")
+        except Exception:
+            pass
+
+        if dialog.exec() != DIALOG_ACCEPTED:
             return
-        self.importConfigRequested.emit(path)
+        files = dialog.selectedFiles()
+        if not files or not files[0]:
+            return
+        self.importConfigRequested.emit(files[0])
 
     def _emitCurveSettingsChanged(self) -> None:
         settings = []
@@ -2578,7 +2657,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                     btn.setEnabled(bool(has_curves and auto_scale_x and is_zoomed))
                 else:
                     btn.setEnabled(bool(has_curves and auto_scale_x))
-        for btn_name in ("btnAxes", "btnExportImage", "btnExportCsv", "btnExportConfig"):
+        for btn_name in ("btnAxes", "btnExportImage", "btnExportCsv", "btnExportConfig", "btnEditComment"):
             btn = getattr(self, btn_name, None)
             if btn is not None:
                 btn.setEnabled(bool(has_curves))

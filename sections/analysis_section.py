@@ -1720,6 +1720,7 @@ class AnalysisSection:
                 plot._axis_cfg_y_left,
                 plot._axis_cfg_y_right,
                 plot._general_cfg,
+                comment=getattr(dock, "_chartComment", "") or "",
             )
         except Exception:
             self.pushMessage(self.tr("The chart configuration could not be exported."), level=2)
@@ -1857,6 +1858,8 @@ class AnalysisSection:
         self._clearTimeSeriesHighlight(dock)
         dock.selection = selection
         dock.selectionKey = None
+
+        dock._chartComment = config.get("comment", "") or ""
 
         plot = dock.plot
         plot._axis_cfg_x = config.get("axis_x")

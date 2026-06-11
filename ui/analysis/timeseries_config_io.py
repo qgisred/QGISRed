@@ -144,8 +144,12 @@ def build_config_tree(
     axis_y_left: TimeSeriesAxisSettings,
     axis_y_right: TimeSeriesAxisSettings,
     general: TimeSeriesGeneralSettings,
+    comment: str = "",
 ) -> ET.Element:
     root = ET.Element("TimeSeriesConfig", version=CONFIG_VERSION)
+
+    if comment:
+        ET.SubElement(root, "Comment").text = comment
 
     curves_el = ET.SubElement(root, "Curves")
     for curve in curves or []:
@@ -167,8 +171,9 @@ def serialize_timeseries_config(
     axis_y_left: TimeSeriesAxisSettings,
     axis_y_right: TimeSeriesAxisSettings,
     general: TimeSeriesGeneralSettings,
+    comment: str = "",
 ) -> bytes:
-    root = build_config_tree(curves, axis_x, axis_y_left, axis_y_right, general)
+    root = build_config_tree(curves, axis_x, axis_y_left, axis_y_right, general, comment)
     try:
         ET.indent(root)
     except AttributeError:
@@ -183,8 +188,9 @@ def write_timeseries_config(
     axis_y_left: TimeSeriesAxisSettings,
     axis_y_right: TimeSeriesAxisSettings,
     general: TimeSeriesGeneralSettings,
+    comment: str = "",
 ) -> None:
-    root = build_config_tree(curves, axis_x, axis_y_left, axis_y_right, general)
+    root = build_config_tree(curves, axis_x, axis_y_left, axis_y_right, general, comment)
     try:
         ET.indent(root)
     except AttributeError:
@@ -217,8 +223,12 @@ def parse_config_root(root) -> dict:
     if general_el is not None:
         _apply_attribs_to_dataclass(general_el.attrib, general)
 
+    comment_el = root.find("Comment")
+    comment = (comment_el.text or "") if comment_el is not None else ""
+
     return {
         "version": root.get("version", ""),
+        "comment": comment,
         "curves": curves,
         "axis_x": axis_x,
         "axis_y_left": axis_y_left,
@@ -235,6 +245,16 @@ def parse_timeseries_config_string(text) -> dict:
 def read_timeseries_config(path: str) -> dict:
     root = ET.parse(path).getroot()
     return parse_config_root(root)
+
+
+def read_timeseries_config_comment(path: str) -> str:
+    """Return only the saved description, tolerating any read/parse error."""
+    try:
+        root = ET.parse(path).getroot()
+    except Exception:
+        return ""
+    comment_el = root.find("Comment")
+    return (comment_el.text or "") if comment_el is not None else ""
 
 
 def next_available_config_name(filename: str, existing_names) -> str:
