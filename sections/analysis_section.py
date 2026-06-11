@@ -520,6 +520,7 @@ class AnalysisSection:
         dock.globalSystemVariableChosen.connect(lambda key, d=dock: self._onTimeSeriesGlobalSystemVariable(key, d))
         dock.newChartRequested.connect(self._onTimeSeriesNewChartRequested)
         dock.activated.connect(lambda d=dock: self._onTimeSeriesDockActivated(d))
+        dock.topLevelChanged.connect(lambda floating, d=dock: self._onTimeSeriesDockTopLevelChanged(floating, d))
         self.timeSeriesDocks.append(dock)
         self.iface.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, dock)
         try:
@@ -555,6 +556,19 @@ class AnalysisSection:
             dock = self._resolveTimeSeriesDock()
         if dock is not None:
             self._setActiveTimeSeriesDock(dock)
+
+    def _onTimeSeriesDockTopLevelChanged(self, floating, dock):
+        if not floating or dock is None:
+            return
+
+        def _activate():
+            try:
+                dock.raise_()
+            except Exception:
+                pass
+            self._setActiveTimeSeriesDock(dock)
+
+        QTimer.singleShot(0, _activate)
 
     def runTimeSeriesSelectPointTool(self):
         self.myMapTools["TimeSeries"] = QGISRedSelectPointTool(
