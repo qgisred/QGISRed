@@ -191,6 +191,36 @@
         <source>Could not read the selected system variable.</source>
         <translation>Não foi possível ler a variável do sistema selecionada.</translation>
     </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="1463"/>
+        <source>No curves to export</source>
+        <translation>Não há curvas para exportar</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="1476"/>
+        <source>The chart configuration could not be exported.</source>
+        <translation>Não foi possível exportar a configuração do gráfico.</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="1478"/>
+        <source>Chart configuration exported.</source>
+        <translation>Configuração do gráfico exportada.</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="1594"/>
+        <source>Configuration file not found.</source>
+        <translation>Arquivo de configuração não encontrado.</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="1599"/>
+        <source>The chart configuration could not be read.</source>
+        <translation>Não foi possível ler a configuração do gráfico.</translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="1655"/>
+        <source>Chart configuration imported.</source>
+        <translation>Configuração do gráfico importada.</translation>
+    </message>
 </context>
 <context>
     <name>DebugValidationSection</name>
@@ -5608,6 +5638,24 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1317"/>
         <source>Add a system-wide variable curve (no map selection needed)</source>
         <translation>Adicionar uma curva de variável do sistema (sem seleção no mapa)</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1312"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2417"/>
+        <source>Export chart configuration</source>
+        <translation>Exportar configuração do gráfico</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1316"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2432"/>
+        <source>Import chart configuration</source>
+        <translation>Importar configuração do gráfico</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2419"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2434"/>
+        <source>Configuration file (*.cfg)</source>
+        <translation>Arquivo de configuração (*.cfg)</translation>
     </message>
 </context>
 <context>

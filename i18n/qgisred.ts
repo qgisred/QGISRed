@@ -191,6 +191,36 @@
         <source>Could not read the selected system variable.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="1463"/>
+        <source>No curves to export</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="1476"/>
+        <source>The chart configuration could not be exported.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="1478"/>
+        <source>Chart configuration exported.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="1594"/>
+        <source>Configuration file not found.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="1599"/>
+        <source>The chart configuration could not be read.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../sections/analysis_section.py" line="1655"/>
+        <source>Chart configuration imported.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DebugValidationSection</name>
@@ -5404,6 +5434,24 @@ Left-click: Add a new item below the current selection</source>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1317"/>
         <source>Add a system-wide variable curve (no map selection needed)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1312"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2417"/>
+        <source>Export chart configuration</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="1316"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2432"/>
+        <source>Import chart configuration</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2419"/>
+        <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2434"/>
+        <source>Configuration file (*.cfg)</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

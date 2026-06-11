@@ -368,6 +368,8 @@ class AnalysisSection:
                 self.timeSeriesDock.seriesEmphasisChanged.connect(self._onTimeSeriesSeriesEmphasisChanged)
                 self.timeSeriesDock.curveSettingsChanged.connect(self._onTimeSeriesCurveSettingsChanged)
                 self.timeSeriesDock.clearAllRequested.connect(self._onTimeSeriesClearAllRequested)
+                self.timeSeriesDock.exportConfigRequested.connect(self._onTimeSeriesExportConfig)
+                self.timeSeriesDock.importConfigRequested.connect(self._onTimeSeriesImportConfig)
                 self.iface.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.timeSeriesDock)
             self._ensureTimeSeriesGlobalSignals()
             self._ensureTimeSeriesMapToolSignal()
@@ -1389,3 +1391,290 @@ class AnalysisSection:
         if not getattr(self, "timeSeriesSelection", None):
             return
         self._renderTimeSeriesSelection()
+
+    def _timeSeriesConfigExportCurves(self):
+        """Build the serializable curve list from the current selection.
+
+        ``timeSeriesSelection`` is the source of truth for which curves are
+        plotted plus their per-curve styling; the explicit Y axis lives on the
+        plotted series, so it is matched back in by ``series_key``.
+        """
+        dock = self.timeSeriesDock
+        yaxis_by_key = {}
+        try:
+            for s in (dock.plot.series or []):
+                key = str(s.get("series_key") or "")
+                if key:
+                    yaxis_by_key[key] = (s.get("y_axis") or "left")
+        except Exception:
+            pass
+
+        def _hex(value, fallback="#0078d7"):
+            if isinstance(value, QColor):
+                return value.name()
+            text = str(value or "").strip()
+            return text or fallback
+
+        curves = []
+        for it in getattr(self, "timeSeriesSelection", []) or []:
+            category = it.get("category") or ""
+            layer_identifier = it.get("layer_identifier") or ""
+            prop_internal = it.get("prop_internal") or ""
+            element_id = it.get("element_id") or ""
+            key = f"{category}:{layer_identifier}:{prop_internal}:{element_id}"
+            color_hex = _hex(it.get("color"))
+            curves.append({
+                "category": category,
+                "layer_identifier": layer_identifier,
+                "element_id": element_id,
+                "prop_internal": prop_internal,
+                "prop_display": it.get("prop_display") or "",
+                "y_label_with_unit": it.get("y_label_with_unit") or "",
+                "is_stepped": bool(it.get("is_stepped", False)),
+                "y_categorical_labels": it.get("y_categorical_labels"),
+                "y_display_decimals": it.get("y_display_decimals"),
+                "y_axis": yaxis_by_key.get(key, ""),
+                "label": it.get("legend_label") or "",
+                "color": color_hex,
+                "line_style": it.get("line_style") or "solid",
+                "line_width": float(it.get("line_width") or 2.0),
+                "show_markers": bool(it.get("show_markers", False)),
+                "marker_symbol": it.get("marker_symbol") or "circle",
+                "marker_size": int(it.get("marker_size") or 6),
+                "marker_color": _hex(it.get("marker_color"), color_hex),
+                "marker_hollow": bool(it.get("marker_hollow", True)),
+                "show_point_values": bool(it.get("show_point_values", False)),
+                "visible": bool(it.get("visible", True)),
+                "muted": bool(it.get("muted", False)),
+                "highlighted": bool(it.get("highlighted", False)),
+                "emphasis_mode": it.get("emphasis_mode") or "normal",
+                "legend_font_family": it.get("legend_font_family") or "",
+                "legend_font_size": int(it.get("legend_font_size") or 8),
+            })
+        return curves
+
+    def _onTimeSeriesExportConfig(self, path):
+        from ..ui.analysis.timeseries_config_io import write_timeseries_config
+
+        dock = getattr(self, "timeSeriesDock", None)
+        if dock is None or not path:
+            return
+        if not getattr(self, "timeSeriesSelection", None):
+            self.pushMessage(self.tr("No curves to export"), level=1)
+            return
+        try:
+            plot = dock.plot
+            write_timeseries_config(
+                path,
+                self._timeSeriesConfigExportCurves(),
+                plot._axis_cfg_x,
+                plot._axis_cfg_y_left,
+                plot._axis_cfg_y_right,
+                plot._general_cfg,
+            )
+        except Exception:
+            self.pushMessage(self.tr("The chart configuration could not be exported."), level=2)
+            return
+        self.pushMessage(self.tr("Chart configuration exported."), level=3)
+
+    def _timeSeriesSelectionFromConfig(self, curves):
+        """Rebuild ``timeSeriesSelection`` items from parsed curve dicts.
+
+        Layers and features are resolved once per layer identifier so a config
+        with many curves on the same layer stays O(features) rather than
+        O(curves * features). Missing layers/features are tolerated (the data is
+        read from the results file by element id, not from the layer).
+        """
+        needed_ids = {}
+        for curve in curves:
+            identifier = curve.get("layer_identifier") or ""
+            if not identifier or identifier == "global":
+                continue
+            needed_ids.setdefault(identifier, set()).add(str(curve.get("element_id") or ""))
+
+        layer_by_identifier = {}
+        feature_by_identifier = {}
+        if needed_ids:
+            try:
+                layers = QGISRedLayerUtils().getLayers()
+            except Exception:
+                layers = []
+            for identifier, ids in needed_ids.items():
+                layer = None
+                for l in layers:
+                    try:
+                        if l.customProperty("qgisred_identifier") == identifier:
+                            layer = l
+                            break
+                    except Exception:
+                        continue
+                layer_by_identifier[identifier] = layer
+                feat_map = {}
+                if layer is not None:
+                    try:
+                        for feat in layer.getFeatures():
+                            fid_attr = str(feat.attribute("ID"))
+                            if fid_attr in ids:
+                                feat_map[fid_attr] = feat
+                                if len(feat_map) == len(ids):
+                                    break
+                    except Exception:
+                        pass
+                feature_by_identifier[identifier] = feat_map
+
+        selection = []
+        for curve in curves:
+            identifier = curve.get("layer_identifier") or ""
+            element_id = str(curve.get("element_id") or "")
+            category = curve.get("category") or ""
+            is_global = (category == "Global") or (identifier == "global")
+
+            layer = None
+            feature = None
+            feature_id = None
+            if not is_global:
+                layer = layer_by_identifier.get(identifier)
+                feature = feature_by_identifier.get(identifier, {}).get(element_id)
+                if feature is not None:
+                    try:
+                        feature_id = feature.id()
+                    except Exception:
+                        feature_id = None
+
+            color = QColor(curve.get("color"))
+            if not color.isValid():
+                color = QColor(0, 120, 215)
+            marker_color = QColor(curve.get("marker_color"))
+            if not marker_color.isValid():
+                marker_color = color
+
+            item = {
+                "layer": layer,
+                "layer_identifier": identifier,
+                "feature": feature,
+                "feature_id": feature_id,
+                "category": category,
+                "element_id": element_id,
+                "color": color,
+                "prop_internal": curve.get("prop_internal") or "",
+                "prop_display": curve.get("prop_display") or "",
+                "y_label_with_unit": curve.get("y_label_with_unit") or "",
+                "is_stepped": bool(curve.get("is_stepped", False)),
+                "y_categorical_labels": curve.get("y_categorical_labels"),
+                "legend_label": curve.get("label") or "",
+                "line_style": curve.get("line_style") or "solid",
+                "line_width": float(curve.get("line_width") or 2.0),
+                "show_markers": bool(curve.get("show_markers", False)),
+                "marker_symbol": curve.get("marker_symbol") or "circle",
+                "marker_size": int(curve.get("marker_size") or 6),
+                "marker_color": marker_color,
+                "marker_hollow": bool(curve.get("marker_hollow", True)),
+                "show_point_values": bool(curve.get("show_point_values", False)),
+                "visible": bool(curve.get("visible", True)),
+                "muted": bool(curve.get("muted", False)),
+                "highlighted": bool(curve.get("highlighted", False)),
+                "emphasis_mode": curve.get("emphasis_mode") or "normal",
+                "legend_font_family": curve.get("legend_font_family") or "",
+                "legend_font_size": int(curve.get("legend_font_size") or 8),
+                "y_axis": (curve.get("y_axis") or "").strip().lower(),
+            }
+            decimals = curve.get("y_display_decimals")
+            if decimals is not None:
+                item["y_display_decimals"] = decimals
+            selection.append(item)
+        return selection
+
+    def _onTimeSeriesImportConfig(self, path):
+        from ..ui.analysis.timeseries_config_io import read_timeseries_config
+
+        dock = getattr(self, "timeSeriesDock", None)
+        if dock is None:
+            return
+        if not path or not os.path.isfile(path):
+            self.pushMessage(self.tr("Configuration file not found."), level=1)
+            return
+        try:
+            config = read_timeseries_config(path)
+        except Exception:
+            self.pushMessage(self.tr("The chart configuration could not be read."), level=2)
+            return
+
+        curves = config.get("curves") or []
+        selection = self._timeSeriesSelectionFromConfig(curves)
+
+        self._clearTimeSeriesMapSelection()
+        self._clearTimeSeriesHighlight()
+        self.timeSeriesSelection = selection
+        self._timeSeriesSelectionKey = None
+
+        plot = dock.plot
+        plot._axis_cfg_x = config.get("axis_x")
+        plot._axis_cfg_y_left = config.get("axis_y_left")
+        plot._axis_cfg_y_right = config.get("axis_y_right")
+        plot._general_cfg = config.get("general")
+
+        if selection:
+            try:
+                fids_by_layer = {}
+                for it in selection:
+                    layer = it.get("layer")
+                    fid = it.get("feature_id")
+                    if layer is None or fid is None:
+                        continue
+                    fids_by_layer.setdefault(layer, []).append(fid)
+                for layer, fids in fids_by_layer.items():
+                    layer.selectByIds(fids)
+            except Exception:
+                pass
+            try:
+                self._syncTimeSeriesHighlights()
+            except Exception:
+                pass
+            self._renderTimeSeriesSelection()
+            self._timeSeriesRestoreExplicitYAxis(plot, selection)
+        else:
+            try:
+                dock.updatePlotSeries([], "", "", "")
+            except Exception:
+                pass
+
+        try:
+            plot._updateMinimumWidthForTitle()
+        except Exception:
+            pass
+        try:
+            plot.update()
+        except Exception:
+            pass
+        try:
+            dock._updateClearToolbarVisibility()
+            dock._updatePanAvailability()
+        except Exception:
+            pass
+
+        self.pushMessage(self.tr("Chart configuration imported."), level=3)
+
+    def _timeSeriesRestoreExplicitYAxis(self, plot, selection):
+        """Re-apply each curve's saved Y axis after the auto-by-magnitude pass."""
+        yaxis_by_key = {}
+        for it in selection:
+            axis = (it.get("y_axis") or "").strip().lower()
+            if axis in ("left", "right"):
+                key = (
+                    f"{it.get('category') or ''}:{it.get('layer_identifier') or ''}:"
+                    f"{it.get('prop_internal') or ''}:{it.get('element_id') or ''}"
+                )
+                yaxis_by_key[key] = axis
+        if not yaxis_by_key:
+            return
+        changed = False
+        for s in (plot.series or []):
+            key = str(s.get("series_key") or "")
+            if key in yaxis_by_key:
+                s["y_axis"] = yaxis_by_key[key]
+                changed = True
+        if changed:
+            try:
+                plot._assignYAxisByMagnitude()
+            except Exception:
+                pass

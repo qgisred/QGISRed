@@ -1157,6 +1157,8 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
     curveSettingsChanged = pyqtSignal(list)
     clearAllRequested = pyqtSignal()
     globalSystemVariableChosen = pyqtSignal(str)
+    exportConfigRequested = pyqtSignal(str)
+    importConfigRequested = pyqtSignal(str)
 
     # Class-level default so attribute lookup never falls through to a mocked
     # Qt base class (tests build instances via __new__ without __init__).
@@ -1306,6 +1308,14 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self.btnExportCsv = _make_btn("btnExportCsvTimeSeries", QIcon(":/images/iconTsExportCsv.svg"), self.tr("Export chart points to CSV"))
             self.btnExportCsv.clicked.connect(self._onExportCsvClicked)
             hl.addWidget(self.btnExportCsv, 0, Qt.AlignmentFlag.AlignLeft)
+
+            self.btnExportConfig = _make_btn("btnExportConfigTimeSeries", QIcon(":/images/iconStatisticsExport.svg"), self.tr("Export chart configuration"))
+            self.btnExportConfig.clicked.connect(self._onExportConfigClicked)
+            hl.addWidget(self.btnExportConfig, 0, Qt.AlignmentFlag.AlignLeft)
+
+            self.btnImportConfig = _make_btn("btnImportConfigTimeSeries", QIcon(":/images/iconStatisticsImport.svg"), self.tr("Import chart configuration"))
+            self.btnImportConfig.clicked.connect(self._onImportConfigClicked)
+            hl.addWidget(self.btnImportConfig, 0, Qt.AlignmentFlag.AlignLeft)
 
             self.btnClearAll = _make_btn("btnClearAllTimeSeries", QIcon(":/images/iconTsClearAll.svg"), self.tr("Clear all curves"))
             self.btnClearAll.clicked.connect(self.clearAllRequested)
@@ -2386,6 +2396,47 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
 
         self._showMessage(self.tr("Chart points exported to CSV"), level=3)
 
+    def _timeSeriesConfigDefaultPath(self) -> str:
+        dock = self._resultsDock
+        try:
+            results_path = dock.getResultsPath() if dock is not None else ""
+            network_name = getattr(dock, "NetworkName", "") if dock is not None else ""
+            if results_path and network_name:
+                return os.path.join(results_path, f"{network_name}_TimeSeries_Config.cfg")
+        except Exception:
+            pass
+        return os.path.join(os.path.expanduser("~"), "TimeSeries_Config.cfg")
+
+    def _onExportConfigClicked(self) -> None:
+        if not self._plotHasCurves():
+            self._showMessage(self.tr("No curves to export"), level=1)
+            return
+        default_path = self._timeSeriesConfigDefaultPath()
+        path, _selected_filter = QFileDialog.getSaveFileName(
+            self,
+            self.tr("Export chart configuration"),
+            default_path,
+            self.tr("Configuration file (*.cfg)"),
+        )
+        if not path:
+            return
+        if not path.lower().endswith(".cfg"):
+            path += ".cfg"
+        self.exportConfigRequested.emit(path)
+
+    def _onImportConfigClicked(self) -> None:
+        default_path = self._timeSeriesConfigDefaultPath()
+        start_dir = os.path.dirname(default_path) if default_path else os.path.expanduser("~")
+        path, _selected_filter = QFileDialog.getOpenFileName(
+            self,
+            self.tr("Import chart configuration"),
+            start_dir,
+            self.tr("Configuration file (*.cfg)"),
+        )
+        if not path:
+            return
+        self.importConfigRequested.emit(path)
+
     def _emitCurveSettingsChanged(self) -> None:
         settings = []
         for s in self.plot.series or []:
@@ -2463,10 +2514,13 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                     btn.setEnabled(bool(has_curves and auto_scale_x and is_zoomed))
                 else:
                     btn.setEnabled(bool(has_curves and auto_scale_x))
-        for btn_name in ("btnAxes", "btnExportImage", "btnExportCsv"):
+        for btn_name in ("btnAxes", "btnExportImage", "btnExportCsv", "btnExportConfig"):
             btn = getattr(self, btn_name, None)
             if btn is not None:
                 btn.setEnabled(bool(has_curves))
+        import_btn = getattr(self, "btnImportConfig", None)
+        if import_btn is not None:
+            import_btn.setEnabled(True)
         toggle_btn = getattr(self, "btnToggleTable", None)
         if toggle_btn is not None:
             toggle_btn.setEnabled(bool(has_curves))
