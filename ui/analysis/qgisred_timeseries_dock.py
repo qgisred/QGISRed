@@ -1363,13 +1363,13 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self.btnToggleTable.toggled.connect(self._onToggleTableToggled)
             hl.addWidget(self.btnToggleTable, 0, Qt.AlignmentFlag.AlignLeft)
 
-            self.btnExportImage = _make_btn("btnExportImageTimeSeries", QIcon(":/images/iconTsExportImage.svg"), self.tr("Export chart as image"))
-            self.btnExportImage.clicked.connect(self._onExportImageClicked)
-            hl.addWidget(self.btnExportImage, 0, Qt.AlignmentFlag.AlignLeft)
-
             self.btnExportCsv = _make_btn("btnExportCsvTimeSeries", QIcon(":/images/iconTsExportCsv.svg"), self.tr("Export chart points to CSV"))
             self.btnExportCsv.clicked.connect(self._onExportCsvClicked)
             hl.addWidget(self.btnExportCsv, 0, Qt.AlignmentFlag.AlignLeft)
+
+            self.btnExportImage = _make_btn("btnExportImageTimeSeries", QIcon(":/images/iconTsExportImage.svg"), self.tr("Export chart as image"))
+            self.btnExportImage.clicked.connect(self._onExportImageClicked)
+            hl.addWidget(self.btnExportImage, 0, Qt.AlignmentFlag.AlignLeft)
 
             self.btnExportConfig = _make_btn("btnExportConfigTimeSeries", QIcon(":/images/iconStatisticsExport.svg"), self.tr("Export chart configuration"))
             self.btnExportConfig.clicked.connect(self._onExportConfigClicked)
