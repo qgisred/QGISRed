@@ -340,12 +340,16 @@ class _ResultsDataMixin:
         Shapefile field names are capped at 10 characters."""
         return {var: layer.fields().indexOf(var[:10]) for var in variables}
 
-    def _applyAttributeUpdates(self, layer, updates_dict):
-        """Write a batch of attribute updates to the layer's data provider and trigger repaint."""
+    def _applyAttributeUpdates(self, layer, updates_dict, notify=True):
+        """Write a batch of attribute updates to the layer's data provider.
+
+        notify=False skips dataChanged/repaint.
+        """
         if updates_dict:
             layer.dataProvider().changeAttributeValues(updates_dict)
-            layer.dataProvider().dataChanged.emit()
-            layer.triggerRepaint()
+            if notify:
+                layer.dataProvider().dataChanged.emit()
+                layer.triggerRepaint()
 
     def _readTimeLabelsFromOut(self, all_calc=None):
         """Read time labels from selected results backend (.out or .hyd).
@@ -509,7 +513,7 @@ class _ResultsDataMixin:
                 feature.id(): {time_field_idx: time_text}
                 for feature in target_layer.getFeatures()
             }
-            self._applyAttributeUpdates(target_layer, attribute_updates)
+            self._applyAttributeUpdates(target_layer, attribute_updates, notify=False)
 
     def completeStatsLayers(self):
         """Populates the attribute tables of result layers with statistics from the selected backend.
