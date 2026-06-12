@@ -1151,6 +1151,10 @@ class TimeSeriesPlotWidget(QWidget):
                 self.hover_index = best_idx
                 self._hover_series_idx = hover_idx
                 self.update()
+                try:
+                    self.cursorTimeChanged.emit(float(xs[best_idx]))
+                except Exception:
+                    pass
         except ZeroDivisionError:
             pass
 
