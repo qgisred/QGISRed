@@ -1714,18 +1714,19 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         return str(text).replace("\t", " ").replace("\r", "").replace("\n", " ")
 
     @staticmethod
-    def _table_header_text(table, col: int) -> str:
+    def _table_header_parts(table, col: int):
         try:
             item = table.horizontalHeaderItem(int(col))
         except Exception:
             item = None
-        if item is None:
-            return ""
-        try:
-            text = item.text()
-        except Exception:
-            text = ""
-        return str(text).replace("\t", " ").replace("\r", "").replace("\n", " ")
+        text = ""
+        if item is not None:
+            try:
+                text = item.text()
+            except Exception:
+                text = ""
+        parts = str(text).replace("\t", " ").replace("\r", "").split("\n")
+        return parts[0], parts[1] if len(parts) > 1 else ""
 
     @staticmethod
     def _tableHasSelection(table) -> bool:
@@ -1765,7 +1766,11 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         if table is None or not rows or not cols:
             return ""
 
-        lines = ["\t".join(self._table_header_text(table, col) for col in cols)]
+        header_parts = [self._table_header_parts(table, col) for col in cols]
+        lines = [
+            "\t".join(part[0] for part in header_parts),
+            "\t".join(part[1] for part in header_parts),
+        ]
         for row in rows:
             lines.append("\t".join(self._table_text_for_cell(table, row, col) for col in cols))
         return "\n".join(lines)

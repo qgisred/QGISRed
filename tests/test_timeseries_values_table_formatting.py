@@ -136,7 +136,7 @@ def test_values_table_clipboard_text_for_entire_table():
     )
 
     assert d._valuesTableClipboardText([0, 1], [0, 1, 2]) == (
-        "Time (h)\tTime of day\tJunction J1 Demand (l/s)\n0:00\t12am\t1.2\n1:00\t1am\t2.4"
+        "Time (h)\tTime of day\tJunction J1\n\t\tDemand (l/s)\n0:00\t12am\t1.2\n1:00\t1am\t2.4"
     )
 
 
@@ -337,6 +337,6 @@ def test_values_table_clipboard_text_for_selected_rows():
 
     rows, cols = d._tableSelectedRowsAndColumns(d._table)
     assert d._valuesTableClipboardText(rows, cols) == (
-        "Time (h)\tTime of day\tJunction J1 Demand (l/s)\n0:00\t12am\t1.2\n2:00\t2am\t3.6"
+        "Time (h)\tTime of day\tJunction J1\n\t\tDemand (l/s)\n0:00\t12am\t1.2\n2:00\t2am\t3.6"
     )
 
