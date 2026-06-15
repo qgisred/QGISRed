@@ -141,6 +141,23 @@ def preferred_axis_for_global_variable(variable_key: str) -> str:
     return GLOBAL_VARIABLE_PREFERRED_AXIS.get(variable_key, "left")
 
 
+# Fixed RGB colour per system global variable (only five exist for now): produced
+# flow blue, consumed flow magenta, spilled flow red, stored volume green, average
+# pressure orange. Returned as a tuple so this module stays free of Qt imports.
+GLOBAL_VARIABLE_RGB = {
+    TOTAL_WATER_SUPPLY_KEY: (31, 119, 180),
+    TOTAL_WATER_DEMAND_KEY: (199, 31, 138),
+    TOTAL_TANK_SPILL_KEY: (214, 39, 40),
+    TOTAL_STORED_VOLUME_KEY: (44, 160, 44),
+    AVERAGE_NODE_PRESSURE_KEY: (255, 127, 14),
+}
+
+
+def global_variable_rgb(variable_key: str):
+    """Return the fixed ``(r, g, b)`` colour for a system variable, or ``None``."""
+    return GLOBAL_VARIABLE_RGB.get(variable_key)
+
+
 def _series_scale_bucket(series: dict) -> str:
     """Scale group of a series, used to keep compatible scales on one axis.
 

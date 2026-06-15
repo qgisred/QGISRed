@@ -597,6 +597,7 @@ class AnalysisSection:
             global_series_y_display_decimals,
             global_variable_display_label,
             global_variable_legend_label,
+            global_variable_rgb,
         )
 
         if variable_key not in GLOBAL_SYSTEM_VARIABLE_KEYS:
@@ -633,10 +634,14 @@ class AnalysisSection:
             )
             return
 
-        try:
-            existing_color = palette[len(dock.selection) % len(palette)]
-        except Exception:
-            existing_color = QColor(0, 120, 215)
+        rgb = global_variable_rgb(variable_key)
+        if rgb is not None:
+            existing_color = QColor(*rgb)
+        else:
+            try:
+                existing_color = palette[len(dock.selection) % len(palette)]
+            except Exception:
+                existing_color = QColor(0, 120, 215)
 
         dock.selection.append({
             "layer": None,

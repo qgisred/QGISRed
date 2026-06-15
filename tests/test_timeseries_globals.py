@@ -10,6 +10,7 @@ from QGISRed.ui.analysis.timeseries_globals import (
     TOTAL_WATER_SUPPLY_KEY,
     assign_default_series_axes,
     get_global_timeseries,
+    global_variable_rgb,
     global_series_y_display_decimals,
     global_variable_key_from_series_key,
     global_variable_short_label,
@@ -245,3 +246,20 @@ class TestAssignDefaultSeriesAxes:
             _global(TOTAL_WATER_DEMAND_KEY),
         ]
         assert assign_default_series_axes(series) == ["left", "right", "right"]
+
+
+class TestGlobalVariableColors:
+    def test_each_system_variable_has_a_distinct_fixed_color(self):
+        keys = [
+            TOTAL_WATER_SUPPLY_KEY,
+            TOTAL_WATER_DEMAND_KEY,
+            TOTAL_TANK_SPILL_KEY,
+            TOTAL_STORED_VOLUME_KEY,
+            AVERAGE_NODE_PRESSURE_KEY,
+        ]
+        colors = [global_variable_rgb(k) for k in keys]
+        assert all(c is not None and len(c) == 3 for c in colors)
+        assert len(set(colors)) == len(colors)
+
+    def test_unknown_variable_has_no_fixed_color(self):
+        assert global_variable_rgb("Unknown") is None
