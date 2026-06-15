@@ -17,6 +17,9 @@ class TestFormatDistributionHoverValue:
     def test_absolute_count_as_integer(self):
         assert format_distribution_hover_value(42) == "42"
 
+    def test_interpolated_absolute_count_has_no_decimals(self):
+        assert format_distribution_hover_value(23.7) == "24"
+
     def test_relative_percent(self):
         assert format_distribution_hover_value(25.5, as_percent=True).endswith(" %")
 

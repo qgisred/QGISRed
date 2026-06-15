@@ -36,10 +36,7 @@ def format_distribution_hover_value(value, as_percent=False):
     """Format a histogram hover value as count or percentage text."""
     if as_percent:
         return "{} %".format(format_number_tick(value, 0.1))
-    rounded = round(value)
-    if abs(value - rounded) < 1e-9:
-        return str(int(rounded))
-    return format_number_tick(value, max(abs(value) / 100.0, 0.01))
+    return str(int(round(value)))
 
 
 def _distance_point_to_segment(px, py, ax, ay, bx, by):
@@ -220,7 +217,11 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
             data_max = max(float(total_count), 1.0)
         label_height = QFontMetrics(qfont(self._tickFontSize(widget))).height() + 4
         max_ticks = estimate_max_ticks(plotRect.height(), label_height, max_ticks=8)
-        return compute_nice_scale(0.0, data_max, max_ticks, include_zero=True)
+        scale = compute_nice_scale(0.0, data_max, max_ticks, include_zero=True)
+        if scale.step < 1:
+            axis_max = max(1.0, float(math.ceil(data_max)))
+            return NiceScale(axis_min=0.0, axis_max=axis_max, step=1.0, divisions=int(axis_max))
+        return scale
 
     def _drawGridAndLeftAxis(self, widget, painter, plotRect, scale):
         painter.setFont(qfont(self._tickFontSize(widget)))
