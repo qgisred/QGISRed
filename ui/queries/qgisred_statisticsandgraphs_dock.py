@@ -5,16 +5,19 @@ import math
 import os
 from datetime import datetime
 
-from qgis.PyQt.QtCore import Qt, QTimer
+from qgis.PyQt.QtCore import Qt, QSize, QTimer
 from qgis.PyQt.QtGui import QBrush, QColor, QIcon
 from qgis.PyQt.QtWidgets import (
     QAbstractItemView,
     QDockWidget,
     QFileDialog,
+    QHBoxLayout,
     QHeaderView,
     QMessageBox,
     QTableWidgetItem,
+    QToolButton,
     QVBoxLayout,
+    QWidget,
 )
 from qgis.PyQt import uic
 from qgis.core import (
@@ -104,6 +107,43 @@ ALL_IDENTIFIERS = set(INPUT_ORDER) | set(DIGITAL_TWIN_ORDER)
 CUMULATIVE_PROPERTIES = {"Length", "MinVolume", "BaseDem", "BaseDemand", "BaseValue", "Power"}
 
 
+class _StatisticsHistogramPopoutWindow(QWidget):
+    """Floating, resizable window showing an enlarged copy of the histogram."""
+
+    _DEFAULT_SIZE = (760, 540)
+
+    def __init__(self, parent, on_close):
+        super().__init__(parent)
+        self.setWindowFlags(Qt.WindowType.Window)
+        self._on_close = on_close
+        self._default_geometry = None
+        self.setMinimumSize(360, 260)
+        self.setStyleSheet("background-color: #f8f9fb;")
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(8, 8, 8, 8)
+        layout.setSpacing(6)
+        self.chart = StatisticsHistogramWidget(self)
+        self.chart.show_title = True
+        layout.addWidget(self.chart, 1)
+
+    def applyDefaultGeometry(self):
+        width, height = self._DEFAULT_SIZE
+        host = self.parent().window() if self.parent() is not None else None
+        if host is not None:
+            center = host.frameGeometry().center()
+            self.setGeometry(center.x() - width // 2, center.y() - height // 2, width, height)
+        else:
+            self.resize(width, height)
+        self._default_geometry = self.geometry()
+
+    def closeEvent(self, event):
+        callback = self._on_close
+        if callback is not None:
+            callback()
+        super().closeEvent(event)
+
+
 class QGISRedStatisticsDock(QDockWidget, formClass):
     def __init__(self, iface, parent=None):
         super(QGISRedStatisticsDock, self).__init__(parent or iface.mainWindow())
@@ -142,6 +182,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             QGISRedUIUtils.applyComboStyle(combo)
 
     def closeEvent(self, event):
+        self._closeHistogramPopout()
         project = QgsProject.instance()
         self.safeDisconnect(project.layersAdded, self.onLayerTreeChanged)
         self.safeDisconnect(project.layersRemoved, self.onLayerTreeChanged)
@@ -172,6 +213,77 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         layout.addWidget(self.histogram)
         self.graphWidget.setLayout(layout)
         self.labelOnlySelectedElements.hide()
+
+        self._histogram_popout = None
+        self.btHistogramExpand = QToolButton()
+        self.btHistogramExpand.setIcon(QIcon(":/images/iconTsZoomWindow.svg"))
+        self.btHistogramExpand.setIconSize(QSize(16, 16))
+        self.btHistogramExpand.setAutoRaise(True)
+        self.btHistogramExpand.setCheckable(True)
+        self.btHistogramExpand.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btHistogramExpand.setToolTip(self.tr("Expand histogram to a floating window"))
+        self.btHistogramExpand.clicked.connect(self._toggleHistogramPopout)
+        headerRow = QHBoxLayout()
+        headerRow.setContentsMargins(0, 0, 0, 0)
+        headerRow.addStretch(1)
+        headerRow.addWidget(self.btHistogramExpand)
+        self.verticalLayout_2.insertLayout(0, headerRow)
+
+    def _toggleHistogramPopout(self):
+        popout = getattr(self, "_histogram_popout", None)
+        if popout is not None and popout.isVisible():
+            self._closeHistogramPopout()
+        else:
+            self._openHistogramPopout()
+
+    def _openHistogramPopout(self):
+        if self._histogram_popout is None:
+            self._histogram_popout = _StatisticsHistogramPopoutWindow(self, self._onHistogramPopoutClosed)
+        if self._histogram_popout._default_geometry is None:
+            self._histogram_popout.applyDefaultGeometry()
+        self.graphWidget.hide()
+        self._setHistogramExpandButtonState(True)
+        self._histogram_popout.show()
+        self._histogram_popout.raise_()
+        self._histogram_popout.activateWindow()
+        self._feedHistogramPopout()
+
+    def _closeHistogramPopout(self):
+        popout = getattr(self, "_histogram_popout", None)
+        if popout is not None and popout.isVisible():
+            popout.close()
+        else:
+            self._finishHistogramPopoutClose()
+
+    def _onHistogramPopoutClosed(self):
+        self._finishHistogramPopoutClose()
+
+    def _finishHistogramPopoutClose(self):
+        self._setHistogramExpandButtonState(False)
+        self.graphWidget.show()
+
+    def _setHistogramExpandButtonState(self, expanded):
+        self.btHistogramExpand.blockSignals(True)
+        self.btHistogramExpand.setChecked(expanded)
+        self.btHistogramExpand.blockSignals(False)
+        self.btHistogramExpand.setToolTip(
+            self.tr("Collapse histogram back to the panel")
+            if expanded
+            else self.tr("Expand histogram to a floating window")
+        )
+
+    def _feedHistogramPopout(self):
+        popout = getattr(self, "_histogram_popout", None)
+        if popout is None or not popout.isVisible():
+            return
+        popout.chart.setTitles(self.histogram.title, self.histogram.subtitle)
+        popout.chart.setBins(
+            self.histogram.bins,
+            mode="plain",
+            xLabel=self.histogram.xLabel,
+            yLabelLeft=self.histogram.yLabelLeft,
+        )
+        popout.setWindowTitle(self.labelPropertyByClasses.text())
 
     def setupIcons(self):
         self.btImport.setIcon(QIcon(":/images/iconStatisticsImport.svg"))
