@@ -31,6 +31,8 @@ AVERAGE_LINE_COLOR = QColor(40, 40, 40)
 BAR_BORDER_COLOR = QColor(40, 80, 130)
 TOOLTIP_BG_COLOR = QColor(255, 255, 255, 235)
 
+_TICK_LEN = 4
+
 
 class StatisticsHistogramRenderer:
     _AXIS_TITLE_FONT_SIZE = 10
@@ -151,10 +153,13 @@ class StatisticsHistogramRenderer:
     def _drawGridAndLeftAxis(self, widget, painter, plotRect, scale):
         painter.setFont(qfont(self._tickFontSize(widget)))
         fontMetrics = QFontMetrics(painter.font())
+        grid_color = QColor(GRID_COLOR).darker(115)
         for tickValue in scale.ticks():
             tickY = self._yForValue(plotRect, scale, tickValue)
-            painter.setPen(QPen(GRID_COLOR, 1, Qt.PenStyle.DashLine))
+            painter.setPen(QPen(grid_color, 1, Qt.PenStyle.DashLine))
             painter.drawLine(QPointF(plotRect.left(), tickY), QPointF(plotRect.right(), tickY))
+            painter.setPen(QPen(TEXT_AXIS, 1))
+            painter.drawLine(QPointF(plotRect.left(), tickY), QPointF(plotRect.left() - _TICK_LEN, tickY))
             label = format_number_tick(tickValue, scale.step)
             if widget.mode == "relative":
                 label = label + "%"
