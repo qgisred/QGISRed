@@ -5,9 +5,9 @@ from __future__ import annotations
 import re
 from bisect import bisect_right
 
-from qgis.PyQt.QtCore import QCoreApplication, Qt
-from qgis.PyQt.QtGui import QColor
-from qgis.PyQt.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget
+from qgis.PyQt.QtCore import QCoreApplication, QSize, Qt
+from qgis.PyQt.QtGui import QColor, QIcon
+from qgis.PyQt.QtWidgets import QHBoxLayout, QToolButton, QVBoxLayout, QWidget
 from qgis.core import (
     NULL,
     QgsCategorizedSymbolRenderer,
@@ -367,18 +367,64 @@ def _build_link_status_bins(layer):
     return bins
 
 
+class _DistributionPopoutWindow(QWidget):
+    """Floating, resizable window showing an enlarged copy of the active histogram."""
+
+    _DEFAULT_SIZE = (760, 540)
+
+    def __init__(self, parent, on_close):
+        super().__init__(parent)
+        self.setWindowFlags(Qt.WindowType.Window)
+        self._on_close = on_close
+        self._default_geometry = None
+        self.setMinimumSize(360, 260)
+        self.setStyleSheet("background-color: #f8f9fb;")
+
+        self._layout = QVBoxLayout(self)
+        self._layout.setContentsMargins(8, 8, 8, 8)
+        self._layout.setSpacing(6)
+
+        self.chart = ResultsDistributionWidget(self)
+        self.chart.show_title = True
+        self.chart.show_subtitle = False
+        self._layout.addWidget(self.chart, 1)
+
+    def attachControls(self, controls_bar):
+        self._layout.insertWidget(0, controls_bar)
+
+    def detachControls(self, controls_bar):
+        self._layout.removeWidget(controls_bar)
+
+    def applyDefaultGeometry(self):
+        width, height = self._DEFAULT_SIZE
+        host = self.parent().window() if self.parent() is not None else None
+        if host is not None:
+            center = host.frameGeometry().center()
+            self.setGeometry(center.x() - width // 2, center.y() - height // 2, width, height)
+        else:
+            self.resize(width, height)
+        self._default_geometry = self.geometry()
+
+    def closeEvent(self, event):
+        callback = self._on_close
+        if callback is not None:
+            callback()
+        super().closeEvent(event)
+
+
 class _DistributionControlsBar(QWidget):
     """Frequency + Cumulative controls in one row when wide enough, two rows otherwise."""
 
     # Keep controls on a single line even in narrow docks.
     _MERGE_THRESHOLD = 0
 
-    def __init__(self, freq_label, freq_combo, cum_label, cum_combo, parent=None):
+    def __init__(self, freq_label, freq_combo, cum_label, cum_combo, expand_button=None, parent=None):
         super().__init__(parent)
         self._fl = freq_label
         self._fc = freq_combo
         self._cl = cum_label
         self._cc = cum_combo
+        self._eb = expand_button
         self._merged = None
 
         outer = QVBoxLayout(self)
@@ -412,6 +458,9 @@ class _DistributionControlsBar(QWidget):
             self._row1.addSpacing(8)
             self._row1.addWidget(self._cl)
             self._row1.addWidget(self._cc)
+            if self._eb is not None:
+                self._row1.addSpacing(4)
+                self._row1.addWidget(self._eb)
             self._row1.addStretch(1)
         else:
             self._row1.setContentsMargins(6, 0, 0, 0)
@@ -423,6 +472,9 @@ class _DistributionControlsBar(QWidget):
             self._row2.setSpacing(8)
             self._row2.addWidget(self._cl)
             self._row2.addWidget(self._cc)
+            if self._eb is not None:
+                self._row2.addSpacing(4)
+                self._row2.addWidget(self._eb)
             self._row2.addStretch(1)
 
 
@@ -430,6 +482,7 @@ class _ResultsDistributionMixin:
     _DISTRIBUTION_TITLE_TEMPLATE = "%1 frequency%2"
 
     def _setupDistributionCharts(self):
+        self._distribution_popout = None
         panel_bg = "#f8f9fb"
         self.distributionChartContainer.setStyleSheet(
             "QWidget#distributionChartContainer {{ background-color: {0}; }}".format(panel_bg)
@@ -464,6 +517,10 @@ class _ResultsDistributionMixin:
 
         self.cbNodeDistribution.clicked.connect(self.nodeDistributionClicked)
         self.cbLinkDistribution.clicked.connect(self.linkDistributionClicked)
+        try:
+            self.visibilityChanged.connect(self._onDistributionDockVisibilityChanged)
+        except Exception:
+            pass
         self._updateDistributionCheckboxLabels()
         self._syncDistributionPanelVisibility()
 
@@ -496,6 +553,16 @@ class _ResultsDistributionMixin:
             self._applyDistributionComboStyle(combo)
             combo.setMaximumWidth(78)
 
+        self.btDistributionExpand = QToolButton()
+        self.btDistributionExpand.setObjectName("btDistributionExpand")
+        self.btDistributionExpand.setIcon(QIcon(":/images/iconTsZoomWindow.svg"))
+        self.btDistributionExpand.setIconSize(QSize(16, 16))
+        self.btDistributionExpand.setAutoRaise(True)
+        self.btDistributionExpand.setCheckable(True)
+        self.btDistributionExpand.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btDistributionExpand.setToolTip(self.tr("Expand histogram to a floating window"))
+        self.btDistributionExpand.clicked.connect(self._toggleDistributionPopout)
+
         parent_layout = self.verticalLayout_DistributionChart
         freq_row = self.horizontalLayout_DistributionFrequency
         cum_row = self.horizontalLayout_DistributionCumulative
@@ -509,6 +576,7 @@ class _ResultsDistributionMixin:
             self.cbDistributionFrequency,
             self.lbDistributionCumulative,
             self.cbDistributionCumulative,
+            expand_button=self.btDistributionExpand,
         )
         parent_layout.insertWidget(freq_index, self._dist_controls_bar)
 
@@ -610,10 +678,105 @@ class _ResultsDistributionMixin:
 
     def _syncDistributionPanelVisibility(self):
         active = self._activeDistributionLayerType()
-        show_panel = active is not None
-        self.distributionChartContainer.setVisible(show_panel)
+        popout = getattr(self, "_distribution_popout", None)
+        expanded = popout is not None and popout.isVisible()
+        if active is None and expanded:
+            self._closeDistributionPopout()
+            return
+        if expanded:
+            return
+        self.distributionChartContainer.setVisible(active is not None)
+        self._applySmallChartVisibility()
+
+    def _applySmallChartVisibility(self):
+        active = self._activeDistributionLayerType()
         self.nodeDistributionChartHost.setVisible(active == "Node")
         self.linkDistributionChartHost.setVisible(active == "Link")
+
+    def _toggleDistributionPopout(self):
+        popout = getattr(self, "_distribution_popout", None)
+        if popout is not None and popout.isVisible():
+            self._closeDistributionPopout()
+        else:
+            self._openDistributionPopout()
+
+    def _openDistributionPopout(self):
+        active = self._activeDistributionLayerType()
+        if active is None:
+            self._setExpandButtonState(False)
+            return
+        if self._distribution_popout is None:
+            self._distribution_popout = _DistributionPopoutWindow(self, self._onDistributionPopoutClosed)
+        if self._distribution_popout._default_geometry is None:
+            self._distribution_popout.applyDefaultGeometry()
+        self._moveControlsToPopout()
+        self._setExpandButtonState(True)
+        self._distribution_popout.show()
+        self._distribution_popout.raise_()
+        self._distribution_popout.activateWindow()
+        self._refreshDistributionChart(active)
+
+    def _closeDistributionPopout(self):
+        popout = getattr(self, "_distribution_popout", None)
+        if popout is not None and popout.isVisible():
+            popout.close()
+        else:
+            self._finishPopoutClose()
+
+    def _onDistributionPopoutClosed(self):
+        self._finishPopoutClose()
+
+    def _finishPopoutClose(self):
+        self._setExpandButtonState(False)
+        self._restoreControlsToDock()
+
+    def _onDistributionDockVisibilityChanged(self, visible):
+        if not visible:
+            self._closeDistributionPopout()
+
+    def _setExpandButtonState(self, expanded):
+        button = getattr(self, "btDistributionExpand", None)
+        if button is None:
+            return
+        button.blockSignals(True)
+        button.setChecked(expanded)
+        button.blockSignals(False)
+        button.setToolTip(
+            self.tr("Collapse histogram back to the panel")
+            if expanded
+            else self.tr("Expand histogram to a floating window")
+        )
+
+    def _moveControlsToPopout(self):
+        bar = getattr(self, "_dist_controls_bar", None)
+        popout = getattr(self, "_distribution_popout", None)
+        if bar is None or popout is None:
+            return
+        self.verticalLayout_DistributionChart.removeWidget(bar)
+        popout.attachControls(bar)
+        self.distributionChartContainer.setVisible(False)
+
+    def _restoreControlsToDock(self):
+        bar = getattr(self, "_dist_controls_bar", None)
+        popout = getattr(self, "_distribution_popout", None)
+        if bar is not None:
+            if popout is not None:
+                popout.detachControls(bar)
+            self.verticalLayout_DistributionChart.insertWidget(0, bar)
+        active = self._activeDistributionLayerType()
+        self.distributionChartContainer.setVisible(active is not None)
+        self._applySmallChartVisibility()
+
+    def _feedDistributionPopout(self, layer_type, bins, bin_kwargs):
+        popout = getattr(self, "_distribution_popout", None)
+        if popout is None or not popout.isVisible():
+            return
+        if layer_type != self._activeDistributionLayerType():
+            return
+        popout.chart.show_title = True
+        popout.chart.show_subtitle = False
+        popout.chart.setBins(bins, **bin_kwargs)
+        popout.setWindowTitle(bin_kwargs.get("title") or self.tr("Histogram"))
 
     def _distributionFieldForLayer(self, layer_type):
         if layer_type == "Node":
@@ -650,10 +813,7 @@ class _ResultsDistributionMixin:
             element = normalize_element(layer_type)
             fu = QGISRedFieldUtils()
             x_label = fu.getProperty(element, field_name, translate=True) or field_name
-        chart.show_title = True
-        chart.show_subtitle = False
-        chart.setBins(
-            bins,
+        bin_kwargs = dict(
             bar_mode=self._distributionBarMode(),
             cumulative_mode=self._distributionCumulativeMode(),
             cumulative_points=cumulative_points,
@@ -662,7 +822,11 @@ class _ResultsDistributionMixin:
             yLabelRight=self._distributionCumulativeYAxisLabel(),
             title=self._distributionChartTitle(layer_type),
         )
+        chart.show_title = True
+        chart.show_subtitle = False
+        chart.setBins(bins, **bin_kwargs)
         chart.updateGeometry()
+        self._feedDistributionPopout(layer_type, bins, bin_kwargs)
 
     def _refreshDistributionChartsIfNeeded(self):
         self._updateDistributionCheckboxLabels()

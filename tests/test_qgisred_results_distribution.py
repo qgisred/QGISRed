@@ -157,6 +157,96 @@ class TestDistributionChartTitleTemplate:
         assert title == "Pressure frequency"
 
 
+class _FakeHost:
+    def __init__(self):
+        self.visible = None
+
+    def setVisible(self, value):
+        self.visible = bool(value)
+
+
+class _FakeLayout:
+    def __init__(self):
+        self.widgets = []
+
+    def removeWidget(self, widget):
+        if widget in self.widgets:
+            self.widgets.remove(widget)
+
+    def insertWidget(self, index, widget):
+        self.widgets.insert(index, widget)
+
+
+class _FakePopout:
+    def __init__(self):
+        self.controls = None
+        self._visible = False
+
+    def attachControls(self, bar):
+        self.controls = bar
+
+    def detachControls(self, bar):
+        if self.controls is bar:
+            self.controls = None
+
+    def isVisible(self):
+        return self._visible
+
+
+class _DistLifecycleHarness(_ResultsDistributionMixin):
+    def __init__(self, active):
+        self._active = active
+        self._distribution_popout = None
+        self.nodeDistributionChartHost = _FakeHost()
+        self.linkDistributionChartHost = _FakeHost()
+        self.distributionChartContainer = _FakeHost()
+        self.verticalLayout_DistributionChart = _FakeLayout()
+        self._dist_controls_bar = object()
+        self.verticalLayout_DistributionChart.widgets.append(self._dist_controls_bar)
+
+    def _activeDistributionLayerType(self):
+        return self._active
+
+
+class TestDistributionPanelVisibility:
+    def test_active_chart_shown(self):
+        harness = _DistLifecycleHarness("Node")
+        harness._applySmallChartVisibility()
+        assert harness.nodeDistributionChartHost.visible is True
+        assert harness.linkDistributionChartHost.visible is False
+
+    def test_panel_hidden_when_no_active_layer(self):
+        harness = _DistLifecycleHarness(None)
+        harness._syncDistributionPanelVisibility()
+        assert harness.distributionChartContainer.visible is False
+
+
+class TestDistributionControlsTravel:
+    def test_expand_moves_controls_and_hides_panel(self):
+        harness = _DistLifecycleHarness("Node")
+        harness._distribution_popout = _FakePopout()
+        harness._moveControlsToPopout()
+        assert harness._distribution_popout.controls is harness._dist_controls_bar
+        assert harness._dist_controls_bar not in harness.verticalLayout_DistributionChart.widgets
+        assert harness.distributionChartContainer.visible is False
+
+    def test_collapse_returns_controls_and_shows_panel(self):
+        harness = _DistLifecycleHarness("Link")
+        harness._distribution_popout = _FakePopout()
+        harness._moveControlsToPopout()
+        harness._restoreControlsToDock()
+        assert harness._distribution_popout.controls is None
+        assert harness._dist_controls_bar in harness.verticalLayout_DistributionChart.widgets
+        assert harness.distributionChartContainer.visible is True
+        assert harness.linkDistributionChartHost.visible is True
+
+    def test_collapse_keeps_panel_hidden_without_active_layer(self):
+        harness = _DistLifecycleHarness(None)
+        harness._distribution_popout = _FakePopout()
+        harness._restoreControlsToDock()
+        assert harness.distributionChartContainer.visible is False
+
+
 class _FakeFeatureFields:
     def __init__(self, names):
         self._names = names

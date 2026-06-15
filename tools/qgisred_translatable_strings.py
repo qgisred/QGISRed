@@ -244,6 +244,9 @@ QCoreApplication.translate('QGISRedResultsDock', "%1 frequency%2")
 QCoreApplication.translate('QGISRedResultsDock', "Closed")
 QCoreApplication.translate('QGISRedResultsDock', "Open")
 QCoreApplication.translate('QGISRedResultsDock', "Active")
+QCoreApplication.translate('QGISRedResultsDock', "Expand histogram to a floating window")
+QCoreApplication.translate('QGISRedResultsDock', "Collapse histogram back to the panel")
+QCoreApplication.translate('QGISRedResultsDock', "Histogram")
 
 # Statistics histogram UI
 QCoreApplication.translate('QGISRedStatisticsDock', "Mouse wheel: zoom · Drag: pan · Double-click: reset view")

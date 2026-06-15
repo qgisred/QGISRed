@@ -4853,6 +4853,21 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <source>%1 decimals</source>
         <translation>Decimales para %1</translation>
     </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="247"/>
+        <source>Expand histogram to a floating window</source>
+        <translation>Expandir el histograma a una ventana flotante</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="248"/>
+        <source>Collapse histogram back to the panel</source>
+        <translation>Contraer el histograma al panel</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="249"/>
+        <source>Histogram</source>
+        <translation>Histograma</translation>
+    </message>
 </context>
 <context>
     <name>QGISRedSaveStrategyDialog</name>

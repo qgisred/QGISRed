@@ -4885,6 +4885,21 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <source>Map background color</source>
         <translation>Cor de fundo do mapa</translation>
     </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="247"/>
+        <source>Expand histogram to a floating window</source>
+        <translation>Expandir o histograma em uma janela flutuante</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="248"/>
+        <source>Collapse histogram back to the panel</source>
+        <translation>Recolher o histograma no painel</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="249"/>
+        <source>Histogram</source>
+        <translation>Histograma</translation>
+    </message>
 </context>
 <context>
     <name>QGISRedSaveStrategyDialog</name>
