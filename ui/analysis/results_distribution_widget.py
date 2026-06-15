@@ -39,6 +39,50 @@ def resolve_distribution_hover_at(widget, cursor_pos):
     return None, None, None
 
 
+def resolve_hover_bar_at(bar_rects, cumulative_bar_rects, has_cumulative_bars, cursor_pos, plot_rect):
+    """Return (bin_index, segment) for a cursor over a bar column.
+
+    Detection spans the whole column height (not just the drawn bar) so that
+    small or zero-count bars are easy to point at. Direct coordinate comparison
+    avoids QRectF.intersected(), which returns a null rect for empty bars. When
+    a cumulative bar covers the cursor, the segment still distinguishes
+    frequency from cumulative.
+    """
+    plot_top = plot_rect.top()
+    plot_bottom = plot_rect.bottom()
+    cursor_x = cursor_pos.x()
+    cursor_y = cursor_pos.y()
+    if not (plot_top <= cursor_y <= plot_bottom):
+        return None, None
+    for bin_index, bar_rect in enumerate(bar_rects):
+        bar_left = max(bar_rect.left(), plot_rect.left())
+        bar_right = min(bar_rect.right(), plot_rect.right())
+        if bar_right <= bar_left or not (bar_left <= cursor_x <= bar_right):
+            continue
+
+        cum_top = cum_bottom = None
+        cum_has_height = False
+        if has_cumulative_bars and bin_index < len(cumulative_bar_rects):
+            cumulative_rect = cumulative_bar_rects[bin_index]
+            if cumulative_rect is not None:
+                cum_top = max(cumulative_rect.top(), plot_top)
+                cum_bottom = min(cumulative_rect.bottom(), plot_bottom)
+                cum_has_height = cum_bottom > cum_top
+
+        if cum_has_height:
+            if cum_top <= cursor_y <= cum_bottom:
+                freq_top = bar_rect.top()
+                frequency_top = freq_top if bar_rect.bottom() > freq_top else cum_bottom + 1
+                if cursor_y < frequency_top:
+                    return bin_index, "cumulative"
+                return bin_index, "frequency"
+            continue
+
+        return bin_index, "frequency"
+
+    return None, None
+
+
 class ResultsDistributionWidget(QWidget):
     """Distribution histogram for the results dock (hover tooltips, no zoom/pan)."""
 
@@ -300,29 +344,10 @@ class ResultsDistributionWidget(QWidget):
         return resolve_distribution_hover_at(self, cursor_pos)
 
     def _hoverBarAt(self, cursor_pos, plot_rect):
-        has_cumulative_bars = self._hasCumulativeBars()
-        for bin_index, bar_rect in enumerate(self._barRects):
-            visible_rect = QRectF(bar_rect).intersected(plot_rect)
-            if visible_rect.width() <= 0:
-                continue
-            if not (visible_rect.left() <= cursor_pos.x() <= visible_rect.right()):
-                continue
-
-            cumulative_visible = None
-            if has_cumulative_bars and bin_index < len(self._cumulativeBarRects):
-                cumulative_rect = self._cumulativeBarRects[bin_index]
-                if cumulative_rect is not None:
-                    cumulative_visible = QRectF(cumulative_rect).intersected(plot_rect)
-
-            if cumulative_visible and cumulative_visible.width() > 0 and cumulative_visible.height() > 0:
-                if not (cumulative_visible.top() <= cursor_pos.y() <= cumulative_visible.bottom()):
-                    continue
-                frequency_top = visible_rect.top() if visible_rect.height() > 0 else cumulative_visible.bottom() + 1
-                if cursor_pos.y() < frequency_top:
-                    return bin_index, "cumulative"
-                return bin_index, "frequency"
-
-            if visible_rect.height() > 0 and visible_rect.top() <= cursor_pos.y() <= visible_rect.bottom():
-                return bin_index, "frequency"
-
-        return None, None
+        return resolve_hover_bar_at(
+            self._barRects,
+            self._cumulativeBarRects,
+            self._hasCumulativeBars(),
+            cursor_pos,
+            plot_rect,
+        )

@@ -11,6 +11,7 @@ from QGISRed.ui.analysis.results_distribution_renderer import (
     format_distribution_hover_value,
     hit_test_cumulative_polyline,
 )
+from QGISRed.ui.analysis.results_distribution_widget import resolve_hover_bar_at
 
 
 class TestFormatDistributionHoverValue:
@@ -57,6 +58,21 @@ class TestDistributionHoverTooltipLines:
 
         lines = renderer._hoverTooltipLines(Widget(), Widget.bins[0])
         assert lines == ["Closed", "Cumulative: 30"]
+
+    def test_frequency_zero_count(self):
+        renderer = ResultsDistributionRenderer()
+
+        class Widget:
+            bar_mode = "plain"
+            hoverSegment = "frequency"
+            bins = [{"label": "Active", "count": 0}]
+            _totalCount = 10
+
+            def tr(self, message):
+                return message
+
+        lines = renderer._hoverTooltipLines(Widget(), Widget.bins[0])
+        assert lines == ["Active", "Count: 0"]
 
 
 class TestDistributionHoverPriority:
@@ -139,6 +155,66 @@ class TestCurveHoverTooltipLines:
         assert lines[0].startswith("Pressure:")
         assert lines[1].startswith("Cumulative:")
         assert lines[1].endswith(" %")
+
+
+class _R:
+    def __init__(self, left, right, top, bottom):
+        self._l, self._r, self._t, self._b = left, right, top, bottom
+
+    def left(self):
+        return self._l
+
+    def right(self):
+        return self._r
+
+    def top(self):
+        return self._t
+
+    def bottom(self):
+        return self._b
+
+
+class _P:
+    def __init__(self, x, y):
+        self._x, self._y = x, y
+
+    def x(self):
+        return self._x
+
+    def y(self):
+        return self._y
+
+
+class TestHoverBarAtGeometry:
+    PLOT = _R(0, 300, 0, 200)
+    BARS = [
+        _R(10, 90, 198, 200),
+        _R(110, 190, 80, 200),
+        _R(210, 290, 200, 200),
+    ]
+
+    def _hover(self, x, y, cum_rects=None, has_cum=False):
+        return resolve_hover_bar_at(self.BARS, cum_rects or [], has_cum, _P(x, y), self.PLOT)
+
+    def test_zero_count_bin_hoverable_in_its_column(self):
+        assert self._hover(250, 100) == (2, "frequency")
+
+    def test_tiny_bar_hoverable_above_its_top(self):
+        assert self._hover(50, 40) == (0, "frequency")
+
+    def test_outside_any_column_returns_none(self):
+        assert self._hover(100, 100) == (None, None)
+
+    def test_outside_plot_vertically_returns_none(self):
+        assert self._hover(50, 250) == (None, None)
+
+    def test_cumulative_segment_above_frequency(self):
+        cum = [_R(10, 90, 50, 200)]
+        assert self._hover(50, 100, cum_rects=cum, has_cum=True) == (0, "cumulative")
+
+    def test_frequency_segment_within_cumulative(self):
+        cum = [_R(10, 90, 50, 200)]
+        assert self._hover(50, 199, cum_rects=cum, has_cum=True) == (0, "frequency")
 
 
 class TestDistributionChartTitleTemplate:
