@@ -74,6 +74,15 @@ class TestVolumeFromLevel:
         assert uses_curve is False
         assert volume == pytest.approx(10.0)
 
+    def test_undeclared_min_volume_defaults_to_area_times_min_level(self):
+        """EPANET: when MinVolume=0, Vmin = A*Hmin so stored volume = A*h, not A*(h-Hmin)."""
+        area = math.pi * 4.0
+        volume, uses_curve = volume_from_level(
+            5.0, min_volume=0.0, min_level=2.0, cross_section_area=area,
+        )
+        assert uses_curve is False
+        assert volume == pytest.approx(area * 5.0)
+
 
 class TestTotalStoredVolumeFromRows:
     def test_sum_multiple_tanks(self):
@@ -88,14 +97,18 @@ class TestTotalStoredVolumeFromRows:
 
 
 class TestThreeTankNetworkFormula:
-    """Regression from manual EPANET check (SI, diameter in metres)."""
+    """Regression from manual EPANET check (SI, diameter in metres).
+
+    All three tanks have undeclared ``MinVolume`` (0), so EPANET sets ``Vmin = A*Hmin``
+    and stored volume is ``A*h`` for each.
+    """
 
     TANKS = (
         ("tank1", [145.00, 145.65, 147.06], 131.90, 0.1, 0.0, 85.0),
         ("tank2", [140.00, 138.655, 137.398], 116.50, 6.5, 0.0, 50.0),
         ("tank3", [158.00, 158.85, 160.01], 129.00, 4.0, 0.0, 164.0),
     )
-    QGIS_TOTALS = (635249.66, 654318.46, 684211.27)
+    EPANET_TOTALS = (733076.12, 752079.10, 782115.95)
 
     def _rows_for_all_hours(self):
         return [
@@ -119,8 +132,8 @@ class TestThreeTankNetworkFormula:
         for hour in range(3):
             assert totals[hour] == pytest.approx(self._expected_total(hour), rel=1e-6)
 
-    def test_hour_zero_matches_qgis_display(self):
-        assert self._expected_total(0) == pytest.approx(self.QGIS_TOTALS[0], rel=1e-5)
+    def test_hour_zero_matches_epanet(self):
+        assert self._expected_total(0) == pytest.approx(self.EPANET_TOTALS[0], rel=1e-5)
 
 
 class TestTankSpillFlow:

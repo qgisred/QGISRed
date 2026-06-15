@@ -9,7 +9,9 @@ Mirrors EPANET ``EN_TANKVOLUME`` / ``tankvolume()`` (hydraul.c):
 **Without volume curve** (``tankvolume()``):
 
 ``V = Vmin + (h - Hmin) × A`` — ``MinVolume`` in the DBF is the input ``Vmin`` (volume
-at minimum water level, not necessarily zero).
+at minimum water level). When ``MinVolume`` is undeclared (``0``), EPANET's
+``convertunits()`` initialises ``Vmin = A × Hmin`` (cylinder down to the bottom), so the
+stored volume reduces to ``A × h`` rather than ``A × (h - Hmin)``.
 
 **With volume curve** (input init + ``tankvolume()``):
 
@@ -183,7 +185,14 @@ def cylindrical_volume_from_level(
     min_level: float,
     cross_section_area: float,
 ) -> float:
-    """EPANET ``tankvolume()`` for a cylindrical tank: ``Vmin + (h - Hmin) * A``."""
+    """EPANET ``tankvolume()`` for a cylindrical tank: ``Vmin + (h - Hmin) * A``.
+
+    When ``MinVolume`` is undeclared (``Vmin == 0``), EPANET's ``convertunits()`` sets
+    ``Vmin = A * Hmin`` (full cylinder to the bottom), so stored volume becomes ``A * h``
+    rather than ``A * (h - Hmin)``.
+    """
+    if min_volume <= 0.0:
+        min_volume = cross_section_area * min_level
     volume = min_volume + cross_section_area * (level - min_level)
     return max(volume, min_volume)
 
