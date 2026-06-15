@@ -809,7 +809,7 @@ class _ResultsDistributionMixin:
             if self._distributionCumulativeMode() in ("absolute", "relative") and not is_status
             else []
         )
-        if cumulative_points and field_name and field_name != "Status":
+        if field_name and not is_status:
             element = normalize_element(layer_type)
             fu = QGISRedFieldUtils()
             x_label = fu.getProperty(element, field_name, translate=True) or field_name

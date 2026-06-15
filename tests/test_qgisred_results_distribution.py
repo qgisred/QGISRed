@@ -74,6 +74,22 @@ class TestDistributionHoverTooltipLines:
         lines = renderer._hoverTooltipLines(Widget(), Widget.bins[0])
         assert lines == ["Active", "Count: 0"]
 
+    def test_frequency_header_includes_magnitude(self):
+        renderer = ResultsDistributionRenderer()
+
+        class Widget:
+            bar_mode = "plain"
+            hoverSegment = "frequency"
+            xLabel = "Pressure"
+            bins = [{"label": "10 - 20", "count": 5}]
+            _totalCount = 50
+
+            def tr(self, message):
+                return message
+
+        lines = renderer._hoverTooltipLines(Widget(), Widget.bins[0])
+        assert lines == ["Pressure: 10 - 20", "Count: 5"]
+
 
 class TestDistributionHoverPriority:
     def test_cumulative_curve_wins_over_bar_when_both_hit(self):

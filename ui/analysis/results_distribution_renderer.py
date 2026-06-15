@@ -401,19 +401,24 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
         segment = getattr(widget, "hoverSegment", None) or "frequency"
         as_percent = self._bar_mode(widget) == "relative"
         class_label = bin_data.get("label", "")
+        magnitude = getattr(widget, "xLabel", "") or ""
+        if magnitude and class_label:
+            header = "{}: {}".format(magnitude, class_label)
+        else:
+            header = magnitude or class_label
 
         if segment == "cumulative":
             value = self._bin_cumulative_bar_value(widget, bin_data)
             if value is None:
                 value = 0.0
             value_text = format_distribution_hover_value(value, as_percent=as_percent)
-            return [class_label, "{}: {}".format(widget.tr("Cumulative"), value_text)]
+            return [header, "{}: {}".format(widget.tr("Cumulative"), value_text)]
 
         value = self._bin_bar_value(widget, bin_data)
         value_text = format_distribution_hover_value(value, as_percent=as_percent)
         if as_percent:
-            return [class_label, value_text]
-        return [class_label, "{}: {}".format(widget.tr("Count"), value_text)]
+            return [header, value_text]
+        return [header, "{}: {}".format(widget.tr("Count"), value_text)]
 
     def _drawHoverTooltip(self, widget, painter, plotRect, barRects):
         bin_index = widget.hoverIndex
