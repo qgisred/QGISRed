@@ -65,16 +65,16 @@
           <Option type="Map">
             <Option value="0" name="align_dash_pattern" type="QString"/>
             <Option value="square" name="capstyle" type="QString"/>
-            <Option value="0.1;2" name="customdash" type="QString"/>
-            <Option value="3x:0,0,0,0,0,0" name="customdash_map_unit_scale" type="QString"/>
+            <Option value="1.5;2.0;0.1;2.0" name="customdash" type="QString"/>
             <Option value="MM" name="customdash_unit" type="QString"/>
+            <Option value="dash" name="line_style" type="QString"/>
+            <Option value="1" name="use_custom_dash" type="QString"/>
             <Option value="0" name="dash_pattern_offset" type="QString"/>
             <Option value="3x:0,0,0,0,0,0" name="dash_pattern_offset_map_unit_scale" type="QString"/>
             <Option value="MM" name="dash_pattern_offset_unit" type="QString"/>
             <Option value="0" name="draw_inside_polygon" type="QString"/>
             <Option value="bevel" name="joinstyle" type="QString"/>
             <Option value="185,115,115,255,rgb:0.72549019607843135,0.45098039215686275,0.45098039215686275,1" name="line_color" type="QString"/>
-            <Option value="???" name="line_style" type="QString"/>
             <Option value="3.5" name="line_width" type="QString"/>
             <Option value="Pixel" name="line_width_unit" type="QString"/>
             <Option value="0" name="offset" type="QString"/>
@@ -88,7 +88,6 @@
             <Option value="3x:0,0,0,0,0,0" name="trim_distance_start_map_unit_scale" type="QString"/>
             <Option value="MM" name="trim_distance_start_unit" type="QString"/>
             <Option value="0" name="tweak_dash_pattern_on_corners" type="QString"/>
-            <Option value="1" name="use_custom_dash" type="QString"/>
             <Option value="3x:0,0,0,0,0,0" name="width_map_unit_scale" type="QString"/>
           </Option>
           <data_defined_properties>
