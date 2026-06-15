@@ -70,6 +70,7 @@ class ResultsDistributionWidget(QWidget):
         # Enabled dynamically by the results dock when a single chart is shown.
         self.show_title = False
         self.show_subtitle = False
+        self.show_x_axis_title = False
         self.outer_fill_color = PANEL_BG_COLOR
         self.marginLeft = 48
         self.marginRight = 12
@@ -161,14 +162,14 @@ class ResultsDistributionWidget(QWidget):
             top += 18
         self.marginTop = top
 
-        self._axisTickFontSize = adaptive_axis_tick_font_size(self.width(), self.height())
+        self._axisTickFontSize = adaptive_axis_tick_font_size(self.width(), self.height()) + 1
         tick_font = qfont(self._axisTickFontSize)
         font_metrics = QFontMetrics(tick_font)
         label_height = font_metrics.height() + 4
         plot_height = max(40, self.height() - self.marginTop - self.marginBottom)
         plot_width = max(40, self.width() - self.marginLeft - self.marginRight)
 
-        max_tick_label_width = 32
+        max_tick_label_width = 0
         if self.bins:
             if self.bar_mode == "relative":
                 total = self._totalCount or 1
@@ -192,7 +193,8 @@ class ResultsDistributionWidget(QWidget):
                 label = format_number_tick(tick_value, scale.step)
                 max_tick_label_width = max(max_tick_label_width, font_metrics.horizontalAdvance(label))
 
-        self.marginLeft = max(40, min(76, max_tick_label_width + 14))
+        title_strip = 22 if self.yLabelLeft else 4
+        self.marginLeft = max(34, min(76, title_strip + max_tick_label_width + 9))
 
         if has_cumulative_points:
             cumulative_max = 100.0 if self.cumulative_mode == "relative" else float(max(self._totalCount, 1))
@@ -213,8 +215,9 @@ class ResultsDistributionWidget(QWidget):
 
         plot_width = max(0, self.width() - self.marginLeft - self.marginRight)
         rotate = x_tick_labels_need_rotation(self.bins, plot_width, self._axisTickFontSize, self._TICK_CHAR_WIDTH)
+        show_x_title = bool(self.xLabel) and self.show_x_axis_title
         base_bottom = label_height + (18 if rotate else 12)
-        if self.xLabel and not rotate:
+        if show_x_title and not rotate:
             base_bottom += font_metrics.height() + 4
         self.marginBottom = max(30, min(52, base_bottom))
 
@@ -223,7 +226,7 @@ class ResultsDistributionWidget(QWidget):
             rotated_extra = rotated_x_label_extra_height(
                 self._axisTickFontSize,
                 max_label_width,
-                has_x_label=bool(self.xLabel),
+                has_x_label=show_x_title,
             )
             self._rotatedLabelExtra = cap_bottom_margin(
                 self.height(),

@@ -21,7 +21,7 @@ def adaptive_axis_tick_font_size(width, height):
 
 
 def adaptive_axis_title_font_size(tick_font_size):
-    return max(7, min(10, int(tick_font_size) + 1))
+    return max(7, min(11, int(tick_font_size) + 1))
 
 
 def cumulative_right_axis_margin(
@@ -30,7 +30,7 @@ def cumulative_right_axis_margin(
     title_text="",
     *,
     tick_offset=6,
-    title_gap=10,
+    title_gap=6,
     edge_pad=8,
     min_margin=36,
     max_margin=96,
@@ -40,8 +40,8 @@ def cumulative_right_axis_margin(
     tick_width = max((font_metrics.horizontalAdvance(label) for label in tick_labels), default=0)
     if title_text:
         title_font = qfont(adaptive_axis_title_font_size(tick_font_size), bold=True)
-        title_width = QFontMetrics(title_font).horizontalAdvance(title_text)
-        margin = tick_offset + tick_width + title_gap + title_width + edge_pad
+        title_strip = QFontMetrics(title_font).height()
+        margin = tick_offset + tick_width + title_gap + title_strip + edge_pad
     else:
         margin = tick_offset + tick_width + edge_pad
     return max(min_margin, min(max_margin, margin))

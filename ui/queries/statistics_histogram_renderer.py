@@ -262,7 +262,7 @@ class StatisticsHistogramRenderer:
                     QPointF(centerX - textWidth / 2, plotRect.bottom() + fontMetrics.ascent() + 2),
                     elided,
                 )
-        if widget.xLabel:
+        if widget.xLabel and getattr(widget, "show_x_axis_title", True):
             painter.setFont(qfont(self._titleFontSize(widget), bold=True))
             if rotate:
                 labelOffset = maxLabelWidth * ROTATED_LABEL_SIN + fontMetrics.descent() + 4
