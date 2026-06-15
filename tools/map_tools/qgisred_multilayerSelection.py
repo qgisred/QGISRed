@@ -15,6 +15,7 @@ except:
 import processing
 from ..utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ..utils.qgisred_ui_utils import QGISRedUIUtils
+from ..utils.qgisred_layer_utils import QGISRedLayerUtils
 
 
 class QGISRedMultiLayerSelection(QgsMapTool):
@@ -61,12 +62,12 @@ class QGISRedMultiLayerSelection(QgsMapTool):
         if self.rubberBand2 is not None:
             self.iface.mapCanvas().scene().removeItem(self.rubberBand2)
 
-        layers = self.canvas.layers()
-        for layer in layers:
+        self.crs = self.canvas.mapSettings().destinationCrs().authid()
+        for layer in QGISRedLayerUtils().getLayers():
             path = QGISRedFileSystemUtils().getLayerPath(layer)
             if "_Pipes.shp" in path:
-                c = layer.sourceCrs()
-                self.crs = "?crs=" + c.authid()
+                self.crs = layer.sourceCrs().authid()
+                break
 
         self.mousePoints = []
         self.rubberBand1 = None
