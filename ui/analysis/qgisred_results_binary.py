@@ -45,12 +45,12 @@ def total_water_demand_from_demands(demands, node_types):
     return total_positive
 
 
-def average_node_pressure_excluding_reservoirs(pressures, node_types):
-    """Mean nodal pressure over junctions and tanks (reservoirs excluded)."""
+def average_junction_pressure(pressures, node_types):
+    """Mean nodal pressure over junctions only (reservoirs and tanks excluded)."""
     total = 0.0
     count = 0
     for pressure, node_type in zip(pressures, node_types):
-        if node_type == _NT_RESERVOIR:
+        if node_type in (_NT_RESERVOIR, _NT_TANK):
             continue
         total += float(pressure)
         count += 1
@@ -583,7 +583,7 @@ def getOut_TimesTotalWaterDemand(out_file_path):
 
 
 def getOut_TimesAverageNodePressure(out_file_path):
-    """Time series of mean nodal pressure (junctions and tanks; reservoirs excluded)."""
+    """Time series of mean nodal pressure (junctions only; reservoirs and tanks excluded)."""
     if not os.path.exists(out_file_path):
         return []
 
@@ -607,7 +607,7 @@ def getOut_TimesAverageNodePressure(out_file_path):
                 f.seek(base + ni * 4)
                 pressures.append(struct.unpack("f", f.read(4))[0])
             time_series.append(
-                average_node_pressure_excluding_reservoirs(pressures, node_types)
+                average_junction_pressure(pressures, node_types)
             )
         return time_series
 

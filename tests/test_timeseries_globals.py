@@ -20,7 +20,7 @@ from QGISRed.ui.analysis.qgisred_results_binary import (
     _NT_JUNCTION,
     _NT_RESERVOIR,
     _NT_TANK,
-    average_node_pressure_excluding_reservoirs,
+    average_junction_pressure,
     getOut_TimesAverageNodePressure,
 )
 
@@ -82,10 +82,10 @@ class TestGetGlobalTimeseries:
         }
         assert get_global_timeseries(source, TOTAL_TANK_SPILL_KEY) == expected
 
-    def test_average_node_pressure_excludes_reservoir(self):
+    def test_average_node_pressure_excludes_reservoir_and_tank(self):
         pressures = [0.0, 30.0, 20.0, 40.0]
         node_types = [_NT_RESERVOIR, _NT_JUNCTION, _NT_JUNCTION, _NT_TANK]
-        assert average_node_pressure_excluding_reservoirs(pressures, node_types) == pytest.approx(30.0)
+        assert average_junction_pressure(pressures, node_types) == pytest.approx(25.0)
 
     def test_average_node_pressure_out(self, simple_network_out):
         source = {"kind": "out", "out_path": simple_network_out}

@@ -5,7 +5,7 @@ import struct
 from .qgisred_results_binary import (
     _LT_PUMP,
     _VALVE_TYPES,
-    average_node_pressure_excluding_reservoirs,
+    average_junction_pressure,
     _resolve_link_status,
     getOut_Metadata,
     total_water_demand_from_demands,
@@ -557,7 +557,7 @@ def getHyd_TimesTotalWaterDemand(hyd_file_path, out_file_path):
 
 
 def getHyd_TimesAverageNodePressure(hyd_file_path, out_file_path):
-    """Mean nodal pressure at each .hyd step (junctions and tanks; reservoirs excluded)."""
+    """Mean nodal pressure at each .hyd step (junctions only; reservoirs and tanks excluded)."""
     meta = getHyd_Metadata(hyd_file_path, out_file_path)
     if not meta:
         return []
@@ -575,6 +575,6 @@ def getHyd_TimesAverageNodePressure(hyd_file_path, out_file_path):
             elevation = float(elevations[i]) if i < len(elevations) else 0.0
             pressures.append((head - elevation) * pressure_factor)
         time_series.append(
-            average_node_pressure_excluding_reservoirs(pressures, node_types)
+            average_junction_pressure(pressures, node_types)
         )
     return time_series
