@@ -400,6 +400,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             for combo in combos:
                 combo.blockSignals(False)
         self.histogram.clear()
+        self._feedHistogramPopout()
         self.labelPropertyByClasses.setText("")
         self.tbExcel.setRowCount(0)
         self.tbExcel.setColumnCount(0)
@@ -410,6 +411,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.lastNullCount = 0
         self.lastOutOfRangeCount = 0
         self.histogram.clear()
+        self._feedHistogramPopout()
         self.labelPropertyByClasses.setText("")
         self.tbExcel.setRowCount(0)
         self.tbExcel.setColumnCount(0)
@@ -600,6 +602,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             return
         self.manualBreaks = []
         self.histogram.clear()
+        self._feedHistogramPopout()
         self.labelPropertyByClasses.setText("")
         self.tbExcel.setRowCount(0)
         self.tbExcel.setColumnCount(0)
@@ -1218,6 +1221,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             yLabel = self.tr("Count")
         self.histogram.setTitles("", subtitle)
         self.histogram.setBins(bins, mode="plain", xLabel=xLabel, yLabelLeft=yLabel)
+        self._feedHistogramPopout()
 
         self.populateTable(bins, prettyClassify, prettyProperty, propertyUnit, elementIdentifier, propertyField)
 
