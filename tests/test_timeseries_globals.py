@@ -8,6 +8,7 @@ from QGISRed.ui.analysis.timeseries_globals import (
     TOTAL_TANK_SPILL_KEY,
     TOTAL_WATER_DEMAND_KEY,
     TOTAL_WATER_SUPPLY_KEY,
+    assign_default_series_axes,
     get_global_timeseries,
     global_series_y_display_decimals,
     global_variable_key_from_series_key,
@@ -192,3 +193,55 @@ class TestStoredVolumeDisplayUnits:
         )
         source = {"kind": "out", "out_path": "net.out", "project_directory": "/p", "network_name": "N"}
         assert get_global_timeseries(source, TOTAL_STORED_VOLUME_KEY) == [635249.67, 654252.65]
+
+
+def _global(variable_key):
+    return {"legend_type": "global", "series_key": f"Global:g:{variable_key}:x", "magnitude": "System"}
+
+
+def _element(magnitude):
+    return {"legend_type": "qgisred_pipes", "series_key": f"Results:l:Flow:{magnitude}", "magnitude": magnitude}
+
+
+class TestAssignDefaultSeriesAxes:
+    def test_supply_and_demand_go_left_together(self):
+        series = [_global(TOTAL_WATER_SUPPLY_KEY), _global(TOTAL_WATER_DEMAND_KEY)]
+        assert assign_default_series_axes(series) == ["left", "left"]
+
+    def test_flows_left_volume_and_pressure_right(self):
+        series = [
+            _global(TOTAL_WATER_SUPPLY_KEY),
+            _global(TOTAL_WATER_DEMAND_KEY),
+            _global(TOTAL_TANK_SPILL_KEY),
+            _global(TOTAL_STORED_VOLUME_KEY),
+            _global(AVERAGE_NODE_PRESSURE_KEY),
+        ]
+        assert assign_default_series_axes(series) == ["left", "left", "left", "right", "right"]
+
+    def test_spill_stays_with_supply_demand_on_left(self):
+        series = [_global(TOTAL_WATER_SUPPLY_KEY), _global(TOTAL_WATER_DEMAND_KEY), _global(TOTAL_TANK_SPILL_KEY)]
+        assert assign_default_series_axes(series) == ["left", "left", "left"]
+
+    def test_volume_and_pressure_alone_split_across_axes(self):
+        series = [_global(TOTAL_STORED_VOLUME_KEY), _global(AVERAGE_NODE_PRESSURE_KEY)]
+        assert assign_default_series_axes(series) == ["left", "right"]
+
+    def test_volume_alone_stays_on_its_preferred_axis(self):
+        series = [_global(TOTAL_STORED_VOLUME_KEY)]
+        assert assign_default_series_axes(series) == ["right"]
+
+    def test_elements_keep_first_left_rest_right(self):
+        series = [_element("Flow (LPS)"), _element("Pressure (m)")]
+        assert assign_default_series_axes(series) == ["left", "right"]
+
+    def test_mixed_element_and_global_volume(self):
+        series = [_element("Flow (LPS)"), _global(TOTAL_STORED_VOLUME_KEY)]
+        assert assign_default_series_axes(series) == ["left", "right"]
+
+    def test_element_other_scale_pushes_system_flows_to_free_axis_together(self):
+        series = [
+            _element("Pressure (m)"),
+            _global(TOTAL_WATER_SUPPLY_KEY),
+            _global(TOTAL_WATER_DEMAND_KEY),
+        ]
+        assert assign_default_series_axes(series) == ["left", "right", "right"]

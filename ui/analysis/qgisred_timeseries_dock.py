@@ -42,6 +42,7 @@ from .timeseries_plot_renderer import TimeSeriesPlotRenderer
 from .timeseries_plot_style import DEFAULT_SERIES_COLOR, LEGEND_ICON_SIZE, LEGEND_ROW_GAP, PLOT_TOP_PAD, qfont
 from .timeseries_globals import (
     GLOBAL_SYSTEM_VARIABLE_KEYS,
+    assign_default_series_axes,
     global_axis_group_label,
     global_system_variable_choices,
     global_variable_key_from_series_key,
@@ -311,23 +312,8 @@ class TimeSeriesPlotWidget(QWidget):
 
         has_explicit = any((s.get("y_axis") or "").strip().lower() in ("left", "right") for s in self.series)
         if not has_explicit and magnitudes:
-            # System (global) magnitudes default to the right axis; the first
-            # non-system magnitude keeps the left axis and the rest go right.
-            left_mag = None
-            for s in self.series:
-                if (s.get("legend_type") or "").strip().lower() == "global":
-                    continue
-                m = (s.get("magnitude") or "").strip()
-                if m:
-                    left_mag = m
-                    break
-            for s in self.series:
-                m = (s.get("magnitude") or "").strip()
-                is_system = (s.get("legend_type") or "").strip().lower() == "global"
-                if not is_system and left_mag is not None and m == left_mag:
-                    s["y_axis"] = "left"
-                else:
-                    s["y_axis"] = "right"
+            for s, axis in zip(self.series, assign_default_series_axes(self.series)):
+                s["y_axis"] = axis
         else:
             for s in self.series:
                 axis = (s.get("y_axis") or "").strip().lower()

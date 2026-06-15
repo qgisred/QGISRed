@@ -125,6 +125,92 @@ def global_variable_key_from_series_key(series_key: str) -> str:
     return ""
 
 
+# Preferred Y axis for each system global variable when no axis is set explicitly.
+# Flow magnitudes (supply/demand/spill) go left; stored volume and average pressure
+# go right. Supply and demand share the flow scale group, so they always land together.
+GLOBAL_VARIABLE_PREFERRED_AXIS = {
+    TOTAL_WATER_SUPPLY_KEY: "left",
+    TOTAL_WATER_DEMAND_KEY: "left",
+    TOTAL_TANK_SPILL_KEY: "left",
+    TOTAL_STORED_VOLUME_KEY: "right",
+    AVERAGE_NODE_PRESSURE_KEY: "right",
+}
+
+
+def preferred_axis_for_global_variable(variable_key: str) -> str:
+    return GLOBAL_VARIABLE_PREFERRED_AXIS.get(variable_key, "left")
+
+
+def _series_scale_bucket(series: dict) -> str:
+    """Scale group of a series, used to keep compatible scales on one axis.
+
+    Supply, demand and spill share one ``global:flow`` group (same units, so they
+    never need splitting and supply/demand stay together). Stored volume and average
+    pressure each get their own group. Element series group by their magnitude label.
+    """
+    if (series.get("legend_type") or "").strip().lower() == "global":
+        variable_key = global_variable_key_from_series_key(series.get("series_key") or "")
+        if variable_key in (TOTAL_WATER_SUPPLY_KEY, TOTAL_WATER_DEMAND_KEY, TOTAL_TANK_SPILL_KEY):
+            return "global:flow"
+        if variable_key == TOTAL_STORED_VOLUME_KEY:
+            return "global:volume"
+        if variable_key == AVERAGE_NODE_PRESSURE_KEY:
+            return "global:pressure"
+        return "global:other"
+    return "element:" + (series.get("magnitude") or "").strip()
+
+
+# Order in which a scale group is relocated to fill an empty axis (most movable
+# first). ``global:flow`` moves as a single group, so produced and consumed flow
+# always stay on the same axis even when relocated.
+_AXIS_FALLBACK_MOVE_ORDER = ("global:volume", "global:pressure", "global:other", "global:flow")
+
+
+def assign_default_series_axes(series):
+    """Left/right Y axis per series when none is set explicitly.
+
+    System (global) variables follow their per-variable preference
+    (:data:`GLOBAL_VARIABLE_PREFERRED_AXIS`): produced/consumed/spilled flow on the
+    left, stored volume and average pressure on the right. Element series keep the
+    legacy layout (first magnitude left, the rest right).
+
+    When the preferences would leave one axis empty while the other carries two or
+    more distinct scale groups, one group is moved to the empty axis to maximise
+    visibility (e.g. stored volume + average pressure alone split across both axes
+    instead of crowding the right). Produced, consumed and spilled flow share one
+    scale group that always moves as a unit, so produced and consumed flow stay on
+    the same axis.
+    """
+    buckets = [_series_scale_bucket(s) for s in series]
+    ordered = []
+    for bucket in buckets:
+        if bucket not in ordered:
+            ordered.append(bucket)
+
+    first_element = next((b for b in ordered if b.startswith("element:")), None)
+    sides = {}
+    for bucket in ordered:
+        if bucket.startswith("global:"):
+            variable_axis = "right" if bucket in ("global:volume", "global:pressure") else "left"
+            sides[bucket] = variable_axis
+        else:
+            sides[bucket] = "left" if bucket == first_element else "right"
+
+    left_buckets = [b for b in ordered if sides[b] == "left"]
+    right_buckets = [b for b in ordered if sides[b] == "right"]
+    if len(ordered) >= 2 and (not left_buckets or not right_buckets):
+        crowded = right_buckets if not left_buckets else left_buckets
+        empty_side = "left" if not left_buckets else "right"
+        movable = next((b for b in _AXIS_FALLBACK_MOVE_ORDER if b in crowded), None)
+        if movable is None:
+            extra_elements = [b for b in crowded if b.startswith("element:") and b != first_element]
+            movable = extra_elements[-1] if extra_elements else None
+        if movable is not None:
+            sides[movable] = empty_side
+
+    return [sides[bucket] for bucket in buckets]
+
+
 def global_variable_unit_abbreviation(variable_key: str) -> str:
     from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 

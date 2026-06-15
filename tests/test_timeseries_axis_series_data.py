@@ -148,7 +148,7 @@ def test_y_axis_title_enriches_system_when_sharing_axis_with_unit_bearing_magnit
     assert w._y_label_right == "System (gpm)"
 
 
-def test_global_series_default_to_right_axis():
+def test_global_series_default_axes_by_variable():
     w = _timeseries_plot_widget()
     w.series = [
         {
@@ -156,6 +156,7 @@ def test_global_series_default_to_right_axis():
             "y": [1.0, 2.0],
             "magnitude": "System",
             "legend_type": "global",
+            "series_key": "Global:g:TotalWaterSupply:x",
             "y_label_with_unit": "Total Water Supply (gpm)",
         },
         {
@@ -163,13 +164,14 @@ def test_global_series_default_to_right_axis():
             "y": [3.0, 4.0],
             "magnitude": "System",
             "legend_type": "global",
+            "series_key": "Global:g:TotalStoredVolume:x",
             "y_label_with_unit": "Total Stored Volume (ft3)",
         },
     ]
     w._assignYAxisByMagnitude()
-    assert [s["y_axis"] for s in w.series] == ["right", "right"]
-    assert w._y_label_right == "System (gpm, ft3)"
-    assert w._y_label_left == ""
+    assert [s["y_axis"] for s in w.series] == ["left", "right"]
+    assert w._y_label_left == "System (gpm)"
+    assert w._y_label_right == "System (ft3)"
 
 
 def test_first_non_system_magnitude_keeps_left_axis_with_system_on_right():
