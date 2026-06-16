@@ -99,7 +99,7 @@
     <message>
         <location filename="../sections/analysis_section.py" line="1606"/>
         <source>Junction</source>
-        <translation>Nó</translation>
+        <translation>Junção</translation>
     </message>
     <message>
         <location filename="../sections/analysis_section.py" line="1607"/>
@@ -360,7 +360,7 @@
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="167"/>
         <source>Junctions ranged by</source>
-        <translation>Nós classificados por</translation>
+        <translation>Junções classificadas por</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_thematicmaps_dialog.ui" line="173"/>
@@ -1267,7 +1267,7 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="194"/>
         <source>Junctions</source>
-        <translation>Nós</translation>
+        <translation>Junções</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="195"/>
@@ -1623,7 +1623,7 @@
     <message>
         <location filename="../sections/menu_section.py" line="378"/>
         <source>Merge/Dissolve junctions</source>
-        <translation>Mesclar/Dissolver nós</translation>
+        <translation>Mesclar/Dissolver junções</translation>
     </message>
     <message>
         <location filename="../sections/menu_section.py" line="388"/>
@@ -2219,7 +2219,7 @@ Deseja também excluir os arquivos de resultados do disco?</translation>
     <message>
         <location filename="../ui/digitaltwin/qgisred_toolConnections_dialog.ui" line="65"/>
         <source>Junctions</source>
-        <translation>Nós</translation>
+        <translation>Junções</translation>
     </message>
     <message>
         <location filename="../ui/digitaltwin/qgisred_toolConnections_dialog.ui" line="102"/>
@@ -2484,7 +2484,7 @@ Deseja também excluir os arquivos de resultados do disco?</translation>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="110"/>
         <source>Junction</source>
-        <translation>Nó</translation>
+        <translation>Junção</translation>
     </message>
     <message>
         <location filename="../ui/queries/qgisred_element_explorer_dock.py" line="112"/>
@@ -3016,7 +3016,7 @@ Deseja também excluir os arquivos de resultados do disco?</translation>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1097"/>
         <source>Junctions</source>
-        <translation>Nós</translation>
+        <translation>Junções</translation>
     </message>
     <message>
         <location filename="../ui/general/qgisred_import_dialog.ui" line="1107"/>
@@ -3477,12 +3477,12 @@ Deseja também excluir os arquivos de resultados do disco?</translation>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="264"/>
         <source>Junctions</source>
-        <translation>Nós</translation>
+        <translation>Junções</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="289"/>
         <source>Create Junction Layer</source>
-        <translation>Criar Camada de Nós</translation>
+        <translation>Criar Camada de Junções</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_layermanagement_dialog.ui" line="306"/>
@@ -5572,7 +5572,7 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2362"/>
         <source>Junction</source>
-        <translation>Nó</translation>
+        <translation>Junção</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_dock.py" line="2363"/>
