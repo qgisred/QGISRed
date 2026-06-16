@@ -224,6 +224,7 @@ class ToolsSection:
 
         # Process
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        self.especificComplementaryLayers = ["ServiceConnections"]
         resMessage = GISRed.DemandsBuilder(self.ProjectDirectory,
             self.NetworkName,
             self.tempFolder,
