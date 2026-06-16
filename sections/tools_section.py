@@ -6,7 +6,7 @@ from qgis.PyQt.QtCore import Qt, QVariant
 from qgis.PyQt.QtGui import QColor
 from qgis.core import QgsProject, QgsLayerTreeGroup, QgsSingleSymbolRenderer, QgsSymbol, QgsCategorizedSymbolRenderer, QgsRendererCategory
 from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling, QgsTextFormat, QgsProperty
-from random import randint
+import hashlib
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
@@ -322,12 +322,23 @@ class ToolsSection:
         self.blockLayers(False)
         self.processCsharpResult(resMessage, "", layerType="isolatedSegments")
 
+    def _colorForDemandCategory(self, category):
+        text = "" if category is None else str(category).strip()
+
+        if text == "" or text.lower() in ("null", "undefined"):
+            return QColor("orange")
+
+        normalized = text.lower()
+        digest = hashlib.md5(normalized.encode("utf-8")).hexdigest()
+        hue = int(digest[:8], 16) % 360
+
+        color = QColor()
+        color.setHsv(hue, 180, 220)
+        return color
+
     def _applyDemandsBuilderStyle(self, vlayer):
         geom_type = vlayer.geometryType()
         field_index = vlayer.fields().indexFromName("Category")
-
-        if not hasattr(self, "category_colors"):
-            self.category_colors = {}
 
         if field_index != -1:
             unique_cats = set()
@@ -352,15 +363,10 @@ class ToolsSection:
                 )
 
             for cat in sorted(unique_cats):
-                if cat not in self.category_colors:
-                    self.category_colors[cat] = QColor.fromRgb(
-                        randint(0, 255),
-                        randint(0, 255),
-                        randint(0, 255)
-                    )
+                color = self._colorForDemandCategory(cat)
 
                 symbol = QgsSymbol.defaultSymbol(geom_type)
-                symbol.setColor(self.category_colors[cat])
+                symbol.setColor(color)
 
                 categories.append(
                     QgsRendererCategory(cat, symbol, cat)
@@ -410,8 +416,13 @@ class ToolsSection:
             if has_uncategorized:
                 color_expression += "WHEN \"Category\" IS NULL OR trim(\"Category\") = '' OR lower(trim(\"Category\")) IN ('null', 'undefined') THEN 'orange' "
             for cat in sorted(unique_cats):
-                hex_color = self.category_colors[cat].name()  # Returns #RRGGBB
-                color_expression += f"WHEN trim(\"Category\") = '{cat}' THEN '{hex_color}' "
+                safe_cat = cat.replace("'", "''")
+                hex_color = self._colorForDemandCategory(cat).name()
+
+                color_expression += (
+                    f"WHEN trim(\"Category\") = '{safe_cat}' "
+                    f"THEN '{hex_color}' "
+                )
             color_expression += "ELSE 'gray' END"
             
             label_settings.dataDefinedProperties().setProperty(QgsPalLayerSettings.Color, QgsProperty.fromExpression(color_expression))
