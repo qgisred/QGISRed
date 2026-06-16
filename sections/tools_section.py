@@ -337,6 +337,17 @@ class ToolsSection:
         return color
 
     def _applyDemandsBuilderStyle(self, vlayer):
+        from ..tools.utils.qgisred_styling_utils import QGISRedStylingUtils
+
+        if "IsolatedDemandsServiceConnections" in vlayer.name():
+            QGISRedStylingUtils(
+                self.ProjectDirectory,
+                self.NetworkName,
+                self.iface
+            ).setStyle(vlayer, "DemandsBuilderIsolatedDemandsServiceConnections")
+            vlayer.triggerRepaint()
+            return
+        
         geom_type = vlayer.geometryType()
         field_index = vlayer.fields().indexFromName("Category")
 
