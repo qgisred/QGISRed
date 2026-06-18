@@ -1417,12 +1417,12 @@
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="221"/>
         <source>DemBuil_Isolated Demands Connections</source>
-        <translation type="unfinished"></translation>
+        <translation>DemBuil_Conexões de Consumos Isolados</translation>
     </message>
     <message>
         <location filename="../tools/qgisred_translatable_strings.py" line="222"/>
         <source>DemBuil_Efficiency Sectors</source>
-        <translation type="unfinished"></translation>
+        <translation>DemBuil_Setores de Eficiência</translation>
     </message>
 </context>
 <context>
@@ -3876,12 +3876,12 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="3729"/>
         <source>Legend loaded from %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Legenda carregada de %1.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_legends_dialog.py" line="3732"/>
         <source>Strategy loaded into the dialog from %1. Press Apply to update the layer.</source>
-        <translation type="unfinished"></translation>
+        <translation>Estratégia carregada no diálogo a partir de %1. Pressione Aplicar para atualizar a camada.</translation>
     </message>
 </context>
 <context>
@@ -4913,22 +4913,22 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1181"/>
         <source>Proportional to value</source>
-        <translation type="unfinished"></translation>
+        <translation>Proporcional ao valor</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1168"/>
         <source>Symbology</source>
-        <translation type="unfinished"></translation>
+        <translation>Simbologia</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1174"/>
         <source>Black border on nodes</source>
-        <translation type="unfinished"></translation>
+        <translation>Borda preta nos nós</translation>
     </message>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1188"/>
         <source>Factor</source>
-        <translation type="unfinished"></translation>
+        <translation>Fator</translation>
     </message>
 </context>
 <context>
@@ -4961,32 +4961,32 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="72"/>
         <source>All Classes</source>
-        <translation type="unfinished"></translation>
+        <translation>Todas as Classes</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="84"/>
         <source>Save legend for %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Salvar legenda para %1</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="101"/>
         <source>Global level</source>
-        <translation type="unfinished"></translation>
+        <translation>Nível global</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="101"/>
         <source>Project level</source>
-        <translation type="unfinished"></translation>
+        <translation>Nível do projeto</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="102"/>
         <source>The current legend will be saved exactly as shown, at %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>A legenda atual será salva exatamente como exibida, em %1.</translation>
     </message>
     <message>
         <location filename="../ui/project/qgisred_custom_dialogs.py" line="104"/>
         <source>To save a strategy that regenerates the legend automatically instead, tick the parts to keep:</source>
-        <translation type="unfinished"></translation>
+        <translation>Para salvar, em vez disso, uma estratégia que regenera a legenda automaticamente, marque as partes a manter:</translation>
     </message>
 </context>
 <context>
@@ -6329,7 +6329,7 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
     <message>
         <location filename="../ui/analysis/qgisred_timeseries_axis_dialog.py" line="1410"/>
         <source>Grid color</source>
-        <translation type="unfinished"></translation>
+        <translation>Cor da grade</translation>
     </message>
 </context>
 <context>
