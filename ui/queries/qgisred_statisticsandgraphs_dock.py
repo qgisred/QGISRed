@@ -247,6 +247,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         barLayout.setSpacing(8)
         barLayout.addWidget(self.labelStatistic)
         barLayout.addWidget(self.cbStatistic)
+        barLayout.addWidget(self.labelSecondClassValue)
+        barLayout.addWidget(self.cbSecondClassValue)
         barLayout.addStretch(1)
         barLayout.addWidget(self.btHistogramExpand)
         self.verticalLayout_2.insertWidget(statisticIndex, self._statisticControlsBar)
@@ -1595,7 +1597,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         groupLabel = self.cbSecondClassValue.currentText()
         prettySecond = self.fieldUtils.getProperty(normalize_element(elementIdentifier), secondField) or secondField
         if secondBreaks is not None and secondBreaks["type"] != "categorical":
-            return "{} {} {} {} {}".format(base, self.tr("for"), prettySecond, self.tr("on range"), groupLabel)
+            return "{} {} {} {} {}".format(base, self.tr("for"), prettySecond, self.tr("on Range"), groupLabel)
         return "{} {} {} {}".format(base, self.tr("for"), prettySecond, groupLabel)
 
     def restoreStatisticSelection(self, previousData):
