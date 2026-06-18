@@ -295,7 +295,27 @@ class _ResultsRenderingMixin:
             value_expr = f'format_number("{fieldName}", {decimals})'
 
         if show_id:
-            full_expr = f'"Id" || \' - \' || ({value_expr})'
+            element = "Nodes" if is_node else "Links"
+            unit_field = "Flow" if fieldName in ("Flow_Sig", "Flow_Unsig") else fieldName
+            unit = QGISRedFieldUtils().getUnitAbbreviation(element, unit_field)
+            unit_suffix = f' || \' {unit}\'' if unit else ''
+
+            _TYPE_KEYS = ["JUNCTION", "RESERVOIR", "TANK", "PIPE", "PUMP", "VALVE"]
+            cases = " ".join(
+                f"WHEN \"Type\" = '{k}' THEN '{self.tr(k.title())}'"
+                for k in _TYPE_KEYS
+            )
+            line1 = f'(CASE {cases} ELSE "Type" END) || \' \' || "Id"'
+
+            if time_field:
+                raw_val = f'format_number(round("{fieldName}", {decimals}), {decimals})'
+                line2 = f'{raw_val}{unit_suffix} || \' - \' || "{time_field}"'
+            elif fieldName == "Flow":
+                line2 = f'format_number(abs("Flow"), {decimals}){unit_suffix}'
+            else:
+                line2 = f'format_number("{fieldName}", {decimals}){unit_suffix}'
+
+            full_expr = f'({line1}) || \'\\n\' || ({line2})'
         else:
             full_expr = value_expr
 
