@@ -1703,17 +1703,21 @@ class QGISRedResultsDock(
         self.openAllResultsProcess()
 
     def openAllResultsProcess(self):
-        # Ensure result layers are opened
-        self.ensureResultsLayersAreOpen()
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        try:
+            # Ensure result layers are opened
+            self.ensureResultsLayersAreOpen()
 
-        # Complete attribute table with results (stats or time-step depending on current mode)
-        self.clearResultFields()
-        if self._statsMode:
-            self.completeStatsLayers()
-        else:
-            self.completeResultLayers()
+            # Complete attribute table with results (stats or time-step depending on current mode)
+            self.clearResultFields()
+            if self._statsMode:
+                self.completeStatsLayers()
+            else:
+                self.completeResultLayers()
 
-        self.paintIntervalTimeResults(True)
+            self.paintIntervalTimeResults(True)
+        finally:
+            QApplication.restoreOverrideCursor()
 
         # Defer final visibility application to ensure the layer is fully ready
         QTimer.singleShot(200, self.forceFinalFieldsVisibility)
