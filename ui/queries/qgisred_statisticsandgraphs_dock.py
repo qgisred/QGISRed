@@ -1087,7 +1087,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
     def updateAttributes(self):
         self.suspendCascade = True
         self.cbAttribute.clear()
-        self.cbAttribute.addItem(self.tr("(no filter)"), "")
+        self.cbAttribute.addItem(self.tr("No Filter"), "")
         layer = self.resolveLayer()
         if layer is None:
             self.suspendCascade = False
