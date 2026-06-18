@@ -1005,6 +1005,5 @@
   </conditionalstyles>
   <storedexpressions/>
   <previewExpression>"Id"</previewExpression>
-  <mapTip enabled="1">Pressure: [% "T0" %]</mapTip>
   <layerGeometryType>0</layerGeometryType>
 </qgis>

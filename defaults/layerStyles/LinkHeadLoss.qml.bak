@@ -2018,6 +2018,5 @@
   </conditionalstyles>
   <storedexpressions/>
   <previewExpression>COALESCE( "Id", '&lt;NULL>' )</previewExpression>
-  <mapTip enabled="1">HeadLoss: [% "T0" %]</mapTip>
   <layerGeometryType>1</layerGeometryType>
 </qgis>
