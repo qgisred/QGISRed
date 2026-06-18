@@ -117,6 +117,7 @@ class _ResultsAppearanceMixin:
         self._pipeFactor = self.dspPipeFactor.value()
         self._symbolFactor = self.dspSymbolFactor.value()
         self._arrowFactor = self.dspArrowFactor.value()
+        self._proportional = self.cbProportional.isChecked()
         self._saveAppearanceSettings()
         node_layer = self._findResultLayer("Node")
         link_layer = self._findResultLayer("Link")
@@ -172,6 +173,7 @@ class _ResultsAppearanceMixin:
         self._pipeFactor = 1.0
         self._symbolFactor = 1.0
         self._arrowFactor = 1.0
+        self._proportional = False
         self._bgColor = None
 
         self.spFontSize.blockSignals(True)
@@ -192,6 +194,9 @@ class _ResultsAppearanceMixin:
         self.dspArrowFactor.blockSignals(True)
         self.dspArrowFactor.setValue(1.0)
         self.dspArrowFactor.blockSignals(False)
+        self.cbProportional.blockSignals(True)
+        self.cbProportional.setChecked(False)
+        self.cbProportional.blockSignals(False)
         self.btBgColor.setStyleSheet("")
         self.btBgColor.setText(QCoreApplication.translate("QGISRedResultsDock", "No color"))
         self.btClearBgColor.setEnabled(False)
@@ -229,7 +234,8 @@ class _ResultsAppearanceMixin:
         ET.SubElement(root, "Symbols",
                       pipeFactor=str(self._pipeFactor),
                       symbolFactor=str(self._symbolFactor),
-                      arrowFactor=str(self._arrowFactor))
+                      arrowFactor=str(self._arrowFactor),
+                      proportional="true" if self._proportional else "false")
         ET.SubElement(root, "Background",
                       color=self._bgColor.name() if self._bgColor else "")
         try:
@@ -268,6 +274,7 @@ class _ResultsAppearanceMixin:
                     self._pipeFactor = float(symbols.get("pipeFactor", 1.0))
                     self._symbolFactor = float(symbols.get("symbolFactor", 1.0))
                     self._arrowFactor = float(symbols.get("arrowFactor", 1.0))
+                    self._proportional = symbols.get("proportional", "false") == "true"
 
                 bg = root.find("Background")
                 if bg is not None:
@@ -298,6 +305,9 @@ class _ResultsAppearanceMixin:
         self.dspArrowFactor.blockSignals(True)
         self.dspArrowFactor.setValue(self._arrowFactor)
         self.dspArrowFactor.blockSignals(False)
+        self.cbProportional.blockSignals(True)
+        self.cbProportional.setChecked(self._proportional)
+        self.cbProportional.blockSignals(False)
         if self._bgColor:
             self.btBgColor.setStyleSheet(f"background-color: {self._bgColor.name()};")
             self.btBgColor.setText(self._bgColor.name())

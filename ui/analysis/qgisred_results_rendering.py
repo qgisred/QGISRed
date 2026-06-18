@@ -14,7 +14,7 @@ from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils, _NULL_RULE
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 
-# Compatibility shim for QgsSymbolLayer.PropertySize (enum may be scoped in QGIS 4.x)
+# Compatibility shims for QgsSymbolLayer property enums (may be scoped in QGIS 4.x)
 try:
     _SL_PROP_SIZE = QgsSymbolLayer.PropertySize
 except AttributeError:
@@ -23,12 +23,59 @@ except AttributeError:
     except AttributeError:
         _SL_PROP_SIZE = 9  # historical fallback
 
+try:
+    _SL_PROP_STROKE_WIDTH = QgsSymbolLayer.PropertyStrokeWidth
+except AttributeError:
+    try:
+        _SL_PROP_STROKE_WIDTH = QgsSymbolLayer.Property.StrokeWidth
+    except AttributeError:
+        _SL_PROP_STROKE_WIDTH = 6  # historical fallback
+
 # Base sizes from the node and link result QML files. These are the values when factor = 1.0.
 _BASE_PIPE_WIDTH       = 0.26  # mm — SimpleLine width in LinkFlow.qml (and other link styles)
 _BASE_ARROW_SIZE       = 3.0   # mm — arrow sub-symbol in setArrowsVisibility
 _BASE_JUNCTION_SIZE    = 2.0   # mm — SimpleMarker for junctions in NodePressure.qml
 _BASE_SPECIAL_SIZE     = 7.0   # mm — SvgMarker for tanks/reservoirs in NodePressure.qml
 _BASE_VALVE_PUMP_SIZE  = 6.0   # mm — SvgMarker for pumps/valves in LinkFlow.qml (indices 1, 2)
+
+
+def _build_node_size_expr(expr, junction_str, special_str):
+    """Build a node symbol-layer size expression from type keywords in expr.
+
+    junction_str / special_str can be a plain number ("2.0") or any QGIS expression
+    string (e.g. 'scale_linear(...)').  The result is always rebuilt from scratch so
+    it is correct regardless of whether expr is already a scale_linear call or an
+    absolute-size expression.
+    """
+    s = expr.strip()
+    has_tank = "'TANK'" in s
+    has_res  = "'RESERVOIR'" in s
+    if has_tank and not has_res:
+        return f"if(Type ='TANK', {special_str}, 0)"
+    if has_res and not has_tank:
+        return f"if(Type ='RESERVOIR', {special_str}, 0)"
+    if has_tank and has_res:
+        return f"if(Type ='RESERVOIR' or Type='TANK', 0, {junction_str})"
+    return junction_str
+
+
+def _apply_proportional_node_size(expr, field, field_min, field_max, junction_size, special_size):
+    """Build a scale_linear expression for a node symbol layer in proportional mode.
+
+    The factor size is the floor (minimum actual value → factor size).
+    The maximum actual value gets 2 × factor size, so nodes remain proportional
+    without becoming excessively large.
+    Falls back to absolute sizes when the range is degenerate (min == max).
+    """
+    fmin = round(field_min, 6)
+    fmax = round(field_max, 6)
+    if fmin == fmax:
+        return _build_node_size_expr(expr, str(junction_size), str(special_size))
+    j_max = round(junction_size * 2, 6)
+    s_max = round(special_size  * 2, 6)
+    scale_j = f'scale_linear("{field}", {fmin}, {fmax}, {junction_size}, {j_max})'
+    scale_s = f'scale_linear("{field}", {fmin}, {fmax}, {special_size}, {s_max})'
+    return _build_node_size_expr(expr, scale_j, scale_s)
 
 
 def _apply_absolute_node_size(expr, junction_size, special_size):
@@ -199,11 +246,12 @@ class _ResultsRenderingMixin:
                         layer_to_paint.triggerRepaint()
                         continue
 
-                    self.setGraduatedPalette(layer_to_paint, field, setRender, nameLayer)
-
-                    # Store current displayed variable
+                    # Store BEFORE setGraduatedPalette so applySymbolScaleFactors
+                    # picks up the correct field name when in proportional mode.
                     if "Link" in nameLayer: self.displayingLinkField = field
                     else: self.displayingNodeField = field
+
+                    self.setGraduatedPalette(layer_to_paint, field, setRender, nameLayer)
 
                     # Persist variable in the QGIS project so updateMetadata can read it.
                     # Storing on the layer itself is unreliable because orderResultLayers
@@ -379,8 +427,10 @@ class _ResultsRenderingMixin:
     def applySymbolScaleFactors(self, layer):
         """Apply Appearance-tab factors to result layer symbols using absolute target sizes.
 
+        When _proportional is True, sizes scale with the displayed field value using
+        scale_linear expressions; the factor still controls the maximum size.
         Sizes are always computed as BASE_SIZE × factor, so repeated calls with the same
-        factor are idempotent and no state about the previous call needs to be tracked.
+        arguments are idempotent and no state about the previous call needs to be tracked.
         """
         is_line  = layer.geometryType() == 1
         is_point = layer.geometryType() == 0
@@ -397,6 +447,24 @@ class _ResultsRenderingMixin:
         target_special     = round(_BASE_SPECIAL_SIZE    * symbol_factor, 6)
         target_valve_pump  = round(_BASE_VALVE_PUMP_SIZE * pipe_factor, 6)
 
+        proportional = getattr(self, '_proportional', False)
+        field = (self.displayingNodeField if is_point else self.displayingLinkField) or ""
+        can_be_proportional = proportional and bool(field) and field != "Status"
+
+        # Pre-compute field range once (used by all rules in the loop).
+        prop_field_min = prop_field_max = prop_field_max_abs = 0.0
+        if can_be_proportional:
+            try:
+                field_idx = layer.fields().indexOf(field)
+                if field_idx >= 0:
+                    prop_field_min = layer.minimumValue(field_idx) or 0.0
+                    prop_field_max = layer.maximumValue(field_idx) or 0.0
+                    prop_field_max_abs = max(abs(prop_field_min), abs(prop_field_max))
+                else:
+                    can_be_proportional = False
+            except Exception:
+                can_be_proportional = False
+
         renderer = layer.renderer()
         if not isinstance(renderer, QgsRuleBasedRenderer):
             return  # result layers are always rule-based after applyNullStyle
@@ -409,6 +477,24 @@ class _ResultsRenderingMixin:
             if is_line:
                 # Pipe width — direct absolute assignment
                 sym.setWidth(target_pipe_width)
+                # Proportional pipe width via data-defined property on the main line symbol layer.
+                sl0 = sym.symbolLayer(0)
+                if sl0 is not None:
+                    try:
+                        if can_be_proportional and prop_field_max_abs > 0:
+                            pipe_max = round(target_pipe_width * 4, 6)
+                            prop_expr = (
+                                f'scale_linear(abs("{field}"), 0, {prop_field_max_abs},'
+                                f' {target_pipe_width}, {pipe_max})'
+                            )
+                            sl0.setDataDefinedProperty(
+                                _SL_PROP_STROKE_WIDTH,
+                                QgsProperty.fromExpression(prop_expr))
+                        else:
+                            sl0.setDataDefinedProperty(
+                                _SL_PROP_STROKE_WIDTH, QgsProperty())
+                    except Exception:
+                        pass
                 # Pump/valve SVG icon sizes (MarkerLine at indices 1, 2).
                 # Scale with pipe_factor since they are link elements.
                 for icon_idx in (1, 2):
@@ -476,7 +562,14 @@ class _ResultsRenderingMixin:
                         if not size_prop.isActive():
                             continue
                         old_expr = size_prop.expressionString()
-                        new_expr = _apply_absolute_node_size(old_expr, target_junction, target_special)
+                        if can_be_proportional:
+                            new_expr = _apply_proportional_node_size(
+                                old_expr, field,
+                                prop_field_min, prop_field_max,
+                                target_junction, target_special)
+                        else:
+                            new_expr = _build_node_size_expr(
+                                old_expr, str(target_junction), str(target_special))
                         if new_expr != old_expr:
                             ddp.setProperty(_SL_PROP_SIZE, QgsProperty.fromExpression(new_expr))
                             sl.setDataDefinedProperties(ddp)

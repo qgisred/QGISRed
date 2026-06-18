@@ -148,6 +148,7 @@ class QGISRedResultsDock(
         self.dspPipeFactor.valueChanged.connect(self._onSymbolFactorChanged)
         self.dspSymbolFactor.valueChanged.connect(self._onSymbolFactorChanged)
         self.dspArrowFactor.valueChanged.connect(self._onSymbolFactorChanged)
+        self.cbProportional.toggled.connect(self._onSymbolFactorChanged)
         self.btBgColor.clicked.connect(self._onBgColorClicked)
         self.btClearBgColor.clicked.connect(self._onClearBgColor)
         self.btResetAppearance.clicked.connect(self._onResetAppearance)
@@ -168,6 +169,7 @@ class QGISRedResultsDock(
         self._pipeFactor = 1.0
         self._symbolFactor = 1.0
         self._arrowFactor = 1.0
+        self._proportional = False
         self._bgColor = None          # QColor or None
         self._savedBgColor = None     # in-memory only; not persisted
 
