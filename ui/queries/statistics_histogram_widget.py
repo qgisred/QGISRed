@@ -32,6 +32,8 @@ class StatisticsHistogramWidget(QWidget):
         self.subtitle = ""
         self.xLabel = ""
         self.yLabelLeft = ""
+        self.statKey = "count"
+        self.valueKey = None
         self.hoverIndex = None
         self._barRects = []
         self.zoomFactor = 1.0
@@ -49,11 +51,13 @@ class StatisticsHistogramWidget(QWidget):
         self.setMinimumSize(200, 180)
         self.setMouseTracking(True)
 
-    def setBins(self, bins, mode="plain", xLabel="", yLabelLeft=""):
+    def setBins(self, bins, mode="plain", xLabel="", yLabelLeft="", statKey="count", valueKey=None):
         self.bins = list(bins or [])
         self.mode = mode if mode in ("cumulative", "intensive", "plain") else "plain"
         self.xLabel = xLabel or ""
         self.yLabelLeft = yLabelLeft or ""
+        self.statKey = statKey or "count"
+        self.valueKey = valueKey
         self.hoverIndex = None
         self.zoomFactor = 1.0
         self.panOffset = 0.0
@@ -78,11 +82,34 @@ class StatisticsHistogramWidget(QWidget):
         self.subtitle = ""
         self.xLabel = ""
         self.yLabelLeft = ""
+        self.statKey = "count"
+        self.valueKey = None
         self.hoverIndex = None
         self.zoomFactor = 1.0
         self.panOffset = 0.0
         self._fitMargins()
         self.update()
+
+    def barValueFor(self, binData):
+        if self.mode == "cumulative":
+            return binData.get("sum", 0.0)
+        if self.mode == "intensive":
+            return binData.get("avg", 0.0) if binData.get("count", 0) else 0.0
+        if self.valueKey is not None:
+            return binData.get("values", {}).get(self.valueKey, 0)
+        if self.statKey == "sum":
+            return binData.get("sum", 0.0) if binData.get("count", 0) else 0.0
+        if self.statKey == "avg":
+            return binData.get("avg", 0.0) if binData.get("count", 0) else 0.0
+        if self.statKey == "stddev":
+            return binData.get("stddev", 0.0) if binData.get("count", 0) > 1 else 0.0
+        if self.statKey == "min":
+            minValue = binData.get("min")
+            return minValue if minValue is not None else 0.0
+        if self.statKey == "max":
+            maxValue = binData.get("max")
+            return maxValue if maxValue is not None else 0.0
+        return binData.get("count", 0)
 
     def resizeEvent(self, event):
         super(StatisticsHistogramWidget, self).resizeEvent(event)
@@ -98,14 +125,7 @@ class StatisticsHistogramWidget(QWidget):
 
         plot_width_guess = max(40, self.width() - self.marginLeft - self.marginRight)
         plot_height_guess = max(40, self.height() - self.marginTop - self.marginBottom)
-        values = []
-        for bin_data in self.bins:
-            if self.mode == "cumulative":
-                values.append(bin_data.get("sum", 0.0))
-            elif self.mode == "intensive":
-                values.append(bin_data.get("avg", 0.0) if bin_data.get("count", 0) else 0.0)
-            else:
-                values.append(bin_data.get("count", 0))
+        values = [self.barValueFor(bin_data) for bin_data in self.bins]
         if not values:
             values = [0.0, 1.0]
         data_min = min(values + [0.0])

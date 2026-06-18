@@ -120,10 +120,6 @@ class StatisticsHistogramRenderer:
         painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, elided)
 
     def _bin_bar_value(self, widget, binData):
-        if widget.mode == "cumulative":
-            return binData.get("sum", 0.0)
-        if widget.mode == "intensive":
-            return binData.get("avg", 0.0) if binData.get("count", 0) else 0.0
         if widget.mode == "relative":
             total_count = getattr(widget, "_totalCount", 0) or sum(
                 item.get("count", 0) for item in widget.bins
@@ -131,7 +127,7 @@ class StatisticsHistogramRenderer:
             if total_count <= 0:
                 return 0.0
             return (binData.get("count", 0) / float(total_count)) * 100.0
-        return binData.get("count", 0)
+        return widget.barValueFor(binData)
 
     def _computeLeftScale(self, widget, plotRect):
         values = []

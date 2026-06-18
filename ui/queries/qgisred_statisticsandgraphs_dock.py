@@ -161,6 +161,12 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.lastOutOfRangeCount = 0
         self.manualBreaks = []
         self.isEnumeratedTarget = False
+        self._chartBins = []
+        self._chartPrettyProperty = ""
+        self._chartPropertyUnit = ""
+        self._chartXLabel = ""
+        self._chartSubtitle = ""
+        self._chartUseSum = False
         self.connectedLayerNodes = []
         self.connectedGroups = []
         self.layerTreeChangeTimer = QTimer()
@@ -282,8 +288,17 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             mode="plain",
             xLabel=self.histogram.xLabel,
             yLabelLeft=self.histogram.yLabelLeft,
+            statKey=self.histogram.statKey,
+            valueKey=self.histogram.valueKey,
         )
         popout.setWindowTitle(self.labelPropertyByClasses.text())
+
+    def clearChart(self):
+        self.histogram.clear()
+        self.cbStatistic.blockSignals(True)
+        self.cbStatistic.clear()
+        self.cbStatistic.blockSignals(False)
+        self._chartBins = []
 
     def setupIcons(self):
         self.btImport.setIcon(QIcon(":/images/iconStatisticsImport.svg"))
@@ -297,7 +312,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         for widget in (
             self.cbElementType, self.cbProperty, self.cbClassifiedBy, self.cbRanged,
             self.cbAttribute, self.cbCondition, self.cbValue, self.leFrom, self.leTo,
-            self.cbClasses, self.spinIntervalRange,
+            self.cbClasses, self.spinIntervalRange, self.cbStatistic,
         ):
             widget.setStyleSheet(WHITE_STYLE)
 
@@ -311,6 +326,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.cbRanged.currentIndexChanged.connect(self.onRangedChanged)
         self.cbAttribute.currentIndexChanged.connect(self.onAttributeChanged)
         self.cbCondition.currentIndexChanged.connect(self.onConditionChanged)
+        self.cbStatistic.currentIndexChanged.connect(self.onStatisticChanged)
+        self.cbStatistic.currentIndexChanged.connect(lambda: self.updateComboBoxBackground(self.cbStatistic))
         self.btAnalyze.clicked.connect(self.analyze)
         self.btImport.clicked.connect(self.importConfig)
         self.btExport.clicked.connect(self.exportConfig)
@@ -399,7 +416,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         finally:
             for combo in combos:
                 combo.blockSignals(False)
-        self.histogram.clear()
+        self.clearChart()
         self._feedHistogramPopout()
         self.labelPropertyByClasses.setText("")
         self.tbExcel.setRowCount(0)
@@ -410,7 +427,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.manualBreaks = []
         self.lastNullCount = 0
         self.lastOutOfRangeCount = 0
-        self.histogram.clear()
+        self.clearChart()
         self._feedHistogramPopout()
         self.labelPropertyByClasses.setText("")
         self.tbExcel.setRowCount(0)
@@ -601,7 +618,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         if self.suspendCascade:
             return
         self.manualBreaks = []
-        self.histogram.clear()
+        self.clearChart()
         self._feedHistogramPopout()
         self.labelPropertyByClasses.setText("")
         self.tbExcel.setRowCount(0)
@@ -1215,15 +1232,69 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.labelPropertyByClasses.setText("{} {} {}".format(prettyProperty, self.tr("by"), prettyClassify))
         subtitle = self.buildSubtitle(elementIdentifier)
         xLabel = "{} ({})".format(prettyClassify, classifyUnit) if classifyUnit else prettyClassify
-        if propertyUnit and not self.isEnumeratedTarget:
-            yLabel = "{} ({})".format(prettyProperty, propertyUnit)
-        else:
-            yLabel = self.tr("Count")
+        useSum = self.usesSumColumn(propertyField, elementIdentifier)
+        self._chartBins = bins
+        self._chartPrettyProperty = prettyProperty
+        self._chartPropertyUnit = propertyUnit
+        self._chartXLabel = xLabel
+        self._chartSubtitle = subtitle
+        self._chartUseSum = useSum
         self.histogram.setTitles("", subtitle)
-        self.histogram.setBins(bins, mode="plain", xLabel=xLabel, yLabelLeft=yLabel)
-        self._feedHistogramPopout()
+        self.populateStatisticOptions(bins, useSum)
+        self.renderChart()
 
         self.populateTable(bins, prettyClassify, prettyProperty, propertyUnit, elementIdentifier, propertyField)
+
+    def populateStatisticOptions(self, bins, useSum):
+        self.cbStatistic.blockSignals(True)
+        self.cbStatistic.clear()
+        self.cbStatistic.addItem(self.tr("Count"), ("stat", "count"))
+        if self.isEnumeratedTarget:
+            uniqueValues = set()
+            for binData in bins:
+                uniqueValues.update(binData["values"].keys())
+            for value in sorted(uniqueValues, key=lambda item: str(item)):
+                self.cbStatistic.addItem(str(value), ("value", str(value)))
+        elif useSum:
+            self.cbStatistic.addItem(self.tr("Sum"), ("stat", "sum"))
+            self.cbStatistic.addItem(self.tr("Avg"), ("stat", "avg"))
+            self.cbStatistic.addItem(self.tr("Min"), ("stat", "min"))
+            self.cbStatistic.addItem(self.tr("Max"), ("stat", "max"))
+        else:
+            self.cbStatistic.addItem(self.tr("Avg"), ("stat", "avg"))
+            self.cbStatistic.addItem(self.tr("Min"), ("stat", "min"))
+            self.cbStatistic.addItem(self.tr("Max"), ("stat", "max"))
+            self.cbStatistic.addItem(self.tr("StdD"), ("stat", "stddev"))
+        self.cbStatistic.setCurrentIndex(0)
+        self.cbStatistic.blockSignals(False)
+
+    def onStatisticChanged(self):
+        if not self._chartBins:
+            return
+        self.renderChart()
+
+    def renderChart(self):
+        kind, key = self.cbStatistic.currentData(Qt.ItemDataRole.UserRole) or ("stat", "count")
+        statKey = key if kind == "stat" else "count"
+        valueKey = key if kind == "value" else None
+        yLabel = self.statisticYLabel(kind, key)
+        self.histogram.setBins(
+            self._chartBins, mode="plain", xLabel=self._chartXLabel,
+            yLabelLeft=yLabel, statKey=statKey, valueKey=valueKey,
+        )
+        self._feedHistogramPopout()
+
+    def statisticYLabel(self, kind, key):
+        if kind == "value" or key == "count":
+            return self.tr("Count")
+        statLabels = {
+            "sum": self.tr("Sum"), "avg": self.tr("Avg"), "stddev": self.tr("StdD"),
+            "min": self.tr("Min"), "max": self.tr("Max"),
+        }
+        statLabel = statLabels.get(key, self.tr("Count"))
+        if self._chartPropertyUnit:
+            return "{} {} ({})".format(statLabel, self._chartPrettyProperty, self._chartPropertyUnit)
+        return "{} {}".format(statLabel, self._chartPrettyProperty)
 
     def isNumericField(self, layer, fieldName):
         if self.isResultProperty(fieldName):
@@ -1419,7 +1490,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             "max": None,
             "avg": 0.0,
             "stddev": 0.0,
-            "values": set(),
+            "values": {},
         }
 
     def findBinIndex(self, bins, value, breakType):
@@ -1448,7 +1519,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         binData["count"] += 1
         if self.isEnumeratedTarget:
             if value is not None:
-                binData["values"].add(str(value))
+                stringValue = str(value)
+                binData["values"][stringValue] = binData["values"].get(stringValue, 0) + 1
             return
         try:
             numericValue = float(value)
