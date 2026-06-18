@@ -141,7 +141,8 @@ class StatisticsHistogramWidget(QWidget):
             if self.mode == "relative":
                 label = label + "%"
             max_tick_label_width = max(max_tick_label_width, font_metrics.horizontalAdvance(label))
-        self.marginLeft = max(44, min(76, max_tick_label_width + 14))
+        title_space = 16 if self.yLabelLeft else 0
+        self.marginLeft = max(44, min(84, max_tick_label_width + 14 + title_space))
 
         if self.mode == "cumulative":
             right_tick_labels = [

@@ -120,12 +120,18 @@ class _StatisticsHistogramPopoutWindow(QWidget):
         self.setMinimumSize(360, 260)
         self.setStyleSheet("background-color: #f8f9fb;")
 
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(8, 8, 8, 8)
-        layout.setSpacing(6)
+        self._layout = QVBoxLayout(self)
+        self._layout.setContentsMargins(8, 8, 8, 8)
+        self._layout.setSpacing(6)
         self.chart = StatisticsHistogramWidget(self)
         self.chart.show_title = True
-        layout.addWidget(self.chart, 1)
+        self._layout.addWidget(self.chart, 1)
+
+    def attachControls(self, controlsBar):
+        self._layout.insertWidget(0, controlsBar)
+
+    def detachControls(self, controlsBar):
+        self._layout.removeWidget(controlsBar)
 
     def applyDefaultGeometry(self):
         width, height = self._DEFAULT_SIZE
@@ -229,11 +235,18 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.btHistogramExpand.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btHistogramExpand.setToolTip(self.tr("Expand histogram to a floating window"))
         self.btHistogramExpand.clicked.connect(self._toggleHistogramPopout)
-        headerRow = QHBoxLayout()
-        headerRow.setContentsMargins(0, 0, 0, 0)
-        headerRow.addStretch(1)
-        headerRow.addWidget(self.btHistogramExpand)
-        self.verticalLayout_2.insertLayout(0, headerRow)
+
+        statisticIndex = self.verticalLayout_2.indexOf(self.horizontalLayoutStatistic)
+        self.verticalLayout_2.removeItem(self.horizontalLayoutStatistic)
+        self._statisticControlsBar = QWidget()
+        barLayout = QHBoxLayout(self._statisticControlsBar)
+        barLayout.setContentsMargins(6, 0, 0, 0)
+        barLayout.setSpacing(8)
+        barLayout.addWidget(self.labelStatistic)
+        barLayout.addWidget(self.cbStatistic)
+        barLayout.addStretch(1)
+        barLayout.addWidget(self.btHistogramExpand)
+        self.verticalLayout_2.insertWidget(statisticIndex, self._statisticControlsBar)
 
     def _toggleHistogramPopout(self):
         popout = getattr(self, "_histogram_popout", None)
@@ -248,11 +261,30 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         if self._histogram_popout._default_geometry is None:
             self._histogram_popout.applyDefaultGeometry()
         self.graphWidget.hide()
+        self._moveStatisticControlsToPopout()
         self._setHistogramExpandButtonState(True)
         self._histogram_popout.show()
         self._histogram_popout.raise_()
         self._histogram_popout.activateWindow()
         self._feedHistogramPopout()
+
+    def _moveStatisticControlsToPopout(self):
+        bar = getattr(self, "_statisticControlsBar", None)
+        popout = getattr(self, "_histogram_popout", None)
+        if bar is None or popout is None:
+            return
+        self.verticalLayout_2.removeWidget(bar)
+        popout.attachControls(bar)
+
+    def _restoreStatisticControlsToDock(self):
+        bar = getattr(self, "_statisticControlsBar", None)
+        if bar is None:
+            return
+        popout = getattr(self, "_histogram_popout", None)
+        if popout is not None:
+            popout.detachControls(bar)
+        graphIndex = self.verticalLayout_2.indexOf(self.graphWidget)
+        self.verticalLayout_2.insertWidget(graphIndex, bar)
 
     def _closeHistogramPopout(self):
         popout = getattr(self, "_histogram_popout", None)
@@ -266,6 +298,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
 
     def _finishHistogramPopoutClose(self):
         self._setHistogramExpandButtonState(False)
+        self._restoreStatisticControlsToDock()
         self.graphWidget.show()
 
     def _setHistogramExpandButtonState(self, expanded):
