@@ -119,7 +119,7 @@ class StatisticsHistogramRenderer:
         )
         painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, elided)
 
-    def _binBarValue(self, widget, binData):
+    def _bin_bar_value(self, widget, binData):
         if widget.mode == "relative":
             totalCount = getattr(widget, "_totalCount", 0) or sum(
                 item.get("count", 0) for item in widget.bins
@@ -132,7 +132,7 @@ class StatisticsHistogramRenderer:
     def _computeLeftScale(self, widget, plotRect):
         values = []
         for binData in widget.bins:
-            values.append(self._binBarValue(widget, binData))
+            values.append(self._bin_bar_value(widget, binData))
         if not values:
             values = [0.0, 1.0]
         dataMin = min(values + [0.0])
@@ -201,7 +201,7 @@ class StatisticsHistogramRenderer:
         barRects = []
         for binIndex, binData in enumerate(widget.bins):
             barX = plotRect.left() + offset + binIndex * slotWidth + gapWidth / 2
-            barValue = self._binBarValue(widget, binData)
+            barValue = self._bin_bar_value(widget, binData)
             barTop = self._yForValue(plotRect, leftScale, barValue)
             zeroY = self._yForValue(plotRect, leftScale, 0.0)
             top = min(barTop, zeroY)
@@ -263,7 +263,7 @@ class StatisticsHistogramRenderer:
                     QPointF(centerX - textWidth / 2, plotRect.bottom() + fontMetrics.ascent() + 2),
                     elided,
                 )
-        if widget.xLabel and getattr(widget, "showXAxisTitle", True):
+        if widget.xLabel and getattr(widget, "show_x_axis_title", True):
             painter.setFont(qfont(self._titleFontSize(widget), bold=True))
             if rotate:
                 labelOffset = maxLabelWidth * ROTATED_LABEL_SIN + fontMetrics.descent() + 4
