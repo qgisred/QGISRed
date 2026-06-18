@@ -12,6 +12,7 @@ from qgis.PyQt.QtGui import QColor, QFont
 
 from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils, _NULL_RULE_LABEL, _NullHiddenLegend
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
+from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 
 # Compatibility shim for QgsSymbolLayer.PropertySize (enum may be scoped in QGIS 4.x)
 try:
@@ -216,11 +217,33 @@ class _ResultsRenderingMixin:
                     # Configure map tip
                     is_min_max_stat = self._statsMode and self.cbStatistics.currentText() in (self.lbl_maximum, self.lbl_minimum)
                     time_field = time_field_name(field, nameLayer) if is_min_max_stat else None
-                    if time_field:
-                        tip = selected_variable_text + ': [% "' + field + '" || \' - \' || "' + time_field + '" %]'
+
+                    element = "Nodes" if "Node" in nameLayer else "Links"
+                    unit_field = "Flow" if field in ("Flow_Sig", "Flow_Unsig") else field
+                    unit = QGISRedFieldUtils().getUnitAbbreviation(element, unit_field)
+                    unit_suffix = " " + unit if unit else ""
+
+                    value_expr = 'abs("Flow")' if field == "Flow" else '"' + field + '"'
+
+                    if self._statsMode and time_field:
+                        time_expr = '"' + time_field + '"'
+                    elif not self._statsMode:
+                        time_expr = '"Time"'
                     else:
-                        tip = selected_variable_text + ': [% "' + field + '" %]'
-                    layer_to_paint.setMapTipTemplate(tip)
+                        time_expr = None
+
+                    _TYPE_KEYS = ["JUNCTION", "RESERVOIR", "TANK", "PIPE", "PUMP", "VALVE"]
+                    cases = " ".join(
+                        "WHEN \"Type\" = '" + k + "' THEN '" + self.tr(k.title()) + "'"
+                        for k in _TYPE_KEYS
+                    )
+                    type_id_expr = '[% (CASE ' + cases + ' ELSE "Type" END) || \' \' || "Id" %]'
+
+                    tip_lines = ['<b>' + selected_variable_text + '</b>', type_id_expr]
+                    if time_expr:
+                        tip_lines.append('[% ' + time_expr + ' %]')
+                    tip_lines.append('[% ' + value_expr + ' %]' + unit_suffix)
+                    layer_to_paint.setMapTipTemplate('<br>'.join(tip_lines))
 
                     # Configure layer labels
                     self.setLayerLabels(layer_to_paint, field, time_field)
