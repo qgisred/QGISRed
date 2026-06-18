@@ -238,23 +238,17 @@ class ToolsSection:
             if not in_demands_builder_group:
                 continue
 
-            layer_name = layer.name()
             source = layer.source().split("|")[0]
 
-            if (
-                "EfficiencySectors" in layer_name
-                or "EfficiencySector" in layer_name
-                or "EfficiencySectors" in source
-                or "EfficiencySector" in source
-            ):
+            if source:
                 polygons.append(source)
 
         result = ""
         if polygons:
             result = "[POLYGON]" + ";".join(polygons)
 
-        return result
-
+        return result    
+    
     def runDemandsBuilder(self):
         if not self.checkDependencies():
             return
