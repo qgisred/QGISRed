@@ -166,6 +166,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.lastNullCount = 0
         self.lastOutOfRangeCount = 0
         self.manualBreaks = []
+        self.secondManualBreaks = []
         self.isEnumeratedTarget = False
         self._chartBins = []
         self._chartPrettyProperty = ""
@@ -343,9 +344,10 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
 
     def applyWhiteStyle(self):
         for widget in (
-            self.cbElementType, self.cbProperty, self.cbClassifiedBy, self.cbRanged,
-            self.cbAttribute, self.cbCondition, self.cbValue, self.leFrom, self.leTo,
-            self.cbClasses, self.spinIntervalRange, self.cbStatistic,
+            self.cbElementType, self.cbProperty, self.cbClassifiedBy, self.cbSecondClassifiedBy,
+            self.cbRanged, self.cbSecondRanged, self.cbAttribute, self.cbCondition, self.cbValue,
+            self.leFrom, self.leTo, self.cbClasses, self.cbSecondClasses, self.spinIntervalRange,
+            self.spinSecondIntervalRange, self.cbStatistic,
         ):
             widget.setStyleSheet(WHITE_STYLE)
 
@@ -356,6 +358,10 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.cbProperty.currentIndexChanged.connect(lambda: self.updateComboBoxBackground(self.cbProperty))
         self.cbClassifiedBy.currentIndexChanged.connect(self.onClassifyByChanged)
         self.cbClassifiedBy.currentIndexChanged.connect(lambda: self.updateComboBoxBackground(self.cbClassifiedBy))
+        self.cbSecondClassifiedBy.currentIndexChanged.connect(self.onSecondClassifyByChanged)
+        self.cbSecondClassifiedBy.currentIndexChanged.connect(lambda: self.updateComboBoxBackground(self.cbSecondClassifiedBy))
+        self.cbSecondRanged.currentIndexChanged.connect(self.onSecondRangedChanged)
+        self.cbSecondRanged.currentIndexChanged.connect(lambda: self.updateComboBoxBackground(self.cbSecondRanged))
         self.cbRanged.currentIndexChanged.connect(self.onRangedChanged)
         self.cbAttribute.currentIndexChanged.connect(self.onAttributeChanged)
         self.cbCondition.currentIndexChanged.connect(self.onConditionChanged)
@@ -366,6 +372,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.btExport.clicked.connect(self.exportConfig)
         self.btExcel.clicked.connect(self.exportTableCsv)
         self.btManualBreaks.clicked.connect(self.openManualBreaksDialog)
+        self.btSecondManualBreaks.clicked.connect(self.openSecondManualBreaksDialog)
 
     def setupProjectSignals(self):
         project = QgsProject.instance()
@@ -438,8 +445,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         state = self.saveCurrentQueryState()
         self.reconnectLayerSignals()
         combos = (
-            self.cbElementType, self.cbProperty, self.cbClassifiedBy, self.cbRanged,
-            self.cbAttribute, self.cbCondition, self.cbValue,
+            self.cbElementType, self.cbProperty, self.cbClassifiedBy, self.cbSecondClassifiedBy,
+            self.cbRanged, self.cbSecondRanged, self.cbAttribute, self.cbCondition, self.cbValue,
         )
         for combo in combos:
             combo.blockSignals(True)
@@ -458,6 +465,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
 
     def onProjectChanged(self, *args):
         self.manualBreaks = []
+        self.secondManualBreaks = []
         self.lastNullCount = 0
         self.lastOutOfRangeCount = 0
         self.clearChart()
@@ -493,6 +501,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.suspendCascade = False
         self.updateProperties()
         self.updateClassifyBy()
+        self.updateSecondClassifyBy()
         self.updateAttributes()
 
         propertyIndex = self.cbProperty.findData(state.get("property")) if state.get("property") else -1
@@ -651,6 +660,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         if self.suspendCascade:
             return
         self.manualBreaks = []
+        self.secondManualBreaks = []
         self.clearChart()
         self._feedHistogramPopout()
         self.labelPropertyByClasses.setText("")
@@ -659,6 +669,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.labelOnlySelectedElements.hide()
         self.updateProperties()
         self.updateClassifyBy()
+        self.updateSecondClassifyBy()
         self.updateAttributes()
 
     def onPropertyChanged(self):
@@ -676,6 +687,12 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             return
         self.manualBreaks = []
         self.updateRanged()
+
+    def onSecondClassifyByChanged(self):
+        if self.suspendCascade:
+            return
+        self.secondManualBreaks = []
+        self.updateSecondRanged()
 
     def onRangedChanged(self):
         if self.suspendCascade:
@@ -704,6 +721,34 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         else:
             self.cbClasses.setMinimum(2)
             self.cbClasses.setMaximum(50)
+
+    def onSecondRangedChanged(self):
+        if self.suspendCascade:
+            return
+        rangedId = self.cbSecondRanged.currentData(Qt.ItemDataRole.UserRole) or ""
+        isFixedInterval = rangedId == "FixedInterval"
+        isManual = rangedId == "Manual"
+        isCategories = rangedId == "Categorized"
+        self.cbSecondClasses.setVisible(not isFixedInterval)
+        self.labelSecondClasses.setVisible(not isFixedInterval)
+        self.spinSecondIntervalRange.setVisible(isFixedInterval)
+        self.labelSecondIntervalRange.setVisible(isFixedInterval)
+        self.btSecondManualBreaks.setVisible(isManual)
+        self.cbSecondClasses.setEnabled(not isCategories)
+        if isCategories:
+            classifyField = self.cbSecondClassifiedBy.currentData(Qt.ItemDataRole.UserRole)
+            layer = self.resolveLayerForClassifyField(classifyField)
+            if layer is not None and classifyField:
+                distinctCount = len(self.collectUniqueValues(layer, classifyField, limit=10000))
+                if distinctCount > 0:
+                    self.cbSecondClasses.blockSignals(True)
+                    self.cbSecondClasses.setMinimum(1)
+                    self.cbSecondClasses.setMaximum(max(distinctCount, 1))
+                    self.cbSecondClasses.setValue(distinctCount)
+                    self.cbSecondClasses.blockSignals(False)
+        else:
+            self.cbSecondClasses.setMinimum(2)
+            self.cbSecondClasses.setMaximum(50)
 
     def onAttributeChanged(self):
         if self.suspendCascade:
@@ -878,6 +923,121 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             self.selectFirstUsable(self.cbClassifiedBy)
         self.updateComboBoxBackground(self.cbClassifiedBy)
         self.updateRanged()
+
+    def updateSecondClassifyBy(self):
+        self.suspendCascade = True
+        self.cbSecondClassifiedBy.clear()
+        self.cbSecondClassifiedBy.addItem(self.tr("None"), "")
+        layer = self.resolveLayer()
+        if layer is None:
+            self.suspendCascade = False
+            self.updateComboBoxBackground(self.cbSecondClassifiedBy)
+            return
+        elementIdentifier = self.cbElementType.currentData(Qt.ItemDataRole.UserRole) or ""
+        isResultsMode = self.isResultsLayer(layer)
+        resultsBrush = QBrush(QColor(RESULTS_BRUSH_COLOR))
+        darkBrush = QBrush(QColor(DARK_BRUSH_COLOR))
+
+        resultsMetaLower = {"time", "statistics", "time_h", "time_d", "time_q"}
+        resultsFieldsLower = {
+            "flow", "flow_unsig", "flow_sig", "velocity", "headloss",
+            "unithdloss", "fricfactor", "reactrate", "quality",
+            "pressure", "head", "demand", "status",
+        }
+        skipLower = {"id", "descrip", "description"}
+
+        qualityModel = QGISRedProjectUtils.getQualityModel().upper()
+        nonChemicalFields = set()
+        if qualityModel in ("NONE", "AGE", "TRACE"):
+            nonChemicalFields = {
+                "qgisred_pipes": {"bulkcoeff", "wallcoeff"},
+                "qgisred_tanks": {"reactcoef", "iniquality"},
+                "qgisred_reservoirs": {"iniquality"},
+                "qgisred_junctions": {"iniquality"},
+            }.get(elementIdentifier, set())
+
+        tagField = None
+        staticFields = []
+        for field in layer.fields():
+            fieldName = field.name()
+            lower = fieldName.lower()
+            if lower in skipLower:
+                continue
+            if isResultsMode and lower in resultsMetaLower:
+                continue
+            if isResultsMode and lower in resultsFieldsLower:
+                continue
+            if lower in nonChemicalFields:
+                continue
+            cat = FIELD_TYPE_MAPPING.get(field.typeName().lower(), "text")
+            isEnum = fieldName in CATEGORICAL_FIELD_NAMES
+            if not (cat == "numeric" or isEnum):
+                continue
+            if lower == "tag":
+                tagField = field
+            else:
+                staticFields.append(field)
+
+        resultProps = self.getResultProperties(layer, elementIdentifier)
+        if qualityModel == "NONE":
+            resultProps = [prop for prop in resultProps if prop not in ("Quality", "ReactRate")]
+
+        for field in staticFields:
+            self.addPropertyItem(self.cbSecondClassifiedBy, elementIdentifier, field.name())
+        if tagField is not None:
+            self.addPropertyItem(self.cbSecondClassifiedBy, elementIdentifier, tagField.name(), darkBrush)
+        if resultProps:
+            self.cbSecondClassifiedBy.insertSeparator(self.cbSecondClassifiedBy.count())
+            resultCategory = self.resultCategoryFor(elementIdentifier, isResultsMode, layer)
+            for prop in resultProps:
+                self.addResultPropertyItem(self.cbSecondClassifiedBy, resultCategory, prop, resultsBrush)
+
+        self.cbSecondClassifiedBy.setCurrentIndex(0)
+        self.suspendCascade = False
+        self.updateComboBoxBackground(self.cbSecondClassifiedBy)
+        self.updateSecondRanged()
+
+    def updateSecondRanged(self):
+        self.suspendCascade = True
+        self.cbSecondRanged.clear()
+        classifyField = self.cbSecondClassifiedBy.currentData(Qt.ItemDataRole.UserRole)
+        hasField = bool(classifyField)
+        self.labelSecondRanged.setVisible(hasField)
+        self.cbSecondRanged.setVisible(hasField)
+        if not hasField:
+            self.labelSecondClasses.setVisible(False)
+            self.cbSecondClasses.setVisible(False)
+            self.labelSecondIntervalRange.setVisible(False)
+            self.spinSecondIntervalRange.setVisible(False)
+            self.btSecondManualBreaks.setVisible(False)
+            self.suspendCascade = False
+            self.updateComboBoxBackground(self.cbSecondRanged)
+            return
+        if self.isCategoricalClassifier(classifyField):
+            self.cbSecondRanged.addItem(self.tr("Categories"), "Categorized")
+        else:
+            for identifier, label in (
+                ("Categorized", self.tr("Categories")),
+                ("EqualInterval", self.tr("Equal Interval")),
+                ("FixedInterval", self.tr("Fixed Interval")),
+                ("Quantile", self.tr("Equal Count")),
+                ("Jenks", self.tr("Natural Breaks")),
+                ("Pretty", self.tr("Pretty Breaks")),
+                ("Manual", self.tr("Manual")),
+            ):
+                self.cbSecondRanged.addItem(label, identifier)
+            defaultIndex = self.cbSecondRanged.findData("EqualInterval")
+            if defaultIndex >= 0:
+                self.cbSecondRanged.setCurrentIndex(defaultIndex)
+        self.cbSecondClasses.blockSignals(True)
+        self.cbSecondClasses.setMinimum(2)
+        self.cbSecondClasses.setMaximum(50)
+        if self.cbSecondClasses.value() < 2:
+            self.cbSecondClasses.setValue(DEFAULT_NUM_CLASSES)
+        self.cbSecondClasses.blockSignals(False)
+        self.suspendCascade = False
+        self.onSecondRangedChanged()
+        self.updateComboBoxBackground(self.cbSecondRanged)
 
     def updateRanged(self):
         self.suspendCascade = True
@@ -1193,6 +1353,36 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             self.cbClasses.blockSignals(True)
             self.cbClasses.setValue(dialog.getClassCount())
             self.cbClasses.blockSignals(False)
+
+    def openSecondManualBreaksDialog(self):
+        classifyField = self.cbSecondClassifiedBy.currentData(Qt.ItemDataRole.UserRole)
+        if not classifyField:
+            return
+        layer = self.resolveLayerForClassifyField(classifyField)
+        if layer is None:
+            return
+        values = self.collectNumericValues(layer, classifyField)
+        if not values:
+            QMessageBox.information(
+                self,
+                self.tr("No data"),
+                self.tr("No numeric values available for the selected classification field."),
+            )
+            return
+        dataMin = values[0]
+        dataMax = values[-1]
+        dialog = QGISRedStatisticsManualBreaksDialog(
+            dataMin,
+            dataMax,
+            initialBreaks=self.secondManualBreaks or None,
+            initialClassCount=self.cbSecondClasses.value(),
+            parent=self,
+        )
+        if dialog.exec():
+            self.secondManualBreaks = dialog.getBreaks()
+            self.cbSecondClasses.blockSignals(True)
+            self.cbSecondClasses.setValue(dialog.getClassCount())
+            self.cbSecondClasses.blockSignals(False)
 
     def analyze(self):
         layer = self.resolveLayer()
