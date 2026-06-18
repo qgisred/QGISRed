@@ -1165,17 +1165,41 @@
             <item>
              <widget class="QGroupBox" name="groupBoxSymbology">
               <property name="title">
-               <string>Symbology (factor ×)</string>
+               <string>Symbology</string>
               </property>
               <layout class="QGridLayout" name="gridLayout_symbology">
-               <item row="0" column="0">
+               <item row="0" column="0" colspan="2">
+                <widget class="QCheckBox" name="cbNodeBorder">
+                 <property name="text">
+                  <string>Black border on nodes</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0" colspan="2">
+                <widget class="QCheckBox" name="cbProportional">
+                 <property name="text">
+                  <string>Proportional to value</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <widget class="QLabel" name="lbFactorHeader">
+                 <property name="text">
+                  <string>Factor</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignHCenter|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="0">
                 <widget class="QLabel" name="lbSymbolFactor">
                  <property name="text">
                   <string>Nodes:</string>
                  </property>
                 </widget>
                </item>
-               <item row="0" column="1">
+               <item row="3" column="1">
                 <widget class="QDoubleSpinBox" name="dspSymbolFactor">
                  <property name="minimum">
                   <double>0.250000000000000</double>
@@ -1194,14 +1218,14 @@
                  </property>
                 </widget>
                </item>
-               <item row="1" column="0">
+               <item row="4" column="0">
                 <widget class="QLabel" name="lbPipeFactor">
                  <property name="text">
                   <string>Links:</string>
                  </property>
                 </widget>
                </item>
-               <item row="1" column="1">
+               <item row="4" column="1">
                 <widget class="QDoubleSpinBox" name="dspPipeFactor">
                  <property name="minimum">
                   <double>0.250000000000000</double>
@@ -1220,14 +1244,14 @@
                  </property>
                 </widget>
                </item>
-               <item row="2" column="0">
+               <item row="5" column="0">
                 <widget class="QLabel" name="lbArrowFactor">
                  <property name="text">
                   <string>Arrows:</string>
                  </property>
                 </widget>
                </item>
-               <item row="2" column="1">
+               <item row="5" column="1">
                 <widget class="QDoubleSpinBox" name="dspArrowFactor">
                  <property name="minimum">
                   <double>0.250000000000000</double>
@@ -1243,13 +1267,6 @@
                  </property>
                  <property name="value">
                   <double>1.000000000000000</double>
-                 </property>
-                </widget>
-               </item>
-               <item row="3" column="0" colspan="2">
-                <widget class="QCheckBox" name="cbProportional">
-                 <property name="text">
-                  <string>Proportional to value</string>
                  </property>
                 </widget>
                </item>

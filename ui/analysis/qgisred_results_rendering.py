@@ -31,6 +31,14 @@ except AttributeError:
     except AttributeError:
         _SL_PROP_STROKE_WIDTH = 6  # historical fallback
 
+try:
+    _SL_PROP_STROKE_COLOR = QgsSymbolLayer.PropertyStrokeColor
+except AttributeError:
+    try:
+        _SL_PROP_STROKE_COLOR = QgsSymbolLayer.Property.StrokeColor
+    except AttributeError:
+        _SL_PROP_STROKE_COLOR = 4  # historical fallback
+
 # Base sizes from the node and link result QML files. These are the values when factor = 1.0.
 _BASE_PIPE_WIDTH       = 0.26  # mm — SimpleLine width in LinkFlow.qml (and other link styles)
 _BASE_ARROW_SIZE       = 3.0   # mm — arrow sub-symbol in setArrowsVisibility
@@ -552,6 +560,7 @@ class _ResultsRenderingMixin:
             elif is_point:
                 # Node sizes are set via data-defined expressions on each symbol layer.
                 # sym.setSize() has no effect because those expressions override it.
+                node_border = getattr(self, '_nodeBorder', False)
                 for sl_idx in range(sym.symbolLayerCount()):
                     try:
                         sl = sym.symbolLayer(sl_idx)
@@ -559,20 +568,40 @@ class _ResultsRenderingMixin:
                             continue
                         ddp = sl.dataDefinedProperties()
                         size_prop = ddp.property(_SL_PROP_SIZE)
-                        if not size_prop.isActive():
-                            continue
-                        old_expr = size_prop.expressionString()
-                        if can_be_proportional:
-                            new_expr = _apply_proportional_node_size(
-                                old_expr, field,
-                                prop_field_min, prop_field_max,
-                                target_junction, target_special)
-                        else:
-                            new_expr = _build_node_size_expr(
-                                old_expr, str(target_junction), str(target_special))
-                        if new_expr != old_expr:
-                            ddp.setProperty(_SL_PROP_SIZE, QgsProperty.fromExpression(new_expr))
-                            sl.setDataDefinedProperties(ddp)
+                        if size_prop.isActive():
+                            old_expr = size_prop.expressionString()
+                            if can_be_proportional:
+                                new_expr = _apply_proportional_node_size(
+                                    old_expr, field,
+                                    prop_field_min, prop_field_max,
+                                    target_junction, target_special)
+                            else:
+                                new_expr = _build_node_size_expr(
+                                    old_expr, str(target_junction), str(target_special))
+                            if new_expr != old_expr:
+                                ddp.setProperty(_SL_PROP_SIZE, QgsProperty.fromExpression(new_expr))
+                                sl.setDataDefinedProperties(ddp)
+                        # Border: use data-defined properties (works for both SvgMarker and
+                        # SimpleMarker without relying on hasattr, same mechanism as pipe width).
+                        # Tank QML has white outline_color so we must also force the color.
+                        # SVG markers (7 mm symbols) use a thicker border than SimpleMarker (2 mm).
+                        try:
+                            if node_border:
+                                is_svg = 'Svg' in type(sl).__name__
+                                width_expr = "1.0" if is_svg else "0.6"
+                                sl.setDataDefinedProperty(
+                                    _SL_PROP_STROKE_WIDTH,
+                                    QgsProperty.fromExpression(width_expr))
+                                sl.setDataDefinedProperty(
+                                    _SL_PROP_STROKE_COLOR,
+                                    QgsProperty.fromExpression("'#000000'"))
+                            else:
+                                sl.setDataDefinedProperty(
+                                    _SL_PROP_STROKE_WIDTH, QgsProperty())
+                                sl.setDataDefinedProperty(
+                                    _SL_PROP_STROKE_COLOR, QgsProperty())
+                        except Exception:
+                            pass
                     except Exception:
                         pass
 

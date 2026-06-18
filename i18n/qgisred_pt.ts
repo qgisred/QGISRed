@@ -4471,7 +4471,7 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <translation>Consumo</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="984"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="986"/>
         <source>Quality</source>
         <translation>Qualidade</translation>
     </message>
@@ -4506,7 +4506,7 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <translation>Estado</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1619"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1621"/>
         <source>Some issues occurred in the process</source>
         <translation>Ocorreram alguns problemas no processo</translation>
     </message>
@@ -4621,7 +4621,7 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <translation>Taxa de Reação</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="374"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="376"/>
         <source>The current project has been changed. Please, try again.</source>
         <translation>O projeto atual foi alterado. Tente novamente.</translation>
     </message>
@@ -4726,17 +4726,17 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <translation>00:00:00</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="501"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="503"/>
         <source>%1 results not found</source>
         <translation>Resultados de %1 não encontrados</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1280"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1282"/>
         <source>for %1</source>
         <translation>para %1</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1559"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1561"/>
         <source>No %1 results are available</source>
         <translation>Nenhum resultado de %1 está disponível</translation>
     </message>
@@ -4751,32 +4751,32 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <translation type="obsolete">hh</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1027"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1029"/>
         <source>24h format</source>
         <translation>Formato 24h</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1028"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1030"/>
         <source>dd hh:mm:ss format</source>
         <translation>Formato dd hh:mm:ss</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1028"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1030"/>
         <source>HH:mm:ss format</source>
         <translation>Formato HH:mm:ss</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1026"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1028"/>
         <source>Elapsed time</source>
         <translation>Tempo decorrido</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1026"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1028"/>
         <source>Civil hour</source>
         <translation>Hora civil</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.py" line="1027"/>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="1029"/>
         <source>am/pm format</source>
         <translation>Formato am/pm</translation>
     </message>
@@ -4816,12 +4816,12 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <translation>Tamanho da fonte (pt):</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1174"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1198"/>
         <source>Nodes:</source>
         <translation>Nós:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1200"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1224"/>
         <source>Links:</source>
         <translation>Trechos:</translation>
     </message>
@@ -4848,35 +4848,35 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
     <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="1168"/>
         <source>Symbology (factor ×)</source>
-        <translation>Simbologia (fator ×)</translation>
+        <translation type="obsolete">Simbologia (fator ×)</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1226"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1250"/>
         <source>Arrows:</source>
         <translation>Setas:</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1262"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1279"/>
         <source>Map Background</source>
         <translation>Plano de Fundo do Mapa</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="201"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="206"/>
         <source>No color</source>
         <translation>Sem cor</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1277"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1294"/>
         <source>×</source>
         <translation>×</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1280"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1297"/>
         <source>Clear background color</source>
         <translation>Limpar cor de fundo</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1311"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1328"/>
         <source>Reset all</source>
         <translation>Redefinir tudo</translation>
     </message>
@@ -4891,7 +4891,7 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <translation>%1 casas decimais</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_appearance.py" line="135"/>
+        <location filename="../ui/analysis/qgisred_results_appearance.py" line="136"/>
         <source>Map background color</source>
         <translation>Cor de fundo do mapa</translation>
     </message>
@@ -4911,8 +4911,23 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
         <translation>Histograma</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1252"/>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1181"/>
         <source>Proportional to value</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1168"/>
+        <source>Symbology</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1174"/>
+        <source>Black border on nodes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.ui" line="1188"/>
+        <source>Factor</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -6728,22 +6743,22 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
 <context>
     <name>_ResultsRenderingMixin</name>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="209"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="217"/>
         <source>Some issue occurred in the process of saving the style of the layer %1</source>
         <translation>Ocorreu um problema ao salvar o estilo da camada %1</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="236"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="244"/>
         <source>Link %1</source>
         <translation>Trecho %1</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="241"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="249"/>
         <source>Node %1</source>
         <translation>Nó %1</translation>
     </message>
     <message>
-        <location filename="../ui/analysis/qgisred_results_rendering.py" line="630"/>
+        <location filename="../ui/analysis/qgisred_results_rendering.py" line="659"/>
         <source>Some issue occurred in the process of applying the style to the layer %1</source>
         <translation>Ocorreu um problema ao aplicar o estilo à camada %1</translation>
     </message>
