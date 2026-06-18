@@ -48,9 +48,9 @@ class StatisticsHistogramRenderer:
 
     def render(self, widget, painter):
         painter.setRenderHint(PAINTER_ANTIALIASING)
-        outer_fill = getattr(widget, "outer_fill_color", None)
-        if outer_fill is not None:
-            painter.fillRect(widget.rect(), outer_fill)
+        outerFill = getattr(widget, "outerFillColor", None)
+        if outerFill is not None:
+            painter.fillRect(widget.rect(), outerFill)
         else:
             painter.fillRect(widget.rect(), Qt.GlobalColor.white)
 
@@ -66,9 +66,9 @@ class StatisticsHistogramRenderer:
         painter.setPen(QPen(BORDER_COLOR, 1))
         painter.drawRect(plotRect)
 
-        if getattr(widget, "show_title", True):
+        if getattr(widget, "showTitle", True):
             self._drawTitle(widget, painter)
-        if getattr(widget, "show_subtitle", True):
+        if getattr(widget, "showSubtitle", True):
             self._drawSubtitle(widget, painter, plotRect)
 
         leftScale = self._computeLeftScale(widget, plotRect)
@@ -119,20 +119,20 @@ class StatisticsHistogramRenderer:
         )
         painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, elided)
 
-    def _bin_bar_value(self, widget, binData):
+    def _binBarValue(self, widget, binData):
         if widget.mode == "relative":
-            total_count = getattr(widget, "_totalCount", 0) or sum(
+            totalCount = getattr(widget, "_totalCount", 0) or sum(
                 item.get("count", 0) for item in widget.bins
             )
-            if total_count <= 0:
+            if totalCount <= 0:
                 return 0.0
-            return (binData.get("count", 0) / float(total_count)) * 100.0
+            return (binData.get("count", 0) / float(totalCount)) * 100.0
         return widget.barValueFor(binData)
 
     def _computeLeftScale(self, widget, plotRect):
         values = []
         for binData in widget.bins:
-            values.append(self._bin_bar_value(widget, binData))
+            values.append(self._binBarValue(widget, binData))
         if not values:
             values = [0.0, 1.0]
         dataMin = min(values + [0.0])
@@ -149,10 +149,10 @@ class StatisticsHistogramRenderer:
     def _drawGridAndLeftAxis(self, widget, painter, plotRect, scale):
         painter.setFont(qfont(self._tickFontSize(widget)))
         fontMetrics = QFontMetrics(painter.font())
-        grid_color = QColor(GRID_COLOR).darker(115)
+        gridColor = QColor(GRID_COLOR).darker(115)
         for tickValue in scale.ticks():
             tickY = self._yForValue(plotRect, scale, tickValue)
-            painter.setPen(QPen(grid_color, 1, Qt.PenStyle.DashLine))
+            painter.setPen(QPen(gridColor, 1, Qt.PenStyle.DashLine))
             painter.drawLine(QPointF(plotRect.left(), tickY), QPointF(plotRect.right(), tickY))
             painter.setPen(QPen(TEXT_AXIS, 1))
             painter.drawLine(QPointF(plotRect.left(), tickY), QPointF(plotRect.left() - _TICK_LEN, tickY))
@@ -174,13 +174,13 @@ class StatisticsHistogramRenderer:
     def _drawRightAxis(self, widget, painter, plotRect, scale):
         painter.setFont(qfont(self._tickFontSize(widget)))
         fontMetrics = QFontMetrics(painter.font())
-        cumulative_pen = QPen(CUMULATIVE_AXIS_TEXT_COLOR, 1)
+        cumulativePen = QPen(CUMULATIVE_AXIS_TEXT_COLOR, 1)
         for tickValue in scale.ticks():
             tickY = self._yForValue(plotRect, scale, tickValue)
             label = format_number_tick(tickValue, scale.step)
-            painter.setPen(cumulative_pen)
+            painter.setPen(cumulativePen)
             painter.drawText(QPointF(plotRect.right() + 6, tickY + fontMetrics.ascent() / 2 - 1), label)
-        painter.setPen(cumulative_pen)
+        painter.setPen(cumulativePen)
         painter.setFont(qfont(self._titleFontSize(widget), bold=True))
         painter.save()
         painter.translate(widget.width() - 8, plotRect.center().y())
@@ -201,7 +201,7 @@ class StatisticsHistogramRenderer:
         barRects = []
         for binIndex, binData in enumerate(widget.bins):
             barX = plotRect.left() + offset + binIndex * slotWidth + gapWidth / 2
-            barValue = self._bin_bar_value(widget, binData)
+            barValue = self._binBarValue(widget, binData)
             barTop = self._yForValue(plotRect, leftScale, barValue)
             zeroY = self._yForValue(plotRect, leftScale, 0.0)
             top = min(barTop, zeroY)
@@ -210,36 +210,36 @@ class StatisticsHistogramRenderer:
             barRects.append(barRect)
             visibleRect = QRectF(barRect).intersected(plotRect)
             if visibleRect.width() > 0 and visibleRect.height() >= 0:
-                bar_color = binData.get("color")
-                if bar_color is not None:
-                    fillColor = QColor(bar_color) if not isinstance(bar_color, QColor) else QColor(bar_color)
+                barColor = binData.get("color")
+                if barColor is not None:
+                    fillColor = QColor(barColor) if not isinstance(barColor, QColor) else QColor(barColor)
                 else:
                     fillColor = QColor(DEFAULT_SERIES_COLOR)
                 if widget.hoverIndex == binIndex:
                     fillColor = fillColor.lighter(115)
-                border_color = QColor(
+                borderColor = QColor(
                     max(0, fillColor.red() - 40),
                     max(0, fillColor.green() - 40),
                     max(0, fillColor.blue() - 40),
                 )
                 painter.fillRect(visibleRect, fillColor)
-                painter.setPen(QPen(border_color, 1))
+                painter.setPen(QPen(borderColor, 1))
                 painter.drawRect(visibleRect)
         return barRects
 
     def _drawXAxisLabels(self, widget, painter, plotRect, barRects):
-        tick_font_size = self._tickFontSize(widget)
-        painter.setFont(qfont(tick_font_size))
+        tickFontSize = self._tickFontSize(widget)
+        painter.setFont(qfont(tickFontSize))
         fontMetrics = QFontMetrics(painter.font())
         painter.setPen(TEXT_AXIS)
         rotate = widget.xTickLabelsNeedRotation()
         if rotate:
-            maxLabelWidth = max_rotated_label_width(plotRect.width(), len(widget.bins), tick_font_size)
-            longest_px = max(
-                (fontMetrics.horizontalAdvance(bin_data.get("label", "")) for bin_data in widget.bins),
+            maxLabelWidth = max_rotated_label_width(plotRect.width(), len(widget.bins), tickFontSize)
+            longestPx = max(
+                (fontMetrics.horizontalAdvance(binData.get("label", "")) for binData in widget.bins),
                 default=0,
             )
-            maxLabelWidth = min(maxLabelWidth, max(20.0, float(longest_px)))
+            maxLabelWidth = min(maxLabelWidth, max(20.0, float(longestPx)))
         else:
             maxLabelWidth = max(40.0, (barRects[0].width() if barRects else 40.0) + 6)
         for binIndex, binData in enumerate(widget.bins):
@@ -263,7 +263,7 @@ class StatisticsHistogramRenderer:
                     QPointF(centerX - textWidth / 2, plotRect.bottom() + fontMetrics.ascent() + 2),
                     elided,
                 )
-        if widget.xLabel and getattr(widget, "show_x_axis_title", True):
+        if widget.xLabel and getattr(widget, "showXAxisTitle", True):
             painter.setFont(qfont(self._titleFontSize(widget), bold=True))
             if rotate:
                 labelOffset = maxLabelWidth * ROTATED_LABEL_SIN + fontMetrics.descent() + 4

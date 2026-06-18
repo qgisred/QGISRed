@@ -36,42 +36,42 @@ def cumulative_right_axis_margin(
     max_margin=96,
 ):
     """Reserve width for right-axis tick numbers plus optional rotated title."""
-    font_metrics = QFontMetrics(qfont(tick_font_size))
-    tick_width = max((font_metrics.horizontalAdvance(label) for label in tick_labels), default=0)
+    fontMetrics = QFontMetrics(qfont(tick_font_size))
+    tickWidth = max((fontMetrics.horizontalAdvance(label) for label in tick_labels), default=0)
     if title_text:
-        title_font = qfont(adaptive_axis_title_font_size(tick_font_size), bold=True)
-        title_strip = QFontMetrics(title_font).height()
-        margin = tick_offset + tick_width + title_gap + title_strip + edge_pad
+        titleFont = qfont(adaptive_axis_title_font_size(tick_font_size), bold=True)
+        titleStrip = QFontMetrics(titleFont).height()
+        margin = tick_offset + tickWidth + title_gap + titleStrip + edge_pad
     else:
-        margin = tick_offset + tick_width + edge_pad
+        margin = tick_offset + tickWidth + edge_pad
     return max(min_margin, min(max_margin, margin))
 
 
 def longest_x_label_width(bins, tick_font_size):
     if not bins:
         return 0
-    font_metrics = QFontMetrics(qfont(tick_font_size))
-    return max(font_metrics.horizontalAdvance(bin_data.get("label", "")) for bin_data in bins)
+    fontMetrics = QFontMetrics(qfont(tick_font_size))
+    return max(fontMetrics.horizontalAdvance(binData.get("label", "")) for binData in bins)
 
 
 def x_tick_labels_need_rotation(bins, plot_width, tick_font_size, tick_char_width=6.0):
     if not bins or plot_width <= 0:
         return False
-    available_per_bar = plot_width / max(1, len(bins))
-    longest_px = longest_x_label_width(bins, tick_font_size)
-    if longest_px > 0:
-        return longest_px > available_per_bar * 0.92
-    longest_chars = max((len(bin_data.get("label", "")) for bin_data in bins), default=0)
-    return longest_chars * tick_char_width > available_per_bar
+    availablePerBar = plot_width / max(1, len(bins))
+    longestPx = longest_x_label_width(bins, tick_font_size)
+    if longestPx > 0:
+        return longestPx > availablePerBar * 0.92
+    longestChars = max((len(binData.get("label", "")) for binData in bins), default=0)
+    return longestChars * tick_char_width > availablePerBar
 
 
 def rotated_x_label_extra_height(tick_font_size, max_label_width, has_x_label=False):
-    font_metrics = QFontMetrics(qfont(tick_font_size))
-    label_width = max(0.0, float(max_label_width))
-    rotated_height = label_width * ROTATED_LABEL_SIN + font_metrics.descent() + 4
+    fontMetrics = QFontMetrics(qfont(tick_font_size))
+    labelWidth = max(0.0, float(max_label_width))
+    rotatedHeight = labelWidth * ROTATED_LABEL_SIN + fontMetrics.descent() + 4
     if has_x_label:
-        rotated_height += font_metrics.height() + 6
-    return rotated_height
+        rotatedHeight += fontMetrics.height() + 6
+    return rotatedHeight
 
 
 def cap_bottom_margin(widget_height, margin_top, base_bottom, rotated_extra, *, min_plot_px=_MIN_PLOT_HEIGHT_PX, min_plot_ratio=_MIN_PLOT_HEIGHT_RATIO):
@@ -79,14 +79,14 @@ def cap_bottom_margin(widget_height, margin_top, base_bottom, rotated_extra, *, 
     margin_top = max(int(margin_top), 0)
     base_bottom = max(int(base_bottom), 0)
     rotated_extra = max(float(rotated_extra), 0.0)
-    min_plot = max(min_plot_px, int(widget_height * min_plot_ratio))
-    max_bottom = max(base_bottom, widget_height - margin_top - min_plot)
-    return min(base_bottom + int(round(rotated_extra)), max_bottom)
+    minPlot = max(min_plot_px, int(widget_height * min_plot_ratio))
+    maxBottom = max(base_bottom, widget_height - margin_top - minPlot)
+    return min(base_bottom + int(round(rotated_extra)), maxBottom)
 
 
 def max_rotated_label_width(plot_width, bin_count, tick_font_size, slot_scale=1.15):
     if bin_count <= 0 or plot_width <= 0:
         return 60.0
-    slot_width = plot_width / bin_count
-    font_height = QFontMetrics(qfont(tick_font_size)).height()
-    return max(24.0, min(72.0, slot_width * slot_scale + font_height))
+    slotWidth = plot_width / bin_count
+    fontHeight = QFontMetrics(qfont(tick_font_size)).height()
+    return max(24.0, min(72.0, slotWidth * slot_scale + fontHeight))

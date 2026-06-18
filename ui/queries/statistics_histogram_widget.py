@@ -120,64 +120,64 @@ class StatisticsHistogramWidget(QWidget):
 
     def _fitMargins(self):
         self._axisTickFontSize = adaptive_axis_tick_font_size(self.width(), self.height())
-        tick_font = qfont(self._axisTickFontSize)
-        font_metrics = QFontMetrics(tick_font)
+        tickFont = qfont(self._axisTickFontSize)
+        fontMetrics = QFontMetrics(tickFont)
 
-        plot_width_guess = max(40, self.width() - self.marginLeft - self.marginRight)
-        plot_height_guess = max(40, self.height() - self.marginTop - self.marginBottom)
-        values = [self.barValueFor(bin_data) for bin_data in self.bins]
+        plotWidthGuess = max(40, self.width() - self.marginLeft - self.marginRight)
+        plotHeightGuess = max(40, self.height() - self.marginTop - self.marginBottom)
+        values = [self.barValueFor(binData) for binData in self.bins]
         if not values:
             values = [0.0, 1.0]
-        data_min = min(values + [0.0])
-        data_max = max(values + [0.0])
-        if data_max == data_min:
-            data_max = data_min + 1.0
-        label_height = font_metrics.height() + 4
-        max_ticks = estimate_max_ticks(plot_height_guess, label_height, max_ticks=10)
-        scale = compute_nice_scale(data_min, data_max, max_ticks, include_zero=True)
-        max_tick_label_width = 0
-        for tick_value in scale.ticks():
-            label = format_number_tick(tick_value, scale.step)
+        dataMin = min(values + [0.0])
+        dataMax = max(values + [0.0])
+        if dataMax == dataMin:
+            dataMax = dataMin + 1.0
+        labelHeight = fontMetrics.height() + 4
+        maxTicks = estimate_max_ticks(plotHeightGuess, labelHeight, max_ticks=10)
+        scale = compute_nice_scale(dataMin, dataMax, maxTicks, include_zero=True)
+        maxTickLabelWidth = 0
+        for tickValue in scale.ticks():
+            label = format_number_tick(tickValue, scale.step)
             if self.mode == "relative":
                 label = label + "%"
-            max_tick_label_width = max(max_tick_label_width, font_metrics.horizontalAdvance(label))
-        title_space = 16 if self.yLabelLeft else 0
-        self.marginLeft = max(44, min(84, max_tick_label_width + 14 + title_space))
+            maxTickLabelWidth = max(maxTickLabelWidth, fontMetrics.horizontalAdvance(label))
+        titleSpace = 16 if self.yLabelLeft else 0
+        self.marginLeft = max(44, min(84, maxTickLabelWidth + 14 + titleSpace))
 
         if self.mode == "cumulative":
-            right_tick_labels = [
-                format_number_tick(tick_value, 1.0)
-                for tick_value in compute_nice_scale(0.0, 100.0, 6, include_zero=True).ticks()
+            rightTickLabels = [
+                format_number_tick(tickValue, 1.0)
+                for tickValue in compute_nice_scale(0.0, 100.0, 6, include_zero=True).ticks()
             ]
             self.marginRight = cumulative_right_axis_margin(
                 self._axisTickFontSize,
-                right_tick_labels,
+                rightTickLabels,
                 "%",
                 min_margin=40,
                 max_margin=88,
             )
         else:
-            self.marginRight = max(18, min(36, max(18, plot_width_guess // 30)))
+            self.marginRight = max(18, min(36, max(18, plotWidthGuess // 30)))
 
-        plot_width = max(0, self.width() - self.marginLeft - self.marginRight)
-        rotate = x_tick_labels_need_rotation(self.bins, plot_width, self._axisTickFontSize, self._TICK_CHAR_WIDTH)
-        base_bottom = font_metrics.height() + (22 if rotate else 14)
+        plotWidth = max(0, self.width() - self.marginLeft - self.marginRight)
+        rotate = x_tick_labels_need_rotation(self.bins, plotWidth, self._axisTickFontSize, self._TICK_CHAR_WIDTH)
+        baseBottom = fontMetrics.height() + (22 if rotate else 14)
         if self.xLabel and not rotate:
-            base_bottom += font_metrics.height() + 4
-        self.marginBottom = max(30, min(56, base_bottom))
+            baseBottom += fontMetrics.height() + 4
+        self.marginBottom = max(30, min(56, baseBottom))
 
         if rotate:
-            max_label_width = longest_x_label_width(self.bins, self._axisTickFontSize)
-            rotated_extra = rotated_x_label_extra_height(
+            maxLabelWidth = longest_x_label_width(self.bins, self._axisTickFontSize)
+            rotatedExtra = rotated_x_label_extra_height(
                 self._axisTickFontSize,
-                max_label_width,
+                maxLabelWidth,
                 has_x_label=bool(self.xLabel),
             )
             self._rotatedLabelExtra = cap_bottom_margin(
                 self.height(),
                 self.marginTop,
                 self.marginBottom,
-                rotated_extra,
+                rotatedExtra,
             ) - self.marginBottom
         else:
             self._rotatedLabelExtra = 0
@@ -226,20 +226,23 @@ class StatisticsHistogramWidget(QWidget):
         return offset
 
     def xTickLabelsNeedRotation(self):
-        plot_width = max(0, self.width() - self.marginLeft - self.marginRight)
-        return x_tick_labels_need_rotation(self.bins, plot_width, self._axisTickFontSize, self._TICK_CHAR_WIDTH)
+        plotWidth = max(0, self.width() - self.marginLeft - self.marginRight)
+        return x_tick_labels_need_rotation(self.bins, plotWidth, self._axisTickFontSize, self._TICK_CHAR_WIDTH)
 
     def getPlotRect(self):
         x = self.marginLeft
         y = self.marginTop
         width = max(0, self.width() - self.marginLeft - self.marginRight)
-        bottom_margin = self.marginBottom + self._rotatedLabelExtra
-        height = max(0, self.height() - self.marginTop - bottom_margin)
+        bottomMargin = self.marginBottom + self._rotatedLabelExtra
+        height = max(0, self.height() - self.marginTop - bottomMargin)
         return QRectF(x, y, width, height)
 
     def paintEvent(self, event):
         painter = QPainter(self)
-        self._renderer.render(self, painter)
+        try:
+            self._renderer.render(self, painter)
+        finally:
+            painter.end()
 
     def leaveEvent(self, event):
         if self.hoverIndex is not None:

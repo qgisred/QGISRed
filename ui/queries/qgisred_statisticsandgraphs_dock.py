@@ -112,11 +112,11 @@ class _StatisticsHistogramPopoutWindow(QWidget):
 
     _DEFAULT_SIZE = (760, 540)
 
-    def __init__(self, parent, on_close):
+    def __init__(self, parent, onClose):
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Window)
-        self._on_close = on_close
-        self._default_geometry = None
+        self._onClose = onClose
+        self._defaultGeometry = None
         self.setMinimumSize(360, 260)
         self.setStyleSheet("background-color: #f8f9fb;")
 
@@ -124,7 +124,7 @@ class _StatisticsHistogramPopoutWindow(QWidget):
         self._layout.setContentsMargins(8, 8, 8, 8)
         self._layout.setSpacing(6)
         self.chart = StatisticsHistogramWidget(self)
-        self.chart.show_title = True
+        self.chart.showTitle = True
         self._layout.addWidget(self.chart, 1)
 
     def attachControls(self, controlsBar):
@@ -141,10 +141,10 @@ class _StatisticsHistogramPopoutWindow(QWidget):
             self.setGeometry(center.x() - width // 2, center.y() - height // 2, width, height)
         else:
             self.resize(width, height)
-        self._default_geometry = self.geometry()
+        self._defaultGeometry = self.geometry()
 
     def closeEvent(self, event):
-        callback = self._on_close
+        callback = self._onClose
         if callback is not None:
             callback()
         super().closeEvent(event)
@@ -226,7 +226,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.graphWidget.setLayout(layout)
         self.labelOnlySelectedElements.hide()
 
-        self._histogram_popout = None
+        self._histogramPopout = None
         self.btHistogramExpand = QToolButton()
         self.btHistogramExpand.setIcon(QIcon(":/images/iconTsZoomWindow.svg"))
         self.btHistogramExpand.setIconSize(QSize(16, 16))
@@ -249,28 +249,28 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.verticalLayout_2.insertWidget(statisticIndex, self._statisticControlsBar)
 
     def _toggleHistogramPopout(self):
-        popout = getattr(self, "_histogram_popout", None)
+        popout = getattr(self, "_histogramPopout", None)
         if popout is not None and popout.isVisible():
             self._closeHistogramPopout()
         else:
             self._openHistogramPopout()
 
     def _openHistogramPopout(self):
-        if self._histogram_popout is None:
-            self._histogram_popout = _StatisticsHistogramPopoutWindow(self, self._onHistogramPopoutClosed)
-        if self._histogram_popout._default_geometry is None:
-            self._histogram_popout.applyDefaultGeometry()
+        if self._histogramPopout is None:
+            self._histogramPopout = _StatisticsHistogramPopoutWindow(self, self._onHistogramPopoutClosed)
+        if self._histogramPopout._defaultGeometry is None:
+            self._histogramPopout.applyDefaultGeometry()
         self.graphWidget.hide()
         self._moveStatisticControlsToPopout()
         self._setHistogramExpandButtonState(True)
-        self._histogram_popout.show()
-        self._histogram_popout.raise_()
-        self._histogram_popout.activateWindow()
+        self._histogramPopout.show()
+        self._histogramPopout.raise_()
+        self._histogramPopout.activateWindow()
         self._feedHistogramPopout()
 
     def _moveStatisticControlsToPopout(self):
         bar = getattr(self, "_statisticControlsBar", None)
-        popout = getattr(self, "_histogram_popout", None)
+        popout = getattr(self, "_histogramPopout", None)
         if bar is None or popout is None:
             return
         self.verticalLayout_2.removeWidget(bar)
@@ -280,14 +280,14 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         bar = getattr(self, "_statisticControlsBar", None)
         if bar is None:
             return
-        popout = getattr(self, "_histogram_popout", None)
+        popout = getattr(self, "_histogramPopout", None)
         if popout is not None:
             popout.detachControls(bar)
         graphIndex = self.verticalLayout_2.indexOf(self.graphWidget)
         self.verticalLayout_2.insertWidget(graphIndex, bar)
 
     def _closeHistogramPopout(self):
-        popout = getattr(self, "_histogram_popout", None)
+        popout = getattr(self, "_histogramPopout", None)
         if popout is not None and popout.isVisible():
             popout.close()
         else:
@@ -312,7 +312,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         )
 
     def _feedHistogramPopout(self):
-        popout = getattr(self, "_histogram_popout", None)
+        popout = getattr(self, "_histogramPopout", None)
         if popout is None or not popout.isVisible():
             return
         popout.chart.setTitles(self.histogram.title, self.histogram.subtitle)
