@@ -1563,7 +1563,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             propertyUnit = ""
 
         self.labelPropertyByClasses.setText(
-            self.buildChartTitle(elementIdentifier, prettyProperty, prettyClassify, secondField, selectedSecondIndex)
+            self.buildChartTitle(elementIdentifier, prettyProperty, prettyClassify, secondField, secondBreaks, selectedSecondIndex)
         )
         subtitle = self.buildSubtitle(elementIdentifier)
         xLabel = "{} ({})".format(prettyClassify, classifyUnit) if classifyUnit else prettyClassify
@@ -1581,16 +1581,22 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             self.restoreStatisticSelection(previousStatistic)
         self.renderChart()
 
-        self.populateTable(bins, prettyClassify, prettyProperty, propertyUnit, elementIdentifier, propertyField)
-
-    def buildChartTitle(self, elementIdentifier, prettyProperty, prettyClassify, secondField, selectedSecondIndex):
+        groupHeader = None
+        groupLabel = None
         if secondField and selectedSecondIndex is not None:
-            prettySecond = self.fieldUtils.getProperty(normalize_element(elementIdentifier), secondField) or secondField
-            return "{} {} {} {} {} [{}]".format(
-                prettyProperty, self.tr("by"), prettyClassify,
-                self.tr("for"), prettySecond, self.cbSecondClassValue.currentText(),
-            )
-        return "{} {} {}".format(prettyProperty, self.tr("by"), prettyClassify)
+            groupHeader = self.fieldUtils.getProperty(normalize_element(elementIdentifier), secondField) or secondField
+            groupLabel = self.cbSecondClassValue.currentText()
+        self.populateTable(bins, prettyClassify, prettyProperty, propertyUnit, elementIdentifier, propertyField, groupHeader, groupLabel)
+
+    def buildChartTitle(self, elementIdentifier, prettyProperty, prettyClassify, secondField, secondBreaks, selectedSecondIndex):
+        base = "{} {} {}".format(prettyProperty, self.tr("by"), prettyClassify)
+        if not (secondField and selectedSecondIndex is not None):
+            return base
+        groupLabel = self.cbSecondClassValue.currentText()
+        prettySecond = self.fieldUtils.getProperty(normalize_element(elementIdentifier), secondField) or secondField
+        if secondBreaks is not None and secondBreaks["type"] != "categorical":
+            return "{} {} {} {} {}".format(base, self.tr("for"), prettySecond, self.tr("on range"), groupLabel)
+        return "{} {} {} {}".format(base, self.tr("for"), prettySecond, groupLabel)
 
     def restoreStatisticSelection(self, previousData):
         if previousData is None:
@@ -1939,11 +1945,21 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         decimals = len(avgText.split(".")[1]) if "." in avgText else 0
         return "{:.{}f}".format(float(value), decimals)
 
-    def populateTable(self, bins, prettyClassify, prettyProperty, propertyUnit, elementIdentifier, propertyField):
+    def populateTable(self, bins, prettyClassify, prettyProperty, propertyUnit, elementIdentifier, propertyField, groupHeader=None, groupLabel=None):
         if self.isEnumeratedTarget:
             self.populateEnumeratedTable(bins, prettyClassify, prettyProperty)
         else:
             self.populateNumericTable(bins, prettyClassify, prettyProperty, propertyField, elementIdentifier)
+        if groupHeader is not None and groupLabel is not None:
+            self.insertSelectedGroupColumn(groupHeader, groupLabel)
+
+    def insertSelectedGroupColumn(self, header, groupLabel):
+        self.tbExcel.insertColumn(1)
+        self.tbExcel.setHorizontalHeaderItem(1, QTableWidgetItem(header))
+        totalRow = self.tbExcel.rowCount() - 1
+        for row in range(self.tbExcel.rowCount()):
+            self.setTableItem(row, 1, groupLabel, bold=row == totalRow)
+        self.tbExcel.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
 
     def populateNumericTable(self, bins, prettyClassify, prettyProperty, propertyField, elementIdentifier):
         useSum = self.usesSumColumn(propertyField, elementIdentifier)
