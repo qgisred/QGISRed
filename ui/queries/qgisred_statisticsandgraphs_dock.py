@@ -1237,7 +1237,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         if breaks is None:
             return
 
-        self.isEnumeratedTarget = not self.isNumericField(propertyLayer, propertyField)
+        classifyIsCategorical = breaks["type"] == "categorical"
+        self.isEnumeratedTarget = classifyIsCategorical or not self.isNumericField(propertyLayer, propertyField)
         bins = self.initBins(breaks)
         self.lastNullCount = 0
         self.lastOutOfRangeCount = 0
@@ -1245,15 +1246,21 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         featureIterator = propertyLayer.getFeatures(featureRequest) if featureRequest is not None else propertyLayer.getFeatures()
         for feature in featureIterator:
             classValue = feature[classifyField]
-            propertyValue = feature[propertyField]
-            if classValue is None or propertyValue is None:
+            if classValue is None:
                 self.lastNullCount += 1
                 continue
             binIndex = self.findBinIndex(bins, classValue, breaks["type"])
             if binIndex is None:
                 self.lastOutOfRangeCount += 1
                 continue
-            self.accumulateValue(bins[binIndex], propertyValue)
+            if classifyIsCategorical:
+                self.accumulateValue(bins[binIndex], None, classValue)
+                continue
+            propertyValue = feature[propertyField]
+            if propertyValue is None:
+                self.lastNullCount += 1
+                continue
+            self.accumulateValue(bins[binIndex], propertyValue, propertyValue)
 
         self.finalizeBins(bins)
 
@@ -1261,6 +1268,9 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         prettyClassify = self.fieldUtils.getProperty(normalize_element(elementIdentifier), classifyField) or classifyField
         propertyUnit = self.fieldUtils.getUnitAbbreviation(normalize_element(elementIdentifier), propertyField) or ""
         classifyUnit = self.fieldUtils.getUnitAbbreviation(normalize_element(elementIdentifier), classifyField) or ""
+        if classifyIsCategorical:
+            prettyProperty = prettyClassify
+            propertyUnit = ""
 
         self.labelPropertyByClasses.setText("{} {} {}".format(prettyProperty, self.tr("by"), prettyClassify))
         subtitle = self.buildSubtitle(elementIdentifier)
@@ -1548,11 +1558,11 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                     return binIndex
         return None
 
-    def accumulateValue(self, binData, value):
+    def accumulateValue(self, binData, value, enumeratedValue):
         binData["count"] += 1
         if self.isEnumeratedTarget:
-            if value is not None:
-                stringValue = str(value)
+            if enumeratedValue is not None:
+                stringValue = str(enumeratedValue)
                 binData["values"][stringValue] = binData["values"].get(stringValue, 0) + 1
             return
         try:
