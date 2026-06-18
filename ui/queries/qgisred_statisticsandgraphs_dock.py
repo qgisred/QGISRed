@@ -1468,7 +1468,11 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             if secondBreaks is None:
                 return
 
-        self._secondClassBins = self.initBins(secondBreaks) if secondBreaks is not None else []
+        if secondBreaks is not None:
+            secondDecimals = self.fieldUtils.getDecimals(normalize_element(elementIdentifier), secondField, default=2)
+            self._secondClassBins = self.initBins(secondBreaks, secondDecimals)
+        else:
+            self._secondClassBins = []
         self.populateSecondClassValues(elementIdentifier, secondField)
         self._analysisContext = {
             "propertyLayer": propertyLayer,
@@ -1525,7 +1529,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
 
         classifyIsCategorical = breaks["type"] == "categorical"
         self.isEnumeratedTarget = classifyIsCategorical or not self.isNumericField(propertyLayer, propertyField)
-        bins = self.initBins(breaks)
+        classifyDecimals = self.fieldUtils.getDecimals(normalize_element(elementIdentifier), classifyField, default=2)
+        bins = self.initBins(breaks, classifyDecimals)
         self.lastNullCount = 0
         self.lastOutOfRangeCount = 0
 
@@ -1825,7 +1830,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             return None
         return [dataMin] + [cls.upperBound() for cls in classes]
 
-    def initBins(self, breaks):
+    def initBins(self, breaks, decimals=None):
         bins = []
         if breaks["type"] == "categorical":
             for value in breaks["values"]:
@@ -1836,7 +1841,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         for i in range(len(edges) - 1):
             lowerEdge = edges[i]
             upperEdge = edges[i + 1]
-            label = "{} - {}".format(self.formatNumber(lowerEdge), self.formatNumber(upperEdge))
+            label = "{} - {}".format(self.formatNumber(lowerEdge, decimals), self.formatNumber(upperEdge, decimals))
             bins.append(self.makeBin(label=label, lo=lowerEdge, hi=upperEdge, category=None))
         return bins
 
@@ -1930,13 +1935,15 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             parts.append("(" + "; ".join(notes) + ")")
         return "; ".join(parts)
 
-    def formatNumber(self, value):
+    def formatNumber(self, value, decimals=None):
         if value is None:
             return ""
         try:
             numericValue = float(value)
         except (TypeError, ValueError):
             return str(value)
+        if decimals is not None:
+            return "{:.{}f}".format(numericValue, decimals)
         if numericValue == int(numericValue) and abs(numericValue) < 1e9:
             return str(int(numericValue))
         return "{:g}".format(numericValue)
@@ -1964,6 +1971,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.tbExcel.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
 
     def populateNumericTable(self, bins, prettyClassify, prettyProperty, propertyField, elementIdentifier):
+        propertyDecimals = self.fieldUtils.getDecimals(normalize_element(elementIdentifier), propertyField, default=2)
         useSum = self.usesSumColumn(propertyField, elementIdentifier)
         if useSum:
             headers = [prettyClassify, self.tr("Count"), self.tr("Sum"), self.tr("Avg"), self.tr("Min"), self.tr("Max")]
@@ -1980,13 +1988,13 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         totalMax = None
 
         for rowIndex, binData in enumerate(bins):
-            avgText = self.formatNumber(binData["avg"]) if binData["count"] else ""
+            avgText = self.formatNumber(binData["avg"], propertyDecimals) if binData["count"] else ""
             self.setTableItem(rowIndex, 0, binData.get("label", ""))
             self.setTableItem(rowIndex, 1, str(binData["count"]))
-            minText = self.formatNumber(binData["min"]) if binData["min"] is not None else ""
-            maxText = self.formatNumber(binData["max"]) if binData["max"] is not None else ""
+            minText = self.formatNumber(binData["min"], propertyDecimals) if binData["min"] is not None else ""
+            maxText = self.formatNumber(binData["max"], propertyDecimals) if binData["max"] is not None else ""
             if useSum:
-                self.setTableItem(rowIndex, 2, self.formatNumber(binData["sum"]) if binData["count"] else "")
+                self.setTableItem(rowIndex, 2, self.formatNumber(binData["sum"], propertyDecimals) if binData["count"] else "")
                 self.setTableItem(rowIndex, 3, avgText)
                 self.setTableItem(rowIndex, 4, minText)
                 self.setTableItem(rowIndex, 5, maxText)
@@ -2010,13 +2018,13 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             totalStdDev = math.sqrt(variance)
 
         totalRow = len(bins)
-        totalAvgText = self.formatNumber(totalAvg) if totalCount else ""
-        totalMinText = self.formatNumber(totalMin) if totalMin is not None else ""
-        totalMaxText = self.formatNumber(totalMax) if totalMax is not None else ""
+        totalAvgText = self.formatNumber(totalAvg, propertyDecimals) if totalCount else ""
+        totalMinText = self.formatNumber(totalMin, propertyDecimals) if totalMin is not None else ""
+        totalMaxText = self.formatNumber(totalMax, propertyDecimals) if totalMax is not None else ""
         self.setTableItem(totalRow, 0, self.tr("Total"), bold=True)
         self.setTableItem(totalRow, 1, str(totalCount), bold=True)
         if useSum:
-            self.setTableItem(totalRow, 2, self.formatNumber(totalSum), bold=True)
+            self.setTableItem(totalRow, 2, self.formatNumber(totalSum, propertyDecimals), bold=True)
             self.setTableItem(totalRow, 3, totalAvgText, bold=True)
             self.setTableItem(totalRow, 4, totalMinText, bold=True)
             self.setTableItem(totalRow, 5, totalMaxText, bold=True)
