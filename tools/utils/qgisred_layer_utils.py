@@ -4,7 +4,8 @@ import os
 from qgis.PyQt.QtCore import QCoreApplication, QTimer
 from qgis.core import (
     QgsProject, QgsLayerTreeGroup, QgsLayerTreeLayer,
-    QgsVectorLayer, QgsCoordinateReferenceSystem
+    QgsVectorLayer, QgsCoordinateReferenceSystem, QgsDataProvider,
+    QgsAttributeTableConfig
 )
 
 
@@ -420,6 +421,9 @@ class QGISRedLayerUtils:
         layer = self._findLayerByPath(layerPath)
         if layer is not None:
             layer.dataProvider().reloadData()
+            layer.setDataSource(layerPath, layer.name(), "ogr", QgsDataProvider.ProviderOptions())
+            layer.setAttributeTableConfig(QgsAttributeTableConfig())
+            layer.updateFields()
             layer.updateExtents()
             layer.triggerRepaint()
             return layer
