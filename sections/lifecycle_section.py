@@ -23,6 +23,7 @@ from ..tools.qgisred_dependencies import QGISRedDependencies as GISRed
 from ..ui.queries.qgisred_element_explorer_dock import QGISRedElementExplorerDock
 from ..ui.general.qgisred_news_dialog import QGISRedNewsDialog
 from ..tools.utils.qgisred_stale_layer_manager import StaleLayerManager
+from ..tools.utils.qgisred_maptip import QGISRedMapTip
 
 
 class LifecycleSection:
@@ -244,6 +245,8 @@ class LifecycleSection:
         if QgsProject.instance().fileName():
             QTimer.singleShot(0, self.runOpenedQgisProject)
 
+        self._mapTip = QGISRedMapTip(self.iface)
+
     def cleanupDocks(self):
         """Disconnects signals and removes all plugin docks to ensure a clean state."""
         docks_to_clean = []
@@ -345,6 +348,11 @@ class LifecycleSection:
                     except Exception:
                         pass
                 self.myMapTools.clear()
+        except Exception:
+            pass
+
+        try:
+            self._mapTip.stop()
         except Exception:
             pass
 
