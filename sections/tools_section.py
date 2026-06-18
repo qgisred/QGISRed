@@ -203,6 +203,58 @@ class ToolsSection:
             result = "[LINE]" + ";".join(lines)
         return result
 
+    def _getDemandsBuilderEfficiencySectorLayers(self):
+        polygons = []
+        demands_builder_id = QGISRedLayerUtils.groupIdentifiers.get("DemandsBuilder")
+        root = QgsProject.instance().layerTreeRoot()
+
+        for layer in QGISRedLayerUtils().getLayers():
+            if layer is None:
+                continue
+            if layer.type() != LAYER_TYPE_VECTOR:
+                continue
+            if layer.geometryType() != 2:
+                continue
+
+            layer_node = root.findLayer(layer.id())
+            if layer_node is None:
+                continue
+
+            in_demands_builder_group = False
+
+            parent = layer_node.parent()
+            while parent is not None:
+                if isinstance(parent, QgsLayerTreeGroup):
+                    if parent.customProperty("qgisred_identifier") == demands_builder_id:
+                        in_demands_builder_group = True
+                        break
+
+                    if parent.name() in ("DemandsBuilder", "Demands Builder"):
+                        in_demands_builder_group = True
+                        break
+
+                parent = parent.parent()
+
+            if not in_demands_builder_group:
+                continue
+
+            layer_name = layer.name()
+            source = layer.source().split("|")[0]
+
+            if (
+                "EfficiencySectors" in layer_name
+                or "EfficiencySector" in layer_name
+                or "EfficiencySectors" in source
+                or "EfficiencySector" in source
+            ):
+                polygons.append(source)
+
+        result = ""
+        if polygons:
+            result = "[POLYGON]" + ";".join(polygons)
+
+        return result
+
     def runDemandsBuilder(self):
         if not self.checkDependencies():
             return
@@ -221,6 +273,7 @@ class ToolsSection:
         externalLayers = self._getExternalLoadedLayers()
         qgisredPointLayers = self._getDemandsBuilderPointLayers()
         qgisredLineLayers = self._getDemandsBuilderLineLayers() 
+        qgisredEfficiencySectorLayers = self._getDemandsBuilderEfficiencySectorLayers()
 
         # Process
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
@@ -231,7 +284,8 @@ class ToolsSection:
             ids,
             externalLayers,
             qgisredPointLayers,
-            qgisredLineLayers
+            qgisredLineLayers,
+            qgisredEfficiencySectorLayers
         )
         QApplication.restoreOverrideCursor()
 
