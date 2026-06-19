@@ -284,7 +284,7 @@
                <item>
                 <widget class="QgsCollapsibleGroupBox" name="mSecondClassGroupBox">
                  <property name="title">
-                  <string>Second Classification &amp;&amp; Filters</string>
+                  <string>Second Classification</string>
                  </property>
                  <property name="checkable">
                   <bool>false</bool>
@@ -404,19 +404,24 @@
                     </item>
                    </layout>
                   </item>
-                  <item>
-                   <widget class="QLabel" name="labelFilter">
-                    <property name="font">
-                     <font>
-                      <weight>75</weight>
-                      <bold>true</bold>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>Filter:</string>
-                    </property>
-                   </widget>
-                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QgsCollapsibleGroupBox" name="mFiltersGroupBox">
+                 <property name="title">
+                  <string>Filters</string>
+                 </property>
+                 <property name="checkable">
+                  <bool>false</bool>
+                 </property>
+                 <property name="collapsed">
+                  <bool>true</bool>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_filters">
+                  <property name="topMargin">
+                   <number>9</number>
+                  </property>
                   <item>
                    <layout class="QGridLayout" name="gridLayout_5">
                     <item row="0" column="0">
