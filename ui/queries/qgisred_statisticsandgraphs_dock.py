@@ -1477,8 +1477,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 return
 
         if secondBreaks is not None:
-            secondDecimals = self.fieldUtils.getDecimals(normalize_element(elementIdentifier), secondField, default=2)
-            self._secondClassBins = self.initBins(secondBreaks, secondDecimals)
+            self._secondClassBins = self.initBins(secondBreaks, 0)
         else:
             self._secondClassBins = []
         self.populateSecondClassValues(elementIdentifier, secondField)
@@ -1538,8 +1537,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
 
         classifyIsCategorical = breaks["type"] == "categorical"
         self.isEnumeratedTarget = classifyIsCategorical or not self.isNumericField(propertyLayer, propertyField)
-        classifyDecimals = self.fieldUtils.getDecimals(normalize_element(elementIdentifier), classifyField, default=2)
-        bins = self.initBins(breaks, classifyDecimals)
+        bins = self.initBins(breaks, 0)
         self.lastNullCount = 0
         self.lastOutOfRangeCount = 0
 
@@ -1599,11 +1597,10 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
 
         if secondField and secondBreaks is not None:
             prettySecond = self.fieldUtils.getProperty(normalize_element(elementIdentifier), secondField) or secondField
-            propertyDecimals = self.fieldUtils.getDecimals(normalize_element(elementIdentifier), propertyField, default=2)
             self.buildSecondClassMatrix(
                 bins, propertyLayer, propertyField, classifyField, breaks, secondField, secondBreaks,
                 featureRequest, classifyIsCategorical, prettyClassify, prettySecond, prettyProperty,
-                useSum, propertyDecimals,
+                useSum,
             )
             previousTableStatistic = self.cbTableStatistic.currentData(Qt.ItemDataRole.UserRole) if preserveStatistic else None
             self._fillStatisticCombo(self.cbTableStatistic, self._tableMatrix["allColumn"], useSum)
@@ -2018,7 +2015,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         except (TypeError, ValueError):
             return str(value)
         if decimals is not None:
-            return "{:.{}f}".format(numericValue, decimals)
+            formatted = "{:.{}f}".format(numericValue, decimals)
+            return "0" if formatted == "-0" else formatted
         if numericValue == int(numericValue) and abs(numericValue) < 1e9:
             return str(int(numericValue))
         return "{:g}".format(numericValue)
@@ -2047,7 +2045,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
 
     def buildSecondClassMatrix(self, bins, propertyLayer, propertyField, classifyField, breaks, secondField,
                                secondBreaks, featureRequest, classifyIsCategorical, prettyClassify, prettySecond,
-                               prettyProperty, useSum, propertyDecimals):
+                               prettyProperty, useSum):
         rowCount = len(bins)
         colCount = len(self._secondClassBins)
         cells = [[self.makeBin(label="", lo=None, hi=None, category=None) for _ in range(colCount)] for _ in range(rowCount)]
@@ -2086,7 +2084,6 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             "allColumn": allColumn,
             "useSum": useSum,
             "isEnumeratedTarget": self.isEnumeratedTarget,
-            "propertyDecimals": propertyDecimals,
             "prettyClassify": prettyClassify,
             "prettySecond": prettySecond,
             "prettyProperty": prettyProperty,
@@ -2099,7 +2096,6 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         kind, key = self.cbTableStatistic.currentData(Qt.ItemDataRole.UserRole) or ("stat", "count")
         statKey = key if kind == "stat" else "count"
         valueKey = key if kind == "value" else None
-        decimals = matrix["propertyDecimals"]
         rowLabels = matrix["rowLabels"]
         secondLabels = matrix["secondLabels"]
         cells = matrix["cells"]
@@ -2113,19 +2109,19 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         for rowIndex, label in enumerate(rowLabels):
             self.setTableItem(rowIndex, 0, label)
             allValue = self.binStatValue(allColumn[rowIndex], statKey, valueKey)
-            self.setTableItem(rowIndex, 1, self.formatStatCell(allValue, statKey, valueKey, decimals))
+            self.setTableItem(rowIndex, 1, self.formatStatCell(allValue, statKey, valueKey, 0))
             for colIndex, cellBin in enumerate(cells[rowIndex]):
                 value = self.binStatValue(cellBin, statKey, valueKey)
-                self.setTableItem(rowIndex, colIndex + 2, self.formatStatCell(value, statKey, valueKey, decimals))
+                self.setTableItem(rowIndex, colIndex + 2, self.formatStatCell(value, statKey, valueKey, 0))
 
         totalRow = len(rowLabels)
         self.setTableItem(totalRow, 0, self.tr("Total"), bold=True)
         allTotal = self.binStatValue(self.combineBins(allColumn), statKey, valueKey)
-        self.setTableItem(totalRow, 1, self.formatStatCell(allTotal, statKey, valueKey, decimals), bold=True)
+        self.setTableItem(totalRow, 1, self.formatStatCell(allTotal, statKey, valueKey, 0), bold=True)
         for colIndex in range(len(secondLabels)):
             columnBins = [cells[rowIndex][colIndex] for rowIndex in range(len(rowLabels))]
             columnTotal = self.binStatValue(self.combineBins(columnBins), statKey, valueKey)
-            self.setTableItem(totalRow, colIndex + 2, self.formatStatCell(columnTotal, statKey, valueKey, decimals), bold=True)
+            self.setTableItem(totalRow, colIndex + 2, self.formatStatCell(columnTotal, statKey, valueKey, 0), bold=True)
 
         header = self.tbExcel.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
@@ -2135,7 +2131,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.tbExcel.verticalHeader().setVisible(False)
 
     def populateNumericTable(self, bins, prettyClassify, prettyProperty, propertyField, elementIdentifier):
-        propertyDecimals = self.fieldUtils.getDecimals(normalize_element(elementIdentifier), propertyField, default=2)
+        propertyDecimals = 0
         useSum = self.usesSumColumn(propertyField, elementIdentifier)
         if useSum:
             headers = [prettyClassify, self.tr("Count"), self.tr("Sum"), self.tr("Avg"), self.tr("Min"), self.tr("Max")]
