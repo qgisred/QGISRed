@@ -156,9 +156,11 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.setupUi(self)
         try:
             self.mGroupBox.setSaveCollapsedState(False)
+            self.mSecondClassGroupBox.setSaveCollapsedState(False)
         except Exception:
             pass
         self.mGroupBox.setCollapsed(True)
+        self.mSecondClassGroupBox.setCollapsed(True)
         self.iface = iface
         self.canvas = iface.mapCanvas()
         self.fieldUtils = QGISRedFieldUtils()
