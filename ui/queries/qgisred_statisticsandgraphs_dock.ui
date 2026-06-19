@@ -598,7 +598,7 @@
             <item>
              <widget class="QGroupBox" name="mStatisticsGroupBox">
               <property name="title">
-               <string>Statistics</string>
+               <string>Histogram</string>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_stats">
                <item>
@@ -732,64 +732,58 @@
                  </item>
                 </layout>
                </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="mGroupBox">
+              <property name="title">
+               <string>Table</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_table">
                <item>
-                <widget class="QgsCollapsibleGroupBox" name="mGroupBox">
-                 <property name="title">
-                  <string>Table</string>
+                <layout class="QHBoxLayout" name="horizontalLayout_10">
+                 <item>
+                  <spacer name="horizontalSpacer">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btExcel">
+                   <property name="maximumSize">
+                    <size>
+                     <width>50</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QTableWidget" name="tbExcel">
+                 <property name="font">
+                  <font>
+                   <family>MS Shell Dlg 2</family>
+                  </font>
                  </property>
-                 <property name="checkable">
+                 <property name="gridStyle">
+                  <enum>Qt::SolidLine</enum>
+                 </property>
+                 <property name="sortingEnabled">
                   <bool>false</bool>
                  </property>
-                 <property name="collapsed">
-                  <bool>true</bool>
-                 </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_table">
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_10">
-                    <item>
-                     <spacer name="horizontalSpacer">
-                      <property name="orientation">
-                       <enum>Qt::Horizontal</enum>
-                      </property>
-                      <property name="sizeHint" stdset="0">
-                       <size>
-                        <width>40</width>
-                        <height>20</height>
-                       </size>
-                      </property>
-                     </spacer>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="btExcel">
-                      <property name="maximumSize">
-                       <size>
-                        <width>50</width>
-                        <height>16777215</height>
-                       </size>
-                      </property>
-                      <property name="text">
-                       <string/>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <widget class="QTableWidget" name="tbExcel">
-                    <property name="font">
-                     <font>
-                      <family>MS Shell Dlg 2</family>
-                     </font>
-                    </property>
-                    <property name="gridStyle">
-                     <enum>Qt::SolidLine</enum>
-                    </property>
-                    <property name="sortingEnabled">
-                     <bool>false</bool>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
                 </widget>
                </item>
               </layout>

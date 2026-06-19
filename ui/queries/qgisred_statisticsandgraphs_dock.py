@@ -156,12 +156,10 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         super(QGISRedStatisticsDock, self).__init__(parent or iface.mainWindow())
         self.setupUi(self)
         try:
-            self.mGroupBox.setSaveCollapsedState(False)
             self.mSecondClassGroupBox.setSaveCollapsedState(False)
             self.mFiltersGroupBox.setSaveCollapsedState(False)
         except Exception:
             pass
-        self.mGroupBox.setCollapsed(True)
         self.mSecondClassGroupBox.setCollapsed(True)
         self.mFiltersGroupBox.setCollapsed(True)
         self.iface = iface
