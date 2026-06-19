@@ -115,6 +115,7 @@ class _StatisticsHistogramPopoutWindow(QWidget):
     def __init__(self, parent, onClose):
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Window)
+        self.setWindowTitle(self.tr("QGISRed: Statistics Histogram"))
         self._onClose = onClose
         self._defaultGeometry = None
         self.setMinimumSize(360, 260)
@@ -331,7 +332,6 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             statKey=self.histogram.statKey,
             valueKey=self.histogram.valueKey,
         )
-        popout.setWindowTitle(self.labelPropertyByClasses.text())
 
     def clearChart(self):
         self.histogram.clear()
