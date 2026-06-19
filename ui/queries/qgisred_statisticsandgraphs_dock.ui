@@ -732,6 +732,44 @@
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_10">
                  <item>
+                  <widget class="QLabel" name="labelTableStatistic">
+                   <property name="visible">
+                    <bool>false</bool>
+                   </property>
+                   <property name="text">
+                    <string>Statistics</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>cbTableStatistic</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="cbTableStatistic">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>72</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>160</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="visible">
+                    <bool>false</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
                   <spacer name="horizontalSpacer">
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
