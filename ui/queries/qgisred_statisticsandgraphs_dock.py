@@ -2199,10 +2199,13 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             self.setTableItem(totalRow, 5, self.formatLikeAvg(totalStdDev, totalAvgText) if totalCount > 1 else "", bold=True)
 
         header = self.tbExcel.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        for column in range(1, self.tbExcel.columnCount()):
+        header.setMinimumSectionSize(50)
+        for column in range(self.tbExcel.columnCount()):
             header.setSectionResizeMode(column, QHeaderView.ResizeMode.ResizeToContents)
         header.setStretchLastSection(False)
+        for column, minimumWidth in ((0, 200), (1, 80)):
+            header.setSectionResizeMode(column, QHeaderView.ResizeMode.Interactive)
+            self.tbExcel.setColumnWidth(column, max(self.tbExcel.sizeHintForColumn(column), minimumWidth))
         self.tbExcel.verticalHeader().setVisible(False)
 
     def populateEnumeratedTable(self, bins, prettyClassify, prettyProperty):
