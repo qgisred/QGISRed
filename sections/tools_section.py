@@ -202,17 +202,21 @@ class ToolsSection:
         if lines:
             result = "[LINE]" + ";".join(lines)
         return result
-
-    def _getDemandsBuilderEfficiencySectorLayers(self):
+    
+    def _getDemandsBuilderSectorLayersByKind(self, kind):
         polygons = []
         demands_builder_id = QGISRedLayerUtils.groupIdentifiers.get("DemandsBuilder")
         root = QgsProject.instance().layerTreeRoot()
 
+        kind = kind.lower()
+
         for layer in QGISRedLayerUtils().getLayers():
             if layer is None:
                 continue
+
             if layer.type() != LAYER_TYPE_VECTOR:
                 continue
+
             if layer.geometryType() != 2:
                 continue
 
@@ -240,14 +244,31 @@ class ToolsSection:
 
             source = layer.source().split("|")[0]
 
-            if source:
-                polygons.append(source)
+            if not source:
+                continue
 
-        result = ""
-        if polygons:
-            result = "[POLYGON]" + ";".join(polygons)
+            source_lower = source.lower()
 
-        return result    
+            if kind == "efficiency":
+                if "efficiencysectors" not in source_lower:
+                    continue
+
+            elif kind == "pattern":
+                if "patternsectors" not in source_lower:
+                    continue
+
+            polygons.append(source)
+
+        if not polygons:
+            return ""
+
+        return "[POLYGON]" + ";".join(polygons)
+
+    def _getDemandsBuilderEfficiencySectorLayers(self):
+        return self._getDemandsBuilderSectorLayersByKind("efficiency")
+
+    def _getDemandsBuilderPatternSectorLayers(self):
+        return self._getDemandsBuilderSectorLayersByKind("pattern")
     
     def runDemandsBuilder(self):
         if not self.checkDependencies():
@@ -268,6 +289,7 @@ class ToolsSection:
         qgisredPointLayers = self._getDemandsBuilderPointLayers()
         qgisredLineLayers = self._getDemandsBuilderLineLayers() 
         qgisredEfficiencySectorLayers = self._getDemandsBuilderEfficiencySectorLayers()
+        qgisredPatternSectorLayers = self._getDemandsBuilderPatternSectorLayers()
 
         # Process
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
@@ -279,7 +301,8 @@ class ToolsSection:
             externalLayers,
             qgisredPointLayers,
             qgisredLineLayers,
-            qgisredEfficiencySectorLayers
+            qgisredEfficiencySectorLayers,
+            qgisredPatternSectorLayers
         )
         QApplication.restoreOverrideCursor()
 

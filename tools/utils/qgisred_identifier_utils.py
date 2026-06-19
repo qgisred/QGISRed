@@ -64,7 +64,8 @@ class QGISRedIdentifierUtils:
             'qgisred_demandsbuilder_demandlinks': 'DemBuil_Demand Links',
             'qgisred_demandsbuilder_consumptionpoints': 'DemBuil_Consumption Points',
             'qgisred_demandsbuilder_isolateddemandsserviceconnections': 'DemBuil_Isolated Demands Connections',
-            'qgisred_demandsbuilder_efficiencysectors': 'DemBuil_Efficiency Sectors'
+            'qgisred_demandsbuilder_efficiencysectors': 'DemBuil_Efficiency Sectors',
+            'qgisred_demandsbuilder_patternsectors': 'DemBuil_Pattern Sectors'
         }
 
     def tr(self, message):
