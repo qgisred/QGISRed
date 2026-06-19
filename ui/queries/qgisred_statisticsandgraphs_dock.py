@@ -179,6 +179,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self._chartUseSum = False
         self._analysisContext = None
         self._secondClassBins = []
+        self._tableMatrix = None
         self.connectedLayerNodes = []
         self.connectedGroups = []
         self.layerTreeChangeTimer = QTimer()
@@ -341,11 +342,17 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self._chartBins = []
         self._analysisContext = None
         self._secondClassBins = []
+        self._tableMatrix = None
         self.cbSecondClassValue.blockSignals(True)
         self.cbSecondClassValue.clear()
         self.cbSecondClassValue.blockSignals(False)
         self.labelSecondClassValue.hide()
         self.cbSecondClassValue.hide()
+        self.cbTableStatistic.blockSignals(True)
+        self.cbTableStatistic.clear()
+        self.cbTableStatistic.blockSignals(False)
+        self.labelTableStatistic.hide()
+        self.cbTableStatistic.hide()
 
     def setupIcons(self):
         self.btImport.setIcon(QIcon(":/images/iconStatisticsImport.svg"))
@@ -380,6 +387,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.cbCondition.currentIndexChanged.connect(self.onConditionChanged)
         self.cbStatistic.currentIndexChanged.connect(self.onStatisticChanged)
         self.cbStatistic.currentIndexChanged.connect(lambda: self.updateComboBoxBackground(self.cbStatistic))
+        self.cbTableStatistic.currentIndexChanged.connect(self.onTableStatisticChanged)
+        self.cbTableStatistic.currentIndexChanged.connect(lambda: self.updateComboBoxBackground(self.cbTableStatistic))
         self.cbSecondClassValue.currentIndexChanged.connect(self.onSecondClassValueChanged)
         self.btAnalyze.clicked.connect(self.analyze)
         self.btImport.clicked.connect(self.importConfig)
@@ -1588,12 +1597,26 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             self.restoreStatisticSelection(previousStatistic)
         self.renderChart()
 
-        groupHeader = None
-        groupLabel = None
-        if secondField and selectedSecondIndex is not None:
-            groupHeader = self.fieldUtils.getProperty(normalize_element(elementIdentifier), secondField) or secondField
-            groupLabel = self.cbSecondClassValue.currentText()
-        self.populateTable(bins, prettyClassify, prettyProperty, propertyUnit, elementIdentifier, propertyField, groupHeader, groupLabel)
+        if secondField and secondBreaks is not None:
+            prettySecond = self.fieldUtils.getProperty(normalize_element(elementIdentifier), secondField) or secondField
+            propertyDecimals = self.fieldUtils.getDecimals(normalize_element(elementIdentifier), propertyField, default=2)
+            self.buildSecondClassMatrix(
+                bins, propertyLayer, propertyField, classifyField, breaks, secondField, secondBreaks,
+                featureRequest, classifyIsCategorical, prettyClassify, prettySecond, prettyProperty,
+                useSum, propertyDecimals,
+            )
+            previousTableStatistic = self.cbTableStatistic.currentData(Qt.ItemDataRole.UserRole) if preserveStatistic else None
+            self._fillStatisticCombo(self.cbTableStatistic, self._tableMatrix["allColumn"], useSum)
+            if preserveStatistic:
+                self._restoreComboSelection(self.cbTableStatistic, previousTableStatistic)
+            self.labelTableStatistic.show()
+            self.cbTableStatistic.show()
+            self.populateMatrixTable()
+        else:
+            self._tableMatrix = None
+            self.labelTableStatistic.hide()
+            self.cbTableStatistic.hide()
+            self.populateTable(bins, prettyClassify, prettyProperty, propertyUnit, elementIdentifier, propertyField)
 
     def buildChartTitle(self, elementIdentifier, prettyProperty, prettyClassify, secondField, secondBreaks, selectedSecondIndex):
         base = "{} {} {}".format(prettyProperty, self.tr("by"), prettyClassify)
@@ -1606,42 +1629,53 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         return "{} {} {} {}".format(base, self.tr("for"), prettySecond, groupLabel)
 
     def restoreStatisticSelection(self, previousData):
+        self._restoreComboSelection(self.cbStatistic, previousData)
+
+    def _restoreComboSelection(self, combo, previousData):
         if previousData is None:
             return
-        for index in range(self.cbStatistic.count()):
-            if self.cbStatistic.itemData(index, Qt.ItemDataRole.UserRole) == previousData:
-                self.cbStatistic.blockSignals(True)
-                self.cbStatistic.setCurrentIndex(index)
-                self.cbStatistic.blockSignals(False)
+        for index in range(combo.count()):
+            if combo.itemData(index, Qt.ItemDataRole.UserRole) == previousData:
+                combo.blockSignals(True)
+                combo.setCurrentIndex(index)
+                combo.blockSignals(False)
                 return
 
     def populateStatisticOptions(self, bins, useSum):
-        self.cbStatistic.blockSignals(True)
-        self.cbStatistic.clear()
-        self.cbStatistic.addItem(self.tr("Count"), ("stat", "count"))
+        self._fillStatisticCombo(self.cbStatistic, bins, useSum)
+
+    def _fillStatisticCombo(self, combo, bins, useSum):
+        combo.blockSignals(True)
+        combo.clear()
+        combo.addItem(self.tr("Count"), ("stat", "count"))
         if self.isEnumeratedTarget:
             uniqueValues = set()
             for binData in bins:
                 uniqueValues.update(binData["values"].keys())
             for value in sorted(uniqueValues, key=lambda item: str(item)):
-                self.cbStatistic.addItem(str(value), ("value", str(value)))
+                combo.addItem(str(value), ("value", str(value)))
         elif useSum:
-            self.cbStatistic.addItem(self.tr("Sum"), ("stat", "sum"))
-            self.cbStatistic.addItem(self.tr("Avg"), ("stat", "avg"))
-            self.cbStatistic.addItem(self.tr("Min"), ("stat", "min"))
-            self.cbStatistic.addItem(self.tr("Max"), ("stat", "max"))
+            combo.addItem(self.tr("Sum"), ("stat", "sum"))
+            combo.addItem(self.tr("Avg"), ("stat", "avg"))
+            combo.addItem(self.tr("Min"), ("stat", "min"))
+            combo.addItem(self.tr("Max"), ("stat", "max"))
         else:
-            self.cbStatistic.addItem(self.tr("Avg"), ("stat", "avg"))
-            self.cbStatistic.addItem(self.tr("Min"), ("stat", "min"))
-            self.cbStatistic.addItem(self.tr("Max"), ("stat", "max"))
-            self.cbStatistic.addItem(self.tr("StdD"), ("stat", "stddev"))
-        self.cbStatistic.setCurrentIndex(0)
-        self.cbStatistic.blockSignals(False)
+            combo.addItem(self.tr("Avg"), ("stat", "avg"))
+            combo.addItem(self.tr("Min"), ("stat", "min"))
+            combo.addItem(self.tr("Max"), ("stat", "max"))
+            combo.addItem(self.tr("StdD"), ("stat", "stddev"))
+        combo.setCurrentIndex(0)
+        combo.blockSignals(False)
 
     def onStatisticChanged(self):
         if not self._chartBins:
             return
         self.renderChart()
+
+    def onTableStatisticChanged(self):
+        if not self._tableMatrix:
+            return
+        self.populateMatrixTable()
 
     def renderChart(self):
         kind, key = self.cbStatistic.currentData(Qt.ItemDataRole.UserRole) or ("stat", "count")
@@ -1910,6 +1944,47 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                     variance = max(0.0, (binData["sumOfSquares"] - count * binData["avg"] * binData["avg"]) / (count - 1))
                     binData["stddev"] = math.sqrt(variance)
 
+    def combineBins(self, bins):
+        combined = self.makeBin(label="", lo=None, hi=None, category=None)
+        for binData in bins:
+            combined["count"] += binData["count"]
+            combined["sum"] += binData["sum"]
+            combined["sumOfSquares"] += binData["sumOfSquares"]
+            if binData["min"] is not None and (combined["min"] is None or binData["min"] < combined["min"]):
+                combined["min"] = binData["min"]
+            if binData["max"] is not None and (combined["max"] is None or binData["max"] > combined["max"]):
+                combined["max"] = binData["max"]
+            for value, count in binData["values"].items():
+                combined["values"][value] = combined["values"].get(value, 0) + count
+        self.finalizeBins([combined])
+        return combined
+
+    def binStatValue(self, binData, statKey, valueKey):
+        if valueKey is not None:
+            return binData["values"].get(valueKey, 0)
+        if statKey == "count":
+            return binData["count"]
+        if binData["count"] == 0:
+            return None
+        if statKey == "sum":
+            return binData["sum"]
+        if statKey == "avg":
+            return binData["avg"]
+        if statKey == "stddev":
+            return binData["stddev"] if binData["count"] > 1 else None
+        if statKey == "min":
+            return binData["min"]
+        if statKey == "max":
+            return binData["max"]
+        return binData["count"]
+
+    def formatStatCell(self, value, statKey, valueKey, decimals):
+        if value is None:
+            return ""
+        if valueKey is not None or statKey == "count":
+            return str(int(value))
+        return self.formatNumber(value, decimals)
+
     def buildSubtitle(self, elementIdentifier):
         parts = []
         attributeField = self.cbAttribute.currentData(Qt.ItemDataRole.UserRole)
@@ -1969,6 +2044,95 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         for row in range(self.tbExcel.rowCount()):
             self.setTableItem(row, 1, groupLabel, bold=row == totalRow)
         self.tbExcel.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+
+    def buildSecondClassMatrix(self, bins, propertyLayer, propertyField, classifyField, breaks, secondField,
+                               secondBreaks, featureRequest, classifyIsCategorical, prettyClassify, prettySecond,
+                               prettyProperty, useSum, propertyDecimals):
+        rowCount = len(bins)
+        colCount = len(self._secondClassBins)
+        cells = [[self.makeBin(label="", lo=None, hi=None, category=None) for _ in range(colCount)] for _ in range(rowCount)]
+        allColumn = [self.makeBin(label="", lo=None, hi=None, category=None) for _ in range(rowCount)]
+        featureIterator = propertyLayer.getFeatures(featureRequest) if featureRequest is not None else propertyLayer.getFeatures()
+        for feature in featureIterator:
+            classValue = feature[classifyField]
+            if classValue is None:
+                continue
+            primaryIndex = self.findBinIndex(bins, classValue, breaks["type"])
+            if primaryIndex is None:
+                continue
+            if classifyIsCategorical:
+                propertyValue = None
+                enumeratedValue = classValue
+            else:
+                propertyValue = feature[propertyField]
+                if propertyValue is None:
+                    continue
+                enumeratedValue = propertyValue
+            self.accumulateValue(allColumn[primaryIndex], propertyValue, enumeratedValue)
+            secondValue = feature[secondField]
+            if secondValue is None:
+                continue
+            secondIndex = self.findBinIndex(self._secondClassBins, secondValue, secondBreaks["type"])
+            if secondIndex is None:
+                continue
+            self.accumulateValue(cells[primaryIndex][secondIndex], propertyValue, enumeratedValue)
+        for row in cells:
+            self.finalizeBins(row)
+        self.finalizeBins(allColumn)
+        self._tableMatrix = {
+            "rowLabels": [binData.get("label", "") for binData in bins],
+            "secondLabels": [binData.get("label", "") for binData in self._secondClassBins],
+            "cells": cells,
+            "allColumn": allColumn,
+            "useSum": useSum,
+            "isEnumeratedTarget": self.isEnumeratedTarget,
+            "propertyDecimals": propertyDecimals,
+            "prettyClassify": prettyClassify,
+            "prettySecond": prettySecond,
+            "prettyProperty": prettyProperty,
+        }
+
+    def populateMatrixTable(self):
+        matrix = self._tableMatrix
+        if not matrix:
+            return
+        kind, key = self.cbTableStatistic.currentData(Qt.ItemDataRole.UserRole) or ("stat", "count")
+        statKey = key if kind == "stat" else "count"
+        valueKey = key if kind == "value" else None
+        decimals = matrix["propertyDecimals"]
+        rowLabels = matrix["rowLabels"]
+        secondLabels = matrix["secondLabels"]
+        cells = matrix["cells"]
+        allColumn = matrix["allColumn"]
+        cornerHeader = "{} / {}".format(matrix["prettyClassify"], matrix["prettySecond"])
+        headers = [cornerHeader, self.tr("All")] + list(secondLabels)
+        self.tbExcel.setColumnCount(len(headers))
+        self.tbExcel.setHorizontalHeaderLabels(headers)
+        self.tbExcel.setRowCount(len(rowLabels) + 1)
+
+        for rowIndex, label in enumerate(rowLabels):
+            self.setTableItem(rowIndex, 0, label)
+            allValue = self.binStatValue(allColumn[rowIndex], statKey, valueKey)
+            self.setTableItem(rowIndex, 1, self.formatStatCell(allValue, statKey, valueKey, decimals))
+            for colIndex, cellBin in enumerate(cells[rowIndex]):
+                value = self.binStatValue(cellBin, statKey, valueKey)
+                self.setTableItem(rowIndex, colIndex + 2, self.formatStatCell(value, statKey, valueKey, decimals))
+
+        totalRow = len(rowLabels)
+        self.setTableItem(totalRow, 0, self.tr("Total"), bold=True)
+        allTotal = self.binStatValue(self.combineBins(allColumn), statKey, valueKey)
+        self.setTableItem(totalRow, 1, self.formatStatCell(allTotal, statKey, valueKey, decimals), bold=True)
+        for colIndex in range(len(secondLabels)):
+            columnBins = [cells[rowIndex][colIndex] for rowIndex in range(len(rowLabels))]
+            columnTotal = self.binStatValue(self.combineBins(columnBins), statKey, valueKey)
+            self.setTableItem(totalRow, colIndex + 2, self.formatStatCell(columnTotal, statKey, valueKey, decimals), bold=True)
+
+        header = self.tbExcel.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        for column in range(1, self.tbExcel.columnCount()):
+            header.setSectionResizeMode(column, QHeaderView.ResizeMode.ResizeToContents)
+        header.setStretchLastSection(False)
+        self.tbExcel.verticalHeader().setVisible(False)
 
     def populateNumericTable(self, bins, prettyClassify, prettyProperty, propertyField, elementIdentifier):
         propertyDecimals = self.fieldUtils.getDecimals(normalize_element(elementIdentifier), propertyField, default=2)
