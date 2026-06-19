@@ -472,8 +472,6 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 combo.blockSignals(False)
         self.clearChart()
         self._feedHistogramPopout()
-        self.labelPropertyByClasses.setText("")
-        self.labelPropertyByClasses.hide()
         self.tbExcel.setRowCount(0)
         self.tbExcel.setColumnCount(0)
         self.labelOnlySelectedElements.hide()
@@ -485,8 +483,6 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.lastOutOfRangeCount = 0
         self.clearChart()
         self._feedHistogramPopout()
-        self.labelPropertyByClasses.setText("")
-        self.labelPropertyByClasses.hide()
         self.tbExcel.setRowCount(0)
         self.tbExcel.setColumnCount(0)
         self.labelOnlySelectedElements.hide()
@@ -679,8 +675,6 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.secondManualBreaks = []
         self.clearChart()
         self._feedHistogramPopout()
-        self.labelPropertyByClasses.setText("")
-        self.labelPropertyByClasses.hide()
         self.tbExcel.setRowCount(0)
         self.tbExcel.setColumnCount(0)
         self.labelOnlySelectedElements.hide()
@@ -1575,10 +1569,9 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             prettyProperty = prettyClassify
             propertyUnit = ""
 
-        self.labelPropertyByClasses.setText(
-            self.buildChartTitle(elementIdentifier, prettyProperty, prettyClassify, secondField, secondBreaks, selectedSecondIndex)
+        chartTitle = self.buildChartTitle(
+            elementIdentifier, prettyProperty, prettyClassify, secondField, secondBreaks, selectedSecondIndex
         )
-        self.labelPropertyByClasses.show()
         subtitle = self.buildSubtitle(elementIdentifier)
         xLabel = "{} ({})".format(prettyClassify, classifyUnit) if classifyUnit else prettyClassify
         useSum = self.usesSumColumn(propertyField, elementIdentifier)
@@ -1588,7 +1581,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self._chartXLabel = xLabel
         self._chartSubtitle = subtitle
         self._chartUseSum = useSum
-        self.histogram.setTitles("", subtitle)
+        self.histogram.setTitles(chartTitle, subtitle)
         previousStatistic = self.cbStatistic.currentData(Qt.ItemDataRole.UserRole) if preserveStatistic else None
         self.populateStatisticOptions(bins, useSum)
         if preserveStatistic:
