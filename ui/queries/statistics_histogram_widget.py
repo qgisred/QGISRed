@@ -11,6 +11,7 @@ from .statistics_histogram_layout import (
     cumulative_right_axis_margin,
     longest_x_label_width,
     rotated_x_label_extra_height,
+    title_top_margin,
     x_tick_labels_need_rotation,
 )
 from .statistics_histogram_renderer import StatisticsHistogramRenderer
@@ -123,6 +124,7 @@ class StatisticsHistogramWidget(QWidget):
         tickFont = qfont(self._axisTickFontSize)
         fontMetrics = QFontMetrics(tickFont)
 
+        self.marginTop = title_top_margin(self.title, self.subtitle, self.width())
         plotWidthGuess = max(40, self.width() - self.marginLeft - self.marginRight)
         plotHeightGuess = max(40, self.height() - self.marginTop - self.marginBottom)
         values = [self.barValueFor(binData) for binData in self.bins]

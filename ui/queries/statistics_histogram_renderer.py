@@ -21,8 +21,12 @@ from ..analysis.timeseries_plot_style import (
 )
 from .statistics_histogram_layout import (
     ROTATED_LABEL_SIN,
+    SUBTITLE_FONT_SIZE,
+    TITLE_FONT_SIZE,
+    TITLE_TOP_PADDING,
     adaptive_axis_title_font_size,
     max_rotated_label_width,
+    wrap_title_lines,
 )
 
 
@@ -37,8 +41,8 @@ _TICK_LEN = 4
 class StatisticsHistogramRenderer:
     _AXIS_TITLE_FONT_SIZE = 10
     _AXIS_TICK_FONT_SIZE = 9
-    _TITLE_FONT_SIZE = 11
-    _SUBTITLE_FONT_SIZE = 9
+    _TITLE_FONT_SIZE = TITLE_FONT_SIZE
+    _SUBTITLE_FONT_SIZE = SUBTITLE_FONT_SIZE
 
     def _tickFontSize(self, widget):
         return getattr(widget, "axisTickFontSize", lambda: self._AXIS_TICK_FONT_SIZE)()
@@ -101,19 +105,24 @@ class StatisticsHistogramRenderer:
         if not widget.title:
             return
         painter.setPen(TEXT_DARK)
-        painter.setFont(qfont(self._TITLE_FONT_SIZE, bold=True))
-        rect = QRectF(0, 4, widget.width(), 18)
-        elided = QFontMetrics(painter.font()).elidedText(
-            widget.title, Qt.TextElideMode.ElideRight, max(0, int(widget.width()) - 8)
-        )
-        painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, elided)
+        titleFont = qfont(self._TITLE_FONT_SIZE, bold=True)
+        painter.setFont(titleFont)
+        lineHeight = QFontMetrics(titleFont).height()
+        y = TITLE_TOP_PADDING
+        for line in wrap_title_lines(widget.title, max(0, int(widget.width()) - 8)):
+            painter.drawText(QRectF(0, y, widget.width(), lineHeight), Qt.AlignmentFlag.AlignCenter, line)
+            y += lineHeight
 
     def _drawSubtitle(self, widget, painter, plotRect):
         if not widget.subtitle:
             return
         painter.setPen(QColor(80, 80, 80))
         painter.setFont(qfont(self._SUBTITLE_FONT_SIZE))
-        rect = QRectF(0, 22, widget.width(), 14)
+        y = TITLE_TOP_PADDING
+        if widget.title:
+            titleLines = wrap_title_lines(widget.title, max(0, int(widget.width()) - 8))
+            y += len(titleLines) * QFontMetrics(qfont(self._TITLE_FONT_SIZE, bold=True)).height()
+        rect = QRectF(0, y, widget.width(), 14)
         elided = QFontMetrics(painter.font()).elidedText(
             widget.subtitle, Qt.TextElideMode.ElideRight, max(0, int(widget.width()) - 8)
         )

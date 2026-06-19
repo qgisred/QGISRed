@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QFontMetrics
 
 from ..analysis.timeseries_plot_style import qfont
@@ -6,6 +7,49 @@ from ..analysis.timeseries_plot_style import qfont
 _MIN_PLOT_HEIGHT_PX = 48
 _MIN_PLOT_HEIGHT_RATIO = 0.38
 ROTATED_LABEL_SIN = 0.7071067811865476
+
+TITLE_FONT_SIZE = 11
+SUBTITLE_FONT_SIZE = 9
+TITLE_TOP_PADDING = 4
+TITLE_BOTTOM_PADDING = 6
+
+
+def wrap_title_lines(title, max_width, max_lines=2):
+    """Word-wrap a chart title into at most max_lines, eliding the final line."""
+    text = (title or "").strip()
+    if not text:
+        return []
+    fontMetrics = QFontMetrics(qfont(TITLE_FONT_SIZE, bold=True))
+    maxWidth = max(0, int(max_width))
+    if fontMetrics.horizontalAdvance(text) <= maxWidth:
+        return [text]
+    words = text.split()
+    lines = []
+    current = ""
+    index = 0
+    while index < len(words) and len(lines) < max_lines - 1:
+        candidate = words[index] if not current else current + " " + words[index]
+        if not current or fontMetrics.horizontalAdvance(candidate) <= maxWidth:
+            current = candidate
+            index += 1
+        else:
+            lines.append(current)
+            current = ""
+    tail = " ".join(words[index:])
+    lastLine = tail if not current else (current + " " + tail if tail else current)
+    lines.append(fontMetrics.elidedText(lastLine, Qt.TextElideMode.ElideRight, maxWidth))
+    return lines
+
+
+def title_top_margin(title, subtitle, width, *, min_margin=40, max_lines=2):
+    """Top margin needed above the plot for a wrapped title plus subtitle."""
+    top = TITLE_TOP_PADDING
+    if title:
+        lineCount = len(wrap_title_lines(title, max(0, int(width) - 8), max_lines))
+        top += lineCount * QFontMetrics(qfont(TITLE_FONT_SIZE, bold=True)).height()
+    if subtitle:
+        top += QFontMetrics(qfont(SUBTITLE_FONT_SIZE)).height()
+    return max(min_margin, top + TITLE_BOTTOM_PADDING)
 
 
 def adaptive_axis_tick_font_size(width, height):
