@@ -471,6 +471,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.clearChart()
         self._feedHistogramPopout()
         self.labelPropertyByClasses.setText("")
+        self.labelPropertyByClasses.hide()
         self.tbExcel.setRowCount(0)
         self.tbExcel.setColumnCount(0)
         self.labelOnlySelectedElements.hide()
@@ -483,6 +484,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.clearChart()
         self._feedHistogramPopout()
         self.labelPropertyByClasses.setText("")
+        self.labelPropertyByClasses.hide()
         self.tbExcel.setRowCount(0)
         self.tbExcel.setColumnCount(0)
         self.labelOnlySelectedElements.hide()
@@ -676,6 +678,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.clearChart()
         self._feedHistogramPopout()
         self.labelPropertyByClasses.setText("")
+        self.labelPropertyByClasses.hide()
         self.tbExcel.setRowCount(0)
         self.tbExcel.setColumnCount(0)
         self.labelOnlySelectedElements.hide()
@@ -1572,6 +1575,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.labelPropertyByClasses.setText(
             self.buildChartTitle(elementIdentifier, prettyProperty, prettyClassify, secondField, secondBreaks, selectedSecondIndex)
         )
+        self.labelPropertyByClasses.show()
         subtitle = self.buildSubtitle(elementIdentifier)
         xLabel = "{} ({})".format(prettyClassify, classifyUnit) if classifyUnit else prettyClassify
         useSum = self.usesSumColumn(propertyField, elementIdentifier)

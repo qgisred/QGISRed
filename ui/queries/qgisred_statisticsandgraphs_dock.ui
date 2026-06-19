@@ -504,6 +504,9 @@
           <layout class="QVBoxLayout" name="verticalLayout_stats">
            <item>
             <widget class="QLabel" name="labelPropertyByClasses">
+             <property name="visible">
+              <bool>false</bool>
+             </property>
              <property name="font">
               <font>
                <pointsize>12</pointsize>
