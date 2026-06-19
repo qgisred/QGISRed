@@ -1488,6 +1488,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             "elementIdentifier": elementIdentifier,
         }
         self.renderAnalysis()
+        self.tabWidget.setCurrentIndex(1)
 
     def populateSecondClassValues(self, elementIdentifier, secondField):
         self.cbSecondClassValue.blockSignals(True)
