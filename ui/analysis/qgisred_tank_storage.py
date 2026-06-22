@@ -4,22 +4,25 @@
 Mirrors EPANET ``EN_TANKVOLUME`` / ``tankvolume()`` (hydraul.c):
 
 - Only **storage tanks** are included; **reservoirs are excluded**.
-- Water level at each report step: ``level = head - bottom_elevation`` (``h``).
+- Water level over the tank bottom at each step: ``z = head - bottom_elevation``
+  (``level`` in code). ``MinLevel`` is the minimum level over the bottom (``zmin``).
 
 **Without volume curve** (``tankvolume()``):
 
-``V = Vmin + (h - Hmin) × A`` — ``MinVolume`` in the DBF is the input ``Vmin`` (volume
-at minimum water level). When ``MinVolume`` is undeclared (``0``), EPANET's
-``convertunits()`` initialises ``Vmin = A × Hmin`` (cylinder down to the bottom), so the
-stored volume reduces to ``A × h`` rather than ``A × (h - Hmin)``.
+``V = Vmin + (z - zmin) × A`` — ``z`` and ``zmin`` are both levels over the bottom and
+must never be mixed with absolute elevations (equivalently ``V = Vmin + (H - Hmin) × A``
+with head ``H`` and ``Hmin = bottom + zmin``). ``MinVolume`` in the DBF is the input
+``Vmin`` (volume at minimum level). When ``MinVolume`` is undeclared (``0``), EPANET's
+``convertunits()`` initialises ``Vmin = A × zmin``, so the stored volume reduces to
+``A × z`` rather than ``A × (z - zmin)``.
 
 **With volume curve** (input init + ``tankvolume()``):
 
-- At init, EPANET sets ``Vmin = interp(curve, Hmin)``; DBF ``MinVolume`` is not an
+- At init, EPANET sets ``Vmin = interp(curve, zmin)``; DBF ``MinVolume`` is not an
   independent input in that case.
-- Stored volume at level ``h`` is ``interp(curve, h)`` only (no extra ``Vmin`` term).
+- Stored volume at level ``z`` is ``interp(curve, z)`` only (no extra ``Vmin`` term).
 - During the simulation, volume never drops below ``Vmin``; when recomputing from
-  reported heads we apply the same floor: ``max(interp(h), interp(Hmin))``.
+  reported heads we apply the same floor: ``max(interp(z), interp(zmin))``.
 
 **Numeric policy:** use EPANET values as read (``.out`` float32 heads/demands, binary
 ``tank_areas``, DBF fields) with no rounding in volume or spill-flow math. Chart/table
@@ -185,11 +188,11 @@ def cylindrical_volume_from_level(
     min_level: float,
     cross_section_area: float,
 ) -> float:
-    """EPANET ``tankvolume()`` for a cylindrical tank: ``Vmin + (h - Hmin) * A``.
+    """EPANET ``tankvolume()`` for a cylindrical tank: ``Vmin + (z - zmin) * A``.
 
+    ``z`` (``level``) and ``zmin`` (``min_level``) are both water levels over the bottom.
     When ``MinVolume`` is undeclared (``Vmin == 0``), EPANET's ``convertunits()`` sets
-    ``Vmin = A * Hmin`` (full cylinder to the bottom), so stored volume becomes ``A * h``
-    rather than ``A * (h - Hmin)``.
+    ``Vmin = A * zmin``, so stored volume becomes ``A * z`` rather than ``A * (z - zmin)``.
     """
     if min_volume <= 0.0:
         min_volume = cross_section_area * min_level

@@ -2477,9 +2477,6 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         return os.path.join(directory, next_available_config_name(filename, existing))
 
     def _onExportConfigClicked(self) -> None:
-        if not self._plotHasCurves():
-            self._showMessage(self.tr("No curves to export"), level=1)
-            return
         default_path = self._timeSeriesConfigExportDefaultPath()
         path, _selected_filter = QFileDialog.getSaveFileName(
             self,
@@ -2652,13 +2649,14 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
                     btn.setEnabled(bool(has_curves and auto_scale_x and is_zoomed))
                 else:
                     btn.setEnabled(bool(has_curves and auto_scale_x))
-        for btn_name in ("btnAxes", "btnExportImage", "btnExportCsv", "btnExportConfig", "btnEditComment"):
+        for btn_name in ("btnExportImage", "btnExportCsv"):
             btn = getattr(self, btn_name, None)
             if btn is not None:
                 btn.setEnabled(bool(has_curves))
-        import_btn = getattr(self, "btnImportConfig", None)
-        if import_btn is not None:
-            import_btn.setEnabled(True)
+        for btn_name in ("btnAxes", "btnExportConfig", "btnEditComment", "btnImportConfig"):
+            btn = getattr(self, btn_name, None)
+            if btn is not None:
+                btn.setEnabled(True)
         toggle_btn = getattr(self, "btnToggleTable", None)
         if toggle_btn is not None:
             toggle_btn.setEnabled(bool(has_curves))

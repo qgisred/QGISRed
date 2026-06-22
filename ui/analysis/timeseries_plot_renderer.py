@@ -83,9 +83,7 @@ class TimeSeriesPlotRenderer:
 
     def render(self, widget, painter: QPainter) -> None:
         if not widget.series:
-            widget._last_y_state_left = None
-            widget._last_y_state_right = None
-            self._draw_no_data_message(widget, painter)
+            self._render_empty_scaffold(widget, painter)
             return
 
         painter.setRenderHint(PAINTER_ANTIALIASING)
@@ -100,9 +98,7 @@ class TimeSeriesPlotRenderer:
 
         all_x, all_y, y_categorical_labels, any_stepped = widget._axisSeriesData(widget.series)
         if not all_x or not all_y:
-            widget._last_y_state_left = None
-            widget._last_y_state_right = None
-            self._draw_no_data_message(widget, painter)
+            self._render_empty_scaffold(widget, painter)
             return
 
         widget.data_x = all_x
@@ -114,31 +110,7 @@ class TimeSeriesPlotRenderer:
         widget._legend_hitboxes = []
         widget._legend_delete_hitboxes = []
 
-        title_txt = ""
-        if gen is not None and (getattr(gen, "title", "") or "").strip():
-            title_txt = (gen.title or "").strip()
-        elif widget.title:
-            title_txt = widget.title
-
-        if title_txt:
-            painter.save()
-            if gen is not None:
-                title_size = max(5, min(int(getattr(gen, "title_font_size", 10) or 10), 48))
-                title_font = QFont(gen.resolved_title_font_family(), title_size)
-                title_color = gen.title_qcolor()
-            else:
-                title_font = qfont(10)
-                title_color = QColor("#000000")
-            title_font.setBold(True)
-            painter.setFont(title_font)
-            painter.setPen(QPen(title_color, 1))
-            title_area_h = max(float(widget.margin_top), float(plot_rect.top() - PLOT_TOP_PAD))
-            painter.drawText(
-                QRectF(plot_rect.left(), 0, plot_rect.width(), title_area_h),
-                Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignBottom,
-                title_txt,
-            )
-            painter.restore()
+        self._draw_chart_title(widget, painter, plot_rect, gen)
 
         if gen is not None:
             painter.fillRect(plot_rect, gen.plot_bg_qcolor())
@@ -211,8 +183,76 @@ class TimeSeriesPlotRenderer:
         self._draw_legend(widget, painter, plot_rect, x_state)
         self._draw_hover_overlay(widget, painter, plot_rect, x_state, y_state_left, y_state_right)
 
-    def _draw_no_data_message(self, widget, painter: QPainter) -> None:
-        painter.drawText(widget.rect(), Qt.AlignmentFlag.AlignCenter, QCoreApplication.translate("TimeSeriesPlotWidget", "No data to display, please select an element on the map."))
+    def _draw_chart_title(self, widget, painter: QPainter, plot_rect: QRectF, gen, *, use_default: bool = False) -> None:
+        title_txt = ""
+        if gen is not None and (getattr(gen, "title", "") or "").strip():
+            title_txt = (gen.title or "").strip()
+        elif (getattr(widget, "title", "") or "").strip():
+            title_txt = widget.title
+        elif use_default:
+            title_txt = QCoreApplication.translate("TimeSeriesPlotWidget", "Time evolution curves")
+        if not title_txt:
+            return
+        painter.save()
+        if gen is not None:
+            title_size = max(5, min(int(getattr(gen, "title_font_size", 10) or 10), 48))
+            title_font = QFont(gen.resolved_title_font_family(), title_size)
+            title_color = gen.title_qcolor()
+        else:
+            title_font = qfont(10)
+            title_color = QColor("#000000")
+        title_font.setBold(True)
+        painter.setFont(title_font)
+        painter.setPen(QPen(title_color, 1))
+        title_area_h = max(float(widget.margin_top), float(plot_rect.top() - PLOT_TOP_PAD))
+        painter.drawText(
+            QRectF(plot_rect.left(), 0, plot_rect.width(), title_area_h),
+            Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignBottom,
+            title_txt,
+        )
+        painter.restore()
+
+    def _render_empty_scaffold(self, widget, painter: QPainter) -> None:
+        """Draw the styled but curve-less chart: background, frame and bare axes
+        (no ticks/grid/numbers/axis titles) plus the default title, with the
+        selection message overlaid. Lets the user customize the look (background,
+        frame, general options) and save it as a reusable template."""
+        widget._last_y_state_left = None
+        widget._last_y_state_right = None
+        widget._last_x_state = None
+        widget._legend_hitboxes = []
+        widget._legend_delete_hitboxes = []
+
+        painter.setRenderHint(PAINTER_ANTIALIASING)
+        gen = getattr(widget, "_general_cfg", None)
+        if gen is not None:
+            painter.fillRect(widget.rect(), gen.widget_bg_qcolor())
+        else:
+            painter.fillRect(widget.rect(), Qt.GlobalColor.white)
+
+        plot_rect, _local_margin_left, _right_axis_label_w = widget.getPlotRect()
+
+        self._draw_chart_title(widget, painter, plot_rect, gen, use_default=True)
+
+        if gen is not None:
+            painter.fillRect(plot_rect, gen.plot_bg_qcolor())
+            frame_pen = QPen(gen.frame_qcolor(), max(1, int(getattr(gen, "frame_width", 1) or 1)))
+        else:
+            painter.fillRect(plot_rect, PLOT_BG_COLOR)
+            frame_pen = QPen(BORDER_COLOR, 1)
+        painter.setPen(frame_pen)
+        painter.drawRect(plot_rect)
+        painter.drawLine(plot_rect.bottomLeft(), plot_rect.bottomRight())
+        painter.drawLine(plot_rect.bottomLeft(), plot_rect.topLeft())
+
+        self._draw_no_data_message(widget, painter, plot_rect)
+
+    def _draw_no_data_message(self, widget, painter: QPainter, area: Optional[QRectF] = None) -> None:
+        rect = area if area is not None else QRectF(widget.rect())
+        painter.save()
+        painter.setPen(QPen(QColor(TEXT_DARK), 1))
+        painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, QCoreApplication.translate("TimeSeriesPlotWidget", "No data to display, please select an element on the map."))
+        painter.restore()
 
     def _tick_qfont(self, cfg: TimeSeriesAxisSettings, *, bold: bool = False) -> QFont:
         f = QFont(cfg.resolved_font_family(), max(5, min(int(cfg.tick_font_size), 48)))

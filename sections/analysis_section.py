@@ -1743,9 +1743,6 @@ class AnalysisSection:
             dock = self._resolveTimeSeriesDock()
         if dock is None or not path:
             return
-        if not getattr(dock, "selection", None):
-            self.pushMessage(self.tr("No curves to export"), level=1)
-            return
         try:
             plot = dock.plot
             write_timeseries_config(
@@ -1886,15 +1883,7 @@ class AnalysisSection:
             return
 
         curves = config.get("curves") or []
-        selection = self._timeSeriesSelectionFromConfig(curves)
-
-        if dock is self.activeTimeSeriesDock:
-            self._clearTimeSeriesMapSelection()
-        self._clearTimeSeriesHighlight(dock)
-        dock.selection = selection
-        dock.selectionKey = None
-
-        dock._chartComment = config.get("comment", "") or ""
+        had_curves = bool(getattr(dock, "selection", None))
 
         plot = dock.plot
         plot._axis_cfg_x = config.get("axis_x")
@@ -1902,7 +1891,15 @@ class AnalysisSection:
         plot._axis_cfg_y_right = config.get("axis_y_right")
         plot._general_cfg = config.get("general")
 
-        if selection:
+        if curves:
+            selection = self._timeSeriesSelectionFromConfig(curves)
+            if dock is self.activeTimeSeriesDock:
+                self._clearTimeSeriesMapSelection()
+            self._clearTimeSeriesHighlight(dock)
+            dock.selection = selection
+            dock.selectionKey = None
+            dock._chartComment = config.get("comment", "") or ""
+
             if dock is self.activeTimeSeriesDock:
                 try:
                     fids_by_layer = {}
@@ -1922,7 +1919,8 @@ class AnalysisSection:
                 pass
             self._renderTimeSeriesSelection(dock)
             self._timeSeriesRestoreExplicitYAxis(plot, selection)
-        else:
+        elif not had_curves:
+            dock._chartComment = config.get("comment", "") or ""
             try:
                 dock.updatePlotSeries([], "", "", "")
             except Exception:

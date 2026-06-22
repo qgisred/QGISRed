@@ -123,6 +123,27 @@ class TestTimeSeriesConfigIO:
         assert parsed["curves"] == []
         assert parsed["version"] == "1"
 
+    def test_template_roundtrips_style_without_curves(self):
+        general = default_general_settings()
+        general.title = "Background template"
+        general.widget_bg_hex = "#202020"
+        general.plot_bg_hex = "#fafafa"
+        general.frame_color_hex = "#0097a7"
+        general.frame_width = 3
+        axis_x = default_axis_settings()
+        axis_x.title = "Time"
+        axis_x.show_grid = False
+        parsed = _roundtrip([], axis_x=axis_x, general=general, comment="Corporate look")
+        assert parsed["curves"] == []
+        assert parsed["general"].title == "Background template"
+        assert parsed["general"].widget_bg_hex == "#202020"
+        assert parsed["general"].plot_bg_hex == "#fafafa"
+        assert parsed["general"].frame_color_hex == "#0097a7"
+        assert parsed["general"].frame_width == 3
+        assert parsed["axis_x"].title == "Time"
+        assert parsed["axis_x"].show_grid is False
+        assert parsed["comment"] == "Corporate look"
+
     def test_comment_roundtrip(self):
         parsed = _roundtrip([_full_curve()], comment="Pressure at critical nodes")
         assert parsed["comment"] == "Pressure at critical nodes"
