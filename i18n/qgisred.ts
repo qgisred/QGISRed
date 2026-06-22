@@ -4356,6 +4356,46 @@ Left-click: Add a new item below the current selection</source>
 <context>
     <name>QGISRedResultsDock</name>
     <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="253"/>
+        <source>Show Node Evolution</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="254"/>
+        <source>Show Link Evolution</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="255"/>
+        <source>Overflow</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="256"/>
+        <source>Show stored volume instead</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="257"/>
+        <source>Show overflow flow instead</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="258"/>
+        <source>Expand chart to a floating window</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="259"/>
+        <source>Collapse chart back to the panel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="260"/>
+        <source>Evolution</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="100"/>
         <source>Volume</source>
         <translation type="unfinished"></translation>

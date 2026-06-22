@@ -4399,6 +4399,46 @@ Left-click: Add a new item below the current selection</source>
 <context>
     <name>QGISRedResultsDock</name>
     <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="253"/>
+        <source>Show Node Evolution</source>
+        <translation>Afficher évolution des nœuds</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="254"/>
+        <source>Show Link Evolution</source>
+        <translation>Afficher évolution des liens</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="255"/>
+        <source>Overflow</source>
+        <translation>Débordement</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="256"/>
+        <source>Show stored volume instead</source>
+        <translation>Afficher plutôt le volume stocké</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="257"/>
+        <source>Show overflow flow instead</source>
+        <translation>Afficher plutôt le débit de débordement</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="258"/>
+        <source>Expand chart to a floating window</source>
+        <translation>Agrandir le graphique dans une fenêtre flottante</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="259"/>
+        <source>Collapse chart back to the panel</source>
+        <translation>Réduire le graphique dans le panneau</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="260"/>
+        <source>Evolution</source>
+        <translation>Évolution</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="100"/>
         <source>Volume</source>
         <translation>Volume</translation>

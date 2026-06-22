@@ -837,15 +837,13 @@ class _ResultsDistributionMixin:
 
     def nodeDistributionClicked(self):
         if self.cbNodeDistribution.isChecked():
-            self.cbLinkDistribution.blockSignals(True)
-            self.cbLinkDistribution.setChecked(False)
-            self.cbLinkDistribution.blockSignals(False)
             if self.cbNodes.currentIndex() <= 0:
                 self.cbNodeDistribution.setChecked(False)
                 return
             if not self.validationsOpenResult():
                 self.cbNodeDistribution.setChecked(False)
                 return
+            self._activateExclusiveResultsChart("NodeDist")
             self.ensureResultsLayersAreOpen()
         self._syncDistributionPanelVisibility()
         self._refreshDistributionChart("Node")
@@ -854,15 +852,13 @@ class _ResultsDistributionMixin:
 
     def linkDistributionClicked(self):
         if self.cbLinkDistribution.isChecked():
-            self.cbNodeDistribution.blockSignals(True)
-            self.cbNodeDistribution.setChecked(False)
-            self.cbNodeDistribution.blockSignals(False)
             if self.cbLinks.currentIndex() <= 0:
                 self.cbLinkDistribution.setChecked(False)
                 return
             if not self.validationsOpenResult():
                 self.cbLinkDistribution.setChecked(False)
                 return
+            self._activateExclusiveResultsChart("LinkDist")
             self.ensureResultsLayersAreOpen()
         self._syncDistributionPanelVisibility()
         self._refreshDistributionChart("Link")

@@ -305,6 +305,12 @@ class AnalysisSection:
             self.ResultDockwidget.simulationFinished.connect(self.updateMetadata)
             self.ResultDockwidget.resultPropertyChanged.connect(self.updateMetadata)
             self.ResultDockwidget.statisticsModeChanged.connect(self._onStatisticsModeChanged)
+            self.ResultDockwidget.evolutionPickRequested.connect(self._onResultsEvolutionPickRequested)
+            self.ResultDockwidget.evolutionPickCancelled.connect(self._onResultsEvolutionPickCancelled)
+            self.ResultDockwidget.evolutionVariableChanged.connect(self._onResultsEvolutionVariableChanged)
+            self.ResultDockwidget.evolutionTankToggleRequested.connect(self._onResultsEvolutionTankToggle)
+            self.ResultDockwidget.timeTextChanged.connect(self._onResultsEvolutionTimeTextChanged)
+            self.ResultDockwidget.visibilityChanged.connect(self._onResultsDockVisibilityForEvolution)
 
     def _ensureResultsDockVisibleForTimeSeries(self):
         self._initResultsDock()
@@ -602,6 +608,356 @@ class AnalysisSection:
             pass_modifiers=True
         )
         self.iface.mapCanvas().setMapTool(self.myMapTools["TimeSeries"])
+
+    def _resultsEvolutionDock(self):
+        return getattr(self, "ResultDockwidget", None)
+
+    def runResultsEvolutionSelectPointTool(self):
+        self.myMapTools["ResultsEvolution"] = QGISRedSelectPointTool(
+            None, self, self.resultsEvolutionCallback, SelectPointType.Line,
+            cursor=":/images/iconTimeSeries.svg",
+        )
+        self.iface.mapCanvas().setMapTool(self.myMapTools["ResultsEvolution"])
+
+    def resultsEvolutionCallback(self, point):
+        self.updateResultsEvolutionPlot(point)
+
+    def _deactivateResultsEvolutionMapTool(self):
+        tool = getattr(self, "myMapTools", {}).get("ResultsEvolution")
+        if tool is not None and self.iface.mapCanvas().mapTool() is tool:
+            self.iface.mapCanvas().unsetMapTool(tool)
+
+    def _onResultsEvolutionPickRequested(self, layer_type):
+        dock = self._resultsEvolutionDock()
+        self._resultsEvolutionType = layer_type
+        self._clearResultsEvolutionHighlight()
+        self.runResultsEvolutionSelectPointTool()
+        remembered = getattr(self, "_resultsEvolutionElement", None)
+        if remembered and remembered.get("category") == layer_type:
+            layer, feature = self._resolveEvolutionLayerFeature(remembered)
+            if layer is not None and feature is not None:
+                self._evolutionTankAltActive = None
+                self._renderResultsEvolution(layer, feature, highlight=True)
+                return
+        if dock is not None:
+            dock.clearEvolutionChart(layer_type)
+            dock.setEvolutionTankToggle(False)
+
+    def _onResultsEvolutionPickCancelled(self):
+        self._resultsEvolutionType = None
+        self._deactivateResultsEvolutionMapTool()
+        self._clearResultsEvolutionHighlight()
+
+    def _onResultsDockVisibilityForEvolution(self, visible):
+        if not visible:
+            self._deactivateResultsEvolutionMapTool()
+            self._clearResultsEvolutionHighlight()
+            return
+        dock = self._resultsEvolutionDock()
+        if dock is None:
+            return
+        active = dock._activeEvolutionLayerType()
+        if active is None:
+            return
+        self._resultsEvolutionType = active
+        self.runResultsEvolutionSelectPointTool()
+        remembered = getattr(self, "_resultsEvolutionElement", None)
+        if remembered and remembered.get("category") == active:
+            layer, feature = self._resolveEvolutionLayerFeature(remembered)
+            if layer is not None and feature is not None:
+                self._renderResultsEvolution(layer, feature, highlight=True)
+
+    def _onResultsEvolutionVariableChanged(self, category):
+        remembered = getattr(self, "_resultsEvolutionElement", None)
+        if not remembered or remembered.get("category") != category:
+            return
+        dock = self._resultsEvolutionDock()
+        self._evolutionTankAltActive = None
+        layer, feature = self._resolveEvolutionLayerFeature(remembered)
+        if layer is None or feature is None:
+            if dock is not None:
+                dock.clearEvolutionChart(category)
+                dock.setEvolutionTankToggle(False)
+            return
+        active = dock._activeEvolutionLayerType() if dock is not None else None
+        self._renderResultsEvolution(layer, feature, highlight=(active == category))
+
+    def _onResultsEvolutionTimeTextChanged(self, text):
+        dock = self._resultsEvolutionDock()
+        if dock is None:
+            return
+        try:
+            hours = dock._elapsedTextToHours(text)
+        except Exception:
+            hours = None
+        dock.setEvolutionCursorHours(hours)
+
+    def _onResultsEvolutionTankToggle(self, kind):
+        from ..ui.analysis.results_evolution_utils import evolution_prop_internal, tank_buttons_visibility
+        dock = self._resultsEvolutionDock()
+        remembered = getattr(self, "_resultsEvolutionElement", None)
+        if dock is None or not remembered:
+            return
+        category = remembered.get("category") or ""
+        layer_identifier = remembered.get("layer_identifier") or ""
+        if category == "Node":
+            field = dock._node_field_map.get(dock.cbNodes.currentText(), "")
+        else:
+            field = dock._link_field_map.get(dock.cbLinks.currentText(), "")
+        base = evolution_prop_internal(category, field)
+        show_volume, show_spill = tank_buttons_visibility(layer_identifier, base)
+        current = getattr(self, "_evolutionTankAltActive", None)
+        if show_volume:
+            self._evolutionTankAltActive = None if current == "Volume" else "Volume"
+        elif show_spill:
+            self._evolutionTankAltActive = None if current == "TankSpill" else "TankSpill"
+        else:
+            return
+        layer, feature = self._resolveEvolutionLayerFeature(remembered)
+        if layer is None or feature is None:
+            return
+        self._renderResultsEvolution(layer, feature, highlight=True)
+
+    def updateResultsEvolutionPlot(self, point):
+        dock = self._resultsEvolutionDock()
+        if dock is None:
+            return
+        layer_type = getattr(self, "_resultsEvolutionType", None) or dock._activeEvolutionLayerType()
+        if layer_type is None:
+            return
+
+        tolerance = self.iface.mapCanvas().getCoordinateTransform().mapUnitsPerPixel() * 10
+        rect = QgsRectangle(point.x() - tolerance, point.y() - tolerance, point.x() + tolerance, point.y() + tolerance)
+        if layer_type == "Node":
+            layers_to_check = [("qgisred_junctions", "Node"), ("qgisred_tanks", "Node"), ("qgisred_reservoirs", "Node")]
+        else:
+            layers_to_check = [("qgisred_pipes", "Link"), ("qgisred_valves", "Link"), ("qgisred_pumps", "Link")]
+
+        found_feature = None
+        found_layer = None
+        category = ""
+        for identifier, cat in layers_to_check:
+            layer = None
+            for l in QGISRedLayerUtils().getLayers():
+                if l.customProperty("qgisred_identifier") == identifier:
+                    layer = l
+                    break
+            if layer:
+                for feature in layer.getFeatures(rect):
+                    found_feature = feature
+                    found_layer = layer
+                    category = cat
+                    break
+            if found_feature:
+                break
+
+        if not found_feature:
+            self.pushMessage(self.tr("No network element found at this location."), level=1)
+            return
+
+        element_id = str(found_feature.attribute("ID"))
+        layer_identifier = found_layer.customProperty("qgisred_identifier") if found_layer else ""
+        self._resultsEvolutionElement = {
+            "category": category,
+            "layer_identifier": layer_identifier,
+            "element_id": element_id,
+        }
+        self._evolutionTankAltActive = None
+        self._renderResultsEvolution(found_layer, found_feature, highlight=True)
+
+    def _resolveEvolutionLayerFeature(self, remembered):
+        identifier = remembered.get("layer_identifier")
+        element_id = remembered.get("element_id")
+        layer = None
+        for l in QGISRedLayerUtils().getLayers():
+            if l.customProperty("qgisred_identifier") == identifier:
+                layer = l
+                break
+        if layer is None:
+            return None, None
+        for feature in layer.getFeatures():
+            if str(feature.attribute("ID")) == element_id:
+                return layer, feature
+        return None, None
+
+    def _renderResultsEvolution(self, layer, feature, highlight=True):
+        dock = self._resultsEvolutionDock()
+        remembered = getattr(self, "_resultsEvolutionElement", None) or {}
+        category = remembered.get("category") or ""
+        layer_identifier = remembered.get("layer_identifier") or ""
+        element_id = remembered.get("element_id") or ""
+        if dock is None or not category:
+            return
+        override = getattr(self, "_evolutionTankAltActive", None)
+        built = self._buildResultsEvolutionSeries(category, layer_identifier, element_id, prop_internal_override=override)
+        if built is None:
+            dock.clearEvolutionChart(category)
+        else:
+            dock.setEvolutionSeries(category, **built)
+        if highlight:
+            self._setResultsEvolutionHighlight(layer, feature)
+        self._evaluateEvolutionTankButtons()
+        self._pushResultsEvolutionCursorFromDock()
+
+    def _evolutionElementLabel(self, category, layer_identifier, element_id):
+        type_mapping = {
+            "qgisred_junctions": self.tr("Junction"),
+            "qgisred_tanks": self.tr("Tank"),
+            "qgisred_reservoirs": self.tr("Reservoir"),
+            "qgisred_pipes": self.tr("Pipe"),
+            "qgisred_valves": self.tr("Valve"),
+            "qgisred_pumps": self.tr("Pump"),
+        }
+        specific_type = type_mapping.get(layer_identifier, category)
+        return f"{specific_type} {element_id}"
+
+    def _buildResultsEvolutionSeries(self, category, layer_identifier, element_id, prop_internal_override=None):
+        from ..ui.analysis.results_evolution_utils import evolution_prop_internal, map_status_series
+        dock = self._resultsEvolutionDock()
+        if dock is None or not element_id:
+            return None
+        source = self._getTimeSeriesSource()
+        if not source:
+            return None
+        x = [t / 3600.0 for t in source["times"]]
+
+        if prop_internal_override == "Volume":
+            prop_internal = "Volume"
+            prop_display = dock.lbl_tank_volume
+        elif prop_internal_override == "TankSpill":
+            prop_internal = "TankSpill"
+            prop_display = dock.lbl_tank_overflow
+        elif category == "Node":
+            prop_display = dock.cbNodes.currentText()
+            prop_internal = evolution_prop_internal(category, dock._node_field_map.get(prop_display, ""))
+        else:
+            prop_display = dock.cbLinks.currentText()
+            prop_internal = evolution_prop_internal(category, dock._link_field_map.get(prop_display, ""))
+        if not prop_internal:
+            return None
+
+        y = self._getSeriesValuesForSource(source, category, element_id, prop_internal)
+        if not y:
+            return None
+
+        is_stepped = False
+        y_categorical_labels = None
+        if prop_internal == "Status":
+            y = map_status_series(y)
+            is_stepped = True
+            y_categorical_labels = [self.tr("Closed"), self.tr("Active"), self.tr("Open")]
+
+        fieldUtils = QGISRedFieldUtils()
+        if prop_internal == "Volume":
+            unit_abbr = fieldUtils.getUnitAbbreviation(normalize_element("Tanks"), "MinVolume")
+        elif prop_internal == "TankSpill":
+            unit_abbr = fieldUtils.getUnitAbbreviation(normalize_element("Node"), "Demand")
+        else:
+            unit_abbr = fieldUtils.getUnitAbbreviation(normalize_element(category), prop_internal)
+        y_label = f"{prop_display} ({unit_abbr})" if unit_abbr else prop_display
+        title = f"{self._evolutionElementLabel(category, layer_identifier, element_id)}: {prop_display}"
+        x_label = "{} (h)".format(self.tr("Time"))
+        return dict(
+            x_hours=x, y_values=y, title=title, x_label=x_label, y_label=y_label,
+            is_stepped=is_stepped, y_categorical_labels=y_categorical_labels,
+        )
+
+    def _evaluateEvolutionTankButtons(self):
+        from ..ui.analysis.results_evolution_utils import evolution_prop_internal, tank_buttons_visibility
+        dock = self._resultsEvolutionDock()
+        remembered = getattr(self, "_resultsEvolutionElement", None)
+        if dock is None:
+            return
+        if not remembered:
+            dock.setEvolutionTankToggle(False)
+            return
+        category = remembered.get("category") or ""
+        layer_identifier = remembered.get("layer_identifier") or ""
+        if category == "Node":
+            field = dock._node_field_map.get(dock.cbNodes.currentText(), "")
+        else:
+            field = dock._link_field_map.get(dock.cbLinks.currentText(), "")
+        base = evolution_prop_internal(category, field)
+        show_volume, show_spill = tank_buttons_visibility(layer_identifier, base)
+        alt = getattr(self, "_evolutionTankAltActive", None)
+        if show_volume:
+            if alt == "Volume":
+                dock.setEvolutionTankToggle(True, dock.lbl_pressure, dock.lbl_pressure)
+            else:
+                dock.setEvolutionTankToggle(True, dock.lbl_tank_volume, dock.tr("Show stored volume instead"))
+        elif show_spill:
+            if alt == "TankSpill":
+                dock.setEvolutionTankToggle(True, dock.lbl_demand, dock.lbl_demand)
+            else:
+                dock.setEvolutionTankToggle(True, dock.tr("Overflow"), dock.tr("Show overflow flow instead"))
+        else:
+            dock.setEvolutionTankToggle(False)
+
+    def _pushResultsEvolutionCursorFromDock(self):
+        dock = self._resultsEvolutionDock()
+        if dock is None:
+            return
+        try:
+            idx = dock.cbTimes.currentIndex()
+            labels = getattr(dock, "TimeLabels", []) or []
+            text = labels[idx] if 0 <= idx < len(labels) else ""
+            hours = dock._elapsedTextToHours(text)
+        except Exception:
+            hours = None
+        dock.setEvolutionCursorHours(hours)
+
+    def _setResultsEvolutionHighlight(self, layer, feature):
+        self._clearResultsEvolutionHighlight()
+        if layer is None or feature is None:
+            return
+        try:
+            highlight = QgsHighlight(self.iface.mapCanvas(), feature.geometry(), layer)
+            highlight.setColor(QColor(255, 0, 0))
+            highlight.setWidth(7)
+            highlight.show()
+            self._resultsEvolutionHighlight = highlight
+        except Exception:
+            self._resultsEvolutionHighlight = None
+
+    def _clearResultsEvolutionHighlight(self):
+        highlight = getattr(self, "_resultsEvolutionHighlight", None)
+        self._resultsEvolutionHighlight = None
+        if highlight is None:
+            return
+        canvas = None
+        scene = None
+        try:
+            canvas = self.iface.mapCanvas()
+            scene = canvas.scene() if canvas is not None else None
+        except Exception:
+            scene = None
+        try:
+            highlight.hide()
+        except Exception:
+            pass
+        if scene is not None:
+            try:
+                scene.removeItem(highlight)
+            except Exception:
+                pass
+        if canvas is not None:
+            try:
+                canvas.refresh()
+            except Exception:
+                pass
+
+    def _resetResultsEvolutionMapState(self):
+        self._resultsEvolutionType = None
+        self._resultsEvolutionElement = None
+        self._evolutionTankAltActive = None
+        try:
+            self._deactivateResultsEvolutionMapTool()
+        except Exception:
+            pass
+        try:
+            self._clearResultsEvolutionHighlight()
+        except Exception:
+            pass
 
     def _onTimeSeriesGlobalSystemVariable(self, variable_key: str, dock=None):
         if dock is None:

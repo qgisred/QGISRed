@@ -1852,6 +1852,9 @@ class TimeSeriesPlotRenderer:
         painter.setPen(QPen(QColor(255, 110, 110), 1, Qt.PenStyle.DashLine))
         painter.drawLine(QPointF(rule_x, plot_rect.top()), QPointF(rule_x, plot_rect.bottom()))
 
+        if getattr(widget, "_simplified_cursor_only", False):
+            return
+
         cfg_x = getattr(widget, "_axis_cfg_x", None)
         formatter = getattr(widget, "_cursor_time_text_formatter", None)
         instant_text = ""

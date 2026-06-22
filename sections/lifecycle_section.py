@@ -249,6 +249,10 @@ class LifecycleSection:
 
     def cleanupDocks(self):
         """Disconnects signals and removes all plugin docks to ensure a clean state."""
+        try:
+            self._resetResultsEvolutionMapState()
+        except Exception:
+            pass
         docks_to_clean = []
         if self.ResultDockwidget is not None:
             self.disconnectElementExplorerFromResultsDock()
@@ -256,6 +260,10 @@ class LifecycleSection:
                 self.ResultDockwidget.visibilityChanged.disconnect(self.activeInputGroup)
                 try:
                     self.ResultDockwidget.visibilityChanged.disconnect(self._arrangeDocksIfVisible)
+                except Exception:
+                    pass
+                try:
+                    self.ResultDockwidget.visibilityChanged.disconnect(self._onResultsDockVisibilityForEvolution)
                 except Exception:
                     pass
                 if hasattr(self, 'refreshTimeSeries'):

@@ -20,6 +20,7 @@ from .qgisred_results_rendering import _ResultsRenderingMixin, time_field_name
 from .qgisred_results_data import (_ResultsDataMixin, _STAT_VAR_ALIASES,
                                     NODE_RESULT_FIELDS, LINK_RESULT_FIELDS)
 from .qgisred_results_distribution import _ResultsDistributionMixin
+from .qgisred_results_evolution import _ResultsEvolutionMixin
 from .qgisred_results_appearance import _ResultsAppearanceMixin
 from .timeseries_time_utils import simulation_start_clock_seconds, format_civil_time
 
@@ -32,13 +33,18 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_
 
 class QGISRedResultsDock(
     QDockWidget, FORM_CLASS,
-    _ResultsRenderingMixin, _ResultsDataMixin, _ResultsDistributionMixin, _ResultsAppearanceMixin,
+    _ResultsRenderingMixin, _ResultsDataMixin, _ResultsDistributionMixin,
+    _ResultsEvolutionMixin, _ResultsAppearanceMixin,
 ):
     # Signals
     timeTextChanged = pyqtSignal(str)
     statisticsModeChanged = pyqtSignal(str)
     simulationFinished = pyqtSignal()
     resultPropertyChanged = pyqtSignal()
+    evolutionPickRequested = pyqtSignal(str)
+    evolutionPickCancelled = pyqtSignal()
+    evolutionVariableChanged = pyqtSignal(str)
+    evolutionTankToggleRequested = pyqtSignal(str)
 
     # Common variables
     iface = None
@@ -159,6 +165,7 @@ class QGISRedResultsDock(
         self.btResetAppearance.clicked.connect(self._onResetAppearance)
 
         self._setupDistributionCharts()
+        self._setupEvolutionCharts()
 
         self.displayingLinkField = ""
         self.displayingNodeField = ""
@@ -669,7 +676,13 @@ class QGISRedResultsDock(
         self.cbNodes.setCurrentIndex(0)
         self.cbNodeDistribution.setChecked(False)
         self.cbLinkDistribution.setChecked(False)
+        evolution_was_active = self._activeEvolutionLayerType() is not None
+        self.cbNodeEvolution.setChecked(False)
+        self.cbLinkEvolution.setChecked(False)
         self._syncDistributionPanelVisibility()
+        self._syncEvolutionPanelVisibility()
+        if evolution_was_active:
+            self.evolutionPickCancelled.emit()
 
         for nameLayer in ["Node", "Link"]:
             if self._findResultLayer(nameLayer):
@@ -880,6 +893,7 @@ class QGISRedResultsDock(
         if restore["flow_dirs"] and self._flowDirectionField() is not None:
             self.cbFlowDirections.setChecked(True)
         self._updateDistributionCheckboxLabels()
+        self._updateEvolutionCheckboxLabels()
         if restore["time"]:
             self._startClockSeconds = simulation_start_clock_seconds(
                 self.ProjectDirectory, self.NetworkName,
@@ -1299,6 +1313,8 @@ class QGISRedResultsDock(
             self.displayingLinkField = ""
             self.removeResultLayer("Link")
             self._updateDistributionCheckboxLabels()
+            self._updateEvolutionCheckboxLabels()
+            self.evolutionVariableChanged.emit("Link")
             return
 
         if not self.validationsOpenResult():
@@ -1328,6 +1344,8 @@ class QGISRedResultsDock(
             QTimer.singleShot(300, self.forceFinalFieldsVisibility)
         finally:
             QApplication.restoreOverrideCursor()
+        self._updateEvolutionCheckboxLabels()
+        self.evolutionVariableChanged.emit("Link")
         self.resultPropertyChanged.emit()
 
     def nodesChanged(self):
@@ -1338,6 +1356,8 @@ class QGISRedResultsDock(
             self.displayingNodeField = ""
             self.removeResultLayer("Node")
             self._updateDistributionCheckboxLabels()
+            self._updateEvolutionCheckboxLabels()
+            self.evolutionVariableChanged.emit("Node")
             return
 
         if not self.validationsOpenResult():
@@ -1360,6 +1380,8 @@ class QGISRedResultsDock(
             QTimer.singleShot(300, self.forceFinalFieldsVisibility)
         finally:
             QApplication.restoreOverrideCursor()
+        self._updateEvolutionCheckboxLabels()
+        self.evolutionVariableChanged.emit("Node")
         self.resultPropertyChanged.emit()
 
     def nodeLabelsClicked(self):

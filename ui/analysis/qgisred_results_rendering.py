@@ -306,6 +306,8 @@ class _ResultsRenderingMixin:
 
         if hasattr(self, "_refreshDistributionChartsIfNeeded"):
             self._refreshDistributionChartsIfNeeded()
+        if hasattr(self, "_updateEvolutionCheckboxLabels"):
+            self._updateEvolutionCheckboxLabels()
 
     def setLayerLabels(self, layer, fieldName, time_field=None):
         node_labels_enabled = layer.geometryType() == 0 and self.cbNodeLabels.isChecked()

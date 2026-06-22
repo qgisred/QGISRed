@@ -739,6 +739,25 @@
                        </property>
                       </widget>
                      </item>
+                     <item>
+                      <widget class="QCheckBox" name="cbNodeEvolution">
+                       <property name="font">
+                        <font>
+                         <family>MS Shell Dlg 2</family>
+                         <pointsize>8</pointsize>
+                         <weight>50</weight>
+                         <italic>true</italic>
+                         <bold>false</bold>
+                        </font>
+                       </property>
+                       <property name="styleSheet">
+                        <string notr="true">font: italic 8pt "MS Shell Dlg 2";</string>
+                       </property>
+                       <property name="text">
+                        <string>Show Node Evolution</string>
+                       </property>
+                      </widget>
+                     </item>
                     </layout>
                    </item>
                    <item>
@@ -823,6 +842,25 @@
                        </property>
                        <property name="text">
                         <string>Show Link Histogram</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QCheckBox" name="cbLinkEvolution">
+                       <property name="font">
+                        <font>
+                         <family>MS Shell Dlg 2</family>
+                         <pointsize>8</pointsize>
+                         <weight>50</weight>
+                         <italic>true</italic>
+                         <bold>false</bold>
+                        </font>
+                       </property>
+                       <property name="styleSheet">
+                        <string notr="true">font: italic 8pt "MS Shell Dlg 2";</string>
+                       </property>
+                       <property name="text">
+                        <string>Show Link Evolution</string>
                        </property>
                       </widget>
                      </item>
@@ -976,6 +1014,71 @@
                          <size>
                           <width>0</width>
                           <height>150</height>
+                         </size>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QWidget" name="evolutionChartContainer">
+                     <property name="visible">
+                      <bool>false</bool>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>270</height>
+                      </size>
+                     </property>
+                     <layout class="QVBoxLayout" name="verticalLayout_EvolutionChart">
+                      <property name="leftMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="topMargin">
+                       <number>4</number>
+                      </property>
+                      <property name="rightMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="bottomMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="spacing">
+                       <number>4</number>
+                      </property>
+                      <item>
+                       <widget class="QWidget" name="nodeEvolutionChartHost">
+                        <property name="sizePolicy">
+                         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                          <horstretch>0</horstretch>
+                          <verstretch>1</verstretch>
+                         </sizepolicy>
+                        </property>
+                        <property name="minimumSize">
+                         <size>
+                          <width>0</width>
+                          <height>240</height>
+                         </size>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QWidget" name="linkEvolutionChartHost">
+                        <property name="visible">
+                         <bool>false</bool>
+                        </property>
+                        <property name="sizePolicy">
+                         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                          <horstretch>0</horstretch>
+                          <verstretch>1</verstretch>
+                         </sizepolicy>
+                        </property>
+                        <property name="minimumSize">
+                         <size>
+                          <width>0</width>
+                          <height>240</height>
                          </size>
                         </property>
                        </widget>

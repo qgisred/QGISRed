@@ -4426,6 +4426,46 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
 <context>
     <name>QGISRedResultsDock</name>
     <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="253"/>
+        <source>Show Node Evolution</source>
+        <translation>Mostrar evolução de nós</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="254"/>
+        <source>Show Link Evolution</source>
+        <translation>Mostrar evolução de trechos</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="255"/>
+        <source>Overflow</source>
+        <translation>Transbordamento</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="256"/>
+        <source>Show stored volume instead</source>
+        <translation>Mostrar antes o volume armazenado</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="257"/>
+        <source>Show overflow flow instead</source>
+        <translation>Mostrar antes o caudal transbordado</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="258"/>
+        <source>Expand chart to a floating window</source>
+        <translation>Expandir o gráfico em uma janela flutuante</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="259"/>
+        <source>Collapse chart back to the panel</source>
+        <translation>Recolher o gráfico no painel</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="260"/>
+        <source>Evolution</source>
+        <translation>Evolução</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="100"/>
         <source>Volume</source>
         <translation>Volume</translation>

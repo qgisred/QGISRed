@@ -4399,6 +4399,46 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
 <context>
     <name>QGISRedResultsDock</name>
     <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="253"/>
+        <source>Show Node Evolution</source>
+        <translation>Mostrar evolución de nudos</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="254"/>
+        <source>Show Link Evolution</source>
+        <translation>Mostrar evolución de líneas</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="255"/>
+        <source>Overflow</source>
+        <translation>Desbordamiento</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="256"/>
+        <source>Show stored volume instead</source>
+        <translation>Mostrar en su lugar el volumen almacenado</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="257"/>
+        <source>Show overflow flow instead</source>
+        <translation>Mostrar en su lugar el caudal desbordado</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="258"/>
+        <source>Expand chart to a floating window</source>
+        <translation>Expandir el gráfico a una ventana flotante</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="259"/>
+        <source>Collapse chart back to the panel</source>
+        <translation>Contraer el gráfico al panel</translation>
+    </message>
+    <message>
+        <location filename="../tools/qgisred_translatable_strings.py" line="260"/>
+        <source>Evolution</source>
+        <translation>Evolución</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_results_dock.py" line="100"/>
         <source>Volume</source>
         <translation>Volumen</translation>
