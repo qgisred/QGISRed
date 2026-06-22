@@ -97,8 +97,18 @@ class _ResultsEvolutionMixin:
     def _buildEvolutionControlsBar(self):
         self.btEvolutionTankToggle = QToolButton()
         self.btEvolutionTankToggle.setObjectName("btEvolutionTankToggle")
-        self.btEvolutionTankToggle.setAutoRaise(True)
+        self.btEvolutionTankToggle.setAutoRaise(False)
         self.btEvolutionTankToggle.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btEvolutionTankToggle.setStyleSheet(
+            "QToolButton#btEvolutionTankToggle {"
+            " border: 1px solid #9aa7b4; border-radius: 4px;"
+            " padding: 2px 12px; background-color: #ffffff;"
+            " color: #1f2a36; font-weight: bold; }"
+            "QToolButton#btEvolutionTankToggle:hover {"
+            " background-color: #eaf1f8; border-color: #5b86b0; }"
+            "QToolButton#btEvolutionTankToggle:pressed {"
+            " background-color: #d7e2ee; }"
+        )
         self.btEvolutionTankToggle.setVisible(False)
         self.btEvolutionTankToggle.clicked.connect(self._onEvolutionTankToggleClicked)
 
