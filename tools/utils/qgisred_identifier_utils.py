@@ -83,6 +83,8 @@ class QGISRedIdentifierUtils:
             return "demandsbuilder_isolateddemandsserviceconnections"
         if lower.endswith("_demandsbuilder_efficiencysectors"):
             return "demandsbuilder_efficiencysectors"
+        if lower.endswith("_demandsbuilder_patternsectors"):
+            return "demandsbuilder_patternsectors"
         return layerType
 
     def _getLayerPath(self, layer):
