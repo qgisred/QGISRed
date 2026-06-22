@@ -4399,6 +4399,16 @@ Left-click: Add a new item below the current selection</source>
 <context>
     <name>QGISRedResultsDock</name>
     <message>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="100"/>
+        <source>Volume</source>
+        <translation>Volume</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="101"/>
+        <source>Overflow Flow</source>
+        <translation>Débit de débordement</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="20"/>
         <source>QGISRed Simulation Results</source>
         <translation type="obsolete">Résultats de simulation QGISRed</translation>

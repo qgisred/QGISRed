@@ -4426,6 +4426,16 @@ Clique esquerdo: Adicionar um novo item abaixo da seleção atual</translation>
 <context>
     <name>QGISRedResultsDock</name>
     <message>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="100"/>
+        <source>Volume</source>
+        <translation>Volume</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="101"/>
+        <source>Overflow Flow</source>
+        <translation>Vazão de transbordamento</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="20"/>
         <source>QGISRed Simulation Results</source>
         <translation type="obsolete">Resultados da Simulação do QGISRed</translation>

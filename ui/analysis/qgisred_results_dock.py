@@ -95,6 +95,10 @@ class QGISRedResultsDock(
         self.lbl_reaction_rate   = self.tr("Reaction Rate")
         self.lbl_signed_flow     = self.tr("Flow (Signed)")
         self.lbl_unsigned_flow   = self.tr("Flow (Unsigned)")
+        # Tank-only magnitudes: offered in the Time Series right-click menu when a
+        # storage tank is picked. Not added to the results-panel combos.
+        self.lbl_tank_volume     = self.tr("Volume")
+        self.lbl_tank_overflow   = self.tr("Overflow Flow")
 
         self.stat_variables = {
             self.lbl_maximum: self.tr("Maximum values"),

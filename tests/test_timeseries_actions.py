@@ -4,8 +4,53 @@ from unittest.mock import MagicMock
 import pytest
 from qgis.PyQt.QtCore import QPointF, QRectF, Qt
 
-from QGISRed.ui.analysis.timeseries_actions import clear_all_timeseries
+from QGISRed.ui.analysis.timeseries_actions import (
+    clear_all_timeseries,
+    magnitude_choices,
+    node_magnitude_field_map,
+)
 from QGISRed.ui.analysis.timeseries_legend_interaction import LegendInteractionController
+
+
+class _MagDock:
+    lbl_pressure = "Pressure"
+    lbl_head = "Head"
+    lbl_demand = "Demand"
+    lbl_quality = "Quality"
+    lbl_tank_volume = "Volume"
+    lbl_tank_overflow = "Overflow Flow"
+    lbl_flow = "Flow"
+    lbl_velocity = "Velocity"
+    lbl_headloss = "HeadLoss"
+    lbl_unit_headloss = "Unit HeadLoss"
+    lbl_friction_factor = "Friction Factor"
+    lbl_status = "Status"
+    lbl_reaction_rate = "Reaction Rate"
+
+
+class TestMagnitudeChoices:
+    def test_plain_node_excludes_tank_magnitudes(self):
+        assert magnitude_choices(_MagDock(), "Node", is_tank=False) == [
+            "Pressure", "Head", "Demand", "Quality",
+        ]
+
+    def test_tank_node_appends_volume_and_overflow(self):
+        assert magnitude_choices(_MagDock(), "Node", is_tank=True) == [
+            "Pressure", "Head", "Demand", "Quality", "Volume", "Overflow Flow",
+        ]
+
+    def test_link_choices_exclude_tank_magnitudes(self):
+        choices = magnitude_choices(_MagDock(), "Link", is_tank=True)
+        assert "Volume" not in choices and "Overflow Flow" not in choices
+        assert choices[0] == "Flow" and "Status" in choices
+
+    def test_field_map_maps_tank_labels_to_internal_props(self):
+        plain = node_magnitude_field_map(_MagDock(), is_tank=False)
+        assert "Volume" not in plain and "Overflow Flow" not in plain
+        tank = node_magnitude_field_map(_MagDock(), is_tank=True)
+        assert tank["Volume"] == "Volume"
+        assert tank["Overflow Flow"] == "TankSpill"
+        assert tank["Pressure"] == "Pressure"
 
 
 class _Dock:

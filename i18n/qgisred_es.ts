@@ -4399,6 +4399,16 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
 <context>
     <name>QGISRedResultsDock</name>
     <message>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="100"/>
+        <source>Volume</source>
+        <translation>Volumen</translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="101"/>
+        <source>Overflow Flow</source>
+        <translation>Caudal desbordado</translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_results_dock.ui" line="485"/>
         <source>|&lt;</source>
         <translation type="obsolete">|&lt;</translation>

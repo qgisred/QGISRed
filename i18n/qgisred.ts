@@ -4356,6 +4356,16 @@ Left-click: Add a new item below the current selection</source>
 <context>
     <name>QGISRedResultsDock</name>
     <message>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="100"/>
+        <source>Volume</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/analysis/qgisred_results_dock.py" line="101"/>
+        <source>Overflow Flow</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../ui/analysis/qgisred_results_appearance.py" line="103"/>
         <source>Nodes</source>
         <translation type="unfinished"></translation>

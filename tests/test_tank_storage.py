@@ -3,13 +3,18 @@ import math
 
 import pytest
 
-from QGISRed.ui.analysis.qgisred_results_binary import _NT_TANK
+from QGISRed.ui.analysis.qgisred_results_binary import _NT_JUNCTION, _NT_RESERVOIR, _NT_TANK
 from QGISRed.ui.analysis.qgisred_tank_storage import (
+    _find_tank_row,
     _tank_area_from_diameter,
     _tank_can_overflow,
     _tank_diameter_dbf_to_model_length,
+    _tank_node_index,
+    _tank_spill_value,
     cylindrical_volume_from_level,
+    getOut_TimesTankSpill,
     getOut_TimesTankStoredVolumes,
+    getOut_TimesTankVolume,
     getOut_TimesTotalTankSpill,
     interpolate_volume_curve,
     spill_flow_from_tank_state,
@@ -17,6 +22,7 @@ from QGISRed.ui.analysis.qgisred_tank_storage import (
     total_tank_spill_from_period,
     volume_from_level,
 )
+from QGISRed.tests.helpers.epanet_out_builder import build_epanet_out
 
 
 def _cylindrical_volume(head, elevation, min_level, min_volume, diameter):
@@ -199,3 +205,115 @@ class TestGetOutTimesTankStoredVolumes:
     def test_missing_out_returns_empty(self):
         assert getOut_TimesTankStoredVolumes("/no/such/file.out", "", "Net") == []
         assert getOut_TimesTotalTankSpill("/no/such/file.out", "", "Net") == []
+
+
+class TestFindTankRow:
+    def test_returns_matching_row(self):
+        rows = [{"tank_id": "A", "volumes": [1.0]}, {"tank_id": "B", "volumes": [2.0]}]
+        assert _find_tank_row(rows, "B") == {"tank_id": "B", "volumes": [2.0]}
+
+    def test_missing_returns_none(self):
+        assert _find_tank_row([{"tank_id": "A"}], "Z") is None
+        assert _find_tank_row([], "A") is None
+
+
+class TestTankNodeIndex:
+    META = {
+        "node_ids": ["R1", "J1", "T1", "T2"],
+        "node_types": [_NT_RESERVOIR, _NT_JUNCTION, _NT_TANK, _NT_TANK],
+    }
+
+    def test_finds_tank(self):
+        assert _tank_node_index(self.META, "T1") == 2
+        assert _tank_node_index(self.META, "T2") == 3
+
+    def test_reservoir_and_junction_are_not_tanks(self):
+        assert _tank_node_index(self.META, "R1") is None
+        assert _tank_node_index(self.META, "J1") is None
+
+    def test_unknown_id(self):
+        assert _tank_node_index(self.META, "XX") is None
+
+
+class TestTankSpillValue:
+    PROPS = {"elevation": 100.0, "min_level": 5.0, "max_level": 25.0, "can_overflow": True}
+
+    def test_spill_only_when_full(self):
+        # head - elevation = 24.9 < max_level -> no spill
+        assert _tank_spill_value(12.5, 124.9, self.PROPS) == 0.0
+        # head - elevation = 25.0 == max_level -> spill equals demand
+        assert _tank_spill_value(12.5, 125.0, self.PROPS) == pytest.approx(12.5)
+
+    def test_no_spill_without_overflow_enabled(self):
+        props = dict(self.PROPS, can_overflow=False)
+        assert _tank_spill_value(12.5, 125.0, props) == 0.0
+
+    def test_factors_applied(self):
+        # head_factor scales head, demand_factor scales the spill flow
+        assert _tank_spill_value(
+            10.0, 12.5, self.PROPS, head_factor=10.0, demand_factor=2.0,
+        ) == pytest.approx(20.0)
+
+
+def _tank_network_out(tmp_path):
+    """Two storage tanks (T1, T2), one reservoir, one junction; two report steps.
+
+    T1: area = pi, elevation = 100 ; T2: area = 2.0, elevation = 50.
+    With no project DBF, EPANET MinVolume defaults to 0, so stored volume is
+    ``area * (head - elevation)``.
+    """
+    node_ids = ["R1", "J1", "T1", "T2"]
+    p0 = [
+        (0.0, 200.0, 0.0, 0.0),   # R1
+        (5.0, 70.0, 0.0, 0.0),    # J1
+        (0.0, 105.0, 0.0, 0.0),   # T1 -> level 5
+        (0.0, 60.0, 0.0, 0.0),    # T2 -> level 10
+    ]
+    p1 = [
+        (0.0, 200.0, 0.0, 0.0),
+        (5.0, 68.0, 0.0, 0.0),
+        (0.0, 108.0, 0.0, 0.0),   # T1 -> level 8
+        (0.0, 62.0, 0.0, 0.0),    # T2 -> level 12
+    ]
+    link_data = [[(5.0, 1.0, 10.0, 0.0, 3.0, 0.0, 0.0, 0.02)]] * 2
+    data = build_epanet_out(
+        node_ids=node_ids,
+        link_ids=["P1"],
+        link_from=[0],
+        link_to=[1],
+        link_types=[1],
+        tank_node_indices=[0, 2, 3],
+        tank_areas=[0.0, math.pi, 2.0],
+        node_elevations=[200.0, 50.0, 100.0, 50.0],
+        link_lengths=[1000.0],
+        link_diameters=[300.0],
+        periods_node_data=[p0, p1],
+        periods_link_data=link_data,
+    )
+    out_path = tmp_path / "tanks.out"
+    out_path.write_bytes(data)
+    return str(out_path)
+
+
+class TestPerTankVolumeFromOut:
+    def test_each_tank_volume_series(self, tmp_path):
+        out_path = _tank_network_out(tmp_path)
+        assert getOut_TimesTankVolume(out_path, "", "Net", "T1") == pytest.approx(
+            [math.pi * 5.0, math.pi * 8.0]
+        )
+        assert getOut_TimesTankVolume(out_path, "", "Net", "T2") == pytest.approx([20.0, 24.0])
+
+    def test_reservoir_and_unknown_return_empty(self, tmp_path):
+        out_path = _tank_network_out(tmp_path)
+        assert getOut_TimesTankVolume(out_path, "", "Net", "R1") == []
+        assert getOut_TimesTankVolume(out_path, "", "Net", "ZZ") == []
+
+    def test_missing_file_returns_empty(self):
+        assert getOut_TimesTankVolume("/no/such/file.out", "", "Net", "T1") == []
+        assert getOut_TimesTankSpill("/no/such/file.out", "", "Net", "T1") == []
+
+    def test_spill_zero_without_overflow_dbf(self, tmp_path):
+        # No project DBF -> overflow disabled -> flat zero series (still per-period).
+        out_path = _tank_network_out(tmp_path)
+        assert getOut_TimesTankSpill(out_path, "", "Net", "T1") == [0.0, 0.0]
+        assert getOut_TimesTankSpill(out_path, "", "Net", "R1") == []

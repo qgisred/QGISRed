@@ -233,6 +233,9 @@ class AnalysisSection:
         }
 
     def _getSeriesValuesForSource(self, source, category, element_id, prop_internal):
+        if category == "Node" and prop_internal in ("Volume", "TankSpill"):
+            return self._getTankSeriesForSource(source, element_id, prop_internal)
+
         if source["kind"] == "out":
             from ..ui.analysis.qgisred_results_binary import getOut_TimesNodeProperty, getOut_TimesLinkProperty
             if category == "Node":
@@ -251,6 +254,25 @@ class AnalysisSection:
             v = step_results.get(element_id, {}).get(prop_internal)
             values.append(v)
         return values
+
+    def _getTankSeriesForSource(self, source, tank_id, prop_internal):
+        """Time series for a tank-only magnitude (stored volume / overflow flow)."""
+        project_directory = source.get("project_directory") or ""
+        network_name = source.get("network_name") or ""
+        from ..ui.analysis.qgisred_tank_storage import (
+            getHyd_TimesTankSpill,
+            getHyd_TimesTankVolume,
+            getOut_TimesTankSpill,
+            getOut_TimesTankVolume,
+        )
+        if prop_internal == "Volume":
+            if source["kind"] == "out":
+                return getOut_TimesTankVolume(source["out_path"], project_directory, network_name, tank_id)
+            return getHyd_TimesTankVolume(source["hyd_path"], source["out_path"], project_directory, network_name, tank_id)
+        # TankSpill (overflow flow)
+        if source["kind"] == "out":
+            return getOut_TimesTankSpill(source["out_path"], project_directory, network_name, tank_id)
+        return getHyd_TimesTankSpill(source["hyd_path"], source["out_path"], project_directory, network_name, tank_id)
 
     def _arrangeDocksIfVisible(self, visible):
         if not visible:
@@ -1021,43 +1043,23 @@ class AnalysisSection:
         ]
         dock.selectionKey = None
 
-    def _timeSeriesMagnitudeChoices(self, category, dock):
+    def _timeSeriesMagnitudeChoices(self, category, dock, layer_identifier=""):
         if dock is None:
             return []
         try:
-            if category == "Node":
-                raw = [dock.lbl_pressure, dock.lbl_head, dock.lbl_demand, dock.lbl_quality]
-            else:
-                raw = [
-                    dock.lbl_flow,
-                    dock.lbl_velocity,
-                    dock.lbl_headloss,
-                    dock.lbl_unit_headloss,
-                    dock.lbl_friction_factor,
-                    dock.lbl_status,
-                    dock.lbl_reaction_rate,
-                    dock.lbl_quality,
-                ]
+            from ..ui.analysis.timeseries_actions import magnitude_choices
+            return magnitude_choices(dock, category, is_tank=(layer_identifier == "qgisred_tanks"))
         except Exception:
             return []
-        out = []
-        for v in raw:
-            if not v:
-                continue
-            s = str(v).strip()
-            if not s or s in out:
-                continue
-            out.append(s)
-        return out
 
-    def _timeSeriesPickMagnitudeFromMenu(self, category, dock):
+    def _timeSeriesPickMagnitudeFromMenu(self, category, dock, layer_identifier=""):
         try:
             from qgis.PyQt.QtWidgets import QMenu
             from qgis.PyQt.QtGui import QCursor
         except Exception:
             return None
 
-        choices = self._timeSeriesMagnitudeChoices(category, dock)
+        choices = self._timeSeriesMagnitudeChoices(category, dock, layer_identifier)
         if not choices:
             return None
 
@@ -1157,17 +1159,18 @@ class AnalysisSection:
 
         if category == "Node":
             if is_right_click:
-                picked = self._timeSeriesPickMagnitudeFromMenu(category, dock)
+                picked = self._timeSeriesPickMagnitudeFromMenu(category, dock, layer_identifier)
                 if not picked:
                     return
                 prop_display = picked
             else:
                 prop_display = dock.cbNodes.currentText() if dock else self.tr("Pressure")
-            node_map = {dock.lbl_pressure: "Pressure", dock.lbl_head: "Head", dock.lbl_demand: "Demand", dock.lbl_quality: "Quality"} if dock else {}
+            from ..ui.analysis.timeseries_actions import node_magnitude_field_map
+            node_map = node_magnitude_field_map(dock, is_tank=(layer_identifier == "qgisred_tanks")) if dock else {}
             prop_internal = node_map.get(prop_display, "Pressure")
         else:
             if is_right_click:
-                picked = self._timeSeriesPickMagnitudeFromMenu(category, dock)
+                picked = self._timeSeriesPickMagnitudeFromMenu(category, dock, layer_identifier)
                 if not picked:
                     return
                 prop_display = picked
@@ -1179,7 +1182,18 @@ class AnalysisSection:
                 is_stepped = True
                 y_categorical_labels = [self.tr("Closed"), self.tr("Active"), self.tr("Open")]
 
-        unit_abbr = QGISRedFieldUtils().getUnitAbbreviation(normalize_element(category), prop_internal)
+        fieldUtils = QGISRedFieldUtils()
+        y_display_decimals = None
+        if category == "Node" and prop_internal == "Volume":
+            # Stored volume: model volume units & decimals (Tanks.MinVolume = Volume).
+            unit_abbr = fieldUtils.getUnitAbbreviation(normalize_element("Tanks"), "MinVolume")
+            y_display_decimals = fieldUtils.getDecimals(normalize_element("Tanks"), "MinVolume")
+        elif category == "Node" and prop_internal == "TankSpill":
+            # Overflow flow: same units & decimals as node demand (a flow).
+            unit_abbr = fieldUtils.getUnitAbbreviation(normalize_element("Node"), "Demand")
+            y_display_decimals = fieldUtils.getDecimals(normalize_element("Node"), "Demand")
+        else:
+            unit_abbr = fieldUtils.getUnitAbbreviation(normalize_element(category), prop_internal)
         if unit_abbr:
             y_label_with_unit = f"{prop_display} ({unit_abbr})"
         else:
@@ -1219,6 +1233,8 @@ class AnalysisSection:
             "is_stepped": bool(is_stepped),
             "y_categorical_labels": y_categorical_labels,
         }
+        if y_display_decimals is not None:
+            sel_item["y_display_decimals"] = y_display_decimals
 
         existing_idx = None
         for i, it in enumerate(self.timeSeriesSelection):

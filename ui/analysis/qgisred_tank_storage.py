@@ -516,6 +516,36 @@ def getHyd_TimesTotalStoredVolume(hyd_file_path: str, out_file_path: str, projec
     )
 
 
+def _find_tank_row(tank_rows: Sequence[dict], tank_id: str) -> Optional[dict]:
+    """Return the per-tank row whose ``tank_id`` matches, or ``None``."""
+    for row in tank_rows or []:
+        if row.get("tank_id") == tank_id:
+            return row
+    return None
+
+
+def getOut_TimesTankVolume(out_file_path: str, project_directory: str, network_name: str, tank_id: str):
+    """Stored volume time series for a single tank (empty list if the tank is missing).
+
+    Volume is in the model's volume units (m³ SI / ft³ US), matching the
+    ``Tanks.MinVolume`` (Volume) declaration in the units file.
+    """
+    row = _find_tank_row(
+        getOut_TimesTankStoredVolumes(out_file_path, project_directory, network_name),
+        tank_id,
+    )
+    return list(row["volumes"]) if row else []
+
+
+def getHyd_TimesTankVolume(hyd_file_path: str, out_file_path: str, project_directory: str, network_name: str, tank_id: str):
+    """Stored volume time series for a single tank from .hyd steps (empty if missing)."""
+    row = _find_tank_row(
+        getHyd_TimesTankStoredVolumes(hyd_file_path, out_file_path, project_directory, network_name),
+        tank_id,
+    )
+    return list(row["volumes"]) if row else []
+
+
 def getOut_TimesTotalTankSpill(out_file_path: str, project_directory: str, network_name: str):
     """Total spill (overflow) flow from all overflow-enabled tanks at each report step."""
     if not out_file_path or not os.path.exists(out_file_path):
@@ -580,3 +610,86 @@ def getHyd_TimesTotalTankSpill(
             )
         )
     return totals
+
+
+def _tank_node_index(meta, tank_id: str) -> Optional[int]:
+    """0-based node index of a storage tank by id, or ``None`` (reservoirs excluded)."""
+    node_ids = meta.get("node_ids") or []
+    node_types = meta.get("node_types") or []
+    for index, node_id in enumerate(node_ids):
+        if node_id == tank_id and index < len(node_types) and node_types[index] == _NT_TANK:
+            return index
+    return None
+
+
+def _tank_spill_value(demand, head, props: dict, *, head_factor: float = 1.0, demand_factor: float = 1.0) -> float:
+    """Spill (overflow) flow for one tank at one step from its reported demand/head.
+
+    Tanks without overflow enabled always yield ``0`` (EPANET caps the level
+    instead of spilling).
+    """
+    elevation = float(props.get("elevation", 0.0))
+    level = float(head) * head_factor - elevation
+    return spill_flow_from_tank_state(
+        float(demand) * demand_factor,
+        level,
+        can_overflow=bool(props.get("can_overflow")),
+        min_level=float(props.get("min_level", 0.0)),
+        max_level=float(props.get("max_level", 0.0)),
+    )
+
+
+def getOut_TimesTankSpill(out_file_path: str, project_directory: str, network_name: str, tank_id: str):
+    """Overflow (spill) flow time series for a single tank at each report step.
+
+    Returns ``[]`` when the file or tank is missing. The flow is in the model's
+    flow units; tanks without overflow enabled yield all-zero values.
+    """
+    if not out_file_path or not os.path.exists(out_file_path):
+        return []
+
+    props = _load_tank_properties(project_directory, network_name).get(tank_id, {})
+    with open(out_file_path, "rb") as handle:
+        meta = getOut_Metadata(handle, include_geometry=True)
+        if not meta:
+            return []
+        node_index = _tank_node_index(meta, tank_id)
+        if node_index is None:
+            return []
+        demands_by_period = _read_demands_by_period(handle, meta)
+        heads_by_period = _read_heads_by_period(handle, meta)
+
+    return [
+        _tank_spill_value(
+            demands_by_period[node_index][period],
+            heads_by_period[node_index][period],
+            props,
+        )
+        for period in range(meta["num_periods"])
+    ]
+
+
+def getHyd_TimesTankSpill(hyd_file_path: str, out_file_path: str, project_directory: str, network_name: str, tank_id: str):
+    """Overflow (spill) flow time series for a single tank from .hyd steps."""
+    from .qgisred_results_hyd import _flow_factor_from_units, _head_factor_from_units, _read_hyd_period, getHyd_Metadata
+
+    meta = getHyd_Metadata(hyd_file_path, out_file_path)
+    if not meta:
+        return []
+    node_index = _tank_node_index(meta, tank_id)
+    if node_index is None:
+        return []
+
+    props = _load_tank_properties(project_directory, network_name).get(tank_id, {})
+    flow_factor = _flow_factor_from_units(meta.get("flow_units"))
+    head_factor = _head_factor_from_units(meta.get("flow_units"))
+    series = []
+    for period in range(meta["hyd_num_periods"]):
+        _, demands, heads, _, _, _ = _read_hyd_period(hyd_file_path, meta, period)
+        series.append(
+            _tank_spill_value(
+                demands[node_index], heads[node_index], props,
+                head_factor=head_factor, demand_factor=flow_factor,
+            )
+        )
+    return series
