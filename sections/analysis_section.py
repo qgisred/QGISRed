@@ -632,13 +632,15 @@ class AnalysisSection:
         self._resultsEvolutionType = layer_type
         self._clearResultsEvolutionHighlight()
         self.runResultsEvolutionSelectPointTool()
-        remembered = getattr(self, "_resultsEvolutionElement", None)
-        if remembered and remembered.get("category") == layer_type:
+        remembered = self._rememberedEvolutionElement(layer_type)
+        if remembered:
             layer, feature = self._resolveEvolutionLayerFeature(remembered)
             if layer is not None and feature is not None:
+                self._resultsEvolutionElement = remembered
                 self._evolutionTankAltActive = None
                 self._renderResultsEvolution(layer, feature, highlight=True)
                 return
+        self._resultsEvolutionElement = None
         if dock is not None:
             dock.clearEvolutionChart(layer_type)
             dock.setEvolutionTankToggle(False)
@@ -661,10 +663,11 @@ class AnalysisSection:
             return
         self._resultsEvolutionType = active
         self.runResultsEvolutionSelectPointTool()
-        remembered = getattr(self, "_resultsEvolutionElement", None)
-        if remembered and remembered.get("category") == active:
+        remembered = self._rememberedEvolutionElement(active)
+        if remembered:
             layer, feature = self._resolveEvolutionLayerFeature(remembered)
             if layer is not None and feature is not None:
+                self._resultsEvolutionElement = remembered
                 self._renderResultsEvolution(layer, feature, highlight=True)
 
     def _onResultsEvolutionVariableChanged(self, category):
@@ -762,8 +765,17 @@ class AnalysisSection:
             "layer_identifier": layer_identifier,
             "element_id": element_id,
         }
+        if not isinstance(getattr(self, "_resultsEvolutionElements", None), dict):
+            self._resultsEvolutionElements = {}
+        self._resultsEvolutionElements[category] = self._resultsEvolutionElement
         self._evolutionTankAltActive = None
         self._renderResultsEvolution(found_layer, found_feature, highlight=True)
+
+    def _rememberedEvolutionElement(self, category):
+        elements = getattr(self, "_resultsEvolutionElements", None)
+        if not isinstance(elements, dict):
+            return None
+        return elements.get(category)
 
     def _resolveEvolutionLayerFeature(self, remembered):
         identifier = remembered.get("layer_identifier")
@@ -949,6 +961,7 @@ class AnalysisSection:
     def _resetResultsEvolutionMapState(self):
         self._resultsEvolutionType = None
         self._resultsEvolutionElement = None
+        self._resultsEvolutionElements = {}
         self._evolutionTankAltActive = None
         try:
             self._deactivateResultsEvolutionMapTool()
