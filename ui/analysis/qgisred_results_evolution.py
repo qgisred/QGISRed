@@ -1,20 +1,28 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-from qgis.PyQt.QtCore import QSize, Qt
-from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QHBoxLayout, QToolButton, QVBoxLayout, QWidget
 
 
-class _EvolutionControlsBar(QWidget):
-    def __init__(self, tank_toggle_button, expand_button, parent=None):
+_TANK_BUTTON_STYLE = (
+    "QToolButton {"
+    " border: 1px solid #9aa7b4; border-radius: 4px;"
+    " padding: 1px 10px; background-color: #ffffff;"
+    " color: #1f2a36; font-weight: bold; }"
+    "QToolButton:hover { background-color: #eaf1f8; border-color: #5b86b0; }"
+    "QToolButton:pressed { background-color: #d7e2ee; }"
+)
+
+
+class _EvolutionTankBar(QWidget):
+    def __init__(self, tank_button, parent=None):
         super().__init__(parent)
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(6)
-        layout.addWidget(tank_toggle_button)
+        layout.setContentsMargins(0, 0, 0, 2)
+        layout.setSpacing(0)
+        layout.addWidget(tank_button)
         layout.addStretch(1)
-        layout.addWidget(expand_button)
 
 
 class _EvolutionPopoutWindow(QWidget):
@@ -37,11 +45,11 @@ class _EvolutionPopoutWindow(QWidget):
         self.chart = ResultsEvolutionPlotWidget(self)
         self._layout.addWidget(self.chart, 1)
 
-    def attachControls(self, controls_bar):
-        self._layout.insertWidget(0, controls_bar)
+    def attachControls(self, bar):
+        self._layout.insertWidget(0, bar)
 
-    def detachControls(self, controls_bar):
-        self._layout.removeWidget(controls_bar)
+    def detachControls(self, bar):
+        self._layout.removeWidget(bar)
 
     def applyDefaultGeometry(self):
         width, height = self._DEFAULT_SIZE
@@ -83,7 +91,19 @@ class _ResultsEvolutionMixin:
         link_layout.setContentsMargins(0, 0, 0, 0)
         link_layout.addWidget(self._link_evolution_chart)
 
-        self._buildEvolutionControlsBar()
+        for chart in (self._node_evolution_chart, self._link_evolution_chart):
+            chart.expandClicked.connect(self._toggleEvolutionPopout)
+        self._setEvolutionExpandButtonState(False)
+
+        self.btEvolutionTank = QToolButton()
+        self.btEvolutionTank.setObjectName("btEvolutionTank")
+        self.btEvolutionTank.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btEvolutionTank.setStyleSheet(_TANK_BUTTON_STYLE)
+        self.btEvolutionTank.setVisible(False)
+        self.btEvolutionTank.clicked.connect(self._onEvolutionTankToggleClicked)
+        self._evolution_tank_bar = _EvolutionTankBar(self.btEvolutionTank)
+        self._evolution_tank_bar.setVisible(False)
+        self.verticalLayout_EvolutionChart.insertWidget(0, self._evolution_tank_bar)
 
         self.cbNodeEvolution.clicked.connect(self.nodeEvolutionClicked)
         self.cbLinkEvolution.clicked.connect(self.linkEvolutionClicked)
@@ -94,44 +114,19 @@ class _ResultsEvolutionMixin:
         self._updateEvolutionCheckboxLabels()
         self._syncEvolutionPanelVisibility()
 
-    def _buildEvolutionControlsBar(self):
-        self.btEvolutionTankToggle = QToolButton()
-        self.btEvolutionTankToggle.setObjectName("btEvolutionTankToggle")
-        self.btEvolutionTankToggle.setAutoRaise(False)
-        self.btEvolutionTankToggle.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.btEvolutionTankToggle.setStyleSheet(
-            "QToolButton#btEvolutionTankToggle {"
-            " border: 1px solid #9aa7b4; border-radius: 4px;"
-            " padding: 2px 12px; background-color: #ffffff;"
-            " color: #1f2a36; font-weight: bold; }"
-            "QToolButton#btEvolutionTankToggle:hover {"
-            " background-color: #eaf1f8; border-color: #5b86b0; }"
-            "QToolButton#btEvolutionTankToggle:pressed {"
-            " background-color: #d7e2ee; }"
-        )
-        self.btEvolutionTankToggle.setVisible(False)
-        self.btEvolutionTankToggle.clicked.connect(self._onEvolutionTankToggleClicked)
-
-        self.btEvolutionExpand = QToolButton()
-        self.btEvolutionExpand.setObjectName("btEvolutionExpand")
-        self.btEvolutionExpand.setIcon(QIcon(":/images/iconTsZoomWindow.svg"))
-        self.btEvolutionExpand.setIconSize(QSize(16, 16))
-        self.btEvolutionExpand.setAutoRaise(True)
-        self.btEvolutionExpand.setCheckable(True)
-        self.btEvolutionExpand.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.btEvolutionExpand.setToolTip(self.tr("Expand chart to a floating window"))
-        self.btEvolutionExpand.clicked.connect(self._toggleEvolutionPopout)
-
-        self._evolution_controls_bar = _EvolutionControlsBar(
-            self.btEvolutionTankToggle, self.btEvolutionExpand
-        )
-        self.verticalLayout_EvolutionChart.insertWidget(0, self._evolution_controls_bar)
-
     def _activeEvolutionLayerType(self):
         if self.cbNodeEvolution.isChecked():
             return "Node"
         if self.cbLinkEvolution.isChecked():
             return "Link"
+        return None
+
+    def _activeEvolutionChart(self):
+        active = self._activeEvolutionLayerType()
+        if active == "Node":
+            return self._node_evolution_chart
+        if active == "Link":
+            return self._link_evolution_chart
         return None
 
     def _activateExclusiveResultsChart(self, which):
@@ -221,14 +216,6 @@ class _ResultsEvolutionMixin:
         self.nodeEvolutionChartHost.setVisible(active == "Node")
         self.linkEvolutionChartHost.setVisible(active == "Link")
 
-    def _activeEvolutionChart(self):
-        active = self._activeEvolutionLayerType()
-        if active == "Node":
-            return self._node_evolution_chart
-        if active == "Link":
-            return self._link_evolution_chart
-        return None
-
     def setEvolutionSeries(
         self, layer_type, x_hours, y_values, title="", x_label="", y_label="",
         is_stepped=False, y_categorical_labels=None,
@@ -267,10 +254,11 @@ class _ResultsEvolutionMixin:
                 chart.setSyncedCursorTimeHours(hours)
 
     def setEvolutionTankToggle(self, visible, label="", tooltip=""):
-        self.btEvolutionTankToggle.setVisible(bool(visible))
         if visible:
-            self.btEvolutionTankToggle.setText(label or "")
-            self.btEvolutionTankToggle.setToolTip(tooltip or label or "")
+            self.btEvolutionTank.setText(label or "")
+            self.btEvolutionTank.setToolTip(tooltip or label or "")
+        self.btEvolutionTank.setVisible(bool(visible))
+        self._evolution_tank_bar.setVisible(bool(visible))
 
     def _onEvolutionTankToggleClicked(self):
         self.evolutionTankToggleRequested.emit("")
@@ -285,13 +273,13 @@ class _ResultsEvolutionMixin:
     def _openEvolutionPopout(self):
         active = self._activeEvolutionLayerType()
         if active is None:
-            self._setEvolutionExpandButtonState(False)
             return
         if self._evolution_popout is None:
             self._evolution_popout = _EvolutionPopoutWindow(self, self._onEvolutionPopoutClosed)
+            self._evolution_popout.chart.expandClicked.connect(self._toggleEvolutionPopout)
         if self._evolution_popout._default_geometry is None:
             self._evolution_popout.applyDefaultGeometry()
-        self._moveEvolutionControlsToPopout()
+        self._moveEvolutionTankBarToPopout()
         self._setEvolutionExpandButtonState(True)
         self._evolution_popout.show()
         self._evolution_popout.raise_()
@@ -310,27 +298,24 @@ class _ResultsEvolutionMixin:
 
     def _finishEvolutionPopoutClose(self):
         self._setEvolutionExpandButtonState(False)
-        self._restoreEvolutionControlsToDock()
+        self._restoreEvolutionTankBarToDock()
 
     def _onEvolutionDockVisibilityChanged(self, visible):
         if not visible:
             self._closeEvolutionPopout()
 
     def _setEvolutionExpandButtonState(self, expanded):
-        button = getattr(self, "btEvolutionExpand", None)
-        if button is None:
-            return
-        button.blockSignals(True)
-        button.setChecked(expanded)
-        button.blockSignals(False)
-        button.setToolTip(
-            self.tr("Collapse chart back to the panel")
-            if expanded
-            else self.tr("Expand chart to a floating window")
-        )
+        expand_tip = self.tr("Expand chart to a floating window")
+        collapse_tip = self.tr("Collapse chart back to the panel")
+        charts = [self._node_evolution_chart, self._link_evolution_chart]
+        popout = getattr(self, "_evolution_popout", None)
+        if popout is not None:
+            charts.append(popout.chart)
+        for chart in charts:
+            chart.setExpandState(expanded, expand_tip, collapse_tip)
 
-    def _moveEvolutionControlsToPopout(self):
-        bar = getattr(self, "_evolution_controls_bar", None)
+    def _moveEvolutionTankBarToPopout(self):
+        bar = getattr(self, "_evolution_tank_bar", None)
         popout = getattr(self, "_evolution_popout", None)
         if bar is None or popout is None:
             return
@@ -338,8 +323,8 @@ class _ResultsEvolutionMixin:
         popout.attachControls(bar)
         self.evolutionChartContainer.setVisible(False)
 
-    def _restoreEvolutionControlsToDock(self):
-        bar = getattr(self, "_evolution_controls_bar", None)
+    def _restoreEvolutionTankBarToDock(self):
+        bar = getattr(self, "_evolution_tank_bar", None)
         popout = getattr(self, "_evolution_popout", None)
         if bar is not None:
             if popout is not None:
