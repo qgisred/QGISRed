@@ -10,7 +10,7 @@ class _EvolutionControlsBar(QWidget):
     def __init__(self, tank_toggle_button, expand_button, parent=None):
         super().__init__(parent)
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(6, 0, 0, 0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(6)
         layout.addWidget(tank_toggle_button)
         layout.addStretch(1)

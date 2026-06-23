@@ -637,6 +637,12 @@
                    <string>Mapping</string>
                   </property>
                   <layout class="QVBoxLayout" name="verticalLayout_Mapping">
+                   <property name="leftMargin">
+                    <number>3</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>3</number>
+                   </property>
                    <item>
                     <layout class="QVBoxLayout" name="verticalLayout_4">
                      <item>
