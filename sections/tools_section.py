@@ -208,8 +208,6 @@ class ToolsSection:
         demands_builder_id = QGISRedLayerUtils.groupIdentifiers.get("DemandsBuilder")
         root = QgsProject.instance().layerTreeRoot()
 
-        kind = kind.lower()
-
         for layer in QGISRedLayerUtils().getLayers():
             if layer is None:
                 continue
@@ -246,16 +244,6 @@ class ToolsSection:
 
             if not source:
                 continue
-
-            source_lower = source.lower()
-
-            if kind == "efficiency":
-                if "efficiencysectors" not in source_lower:
-                    continue
-
-            elif kind == "pattern":
-                if "patternsectors" not in source_lower:
-                    continue
 
             polygons.append(source)
 
