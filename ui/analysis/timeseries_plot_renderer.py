@@ -212,14 +212,15 @@ class TimeSeriesPlotRenderer:
         )
         painter.restore()
 
+    _EMPTY_DEFAULT_X_RANGE = (0.0, 24.0)
+    _EMPTY_DEFAULT_Y_RANGE = (0.0, 1.0)
+
     def _render_empty_scaffold(self, widget, painter: QPainter) -> None:
-        """Draw the styled but curve-less chart: background, frame and bare axes
-        (no ticks/grid/numbers/axis titles) plus the default title, with the
-        selection message overlaid. Lets the user customize the look (background,
-        frame, general options) and save it as a reusable template."""
-        widget._last_y_state_left = None
-        widget._last_y_state_right = None
-        widget._last_x_state = None
+        """Draw the styled curve-less chart used as a template: background, frame,
+        the default title and fully formatted axes (X divisions + a default 0-1 Y
+        scale) honouring the axis config (grid, colors, titles), with the selection
+        message overlaid. Lets the user customize the whole look — backgrounds,
+        frame, axes and legend settings — and save it as a reusable template."""
         widget._legend_hitboxes = []
         widget._legend_delete_hitboxes = []
 
@@ -230,7 +231,20 @@ class TimeSeriesPlotRenderer:
         else:
             painter.fillRect(widget.rect(), Qt.GlobalColor.white)
 
-        plot_rect, _local_margin_left, _right_axis_label_w = widget.getPlotRect()
+        cfg_x = getattr(widget, "_axis_cfg_x", None)
+        if cfg_x is not None and not cfg_x.auto_scale:
+            x_lo, x_hi = float(cfg_x.fixed_min), float(cfg_x.fixed_max)
+            if x_hi <= x_lo:
+                x_hi = x_lo + 1.0
+        else:
+            x_lo, x_hi = self._EMPTY_DEFAULT_X_RANGE
+        widget.data_x = [x_lo, x_hi]
+        widget.data_y = []
+        widget.y_categorical_labels = None
+        widget._view_x_min = None
+        widget._view_x_max = None
+
+        plot_rect, local_margin_left, right_axis_label_w = widget.getPlotRect()
 
         self._draw_chart_title(widget, painter, plot_rect, gen, use_default=True)
 
@@ -240,10 +254,46 @@ class TimeSeriesPlotRenderer:
         else:
             painter.fillRect(plot_rect, PLOT_BG_COLOR)
             frame_pen = QPen(BORDER_COLOR, 1)
+
+        painter.setFont(qfont(9))
+        x_state = self._compute_x_axis_state(widget, widget.data_x, plot_rect, painter)
+        widget._last_x_state = x_state
+        widget._last_auto_x_state = x_state
+        y_state_left = self._compute_y_axis_state(
+            widget, list(self._EMPTY_DEFAULT_Y_RANGE), None, plot_rect, painter, y_axis_side="left"
+        )
+        widget._last_y_state_left = y_state_left
+        widget._last_y_state_right = None
+
+        self._draw_grid_and_axes(
+            widget,
+            painter,
+            plot_rect,
+            local_margin_left,
+            right_axis_label_w,
+            x_state,
+            y_state_left,
+            None,
+            y_state_primary=y_state_left,
+        )
+
         painter.setPen(frame_pen)
-        painter.drawRect(plot_rect)
+        painter.drawRect(QRectF(plot_rect))
         painter.drawLine(plot_rect.bottomLeft(), plot_rect.bottomRight())
         painter.drawLine(plot_rect.bottomLeft(), plot_rect.topLeft())
+
+        self._draw_axis_titles(
+            widget,
+            painter,
+            plot_rect,
+            local_margin_left,
+            right_axis_label_w,
+            widget.height(),
+            y_state_left,
+            None,
+            left_active=True,
+            right_active=False,
+        )
 
         self._draw_no_data_message(widget, painter, plot_rect)
 
