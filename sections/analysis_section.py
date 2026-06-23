@@ -311,6 +311,59 @@ class AnalysisSection:
             self.ResultDockwidget.evolutionTankToggleRequested.connect(self._onResultsEvolutionTankToggle)
             self.ResultDockwidget.timeTextChanged.connect(self._onResultsEvolutionTimeTextChanged)
             self.ResultDockwidget.visibilityChanged.connect(self._onResultsDockVisibilityForEvolution)
+            try:
+                QApplication.instance().focusChanged.connect(self._onPickPanelFocusChanged)
+            except Exception:
+                pass
+
+    def _widgetBelongsToDock(self, widget, dock):
+        if widget is None or dock is None:
+            return False
+        try:
+            return widget is dock or dock.isAncestorOf(widget)
+        except Exception:
+            return False
+
+    def _onPickPanelFocusChanged(self, old, now):
+        if now is None:
+            return
+        for ts_dock in (getattr(self, "timeSeriesDocks", None) or []):
+            if self._widgetBelongsToDock(now, ts_dock):
+                self._reclaimMapToolForTimeSeries(ts_dock)
+                return
+        if self._widgetBelongsToDock(now, getattr(self, "ResultDockwidget", None)):
+            self._reclaimMapToolForResultsEvolution()
+
+    def _reclaimMapToolForTimeSeries(self, dock):
+        tools = getattr(self, "myMapTools", {})
+        ts_tool = tools.get("TimeSeries")
+        evo_tool = tools.get("ResultsEvolution")
+        if ts_tool is None:
+            return
+        current = self.iface.mapCanvas().mapTool()
+        if current is ts_tool:
+            self._setActiveTimeSeriesDock(dock)
+            return
+        if current is evo_tool:
+            self._setActiveTimeSeriesDock(dock)
+            self.iface.mapCanvas().setMapTool(ts_tool)
+
+    def _reclaimMapToolForResultsEvolution(self):
+        dock = self._resultsEvolutionDock()
+        if dock is None or dock._activeEvolutionLayerType() is None:
+            return
+        tools = getattr(self, "myMapTools", {})
+        ts_tool = tools.get("TimeSeries")
+        evo_tool = tools.get("ResultsEvolution")
+        current = self.iface.mapCanvas().mapTool()
+        if evo_tool is not None and current is evo_tool:
+            return
+        if current is ts_tool:
+            self._resultsEvolutionType = dock._activeEvolutionLayerType()
+            if evo_tool is not None:
+                self.iface.mapCanvas().setMapTool(evo_tool)
+            else:
+                self.runResultsEvolutionSelectPointTool()
 
     def _ensureResultsDockVisibleForTimeSeries(self):
         self._initResultsDock()

@@ -253,6 +253,11 @@ class LifecycleSection:
             self._resetResultsEvolutionMapState()
         except Exception:
             pass
+        try:
+            from qgis.PyQt.QtWidgets import QApplication
+            QApplication.instance().focusChanged.disconnect(self._onPickPanelFocusChanged)
+        except Exception:
+            pass
         docks_to_clean = []
         if self.ResultDockwidget is not None:
             self.disconnectElementExplorerFromResultsDock()
