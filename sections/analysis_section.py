@@ -133,6 +133,10 @@ class AnalysisSection:
         if previous is dock:
             return
         self._activeTimeSeriesDock = dock
+        try:
+            self._clearResultsEvolutionHighlight()
+        except Exception:
+            pass
         if previous is not None:
             try:
                 self._clearTimeSeriesHighlight(previous)
@@ -335,23 +339,30 @@ class AnalysisSection:
             self._reclaimMapToolForResultsEvolution()
 
     def _reclaimMapToolForTimeSeries(self, dock):
+        self._clearResultsEvolutionHighlight()
+        already_active = getattr(self, "_activeTimeSeriesDock", None) is dock
+        self._setActiveTimeSeriesDock(dock)
+        if already_active and not (getattr(dock, "highlights", None) or {}):
+            try:
+                self._applyTimeSeriesMapStateForDock(dock)
+            except Exception:
+                pass
         tools = getattr(self, "myMapTools", {})
         ts_tool = tools.get("TimeSeries")
         evo_tool = tools.get("ResultsEvolution")
-        if ts_tool is None:
-            return
-        current = self.iface.mapCanvas().mapTool()
-        if current is ts_tool:
-            self._setActiveTimeSeriesDock(dock)
-            return
-        if current is evo_tool:
-            self._setActiveTimeSeriesDock(dock)
+        if ts_tool is not None and self.iface.mapCanvas().mapTool() is evo_tool:
             self.iface.mapCanvas().setMapTool(ts_tool)
 
     def _reclaimMapToolForResultsEvolution(self):
         dock = self._resultsEvolutionDock()
         if dock is None or dock._activeEvolutionLayerType() is None:
             return
+        if getattr(self, "_resultsEvolutionHighlight", None) is None:
+            remembered = getattr(self, "_resultsEvolutionElement", None)
+            if remembered:
+                layer, feature = self._resolveEvolutionLayerFeature(remembered)
+                if layer is not None and feature is not None:
+                    self._setResultsEvolutionHighlight(layer, feature)
         tools = getattr(self, "myMapTools", {})
         ts_tool = tools.get("TimeSeries")
         evo_tool = tools.get("ResultsEvolution")

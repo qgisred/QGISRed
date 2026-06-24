@@ -1035,7 +1035,7 @@
                      <property name="minimumSize">
                       <size>
                        <width>0</width>
-                       <height>270</height>
+                       <height>216</height>
                       </size>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_EvolutionChart">
@@ -1065,7 +1065,7 @@
                         <property name="minimumSize">
                          <size>
                           <width>0</width>
-                          <height>240</height>
+                          <height>192</height>
                          </size>
                         </property>
                        </widget>
@@ -1084,7 +1084,7 @@
                         <property name="minimumSize">
                          <size>
                           <width>0</width>
-                          <height>240</height>
+                          <height>192</height>
                          </size>
                         </property>
                        </widget>

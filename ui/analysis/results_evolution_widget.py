@@ -8,8 +8,8 @@ from .qgisred_timeseries_dock import TimeSeriesPlotWidget
 
 _ICON_BUTTON_STYLE = (
     "QToolButton {"
-    " border: 1px solid #9aa7b4; border-radius: 4px;"
-    " padding: 2px; background-color: rgba(255, 255, 255, 0.92); }"
+    " border: 1px solid #9aa7b4; border-radius: 3px;"
+    " padding: 1px; background-color: rgba(255, 255, 255, 0.92); }"
     "QToolButton:hover { background-color: #eaf1f8; border-color: #5b86b0; }"
     "QToolButton:pressed { background-color: #d7e2ee; }"
 )
@@ -22,7 +22,7 @@ class ResultsEvolutionPlotWidget(TimeSeriesPlotWidget):
         super(ResultsEvolutionPlotWidget, self).__init__(parent)
         self._simplified_cursor_only = True
         self._base_min_w = 180
-        self._base_min_h = 150
+        self._base_min_h = 120
         self.setMinimumSize(self._base_min_w, self._base_min_h)
         self.margin_top = 22
         self.margin_left = 40
@@ -32,7 +32,7 @@ class ResultsEvolutionPlotWidget(TimeSeriesPlotWidget):
         self._expandButton = QToolButton(self)
         self._expandButton.setObjectName("evolutionExpandOverlay")
         self._expandButton.setIcon(QIcon(":/images/iconTsZoomWindow.svg"))
-        self._expandButton.setIconSize(QSize(15, 15))
+        self._expandButton.setIconSize(QSize(12, 12))
         self._expandButton.setCursor(Qt.CursorShape.PointingHandCursor)
         self._expandButton.setStyleSheet(_ICON_BUTTON_STYLE)
         self._expandButton.clicked.connect(self.expandClicked)
@@ -65,17 +65,11 @@ class ResultsEvolutionPlotWidget(TimeSeriesPlotWidget):
 
     def _positionOverlayButtons(self):
         try:
-            margin = 4
+            margin = 2
             self._expandButton.adjustSize()
             expand_w = self._expandButton.width()
-            expand_h = self._expandButton.height()
-            top = margin
             right = self.width() - margin
-            rect, _, _ = self.getPlotRect()
-            if rect.width() > 0 and rect.height() > 0:
-                top = max(margin, int(rect.top()) - expand_h - 2)
-                right = int(rect.right())
-            self._expandButton.move(max(margin, right - expand_w), top)
+            self._expandButton.move(max(margin, right - expand_w), margin)
             self._expandButton.raise_()
         except Exception:
             pass
