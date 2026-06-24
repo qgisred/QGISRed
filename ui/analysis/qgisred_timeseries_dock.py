@@ -12,7 +12,6 @@ from qgis.PyQt.QtWidgets import (
     QFileDialog,
     QComboBox,
     QFrame,
-    QGridLayout,
     QHBoxLayout,
     QHeaderView,
     QLabel,
@@ -2532,45 +2531,17 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
             self._chartComment = editor.toPlainText().strip()[:MAX]
 
     def _onImportConfigClicked(self) -> None:
-        from .timeseries_config_io import read_timeseries_config_comment
-
         default_path = self._timeSeriesConfigDefaultPath()
         start_dir = os.path.dirname(default_path) if default_path else os.path.expanduser("~")
-        dialog = QFileDialog(self, self.tr("Import chart configuration"), start_dir,
-                             self.tr("Configuration file (*.cfg)"))
-        dialog.setFileMode(QFileDialog.FileMode.ExistingFile)
-        dialog.setAcceptMode(QFileDialog.AcceptMode.AcceptOpen)
-        try:
-            dialog.setOption(QFileDialog.Option.DontUseNativeDialog, True)
-            preview = QLabel(dialog)
-            preview.setWordWrap(True)
-            preview.setMinimumWidth(220)
-            preview.setStyleSheet("QLabel { color: #555; }")
-            title = QLabel(self.tr("Description:"), dialog)
-            grid = dialog.layout()
-            if isinstance(grid, QGridLayout):
-                row = grid.rowCount()
-                grid.addWidget(title, row, 0)
-                grid.addWidget(preview, row, 1, 1, max(1, grid.columnCount() - 1))
-
-            def _update_preview(selected_path):
-                comment = ""
-                if selected_path and os.path.isfile(selected_path):
-                    comment = read_timeseries_config_comment(selected_path) or ""
-                preview.setText(comment or self.tr("(no description)"))
-
-            dialog.currentChanged.connect(_update_preview)
-            selected = dialog.selectedFiles()
-            _update_preview(selected[0] if selected else "")
-        except Exception:
-            pass
-
-        if dialog.exec() != DIALOG_ACCEPTED:
+        path, _selected_filter = QFileDialog.getOpenFileName(
+            self,
+            self.tr("Import chart configuration"),
+            start_dir,
+            self.tr("Configuration file (*.cfg)"),
+        )
+        if not path:
             return
-        files = dialog.selectedFiles()
-        if not files or not files[0]:
-            return
-        self.importConfigRequested.emit(files[0])
+        self.importConfigRequested.emit(path)
 
     def _emitCurveSettingsChanged(self) -> None:
         settings = []
