@@ -216,10 +216,36 @@ class _ResultsEvolutionMixin:
         self.nodeEvolutionChartHost.setVisible(active == "Node")
         self.linkEvolutionChartHost.setVisible(active == "Link")
 
+    def _applyEvolutionTimeAxisFormatToChart(self, chart):
+        if chart is None:
+            return
+        civil = bool(getattr(self, "civilMode", False))
+        am_pm = bool(getattr(self, "amPmFormat", False))
+        continuous = bool(getattr(self, "continuousHoursMode", False))
+        if civil:
+            hour_format = "hm_ampm" if am_pm else "hm"
+            day_format = "split_days"
+        else:
+            hour_format = "elapsed_hm"
+            day_format = "total_hours" if continuous else "split_days"
+        cfg = getattr(chart, "_axis_cfg_x", None)
+        if cfg is not None:
+            cfg.x_hour_format = hour_format
+            cfg.x_day_format = day_format
+        chart.setStartClockSeconds(int(getattr(self, "_startClockSeconds", 0) or 0))
+
+    def _syncEvolutionTimeAxisFormat(self):
+        for chart in (self._node_evolution_chart, self._link_evolution_chart):
+            self._applyEvolutionTimeAxisFormatToChart(chart)
+        popout = getattr(self, "_evolution_popout", None)
+        if popout is not None:
+            self._applyEvolutionTimeAxisFormatToChart(popout.chart)
+
     def setEvolutionSeries(
         self, layer_type, x_hours, y_values, title="", x_label="", y_label="",
         is_stepped=False, y_categorical_labels=None,
     ):
+        self._syncEvolutionTimeAxisFormat()
         chart = self._node_evolution_chart if layer_type == "Node" else self._link_evolution_chart
         chart.setData(
             x_hours, y_values, title=title, x_label=x_label, y_label=y_label,
@@ -242,6 +268,7 @@ class _ResultsEvolutionMixin:
             self._feedEvolutionPopout(self._activeEvolutionLayerType())
 
     def setEvolutionCursorHours(self, hours):
+        self._syncEvolutionTimeAxisFormat()
         self._evolution_cursor_hours = hours
         charts = [self._node_evolution_chart, self._link_evolution_chart]
         popout = getattr(self, "_evolution_popout", None)
@@ -339,6 +366,7 @@ class _ResultsEvolutionMixin:
             return
         if layer_type is None or layer_type != self._activeEvolutionLayerType():
             return
+        self._applyEvolutionTimeAxisFormatToChart(popout.chart)
         cached = self._evolution_series_cache.get(layer_type)
         if cached is None:
             popout.chart.setData([], [], title="")

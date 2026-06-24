@@ -122,7 +122,7 @@ class ResultsDistributionWidget(QWidget):
         self.marginBottom = 40
         self._axisTickFontSize = 9
         self._rotatedLabelExtra = 0
-        self.setMinimumSize(180, 240)
+        self.setMinimumSize(180, 192)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
     def setBins(
