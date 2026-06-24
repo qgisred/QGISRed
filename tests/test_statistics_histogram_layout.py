@@ -11,8 +11,6 @@ from QGISRed.ui.queries.statistics_histogram_layout import (
 
 
 class _StubFontMetrics:
-    """Métricas fijas para probar la lógica sin depender de QFontMetrics real/mockeado."""
-
     _HEIGHT_BY_SIZE = {6: 9, 7: 10, 8: 11, 9: 12}
 
     def __init__(self, tick_font_size=9):

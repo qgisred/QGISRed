@@ -880,7 +880,7 @@
                      <property name="minimumSize">
                       <size>
                        <width>0</width>
-                       <height>160</height>
+                       <height>300</height>
                       </size>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_DistributionChart">
@@ -1000,7 +1000,7 @@
                         <property name="minimumSize">
                          <size>
                           <width>0</width>
-                          <height>150</height>
+                          <height>270</height>
                          </size>
                         </property>
                        </widget>
@@ -1019,7 +1019,7 @@
                         <property name="minimumSize">
                          <size>
                           <width>0</width>
-                          <height>150</height>
+                          <height>270</height>
                          </size>
                         </property>
                        </widget>

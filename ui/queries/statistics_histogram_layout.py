@@ -128,9 +128,11 @@ def cap_bottom_margin(widget_height, margin_top, base_bottom, rotated_extra, *, 
     return min(base_bottom + int(round(rotated_extra)), maxBottom)
 
 
-def max_rotated_label_width(plot_width, bin_count, tick_font_size, slot_scale=1.15):
-    if bin_count <= 0 or plot_width <= 0:
-        return 60.0
-    slotWidth = plot_width / bin_count
-    fontHeight = QFontMetrics(qfont(tick_font_size)).height()
-    return max(24.0, min(72.0, slotWidth * slot_scale + fontHeight))
+def max_rotated_label_width_for_space(space_below, tick_font_size, has_x_label=False):
+    fontMetrics = QFontMetrics(qfont(tick_font_size))
+    usable = float(space_below) - fontMetrics.descent() - 4
+    if has_x_label:
+        usable -= fontMetrics.height() + 6
+    if usable <= 0:
+        return 20.0
+    return max(20.0, usable / ROTATED_LABEL_SIN)

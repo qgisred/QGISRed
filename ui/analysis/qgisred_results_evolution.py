@@ -42,7 +42,7 @@ class _EvolutionPopoutWindow(QWidget):
 
         from .results_evolution_widget import ResultsEvolutionPlotWidget
 
-        self.chart = ResultsEvolutionPlotWidget(self)
+        self.chart = ResultsEvolutionPlotWidget(self, expanded=True)
         self._layout.addWidget(self.chart, 1)
 
     def attachControls(self, bar):

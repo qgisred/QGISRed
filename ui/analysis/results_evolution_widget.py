@@ -14,13 +14,17 @@ _ICON_BUTTON_STYLE = (
     "QToolButton:pressed { background-color: #d7e2ee; }"
 )
 
+_DOCK_AXIS_FONT_SIZE = 8
+_POPOUT_AXIS_FONT_SIZE = 11
+
 
 class ResultsEvolutionPlotWidget(TimeSeriesPlotWidget):
     expandClicked = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, expanded=False):
         super(ResultsEvolutionPlotWidget, self).__init__(parent)
         self._simplified_cursor_only = True
+        self._applyAxisFontSize(_POPOUT_AXIS_FONT_SIZE if expanded else _DOCK_AXIS_FONT_SIZE)
         self._base_min_w = 180
         self._base_min_h = 120
         self.setMinimumSize(self._base_min_w, self._base_min_h)
@@ -48,6 +52,14 @@ class ResultsEvolutionPlotWidget(TimeSeriesPlotWidget):
         if not (x and y):
             self._y_label_left = ""
         self._positionOverlayButtons()
+
+    def _applyAxisFontSize(self, size):
+        size = int(size)
+        for cfg in (self._axis_cfg_x, self._axis_cfg_y_left, self._axis_cfg_y_right):
+            if cfg is None:
+                continue
+            cfg.tick_font_size = size
+            cfg.title_font_size = size
 
     def getPlotRect(self):
         plot_rect, local_margin_left, right_axis_label_w = super(ResultsEvolutionPlotWidget, self).getPlotRect()
