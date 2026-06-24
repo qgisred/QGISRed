@@ -45,12 +45,15 @@ class ResultsEvolutionPlotWidget(TimeSeriesPlotWidget):
             x, y, title=title, x_label=x_label, y_label=y_label,
             is_stepped=is_stepped, y_categorical_labels=y_categorical_labels, series_label=series_label,
         )
-        self._y_label_left = ""
+        if not (x and y):
+            self._y_label_left = ""
         self._positionOverlayButtons()
 
     def getPlotRect(self):
         plot_rect, local_margin_left, right_axis_label_w = super(ResultsEvolutionPlotWidget, self).getPlotRect()
-        new_left = max(30.0, float(local_margin_left) - 26.0)
+        if not (self._y_label_left or "").strip():
+            return plot_rect, local_margin_left, right_axis_label_w
+        new_left = max(30.0, float(local_margin_left) - 24.0)
         delta = float(local_margin_left) - new_left
         if delta > 0:
             plot_rect = QRectF(plot_rect.left() - delta, plot_rect.top(), plot_rect.width() + delta, plot_rect.height())
@@ -63,14 +66,16 @@ class ResultsEvolutionPlotWidget(TimeSeriesPlotWidget):
     def _positionOverlayButtons(self):
         try:
             margin = 4
+            self._expandButton.adjustSize()
+            expand_w = self._expandButton.width()
+            expand_h = self._expandButton.height()
             top = margin
             right = self.width() - margin
             rect, _, _ = self.getPlotRect()
             if rect.width() > 0 and rect.height() > 0:
-                top = int(rect.top()) + 3
-                right = int(rect.right()) - 3
-            self._expandButton.adjustSize()
-            self._expandButton.move(max(margin, right - self._expandButton.width()), top)
+                top = max(margin, int(rect.top()) - expand_h - 2)
+                right = int(rect.right())
+            self._expandButton.move(max(margin, right - expand_w), top)
             self._expandButton.raise_()
         except Exception:
             pass
