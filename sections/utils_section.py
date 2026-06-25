@@ -7,7 +7,6 @@ from ctypes import windll
 
 from ..tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
-from ..tools.utils.qgisred_ui_utils import QGISRedUIUtils
 
 
 class UtilsSection:
@@ -25,7 +24,6 @@ class UtilsSection:
             self.zoomToFullExtent = False
 
     def getTolerance(self):
-        # DPI
         LOGPIXELSX = 88
         user32 = windll.user32
         user32.SetProcessDPIAware()
@@ -33,14 +31,9 @@ class UtilsSection:
         pix_per_inch = windll.gdi32.GetDeviceCaps(dc, LOGPIXELSX)
         user32.ReleaseDC(0, dc)
 
-        # CanvasPixels
         unitsPerPixel = self.iface.mapCanvas().getCoordinateTransform().mapUnitsPerPixel()
-        # x WidthPixels --> m/px * px = metros
-        # 25.4 mm == inch
-        un = 25.4 / pix_per_inch  # x WidthPixels -- > mm/px x px = mm
-        # 1mm * unitsPerPixel / un -->tolerance
-        tolerance = 1 * unitsPerPixel / un
-        return tolerance
+        un = 25.4 / pix_per_inch
+        return 1 * unitsPerPixel / un
 
     def getUniformedPath(self, path):
         return QGISRedFileSystemUtils().getUniformedPath(path)
@@ -54,6 +47,82 @@ class UtilsSection:
     def getLayers(self):
         return QGISRedLayerUtils().getLayers()
 
+    def _normalizeLayerName(self, layerName):
+        return layerName.lower().replace(" ", "")
+
+    def _getQgisRedIdentifierFromLayerName(self, layerName):
+        mapping = {
+            "pipe": "qgisred_pipes",
+            "pipes": "qgisred_pipes",
+            "junction": "qgisred_junctions",
+            "junctions": "qgisred_junctions",
+            "demand": "qgisred_demands",
+            "demands": "qgisred_demands",
+            "reservoir": "qgisred_reservoirs",
+            "reservoirs": "qgisred_reservoirs",
+            "tank": "qgisred_tanks",
+            "tanks": "qgisred_tanks",
+            "pump": "qgisred_pumps",
+            "pumps": "qgisred_pumps",
+            "valve": "qgisred_valves",
+            "valves": "qgisred_valves",
+            "source": "qgisred_sources",
+            "sources": "qgisred_sources",
+            "serviceconnection": "qgisred_serviceconnections",
+            "serviceconnections": "qgisred_serviceconnections",
+            "isolationvalve": "qgisred_isolationvalves",
+            "isolationvalves": "qgisred_isolationvalves",
+            "meter": "qgisred_meters",
+            "meters": "qgisred_meters",
+        }
+
+        normalizedName = self._normalizeLayerName(layerName)
+        return mapping.get(normalizedName, f"qgisred_{normalizedName}")
+
+    def _getIdFieldName(self, layerName, layer):
+        idFieldsByLayer = {
+            "junction": "JunctionID",
+            "junctions": "JunctionID",
+            "tank": "TankID",
+            "tanks": "TankID",
+            "pump": "PumpID",
+            "pumps": "PumpID",
+            "valve": "ValveID",
+            "valves": "ValveID",
+            "reservoir": "ReservoirID",
+            "reservoirs": "ReservoirID",
+            "pipe": "PipeID",
+            "pipes": "PipeID",
+            "source": "SourceID",
+            "sources": "SourceID",
+            "demand": "DemandID",
+            "demands": "DemandID",
+            "serviceconnection": "ServiceConnectionID",
+            "serviceconnections": "ServiceConnectionID",
+            "isolationvalve": "IsolationValveID",
+            "isolationvalves": "IsolationValveID",
+            "meter": "MeterID",
+            "meters": "MeterID",
+        }
+
+        fields = layer.fields()
+        normalizedName = self._normalizeLayerName(layerName)
+        expectedField = idFieldsByLayer.get(normalizedName)
+
+        if expectedField is not None and fields.indexFromName(expectedField) != -1:
+            return expectedField
+
+        for candidate in ("Id", "ID", "id"):
+            if fields.indexFromName(candidate) != -1:
+                return candidate
+
+        if len(fields) > 0:
+            firstField = fields[0].name()
+            if firstField.lower() == "id":
+                return firstField
+
+        return None
+
     def getSelectedFeaturesIds(self):
         linkIdsList = []
         nodeIdsList = []
@@ -61,73 +130,110 @@ class UtilsSection:
         self.selectedIds = {}
 
         layers = self.getLayers()
-        mylayersNames = self.ownMainLayers
+
         for layer in layers:
-            for layerName in mylayersNames:
-                layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp")
-                if layerName == "Sources" or layerName == "Demands": #TODO
+            openedLayerPath = self.getLayerPath(layer)
+
+            for layerName in self.ownMainLayers:
+                layerPath = self.generatePath(
+                    self.ProjectDirectory,
+                    self.NetworkName + "_" + layerName + ".shp"
+                )
+
+                if layerName == "Sources" or layerName == "Demands":
                     continue
-                if self.getLayerPath(layer) == layerPath:
+
+                if openedLayerPath == layerPath:
+                    idFieldName = self._getIdFieldName(layerName, layer)
+
+                    if idFieldName is None:
+                        continue
+
                     fids = []
                     ids = []
+
                     for feature in layer.getSelectedFeatures():
                         fids.append(feature.id())
-                        id = str(feature["Id"])
+
+                        id = str(feature[idFieldName])
+
                         if id == "NULL":
-                            message = self.tr("Some Ids are not defined. Commit before and try again.")
-                            self.pushMessage(message, level=1, duration=5)
                             self.selectedFids = {}
                             return False
+
+                        ids.append(id)
+
                         if layer.geometryType() == 0:
-                            ids.append(id)
                             nodeIdsList.append(id)
                         else:
-                            ids.append(id)
                             linkIdsList.append(id)
+
                     if len(fids) > 0:
                         self.selectedFids[layerName] = fids
+
                     if len(ids) > 0:
                         self.selectedIds[layerName] = ids
 
-        mylayersNames = self.complementaryLayers
         for layer in layers:
-            for layerName in mylayersNames:
-                layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp")
-                if self.getLayerPath(layer) == layerPath:
+            openedLayerPath = self.getLayerPath(layer)
+
+            for layerName in self.complementaryLayers:
+                layerPath = self.generatePath(
+                    self.ProjectDirectory,
+                    self.NetworkName + "_" + layerName + ".shp"
+                )
+
+                if openedLayerPath == layerPath:
+                    idFieldName = self._getIdFieldName(layerName, layer)
+
+                    if idFieldName is None:
+                        continue
+
                     fids = []
                     ids = []
+
                     for feature in layer.getSelectedFeatures():
                         fids.append(feature.id())
-                        id = str(feature["Id"])
+
+                        id = str(feature[idFieldName])
+
                         if id == "NULL":
-                            message = self.tr("Some Ids are not defined. Commit before and try again.")
-                            self.pushMessage(message, level=1, duration=5)
                             self.selectedFids = {}
                             return False
+
                         ids.append(id)
+
                     if len(fids) > 0:
                         self.selectedFids[layerName] = fids
+
                     if len(ids) > 0:
                         self.selectedIds[layerName] = ids
 
-        # Generate concatenate string for links and nodes
         self.linkIds = ""
         for id in linkIdsList:
             self.linkIds = self.linkIds + id + ";"
+
         self.nodeIds = ""
         for id in nodeIdsList:
             self.nodeIds = self.nodeIds + id + ";"
+
         return True
 
     def setSelectedFeaturesById(self):
         layers = self.getLayers()
-        mylayersNames = self.ownMainLayers
+
         for layer in layers:
             openedLayerPath = self.getLayerPath(layer)
-            for layerName in mylayersNames:
-                layerPath = self.generatePath(self.ProjectDirectory, self.NetworkName + "_" + layerName + ".shp")
+
+            for layerName in self.ownMainLayers:
+                layerPath = self.generatePath(
+                    self.ProjectDirectory,
+                    self.NetworkName + "_" + layerName + ".shp"
+                )
+
                 if layerName == "Sources" or layerName == "Demands":
                     continue
+
                 if openedLayerPath == layerPath:
                     if layerName in self.selectedFids:
                         layer.selectByIds(self.selectedFids[layerName])
@@ -136,35 +242,23 @@ class UtilsSection:
         layers = self.getLayers()
         layer = None
 
-        # Robust identifier resolution (handling singular/plural and spaces)
-        mapping = {
-            'pipe': 'qgisred_pipes',
-            'junction': 'qgisred_junctions',
-            'demand': 'qgisred_demands',
-            'reservoir': 'qgisred_reservoirs',
-            'tank': 'qgisred_tanks',
-            'pump': 'qgisred_pumps',
-            'valve': 'qgisred_valves',
-            'source': 'qgisred_sources',
-            'serviceconnection': 'qgisred_serviceconnections',
-            'isolationvalve': 'qgisred_isolationvalves',
-            'meter': 'qgisred_meters'
-        }
-        
-        normalized_name = layerName.lower().replace(" ", "")
-        target_id = mapping.get(normalized_name, f"qgisred_{normalized_name}")
+        target_id = self._getQgisRedIdentifierFromLayerName(layerName)
 
         for la in layers:
-            found_id = la.customProperty("qgisred_identifier")
-            if found_id == target_id:
+            if la.customProperty("qgisred_identifier") == target_id:
                 layer = la
                 break
 
         if layer:
-            # elementId is the user-facing "Id" field
-            features = layer.getFeatures(f'"Id" = \'{elementId}\'')
+            idFieldName = self._getIdFieldName(layerName, layer)
+
+            if idFieldName is None:
+                return
+
+            safeElementId = str(elementId).replace("'", "''")
+            features = layer.getFeatures(f'"{idFieldName}" = \'{safeElementId}\'')
+
             for feat in features:
-                # Select feature for visual feedback
                 layer.selectByIds([feat.id()])
 
                 geom = feat.geometry()
@@ -173,21 +267,18 @@ class UtilsSection:
 
                 box = geom.boundingBox()
 
-                # Compute a canvas-relative buffer: 10% of the current canvas extent.
-                # This keeps the zoom proportional for both large and small networks.
                 canvas_extent = self.iface.mapCanvas().extent()
                 buffer = max(canvas_extent.width(), canvas_extent.height()) * 0.10
 
                 if box.width() == 0 or box.height() == 0:
-                    # Point feature: center the view with the adaptive buffer
                     center = box.center()
                     box = QgsRectangle(
-                        center.x() - buffer, center.y() - buffer,
-                        center.x() + buffer, center.y() + buffer
+                        center.x() - buffer,
+                        center.y() - buffer,
+                        center.x() + buffer,
+                        center.y() + buffer
                     )
                 else:
-                    # Line/polygon feature: expand the bounding box by the same buffer
-                    # so the feature is never shown edge-to-edge of the canvas
                     box.grow(buffer * 0.15)
 
                 self.iface.mapCanvas().setExtent(box)
@@ -200,10 +291,3 @@ class UtilsSection:
         projectCrs = self.iface.mapCanvas().mapSettings().destinationCrs()
         xform = QgsCoordinateTransform(projectCrs, pipesCrs, QgsProject.instance())
         return xform.transform(point)
-
-    def pushMessage(self, text, level=0, duration=5):
-        """
-        Standardized pushMessage for QGISRed plugin.
-        Delegates to the project-wide utility.
-        """
-        QGISRedUIUtils.showGlobalMessage(self.iface, text, level=level, duration=duration)
