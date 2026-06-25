@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>540</width>
+    <height>500</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>520</width>
+    <height>460</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>QGISRed: Group Edit</string>
+  </property>
+  <layout class="QGridLayout" name="rootLayout">
+   <item row="0" column="0">
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QgsCollapsibleGroupBox" name="gbTarget">
+       <property name="title">
+        <string>For all...</string>
+       </property>
+       <layout class="QGridLayout" name="targetGrid">
+        <item row="0" column="0">
+         <widget class="QLabel" name="lblElementType">
+          <property name="text">
+           <string>Element type</string>
+          </property>
+          <property name="buddy">
+           <cstring>cbElementType</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1" colspan="2">
+         <widget class="QComboBox" name="cbElementType"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="lblScope">
+          <property name="text">
+           <string>Scope</string>
+          </property>
+          <property name="buddy">
+           <cstring>cbScope</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QComboBox" name="cbScope"/>
+        </item>
+        <item row="1" column="2">
+         <widget class="QPushButton" name="btPickRegion">
+          <property name="text">
+           <string>Pick region on map...</string>
+          </property>
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0" colspan="3">
+         <widget class="QLabel" name="lblAffectedCount">
+          <property name="text">
+           <string>0 elements match</string>
+          </property>
+          <property name="styleSheet">
+           <string>color: #155724; font-weight: bold;</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QgsCollapsibleGroupBox" name="gbFilter">
+       <property name="title">
+        <string>with...  (optional filter)</string>
+       </property>
+       <layout class="QGridLayout" name="filterGrid">
+        <item row="0" column="0" colspan="4">
+         <widget class="QCheckBox" name="chkFilter">
+          <property name="text">
+           <string>Restrict to elements where</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="lblFilterProperty">
+          <property name="text">
+           <string>Property</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QComboBox" name="cbFilterProperty">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QComboBox" name="cbFilterOperator">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLineEdit" name="leFilterValue">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="placeholderText">
+           <string>Value</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QgsCollapsibleGroupBox" name="gbAction">
+       <property name="title">
+        <string>Replace / Multiply / Add to...</string>
+       </property>
+       <layout class="QGridLayout" name="actionGrid">
+        <item row="0" column="0">
+         <widget class="QLabel" name="lblProperty">
+          <property name="text">
+           <string>Property</string>
+          </property>
+          <property name="buddy">
+           <cstring>cbProperty</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1" colspan="2">
+         <widget class="QComboBox" name="cbProperty"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="lblAction">
+          <property name="text">
+           <string>Action</string>
+          </property>
+          <property name="buddy">
+           <cstring>cbAction</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1" colspan="2">
+         <widget class="QComboBox" name="cbAction"/>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="lblValue">
+          <property name="text">
+           <string>Value</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1" colspan="2">
+         <widget class="QStackedWidget" name="stackedValue">
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <widget class="QWidget" name="pageNumber">
+           <layout class="QHBoxLayout" name="hlNumber">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QDoubleSpinBox" name="sbNumber">
+              <property name="minimum">
+               <double>-999999999.000000000000000</double>
+              </property>
+              <property name="maximum">
+               <double>999999999.000000000000000</double>
+              </property>
+              <property name="decimals">
+               <number>4</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="lblUnit">
+              <property name="text">
+               <string/>
+              </property>
+              <property name="styleSheet">
+               <string>color: #555;</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="pageText">
+           <layout class="QHBoxLayout" name="hlText">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QLineEdit" name="leText"/>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="pageEnum">
+           <layout class="QHBoxLayout" name="hlEnum">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QComboBox" name="cbEnum"/>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="pageFindReplace">
+           <layout class="QGridLayout" name="glFindReplace">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item row="0" column="0">
+             <widget class="QLabel" name="lblFind">
+              <property name="text">
+               <string>Find</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLineEdit" name="leFind"/>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="lblReplace">
+              <property name="text">
+               <string>Replace with</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="leReplace"/>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <spacer name="verticalSpacer">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>10</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="footerLayout">
+       <item>
+        <widget class="QPushButton" name="btPreview">
+         <property name="text">
+          <string>Preview on map</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btApply">
+         <property name="text">
+          <string>Apply</string>
+         </property>
+         <property name="default">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btClose">
+         <property name="text">
+          <string>Close</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QgsCollapsibleGroupBox</class>
+   <extends>QGroupBox</extends>
+   <header>qgis.gui</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

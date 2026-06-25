@@ -787,6 +787,15 @@ class MenuSection:
         self.add_to_group(self.openStatisticsDialog, self.queriesMenu, self.queriesToolbar)
         self.add_to_dropdown(self.openStatisticsDialog, queriesDropButton)
 
+        self.openGroupEditDialog = self._make_action(
+            ":/images/iconGroupEdit.svg",
+            self.tr("Group edit..."),
+            self.runGroupEdit,
+            parent=self.iface.mainWindow(),
+        )
+        self.add_to_group(self.openGroupEditDialog, self.queriesMenu, self.queriesToolbar)
+        self.add_to_dropdown(self.openGroupEditDialog, queriesDropButton)
+
     def addAnalysisMenu(self):
         #    #Menu
         self.analysisMenu = self.qgisredmenu.addMenu(self.tr("Analysis"))

@@ -7,6 +7,7 @@ from ..ui.queries.qgisred_thematicmaps_dialog import QGISRedThematicMapsDialog
 from ..ui.queries.qgisred_element_explorer_dock import QGISRedElementExplorerDock
 from ..ui.queries.qgisred_queriesbyproperties_dock import QGISRedQueriesByPropertiesDock
 from ..ui.queries.qgisred_statisticsandgraphs_dock import QGISRedStatisticsDock
+from ..ui.queries.qgisred_groupedit_dialog import QGISRedGroupEditDialog
 from ..tools.map_tools.qgisred_identifyFeature import QGISRedIdentifyFeature
 from ..tools.utils.qgisred_ui_utils import QGISRedUIUtils
 
@@ -68,6 +69,20 @@ class QueriesSection:
             return
 
         dlg = QGISRedThematicMapsDialog()
+        dlg.config(self.iface, self.ProjectDirectory, self.NetworkName)
+        dlg.exec()
+
+    def runGroupEdit(self):
+        if not self.checkDependencies():
+            return
+        # Validations
+        self.defineCurrentProject()
+        if not self.isValidProject():
+            return
+        if self.isLayerOnEdition():
+            return
+
+        dlg = QGISRedGroupEditDialog()
         dlg.config(self.iface, self.ProjectDirectory, self.NetworkName)
         dlg.exec()
 
