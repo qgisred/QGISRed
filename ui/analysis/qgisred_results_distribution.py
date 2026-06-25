@@ -346,8 +346,8 @@ def _build_link_status_bins(layer):
     # Colors chosen to be consistent and readable on light backgrounds.
     bins = [
         _bin("Closed", QColor(198, 40, 40)),  # red
-        _bin("Open", QColor(46, 125, 50)),  # green
         _bin("Active", QColor(245, 124, 0)),  # orange
+        _bin("Open", QColor(46, 125, 50)),  # green
     ]
     idx = {b["category"]: i for i, b in enumerate(bins)}
 
@@ -374,7 +374,13 @@ class _DistributionPopoutWindow(QWidget):
 
     def __init__(self, parent, on_close):
         super().__init__(parent)
-        self.setWindowFlags(Qt.WindowType.Window)
+        self.setWindowFlags(
+            Qt.WindowType.Window
+            | Qt.WindowType.CustomizeWindowHint
+            | Qt.WindowType.WindowTitleHint
+            | Qt.WindowType.WindowMaximizeButtonHint
+            | Qt.WindowType.WindowCloseButtonHint
+        )
         self._on_close = on_close
         self._default_geometry = None
         self.setMinimumSize(360, 260)
@@ -503,11 +509,12 @@ class _ResultsDistributionMixin:
         self.lbl_distribution_relative = self.tr("Relative")
         self.lbl_distribution_count = self.tr("Count")
         self.lbl_distribution_percent = "%"
+        self.lbl_distribution_none = self.tr("None")
         self.cbDistributionFrequency.addItem(self.lbl_distribution_absolute, "absolute")
         self.cbDistributionFrequency.addItem(self.lbl_distribution_relative, "relative")
+        self.cbDistributionFrequency.addItem(self.lbl_distribution_none, "none")
         self.cbDistributionFrequency.currentIndexChanged.connect(self._distributionFrequencyChanged)
 
-        self.lbl_distribution_none = self.tr("None")
         self.cbDistributionCumulative.addItem(self.lbl_distribution_none, "none")
         self.cbDistributionCumulative.addItem(self.lbl_distribution_absolute, "absolute")
         self.cbDistributionCumulative.addItem(self.lbl_distribution_relative, "relative")
@@ -584,6 +591,8 @@ class _ResultsDistributionMixin:
         frequency_id = self.cbDistributionFrequency.currentData(Qt.ItemDataRole.UserRole)
         if frequency_id == "relative":
             return "relative"
+        if frequency_id == "none":
+            return "none"
         return "plain"
 
     def _distributionCumulativeMode(self):
@@ -613,11 +622,15 @@ class _ResultsDistributionMixin:
     def _syncStatusDistributionModesFromFrequency(self):
         if not self._isStatusDistributionActive() or self._distributionCumulativeMode() is None:
             return
+        if self._distributionBarMode() == "none":
+            return
         mode = "relative" if self._distributionBarMode() == "relative" else "absolute"
         self._setDistributionCumulativeMode(mode)
 
     def _syncStatusDistributionModesFromCumulative(self):
         if not self._isStatusDistributionActive():
+            return
+        if self._distributionBarMode() == "none":
             return
         mode = self._distributionCumulativeMode()
         if mode is not None:

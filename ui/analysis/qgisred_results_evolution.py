@@ -30,7 +30,13 @@ class _EvolutionPopoutWindow(QWidget):
 
     def __init__(self, parent, on_close):
         super().__init__(parent)
-        self.setWindowFlags(Qt.WindowType.Window)
+        self.setWindowFlags(
+            Qt.WindowType.Window
+            | Qt.WindowType.CustomizeWindowHint
+            | Qt.WindowType.WindowTitleHint
+            | Qt.WindowType.WindowMaximizeButtonHint
+            | Qt.WindowType.WindowCloseButtonHint
+        )
         self._on_close = on_close
         self._default_geometry = None
         self.setMinimumSize(360, 260)

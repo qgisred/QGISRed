@@ -121,7 +121,12 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
             else None
         )
 
-        self._drawGridAndLeftAxis(widget, painter, plotRect, left_scale)
+        suppress_left_axis = self._bar_mode(widget) == "none" and not cumulative_bars
+        if suppress_left_axis:
+            if right_scale is not None:
+                self._drawGrid(painter, plotRect, right_scale)
+        else:
+            self._drawGridAndLeftAxis(widget, painter, plotRect, left_scale)
         if right_scale is not None:
             self._drawDistributionRightAxis(widget, painter, plotRect, right_scale)
             self._drawDistributionTopAxis(widget, painter, plotRect)
@@ -154,6 +159,8 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
 
     def _bin_bar_value(self, widget, binData):
         bar_mode = self._bar_mode(widget)
+        if bar_mode == "none":
+            return 0.0
         if bar_mode == "relative":
             total_count = getattr(widget, "_totalCount", 0) or sum(
                 item.get("count", 0) for item in widget.bins
@@ -222,6 +229,13 @@ class ResultsDistributionRenderer(StatisticsHistogramRenderer):
             axis_max = max(1.0, float(math.ceil(data_max)))
             return NiceScale(axis_min=0.0, axis_max=axis_max, step=1.0, divisions=int(axis_max))
         return scale
+
+    def _drawGrid(self, painter, plotRect, scale):
+        grid_color = QColor(GRID_COLOR).darker(115)
+        painter.setPen(QPen(grid_color, 1, Qt.PenStyle.DashLine))
+        for tick_value in scale.ticks():
+            tick_y = self._yForValue(plotRect, scale, tick_value)
+            painter.drawLine(QPointF(plotRect.left(), tick_y), QPointF(plotRect.right(), tick_y))
 
     def _drawGridAndLeftAxis(self, widget, painter, plotRect, scale):
         painter.setFont(qfont(self._tickFontSize(widget)))
