@@ -82,9 +82,23 @@ class QueriesSection:
         if self.isLayerOnEdition():
             return
 
-        dlg = QGISRedGroupEditDialog()
-        dlg.config(self.iface, self.ProjectDirectory, self.NetworkName)
-        dlg.exec()
+        existing = getattr(self, 'groupEditDialog', None)
+        if existing is not None:
+            try:
+                existing.raise_()
+                existing.activateWindow()
+                return
+            except RuntimeError:
+                pass
+        self.groupEditDialog = QGISRedGroupEditDialog()
+        self.groupEditDialog.config(self.iface, self.ProjectDirectory, self.NetworkName)
+        self.groupEditDialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+        self.groupEditDialog.destroyed.connect(
+            lambda: setattr(self, 'groupEditDialog', None)
+        )
+        self.groupEditDialog.show()
+        self.groupEditDialog.raise_()
+        self.groupEditDialog.activateWindow()
 
     def runFindElements(self):
         if not self.validateProject(self.openFindElementsDialog):
