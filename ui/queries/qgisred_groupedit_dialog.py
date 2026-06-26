@@ -3,8 +3,8 @@ import os
 
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import Qt, QTimer, QVariant
-from qgis.PyQt.QtGui import QColor, QDoubleValidator, QIcon
-from qgis.PyQt.QtWidgets import QDialog, QMessageBox
+from qgis.PyQt.QtGui import QBrush, QColor, QDoubleValidator, QIcon
+from qgis.PyQt.QtWidgets import QComboBox, QDialog, QMessageBox
 
 from qgis.core import (
     QgsCoordinateTransform,
@@ -18,7 +18,7 @@ from qgis.core import (
 from qgis.gui import QgsHighlight
 
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
-from ...tools.utils.qgisred_ui_utils import QGISRedBanner
+from ...tools.utils.qgisred_ui_utils import QGISRedBanner, QGISRedUIUtils, QGISRED_COMBO_STYLE
 from ...tools.map_tools.qgisred_groupEditRegion import QGISRedGroupEditRegionTool
 
 
@@ -89,6 +89,11 @@ _pageText = 1
 _pageEnum = 2
 _pageFindReplace = 3
 
+# Property items matching these (case-insensitive) get the grey background used
+# in Statistics / Queries by Properties for identifier-style fields.
+_idTagFields = {"id", "tag", "descrip"}
+_darkBrushColor = "#D8D8D8"
+
 
 class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
     """Bulk-edit dialog for QGISRed network elements (EPANET Group Edit-style)."""
@@ -97,6 +102,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         super(QGISRedGroupEditDialog, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(":/images/iconGroupEdit.svg"))
+        self._applyStyle()
 
         self.iface = None
         self.canvas = None
@@ -136,6 +142,14 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         super(QGISRedGroupEditDialog, self).closeEvent(event)
 
     """Setup"""
+
+    def _applyStyle(self):
+        self.setStyleSheet(
+            "QDialog { background-color: #f8f9fb; }"
+            "QLineEdit, QSpinBox, QDoubleSpinBox { background-color: white; }"
+        )
+        for combo in self.findChildren(QComboBox):
+            QGISRedUIUtils.applyComboStyle(combo)
 
     def _connectSignals(self):
         self.cbElementType.currentIndexChanged.connect(self._onElementTypeChanged)
@@ -222,18 +236,38 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.cbProperty.clear()
         for name, pretty, field in editable:
             self.cbProperty.addItem(pretty, name)
+        self._setPropertyItemBackgrounds(self.cbProperty)
         self.cbProperty.blockSignals(False)
 
         self.cbFilterProperty.blockSignals(True)
         self.cbFilterProperty.clear()
         for name, pretty, field in filterable:
             self.cbFilterProperty.addItem(pretty, name)
+        self._setPropertyItemBackgrounds(self.cbFilterProperty)
         self.cbFilterProperty.blockSignals(False)
+
+        self._updateComboBackground(self.cbProperty)
+        self._updateComboBackground(self.cbFilterProperty)
+
+    def _setPropertyItemBackgrounds(self, combo):
+        for index in range(combo.count()):
+            fieldName = combo.itemData(index)
+            if fieldName and str(fieldName).lower() in _idTagFields:
+                combo.setItemData(index, QBrush(QColor(_darkBrushColor)), Qt.ItemDataRole.BackgroundRole)
+
+    def _updateComboBackground(self, combo):
+        brush = combo.currentData(Qt.ItemDataRole.BackgroundRole)
+        if brush and isinstance(brush, QBrush) and brush.color() != QColor(0, 0, 0, 255):
+            color = brush.color().name()
+        else:
+            color = "white"
+        combo.setStyleSheet(QGISRED_COMBO_STYLE + "QComboBox { background-color: %s; }" % color)
 
     def _onPropertyChanged(self):
         layer = self._currentLayer()
         if layer is None:
             return
+        self._updateComboBackground(self.cbProperty)
         identifier = layer.customProperty("qgisred_identifier")
         fieldName = self.cbProperty.currentData()
         if not fieldName:
@@ -300,6 +334,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         layer = self._currentLayer()
         if layer is None or self.cbFilterProperty.currentData() is None:
             return
+        self._updateComboBackground(self.cbFilterProperty)
         fieldName = self.cbFilterProperty.currentData()
         field = layer.fields().field(fieldName)
         self.cbFilterOperator.blockSignals(True)
