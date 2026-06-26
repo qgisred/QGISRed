@@ -684,7 +684,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
 
         reply = QMessageBox.question(
             self,
-            self.tr("Group Edit"),
+            self.tr("Edit properties by group"),
             "\n".join(bodyLines),
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.Yes,

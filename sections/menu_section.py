@@ -449,6 +449,15 @@ class MenuSection:
         self.add_to_group(self.editElementButton, self.editionMenu, self.editionToolbar)
         self.add_to_dropdown(self.editElementButton, editDropButton)
 
+        self.openGroupEditDialog = self._make_action(
+            ":/images/iconGroupEdit.svg",
+            self.tr("Edit properties by group..."),
+            self.runGroupEdit,
+            parent=self.iface.mainWindow(),
+        )
+        self.add_to_group(self.openGroupEditDialog, self.editionMenu, self.editionToolbar)
+        self.add_to_dropdown(self.openGroupEditDialog, editDropButton)
+
         action = self._make_action(
             ":/images/iconPatternsAndCurves.svg", 
             self.tr("Edit patterns and curves..."), 
@@ -786,15 +795,6 @@ class MenuSection:
         )
         self.add_to_group(self.openStatisticsDialog, self.queriesMenu, self.queriesToolbar)
         self.add_to_dropdown(self.openStatisticsDialog, queriesDropButton)
-
-        self.openGroupEditDialog = self._make_action(
-            ":/images/iconGroupEdit.svg",
-            self.tr("Group edit..."),
-            self.runGroupEdit,
-            parent=self.iface.mainWindow(),
-        )
-        self.add_to_group(self.openGroupEditDialog, self.queriesMenu, self.queriesToolbar)
-        self.add_to_dropdown(self.openGroupEditDialog, queriesDropButton)
 
     def addAnalysisMenu(self):
         #    #Menu
