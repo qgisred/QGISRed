@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>490</width>
+    <width>343</width>
     <height>557</height>
    </rect>
   </property>
@@ -18,7 +18,7 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>490</width>
+    <width>343</width>
     <height>112</height>
    </size>
   </property>
@@ -40,16 +40,13 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>455</width>
+         <width>315</width>
          <height>531</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
          <widget class="QTabWidget" name="tabWidget">
-          <property name="styleSheet">
-           <string notr="true">QTabBar::tab { font-weight: bold; min-width: 90px; padding: 4px 14px;}</string>
-          </property>
           <property name="currentIndex">
            <number>0</number>
           </property>
@@ -65,16 +62,16 @@
            </attribute>
            <layout class="QVBoxLayout" name="verticalLayout_config">
             <property name="leftMargin">
-             <number>6</number>
+             <number>4</number>
             </property>
             <property name="topMargin">
-             <number>6</number>
+             <number>4</number>
             </property>
             <property name="rightMargin">
-             <number>6</number>
+             <number>4</number>
             </property>
             <property name="bottomMargin">
-             <number>6</number>
+             <number>4</number>
             </property>
             <item>
              <widget class="QFrame" name="frame">
@@ -584,19 +581,25 @@
            </attribute>
            <layout class="QVBoxLayout" name="verticalLayout_results">
             <property name="leftMargin">
-             <number>6</number>
+             <number>4</number>
             </property>
             <property name="topMargin">
-             <number>6</number>
+             <number>4</number>
             </property>
             <property name="rightMargin">
-             <number>6</number>
+             <number>4</number>
             </property>
             <property name="bottomMargin">
-             <number>6</number>
+             <number>4</number>
             </property>
             <item>
              <widget class="QGroupBox" name="mStatisticsGroupBox">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="title">
                <string>Histogram</string>
               </property>
@@ -649,7 +652,7 @@
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>160</width>
+                       <width>120</width>
                        <height>20</height>
                       </size>
                      </property>
@@ -684,7 +687,7 @@
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>160</width>
+                       <width>120</width>
                        <height>20</height>
                       </size>
                      </property>
@@ -710,6 +713,12 @@
                  </item>
                  <item>
                   <widget class="QWidget" name="graphWidget" native="true">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="minimumSize">
                     <size>
                      <width>200</width>
@@ -725,6 +734,12 @@
             </item>
             <item>
              <widget class="QGroupBox" name="mGroupBox">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="title">
                <string>Table</string>
               </property>
@@ -760,7 +775,7 @@
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>160</width>
+                     <width>120</width>
                      <height>20</height>
                     </size>
                    </property>
@@ -799,6 +814,18 @@
                </item>
                <item>
                 <widget class="QTableWidget" name="tbExcel">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>120</height>
+                  </size>
+                 </property>
                  <property name="font">
                   <font>
                    <family>MS Shell Dlg 2</family>
@@ -814,19 +841,6 @@
                </item>
               </layout>
              </widget>
-            </item>
-            <item>
-             <spacer name="verticalSpacerResults">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>40</height>
-               </size>
-              </property>
-             </spacer>
             </item>
            </layout>
           </widget>

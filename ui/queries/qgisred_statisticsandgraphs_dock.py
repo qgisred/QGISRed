@@ -106,6 +106,20 @@ ALL_IDENTIFIERS = set(INPUT_ORDER) | set(DIGITAL_TWIN_ORDER)
 
 CUMULATIVE_PROPERTIES = {"Length", "MinVolume", "BaseDem", "BaseDemand", "BaseValue", "Power"}
 
+ID_FIELD_LOWER_BY_IDENTIFIER = {
+    "qgisred_junctions": "junctionid",
+    "qgisred_tanks": "tankid",
+    "qgisred_reservoirs": "reservoirid",
+    "qgisred_pipes": "pipeid",
+    "qgisred_valves": "valveid",
+    "qgisred_pumps": "pumpid",
+    "qgisred_demands": "demandid",
+    "qgisred_sources": "sourceid",
+    "qgisred_serviceconnections": "serviceconnectionid",
+    "qgisred_isolationvalves": "isolationvalveid",
+    "qgisred_meters": "meterid",
+}
+
 
 class _StatisticsHistogramPopoutWindow(QWidget):
     """Floating, resizable window showing an enlarged copy of the histogram."""
@@ -780,6 +794,9 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             return
         self.updateValueWidget()
 
+    def idFieldLowerFor(self, elementIdentifier):
+        return ID_FIELD_LOWER_BY_IDENTIFIER.get(elementIdentifier or "", "")
+
     def updateProperties(self):
         self.suspendCascade = True
         self.cbProperty.clear()
@@ -800,6 +817,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             "pressure", "head", "demand", "status",
         }
         skipLower = {"id", "descrip", "description"}
+        idFieldLower = self.idFieldLowerFor(elementIdentifier)
 
         qualityModel = QGISRedProjectUtils.getQualityModel().upper()
         nonChemicalFields = set()
@@ -816,7 +834,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         for field in layer.fields():
             fieldName = field.name()
             lower = fieldName.lower()
-            if lower in skipLower:
+            if lower in skipLower or lower == idFieldLower:
                 continue
             if isResultsMode and lower in resultsMetaLower:
                 continue
@@ -886,6 +904,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             "pressure", "head", "demand", "status",
         }
         skipLower = {"id", "descrip", "description"}
+        idFieldLower = self.idFieldLowerFor(elementIdentifier)
 
         qualityModel = QGISRedProjectUtils.getQualityModel().upper()
         nonChemicalFields = set()
@@ -902,7 +921,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         for field in layer.fields():
             fieldName = field.name()
             lower = fieldName.lower()
-            if lower in skipLower:
+            if lower in skipLower or lower == idFieldLower:
                 continue
             if isResultsMode and lower in resultsMetaLower:
                 continue
@@ -965,6 +984,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             "pressure", "head", "demand", "status",
         }
         skipLower = {"id", "descrip", "description"}
+        idFieldLower = self.idFieldLowerFor(elementIdentifier)
 
         qualityModel = QGISRedProjectUtils.getQualityModel().upper()
         nonChemicalFields = set()
@@ -981,7 +1001,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         for field in layer.fields():
             fieldName = field.name()
             lower = fieldName.lower()
-            if lower in skipLower:
+            if lower in skipLower or lower == idFieldLower:
                 continue
             if isResultsMode and lower in resultsMetaLower:
                 continue
@@ -1114,6 +1134,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             "pressure", "head", "demand", "status",
         }
         idTagLower = {"id", "tag", "descrip"}
+        idFieldLower = self.idFieldLowerFor(elementIdentifier)
 
         qualityModel = QGISRedProjectUtils.getQualityModel().upper()
         nonChemicalFields = set()
@@ -1138,6 +1159,8 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
                 continue
             if lower in idTagLower:
                 idTagFieldsByKey[lower] = field
+            elif lower == idFieldLower:
+                idTagFieldsByKey["id"] = field
             else:
                 staticFields.append(field)
 
@@ -1535,8 +1558,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         if secondField and secondBreaks is not None and self.cbSecondClassValue.currentIndex() > 0:
             selectedSecondIndex = self.cbSecondClassValue.currentIndex() - 1
 
-        classifyIsCategorical = breaks["type"] == "categorical"
-        self.isEnumeratedTarget = classifyIsCategorical or not self.isNumericField(propertyLayer, propertyField)
+        self.isEnumeratedTarget = not self.isNumericField(propertyLayer, propertyField)
         bins = self.initBins(breaks, 0)
         self.lastNullCount = 0
         self.lastOutOfRangeCount = 0
@@ -1557,9 +1579,6 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             if binIndex is None:
                 self.lastOutOfRangeCount += 1
                 continue
-            if classifyIsCategorical:
-                self.accumulateValue(bins[binIndex], None, classValue)
-                continue
             propertyValue = feature[propertyField]
             if propertyValue is None:
                 self.lastNullCount += 1
@@ -1572,9 +1591,6 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         prettyClassify = self.fieldUtils.getProperty(normalize_element(elementIdentifier), classifyField) or classifyField
         propertyUnit = self.fieldUtils.getUnitAbbreviation(normalize_element(elementIdentifier), propertyField) or ""
         classifyUnit = self.fieldUtils.getUnitAbbreviation(normalize_element(elementIdentifier), classifyField) or ""
-        if classifyIsCategorical:
-            prettyProperty = prettyClassify
-            propertyUnit = ""
 
         chartTitle = self.buildChartTitle(
             elementIdentifier, prettyProperty, prettyClassify, secondField, secondBreaks, selectedSecondIndex
@@ -1599,7 +1615,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             prettySecond = self.fieldUtils.getProperty(normalize_element(elementIdentifier), secondField) or secondField
             self.buildSecondClassMatrix(
                 bins, propertyLayer, propertyField, classifyField, breaks, secondField, secondBreaks,
-                featureRequest, classifyIsCategorical, prettyClassify, prettySecond, prettyProperty,
+                featureRequest, prettyClassify, prettySecond, prettyProperty,
                 useSum,
             )
             previousTableStatistic = self.cbTableStatistic.currentData(Qt.ItemDataRole.UserRole) if preserveStatistic else None
@@ -2044,7 +2060,7 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
         self.tbExcel.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
 
     def buildSecondClassMatrix(self, bins, propertyLayer, propertyField, classifyField, breaks, secondField,
-                               secondBreaks, featureRequest, classifyIsCategorical, prettyClassify, prettySecond,
+                               secondBreaks, featureRequest, prettyClassify, prettySecond,
                                prettyProperty, useSum):
         rowCount = len(bins)
         colCount = len(self._secondClassBins)
@@ -2058,14 +2074,10 @@ class QGISRedStatisticsDock(QDockWidget, formClass):
             primaryIndex = self.findBinIndex(bins, classValue, breaks["type"])
             if primaryIndex is None:
                 continue
-            if classifyIsCategorical:
-                propertyValue = None
-                enumeratedValue = classValue
-            else:
-                propertyValue = feature[propertyField]
-                if propertyValue is None:
-                    continue
-                enumeratedValue = propertyValue
+            propertyValue = feature[propertyField]
+            if propertyValue is None:
+                continue
+            enumeratedValue = propertyValue
             self.accumulateValue(allColumn[primaryIndex], propertyValue, enumeratedValue)
             secondValue = feature[secondField]
             if secondValue is None:
