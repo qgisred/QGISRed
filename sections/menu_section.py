@@ -713,7 +713,7 @@ class MenuSection:
         action = self._make_action(
             ":/images/iconDemandSectors.svg", 
             self.tr("Demand sector builder..."), 
-            self.runDemandSectors,
+            self.runDemandSectorBuilder,
             parent=self.iface.mainWindow(),
         )
         self.add_to_group(action, self.toolsMenu, self.toolsToolbar)

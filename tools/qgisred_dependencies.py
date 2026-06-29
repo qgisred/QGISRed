@@ -432,15 +432,15 @@ class QGISRedDependencies:
         return QGISRedDependencies.toString(b)
 
     @staticmethod
-    def DemandSectors(projectFolder, networkName, tempFolder):
+    def DemandSectorBuilder(projectFolder, networkName, tempFolder):
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
 
         mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
-        mydll.DemandSectors.argtypes = (c_char_p, c_char_p, c_char_p)
-        mydll.DemandSectors.restype = c_char_p
-        b = mydll.DemandSectors(projectFolder, networkName, tempFolder)
+        mydll.DemandSectorBuilder.argtypes = (c_char_p, c_char_p, c_char_p)
+        mydll.DemandSectorBuilder.restype = c_char_p
+        b = mydll.DemandSectorBuilder(projectFolder, networkName, tempFolder)
         return QGISRedDependencies.toString(b)
 
     @staticmethod

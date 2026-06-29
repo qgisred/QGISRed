@@ -321,9 +321,10 @@ class ToolsSection:
 
         self.processCsharpResult(resMessage, "")
 
-    def runDemandSectors(self):
+    def runDemandSectorBuilder(self):
         if not self.checkDependencies():
             return
+
         # Validations
         self.defineCurrentProject()
         if not self.isValidProject():
@@ -331,10 +332,13 @@ class ToolsSection:
         if self.isLayerOnEdition():
             return
 
-        self.Sectors = "DemandSectors"
-        # Process
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        resMessage = GISRed.DemandSectors(self.ProjectDirectory, self.NetworkName, self.tempFolder)
+
+        resMessage = GISRed.DemandSectorBuilder(
+            self.ProjectDirectory,
+            self.NetworkName,
+            self.tempFolder)
+
         QApplication.restoreOverrideCursor()
 
         self.processCsharpResult(resMessage, "", layerType="sectors")
