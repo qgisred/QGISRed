@@ -104,6 +104,19 @@ _conditionsByType = {
 # Free-text fields keep a typed value (no unique-value combobox) and default to ILIKE.
 _freeTextFields = {"Id", "Descrip", "InstalDate", "InstDate", "Time", "Time_H", "Time_Q", "Time_D"}
 
+# Preferred property to preselect per element type, mirroring Queries by Properties.
+# The first entry that exists as an editable field is selected.
+_defaultProperties = {
+    "qgisred_pipes":              ["Flow", "Diameter"],
+    "qgisred_valves":             ["Flow", "Diameter"],
+    "qgisred_pumps":              ["Flow", "IdHFCurve"],
+    "qgisred_junctions":          ["Pressure", "BaseDem"],
+    "qgisred_tanks":              ["Pressure", "Elevation"],
+    "qgisred_reservoirs":         ["Pressure", "TotalHead"],
+    "qgisred_serviceconnections": ["BaseDemand"],
+    "qgisred_isolationvalves":    ["Status"],
+}
+
 # Light highlight with dark text so the hovered dropdown item stays readable on macOS.
 _comboSelectionOverride = "QComboBox QAbstractItemView { selection-background-color: #DCE6F5; selection-color: #202020; }"
 
@@ -253,6 +266,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         for name, pretty, field in editable:
             self.cbProperty.addItem(pretty, name)
         self._setPropertyItemBackgrounds(self.cbProperty)
+        self._selectDefaultProperty(self.cbProperty, identifier)
         self.cbProperty.blockSignals(False)
 
         self.cbFilterProperty.blockSignals(True)
@@ -260,10 +274,18 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         for name, pretty, field in filterable:
             self.cbFilterProperty.addItem(pretty, name)
         self._setPropertyItemBackgrounds(self.cbFilterProperty)
+        self._selectDefaultProperty(self.cbFilterProperty, identifier)
         self.cbFilterProperty.blockSignals(False)
 
         self._updateComboBackground(self.cbProperty)
         self._updateComboBackground(self.cbFilterProperty)
+
+    def _selectDefaultProperty(self, combo, identifier):
+        for defaultProp in _defaultProperties.get(identifier, []):
+            index = combo.findData(defaultProp)
+            if index >= 0:
+                combo.setCurrentIndex(index)
+                return
 
     def _setPropertyItemBackgrounds(self, combo):
         for index in range(combo.count()):
