@@ -207,6 +207,22 @@ class LayerManagementSection:
                 demandsBuilderGroup.insertChildNode(0, QgsLayerTreeLayer(vlayer))
             self._demandsBuilderExtraPaths = []
 
+    def getDemandSectorsGroup(self):
+        utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
+        return utils.getOrCreateNestedGroup(
+            [self.NetworkName] + LAYER_TYPE_CONFIG["DemandSectors"]["tree_path"]
+        )
+
+
+    def getDemandSectorizationGroup(self, sectorizationName):
+        demandSectorsGroup = self.getDemandSectorsGroup()
+
+        sectorizationGroup = demandSectorsGroup.findGroup(sectorizationName)
+        if sectorizationGroup is None:
+            sectorizationGroup = demandSectorsGroup.addGroup(sectorizationName)
+
+        return sectorizationGroup
+
     def openTreeLayers(self):
         treeGroup = self.getTreeGroup()
         treeFolder = os.path.join(self.ProjectDirectory, DIR_QUERIES, "Trees")

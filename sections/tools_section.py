@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Tools section for QGISRed (lengths, roughness, elevation, demands, scenarios, isolated segments, tree)."""
 
-from qgis.PyQt.QtWidgets import QApplication, QFileDialog
+from qgis.PyQt.QtWidgets import QApplication, QFileDialog, QMessageBox
 from qgis.PyQt.QtCore import Qt, QVariant
 from qgis.PyQt.QtGui import QColor
 from qgis.core import QgsProject, QgsLayerTreeGroup, QgsSingleSymbolRenderer, QgsSymbol, QgsCategorizedSymbolRenderer, QgsRendererCategory
@@ -325,10 +325,11 @@ class ToolsSection:
         if not self.checkDependencies():
             return
 
-        # Validations
         self.defineCurrentProject()
+
         if not self.isValidProject():
             return
+
         if self.isLayerOnEdition():
             return
 
@@ -337,11 +338,29 @@ class ToolsSection:
         resMessage = GISRed.DemandSectorBuilder(
             self.ProjectDirectory,
             self.NetworkName,
-            self.tempFolder)
+            self.tempFolder
+        )
 
         QApplication.restoreOverrideCursor()
 
-        self.processCsharpResult(resMessage, "", layerType="sectors")
+        if resMessage:
+            resMessage = resMessage.replace("\x00", "").strip()
+
+        if resMessage and resMessage.startswith("commit/sectorizations^"):
+            createdSectorizations = resMessage.split("^", 1)[1]
+
+            for sectorizationName in createdSectorizations.split(";"):
+                sectorizationName = sectorizationName.strip()
+                if sectorizationName:
+                    self.getDemandSectorizationGroup(sectorizationName)
+
+            return
+
+        if resMessage in ("Cancelled", "True", "commit"):
+            return
+
+        if resMessage:
+            QMessageBox.warning(None, "QGISRed", resMessage)
 
     """Isolated Segments"""
 
