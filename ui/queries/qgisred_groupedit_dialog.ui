@@ -151,7 +151,7 @@
      <item>
       <widget class="QgsCollapsibleGroupBox" name="gbAction">
        <property name="title">
-        <string>Replace / Multiply / Add to...</string>
+        <string>Do...</string>
        </property>
        <layout class="QGridLayout" name="actionGrid">
         <item row="0" column="0">
