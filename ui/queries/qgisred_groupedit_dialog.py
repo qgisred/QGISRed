@@ -18,7 +18,7 @@ from qgis.core import (
 from qgis.gui import QgsHighlight
 
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
-from ...tools.utils.qgisred_ui_utils import QGISRedBanner, QGISRedUIUtils, QGISRED_COMBO_STYLE
+from ...tools.utils.qgisred_ui_utils import QGISRedBanner, QGISRED_COMBO_STYLE
 from ...tools.map_tools.qgisred_groupEditRegion import QGISRedGroupEditRegionTool
 
 
@@ -104,6 +104,9 @@ _conditionsByType = {
 # Free-text fields keep a typed value (no unique-value combobox) and default to ILIKE.
 _freeTextFields = {"Id", "Descrip", "InstalDate", "InstDate", "Time", "Time_H", "Time_Q", "Time_D"}
 
+# Light highlight with dark text so the hovered dropdown item stays readable on macOS.
+_comboSelectionOverride = "QComboBox QAbstractItemView { selection-background-color: #DCE6F5; selection-color: #202020; }"
+
 
 class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
     """Bulk-edit dialog for QGISRed network elements (EPANET Group Edit-style)."""
@@ -160,7 +163,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             "QLineEdit, QSpinBox, QDoubleSpinBox { background-color: white; }"
         )
         for combo in self.findChildren(QComboBox):
-            QGISRedUIUtils.applyComboStyle(combo)
+            combo.setStyleSheet(QGISRED_COMBO_STYLE + _comboSelectionOverride)
 
     def _connectSignals(self):
         self.cbElementType.currentIndexChanged.connect(self._onElementTypeChanged)
@@ -274,7 +277,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             color = brush.color().name()
         else:
             color = "white"
-        combo.setStyleSheet(QGISRED_COMBO_STYLE + "QComboBox { background-color: %s; }" % color)
+        combo.setStyleSheet(QGISRED_COMBO_STYLE + _comboSelectionOverride + "QComboBox { background-color: %s; }" % color)
 
     def _onPropertyChanged(self):
         layer = self._currentLayer()
@@ -345,7 +348,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.cbFilterValueList = QComboBox(self)
         self.cbFilterValueList.setEditable(False)
         self.cbFilterValueList.setSizePolicy(sizePolicy)
-        self.cbFilterValueList.setStyleSheet(QGISRED_COMBO_STYLE)
+        self.cbFilterValueList.setStyleSheet(QGISRED_COMBO_STYLE + _comboSelectionOverride)
 
         self.filterValueStack = QStackedWidget(self)
         self.filterValueStack.setSizePolicy(sizePolicy)
