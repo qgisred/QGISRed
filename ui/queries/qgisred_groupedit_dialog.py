@@ -4,7 +4,7 @@ import os
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import Qt, QTimer, QVariant
 from qgis.PyQt.QtGui import QBrush, QColor, QDoubleValidator, QIcon
-from qgis.PyQt.QtWidgets import QComboBox, QDialog, QMessageBox
+from qgis.PyQt.QtWidgets import QComboBox, QDialog, QMessageBox, QStackedWidget
 
 from qgis.core import (
     QgsCoordinateTransform,
@@ -94,6 +94,16 @@ _pageFindReplace = 3
 _idTagFields = {"id", "tag", "descrip"}
 _darkBrushColor = "#D8D8D8"
 
+# Filter condition sets by field category, mirroring Queries by Properties.
+_conditionsByType = {
+    "numeric": ["All", ">=", "<=", "=", ">", "<", "≠"],
+    "listed":  ["All", "="],
+    "text":    ["All", "=", "≠", "ILIKE", "NOT ILIKE", "LIKE", "NOT LIKE"],
+}
+
+# Free-text fields keep a typed value (no unique-value combobox) and default to ILIKE.
+_freeTextFields = {"Id", "Descrip", "InstalDate", "InstDate", "Time", "Time_H", "Time_Q", "Time_D"}
+
 
 class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
     """Bulk-edit dialog for QGISRed network elements (EPANET Group Edit-style)."""
@@ -103,6 +113,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.setupUi(self)
         self.setWindowIcon(QIcon(":/images/iconGroupEdit.svg"))
         self._applyStyle()
+        self._setupFilterValueStack()
 
         self.iface = None
         self.canvas = None
@@ -157,8 +168,10 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.btPickRegion.clicked.connect(self._onPickRegion)
         self.chkFilter.toggled.connect(self._onFilterToggled)
         self.cbFilterProperty.currentIndexChanged.connect(self._onFilterPropertyChanged)
-        self.cbFilterOperator.currentIndexChanged.connect(self._scheduleCount)
+        self.cbFilterOperator.currentIndexChanged.connect(self._onFilterConditionChanged)
+        self.cbFilterOperator.currentIndexChanged.connect(self._updateFilterValues)
         self.leFilterValue.textChanged.connect(self._scheduleCount)
+        self.cbFilterValueList.currentTextChanged.connect(self._scheduleCount)
         self.cbProperty.currentIndexChanged.connect(self._onPropertyChanged)
         self.cbAction.currentIndexChanged.connect(self._onActionChanged)
         self.btPreview.clicked.connect(self._onPreview)
@@ -324,11 +337,27 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
 
     """Filter wiring"""
 
+    def _setupFilterValueStack(self):
+        idx = self.filterGrid.indexOf(self.leFilterValue)
+        row, col, rowSpan, colSpan = self.filterGrid.getItemPosition(idx)
+        sizePolicy = self.leFilterValue.sizePolicy()
+
+        self.cbFilterValueList = QComboBox(self)
+        self.cbFilterValueList.setEditable(False)
+        self.cbFilterValueList.setSizePolicy(sizePolicy)
+        self.cbFilterValueList.setStyleSheet(QGISRED_COMBO_STYLE)
+
+        self.filterValueStack = QStackedWidget(self)
+        self.filterValueStack.setSizePolicy(sizePolicy)
+        self.filterGrid.removeWidget(self.leFilterValue)
+        self.filterValueStack.addWidget(self.leFilterValue)
+        self.filterValueStack.addWidget(self.cbFilterValueList)
+        self.filterGrid.addWidget(self.filterValueStack, row, col, rowSpan, colSpan)
+
     def _onFilterToggled(self, checked):
         self.cbFilterProperty.setEnabled(checked)
         self.cbFilterOperator.setEnabled(checked)
-        self.leFilterValue.setEnabled(checked)
-        self._scheduleCount()
+        self._onFilterConditionChanged()
 
     def _onFilterPropertyChanged(self):
         layer = self._currentLayer()
@@ -337,19 +366,61 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self._updateComboBackground(self.cbFilterProperty)
         fieldName = self.cbFilterProperty.currentData()
         field = layer.fields().field(fieldName)
-        self.cbFilterOperator.blockSignals(True)
-        self.cbFilterOperator.clear()
         if field.isNumeric():
-            operators = [("=", "="), ("!=", "≠"), ("<", "<"), ("<=", "≤"), (">", ">"), (">=", "≥")]
+            category = "numeric"
             self.leFilterValue.setValidator(QDoubleValidator(self))
         else:
-            operators = [("=", "="), ("!=", "≠"), ("contains", self.tr("contains")),
-                         ("starts", self.tr("starts with"))]
+            category = "text"
             self.leFilterValue.setValidator(None)
-        for key, label in operators:
-            self.cbFilterOperator.addItem(label, key)
+        self.cbFilterOperator.blockSignals(True)
+        self.cbFilterOperator.clear()
+        self.cbFilterOperator.addItems(_conditionsByType[category])
+        if category == "numeric":
+            defaultCondition = "<="
+        elif category == "listed":
+            defaultCondition = "="
+        else:
+            defaultCondition = "ILIKE" if fieldName in _freeTextFields else "="
+        defaultIndex = self.cbFilterOperator.findText(defaultCondition)
+        if defaultIndex >= 0:
+            self.cbFilterOperator.setCurrentIndex(defaultIndex)
         self.cbFilterOperator.blockSignals(False)
+        self._onFilterConditionChanged()
+        self._updateFilterValues()
+
+    def _onFilterConditionChanged(self):
+        isAll = self.cbFilterOperator.currentText() == "All"
+        enabled = (not isAll) and self.chkFilter.isChecked()
+        self.leFilterValue.setEnabled(enabled)
+        self.cbFilterValueList.setEnabled(enabled)
+        if isAll:
+            self._setCurrentFilterValueText("")
         self._scheduleCount()
+
+    def _updateFilterValues(self):
+        fieldName = self.cbFilterProperty.currentData()
+        condition = self.cbFilterOperator.currentText()
+        layer = self._currentLayer()
+        useList = False
+        strValues = []
+        if layer is not None and fieldName and condition in ("=", "≠"):
+            field = layer.fields().field(fieldName)
+            if not field.isNumeric() and fieldName not in _freeTextFields:
+                uniqueValues = self._getUniqueFilterValues(layer, fieldName)
+                strValues = sorted({str(v) for v in uniqueValues if v is not None and str(v).strip()})
+                useList = bool(strValues)
+        if useList:
+            previous = self._currentFilterValueText()
+            self.cbFilterValueList.blockSignals(True)
+            self.cbFilterValueList.clear()
+            self.cbFilterValueList.addItem("")
+            self.cbFilterValueList.addItems(strValues)
+            i = self.cbFilterValueList.findText(previous)
+            self.cbFilterValueList.setCurrentIndex(i if i >= 0 else 0)
+            self.cbFilterValueList.blockSignals(False)
+            self.filterValueStack.setCurrentWidget(self.cbFilterValueList)
+        else:
+            self.filterValueStack.setCurrentWidget(self.leFilterValue)
 
     """Scope / region picker"""
 
@@ -477,9 +548,11 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
 
     def _buildFilterExpression(self, layer):
         fieldName = self.cbFilterProperty.currentData()
-        operator = self.cbFilterOperator.currentData()
-        rawValue = self.leFilterValue.text().strip()
-        if not fieldName or not operator or rawValue == "":
+        condition = self.cbFilterOperator.currentText()
+        if not fieldName or not condition or condition == "All":
+            return None
+        rawValue = self._currentFilterValueText().strip()
+        if rawValue == "":
             return None
         field = layer.fields().field(fieldName)
         column = QgsExpression.quotedColumnRef(fieldName)
@@ -488,13 +561,23 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
                 literal = repr(float(rawValue))
             except ValueError:
                 return None
+            operator = "<>" if condition == "≠" else condition
             return QgsExpression("%s %s %s" % (column, operator, literal))
         literal = QgsExpression.quotedString(rawValue)
-        if operator == "contains":
-            return QgsExpression("%s LIKE %s" % (column, QgsExpression.quotedString("%%%s%%" % rawValue)))
-        if operator == "starts":
-            return QgsExpression("%s LIKE %s" % (column, QgsExpression.quotedString("%s%%" % rawValue)))
-        return QgsExpression("%s %s %s" % (column, operator, literal))
+        if condition == "=":
+            return QgsExpression("lower(%s) = lower(%s)" % (column, literal))
+        if condition == "≠":
+            return QgsExpression("lower(%s) <> lower(%s)" % (column, literal))
+        wildcard = QgsExpression.quotedString("%%%s%%" % rawValue)
+        if condition == "LIKE":
+            return QgsExpression("%s LIKE %s" % (column, wildcard))
+        if condition == "NOT LIKE":
+            return QgsExpression("%s NOT LIKE %s" % (column, wildcard))
+        if condition == "ILIKE":
+            return QgsExpression("%s ILIKE %s" % (column, wildcard))
+        if condition == "NOT ILIKE":
+            return QgsExpression("%s NOT ILIKE %s" % (column, wildcard))
+        return None
 
     """Preview"""
 
@@ -732,6 +815,29 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         if identifier is None:
             return None
         return self.layersByIdentifier.get(identifier)
+
+    def _isFilterValueListActive(self):
+        return self.filterValueStack.currentWidget() is self.cbFilterValueList
+
+    def _currentFilterValueText(self):
+        if self._isFilterValueListActive():
+            return self.cbFilterValueList.currentText()
+        return self.leFilterValue.text()
+
+    def _setCurrentFilterValueText(self, text):
+        text = "" if text is None else str(text)
+        if self._isFilterValueListActive():
+            i = self.cbFilterValueList.findText(text)
+            self.cbFilterValueList.setCurrentIndex(i if i >= 0 else 0)
+        self.leFilterValue.setText(text)
+
+    def _getUniqueFilterValues(self, layer, fieldName):
+        values = set()
+        if layer.fields().indexFromName(fieldName) < 0:
+            return []
+        for f in layer.getFeatures():
+            values.add(f[fieldName])
+        return sorted(values)
 
 
 class _GroupEditError(Exception):
