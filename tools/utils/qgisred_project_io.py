@@ -51,7 +51,7 @@ class QGISRedProjectIO:
         "Results":                         {"subdir": DIR_RESULTS,"tree_path": ["Results"], "flags": {"results": True}},
         "Issues/Connectivity":             LAYER_TYPE_CONFIG["Connectivity"],
         "Issues/HydraulicSectors":         LAYER_TYPE_CONFIG["HydraulicSectors"],
-        "Queries/DemandSectors":           LAYER_TYPE_CONFIG["DemandSectors"],
+        "Auxiliary Layers/DemandSectors":  LAYER_TYPE_CONFIG["DemandSectors"],
         "Queries/IsolatedSegments":        LAYER_TYPE_CONFIG["IsolatedSegments"],
         "Auxiliary Layers/DemandsBuilder": LAYER_TYPE_CONFIG["DemandsBuilder"],
     }

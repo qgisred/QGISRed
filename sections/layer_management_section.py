@@ -210,9 +210,8 @@ class LayerManagementSection:
     def getDemandSectorsGroup(self):
         utils = QGISRedLayerUtils(self.ProjectDirectory, self.NetworkName, self.iface)
         return utils.getOrCreateNestedGroup(
-            [self.NetworkName] + LAYER_TYPE_CONFIG["DemandSectors"]["tree_path"]
+            [self.NetworkName, "Auxiliary Layers", "DemandSectors"]
         )
-
 
     def getDemandSectorizationGroup(self, sectorizationName):
         demandSectorsGroup = self.getDemandSectorsGroup()
