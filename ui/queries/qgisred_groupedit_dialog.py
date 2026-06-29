@@ -7,6 +7,7 @@ from qgis.PyQt.QtGui import QBrush, QColor, QDoubleValidator, QIcon
 from qgis.PyQt.QtWidgets import QComboBox, QDialog, QMessageBox, QStackedWidget
 
 from qgis.core import (
+    QgsApplication,
     QgsCoordinateTransform,
     QgsExpression,
     QgsExpressionContext,
@@ -14,10 +15,12 @@ from qgis.core import (
     QgsFeatureRequest,
     QgsGeometry,
     QgsProject,
+    QgsVectorLayer,
 )
 from qgis.gui import QgsHighlight
 
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
+from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ...tools.utils.qgisred_ui_utils import QGISRedBanner, QGISRED_COMBO_STYLE
 from ...tools.map_tools.qgisred_groupEditRegion import QGISRedGroupEditRegionTool
 
@@ -104,6 +107,9 @@ _conditionsByType = {
 # Free-text fields keep a typed value (no unique-value combobox) and default to ILIKE.
 _freeTextFields = {"Id", "Descrip", "InstalDate", "InstDate", "Time", "Time_H", "Time_Q", "Time_D"}
 
+# Fields whose Do value offers a combobox sourced from a global_defaults DBF instead of a typed input.
+_materialFields = {"Material"}
+
 # Preferred property to preselect per element type, mirroring Queries by Properties.
 # The first entry that exists as an editable field is selected.
 _defaultProperties = {
@@ -130,6 +136,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.setWindowIcon(QIcon(":/images/iconGroupEdit.svg"))
         self._applyStyle()
         self._setupFilterValueStack()
+        self._setupTextValueStack()
 
         self.iface = None
         self.canvas = None
@@ -338,12 +345,47 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         if kind == "numeric":
             self.stackedValue.setCurrentIndex(_pageNumber)
         elif kind == "text":
+            self._updateTextValues()
             self.stackedValue.setCurrentIndex(_pageText)
         elif kind == "enum":
             self.stackedValue.setCurrentIndex(_pageEnum)
         elif kind == "findReplace":
             self.stackedValue.setCurrentIndex(_pageFindReplace)
         self._scheduleCount()
+
+    def _updateTextValues(self):
+        fieldName = self.cbProperty.currentData()
+        strValues = self._dbfFieldValues(fieldName) if fieldName else []
+        if strValues:
+            previous = self._currentTextValue()
+            self.cbTextValueList.blockSignals(True)
+            self.cbTextValueList.clear()
+            self.cbTextValueList.addItem("")
+            self.cbTextValueList.addItems(strValues)
+            i = self.cbTextValueList.findText(previous)
+            self.cbTextValueList.setCurrentIndex(i if i >= 0 else 0)
+            self.cbTextValueList.blockSignals(False)
+            self.textValueStack.setCurrentWidget(self.cbTextValueList)
+        else:
+            self.textValueStack.setCurrentWidget(self.leText)
+
+    def _dbfFieldValues(self, fieldName):
+        if fieldName not in _materialFields:
+            return []
+        language = "es" if QgsApplication.locale()[0:2] == "es" else "en"
+        folder = os.path.join(QGISRedFileSystemUtils().getQGISRedFolder(), "global_defaults")
+        path = os.path.join(folder, "Materials_%s.dbf" % language)
+        if not os.path.exists(path):
+            return []
+        layer = QgsVectorLayer(path, "Materials", "ogr")
+        if not layer.isValid():
+            return []
+        values = []
+        for feature in layer.getFeatures():
+            value = feature["Abbrev"]
+            if value is not None and str(value).strip():
+                values.append(str(value).strip())
+        return values
 
     def _updateUnitLabel(self, identifier, fieldName, field):
         unit = ""
@@ -378,6 +420,20 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.filterValueStack.addWidget(self.leFilterValue)
         self.filterValueStack.addWidget(self.cbFilterValueList)
         self.filterGrid.addWidget(self.filterValueStack, row, col, rowSpan, colSpan)
+
+    def _setupTextValueStack(self):
+        sizePolicy = self.leText.sizePolicy()
+        self.cbTextValueList = QComboBox(self)
+        self.cbTextValueList.setEditable(False)
+        self.cbTextValueList.setSizePolicy(sizePolicy)
+        self.cbTextValueList.setStyleSheet(QGISRED_COMBO_STYLE + _comboSelectionOverride)
+
+        self.textValueStack = QStackedWidget(self)
+        self.textValueStack.setSizePolicy(sizePolicy)
+        self.hlText.removeWidget(self.leText)
+        self.textValueStack.addWidget(self.leText)
+        self.textValueStack.addWidget(self.cbTextValueList)
+        self.hlText.addWidget(self.textValueStack)
 
     def _onFilterToggled(self, checked):
         self.cbFilterProperty.setEnabled(checked)
@@ -431,7 +487,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         if layer is not None and fieldName and condition in ("=", "≠"):
             field = layer.fields().field(fieldName)
             if not field.isNumeric() and fieldName not in _freeTextFields:
-                uniqueValues = self._getUniqueFilterValues(layer, fieldName)
+                uniqueValues = self._getUniqueFieldValues(layer, fieldName)
                 strValues = sorted({str(v) for v in uniqueValues if v is not None and str(v).strip()})
                 useList = bool(strValues)
         if useList:
@@ -695,7 +751,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
                 newVal = self._applyNumericOp(oldVal, operand, actionKey)
                 edits.append((f.id(), oldRaw, newVal))
         elif actionKind == "text":
-            text = self.leText.text()
+            text = self._currentTextValue()
             for f in features:
                 oldRaw = f[fieldName]
                 oldStr = "" if oldRaw is None else str(oldRaw)
@@ -856,13 +912,21 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             self.cbFilterValueList.setCurrentIndex(i if i >= 0 else 0)
         self.leFilterValue.setText(text)
 
-    def _getUniqueFilterValues(self, layer, fieldName):
+    def _getUniqueFieldValues(self, layer, fieldName):
         values = set()
         if layer.fields().indexFromName(fieldName) < 0:
             return []
         for f in layer.getFeatures():
             values.add(f[fieldName])
         return sorted(values)
+
+    def _isTextValueListActive(self):
+        return self.textValueStack.currentWidget() is self.cbTextValueList
+
+    def _currentTextValue(self):
+        if self._isTextValueListActive():
+            return self.cbTextValueList.currentText()
+        return self.leText.text()
 
 
 class _GroupEditError(Exception):

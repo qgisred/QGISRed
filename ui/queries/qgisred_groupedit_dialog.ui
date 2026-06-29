@@ -208,6 +208,9 @@
             </property>
             <item>
              <widget class="QDoubleSpinBox" name="sbNumber">
+              <property name="buttonSymbols">
+               <enum>QAbstractSpinBox::NoButtons</enum>
+              </property>
               <property name="minimum">
                <double>-999999999.000000000000000</double>
               </property>
