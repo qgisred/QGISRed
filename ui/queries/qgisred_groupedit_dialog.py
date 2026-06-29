@@ -151,7 +151,8 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
 
         self.cbScope.addItem(self.tr("Whole network"), "whole")
         self.cbScope.addItem(self.tr("Currently selected features"), "selected")
-        self.cbScope.addItem(self.tr("Within polygon region..."), "region")
+        # self.cbScope.addItem(self.tr("Within polygon region..."), "region")
+        self.btPickRegion.setVisible(False)
 
         self._countTimer = QTimer(self)
         self._countTimer.setSingleShot(True)
