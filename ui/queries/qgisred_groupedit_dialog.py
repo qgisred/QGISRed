@@ -181,7 +181,16 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
     def _applyStyle(self):
         self.setStyleSheet(
             "QDialog { background-color: #f8f9fb; }"
-            "QLineEdit, QSpinBox, QDoubleSpinBox { background-color: white; }"
+            "QLineEdit, QSpinBox, QDoubleSpinBox {"
+            " background-color: white;"
+            " color: #202020;"
+            " border: 1px solid #bdbdbd;"
+            " border-radius: 2px;"
+            " padding: 0 4px 0 5px;"
+            " min-height: 18px;"
+            " max-height: 20px;"
+            " font-size: 8pt;"
+            " }"
         )
         for combo in self.findChildren(QComboBox):
             combo.setStyleSheet(QGISRED_COMBO_STYLE + _comboSelectionOverride)
