@@ -842,8 +842,7 @@ class ProjectManagementSection:
                     return target
             # DemandSectors
             if base.startswith(netPrefix) and "DemandSectors" in base:
-                target = os.path.join(DIR_QUERIES, DIR_DEMAND_SECTORS)
-                target_norm = os.path.normcase(os.path.normpath(os.path.join(self.ProjectDirectory, target)))
+                target = os.path.join(DIR_AUXILIARY_LAYERS, DIR_DEMAND_SECTORS)
                 if layer_dir_norm != target_norm:
                     return target
             # IsolatedSegments
