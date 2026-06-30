@@ -370,9 +370,17 @@ class ToolsSection:
             for sectorizationName in createdSectorizations:
                 self.getDemandSectorizationGroup(sectorizationName)
 
-            # for theme in createdThemes:
-            #     print("Demand Sector Builder theme to create:", theme)
+            for theme in createdThemes:
+                parts = theme.split(";", 1)
 
+                if len(parts) != 2:
+                    continue
+
+                sectorizationName = parts[0].strip()
+                themeName = parts[1].strip()
+
+                if sectorizationName and themeName:
+                    self.openDemandSectorTheme(sectorizationName, themeName)
             return
 
         if resMessage in ("Cancelled", "True", "commit"):

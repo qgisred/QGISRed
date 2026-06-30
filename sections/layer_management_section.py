@@ -5,7 +5,7 @@ import os
 import shutil
 
 from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeLayer
-from qgis.PyQt.QtWidgets import QApplication
+from qgis.PyQt.QtWidgets import QApplication, QMessageBox
 from qgis.PyQt.QtCore import Qt
 
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
@@ -221,6 +221,57 @@ class LayerManagementSection:
             sectorizationGroup = demandSectorsGroup.addGroup(sectorizationName)
 
         return sectorizationGroup
+
+    def openDemandSectorTheme(self, sectorizationName, themeName):
+        sectorizationGroup = self.getDemandSectorizationGroup(sectorizationName)
+
+        shpPath = os.path.normpath(os.path.join(
+            self.ProjectDirectory,
+            "AuxiliaryLayers",
+            "DemandSectors",
+            sectorizationName,
+            f"{sectorizationName}_{themeName}.shp"
+        ))
+
+        folder = os.path.dirname(shpPath)
+
+        if not os.path.exists(shpPath):
+            return
+
+        utils = QGISRedLayerUtils(
+            os.path.dirname(shpPath),
+            self.NetworkName,
+            self.iface
+        )
+
+        identifiers = QGISRedIdentifierUtils(
+            self.ProjectDirectory,
+            self.NetworkName,
+            self.iface
+        )
+
+        reloaded_layer = utils._tryReloadExistingLayer(shpPath)
+
+        displayName = os.path.splitext(os.path.basename(shpPath))[0]
+
+        if reloaded_layer:
+            if not reloaded_layer.customProperty("qgisred_identifier"):
+                identifiers.setLayerIdentifier(reloaded_layer, displayName)
+
+            return
+
+        vlayer = QgsVectorLayer(shpPath, displayName, "ogr")
+
+        if not vlayer.isValid():
+            return
+
+        identifiers.setLayerIdentifier(vlayer, displayName)
+
+        QgsProject.instance().addMapLayer(vlayer, False)
+        sectorizationGroup.insertChildNode(
+            0,
+            QgsLayerTreeLayer(vlayer)
+        )
 
     def openTreeLayers(self):
         treeGroup = self.getTreeGroup()
