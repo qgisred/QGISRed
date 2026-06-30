@@ -346,13 +346,32 @@ class ToolsSection:
         if resMessage:
             resMessage = resMessage.replace("\x00", "").strip()
 
-        if resMessage and resMessage.startswith("commit/sectorizations^"):
-            createdSectorizations = resMessage.split("^", 1)[1]
+        if resMessage and resMessage.startswith("commit/demandSectorBuilder^"):
+            payload = resMessage.split("^")[1:]
 
-            for sectorizationName in createdSectorizations.split(";"):
-                sectorizationName = sectorizationName.strip()
-                if sectorizationName:
-                    self.getDemandSectorizationGroup(sectorizationName)
+            createdSectorizations = []
+            createdThemes = []
+
+            for part in payload:
+                if part.startswith("sectorizations="):
+                    createdSectorizations = [
+                        s.strip()
+                        for s in part.split("=", 1)[1].split(";")
+                        if s.strip()
+                    ]
+
+                elif part.startswith("themes="):
+                    createdThemes = [
+                        s.strip()
+                        for s in part.split("=", 1)[1].split("|")
+                        if s.strip()
+                    ]
+
+            for sectorizationName in createdSectorizations:
+                self.getDemandSectorizationGroup(sectorizationName)
+
+            # for theme in createdThemes:
+            #     print("Demand Sector Builder theme to create:", theme)
 
             return
 
