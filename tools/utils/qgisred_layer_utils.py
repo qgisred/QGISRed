@@ -22,6 +22,7 @@ class QGISRedLayerUtils:
         'Demand Sectors': 'qgisred_demandsectors',
         'IsolatedSegments': 'qgisred_isolatedsegments',
         'DemandsBuilder': 'qgisred_demandsbuilder',
+        'DemandSectors': 'qgisred_demandsectors',
         'Trees': 'qgisred_trees',
     }
 
@@ -37,6 +38,7 @@ class QGISRedLayerUtils:
         'qgisred_demandsectors': 'Demand Sectors',
         'qgisred_isolatedsegments': 'IsolatedSegments',
         'qgisred_demandsbuilder': 'DemandsBuilder',
+        'qgisred_demandsectors': 'DemandSectors',
         'qgisred_trees': 'Trees',
     }
 
@@ -82,7 +84,7 @@ class QGISRedLayerUtils:
             'qgisred_thematicmaps': 'Thematic Maps',
             'qgisred_connectivity': 'Connectivity',
             'qgisred_hydraulicsectors': 'HydraulicSectors',
-            'qgisred_demandsectors': 'Demand Sectors',
+            'qgisred_demandsectors': 'DemandSectors',
             'qgisred_isolatedsegments': 'IsolatedSegments',
             'qgisred_demandsbuilder': 'DemandsBuilder',
             'qgisred_trees': 'Trees',
@@ -107,6 +109,7 @@ class QGISRedLayerUtils:
             "Isolated Segments": QCoreApplication.translate("QGISRedGroups", "Isolated Segments"),
             "Trees":             QCoreApplication.translate("QGISRedGroups", "Trees"),
             "DemandsBuilder":     QCoreApplication.translate("QGISRedGroups", "DemandsBuilder"),
+            "DemandSectors":     QCoreApplication.translate("QGISRedGroups", "DemandSectors"),
             "Auxiliary Layers":   QCoreApplication.translate("QGISRedGroups", "Auxiliary Layers"),
         }
         # Dynamic tree groups (e.g. "Tree: J5-Unión") don't need translation; return as-is
