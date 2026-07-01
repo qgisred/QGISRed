@@ -2,7 +2,7 @@
 import os
 
 from qgis.PyQt import uic
-from qgis.PyQt.QtCore import Qt, QTimer, QVariant
+from qgis.PyQt.QtCore import QDate, QEvent, Qt, QTimer, QVariant
 from qgis.PyQt.QtGui import QBrush, QColor, QDoubleValidator, QIcon
 from qgis.PyQt.QtWidgets import QComboBox, QDialog, QMessageBox, QStackedWidget
 
@@ -22,7 +22,6 @@ from qgis.gui import QgsHighlight
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ...tools.utils.qgisred_ui_utils import QGISRedBanner, QGISRED_COMBO_STYLE
-from ...tools.map_tools.qgisred_groupEditRegion import QGISRedGroupEditRegionTool
 
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_groupedit_dialog.ui"))
@@ -35,8 +34,10 @@ _elementLayerOrder = [
     "qgisred_reservoirs",
     "qgisred_pumps",
     "qgisred_valves",
+    "qgisred_sources",
     "qgisred_serviceconnections",
     "qgisred_isolationvalves",
+    "qgisred_meters",
 ]
 
 _readonlyFields = {
@@ -47,7 +48,7 @@ _enumFields = {
     "qgisred_pipes":           {"IniStatus": ["OPEN", "CLOSED", "CV"]},
     "qgisred_pumps":           {"IniStatus": ["OPEN", "CLOSED"]},
     "qgisred_valves":          {"IniStatus": ["OPEN", "CLOSED"], "Type": ["PRV", "PSV", "PBV", "FCV", "TCV", "GPV"]},
-    "qgisred_isolationvalves": {"IniStatus": ["OPEN", "CLOSED"]},
+    "qgisred_isolationvalves": {"Status": ["OPEN", "CLOSED"]},
 }
 
 # Soft bounds: warn (not block) when computed value falls outside.
@@ -85,12 +86,16 @@ _textActions = [
 _enumActions = [
     ("replace", "Replace with", "enum"),
 ]
+_dateActions = [
+    ("set", "Set to", "date"),
+]
 
 # Page indices in stackedValue (must match the .ui order).
 _pageNumber = 0
 _pageText = 1
 _pageEnum = 2
 _pageFindReplace = 3
+_pageDate = 4
 
 # Property items matching these (case-insensitive) get the grey background used
 # in Statistics / Queries by Properties for identifier-style fields.
@@ -110,17 +115,42 @@ _freeTextFields = {"Id", "Descrip", "InstalDate", "InstDate", "Time", "Time_H", 
 # Fields whose Do value offers a combobox sourced from a global_defaults DBF instead of a typed input.
 _materialFields = {"Material"}
 
-# Preferred property to preselect per element type, mirroring Queries by Properties.
+# Curve/pattern reference fields -> required type, used to list only matching declared curves/patterns
+# from {Network}_Curves.dbf / {Network}_Patterns.dbf. Types are stored lowercased; only "volume" is
+# confirmed in code, the rest should be verified against a project's DBF.
+_curveTypeByField = {
+    "IdVolCurve": "volume",
+    "IdHFCurve":  "pump",
+    "IdEffiCur":  "efficiency",
+    "IdHeadLoss": "headloss",
+}
+_patternTypeByField = {
+    "IdPattDem":  "demand",
+    "IdHeadPatt": "head",
+    "IdSpeedPat": "speed",
+    "IdPricePat": "price",
+}
+
+# Numeric fields that intentionally show no unit (mirrors Queries by Properties).
+_suppressUnitProperties = {
+    ("qgisred_valves", "Setting"),
+    ("qgisred_sources", "BaseValue"),
+    ("qgisred_demands", "BaseValue"),
+}
+
+# Preferred property to preselect per element type.
 # The first entry that exists as an editable field is selected.
 _defaultProperties = {
-    "qgisred_pipes":              ["Flow", "Diameter"],
-    "qgisred_valves":             ["Flow", "Diameter"],
-    "qgisred_pumps":              ["Flow", "IdHFCurve"],
-    "qgisred_junctions":          ["Pressure", "BaseDem"],
-    "qgisred_tanks":              ["Pressure", "Elevation"],
-    "qgisred_reservoirs":         ["Pressure", "TotalHead"],
-    "qgisred_serviceconnections": ["BaseDemand"],
+    "qgisred_pipes":              ["Diameter"],
+    "qgisred_pumps":              ["IdHFCurve"],
+    "qgisred_valves":             ["Diameter"],
+    "qgisred_junctions":          ["BaseDem"],
+    "qgisred_tanks":              ["IniLevel"],
+    "qgisred_reservoirs":         ["Head", "TotalHead"],
+    "qgisred_serviceconnections": ["Diameter"],
     "qgisred_isolationvalves":    ["Status"],
+    "qgisred_meters":             ["Type"],
+    "qgisred_sources":            ["Quality"],
 }
 
 # Light highlight with dark text so the hovered dropdown item stays readable on macOS.
@@ -134,6 +164,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         super(QGISRedGroupEditDialog, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(":/images/iconGroupEdit.svg"))
+        self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
         self._applyStyle()
         self._setupFilterValueStack()
         self._setupTextValueStack()
@@ -142,17 +173,17 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.canvas = None
         self.fieldUtils = QGISRedFieldUtils()
         self.layersByIdentifier = {}
-        self.regionFids = []
-        self.regionTool = None
-        self._previousMapTool = None
         self.previewHighlights = []
+        self._previewActive = False
+        self._countSignalLayers = []
 
         self.banner = QGISRedBanner.inject(self, self.rootLayout)
 
         self.cbScope.addItem(self.tr("Whole network"), "whole")
         self.cbScope.addItem(self.tr("Currently selected features"), "selected")
-        # self.cbScope.addItem(self.tr("Within polygon region..."), "region")
-        self.btPickRegion.setVisible(False)
+        self.cbScope.addItem(self.tr("Within selected polygons of"), "polygons")
+        self.cbPolygonLayer.setVisible(False)
+        self.deDate.setDate(QDate(1920, 5, 10))
 
         self._countTimer = QTimer(self)
         self._countTimer.setSingleShot(True)
@@ -173,8 +204,17 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
 
     def closeEvent(self, event):
         self._clearPreview()
-        self._restoreMapTool()
+        self._disconnectCountSignals()
         super(QGISRedGroupEditDialog, self).closeEvent(event)
+
+    def hideEvent(self, event):
+        self._clearPreview()
+        super(QGISRedGroupEditDialog, self).hideEvent(event)
+
+    def changeEvent(self, event):
+        if event.type() == QEvent.Type.ActivationChange and self.isActiveWindow():
+            self._scheduleCount()
+        super(QGISRedGroupEditDialog, self).changeEvent(event)
 
     """Setup"""
 
@@ -198,8 +238,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
     def _connectSignals(self):
         self.cbElementType.currentIndexChanged.connect(self._onElementTypeChanged)
         self.cbScope.currentIndexChanged.connect(self._onScopeChanged)
-        self.btPickRegion.clicked.connect(self._onPickRegion)
-        self.chkFilter.toggled.connect(self._onFilterToggled)
+        self.cbPolygonLayer.currentIndexChanged.connect(self._onPolygonLayerChanged)
         self.cbFilterProperty.currentIndexChanged.connect(self._onFilterPropertyChanged)
         self.cbFilterOperator.currentIndexChanged.connect(self._onFilterConditionChanged)
         self.cbFilterOperator.currentIndexChanged.connect(self._updateFilterValues)
@@ -207,6 +246,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.cbFilterValueList.currentTextChanged.connect(self._scheduleCount)
         self.cbProperty.currentIndexChanged.connect(self._onPropertyChanged)
         self.cbAction.currentIndexChanged.connect(self._onActionChanged)
+        self.gbFilter.collapsedStateChanged.connect(self._onFilterCollapsedChanged)
         self.btPreview.clicked.connect(self._onPreview)
         self.btApply.clicked.connect(self._onApply)
         self.btClose.clicked.connect(self.reject)
@@ -248,21 +288,23 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             "qgisred_reservoirs":         self.tr("Reservoirs"),
             "qgisred_pumps":              self.tr("Pumps"),
             "qgisred_valves":             self.tr("Valves"),
+            "qgisred_sources":            self.tr("Sources"),
             "qgisred_serviceconnections": self.tr("Service Connections"),
             "qgisred_isolationvalves":    self.tr("Isolation Valves"),
+            "qgisred_meters":             self.tr("Meters"),
         }
         return nameMap.get(identifier, identifier)
 
     """Element type / property wiring"""
 
     def _onElementTypeChanged(self):
-        self.regionFids = []
         layer = self._currentLayer()
         if layer is None:
             return
         self._populatePropertyCombos(layer)
         self._onPropertyChanged()
         self._onFilterPropertyChanged()
+        self._connectCountSignals()
         self._scheduleCount()
 
     def _populatePropertyCombos(self, layer):
@@ -272,10 +314,11 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         filterable = []
         for field in layer.fields():
             name = field.name()
-            if name in readonly or name.lower() == "geometry":
+            if name.lower() == "geometry":
                 continue
             pretty = self.fieldUtils.getProperty(normalize_element(identifier), name)
-            editable.append((name, pretty, field))
+            if name not in readonly:
+                editable.append((name, pretty, field))
             filterable.append((name, pretty, field))
 
         self.cbProperty.blockSignals(True)
@@ -328,30 +371,107 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         if not fieldName:
             return
         field = layer.fields().field(fieldName)
-        enumValues = _enumFields.get(identifier, {}).get(fieldName)
+        kind = self._propertyValueKind(identifier, fieldName, field)
 
         self.cbAction.blockSignals(True)
         self.cbAction.clear()
-        if enumValues is not None:
-            for key, label, kind in _enumActions:
-                self.cbAction.addItem(self.tr(label), (key, kind))
-            self.cbEnum.clear()
-            self.cbEnum.addItems(enumValues)
-        elif field.isNumeric():
-            for key, label, kind in _numericActions:
-                self.cbAction.addItem(self.tr(label), (key, kind))
+        if kind.startswith("enum"):
+            for key, label, actionKind in _enumActions:
+                self.cbAction.addItem(self.tr(label), (key, actionKind))
+            self._populateEnumValues(identifier, fieldName, kind)
+        elif kind == "date":
+            for key, label, actionKind in _dateActions:
+                self.cbAction.addItem(self.tr(label), (key, actionKind))
+        elif kind == "numeric":
+            for key, label, actionKind in _numericActions:
+                self.cbAction.addItem(self.tr(label), (key, actionKind))
         else:
-            for key, label, kind in _textActions:
-                self.cbAction.addItem(self.tr(label), (key, kind))
+            for key, label, actionKind in _textActions:
+                self.cbAction.addItem(self.tr(label), (key, actionKind))
         self.cbAction.blockSignals(False)
         self._updateUnitLabel(identifier, fieldName, field)
         self._onActionChanged()
+
+    def _propertyValueKind(self, identifier, fieldName, field):
+        if _enumFields.get(identifier, {}).get(fieldName) is not None:
+            return "enum-fixed"
+        if fieldName in _materialFields:
+            return "enum-material"
+        if fieldName in _curveTypeByField:
+            return "enum-curve"
+        if fieldName in _patternTypeByField:
+            return "enum-pattern"
+        if self._isDateField(identifier, fieldName):
+            return "date"
+        if field.isNumeric():
+            return "numeric"
+        return "text"
+
+    def _isDateField(self, identifier, fieldName):
+        try:
+            return self.fieldUtils.isDateField(normalize_element(identifier), fieldName)
+        except Exception:
+            return False
+
+    def _populateEnumValues(self, identifier, fieldName, kind):
+        if kind == "enum-fixed":
+            values = list(_enumFields.get(identifier, {}).get(fieldName, []))
+        elif kind == "enum-material":
+            values = self._dbfFieldValues(fieldName)
+        elif kind == "enum-curve":
+            values = self._declaredCurveOrPatternValues(self._projectDbfPath("Curves"), _curveTypeByField.get(fieldName))
+        elif kind == "enum-pattern":
+            values = self._declaredCurveOrPatternValues(self._projectDbfPath("Patterns"), _patternTypeByField.get(fieldName))
+        else:
+            values = []
+        previous = self.cbEnum.currentText()
+        self.cbEnum.blockSignals(True)
+        self.cbEnum.clear()
+        self.cbEnum.addItems(values)
+        index = self.cbEnum.findText(previous)
+        if index >= 0:
+            self.cbEnum.setCurrentIndex(index)
+        self.cbEnum.blockSignals(False)
+
+    def _projectDbfPath(self, suffix):
+        projectDirectory = getattr(self, "ProjectDirectory", None)
+        networkName = getattr(self, "NetworkName", None)
+        if not projectDirectory or not networkName:
+            return ""
+        return os.path.join(projectDirectory, "%s_%s.dbf" % (networkName, suffix))
+
+    def _declaredCurveOrPatternValues(self, path, expectedType):
+        if not path or not os.path.exists(path):
+            return []
+        layer = QgsVectorLayer(path, "groupedit_cp", "ogr")
+        if not layer.isValid():
+            return []
+        fieldNames = [f.name() for f in layer.fields()]
+        if not fieldNames:
+            return []
+        idField = next((name for name in fieldNames if name.lower().endswith("id")), fieldNames[0])
+        typeField = next((name for name in fieldNames if name.lower() == "type"), None)
+        values = []
+        seen = set()
+        for feature in layer.getFeatures():
+            if typeField is not None and expectedType is not None:
+                typeValue = feature[typeField]
+                if typeValue is None or str(typeValue).strip().lower() != expectedType:
+                    continue
+            idValue = feature[idField]
+            if idValue is None:
+                continue
+            text = str(idValue).strip()
+            if text and text not in seen:
+                seen.add(text)
+                values.append(text)
+        return values
 
     def _onActionChanged(self):
         data = self.cbAction.currentData()
         if not data:
             return
-        _key, kind = data
+        actionKey, kind = data
         if kind == "numeric":
             self.stackedValue.setCurrentIndex(_pageNumber)
         elif kind == "text":
@@ -359,8 +479,11 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             self.stackedValue.setCurrentIndex(_pageText)
         elif kind == "enum":
             self.stackedValue.setCurrentIndex(_pageEnum)
+        elif kind == "date":
+            self.stackedValue.setCurrentIndex(_pageDate)
         elif kind == "findReplace":
             self.stackedValue.setCurrentIndex(_pageFindReplace)
+        self._updateUnitVisibility(actionKey, kind)
         self._scheduleCount()
 
     def _updateTextValues(self):
@@ -399,7 +522,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
 
     def _updateUnitLabel(self, identifier, fieldName, field):
         unit = ""
-        if field.isNumeric():
+        if field.isNumeric() and (identifier, fieldName) not in _suppressUnitProperties:
             try:
                 unit = self.fieldUtils.getUnitAbbreviation(normalize_element(identifier), fieldName) or ""
             except Exception:
@@ -411,6 +534,10 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         except Exception:
             pass
         self.sbNumber.setDecimals(decimals)
+
+    def _updateUnitVisibility(self, actionKey, kind):
+        showUnit = kind == "numeric" and actionKey not in ("multiply", "divide")
+        self.lblUnit.setVisible(showUnit)
 
     """Filter wiring"""
 
@@ -445,11 +572,6 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.textValueStack.addWidget(self.cbTextValueList)
         self.hlText.addWidget(self.textValueStack)
 
-    def _onFilterToggled(self, checked):
-        self.cbFilterProperty.setEnabled(checked)
-        self.cbFilterOperator.setEnabled(checked)
-        self._onFilterConditionChanged()
-
     def _onFilterPropertyChanged(self):
         layer = self._currentLayer()
         if layer is None or self.cbFilterProperty.currentData() is None:
@@ -481,9 +603,8 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
 
     def _onFilterConditionChanged(self):
         isAll = self.cbFilterOperator.currentText() == "All"
-        enabled = (not isAll) and self.chkFilter.isChecked()
-        self.leFilterValue.setEnabled(enabled)
-        self.cbFilterValueList.setEnabled(enabled)
+        self.leFilterValue.setEnabled(not isAll)
+        self.cbFilterValueList.setEnabled(not isAll)
         if isAll:
             self._setCurrentFilterValueText("")
         self._scheduleCount()
@@ -513,77 +634,98 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         else:
             self.filterValueStack.setCurrentWidget(self.leFilterValue)
 
-    """Scope / region picker"""
+    def _onFilterCollapsedChanged(self, collapsed):
+        QTimer.singleShot(0, self._fitHeightToContents)
+
+    def _fitHeightToContents(self):
+        self.resize(self.width(), self.sizeHint().height())
+
+    """Scope / polygon selection"""
 
     def _onScopeChanged(self):
-        scope = self.cbScope.currentData()
-        self.btPickRegion.setEnabled(scope == "region")
-        if scope != "region":
-            self.regionFids = []
+        isPolygons = self.cbScope.currentData() == "polygons"
+        self.cbPolygonLayer.setVisible(isPolygons)
+        if isPolygons:
+            self._populatePolygonLayers()
+        self._connectCountSignals()
         self._scheduleCount()
 
-    def _onPickRegion(self):
-        if self.canvas is None:
-            return
-        self._previousMapTool = self.canvas.mapTool()
-        self.regionTool = QGISRedGroupEditRegionTool(self.canvas)
-        self.regionTool.regionPicked.connect(self._onRegionPicked)
-        self.regionTool.regionCancelled.connect(self._onRegionCancelled)
-        self.canvas.setMapTool(self.regionTool)
-        self.hide()
-
-    def _onRegionPicked(self, polygonGeom):
-        layer = self._currentLayer()
-        self.regionFids = []
-        if layer is not None and polygonGeom is not None:
-            try:
-                self.regionFids = self._featuresInPolygon(layer, polygonGeom)
-            except Exception as e:
-                self.banner.pushMessage(self.tr("Region"),
-                                        self.tr("Failed to compute region: %s") % str(e),
-                                        level=2, duration=6)
-        self._restoreMapTool()
-        self.show()
-        self.raise_()
-        self.activateWindow()
+    def _onPolygonLayerChanged(self):
+        self._connectCountSignals()
         self._scheduleCount()
 
-    def _onRegionCancelled(self):
-        self._restoreMapTool()
-        self.show()
-        self.raise_()
-        self.activateWindow()
+    def _populatePolygonLayers(self):
+        previous = self.cbPolygonLayer.currentData()
+        self.cbPolygonLayer.blockSignals(True)
+        self.cbPolygonLayer.clear()
+        for layer in QgsProject.instance().mapLayers().values():
+            if isinstance(layer, QgsVectorLayer) and layer.geometryType() == 2:  # Polygon
+                self.cbPolygonLayer.addItem(layer.name(), layer.id())
+        index = self.cbPolygonLayer.findData(previous)
+        if index >= 0:
+            self.cbPolygonLayer.setCurrentIndex(index)
+        self.cbPolygonLayer.blockSignals(False)
 
-    def _restoreMapTool(self):
-        if self.canvas is None:
-            return
-        try:
-            if self._previousMapTool is not None:
-                self.canvas.setMapTool(self._previousMapTool)
-            else:
-                current = self.canvas.mapTool()
-                if isinstance(current, QGISRedGroupEditRegionTool):
-                    self.canvas.unsetMapTool(current)
-        except Exception:
-            pass
-        self._previousMapTool = None
-        self.regionTool = None
+    def _selectedPolygonLayer(self):
+        layerId = self.cbPolygonLayer.currentData()
+        if layerId is None:
+            return None
+        return QgsProject.instance().mapLayer(layerId)
 
-    def _featuresInPolygon(self, layer, polygonGeom):
-        canvasCrs = self.canvas.mapSettings().destinationCrs()
+    def _fidsInSelectedPolygons(self, layer):
+        polygonLayer = self._selectedPolygonLayer()
+        if polygonLayer is None:
+            return []
+        geometries = [f.geometry() for f in polygonLayer.selectedFeatures()]
+        geometries = [g for g in geometries if g is not None and not g.isEmpty()]
+        if not geometries:
+            return []
+        return self._featuresInPolygons(layer, polygonLayer.crs(), geometries)
+
+    def _featuresInPolygons(self, layer, polygonCrs, geometries):
         layerCrs = layer.crs()
-        geom = QgsGeometry(polygonGeom)
-        if canvasCrs.isValid() and layerCrs.isValid() and canvasCrs != layerCrs:
-            transform = QgsCoordinateTransform(canvasCrs, layerCrs, QgsProject.instance())
-            geom.transform(transform)
-        bbox = geom.boundingBox()
-        request = QgsFeatureRequest().setFilterRect(bbox)
-        fids = []
-        for f in layer.getFeatures(request):
-            fg = f.geometry()
-            if fg is not None and not fg.isEmpty() and geom.intersects(fg):
-                fids.append(f.id())
-        return fids
+        transform = None
+        if polygonCrs.isValid() and layerCrs.isValid() and polygonCrs != layerCrs:
+            transform = QgsCoordinateTransform(polygonCrs, layerCrs, QgsProject.instance())
+        fids = set()
+        for source in geometries:
+            geom = QgsGeometry(source)
+            if transform is not None:
+                geom.transform(transform)
+            request = QgsFeatureRequest().setFilterRect(geom.boundingBox())
+            for f in layer.getFeatures(request):
+                fg = f.geometry()
+                if fg is not None and not fg.isEmpty() and geom.intersects(fg):
+                    fids.add(f.id())
+        return list(fids)
+
+    def _connectCountSignals(self):
+        self._disconnectCountSignals()
+        layers = []
+        elementLayer = self._currentLayer()
+        if elementLayer is not None:
+            layers.append(elementLayer)
+        if self.cbScope.currentData() == "polygons":
+            polygonLayer = self._selectedPolygonLayer()
+            if polygonLayer is not None:
+                layers.append(polygonLayer)
+        for layer in layers:
+            try:
+                layer.selectionChanged.connect(self._scheduleCount)
+                self._countSignalLayers.append(layer)
+            except Exception:
+                pass
+
+    def _disconnectCountSignals(self):
+        for layer in self._countSignalLayers:
+            self.safeDisconnect(layer.selectionChanged, self._scheduleCount)
+        self._countSignalLayers = []
+
+    def safeDisconnect(self, signal, slot):
+        try:
+            signal.disconnect(slot)
+        except (TypeError, RuntimeError):
+            pass
 
     """Affected count and matching"""
 
@@ -605,8 +747,8 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         scope = self.cbScope.currentData()
         if scope == "selected":
             return list(layer.selectedFeatureIds())
-        if scope == "region":
-            return list(self.regionFids)
+        if scope == "polygons":
+            return self._fidsInSelectedPolygons(layer)
         return None  # whole layer
 
     def _matchingFeatures(self, layer):
@@ -618,9 +760,6 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
                 return []
             request = QgsFeatureRequest().setFilterFids(candidate)
         features = list(layer.getFeatures(request))
-
-        if not self.chkFilter.isChecked():
-            return features
 
         expression = self._buildFilterExpression(layer)
         if expression is None:
@@ -673,7 +812,9 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
     """Preview"""
 
     def _onPreview(self):
-        self._clearPreview()
+        if self._previewActive:
+            self._clearPreview()
+            return
         layer = self._currentLayer()
         if layer is None:
             return
@@ -696,17 +837,27 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             highlight.setWidth(3)
             highlight.show()
             self.previewHighlights.append(highlight)
+        self._previewActive = True
+        self.btPreview.setText(self.tr("Hide on map"))
         self.banner.pushMessage(self.tr("Preview"),
                                 self.tr("Highlighted %d elements on the map.") % len(features),
                                 level=0, duration=4)
 
     def _clearPreview(self):
+        scene = self.canvas.scene() if self.canvas is not None else None
         for highlight in self.previewHighlights:
             try:
-                self.canvas.scene().removeItem(highlight)
+                highlight.hide()
             except Exception:
                 pass
+            if scene is not None:
+                try:
+                    scene.removeItem(highlight)
+                except Exception:
+                    pass
         self.previewHighlights = []
+        self._previewActive = False
+        self.btPreview.setText(self.tr("Preview on map"))
 
     """Apply"""
 
@@ -786,6 +937,11 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
                 edits.append((f.id(), oldRaw, newVal))
         elif actionKind == "enum":
             newVal = self.cbEnum.currentText()
+            for f in features:
+                oldRaw = f[fieldName]
+                edits.append((f.id(), oldRaw, newVal))
+        elif actionKind == "date":
+            newVal = self.deDate.date().toString("yyyyMMdd")
             for f in features:
                 oldRaw = f[fieldName]
                 edits.append((f.id(), oldRaw, newVal))

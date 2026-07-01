@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>540</width>
-    <height>430</height>
+    <width>350</width>
+    <height>420</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>520</width>
-    <height>430</height>
+    <width>350</width>
+    <height>0</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -23,7 +23,7 @@
    <item row="0" column="0">
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QgsCollapsibleGroupBox" name="gbTarget">
+      <widget class="QGroupBox" name="gbTarget">
        <property name="title">
         <string>For all...</string>
        </property>
@@ -55,22 +55,15 @@
          <widget class="QComboBox" name="cbScope"/>
         </item>
         <item row="1" column="2">
-         <widget class="QPushButton" name="btPickRegion">
-          <property name="text">
-           <string>Pick region on map...</string>
-          </property>
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-         </widget>
+         <widget class="QComboBox" name="cbPolygonLayer"/>
         </item>
         <item row="2" column="0" colspan="3">
          <widget class="QLabel" name="lblAffectedCount">
-          <property name="text">
-           <string>0 elements match</string>
-          </property>
           <property name="styleSheet">
            <string>color: #155724; font-weight: bold;</string>
+          </property>
+          <property name="text">
+           <string>0 elements match</string>
           </property>
          </widget>
         </item>
@@ -83,39 +76,21 @@
         <string>with...  (optional filter)</string>
        </property>
        <layout class="QGridLayout" name="filterGrid">
-        <item row="0" column="0" colspan="4">
-         <widget class="QCheckBox" name="chkFilter">
-          <property name="text">
-           <string>Restrict to elements where</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
+        <item row="0" column="0">
          <widget class="QLabel" name="lblFilterProperty">
           <property name="text">
            <string>Property</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="1">
-         <widget class="QComboBox" name="cbFilterProperty">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-         </widget>
+        <item row="0" column="1">
+         <widget class="QComboBox" name="cbFilterProperty"/>
         </item>
-        <item row="1" column="2">
-         <widget class="QComboBox" name="cbFilterOperator">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-         </widget>
+        <item row="0" column="2">
+         <widget class="QComboBox" name="cbFilterOperator"/>
         </item>
-        <item row="1" column="3">
+        <item row="0" column="3">
          <widget class="QLineEdit" name="leFilterValue">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
           <property name="placeholderText">
            <string>Value</string>
           </property>
@@ -149,7 +124,7 @@
       </layout>
      </item>
      <item>
-      <widget class="QgsCollapsibleGroupBox" name="gbAction">
+      <widget class="QGroupBox" name="gbAction">
        <property name="title">
         <string>Do...</string>
        </property>
@@ -165,7 +140,14 @@
          </widget>
         </item>
         <item row="0" column="1" colspan="2">
-         <widget class="QComboBox" name="cbProperty"/>
+         <widget class="QComboBox" name="cbProperty">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
         </item>
         <item row="1" column="0">
          <widget class="QLabel" name="lblAction">
@@ -178,7 +160,14 @@
          </widget>
         </item>
         <item row="1" column="1" colspan="2">
-         <widget class="QComboBox" name="cbAction"/>
+         <widget class="QComboBox" name="cbAction">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
         </item>
         <item row="2" column="0">
          <widget class="QLabel" name="lblValue">
@@ -208,8 +197,17 @@
             </property>
             <item>
              <widget class="QDoubleSpinBox" name="sbNumber">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="buttonSymbols">
                <enum>QAbstractSpinBox::NoButtons</enum>
+              </property>
+              <property name="decimals">
+               <number>4</number>
               </property>
               <property name="minimum">
                <double>-999999999.000000000000000</double>
@@ -217,18 +215,15 @@
               <property name="maximum">
                <double>999999999.000000000000000</double>
               </property>
-              <property name="decimals">
-               <number>4</number>
-              </property>
              </widget>
             </item>
             <item>
              <widget class="QLabel" name="lblUnit">
-              <property name="text">
-               <string/>
-              </property>
               <property name="styleSheet">
                <string>color: #555;</string>
+              </property>
+              <property name="text">
+               <string/>
               </property>
              </widget>
             </item>
@@ -308,6 +303,32 @@
             </item>
            </layout>
           </widget>
+          <widget class="QWidget" name="pageDate">
+           <layout class="QHBoxLayout" name="hlDate">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QDateEdit" name="deDate">
+              <property name="displayFormat">
+               <string>yyyy-MM-dd</string>
+              </property>
+              <property name="calendarPopup">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
          </widget>
         </item>
        </layout>
@@ -368,7 +389,7 @@
   <customwidget>
    <class>QgsCollapsibleGroupBox</class>
    <extends>QGroupBox</extends>
-   <header>qgis.gui</header>
+   <header>qgscollapsiblegroupbox.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
