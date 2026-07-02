@@ -4,7 +4,7 @@ import os
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import QEvent, Qt, QTimer, QVariant
 from qgis.PyQt.QtGui import QBrush, QColor, QDoubleValidator, QIcon
-from qgis.PyQt.QtWidgets import QComboBox, QDialog, QListView, QMessageBox, QStackedWidget
+from qgis.PyQt.QtWidgets import QComboBox, QDialog, QLayout, QListView, QMessageBox, QStackedWidget
 
 from qgis.core import (
     QgsApplication,
@@ -185,6 +185,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self._countTimer.timeout.connect(self._refreshAffectedCount)
 
         self._connectSignals()
+        self.layout().setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
 
     """Public API"""
 
