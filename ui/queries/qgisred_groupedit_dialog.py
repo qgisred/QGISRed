@@ -40,9 +40,7 @@ _elementLayerOrder = [
     "qgisred_meters",
 ]
 
-_readonlyFields = {
-    "qgisred_pipes": {"Length"},
-}
+_readonlyFields = {}
 
 _enumFields = {
     "qgisred_pipes":           {"IniStatus": ["OPEN", "CLOSED", "CV"]},
