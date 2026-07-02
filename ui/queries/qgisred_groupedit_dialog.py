@@ -112,15 +112,16 @@ _freeTextFields = {"Id", "Descrip", "InstalDate", "InstDate", "Time", "Time_H", 
 # Fields whose Do value offers a combobox sourced from a global_defaults DBF instead of a typed input.
 _materialFields = {"Material"}
 
-# Curve/pattern reference fields -> required type, used to list only matching declared curves/patterns
-# from {Network}_Curves.dbf / {Network}_Patterns.dbf. Types are stored lowercased; only "volume" is
-# confirmed in code, the rest should be verified against a project's DBF.
+# Curve reference fields -> required curve type, used to list only matching declared curves from
+# {Network}_Curves.dbf. Stored Type values (PUMP/VOLUME/EFFICIENCY/HEADLOSS) are compared case-insensitively.
 _curveTypeByField = {
     "IdVolCurve": "volume",
     "IdHFCurve":  "pump",
     "IdEffiCur":  "efficiency",
     "IdHeadLoss": "headloss",
 }
+# Pattern reference fields. Patterns are stored untyped in {Network}_Patterns.dbf (Type is "Undefined"),
+# so every declared pattern is offered regardless of field; this mapping only flags pattern fields.
 _patternTypeByField = {
     "IdPattDem":  "demand",
     "IdPattern":  "demand",
@@ -425,7 +426,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         elif kind == "enum-curve":
             values = self._declaredCurveOrPatternValues(self._projectDbfPath("Curves"), _curveTypeByField.get(fieldName))
         elif kind == "enum-pattern":
-            values = self._declaredCurveOrPatternValues(self._projectDbfPath("Patterns"), _patternTypeByField.get(fieldName))
+            values = self._declaredCurveOrPatternValues(self._projectDbfPath("Patterns"), None)
         else:
             values = []
         previous = self.cbEnum.currentText()
