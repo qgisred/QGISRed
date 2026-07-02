@@ -309,11 +309,8 @@
              <number>0</number>
             </property>
             <item>
-             <widget class="QDateEdit" name="deDate">
-              <property name="displayFormat">
-               <string>yyyy-MM-dd</string>
-              </property>
-              <property name="calendarPopup">
+             <widget class="QComboBox" name="cbDate">
+              <property name="editable">
                <bool>true</bool>
               </property>
              </widget>

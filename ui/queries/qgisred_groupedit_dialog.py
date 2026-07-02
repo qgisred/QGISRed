@@ -2,7 +2,7 @@
 import os
 
 from qgis.PyQt import uic
-from qgis.PyQt.QtCore import QDate, QEvent, Qt, QTimer, QVariant
+from qgis.PyQt.QtCore import QEvent, Qt, QTimer, QVariant
 from qgis.PyQt.QtGui import QBrush, QColor, QDoubleValidator, QIcon
 from qgis.PyQt.QtWidgets import QComboBox, QDialog, QListView, QMessageBox, QStackedWidget
 
@@ -177,8 +177,6 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self._countSignalLayers = []
 
         self.banner = QGISRedBanner.inject(self, self.rootLayout)
-
-        self.deDate.setDate(QDate(1920, 5, 10))
 
         self._countTimer = QTimer(self)
         self._countTimer.setSingleShot(True)
@@ -387,6 +385,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         elif kind == "date":
             for key, label, actionKind in _dateActions:
                 self.cbAction.addItem(self.tr(label), (key, actionKind))
+            self._populateDateValues(layer, fieldName)
         elif kind == "numeric":
             for key, label, actionKind in _numericActions:
                 self.cbAction.addItem(self.tr(label), (key, actionKind))
@@ -437,6 +436,19 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         if index >= 0:
             self.cbEnum.setCurrentIndex(index)
         self.cbEnum.blockSignals(False)
+
+    def _populateDateValues(self, layer, fieldName):
+        rawValues = self._getUniqueFieldValues(layer, fieldName)
+        values = sorted({str(v) for v in rawValues if v is not None and str(v).strip()})
+        previous = self.cbDate.currentText()
+        self.cbDate.blockSignals(True)
+        self.cbDate.clear()
+        for value in values:
+            self.cbDate.addItem(self._formatDateDisplay(value), value)
+        index = self.cbDate.findText(previous)
+        if index >= 0:
+            self.cbDate.setCurrentIndex(index)
+        self.cbDate.blockSignals(False)
 
     def _projectDbfPath(self, suffix):
         projectDirectory = getattr(self, "ProjectDirectory", None)
@@ -596,6 +608,8 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.cbFilterOperator.addItems(_conditionsByType[category])
         if category == "numeric":
             defaultCondition = "<="
+        elif self._isDateField(identifier, fieldName):
+            defaultCondition = "="
         elif self._isFreeTextField(identifier, fieldName):
             defaultCondition = "ILIKE"
         else:
@@ -620,11 +634,13 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         condition = self.cbFilterOperator.currentText()
         layer = self._currentLayer()
         useList = False
+        isDate = False
         strValues = []
         if layer is not None and fieldName and condition in ("=", "≠"):
             identifier = layer.customProperty("qgisred_identifier")
             field = layer.fields().field(fieldName)
-            if not field.isNumeric() and not self._isFreeTextField(identifier, fieldName):
+            isDate = self._isDateField(identifier, fieldName)
+            if isDate or (not field.isNumeric() and not self._isFreeTextField(identifier, fieldName)):
                 uniqueValues = self._getUniqueFieldValues(layer, fieldName)
                 strValues = sorted({str(v) for v in uniqueValues if v is not None and str(v).strip()})
                 useList = bool(strValues)
@@ -633,8 +649,9 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             self.cbFilterValueList.blockSignals(True)
             self.cbFilterValueList.clear()
             self.cbFilterValueList.addItem("")
-            self.cbFilterValueList.addItems(strValues)
-            i = self.cbFilterValueList.findText(previous)
+            for value in strValues:
+                self.cbFilterValueList.addItem(self._formatDateDisplay(value) if isDate else value, value)
+            i = self.cbFilterValueList.findData(previous)
             self.cbFilterValueList.setCurrentIndex(i if i >= 0 else 0)
             self.cbFilterValueList.blockSignals(False)
             self.filterValueStack.setCurrentWidget(self.cbFilterValueList)
@@ -882,7 +899,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
                 oldRaw = f[fieldName]
                 edits.append((f.id(), oldRaw, newVal))
         elif actionKind == "date":
-            newVal = self.deDate.date().toString("yyyyMMdd")
+            newVal = self._parseDateInput(self.cbDate.currentText())
             for f in features:
                 oldRaw = f[fieldName]
                 edits.append((f.id(), oldRaw, newVal))
@@ -1008,13 +1025,27 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
 
     def _currentFilterValueText(self):
         if self._isFilterValueListActive():
-            return self.cbFilterValueList.currentText()
+            data = self.cbFilterValueList.currentData()
+            return str(data) if data is not None else self.cbFilterValueList.currentText()
         return self.leFilterValue.text()
 
     def _isFreeTextField(self, identifier, fieldName):
         if identifier == "qgisred_demands" and fieldName == "Descrip":
             return False
         return fieldName in _freeTextFields
+
+    def _formatDateDisplay(self, rawValue):
+        text = "" if rawValue is None else str(rawValue).strip()
+        if len(text) == 8 and text.isdigit():
+            return "%s-%s-%s" % (text[0:4], text[4:6], text[6:8])
+        return text
+
+    def _parseDateInput(self, text):
+        text = (text or "").strip()
+        digits = text.replace("-", "")
+        if len(digits) == 8 and digits.isdigit():
+            return digits
+        return text
 
     def _setCurrentFilterValueText(self, text):
         text = "" if text is None else str(text)
