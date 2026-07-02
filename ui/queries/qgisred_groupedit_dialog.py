@@ -4,7 +4,7 @@ import os
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import QDate, QEvent, Qt, QTimer, QVariant
 from qgis.PyQt.QtGui import QBrush, QColor, QDoubleValidator, QIcon
-from qgis.PyQt.QtWidgets import QComboBox, QDialog, QMessageBox, QStackedWidget
+from qgis.PyQt.QtWidgets import QComboBox, QDialog, QListView, QMessageBox, QStackedWidget
 
 from qgis.core import (
     QgsApplication,
@@ -149,8 +149,10 @@ _defaultProperties = {
     "qgisred_sources":            ["Quality"],
 }
 
-# Light highlight with dark text so the hovered dropdown item stays readable on macOS.
-_comboSelectionOverride = "QComboBox QAbstractItemView { selection-background-color: #DCE6F5; selection-color: #202020; }"
+# Blue highlight with white text, matching the Queries by Attributes dropdowns. A styled popup view
+# is forced via setView() in _styleCombo so the color is honoured uniformly and survives the per-field
+# restyle, instead of dropdowns falling back to the native popup that ignores selection-background-color.
+_comboSelectionOverride = "QComboBox QAbstractItemView { selection-background-color: #3399ff; selection-color: white; }"
 
 
 class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
@@ -225,7 +227,13 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             " }"
         )
         for combo in self.findChildren(QComboBox):
-            combo.setStyleSheet(QGISRED_COMBO_STYLE + _comboSelectionOverride)
+            self._styleCombo(combo)
+
+    def _styleCombo(self, combo, background="white"):
+        combo.setStyleSheet(
+            QGISRED_COMBO_STYLE + _comboSelectionOverride + "QComboBox { background-color: %s; }" % background
+        )
+        combo.setView(QListView(combo))
 
     def _connectSignals(self):
         self.cbElementType.currentIndexChanged.connect(self._onElementTypeChanged)
@@ -349,7 +357,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             color = brush.color().name()
         else:
             color = "white"
-        combo.setStyleSheet(QGISRED_COMBO_STYLE + _comboSelectionOverride + "QComboBox { background-color: %s; }" % color)
+        self._styleCombo(combo, color)
 
     def _onPropertyChanged(self):
         layer = self._currentLayer()
@@ -539,7 +547,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.cbFilterValueList = QComboBox(self)
         self.cbFilterValueList.setEditable(False)
         self.cbFilterValueList.setSizePolicy(sizePolicy)
-        self.cbFilterValueList.setStyleSheet(QGISRED_COMBO_STYLE + _comboSelectionOverride)
+        self._styleCombo(self.cbFilterValueList)
 
         self.filterValueStack = QStackedWidget(self)
         self.filterValueStack.setSizePolicy(sizePolicy)
@@ -553,7 +561,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.cbTextValueList = QComboBox(self)
         self.cbTextValueList.setEditable(False)
         self.cbTextValueList.setSizePolicy(sizePolicy)
-        self.cbTextValueList.setStyleSheet(QGISRED_COMBO_STYLE + _comboSelectionOverride)
+        self._styleCombo(self.cbTextValueList)
 
         self.textValueStack = QStackedWidget(self)
         self.textValueStack.setSizePolicy(sizePolicy)
