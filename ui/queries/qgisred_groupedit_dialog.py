@@ -186,6 +186,9 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
 
         self._connectSignals()
         self.layout().setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
+        self.rootLayout.setColumnStretch(0, 1)
+        self.targetGrid.setColumnStretch(1, 1)
+        self.actionGrid.setColumnStretch(1, 1)
 
     """Public API"""
 

@@ -39,7 +39,14 @@
          </widget>
         </item>
         <item row="0" column="1" colspan="2">
-         <widget class="QComboBox" name="cbElementType"/>
+         <widget class="QComboBox" name="cbElementType">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
         </item>
         <item row="1" column="0" colspan="3">
          <widget class="QCheckBox" name="chkOnlySelected">
@@ -75,13 +82,26 @@
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QComboBox" name="cbFilterProperty"/>
+         <widget class="QComboBox" name="cbFilterProperty">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>1</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
         </item>
         <item row="0" column="2">
          <widget class="QComboBox" name="cbFilterOperator"/>
         </item>
         <item row="0" column="3">
          <widget class="QLineEdit" name="leFilterValue">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>3</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="placeholderText">
            <string>Value</string>
           </property>
@@ -254,7 +274,14 @@
              <number>0</number>
             </property>
             <item>
-             <widget class="QComboBox" name="cbEnum"/>
+             <widget class="QComboBox" name="cbEnum">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
             </item>
            </layout>
           </widget>
@@ -310,6 +337,12 @@
             </property>
             <item>
              <widget class="QComboBox" name="cbDate">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="editable">
                <bool>true</bool>
               </property>
