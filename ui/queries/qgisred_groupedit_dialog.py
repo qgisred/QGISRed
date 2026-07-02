@@ -27,6 +27,7 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_
 
 _elementLayerOrder = [
     "qgisred_junctions",
+    "qgisred_demands",
     "qgisred_pipes",
     "qgisred_tanks",
     "qgisred_reservoirs",
@@ -122,6 +123,7 @@ _curveTypeByField = {
 }
 _patternTypeByField = {
     "IdPattDem":  "demand",
+    "IdPattern":  "demand",
     "IdHeadPatt": "head",
     "IdSpeedPat": "speed",
     "IdPricePat": "price",
@@ -263,6 +265,8 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         for identifier in _elementLayerOrder:
             if identifier not in self.layersByIdentifier:
                 continue
+            if identifier == "qgisred_demands" and self.layersByIdentifier[identifier].featureCount() <= 0:
+                continue
             label = self._elementDisplayName(identifier)
             self.cbElementType.addItem(label, identifier)
         self.cbElementType.blockSignals(False)
@@ -283,6 +287,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
     def _elementDisplayName(self, identifier):
         nameMap = {
             "qgisred_junctions":          self.tr("Junctions"),
+            "qgisred_demands":            self.tr("Multiple Demands"),
             "qgisred_pipes":              self.tr("Pipes"),
             "qgisred_tanks":              self.tr("Tanks"),
             "qgisred_reservoirs":         self.tr("Reservoirs"),
@@ -577,6 +582,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         if layer is None or self.cbFilterProperty.currentData() is None:
             return
         self._updateComboBackground(self.cbFilterProperty)
+        identifier = layer.customProperty("qgisred_identifier")
         fieldName = self.cbFilterProperty.currentData()
         field = layer.fields().field(fieldName)
         if field.isNumeric():
@@ -590,10 +596,10 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.cbFilterOperator.addItems(_conditionsByType[category])
         if category == "numeric":
             defaultCondition = "<="
-        elif category == "listed":
-            defaultCondition = "="
+        elif self._isFreeTextField(identifier, fieldName):
+            defaultCondition = "ILIKE"
         else:
-            defaultCondition = "ILIKE" if fieldName in _freeTextFields else "="
+            defaultCondition = "="
         defaultIndex = self.cbFilterOperator.findText(defaultCondition)
         if defaultIndex >= 0:
             self.cbFilterOperator.setCurrentIndex(defaultIndex)
@@ -616,8 +622,9 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         useList = False
         strValues = []
         if layer is not None and fieldName and condition in ("=", "≠"):
+            identifier = layer.customProperty("qgisred_identifier")
             field = layer.fields().field(fieldName)
-            if not field.isNumeric() and fieldName not in _freeTextFields:
+            if not field.isNumeric() and not self._isFreeTextField(identifier, fieldName):
                 uniqueValues = self._getUniqueFieldValues(layer, fieldName)
                 strValues = sorted({str(v) for v in uniqueValues if v is not None and str(v).strip()})
                 useList = bool(strValues)
@@ -1003,6 +1010,11 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         if self._isFilterValueListActive():
             return self.cbFilterValueList.currentText()
         return self.leFilterValue.text()
+
+    def _isFreeTextField(self, identifier, fieldName):
+        if identifier == "qgisred_demands" and fieldName == "Descrip":
+            return False
+        return fieldName in _freeTextFields
 
     def _setCurrentFilterValueText(self, text):
         text = "" if text is None else str(text)
