@@ -244,7 +244,6 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.cbFilterValueList.currentTextChanged.connect(self._scheduleCount)
         self.cbProperty.currentIndexChanged.connect(self._onPropertyChanged)
         self.cbAction.currentIndexChanged.connect(self._onActionChanged)
-        self.gbFilter.collapsedStateChanged.connect(self._onFilterCollapsedChanged)
         self.btPreview.clicked.connect(self._onPreview)
         self.btApply.clicked.connect(self._onApply)
         self.btClose.clicked.connect(self.reject)
@@ -631,12 +630,6 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             self.filterValueStack.setCurrentWidget(self.cbFilterValueList)
         else:
             self.filterValueStack.setCurrentWidget(self.leFilterValue)
-
-    def _onFilterCollapsedChanged(self, collapsed):
-        QTimer.singleShot(0, self._fitHeightToContents)
-
-    def _fitHeightToContents(self):
-        self.resize(self.width(), self.sizeHint().height())
 
     """Scope / polygon selection"""
 

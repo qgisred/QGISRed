@@ -71,7 +71,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QgsCollapsibleGroupBox" name="gbFilter">
+      <widget class="QGroupBox" name="gbFilter">
        <property name="title">
         <string>with...  (optional filter)</string>
        </property>
@@ -385,14 +385,6 @@
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>QgsCollapsibleGroupBox</class>
-   <extends>QGroupBox</extends>
-   <header>qgscollapsiblegroupbox.h</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>
