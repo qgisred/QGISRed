@@ -8,12 +8,10 @@ from qgis.PyQt.QtWidgets import QComboBox, QDialog, QMessageBox, QStackedWidget
 
 from qgis.core import (
     QgsApplication,
-    QgsCoordinateTransform,
     QgsExpression,
     QgsExpressionContext,
     QgsExpressionContextUtils,
     QgsFeatureRequest,
-    QgsGeometry,
     QgsProject,
     QgsVectorLayer,
 )
@@ -177,10 +175,6 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
 
         self.banner = QGISRedBanner.inject(self, self.rootLayout)
 
-        self.cbScope.addItem(self.tr("Whole network"), "whole")
-        self.cbScope.addItem(self.tr("Currently selected features"), "selected")
-        self.cbScope.addItem(self.tr("Within selected polygons of"), "polygons")
-        self.cbPolygonLayer.setVisible(False)
         self.deDate.setDate(QDate(1920, 5, 10))
 
         self._countTimer = QTimer(self)
@@ -235,8 +229,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
 
     def _connectSignals(self):
         self.cbElementType.currentIndexChanged.connect(self._onElementTypeChanged)
-        self.cbScope.currentIndexChanged.connect(self._onScopeChanged)
-        self.cbPolygonLayer.currentIndexChanged.connect(self._onPolygonLayerChanged)
+        self.chkOnlySelected.toggled.connect(self._onOnlySelectedChanged)
         self.cbFilterProperty.currentIndexChanged.connect(self._onFilterPropertyChanged)
         self.cbFilterOperator.currentIndexChanged.connect(self._onFilterConditionChanged)
         self.cbFilterOperator.currentIndexChanged.connect(self._updateFilterValues)
@@ -631,79 +624,19 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         else:
             self.filterValueStack.setCurrentWidget(self.leFilterValue)
 
-    """Scope / polygon selection"""
+    """Scope / selection"""
 
-    def _onScopeChanged(self):
-        isPolygons = self.cbScope.currentData() == "polygons"
-        self.cbPolygonLayer.setVisible(isPolygons)
-        if isPolygons:
-            self._populatePolygonLayers()
+    def _onOnlySelectedChanged(self):
         self._connectCountSignals()
         self._scheduleCount()
-
-    def _onPolygonLayerChanged(self):
-        self._connectCountSignals()
-        self._scheduleCount()
-
-    def _populatePolygonLayers(self):
-        previous = self.cbPolygonLayer.currentData()
-        self.cbPolygonLayer.blockSignals(True)
-        self.cbPolygonLayer.clear()
-        for layer in QgsProject.instance().mapLayers().values():
-            if isinstance(layer, QgsVectorLayer) and layer.geometryType() == 2:  # Polygon
-                self.cbPolygonLayer.addItem(layer.name(), layer.id())
-        index = self.cbPolygonLayer.findData(previous)
-        if index >= 0:
-            self.cbPolygonLayer.setCurrentIndex(index)
-        self.cbPolygonLayer.blockSignals(False)
-
-    def _selectedPolygonLayer(self):
-        layerId = self.cbPolygonLayer.currentData()
-        if layerId is None:
-            return None
-        return QgsProject.instance().mapLayer(layerId)
-
-    def _fidsInSelectedPolygons(self, layer):
-        polygonLayer = self._selectedPolygonLayer()
-        if polygonLayer is None:
-            return []
-        geometries = [f.geometry() for f in polygonLayer.selectedFeatures()]
-        geometries = [g for g in geometries if g is not None and not g.isEmpty()]
-        if not geometries:
-            return []
-        return self._featuresInPolygons(layer, polygonLayer.crs(), geometries)
-
-    def _featuresInPolygons(self, layer, polygonCrs, geometries):
-        layerCrs = layer.crs()
-        transform = None
-        if polygonCrs.isValid() and layerCrs.isValid() and polygonCrs != layerCrs:
-            transform = QgsCoordinateTransform(polygonCrs, layerCrs, QgsProject.instance())
-        fids = set()
-        for source in geometries:
-            geom = QgsGeometry(source)
-            if transform is not None:
-                geom.transform(transform)
-            request = QgsFeatureRequest().setFilterRect(geom.boundingBox())
-            for f in layer.getFeatures(request):
-                fg = f.geometry()
-                if fg is not None and not fg.isEmpty() and geom.intersects(fg):
-                    fids.add(f.id())
-        return list(fids)
 
     def _connectCountSignals(self):
         self._disconnectCountSignals()
-        layers = []
         elementLayer = self._currentLayer()
         if elementLayer is not None:
-            layers.append(elementLayer)
-        if self.cbScope.currentData() == "polygons":
-            polygonLayer = self._selectedPolygonLayer()
-            if polygonLayer is not None:
-                layers.append(polygonLayer)
-        for layer in layers:
             try:
-                layer.selectionChanged.connect(self._scheduleCount)
-                self._countSignalLayers.append(layer)
+                elementLayer.selectionChanged.connect(self._scheduleCount)
+                self._countSignalLayers.append(elementLayer)
             except Exception:
                 pass
 
@@ -735,11 +668,8 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.lblAffectedCount.setText(self.tr("%d elements match") % len(features))
 
     def _candidateFids(self, layer):
-        scope = self.cbScope.currentData()
-        if scope == "selected":
+        if self.chkOnlySelected.isChecked():
             return list(layer.selectedFeatureIds())
-        if scope == "polygons":
-            return self._fidsInSelectedPolygons(layer)
         return None  # whole layer
 
     def _matchingFeatures(self, layer):
