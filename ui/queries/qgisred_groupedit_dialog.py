@@ -172,7 +172,6 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.fieldUtils = QGISRedFieldUtils()
         self.layersByIdentifier = {}
         self.previewHighlights = []
-        self._previewActive = False
         self._countSignalLayers = []
 
         self.banner = QGISRedBanner.inject(self, self.rootLayout)
@@ -197,17 +196,20 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self._populateElementTypes()
 
     def closeEvent(self, event):
-        self._clearPreview()
+        self._removePreviewHighlights()
         self._disconnectCountSignals()
         super(QGISRedGroupEditDialog, self).closeEvent(event)
 
     def hideEvent(self, event):
-        self._clearPreview()
+        self._removePreviewHighlights()
         super(QGISRedGroupEditDialog, self).hideEvent(event)
 
     def changeEvent(self, event):
-        if event.type() == QEvent.Type.ActivationChange and self.isActiveWindow():
-            self._scheduleCount()
+        if event.type() == QEvent.Type.ActivationChange:
+            if self.isActiveWindow():
+                self._scheduleCount()
+            else:
+                self._removePreviewHighlights()
         super(QGISRedGroupEditDialog, self).changeEvent(event)
 
     """Setup"""
@@ -245,7 +247,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.cbFilterValueList.currentTextChanged.connect(self._scheduleCount)
         self.cbProperty.currentIndexChanged.connect(self._onPropertyChanged)
         self.cbAction.currentIndexChanged.connect(self._onActionChanged)
-        self.btPreview.clicked.connect(self._onPreview)
+        self.chkPreview.toggled.connect(self._onPreviewToggled)
         self.btApply.clicked.connect(self._onApply)
         self.btClose.clicked.connect(self.reject)
 
@@ -272,7 +274,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
                 level=2, duration=8,
             )
             self.btApply.setEnabled(False)
-            self.btPreview.setEnabled(False)
+            self.chkPreview.setEnabled(False)
             return
 
         self.cbElementType.setCurrentIndex(0)
@@ -668,12 +670,14 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         layer = self._currentLayer()
         if layer is None:
             self.lblAffectedCount.setText(self.tr("0 elements match"))
+            self._refreshPreview([])
             return
         try:
             features = self._matchingFeatures(layer)
         except Exception:
             features = []
         self.lblAffectedCount.setText(self.tr("%d elements match") % len(features))
+        self._refreshPreview(features)
 
     def _candidateFids(self, layer):
         if self.chkOnlySelected.isChecked():
@@ -740,23 +744,24 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
 
     """Preview"""
 
-    def _onPreview(self):
-        if self._previewActive:
-            self._clearPreview()
+    def _onPreviewToggled(self, checked):
+        if checked:
+            self._refreshPreview()
+        else:
+            self._removePreviewHighlights()
+
+    def _refreshPreview(self, features=None):
+        self._removePreviewHighlights()
+        if not self.chkPreview.isChecked() or not self.isActiveWindow():
             return
         layer = self._currentLayer()
         if layer is None:
             return
-        try:
-            features = self._matchingFeatures(layer)
-        except Exception as e:
-            self.banner.pushMessage(self.tr("Preview"), str(e), level=2, duration=5)
-            return
-        if not features:
-            self.banner.pushMessage(self.tr("Preview"),
-                                    self.tr("No elements match the current target and filter."),
-                                    level=1, duration=4)
-            return
+        if features is None:
+            try:
+                features = self._matchingFeatures(layer)
+            except Exception:
+                return
         for f in features:
             geom = f.geometry()
             if geom is None or geom.isEmpty():
@@ -766,13 +771,10 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
             highlight.setWidth(3)
             highlight.show()
             self.previewHighlights.append(highlight)
-        self._previewActive = True
-        self.btPreview.setText(self.tr("Hide on map"))
-        self.banner.pushMessage(self.tr("Preview"),
-                                self.tr("Highlighted %d elements on the map.") % len(features),
-                                level=0, duration=4)
 
-    def _clearPreview(self):
+    def _removePreviewHighlights(self):
+        if not self.previewHighlights:
+            return
         scene = self.canvas.scene() if self.canvas is not None else None
         for highlight in self.previewHighlights:
             try:
@@ -785,8 +787,11 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
                 except Exception:
                     pass
         self.previewHighlights = []
-        self._previewActive = False
-        self.btPreview.setText(self.tr("Preview on map"))
+        if self.canvas is not None:
+            try:
+                self.canvas.refresh()
+            except Exception:
+                pass
 
     """Apply"""
 
@@ -978,7 +983,6 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
                                     level=2, duration=8)
             return
         layer.triggerRepaint()
-        self._clearPreview()
         self.banner.pushMessage(self.tr("Apply"),
                                 self.tr("Updated %d elements.") % len(edits),
                                 level=0, duration=5)

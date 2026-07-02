@@ -93,7 +93,7 @@
      <item>
       <layout class="QHBoxLayout" name="previewLayout">
        <item>
-        <widget class="QPushButton" name="btPreview">
+        <widget class="QCheckBox" name="chkPreview">
          <property name="text">
           <string>Preview on map</string>
          </property>
