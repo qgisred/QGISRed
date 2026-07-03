@@ -64,6 +64,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         if cls._instance is None or not cls._instance.isVisible():
             if cls._instance is not None:
                 try:
+                    cls._instance.close()
                     cls._instance.deleteLater()
                 except RuntimeError:
                     pass
@@ -403,8 +404,12 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.cbElementId.setStyleSheet(comboStyle)
 
         self.tempHideOtherTabs()
+        # Parent the style to the tab bar: setStyle() keeps a raw pointer, so a
+        # parentless style would be freed by Python GC while Qt still uses it.
+        tabBar = self.tabWidget.tabBar()
         self._resultsTabStyle = _ResultsTabStyle()
-        self.tabWidget.tabBar().setStyle(self._resultsTabStyle)
+        self._resultsTabStyle.setParent(tabBar)
+        tabBar.setStyle(self._resultsTabStyle)
         self.clearResultsTable()
         QGISRedUIUtils.applyDockStyle(self, "#E64A19")
 
