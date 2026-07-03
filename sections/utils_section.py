@@ -7,6 +7,7 @@ from ctypes import windll
 
 from ..tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ..tools.utils.qgisred_layer_utils import QGISRedLayerUtils
+from ..tools.utils.qgisred_ui_utils import QGISRedUIUtils
 
 
 class UtilsSection:
@@ -291,3 +292,10 @@ class UtilsSection:
         projectCrs = self.iface.mapCanvas().mapSettings().destinationCrs()
         xform = QgsCoordinateTransform(projectCrs, pipesCrs, QgsProject.instance())
         return xform.transform(point)
+
+    def pushMessage(self, text, level=0, duration=5):
+        """
+        Standardized pushMessage for QGISRed plugin.
+        Delegates to the project-wide utility.
+        """
+        QGISRedUIUtils.showGlobalMessage(self.iface, text, level=level, duration=duration)
