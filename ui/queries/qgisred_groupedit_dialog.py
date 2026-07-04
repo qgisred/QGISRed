@@ -2,9 +2,18 @@
 import os
 
 from qgis.PyQt import uic
-from qgis.PyQt.QtCore import QDate, QEvent, Qt, QTimer, QVariant
+from qgis.PyQt.QtCore import QDate, QEvent, QSize, Qt, QTimer, QVariant
 from qgis.PyQt.QtGui import QBrush, QColor, QDoubleValidator, QIcon
-from qgis.PyQt.QtWidgets import QComboBox, QDialog, QLayout, QListView, QMessageBox, QStackedWidget
+from qgis.PyQt.QtWidgets import (
+    QCalendarWidget,
+    QComboBox,
+    QDialog,
+    QLayout,
+    QListView,
+    QMessageBox,
+    QStackedWidget,
+    QToolButton,
+)
 
 from qgis.core import (
     QgsApplication,
@@ -169,6 +178,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self._applyStyle()
         self._setupFilterValueStack()
         self._setupTextValueStack()
+        self._setupDateCalendarButton()
 
         self.iface = None
         self.canvas = None
@@ -458,6 +468,34 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.cbDate.blockSignals(False)
         if index < 0:
             self._setDateValue(self._defaultDateValue())
+
+    def _setupDateCalendarButton(self):
+        iconPath = os.path.join(os.path.dirname(__file__), "..", "..", "images", "iconCalendar.svg")
+        self.btDateCalendar = QToolButton(self)
+        self.btDateCalendar.setIcon(QIcon(iconPath))
+        self.btDateCalendar.setIconSize(QSize(16, 16))
+        self.btDateCalendar.setFixedSize(20, 20)
+        self.btDateCalendar.setAutoRaise(True)
+        self.btDateCalendar.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btDateCalendar.setToolTip(self.tr("Pick a date from a calendar"))
+        self.btDateCalendar.clicked.connect(self._openDateCalendar)
+        self.hlDate.addWidget(self.btDateCalendar)
+
+        self.dateCalendar = QCalendarWidget(self)
+        self.dateCalendar.setWindowFlags(Qt.WindowType.Popup)
+        self.dateCalendar.clicked.connect(self._onCalendarDateClicked)
+
+    def _openDateCalendar(self):
+        currentDate = self._dateFromText(self.cbDate.currentText())
+        if currentDate is None:
+            currentDate = self._defaultDateValue()
+        self.dateCalendar.setSelectedDate(currentDate)
+        self.dateCalendar.move(self.btDateCalendar.mapToGlobal(self.btDateCalendar.rect().bottomLeft()))
+        self.dateCalendar.show()
+
+    def _onCalendarDateClicked(self, date):
+        self.dateCalendar.hide()
+        self._setDateValue(date)
 
     def _syncDateFromFilter(self):
         if self.stackedValue.currentIndex() != _pageDate:
