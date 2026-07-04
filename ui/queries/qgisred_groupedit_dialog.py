@@ -2,7 +2,7 @@
 import os
 
 from qgis.PyQt import uic
-from qgis.PyQt.QtCore import QEvent, Qt, QTimer, QVariant
+from qgis.PyQt.QtCore import QDate, QEvent, Qt, QTimer, QVariant
 from qgis.PyQt.QtGui import QBrush, QColor, QDoubleValidator, QIcon
 from qgis.PyQt.QtWidgets import QComboBox, QDialog, QLayout, QListView, QMessageBox, QStackedWidget
 
@@ -454,6 +454,33 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         if index >= 0:
             self.cbDate.setCurrentIndex(index)
         self.cbDate.blockSignals(False)
+        if index < 0:
+            self._setDateValue(self._defaultDateValue())
+
+    def _defaultDateValue(self):
+        count = self.cbDate.count()
+        if count > 0:
+            middle = (count - 1) // 2
+            middleDate = self._dateFromText(str(self.cbDate.itemData(middle) or self.cbDate.itemText(middle)))
+            if middleDate is not None:
+                return middleDate
+        return QDate(1980, 1, 1)
+
+    def _setDateValue(self, date):
+        rawValue = date.toString("yyyyMMdd")
+        index = self.cbDate.findData(rawValue)
+        if index >= 0:
+            self.cbDate.setCurrentIndex(index)
+        else:
+            self.cbDate.setEditText(self._formatDateDisplay(rawValue))
+
+    def _dateFromText(self, text):
+        digits = self._parseDateInput(text)
+        if len(digits) == 8 and digits.isdigit():
+            date = QDate(int(digits[0:4]), int(digits[4:6]), int(digits[6:8]))
+            if date.isValid():
+                return date
+        return None
 
     def _projectDbfPath(self, suffix):
         projectDirectory = getattr(self, "ProjectDirectory", None)
