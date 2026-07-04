@@ -250,6 +250,8 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.cbFilterOperator.currentIndexChanged.connect(self._updateFilterValues)
         self.leFilterValue.textChanged.connect(self._scheduleCount)
         self.cbFilterValueList.currentTextChanged.connect(self._scheduleCount)
+        self.leFilterValue.textChanged.connect(self._syncDateFromFilter)
+        self.cbFilterValueList.currentTextChanged.connect(self._syncDateFromFilter)
         self.cbProperty.currentIndexChanged.connect(self._onPropertyChanged)
         self.cbAction.currentIndexChanged.connect(self._onActionChanged)
         self.chkPreview.toggled.connect(self._onPreviewToggled)
@@ -457,7 +459,29 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         if index < 0:
             self._setDateValue(self._defaultDateValue())
 
+    def _syncDateFromFilter(self):
+        if self.stackedValue.currentIndex() != _pageDate:
+            return
+        filterDate = self._filterSelectedDate()
+        if filterDate is not None:
+            self._setDateValue(filterDate)
+
+    def _filterSelectedDate(self):
+        layer = self._currentLayer()
+        fieldName = self.cbFilterProperty.currentData()
+        if layer is None or not fieldName:
+            return None
+        identifier = layer.customProperty("qgisred_identifier")
+        if not self._isDateField(identifier, fieldName):
+            return None
+        if self.cbFilterOperator.currentText() == "All":
+            return None
+        return self._dateFromText(self._currentFilterValueText())
+
     def _defaultDateValue(self):
+        filterDate = self._filterSelectedDate()
+        if filterDate is not None:
+            return filterDate
         count = self.cbDate.count()
         if count > 0:
             middle = (count - 1) // 2
