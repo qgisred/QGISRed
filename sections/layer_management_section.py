@@ -228,7 +228,7 @@ class LayerManagementSection:
 
         shpPath = os.path.normpath(os.path.join(
             self.ProjectDirectory,
-            "AuxiliaryLayers",
+            "Auxiliary Layers",
             "DemandSectors",
             sectorizationName,
             f"{sectorizationName}_{themeName}.shp"
