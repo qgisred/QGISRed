@@ -453,7 +453,7 @@ class LifecycleSection:
             path = "\\StringFileInfo\\%04x%04x\\%s" % (lang, codepage, what)
             return win32api.GetFileVersionInfo(filename, path)
         except Exception:
-            return "0.0.0.0"
+            return ""
 
     def checkDependencies(self):
         valid = False

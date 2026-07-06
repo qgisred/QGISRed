@@ -439,7 +439,7 @@ class ToolsSection:
             return QColor("orange")
 
         normalized = text.lower()
-        digest = hashlib.md5(normalized.encode("utf-8")).hexdigest()
+        digest = hashlib.md5(normalized.encode("utf-8"), usedforsecurity=False).hexdigest()
         hue = int(digest[:8], 16) % 360
 
         color = QColor()
