@@ -3,13 +3,13 @@ from qgis.core import (QgsProject, QgsVectorLayer, QgsFeatureRequest,
                        QgsRectangle, QgsExpression,
                        QgsExpressionContext, QgsExpressionContextUtils)
 from qgis.PyQt.QtGui import QCursor
-from qgis.PyQt.QtWidgets import QLabel
-from qgis.PyQt.QtCore import Qt, QTimer, QPoint
+from qgis.PyQt.QtWidgets import QApplication, QLabel
+from qgis.PyQt.QtCore import Qt, QEvent, QObject, QTimer, QPoint
 
 from ...compat import WKB_POINT_GEOMETRY
 
 
-class QGISRedMapTip:
+class QGISRedMapTip(QObject):
     """Shows map-tip HTML for ALL visible layers with a mapTipTemplate, not just the
     active legend layer.  Respects the QGIS 'Show map tips' toolbar toggle.
 
@@ -24,6 +24,7 @@ class QGISRedMapTip:
     _TIP_OFFSET    = QPoint(19, 0)   # label top-left relative to cursor hotspot
 
     def __init__(self, iface):
+        super().__init__(None)
         self._iface = iface
         self._hoverPoint = None
 
@@ -51,6 +52,10 @@ class QGISRedMapTip:
         self._hideTimer.timeout.connect(self._label.hide)
 
         iface.mapCanvas().xyCoordinates.connect(self._onMove)
+        # Hide when mouse leaves the canvas area
+        iface.mapCanvas().viewport().installEventFilter(self)
+        # Hide when the user switches to another application (Alt+Tab, click elsewhere)
+        QApplication.instance().applicationStateChanged.connect(self._onAppState)
 
     # ------------------------------------------------------------------
     # Public API
@@ -62,6 +67,8 @@ class QGISRedMapTip:
             self._showTimer.stop()
             self._hideTimer.stop()
             self._iface.mapCanvas().xyCoordinates.disconnect(self._onMove)
+            self._iface.mapCanvas().viewport().removeEventFilter(self)
+            QApplication.instance().applicationStateChanged.disconnect(self._onAppState)
             self._label.hide()
             self._label.deleteLater()
         except Exception:
@@ -70,6 +77,19 @@ class QGISRedMapTip:
     # ------------------------------------------------------------------
     # Internal
     # ------------------------------------------------------------------
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.Type.Leave:
+            self._showTimer.stop()
+            self._hideTimer.stop()
+            self._label.hide()
+        return False   # never consume the event
+
+    def _onAppState(self, state):
+        if state != Qt.ApplicationState.ApplicationActive:
+            self._showTimer.stop()
+            self._hideTimer.stop()
+            self._label.hide()
 
     def _onMove(self, point):
         self._hoverPoint = point
