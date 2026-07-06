@@ -11,6 +11,9 @@ SOURCES = qgisred.py \
           sections/debug_validation_section.py \
           sections/digital_twin_section.py \
           sections/utils_section.py \
+          sections/profile_section.py \
+          ui/analysis/qgisred_profile_dock.py \
+          ui/analysis/qgisred_profile_plot.py \
           tools/qgisred_dependencies.py \
           ui/analysis/qgisred_results_binary.py \
           tools/qgisred_translatable_strings.py \

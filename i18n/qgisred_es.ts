@@ -6989,4 +6989,102 @@ Click izquierdo: Añadir un nuevo item debajo de la selección actual</translati
         <translation type="unfinished">Mostrar en su lugar el caudal desbordado</translation>
     </message>
 </context>
+<context>
+    <name>ProfileSection</name>
+    <message>
+        <source>Longitudinal profile...</source>
+        <translation>Perfil longitudinal...</translation>
+    </message>
+    <message>
+        <source>Run a simulation first to build a longitudinal profile.</source>
+        <translation>Ejecute primero una simulación para construir un perfil longitudinal.</translation>
+    </message>
+    <message>
+        <source>No network node found at this location.</source>
+        <translation>No se ha encontrado ningún nudo de la red en esta ubicación.</translation>
+    </message>
+    <message>
+        <source>Selected node is not connected to the previous one along the network.</source>
+        <translation>El nudo seleccionado no está conectado con el anterior a lo largo de la red.</translation>
+    </message>
+    <message>
+        <source>Accumulated head loss</source>
+        <translation>Pérdidas acumuladas</translation>
+    </message>
+    <message>
+        <source>Longitudinal profile</source>
+        <translation>Perfil longitudinal</translation>
+    </message>
+    <message>
+        <source>Distance</source>
+        <translation>Distancia</translation>
+    </message>
+    <message>
+        <source>Elevation</source>
+        <translation>Cotas</translation>
+    </message>
+    <message>
+        <source>Head</source>
+        <translation>Altura piezométrica</translation>
+    </message>
+    <message>
+        <source>Pressure</source>
+        <translation>Presión</translation>
+    </message>
+    <message>
+        <source>Quality</source>
+        <translation>Calidad</translation>
+    </message>
+</context>
+<context>
+    <name>QGISRedProfileDock</name>
+    <message>
+        <source>Longitudinal profile</source>
+        <translation>Perfil longitudinal</translation>
+    </message>
+    <message>
+        <source>Pick path</source>
+        <translation>Marcar trayecto</translation>
+    </message>
+    <message>
+        <source>Click network nodes on the map to build the profile path</source>
+        <translation>Pulse sobre los nudos de la red en el mapa para construir el trayecto del perfil</translation>
+    </message>
+    <message>
+        <source>Clear</source>
+        <translation>Limpiar</translation>
+    </message>
+    <message>
+        <source>Remove the current profile path</source>
+        <translation>Eliminar el trayecto del perfil actual</translation>
+    </message>
+    <message>
+        <source>Variable:</source>
+        <translation>Variable:</translation>
+    </message>
+    <message>
+        <source>Elevation</source>
+        <translation>Cotas</translation>
+    </message>
+    <message>
+        <source>Head</source>
+        <translation>Altura piezométrica</translation>
+    </message>
+    <message>
+        <source>Pressure</source>
+        <translation>Presión</translation>
+    </message>
+    <message>
+        <source>Quality</source>
+        <translation>Calidad</translation>
+    </message>
+    <message>
+        <source>Accumulated head loss</source>
+        <translation>Pérdidas acumuladas</translation>
+    </message>
+    <message>
+        <source>Enable 'Pick path' and click nodes on the map</source>
+        <translation>Active «Marcar trayecto» y pulse los nudos en el mapa</translation>
+    </message>
+</context>
 </TS>

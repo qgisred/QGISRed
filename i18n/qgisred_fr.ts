@@ -6857,4 +6857,102 @@ Left-click: Add a new item below the current selection</source>
         <translation type="unfinished">Afficher plutôt le débit de débordement</translation>
     </message>
 </context>
+<context>
+    <name>ProfileSection</name>
+    <message>
+        <source>Longitudinal profile...</source>
+        <translation>Profil en long...</translation>
+    </message>
+    <message>
+        <source>Run a simulation first to build a longitudinal profile.</source>
+        <translation>Lancez d'abord une simulation pour construire un profil en long.</translation>
+    </message>
+    <message>
+        <source>No network node found at this location.</source>
+        <translation>Aucun nœud du réseau n'a été trouvé à cet endroit.</translation>
+    </message>
+    <message>
+        <source>Selected node is not connected to the previous one along the network.</source>
+        <translation>Le nœud sélectionné n'est pas connecté au précédent le long du réseau.</translation>
+    </message>
+    <message>
+        <source>Accumulated head loss</source>
+        <translation>Pertes de charge cumulées</translation>
+    </message>
+    <message>
+        <source>Longitudinal profile</source>
+        <translation>Profil en long</translation>
+    </message>
+    <message>
+        <source>Distance</source>
+        <translation>Distance</translation>
+    </message>
+    <message>
+        <source>Elevation</source>
+        <translation>Cotes</translation>
+    </message>
+    <message>
+        <source>Head</source>
+        <translation>Charge hydraulique</translation>
+    </message>
+    <message>
+        <source>Pressure</source>
+        <translation>Pression</translation>
+    </message>
+    <message>
+        <source>Quality</source>
+        <translation>Qualité</translation>
+    </message>
+</context>
+<context>
+    <name>QGISRedProfileDock</name>
+    <message>
+        <source>Longitudinal profile</source>
+        <translation>Profil en long</translation>
+    </message>
+    <message>
+        <source>Pick path</source>
+        <translation>Tracer le parcours</translation>
+    </message>
+    <message>
+        <source>Click network nodes on the map to build the profile path</source>
+        <translation>Cliquez sur les nœuds du réseau sur la carte pour construire le parcours du profil</translation>
+    </message>
+    <message>
+        <source>Clear</source>
+        <translation>Effacer</translation>
+    </message>
+    <message>
+        <source>Remove the current profile path</source>
+        <translation>Supprimer le parcours du profil actuel</translation>
+    </message>
+    <message>
+        <source>Variable:</source>
+        <translation>Variable :</translation>
+    </message>
+    <message>
+        <source>Elevation</source>
+        <translation>Cotes</translation>
+    </message>
+    <message>
+        <source>Head</source>
+        <translation>Charge hydraulique</translation>
+    </message>
+    <message>
+        <source>Pressure</source>
+        <translation>Pression</translation>
+    </message>
+    <message>
+        <source>Quality</source>
+        <translation>Qualité</translation>
+    </message>
+    <message>
+        <source>Accumulated head loss</source>
+        <translation>Pertes de charge cumulées</translation>
+    </message>
+    <message>
+        <source>Enable 'Pick path' and click nodes on the map</source>
+        <translation>Activez « Tracer le parcours » et cliquez sur les nœuds de la carte</translation>
+    </message>
+</context>
 </TS>

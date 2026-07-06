@@ -873,6 +873,15 @@ class MenuSection:
         self.add_to_group(self.timeSeriesButton, self.analysisMenu, self.analysisToolbar)
         self.add_to_dropdown(self.timeSeriesButton, analysisDropButton)
 
+        action = self._make_action(
+            ":/images/iconProfile.svg",
+            self.tr("Longitudinal profile..."),
+            self.runProfile,
+            parent=self.iface.mainWindow(),
+        )
+        self.add_to_group(action, self.analysisMenu, self.analysisToolbar)
+        self.add_to_dropdown(action, analysisDropButton)
+
         analysisDropButton.menu().addSeparator()
         self.analysisToolbar.addSeparator()
         self.analysisMenu.addSeparator()

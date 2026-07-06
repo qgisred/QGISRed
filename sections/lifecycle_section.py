@@ -101,6 +101,7 @@ class LifecycleSection:
         "ProjectManagementSection",
         "ToolsSection",
         "UtilsSection",
+        "ProfileSection",
     ]
 
     def tr(self, message):
@@ -284,6 +285,14 @@ class LifecycleSection:
             docks_to_clean.append(('timeSeriesDock', ts_dock))
         self.timeSeriesDocks = []
         self._activeTimeSeriesDock = None
+
+        if getattr(self, 'profileDock', None) is not None:
+            with suppress(Exception):
+                self._clearProfileHighlight()
+            with suppress(Exception):
+                self.ResultDockwidget.timeTextChanged.disconnect(self._onProfileTimeChanged)
+            docks_to_clean.append(('profileDock', self.profileDock))
+            self.profileDock = None
 
         if hasattr(self, 'statisticsDock') and self.statisticsDock is not None:
             docks_to_clean.append(('statisticsDock', self.statisticsDock))
