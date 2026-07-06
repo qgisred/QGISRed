@@ -436,7 +436,7 @@ class LifecycleSection:
                     with urllib.request.urlopen(link, context=_ctx) as response:  # nosec B310 — link validated startswith("https://") above
                         with open(localFile, "wb") as f:
                             f.write(response.read())
-                    os.startfile(localFile)
+                    os.startfile(localFile)  # nosec B606 — launches the .msi installer just downloaded over verified HTTPS, by design
                     installed = False
                     for _ in range(60):  # 60 × 2 s = 2 min timeout
                         time.sleep(2)

@@ -2977,11 +2977,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         return ""
 
     def generateRandomHsvColor(self):
-        return QColor.fromHsv(
-            random.randint(0, 359),
-            random.randint(150, 255),
-            random.randint(150, 255),
-        )
+        return QColor.fromHsv(random.randint(0, 359), random.randint(150, 255), random.randint(150, 255))  # nosec B311 — cosmetic legend color, not security-sensitive
 
     # ============================================================
     # APPLY AND SAVE LEGEND
@@ -4183,11 +4179,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
     def generateRandomColor(self):
         color = QColor()
-        color.setHsl(
-            random.randint(0, 359),
-            random.randint(178, 255),
-            random.randint(102, 178),
-        )
+        color.setHsl(random.randint(0, 359), random.randint(178, 255), random.randint(102, 178))  # nosec B311 — cosmetic legend color, not security-sensitive
         return color
 
     def getRowColor(self, row):

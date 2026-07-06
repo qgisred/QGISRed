@@ -7,9 +7,9 @@ import shutil
 import tempfile
 import re
 from zipfile import ZipFile, ZIP_DEFLATED
-from xml.etree import ElementTree  # nosec B314 — parses local project files only, no external input
+from xml.etree import ElementTree  # nosec B405 — parses local project files only, no external input
 import urllib.parse
-import xml.sax.saxutils
+import xml.sax.saxutils  # nosec B406 — only escape()/unescape() string helpers used, not XML parsing
 
 from qgis.PyQt.QtCore import QCoreApplication, QFileInfo
 from qgis.PyQt.QtWidgets import QMessageBox, QFileDialog

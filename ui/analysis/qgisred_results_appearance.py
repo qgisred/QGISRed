@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from contextlib import suppress
 import os
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET  # nosec B405 — parses a local appearance settings file written by this plugin, no external input
 
 from qgis.PyQt.QtWidgets import QApplication, QColorDialog
 from qgis.PyQt.QtCore import Qt, QCoreApplication
@@ -254,7 +254,7 @@ class _ResultsAppearanceMixin:
         path = self._appearanceFilePath()
         if os.path.isfile(path):
             with suppress(Exception):
-                tree = ET.parse(path)
+                tree = ET.parse(path)  # nosec B314 — local file written by this plugin, not user input
                 root = tree.getroot()
 
                 labels = root.find("Labels")

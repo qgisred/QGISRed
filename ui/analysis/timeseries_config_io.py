@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from contextlib import suppress
 import os
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET  # nosec B405 — parses local chart config files written by this plugin, no external input
 from dataclasses import fields
 from typing import List, Optional
 
@@ -235,19 +235,19 @@ def parse_config_root(root) -> dict:
 
 
 def parse_timeseries_config_string(text) -> dict:
-    root = ET.fromstring(text)
+    root = ET.fromstring(text)  # nosec B314 — local chart config content, not external input
     return parse_config_root(root)
 
 
 def read_timeseries_config(path: str) -> dict:
-    root = ET.parse(path).getroot()
+    root = ET.parse(path).getroot()  # nosec B314 — local file written by this plugin, not user input
     return parse_config_root(root)
 
 
 def read_timeseries_config_comment(path: str) -> str:
     """Return only the saved description, tolerating any read/parse error."""
     try:
-        root = ET.parse(path).getroot()
+        root = ET.parse(path).getroot()  # nosec B314 — local file written by this plugin, not user input
     except Exception:
         return ""
     comment_el = root.find("Comment")

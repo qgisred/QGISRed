@@ -22,7 +22,7 @@ from ...tools.utils.qgisred_ui_utils import QGISRedBanner
 
 import os
 from shutil import copytree, rmtree
-from xml.etree import ElementTree  # nosec B314 — parses local project files only, no external input
+from xml.etree import ElementTree  # nosec B405 — parses local project files only, no external input
 
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_projectmanager_dialog.ui"))
@@ -333,7 +333,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
             for row in selectionModel.selectedRows():
                 mainFolder = str(self.twProjectList.item(row.row(), 3).text())
                 name = str(self.twProjectList.item(row.row(), 0).text())
-                os.startfile(mainFolder)
+                os.startfile(mainFolder)  # nosec B606 — opens a known local project folder in Explorer, by design
                 isSameProject = self._getUniformedPath(self.ProjectDirectory) == self._getUniformedPath(mainFolder)
                 isSameNet = self.NetworkName == name
                 if isSameProject and isSameNet:

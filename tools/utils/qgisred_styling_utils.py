@@ -470,7 +470,7 @@ class QGISRedStylingUtils:
             if invertRamp:
                 position = 1.0 - position
             return ramp.color(position)
-        seededRandom = random.Random(hash(str(value)))
+        seededRandom = random.Random(hash(str(value)))  # nosec B311 — cosmetic category color, not security-sensitive
         return QColor.fromRgb(
             seededRandom.randint(0, 255),
             seededRandom.randint(0, 255),
@@ -544,18 +544,14 @@ class QGISRedStylingUtils:
         # add missing values to the shared color map
         for uniqueValue in uniqueValues:
             if uniqueValue not in color_map:
-                color_map[uniqueValue] = QColor(
-                    randrange(0, 256),
-                    randrange(0, 256),
-                    randrange(0, 256),
-                )
+                color_map[uniqueValue] = QColor(randrange(0, 256), randrange(0, 256), randrange(0, 256))  # nosec B311 — cosmetic sector color, not security-sensitive
 
         # define categories
         categories = []
         for uniqueValue in uniqueValues:
             symbol = QgsSymbol.defaultSymbol(layer.geometryType())
             symbolLayer = None
-            value_color = color_map.get(uniqueValue, QColor(randrange(0, 256), randrange(0, 256), randrange(0, 256)))
+            value_color = color_map.get(uniqueValue, QColor(randrange(0, 256), randrange(0, 256), randrange(0, 256)))  # nosec B311 — cosmetic sector color, not security-sensitive
 
             if layer.geometryType() == 0:  # Point
                 layerStyle = {
@@ -613,11 +609,7 @@ class QGISRedStylingUtils:
             if value in existingCategories:
                 symbol.setColor(existingCategories[value])
             else:
-                randomColor = QColor.fromRgb(
-                    random.randint(0, 255),
-                    random.randint(0, 255),
-                    random.randint(0, 255)
-                )
+                randomColor = QColor.fromRgb(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))  # nosec B311 — cosmetic category color, not security-sensitive
                 symbol.setColor(randomColor)
             symbol.setWidth(0.6)
             category = QgsRendererCategory(value, symbol, str(value))
