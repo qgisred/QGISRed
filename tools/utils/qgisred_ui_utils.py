@@ -46,6 +46,7 @@ class QGISRedBanner(QFrame):
     """
     A reusable message banner for QGISRed dialogs.
     """
+
     def __init__(self, parent=None):
         super(QGISRedBanner, self).__init__(parent)
         self.setVisible(False)

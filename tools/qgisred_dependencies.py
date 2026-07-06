@@ -8,7 +8,7 @@ class QGISRedDependencies:
     def CreateInstance():
         dll_path = QGISRedFileSystemUtils().getCurrentDll()
         if not os.path.exists(dll_path):
-            QGISRedFileSystemUtils().copyDependencies() # Attempt to restore the DLL file
+            QGISRedFileSystemUtils().copyDependencies()  # Attempt to restore the DLL file
             dll_path = QGISRedFileSystemUtils().getCurrentDll()
         mydll = WinDLL(dll_path)
         return mydll
@@ -16,13 +16,13 @@ class QGISRedDependencies:
     @staticmethod
     def SetCulture(culture):
         culture = QGISRedDependencies.encode(culture)
-        
+
         mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
         mydll.SetCulture.argtypes = (c_char_p,)
         mydll.SetCulture.restype = c_char_p
         b = mydll.SetCulture(culture)
         return QGISRedDependencies.toString(b)
-    
+
     @staticmethod
     def AddConnection(projectFolder, networkName, tempFolder, pipePoints):
         projectFolder = QGISRedDependencies.encode(projectFolder)

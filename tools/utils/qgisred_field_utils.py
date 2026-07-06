@@ -144,6 +144,7 @@ _NON_CHEMICAL_MODELS = frozenset({"none", "trace", "age"})
 _CHEMICAL_ONLY_FIELDS = frozenset({"IniQuality", "ReactRate"})
 _SUPERSCRIPT_TRANSLATION = str.maketrans("0123456789/", "⁰¹²³⁴⁵⁶⁷⁸⁹ᐟ")
 
+
 def normalize_element(element: str) -> str:
     """Return the canonical element name used in the CSV for any identifier form.
 
@@ -169,6 +170,7 @@ def normalize_element(element: str) -> str:
         return "Links"
     return element
 
+
 def resolve_layer_id(layer_identifier: str):
     """Return (element, fieldName) for a QGIS layer identifier, or None if not mapped.
 
@@ -180,9 +182,11 @@ def resolve_layer_id(layer_identifier: str):
     """
     return LAYER_ID_TO_FIELD.get(layer_identifier)
 
+
 def _plugin_root():
     """Returns the plugin root directory (two levels up from tools/utils/)."""
     return os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+
 
 class QGISRedFieldUtils:
     """Utilities for field metadata (pretty names, units, decimals).
@@ -404,7 +408,7 @@ class QGISRedFieldUtils:
                             "us_name":         line[6].strip(),
                             "us_abbr":         line[7].strip(),
                             "us_dec":          int(us_dec_s) if us_dec_s.isdigit() else None,
-                            "condition_value": line[9].strip()  if len(line) > 9  else "",
+                            "condition_value": line[9].strip() if len(line) > 9 else "",
                             "notes":           line[10].strip() if len(line) > 10 else "",
                         }
                         rows.append(row)
@@ -582,4 +586,3 @@ class QGISRedFieldUtils:
             return ""
         unitSystem = QGISRedProjectUtils.getUnits()
         return row["si_abbr"] if unitSystem == "SI" else row["us_abbr"]
-

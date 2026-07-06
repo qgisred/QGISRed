@@ -8,11 +8,6 @@ from qgis.core import (QgsPointXY, QgsPoint, QgsGeometry, QgsProject, QgsSnappin
                        QgsTolerance, QgsVectorLayer, Qgis)
 from ...compat import SNAP_TYPE_BOTH, SNAP_TYPE_VERTEX, SNAP_MATCH_EDGE
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSnappingUtils
-try:
-    from qgis.gui import Qgis
-except:
-    with suppress(Exception):
-        from qgis.core import Qgis  # Compatibility with QGis 3.4x
 
 
 class QGISRedCreateLineTool(QgsMapTool):
@@ -128,7 +123,7 @@ class QGISRedCreateLineTool(QgsMapTool):
             self.iface.mapCanvas().scene().removeItem(self.rubberBand1)
         try:  # From QGis 3.30
             self.rubberBand1 = QgsRubberBand(self.iface.mapCanvas(), Qgis.GeometryType.Line)
-        except:
+        except Exception:
             self.rubberBand1 = QgsRubberBand(self.iface.mapCanvas(), False)
         self.rubberBand1.setToGeometry(QgsGeometry.fromPolyline(myPoints1), None)
         self.rubberBand1.setColor(QColor(240, 40, 40))
@@ -142,7 +137,7 @@ class QGISRedCreateLineTool(QgsMapTool):
             self.iface.mapCanvas().scene().removeItem(self.rubberBand2)
         try:  # From QGis 3.30
             self.rubberBand2 = QgsRubberBand(self.iface.mapCanvas(), Qgis.GeometryType.Line)
-        except:
+        except Exception:
             self.rubberBand2 = QgsRubberBand(self.iface.mapCanvas(), False)
         self.rubberBand2.setToGeometry(QgsGeometry.fromPolyline(myPoints2), None)
         self.rubberBand2.setColor(QColor(240, 40, 40))
@@ -253,7 +248,7 @@ class QGISRedCreateLineTool(QgsMapTool):
 
         try:
             self._gridRubberBand = QgsRubberBand(self.iface.mapCanvas(), Qgis.GeometryType.Point)
-        except:
+        except Exception:
             self._gridRubberBand = QgsRubberBand(self.iface.mapCanvas(), True)
         self._gridRubberBand.setToGeometry(geom, None)
         self._gridRubberBand.setColor(QColor(100, 100, 200, 100))

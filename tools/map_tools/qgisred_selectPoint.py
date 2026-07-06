@@ -32,7 +32,7 @@ class QGISRedSelectPointTool(QgsMapTool):
         self.type = type
         self.icon_size = icon_size
         self.pass_modifiers = bool(pass_modifiers)
-        
+
         # Handle cursor: can be a string path, a QPixmap, or a QCursor
         self.custom_cursor = None
         if isinstance(cursor, QCursor):
@@ -51,7 +51,7 @@ class QGISRedSelectPointTool(QgsMapTool):
         if self.type == SelectPointType.Line or self.type == SelectPointType.TwoLines:
             try:
                 self.startMarker.setIconType(QgsVertexMarker.ICON_TRIANGLE)
-            except:
+            except Exception:
                 self.startMarker.setIconType(QgsVertexMarker.ICON_X)
         self.startMarker.setPenWidth(3)
         self.startMarker.hide()

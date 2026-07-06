@@ -31,6 +31,7 @@ class QGISRedProjectIO:
         self.NetworkName = networkName
 
     """Interal Helpers"""
+
     def tr(self, message):
         return QCoreApplication.translate("QGISRedProjectIO", message)
 
@@ -49,7 +50,7 @@ class QGISRedProjectIO:
     _GROUP_CONFIG = {
         "Inputs":                          {"subdir": "",         "tree_path": ["Inputs"],  "flags": {}},
         "Issues":                          {"subdir": DIR_ISSUES, "tree_path": ["Issues"],  "flags": {"issues": True}},
-        "Results":                         {"subdir": DIR_RESULTS,"tree_path": ["Results"], "flags": {"results": True}},
+        "Results":                         {"subdir": DIR_RESULTS, "tree_path": ["Results"], "flags": {"results": True}},
         "Issues/Connectivity":             LAYER_TYPE_CONFIG["Connectivity"],
         "Issues/HydraulicSectors":         LAYER_TYPE_CONFIG["HydraulicSectors"],
         "Auxiliary Layers/DemandSectors":  LAYER_TYPE_CONFIG["DemandSectors"],
@@ -113,7 +114,7 @@ class QGISRedProjectIO:
             if tree_name is None or tree_dir is None:
                 return
             utils = QGISRedLayerUtils(tree_dir, self.NetworkName, self.iface)
-            # Create a group named with the tree name 
+            # Create a group named with the tree name
             group = utils.getOrCreateNestedGroup([self.NetworkName, "Queries", "Trees", tree_name])
             for name in reversed(layerNames):
                 is_link = name.lower().startswith("links")
@@ -275,17 +276,17 @@ class QGISRedProjectIO:
             self._renameGroupsRecursive(child, utils_cls)
 
     def _applyQGisReplacements(self, content, oldName, newName, oldFolder, newFolder, oldQgisDir=None, newQgisDir=None, collectExternal=False):
-        """Standard path replacement in QGIS project XML. 
+        """Standard path replacement in QGIS project XML.
         If collectExternal is True, it will also copy external layers to newFolder/ExternalLayers."""
         oldFolderNorm = os.path.normcase(os.path.normpath(oldFolder))
         newFolderNorm = os.path.normpath(newFolder)
         externalLayersDir = os.path.join(newFolderNorm, "ExternalLayers")
-        
+
         def replacePathInValue(val):
             # XML entities (like &amp;) need to be unescaped for comparison
             # We return an unescaped string so the caller can handle the final XML escaping consistently.
             logical_val = xml.sax.saxutils.unescape(val)
-            
+
             # If it's a connection string (XYZ, WMS, etc.), don't treat it as a local path
             # Detection: url=, crs=, type= (common in datasource), service=, request=, OR starts with http
             if any(marker in logical_val.lower() for marker in ["url=", "crs=", "type=", "service=", "request="]) or logical_val.lower().startswith(("http://", "https://")):
@@ -300,7 +301,7 @@ class QGISRedProjectIO:
             elif val.startswith('file://'):
                 protocol = 'file://'
                 val = val[7:]
-            
+
             # Normalize to absolute for comparison
             if os.path.isabs(val):
                 absPath = os.path.normcase(os.path.normpath(val))
@@ -318,7 +319,7 @@ class QGISRedProjectIO:
                 head, tail = os.path.split(newAbsPath)
                 oldNamePrefix = oldName + '_'
                 newNamePrefix = newName + '_'
-                
+
                 # Case-insensitive replacement for the filename part (common on Windows)
                 if oldName.lower() != newName.lower():
                     # Check if the tail starts with oldNamePrefix (case insensitive)
@@ -329,21 +330,21 @@ class QGISRedProjectIO:
                     tail = tail.replace(oldNamePrefix, newNamePrefix)
 
                 newAbsPath = os.path.join(head, tail)
-                
+
                 # Use relative path if the original was relative OR if we are exporting (collectExternal=True)
                 if wasRelative or collectExternal:
                     rel = os.path.relpath(newAbsPath, newQgisDir if newQgisDir else oldQgisDir)
                     return protocol + rel.replace('\\', '/')
                 else:
                     return protocol + newAbsPath.replace('\\', '/')
-            
+
             # If it's external and we want to collect it:
             if collectExternal:
                 # Check if it's a local file
                 cleanPath = absPath
                 if '|' in cleanPath:
                     cleanPath = cleanPath.split('|')[0]
-                
+
                 if os.path.isfile(cleanPath):
                     os.makedirs(externalLayersDir, exist_ok=True)
                     basePath = self.stripAllExtensions(cleanPath)
@@ -353,19 +354,19 @@ class QGISRedProjectIO:
                             current_file_path = os.path.join(parent, f)
                             if os.path.normcase(self.stripAllExtensions(current_file_path)) == os.path.normcase(basePath):
                                 shutil.copy2(current_file_path, os.path.join(externalLayersDir, f))
-                    
+
                     suffix = ""
                     if '|' in absPath:
                         suffix = absPath[absPath.find('|'):]
-                        
+
                     newExternalPath = os.path.join(externalLayersDir, os.path.basename(cleanPath)) + suffix
-                    
+
                     # When collecting external layers (export), the path MUST be relative to the project
                     # to ensure the ZIP is portable.
                     rel = os.path.relpath(newExternalPath, newQgisDir if newQgisDir else oldQgisDir)
                     return rel.replace('\\', '/')
 
-            # If it's external and we don't want to collect it, we might still 
+            # If it's external and we don't want to collect it, we might still
             # need to update the relative path if the original was relative.
             if not collectExternal and wasRelative:
                 targetQgisDir = newQgisDir if newQgisDir else oldQgisDir
@@ -397,19 +398,20 @@ class QGISRedProjectIO:
 
             # Global string replacements
             # We search for escaped versions because they are stored that way in the XML attributes and content
-            content = content.replace(oldName + '_', newName + '_' )
+            content = content.replace(oldName + '_', newName + '_')
             if oldName != oldNameEsc:
-                content = content.replace(oldNameEsc + '_', newNameEsc + '_' )
-            
+                content = content.replace(oldNameEsc + '_', newNameEsc + '_')
+
             content = content.replace('value="qgisred_' + oldName + '"', 'value="qgisred_' + newName + '"')
             content = content.replace('value="qgisred_' + oldNameEsc + '"', 'value="qgisred_' + newNameEsc + '"')
-            
+
             content = content.replace('name="' + oldName + '"', 'name="' + newName + '"')
             content = content.replace('name="' + oldNameEsc + '"', 'name="' + newNameEsc + '"')
 
         return content
 
     """File Helpers"""
+
     def stripAllExtensions(self, path):
         """Strips all extensions from a path (e.g. 'foo.qgz.bak' -> 'foo')."""
         while True:
@@ -464,7 +466,7 @@ class QGISRedProjectIO:
         folder = self._fs().getUniformedPath(folder)
         if not os.path.exists(targetDir):
             os.makedirs(targetDir, exist_ok=True)
-            
+
         for f in os.listdir(folder):
             filepath = os.path.join(folder, f)
             if os.path.isfile(filepath) and f.startswith(oldName + "_"):
@@ -486,7 +488,7 @@ class QGISRedProjectIO:
                     continue
                 subTarget = os.path.join(targetDir, f)
                 if self._fs().getUniformedPath(folder) != self._fs().getUniformedPath(targetDir):
-                     os.makedirs(subTarget, exist_ok=True)
+                    os.makedirs(subTarget, exist_ok=True)
                 self.processProjectFiles(filepath, oldName, newName, subTarget, deleteSource, excludeDirs)
                 if deleteSource:
                     with suppress(Exception):
@@ -547,6 +549,7 @@ class QGISRedProjectIO:
                     f.write(content)
 
     """Methods"""
+
     def updateMetadataQGisProject(self, projectPath, networkName, newQgisPath):
         """Updates the <QGisProject> node in the metadata file."""
         metadataFile = os.path.join(projectPath, networkName + "_Metadata.txt")
@@ -662,6 +665,7 @@ class QGISRedProjectIO:
                 return False
 
     """Zip"""
+
     def saveFilesInZip(self, zipPath):
         fs = self._fs()
         filePaths = []
@@ -681,7 +685,7 @@ class QGISRedProjectIO:
         with tempfile.TemporaryDirectory() as tempDir:
             # 1. Copy project files (no rename, no delete)
             self.processProjectFiles(self.ProjectDirectory, self.NetworkName, self.NetworkName, tempDir, deleteSource=False)
-            
+
             # 2. Handle QGIS project
             qgisBase = self.getQGisProjectBase(self.ProjectDirectory, self.NetworkName)
             if qgisBase:
@@ -689,7 +693,7 @@ class QGISRedProjectIO:
                 relQgisDir = os.path.relpath(oldQgisDir, self.ProjectDirectory)
                 targetQgisDir = os.path.normpath(os.path.join(tempDir, relQgisDir))
                 os.makedirs(targetQgisDir, exist_ok=True)
-                
+
                 newQgisPath = self.processQGisProjectFiles(qgisBase, self.NetworkName, targetQgisDir, deleteSource=False)
                 if newQgisPath:
                     self.updateQGisProjectContent(
@@ -699,12 +703,12 @@ class QGISRedProjectIO:
                         collectExternal=True
                     )
                     self.updateMetadataQGisProject(tempDir, self.NetworkName, newQgisPath)
-            
+
             # 3. ZIP everything in tempDir
             zipDir = os.path.dirname(zipPath)
             if not os.path.exists(zipDir):
                 os.makedirs(zipDir, exist_ok=True)
-                
+
             with ZipFile(zipPath, "w", ZIP_DEFLATED) as zout:
                 for root, dirs, files in os.walk(tempDir):
                     for file in files:
@@ -759,6 +763,7 @@ class QGISRedProjectIO:
         return zipPath
 
     """QLR Operations"""
+
     def getProjectGuid(self):
         metadataFile = os.path.join(self.ProjectDirectory, self.NetworkName + "_Metadata.txt")
         if os.path.exists(metadataFile):

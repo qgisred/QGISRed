@@ -223,4 +223,3 @@ def format_number_tick(value: float, step: float, *, decimal_places: int | None 
     if decimals == 0:
         return str(int(round(v)))
     return f"{v:.{decimals}f}"
-

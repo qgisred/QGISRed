@@ -188,6 +188,7 @@ class QGISRedIdentifierUtils:
         return self.tr(source)
 
     """Thematic Maps"""
+
     def isThematicMapsLayer(self, layer):
         identifier = layer.customProperty("qgisred_identifier")
         return identifier and identifier.startswith("qgisred_query_")
@@ -199,4 +200,3 @@ class QGISRedIdentifierUtils:
         if thematicGroup:
             return [treeLayer.layer() for treeLayer in thematicGroup.findLayers()]
         return []
-

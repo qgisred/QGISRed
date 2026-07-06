@@ -5,7 +5,7 @@ from qgis.utils import iface
 from qgis.core import QgsProject, QgsVectorLayer
 from qgis.PyQt.QtCore import Qt, pyqtSignal
 from qgis.PyQt.QtGui import QColor
-from qgis.core import QgsPointXY, QgsProject, QgsSnappingConfig, QgsTolerance
+from qgis.core import QgsPointXY, QgsSnappingConfig, QgsTolerance
 from ...compat import SNAP_TYPE_SEGMENT, VERTEX_ICON_TRIANGLE
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsMapCanvasSnappingUtils
 from ..utils.qgisred_styling_utils import create_combined_cursor
@@ -49,7 +49,7 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
 
         self.setDockConnections()
         self.dock.connectResultsDock()
-    
+
     def setDockConnections(self):
         if self.dock is not None:
             # Disconnect first to avoid stacking duplicate connections
@@ -91,7 +91,7 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
         self.startMarker = QgsVertexMarker(self.canvas)
         self.startMarker.setColor(QColor(255, 87, 51))
         self.startMarker.setIconSize(15)
-        self.startMarker.setIconType(VERTEX_ICON_TRIANGLE) 
+        self.startMarker.setIconType(VERTEX_ICON_TRIANGLE)
         self.startMarker.setPenWidth(3)
         self.startMarker.hide()
 
@@ -104,7 +104,7 @@ class QGISRedIdentifyFeature(QgsMapToolIdentify):
         self.firstPoint = None
 
         self.snapper = None
-    
+
     # -------------------------------
     # Feature Handling Methods
     # -------------------------------

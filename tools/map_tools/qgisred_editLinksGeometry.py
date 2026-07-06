@@ -7,9 +7,9 @@ from ...compat import SNAP_TYPE_SEGMENT
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsRubberBand, QgsMapCanvasSnappingUtils
 try:
     from qgis.gui import Qgis
-except:
+except Exception:
     with suppress(Exception):
-        from qgis.core import Qgis # Compatibility with QGis 3.4x
+        from qgis.core import Qgis  # Compatibility with QGis 3.4x
 
 from ..utils.qgisred_filesystem_utils import QGISRedFileSystemUtils
 from ..utils.qgisred_layer_utils import QGISRedLayerUtils
@@ -42,7 +42,7 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
         self.pipeMarker.setIconSize(10)
         try:
             self.pipeMarker.setIconType(QgsVertexMarker.ICON_DOUBLE_TRIANGLE)  # or ICON_CROSS, ICON_X
-        except:
+        except Exception:
             self.pipeMarker.setIconType(QgsVertexMarker.ICON_X)  # or ICON_CROSS, ICON_X
         self.pipeMarker.setPenWidth(3)
         self.pipeMarker.hide()
@@ -280,7 +280,7 @@ class QGISRedEditLinksGeometryTool(QgsMapTool):
                 myPoints.append(QgsPoint(p.x(), p.y()))
         try:  # From QGis 3.30
             self.rubberBand = QgsRubberBand(self.iface.mapCanvas(), Qgis.GeometryType.Line)
-        except:
+        except Exception:
             self.rubberBand = QgsRubberBand(self.iface.mapCanvas(), False)
         self.rubberBand.setToGeometry(QgsGeometry.fromPolyline(myPoints), None)
         self.rubberBand.setColor(QColor(55, 198, 5))

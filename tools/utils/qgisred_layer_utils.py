@@ -35,7 +35,6 @@ class QGISRedLayerUtils:
         'qgisred_thematicmaps': 'Thematic Maps',
         'qgisred_connectivity': 'Connectivity',
         'qgisred_hydraulicsectors': 'HydraulicSectors',
-        'qgisred_demandsectors': 'Demand Sectors',
         'qgisred_isolatedsegments': 'IsolatedSegments',
         'qgisred_demandsbuilder': 'DemandsBuilder',
         'qgisred_demandsectors': 'DemandSectors',
@@ -188,6 +187,7 @@ class QGISRedLayerUtils:
                         styling.setStyle(layer, identifier.replace("qgisred_", ""))
 
     """Groups"""
+
     def findGroupRecursive(self, parent, groupName):
         for child in parent.children():
             if isinstance(child, QgsLayerTreeGroup) and child.name() == groupName:
@@ -390,6 +390,7 @@ class QGISRedLayerUtils:
         return currentParent
 
     """Open Layers"""
+
     def isLayerOpened(self, layerName):
         fs = self._fs()
         identifiers = self._identifiers()
@@ -566,6 +567,7 @@ class QGISRedLayerUtils:
                 child.setCustomProperty("showFeatureCount", True)
 
     """Remove Layers"""
+
     def removeLayers(self, layers, ext=".shp"):
         for layerName in layers:
             self.removeLayer(layerName, ext)
@@ -618,6 +620,7 @@ class QGISRedLayerUtils:
             self.iface.mapCanvas().refresh()
 
     """Order Layers"""
+
     def orderLayers(self, group):
         if group is None:
             return
@@ -687,6 +690,3 @@ class QGISRedLayerUtils:
                 if val_str and val_str not in ("NULL", "None", ""):
                     return val_str
         return None
-
-
-

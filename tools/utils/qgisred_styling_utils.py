@@ -6,14 +6,14 @@ import json
 import random
 from random import randrange
 
-from qgis.PyQt.QtCore import QCoreApplication, Qt
+from qgis.PyQt.QtCore import QCoreApplication
 from ...compat import PAINTER_ANTIALIASING
 from qgis.PyQt.QtGui import QColor
 from qgis.core import (
-    QgsVectorLayer, QgsSymbol, Qgis, QgsLayerTreeGroup,
+    QgsVectorLayer, QgsSymbol, Qgis,
     QgsLineSymbol, QgsSimpleLineSymbolLayer, QgsSimpleMarkerSymbolLayer,
     QgsRendererCategory, QgsCategorizedSymbolRenderer, QgsVectorLayerCache, NULL,
-    QgsGraduatedSymbolRenderer, QgsRuleBasedRenderer, QgsProject, QgsRenderContext,
+    QgsGraduatedSymbolRenderer, QgsRuleBasedRenderer, QgsRenderContext,
     QgsMapLayerLegend, QgsMessageLog, QgsStyle
 )
 from qgis.gui import QgsAttributeTableFilterModel, QgsAttributeTableModel, QgsAttributeTableView
@@ -581,7 +581,7 @@ class QGISRedStylingUtils:
         if renderer is not None:
             layer.setRenderer(renderer)
         layer.setLabelsEnabled(False)
-    
+
     def applyCategorizedRenderer(self, layer, field, qmlFile):
         fieldIndex = layer.fields().indexFromName(field)
 

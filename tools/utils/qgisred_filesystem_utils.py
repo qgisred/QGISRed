@@ -70,7 +70,7 @@ class QGISRedFileSystemUtils:
         try:
             path = str(layer.dataProvider().dataSourceUri().split("|")[0])
             return self.getUniformedPath(path)
-        except:
+        except Exception:
             return ""
 
     def generatePath(self, folder, fileName):
@@ -143,6 +143,6 @@ class QGISRedFileSystemUtils:
         try:
             if os.path.exists(folder) and os.path.isdir(folder):
                 shutil.rmtree(folder)
-        except:
+        except Exception:
             return False
         return True
