@@ -411,24 +411,52 @@ class QGISRedDependencies:
         return QGISRedDependencies.toString(b)
 
     @staticmethod
-    def DemandsBuilder(projectFolder, networkName, tempFolder, ids, auxiliarLayers, qgisredPointLayers="", qgisredLineLayers="", qgisredEfficiencySectorLayers="", qgisredPatternSectorLayers=""):
+    def DemandsBuilder(
+            projectFolder,
+            networkName,
+            tempFolder,
+            ids,
+            auxiliarLayers,
+            qgisredPointLayers="",
+            qgisredLineLayers="",
+            qgisredEfficiencySectorLayers="",
+            qgisredPatternSectorLayers="",
+            selectedAuxiliaryLayerFids=""):
+
         projectFolder = QGISRedDependencies.encode(projectFolder)
         networkName = QGISRedDependencies.encode(networkName)
         tempFolder = QGISRedDependencies.encode(tempFolder)
         ids = QGISRedDependencies.encode(ids)
         auxiliarLayers = QGISRedDependencies.encode(auxiliarLayers)
         qgisredPointLayers = QGISRedDependencies.encode(qgisredPointLayers)
-        qgisredLineLayers = QGISRedDependencies.encode(qgisredLineLayers) 
+        qgisredLineLayers = QGISRedDependencies.encode(qgisredLineLayers)
         qgisredEfficiencySectorLayers = QGISRedDependencies.encode(qgisredEfficiencySectorLayers)
         qgisredPatternSectorLayers = QGISRedDependencies.encode(qgisredPatternSectorLayers)
+        selectedAuxiliaryLayerFids = QGISRedDependencies.encode(selectedAuxiliaryLayerFids)
 
         mydll = WinDLL(QGISRedFileSystemUtils().getCurrentDll())
-        mydll.DemandsBuilder.argtypes = (c_char_p, c_char_p, c_char_p, c_char_p, 
-                                         c_char_p, c_char_p, c_char_p, c_char_p, c_char_p)
+
+        mydll.DemandsBuilder.argtypes = (
+            c_char_p, c_char_p, c_char_p, c_char_p,
+            c_char_p, c_char_p, c_char_p, c_char_p,
+            c_char_p, c_char_p
+        )
+
         mydll.DemandsBuilder.restype = c_char_p
-        b = mydll.DemandsBuilder(projectFolder, networkName, tempFolder, ids, auxiliarLayers, 
-                                 qgisredPointLayers, qgisredLineLayers, qgisredEfficiencySectorLayers,
-                                 qgisredPatternSectorLayers)
+
+        b = mydll.DemandsBuilder(
+            projectFolder,
+            networkName,
+            tempFolder,
+            ids,
+            auxiliarLayers,
+            qgisredPointLayers,
+            qgisredLineLayers,
+            qgisredEfficiencySectorLayers,
+            qgisredPatternSectorLayers,
+            selectedAuxiliaryLayerFids
+        )
+
         return QGISRedDependencies.toString(b)
 
     @staticmethod

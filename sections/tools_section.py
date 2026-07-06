@@ -133,6 +133,27 @@ class ToolsSection:
             result += "[POLYGON]" + ";".join(polygons)
         return result
 
+    def _getSelectedAuxiliaryLayerFids(self):
+        selected = []
+
+        for layer in QGISRedLayerUtils().getLayers():
+            if layer is None:
+                continue
+            if layer.type() != LAYER_TYPE_VECTOR:
+                continue
+
+            fids = [str(feature.id()) for feature in layer.getSelectedFeatures()]
+            if not fids:
+                continue
+
+            path = self.getLayerPath(layer)
+            if path is None or path == "":
+                path = layer.source()
+
+            selected.append(path + "|" + ",".join(fids))
+
+        return ";;".join(selected)
+
     def _getDemandsBuilderPointLayers(self):
         points = []
         demands_builder_id = QGISRedLayerUtils.groupIdentifiers.get("DemandsBuilder")
@@ -278,6 +299,7 @@ class ToolsSection:
         qgisredLineLayers = self._getDemandsBuilderLineLayers() 
         qgisredEfficiencySectorLayers = self._getDemandsBuilderEfficiencySectorLayers()
         qgisredPatternSectorLayers = self._getDemandsBuilderPatternSectorLayers()
+        selectedAuxiliaryLayerFids = self._getSelectedAuxiliaryLayerFids()
 
         # Process
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
@@ -290,7 +312,8 @@ class ToolsSection:
             qgisredPointLayers,
             qgisredLineLayers,
             qgisredEfficiencySectorLayers,
-            qgisredPatternSectorLayers
+            qgisredPatternSectorLayers,
+            selectedAuxiliaryLayerFids
         )
         QApplication.restoreOverrideCursor()
 
