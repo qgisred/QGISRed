@@ -6,6 +6,7 @@ from qgis.PyQt import uic
 from qgis.PyQt.QtCore import QDate, QEvent, QSize, Qt, QTimer, QVariant
 from qgis.PyQt.QtGui import QBrush, QColor, QDoubleValidator, QIcon
 from qgis.PyQt.QtWidgets import (
+    QApplication,
     QCalendarWidget,
     QComboBox,
     QDialog,
@@ -178,7 +179,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         super(QGISRedGroupEditDialog, self).__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(":/images/iconGroupEdit.svg"))
-        self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
+        self.setWindowModality(Qt.WindowModality.ApplicationModal)
         self._applyStyle()
         self._setupFilterValueStack()
         self._setupTextValueStack()
@@ -189,6 +190,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.fieldUtils = QGISRedFieldUtils()
         self.layersByIdentifier = {}
         self.previewHighlights = []
+        self.editedLayers = []
         self._countSignalLayers = []
 
         self.banner = QGISRedBanner.inject(self, self.rootLayout)
@@ -218,6 +220,11 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self._removePreviewHighlights()
         self._disconnectCountSignals()
         super(QGISRedGroupEditDialog, self).closeEvent(event)
+
+    def reject(self):
+        self._rollbackEdits()
+        self._closeAttributeTables()
+        super(QGISRedGroupEditDialog, self).reject()
 
     def hideEvent(self, event):
         self._removePreviewHighlights()
@@ -270,7 +277,8 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self.cbAction.currentIndexChanged.connect(self._onActionChanged)
         self.chkPreview.toggled.connect(self._onPreviewToggled)
         self.btApply.clicked.connect(self._onApply)
-        self.btClose.clicked.connect(self.reject)
+        self.btAccept.clicked.connect(self._onAccept)
+        self.btCancel.clicked.connect(self.reject)
 
     def _populateElementTypes(self):
         self.layersByIdentifier = {}
@@ -942,7 +950,7 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         if not self._confirmApply(identifier, fieldName, actionKind, edits, layer):
             return
 
-        self._commitEdits(layer, fieldName, edits)
+        self._applyEdits(layer, fieldName, edits)
 
     def _computeEdits(self, features, fieldName, actionKey, actionKind, layer):
         edits = []  # list of (fid, oldValue, newValue)
@@ -1068,14 +1076,14 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         )
         return reply == QMessageBox.StandardButton.Yes
 
-    def _commitEdits(self, layer, fieldName, edits):
+    def _applyEdits(self, layer, fieldName, edits):
         fieldIdx = layer.fields().indexFromName(fieldName)
         if fieldIdx < 0:
             self.banner.pushMessage(self.tr("Apply"),
                                     self.tr("Field not found in layer."),
                                     level=2, duration=6)
             return
-        if not layer.startEditing():
+        if not layer.isEditable() and not layer.startEditing():
             self.banner.pushMessage(self.tr("Apply"),
                                     self.tr("Could not start editing the layer."),
                                     level=2, duration=6)
@@ -1086,22 +1094,44 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
                 layer.changeAttributeValue(fid, fieldIdx, newVal)
         except Exception as e:
             layer.destroyEditCommand()
-            layer.rollBack()
             self.banner.pushMessage(self.tr("Apply"), str(e), level=2, duration=6)
             return
         layer.endEditCommand()
-        if not layer.commitChanges():
-            self.banner.pushMessage(self.tr("Apply"),
-                                    self.tr("Failed to commit changes: %s") % "; ".join(layer.commitErrors()),
-                                    level=2, duration=8)
-            return
+        if layer not in self.editedLayers:
+            self.editedLayers.append(layer)
         layer.triggerRepaint()
         self.banner.pushMessage(self.tr("Apply"),
                                 self.tr("Updated %d elements.") % len(edits),
                                 level=0, duration=5)
         self._refreshAffectedCount()
 
+    def _onAccept(self):
+        for layer in self.editedLayers:
+            if layer.isEditable() and not layer.commitChanges():
+                self.banner.pushMessage(self.tr("Accept"),
+                                        self.tr("Failed to commit changes: %s") % "; ".join(layer.commitErrors()),
+                                        level=2, duration=8)
+                return
+        self.editedLayers = []
+        self._closeAttributeTables()
+        self.accept()
+
+    def _rollbackEdits(self):
+        for layer in self.editedLayers:
+            if layer.isEditable():
+                layer.rollBack()
+                layer.triggerRepaint()
+        self.editedLayers = []
+
     """Helpers"""
+
+    def _closeAttributeTables(self):
+        widgets = list(QApplication.topLevelWidgets())
+        if self.iface is not None:
+            widgets += self.iface.mainWindow().findChildren(QDialog)
+        for widget in widgets:
+            if widget.metaObject().className() == "QgsAttributeTableDialog":
+                widget.close()
 
     def _currentLayer(self):
         identifier = self.cbElementType.currentData()
