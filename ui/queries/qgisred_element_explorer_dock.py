@@ -1,11 +1,11 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 from contextlib import suppress
 import os
 from qgis.PyQt.QtCore import Qt, pyqtSlot, pyqtSignal, QEvent, QTimer
 from qgis.PyQt.QtGui import QIcon, QFont, QColor, QBrush
-from qgis.PyQt.QtWidgets import QDockWidget, QWidget, QMessageBox, QLineEdit, QListWidgetItem, QTableWidgetItem, QHeaderView, QAbstractItemView, QFrame, QToolButton, QHBoxLayout, QProxyStyle, QStyle
+from qgis.PyQt.QtWidgets import QDockWidget, QWidget, QMessageBox, QListWidgetItem, QTableWidgetItem, QHeaderView, QAbstractItemView, QToolButton, QHBoxLayout, QProxyStyle, QStyle
 from qgis.PyQt import uic
-from qgis.core import QgsProject, QgsVectorLayer, QgsSettings, QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsLayerMetadata, QgsSpatialIndex, Qgis
+from qgis.core import QgsProject, QgsVectorLayer, QgsSettings, QgsGeometry, QgsPointXY, QgsRectangle, QgsFeature, QgsLayerMetadata, QgsSpatialIndex
 from qgis.utils import iface
 from qgis.gui import QgsHighlight
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
@@ -118,7 +118,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             'qgisred_isolationvalves':    self.tr('Isolation Valve'),
             'qgisred_meters':             self.tr('Meter'),
         }
-        
+
         self.originalIds = []
         self.adjacentHighlights = []
         self.mainHighlight = None
@@ -136,7 +136,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.demandSpatialIndex = None  # QgsSpatialIndex for demand layer
         self.demandSpatialLayer = None  # demand layer reference
 
-        self.spoilerElementProperties = None 
+        self.spoilerElementProperties = None
         self.spoilerFindElements = None
 
         self.linkLayers = ["qgisred_pipes", "qgisred_pumps", "qgisred_valves"]
@@ -167,7 +167,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         if hasattr(self, 'listWidget'):
             self.listWidget.installEventFilter(self)
-        
+
         if hasattr(self, 'labelFoundElement'):
             font = QFont()
             font.setPointSize(12)
@@ -190,7 +190,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
 
         self.setDockStyle()
         self.setupConnections()
-        
+
         if hasattr(self, 'initializeCustomLayerProperties'):
             self.initializeCustomLayerProperties()
 
@@ -201,7 +201,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.mFindElementsGroupBox.setCollapsed(False)
         self.mConnectedElementsGroupBox.setCollapsed(True)
         self.trackCollapsibleWidgetsEvents()
-        
+
         self.topLevelChanged.connect(self.onTopLevelChanged)
 
         from qgis.PyQt.QtWidgets import QComboBox
@@ -228,12 +228,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         if collapseConnectedElements is not None:
             self.mConnectedElementsGroupBox.setCollapsed(collapseConnectedElements)
 
-        ep_collapsed = self.mElementPropertiesGroupBox.isCollapsed()
-        fe_collapsed = self.mFindElementsGroupBox.isCollapsed()
-
         # Panel should NOT close automatically when frames collapse
         # It should only close when the X button is clicked
-
 
         self.mElementPropertiesGroupBox.blockSignals(False)
         self.mFindElementsGroupBox.blockSignals(False)
@@ -247,7 +243,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     # Collapsible Widgets Handlers
     # ------------------------------
     def onElementPropertiesToggled(self, collapsed):
-        pass  # Handled via event filters on individual labels        
+        pass  # Handled via event filters on individual labels
+
     def onFindElementsToggled(self, collapsed):
         pass
 
@@ -379,14 +376,14 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         iconName = 'iconFindElements.svg' if 'Find' in self.__class__.__name__ else 'iconElementProperties.svg'
         iconPath = os.path.join(os.path.dirname(__file__), '..', '..', 'images', iconName)
         self.setWindowIcon(QIcon(iconPath))
-        
+
         if hasattr(self, 'leElementMask'):
             searchIcon = QIcon(":/images/iconFilter.svg")
             self.leElementMask.addAction(searchIcon, LINEEDIT_LEADING_POSITION)
-        
+
         comboStyle = """
-            QComboBox { 
-                background-color: white; 
+            QComboBox {
+                background-color: white;
                 combobox-popup: 0;
             }
             QComboBox QAbstractItemView {
@@ -426,10 +423,10 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     def setComponentVisibility(self, showFindElements, showElementProperties):
         self.findElementsVisible = showFindElements
         self.elementPropertiesVisible = showElementProperties
-        
+
         self.findElementsDockVisibilityChanged.emit(showFindElements)
         self.elementPropertiesDockVisibilityChanged.emit(showElementProperties)
-        
+
         if not showFindElements and not showElementProperties and not self.isFloating():
             self.close()
 
@@ -445,14 +442,14 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     def onDockVisibilityChanged(self, visible):
         if self.isFloating():
             return
-        
-        findDockVisible = self.frameFindElements.isVisible() 
+
+        findDockVisible = self.frameFindElements.isVisible()
         elementPropertiesVisible = self.frameElementProperties.isVisible()
 
         if not findDockVisible and not elementPropertiesVisible:
             self.close()
             return
-        
+
         self.setComponentVisibility(findDockVisible, elementPropertiesVisible)
         self.findElementsDockVisibilityChanged.emit(findDockVisible)
         self.elementPropertiesDockVisibilityChanged.emit(elementPropertiesVisible)
@@ -466,8 +463,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.leElementMask.textChanged.connect(self.filterElementIds)
         self.listWidget.itemClicked.connect(self.onListItemSingleClicked)
         self.listWidget.itemDoubleClicked.connect(self.onListItemDoubleClicked)
-        self.cbElementId.currentIndexChanged.connect(self.onElementIdChanged)           
-
+        self.cbElementId.currentIndexChanged.connect(self.onElementIdChanged)
 
         project = QgsProject.instance()
         project.layersAdded.connect(self.onLayerTreeChanged)
@@ -603,7 +599,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         try:
             self.dockVisibilityChanged.emit(False)
             self.dockClosed.emit(True)
-            
+
             settings = QgsSettings()
             settings.setValue("QGISRed/ElementsExplorer/geometry", self.saveGeometry())
             settings.setValue("QGISRed/ElementsExplorer/floating", self.isFloating())
@@ -626,14 +622,13 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             for group in self.connectedGroups:
                 self.disconnectGroupSignals(group)
             self.connectedGroups.clear()
-            
+
             self.safeDisconnect(self.cbElementType.currentIndexChanged, self.updateElementIds)
             self.safeDisconnect(self.leElementMask.textChanged, self.filterElementIds)
             self.safeDisconnect(self.listWidget.itemClicked, self.onListItemSingleClicked)
             self.safeDisconnect(self.listWidget.itemDoubleClicked, self.onListItemDoubleClicked)
             self.safeDisconnect(self.cbElementId.currentIndexChanged, self.onElementIdChanged)
 
-            
             self.safeDisconnect(self.mElementPropertiesGroupBox.collapsedStateChanged, self.onElementPropertiesToggled)
             self.safeDisconnect(self.mFindElementsGroupBox.collapsedStateChanged, self.onFindElementsToggled)
 
@@ -646,7 +641,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.removeEventFiltersRecursive(self.widget())
             self.clearHighlights()
             self.clearAllLayerSelections()
-            
+
             self.canvas = None
             self.identifyTool = None
             self.currentLayer = None
@@ -659,7 +654,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.__class__._instance = None
             super(QDockWidget, self).closeEvent(event)
             self.deleteLater()
-        except Exception as e:
+        except Exception:
             self.__class__._instance = None
             super(QDockWidget, self).closeEvent(event)
 
@@ -793,7 +788,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     def onProjectClosed(self):
         self.clearHighlights()
         self.clearAllLayerSelections()
-    
+
     def onProjectChanged(self):
         self.clearAllCaches()
         self.clearAll()
@@ -1498,7 +1493,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         if feature.fields().indexFromName("Descrip") != -1:
             featureDescription = feature.attribute("Descrip")
         else:
-            featureDescription = "" 
+            featureDescription = ""
 
         self.labelFoundElement.setText(f"{featureIdText}")
         self.labelFoundElement.setStyleSheet("font-weight: bold; font-size: 12pt;")
@@ -1563,7 +1558,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     def handleValves(self, layer, feature, tabs):
         self.setupTabs(tabs)
         self.loadFeature(layer, feature)
-    
+
     def handleMeters(self, layer, feature, tabs):
         self.setupTabs(tabs)
         self.loadFeature(layer, feature)
@@ -1575,7 +1570,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
     def handleServiceConnections(self, layer, feature, tabs):
         self.setupTabs(tabs)
         self.loadFeature(layer, feature)
-    
+
     def setupTabs(self, visibleTabs):
         ...
 
@@ -1878,7 +1873,6 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             return None, None
         featurePoint = featureGeom.asPoint()
         featurePointGeom = QgsGeometry.fromPointXY(featurePoint)
-        tolerance = 1e-6
         if supportedOnly:
             supportedIds = ["qgisred_junctions", "qgisred_reservoirs", "qgisred_tanks"]
             for nodeLayer in self.getAllInputGroupLayers():
@@ -2004,6 +1998,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.listWidget.clear()
 
         identifierOrder = list(self.identifierSingulars.keys())
+
         def sortKey(entry):
             iden = entry[1]
             try:
@@ -2147,8 +2142,8 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
                     if not linePoints:
                         continue
                     if (nodeG.distance(linkGeom) < tolerance or
-                        self.areOverlappedPoints(nodeG, QgsGeometry.fromPointXY(linePoints[0])) or
-                        self.areOverlappedPoints(nodeG, QgsGeometry.fromPointXY(linePoints[-1]))):
+                            self.areOverlappedPoints(nodeG, QgsGeometry.fromPointXY(linePoints[0])) or
+                            self.areOverlappedPoints(nodeG, QgsGeometry.fromPointXY(linePoints[-1]))):
                         linkId = self.getFeatureIdValue(f, linkLayer)
                         singular = self.getSingularForLayer(linkLayer)
                         foundLinks.append((linkLayer, f, f"{singular} {linkId}", linkId))
@@ -2347,7 +2342,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
         self.mainHighlight = highlight
 
         self.adjustMapView(feature)
-        
+
         identifier = layer.customProperty("qgisred_identifier")
         if self.isLineElement(layer):
             self.findAdjacentNodesByGeometry(feature)
@@ -2359,7 +2354,7 @@ class QGISRedElementExplorerDock(QDockWidget, FORM_CLASS):
             self.findServiceConnectionAdjacency(feature, layer)
         else:
             self.findAdjacentLinksByGeometry(feature, layer)
-        
+
         self.sortListWidgetItems()
 
         self.loadFeature(layer, feature, finalTitleText)

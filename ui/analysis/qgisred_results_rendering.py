@@ -214,7 +214,7 @@ class _ResultsRenderingMixin:
                                 scenario_renders[storage_key] = ranges
                     else:
                         scenario_renders[storage_key] = root.clone()
-            except:
+            except Exception:
                 message = self.tr("Some issue occurred in the process of saving the style of the layer %1").replace("%1", self.tr(nameLayer))
                 QGISRedUIUtils.showGlobalMessage(self.iface, message, level=1, duration=5)
 
@@ -257,8 +257,10 @@ class _ResultsRenderingMixin:
 
                     # Store BEFORE setGraduatedPalette so applySymbolScaleFactors
                     # picks up the correct field name when in proportional mode.
-                    if "Link" in nameLayer: self.displayingLinkField = field
-                    else: self.displayingNodeField = field
+                    if "Link" in nameLayer:
+                        self.displayingLinkField = field
+                    else:
+                        self.displayingNodeField = field
 
                     self.setGraduatedPalette(layer_to_paint, field, setRender, nameLayer)
 
@@ -619,7 +621,7 @@ class _ResultsRenderingMixin:
                 prop.setExpressionString("0")
                 symbol.symbolLayer(3).subSymbol().setDataDefinedSize(prop)
                 symbol.symbolLayer(4).subSymbol().setDataDefinedSize(prop)
-        except:
+        except Exception:
             self.cbFlowDirections.setChecked(False)
             self.cbFlowDirections.setEnabled(False)
 
@@ -648,7 +650,7 @@ class _ResultsRenderingMixin:
             if hasRender and isinstance(ranges, QgsRuleBasedRenderer.Rule):
                 try:
                     renderer = QgsRuleBasedRenderer(ranges.clone())
-                except:
+                except Exception:
                     message = self.tr("Some issue occurred in the process of applying the style to the layer %1").replace("%1", self.tr(nameLayer))
                     QGISRedUIUtils.showGlobalMessage(self.iface, message, level=1, duration=5)
                     return

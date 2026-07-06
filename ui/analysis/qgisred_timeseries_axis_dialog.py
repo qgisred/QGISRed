@@ -4,7 +4,6 @@ from __future__ import annotations
 from contextlib import suppress
 import copy
 import math
-import os
 
 from qgis.PyQt.QtCore import Qt, QTimer
 from qgis.PyQt.QtGui import QColor, QFont
@@ -937,6 +936,7 @@ class TimeSeriesAxisOptionsDialog(QDialog):
 
         rb_axis_left.toggled.connect(on_magnitude_axis_changed)
         rb_axis_right.toggled.connect(on_magnitude_axis_changed)
+
         def on_marker_option_changed(*_args):
             if bool(getattr(w, "_curve_loading", False)):
                 return
@@ -1529,7 +1529,6 @@ class TimeSeriesAxisOptionsDialog(QDialog):
             cfg.decimal_places = -1
         if getattr(tab, "_chk_hours_only", None) is not None:
             cfg.x_precision = "h" if tab._chk_hours_only.isChecked() else "hms"
-
 
     def _apply_options(self) -> None:
         gen_tab = self._tab_general

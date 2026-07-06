@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from contextlib import suppress
 
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import List, Optional, Sequence, Tuple
 
 import math
 import re
@@ -20,7 +20,7 @@ from ...tools.utils.qgisred_axis_scale_utils import (
 
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils, normalize_element
 from .timeseries_axis_settings import TimeSeriesAxisSettings, build_fixed_linear_scale
-from .timeseries_time_utils import civil_time_parts, format_civil_time, merge_time_of_day_x_ticks
+from .timeseries_time_utils import civil_time_parts, merge_time_of_day_x_ticks
 from .timeseries_plot_style import (
     AXIS_MAX_TICKS,
     BORDER_COLOR,
@@ -89,7 +89,6 @@ class TimeSeriesPlotRenderer:
             return
 
         painter.setRenderHint(PAINTER_ANTIALIASING)
-        w = widget.width()
         h = widget.height()
 
         gen = getattr(widget, "_general_cfg", None)
@@ -733,7 +732,6 @@ class TimeSeriesPlotRenderer:
             min_x, max_x = data_min, data_max
             view_x_min = getattr(widget, "_view_x_min", None)
             view_x_max = getattr(widget, "_view_x_max", None)
-            has_explicit_view = view_x_min is not None and view_x_max is not None
             if view_x_min is not None:
                 min_x = view_x_min
             if view_x_max is not None:
@@ -742,7 +740,6 @@ class TimeSeriesPlotRenderer:
                 max_x = min_x + 1
         else:
             min_x, max_x = float(cfg.fixed_min), float(cfg.fixed_max)
-            has_explicit_view = False
             if max_x <= min_x:
                 max_x = min_x + 1
 
@@ -1945,4 +1942,3 @@ class TimeSeriesPlotRenderer:
             hover_val_y = None
 
         self._draw_tooltip_box(widget, painter, footer_segments, tooltip_lines, val_x, hover_val_y, plot_rect, x_state, y_state)
-

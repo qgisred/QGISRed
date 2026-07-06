@@ -20,7 +20,7 @@ class QGISRedConnectivityToolDialog(QDialog, FORM_CLASS):
         self.setupUi(self)
         self.btAccept.clicked.connect(self.accept)
         self.tbLines.setText(self.Lines)
-        
+
         self.messageBar = QGISRedBanner.inject(self, self.gridLayout)
 
     def pushMessage(self, title, text, level=0, duration=5):

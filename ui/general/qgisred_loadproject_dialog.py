@@ -24,7 +24,7 @@ class QGISRedImportProjectDialog(QDialog, FORM_CLASS):
         self.setupUi(self)
         self.btSelectDirectory.clicked.connect(self.selectDirectory)
         self.btAccept.clicked.connect(self.accept)
-        
+
         self.messageBar = QGISRedBanner.inject(self, self.gridLayout)
 
     def pushMessage(self, title, text, level=0, duration=5):

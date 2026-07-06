@@ -38,4 +38,3 @@ def junction_positive_node_demand(feature, layer_identifier=None):
     if value <= 0.0:
         return None
     return value
-

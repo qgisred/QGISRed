@@ -36,6 +36,7 @@ from .qgisred_custom_dialogs import QGISRedSaveStrategyDialog
 
 formClass, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_legends_dialog.ui"))
 
+
 class QGISRedLegendsDialog(QDialog, formClass):
     FIELD_TYPE_NUMERIC = "numeric"
     FIELD_TYPE_CATEGORICAL = "categorical"
@@ -302,8 +303,8 @@ class QGISRedLegendsDialog(QDialog, formClass):
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)
         self.tableView.setColumnWidth(2, 60)
 
-        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch) # Value
-        header.setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch) # Legend
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)  # Value
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch)  # Legend
 
         self.tableView.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.tableView.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
@@ -2406,7 +2407,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
         try:
             parts = widget.text().split(" - ")
             return float(parts[0]), float(parts[1])
-        except:
+        except Exception:
             return None
 
     def updateAdjacentRowsAfterInsertion(self, row, newLower, newUpper):
@@ -4163,7 +4164,7 @@ class QGISRedLegendsDialog(QDialog, formClass):
 
         try:
             return QGISRedProjectUtils.getUnits()
-        except:
+        except Exception:
             return ""
 
     def getGeometryHint(self):

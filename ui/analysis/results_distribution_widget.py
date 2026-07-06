@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from qgis.PyQt.QtCore import QCoreApplication, QPointF, QRectF, Qt
+from qgis.PyQt.QtCore import QCoreApplication, QPointF, QRectF
 from qgis.PyQt.QtGui import QColor, QFontMetrics
 from qgis.PyQt.QtWidgets import QSizePolicy, QWidget
 

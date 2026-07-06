@@ -1,7 +1,18 @@
 # -*- coding: utf-8 -*-
+from .qgisred_results_binary import (
+    getOut_TimeNodesProperties, getOut_TimeLinksProperties,
+    getOut_StatNodesProperties, getOut_StatLinksProperties,
+    getOut_Metadata,
+)
+from .qgisred_results_hyd import (
+    getHyd_TimeNodesProperties,
+    getHyd_TimeLinksProperties,
+    getHyd_StatNodesProperties,
+    getHyd_StatLinksProperties,
+    getHyd_Metadata,
+)
 import os
 
-from qgis.core import NULL
 from qgis.PyQt.QtCore import QCoreApplication
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
@@ -155,19 +166,6 @@ def apply_result_column_visibility(layer, layer_type, stat_en, quality_simulated
             columns[i].type = ATCOL_TYPE_FIELD
     config.setColumns(columns)
     layer.setAttributeTableConfig(config)
-
-from .qgisred_results_binary import (
-    getOut_TimeNodesProperties, getOut_TimeLinksProperties,
-    getOut_StatNodesProperties, getOut_StatLinksProperties,
-    getOut_Metadata,
-)
-from .qgisred_results_hyd import (
-    getHyd_TimeNodesProperties,
-    getHyd_TimeLinksProperties,
-    getHyd_StatNodesProperties,
-    getHyd_StatLinksProperties,
-    getHyd_Metadata,
-)
 
 
 def seconds_to_time_str(seconds):
@@ -420,11 +418,17 @@ class _ResultsDataMixin:
         use_hyd = self._isAllCalculationTimesMode() and (self._getHydMetaIfUsable() is not None)
 
         if use_hyd:
-            backend_nodes = lambda t: getHyd_TimeNodesProperties(hyd_path, out_path, t)
-            backend_links = lambda t: getHyd_TimeLinksProperties(hyd_path, out_path, t)
+            def backend_nodes(t):
+                return getHyd_TimeNodesProperties(hyd_path, out_path, t)
+
+            def backend_links(t):
+                return getHyd_TimeLinksProperties(hyd_path, out_path, t)
         else:
-            backend_nodes = lambda t: getOut_TimeNodesProperties(out_path, t)
-            backend_links = lambda t: getOut_TimeLinksProperties(out_path, t)
+            def backend_nodes(t):
+                return getOut_TimeNodesProperties(out_path, t)
+
+            def backend_links(t):
+                return getOut_TimeLinksProperties(out_path, t)
 
         if not os.path.exists(out_path):
             return
@@ -616,4 +620,3 @@ class _ResultsDataMixin:
 
             # Apply visibility AFTER populating
             self.updateFieldsVisibility(target_layer, layerName, stats_mode=True, stat=stat_label)
-

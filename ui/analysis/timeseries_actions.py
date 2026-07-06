@@ -93,4 +93,3 @@ def clear_all_timeseries(section, dock=None) -> None:
             dock.updatePlotSeries([], "", "", "")
             with suppress(Exception):
                 dock.resetGlobalVarCombos()
-

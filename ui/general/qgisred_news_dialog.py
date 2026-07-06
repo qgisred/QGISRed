@@ -2,7 +2,7 @@
 import webbrowser
 
 from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QTextBrowser, QCheckBox, QPushButton
-from qgis.PyQt.QtCore import QUrl, Qt
+from qgis.PyQt.QtCore import QUrl
 from qgis.PyQt.QtGui import QIcon
 
 

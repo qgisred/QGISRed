@@ -596,7 +596,6 @@ def getHyd_TimesTotalTankSpill(
     head_factor = _head_factor_from_units(meta.get("flow_units"))
     node_types = meta["node_types"]
     node_ids = meta["node_ids"]
-    n_nodes = meta["n_nodes"]
     num_periods = meta["hyd_num_periods"]
     totals = []
     for period in range(num_periods):

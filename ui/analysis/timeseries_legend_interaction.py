@@ -170,4 +170,3 @@ class LegendInteractionController:
             s["highlighted"] = False
         self._apply_fixed_emphasis_modes()
         return True
-

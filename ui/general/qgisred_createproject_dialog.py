@@ -41,7 +41,7 @@ class QGISRedCreateProjectDialog(QDialog, FORM_CLASS):
         except Exception:
             os.mkdir(gplFolder)
         self.gplFile = os.path.join(gplFolder, "qgisredprojectlist.gpl")
-        
+
         self.messageBar = QGISRedBanner.inject(self, self.gridLayout)
 
         from qgis.PyQt.QtWidgets import QComboBox

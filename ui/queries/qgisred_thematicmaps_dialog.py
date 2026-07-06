@@ -9,21 +9,20 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QDialog, QMessageBox, QWidget
 from ...compat import sip, NODE_TYPE_LAYER, NODE_TYPE_GROUP
 from qgis.PyQt import uic
-from qgis.PyQt.QtCore import QVariant, QCoreApplication
+from qgis.PyQt.QtCore import QCoreApplication
 
 # QGIS imports
-from qgis.core import QgsLayerTreeGroup, QgsLayerTreeLayer, QgsLayerTreeNode, QgsProject
+from qgis.core import QgsLayerTreeGroup, QgsLayerTreeLayer, QgsProject
 from qgis.core import QgsVectorFileWriter, QgsVectorLayer
-from qgis.core import QgsProject, QgsVectorLayer, QgsPalLayerSettings, QgsVectorLayerSimpleLabeling, QgsTextFormat
-from qgis.utils import iface
+from qgis.core import QgsPalLayerSettings, QgsVectorLayerSimpleLabeling
 
 # Local imports
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
 from ...tools.utils.qgisred_styling_utils import QGISRedStylingUtils
-from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_thematicmaps_dialog.ui"))
+
 
 class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
     iface = None
@@ -60,9 +59,9 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         self.cbPipesBulkCoeff.hide()
         self.cbPipesWallCoeff.hide()
         self.cbPipesTag.hide()
-        
+
         self.tabWidget.setTabVisible(1, False)
-        
+
         currentWidth = self.width()
         self.adjustSize()
         self.resize(currentWidth, self.height())
@@ -148,7 +147,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
 
             newQueries = [
                 query for query in selectedQueries
-                if f"qgisred_query_{query['layer_type'].lower()}_{query['field'].lower()}" 
+                if f"qgisred_query_{query['layer_type'].lower()}_{query['field'].lower()}"
                 in (currentValidIdentifiers - self.initialValidIdentifiers)
             ]
 
@@ -223,53 +222,51 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                     return child.checkedLayers()[0]
                 elif isinstance(child, QgsLayerTreeLayer) and child.name() == layerName:
                     return child.layer()
-            
+
             # Recursively search in subgroups
             if child.nodeType() == NODE_TYPE_GROUP:
                 layer = self.findLayerInGroup(child, layerName, custom_property)
                 if layer is not None:
                     return layer
         return None
-    
+
     def processQuery(self, query, mainLayer, queriesGroup):
         layerName = QCoreApplication.translate('InputLayerNames', query['layer_name'])
         field = query['field']
         qmlFile = query['qml_file']
-        tooltipPrefix = query['tooltip_prefix']
-        
+
         # Generate a unique identifier for the layer (includes layer type for uniqueness)
         layerType = query.get('layer_type', 'unknown').lower()
         layerIdentifier = f"qgisred_query_{layerType}_{field.lower()}"
-        
+
         # Find existing layer by identifier instead of name
         existingLayer, layerPosition = self.findLayerByIdentifier(queriesGroup, layerIdentifier)
         parentGroup = queriesGroup
         layerPosition = 0
-        
+
         if existingLayer is not None:
             with suppress(Exception):
                 parentGroup = existingLayer.parent()
-                
+
                 layerId = None
                 if isinstance(existingLayer, QgsLayerTreeLayer) and existingLayer.layer():
                     layerId = existingLayer.layer().id()
                 elif existingLayer.nodeType() == NODE_TYPE_LAYER and existingLayer.checkedLayers():
                     layerId = existingLayer.checkedLayers()[0].id()
-                    
+
                 if layerId and QgsProject.instance().mapLayer(layerId):
                     QgsProject.instance().removeMapLayer(layerId)
-                    
+
                 if parentGroup and not sip.isdeleted(parentGroup):
                     parentGroup.removeChildNode(existingLayer)
-                    
 
         derivedLayer = self.createDerivedLayer(mainLayer, layerName, field)
-        
+
         derivedLayer.setCustomProperty("query_field", field)
-        
+
         qmlPath = self.loadQmlStyle(derivedLayer, qmlFile)
         derivedLayer.setLabelsEnabled(False)
-        
+
         if field == 'Material':
             QGISRedStylingUtils().applyCategorizedRenderer(derivedLayer, field, qmlPath)
 
@@ -290,11 +287,11 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         derivedLayer.setReadOnly(True)
 
         return derivedLayer
-    
+
     def findLayerByIdentifier(self, parentGroup, identifier):
         if not parentGroup:
             return None, None
-            
+
         for i, child in enumerate(parentGroup.children()):
             if child.nodeType() == NODE_TYPE_LAYER:
                 layerIdentifier = child.customProperty("qgisred_identifier")
@@ -304,9 +301,9 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
                 foundLayer, foundPosition = self.findLayerByIdentifier(child, identifier)
                 if foundLayer is not None:
                     return foundLayer, foundPosition
-        
+
         return None, None
-    
+
     def syncLayers(self, mainLayer, derivedLayer):
         derivedLayer.dataProvider().forceReload()
         newRenderer = mainLayer.renderer().clone()
@@ -319,29 +316,28 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             if isinstance(child, QgsLayerTreeLayer) and child.name() == layerName:
                 existingLayer = child
                 break
-        
+
         if existingLayer is not None:
             if layerPath and os.path.exists(layerPath):
                 QgsVectorFileWriter.deleteShapeFile(layerPath)
-            
+
             QgsProject.instance().removeMapLayer(existingLayer.id())
             return True
-        
+
         return False
 
     def createDerivedLayer(self, sourceLayer, newLayerName, field):
         uri = sourceLayer.source()
-        
-        geometryType = sourceLayer.geometryType()
+
         providerType = sourceLayer.providerType()
-        
+
         derivedLayer = QgsVectorLayer(uri, newLayerName, providerType)
-        
+
         if not derivedLayer.isValid():
             raise Exception(self.tr("Failed to create derived layer from %1").replace("%1", sourceLayer.name()))
 
         derivedLayer.setCrs(sourceLayer.crs())
-        
+
         return derivedLayer
 
     def loadQmlStyle(self, layer, qmlFile):
@@ -356,7 +352,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             styling.applyStrategyFromLayer(layer)
             layer.triggerRepaint()
         return qmlPath
-    
+
     def assignLabels(self, layer, field, ):
         layer.setLabelsEnabled(True)
         labeling = layer.labeling()
@@ -371,7 +367,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             derivedLayer.setRenderer(newRenderer)
             derivedLayer.triggerRepaint()
 
-    def setLabelsWithNullHandling(self, layer, fieldName, qmlFilePath): 
+    def setLabelsWithNullHandling(self, layer, fieldName, qmlFilePath):
         if not layer or not isinstance(layer, QgsVectorLayer):
             return
 
@@ -386,13 +382,13 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
         labelSettings = QgsPalLayerSettings()
         labelSettings.fieldName = expression
         labelSettings.isExpression = True
-        labelSettings.placement= QgsPalLayerSettings.OverPoint
+        labelSettings.placement = QgsPalLayerSettings.OverPoint
         # Apply labeling to the layer
         labeling = QgsVectorLayerSimpleLabeling(labelSettings)
         layer.setLabeling(labeling)
 
         layer.triggerRepaint()
-    
+
     def updateCheckboxStates(self):
         queriesGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_queries")
         thematicGroup = QGISRedLayerUtils.findGroupByIdentifier("qgisred_thematicmaps")
@@ -406,6 +402,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
 
     def collectExistingIdentifiers(self, group):
         identifiers = set()
+
         def recursiveCollect(g):
             for child in g.children():
                 if isinstance(child, QgsLayerTreeLayer):
@@ -421,7 +418,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
 
     def createIdentifierCheckboxMapping(self):
         mapping = {}
-        
+
         # Tanks mappings
         mapping.update({
             'qgisred_query_tanks_elevation': self.cbTanksElevation,
@@ -495,7 +492,7 @@ class QGISRedThematicMapsDialog(QDialog, FORM_CLASS):
             'qgisred_query_pipes_wallcoeff': self.cbPipesWallCoeff,
             'qgisred_query_pipes_tag': self.cbPipesTag
         })
-        
+
         return mapping
 
     def checkLayersRecursiveByIdentifier(self, group, identifierMapping):

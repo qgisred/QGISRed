@@ -2,7 +2,7 @@
 
 from qgis.PyQt.QtGui import QColor, QPixmap, QPainter, QIcon
 from ...compat import PAINTER_ANTIALIASING, STYLE_CC_COMBOBOX, STYLE_CE_COMBOBOXLABEL
-from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QDoubleSpinBox, QLabel, QVBoxLayout, QStyle
+from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox, QDoubleSpinBox, QLabel, QVBoxLayout
 from qgis.PyQt.QtWidgets import QToolButton, QComboBox, QApplication, QStylePainter, QStyleOptionComboBox
 from qgis.PyQt.QtWidgets import QCheckBox
 from qgis.PyQt.QtCore import pyqtSignal, Qt, QEvent, QSize, QObject, QPoint, QItemSelectionModel, QItemSelection
@@ -10,6 +10,7 @@ from qgis.PyQt.QtCore import pyqtSignal, Qt, QEvent, QSize, QObject, QPoint, QIt
 from qgis.gui import QgsSymbolButton, QgsColorDialog
 from qgis.core import QgsMarkerSymbol, QgsLineSymbol, QgsFillSymbol, QgsColorRamp
 from typing import List, Tuple
+
 
 class QGISRedRangeEditDialog(QDialog):
     def __init__(self, lowerValue, upperValue, parent=None, unitAbbreviation=""):
@@ -56,6 +57,7 @@ class QGISRedRangeEditDialog(QDialog):
 
     def getRangeValues(self):
         return self.lowerValueSpinBox.value(), self.upperValueSpinBox.value()
+
 
 class QGISRedSaveStrategyDialog(QDialog):
     def __init__(self, layerName, isGlobal, isCategorical,
@@ -122,6 +124,7 @@ class QGISRedSaveStrategyDialog(QDialog):
         if self.ckColors.isChecked():
             parts.append("colors")
         return parts
+
 
 class QGISRedSymbolColorSelector(QgsSymbolButton):
     colorChanged = pyqtSignal(QColor)
@@ -271,6 +274,7 @@ class QGISRedSymbolColorSelector(QgsSymbolButton):
         if newColor.isValid():
             self.setSelectorColor(newColor)
 
+
 class QGISRedColorRampSelector(QComboBox):
     rampChanged = pyqtSignal(QgsColorRamp)
 
@@ -388,6 +392,7 @@ class QGISRedColorRampSelector(QComboBox):
             painter.setPen(ramp.color(x / maxWidth))
             painter.drawLine(x, 0, x, height)
 
+
 class QGISRedRowSelectionFilter(QObject):
     def __init__(self, table):
         super().__init__(table)
@@ -432,6 +437,7 @@ class QGISRedRowSelectionFilter(QObject):
         firstColumn = model.index(rowIndex, 0)
         lastColumn = model.index(rowIndex, self.targetTable.columnCount() - 1)
         return QItemSelection(firstColumn, lastColumn)
+
 
 class QGISRedPaletteEmulator(QObject):
     """Generates interpolated colors for N classes from a customizable palette.
@@ -558,9 +564,9 @@ class QGISRedPaletteEmulator(QObject):
         paletteSize = len(self.colors)
         segments = paletteSize - 1
         intervals = totalClasses - 1
-        
+
         distances, totalDistance = self.calculateSegmentDistances()
-        
+
         if totalDistance == 0:
             # Even distribution loop
             segmentCounts = [intervals // segments] * segments
@@ -581,10 +587,10 @@ class QGISRedPaletteEmulator(QObject):
 
         missing = intervals - currentSum
         sorted_indices = sorted(range(len(remainders)), key=lambda k: remainders[k], reverse=True)
-            
+
         for i in range(missing):
             segmentCounts[sorted_indices[i]] += 1
-            
+
         return segmentCounts
 
     def calculateSegmentDistances(self) -> Tuple[List[float], float]:
@@ -622,7 +628,7 @@ class QGISRedPaletteEmulator(QObject):
 
                 results.append(self.createColorResult(currentClassIdx, currentRgb))
                 currentClassIdx += 1
-        
+
         return results
 
     def linearInterpolate(self, color1, color2, factor):
@@ -675,6 +681,7 @@ class QGISRedPaletteEmulator(QObject):
 
     def getHexList(self) -> List[str]:
         return [color["hex"] for color in self.generatedColors]
+
 
 class QGISRedSizePaletteEmulator(QObject):
     """Generates interpolated sizes for N classes from a customizable palette of anchor sizes.

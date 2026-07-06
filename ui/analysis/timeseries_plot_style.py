@@ -16,6 +16,8 @@ GRID_DAY_START_MIN_WIDTH = 2.0
 def emphasized_day_start_grid_width(base_width: float) -> float:
     base = max(0.5, float(base_width))
     return max(base * GRID_DAY_START_WIDTH_SCALE, base + 1.0, GRID_DAY_START_MIN_WIDTH)
+
+
 BORDER_COLOR = QColor(200, 200, 200)
 TEXT_DARK = QColor(20, 20, 20)
 TEXT_AXIS = QColor(40, 40, 40)
@@ -44,4 +46,3 @@ def qfont(size: int, *, bold: bool = False) -> QFont:
     if bold:
         f.setBold(True)
     return f
-

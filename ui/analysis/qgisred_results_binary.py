@@ -2,15 +2,15 @@ import struct
 import os
 
 
-_LT_CV   = 0  
-_LT_PIPE = 1  
-_LT_PUMP = 2  
-_LT_PRV  = 3  
-_LT_PSV  = 4  
-_LT_PBV  = 5  
-_LT_FCV  = 6  
-_LT_TCV  = 7  
-_LT_GPV  = 8  
+_LT_CV   = 0
+_LT_PIPE = 1
+_LT_PUMP = 2
+_LT_PRV  = 3
+_LT_PSV  = 4
+_LT_PBV  = 5
+_LT_FCV  = 6
+_LT_TCV  = 7
+_LT_GPV  = 8
 _NT_JUNCTION  = 0
 _NT_RESERVOIR = 1
 _NT_TANK      = 2
@@ -58,6 +58,7 @@ def average_junction_pressure(pressures, node_types):
         return 0.0
     return total / count
 
+
 _SI_XHEAD      = 0  # Pump shut off (cannot deliver head)
 _SI_TEMPCLOSED = 1  # Temporarily closed
 _SI_CLOSED     = 2  # Closed
@@ -68,6 +69,8 @@ _SI_XFCV       = 6  # FCV cannot deliver set flow
 _SI_XPRESSURE  = 7  # Valve cannot sustain/reduce set pressure
 
 """Helpers"""
+
+
 def _read_ids(f, count):
     """Helper to read an array of 32-character IDs."""
     ids = []
@@ -81,6 +84,7 @@ def _read_ids(f, count):
         ids.append(raw_id.decode('ascii', errors='ignore').strip())
     return ids
 
+
 def _read_floats(f, count):
     """Helper to read an array of floats safely."""
     if count <= 0:
@@ -89,6 +93,7 @@ def _read_floats(f, count):
     if len(data) < count * 4:
         raise EOFError(f"Expected {count * 4} bytes but read only {len(data)}")
     return struct.unpack(f'{count}f', data)
+
 
 def _read_ints(f, count):
     """Helper to read an array of signed ints safely."""
@@ -99,8 +104,9 @@ def _read_ints(f, count):
         raise EOFError(f"Expected {count * 4} bytes but read only {len(data)}")
     return struct.unpack(f'{count}i', data)
 
+
 def _resolve_link_status(indicator, link_type, Q, setting,
-                          from_head, to_head, from_pressure, to_pressure):
+                         from_head, to_head, from_pressure, to_pressure):
     """
     Convert a raw EPANET status indicator (0–7) to a descriptive text status.
 
@@ -194,6 +200,7 @@ def _resolve_link_status(indicator, link_type, Q, setting,
         else:
             return "Closed"
 
+
 def _calculate_period_index(time_seconds, meta):
     """Calculates the reporting period index for a given time."""
     if meta["num_periods"] <= 1:
@@ -203,7 +210,10 @@ def _calculate_period_index(time_seconds, meta):
     period_index = int((time_seconds - meta["report_start"]) / meta["report_step"])
     return max(0, min(period_index, meta["num_periods"] - 1))
 
+
 """Metadata"""
+
+
 def getOut_Metadata(f, include_lengths=False, include_geometry=False):
     """Parses the static part of the EPANET .out file and returns metadata."""
 
@@ -295,7 +305,10 @@ def getOut_Metadata(f, include_lengths=False, include_geometry=False):
         "link_to": link_to,
     }
 
+
 """Results"""
+
+
 def getOut_TimeNodesProperties(out_file_path, time_seconds):
     """Reads node results from an EPANET binary (.out) file for a specific time."""
     if not os.path.exists(out_file_path):
@@ -305,9 +318,9 @@ def getOut_TimeNodesProperties(out_file_path, time_seconds):
         meta = getOut_Metadata(f)
         if not meta:
             return {}
-        
+
         period_index = _calculate_period_index(time_seconds, meta)
-        
+
         period_size = meta["period_size"]
         target_offset = meta["results_offset"] + (period_index * period_size)
         f.seek(target_offset)
@@ -326,6 +339,7 @@ def getOut_TimeNodesProperties(out_file_path, time_seconds):
                 "Quality": float(qualities[i])
             }
         return results
+
 
 def getOut_TimeLinksProperties(out_file_path, time_seconds):
     """Reads link results from an EPANET binary (.out) file for a specific time."""
@@ -394,6 +408,7 @@ def getOut_TimeLinksProperties(out_file_path, time_seconds):
             }
         return results
 
+
 def getOut_TimeNodeProperties(out_file_path, time_seconds, node_id):
     """Returns properties for a specific node ID by seeking directly to its data."""
     if not os.path.exists(out_file_path):
@@ -406,19 +421,20 @@ def getOut_TimeNodeProperties(out_file_path, time_seconds, node_id):
 
         node_index = meta["node_ids"].index(node_id)
         period_index = _calculate_period_index(time_seconds, meta)
-        
+
         period_size = meta["period_size"]
         base_node_offset = meta["results_offset"] + (period_index * period_size)
-        
+
         vars_found = {}
         var_names = ["Demand", "Head", "Pressure", "Quality"]
-        
+
         for i, name in enumerate(var_names):
             f.seek(base_node_offset + (i * meta["n_nodes"] * 4) + (node_index * 4))
             val = struct.unpack('f', f.read(4))[0]
             vars_found[name] = float(val)
 
         return vars_found
+
 
 def getOut_TimeLinkProperties(out_file_path, time_seconds, link_id):
     """Returns properties for a specific link ID by seeking directly to its data."""
@@ -432,7 +448,7 @@ def getOut_TimeLinkProperties(out_file_path, time_seconds, link_id):
 
         link_index = meta["link_ids"].index(link_id)
         period_index = _calculate_period_index(time_seconds, meta)
-        
+
         link_type = meta["link_types"][link_index]
         from_idx  = meta["link_from"][link_index]
         to_idx    = meta["link_to"][link_index]
@@ -486,6 +502,7 @@ def getOut_TimeLinkProperties(out_file_path, time_seconds, link_id):
 
         return vars_found
 
+
 def getOut_TimesNodeProperty(out_file_path, node_id, property_name):
     """Returns a time-series array for a specific property of a node."""
     if not os.path.exists(out_file_path):
@@ -502,7 +519,7 @@ def getOut_TimesNodeProperty(out_file_path, node_id, property_name):
         num_periods = meta["num_periods"]
         period_size = meta["period_size"]
         results_offset = meta["results_offset"]
-        
+
         time_series = []
         for p in range(num_periods):
             pos = results_offset + (p * period_size) + (var_index * meta["n_nodes"] * 4) + (node_index * 4)
@@ -619,15 +636,15 @@ def getOut_TimesLinkProperty(out_file_path, link_id, property_name):
 
     with open(out_file_path, 'rb') as f:
         meta = getOut_Metadata(f, include_lengths=(property_name == "HeadLoss"))
-        
+
         var_names = ["Flow", "Velocity", "UnitHdLoss", "Quality", "Status", "Setting", "ReactRate", "FricFactor"]
         calc_headloss = False
         effective_property = property_name
-        
+
         if property_name == "HeadLoss":
             calc_headloss = True
             effective_property = "UnitHdLoss"
-            
+
         if not meta or link_id not in meta["link_ids"] or effective_property not in var_names:
             return []
 
@@ -696,7 +713,10 @@ def getOut_TimesLinkProperty(out_file_path, link_id, property_name):
 
         return time_series
 
+
 """Statistics"""
+
+
 def getOut_StatNodesProperties(out_file_path, stat):
     """Returns a statistic for each node property across all reporting periods.
 
@@ -890,11 +910,11 @@ def getOut_StatLinksProperties(out_file_path, stat):
 
         if need_max:
             max_vals        = {name: np.full(nl, -np.inf, dtype=np.float32) for name, _, _, _ in TRACKED}
-            max_times       = {name: np.full(nl, -1, dtype=np.int64)        for name, _, _, _ in TRACKED}
+            max_times       = {name: np.full(nl, -1, dtype=np.int64) for name, _, _, _ in TRACKED}
             max_flow_signed = np.zeros(nl, dtype=np.float32)
         if need_min:
             min_vals        = {name: np.full(nl,  np.inf, dtype=np.float32) for name, _, _, _ in TRACKED}
-            min_times       = {name: np.full(nl, -1, dtype=np.int64)        for name, _, _, _ in TRACKED}
+            min_times       = {name: np.full(nl, -1, dtype=np.int64) for name, _, _, _ in TRACKED}
             min_flow_signed = np.zeros(nl, dtype=np.float32)
         if stat == "Average":
             sums            = {name: np.zeros(nl, dtype=np.float64) for name, _, _, _ in TRACKED}

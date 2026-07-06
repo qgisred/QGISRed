@@ -18,7 +18,7 @@ class QGISRedLengthToolDialog(QDialog, FORM_CLASS):
         self.setupUi(self)
         self.btAccept.clicked.connect(self.accept)
         self.tbTolerance.setText(self.Tolerance)
-        
+
         self.messageBar = QGISRedBanner.inject(self, self.gridLayout)
 
     def pushMessage(self, title, text, level=0, duration=5):

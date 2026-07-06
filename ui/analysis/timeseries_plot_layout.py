@@ -177,4 +177,3 @@ class PlotLayoutCalculator:
             h - local_margin_top - local_margin_bottom,
         )
         return plot_rect, local_margin_left, right_axis_label_w
-

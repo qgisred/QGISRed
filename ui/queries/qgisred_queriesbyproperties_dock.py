@@ -1,10 +1,10 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 from contextlib import suppress
-from qgis.PyQt.QtWidgets import QDockWidget, QTableWidgetItem, QHeaderView, QAbstractItemView, QToolButton, QComboBox, QStackedWidget, QLabel
+from qgis.PyQt.QtWidgets import QDockWidget, QTableWidgetItem, QHeaderView, QComboBox, QStackedWidget, QLabel
 from qgis.PyQt.QtCore import Qt, QTimer
 from qgis.PyQt.QtGui import QBrush, QColor, QIcon, QFont
 from qgis.PyQt import uic
-from qgis.core import QgsProject, QgsVectorLayer, QgsFeatureRequest
+from qgis.core import QgsProject, QgsFeatureRequest
 from qgis.gui import QgsHighlight
 import os
 from ...compat import sip
@@ -20,7 +20,8 @@ from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 
 # load UI
-FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),"qgisred_queriesbyproperties_dock.ui"))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_queriesbyproperties_dock.ui"))
+
 
 class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
     def __init__(self, iface, parent=None):
@@ -247,8 +248,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         self.labelStatisticsUnit.setMaximumWidth(50)
         self.updateProperties()
 
-
-    def setupButtonIcons(self): #TODO rename to QGISRed folder instead of BID on deploy
+    def setupButtonIcons(self):  # TODO rename to QGISRed folder instead of BID on deploy
         self.btImport.setIcon(QIcon(":/images/iconStatisticsImport.svg"))
         self.btImport.setToolTip(self.tr("Import criteria from file"))
         self.btExport.setIcon(QIcon(":/images/iconStatisticsExport.svg"))
@@ -1098,7 +1098,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                     if prop in self.enumeratedFields:
                         cat = 'listed'
                     freeTextFields = {'Id', 'Descrip', 'InstalDate', 'InstDate',
-                                       'Time', 'Time_H', 'Time_Q', 'Time_D'}
+                                      'Time', 'Time_H', 'Time_Q', 'Time_D'}
                     if (cat == 'text' and prop not in freeTextFields) or cat == 'listed':
                         uniqueVals = self.getUniqueFieldValues(layer, prop)
                         strVals = sorted({str(v) for v in uniqueVals if v is not None and str(v).strip()})
@@ -1341,7 +1341,6 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         # Update state of buttons based on new selection / criteria
         self.updateButtonsState()
 
-
     def addCriterion(self, operator):
         prop    = self.getComboInternalName(self.cbProperty)
         cond    = self.cbCondition.currentText()
@@ -1384,9 +1383,9 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         if cond == 'All':
             return '1=1'
         fld  = f'"{crit["property"]}"'
-        op_map = {'=':'=', '≠':'<>', 'LIKE':' LIKE ', 'NOT LIKE':' NOT LIKE ',
-                  'ILIKE':' ILIKE ', 'NOT ILIKE':' NOT ILIKE ',
-                  'contains':' LIKE ', 'starts with':' LIKE ', 'ends with':' LIKE '}
+        op_map = {'=': '=', '≠': '<>', 'LIKE': ' LIKE ', 'NOT LIKE': ' NOT LIKE ',
+                  'ILIKE': ' ILIKE ', 'NOT ILIKE': ' NOT ILIKE ',
+                  'contains': ' LIKE ', 'starts with': ' LIKE ', 'ends with': ' LIKE '}
         op   = op_map.get(cond, cond)
         val  = crit['value']
         isTextComparison = isinstance(val, str)
@@ -1394,9 +1393,12 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         if isTextComparison:
             if cond in ('LIKE', 'NOT LIKE', 'ILIKE', 'NOT ILIKE', 'contains'):
                 val = f"'%{val}%'"
-            elif cond == 'starts with': val = f"'{val}%'"
-            elif cond == 'ends with':   val = f"'%{val}'"
-            else:                       val = f"'{val}'"
+            elif cond == 'starts with':
+                val = f"'{val}%'"
+            elif cond == 'ends with':
+                val = f"'%{val}'"
+            else:
+                val = f"'{val}'"
         if isTextComparison and not isCaseInsensitive:
             return f"lower({fld}) {op} lower({val})"
         return f"{fld} {op} {val}"
@@ -1790,8 +1792,8 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         else:
             enabled = self.criteria[row].get('enabled', True)
             self.btCriteriaSwitch.setIcon(
-            self.iconSwitchEnabled  if enabled  else
-            self.iconSwitchDisabled )
+                self.iconSwitchEnabled if enabled else
+                self.iconSwitchDisabled)
         self.updateButtonsState()
 
     def toggleCriterionEnabled(self):
@@ -1805,7 +1807,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
         is_enabled = crit['enabled']
 
         self.btCriteriaSwitch.setIcon(
-            self.iconSwitchEnabled  if is_enabled  else
+            self.iconSwitchEnabled if is_enabled else
             self.iconSwitchDisabled
         )
 
@@ -2010,15 +2012,15 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
                 writer = csv.writer(f)
                 headers = [
                     table.horizontalHeaderItem(col).text()
-                        if table.horizontalHeaderItem(col) else ''
+                    if table.horizontalHeaderItem(col) else ''
                     for col in range(table.columnCount())
-               ]
+                ]
                 writer.writerow(headers)
 
                 for row in range(table.rowCount()):
                     rowdata = [
                         table.item(row, col).text()
-                            if table.item(row, col) else ''
+                        if table.item(row, col) else ''
                         for col in range(table.columnCount())
                     ]
                     writer.writerow(rowdata)
@@ -2179,7 +2181,7 @@ class QGISRedQueriesByPropertiesDock(QDockWidget, FORM_CLASS):
             with open(fname, 'w', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
                 f.write(f"Project: {projectName}\n")
-                f.write(f"Scenario: base\n")
+                f.write("Scenario: base\n")
                 f.write(f"Element Type: {elementType}\n")
                 if len(activeCriteria) == 1:
                     c = activeCriteria[0]

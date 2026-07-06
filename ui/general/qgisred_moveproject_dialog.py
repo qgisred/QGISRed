@@ -26,7 +26,7 @@ class QGISRedMoveProjectDialog(QDialog, FORM_CLASS):
         self.cbMoveQGISProject.setVisible(self._hasQGisProject)
         if self._hasQGisProject:
             self.resize(self.width(), self.height() + self.cbMoveQGISProject.sizeHint().height() + 6)
-        
+
         self.messageBar = QGISRedBanner.inject(self, self.gridLayout)
 
     def pushMessage(self, title, text, level=0, duration=5):

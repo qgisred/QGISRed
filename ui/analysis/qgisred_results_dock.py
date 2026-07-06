@@ -1,25 +1,25 @@
 # -*- coding: utf-8 -*-
 from contextlib import suppress
-from qgis.PyQt.QtWidgets import QDockWidget, QApplication, QColorDialog
+from qgis.PyQt.QtWidgets import QDockWidget, QApplication
 from qgis.PyQt.QtCore import Qt, pyqtSignal, QTimer, QCoreApplication
-from qgis.PyQt.QtGui import QPixmap, QIcon, QColor
+from qgis.PyQt.QtGui import QPixmap, QIcon
 from qgis.PyQt import uic
 from qgis.core import (
-    QgsProject, QgsLayerTreeGroup, QgsField, QgsAttributeTableConfig, QgsRenderContext, NULL,
+    QgsProject, QgsLayerTreeGroup, QgsField, QgsRenderContext, NULL,
 )
 from qgis.gui import QgsDualView
 from ...compat import sip, QVariantString, QVariantDouble, ATCOL_TYPE_FIELD
 
 from ...tools.utils.qgisred_filesystem_utils import QGISRedFileSystemUtils, DIR_RESULTS
 from ...tools.utils.qgisred_layer_utils import QGISRedLayerUtils
-from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils, QGISRED_COMBO_STYLE
+from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
 from ...tools.utils.qgisred_field_utils import QGISRedFieldUtils
 from ...tools.utils.qgisred_project_utils import QGISRedProjectUtils
 from ...tools.qgisred_dependencies import QGISRedDependencies as GISRed
 
 from .qgisred_results_rendering import _ResultsRenderingMixin, time_field_name
 from .qgisred_results_data import (_ResultsDataMixin, _STAT_VAR_ALIASES,
-                                    NODE_RESULT_FIELDS, LINK_RESULT_FIELDS)
+                                   NODE_RESULT_FIELDS, LINK_RESULT_FIELDS)
 from .qgisred_results_distribution import _ResultsDistributionMixin
 from .qgisred_results_evolution import _ResultsEvolutionMixin
 from .qgisred_results_appearance import _ResultsAppearanceMixin
@@ -31,6 +31,7 @@ import shutil
 import tempfile
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_results_dock.ui"))
+
 
 class QGISRedResultsDock(
     QDockWidget, FORM_CLASS,
@@ -70,7 +71,6 @@ class QGISRedResultsDock(
             if result != message:
                 return result
         return message
-
 
     def __init__(self, iface):
         """Constructor."""
@@ -288,6 +288,7 @@ class QGISRedResultsDock(
         }
 
     """Stale results detection"""
+
     def _getNetworkFiles(self):
         """Return all network shapefiles and dbf files (excluding Results/).
         Note: _Metadata.txt is excluded — it gets updated by internal operations
@@ -377,10 +378,10 @@ class QGISRedResultsDock(
         """Verifies if the loaded 'Pipes' layer matches the dock's project and network."""
         # Define the expected 'Pipes' layer path for the current project context
         expected_pipes_path = self.generatePath(self.ProjectDirectory, f"{self.NetworkName}_Pipes.shp")
-        
+
         # Check if any loaded layer matches the expected path
         is_correct_project = any(self.getLayerPath(layer) == expected_pipes_path for layer in self.getLayers())
-        
+
         if is_correct_project:
             return True
 
@@ -389,7 +390,7 @@ class QGISRedResultsDock(
         QGISRedUIUtils.showGlobalMessage(self.iface, message, level=1, duration=5)
         self.close()
         return False
-    
+
     def updateQualityItemComboboxes(self):
         self.cbLinks.currentIndexChanged.disconnect(self.linksChanged)
         self.cbNodes.currentIndexChanged.disconnect(self.nodesChanged)
@@ -483,6 +484,7 @@ class QGISRedResultsDock(
             self.cbLinks.currentIndexChanged.connect(self.linksChanged)
 
     """Paths"""
+
     def getUniformedPath(self, path):
         return QGISRedFileSystemUtils().getUniformedPath(path)
 
@@ -496,6 +498,7 @@ class QGISRedResultsDock(
         return os.path.join(self.ProjectDirectory, DIR_RESULTS)
 
     """Layers and Groups"""
+
     def getLayers(self):
         return QGISRedLayerUtils().getLayers()
 
@@ -516,13 +519,13 @@ class QGISRedResultsDock(
                 continue
 
             existingLayer = next(
-                (l for l in self.getLayers() if self.getLayerPath(l) == resultLayerPath), None
+                (lyr for lyr in self.getLayers() if self.getLayerPath(lyr) == resultLayerPath), None
             )
             if existingLayer is None:
                 # Layer not open yet — open it fresh and prepare its fields
                 utils.openLayer(group, file, results=True)
                 existingLayer = next(
-                    (l for l in self.getLayers() if self.getLayerPath(l) == resultLayerPath), None
+                    (lyr for lyr in self.getLayers() if self.getLayerPath(lyr) == resultLayerPath), None
                 )
             else:
                 # Layer already open — reload OGR data (new shapefile written in-place).
@@ -561,6 +564,7 @@ class QGISRedResultsDock(
         return group
 
     """Fields"""
+
     def prepareResultFields(self, layer, layer_type):
         """Ensures that all possible result fields exist in the layer in a fixed order."""
         if layer_type == "Node":
@@ -594,7 +598,7 @@ class QGISRedResultsDock(
                     if length:
                         field.setLength(length)
                 new_fields.append(field)
-        
+
         if new_fields:
             layer.dataProvider().addAttributes(new_fields)
             layer.updateFields()
@@ -628,7 +632,6 @@ class QGISRedResultsDock(
         if not self.Computing:
             self._applyFieldVisibilityToOpenTables(layer, config)
 
-
     def forceFinalFieldsVisibility(self):
         """Re-applies visibility to all result layers after everything has settled."""
         for layerName in ["Node", "Link"]:
@@ -642,34 +645,35 @@ class QGISRedResultsDock(
             target_layer = self._findResultLayer(layerName)
             if not target_layer:
                 continue
-            
+
             # Identify result fields from constants
             fields_def = NODE_RESULT_FIELDS if layerName == "Node" else LINK_RESULT_FIELDS
             fields_to_clear = [f[0] for f in fields_def]
-            
+
             field_indices = []
             for f_name in fields_to_clear:
                 idx = target_layer.fields().indexOf(f_name)
                 if idx != -1:
                     field_indices.append(idx)
-            
+
             if not field_indices:
                 continue
-                
+
             attribute_updates = {}
             for feature in target_layer.getFeatures():
                 updates = {idx: NULL for idx in field_indices}
                 attribute_updates[feature.id()] = updates
-                
+
             if attribute_updates:
                 target_layer.dataProvider().changeAttributeValues(attribute_updates)
                 target_layer.dataProvider().dataChanged.emit()
                 target_layer.triggerRepaint()
-                
+
         self.displayingLinkField = ""
         self.displayingNodeField = ""
 
     """UI Elements"""
+
     def restoreElementsCb(self):
         self.Scenario = "Base"
         self.Computing = True
@@ -733,19 +737,19 @@ class QGISRedResultsDock(
         """Return the index of target in labels_str (';'-separated elapsed strings) after formatting.
         Returns -1 if not found. Requires self._startClockSeconds to be set for civil mode.
         """
-        labels = [l for l in labels_str.split(";") if l]
+        labels = [lbl for lbl in labels_str.split(";") if lbl]
         if civil:
             formatted = [
                 format_civil_time(
-                    self._elapsedTextToHours(l) or 0.0,
+                    self._elapsedTextToHours(lbl) or 0.0,
                     self._startClockSeconds,
                     include_seconds=True,
                     am_pm=am_pm,
                 )
-                for l in labels
+                for lbl in labels
             ]
         elif continuous:
-            formatted = [self._toContinuousHours(l) for l in labels]
+            formatted = [self._toContinuousHours(lbl) for lbl in labels]
         else:
             formatted = labels
         try:
@@ -941,7 +945,7 @@ class QGISRedResultsDock(
                 self._statsMode = True
                 self._currentStat = stat_text
                 self.updateLinksComboboxForStat(stat_text)  # manages its own signal blocking
-                if restore["link_field"]: #Flow_Sign and Flow_Unsig requirement
+                if restore["link_field"]:  # Flow_Sign and Flow_Unsig requirement
                     self.cbLinks.blockSignals(True)
                     self._setComboByField(self.cbLinks, self._link_field_map, restore["link_field"])
                     self.cbLinks.blockSignals(False)
@@ -1226,6 +1230,7 @@ class QGISRedResultsDock(
             QApplication.processEvents()
 
     """Clicked events"""
+
     def statisticsChanged(self):
         # 1. First, save render BEFORE updating state to new statistic (only if not computing)
         if not self.Computing:
@@ -1276,7 +1281,7 @@ class QGISRedResultsDock(
                     else:
                         self.completeResultLayers()
                     self.paintIntervalTimeResults(True)
-                    
+
                     # Defer final visibility application to ensure the layer is fully ready
                     # This fixes the issue where opening the table too fast shows all columns
                     QTimer.singleShot(200, self.forceFinalFieldsVisibility)
@@ -1549,6 +1554,7 @@ class QGISRedResultsDock(
             QApplication.restoreOverrideCursor()
 
     """Main methods"""
+
     def updateLabels(self, layer_type):
         if not self.validationsOpenResult():
             return
@@ -1751,5 +1757,3 @@ class QGISRedResultsDock(
 
         # Activate map tips
         self.iface.actionMapTips().setChecked(True)
-
-

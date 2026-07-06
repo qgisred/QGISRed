@@ -5,7 +5,6 @@ from qgis.PyQt import uic
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import (
     QDialog,
-    QDoubleSpinBox,
     QHeaderView,
     QMessageBox,
     QTableWidgetItem,

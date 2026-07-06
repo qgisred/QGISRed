@@ -938,7 +938,6 @@ class QGISRedGroupEditDialog(QDialog, FORM_CLASS):
         self._commitEdits(layer, fieldName, edits)
 
     def _computeEdits(self, features, fieldName, actionKey, actionKind, layer):
-        field = layer.fields().field(fieldName)
         edits = []  # list of (fid, oldValue, newValue)
         if actionKind == "numeric":
             try:

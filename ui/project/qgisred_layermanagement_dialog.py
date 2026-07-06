@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from qgis.PyQt.QtWidgets import QDialog, QApplication
 from qgis.PyQt.QtCore import Qt
-from qgis.core import QgsCoordinateReferenceSystem, QgsVectorLayer, QgsProject
+from qgis.core import QgsCoordinateReferenceSystem
 from qgis.PyQt import uic
 from qgis.gui import QgsProjectionSelectionDialog as QgsGenericProjectionSelector
 
@@ -22,7 +22,7 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
     iface = None
     NetworkName = ""
     ProjectDirectory = ""
-    
+
     def __init__(self, parent=None):
         """Constructor."""
         super(QGISRedLayerManagementDialog, self).__init__(parent)
@@ -30,7 +30,7 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         self.btAccept.clicked.connect(self.accept)
         self.btCancel.clicked.connect(self.reject)
         self.btSelectCRS.clicked.connect(self.selectCRS)
-        
+
         self.messageBar = QGISRedBanner.inject(self, self.gridLayout)
 
         self.btPipes.clicked.connect(lambda: self.createElement("Pipes"))
@@ -44,7 +44,7 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         self.btIsolatedValves.clicked.connect(lambda: self.createElement("IsolationValves", True))
         self.btConnections.clicked.connect(lambda: self.createElement("ServiceConnections", True))
         self.btMeters.clicked.connect(lambda: self.createElement("Meters", True))
-        
+
         # Initialize layer name mapping
         self.layerNameMapping = {}
         self.elementToDisplayName = {}
@@ -74,7 +74,7 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
 
         self.NetworkName = netw
         self.ProjectDirectory = direct
-        
+
         # Map display name with QGISRed processing names
         self.buildLayerNameMapping()
 
@@ -90,7 +90,7 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
             if hasattr(child, 'layer') and child.layer():
                 layer = child.layer()
                 layerIdentifier = layer.customProperty("qgisred_identifier")
-                
+
                 if not layerIdentifier:
                     continue
 
@@ -102,12 +102,12 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
     def buildLayerNameMapping(self):
         self.layerNameMapping.clear()
         self.elementToDisplayName.clear()
-        
+
         # Set default display names from checkbox text
         for elementType, (_, checkbox) in self.elements.items():
             checkboxText = checkbox.text().split("Id:")[0].strip()
             self.elementToDisplayName[elementType] = checkboxText
-        
+
         def updateMappings(layer, element_type):
             actual_name = layer.name()
             self.layerNameMapping[element_type] = actual_name
@@ -135,7 +135,7 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
 
     def setProperties(self):
         dirList = os.listdir(self.ProjectDirectory)
-        
+
         # Update checkbox texts with actual layer names
         self.updateCheckboxText(self.cbPipes, "Pipes")
         self.updateCheckboxText(self.cbJunctions, "Junctions")
@@ -148,7 +148,7 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         self.updateCheckboxText(self.cbIsolatedValves, "IsolationValves")
         self.updateCheckboxText(self.cbConnections, "ServiceConnections")
         self.updateCheckboxText(self.cbMeters, "Meters")
-        
+
         # Visibilities
         self.btPipes.setVisible(not self.NetworkName + "_Pipes.shp" in dirList)
         self.btJunctions.setVisible(not self.NetworkName + "_Junctions.shp" in dirList)
@@ -211,16 +211,16 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
         # Get the identifier for this element type
         if elementType not in self.elements:
             return False
-        
+
         targetIdentifier = self.elements[elementType][0]
-        
+
         # Check all layers for the identifier
         layers = self.utils.getLayers()
         for layer in layers:
             layerIdentifier = layer.customProperty("qgisred_identifier")
             if layerIdentifier == targetIdentifier:
                 return True
-        
+
         # Fallback to checking by path for backward compatibility
         return self.utils.isLayerOpened(elementType)
 
@@ -258,7 +258,7 @@ class QGISRedLayerManagementDialog(QDialog, FORM_CLASS):
 
     def isInLegend(self, layerName):
         openedLayers = self.getLayers()
-        
+
         for layer in openedLayers:
             # Should translate here
             originalName = QGISRedIdentifierUtils(self.ProjectDirectory, self.NetworkName, self.iface).getOriginalNameFromLayerName(layerName)

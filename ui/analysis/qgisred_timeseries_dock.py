@@ -27,9 +27,8 @@ from qgis.PyQt.QtWidgets import (
     QWidget,
 )
 from qgis.PyQt.QtCore import QCoreApplication, QEvent, Qt, QPointF, QRect, QRectF, pyqtSignal, QSize
-from qgis.PyQt.QtGui import QColor, QFont, QPainter, QFontMetrics, QIcon, QPixmap
+from qgis.PyQt.QtGui import QFont, QPainter, QFontMetrics, QIcon, QPixmap
 from qgis.PyQt import uic
-from qgis.core import QgsApplication
 
 from ...compat import DIALOG_ACCEPTED
 from ...tools.utils.qgisred_ui_utils import QGISRedUIUtils
@@ -66,6 +65,7 @@ except Exception:
     _LEGEND_ROW_GAP = 16
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "qgisred_timeseries_dock.ui"))
+
 
 class TimeSeriesPlotWidget(QWidget):
     _MIN_VIEW_HOURS = 1.0
@@ -1176,7 +1176,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
 
         self._initToolbar()
         self._updateMinimumWidthForDockTitle()
-        
+
         self.plot = TimeSeriesPlotWidget(self.chartContainer)
         self.plot.setCursorTimeTextFormatter(self._formatCursorTimeText)
         self.plot.installEventFilter(self)
@@ -1189,7 +1189,7 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         self.plot.zoomWindowModeChanged.connect(self._onPlotZoomWindowModeChanged)
         self.plot.cursorTimeChanged.connect(self._onPlotCursorTimeChanged)
         self.lblTitle.hide()
-        
+
         QGISRedUIUtils.applyDockStyle(self, "#0097A7", backgroundColor="white")
         self.chartContainer.setStyleSheet("background-color: white;")
         self._applyGlobalVarComboStyles()
@@ -1756,7 +1756,6 @@ class QGISRedTimeSeriesDock(QDockWidget, FORM_CLASS):
         cols = list(range(col_count))
         text = self._valuesTableClipboardText(rows, cols)
         self._putValuesTableTextOnClipboard(text, self.tr("No table values to copy"))
-
 
     def _tableSeriesCountForLayout(self) -> int:
         table = getattr(self, "_table", None)

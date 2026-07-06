@@ -97,6 +97,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         self._fillTable()
 
     """Helpers"""
+
     def _getUniformedPath(self, path):
         return self.utils.getUniformedPath(path)
 
@@ -118,7 +119,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
                     with suppress(Exception):
                         os.remove(filepath)
             elif os.path.isdir(filepath):
-                if os.path.basename(filepath).lower() == "layerstyles": # Temporal fix
+                if os.path.basename(filepath).lower() == "layerstyles":  # Temporal fix
                     with suppress(Exception):
                         rmtree(filepath)
                 else:
@@ -132,6 +133,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         return QGISRedProjectIO(projectPath or self.ProjectDirectory, networkName or self.NetworkName, self.iface)
 
     """Helpers for Table/UI"""
+
     def _takeRow(self, rowIndex):
         rowItems = []
         columns = self.twProjectList.columnCount()
@@ -290,6 +292,7 @@ class QGISRedProjectManagerDialog(QDialog, FORM_CLASS):
         self.messageBar.pushMessage(title, text, level, duration)
 
     """Main methods"""
+
     def up(self):
         self.moveUpDown(True)
 

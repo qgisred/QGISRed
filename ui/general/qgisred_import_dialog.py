@@ -2,7 +2,7 @@
 from qgis.PyQt.QtWidgets import QFileDialog, QDialog, QApplication
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QIcon
-from qgis.core import QgsVectorLayer, QgsProject, QgsCoordinateReferenceSystem
+from qgis.core import QgsVectorLayer, QgsCoordinateReferenceSystem
 from ...compat import WKB_LINE_GEOMETRY, WKB_POINT_GEOMETRY
 from qgis.PyQt import uic
 from qgis.gui import QgsProjectionSelectionDialog as QgsGenericProjectionSelector
@@ -170,7 +170,6 @@ class QGISRedImportDialog(QDialog, FORM_CLASS):
             return "Unknown"
 
         return units
-        
 
     def validationsCreateProject(self, validateName=True):
         if not self.NewProject:
