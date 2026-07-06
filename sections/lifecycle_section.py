@@ -475,8 +475,6 @@ class LifecycleSection:
                 if not link.startswith("https://"):
                     return valid
                 _ctx = ssl.create_default_context()
-                _ctx.check_hostname = False
-                _ctx.verify_mode = ssl.CERT_NONE
                 fd, localFile = tempfile.mkstemp(suffix=".msi", prefix="QGISRed_")
                 os.close(fd)
                 try:
@@ -522,8 +520,6 @@ class LifecycleSection:
         language = "es" if QgsApplication.locale()[0:2] == "es" else "en"
         news_url = "https://qgisred.upv.es/files/news/" + language + "/news.json"
         _ctx = ssl.create_default_context()
-        _ctx.check_hostname = False
-        _ctx.verify_mode = ssl.CERT_NONE
         try:
             with urllib.request.urlopen(news_url, timeout=10, context=_ctx) as response:  # nosec B310 — news_url is a hardcoded https:// constant
                 data = json.loads(response.read().decode("utf-8"))
